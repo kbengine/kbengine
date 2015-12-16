@@ -5,6 +5,6 @@ color 2
 set ktexcels=.
 set ktpydatas=pydatas
 set haskt=1
-echo 输入目录:[%ktexcels%]
-echo 输出目录:[%ktpydatas%]
+echo Input directory:[%ktexcels%]
+echo Output directory:[%ktpydatas%]
 echo on

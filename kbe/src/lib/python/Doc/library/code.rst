@@ -29,13 +29,13 @@ build applications which provide an interactive interpreter prompt.
 
 .. function:: interact(banner=None, readfunc=None, local=None)
 
-   Convenience function to run a read-eval-print loop.  This creates a new instance
-   of :class:`InteractiveConsole` and sets *readfunc* to be used as the
-   :meth:`raw_input` method, if provided.  If *local* is provided, it is passed to
-   the :class:`InteractiveConsole` constructor for use as the default namespace for
-   the interpreter loop.  The :meth:`interact` method of the instance is then run
-   with *banner* passed as the banner to use, if provided.  The console object is
-   discarded after use.
+   Convenience function to run a read-eval-print loop.  This creates a new
+   instance of :class:`InteractiveConsole` and sets *readfunc* to be used as
+   the :meth:`InteractiveConsole.raw_input` method, if provided.  If *local* is
+   provided, it is passed to the :class:`InteractiveConsole` constructor for
+   use as the default namespace for the interpreter loop.  The :meth:`interact`
+   method of the instance is then run with *banner* passed as the banner to
+   use, if provided.  The console object is discarded after use.
 
 
 .. function:: compile_command(source, filename="<input>", symbol="single")
@@ -132,11 +132,14 @@ interpreter objects as well as the following additions.
 
 .. method:: InteractiveConsole.interact(banner=None)
 
-   Closely emulate the interactive Python console. The optional banner argument
+   Closely emulate the interactive Python console. The optional *banner* argument
    specify the banner to print before the first interaction; by default it prints a
    banner similar to the one printed by the standard Python interpreter, followed
    by the class name of the console object in parentheses (so as not to confuse
    this with the real interpreter -- since it's so close!).
+
+   .. versionchanged:: 3.4
+      To suppress printing any banner, pass an empty string.
 
 
 .. method:: InteractiveConsole.push(line)

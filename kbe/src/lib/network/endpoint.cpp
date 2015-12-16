@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,13 +19,27 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "endpoint.hpp"
+#include "endpoint.h"
 #ifndef CODE_INLINE
-#include "endpoint.ipp"
+#include "endpoint.inl"
+#endif
+
+#include "network/bundle.h"
+#include "network/tcp_packet_receiver.h"
+#include "network/tcp_packet_sender.h"
+#include "network/udp_packet_receiver.h"
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+#include <Iphlpapi.h>
+#pragma comment (lib,"iphlpapi.lib") 
+#else
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
 #endif
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 #ifdef unix
 #else	// not unix
@@ -57,7 +71,7 @@ namespace Mercury
 static bool g_networkInitted = false;
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<EndPoint> _g_objPool;
+static ObjectPool<EndPoint> _g_objPool("EndPoint");
 ObjectPool<EndPoint>& EndPoint::ObjPool()
 {
 	return _g_objPool;
@@ -66,8 +80,8 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 //-------------------------------------------------------------------------------------
 void EndPoint::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("EndPoint::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("EndPoint::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -91,7 +105,7 @@ void EndPoint::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
-bool EndPoint::getClosedPort(Mercury::Address & closedPort)
+bool EndPoint::getClosedPort(Network::Address & closedPort)
 {
 	bool isResultSet = false;
 
@@ -167,10 +181,33 @@ bool EndPoint::getClosedPort(Mercury::Address & closedPort)
 
 	return isResultSet;
 }
+
+//-------------------------------------------------------------------------------------
+int EndPoint::getBufferSize(int optname) const
+{
+	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);
+
+	int recvbuf = -1;
+	socklen_t rbargsize = sizeof(int);
+
+	int rberr = getsockopt(socket_, SOL_SOCKET, optname,
+		(char*)&recvbuf, &rbargsize);
+
+	if (rberr == 0 && rbargsize == sizeof(int))
+		return recvbuf;
+
+	ERROR_MSG(fmt::format("EndPoint::getBufferSize: "
+		"Failed to read option {}: {}\n",
+		(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF"),
+		kbe_strerror()));
+
+	return -1;
+}
+
 //-------------------------------------------------------------------------------------
 bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 {
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 	int count = 0;
 	char hostname[1024];
 	struct hostent* inaddrs;
@@ -185,7 +222,7 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 				unsigned long addrs = *(unsigned long*)inaddrs->h_addr_list[count];
 				interfaces[addrs] = "eth0";
 				char *ip = inet_ntoa (*(struct in_addr *)inaddrs->h_addr_list[count]);
-				DEBUG_MSG(boost::format("EndPoint::getInterfaces: found eth0 %1%\n") % ip);
+				DEBUG_MSG(fmt::format("EndPoint::getInterfaces: found eth0 {}\n", ip));
 				++count;
 			}
 		}
@@ -205,10 +242,9 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 		return false;
 	}
 
-	// Iterate through the list of interfaces.
 	struct ifreq * ifr         = ifc.ifc_req;
 	int nInterfaces = ifc.ifc_len / sizeof(struct ifreq);
-	for (int i = 0; i < nInterfaces; i++)
+	for (int i = 0; i < nInterfaces; ++i)
 	{
 		struct ifreq *item = &ifr[i];
 
@@ -218,6 +254,226 @@ bool EndPoint::getInterfaces(std::map< u_int32_t, std::string > &interfaces)
 
 	return true;
 #endif
+}
+
+//-------------------------------------------------------------------------------------
+int EndPoint::findIndicatedInterface(const char * spec, u_int32_t & address)
+{
+	address = 0;
+
+	if(spec == NULL || spec[0] == 0) 
+	{
+		return -1;
+	}
+
+	// 是否指定地址
+	if(0 != Address::string2ip(spec, address))
+	{
+		return -1;
+	}
+	else if(0 != this->getInterfaceAddressByMAC(spec, address))
+	{
+		return -1;
+	}
+	else if(0 != this->getInterfaceAddressByName(spec, address))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+int EndPoint::getInterfaceAddressByName(const char * name, u_int32_t & address)
+{
+	int ret = -1;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+
+    PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+    unsigned long size = sizeof(IP_ADAPTER_INFO);
+
+    int ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);
+
+    if (ERROR_BUFFER_OVERFLOW == ret_info)
+    {
+        delete pIpAdapterInfo;
+        pIpAdapterInfo = (PIP_ADAPTER_INFO)new unsigned char[size];
+        ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);    
+    }
+
+    if (ERROR_SUCCESS == ret_info)
+    {
+		PIP_ADAPTER_INFO _pIpAdapterInfo = pIpAdapterInfo;
+		while (_pIpAdapterInfo)
+		{
+			if(!strcmp(_pIpAdapterInfo->AdapterName, name))
+			{
+				IP_ADDR_STRING* pIpAddrString = &(_pIpAdapterInfo->IpAddressList);
+				ret = Address::string2ip(pIpAddrString->IpAddress.String, address);
+				break;
+			}
+
+			_pIpAdapterInfo = _pIpAdapterInfo->Next;
+		}
+    }
+
+    if (pIpAdapterInfo)
+    {
+        delete pIpAdapterInfo;
+    }
+
+#else
+	
+	int fd;
+	int interfaceNum = 0;
+	struct ifreq buf[16];
+	struct ifconf ifc;
+
+	if((fd = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		::close(fd);
+		return -1;
+	}
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = (caddr_t)buf;
+
+	if(!ioctl(fd, SIOCGIFCONF, (char *)&ifc))
+	{
+		interfaceNum = ifc.ifc_len / sizeof(struct ifreq);
+		while(interfaceNum-- > 0)
+		{
+			if(!strcmp((char*)buf[interfaceNum].ifr_name, (char*)name))
+			{
+				if(!ioctl(fd, SIOCGIFADDR, (char *)&buf[interfaceNum]))
+				{
+					ret = Address::string2ip((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
+				}
+
+				break;
+			}
+		}
+	}
+
+	::close(fd);
+
+#endif
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+int EndPoint::getInterfaceAddressByMAC(const char * mac, u_int32_t & address)
+{
+	int ret = -1;
+
+	if(!mac)
+	{
+		return ret;
+	}
+
+	// mac地址转换
+	unsigned char macAddress[16] = {0};
+	unsigned char macAddressIdx = 0;
+	char szTemp[2] = {0};
+	char szTempIdx = 0;
+	char* pMac = (char*)mac;
+	while(*pMac && macAddressIdx < sizeof(macAddress))
+	{
+		if(('a' <= *pMac && *pMac <= 'f') || ('A' <= *pMac && *pMac <= 'F') || ('0' <= *pMac && *pMac <= '9'))
+		{
+			szTemp[szTempIdx++] = *pMac;
+			if(szTempIdx > 1)
+			{
+				macAddress[macAddressIdx++] = (unsigned char)::strtol(szTemp, NULL, 16);
+				szTempIdx = 0;
+			}
+		}
+
+		++pMac;
+	}
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+
+	PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+	unsigned long size = sizeof(IP_ADAPTER_INFO);
+
+	int ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);
+
+	if (ERROR_BUFFER_OVERFLOW == ret_info)
+	{
+		delete pIpAdapterInfo;
+		pIpAdapterInfo = (PIP_ADAPTER_INFO)new unsigned char[size];
+		ret_info = ::GetAdaptersInfo(pIpAdapterInfo, &size);    
+	}
+
+	if (ERROR_SUCCESS == ret_info)
+	{
+		PIP_ADAPTER_INFO _pIpAdapterInfo = pIpAdapterInfo;
+		while (_pIpAdapterInfo)
+		{
+			if(!strcmp((char*)_pIpAdapterInfo->Address, (char*)macAddress))
+			{
+				IP_ADDR_STRING* pIpAddrString = &(_pIpAdapterInfo->IpAddressList);
+				ret = Address::string2ip(pIpAddrString->IpAddress.String, address);
+				break;
+			}
+
+			_pIpAdapterInfo = _pIpAdapterInfo->Next;
+		}
+	}
+
+	if (pIpAdapterInfo)
+	{
+		delete pIpAdapterInfo;
+	}
+
+#else
+
+	int fd;
+	int interfaceNum = 0;
+	struct ifreq buf[16];
+	struct ifconf ifc;
+
+	if((fd = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		::close(fd);
+		return -1;
+	}
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = (caddr_t)buf;
+
+	if(!ioctl(fd, SIOCGIFCONF, (char *)&ifc))
+	{
+		interfaceNum = ifc.ifc_len / sizeof(struct ifreq);
+		while(interfaceNum-- > 0)
+		{
+			if(!ioctl(fd, SIOCGIFHWADDR, (char *)(&buf[interfaceNum])))
+			{
+				if(!strcmp((char*)buf[interfaceNum].ifr_hwaddr.sa_data, (char*)macAddress))
+				{
+					if(!ioctl(fd, SIOCGIFADDR, (char *)&buf[interfaceNum]))
+					{
+						ret = Address::string2ip((const char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr), address);
+					}
+
+					break;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	::close(fd);
+
+#endif
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -258,9 +514,9 @@ int EndPoint::findDefaultInterface(char * name)
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EndPoint::findDefaultInterface: "
-							"if_nameindex returned NULL (%1%)\n") %
-						kbe_strerror());
+		ERROR_MSG(fmt::format("EndPoint::findDefaultInterface: "
+							"if_nameindex returned NULL ({})\n",
+						kbe_strerror()));
 	}
 
 	return ret;
@@ -268,230 +524,39 @@ int EndPoint::findDefaultInterface(char * name)
 }
 
 //-------------------------------------------------------------------------------------
-int EndPoint::findIndicatedInterface(const char * spec, char * name)
+int EndPoint::getDefaultInterfaceAddress(u_int32_t & address)
 {
-	// start with it cleared
-	name[0] = 0;
+	int ret = -1;
 
-	// make sure there's something there
-	if (spec == NULL || spec[0] == 0) return -1;
-
-	// set up some working vars
-	char * slash;
-	int netmaskbits = 32;
-	char iftemp[IFNAMSIZ+16];
-	strncpy(iftemp, spec, IFNAMSIZ); iftemp[IFNAMSIZ] = 0;
-	u_int32_t addr = 0;
-
-	// see if it's a netmask
-	if ((slash = const_cast< char * >(strchr(spec, '/'))) && slash-spec <= 16)
+	char interfaceName[256] = {0};
+	ret = findDefaultInterface(interfaceName);
+	if(0 == ret)
 	{
-		// specified a netmask
-		KBE_ASSERT(IFNAMSIZ >= 16);
-		iftemp[slash-spec] = 0;
-		bool ok = EndPoint::convertAddress(iftemp, addr) == 0;
+		ret = getInterfaceAddressByName(interfaceName, address);
+	}
 
-		netmaskbits = atoi(slash+1);
-		ok &= netmaskbits > 0 && netmaskbits <= 32;
-
-		if (!ok)
+	if(0 != ret)
+	{
+		char hostname[256] = {0};
+		::gethostname(hostname, sizeof(hostname));
+		struct hostent * host = gethostbyname(hostname);
+		if(host)
 		{
-			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-				"netmask match %1% length %2% is not valid.\n") % iftemp % (slash+1));
-			return -1;
-		}
-	}
-	else if (this->getInterfaceAddress(iftemp, addr) == 0)
-	{
-		// specified name of interface
-		strncpy(name, iftemp, IFNAMSIZ);
-	}
-	else if (EndPoint::convertAddress(spec, addr) == 0)
-	{
-		// specified ip address
-		netmaskbits = 32; // redundant but instructive
-	}
-	else
-	{
-		ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-			"No interface matching interface spec '%1%' found\n") % spec);
-		return -1;
-	}
-
-	// if we haven't set a name yet then we're supposed to
-	// look up the ip address
-	if (name[0] == 0)
-	{
-		int netmaskshift = 32-netmaskbits;
-		u_int32_t netmaskmatch = ntohl(addr);
-
-		std::vector< std::string > interfaceNames;
-
-		struct if_nameindex* pIfInfo = if_nameindex();
-		if (pIfInfo)
-		{
-			struct if_nameindex* pIfInfoCur = pIfInfo;
-			while (pIfInfoCur->if_name)
+			if(host->h_addr_list[0] < host->h_name)
 			{
-				interfaceNames.push_back(pIfInfoCur->if_name);
-				++pIfInfoCur;
+				address = ((struct in_addr*)(host->h_addr_list[0]))->s_addr;
+				ret = 0;
 			}
-			if_freenameindex(pIfInfo);
-		}
-
-		std::vector< std::string >::iterator iter = interfaceNames.begin();
-
-		while (iter != interfaceNames.end())
-		{
-			u_int32_t tip = 0;
-			char * currName = (char *)iter->c_str();
-
-			if (this->getInterfaceAddress(currName, tip) == 0)
-			{
-				u_int32_t htip = ntohl(tip);
-
-				if ((htip >> netmaskshift) == (netmaskmatch >> netmaskshift))
-				{
-					//DEBUG_MSG("EndPoint::bind(): found a match\n");
-					strncpy(name, currName, IFNAMSIZ);
-					break;
-				}
-			}
-
-			++iter;
-		}
-
-		if (name[0] == 0)
-		{
-			uint8 * qik = (uint8*)&addr;
-			ERROR_MSG(boost::format("EndPoint::findIndicatedInterface: "
-				"No interface matching netmask spec '%1%' found "
-				"(evals to %2%.%3%.%4%.%5%/%6%)\n") % spec %
-				qik[0] % qik[1] % qik[2] % qik[3] % netmaskbits);
-
-			return -2; // parsing ok, just didn't match
 		}
 	}
-
-	return 0;
-}
-
-//-------------------------------------------------------------------------------------
-int EndPoint::convertAddress(const char * string, u_int32_t & address)
-{
-	u_int32_t	trial;
-
-	#ifdef unix
-	if (inet_aton(string, (struct in_addr*)&trial) != 0)
-	#else
-	if ((trial = inet_addr(string)) != INADDR_NONE)
-	#endif
-		{
-			address = trial;
-			return 0;
-		}
-
-	struct hostent * hosts = gethostbyname(string);
-	if (hosts != NULL)
-	{
-		address = *(u_int32_t*)(hosts->h_addr_list[0]);
-		return 0;
-	}
-
-	return -1;
-}
-
-//-------------------------------------------------------------------------------------
-#ifdef unix
-int EndPoint::getQueueSizes(int & tx, int & rx) const
-{
-	int	ret = -1;
-
-	u_int16_t	nport = 0;
-	this->getlocaladdress(&nport,NULL);
-
-	char		match[16];
-	kbe_snprintf(match, sizeof(match), "%04X", (int)ntohs(nport));
-
-	FILE * f = fopen("/proc/net/udp", "r");
-
-	if (!f)
-	{
-		ERROR_MSG(boost::format("Endpoint::getQueueSizes: "
-				"could not open /proc/net/udp: %1%\n") %
-			kbe_strerror());
-
-		return -1;
-	}
-
-	char	aline[256];
-
-	while (fgets(aline, 256, f) != NULL)
-	{	// it goes "iiii: hhhhhhhh:pppp" (could check ip too 'tho)
-		if(!strncmp(aline+4+1+ 1 +8+1, match, 4))
-		{	// then goes " hhhhhhhh:pppp ss tttttttt:rrrrrrrr"
-			char * start = aline+4+1+ 1 +8+1+4+ 1 +8+1+4+ 1 +2+ 1;
-			start[8] = 0;
-			tx = strtol(start, NULL, 16);
-
-			start += 8+1;
-			start[8] = 0;
-			rx = strtol(start, NULL, 16);
-
-			ret = 0;
-
-			break;
-		}
-	}
-
-	fclose(f);
 
 	return ret;
-}
-#else
-int EndPoint::getQueueSizes(int &, int &) const
-{
-	return -1;
-}
-#endif
-
-//-------------------------------------------------------------------------------------
-int EndPoint::getBufferSize(int optname) const
-{
-#ifdef unix
-	KBE_ASSERT(optname == SO_SNDBUF || optname == SO_RCVBUF);
-
-	int recvbuf = -1;
-	socklen_t rbargsize = sizeof(int);
-	int rberr = getsockopt(socket_, SOL_SOCKET, optname,
-		(char*)&recvbuf, &rbargsize);
-
-	if (rberr == 0 && rbargsize == sizeof(int))
-	{
-		return recvbuf;
-	}
-	else
-	{
-		ERROR_MSG(boost::format("EndPoint::getBufferSize: "
-			"Failed to read option %1%: %2%\n") %
-			(optname == SO_SNDBUF ? "SO_SNDBUF" : "SO_RCVBUF") %
-			kbe_strerror());
-
-		return -1;
-	}
-
-#else
-	return -1;
-#endif
 }
 
 //-------------------------------------------------------------------------------------
 bool EndPoint::setBufferSize(int optname, int size)
 {
-#ifdef unix
-	setsockopt(socket_, SOL_SOCKET, optname, (const char*)&size,
-		sizeof(size));
-#endif
+	setsockopt(socket_, SOL_SOCKET, optname, (const char*)&size, sizeof(size));
 
 	return this->getBufferSize(optname) >= size;
 }
@@ -511,8 +576,8 @@ bool EndPoint::recvAll(void * gramData, int gramSize)
 			}
 			else
 			{
-				WARNING_MSG(boost::format("EndPoint::recvAll: Got error '%1%'\n") %
-					kbe_strerror());
+				WARNING_MSG(fmt::format("EndPoint::recvAll: Got error '{}'\n",
+					kbe_strerror()));
 			}
 
 			return false;
@@ -525,9 +590,9 @@ bool EndPoint::recvAll(void * gramData, int gramSize)
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Address EndPoint::getLocalAddress() const
+Network::Address EndPoint::getLocalAddress() const
 {
-	Mercury::Address addr(0, 0);
+	Network::Address addr(0, 0);
 
 	if (this->getlocaladdress((u_int16_t*)&addr.port,
 				(u_int32_t*)&addr.ip) == -1)
@@ -539,9 +604,9 @@ Mercury::Address EndPoint::getLocalAddress() const
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Address EndPoint::getRemoteAddress() const
+Network::Address EndPoint::getRemoteAddress() const
 {
-	Mercury::Address addr(0, 0);
+	Network::Address addr(0, 0);
 
 	if (this->getremoteaddress((u_int16_t*)&addr.port,
 				(u_int32_t*)&addr.ip) == -1)
@@ -560,11 +625,9 @@ void EndPoint::initNetwork()
 	
 	g_networkInitted = true;
 
-#if !defined(PLAYSTATION3)
-#ifndef unix
+#if KBE_PLATFORM == PLATFORM_WIN32
 	WSAData wsdata;
 	WSAStartup(0x202, &wsdata);
-#endif // !unix
 #endif
 }
 
@@ -577,6 +640,20 @@ bool EndPoint::waitSend()
 	FD_SET(socket_, &fds);
 
 	return select(socket_+1, NULL, &fds, NULL, &tv) > 0;
+}
+
+//-------------------------------------------------------------------------------------
+void EndPoint::send(Bundle * pBundle)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SEND_BUNDLE((*this), (*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
+void EndPoint::sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr)
+{
+	//AUTO_SCOPED_PROFILE("sendBundle");
+	SENDTO_BUNDLE((*this), networkAddr, networkPort, (*pBundle));
 }
 
 //-------------------------------------------------------------------------------------

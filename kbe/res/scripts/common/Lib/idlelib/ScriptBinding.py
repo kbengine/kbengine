@@ -53,7 +53,7 @@ class ScriptBinding:
         self.flist = self.editwin.flist
         self.root = self.editwin.root
 
-        if macosxSupport.runningAsOSXApp():
+        if macosxSupport.isCocoaTk():
             self.editwin.text_frame.bind('<<run-module-event-2>>', self._run_module_event)
 
     def check_module_event(self, event):
@@ -87,9 +87,8 @@ class ScriptBinding:
         self.shell = shell = self.flist.open_shell()
         saved_stream = shell.get_warning_stream()
         shell.set_warning_stream(shell.stderr)
-        f = open(filename, 'rb')
-        source = f.read()
-        f.close()
+        with open(filename, 'rb') as f:
+            source = f.read()
         if b'\r' in source:
             source = source.replace(b'\r\n', b'\n')
             source = source.replace(b'\r', b'\n')
@@ -115,7 +114,7 @@ class ScriptBinding:
             shell.set_warning_stream(saved_stream)
 
     def run_module_event(self, event):
-        if macosxSupport.runningAsOSXApp():
+        if macosxSupport.isCocoaTk():
             # Tk-Cocoa in MacOSX is broken until at least
             # Tk 8.5.9, and without this rather
             # crude workaround IDLE would hang when a user
@@ -150,16 +149,16 @@ class ScriptBinding:
         dirname = os.path.dirname(filename)
         # XXX Too often this discards arguments the user just set...
         interp.runcommand("""if 1:
-            _filename = %r
+            __file__ = {filename!r}
             import sys as _sys
             from os.path import basename as _basename
             if (not _sys.argv or
-                _basename(_sys.argv[0]) != _basename(_filename)):
-                _sys.argv = [_filename]
+                _basename(_sys.argv[0]) != _basename(__file__)):
+                _sys.argv = [__file__]
             import os as _os
-            _os.chdir(%r)
-            del _filename, _sys, _basename, _os
-            \n""" % (filename, dirname))
+            _os.chdir({dirname!r})
+            del _sys, _basename, _os
+            \n""".format(filename=filename, dirname=dirname))
         interp.prepend_syspath(filename)
         # XXX KBK 03Jul04 When run w/o subprocess, runtime warnings still
         #         go to __stderr__.  With subprocess, they go to the shell.

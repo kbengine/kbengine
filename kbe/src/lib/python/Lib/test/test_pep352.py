@@ -1,7 +1,6 @@
 import unittest
 import builtins
 import warnings
-from test.support import run_unittest
 import os
 from platform import system as platform_system
 
@@ -180,8 +179,6 @@ class UsageTests(unittest.TestCase):
         # Catching a string is bad.
         self.catch_fails("spam")
 
-def test_main():
-    run_unittest(ExceptionClassTests, UsageTests)
 
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

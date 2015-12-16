@@ -68,6 +68,17 @@ def funcTupleInt(mapDict, dctData, chilidDict, data):
 
 	return tuple([int(e) for e in data.split(",") if len(e) > 0])
 
+def funcTupleFloat(mapDict, dctData, chilidDict, data):
+	"""
+	返回tuple数据
+	"""
+	if data is None or (type(data) == str and len(data) == 0):
+		return ()
+
+	data = str(data)
+
+	return tuple([float(e) for e in data.split(",") if len(e) > 0])
+	
 def funcDict(mapDict, dctData, chilidDict, data):
 	"""
 	返回dict数据
@@ -179,3 +190,18 @@ def funcUNZipFloat(mapDict, dctData, chilidDict, data):
 
 	return int(data) / 10000.0
 	
+def funcFlags(mapDict, dctData, chilidDict, data):
+	"""
+	返回标记组合数据
+	比如： 想在excel上配置标记组合
+	近程攻击:0x00000001
+	远程攻击:0x00000002
+	暴击:0x00000004
+	用此函数可以输出多个标记组成一个uint32的数字
+	"""
+	val = 0
+	for x in data.split(","):
+		if len(x) > 0:
+			val |= int(mapDict[x])
+
+	return val

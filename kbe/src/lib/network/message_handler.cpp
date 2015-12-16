@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,20 +19,23 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "message_handler.hpp"
-#include "network/channel.hpp"
-#include "network/network_interface.hpp"
-#include "network/packet_receiver.hpp"
-#include "network/fixed_messages.hpp"
-#include "helper/watcher.hpp"
+#include "message_handler.h"
+#include "common/md5.h"
+#include "network/channel.h"
+#include "network/network_interface.h"
+#include "network/packet_receiver.h"
+#include "network/fixed_messages.h"
+#include "helper/watcher.h"
+#include "xml/xml.h"
+#include "resmgr/resmgr.h"	
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
-Mercury::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
+Network::MessageHandlers* MessageHandlers::pMainMessageHandlers = 0;
 std::vector<MessageHandlers*>* g_pMessageHandlers;
 
-static Mercury::FixedMessages* g_fm;
+static Network::FixedMessages* g_fm;
 
 //-------------------------------------------------------------------------------------
 MessageHandlers::MessageHandlers():
@@ -40,11 +43,11 @@ msgHandlers_(),
 msgID_(1),
 exposedMessages_()
 {
-	g_fm = Mercury::FixedMessages::getSingletonPtr();
+	g_fm = Network::FixedMessages::getSingletonPtr();
 	if(g_fm == NULL)
-		g_fm = new Mercury::FixedMessages;
+		g_fm = new Network::FixedMessages;
 
-	Mercury::FixedMessages::getSingleton().loadConfig("server/fixed_mercury_messages.xml");
+	Network::FixedMessages::getSingleton().loadConfig("server/messages_fixed.xml");
 	messageHandlers().push_back(this);
 }
 
@@ -52,7 +55,7 @@ exposedMessages_()
 MessageHandlers::~MessageHandlers()
 {
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
-	for(; iter != msgHandlers_.end(); iter++)
+	for(; iter != msgHandlers_.end(); ++iter)
 	{
 		if(iter->second)
 			delete iter->second;
@@ -62,6 +65,7 @@ MessageHandlers::~MessageHandlers()
 //-------------------------------------------------------------------------------------
 MessageHandler::MessageHandler():
 pArgs(NULL),
+pMessageHandlers(NULL),
 send_size(0),
 send_count(0),
 recv_size(0),
@@ -87,10 +91,10 @@ const char* MessageHandler::c_str()
 bool MessageHandlers::initializeWatcher()
 {
 	std::vector< std::string >::iterator siter = exposedMessages_.begin();
-	for(; siter != exposedMessages_.end(); siter++)
+	for(; siter != exposedMessages_.end(); ++siter)
 	{
 		MessageHandlerMap::iterator iter = msgHandlers_.begin();
-		for(; iter != msgHandlers_.end(); iter++)
+		for(; iter != msgHandlers_.end(); ++iter)
 		{
 			if((*siter) == iter->second->name)
 			{
@@ -100,31 +104,31 @@ bool MessageHandlers::initializeWatcher()
 	}
 
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
-	for(; iter != msgHandlers_.end(); iter++)
+	for(; iter != msgHandlers_.end(); ++iter)
 	{
-		char buf[MAX_BUF];
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/id", iter->second->name.c_str());
+		char buf[MAX_BUF * 2];
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/id", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second->msgID);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/len", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/len", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second->msgLen);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentCount", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendcount);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendavgsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvCount", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvavgsize);
 	}
 
@@ -144,7 +148,6 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	//bool isfixedMsg = false;
 
 	FixedMessages::MSGInfo* msgInfo = FixedMessages::getSingleton().isFixed(ihName.c_str());
-
 	if(msgInfo == NULL)
 	{
 		while(true)
@@ -155,7 +158,9 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 				//isfixedMsg = true;
 			}
 			else
+			{
 				break;
+			}
 		};
 
 		msgHandler->msgID = msgID_++;
@@ -169,11 +174,12 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	msgHandler->pArgs = args;
 	msgHandler->msgLen = msgLen;	
 	msgHandler->exposed = false;
-
+	msgHandler->pMessageHandlers = this;
 	msgHandler->onInstall();
+
 	msgHandlers_[msgHandler->msgID] = msgHandler;
 	
-	if(msgLen == MERCURY_VARIABLE_MESSAGE)
+	if(msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
 		//printf("\tMessageHandlers::add(%d): name=%s, msgID=%d, size=Variable.\n", 
 		//	(int32)msgHandlers_.size(), ihName.c_str(), msgHandler->msgID);
@@ -182,9 +188,29 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	{
 		if(msgLen == 0)
 		{
-			msgHandler->msgLen = args->msgsize();
+			msgHandler->msgLen = args->dataSize();
 
-			if(msgHandler->type() == MERCURY_MESSAGE_TYPE_ENTITY)
+			if (msgHandler->pArgs)
+			{ 
+				std::vector<std::string>::iterator args_iter = msgHandler->pArgs->strArgsTypes.begin();
+				for (; args_iter != msgHandler->pArgs->strArgsTypes.end(); ++args_iter)
+				{
+					if ((*args_iter) == "std::string")
+					{
+						DebugHelper::getSingleton().set_warningcolor();
+
+						printf("%s::%s::dataSize: "	
+							"Not NETWORK_FIXED_MESSAGE, "	
+							"has changed to NETWORK_VARIABLE_MESSAGE!\n", COMPONENT_NAME_EX(g_componentType), ihName.c_str());
+
+						DebugHelper::getSingleton().set_normalcolor();
+						msgHandler->msgLen = NETWORK_VARIABLE_MESSAGE;
+						break;
+					}
+				}
+			}
+
+			if(msgHandler->type() == NETWORK_MESSAGE_TYPE_ENTITY)
 			{
 				msgHandler->msgLen += sizeof(ENTITY_ID);
 			}
@@ -197,7 +223,96 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 	//if(isfixedMsg)
 	//	printf("\t\t!!!message is fixed.!!!\n");
 
-	return msgHandlers_[msgHandler->msgID];
+	return msgHandler;
+}
+
+//-------------------------------------------------------------------------------------
+std::string MessageHandlers::getDigestStr()
+{
+	static KBE_MD5 md5;
+
+	if(!md5.isFinal())
+	{
+		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
+
+		TiXmlNode *rootNode = NULL;
+		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+		if(!xml->isGood())
+		{
+			ERROR_MSG(fmt::format("MessageHandlers::getDigestStr(): load {} is failed!\n",
+				Resmgr::getSingleton().matchRes("server/server_errors.xml")));
+
+			return "";
+		}
+
+		int32 isize = 0;
+
+		rootNode = xml->getRootNode();
+		if(rootNode == NULL)
+		{
+			// root节点下没有子节点了
+			return "";
+		}
+
+		XML_FOR_BEGIN(rootNode)
+		{
+			TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+			TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+
+			int32 val1 = xml->getValInt(node);
+			md5.append((void*)&val1, sizeof(int32));
+
+			std::string val2 = xml->getKey(rootNode);
+			md5.append((void*)val2.c_str(), val2.size());
+
+			std::string val3 = xml->getVal(node1);
+			md5.append((void*)val3.c_str(), val3.size());
+			isize++;
+		}
+		XML_FOR_END(rootNode);
+
+		md5.append((void*)&isize, sizeof(int32));
+
+		std::vector<MessageHandlers*>& msgHandlers = messageHandlers();
+		isize += msgHandlers.size();
+		md5.append((void*)&isize, sizeof(int32));
+
+		std::vector<MessageHandlers*>::const_iterator rootiter = msgHandlers.begin();
+		for(; rootiter != msgHandlers.end(); ++rootiter)
+		{
+			isize += (*rootiter)->msgHandlers().size();
+			md5.append((void*)&isize, sizeof(int32));
+
+			MessageHandlerMap::const_iterator iter = (*rootiter)->msgHandlers().begin();
+			for(; iter != (*rootiter)->msgHandlers().end(); ++iter)
+			{
+				MessageHandler* pMessageHandler = iter->second;
+			
+				md5.append((void*)pMessageHandler->name.c_str(), pMessageHandler->name.size());
+				md5.append((void*)&pMessageHandler->msgID, sizeof(MessageID));
+				md5.append((void*)&pMessageHandler->msgLen, sizeof(int32));
+				md5.append((void*)&pMessageHandler->exposed, sizeof(bool));
+	 
+				int32 argsize = pMessageHandler->pArgs->strArgsTypes.size();
+				md5.append((void*)&argsize, sizeof(int32));
+
+				int32 argsdataSize = pMessageHandler->pArgs->dataSize();
+				md5.append((void*)&argsdataSize, sizeof(int32));
+
+				int32 argstype = (int32)pMessageHandler->pArgs->type();
+				md5.append((void*)&argstype, sizeof(int32));
+
+				std::vector<std::string>::iterator saiter = pMessageHandler->pArgs->strArgsTypes.begin();
+				for(; saiter != pMessageHandler->pArgs->strArgsTypes.end(); ++saiter)
+				{
+					md5.append((void*)(*saiter).c_str(), (*saiter).size());
+				}
+			}
+		}
+	}
+
+	return md5.getDigestStr();
 }
 
 //-------------------------------------------------------------------------------------

@@ -62,9 +62,9 @@ code instead of hardcoding path separators::
 Listing whole packages
 ======================
 
-The :option:`packages` option tells the Distutils to process (build, distribute,
+The ``packages`` option tells the Distutils to process (build, distribute,
 install, etc.) all pure Python modules found in each package mentioned in the
-:option:`packages` list.  In order to do this, of course, there has to be a
+``packages`` list.  In order to do this, of course, there has to be a
 correspondence between package names and directories in the filesystem.  The
 default correspondence is the most obvious one, i.e. package :mod:`distutils` is
 found in the directory :file:`distutils` relative to the distribution root.
@@ -75,7 +75,7 @@ the directory where your setup script lives.  If you break this promise, the
 Distutils will issue a warning but still process the broken package anyway.
 
 If you use a different convention to lay out your source directory, that's no
-problem: you just have to supply the :option:`package_dir` option to tell the
+problem: you just have to supply the ``package_dir`` option to tell the
 Distutils about your convention.  For example, say you keep all Python source
 under :file:`lib`, so that modules in the "root package" (i.e., not in any
 package at all) are in :file:`lib`, modules in the :mod:`foo` package are in
@@ -94,13 +94,13 @@ written in the setup script as ::
 
     package_dir = {'foo': 'lib'}
 
-A ``package: dir`` entry in the :option:`package_dir` dictionary implicitly
+A ``package: dir`` entry in the ``package_dir`` dictionary implicitly
 applies to all packages below *package*, so the :mod:`foo.bar` case is
 automatically handled here.  In this example, having ``packages = ['foo',
 'foo.bar']`` tells the Distutils to look for :file:`lib/__init__.py` and
-:file:`lib/bar/__init__.py`.  (Keep in mind that although :option:`package_dir`
+:file:`lib/bar/__init__.py`.  (Keep in mind that although ``package_dir``
 applies recursively, you must explicitly list all packages in
-:option:`packages`: the Distutils will *not* recursively scan your source tree
+``packages``: the Distutils will *not* recursively scan your source tree
 looking for any directory with an :file:`__init__.py` file.)
 
 
@@ -120,7 +120,7 @@ This describes two modules, one of them in the "root" package, the other in the
 :mod:`pkg` package.  Again, the default package/directory layout implies that
 these two modules can be found in :file:`mod1.py` and :file:`pkg/mod2.py`, and
 that :file:`pkg/__init__.py` exists as well. And again, you can override the
-package/directory correspondence using the :option:`package_dir` option.
+package/directory correspondence using the ``package_dir`` option.
 
 
 .. _describing-extensions:
@@ -138,8 +138,9 @@ directories, libraries to link with, etc.).
 .. XXX read over this section
 
 All of this is done through another keyword argument to :func:`setup`, the
-:option:`ext_modules` option.  :option:`ext_modules` is just a list of
-:class:`Extension` instances, each of which describes a single extension module.
+``ext_modules`` option.  ``ext_modules`` is just a list of
+:class:`~distutils.core.Extension` instances, each of which describes a
+single extension module.
 Suppose your distribution includes a single extension, called :mod:`foo` and
 implemented by :file:`foo.c`.  If no additional instructions to the
 compiler/linker are needed, describing this extension is quite simple::
@@ -165,8 +166,8 @@ following sections.
 Extension names and packages
 ----------------------------
 
-The first argument to the :class:`Extension` constructor is always the name of
-the extension, including any package names.  For example, ::
+The first argument to the :class:`~distutils.core.Extension` constructor is
+always the name of the extension, including any package names.  For example, ::
 
     Extension('foo', ['src/foo1.c', 'src/foo2.c'])
 
@@ -180,7 +181,7 @@ in the filesystem (and therefore where in Python's namespace hierarchy) the
 resulting extension lives.
 
 If you have a number of extensions all in the same package (or all under the
-same base package), use the :option:`ext_package` keyword argument to
+same base package), use the ``ext_package`` keyword argument to
 :func:`setup`.  For example, ::
 
     setup(...,
@@ -196,7 +197,8 @@ will compile :file:`foo.c` to the extension :mod:`pkg.foo`, and :file:`bar.c` to
 Extension source files
 ----------------------
 
-The second argument to the :class:`Extension` constructor is a list of source
+The second argument to the :class:`~distutils.core.Extension` constructor is
+a list of source
 files.  Since the Distutils currently only support C, C++, and Objective-C
 extensions, these are normally C/C++/Objective-C source files.  (Be sure to use
 appropriate extensions to distinguish C++\ source files: :file:`.cc` and
@@ -232,9 +234,9 @@ linked into the executable.
 Preprocessor options
 --------------------
 
-Three optional arguments to :class:`Extension` will help if you need to specify
-include directories to search or preprocessor macros to define/undefine:
-``include_dirs``, ``define_macros``, and ``undef_macros``.
+Three optional arguments to :class:`~distutils.core.Extension` will help if
+you need to specify include directories to search or preprocessor macros to
+define/undefine: ``include_dirs``, ``define_macros``, and ``undef_macros``.
 
 For example, if your extension requires header files in the :file:`include`
 directory under your distribution root, use the ``include_dirs`` option::
@@ -334,24 +336,24 @@ Other options
 
 There are still some other options which can be used to handle special cases.
 
-The :option:`optional` option is a boolean; if it is true,
+The ``optional`` option is a boolean; if it is true,
 a build failure in the extension will not abort the build process, but
 instead simply not install the failing extension.
 
-The :option:`extra_objects` option is a list of object files to be passed to the
+The ``extra_objects`` option is a list of object files to be passed to the
 linker. These files must not have extensions, as the default extension for the
 compiler is used.
 
-:option:`extra_compile_args` and :option:`extra_link_args` can be used to
+``extra_compile_args`` and ``extra_link_args`` can be used to
 specify additional command line options for the respective compiler and linker
 command lines.
 
-:option:`export_symbols` is only useful on Windows.  It can contain a list of
+``export_symbols`` is only useful on Windows.  It can contain a list of
 symbols (functions or variables) to be exported. This option is not needed when
 building compiled extensions: Distutils  will automatically add ``initmodule``
 to the list of exported symbols.
 
-The :option:`depends` option is a list of files that the extension depends on
+The ``depends`` option is a list of files that the extension depends on
 (for example header files). The build command will call the compiler on the
 sources to rebuild extension if any on this files has been modified since the
 previous build.
@@ -447,7 +449,7 @@ to refer to the current interpreter location. By default, it is replaced with
 the current interpreter location.  The :option:`--executable` (or :option:`-e`)
 option will allow the interpreter path to be explicitly overridden.
 
-The :option:`scripts` option simply is a list of files to be handled in this
+The ``scripts`` option simply is a list of files to be handled in this
 way.  From the PyXML setup script::
 
     setup(...,
@@ -512,11 +514,11 @@ The corresponding call to :func:`setup` might be::
 Installing Additional Files
 ===========================
 
-The :option:`data_files` option can be used to specify additional files needed
+The ``data_files`` option can be used to specify additional files needed
 by the module distribution: configuration files, message catalogs, data files,
 anything which doesn't fit in the previous categories.
 
-:option:`data_files` specifies a sequence of (*directory*, *files*) pairs in the
+``data_files`` specifies a sequence of (*directory*, *files*) pairs in the
 following way::
 
     setup(...,
@@ -537,7 +539,7 @@ modules).  Each file name in *files* is interpreted relative to the
 directory information from *files* is used to determine the final location of
 the installed file; only the name of the file is used.
 
-You can specify the :option:`data_files` options as a simple sequence of files
+You can specify the ``data_files`` options as a simple sequence of files
 without specifying a target directory, but this is not recommended, and the
 :command:`install` command will print a warning in this case. To install data
 files directly in the target directory, an empty string should be given as the
@@ -648,7 +650,7 @@ information is sometimes used to indicate sub-releases.  These are
 1.0.1a2
     the second alpha release of the first patch version of 1.0
 
-:option:`classifiers` are specified in a Python list::
+``classifiers`` are specified in a Python list::
 
     setup(...,
           classifiers=[
@@ -683,6 +685,8 @@ include the following code fragment in your :file:`setup.py` before the
         DistributionMetadata.download_url = None
 
 
+.. _debug-setup-script:
+
 Debugging the setup script
 ==========================
 
@@ -698,7 +702,8 @@ installation is broken because they don't read all the way down to the bottom
 and see that it's a permission problem.
 
 On the other hand, this doesn't help the developer to find the cause of the
-failure. For this purpose, the DISTUTILS_DEBUG environment variable can be set
+failure. For this purpose, the :envvar:`DISTUTILS_DEBUG` environment variable can be set
 to anything except an empty string, and distutils will now print detailed
-information what it is doing, and prints the full traceback in case an exception
-occurs.
+information about what it is doing, dump the full traceback when an exception
+occurs, and print the whole command line when an external program (like a C
+compiler) fails.

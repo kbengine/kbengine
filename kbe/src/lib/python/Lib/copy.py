@@ -76,6 +76,14 @@ def copy(x):
     if copier:
         return copier(x)
 
+    try:
+        issc = issubclass(cls, type)
+    except TypeError: # cls is not a class
+        issc = False
+    if issc:
+        # treat it as a regular class:
+        return _copy_immutable(x)
+
     copier = getattr(cls, "__copy__", None)
     if copier:
         return copier(x)
@@ -102,7 +110,7 @@ _copy_dispatch = d = {}
 def _copy_immutable(x):
     return x
 for t in (type(None), int, float, bool, str, tuple,
-          frozenset, type, range,
+          bytes, frozenset, type, range,
           types.BuiltinFunctionType, type(Ellipsis),
           types.FunctionType, weakref.ref):
     d[t] = _copy_immutable
@@ -173,8 +181,10 @@ def deepcopy(x, memo=None, _nil=[]):
                                 "un(deep)copyable object of type %s" % cls)
                 y = _reconstruct(x, rv, 1, memo)
 
-    memo[d] = y
-    _keep_alive(x, memo) # Make sure x lives at least as long as d
+    # If is its own copy, don't memoize.
+    if y is not x:
+        memo[d] = y
+        _keep_alive(x, memo) # Make sure x lives at least as long as d
     return y
 
 _deepcopy_dispatch = d = {}
@@ -214,9 +224,10 @@ def _deepcopy_tuple(x, memo):
     y = []
     for a in x:
         y.append(deepcopy(a, memo))
-    d = id(x)
+    # We're not going to put the tuple in the memo, but it's still important we
+    # check for it, in case the tuple contains recursive mutable structures.
     try:
-        return memo[d]
+        return memo[id(x)]
     except KeyError:
         pass
     for i in range(len(x)):
@@ -225,7 +236,6 @@ def _deepcopy_tuple(x, memo):
             break
     else:
         y = x
-    memo[d] = y
     return y
 d[tuple] = _deepcopy_tuple
 
@@ -321,68 +331,3 @@ del types
 # Helper for instance creation without calling __init__
 class _EmptyClass:
     pass
-
-def _test():
-    l = [None, 1, 2, 3.14, 'xyzzy', (1, 2), [3.14, 'abc'],
-         {'abc': 'ABC'}, (), [], {}]
-    l1 = copy(l)
-    print(l1==l)
-    l1 = map(copy, l)
-    print(l1==l)
-    l1 = deepcopy(l)
-    print(l1==l)
-    class C:
-        def __init__(self, arg=None):
-            self.a = 1
-            self.arg = arg
-            if __name__ == '__main__':
-                import sys
-                file = sys.argv[0]
-            else:
-                file = __file__
-            self.fp = open(file)
-            self.fp.close()
-        def __getstate__(self):
-            return {'a': self.a, 'arg': self.arg}
-        def __setstate__(self, state):
-            for key, value in state.items():
-                setattr(self, key, value)
-        def __deepcopy__(self, memo=None):
-            new = self.__class__(deepcopy(self.arg, memo))
-            new.a = self.a
-            return new
-    c = C('argument sketch')
-    l.append(c)
-    l2 = copy(l)
-    print(l == l2)
-    print(l)
-    print(l2)
-    l2 = deepcopy(l)
-    print(l == l2)
-    print(l)
-    print(l2)
-    l.append({l[1]: l, 'xyz': l[2]})
-    l3 = copy(l)
-    import reprlib
-    print(map(reprlib.repr, l))
-    print(map(reprlib.repr, l1))
-    print(map(reprlib.repr, l2))
-    print(map(reprlib.repr, l3))
-    l3 = deepcopy(l)
-    print(map(reprlib.repr, l))
-    print(map(reprlib.repr, l1))
-    print(map(reprlib.repr, l2))
-    print(map(reprlib.repr, l3))
-    class odict(dict):
-        def __init__(self, d = {}):
-            self.a = 99
-            dict.__init__(self, d)
-        def __setitem__(self, k, i):
-            dict.__setitem__(self, k, i)
-            self.a
-    o = odict({"A" : "B"})
-    x = deepcopy(o)
-    print(o, x)
-
-if __name__ == '__main__':
-    _test()

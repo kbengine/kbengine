@@ -5,7 +5,7 @@
 #include "guiconsole.h"
 #include "StartServerWindow.h"
 #include "StartServerLayoutWindow.h"
-#include "machine/machine_interface.hpp"
+#include "machine/machine_interface.h"
 
 // CStartServerWindow dialog
 
@@ -115,16 +115,16 @@ void CStartServerWindow::OnBnClickedButton2()
 			continue;
 		}
 
-		KBEngine::Mercury::EndPoint* endpoint = new KBEngine::Mercury::EndPoint();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
 		
 		KBEngine::u_int32_t address;
-		endpoint->convertAddress(vec[0].c_str(), address);
-		KBEngine::Mercury::Address addr(address, htons(atoi(vec[1].c_str())));
+		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
+		KBEngine::Network::Address addr(address, htons(atoi(vec[1].c_str())));
 
 		if(addr.ip == 0)
 		{
 			::AfxMessageBox(L"address is error!");
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 
@@ -132,7 +132,7 @@ void CStartServerWindow::OnBnClickedButton2()
 		if (!endpoint->good())
 		{
 			AfxMessageBox(L"couldn't create a socket\n");
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 
@@ -142,19 +142,21 @@ void CStartServerWindow::OnBnClickedButton2()
 			CString err;
 			err.Format(L"connect server is error! %d", ::WSAGetLastError());
 			AfxMessageBox(err);
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 		
 		endpoint->setnonblocking(true);
 
-		KBEngine::Mercury::Bundle bundle;
+		KBEngine::uint64 cid = KBEngine::genUUID64();
+		KBEngine::int16 gus = -1;
+
+		KBEngine::Network::Bundle bundle;
 		bundle.newMessage(KBEngine::MachineInterface::startserver);
 		bundle << KBEngine::getUserUID();
 		bundle << ctype;
-		bundle.send(*endpoint);
-
-		KBEngine::Mercury::TCPPacket packet;
+		endpoint->send(&bundle);
+		KBEngine::Network::TCPPacket packet;
 		packet.resize(1024);
 
 		fd_set	fds;
@@ -166,12 +168,12 @@ void CStartServerWindow::OnBnClickedButton2()
 		int selgot = select((*endpoint)+1, &fds, NULL, NULL, &tv);
 		if(selgot == 0)
 		{
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;	// 超时可能对方繁忙
 		}
 		else if(selgot == -1)
 		{
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 		else
@@ -206,7 +208,7 @@ void CStartServerWindow::OnBnClickedButton2()
 			}
 		}
 
-		delete endpoint;
+		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 	}
 }
 
@@ -248,16 +250,16 @@ void CStartServerWindow::OnBnClickedButton3()
 			continue;
 		}
 
-		KBEngine::Mercury::EndPoint* endpoint = new KBEngine::Mercury::EndPoint();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
 		
 		KBEngine::u_int32_t address;
-		endpoint->convertAddress(vec[0].c_str(), address);
-		KBEngine::Mercury::Address addr(address, htons(atoi(vec[1].c_str())));
+		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
+		KBEngine::Network::Address addr(address, htons(atoi(vec[1].c_str())));
 
 		if(addr.ip == 0)
 		{
 			::AfxMessageBox(L"address is error!");
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 
@@ -265,7 +267,7 @@ void CStartServerWindow::OnBnClickedButton3()
 		if (!endpoint->good())
 		{
 			AfxMessageBox(L"couldn't create a socket\n");
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 
@@ -275,19 +277,18 @@ void CStartServerWindow::OnBnClickedButton3()
 			CString err;
 			err.Format(L"connect server is error! %d", ::WSAGetLastError());
 			AfxMessageBox(err);
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 		
 		endpoint->setnonblocking(true);
 
-		KBEngine::Mercury::Bundle bundle;
+		KBEngine::Network::Bundle bundle;
 		bundle.newMessage(KBEngine::MachineInterface::stopserver);
 		bundle << KBEngine::getUserUID();
 		bundle << ctype;
-		bundle.send(*endpoint);
-
-		KBEngine::Mercury::TCPPacket packet;
+		endpoint->send(&bundle);
+		KBEngine::Network::TCPPacket packet;
 		packet.resize(1024);
 
 		fd_set	fds;
@@ -299,12 +300,12 @@ void CStartServerWindow::OnBnClickedButton3()
 		int selgot = select((*endpoint)+1, &fds, NULL, NULL, &tv);
 		if(selgot == 0)
 		{
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;	// 超时可能对方繁忙
 		}
 		else if(selgot == -1)
 		{
-			delete endpoint;
+			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 			continue;
 		}
 		else
@@ -339,7 +340,7 @@ void CStartServerWindow::OnBnClickedButton3()
 			}
 		}
 
-		delete endpoint;
+		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 	}
 }
 

@@ -12,15 +12,15 @@
 #include "SpaceViewWindow.h"
 #include "GraphsWindow.h"
 #include "ConnectRemoteMachineWindow.h"
-#include "thread/threadpool.hpp"
+#include "thread/threadpool.h"
 #include <sstream>
 
 using namespace KBEngine;
 
 // CguiconsoleDlg dialog
 class CguiconsoleDlg : public CDialog
-					//	public Mercury::ChannelTimeOutHandler,
-					//	public Mercury::ChannelDeregisterHandler
+					//	public Network::ChannelTimeOutHandler,
+					//	public Network::ChannelDeregisterHandler
 {
 // Construction
 public:
@@ -36,15 +36,15 @@ public:
 // Implementation
 public:
 	/** 服务器执行指令完毕回显 */
-	void onExecScriptCommandCB(Mercury::Channel* pChannel, std::string& command);
+	void onExecScriptCommandCB(Network::Channel* pChannel, std::string& command);
 
 	BOOL PreTranslateMessage(MSG* pMsg);
 
 	void historyCommandCheck();
 	CString getHistoryCommand(bool isNextCommand);
 	void commitPythonCommand(CString strCommand);
-	Mercury::EventDispatcher & getMainDispatcher()				{ return _dispatcher; }
-	Mercury::NetworkInterface & getNetworkInterface()			{ return _networkInterface; }
+	Network::EventDispatcher & dispatcher()				{ return _dispatcher; }
+	Network::NetworkInterface & networkInterface()			{ return _networkInterface; }
 	HTREEITEM hasCheckApp(COMPONENT_TYPE type);
 
 	void autoWndSize();
@@ -53,19 +53,20 @@ public:
 	void loadHistory();
 	void saveHistory();
 	
-	void connectTo();
+	bool connectTo();
 
 	void autoShowWindow();
 	void closeCurrTreeSelChannel();
-	Mercury::Address getTreeItemAddr(HTREEITEM hItem);
+	Network::Address getTreeItemAddr(HTREEITEM hItem);
 	COMPONENT_TYPE getTreeItemComponent(HTREEITEM hItem);
-	
+	int32 getSelTreeItemUID();
+
 	bool hasTreeComponent(Components::ComponentInfos& cinfos);
 
 	void onReceiveRemoteLog(std::string str);
 
-	COMPONENT_TYPE componentType()const { return _componentType; }
-	COMPONENT_ID componentID()const { return _componentID; }
+	COMPONENT_TYPE componentType() const { return _componentType; }
+	COMPONENT_ID componentID() const { return _componentID; }
 
 	void updateFindTreeStatus();
 
@@ -80,11 +81,14 @@ public:
 	void onReceiveProfileData(MemoryStream& s);
 
 	bool startProfile(std::string name, int8 type, uint32 timinglen);
+
+	void addThreadTask(thread::TPTask* tptask);
 protected:
 	HICON m_hIcon;
 
 	// Generated message map functions
 	virtual BOOL OnInitDialog();
+
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -105,8 +109,8 @@ public:
 private:
 	COMPONENT_TYPE _componentType;
 	COMPONENT_ID _componentID;
-	Mercury::EventDispatcher _dispatcher;
-	Mercury::NetworkInterface _networkInterface;
+	Network::EventDispatcher _dispatcher;
+	Network::NetworkInterface _networkInterface;
 	CDebugWindow m_debugWnd;
 	CLogWindow m_logWnd;
 	StatusWindow m_statusWnd;
@@ -131,4 +135,5 @@ public:
 	afx_msg void OnConnectRemoteMachine();
 	afx_msg void OnHelpAbout();
 	afx_msg void OnClose();
+	afx_msg void OnDestroy();
 };

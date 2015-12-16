@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,13 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "serverconfig.hpp"
-#include "network/common.hpp"
-#include "network/address.hpp"
-#include "resmgr/resmgr.hpp"
+#include "serverconfig.h"
+#include "network/common.h"
+#include "network/address.h"
+#include "resmgr/resmgr.h"
+#include "common/kbekey.h"
+#include "common/kbeversion.h"
 
 #ifndef CODE_INLINE
-#include "serverconfig.ipp"
+#include "serverconfig.inl"
 #endif
 
 namespace KBEngine{
@@ -34,14 +36,11 @@ KBE_SINGLETON_INIT(ServerConfig);
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig():
 gameUpdateHertz_(10),
-billingSystemAddr_(),
-billingSystem_accountType_(""),
-billingSystem_chargeType_(""),
-billingSystem_thirdpartyAccountServiceAddr_(""),
-billingSystem_thirdpartyAccountServicePort_(80),
-billingSystem_thirdpartyChargeServiceAddr_(""),
-billingSystem_thirdpartyChargeServicePort_(80),
-billingSystem_thirdpartyServiceCBPort_(0),
+tick_max_buffered_logs_(4096),
+tick_max_sync_logs_(32),
+interfacesAddr_(),
+interfaces_accountType_(""),
+interfaces_chargeType_(""),
 shutdown_time_(1.f),
 shutdown_waitTickTime_(1.f),
 callback_timeout_(180.f),
@@ -61,17 +60,22 @@ ServerConfig::~ServerConfig()
 bool ServerConfig::loadConfig(std::string fileName)
 {
 	TiXmlNode* node = NULL, *rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName).c_str());
+	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(fileName).c_str()));
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
-			fileName.c_str());
+		ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+			fileName.c_str()));
 
-		SAFE_RELEASE(xml);
 		return false;
 	}
 	
+	if(xml->getRootNode() == NULL)
+	{
+		// root节点下没有子节点了
+		return true;
+	}
+
 	std::string email_service_config;
 	rootNode = xml->getRootNode("email_service_config");
 	if(rootNode != NULL)
@@ -81,7 +85,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
-		Mercury::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
+		Network::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
 	}
 
 	rootNode = xml->getRootNode("trace_packet");
@@ -89,14 +93,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "debug_type");
 		if(childnode)
-			Mercury::g_trace_packet = xml->getValInt(childnode);
+			Network::g_trace_packet = xml->getValInt(childnode);
 
-		if(Mercury::g_trace_packet > 3)
-			Mercury::g_trace_packet = 0;
+		if(Network::g_trace_packet > 3)
+			Network::g_trace_packet = 0;
 
 		childnode = xml->enterNode(rootNode, "use_logfile");
 		if(childnode)
-			Mercury::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
+			Network::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
 
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
@@ -109,7 +113,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 					c = strutil::kbe_trim(c);
 					if(c.size() > 0)
 					{
-						Mercury::g_trace_packet_disables.push_back(c);
+						Network::g_trace_packet_disables.push_back(c);
 					}
 				}
 			}while((childnode = childnode->NextSibling()));												
@@ -122,10 +126,20 @@ bool ServerConfig::loadConfig(std::string fileName)
 		g_debugEntity = xml->getValInt(rootNode) > 0;
 	}
 
-	rootNode = xml->getRootNode("app_publish");
+	rootNode = xml->getRootNode("publish");
 	if(rootNode != NULL)
 	{
-		g_appPublish = xml->getValInt(rootNode);
+		TiXmlNode* childnode = xml->enterNode(rootNode, "state");
+		if(childnode)
+		{
+			g_appPublish = xml->getValInt(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "script_version");
+		if(childnode)
+		{
+			KBEVersion::setScriptVersion(xml->getValStr(childnode));
+		}
 	}
 
 	rootNode = xml->getRootNode("shutdown_time");
@@ -185,15 +199,15 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
 			if(childnode1)
 			{
-				channelCommon_.channelInternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelInternalTimeout = channelCommon_.channelInternalTimeout;
+				channelCommon_.channelInternalTimeout = KBE_MAX(0.f, float(xml->getValFloat(childnode1)));
+				Network::g_channelInternalTimeout = channelCommon_.channelInternalTimeout;
 			}
 
 			childnode1 = xml->enterNode(childnode, "external");
 			if(childnode)
 			{
-				channelCommon_.channelExternalTimeout = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelExternalTimeout = channelCommon_.channelExternalTimeout;
+				channelCommon_.channelExternalTimeout = KBE_MAX(0.f, float(xml->getValFloat(childnode1)));
+				Network::g_channelExternalTimeout = channelCommon_.channelExternalTimeout;
 			}
 		}
 
@@ -206,13 +220,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_intReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_intReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 
@@ -222,13 +236,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_extReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_extReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 		}
@@ -257,42 +271,78 @@ bool ServerConfig::loadConfig(std::string fileName)
 				channelCommon_.extWriteBufferSize = KBE_MAX(0, xml->getValInt(childnode1));
 		}
 
-		childnode = xml->enterNode(rootNode, "receiveWindowOverflow");
+		childnode = xml->enterNode(rootNode, "windowOverflow");
 		if(childnode)
 		{
-			TiXmlNode* childnode1 = xml->enterNode(childnode, "messages");
-			if(childnode1)
+			TiXmlNode* sendNode = xml->enterNode(childnode, "send");
+			if(sendNode)
 			{
-				TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
-				if(childnode2)
-					Mercury::g_intReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				TiXmlNode* childnode1 = xml->enterNode(sendNode, "messages");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intSendWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
-				childnode2 = xml->enterNode(childnode1, "external");
-				if(childnode2)
-					Mercury::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extSendWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
-				childnode2 = xml->enterNode(childnode1, "critical");
-				if(childnode2)
-					Mercury::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+					childnode2 = xml->enterNode(childnode1, "critical");
+					if(childnode2)
+						Network::g_sendWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+				}
+
+				childnode1 = xml->enterNode(sendNode, "bytes");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 
-			childnode1 = xml->enterNode(childnode, "bytes");
-			if(childnode1)
+			TiXmlNode* recvNode = xml->enterNode(childnode, "receive");
+			if(recvNode)
 			{
-				TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
-				if(childnode2)
-					Mercury::g_intReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				TiXmlNode* childnode1 = xml->enterNode(recvNode, "messages");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "critical");
+					if(childnode2)
+						Network::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+				}
+
+				childnode1 = xml->enterNode(recvNode, "bytes");
+				if(childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				
-				childnode2 = xml->enterNode(childnode1, "external");
-				if(childnode2)
-					Mercury::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 		};
 
 		childnode = xml->enterNode(rootNode, "encrypt_type");
 		if(childnode)
 		{
-			Mercury::g_channelExternalEncryptType = xml->getValInt(childnode);
+			Network::g_channelExternalEncryptType = xml->getValInt(childnode);
 		}
 	}
 
@@ -306,24 +356,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		bitsPerSecondToClient_ = xml->getValInt(rootNode);
 	}
 
-	rootNode = xml->getRootNode("billingSystem");
+	rootNode = xml->getRootNode("interfaces");
 	if(rootNode != NULL)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "accountType");
 		if(childnode)
 		{
-			billingSystem_accountType_ = xml->getValStr(childnode);
-			if(billingSystem_accountType_.size() == 0)
-				billingSystem_accountType_ = "normal";
+			interfaces_accountType_ = xml->getValStr(childnode);
+			if(interfaces_accountType_.size() == 0)
+				interfaces_accountType_ = "normal";
 		}
 
 		childnode = xml->enterNode(rootNode, "chargeType");
 		if(childnode)
 		{
-			billingSystem_chargeType_ = xml->getValStr(childnode);
-			if(billingSystem_chargeType_.size() == 0)
-				billingSystem_chargeType_ = "normal";
+			interfaces_chargeType_ = xml->getValStr(childnode);
+			if(interfaces_chargeType_.size() == 0)
+				interfaces_chargeType_ = "normal";
 		}
+
+		childnode = xml->enterNode(rootNode, "entryScriptFile");	
+		if(childnode != NULL)
+			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
 
 		std::string ip = "";
 		childnode = xml->enterNode(rootNode, "host");
@@ -333,8 +387,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if(ip.size() == 0)
 				ip = "localhost";
 
-			Mercury::Address addr(ip, ntohs(billingSystemAddr_.port));
-			billingSystemAddr_ = addr;
+			Network::Address addr(ip, ntohs(interfacesAddr_.port));
+			interfacesAddr_ = addr;
 		}
 
 		uint16 port = 0;
@@ -344,50 +398,42 @@ bool ServerConfig::loadConfig(std::string fileName)
 			port = xml->getValInt(childnode);
 
 			if(port <= 0)
-				port = KBE_BILLING_TCP_PORT;
+				port = KBE_INTERFACES_TCP_PORT;
 
-			Mercury::Address addr(inet_ntoa((struct in_addr&)billingSystemAddr_.ip), port);
-			billingSystemAddr_ = addr;
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_addr");
-		if(childnode)
-		{
-			billingSystem_thirdpartyAccountServiceAddr_ = xml->getValStr(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_port");
-		if(childnode)
-		{
-			billingSystem_thirdpartyAccountServicePort_ = xml->getValInt(childnode);
-		}
-		
-		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_addr");
-		if(childnode)
-		{
-			billingSystem_thirdpartyChargeServiceAddr_ = xml->getValStr(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_port");
-		if(childnode)
-		{
-			billingSystem_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyService_cbport");
-		if(childnode)
-		{
-			billingSystem_thirdpartyServiceCBPort_ = xml->getValInt(childnode);
+			Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
+			interfacesAddr_ = addr;
 		}
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
-			_billingInfo.tcp_SOMAXCONN = xml->getValInt(node);
+			_interfacesInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
 		node = xml->enterNode(rootNode, "orders_timeout");
 		if(node != NULL){
-			billingSystem_orders_timeout_ = xml->getValInt(node);
+			interfaces_orders_timeout_ = xml->getValInt(node);
+		}
+	
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 
@@ -448,10 +494,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_cellAppInfo.profiles.open_eventprofile = (xml->getValStr(childnode) == "true");
 			}
 
-			childnode = xml->enterNode(node, "mercuryprofile");
+			childnode = xml->enterNode(node, "networkprofile");
 			if(childnode)
 			{
-				_cellAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
+				_cellAppInfo.profiles.open_networkprofile = (xml->getValStr(childnode) == "true");
 			}
 		}
 
@@ -469,6 +515,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_cellAppInfo.entitydefAliasID = (xml->getValStr(node) == "true");
 		}
+
+		node = xml->enterNode(rootNode, "loadSmoothingBias");
+		if(node != NULL)
+			_cellAppInfo.loadSmoothingBias = float(xml->getValFloat(node));
 
 		node = xml->enterNode(rootNode, "ghostDistance");
 		if(node != NULL){
@@ -497,7 +547,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode = xml->enterNode(node, "rangemgr_y");
 			if(childnode)
 			{
-				_cellAppInfo.rangelist_hasY = (xml->getValStr(childnode) == "true");
+				_cellAppInfo.coordinateSystem_hasY = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(node, "entity_posdir_additional_updates");
+			if(childnode)
+			{
+				_cellAppInfo.entity_posdir_additional_updates = xml->getValInt(childnode);
 			}
 		}
 
@@ -558,6 +614,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_baseAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "externalAddress");	
+		if(node != NULL)
+			strncpy((char*)&_baseAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
@@ -633,10 +693,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 				_baseAppInfo.profiles.open_eventprofile = (xml->getValStr(childnode) == "true");
 			}
 
-			childnode = xml->enterNode(node, "mercuryprofile");
+			childnode = xml->enterNode(node, "networkprofile");
 			if(childnode)
 			{
-				_baseAppInfo.profiles.open_mercuryprofile = (xml->getValStr(childnode) == "true");
+				_baseAppInfo.profiles.open_networkprofile = (xml->getValStr(childnode) == "true");
 			}
 		}
 
@@ -708,69 +768,140 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("dbmgr");
 	if(rootNode != NULL)
 	{
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_dbmgrInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+		
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = xml->enterNode(rootNode, "dbAccountEntityScriptType");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "type");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_type, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "host");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_ip, xml->getValStr(node).c_str(), MAX_IP);
-
-		node = xml->enterNode(rootNode, "port");	
-		if(node != NULL)
-			_dbmgrInfo.db_port = xml->getValInt(node);	
-
-		node = xml->enterNode(rootNode, "auth");	
-		if(node != NULL)
+		TiXmlNode* databaseInterfacesNode = xml->enterNode(rootNode, "databaseInterfaces");	
+		if(databaseInterfacesNode != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "password");
-			if(childnode)
+			if (databaseInterfacesNode->FirstChild() != NULL)
 			{
-				strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10);
-			}
+				do
+				{
+					std::string name = databaseInterfacesNode->Value();
 
-			childnode = xml->enterNode(node, "username");
-			if(childnode)
-			{
-				strncpy((char*)&_dbmgrInfo.db_username, xml->getValStr(childnode).c_str(), MAX_NAME);
-			}
+					DBInterfaceInfo dbinfo;
+					DBInterfaceInfo* pDBInfo = dbInterface(name);
+					if (!pDBInfo)
+						pDBInfo = &dbinfo;
+					
+					strncpy((char*)&pDBInfo->name, name.c_str(), MAX_NAME);
 
-			childnode = xml->enterNode(node, "encrypt");
-			if(childnode)
-			{
-				_dbmgrInfo.db_passwordEncrypt = xml->getValStr(childnode) == "true";
-			}
-		}
-		
-		node = xml->enterNode(rootNode, "databaseName");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_name, xml->getValStr(node).c_str(), MAX_NAME);
+					TiXmlNode* interfaceNode = databaseInterfacesNode->FirstChild();
+					
+					node = xml->enterNode(interfaceNode, "type");
+					if(node != NULL)
+						strncpy((char*)&pDBInfo->db_type, xml->getValStr(node).c_str(), MAX_NAME);
+					
+					node = xml->enterNode(interfaceNode, "host");
+					if(node != NULL)
+						strncpy((char*)&pDBInfo->db_ip, xml->getValStr(node).c_str(), MAX_IP);
 
-		node = xml->enterNode(rootNode, "numConnections");	
-		if(node != NULL)
-			_dbmgrInfo.db_numConnections = xml->getValInt(node);
-		
-		node = xml->enterNode(rootNode, "unicodeString");
-		if(node != NULL)
-		{
-			TiXmlNode* childnode = xml->enterNode(node, "characterSet");
-			if(childnode)
-			{
-				_dbmgrInfo.db_unicodeString_characterSet = xml->getValStr(childnode);
-			}
+					node = xml->enterNode(interfaceNode, "port");
+					if(node != NULL)
+						pDBInfo->db_port = xml->getValInt(node);
 
-			childnode = xml->enterNode(node, "collation");
-			if(childnode)
-			{
-				_dbmgrInfo.db_unicodeString_collation = xml->getValStr(childnode);
+					node = xml->enterNode(interfaceNode, "auth");
+					if(node != NULL)
+					{
+						TiXmlNode* childnode = xml->enterNode(node, "password");
+						if(childnode)
+						{
+							strncpy((char*)&pDBInfo->db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10);
+						}
+
+						childnode = xml->enterNode(node, "username");
+						if(childnode)
+						{
+							strncpy((char*)&pDBInfo->db_username, xml->getValStr(childnode).c_str(), MAX_NAME);
+						}
+
+						childnode = xml->enterNode(node, "encrypt");
+						if(childnode)
+						{
+							pDBInfo->db_passwordEncrypt = xml->getValStr(childnode) == "true";
+						}
+					}
+						
+					node = xml->enterNode(interfaceNode, "databaseName");
+					if(node != NULL)
+						strncpy((char*)&pDBInfo->db_name, xml->getValStr(node).c_str(), MAX_NAME);
+
+					node = xml->enterNode(interfaceNode, "numConnections");
+					if(node != NULL)
+						pDBInfo->db_numConnections = xml->getValInt(node);
+						
+					node = xml->enterNode(interfaceNode, "unicodeString");
+					if(node != NULL)
+					{
+						TiXmlNode* childnode = xml->enterNode(node, "characterSet");
+						if(childnode)
+						{
+							pDBInfo->db_unicodeString_characterSet = xml->getValStr(childnode);
+						}
+
+						childnode = xml->enterNode(node, "collation");
+						if(childnode)
+						{
+							pDBInfo->db_unicodeString_collation = xml->getValStr(childnode);
+						}
+					}
+
+					if (pDBInfo->db_unicodeString_characterSet.size() == 0)
+						pDBInfo->db_unicodeString_characterSet = "utf8";
+
+					if (pDBInfo->db_unicodeString_collation.size() == 0)
+						pDBInfo->db_unicodeString_collation = "utf8_bin";
+	
+					if (pDBInfo == &dbinfo)
+					{
+						// 检查不能在不同的接口中使用相同的数据库与相同的表
+						std::vector<DBInterfaceInfo>::iterator dbinfo_iter = _dbmgrInfo.dbInterfaceInfos.begin();
+						for (; dbinfo_iter != _dbmgrInfo.dbInterfaceInfos.end(); ++dbinfo_iter)
+						{
+							if (kbe_stricmp((*dbinfo_iter).db_ip, dbinfo.db_ip) == 0 && 
+								kbe_stricmp((*dbinfo_iter).db_type, dbinfo.db_type) == 0 &&
+								(*dbinfo_iter).db_port == dbinfo.db_port &&
+								strcmp(dbinfo.db_name, (*dbinfo_iter).db_name) == 0)
+							{
+								ERROR_MSG(fmt::format("ServerConfig::loadConfig: databaseInterfaces, Conflict between \"{}\" and \"{}\", file={}!\n",
+									(*dbinfo_iter).name, dbinfo.name, fileName.c_str()));
+
+								return false;
+							}
+						}
+
+						_dbmgrInfo.dbInterfaceInfos.push_back(dbinfo);
+					}
+
+				} while ((databaseInterfacesNode = databaseInterfacesNode->NextSibling()));
 			}
 		}
 
@@ -778,35 +909,84 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_dbmgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
-
-		node = xml->enterNode(rootNode, "notFoundAccountAutoCreate");
-		if(node != NULL){
-			_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(node) == "true");
-		}
 		
+		node = xml->enterNode(rootNode, "debug");
+		if(node != NULL){
+			_dbmgrInfo.debugDBMgr = (xml->getValStr(node) == "true");
+		}
+
 		node = xml->enterNode(rootNode, "allowEmptyDigest");
 		if(node != NULL){
 			_dbmgrInfo.allowEmptyDigest = (xml->getValStr(node) == "true");
 		}
 
-		node = xml->enterNode(rootNode, "accountDefaultFlags");	
+		node = xml->enterNode(rootNode, "account_system");
 		if(node != NULL)
-			_dbmgrInfo.accountDefaultFlags = xml->getValInt(node);	
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "accountDefaultFlags");
+			if(childnode)
+			{
+				_dbmgrInfo.accountDefaultFlags = xml->getValInt(childnode);
+			}
 
-		node = xml->enterNode(rootNode, "accountDefaultDeadline");	
-		if(node != NULL)
-			_dbmgrInfo.accountDefaultDeadline = xml->getValInt(node);	
+			childnode = xml->enterNode(node, "accountDefaultDeadline");	
+			if(childnode != NULL)
+			{
+				_dbmgrInfo.accountDefaultDeadline = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "accountEntityScriptType");	
+			if(childnode != NULL)
+			{
+				strncpy((char*)&_dbmgrInfo.dbAccountEntityScriptType, xml->getValStr(childnode).c_str(), MAX_NAME);
+			}
+
+			childnode = xml->enterNode(node, "account_registration");	
+			if(childnode != NULL)
+			{
+				TiXmlNode* childchildnode = xml->enterNode(childnode, "enable");
+				if(childchildnode)
+				{
+					_dbmgrInfo.account_registration_enable = (xml->getValStr(childchildnode) == "true");
+				}
+
+				childchildnode = xml->enterNode(childnode, "loginAutoCreate");
+				if(childchildnode != NULL){
+					_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(childchildnode) == "true");
+				}
+			} 
+		}
 	}
-
-	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)
-		_dbmgrInfo.db_unicodeString_characterSet = "utf8";
-
-	if(_dbmgrInfo.db_unicodeString_collation.size() == 0)
-		_dbmgrInfo.db_unicodeString_collation = "utf8_bin";
 
 	rootNode = xml->getRootNode("loginapp");
 	if(rootNode != NULL)
 	{
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_loginAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+		
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
@@ -814,6 +994,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "externalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.externalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "externalAddress");	
+		if(node != NULL)
+			strncpy((char*)&_loginAppInfo.externalAddress, xml->getValStr(node).c_str(), MAX_NAME);
 
 		node = xml->enterNode(rootNode, "externalPorts_min");
 		if(node != NULL)	
@@ -878,7 +1062,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 	}
 	
-	rootNode = xml->getRootNode("kbmachine");
+	rootNode = xml->getRootNode("machine");
 	if(rootNode != NULL)
 	{
 		node = xml->enterNode(rootNode, "internalInterface");	
@@ -907,24 +1091,15 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_kbMachineInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 	}
-
-	rootNode = xml->getRootNode("kbcenter");
-	if(rootNode != NULL)
-	{
-		node = xml->enterNode(rootNode, "internalInterface");	
-		if(node != NULL)
-			strncpy((char*)&_kbCenterInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "SOMAXCONN");
-		if(node != NULL){
-			_kbCenterInfo.tcp_SOMAXCONN = xml->getValInt(node);
-		}
-	}
 	
 	rootNode = xml->getRootNode("bots");
 	if(rootNode != NULL)
 	{
-		node = xml->enterNode(rootNode, "bots");	
+		node = xml->enterNode(rootNode, "entryScriptFile");	
+		if(node != NULL)
+			strncpy((char*)&_botsInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_botsInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
@@ -958,178 +1133,192 @@ bool ServerConfig::loadConfig(std::string fileName)
 			}
 		}
 
+		node = xml->enterNode(rootNode, "account_infos");
+		if(node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "account_name_prefix");
+			if(childnode)
+			{
+				_botsInfo.bots_account_name_prefix = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "account_name_suffix_inc");
+			if(childnode)
+			{
+				_botsInfo.bots_account_name_suffix_inc = xml->getValInt(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
-	}
 
-	rootNode = xml->getRootNode("messagelog");
-	if(rootNode != NULL)
-	{
-		node = xml->enterNode(rootNode, "messagelog");	
-		if(node != NULL)
-			strncpy((char*)&_messagelogInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "SOMAXCONN");
-		if(node != NULL){
-			_messagelogInfo.tcp_SOMAXCONN = xml->getValInt(node);
-		}
-	}
-
-	rootNode = xml->getRootNode("resourcemgr");
-	if(rootNode != NULL)
-	{
-		node = xml->enterNode(rootNode, "resourcemgr");	
-		if(node != NULL)
-			strncpy((char*)&_resourcemgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "SOMAXCONN");
-		if(node != NULL){
-			_resourcemgrInfo.tcp_SOMAXCONN = xml->getValInt(node);
-		}
-
-		node = xml->enterNode(rootNode, "respool");
+		node = xml->enterNode(rootNode, "telnet_service");
 		if(node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "buffer_size");
+			TiXmlNode* childnode = xml->enterNode(node, "port");
 			if(childnode)
-				_resourcemgrInfo.respool_buffersize = xml->getValInt(childnode);
+			{
+				_botsInfo.telnet_port = xml->getValInt(childnode);
+			}
 
-			childnode = xml->enterNode(node, "timeout");
+			childnode = xml->enterNode(node, "password");
 			if(childnode)
-				_resourcemgrInfo.respool_timeout = uint64(xml->getValInt(childnode));
+			{
+				_botsInfo.telnet_passwd = xml->getValStr(childnode);
+			}
 
-			childnode = xml->enterNode(node, "checktick");
+			childnode = xml->enterNode(node, "default_layer");
 			if(childnode)
-				Resmgr::respool_checktick = xml->getValInt(childnode);
-
-			Resmgr::respool_timeout = _resourcemgrInfo.respool_timeout;
-			Resmgr::respool_buffersize = _resourcemgrInfo.respool_buffersize;
+			{
+				_botsInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 
-	SAFE_RELEASE(xml);
+	rootNode = xml->getRootNode("logger");
+	if(rootNode != NULL)
+	{
+		node = xml->enterNode(rootNode, "logger");	
+		if(node != NULL)
+			strncpy((char*)&_loggerInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "SOMAXCONN");
+		if(node != NULL){
+			_loggerInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "tick_max_buffered_logs");
+		if(node != NULL){
+			tick_max_buffered_logs_ = (uint32)xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "tick_sync_logs");
+		if(node != NULL){
+			tick_max_sync_logs_ = (uint32)xml->getValInt(node);
+		}
+	}
 
 	if(email_service_config.size() > 0)
 	{
-		xml = new XmlPlus(Resmgr::getSingleton().matchRes(email_service_config).c_str());
+		SmartPointer<XML> emailxml(new XML(Resmgr::getSingleton().matchRes(email_service_config).c_str()));
 
-		if(!xml->isGood())
+		if(!emailxml->isGood())
 		{
-			ERROR_MSG(boost::format("ServerConfig::loadConfig: load %1% is failed!\n") %
-				email_service_config.c_str());
+			ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+				email_service_config.c_str()));
 
-			SAFE_RELEASE(xml);
 			return false;
 		}
 
-		TiXmlNode* childnode = xml->getRootNode("smtp_server");
+		TiXmlNode* childnode = emailxml->getRootNode("smtp_server");
 		if(childnode)
-			emailServerInfo_.smtp_server = xml->getValStr(childnode);
+			emailServerInfo_.smtp_server = emailxml->getValStr(childnode);
 
-		childnode = xml->getRootNode("smtp_port");
+		childnode = emailxml->getRootNode("smtp_port");
 		if(childnode)
-			emailServerInfo_.smtp_port = xml->getValInt(childnode);
+			emailServerInfo_.smtp_port = emailxml->getValInt(childnode);
 
-		childnode = xml->getRootNode("username");
+		childnode = emailxml->getRootNode("username");
 		if(childnode)
-			emailServerInfo_.username = xml->getValStr(childnode);
+			emailServerInfo_.username = emailxml->getValStr(childnode);
 
-		childnode = xml->getRootNode("password");
+		childnode = emailxml->getRootNode("password");
 		if(childnode)
-			emailServerInfo_.password = xml->getValStr(childnode);
+		{
+			emailServerInfo_.password = emailxml->getValStr(childnode);
+		}
 
-		childnode = xml->getRootNode("smtp_auth");
+		childnode = emailxml->getRootNode("smtp_auth");
 		if(childnode)
-			emailServerInfo_.smtp_auth = xml->getValInt(childnode);
+			emailServerInfo_.smtp_auth = emailxml->getValInt(childnode);
 
-		TiXmlNode* rootNode1 = xml->getRootNode("email_activation");
+		TiXmlNode* rootNode1 = emailxml->getRootNode("email_activation");
 		if(rootNode1 != NULL)
 		{
-			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			TiXmlNode* childnode1 = emailxml->enterNode(rootNode1, "subject");
 			if(childnode1)
 				emailAtivationInfo_.subject = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "message");
+			childnode1 = emailxml->enterNode(rootNode1, "message");
 			if(childnode1)
 				emailAtivationInfo_.message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "deadline");
+			childnode1 = emailxml->enterNode(rootNode1, "deadline");
 			if(childnode1)
-				emailAtivationInfo_.deadline = xml->getValInt(childnode1);
+				emailAtivationInfo_.deadline = emailxml->getValInt(childnode1);
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_success_message");
 			if(childnode1)
 				emailAtivationInfo_.backlink_success_message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_fail_message");
 			if(childnode1)
 				emailAtivationInfo_.backlink_fail_message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_hello_message");
 			if(childnode1)
 				emailAtivationInfo_.backlink_hello_message = childnode1->ToText()->Value();
 		}
 
-		rootNode1 = xml->getRootNode("email_resetpassword");
+		rootNode1 = emailxml->getRootNode("email_resetpassword");
 		if(rootNode1 != NULL)
 		{
-			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			TiXmlNode* childnode1 = emailxml->enterNode(rootNode1, "subject");
 			if(childnode1)
 				emailResetPasswordInfo_.subject = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "message");
+			childnode1 = emailxml->enterNode(rootNode1, "message");
 			if(childnode1)
 				emailResetPasswordInfo_.message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "deadline");
+			childnode1 = emailxml->enterNode(rootNode1, "deadline");
 			if(childnode1)
-				emailResetPasswordInfo_.deadline = xml->getValInt(childnode1);
+				emailResetPasswordInfo_.deadline = emailxml->getValInt(childnode1);
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_success_message");
 			if(childnode1)
 				emailResetPasswordInfo_.backlink_success_message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_fail_message");
 			if(childnode1)
 				emailResetPasswordInfo_.backlink_fail_message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_hello_message");
 			if(childnode1)
 				emailResetPasswordInfo_.backlink_hello_message = childnode1->ToText()->Value();
 		}
 
-		rootNode1 = xml->getRootNode("email_bind");
+		rootNode1 = emailxml->getRootNode("email_bind");
 		if(rootNode1 != NULL)
 		{
-			TiXmlNode* childnode1 = xml->enterNode(rootNode1, "subject");
+			TiXmlNode* childnode1 = emailxml->enterNode(rootNode1, "subject");
 			if(childnode1)
 				emailBindInfo_.subject = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "message");
+			childnode1 = emailxml->enterNode(rootNode1, "message");
 			if(childnode1)
 				emailBindInfo_.message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "deadline");
+			childnode1 = emailxml->enterNode(rootNode1, "deadline");
 			if(childnode1)
-				emailBindInfo_.deadline = xml->getValInt(childnode1);
+				emailBindInfo_.deadline = emailxml->getValInt(childnode1);
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_success_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_success_message");
 			if(childnode1)
 				emailBindInfo_.backlink_success_message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_fail_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_fail_message");
 			if(childnode1)
 				emailBindInfo_.backlink_fail_message = childnode1->ToText()->Value();
 
-			childnode1 = xml->enterNode(rootNode1, "backlink_hello_message");
+			childnode1 = emailxml->enterNode(rootNode1, "backlink_hello_message");
 			if(childnode1)
 				emailBindInfo_.backlink_hello_message = childnode1->ToText()->Value();
 		}
 	}
 
-	SAFE_RELEASE(xml);
 	return true;
 }
 
@@ -1141,115 +1330,237 @@ uint32 ServerConfig::tcp_SOMAXCONN(COMPONENT_TYPE componentType)
 }
 
 //-------------------------------------------------------------------------------------	
-void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
-							   const Mercury::Address& internalAddr, const Mercury::Address& externalAddr)
+void ServerConfig::_updateEmailInfos()
 {
+	// 如果小于64则表示目前还是明文密码
+	if(emailServerInfo_.password.size() < 64)
+	{
+		WARNING_MSG(fmt::format("ServerConfig::loadConfig: email password(email_service.xml) is not encrypted!\nplease use password(rsa):\n{}\n"
+			, KBEKey::getSingleton().encrypt(emailServerInfo_.password)));
+	}
+	else
+	{
+		std::string out = KBEKey::getSingleton().decrypt(emailServerInfo_.password);
+		if(out.size() == 0)
+		{
+			ERROR_MSG("ServerConfig::loadConfig: email password(email_service.xml) encrypt is error!\n");
+		}
+		else
+		{
+			emailServerInfo_.password = out;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void ServerConfig::updateExternalAddress(char* buf)
+{
+	if(strlen(buf) > 0)
+	{
+		unsigned int inaddr = 0; 
+		if((inaddr = inet_addr(buf)) == INADDR_NONE)  
+		{
+			struct hostent *host;
+			host = gethostbyname(buf);
+			if(host)
+			{
+				strncpy(buf, inet_ntoa(*(struct in_addr*)host->h_addr_list[0]), MAX_BUF);
+			}	
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------	
+void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
+							   const Network::Address& internalAddr, const Network::Address& externalAddr)
+{
+	std::string infostr = "";
+
+	//updateExternalAddress(getBaseApp().externalAddress);
+	//updateExternalAddress(getLoginApp().externalAddress);
+
 	if(componentType == CELLAPP_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getCellApp();
 		info.internalAddr = &internalAddr;
 		info.externalAddr = &externalAddr;
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz());
-			INFO_MSG(boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius);
-			INFO_MSG(boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea);
-			INFO_MSG(boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile);
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			INFO_MSG(fmt::format("\tdefaultAoIRadius : {}\n", info.defaultAoIRadius));
+			INFO_MSG(fmt::format("\tdefaultAoIHysteresisArea : {}\n", info.defaultAoIHysteresisArea));
+			INFO_MSG(fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			infostr += (fmt::format("\tdefaultAoIRadius : {}\n", info.defaultAoIRadius));
+			infostr += (fmt::format("\tdefaultAoIHysteresisArea : {}\n", info.defaultAoIHysteresisArea));
+			infostr += (fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == BASEAPP_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getBaseApp();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tgameUpdateHertz : %1%\n") % gameUpdateHertz());
-			INFO_MSG(boost::format("\tdefaultAoIRadius : %1%\n") % info.defaultAoIRadius);
-			INFO_MSG(boost::format("\tdefaultAoIHysteresisArea : %1%\n") % info.defaultAoIHysteresisArea);
-			INFO_MSG(boost::format("\tentryScriptFile : %1%\n") % info.entryScriptFile);
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			INFO_MSG(fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+
+			if(strlen(info.externalAddress) > 0)
+			{
+				INFO_MSG(fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
+			infostr += (fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+
+			if(strlen(info.externalAddress) > 0)
+			{
+				infostr +=  (fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
+
+		_updateEmailInfos();
 	}
 	else if (componentType == BASEAPPMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getBaseAppMgr();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == CELLAPPMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getCellAppMgr();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == DBMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getDBMgr();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
 	else if (componentType == LOGINAPP_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getLoginApp();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			INFO_MSG(boost::format("\texternalAddr : %1%\n") % externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+			if(strlen(info.externalAddress) > 0)
+			{
+				INFO_MSG(fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
+
+			if(strlen(info.externalAddress) > 0)
+			{
+				infostr +=  (fmt::format("\texternalCustomAddr : {}\n", info.externalAddress));
+			}
+
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
+
+		_updateEmailInfos();
 	}
 	else if (componentType == MACHINE_TYPE)
 	{
 		ENGINE_COMPONENT_INFO info = getKBMachine();
-		info.internalAddr = const_cast<Mercury::Address*>(&internalAddr);
-		info.externalAddr = const_cast<Mercury::Address*>(&externalAddr);
+		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
+		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
-			INFO_MSG(boost::format("\tinternalAddr : %1%\n") % internalAddr.c_str());
-			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str());
-			INFO_MSG(boost::format("\tcomponentID : %1%\n") % info.componentID);
+			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			//INFO_MSG("\texternalAddr : %s\n", externalAddr.c_str()));
+			INFO_MSG(fmt::format("\tcomponentID : {}\n", info.componentID));
+
+			infostr += "server-configs:\n";
+			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
+			infostr += (fmt::format("\tcomponentID : {}\n", info.componentID));
 		}
 	}
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if(infostr.size() > 0)
+	{
+		infostr += "\n";
+		printf("%s", infostr.c_str());
+	}
+#endif
 }
 
 //-------------------------------------------------------------------------------------		

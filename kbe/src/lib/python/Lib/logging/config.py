@@ -1,4 +1,4 @@
-# Copyright 2001-2013 by Vinay Sajip. All Rights Reserved.
+# Copyright 2001-2014 by Vinay Sajip. All Rights Reserved.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted,
@@ -19,18 +19,24 @@ Configuration functions for the logging package for Python. The core package
 is based on PEP 282 and comments thereto in comp.lang.python, and influenced
 by Apache's log4j system.
 
-Copyright (C) 2001-2013 Vinay Sajip. All Rights Reserved.
+Copyright (C) 2001-2014 Vinay Sajip. All Rights Reserved.
 
 To use, simply 'import logging' and log away!
 """
 
-import sys, logging, logging.handlers, socket, struct, os, traceback, re
-import types, io
+import errno
+import io
+import logging
+import logging.handlers
+import re
+import struct
+import sys
+import traceback
 
 try:
     import _thread as thread
     import threading
-except ImportError:
+except ImportError: #pragma: no cover
     thread = None
 
 from socketserver import ThreadingTCPServer, StreamRequestHandler
@@ -38,10 +44,7 @@ from socketserver import ThreadingTCPServer, StreamRequestHandler
 
 DEFAULT_LOGGING_CONFIG_PORT = 9030
 
-if sys.platform == "win32":
-    RESET_ERROR = 10054   #WSAECONNRESET
-else:
-    RESET_ERROR = 104     #ECONNRESET
+RESET_ERROR = errno.ECONNRESET
 
 #
 #   The following code implements a socket listener for on-the-fly
@@ -61,11 +64,14 @@ def fileConfig(fname, defaults=None, disable_existing_loggers=True):
     """
     import configparser
 
-    cp = configparser.ConfigParser(defaults)
-    if hasattr(fname, 'readline'):
-        cp.read_file(fname)
+    if isinstance(fname, configparser.RawConfigParser):
+        cp = fname
     else:
-        cp.read(fname)
+        cp = configparser.ConfigParser(defaults)
+        if hasattr(fname, 'readline'):
+            cp.read_file(fname)
+        else:
+            cp.read(fname)
 
     formatters = _create_formatters(cp)
 
@@ -97,9 +103,6 @@ def _resolve(name):
 
 def _strip_spaces(alist):
     return map(lambda x: x.strip(), alist)
-
-def _encoded(s):
-    return s if isinstance(s, str) else s.encode('utf-8')
 
 def _create_formatters(cp):
     """Create and return formatters"""
@@ -144,7 +147,7 @@ def _install_handlers(cp, formatters):
         h = klass(*args)
         if "level" in section:
             level = section["level"]
-            h.setLevel(logging._levelNames[level])
+            h.setLevel(level)
         if len(fmt):
             h.setFormatter(formatters[fmt])
         if issubclass(klass, logging.handlers.MemoryHandler):
@@ -191,7 +194,7 @@ def _install_loggers(cp, handlers, disable_existing):
     log = root
     if "level" in section:
         level = section["level"]
-        log.setLevel(logging._levelNames[level])
+        log.setLevel(level)
     for h in root.handlers[:]:
         root.removeHandler(h)
     hlist = section["handlers"]
@@ -215,7 +218,7 @@ def _install_loggers(cp, handlers, disable_existing):
     #avoid disabling child loggers of explicitly
     #named loggers. With a sorted list it is easier
     #to find the child loggers.
-    existing.sort(key=_encoded)
+    existing.sort()
     #We'll keep the list of existing loggers
     #which are children of named loggers here...
     child_loggers = []
@@ -237,7 +240,7 @@ def _install_loggers(cp, handlers, disable_existing):
             existing.remove(qn)
         if "level" in section:
             level = section["level"]
-            logger.setLevel(logging._levelNames[level])
+            logger.setLevel(level)
         for h in logger.handlers[:]:
             logger.removeHandler(h)
         logger.propagate = propagate
@@ -274,6 +277,30 @@ def valid_ident(s):
     return True
 
 
+class ConvertingMixin(object):
+    """For ConvertingXXX's, this mixin class provides common functions"""
+
+    def convert_with_key(self, key, value, replace=True):
+        result = self.configurator.convert(value)
+        #If the converted value is different, save for next time
+        if value is not result:
+            if replace:
+                self[key] = result
+            if type(result) in (ConvertingDict, ConvertingList,
+                               ConvertingTuple):
+                result.parent = self
+                result.key = key
+        return result
+
+    def convert(self, value):
+        result = self.configurator.convert(value)
+        if value is not result:
+            if type(result) in (ConvertingDict, ConvertingList,
+                               ConvertingTuple):
+                result.parent = self
+        return result
+
+
 # The ConvertingXXX classes are wrappers around standard Python containers,
 # and they serve to convert any suitable values in the container. The
 # conversion converts base dicts, lists and tuples to their wrapped
@@ -283,77 +310,37 @@ def valid_ident(s):
 # Each wrapper should have a configurator attribute holding the actual
 # configurator to use for conversion.
 
-class ConvertingDict(dict):
+class ConvertingDict(dict, ConvertingMixin):
     """A converting dictionary wrapper."""
 
     def __getitem__(self, key):
         value = dict.__getitem__(self, key)
-        result = self.configurator.convert(value)
-        #If the converted value is different, save for next time
-        if value is not result:
-            self[key] = result
-            if type(result) in (ConvertingDict, ConvertingList,
-                                ConvertingTuple):
-                result.parent = self
-                result.key = key
-        return result
+        return self.convert_with_key(key, value)
 
     def get(self, key, default=None):
         value = dict.get(self, key, default)
-        result = self.configurator.convert(value)
-        #If the converted value is different, save for next time
-        if value is not result:
-            self[key] = result
-            if type(result) in (ConvertingDict, ConvertingList,
-                                ConvertingTuple):
-                result.parent = self
-                result.key = key
-        return result
+        return self.convert_with_key(key, value)
 
     def pop(self, key, default=None):
         value = dict.pop(self, key, default)
-        result = self.configurator.convert(value)
-        if value is not result:
-            if type(result) in (ConvertingDict, ConvertingList,
-                                ConvertingTuple):
-                result.parent = self
-                result.key = key
-        return result
+        return self.convert_with_key(key, value, replace=False)
 
-class ConvertingList(list):
+class ConvertingList(list, ConvertingMixin):
     """A converting list wrapper."""
     def __getitem__(self, key):
         value = list.__getitem__(self, key)
-        result = self.configurator.convert(value)
-        #If the converted value is different, save for next time
-        if value is not result:
-            self[key] = result
-            if type(result) in (ConvertingDict, ConvertingList,
-                                ConvertingTuple):
-                result.parent = self
-                result.key = key
-        return result
+        return self.convert_with_key(key, value)
 
     def pop(self, idx=-1):
         value = list.pop(self, idx)
-        result = self.configurator.convert(value)
-        if value is not result:
-            if type(result) in (ConvertingDict, ConvertingList,
-                                ConvertingTuple):
-                result.parent = self
-        return result
+        return self.convert(value)
 
-class ConvertingTuple(tuple):
+class ConvertingTuple(tuple, ConvertingMixin):
     """A converting tuple wrapper."""
     def __getitem__(self, key):
         value = tuple.__getitem__(self, key)
-        result = self.configurator.convert(value)
-        if value is not result:
-            if type(result) in (ConvertingDict, ConvertingList,
-                                ConvertingTuple):
-                result.parent = self
-                result.key = key
-        return result
+        # Can't replace a tuple entry.
+        return self.convert_with_key(key, value, replace=False)
 
 class BaseConfigurator(object):
     """
@@ -603,7 +590,7 @@ class DictConfigurator(BaseConfigurator):
                 #avoid disabling child loggers of explicitly
                 #named loggers. With a sorted list it is easier
                 #to find the child loggers.
-                existing.sort(key=_encoded)
+                existing.sort()
                 #We'll keep the list of existing loggers
                 #which are children of named loggers here...
                 child_loggers = []
@@ -672,7 +659,8 @@ class DictConfigurator(BaseConfigurator):
         else:
             fmt = config.get('format', None)
             dfmt = config.get('datefmt', None)
-            result = logging.Formatter(fmt, dfmt)
+            style = config.get('style', '%')
+            result = logging.Formatter(fmt, dfmt, style)
         return result
 
     def configure_filter(self, config):
@@ -694,6 +682,7 @@ class DictConfigurator(BaseConfigurator):
 
     def configure_handler(self, config):
         """Configure a handler from a dictionary."""
+        config_copy = dict(config)  # for restoring in case of error
         formatter = config.pop('formatter', None)
         if formatter:
             try:
@@ -717,7 +706,7 @@ class DictConfigurator(BaseConfigurator):
                 try:
                     th = self.config['handlers'][config['target']]
                     if not isinstance(th, logging.Handler):
-                        config['class'] = cname # restore for deferred configuration
+                        config.update(config_copy)  # restore for deferred cfg
                         raise TypeError('target not configured yet')
                     config['target'] = th
                 except Exception as e:
@@ -730,6 +719,7 @@ class DictConfigurator(BaseConfigurator):
                 'address' in config:
                 config['address'] = self.as_tuple(config['address'])
             factory = klass
+        props = config.pop('.', None)
         kwargs = dict([(k, config[k]) for k in config if valid_ident(k)])
         try:
             result = factory(**kwargs)
@@ -748,6 +738,9 @@ class DictConfigurator(BaseConfigurator):
             result.setLevel(logging._checkLevel(level))
         if filters:
             self.add_filters(result, filters)
+        if props:
+            for name, value in props.items():
+                setattr(result, name, value)
         return result
 
     def add_handlers(self, logger, handlers):
@@ -796,7 +789,7 @@ def dictConfig(config):
     dictConfigClass(config).configure()
 
 
-def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
+def listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None):
     """
     Start up a socket server on the specified port, and listen for new
     configurations.
@@ -805,8 +798,17 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
     Returns a Thread object on which you can call start() to start the server,
     and which you can join() when appropriate. To stop the server, call
     stopListening().
+
+    Use the ``verify`` argument to verify any bytes received across the wire
+    from a client. If specified, it should be a callable which receives a
+    single argument - the bytes of configuration data received across the
+    network - and it should return either ``None``, to indicate that the
+    passed in bytes could not be verified and should be discarded, or a
+    byte string which is then passed to the configuration machinery as
+    normal. Note that you can return transformed bytes, e.g. by decrypting
+    the bytes passed in.
     """
-    if not thread:
+    if not thread: #pragma: no cover
         raise NotImplementedError("listen() needs threading to work")
 
     class ConfigStreamHandler(StreamRequestHandler):
@@ -824,7 +826,6 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
             struct.pack(">L", n), followed by the config file.
             Uses fileConfig() to do the grunt work.
             """
-            import tempfile
             try:
                 conn = self.connection
                 chunk = conn.recv(4)
@@ -833,31 +834,28 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
                     chunk = self.connection.recv(slen)
                     while len(chunk) < slen:
                         chunk = chunk + conn.recv(slen - len(chunk))
-                    chunk = chunk.decode("utf-8")
-                    try:
-                        import json
-                        d =json.loads(chunk)
-                        assert isinstance(d, dict)
-                        dictConfig(d)
-                    except:
-                        #Apply new configuration.
-
-                        file = io.StringIO(chunk)
+                    if self.server.verify is not None:
+                        chunk = self.server.verify(chunk)
+                    if chunk is not None:   # verified, can process
+                        chunk = chunk.decode("utf-8")
                         try:
-                            fileConfig(file)
-                        except (KeyboardInterrupt, SystemExit):
-                            raise
-                        except:
-                            traceback.print_exc()
+                            import json
+                            d =json.loads(chunk)
+                            assert isinstance(d, dict)
+                            dictConfig(d)
+                        except Exception:
+                            #Apply new configuration.
+
+                            file = io.StringIO(chunk)
+                            try:
+                                fileConfig(file)
+                            except Exception:
+                                traceback.print_exc()
                     if self.server.ready:
                         self.server.ready.set()
-            except socket.error as e:
-                if not isinstance(e.args, tuple):
+            except OSError as e:
+                if e.errno != RESET_ERROR:
                     raise
-                else:
-                    errcode = e.args[0]
-                    if errcode != RESET_ERROR:
-                        raise
 
     class ConfigSocketReceiver(ThreadingTCPServer):
         """
@@ -867,13 +865,14 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
         allow_reuse_address = 1
 
         def __init__(self, host='localhost', port=DEFAULT_LOGGING_CONFIG_PORT,
-                     handler=None, ready=None):
+                     handler=None, ready=None, verify=None):
             ThreadingTCPServer.__init__(self, (host, port), handler)
             logging._acquireLock()
             self.abort = 0
             logging._releaseLock()
             self.timeout = 1
             self.ready = ready
+            self.verify = verify
 
         def serve_until_stopped(self):
             import select
@@ -891,16 +890,18 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
 
     class Server(threading.Thread):
 
-        def __init__(self, rcvr, hdlr, port):
+        def __init__(self, rcvr, hdlr, port, verify):
             super(Server, self).__init__()
             self.rcvr = rcvr
             self.hdlr = hdlr
             self.port = port
+            self.verify = verify
             self.ready = threading.Event()
 
         def run(self):
             server = self.rcvr(port=self.port, handler=self.hdlr,
-                               ready=self.ready)
+                               ready=self.ready,
+                               verify=self.verify)
             if self.port == 0:
                 self.port = server.server_address[1]
             self.ready.set()
@@ -910,7 +911,7 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT):
             logging._releaseLock()
             server.serve_until_stopped()
 
-    return Server(ConfigSocketReceiver, ConfigStreamHandler, port)
+    return Server(ConfigSocketReceiver, ConfigStreamHandler, port, verify)
 
 def stopListening():
     """

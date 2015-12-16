@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,30 +19,64 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "channel.hpp"
+#include "channel.h"
 #ifndef CODE_INLINE
-#include "channel.ipp"
+#include "channel.inl"
 #endif
 
-#include "network/websocket_protocol.hpp"
-#include "network/html5_packet_filter.hpp"
-#include "network/html5_packet_reader.hpp"
-#include "network/bundle.hpp"
-#include "network/packet_reader.hpp"
-#include "network/network_interface.hpp"
-#include "network/tcp_packet_receiver.hpp"
-#include "network/udp_packet_receiver.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/message_handler.hpp"
-#include "network/mercurystats.hpp"
+#include "network/websocket_protocol.h"
+#include "network/websocket_packet_filter.h"
+#include "network/websocket_packet_reader.h"
+#include "network/bundle.h"
+#include "network/packet_reader.h"
+#include "network/network_interface.h"
+#include "network/tcp_packet_receiver.h"
+#include "network/tcp_packet_sender.h"
+#include "network/udp_packet_receiver.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/message_handler.h"
+#include "network/network_stats.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
-const int EXTERNAL_CHANNEL_SIZE = 256;
-const int INTERNAL_CHANNEL_SIZE = 4096;
-const int INDEXED_CHANNEL_SIZE = 512;
+
+//-------------------------------------------------------------------------------------
+static ObjectPool<Channel> _g_objPool("Channel");
+ObjectPool<Channel>& Channel::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("Channel::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
+size_t Channel::getPoolObjectBytes()
+{
+	size_t bytes = sizeof(pNetworkInterface_) + sizeof(traits_) + 
+		sizeof(id_) + sizeof(inactivityTimerHandle_) + sizeof(inactivityExceptionPeriod_) + 
+		sizeof(lastReceivedTime_) + (bufferedReceives_.size() * sizeof(Packet*)) + sizeof(pPacketReader_)
+		+ sizeof(flags_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
+		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
+		+ sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
+		+ sizeof(componentID_) + sizeof(pMsgHandlers_);
+
+	return bytes;
+}
+
+//-------------------------------------------------------------------------------------
+Channel::SmartPoolObjectPtr Channel::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(), _g_objPool));
+}
 
 //-------------------------------------------------------------------------------------
 void Channel::onReclaimObject()
@@ -51,17 +85,10 @@ void Channel::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
-bool Channel::destructorPoolObject()
-{
-	this->decRef();
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
 Channel::Channel(NetworkInterface & networkInterface,
-		const EndPoint * endpoint, Traits traits, ProtocolType pt,
+		const EndPoint * pEndPoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):
-	pNetworkInterface_(&networkInterface),
+	pNetworkInterface_(NULL),
 	traits_(traits),
 	protocoltype_(pt),
 	id_(id),
@@ -69,43 +96,26 @@ Channel::Channel(NetworkInterface & networkInterface,
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
 	bundles_(),
-	windowSize_(	(traits != INTERNAL)    ? EXTERNAL_CHANNEL_SIZE :
-					(id == CHANNEL_ID_NULL) ? INTERNAL_CHANNEL_SIZE :
-											  INDEXED_CHANNEL_SIZE),
-
-	bufferedReceivesIdx_(0),
 	pPacketReader_(0),
-	isDestroyed_(false),
-	// Stats
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
 	numBytesSent_(0),
 	numBytesReceived_(0),
 	lastTickBytesReceived_(0),
+	lastTickBytesSent_(0),
 	pFilter_(pFilter),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
-	isCondemn_(false),
+	pPacketSender_(NULL),
 	proxyID_(0),
 	strextra_(),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
-	pMsgHandlers_(NULL)
+	pMsgHandlers_(NULL),
+	flags_(0)
 {
-	this->incRef();
 	this->clearBundle();
-	this->endpoint(endpoint);
-	
-	if(protocoltype_ == PROTOCOL_TCP)
-	{
-		pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, networkInterface);
-		// UDP不需要注册描述符
-		pNetworkInterface_->dispatcher().registerFileDescriptor(*pEndPoint_, pPacketReceiver_);
-	}
-	else
-		pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, networkInterface);
-	
-	startInactivityDetection((traits == INTERNAL) ? g_channelInternalTimeout : g_channelExternalTimeout);
+	initialize(networkInterface, pEndPoint, traits, pt, pFilter, id);
 }
 
 //-------------------------------------------------------------------------------------
@@ -118,51 +128,121 @@ Channel::Channel():
 	inactivityExceptionPeriod_(0),
 	lastReceivedTime_(0),
 	bundles_(),
-	windowSize_(EXTERNAL_CHANNEL_SIZE),
-	bufferedReceivesIdx_(0),
 	pPacketReader_(0),
-	isDestroyed_(false),
 	// Stats
 	numPacketsSent_(0),
 	numPacketsReceived_(0),
 	numBytesSent_(0),
 	numBytesReceived_(0),
 	lastTickBytesReceived_(0),
+	lastTickBytesSent_(0),
 	pFilter_(NULL),
 	pEndPoint_(NULL),
 	pPacketReceiver_(NULL),
-	isCondemn_(false),
+	pPacketSender_(NULL),
 	proxyID_(0),
 	strextra_(),
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
-	pMsgHandlers_(NULL)
+	pMsgHandlers_(NULL),
+	flags_(0)
 {
-	this->incRef();
 	this->clearBundle();
-	this->endpoint(NULL);
 }
 
 //-------------------------------------------------------------------------------------
 Channel::~Channel()
 {
-	DEBUG_MSG(boost::format("Channel::~Channel(): %1%\n") % this->c_str());
-	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL && !isDestroyed_)
-	{
-		pNetworkInterface_->onChannelGone(this);
+	// DEBUG_MSG(fmt::format("Channel::~Channel(): {}\n", this->c_str()));
+	finalise();
+}
 
-		if(protocoltype_ == PROTOCOL_TCP)
+//-------------------------------------------------------------------------------------
+bool Channel::initialize(NetworkInterface & networkInterface, 
+		const EndPoint * pEndPoint, 
+		Traits traits, 
+		ProtocolType pt, 
+		PacketFilterPtr pFilter, 
+		ChannelID id)
+{
+	id_ = id;
+	protocoltype_ = pt;
+	traits_ = traits;
+	pFilter_ = pFilter;
+	pNetworkInterface_ = &networkInterface;
+	this->pEndPoint(pEndPoint);
+
+	KBE_ASSERT(pNetworkInterface_ != NULL);
+	KBE_ASSERT(pEndPoint_ != NULL);
+
+
+	if(protocoltype_ == PROTOCOL_TCP)
+	{
+		if(pPacketReceiver_)
 		{
-			pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
-			pEndPoint_->close();
+			if(pPacketReceiver_->type() == PacketReceiver::UDP_PACKET_RECEIVER)
+			{
+				SAFE_RELEASE(pPacketReceiver_);
+				pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+			}
 		}
+		else
+		{
+			pPacketReceiver_ = new TCPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+		}
+
+		KBE_ASSERT(pPacketReceiver_->type() == PacketReceiver::TCP_PACKET_RECEIVER);
+
+		// UDP不需要注册描述符
+		pNetworkInterface_->dispatcher().registerReadFileDescriptor(*pEndPoint_, pPacketReceiver_);
+
+		// 需要发送数据时再注册
+		// pPacketSender_ = new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
+		// pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
+	}
+	else
+	{
+		if(pPacketReceiver_)
+		{
+			if(pPacketReceiver_->type() == PacketReceiver::TCP_PACKET_RECEIVER)
+			{
+				SAFE_RELEASE(pPacketReceiver_);
+				pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+			}
+		}
+		else
+		{
+			pPacketReceiver_ = new UDPPacketReceiver(*pEndPoint_, *pNetworkInterface_);
+		}
+
+		KBE_ASSERT(pPacketReceiver_->type() == PacketReceiver::UDP_PACKET_RECEIVER);
 	}
 
+	pPacketReceiver_->pEndPoint(pEndPoint_);
+	if(pPacketSender_)
+		pPacketSender_->pEndPoint(pEndPoint_);
+
+	startInactivityDetection((traits_ == INTERNAL) ? g_channelInternalTimeout : 
+													g_channelExternalTimeout,
+							(traits_ == INTERNAL) ? g_channelInternalTimeout  / 2.f: 
+													g_channelExternalTimeout / 2.f);
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool Channel::finalise()
+{
 	this->clearState();
 	
 	SAFE_RELEASE(pPacketReceiver_);
-	SAFE_RELEASE(pEndPoint_);
 	SAFE_RELEASE(pPacketReader_);
+	SAFE_RELEASE(pPacketSender_);
+
+	Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
+	pEndPoint_ = NULL;
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -185,9 +265,10 @@ void Channel::startInactivityDetection( float period, float checkPeriod )
 	stopInactivityDetection();
 
 	// 如果周期为负数则不检查
-	if(period > 0.f)
+	if(period > 0.001f)
 	{
-		inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() );
+		checkPeriod = std::max(1.f, checkPeriod);
+		inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() ) - uint64( 0.05f * stampsPerSecond() );
 		lastReceivedTime_ = timestamp();
 
 		inactivityTimerHandle_ =
@@ -203,12 +284,12 @@ void Channel::stopInactivityDetection()
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::endpoint(const EndPoint* endpoint)
+void Channel::pEndPoint(const EndPoint* pEndPoint)
 {
-	if (pEndPoint_ != endpoint)
+	if (pEndPoint_ != pEndPoint)
 	{
-		delete pEndPoint_;
-		pEndPoint_ = const_cast<EndPoint*>(endpoint);
+		Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
+		pEndPoint_ = const_cast<EndPoint*>(pEndPoint);
 	}
 	
 	lastReceivedTime_ = timestamp();
@@ -217,67 +298,48 @@ void Channel::endpoint(const EndPoint* endpoint)
 //-------------------------------------------------------------------------------------
 void Channel::destroy()
 {
-	if(isDestroyed_)
+	if(isDestroyed())
 	{
-		CRITICAL_MSG("is channel has Destroyed!");
+		CRITICAL_MSG("is channel has Destroyed!\n");
 		return;
 	}
 
-	if(pNetworkInterface_ != NULL && pEndPoint_ != NULL)
-	{
-		pNetworkInterface_->onChannelGone(this);
-
-		if(protocoltype_ == PROTOCOL_TCP)
-		{
-			pNetworkInterface_->dispatcher().deregisterFileDescriptor(*pEndPoint_);
-			pEndPoint_->close();
-		}
-	}
-
-	stopInactivityDetection();
-	isDestroyed_ = true;
-	this->decRef();
+	clearState();
+	flags_ |= FLAG_DESTROYED;
 }
 
 //-------------------------------------------------------------------------------------
 void Channel::clearState( bool warnOnDiscard /*=false*/ )
 {
 	// 清空未处理的接受包缓存
-	for(uint8 i=0; i<2; i++)
+	if (bufferedReceives_.size() > 0)
 	{
-		if (bufferedReceives_[i].size() > 0)
-		{
-			BufferedReceives::iterator iter = bufferedReceives_[i].begin();
-			int hasDiscard = 0;
+		BufferedReceives::iterator iter = bufferedReceives_.begin();
+		int hasDiscard = 0;
 			
-			for(; iter != bufferedReceives_[i].end(); iter++)
-			{
-				Packet* pPacket = (*iter);
-				if(pPacket->opsize() > 0)
-					hasDiscard++;
+		for(; iter != bufferedReceives_.end(); ++iter)
+		{
+			Packet* pPacket = (*iter);
+			if(pPacket->length() > 0)
+				hasDiscard++;
 
-				if(pPacket->isTCPPacket())
-					TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
-				else
-					UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));
-			}
-
-			if (hasDiscard > 0 && warnOnDiscard)
-			{
-				WARNING_MSG(boost::format("Channel::clearState( %1% ): "
-					"Discarding %2% buffered packet(s)\n") %
-					this->c_str() % hasDiscard );
-			}
-
-			bufferedReceives_[i].clear();
+			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 		}
+
+		if (hasDiscard > 0 && warnOnDiscard)
+		{
+			WARNING_MSG(fmt::format("Channel::clearState( {} ): "
+				"Discarding {} buffered packet(s)\n",
+				this->c_str(), hasDiscard));
+		}
+
+		bufferedReceives_.clear();
 	}
 
 	clearBundle();
 
 	lastReceivedTime_ = timestamp();
 
-	isCondemn_ = false;
 	numPacketsSent_ = 0;
 	numPacketsReceived_ = 0;
 	numBytesSent_ = 0;
@@ -286,13 +348,33 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	proxyID_ = 0;
 	strextra_ = "";
 	channelType_ = CHANNEL_NORMAL;
-	bufferedReceivesIdx_ = 0;
 
-	SAFE_RELEASE(pPacketReader_);
+	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP && !this->isDestroyed())
+	{
+		this->stopSend();
+
+		if(pNetworkInterface_)
+		{
+			if(!this->isDestroyed())
+				pNetworkInterface_->dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
+		}
+	}
+
+	// 这里只清空状态，不释放
+	//SAFE_RELEASE(pPacketReader_);
+	//SAFE_RELEASE(pPacketSender_);
+
+	flags_ = 0;
 	pFilter_ = NULL;
 
 	stopInactivityDetection();
-	this->endpoint(NULL);
+
+	// 由于pEndPoint通常由外部给入，必须释放，频道重新激活时会重新赋值
+	if(pEndPoint_)
+	{
+		pEndPoint_->close();
+		this->pEndPoint(NULL);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -312,49 +394,12 @@ int32 Channel::bundlesLength()
 {
 	int32 len = 0;
 	Bundles::iterator iter = bundles_.begin();
-	for(; iter != bundles_.end(); iter++)
+	for(; iter != bundles_.end(); ++iter)
 	{
 		len += (*iter)->packetsLength();
 	}
 
 	return len;
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::pushBundle(Bundle* pBundle)
-{
-	bundles_.push_back(pBundle);
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::send(Bundle * pBundle)
-{
-	if (this->isDestroyed())
-	{
-		ERROR_MSG(boost::format("Channel::send(%1%): Channel is destroyed.\n") % 
-			this->c_str());
-		
-		this->clearBundle();
-		return;
-	}
-	
-	if(pBundle)
-	{
-		bundles_.push_back(pBundle);
-	}
-
-	Bundles::iterator iter = bundles_.begin();
-	for(; iter != bundles_.end(); iter++)
-	{
-		(*iter)->send(*pNetworkInterface_, this);
-
-		++numPacketsSent_;
-		++g_numPacketsSent;
-		numBytesSent_ += (*iter)->totalSize();
-		g_numBytesSent += (*iter)->totalSize();
-	}
-
-	this->clearBundle();
 }
 
 //-------------------------------------------------------------------------------------
@@ -373,7 +418,7 @@ const char * Channel::c_str() const
 		pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
 
 	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d/%d/%d", tdodgyString, id_, 
-		this->isCondemn(), this->isDead());
+		this->isCondemn(), this->isDestroyed());
 
 	return dodgyString;
 }
@@ -382,7 +427,7 @@ const char * Channel::c_str() const
 void Channel::clearBundle()
 {
 	Bundles::iterator iter = bundles_.begin();
-	for(; iter != bundles_.end(); iter++)
+	for(; iter != bundles_.end(); ++iter)
 	{
 		Bundle::ObjPool().reclaimObject((*iter));
 	}
@@ -397,7 +442,7 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 	{
 		case TIMEOUT_INACTIVITY_CHECK:
 		{
-			if (timestamp() - lastReceivedTime_ > inactivityExceptionPeriod_)
+			if (timestamp() - lastReceivedTime_ >= inactivityExceptionPeriod_)
 			{
 				this->networkInterface().onChannelTimeOut(this);
 			}
@@ -409,20 +454,145 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::reset(const EndPoint* endpoint, bool warnOnDiscard)
+void Channel::send(Bundle * pBundle)
 {
-	// 如果地址没有改变则不重置
-	if (endpoint == pEndPoint_)
+	if (isDestroyed())
 	{
+		ERROR_MSG(fmt::format("Channel::send({}): channel has destroyed.\n", 
+			this->c_str()));
+		
+		this->clearBundle();
+
+		if(pBundle)
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
+
 		return;
 	}
 
-	// 让网络接口下一个tick处理自己
-	if(pNetworkInterface_)
-		pNetworkInterface_->sendIfDelayed(*this);
+	if(isCondemn())
+	{
+		//WARNING_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
+		//	c_str()));
 
-	this->clearState(warnOnDiscard);
-	this->endpoint(endpoint);
+		this->clearBundle();
+
+		if(pBundle)
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
+
+		return;
+	}
+
+	if(pBundle)
+	{
+		pBundle->finiMessage(true);
+		bundles_.push_back(pBundle);
+	}
+	
+	uint32 bundleSize = (uint32)bundles_.size();
+	if(bundleSize == 0)
+		return;
+
+	if(!sending())
+	{
+		if(pPacketSender_ == NULL)
+			pPacketSender_ = new TCPPacketSender(*pEndPoint_, *pNetworkInterface_);
+
+		pPacketSender_->processSend(this);
+
+		// 如果不能立即发送到系统缓冲区，那么交给poller处理
+		if(bundles_.size() > 0 && !isCondemn() && !isDestroyed())
+		{
+			flags_ |= FLAG_SENDING;
+			pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
+		}
+	}
+
+	if(Network::g_sendWindowMessagesOverflowCritical > 0 && bundleSize > Network::g_sendWindowMessagesOverflowCritical)
+	{
+		if(this->isExternal())
+		{
+			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}).\n", 
+				(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
+
+			if(Network::g_extSendWindowMessagesOverflow > 0 && 
+				bundleSize >  Network::g_extSendWindowMessagesOverflow)
+			{
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->send.\n", 
+					(void*)this, this->c_str(), bundleSize, Network::g_extSendWindowMessagesOverflow));
+
+				this->condemn();
+			}
+		}
+		else
+		{
+			if(Network::g_intSendWindowMessagesOverflow > 0 && 
+				bundleSize > Network::g_intSendWindowMessagesOverflow)
+			{
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
+					(void*)this, this->c_str(), bundleSize, Network::g_intSendWindowMessagesOverflow));
+
+				this->condemn();
+			}
+			else
+			{
+				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
+					(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::stopSend()
+{
+	if(!sending())
+		return;
+
+	flags_ &= ~FLAG_SENDING;
+
+	pNetworkInterface_->dispatcher().deregisterWriteFileDescriptor(*pEndPoint_);
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::onSendCompleted()
+{
+	KBE_ASSERT(bundles_.size() == 0 && sending());
+	stopSend();
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::onPacketSent(int bytes, bool sentCompleted)
+{
+	if(sentCompleted)
+	{
+		++numPacketsSent_;
+		++g_numPacketsSent;
+	}
+
+	numBytesSent_ += bytes;
+	g_numBytesSent += bytes;
+	lastTickBytesSent_ += bytes;
+
+	if(this->isExternal())
+	{
+		if(g_extSendWindowBytesOverflow > 0 && 
+			lastTickBytesSent_ >= g_extSendWindowBytesOverflow)
+		{
+			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
+				(void*)this, this->c_str(), lastTickBytesSent_, g_extSendWindowBytesOverflow));
+
+			this->condemn();
+		}
+	}
+	else
+	{
+		if(g_intSendWindowBytesOverflow > 0 && 
+			lastTickBytesSent_ >= g_intSendWindowBytesOverflow)
+		{
+			WARNING_MSG(fmt::format("Channel::onPacketSent[{:p}]: internal channel({}), bufferedBytes has overflowed({} > {}).\n", 
+				(void*)this, this->c_str(), lastTickBytesSent_, g_intSendWindowBytesOverflow));
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -441,8 +611,8 @@ void Channel::onPacketReceived(int bytes)
 		if(g_extReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_extReceiveWindowBytesOverflow)
 		{
-			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: external channel(%2%), bufferedBytes is overflow(%3% > %4%).\n") % 
-				this % this->c_str() % lastTickBytesReceived_ % g_extReceiveWindowBytesOverflow);
+			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
+				(void*)this, this->c_str(), lastTickBytesReceived_, g_extReceiveWindowBytesOverflow));
 
 			this->condemn();
 		}
@@ -452,8 +622,8 @@ void Channel::onPacketReceived(int bytes)
 		if(g_intReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_intReceiveWindowBytesOverflow)
 		{
-			WARNING_MSG(boost::format("Channel::onPacketReceived[%1%]: internal channel(%2%), bufferedBytes is overflow(%3% > %4%).\n") % 
-				this % this->c_str() % lastTickBytesReceived_ % g_intReceiveWindowBytesOverflow);
+			WARNING_MSG(fmt::format("Channel::onPacketReceived[{:p}]: internal channel({}), bufferedBytes has overflowed({} > {}).\n", 
+				(void*)this, this->c_str(), lastTickBytesReceived_, g_intReceiveWindowBytesOverflow));
 		}
 	}
 }
@@ -461,31 +631,34 @@ void Channel::onPacketReceived(int bytes)
 //-------------------------------------------------------------------------------------
 void Channel::addReceiveWindow(Packet* pPacket)
 {
-	bufferedReceives_[bufferedReceivesIdx_].push_back(pPacket);
+	bufferedReceives_.push_back(pPacket);
+	uint32 size = (uint32)bufferedReceives_.size();
 
-	if(Mercury::g_receiveWindowMessagesOverflowCritical > 0 && bufferedReceives_[bufferedReceivesIdx_].size() > Mercury::g_receiveWindowMessagesOverflowCritical)
+	if(Network::g_receiveWindowMessagesOverflowCritical > 0 && size > Network::g_receiveWindowMessagesOverflowCritical)
 	{
 		if(this->isExternal())
 		{
-			WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
-				this % this->c_str() % (int)bufferedReceives_[bufferedReceivesIdx_].size() % Mercury::g_receiveWindowMessagesOverflowCritical);
-
-			if(Mercury::g_extReceiveWindowMessagesOverflow > 0 && 
-				bufferedReceives_[bufferedReceivesIdx_].size() >  Mercury::g_extReceiveWindowMessagesOverflow)
+			if(Network::g_extReceiveWindowMessagesOverflow > 0 && 
+				size > Network::g_extReceiveWindowMessagesOverflow)
 			{
-				ERROR_MSG(boost::format("Channel::addReceiveWindow[%1%]: external channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
-					this % this->c_str() % (int)bufferedReceives_[bufferedReceivesIdx_].size() % Mercury::g_extReceiveWindowMessagesOverflow);
+				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive->messages->external.\n", 
+					(void*)this, this->c_str(), size, Network::g_extReceiveWindowMessagesOverflow));
 
 				this->condemn();
+			}
+			else
+			{
+				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}).\n", 
+					(void*)this, this->c_str(), size, Network::g_receiveWindowMessagesOverflowCritical));
 			}
 		}
 		else
 		{
-			if(Mercury::g_intReceiveWindowMessagesOverflow > 0 && 
-				bufferedReceives_[bufferedReceivesIdx_].size() > Mercury::g_intReceiveWindowMessagesOverflow)
+			if(Network::g_intReceiveWindowMessagesOverflow > 0 && 
+				size > Network::g_intReceiveWindowMessagesOverflow)
 			{
-				WARNING_MSG(boost::format("Channel::addReceiveWindow[%1%]: internal channel(%2%), bufferedMessages is overflow(%3% > %4%).\n") % 
-					this % this->c_str() % (int)bufferedReceives_[bufferedReceivesIdx_].size() % Mercury::g_intReceiveWindowMessagesOverflow);
+				WARNING_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: internal channel({}), receive window has overflowed({} > {}).\n", 
+					(void*)this, this->c_str(), size, Network::g_intReceiveWindowMessagesOverflow));
 			}
 		}
 	}
@@ -494,48 +667,68 @@ void Channel::addReceiveWindow(Packet* pPacket)
 //-------------------------------------------------------------------------------------
 void Channel::condemn()
 { 
-	isCondemn_ = true; 
-	ERROR_MSG(boost::format("Channel::condemn[%1%]: channel(%2%).\n") % this % this->c_str()); 
+	if(isCondemn())
+		return;
+
+	flags_ |= FLAG_CONDEMN; 
+	//WARNING_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
 }
 
 //-------------------------------------------------------------------------------------
 void Channel::handshake()
 {
-	if(bufferedReceives_[bufferedReceivesIdx_].size() > 0)
+	if(hasHandshake())
+		return;
+
+	if(bufferedReceives_.size() > 0)
 	{
-		BufferedReceives::iterator packetIter = bufferedReceives_[bufferedReceivesIdx_].begin();
+		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		Packet* pPacket = (*packetIter);
 		
+		flags_ |= FLAG_HANDSHAKE;
+
 		// 此处判定是否为websocket或者其他协议的握手
-		if(html5::WebSocketProtocol::isWebSocketProtocol(pPacket))
+		if(websocket::WebSocketProtocol::isWebSocketProtocol(pPacket))
 		{
 			channelType_ = CHANNEL_WEB;
-			if(html5::WebSocketProtocol::handshake(this, pPacket))
+			if(websocket::WebSocketProtocol::handshake(this, pPacket))
 			{
-				if(pPacket->totalSize() == 0)
+				if(pPacket->length() == 0)
 				{
-					bufferedReceives_[bufferedReceivesIdx_].erase(packetIter);
+					bufferedReceives_.erase(packetIter);
 				}
 
-				pPacketReader_ = new HTML5PacketReader(this);
-				pFilter_ = new HTML5PacketFilter(this);
-				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) successfully!\n") % this->c_str());
+				if(!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_WEBSOCKET)
+				{
+					SAFE_RELEASE(pPacketReader_);
+					pPacketReader_ = new WebSocketPacketReader(this);
+				}
+
+				pFilter_ = new WebSocketPacketFilter(this);
+				DEBUG_MSG(fmt::format("Channel::handshake: websocket({}) successfully!\n", this->c_str()));
 				return;
 			}
 			else
 			{
-				DEBUG_MSG(boost::format("Channel::handshake: websocket(%1%) error!\n") % this->c_str());
+				DEBUG_MSG(fmt::format("Channel::handshake: websocket({}) error!\n", this->c_str()));
 			}
 		}
 
-		pPacketReader_ = new PacketReader(this);
+		if(!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_SOCKET)
+		{
+			SAFE_RELEASE(pPacketReader_);
+			pPacketReader_ = new PacketReader(this);
+		}
+
+		pPacketReader_->reset();
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
+void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 {
 	lastTickBytesReceived_ = 0;
+	lastTickBytesSent_ = 0;
 
 	if(pMsgHandlers_ != NULL)
 	{
@@ -544,90 +737,63 @@ void Channel::processPackets(KBEngine::Mercury::MessageHandlers* pMsgHandlers)
 
 	if (this->isDestroyed())
 	{
-		ERROR_MSG(boost::format("Channel::processPackets(%1%): channel[%2%] is destroyed.\n") % 
-			this->c_str() % this);
+		ERROR_MSG(fmt::format("Channel::processPackets({}): channel[{:p}] is destroyed.\n", 
+			this->c_str(), (void*)this));
 
 		return;
 	}
 
 	if(this->isCondemn())
 	{
-		ERROR_MSG(boost::format("Channel::processPackets(%1%): channel[%2%] is condemn.\n") % 
-			this->c_str() % this);
+		ERROR_MSG(fmt::format("Channel::processPackets({}): channel[{:p}] is condemn.\n", 
+			this->c_str(), (void*)this));
 
 		//this->destroy();
 		return;
 	}
 	
-	if(pPacketReader_ == NULL)
+	if(!hasHandshake())
 	{
 		handshake();
 	}
-	
-	uint8 idx = bufferedReceivesIdx_;
-	bufferedReceivesIdx_ = 1 - bufferedReceivesIdx_;
 
 	try
 	{
-		BufferedReceives::iterator packetIter = bufferedReceives_[idx].begin();
-		for(; packetIter != bufferedReceives_[idx].end(); packetIter++)
+		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+		for(; packetIter != bufferedReceives_.end(); ++packetIter)
 		{
 			Packet* pPacket = (*packetIter);
-
 			pPacketReader_->processMessages(pMsgHandlers, pPacket);
-
-			if(pPacket->isTCPPacket())
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
-			else
-				UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));
-
+			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 		}
 	}catch(MemoryStreamException &)
 	{
-		Mercury::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
-		WARNING_MSG(boost::format("Channel::processPackets(%1%): packet invalid. currMsg=(name=%2%, id=%3%, len=%4%), currMsgLen=%5%\n") %
-			this->c_str() 
-			% (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
-			% pPacketReader_->currMsgID() 
-			% (pMsgHandler == NULL ? -1 : pMsgHandler->msgLen) 
-			% pPacketReader_->currMsgLen());
+		Network::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
+		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=(name={}, id={}, len={}), currMsgLen={}\n",
+			this->c_str()
+			, (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
+			, pPacketReader_->currMsgID() 
+			, (pMsgHandler == NULL ? -1 : pMsgHandler->msgLen) 
+			, pPacketReader_->currMsgLen()));
 
 		pPacketReader_->currMsgID(0);
 		pPacketReader_->currMsgLen(0);
 		condemn();
 	}
 
-	bufferedReceives_[idx].clear();
-}
-
-//-------------------------------------------------------------------------------------
-void Channel::readDataToBuffer()
-{
-	struct timeval tv = { 0, 1000 };
-
-	fd_set	readFDs;
-	FD_ZERO(&readFDs);
-	FD_SET((*endpoint()), &readFDs);
-
-	int countReady = select((*endpoint())+1, &readFDs,
-			NULL, NULL, &tv);
-
-	if (countReady > 0)
-	{
-		pPacketReceiver_->handleInputNotification((*endpoint()));
-	}
+	bufferedReceives_.clear();
 }
 
 //-------------------------------------------------------------------------------------
 bool Channel::waitSend()
 {
-	return endpoint()->waitSend();
+	return pEndPoint()->waitSend();
 }
 
 //-------------------------------------------------------------------------------------
 EventDispatcher & Channel::dispatcher()
 {
-	return pNetworkInterface_->mainDispatcher();
+	return pNetworkInterface_->dispatcher();
 }
 
 //-------------------------------------------------------------------------------------

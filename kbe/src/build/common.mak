@@ -51,11 +51,7 @@ endif
 # In order to build src/lib/python, which includes this file, we need to define
 # this even when not explicitly requiring Python. This assists in setting up
 # the target for libpython<version>.a when common.mak is re-included.
-ifeq ($(KBE_CONFIG), Hybrid64)
-PYTHONLIB = python64_3.2
-else
-PYTHONLIB = python32_3.2
-endif
+PYTHONLIB = python
 
 # If SEPARATE_DEBUG_INFO is defined, the debug information for an executable
 # will be placed in a separate file. For example, cellapp and cellapp.dbg. The
@@ -71,9 +67,9 @@ ifdef BIN
 MAKE_LIBS=1
 ifndef INSTALL_DIR
 ifeq ($(IS_COMMAND),1)
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/$(KBE_CONFIG)/commands
+	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server/commands
 else
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/$(KBE_CONFIG)
+	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server
 endif # IS_COMMAND == 1
 else # INSTALL_DIR
 
@@ -105,7 +101,7 @@ endif # BIN
 ifdef SO
 MAKE_LIBS=1
 ifndef OUTPUTDIR
-	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/$(KBE_CONFIG)/$(COMPONENT)-extensions
+	OUTPUTDIR = $(KBE_ROOT)/kbe/bin/server/$(COMPONENT)-extensions
 endif # OUTPUTDIR
 	OUTPUTFILE = $(OUTPUTDIR)/$(SO).so
 endif # SO
@@ -132,19 +128,17 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += math cstdkbe helper resmgr
+MY_LIBS += math common helper resmgr
 endif
 endif
 
 # Include and lib paths
 LDFLAGS += -L$(LIBDIR)
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/common
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/tinyxml
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/jsoncpp/include
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
 
 # Preprocessor output only (useful when debugging macros)
 # CPPFLAGS += -E
@@ -158,45 +152,29 @@ CPPFLAGS += -DENABLE_WATCHERS
 endif
 
 ifdef USE_PYTHON
-
- USE_KBE_PYTHON = 1
-
- # If empty string != SystemPython
- ifneq (,$(findstring SystemPython, $(KBE_CONFIG)))
-	USE_KBE_PYTHON = 0
- endif
-
- # If empty string != SingleThreaded
- ifneq (,$(findstring SingleThreaded, $(KBE_CONFIG)))
-	USE_KBE_PYTHON = 1
-	KBE_STANDARD_PYTHON = 1
-	# These flags are defined so that any kbengine library that includes
-	# the Python headers will work correctly. The src/lib/python Makefile
-	# has its own definition of these if it needs to build the same way.
-	CPPFLAGS+=-DKBE_DONT_WRAP_MALLOC -DKBE_PY_NO_RES_FS
- endif
- 
-
- USE_KBE_PYTHON = 1
-
- # This is the version of python kbengine is redistributing
- KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python/Include
- LDLIBS += -l$(PYTHONLIB) -lpthread -lutil -ldl
-
-
+USE_KBE_PYTHON = 1
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python/Include
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python
+LDLIBS += -l$(PYTHONLIB) -lpthread -lutil -ldl
 endif # USE_PYTHON
 
 ifdef USE_MYSQL
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
-	MYSQL_CONFIG_PATH=/usr/lib64/mysql/mysql_config
+	MYSQL_CONFIG_PATH=/usr/bin/mysql_config
 else
-	MYSQL_CONFIG_PATH=/usr/lib/mysql/mysql_config
+	MYSQL_CONFIG_PATH=/usr/bin/mysql_config
 endif
 
 LDLIBS += `$(MYSQL_CONFIG_PATH) --libs_r`
 CPPFLAGS += -DUSE_KBE_MYSQL
 
 endif # USE_MYSQL
+
+ifdef USE_REDIS
+LDLIBS += -lhiredis
+CPPFLAGS += -DUSE_REDIS
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/hiredis
+endif # USE_REDIS
 
 # everyone needs pthread if LDLINUX_TLS_IS_BROKEN
 ifdef LDLINUX_TLS_IS_BROKEN
@@ -206,13 +184,13 @@ endif
 
 LDFLAGS += -export-dynamic
 
-# The OpenSSL redist is used for all builds as cstdkbe/md5.[ch]pp depends
+# The OpenSSL redist is used for all builds as common/md5.[ch]pp depends
 # on the OpenSSL MD5 implementation.
 
-KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/third_party/log4cxx/include
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/log4cxx/src/main/include
 ifeq ($(NO_USE_LOG4CXX),0)
 ifeq ($(KBE_CONFIG), Hybrid64)
-LDLIBS += -llog4cxx64 -lapr-1-64 -laprutil-1-64 -lexpat64
+LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat
 else
 LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat
 endif
@@ -220,67 +198,64 @@ else
 CPPFLAGS += -DNO_USE_LOG4CXX
 endif
 
-OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/openssl
+OPENSSL_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/openssl
 KBE_INCLUDES += -I$(OPENSSL_DIR)/include
 ifeq ($(USE_OPENSSL),1)
 LDLIBS += -lssl -lcrypto -ldl
 CPPFLAGS += -DUSE_OPENSSL
 endif
 
-G3DMATH_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/g3dlite
+G3DMATH_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/g3dlite
 KBE_INCLUDES += -I$(G3DMATH_DIR)
 ifeq ($(USE_G3DMATH),1)
 LDLIBS += -lg3dlite
 CPPFLAGS += -DUSE_G3DMATH
 endif
 
-SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/sigar
+SIGAR_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/sigar
 KBE_INCLUDES += -I$(SIGAR_DIR)/linux
 #ifeq ($(USE_SIGAR),1)
 LDLIBS += -lsigar
 CPPFLAGS += -DUSE_SIGAR
 #endif
 
-JWSMTP_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/jwsmtp
+JWSMTP_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jwsmtp
 KBE_INCLUDES += -I$(JWSMTP_DIR)/jwsmtp/jwsmtp
 ifeq ($(USE_JWSMTP),1)
 LDLIBS += -ljwsmtp
 CPPFLAGS += -DUSE_JWSMTP
 endif
 
-TMXPARSER_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/tmxparser
+TMXPARSER_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/tmxparser
 KBE_INCLUDES += -I$(TMXPARSER_DIR)
 ifeq ($(USE_TMXPARSER),1)
 LDLIBS += -ltmxparser
 CPPFLAGS += -DUSE_TMXPARSER
 endif
 
-ZIP_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/zip
+ZIP_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/zip
 KBE_INCLUDES += -I$(ZIP_DIR)
 ifeq ($(USE_ZIP),1)
 LDLIBS += -lzip
 CPPFLAGS += -DUSE_ZIP
 endif
 
+JEMALLOC_DIR = $(KBE_ROOT)/kbe/src/lib/dependencies/jemalloc
+KBE_INCLUDES += -I$(JEMALLOC_DIR)/include
+#ifeq ($(USE_JEMALLOC),1)
+LDLIBS += -ljemalloc
+CPPFLAGS += -DUSE_JEMALLOC
+#endif
 
 LDLIBS += -ltinyxml
-LDLIBS += -ljsoncpp
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	x86_64=1
 	OPENSSL_CONFIG="x86_64=1"
-	PYTHON_EXTRA_CFLAGS="EXTRA_CFLAGS=-m64 -fPIC"
 	ARCHFLAGS=-m64 -fPIC
 else
 	OPENSSL_CONFIG=
-	PYTHON_EXTRA_CFLAGS="EXTRA_CFLAGS=-m32"
 	ARCHFLAGS=-m32
-endif
-
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DIR = $(KBE_ROOT)/kbe/src/lib/third_party/CppUnitLite2/src/
-KBE_INCLUDES += -I$(CPPUNITLITE2_DIR)
-LDLIBS += -lCppUnitLite2
 endif
 
 # Use backwards compatible hash table style. This is because Fedora Core 6
@@ -458,27 +433,6 @@ else
 install::
 endif
 
-ifneq ($(wildcard unit_test), )	# only if it has some cpps/c or object files!
-HAS_UNIT_TEST=1
-endif
-
-unit_tests:: unit_tests_build unit_tests_run
-
-unit_tests_build::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test
-endif
-
-unit_tests_run::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test run
-endif
-
-unit_tests_clean::
-ifdef HAS_UNIT_TEST
-	$(MAKE) -C unit_test clean
-endif
-
 #----------------------------------------------------------------------------
 # Library dependencies
 #----------------------------------------------------------------------------
@@ -496,18 +450,6 @@ MY_LIBNAMES = $(foreach L, $(MY_LIBS), $(LIBDIR)/lib$(L).a)
 
 KBE_PYTHONLIB=$(LIBDIR)/lib$(PYTHONLIB).a
 
-ifdef USE_KBE_PYTHON
-$(KBE_PYTHONLIB): always
-	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python $(LIBDIR)/lib$(PYTHONLIB).a \
-		"KBE_STANDARD_PYTHON=$(KBE_STANDARD_PYTHON)" \
-		"KBE_CONFIG=$(KBE_CONFIG)" \
-		$(PYTHON_EXTRA_CFLAGS) 
-	
-	@$(MAKE) -C $(KBE_ROOT)/kbe/src/lib/python
-	@rm -rf $(KBE_ROOT)/kbe/res/scripts/common/lib-dynload
-	@cp -rf "$(KBE_ROOT)/kbe/src/lib/python/build/lib.linux-$(shell uname -m)-3.2" "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload"
-endif
-
 ifeq ($(USE_OPENSSL),1)
 $(LIBDIR)/libcrypto.a: always
 	@$(MAKE) -C $(OPENSSL_DIR) $(OPENSSL_CONFIG) build_crypto
@@ -516,10 +458,6 @@ $(LIBDIR)/libssl.a: always
 	@$(MAKE) -C $(OPENSSL_DIR) $(OPENSSL_CONFIG) build_ssl
 endif
 
-ifdef USE_CPPUNITLITE2
-$(LIBDIR)/libCppUnitLite2.a: always
-	@$(MAKE) -C $(CPPUNITLITE2_DIR)
-endif
 
 # Strip the prefixed "lib" string. Be careful not to strip any _lib
 $(MY_LIBNAMES): always
@@ -643,14 +581,8 @@ else
 PYTHON_DEP =
 endif
 
-ifdef USE_CPPUNITLITE2
-CPPUNITLITE2_DEP = $(LIBDIR)/libCppUnitLite2.a
-else
-CPPUNITLITE2_DEP =
-endif
 
-
-$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP) $(CPPUNITLITE2_DEP)
+$(OUTPUTDIR)/$(BIN):: $(CONFIG_OBJS) $(MY_LIBNAMES) $(PYTHON_DEP) $(OPENSSL_DEP)
 
 ifdef QUIET_BUILD
 	test -e $(MSG_FILE) && cat $(MSG_FILE); rm -f $(MSG_FILE)

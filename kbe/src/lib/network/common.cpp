@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,19 +19,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "common.hpp"
-#include "network/channel.hpp"
-#include "network/bundle.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/message_handler.hpp"
-#include "network/tcp_packet_receiver.hpp"
-#include "network/udp_packet_receiver.hpp"
-#include "network/address.hpp"
-#include "helper/watcher.hpp"
+#include "common.h"
+#include "network/channel.h"
+#include "network/bundle.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/message_handler.h"
+#include "network/tcp_packet_receiver.h"
+#include "network/udp_packet_receiver.h"
+#include "network/address.h"
+#include "helper/watcher.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 float g_channelInternalTimeout = 60.f;
@@ -41,7 +41,7 @@ int8 g_channelExternalEncryptType = 0;
 
 uint32 g_SOMAXCONN = 5;
 
-// mercury stats
+// network stats
 uint64						g_numPacketsSent = 0;
 uint64						g_numPacketsReceived = 0;
 uint64						g_numBytesSent = 0;
@@ -52,6 +52,12 @@ uint32						g_intReceiveWindowMessagesOverflow = 65535;
 uint32						g_extReceiveWindowMessagesOverflow = 256;
 uint32						g_intReceiveWindowBytesOverflow = 0;
 uint32						g_extReceiveWindowBytesOverflow = 65535;
+
+uint32						g_sendWindowMessagesOverflowCritical = 32;
+uint32						g_intSendWindowMessagesOverflow = 65535;
+uint32						g_extSendWindowMessagesOverflow = 256;
+uint32						g_intSendWindowBytesOverflow = 0;
+uint32						g_extSendWindowBytesOverflow = 65535;
 
 // 通道发送超时重试
 uint32						g_intReSendInterval = 10;
@@ -67,7 +73,7 @@ bool initializeWatcher()
 	WATCH_OBJECT("network/numBytesReceived", g_numBytesReceived);
 	
 	std::vector<MessageHandlers*>::iterator iter = MessageHandlers::messageHandlers().begin();
-	for(; iter != MessageHandlers::messageHandlers().end(); iter++)
+	for(; iter != MessageHandlers::messageHandlers().end(); ++iter)
 	{
 		if(!(*iter)->initializeWatcher())
 			return false;
@@ -79,7 +85,9 @@ bool initializeWatcher()
 void destroyObjPool()
 {
 	Bundle::destroyObjPool();
+	Channel::destroyObjPool();
 	TCPPacket::destroyObjPool();
+	UDPPacket::destroyObjPool();
 	EndPoint::destroyObjPool();
 	Address::destroyObjPool();
 	TCPPacketReceiver::destroyObjPool();
@@ -94,7 +102,7 @@ void finalise(void)
 
 	MessageHandlers::finalise();
 	
-	Mercury::destroyObjPool();
+	Network::destroyObjPool();
 }
 
 //-------------------------------------------------------------------------------------

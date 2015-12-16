@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,12 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "interface_defs.hpp"
-#include "helper/debug_helper.hpp"
-#include "network/bundle.hpp"
+#include "interface_defs.h"
+#include "helper/debug_helper.h"
+#include "network/bundle.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 }
 }

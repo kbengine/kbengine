@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,14 +19,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "config.hpp"
-#include "network/common.hpp"
-#include "network/address.hpp"
-#include "resmgr/resmgr.hpp"
-#include "entitydef/entitydef.hpp"
+#include "config.h"
+#include "network/common.h"
+#include "network/address.h"
+#include "resmgr/resmgr.h"
+#include "entitydef/entitydef.h"
+#include "server/serverconfig.h"
+#include "common/kbeversion.h"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(Config);
+
+ServerConfig g_ServerConfig;
 
 //-------------------------------------------------------------------------------------
 Config::Config():
@@ -40,8 +44,7 @@ fileName_(),
 useLastAccountName_(false),
 telnet_port(0),
 telnet_passwd(),
-telnet_deflayer(),
-aliasEntityID_(false)
+telnet_deflayer()
 {
 }
 
@@ -55,20 +58,25 @@ bool Config::loadConfig(std::string fileName)
 {
 	fileName_ = fileName;
 	TiXmlNode* rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName_).c_str());
+	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(fileName_).c_str()));
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("Config::loadConfig: load %1% is failed!\n") %
-			fileName.c_str());
+		ERROR_MSG(fmt::format("Config::loadConfig: load {} is failed!\n",
+			fileName.c_str()));
 
-		SAFE_RELEASE(xml);
 		return false;
 	}
 	
+	if(xml->getRootNode() == NULL)
+	{
+		// root节点下没有子节点了
+		return true;
+	}
+
 	rootNode = xml->getRootNode("packetAlwaysContainLength");
 	if(rootNode != NULL){
-		Mercury::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
+		Network::g_packetAlwaysContainLength = xml->getValInt(rootNode) != 0;
 	}
 
 	rootNode = xml->getRootNode("trace_packet");
@@ -76,14 +84,14 @@ bool Config::loadConfig(std::string fileName)
 	{
 		TiXmlNode* childnode = xml->enterNode(rootNode, "debug_type");
 		if(childnode)
-			Mercury::g_trace_packet = xml->getValInt(childnode);
+			Network::g_trace_packet = xml->getValInt(childnode);
 
-		if(Mercury::g_trace_packet > 3)
-			Mercury::g_trace_packet = 0;
+		if(Network::g_trace_packet > 3)
+			Network::g_trace_packet = 0;
 
 		childnode = xml->enterNode(rootNode, "use_logfile");
 		if(childnode)
-			Mercury::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
+			Network::g_trace_packet_use_logfile = (xml->getValStr(childnode) == "true");
 
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
@@ -96,7 +104,7 @@ bool Config::loadConfig(std::string fileName)
 					c = strutil::kbe_trim(c);
 					if(c.size() > 0)
 					{
-						Mercury::g_trace_packet_disables.push_back(c);
+						Network::g_trace_packet_disables.push_back(c);
 					}
 				}
 			}while((childnode = childnode->NextSibling()));
@@ -108,13 +116,23 @@ bool Config::loadConfig(std::string fileName)
 	{
 		g_debugEntity = xml->getValInt(rootNode) > 0;
 	}
-
-	rootNode = xml->getRootNode("app_publish");
+	
+	rootNode = xml->getRootNode("publish");
 	if(rootNode != NULL)
 	{
-		g_appPublish = xml->getValInt(rootNode);
+		TiXmlNode* childnode = xml->enterNode(rootNode, "state");
+		if(childnode)
+		{
+			g_appPublish = xml->getValInt(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "script_version");
+		if(childnode)
+		{
+			KBEVersion::setScriptVersion(xml->getValStr(childnode));
+		}
 	}
-	
+
 	rootNode = xml->getRootNode("channelCommon");
 	if(rootNode != NULL)
 	{
@@ -124,15 +142,15 @@ bool Config::loadConfig(std::string fileName)
 			TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
 			if(childnode1)
 			{
-				channelInternalTimeout_ = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelInternalTimeout = channelInternalTimeout_;
+				channelInternalTimeout_ = KBE_MAX(0.f, float(xml->getValFloat(childnode1)));
+				Network::g_channelInternalTimeout = channelInternalTimeout_;
 			}
 
 			childnode1 = xml->enterNode(childnode, "external");
 			if(childnode)
 			{
-				channelExternalTimeout_ = KBE_MAX(1.f, float(xml->getValFloat(childnode1)));
-				Mercury::g_channelExternalTimeout = channelExternalTimeout_;
+				channelExternalTimeout_ = KBE_MAX(0.f, float(xml->getValFloat(childnode1)));
+				Network::g_channelExternalTimeout = channelExternalTimeout_;
 			}
 		}
 
@@ -145,13 +163,13 @@ bool Config::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_intReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_intReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_intReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 
@@ -161,49 +179,89 @@ bool Config::loadConfig(std::string fileName)
 				TiXmlNode* childnode2 = xml->enterNode(childnode1, "interval");
 				if(childnode2)
 				{
-					Mercury::g_extReSendInterval = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendInterval = uint32(xml->getValInt(childnode2));
 				}
 
 				childnode2 = xml->enterNode(childnode1, "retries");
 				if(childnode2)
 				{
-					Mercury::g_extReSendRetries = uint32(xml->getValInt(childnode2));
+					Network::g_extReSendRetries = uint32(xml->getValInt(childnode2));
 				}
 			}
 		}
 
-		childnode = xml->enterNode(rootNode, "receiveWindowOverflow");
+		childnode = xml->enterNode(rootNode, "windowOverflow");
 		if(childnode)
 		{
-			TiXmlNode* childnode1 = xml->enterNode(childnode, "messages");
-			if(childnode1)
+			TiXmlNode* sendNode = xml->enterNode(childnode, "send");
+			if(sendNode)
 			{
-				childnode1 = xml->enterNode(childnode, "internal");
+				TiXmlNode* childnode1 = xml->enterNode(sendNode, "messages");
 				if(childnode1)
-					Mercury::g_intReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intSendWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
-				childnode1 = xml->enterNode(childnode, "external");
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extSendWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "critical");
+					if(childnode2)
+						Network::g_sendWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+				}
+
+				childnode1 = xml->enterNode(sendNode, "bytes");
 				if(childnode1)
-					Mercury::g_extReceiveWindowMessagesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 
-			childnode1 = xml->enterNode(childnode, "bytes");
-			if(childnode1)
+			TiXmlNode* recvNode = xml->enterNode(childnode, "receive");
+			if(recvNode)
 			{
-				childnode1 = xml->enterNode(childnode, "internal");
+				TiXmlNode* childnode1 = xml->enterNode(recvNode, "messages");
 				if(childnode1)
-					Mercury::g_intReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 
-				childnode1 = xml->enterNode(childnode, "external");
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extReceiveWindowMessagesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "critical");
+					if(childnode2)
+						Network::g_receiveWindowMessagesOverflowCritical = KBE_MAX(0, xml->getValInt(childnode2));
+				}
+
+				childnode1 = xml->enterNode(recvNode, "bytes");
 				if(childnode1)
-					Mercury::g_extReceiveWindowBytesOverflow = KBE_MAX(16, xml->getValInt(childnode1));
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if(childnode2)
+						Network::g_intReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				
+					childnode2 = xml->enterNode(childnode1, "external");
+					if(childnode2)
+						Network::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 		};
 
 		childnode = xml->enterNode(rootNode, "encrypt_type");
 		if(childnode)
 		{
-			Mercury::g_channelExternalEncryptType = xml->getValInt(childnode);
+			Network::g_channelExternalEncryptType = xml->getValInt(childnode);
 		}
 	}
 
@@ -272,7 +330,7 @@ bool Config::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("aliasEntityID");
 	if(rootNode != NULL)
 	{
-		aliasEntityID_ = (xml->getValStr(rootNode) == "true");
+		EntityDef::entityAliasID((xml->getValStr(rootNode) == "true"));
 	}
 
 	rootNode = xml->getRootNode("entitydefAliasID");
@@ -280,7 +338,6 @@ bool Config::loadConfig(std::string fileName)
 		EntityDef::entitydefAliasID((xml->getValStr(rootNode) == "true"));
 	}
 
-	SAFE_RELEASE(xml);
 	return true;
 }
 
@@ -297,12 +354,12 @@ void Config::writeAccountName(const char* name)
 		return;
 
 	TiXmlNode* rootNode = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(fileName_).c_str());
+	XML* xml = new XML(Resmgr::getSingleton().matchRes(fileName_).c_str());
 
 	if(!xml->isGood())
 	{
-		ERROR_MSG(boost::format("Config::writeAccountName: load %1% is failed!\n") %
-			fileName_.c_str());
+		ERROR_MSG(fmt::format("Config::writeAccountName: load {} is failed!\n",
+			fileName_.c_str()));
 
 		SAFE_RELEASE(xml);
 		return;

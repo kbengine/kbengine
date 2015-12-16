@@ -6,16 +6,19 @@ SRCS =				\
 	map			\
 	math			\
 	pickler			\
+	py_gc			\
 	pystruct		\
 	pyprofile		\
+	pyprofile_handler	\
 	py_memorystream		\
 	pywatcher		\
 	script			\
 	scriptobject		\
+	scriptstdout		\
+	scriptstderr		\
 	scriptstdouterr		\
 	scriptstdouterrhook	\
 	sequence		\
-	uuid			\
 	vector2			\
 	vector3			\
 	vector4

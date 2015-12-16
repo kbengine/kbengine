@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,32 +18,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "space.hpp"	
-#include "spaces.hpp"	
-#include "loadnavmesh_threadtasks.hpp"
-#include "server/serverconfig.hpp"
-#include "cstdkbe/deadline.hpp"
-#include "navigation/navigation.hpp"
+#include "space.h"	
+#include "spaces.h"	
+#include "loadnavmesh_threadtasks.h"
+#include "server/serverconfig.h"
+#include "common/deadline.h"
+#include "navigation/navigation.h"
 
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 bool LoadNavmeshTask::process()
 {
-	Navigation::getSingleton().loadNavigation(name_);
+	Navigation::getSingleton().loadNavigation(resPath_, params_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 {
-	NavigationHandlePtr pNavigationHandle = Navigation::getSingleton().findNavigation(name_);
+	NavigationHandlePtr pNavigationHandle = Navigation::getSingleton().findNavigation(resPath_);
 	
 	Space* pSpace = Spaces::findSpace(spaceID_);
-	if(pSpace == NULL)
+	if(pSpace == NULL || !pSpace->isGood())
 	{
-		ERROR_MSG(boost::format("LoadNavmeshTask::presentMainThread(): not found space(%1%)\n") % 
-			spaceID_);
+		ERROR_MSG(fmt::format("LoadNavmeshTask::presentMainThread(): not found space({})\n",
+			spaceID_));
 	}
 	else
 	{

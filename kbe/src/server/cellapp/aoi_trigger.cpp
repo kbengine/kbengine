@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -17,18 +17,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "witness.hpp"
-#include "entity.hpp"
-#include "aoi_trigger.hpp"
-#include "entity_range_node.hpp"
+#include "witness.h"
+#include "entity.h"
+#include "aoi_trigger.h"
+#include "entity_coordinate_node.h"
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-AOITrigger::AOITrigger(RangeNode* origin, float xz, float y):
+AOITrigger::AOITrigger(CoordinateNode* origin, float xz, float y):
 RangeTrigger(origin, xz, y),
-pWitness_(static_cast<EntityRangeNode*>(origin)->pEntity()->pWitness())
+pWitness_(static_cast<EntityCoordinateNode*>(origin)->pEntity()->pWitness())
 {
 }
 
@@ -38,28 +38,28 @@ AOITrigger::~AOITrigger()
 }
 
 //-------------------------------------------------------------------------------------
-void AOITrigger::onEnter(RangeNode * pNode)
+void AOITrigger::onEnter(CoordinateNode * pNode)
 {
-	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
+	if((pNode->flags() & COORDINATE_NODE_FLAG_ENTITY) <= 0)
 		return;
 
-	EntityRangeNode* pEntityRangeNode = static_cast<EntityRangeNode*>(pNode);
-	Entity* pEntity = pEntityRangeNode->pEntity();
-	if(!pEntity->getScriptModule()->hasClient())
+	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
+	Entity* pEntity = pEntityCoordinateNode->pEntity();
+	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
 	pWitness_->onEnterAOI(pEntity);
 }
 
 //-------------------------------------------------------------------------------------
-void AOITrigger::onLeave(RangeNode * pNode)
+void AOITrigger::onLeave(CoordinateNode * pNode)
 {
-	if((pNode->flags() & RANGENODE_FLAG_ENTITY) <= 0)
+	if((pNode->flags() & COORDINATE_NODE_FLAG_ENTITY) <= 0)
 		return;
 
-	EntityRangeNode* pEntityRangeNode = static_cast<EntityRangeNode*>(pNode);
-	Entity* pEntity = pEntityRangeNode->pEntity();
-	if(!pEntity->getScriptModule()->hasClient())
+	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
+	Entity* pEntity = pEntityCoordinateNode->pEntity();
+	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
 	pWitness_->onLeaveAOI(pEntity);

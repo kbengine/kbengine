@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,9 +19,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "pickler.hpp"
-namespace KBEngine{ 
-namespace script{
+#include "pickler.h"
+#include "helper/profile.h"
+
+namespace KBEngine{ namespace script {
+
 PyObject* Pickler::picklerMethod_ = NULL;
 PyObject* Pickler::unPicklerMethod_ = NULL;
 PyObject* Pickler::pyPickleFuncTableModule_ = NULL;
@@ -41,7 +43,7 @@ bool Pickler::initialize(void)
 		picklerMethod_ = PyObject_GetAttrString(cPickleModule, "dumps");
 		if (!picklerMethod_)
 		{
-			ERROR_MSG("Pickler::initialize:get dumps is error!\n");
+			ERROR_MSG("Pickler::initialize: get dumps is error!\n");
 			PyErr_PrintEx(0);
 		}
 
@@ -56,7 +58,7 @@ bool Pickler::initialize(void)
 	}
 	else
 	{
-		ERROR_MSG("can't import pickle!\n");
+		ERROR_MSG("PyGC::initialize: can't import pickle!\n");
 		PyErr_PrintEx(0);
 	}
 	
@@ -112,12 +114,29 @@ PyObject* Pickler::getUnpickleFunc(const char* funcName)
 //-------------------------------------------------------------------------------------
 std::string Pickler::pickle(PyObject* pyobj)
 {
-	return pickle(pyobj, 2);
+	AUTO_SCOPED_PROFILE("pickle");
+
+	PyObject* pyRet = PyObject_CallFunction(picklerMethod_, 
+		const_cast<char*>("(O)"), pyobj);
+	
+	SCRIPT_ERROR_CHECK();
+	
+	if(pyRet)
+	{
+		std::string str;
+		str.assign(PyBytes_AsString(pyRet), PyBytes_Size(pyRet));
+		S_RELEASE(pyRet);
+		return str;
+	}
+	
+	return "";
 }
 
 //-------------------------------------------------------------------------------------
 std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 {
+	AUTO_SCOPED_PROFILE("pickleEx");
+
 	PyObject* pyRet = PyObject_CallFunction(picklerMethod_, 
 		const_cast<char*>("(Oi)"), pyobj, protocol);
 	
@@ -137,13 +156,15 @@ std::string Pickler::pickle(PyObject* pyobj, int8 protocol)
 //-------------------------------------------------------------------------------------
 PyObject* Pickler::unpickle(const std::string& str)
 {
+	AUTO_SCOPED_PROFILE("unpickle");
+
 	PyObject* pyRet = PyObject_CallFunction(unPicklerMethod_, 
 			const_cast<char*>("(y#)"), str.data(), str.length());
 	
 	if (!pyRet)
 	{
-		ERROR_MSG(boost::format("Pickler::unpickle: failed to unpickle[%1%] len=%2%.\n") % 
-			str.c_str() % str.length());
+		ERROR_MSG(fmt::format("Pickler::unpickle: failed to unpickle[{}] len={}.\n",
+			str.c_str(), str.length()));
 	}
 	
 	SCRIPT_ERROR_CHECK();

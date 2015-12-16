@@ -166,7 +166,7 @@ class FileDialog:
         dir, pat = self.get_filter()
         try:
             names = os.listdir(dir)
-        except os.error:
+        except OSError:
             self.master.bell()
             return
         self.directory = dir
@@ -209,7 +209,7 @@ class FileDialog:
         if not os.path.isabs(dir):
             try:
                 pwd = os.getcwd()
-            except os.error:
+            except OSError:
                 pwd = None
             if pwd:
                 dir = os.path.join(pwd, dir)
@@ -306,7 +306,6 @@ class _Dialog(commondialog.Dialog):
     def _fixresult(self, widget, result):
         if result:
             # keep directory and filename until next time
-            import os
             # convert Tcl path objects to strings
             try:
                 result = result.string
@@ -333,7 +332,6 @@ class Open(_Dialog):
             # multiple results:
             result = tuple([getattr(r, "string", r) for r in result])
             if result:
-                import os
                 path, file = os.path.split(result[0])
                 self.options["initialdir"] = path
                 # don't set initialfile or filename, as we have multiple of these

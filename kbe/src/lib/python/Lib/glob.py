@@ -26,14 +26,18 @@ def iglob(pathname):
     patterns.
 
     """
-    if not has_magic(pathname):
-        if os.path.lexists(pathname):
-            yield pathname
-        return
     dirname, basename = os.path.split(pathname)
+    if not has_magic(pathname):
+        if basename:
+            if os.path.lexists(pathname):
+                yield pathname
+        else:
+            # Patterns ending with a slash should match only directories
+            if os.path.isdir(dirname):
+                yield pathname
+        return
     if not dirname:
-        for name in glob1(None, basename):
-            yield name
+        yield from glob1(None, basename)
         return
     # `os.path.split()` returns the argument itself as a dirname if it is a
     # drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
@@ -62,7 +66,7 @@ def glob1(dirname, pattern):
             dirname = os.curdir
     try:
         names = os.listdir(dirname)
-    except os.error:
+    except OSError:
         return []
     if not _ishidden(pattern):
         names = [x for x in names if not _ishidden(x)]
@@ -80,8 +84,8 @@ def glob0(dirname, basename):
     return []
 
 
-magic_check = re.compile('[*?[]')
-magic_check_bytes = re.compile(b'[*?[]')
+magic_check = re.compile('([*?[])')
+magic_check_bytes = re.compile(b'([*?[])')
 
 def has_magic(s):
     if isinstance(s, bytes):
@@ -92,3 +96,15 @@ def has_magic(s):
 
 def _ishidden(path):
     return path[0] in ('.', b'.'[0])
+
+def escape(pathname):
+    """Escape all special characters.
+    """
+    # Escaping is done by wrapping any of "*?[" between square brackets.
+    # Metacharacters do not work in the drive part and shouldn't be escaped.
+    drive, pathname = os.path.splitdrive(pathname)
+    if isinstance(pathname, bytes):
+        pathname = magic_check_bytes.sub(br'[\1]', pathname)
+    else:
+        pathname = magic_check.sub(r'[\1]', pathname)
+    return drive + pathname

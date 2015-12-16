@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,43 +19,55 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "script.hpp"
-#include "math.hpp"
-#include "pickler.hpp"
-#include "pyprofile.hpp"
-#include "copy.hpp"
-#include "uuid.hpp"
-#include "pystruct.hpp"
-#include "install_py_dlls.hpp"
-#include "resmgr/resmgr.hpp"
-#include "thread/concurrency.hpp"
+#include "script.h"
+#include "math.h"
+#include "pickler.h"
+#include "pyprofile.h"
+#include "copy.h"
+#include "pystruct.h"
+#include "py_gc.h"
+#include "install_py_dlls.h"
+#include "resmgr/resmgr.h"
+#include "thread/concurrency.h"
 
 #ifndef CODE_INLINE
-#include "script.ipp"
+#include "script.inl"
 #endif
 
 namespace KBEngine{ 
+
+KBE_SINGLETON_INIT(script::Script);
 namespace script{
 
-#ifndef KBE_SINGLE_THREADED
-static PyObject * s_pOurInitTimeModules;
-static PyThreadState * s_pMainThreadState;
-static PyThreadState* s_defaultContext;
-#endif
-
+//-------------------------------------------------------------------------------------
 static PyObject* __py_genUUID64(PyObject *self, void *closure)	
 {
+	static int8 check = -1;
+
+	if(check < 0)
+	{
+		if(g_componentGlobalOrder <= 0 || g_componentGlobalOrder > 65535)
+		{
+			WARNING_MSG(fmt::format("globalOrder({}) is not in the range of 0~65535, genUUID64 is not safe, "
+				"in the multi process may be repeated.\n", g_componentGlobalOrder));
+		}
+
+		check = 1;
+	}
+
 	return PyLong_FromUnsignedLongLong(genUUID64());
 }
 
+//-------------------------------------------------------------------------------------
 PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
 {
 	int sz = v.size();
 	PyObject * t = PyTuple_New( sz );
-	for (int i = 0; i < sz; i++)
+	for (int i = 0; i < sz; ++i)
 	{
 		PyTuple_SetItem( t, i, PyUnicode_FromString( v[i].c_str() ) );
 	}
+
 	return t;
 }
 
@@ -63,8 +75,7 @@ PyObject * PyTuple_FromStringVector(const std::vector< std::string > & v)
 Script::Script():
 module_(NULL),
 extraModule_(NULL),
-pyStdouterr_(NULL),
-pyStdouterrHook_(NULL)
+pyStdouterr_(NULL)
 {
 }
 
@@ -82,15 +93,19 @@ int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 		return 0;
 	}
 
+	ScriptStdOutErrHook* pStdouterrHook = new ScriptStdOutErrHook();
+
 	if(retBufferPtr != NULL)
 	{
-		if(!pyStdouterrHook_->install()){												
+		DebugHelper::getSingleton().resetScriptMsgType();
+		if(!pStdouterrHook->install()){												
 			ERROR_MSG("Script::Run_SimpleString: pyStdouterrHook_->install() is failed!\n");
 			SCRIPT_ERROR_CHECK();
+			delete pStdouterrHook;
 			return -1;
 		}
 			
-		pyStdouterrHook_->setHookBuffer(retBufferPtr);
+		pStdouterrHook->setHookBuffer(retBufferPtr);
 		//PyRun_SimpleString(command);
 
 		PyObject *m, *d, *v;
@@ -98,7 +113,8 @@ int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 		if (m == NULL)
 		{
 			SCRIPT_ERROR_CHECK();
-			pyStdouterrHook_->uninstall();
+			pStdouterrHook->uninstall();
+			delete pStdouterrHook;
 			return -1;
 		}
 
@@ -108,21 +124,23 @@ int Script::run_simpleString(const char* command, std::string* retBufferPtr)
 		if (v == NULL) 
 		{
 			PyErr_Print();
-			pyStdouterrHook_->uninstall();
+			pStdouterrHook->uninstall();
+			delete pStdouterrHook;
 			return -1;
 		}
 
 		Py_DECREF(v);
 		SCRIPT_ERROR_CHECK();
 		
-		pyStdouterrHook_->uninstall();
-		
+		pStdouterrHook->uninstall();
+		delete pStdouterrHook;
 		return 0;
 	}
 
 	PyRun_SimpleString(command);
 
 	SCRIPT_ERROR_CHECK();
+	delete pStdouterrHook;
 	return 0;
 }
 
@@ -136,9 +154,10 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	pyPaths += pySysPaths;
 	free(pwpySysResPath);
 
-#if KBE_PLATFORM == PLATFORM_WIN32
-	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								// 先设置python的环境变量
-#else
+	// 先设置python的环境变量
+	Py_SetPythonHome(const_cast<wchar_t*>(pythonHomeDir));								
+
+#if KBE_PLATFORM != PLATFORM_WIN32
 	std::wstring fs = L";";
 	std::wstring rs = L":";
 	size_t pos = 0; 
@@ -150,9 +169,8 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 		pyPaths.replace(pos, fs.length(), rs);
 	}  
 
-	Py_SetPath(pyPaths.c_str()); 
 	char* tmpchar = strutil::wchar2char(const_cast<wchar_t*>(pyPaths.c_str()));
-	DEBUG_MSG(boost::format("Script::install: paths=%1%.\n") % tmpchar);
+	DEBUG_MSG(fmt::format("Script::install(): paths={}.\n", tmpchar));
 	free(tmpchar);
 	
 #endif
@@ -164,28 +182,29 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	// Py_TabcheckFlag = 1;
 	Py_NoSiteFlag = 1;
 	Py_IgnoreEnvironmentFlag = 1;
-	Py_Initialize();                      											// python解释器的初始化  
+
+	Py_SetPath(pyPaths.c_str());
+
+	// python解释器的初始化  
+	Py_Initialize();
     if (!Py_IsInitialized())
     {
-    	ERROR_MSG("Script::install::Py_Initialize is failed!\n");
+    	ERROR_MSG("Script::install(): Py_Initialize is failed!\n");
         return false;
     } 
 
-#if KBE_PLATFORM == PLATFORM_WIN32
-	PySys_SetPath(pyPaths.c_str());
-#endif
-
 	PyObject *m = PyImport_AddModule("__main__");
 
-	module_ = PyImport_AddModule(moduleName);										// 添加一个脚本基础模块
+	// 添加一个脚本基础模块
+	module_ = PyImport_AddModule(moduleName);
 	if (module_ == NULL)
 		return false;
 	
 	const char* componentName = COMPONENT_NAME_EX(componentType);
 	if (PyModule_AddStringConstant(module_, "component", componentName))
 	{
-		ERROR_MSG(boost::format("Script::init: Unable to set KBEngine.component to %1%\n") %
-			componentName );
+		ERROR_MSG(fmt::format("Script::install(): Unable to set KBEngine.component to {}\n",
+			componentName));
 		return false;
 	}
 	
@@ -194,52 +213,49 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 
 	if(!install_py_dlls())
 	{
-		ERROR_MSG("Script::init: install_py_dlls() is failed!\n");
+		ERROR_MSG("Script::install(): install_py_dlls() is failed!\n");
 		return false;
 	}
 
-#ifndef KBE_SINGLE_THREADED
-	s_pOurInitTimeModules = PyDict_Copy( PySys_GetObject( "modules" ) );
-	s_pMainThreadState = PyThreadState_Get();
-	s_defaultContext = s_pMainThreadState;
-	PyEval_InitThreads();
+	// 安装py重定向模块
+	ScriptStdOut::installScript(NULL);
+	ScriptStdErr::installScript(NULL);
 
-	KBEConcurrency::setMainThreadIdleFunctions(
-		&Script::releaseLock, &Script::acquireLock );
-#endif
-
-	ScriptStdOutErr::installScript(NULL);											// 安装py重定向模块
-	ScriptStdOutErrHook::installScript(NULL);
-
-	static struct PyModuleDef moduleDesc =   
+	static struct PyModuleDef moduleDesc =
 	{  
 			 PyModuleDef_HEAD_INIT,  
 			 moduleName,  
-			 "This module is created by KBEngine!",  
+			 "This module is created by KBEngine!", 
 			 -1,  
 			 NULL  
 	};  
 
-	PyModule_Create(&moduleDesc);													// 初始化基础模块
-	PyObject_SetAttrString(m, moduleName, module_);									// 将模块对象加入main
+	// 初始化基础模块
+	PyModule_Create(&moduleDesc);
 
-	pyStdouterr_ = new ScriptStdOutErr();											// 重定向python输出
-	pyStdouterrHook_ = new ScriptStdOutErrHook();
+	// 将模块对象加入main
+	PyObject_SetAttrString(m, moduleName, module_);	
+
+	// 重定向python输出
+	pyStdouterr_ = new ScriptStdOutErr();
 	
-	if(!pyStdouterr_->install()){													// 安装py重定向脚本模块
+	// 安装py重定向脚本模块
+	if(!pyStdouterr_->install()){
 		ERROR_MSG("Script::install::pyStdouterr_->install() is failed!\n");
+		delete pyStdouterr_;
 		SCRIPT_ERROR_CHECK();
 		return false;
 	}
 	
+	PyGC::initialize();
 	Pickler::initialize();
 	PyProfile::initialize(this);
 	PyStruct::initialize();
 	Copy::initialize();
-	Uuid::initialize();
+	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
-	INFO_MSG("Script::install is successfully!\n");
+	INFO_MSG(fmt::format("Script::install(): is successfully, Python=({})!\n", Py_GetVersion()));
 	return installExtraModule("KBExtra");
 }
 
@@ -251,40 +267,32 @@ bool Script::uninstall()
 	PyProfile::finalise();
 	PyStruct::finalise();
 	Copy::finalise();
-	Uuid::finalise();
-	SCRIPT_ERROR_CHECK();															// 检查是否有错误产生
+	SCRIPT_ERROR_CHECK();
 
 	if(pyStdouterr_)
 	{
-		if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{					// 卸载py重定向脚本模块
-			ERROR_MSG("Script::uninstall::pyStdouterr_->uninstall() is failed!\n");
+		if(pyStdouterr_->isInstall() && !pyStdouterr_->uninstall())	{
+			ERROR_MSG("Script::uninstall(): pyStdouterr_->uninstall() is failed!\n");
 		}
-		else
-			Py_DECREF(pyStdouterr_);
+		
+		delete pyStdouterr_;
 	}
-	
-	if(pyStdouterrHook_)
+
+	ScriptStdOut::uninstallScript();
+	ScriptStdErr::uninstallScript();
+
+	if(!uninstall_py_dlls())
 	{
-		if(pyStdouterrHook_->isInstall() && !pyStdouterrHook_->uninstall()){
-			ERROR_MSG("Script::uninstall::pyStdouterrHook_->uninstall() is failed!\n");
-		}
-		else
-			Py_DECREF(pyStdouterrHook_);
+		ERROR_MSG("Script::uninstall(): uninstall_py_dlls() is failed!\n");
+		return false;
 	}
 
-	ScriptStdOutErr::uninstallScript();	
-	ScriptStdOutErrHook::uninstallScript();
+	PyGC::initialize();
 
-#ifndef KBE_SINGLE_THREADED
-	if (s_pOurInitTimeModules != NULL)
-	{
-		Py_DECREF(s_pOurInitTimeModules);
-		s_pOurInitTimeModules = NULL;
-	}
-#endif
+	// 卸载python解释器
+	Py_Finalize();
 
-	Py_Finalize();																// 卸载python解释器
-	INFO_MSG("Script::uninstall is successfully!\n");
+	INFO_MSG("Script::uninstall(): is successfully!\n");
 	return true;	
 }
 
@@ -292,28 +300,28 @@ bool Script::uninstall()
 bool Script::installExtraModule(const char* moduleName)
 {
 	PyObject *m = PyImport_AddModule("__main__");
-	extraModule_ = PyImport_AddModule(moduleName);								// 添加一个脚本扩展模块
+
+	// 添加一个脚本扩展模块
+	extraModule_ = PyImport_AddModule(moduleName);
 	if (extraModule_ == NULL)
 		return false;
 	
-	PyObject *module_ = PyImport_AddModule(moduleName);							// 初始化扩展模块
+	// 初始化扩展模块
+	PyObject *module_ = PyImport_AddModule(moduleName);
 	if (module_ == NULL)
 		return false;
 
-	PyObject_SetAttrString(m, moduleName, extraModule_);						// 将扩展模块对象加入main
+	// 将扩展模块对象加入main
+	PyObject_SetAttrString(m, moduleName, extraModule_);
 
-	INFO_MSG(boost::format("Script::install %1% is successfully!\n") 
-		% moduleName);
-
+	INFO_MSG(fmt::format("Script::install(): {} is successfully!\n", moduleName));
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool Script::registerExtraMethod(const char* attrName, PyMethodDef* pyFunc)
 {
-	PyObject* obj = PyCFunction_New(pyFunc, NULL);
-	bool ret = PyModule_AddObject(extraModule_, attrName, obj) != -1;
-	return ret;
+	return PyModule_AddObject(extraModule_, attrName, PyCFunction_New(pyFunc, NULL)) != -1;
 }
 
 //-------------------------------------------------------------------------------------
@@ -338,137 +346,67 @@ int Script::unregisterToModule(const char* attrName)
 }
 
 //-------------------------------------------------------------------------------------
-PyThreadState* Script::createInterpreter()
+void Script::setenv(const std::string& name, const std::string& value)
 {
-	PyThreadState* 	pCurInterpreter = PyThreadState_Get();
-	PyObject * 		pCurPath = PySys_GetObject( "path" );
+	PyObject* osModule = PyImport_ImportModule("os");
 
-	PyThreadState* pNewInterpreter = Py_NewInterpreter();
-	if (pNewInterpreter)
+	if(osModule)
 	{
-		PySys_SetObject( "path", pCurPath );
-#ifndef KBE_SINGLE_THREADED
-		PyDict_Merge( PySys_GetObject( "modules" ), s_pOurInitTimeModules, 0 );
-#endif
+		PyObject* environ = NULL;
+		PyObject* py_name = NULL;
+		PyObject* py_value = NULL;
 
-		PyThreadState* pSwapped = PyThreadState_Swap( pCurInterpreter );
-		if( pSwapped != pNewInterpreter )
+		PyObject* supports_bytes_environ = PyObject_GetAttrString(osModule, "supports_bytes_environ");
+		if(Py_True == supports_bytes_environ)
 		{
-			KBE_EXIT( "error creating new python interpreter" );
+			environ = PyObject_GetAttrString(osModule, "environb");
+			py_name = PyBytes_FromString(name.c_str());
+			py_value = PyBytes_FromString(value.c_str());
 		}
-	}
-
-	return pNewInterpreter;
-}
-
-//-------------------------------------------------------------------------------------
-void Script::destroyInterpreter( PyThreadState* pInterpreter )
-{
-	if( pInterpreter == PyThreadState_Get() )
-	{
-		KBE_EXIT( "trying to destroy current interpreter" );
-	}
-
-	PyInterpreterState_Clear( pInterpreter->interp );
-	PyInterpreterState_Delete( pInterpreter->interp );
-}
-
-//-------------------------------------------------------------------------------------
-PyThreadState* Script::swapInterpreter( PyThreadState* pInterpreter )
-{
-#ifndef KBE_SINGLE_THREADED
-	s_defaultContext = pInterpreter;
-#endif
-	return PyThreadState_Swap( pInterpreter );
-}
-
-//-------------------------------------------------------------------------------------
-#ifndef KBE_SINGLE_THREADED
-void Script::initThread( bool plusOwnInterpreter )
-{
-	if( s_defaultContext != NULL )
-	{
-		KBE_EXIT( "trying to initialise scripting when already initialised" );
-	}
-
-	PyEval_AcquireLock();
-
-	PyThreadState * newTState = NULL;
-
-	if (plusOwnInterpreter)
-	{
-		newTState = Py_NewInterpreter();
-
-		PyObject * pMainPyPath = PyDict_GetItemString(
-			s_pMainThreadState->interp->sysdict, "path" );
-		PySys_SetObject( "path", pMainPyPath );
-
-		PyDict_Merge( PySys_GetObject( "modules" ), s_pOurInitTimeModules, 0);
-	}
-	else
-	{
-		newTState = PyThreadState_New( s_pMainThreadState->interp );
-	}
-
-	if( newTState == NULL )
-	{
-		KBE_EXIT( "failed to create a new thread object" );
-	}
-
-	PyEval_ReleaseLock();
-
-	s_defaultContext = newTState;
-	Script::acquireLock();
-}
-
-//-------------------------------------------------------------------------------------
-void Script::finiThread( bool plusOwnInterpreter )
-{
-	if( s_defaultContext != PyThreadState_Get() )
-	{
-		KBE_EXIT( "trying to finalise script thread when not in default context" );
-	}
-
-	if (plusOwnInterpreter)
-	{
+		else
 		{
-			PyInterpreterState_Clear( s_defaultContext->interp );
-			PyThreadState_Swap( NULL );
-			PyInterpreterState_Delete( s_defaultContext->interp );
+			environ = PyObject_GetAttrString(osModule, "environ");
+			py_name = PyUnicode_FromString(name.c_str());
+			py_value = PyUnicode_FromString(value.c_str());
 		}
 
-		PyEval_ReleaseLock();
+		Py_DECREF(supports_bytes_environ);
+		Py_DECREF(osModule);
+
+		if (!environ)
+		{
+			ERROR_MSG("Script::setenv: get os.environ is error!\n");
+			PyErr_PrintEx(0);
+			Py_DECREF(py_value);
+			Py_DECREF(py_name);
+			return;
+		}
+
+		PyObject* environData = PyObject_GetAttrString(environ, "_data");
+		if (!environData)
+		{
+			ERROR_MSG("Script::setenv: os.environ._data not exist!\n");
+			PyErr_PrintEx(0);
+			Py_DECREF(py_value);
+			Py_DECREF(py_name);
+			Py_DECREF(environ);
+			return;
+		}
+
+		int ret = PyDict_SetItem(environData, py_name, py_value);
+		
+		Py_DECREF(environData);
+		Py_DECREF(environ);		
+		Py_DECREF(py_value);
+		Py_DECREF(py_name);
+		
+		if(ret == -1)
+		{
+			ERROR_MSG("Script::setenv: get os.environ is error!\n");
+			PyErr_PrintEx(0);
+			return;
+		}
 	}
-	else
-	{
-		PyThreadState_Clear( s_defaultContext );
-		PyThreadState_DeleteCurrent();								// releases GIL
-	}
-
-	s_defaultContext = NULL;
-}
-
-#endif
-
-//-------------------------------------------------------------------------------------
-void Script::acquireLock()
-{
-#ifndef KBE_SINGLE_THREADED
-	if (s_defaultContext == NULL) return;
-
-	PyEval_RestoreThread( s_defaultContext );
-#endif
-}
-
-//-------------------------------------------------------------------------------------
-void Script::releaseLock()
-{
-#ifndef KBE_SINGLE_THREADED
-	if (s_defaultContext == NULL) return;
-
-	PyThreadState * oldState = PyEval_SaveThread();
-	KBE_ASSERT(oldState == s_defaultContext && "releaseLock: default context is incorrect");
-#endif
 }
 
 //-------------------------------------------------------------------------------------

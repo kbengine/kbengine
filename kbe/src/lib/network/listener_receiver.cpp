@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,21 +19,21 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "listener_receiver.hpp"
+#include "listener_receiver.h"
 #ifndef CODE_INLINE
-#include "listener_receiver.ipp"
+#include "listener_receiver.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/bundle.hpp"
-#include "network/endpoint.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/packet_receiver.hpp"
-#include "network/error_reporter.hpp"
+#include "network/address.h"
+#include "network/bundle.h"
+#include "network/endpoint.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/packet_receiver.h"
+#include "network/error_reporter.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 //-------------------------------------------------------------------------------------
 ListenerReceiver::ListenerReceiver(EndPoint & endpoint,
@@ -55,15 +55,15 @@ int ListenerReceiver::handleInputNotification(int fd)
 {
 	int tickcount = 0;
 
-	while(tickcount ++ < 1024)
+	while(tickcount ++ < 256)
 	{
 		EndPoint* pNewEndPoint = endpoint_.accept();
 		if(pNewEndPoint == NULL){
 
 			if(tickcount == 1)
 			{
-				WARNING_MSG(boost::format("PacketReceiver::handleInputNotification: accept endpoint(%1%) %2%!\n") %
-					 fd % kbe_strerror());
+				WARNING_MSG(fmt::format("PacketReceiver::handleInputNotification: accept endpoint({}) {}!\n",
+					 fd, kbe_strerror()));
 				
 				this->dispatcher().errorReporter().reportException(
 						REASON_GENERAL_NETWORK);
@@ -73,11 +73,25 @@ int ListenerReceiver::handleInputNotification(int fd)
 		}
 		else
 		{
-			Channel* pchannel = new Channel(networkInterface_, pNewEndPoint, traits_);
-			if(!networkInterface_.registerChannel(pchannel))
+			Channel* pChannel = Network::Channel::ObjPool().createObject();
+			bool ret = pChannel->initialize(networkInterface_, pNewEndPoint, traits_);
+			if(!ret)
 			{
-				ERROR_MSG(boost::format("ListenerReceiver::handleInputNotification:registerChannel(%1%) is failed!\n") %
-					pchannel->c_str());
+				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification: initialize({}) is failed!\n",
+					pChannel->c_str()));
+
+				pChannel->destroy();
+				Network::Channel::ObjPool().reclaimObject(pChannel);
+				return 0;
+			}
+
+			if(!networkInterface_.registerChannel(pChannel))
+			{
+				ERROR_MSG(fmt::format("ListenerReceiver::handleInputNotification: registerChannel({}) is failed!\n",
+					pChannel->c_str()));
+
+				pChannel->destroy();
+				Network::Channel::ObjPool().reclaimObject(pChannel);
 			}
 		}
 	}

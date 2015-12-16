@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "entity.hpp"
-#include "witnessed_timeout_handler.hpp"
-#include "server/serverconfig.hpp"
+#include "cellapp.h"
+#include "entity.h"
+#include "witnessed_timeout_handler.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine{	
 
@@ -93,15 +93,15 @@ void WitnessedTimeoutHandler::addWitnessed(Entity* pEntity)
 		return;
 	}
 
-	if(witnessedEntityIDs_.find(pEntity->getID()) != witnessedEntityIDs_.end())
-		witnessedEntityIDs_[pEntity->getID()] = witness_timeout_dec;
+	if(witnessedEntityIDs_.find(pEntity->id()) != witnessedEntityIDs_.end())
+		witnessedEntityIDs_[pEntity->id()] = witness_timeout_dec;
 	else
-		witnessedEntityIDs_.insert(std::map<ENTITY_ID, uint16>::value_type(pEntity->getID(), witness_timeout_dec));
+		witnessedEntityIDs_.insert(std::map<ENTITY_ID, uint16>::value_type(pEntity->id(), witness_timeout_dec));
 	
 	if(pTimerHandle_ == NULL)
 	{
 		pTimerHandle_ = new TimerHandle();
-		(*pTimerHandle_) = Cellapp::getSingleton().getMainDispatcher().addTimer(TICKSECS * 1000000, this,
+		(*pTimerHandle_) = Cellapp::getSingleton().dispatcher().addTimer(TICKSECS * 1000000, this,
 								NULL);
 	}
 }
@@ -112,7 +112,7 @@ void WitnessedTimeoutHandler::delWitnessed(Entity* pEntity)
 	if(witnessedEntityIDs_.size() == 0)
 		return;
 
-	std::map<ENTITY_ID, uint16>::iterator iter = witnessedEntityIDs_.find(pEntity->getID());
+	std::map<ENTITY_ID, uint16>::iterator iter = witnessedEntityIDs_.find(pEntity->id());
 
 	if(iter != witnessedEntityIDs_.end())
 	{

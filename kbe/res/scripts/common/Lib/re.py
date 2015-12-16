@@ -85,16 +85,17 @@ resulting RE will match the second character.
     \\       Matches a literal backslash.
 
 This module exports the following functions:
-    match    Match a regular expression pattern to the beginning of a string.
-    search   Search a string for the presence of a pattern.
-    sub      Substitute occurrences of a pattern found in a string.
-    subn     Same as sub, but also return the number of substitutions made.
-    split    Split a string by the occurrences of a pattern.
-    findall  Find all occurrences of a pattern in a string.
-    finditer Return an iterator yielding a match object for each match.
-    compile  Compile a pattern into a RegexObject.
-    purge    Clear the regular expression cache.
-    escape   Backslash all non-alphanumerics in a string.
+    match     Match a regular expression pattern to the beginning of a string.
+    fullmatch Match a regular expression pattern to all of a string.
+    search    Search a string for the presence of a pattern.
+    sub       Substitute occurrences of a pattern found in a string.
+    subn      Same as sub, but also return the number of substitutions made.
+    split     Split a string by the occurrences of a pattern.
+    findall   Find all occurrences of a pattern in a string.
+    finditer  Return an iterator yielding a match object for each match.
+    compile   Compile a pattern into a RegexObject.
+    purge     Clear the regular expression cache.
+    escape    Backslash all non-alphanumerics in a string.
 
 Some of the functions in this module takes flags as optional parameters:
     A  ASCII       For string patterns, make \w, \W, \b, \B, \d, \D
@@ -121,10 +122,9 @@ This module also defines an exception 'error'.
 import sys
 import sre_compile
 import sre_parse
-import functools
 
 # public symbols
-__all__ = [ "match", "search", "sub", "subn", "split", "findall",
+__all__ = [ "match", "fullmatch", "search", "sub", "subn", "split", "findall",
     "compile", "purge", "template", "escape", "A", "I", "L", "M", "S", "X",
     "U", "ASCII", "IGNORECASE", "LOCALE", "MULTILINE", "DOTALL", "VERBOSE",
     "UNICODE", "error" ]
@@ -154,6 +154,11 @@ def match(pattern, string, flags=0):
     """Try to apply the pattern at the start of the string, returning
     a match object, or None if no match was found."""
     return _compile(pattern, flags).match(string)
+
+def fullmatch(pattern, string, flags=0):
+    """Try to apply the pattern to all of the string, returning
+    a match object, or None if no match was found."""
+    return _compile(pattern, flags).fullmatch(string)
 
 def search(pattern, string, flags=0):
     """Scan through string looking for a match to the pattern, returning
@@ -223,12 +228,14 @@ def template(pattern, flags=0):
     return _compile(pattern, flags|T)
 
 _alphanum_str = frozenset(
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890")
+    "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890")
 _alphanum_bytes = frozenset(
-    b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890")
+    b"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890")
 
 def escape(pattern):
-    "Escape all non-alphanumeric characters in pattern."
+    """
+    Escape all the characters in pattern except ASCII letters, numbers and '_'.
+    """
     if isinstance(pattern, str):
         alphanum = _alphanum_str
         s = list(pattern)
@@ -263,13 +270,14 @@ _cache_repl = {}
 _pattern_type = type(sre_compile.compile("", 0))
 
 _MAXCACHE = 512
-
 def _compile(pattern, flags):
     # internal: compile pattern
-    try:
-        return _cache[type(pattern), pattern, flags]
-    except KeyError:
-        pass
+    bypass_cache = flags & DEBUG
+    if not bypass_cache:
+        try:
+            return _cache[type(pattern), pattern, flags]
+        except KeyError:
+            pass
     if isinstance(pattern, _pattern_type):
         if flags:
             raise ValueError(
@@ -278,9 +286,10 @@ def _compile(pattern, flags):
     if not sre_compile.isstring(pattern):
         raise TypeError("first argument must be string or compiled pattern")
     p = sre_compile.compile(pattern, flags)
-    if len(_cache) >= _MAXCACHE:
-        _cache.clear()
-    _cache[type(pattern), pattern, flags] = p
+    if not bypass_cache:
+        if len(_cache) >= _MAXCACHE:
+            _cache.clear()
+        _cache[type(pattern), pattern, flags] = p
     return p
 
 def _compile_repl(repl, pattern):

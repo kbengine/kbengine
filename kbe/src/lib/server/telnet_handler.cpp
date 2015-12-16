@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,15 +19,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "telnet_handler.hpp"
-#include "telnet_server.hpp"
-#include "network/bundle.hpp"
-#include "network/endpoint.hpp"
-#include "network/network_interface.hpp"
-#include "pyscript/script.hpp"
+#include "telnet_handler.h"
+#include "telnet_server.h"
+#include "network/bundle.h"
+#include "network/endpoint.h"
+#include "network/network_interface.h"
+#include "pyscript/script.h"
 
 #ifndef CODE_INLINE
-#include "telnet_handler.ipp"
+#include "telnet_handler.inl"
 #endif
 
 namespace KBEngine { 
@@ -109,7 +109,7 @@ char _g_state_str[][256] = {
 #define TELNET_CMD_MOVE_FOCUS_RIGHT_MAX			"\33[9999999999C"	// 右移光标到最后面
 
 //-------------------------------------------------------------------------------------
-TelnetHandler::TelnetHandler(Mercury::EndPoint* pEndPoint, TelnetServer* pTelnetServer, Mercury::NetworkInterface* pNetworkInterface, TELNET_STATE defstate):
+TelnetHandler::TelnetHandler(Network::EndPoint* pEndPoint, TelnetServer* pTelnetServer, Network::NetworkInterface* pNetworkInterface, TELNET_STATE defstate):
 buffer_(),
 historyCommand_(),
 historyCommandIndex_(0),
@@ -136,27 +136,28 @@ TelnetHandler::~TelnetHandler(void)
 //-------------------------------------------------------------------------------------
 std::string TelnetHandler::getInputStartString()
 {
-	return(boost::format("[%1%@%2% ~]%3% ") % COMPONENT_NAME_EX(g_componentType) % 
-		_g_state_str[(int)state_] % (state_ == TELNET_STATE_PYTHON ? " >>>" : "#")).str();
+	return fmt::format("[{}@{} ~]{} ", COMPONENT_NAME_EX(g_componentType), 
+		_g_state_str[(int)state_], (state_ == TELNET_STATE_PYTHON ? " >>>" : "#"));
 }
 
 //-------------------------------------------------------------------------------------
 std::string TelnetHandler::getWelcome()
 {
-	return (boost::format("\033[1;32mwelcome to %1% \r\n"
-			"Version: %2%. "
-			"Config: %3%. "
-			"Built: %4% %5%. "
-			"AppUID: %6%. "
-			"UID: %7%. "
-			"PID: %8%"
+	return fmt::format("\033[1;32mwelcome to {} \r\n"
+			"Version: {}. "
+			"ScriptVersion: {}. "
+			"Config: {}. "
+			"Built: {} {}. "
+			"AppID: {}. "
+			"UID: {}. "
+			"PID: {}"
 			"\r\n---------------------------------------------"
-			"%9%"
+			"{}"
 			"\r\n---------------------------------------------"
-			" \033[0m\r\n%10%") %
-		COMPONENT_NAME_EX(g_componentType) % KBEVersion::versionString().c_str() %
-		KBE_CONFIG % __TIME__ % __DATE__ %
-		g_componentID % getUserUID() % getProcessPID() % help() % getInputStartString()).str();
+			" \033[0m\r\n{}",
+		COMPONENT_NAME_EX(g_componentType), KBEVersion::versionString(), KBEVersion::scriptVersionString(),
+		KBE_CONFIG, __TIME__, __DATE__,
+		g_componentID, getUserUID(), getProcessPID(), help(), getInputStartString());
 }
 
 //-------------------------------------------------------------------------------------
@@ -173,8 +174,8 @@ std::string TelnetHandler::help()
 		"\r\n\t\t usage: \":pyprofile 30\""
 		"\r\n[:eventprofile  ]: a server process over a period of time, \r\n\t\tcollects and reports the all non-volatile cummunication \r\n\t\tdown to the client."
 		"\r\n\t\t usage: \":eventprofile 30\""
-		"\r\n[:mercuryprofile]: collects and reports the mercury profiles \r\n\t\tof a server process over a period of time."
-		"\r\n\t\t usage: \":mercuryprofile 30\""
+		"\r\n[:networkprofile]: collects and reports the network profiles \r\n\t\tof a server process over a period of time."
+		"\r\n\t\t usage: \":networkprofile 30\""
 		"\r\n\r\n\033[0m";
 };
 
@@ -229,7 +230,7 @@ int	TelnetHandler::handleInputNotification(int fd)
 	if(state_ == TELNET_STATE_READONLY)
 		return 0;
 
-	for(int i = 0; i < recvsize; i++)
+	for(int i = 0; i < recvsize; ++i)
 	{
 		buffer_.push_back(data[i]);
 	}
@@ -290,7 +291,7 @@ void TelnetHandler::checkAfterStr()
 	{
 		std::string s = "";
 		s = command_.substr(currPos_, command_.size() - currPos_);
-		s += (boost::format("\33[%1%D") % s.size()).str();
+		s += fmt::format("\33[{}D", s.size());
 		pEndPoint_->send(s.c_str(), s.size());
 	}
 }
@@ -404,7 +405,7 @@ bool TelnetHandler::processCommand()
 
 
 	bool logcmd = true;
-	//for(int i=0; i<(int)historyCommand_.size(); i++)
+	//for(int i=0; i<(int)historyCommand_.size(); ++i)
 	{
 		//if(historyCommand_[i] == command_)
 		//{
@@ -472,7 +473,7 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 		
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
@@ -504,7 +505,7 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
@@ -536,7 +537,7 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
@@ -548,11 +549,11 @@ bool TelnetHandler::processCommand()
 		readonly();
 		return false;
 	}
-	else if(cmd.find(":mercuryprofile") == 0)
+	else if(cmd.find(":networkprofile") == 0)
 	{
 		uint32 timelen = 10;
 
-		cmd.erase(cmd.find(":mercuryprofile"), strlen(":mercuryprofile"));
+		cmd.erase(cmd.find(":networkprofile"), strlen(":networkprofile"));
 		if(cmd.size() > 0)
 		{
 			try
@@ -568,13 +569,13 @@ bool TelnetHandler::processCommand()
 				timelen = 10;
 		}
 
-		std::string str = (boost::format("Waiting for %1% secs.\r\n") % timelen).str();
+		std::string str = fmt::format("Waiting for {} secs.\r\n", timelen);
 		pEndPoint_->send(str.c_str(), str.size());
 
 		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
 
 		if(pProfileHandler_) pProfileHandler_->destroy();
-		pProfileHandler_ = new TelnetMercuryProfileHandler(this, *pTelnetServer_->pNetworkInterface(), 
+		pProfileHandler_ = new TelnetNetworkProfileHandler(this, *pTelnetServer_->pNetworkInterface(), 
 			timelen, profileName, pEndPoint_->addr());
 
 		readonly();
@@ -596,6 +597,7 @@ void TelnetHandler::processPythonCommand(std::string command)
 	if(pTelnetServer_->pScript() == NULL || command.size() == 0)
 		return;
 	
+	command += "\n";
 	PyObject* pycmd = PyUnicode_DecodeUTF8(command.data(), command.size(), NULL);
 	if(pycmd == NULL)
 	{
@@ -603,8 +605,8 @@ void TelnetHandler::processPythonCommand(std::string command)
 		return;
 	}
 
-	DEBUG_MSG(boost::format("TelnetHandler::processPythonCommand: size(%1%), command=%2%.\n") % 
-		command.size() % command);
+	DEBUG_MSG(fmt::format("TelnetHandler::processPythonCommand: size({}), command={}.\n", 
+		command.size(), command));
 
 	std::string retbuf = "";
 	PyObject* pycmd1 = PyUnicode_AsEncodedString(pycmd, "utf-8", NULL);
@@ -614,9 +616,10 @@ void TelnetHandler::processPythonCommand(std::string command)
 	if(retbuf.size() > 0)
 	{
 		// 将结果返回给客户端
-		Mercury::Bundle bundle;
-		bundle << retbuf;
-		bundle.send(*pEndPoint_);
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		(*pBundle) << retbuf;
+		pEndPoint_->send(pBundle);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 		sendEnter();
 	}
 
@@ -635,9 +638,12 @@ void TelnetHandler::sendDelChar()
 {
 	if(command_.size() > 0)
 	{
-		command_.erase(currPos_ - 1, 1);
-		currPos_--;
-		pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
+		if(currPos_ > 0)
+		{
+			command_.erase(currPos_ - 1, 1);
+			currPos_--;
+			pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
+		}
 	}
 	else
 	{
@@ -659,7 +665,7 @@ void TelnetHandler::resetStartPosition()
 {
 	pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 	std::string startstr = getInputStartString();
-	std::string backcmd = (boost::format("\33[%1%C") % startstr.size()).str();
+	std::string backcmd = fmt::format("\33[{}C", startstr.size());
 	pEndPoint_->send(backcmd.c_str(), backcmd.size());
 }
 
@@ -768,7 +774,7 @@ void TelnetEventProfileHandler::sendStream(MemoryStream* s)
 		std::string type_name;
 		(*s) >> type_name;
 		
-		datas += (boost::format("Event Type:%1%\r\n\r\n(name|count|size)\r\n---------------------\r\n\r\n") % type_name).str();
+		datas += fmt::format("Event Type:{}\r\n\r\n(name|count|size)\r\n---------------------\r\n\r\n", type_name);
 
 		KBEngine::ArraySize size1;
 		(*s) >> size1;
@@ -784,7 +790,7 @@ void TelnetEventProfileHandler::sendStream(MemoryStream* s)
 			if(count == 0)
 				continue;
 
-			datas += (boost::format("%1%\t\t\t\t\t%2%\t%3%\r\n") % name % count % eventSize).str();
+			datas += fmt::format("{}\t\t\t\t\t{}\t{}\r\n", name, count, eventSize);
 		}
 
 		datas += "\r\n\r\n";
@@ -794,7 +800,7 @@ void TelnetEventProfileHandler::sendStream(MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
-void TelnetMercuryProfileHandler::sendStream(MemoryStream* s)
+void TelnetNetworkProfileHandler::sendStream(MemoryStream* s)
 {
 	if(isDestroyed_) return;
 

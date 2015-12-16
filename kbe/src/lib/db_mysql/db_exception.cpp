@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,18 +18,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "db_exception.hpp"
-#include "db_interface_mysql.hpp"
-#include "dbmgr_lib/db_interface.hpp"
+#include "db_exception.h"
+#include "db_interface_mysql.h"
+#include "db_interface/db_interface.h"
 #include <mysql/mysqld_error.h>
 #include <mysql/errmsg.h>
 
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-DBException::DBException(DBInterface* dbi) :
-			errStr_(mysql_error(static_cast<DBInterfaceMysql*>(dbi)->mysql())),
-			errNum_(mysql_errno(static_cast<DBInterfaceMysql*>(dbi)->mysql()))
+DBException::DBException(DBInterface* pdbi) :
+			errStr_(mysql_error(static_cast<DBInterfaceMysql*>(pdbi)->mysql())),
+			errNum_(mysql_errno(static_cast<DBInterfaceMysql*>(pdbi)->mysql()))
 {
 }
 

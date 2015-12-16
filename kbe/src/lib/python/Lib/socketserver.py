@@ -131,7 +131,6 @@ __version__ = "0.4"
 
 import socket
 import select
-import sys
 import os
 import errno
 try:
@@ -153,8 +152,8 @@ def _eintr_retry(func, *args):
     while True:
         try:
             return func(*args)
-        except (OSError, select.error) as e:
-            if e.args[0] != errno.EINTR:
+        except OSError as e:
+            if e.errno != errno.EINTR:
                 raise
 
 class BaseServer:
@@ -180,6 +179,7 @@ class BaseServer:
     - process_request(request, client_address)
     - shutdown_request(request)
     - close_request(request)
+    - service_actions()
     - handle_error()
 
     Methods for derived classes:
@@ -236,6 +236,8 @@ class BaseServer:
                                        poll_interval)
                 if self in r:
                     self._handle_request_noblock()
+
+                self.service_actions()
         finally:
             self.__shutdown_request = False
             self.__is_shut_down.set()
@@ -249,6 +251,14 @@ class BaseServer:
         """
         self.__shutdown_request = True
         self.__is_shut_down.wait()
+
+    def service_actions(self):
+        """Called by the serve_forever() loop.
+
+        May be overridden by a subclass / Mixin to implement any code that
+        needs to be run during the loop.
+        """
+        pass
 
     # The distinction between handling, getting, processing and
     # finishing a request is fairly arbitrary.  Remember:
@@ -288,7 +298,7 @@ class BaseServer:
         """
         try:
             request, client_address = self.get_request()
-        except socket.error:
+        except OSError:
             return
         if self.verify_request(request, client_address):
             try:
@@ -468,7 +478,7 @@ class TCPServer(BaseServer):
             #explicitly shutdown.  socket.close() merely releases
             #the socket and waits for GC to perform the actual close.
             request.shutdown(socket.SHUT_WR)
-        except socket.error:
+        except OSError:
             pass #some platforms may raise ENOTCONN here
         self.close_request(request)
 
@@ -513,35 +523,39 @@ class ForkingMixIn:
 
     def collect_children(self):
         """Internal routine to wait for children that have exited."""
-        if self.active_children is None: return
-        while len(self.active_children) >= self.max_children:
-            # XXX: This will wait for any child process, not just ones
-            # spawned by this library. This could confuse other
-            # libraries that expect to be able to wait for their own
-            # children.
-            try:
-                pid, status = os.waitpid(0, 0)
-            except os.error:
-                pid = None
-            if pid not in self.active_children: continue
-            self.active_children.remove(pid)
+        if self.active_children is None:
+            return
 
-        # XXX: This loop runs more system calls than it ought
-        # to. There should be a way to put the active_children into a
-        # process group and then use os.waitpid(-pgid) to wait for any
-        # of that set, but I couldn't find a way to allocate pgids
-        # that couldn't collide.
-        for child in self.active_children:
+        # If we're above the max number of children, wait and reap them until
+        # we go back below threshold. Note that we use waitpid(-1) below to be
+        # able to collect children in size(<defunct children>) syscalls instead
+        # of size(<children>): the downside is that this might reap children
+        # which we didn't spawn, which is why we only resort to this when we're
+        # above max_children.
+        while len(self.active_children) >= self.max_children:
             try:
-                pid, status = os.waitpid(child, os.WNOHANG)
-            except os.error:
-                pid = None
-            if not pid: continue
+                pid, _ = os.waitpid(-1, 0)
+                self.active_children.discard(pid)
+            except InterruptedError:
+                pass
+            except ChildProcessError:
+                # we don't have any children, we're done
+                self.active_children.clear()
+            except OSError:
+                break
+
+        # Now reap all defunct children.
+        for pid in self.active_children.copy():
             try:
-                self.active_children.remove(pid)
-            except ValueError as e:
-                raise ValueError('%s. x=%d and list=%r' % (e.message, pid,
-                                                           self.active_children))
+                pid, _ = os.waitpid(pid, os.WNOHANG)
+                # if the child hasn't exited yet, pid will be 0 and ignored by
+                # discard() below
+                self.active_children.discard(pid)
+            except ChildProcessError:
+                # someone else reaped it
+                self.active_children.discard(pid)
+            except OSError:
+                pass
 
     def handle_timeout(self):
         """Wait for zombies after self.timeout seconds of inactivity.
@@ -550,16 +564,23 @@ class ForkingMixIn:
         """
         self.collect_children()
 
+    def service_actions(self):
+        """Collect the zombie child processes regularly in the ForkingMixIn.
+
+        service_actions is called in the BaseServer's serve_forver loop.
+        """
+        self.collect_children()
+
     def process_request(self, request, client_address):
         """Fork a new subprocess to process the request."""
-        self.collect_children()
         pid = os.fork()
         if pid:
             # Parent process
             if self.active_children is None:
-                self.active_children = []
-            self.active_children.append(pid)
+                self.active_children = set()
+            self.active_children.add(pid)
             self.close_request(request)
+            return
         else:
             # Child process.
             # This must never return, hence os._exit()!

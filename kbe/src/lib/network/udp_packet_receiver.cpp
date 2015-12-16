@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,26 +19,26 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "udp_packet_receiver.hpp"
+#include "udp_packet_receiver.h"
 #ifndef CODE_INLINE
-#include "udp_packet_receiver.ipp"
+#include "udp_packet_receiver.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
-#include "network/endpoint.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_poller.hpp"
-#include "network/error_reporter.hpp"
+#include "network/address.h"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/endpoint.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/event_poller.h"
+#include "network/error_reporter.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<UDPPacketReceiver> _g_objPool;
+static ObjectPool<UDPPacketReceiver> _g_objPool("UDPPacketReceiver");
 ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 {
 	return _g_objPool;
@@ -47,8 +47,8 @@ ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 //-------------------------------------------------------------------------------------
 void UDPPacketReceiver::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("UDPPacketReceiver::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("UDPPacketReceiver::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -73,11 +73,8 @@ UDPPacketReceiver::~UDPPacketReceiver()
 
 
 //-------------------------------------------------------------------------------------
-bool UDPPacketReceiver::processSocket(bool expectingPacket)
-{
-//	Channel* pChannel = networkInterface_.findChannel(endpoint_.addr());
-//	KBE_ASSERT(pChannel != NULL);
-	
+bool UDPPacketReceiver::processRecv(bool expectingPacket)
+{	
 	Address	srcAddr;
 	UDPPacket* pChannelReceiveWindow = UDPPacket::ObjPool().createObject();
 	int len = pChannelReceiveWindow->recvFromEndPoint(*pEndpoint_, &srcAddr);
@@ -93,16 +90,30 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 
 	if(pSrcChannel == NULL) 
 	{
-		EndPoint* pNewEndPoint = new EndPoint(srcAddr.ip, srcAddr.port);
-		pSrcChannel = new Channel(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
+		EndPoint* pNewEndPoint = EndPoint::ObjPool().createObject();
+		pNewEndPoint->addr(srcAddr.port, srcAddr.ip);
+
+		pSrcChannel = Network::Channel::ObjPool().createObject();
+		bool ret = pSrcChannel->initialize(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
+		if(!ret)
+		{
+			ERROR_MSG(fmt::format("UDPPacketReceiver::processRecv: initialize({}) is failed!\n",
+				pSrcChannel->c_str()));
+
+			pSrcChannel->destroy();
+			Network::Channel::ObjPool().reclaimObject(pSrcChannel);
+			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
+			return false;
+		}
 
 		if(!pNetworkInterface_->registerChannel(pSrcChannel))
 		{
-			ERROR_MSG(boost::format("UDPPacketReceiver::processSocket:registerChannel(%1%) is failed!\n") %
-				pSrcChannel->c_str());
+			ERROR_MSG(fmt::format("UDPPacketReceiver::processRecv: registerChannel({}) is failed!\n",
+				pSrcChannel->c_str()));
 
 			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
 			pSrcChannel->destroy();
+			Network::Channel::ObjPool().reclaimObject(pSrcChannel);
 			return false;
 		}
 	}
@@ -114,6 +125,7 @@ bool UDPPacketReceiver::processSocket(bool expectingPacket)
 		UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
 		pNetworkInterface_->deregisterChannel(pSrcChannel);
 		pSrcChannel->destroy();
+		Network::Channel::ObjPool().reclaimObject(pSrcChannel);
 		return false;
 	}
 
@@ -131,7 +143,6 @@ Reason UDPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPac
 	// 如果为None， 则可能是被过滤器过滤掉了(过滤器正在按照自己的规则组包解密)
 	if(pPacket)
 	{
-		pNetworkInterface_->onPacketIn(*pPacket);
 		pChannel->addReceiveWindow(pPacket);
 	}
 
@@ -143,9 +154,9 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 {
 	if (len == 0)
 	{
-		WARNING_MSG(boost::format("PacketReceiver::processPendingEvents: "
-			"Throwing REASON_GENERAL_NETWORK (1)- %1%\n") %
-			strerror( errno ) );
+		WARNING_MSG(fmt::format("PacketReceiver::processPendingEvents: "
+			"Throwing REASON_GENERAL_NETWORK (1)- {}\n",
+			strerror( errno )));
 
 		this->dispatcher().errorReporter().reportException(
 				REASON_GENERAL_NETWORK );
@@ -173,13 +184,7 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 		errno == ECONNREFUSED ||
 		errno == EHOSTUNREACH)
 	{
-#if defined(PLAYSTATION3)
-		this->dispatcher().errorReporter().reportException(
-				REASON_NO_SUCH_PORT);
-
-		return RECV_STATE_CONTINUE;
-#else
-		Mercury::Address offender;
+		Network::Address offender;
 
 		if (pEndpoint_->getClosedPort(offender))
 		{
@@ -202,7 +207,6 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 			WARNING_MSG("UDPPacketReceiver::processPendingEvents: "
 				"getClosedPort() failed\n");
 		}
-#endif
 	}
 #else
 	if (wsaErr == WSAECONNRESET)
@@ -212,13 +216,13 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 #endif // unix
 
 #ifdef _WIN32
-	WARNING_MSG(boost::format("UDPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-				wsaErr);
+	WARNING_MSG(fmt::format("UDPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
+				wsaErr));
 #else
-	WARNING_MSG(boost::format("UDPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-			kbe_strerror());
+	WARNING_MSG(fmt::format("UDPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
+			kbe_strerror()));
 #endif
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);

@@ -70,7 +70,7 @@ or on combining URL components into a URL string.
        ParseResult(scheme='', netloc='www.cwi.nl:80', path='/%7Eguido/Python.html',
                   params='', query='', fragment='')
        >>> urlparse('www.cwi.nl/%7Eguido/Python.html')
-       ParseResult(scheme='', netloc='', path='www.cwi.nl:80/%7Eguido/Python.html',
+       ParseResult(scheme='', netloc='', path='www.cwi.nl/%7Eguido/Python.html',
                   params='', query='', fragment='')
        >>> urlparse('help/Python.html')
        ParseResult(scheme='', netloc='', path='help/Python.html', params='',
@@ -81,8 +81,7 @@ or on combining URL components into a URL string.
    this argument is the empty string.
 
    If the *allow_fragments* argument is false, fragment identifiers are not
-   allowed, even if the URL's addressing scheme normally does support them.  The
-   default value for this argument is :const:`True`.
+   allowed.  The default value for this argument is :const:`True`.
 
    The return value is actually an instance of a subclass of :class:`tuple`.  This
    class has the following additional read-only convenience attributes:
@@ -119,6 +118,11 @@ or on combining URL components into a URL string.
    .. versionchanged:: 3.2
       Added IPv6 URL parsing capabilities.
 
+   .. versionchanged:: 3.3
+      The fragment is now parsed for all URL schemes (unless *allow_fragment* is
+      false), in accordance with :rfc:`3986`.  Previously, a whitelist of
+      schemes that support fragments existed.
+
 
 .. function:: parse_qs(qs, keep_blank_values=False, strict_parsing=False, encoding='utf-8', errors='replace')
 
@@ -141,8 +145,9 @@ or on combining URL components into a URL string.
    percent-encoded sequences into Unicode characters, as accepted by the
    :meth:`bytes.decode` method.
 
-   Use the :func:`urllib.parse.urlencode` function to convert such
-   dictionaries into query strings.
+   Use the :func:`urllib.parse.urlencode` function (with the ``doseq``
+   parameter set to ``True``) to convert such dictionaries into query
+   strings.
 
 
    .. versionchanged:: 3.2
@@ -513,8 +518,8 @@ task isn't already covered by the URL parsing functions above.
    Convert a mapping object or a sequence of two-element tuples, which may
    either be a :class:`str` or a :class:`bytes`,  to a "percent-encoded"
    string.  If the resultant string is to be used as a *data* for POST
-   operation with :func:`urlopen` function, then it should be properly encoded
-   to bytes, otherwise it would result in a :exc:`TypeError`.
+   operation with :func:`~urllib.request.urlopen` function, then it should be
+   properly encoded to bytes, otherwise it would result in a :exc:`TypeError`.
 
    The resulting string is a series of ``key=value`` pairs separated by ``'&'``
    characters, where both *key* and *value* are quoted using :func:`quote_plus`

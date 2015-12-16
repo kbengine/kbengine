@@ -26,7 +26,7 @@ if _os.name == "posix" and _sys.platform == "darwin":
     # libraries.  OS X 10.3 is Darwin 7, so we check for
     # that.
 
-    if int(_os.uname()[2].split('.')[0]) < 8:
+    if int(_os.uname().release.split('.')[0]) < 8:
         DEFAULT_MODE = RTLD_GLOBAL
 
 from _ctypes import FUNCFLAG_CDECL as _FUNCFLAG_CDECL, \
@@ -34,24 +34,22 @@ from _ctypes import FUNCFLAG_CDECL as _FUNCFLAG_CDECL, \
      FUNCFLAG_USE_ERRNO as _FUNCFLAG_USE_ERRNO, \
      FUNCFLAG_USE_LASTERROR as _FUNCFLAG_USE_LASTERROR
 
-"""
-WINOLEAPI -> HRESULT
-WINOLEAPI_(type)
-
-STDMETHODCALLTYPE
-
-STDMETHOD(name)
-STDMETHOD_(type, name)
-
-STDAPICALLTYPE
-"""
+# WINOLEAPI -> HRESULT
+# WINOLEAPI_(type)
+#
+# STDMETHODCALLTYPE
+#
+# STDMETHOD(name)
+# STDMETHOD_(type, name)
+#
+# STDAPICALLTYPE
 
 def create_string_buffer(init, size=None):
     """create_string_buffer(aBytes) -> character array
     create_string_buffer(anInteger) -> character array
     create_string_buffer(aString, anInteger) -> character array
     """
-    if isinstance(init, (str, bytes)):
+    if isinstance(init, bytes):
         if size is None:
             size = len(init)+1
         buftype = c_char * size
@@ -286,7 +284,7 @@ def create_unicode_buffer(init, size=None):
     create_unicode_buffer(anInteger) -> character array
     create_unicode_buffer(aString, anInteger) -> character array
     """
-    if isinstance(init, (str, bytes)):
+    if isinstance(init, str):
         if size is None:
             size = len(init)+1
         buftype = c_wchar * size
@@ -395,7 +393,7 @@ if _os.name in ("nt", "ce"):
         _type_ = "l"
         # _check_retval_ is called with the function's result when it
         # is used as restype.  It checks for the FAILED bit, and
-        # raises a WindowsError if it is set.
+        # raises an OSError if it is set.
         #
         # The _check_retval_ method is implemented in C, so that the
         # method definition itself is not included in the traceback
@@ -407,7 +405,7 @@ if _os.name in ("nt", "ce"):
     class OleDLL(CDLL):
         """This class represents a dll exporting functions using the
         Windows stdcall calling convention, and returning HRESULT.
-        HRESULT error values are automatically raised as WindowsError
+        HRESULT error values are automatically raised as OSError
         exceptions.
         """
         _func_flags_ = _FUNCFLAG_STDCALL
@@ -456,7 +454,7 @@ if _os.name in ("nt", "ce"):
             code = GetLastError()
         if descr is None:
             descr = FormatError(code).strip()
-        return WindowsError(code, descr)
+        return OSError(None, descr, None, code)
 
 if sizeof(c_uint) == sizeof(c_void_p):
     c_size_t = c_uint

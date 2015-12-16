@@ -9,29 +9,37 @@ SRCS =						\
 	clients_remote_entity_method		\
 	controller				\
 	controllers				\
+	client_entity				\
+	client_entity_method			\
 	forward_message_over_handler		\
 	entity					\
 	entityref				\
 	entity_remotemethod			\
-	entity_range_node			\
+	entity_coordinate_node			\
+	ghost_manager				\
 	history_event				\
+	initprogress_handler			\
 	loadnavmesh_threadtasks			\
 	main					\
 	space					\
 	spaces					\
 	move_controller				\
-	movetoentity_handler			\
-	movetopoint_handler			\
+	moveto_entity_handler			\
+	moveto_point_handler			\
 	navigate_handler			\
 	profile					\
 	proximity_controller			\
-	range_node				\
-	range_list				\
+	coordinate_node				\
+	coordinate_system			\
+	rotator_handler				\
 	range_trigger				\
 	range_trigger_node			\
+	real_entity_method			\
 	trap_trigger				\
+	turn_controller				\
 	updatable				\
 	updatables				\
+	watch_obj_pools				\
 	witness					\
 	witnessed_timeout_handler
 

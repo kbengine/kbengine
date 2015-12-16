@@ -2,6 +2,20 @@ from test import support
 import types
 import unittest
 
+
+def global_function():
+    def inner_function():
+        class LocalClass:
+            pass
+        global inner_global_function
+        def inner_global_function():
+            def inner_function2():
+                pass
+            return inner_function2
+        return LocalClass
+    return lambda: inner_function
+
+
 class FuncAttrsTest(unittest.TestCase):
     def setUp(self):
         class F:
@@ -95,6 +109,26 @@ class FunctionPropertiesTest(FuncAttrsTest):
         # Test on methods, too
         self.assertEqual(self.fi.a.__name__, 'a')
         self.cannot_set_attr(self.fi.a, "__name__", 'a', AttributeError)
+
+    def test___qualname__(self):
+        # PEP 3155
+        self.assertEqual(self.b.__qualname__, 'FuncAttrsTest.setUp.<locals>.b')
+        self.assertEqual(FuncAttrsTest.setUp.__qualname__, 'FuncAttrsTest.setUp')
+        self.assertEqual(global_function.__qualname__, 'global_function')
+        self.assertEqual(global_function().__qualname__,
+                         'global_function.<locals>.<lambda>')
+        self.assertEqual(global_function()().__qualname__,
+                         'global_function.<locals>.inner_function')
+        self.assertEqual(global_function()()().__qualname__,
+                         'global_function.<locals>.inner_function.<locals>.LocalClass')
+        self.assertEqual(inner_global_function.__qualname__, 'inner_global_function')
+        self.assertEqual(inner_global_function().__qualname__, 'inner_global_function.<locals>.inner_function2')
+        self.b.__qualname__ = 'c'
+        self.assertEqual(self.b.__qualname__, 'c')
+        self.b.__qualname__ = 'd'
+        self.assertEqual(self.b.__qualname__, 'd')
+        # __qualname__ must be a string
+        self.cannot_set_attr(self.b, '__qualname__', 7, TypeError)
 
     def test___code__(self):
         num_one, num_two = 7, 8
@@ -315,11 +349,37 @@ class StaticMethodAttrsTest(unittest.TestCase):
         self.assertTrue(s.__func__ is f)
 
 
+class BuiltinFunctionPropertiesTest(unittest.TestCase):
+    # XXX Not sure where this should really go since I can't find a
+    # test module specifically for builtin_function_or_method.
+
+    def test_builtin__qualname__(self):
+        import time
+
+        # builtin function:
+        self.assertEqual(len.__qualname__, 'len')
+        self.assertEqual(time.time.__qualname__, 'time')
+
+        # builtin classmethod:
+        self.assertEqual(dict.fromkeys.__qualname__, 'dict.fromkeys')
+        self.assertEqual(float.__getformat__.__qualname__,
+                         'float.__getformat__')
+
+        # builtin staticmethod:
+        self.assertEqual(str.maketrans.__qualname__, 'str.maketrans')
+        self.assertEqual(bytes.maketrans.__qualname__, 'bytes.maketrans')
+
+        # builtin bound instance method:
+        self.assertEqual([1, 2, 3].append.__qualname__, 'list.append')
+        self.assertEqual({'foo': 'bar'}.pop.__qualname__, 'dict.pop')
+
+
 def test_main():
     support.run_unittest(FunctionPropertiesTest, InstancemethodAttrTest,
                               ArbitraryFunctionAttrTest, FunctionDictsTest,
                               FunctionDocstringTest, CellTest,
-                              StaticMethodAttrsTest)
+                              StaticMethodAttrsTest,
+                              BuiltinFunctionPropertiesTest)
 
 if __name__ == "__main__":
     test_main()

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,15 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "witness.hpp"
-#include "cellapp.hpp"
-#include "entitydef/method.hpp"
-#include "clients_remote_entity_method.hpp"
-#include "network/bundle.hpp"
-#include "server/eventhistory_stats.hpp"
+#include "witness.h"
+#include "cellapp.h"
+#include "entitydef/method.h"
+#include "clients_remote_entity_method.h"
+#include "network/bundle.h"
+#include "helper/eventhistory_stats.h"
 
-#include "client_lib/client_interface.hpp"
-#include "../../server/baseapp/baseapp_interface.hpp"
+#include "client_lib/client_interface.h"
+#include "../../server/baseapp/baseapp_interface.h"
 
 namespace KBEngine{
 
@@ -73,10 +73,10 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	Entity* pEntity = Cellapp::getSingleton().findEntity(id_);
 	if(pEntity == NULL || /*pEntity->pWitness() == NULL ||*/
-		pEntity->isDestroyed() /*|| pEntity->getClientMailbox() == NULL*/)
+		pEntity->isDestroyed() /*|| pEntity->clientMailbox() == NULL*/)
 	{
-		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
-		//	mailbox->getID());
+		//WARNING_MSG(fmt::format("EntityRemoteMethod::callClientMethod: not found entity({}).\n", 
+		//	mailbox->id()));
 
 		S_Return;
 	}
@@ -85,7 +85,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(otherClients_)
 	{
-		if(entities.size() == 0)
+		if(pEntity->witnessesSize() == 0)
 			S_Return;
 	}
 	
@@ -95,23 +95,23 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
 		methodDescription->addToStream(mstream, args);
 
-		if((!otherClients_ && (pEntity->pWitness() || (pEntity->getClientMailbox()))))
+		if((!otherClients_ && (pEntity->pWitness() || (pEntity->clientMailbox()))))
 		{
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-			pEntity->getClientMailbox()->newMail((*pBundle));
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			pEntity->clientMailbox()->newMail((*pBundle));
 
 			if(mstream->wpos() > 0)
 				(*pBundle).append(mstream->data(), mstream->wpos());
 
-			if(Mercury::g_trace_packet > 0)
+			if(Network::g_trace_packet > 0)
 			{
-				if(Mercury::g_trace_packet_use_logfile)
+				if(Network::g_trace_packet_use_logfile)
 					DebugHelper::getSingleton().changeLogger("packetlogs");
 
-				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
-					pEntity->getScriptName() % methodDescription->getName());
+				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall({}::{})\n", 
+					pEntity->scriptName(), methodDescription->getName()));
 																									
-				switch(Mercury::g_trace_packet)																	
+				switch(Network::g_trace_packet)																	
 				{																								
 				case 1:																							
 					mstream->hexlike();																			
@@ -124,17 +124,15 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 					break;																						
 				};																								
 
-				if(Mercury::g_trace_packet_use_logfile)	
+				if(Network::g_trace_packet_use_logfile)	
 					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 			}
 
 			//mailbox->postMail((*pBundle));
 			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-			//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-
 			// 记录这个事件产生的数据量大小
-			g_publicClientEventHistoryStats.trackEvent(pEntity->getScriptName(), 
+			g_publicClientEventHistoryStats.trackEvent(pEntity->scriptName(), 
 				methodDescription->getName(), 
 				pBundle->currMsgLength(), 
 				"::");
@@ -142,38 +140,43 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		
 		// 广播给其他人
 		std::list<ENTITY_ID>::const_iterator iter = entities.begin();
-		for(; iter != entities.end(); iter++)
+		for(; iter != entities.end(); ++iter)
 		{
 			Entity* pAoiEntity = Cellapp::getSingleton().findEntity((*iter));
 			if(pAoiEntity == NULL || pAoiEntity->pWitness() == NULL || pAoiEntity->isDestroyed())
 				continue;
 			
-			EntityMailbox* mailbox = pAoiEntity->getClientMailbox();
+			EntityMailbox* mailbox = pAoiEntity->clientMailbox();
 			if(mailbox == NULL)
 				continue;
 
-			Mercury::Channel* pChannel = mailbox->getChannel();
+			Network::Channel* pChannel = mailbox->getChannel();
 			if(pChannel == NULL)
 				continue;
 
-			Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-			Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+			// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
+			// 又如自己的entity还未在目标客户端上创建
+			if (!pAoiEntity->pWitness()->entityInAOI(pEntity->id()))
+				continue;
+
+			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 			
 			pAoiEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
-					ClientInterface::onRemoteOtherEntityMethodCall, pEntity->getID());
+					ClientInterface::onRemoteMethodCallOptimized, pEntity->id());
 
 			if(mstream->wpos() > 0)
 				(*pForwardBundle).append(mstream->data(), mstream->wpos());
 
-			if(Mercury::g_trace_packet > 0)
+			if(Network::g_trace_packet > 0)
 			{
-				if(Mercury::g_trace_packet_use_logfile)
+				if(Network::g_trace_packet_use_logfile)
 					DebugHelper::getSingleton().changeLogger("packetlogs");
 
-				DEBUG_MSG(boost::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall(%1%::%2%)\n") % 
-					pAoiEntity->getScriptName() % methodDescription->getName());
+				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n", 
+					pAoiEntity->scriptName(), methodDescription->getName()));
 																									
-				switch(Mercury::g_trace_packet)																	
+				switch(Network::g_trace_packet)																	
 				{																								
 				case 1:																							
 					mstream->hexlike();																			
@@ -186,24 +189,22 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 					break;																						
 				};																								
 
-				if(Mercury::g_trace_packet_use_logfile)	
+				if(Network::g_trace_packet_use_logfile)	
 					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 			}
 
-			MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pAoiEntity->getID(), (*pSendBundle), (*pForwardBundle));
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pAoiEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 			//mailbox->postMail((*pBundle));
-			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteOtherEntityMethodCall, pSendBundle);
-
-			//Mercury::Bundle::ObjPool().reclaimObject(pSendBundle);
+			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 
 			// 记录这个事件产生的数据量大小
-			g_publicClientEventHistoryStats.trackEvent(pAoiEntity->getScriptName(), 
+			g_publicClientEventHistoryStats.trackEvent(pAoiEntity->scriptName(), 
 				methodDescription->getName(), 
 				pForwardBundle->currMsgLength(), 
 				"::");
 
-			Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 		}
 
 		MemoryStream::ObjPool().reclaimObject(mstream);

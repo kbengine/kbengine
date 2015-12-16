@@ -9,9 +9,9 @@
 /* Return the DFA for the given type */
 
 dfa *
-PyGrammar_FindDFA(grammar *g, register int type)
+PyGrammar_FindDFA(grammar *g, int type)
 {
-    register dfa *d;
+    dfa *d;
 #if 1
     /* Massive speed-up */
     d = &g->g_dfa[type - NT_OFFSET];
@@ -19,7 +19,7 @@ PyGrammar_FindDFA(grammar *g, register int type)
     return d;
 #else
     /* Old, slow version */
-    register int i;
+    int i;
 
     for (i = g->g_ndfas, d = g->g_dfa; --i >= 0; d++) {
         if (d->d_type == type)
@@ -30,7 +30,7 @@ PyGrammar_FindDFA(grammar *g, register int type)
 #endif
 }
 
-char *
+const char *
 PyGrammar_LabelRepr(label *lb)
 {
     static char buf[100];
@@ -45,7 +45,7 @@ PyGrammar_LabelRepr(label *lb)
         else
             return lb->lb_str;
     }
-    else {
+    else if (lb->lb_type < N_TOKENS) {
         if (lb->lb_str == NULL)
             return _PyParser_TokenNames[lb->lb_type];
         else {
@@ -53,5 +53,9 @@ PyGrammar_LabelRepr(label *lb)
                 _PyParser_TokenNames[lb->lb_type], lb->lb_str);
             return buf;
         }
+    }
+    else {
+        Py_FatalError("invalid label");
+        return NULL;
     }
 }

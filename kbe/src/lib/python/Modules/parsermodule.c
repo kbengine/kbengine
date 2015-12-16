@@ -83,54 +83,78 @@ node2tuple(node *n,                     /* node to convert               */
            int lineno,                  /* include line numbers?         */
            int col_offset)              /* include column offsets?       */
 {
+    PyObject *result = NULL, *w;
+
     if (n == NULL) {
         Py_INCREF(Py_None);
-        return (Py_None);
+        return Py_None;
     }
+
     if (ISNONTERMINAL(TYPE(n))) {
         int i;
-        PyObject *v;
-        PyObject *w;
 
-        v = mkseq(1 + NCH(n) + (TYPE(n) == encoding_decl));
-        if (v == NULL)
-            return (v);
+        result = mkseq(1 + NCH(n) + (TYPE(n) == encoding_decl));
+        if (result == NULL)
+            goto error;
+
         w = PyLong_FromLong(TYPE(n));
-        if (w == NULL) {
-            Py_DECREF(v);
-            return ((PyObject*) NULL);
-        }
-        (void) addelem(v, 0, w);
+        if (w == NULL)
+            goto error;
+        (void) addelem(result, 0, w);
+
         for (i = 0; i < NCH(n); i++) {
             w = node2tuple(CHILD(n, i), mkseq, addelem, lineno, col_offset);
-            if (w == NULL) {
-                Py_DECREF(v);
-                return ((PyObject*) NULL);
-            }
-            (void) addelem(v, i+1, w);
+            if (w == NULL)
+                goto error;
+            (void) addelem(result, i+1, w);
         }
 
-        if (TYPE(n) == encoding_decl)
-            (void) addelem(v, i+1, PyUnicode_FromString(STR(n)));
-        return (v);
+        if (TYPE(n) == encoding_decl) {
+            w = PyUnicode_FromString(STR(n));
+            if (w == NULL)
+                goto error;
+            (void) addelem(result, i+1, w);
+        }
     }
     else if (ISTERMINAL(TYPE(n))) {
-        PyObject *result = mkseq(2 + lineno + col_offset);
-        if (result != NULL) {
-            (void) addelem(result, 0, PyLong_FromLong(TYPE(n)));
-            (void) addelem(result, 1, PyUnicode_FromString(STR(n)));
-            if (lineno == 1)
-                (void) addelem(result, 2, PyLong_FromLong(n->n_lineno));
-            if (col_offset == 1)
-                (void) addelem(result, 3, PyLong_FromLong(n->n_col_offset));
+        result = mkseq(2 + lineno + col_offset);
+        if (result == NULL)
+            goto error;
+
+        w = PyLong_FromLong(TYPE(n));
+        if (w == NULL)
+            goto error;
+        (void) addelem(result, 0, w);
+
+        w = PyUnicode_FromString(STR(n));
+        if (w == NULL)
+            goto error;
+        (void) addelem(result, 1, w);
+
+        if (lineno == 1) {
+            w = PyLong_FromLong(n->n_lineno);
+            if (w == NULL)
+                goto error;
+            (void) addelem(result, 2, w);
         }
-        return (result);
+
+        if (col_offset == 1) {
+            w = PyLong_FromLong(n->n_col_offset);
+            if (w == NULL)
+                goto error;
+            (void) addelem(result, 3, w);
+        }
     }
     else {
         PyErr_SetString(PyExc_SystemError,
                         "unrecognized parse tree node type");
         return ((PyObject*) NULL);
     }
+    return result;
+
+error:
+    Py_XDECREF(result);
+    return NULL;
 }
 /*
  *  End of material copyrighted by Stichting Mathematisch Centrum.
@@ -300,25 +324,25 @@ parser_richcompare(PyObject *left, PyObject *right, int op)
 
     /* Convert return value to a Boolean */
     switch (op) {
-    case Py_EQ:
+      case Py_EQ:
         v = TEST_COND(result == 0);
         break;
-    case Py_NE:
+      case Py_NE:
         v = TEST_COND(result != 0);
         break;
-    case Py_LE:
+      case Py_LE:
         v = TEST_COND(result <= 0);
         break;
-    case Py_GE:
+      case Py_GE:
         v = TEST_COND(result >= 0);
         break;
-    case Py_LT:
+      case Py_LT:
         v = TEST_COND(result < 0);
         break;
-    case Py_GT:
+      case Py_GT:
         v = TEST_COND(result > 0);
         break;
-    default:
+      default:
         PyErr_BadArgument();
         return NULL;
     }
@@ -382,40 +406,28 @@ parser_sizeof(PyST_Object *st, void *unused)
 static PyObject*
 parser_st2tuple(PyST_Object *self, PyObject *args, PyObject *kw)
 {
-    PyObject *line_option = 0;
-    PyObject *col_option = 0;
+    int line_info = 0;
+    int col_info = 0;
     PyObject *res = 0;
     int ok;
 
     static char *keywords[] = {"st", "line_info", "col_info", NULL};
 
     if (self == NULL || PyModule_Check(self)) {
-        ok = PyArg_ParseTupleAndKeywords(args, kw, "O!|OO:st2tuple", keywords,
-                                         &PyST_Type, &self, &line_option,
-                                         &col_option);
+        ok = PyArg_ParseTupleAndKeywords(args, kw, "O!|pp:st2tuple", keywords,
+                                         &PyST_Type, &self, &line_info,
+                                         &col_info);
     }
     else
-        ok = PyArg_ParseTupleAndKeywords(args, kw, "|OO:totuple", &keywords[1],
-                                         &line_option, &col_option);
+        ok = PyArg_ParseTupleAndKeywords(args, kw, "|pp:totuple", &keywords[1],
+                                         &line_info, &col_info);
     if (ok != 0) {
-        int lineno = 0;
-        int col_offset = 0;
-        if (line_option != NULL) {
-            lineno = PyObject_IsTrue(line_option);
-            if (lineno < 0)
-                return NULL;
-        }
-        if (col_option != NULL) {
-            col_offset = PyObject_IsTrue(col_option);
-            if (col_offset < 0)
-                return NULL;
-        }
         /*
          *  Convert ST into a tuple representation.  Use Guido's function,
          *  since it's known to work already.
          */
         res = node2tuple(((PyST_Object*)self)->st_node,
-                         PyTuple_New, PyTuple_SetItem, lineno, col_offset);
+                         PyTuple_New, PyTuple_SetItem, line_info, col_info);
     }
     return (res);
 }
@@ -430,39 +442,27 @@ parser_st2tuple(PyST_Object *self, PyObject *args, PyObject *kw)
 static PyObject*
 parser_st2list(PyST_Object *self, PyObject *args, PyObject *kw)
 {
-    PyObject *line_option = 0;
-    PyObject *col_option = 0;
+    int line_info = 0;
+    int col_info = 0;
     PyObject *res = 0;
     int ok;
 
     static char *keywords[] = {"st", "line_info", "col_info", NULL};
 
     if (self == NULL || PyModule_Check(self))
-        ok = PyArg_ParseTupleAndKeywords(args, kw, "O!|OO:st2list", keywords,
-                                         &PyST_Type, &self, &line_option,
-                                         &col_option);
+        ok = PyArg_ParseTupleAndKeywords(args, kw, "O!|pp:st2list", keywords,
+                                         &PyST_Type, &self, &line_info,
+                                         &col_info);
     else
-        ok = PyArg_ParseTupleAndKeywords(args, kw, "|OO:tolist", &keywords[1],
-                                         &line_option, &col_option);
+        ok = PyArg_ParseTupleAndKeywords(args, kw, "|pp:tolist", &keywords[1],
+                                         &line_info, &col_info);
     if (ok) {
-        int lineno = 0;
-        int col_offset = 0;
-        if (line_option != 0) {
-            lineno = PyObject_IsTrue(line_option);
-            if (lineno < 0)
-                return NULL;
-        }
-        if (col_option != 0) {
-            col_offset = PyObject_IsTrue(col_option);
-            if (col_offset < 0)
-                return NULL;
-        }
         /*
          *  Convert ST into a tuple representation.  Use Guido's function,
          *  since it's known to work already.
          */
         res = node2tuple(self->st_node,
-                         PyList_New, PyList_SetItem, lineno, col_offset);
+                         PyList_New, PyList_SetItem, line_info, col_info);
     }
     return (res);
 }
@@ -477,33 +477,46 @@ parser_st2list(PyST_Object *self, PyObject *args, PyObject *kw)
 static PyObject*
 parser_compilest(PyST_Object *self, PyObject *args, PyObject *kw)
 {
-    PyObject*     res = 0;
-    PyArena*      arena;
+    PyObject*     res = NULL;
+    PyArena*      arena = NULL;
     mod_ty        mod;
-    char*         str = "<syntax-tree>";
+    PyObject*     filename = NULL;
     int ok;
 
     static char *keywords[] = {"st", "filename", NULL};
 
     if (self == NULL || PyModule_Check(self))
-        ok = PyArg_ParseTupleAndKeywords(args, kw, "O!|s:compilest", keywords,
-                                         &PyST_Type, &self, &str);
+        ok = PyArg_ParseTupleAndKeywords(args, kw, "O!|O&:compilest", keywords,
+                                         &PyST_Type, &self,
+                                         PyUnicode_FSDecoder, &filename);
     else
-        ok = PyArg_ParseTupleAndKeywords(args, kw, "|s:compile", &keywords[1],
-                                         &str);
+        ok = PyArg_ParseTupleAndKeywords(args, kw, "|O&:compile", &keywords[1],
+                                         PyUnicode_FSDecoder, &filename);
+    if (!ok)
+        goto error;
 
-    if (ok) {
-        arena = PyArena_New();
-        if (arena) {
-           mod = PyAST_FromNode(self->st_node, &(self->st_flags), str, arena);
-           if (mod) {
-               res = (PyObject *)PyAST_Compile(mod, str, &(self->st_flags), arena);
-           }
-           PyArena_Free(arena);
-        }
+    if (filename == NULL) {
+        filename = PyUnicode_FromString("<syntax-tree>");
+        if (filename == NULL)
+            goto error;
     }
 
-    return (res);
+    arena = PyArena_New();
+    if (!arena)
+        goto error;
+
+    mod = PyAST_FromNodeObject(self->st_node, &self->st_flags,
+                               filename, arena);
+    if (!mod)
+        goto error;
+
+    res = (PyObject *)PyAST_CompileObject(mod, filename,
+                                          &self->st_flags, -1, arena);
+error:
+    Py_XDECREF(filename);
+    if (arena != NULL)
+        PyArena_Free(arena);
+    return res;
 }
 
 
@@ -600,8 +613,10 @@ parser_do_parse(PyObject *args, PyObject *kw, char *argspec, int type)
             if (res)
                 ((PyST_Object *)res)->st_flags.cf_flags = flags & PyCF_MASK;
         }
-        else
+        else {
             PyParser_SetError(&err);
+        }
+        PyParser_ClearError(&err);
     }
     return (res);
 }
@@ -747,7 +762,7 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
         /* elem must always be a sequence, however simple */
         PyObject* elem = PySequence_GetItem(tuple, i);
         int ok = elem != NULL;
-        long  type = 0;
+        int type = 0;
         char *strn = 0;
 
         if (ok)
@@ -758,13 +773,19 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
                 ok = 0;
             else {
                 ok = PyLong_Check(temp);
-                if (ok)
-                    type = PyLong_AS_LONG(temp);
+                if (ok) {
+                    type = _PyLong_AsInt(temp);
+                    if (type == -1 && PyErr_Occurred()) {
+                        Py_DECREF(temp);
+                        Py_DECREF(elem);
+                        return 0;
+                    }
+                }
                 Py_DECREF(temp);
             }
         }
         if (!ok) {
-            PyObject *err = Py_BuildValue("os", elem,
+            PyObject *err = Py_BuildValue("Os", elem,
                                           "Illegal node construct.");
             PyErr_SetObject(parser_error, err);
             Py_XDECREF(err);
@@ -795,8 +816,16 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
             if (len == 3) {
                 PyObject *o = PySequence_GetItem(elem, 2);
                 if (o != NULL) {
-                    if (PyLong_Check(o))
-                        *line_num = PyLong_AS_LONG(o);
+                    if (PyLong_Check(o)) {
+                        int num = _PyLong_AsInt(o);
+                        if (num == -1 && PyErr_Occurred()) {
+                            Py_DECREF(o);
+                            Py_DECREF(temp);
+                            Py_DECREF(elem);
+                            return 0;
+                        }
+                        *line_num = num;
+                    }
                     else {
                         PyErr_Format(parser_error,
                                      "third item in terminal node must be an"
@@ -817,8 +846,13 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
                 return 0;
             }
             strn = (char *)PyObject_MALLOC(len + 1);
-            if (strn != NULL)
-                (void) memcpy(strn, temp_str, len + 1);
+            if (strn == NULL) {
+                Py_DECREF(temp);
+                Py_XDECREF(elem);
+                PyErr_NoMemory();
+                return 0;
+            }
+            (void) memcpy(strn, temp_str, len + 1);
             Py_DECREF(temp);
         }
         else if (!ISNONTERMINAL(type)) {
@@ -878,7 +912,7 @@ build_node_tree(PyObject *tuple)
          *  The tuple is simple, but it doesn't start with a start symbol.
          *  Raise an exception now and be done with it.
          */
-        tuple = Py_BuildValue("os", tuple,
+        tuple = Py_BuildValue("Os", tuple,
                     "Illegal syntax-tree; cannot start with terminal symbol.");
         PyErr_SetObject(parser_error, tuple);
         Py_XDECREF(tuple);
@@ -914,8 +948,14 @@ build_node_tree(PyObject *tuple)
                     return NULL;
                 }
                 res->n_str = (char *)PyObject_MALLOC(len + 1);
-                if (res->n_str != NULL && temp != NULL)
-                    (void) memcpy(res->n_str, temp, len + 1);
+                if (res->n_str == NULL) {
+                    Py_DECREF(res);
+                    Py_DECREF(encoding);
+                    Py_DECREF(tuple);
+                    PyErr_NoMemory();
+                    return NULL;
+                }
+                (void) memcpy(res->n_str, temp, len + 1);
                 Py_DECREF(encoding);
                 Py_DECREF(tuple);
             }
@@ -995,6 +1035,7 @@ VALIDATER(comp_iter);           VALIDATER(comp_if);
 VALIDATER(testlist_comp);       VALIDATER(yield_expr);
 VALIDATER(or_test);
 VALIDATER(test_nocond);         VALIDATER(lambdef_nocond);
+VALIDATER(yield_arg);
 
 #undef VALIDATER
 
@@ -1655,22 +1696,49 @@ validate_raise_stmt(node *tree)
 }
 
 
-/* yield_expr: 'yield' [testlist]
+/* yield_expr: 'yield' [yield_arg]
  */
 static int
 validate_yield_expr(node *tree)
 {
     int nch = NCH(tree);
-    int res = (validate_ntype(tree, yield_expr)
-               && ((nch == 1) || (nch == 2))
-               && validate_name(CHILD(tree, 0), "yield"));
-
-    if (res && (nch == 2))
-        res = validate_testlist(CHILD(tree, 1));
-
-    return (res);
+    if (nch < 1 || nch > 2)
+        return 0;
+    if (!validate_ntype(tree, yield_expr))
+        return 0;
+    if (!validate_name(CHILD(tree, 0), "yield"))
+        return 0;
+    if (nch == 2) {
+        if (!validate_yield_arg(CHILD(tree, 1)))
+            return 0;
+    }
+    return 1;
 }
 
+/* yield_arg: 'from' test | testlist
+ */
+static int
+validate_yield_arg(node *tree)
+{
+    int nch = NCH(tree);
+    if (!validate_ntype(tree, yield_arg))
+        return 0;
+    switch (nch) {
+      case 1:
+        if (!validate_testlist(CHILD(tree, nch - 1)))
+            return 0;
+        break;
+      case 2:
+        if (!validate_name(CHILD(tree, 0), "from"))
+            return 0;
+        if (!validate_test(CHILD(tree, 1)))
+            return 0;
+        break;
+      default:
+        return 0;
+    }
+    return 1;
+}
 
 /* yield_stmt: yield_expr
  */
@@ -2165,16 +2233,16 @@ validate_comp_op(node *tree)
          */
         tree = CHILD(tree, 0);
         switch (TYPE(tree)) {
-            case LESS:
-            case GREATER:
-            case EQEQUAL:
-            case EQUAL:
-            case LESSEQUAL:
-            case GREATEREQUAL:
-            case NOTEQUAL:
+          case LESS:
+          case GREATER:
+          case EQEQUAL:
+          case EQUAL:
+          case LESSEQUAL:
+          case GREATEREQUAL:
+          case NOTEQUAL:
               res = 1;
               break;
-            case NAME:
+          case NAME:
               res = ((strcmp(STR(tree), "in") == 0)
                      || (strcmp(STR(tree), "is") == 0));
               if (!res) {
@@ -2719,9 +2787,9 @@ validate_argument(node *tree)
 {
     int nch = NCH(tree);
     int res = (validate_ntype(tree, argument)
-               && ((nch == 1) || (nch == 2) || (nch == 3))
-               && validate_test(CHILD(tree, 0)));
-
+               && ((nch == 1) || (nch == 2) || (nch == 3)));
+    if (res) 
+        res = validate_test(CHILD(tree, 0));
     if (res && (nch == 2))
         res = validate_comp_for(CHILD(tree, 1));
     else if (res && (nch == 3))
@@ -3356,10 +3424,13 @@ PyInit_parser(void)
     copyreg = PyImport_ImportModuleNoBlock("copyreg");
     if (copyreg != NULL) {
         PyObject *func, *pickler;
+        _Py_IDENTIFIER(pickle);
+        _Py_IDENTIFIER(sequence2st);
+        _Py_IDENTIFIER(_pickler);
 
-        func = PyObject_GetAttrString(copyreg, "pickle");
-        pickle_constructor = PyObject_GetAttrString(module, "sequence2st");
-        pickler = PyObject_GetAttrString(module, "_pickler");
+        func = _PyObject_GetAttrId(copyreg, &PyId_pickle);
+        pickle_constructor = _PyObject_GetAttrId(module, &PyId_sequence2st);
+        pickler = _PyObject_GetAttrId(module, &PyId__pickler);
         Py_XINCREF(pickle_constructor);
         if ((func != NULL) && (pickle_constructor != NULL)
             && (pickler != NULL)) {

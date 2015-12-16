@@ -5,9 +5,9 @@
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
 #include "ConnectRemoteMachineWindow.h"
-#include "machine/machine_interface.hpp"
-#include "server/components.hpp"
-#include "helper/console_helper.hpp"
+#include "machine/machine_interface.h"
+#include "server/components.h"
+#include "helper/console_helper.h"
 
 // CConnectRemoteMachineWindow dialog
 
@@ -96,16 +96,16 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	command += csport;
 	free(csport);
 
-	KBEngine::Mercury::EndPoint* endpoint = new KBEngine::Mercury::EndPoint();
+	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
 
 	KBEngine::u_int32_t address;
-	endpoint->convertAddress(strip, address);
-	KBEngine::Mercury::Address addr(address, htons(port));
+	Network::Address::string2ip(strip, address);
+	KBEngine::Network::Address addr(address, htons(port));
 
 	if(addr.ip == 0)
 	{
 		::AfxMessageBox(L"address is error!");
-		delete endpoint;
+		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 		return;
 	}
 
@@ -113,7 +113,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	if (!endpoint->good())
 	{
 		AfxMessageBox(L"couldn't create a socket\n");
-		delete endpoint;
+		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 		return;
 	}
 
@@ -123,12 +123,12 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		CString err;
 		err.Format(L"connect server is error! %d", ::WSAGetLastError());
 		AfxMessageBox(err);
-		delete endpoint;
+		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 		return;
 	}
 
 	endpoint->setnonblocking(false);
-	int8 findComponentTypes[] = {MESSAGELOG_TYPE, RESOURCEMGR_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
+	int8 findComponentTypes[] = {LOGGER_TYPE, BASEAPP_TYPE, CELLAPP_TYPE, BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, LOGINAPP_TYPE, DBMGR_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 	int ifind = 0;
 
 	while(true)
@@ -141,24 +141,24 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 			break;
 		}
 
-		KBEngine::Mercury::Bundle bhandler;
+		KBEngine::Network::Bundle bhandler;
 		bhandler.newMessage(KBEngine::MachineInterface::onFindInterfaceAddr);
 
 		KBEngine::MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, KBEngine::getUserUID(), KBEngine::getUsername(), 
-			CONSOLE_TYPE, g_componentID, findComponentType, 0, 0);
+			CONSOLE_TYPE, g_componentID, (COMPONENT_TYPE)findComponentType, 0, 0);
 
-		bhandler.send(*endpoint);
+		endpoint->send(&bhandler);
 
-		KBEngine::Mercury::TCPPacket packet;
+		KBEngine::Network::TCPPacket packet;
 		packet.resize(65535);
 
 		endpoint->setnonblocking(true);
 		KBEngine::sleep(300);
 		packet.wpos(endpoint->recv(packet.data(), 65535));
 
-		while(packet.opsize() > 0)
+		while(packet.length() > 0)
 		{
-			MachineInterface::onBroadcastInterfaceArgs21 args;
+			MachineInterface::onBroadcastInterfaceArgs24 args;
 			
 			try
 			{
@@ -168,19 +168,20 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 				goto END;
 			}
 
-			INFO_MSG(boost::format("CConnectRemoteMachineWindow::OnBnClickedOk: found %1%, addr:%2%:%3%\n") %
-				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType) % inet_ntoa((struct in_addr&)args.intaddr) % ntohs(args.intport));
+			INFO_MSG(fmt::format("CConnectRemoteMachineWindow::OnBnClickedOk: found {}, addr:{}:{}\n",
+				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intport)));
 
 			Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
 				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
-				args.intaddr, args.intport, args.extaddr, args.extport, args.pid, args.cpu, args.mem, args.usedmem, 
+				args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, args.usedmem, 
 				args.extradata, args.extradata1, args.extradata2, args.extradata3);
 
 		}
 	}
 END:
 	dlg->updateTree();
-	delete endpoint;
+
+	KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
 	wchar_t* wcommand = KBEngine::strutil::char2wchar(command.c_str());
 	bool found = false;
 	std::deque<CString>::iterator iter = m_historyCommand.begin();

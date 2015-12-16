@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "jwsmtp.h"
-#include "sendmail_threadtasks.hpp"
-#include "server/serverconfig.hpp"
-#include "cstdkbe/deadline.hpp"
+#include "sendmail_threadtasks.h"
+#include "server/serverconfig.h"
+#include "common/deadline.h"
 
 namespace KBEngine{
 
@@ -36,14 +36,15 @@ bool SendEMailTask::process()
 
 	std::string mailmessage = message();
 
-	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", (boost::format("http://%1%:%2%/%3%_%4%") % 
-		cbaddr_ %
-		cbport_ %
-		getopkey() %
-		code_).str());
+	KBEngine::strutil::kbe_replace(mailmessage, "${backlink}", fmt::format("http://{}:{}/{}_{}", 
+		cbaddr_,
+		cbport_,
+		getopkey(),
+		code_));
 
 	KBEngine::strutil::kbe_replace(mailmessage, "${username}", emailaddr_);
 	KBEngine::strutil::kbe_replace(mailmessage, "${code}", code_);
+	mailmessage = KBEngine::strutil::kbe_trim(mailmessage);
 
 	m.setmessageHTML(mailmessage);
 
@@ -51,7 +52,7 @@ bool SendEMailTask::process()
 	m.password(g_kbeSrvConfig.emailServerInfo_.password.c_str());
 	m.send(); // send the mail
 
-	INFO_MSG(boost::format("SendEMailTask::process: sendmail[%1%]: %2%\n") % getopkey() % m.response());
+	INFO_MSG(fmt::format("SendEMailTask::process: sendmail[{}]: {}\n", getopkey(), m.response()));
 	return false;
 }
 

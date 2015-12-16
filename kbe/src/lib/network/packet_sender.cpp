@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,26 +19,34 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "packet_sender.hpp"
+#include "packet_sender.h"
 #ifndef CODE_INLINE
-#include "packet_sender.ipp"
+#include "packet_sender.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
-#include "network/endpoint.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_poller.hpp"
+#include "network/address.h"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/endpoint.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/event_poller.h"
+
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
+//-------------------------------------------------------------------------------------
+PacketSender::PacketSender() :
+	pEndpoint_(NULL),
+	pNetworkInterface_(NULL)
+{
+}
+
 //-------------------------------------------------------------------------------------
 PacketSender::PacketSender(EndPoint & endpoint,
 	   NetworkInterface & networkInterface):
-	endpoint_(endpoint),
-	networkInterface_(networkInterface)
+	pEndpoint_(&endpoint),
+	pNetworkInterface_(&networkInterface)
 {
 }
 
@@ -48,15 +56,76 @@ PacketSender::~PacketSender()
 }
 
 //-------------------------------------------------------------------------------------
+Channel* PacketSender::getChannel()
+{
+	return pNetworkInterface_->findChannel(pEndpoint_->addr());
+}
+
+//-------------------------------------------------------------------------------------
 int PacketSender::handleOutputNotification(int fd)
 {
+	processSend(NULL);
 	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+Reason PacketSender::processPacket(Channel* pChannel, Packet * pPacket)
+{
+	if (pChannel != NULL)
+	{
+		if (pChannel->pFilter())
+		{
+			return pChannel->pFilter()->send(pChannel, *this, pPacket);
+		}
+	}
+
+	return this->processFilterPacket(pChannel, pPacket);
 }
 
 //-------------------------------------------------------------------------------------
 EventDispatcher & PacketSender::dispatcher()
 {
-	return networkInterface_.dispatcher();
+	return pNetworkInterface_->dispatcher();
+}
+
+//-------------------------------------------------------------------------------------
+Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
+{
+	int err;
+	Reason reason;
+
+	#ifdef unix
+		err = errno;
+
+		switch (err)
+		{
+			case ECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
+			case EAGAIN:		reason = REASON_RESOURCE_UNAVAILABLE; break;
+			case EPIPE:			reason = REASON_CLIENT_DISCONNECTED; break;
+			case ECONNRESET:	reason = REASON_CLIENT_DISCONNECTED; break;
+			case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
+			default:			reason = REASON_GENERAL_NETWORK; break;
+		}
+	#else
+		err = WSAGetLastError();
+
+		if (err == WSAEWOULDBLOCK || err == WSAEINTR)
+		{
+			reason = REASON_RESOURCE_UNAVAILABLE;
+		}
+		else
+		{
+			switch (err)
+			{
+				case WSAECONNREFUSED:	reason = REASON_NO_SUCH_PORT; break;
+				case WSAECONNRESET:	reason = REASON_CLIENT_DISCONNECTED; break;
+				case WSAECONNABORTED:	reason = REASON_CLIENT_DISCONNECTED; break;
+				default:reason = REASON_GENERAL_NETWORK;break;
+			}
+		}
+	#endif
+
+	return reason;
 }
 
 //-------------------------------------------------------------------------------------

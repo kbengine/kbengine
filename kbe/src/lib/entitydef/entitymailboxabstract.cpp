@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,17 +19,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "entitymailboxabstract.hpp"
-#include "pyscript/pickler.hpp"
-#include "helper/debug_helper.hpp"
-#include "network/packet.hpp"
-#include "network/bundle.hpp"
-#include "network/network_interface.hpp"
-#include "server/components.hpp"
-#include "client_lib/client_interface.hpp"
+#include "entitymailboxabstract.h"
+#include "pyscript/pickler.h"
+#include "helper/debug_helper.h"
+#include "network/packet.h"
+#include "network/bundle.h"
+#include "network/network_interface.h"
+#include "server/components.h"
+#include "client_lib/client_interface.h"
 
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/cellapp/cellapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/cellapp/cellapp_interface.h"
 
 namespace KBEngine{
 
@@ -49,14 +49,14 @@ SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, 
-											const Mercury::Address* pAddr, 
+											const Network::Address* pAddr, 
 											COMPONENT_ID componentID, 
 											ENTITY_ID eid, 
 											uint16 utype, 
 											ENTITY_MAILBOX_TYPE type):
 ScriptObject(scriptType, false),
 componentID_(componentID),
-addr_((pAddr == NULL) ? Mercury::Address::NONE : *pAddr),
+addr_((pAddr == NULL) ? Network::Address::NONE : *pAddr),
 type_(type),
 id_(eid),
 utype_(utype)
@@ -69,16 +69,17 @@ EntityMailboxAbstract::~EntityMailboxAbstract()
 }
 
 //-------------------------------------------------------------------------------------
-void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
+void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
 {
 	// 如果是server端的mailbox
 	if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 	{
-		if(componentID_ == 0)	// 客户端
+		// 如果ID为0，则这是一个客户端组件，否则为服务端。
+		if(componentID_ == 0)
 		{
 			bundle.newMessage(ClientInterface::onRemoteMethodCall);
 		}
-		else					// 服务器组件
+		else
 		{
 			Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentID_);
 
@@ -96,8 +97,8 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 			}
 			else
 			{
-				ERROR_MSG(boost::format("EntityMailboxAbstract::newMail: not found component(%1%)!\n") 
-					% componentID_);
+				ERROR_MSG(fmt::format("EntityMailboxAbstract::newMail: not found component({}), entityID({})!\n",
+					componentID_, id_));
 			}
 		}
 
@@ -128,22 +129,23 @@ void EntityMailboxAbstract::newMail(Mercury::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityMailboxAbstract::postMail(Mercury::Bundle& bundle)
+bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 {
 	KBE_ASSERT(Components::getSingleton().pNetworkInterface() != NULL);
-	Mercury::Channel* pChannel = getChannel();
+	Network::Channel* pChannel = getChannel();
 
-	if(pChannel && !pChannel->isDead())
+	if(pChannel && !pChannel->isDestroyed())
 	{
-		bundle.send(*Components::getSingleton().pNetworkInterface(), pChannel);
+		pChannel->send(pBundle);
 		return true;
 	}
 	else
 	{
-		ERROR_MSG(boost::format("EntityMailboxAbstract::postMail: invalid channel(%1%)!\n") %
-			addr_.c_str());
+		ERROR_MSG(fmt::format("EntityMailboxAbstract::postMail: invalid channel({}), entityID({})!\n",
+			addr_.c_str(), id_));
 	}
 
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return false;
 }
 
@@ -157,11 +159,11 @@ PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* prot
 	PyTuple_SET_ITEM(args, 0, unpickleMethod);
 	
 	PyObject* args1 = PyTuple_New(4);
-	PyTuple_SET_ITEM(args1, 0, PyLong_FromLong(emailbox->getID()));
-	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(emailbox->getComponentID()));
-	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(emailbox->getUType()));
+	PyTuple_SET_ITEM(args1, 0, PyLong_FromLong(emailbox->id()));
+	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(emailbox->componentID()));
+	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(emailbox->utype()));
 
-	int16 mbType = static_cast<int16>(emailbox->getType());
+	int16 mbType = static_cast<int16>(emailbox->type());
 	
 	PyTuple_SET_ITEM(args1, 3, PyLong_FromLong(mbType));
 	PyTuple_SET_ITEM(args, 1, args1);
@@ -176,7 +178,7 @@ PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* prot
 //-------------------------------------------------------------------------------------
 PyObject* EntityMailboxAbstract::pyGetID()
 { 
-	return PyLong_FromLong(getID()); 
+	return PyLong_FromLong(id()); 
 }
 
 //-------------------------------------------------------------------------------------

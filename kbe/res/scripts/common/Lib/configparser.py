@@ -118,7 +118,8 @@ ConfigParser -- responsible for parsing a list of
         between keys and values are surrounded by spaces.
 """
 
-from collections import MutableMapping, OrderedDict as _default_dict, _ChainMap
+from collections.abc import MutableMapping
+from collections import OrderedDict as _default_dict, ChainMap as _ChainMap
 import functools
 import io
 import itertools
@@ -142,23 +143,6 @@ MAX_INTERPOLATION_DEPTH = 10
 # exception classes
 class Error(Exception):
     """Base class for ConfigParser exceptions."""
-
-    def _get_message(self):
-        """Getter for 'message'; needed only to override deprecation in
-        BaseException.
-        """
-        return self.__message
-
-    def _set_message(self, value):
-        """Setter for 'message'; needed only to override deprecation in
-        BaseException.
-        """
-        self.__message = value
-
-    # BaseException.message has been deprecated since Python 2.6.  To prevent
-    # DeprecationWarning from popping up over this pre-existing attribute, use
-    # a new property that takes lookup precedence.
-    message = property(_get_message, _set_message)
 
     def __init__(self, msg=''):
         self.message = msg
@@ -190,7 +174,7 @@ class DuplicateSectionError(Error):
     def __init__(self, section, source=None, lineno=None):
         msg = [repr(section), " already exists"]
         if source is not None:
-            message = ["While reading from ", source]
+            message = ["While reading from ", repr(source)]
             if lineno is not None:
                 message.append(" [line {0:2d}]".format(lineno))
             message.append(": section ")
@@ -216,7 +200,7 @@ class DuplicateOptionError(Error):
         msg = [repr(option), " in section ", repr(section),
                " already exists"]
         if source is not None:
-            message = ["While reading from ", source]
+            message = ["While reading from ", repr(source)]
             if lineno is not None:
                 message.append(" [line {0:2d}]".format(lineno))
             message.append(": option ")
@@ -302,7 +286,7 @@ class ParsingError(Error):
             raise ValueError("Required argument `source' not given.")
         elif filename:
             source = filename
-        Error.__init__(self, 'Source contains parsing errors: %s' % source)
+        Error.__init__(self, 'Source contains parsing errors: %r' % source)
         self.source = source
         self.errors = []
         self.args = (source, )
@@ -338,7 +322,7 @@ class MissingSectionHeaderError(ParsingError):
     def __init__(self, filename, lineno, line):
         Error.__init__(
             self,
-            'File contains no section headers.\nfile: %s, line: %d\n%r' %
+            'File contains no section headers.\nfile: %r, line: %d\n%r' %
             (filename, lineno, line))
         self.source = filename
         self.lineno = lineno
@@ -455,7 +439,7 @@ class ExtendedInterpolation(Interpolation):
         tmp_value = self._KEYCRE.sub('', tmp_value) # valid syntax
         if '$' in tmp_value:
             raise ValueError("invalid interpolation syntax in %r at "
-                             "position %d" % (value, tmp_value.find('%')))
+                             "position %d" % (value, tmp_value.find('$')))
         return value
 
     def _interpolate_some(self, parser, option, accum, rest, section, map,
@@ -686,7 +670,7 @@ class RawConfigParser(MutableMapping):
             try:
                 with open(filename, encoding=encoding) as fp:
                     self._read(fp, filename)
-            except IOError:
+            except OSError:
                 continue
             read_ok.append(filename)
         return read_ok
@@ -959,7 +943,9 @@ class RawConfigParser(MutableMapping):
 
         # XXX this is not atomic if read_dict fails at any point. Then again,
         # no update method in configparser is atomic in this implementation.
-        if key in self._sections:
+        if key == self.default_section:
+            self._defaults.clear()
+        elif key in self._sections:
             self._sections[key].clear()
         self.read_dict({key: value})
 
@@ -1005,18 +991,26 @@ class RawConfigParser(MutableMapping):
         indent_level = 0
         e = None                              # None, or an exception
         for lineno, line in enumerate(fp, start=1):
-            comment_start = None
+            comment_start = sys.maxsize
             # strip inline comments
-            for prefix in self._inline_comment_prefixes:
-                index = line.find(prefix)
-                if index == 0 or (index > 0 and line[index-1].isspace()):
-                    comment_start = index
-                    break
+            inline_prefixes = {p: -1 for p in self._inline_comment_prefixes}
+            while comment_start == sys.maxsize and inline_prefixes:
+                next_prefixes = {}
+                for prefix, index in inline_prefixes.items():
+                    index = line.find(prefix, index+1)
+                    if index == -1:
+                        continue
+                    next_prefixes[prefix] = index
+                    if index == 0 or (index > 0 and line[index-1].isspace()):
+                        comment_start = min(comment_start, index)
+                inline_prefixes = next_prefixes
             # strip full line comments
             for prefix in self._comment_prefixes:
                 if line.strip().startswith(prefix):
                     comment_start = 0
                     break
+            if comment_start == sys.maxsize:
+                comment_start = None
             value = line[:comment_start].strip()
             if not value:
                 if self._empty_lines_in_values:

@@ -17,12 +17,15 @@ static PyObject *ThreadError;
 static long nb_threads = 0;
 static PyObject *str_dict;
 
+_Py_IDENTIFIER(stderr);
+
 /* Lock objects */
 
 typedef struct {
     PyObject_HEAD
     PyThread_type_lock lock_lock;
     PyObject *in_weakreflist;
+    char locked; /* for sanity checking */
 } lockobject;
 
 static void
@@ -32,9 +35,8 @@ lock_dealloc(lockobject *self)
         PyObject_ClearWeakRefs((PyObject *) self);
     if (self->lock_lock != NULL) {
         /* Unlock the lock so it's safe to free it */
-        PyThread_acquire_lock(self->lock_lock, 0);
-        PyThread_release_lock(self->lock_lock);
-
+        if (self->locked)
+            PyThread_release_lock(self->lock_lock);
         PyThread_free_lock(self->lock_lock);
     }
     PyObject_Del(self);
@@ -53,6 +55,7 @@ acquire_timed(PyThread_type_lock lock, PY_TIMEOUT_T microseconds)
     _PyTime_timeval curtime;
     _PyTime_timeval endtime;
 
+
     if (microseconds > 0) {
         _PyTime_gettimeofday(&endtime);
         endtime.tv_sec += microseconds / (1000 * 1000);
@@ -61,9 +64,13 @@ acquire_timed(PyThread_type_lock lock, PY_TIMEOUT_T microseconds)
 
 
     do {
-        Py_BEGIN_ALLOW_THREADS
-        r = PyThread_acquire_lock_timed(lock, microseconds, 1);
-        Py_END_ALLOW_THREADS
+        /* first a simple non-blocking try without releasing the GIL */
+        r = PyThread_acquire_lock_timed(lock, 0, 0);
+        if (r == PY_LOCK_FAILURE && microseconds != 0) {
+            Py_BEGIN_ALLOW_THREADS
+            r = PyThread_acquire_lock_timed(lock, microseconds, 1);
+            Py_END_ALLOW_THREADS
+        }
 
         if (r == PY_LOCK_INTR) {
             /* Run signal handlers if we were interrupted.  Propagate
@@ -75,7 +82,7 @@ acquire_timed(PyThread_type_lock lock, PY_TIMEOUT_T microseconds)
 
             /* If we're using a timeout, recompute the timeout after processing
              * signals, since those can take time.  */
-            if (microseconds >= 0) {
+            if (microseconds > 0) {
                 _PyTime_gettimeofday(&curtime);
                 microseconds = ((endtime.tv_sec - curtime.tv_sec) * 1000000 +
                                 (endtime.tv_usec - curtime.tv_usec));
@@ -134,6 +141,8 @@ lock_PyThread_acquire_lock(lockobject *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
+    if (r == PY_LOCK_ACQUIRED)
+        self->locked = 1;
     return PyBool_FromLong(r == PY_LOCK_ACQUIRED);
 }
 
@@ -152,13 +161,13 @@ static PyObject *
 lock_PyThread_release_lock(lockobject *self)
 {
     /* Sanity check: the lock must be locked */
-    if (PyThread_acquire_lock(self->lock_lock, 0)) {
-        PyThread_release_lock(self->lock_lock);
+    if (!self->locked) {
         PyErr_SetString(ThreadError, "release unlocked lock");
         return NULL;
     }
 
     PyThread_release_lock(self->lock_lock);
+    self->locked = 0;
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -174,11 +183,7 @@ but it needn't be locked by the same thread that unlocks it.");
 static PyObject *
 lock_locked_lock(lockobject *self)
 {
-    if (PyThread_acquire_lock(self->lock_lock, 0)) {
-        PyThread_release_lock(self->lock_lock);
-        return PyBool_FromLong(0L);
-    }
-    return PyBool_FromLong(1L);
+    return PyBool_FromLong((long)self->locked);
 }
 
 PyDoc_STRVAR(locked_doc,
@@ -252,14 +257,17 @@ typedef struct {
 static void
 rlock_dealloc(rlockobject *self)
 {
-    assert(self->rlock_lock);
     if (self->in_weakreflist != NULL)
         PyObject_ClearWeakRefs((PyObject *) self);
-    /* Unlock the lock so it's safe to free it */
-    if (self->rlock_count > 0)
-        PyThread_release_lock(self->rlock_lock);
+    /* self->rlock_lock can be NULL if PyThread_allocate_lock() failed
+       in rlock_new() */
+    if (self->rlock_lock != NULL) {
+        /* Unlock the lock so it's safe to free it */
+        if (self->rlock_count > 0)
+            PyThread_release_lock(self->rlock_lock);
 
-    PyThread_free_lock(self->rlock_lock);
+        PyThread_free_lock(self->rlock_lock);
+    }
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -312,14 +320,7 @@ rlock_acquire(rlockobject *self, PyObject *args, PyObject *kwds)
         self->rlock_count = count;
         Py_RETURN_TRUE;
     }
-
-    if (self->rlock_count > 0 ||
-        !PyThread_acquire_lock(self->rlock_lock, 0)) {
-        if (microseconds == 0) {
-            Py_RETURN_FALSE;
-        }
-        r = acquire_timed(self->rlock_lock, microseconds);
-    }
+    r = acquire_timed(self->rlock_lock, microseconds);
     if (r == PY_LOCK_ACQUIRED) {
         assert(self->rlock_count == 0);
         self->rlock_owner = tid;
@@ -378,13 +379,13 @@ current thread, release() needs to be called as many times for the lock\n\
 to be available for other threads.");
 
 static PyObject *
-rlock_acquire_restore(rlockobject *self, PyObject *arg)
+rlock_acquire_restore(rlockobject *self, PyObject *args)
 {
     long owner;
     unsigned long count;
     int r = 1;
 
-    if (!PyArg_ParseTuple(arg, "kl:_acquire_restore", &count, &owner))
+    if (!PyArg_ParseTuple(args, "(kl):_acquire_restore", &count, &owner))
         return NULL;
 
     if (!PyThread_acquire_lock(self->rlock_lock, 0)) {
@@ -412,6 +413,12 @@ rlock_release_save(rlockobject *self)
 {
     long owner;
     unsigned long count;
+
+    if (self->rlock_count == 0) {
+        PyErr_SetString(PyExc_RuntimeError,
+                        "cannot release un-acquired lock");
+        return NULL;
+    }
 
     owner = self->rlock_owner;
     count = self->rlock_count;
@@ -450,15 +457,16 @@ rlock_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     self = (rlockobject *) type->tp_alloc(type, 0);
     if (self != NULL) {
-        self->rlock_lock = PyThread_allocate_lock();
-        if (self->rlock_lock == NULL) {
-            type->tp_free(self);
-            PyErr_SetString(ThreadError, "can't allocate lock");
-            return NULL;
-        }
         self->in_weakreflist = NULL;
         self->rlock_owner = 0;
         self->rlock_count = 0;
+
+        self->rlock_lock = PyThread_allocate_lock();
+        if (self->rlock_lock == NULL) {
+            Py_DECREF(self);
+            PyErr_SetString(ThreadError, "can't allocate lock");
+            return NULL;
+        }
     }
 
     return (PyObject *) self;
@@ -480,7 +488,7 @@ static PyMethodDef rlock_methods[] = {
     {"_is_owned",     (PyCFunction)rlock_is_owned,
      METH_NOARGS, rlock_is_owned_doc},
     {"_acquire_restore", (PyCFunction)rlock_acquire_restore,
-     METH_O, rlock_acquire_restore_doc},
+     METH_VARARGS, rlock_acquire_restore_doc},
     {"_release_save", (PyCFunction)rlock_release_save,
      METH_NOARGS, rlock_release_save_doc},
     {"__enter__",    (PyCFunction)rlock_acquire,
@@ -541,6 +549,7 @@ newlockobject(void)
     if (self == NULL)
         return NULL;
     self->lock_lock = PyThread_allocate_lock();
+    self->locked = 0;
     self->in_weakreflist = NULL;
     if (self->lock_lock == NULL) {
         Py_DECREF(self);
@@ -738,7 +747,7 @@ local_new(PyTypeObject *type, PyObject *args, PyObject *kw)
     wr = PyWeakref_NewRef((PyObject *) self, NULL);
     if (wr == NULL)
         goto err;
-    self->wr_callback = PyCFunction_New(&wr_callback_def, wr);
+    self->wr_callback = PyCFunction_NewEx(&wr_callback_def, wr, NULL);
     Py_DECREF(wr);
     if (self->wr_callback == NULL)
         goto err;
@@ -998,7 +1007,7 @@ t_bootstrap(void *boot_raw)
             PySys_WriteStderr(
                 "Unhandled exception in thread started by ");
             PyErr_Fetch(&exc, &value, &tb);
-            file = PySys_GetObject("stderr");
+            file = _PySys_GetObjectId(&PyId_stderr);
             if (file != NULL && file != Py_None)
                 PyFile_WriteObject(boot->func, file, 0);
             else
@@ -1169,6 +1178,66 @@ yet finished.\n\
 This function is meant for internal and specialized purposes only.\n\
 In most applications `threading.enumerate()` should be used instead.");
 
+static void
+release_sentinel(void *wr)
+{
+    /* Tricky: this function is called when the current thread state
+       is being deleted.  Therefore, only simple C code can safely
+       execute here. */
+    PyObject *obj = PyWeakref_GET_OBJECT(wr);
+    lockobject *lock;
+    if (obj != Py_None) {
+        assert(Py_TYPE(obj) == &Locktype);
+        lock = (lockobject *) obj;
+        if (lock->locked) {
+            PyThread_release_lock(lock->lock_lock);
+            lock->locked = 0;
+        }
+    }
+    /* Deallocating a weakref with a NULL callback only calls
+       PyObject_GC_Del(), which can't call any Python code. */
+    Py_DECREF(wr);
+}
+
+static PyObject *
+thread__set_sentinel(PyObject *self)
+{
+    PyObject *wr;
+    PyThreadState *tstate = PyThreadState_Get();
+    lockobject *lock;
+
+    if (tstate->on_delete_data != NULL) {
+        /* We must support the re-creation of the lock from a
+           fork()ed child. */
+        assert(tstate->on_delete == &release_sentinel);
+        wr = (PyObject *) tstate->on_delete_data;
+        tstate->on_delete = NULL;
+        tstate->on_delete_data = NULL;
+        Py_DECREF(wr);
+    }
+    lock = newlockobject();
+    if (lock == NULL)
+        return NULL;
+    /* The lock is owned by whoever called _set_sentinel(), but the weakref
+       hangs to the thread state. */
+    wr = PyWeakref_NewRef((PyObject *) lock, NULL);
+    if (wr == NULL) {
+        Py_DECREF(lock);
+        return NULL;
+    }
+    tstate->on_delete_data = (void *) wr;
+    tstate->on_delete = &release_sentinel;
+    return (PyObject *) lock;
+}
+
+PyDoc_STRVAR(_set_sentinel_doc,
+"_set_sentinel() -> lock\n\
+\n\
+Set a sentinel lock that will be released when the current thread\n\
+state is finalized (after it is untied from the interpreter).\n\
+\n\
+This is a private API for the threading module.");
+
 static PyObject *
 thread_stack_size(PyObject *self, PyObject *args)
 {
@@ -1225,11 +1294,9 @@ the suggested approach in the absence of more specific information).");
 
 static PyMethodDef thread_methods[] = {
     {"start_new_thread",        (PyCFunction)thread_PyThread_start_new_thread,
-                            METH_VARARGS,
-                            start_new_doc},
+     METH_VARARGS, start_new_doc},
     {"start_new",               (PyCFunction)thread_PyThread_start_new_thread,
-                            METH_VARARGS,
-                            start_new_doc},
+     METH_VARARGS, start_new_doc},
     {"allocate_lock",           (PyCFunction)thread_PyThread_allocate_lock,
      METH_NOARGS, allocate_doc},
     {"allocate",                (PyCFunction)thread_PyThread_allocate_lock,
@@ -1245,8 +1312,9 @@ static PyMethodDef thread_methods[] = {
     {"_count",                  (PyCFunction)thread__count,
      METH_NOARGS, _count_doc},
     {"stack_size",              (PyCFunction)thread_stack_size,
-                            METH_VARARGS,
-                            stack_size_doc},
+     METH_VARARGS, stack_size_doc},
+    {"_set_sentinel",           (PyCFunction)thread__set_sentinel,
+     METH_NOARGS, _set_sentinel_doc},
     {NULL,                      NULL}           /* sentinel */
 };
 
@@ -1310,7 +1378,9 @@ PyInit__thread(void)
 
     /* Add a symbolic constant */
     d = PyModule_GetDict(m);
-    ThreadError = PyErr_NewException("_thread.error", NULL, NULL);
+    ThreadError = PyExc_RuntimeError;
+    Py_INCREF(ThreadError);
+
     PyDict_SetItemString(d, "error", ThreadError);
     Locktype.tp_doc = lock_doc;
     Py_INCREF(&Locktype);

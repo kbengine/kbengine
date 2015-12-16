@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,17 +19,18 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "scriptobject.hpp"
+#include "scriptobject.h"
 
 #ifndef CODE_INLINE
-#include "scriptobject.ipp"
+#include "scriptobject.inl"
 #endif
 
 namespace KBEngine{ namespace script{
 
+ScriptObject::SCRIPTOBJECT_TYPES ScriptObject::scriptObjectTypes;
+
 SCRIPT_METHOD_DECLARE_BEGIN(ScriptObject)
 SCRIPT_METHOD_DECLARE_END()
-
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ScriptObject)
 SCRIPT_MEMBER_DECLARE_END()
@@ -43,7 +44,7 @@ ScriptObject::ScriptObject(PyTypeObject* pyType, bool isInitialised)
 {
 	if (PyType_Ready(pyType) < 0)
 	{
-		ERROR_MSG(boost::format("ScriptObject: Type %1% is not ready\n") % pyType->tp_name);
+		ERROR_MSG(fmt::format("ScriptObject: Type {} is not ready\n", pyType->tp_name));
 	}
 
 	if (!isInitialised)
@@ -56,6 +57,34 @@ ScriptObject::ScriptObject(PyTypeObject* pyType, bool isInitialised)
 ScriptObject::~ScriptObject()
 {
 	assert(this->ob_refcnt == 0);
+}
+
+//-------------------------------------------------------------------------------------
+PyTypeObject* ScriptObject::getScriptObjectType(const std::string& name)
+{
+	ScriptObject::SCRIPTOBJECT_TYPES::iterator iter = scriptObjectTypes.find(name);
+	if(iter != scriptObjectTypes.end())
+		return iter->second;
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ScriptObject::py__module__()
+{ 
+	return PyUnicode_FromString(scriptName()); 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ScriptObject::py__qualname__()
+{ 
+	return PyUnicode_FromString(scriptName()); 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ScriptObject::py__name__()
+{ 
+	return PyUnicode_FromString(scriptName()); 
 }
 
 //-------------------------------------------------------------------------------------
@@ -95,9 +124,9 @@ PyObject* ScriptObject::tp_repr()
 {
 	if(g_debugEntity)
 		return PyUnicode_FromFormat("%s object at %p, refc=%u.", 
-			this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+			this->scriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
 	
-	return PyUnicode_FromFormat("%s object at %p.", this->getScriptName(), this);
+	return PyUnicode_FromFormat("%s object at %p.", this->scriptName(), this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,9 +134,9 @@ PyObject* ScriptObject::tp_str()
 {
 	if(g_debugEntity)
 		return PyUnicode_FromFormat("%s object at %p, refc=%u.", 
-				this->getScriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
+				this->scriptName(), this, (uint32)static_cast<PyObject*>(this)->ob_refcnt);
 	
-	return PyUnicode_FromFormat("%s object at %p.", this->getScriptName(), this);
+	return PyUnicode_FromFormat("%s object at %p.", this->scriptName(), this);
 }
 
 //-------------------------------------------------------------------------------------

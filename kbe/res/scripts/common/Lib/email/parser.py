@@ -4,18 +4,18 @@
 
 """A parser of RFC 2822 and MIME email messages."""
 
-__all__ = ['Parser', 'HeaderParser', 'BytesParser']
+__all__ = ['Parser', 'HeaderParser', 'BytesParser', 'BytesHeaderParser',
+           'FeedParser', 'BytesFeedParser']
 
-import warnings
 from io import StringIO, TextIOWrapper
 
 from email.feedparser import FeedParser, BytesFeedParser
-from email.message import Message
+from email._policybase import compat32
 
 
 
 class Parser:
-    def __init__(self, *args, **kws):
+    def __init__(self, _class=None, *, policy=compat32):
         """Parser of RFC 2822 and MIME email messages.
 
         Creates an in-memory object tree representing the email message, which
@@ -30,28 +30,14 @@ class Parser:
         _class is the class to instantiate for new message objects when they
         must be created.  This class must have a constructor that can take
         zero arguments.  Default is Message.Message.
+
+        The policy keyword specifies a policy object that controls a number of
+        aspects of the parser's operation.  The default policy maintains
+        backward compatibility.
+
         """
-        if len(args) >= 1:
-            if '_class' in kws:
-                raise TypeError("Multiple values for keyword arg '_class'")
-            kws['_class'] = args[0]
-        if len(args) == 2:
-            if 'strict' in kws:
-                raise TypeError("Multiple values for keyword arg 'strict'")
-            kws['strict'] = args[1]
-        if len(args) > 2:
-            raise TypeError('Too many arguments')
-        if '_class' in kws:
-            self._class = kws['_class']
-            del kws['_class']
-        else:
-            self._class = Message
-        if 'strict' in kws:
-            warnings.warn("'strict' argument is deprecated (and ignored)",
-                          DeprecationWarning, 2)
-            del kws['strict']
-        if kws:
-            raise TypeError('Unexpected keyword arguments')
+        self._class = _class
+        self.policy = policy
 
     def parse(self, fp, headersonly=False):
         """Create a message structure from the data in a file.
@@ -61,7 +47,7 @@ class Parser:
         parsing after reading the headers or not.  The default is False,
         meaning it parses the entire contents of the file.
         """
-        feedparser = FeedParser(self._class)
+        feedparser = FeedParser(self._class, policy=self.policy)
         if headersonly:
             feedparser._set_headersonly()
         while True:
@@ -120,8 +106,10 @@ class BytesParser:
         meaning it parses the entire contents of the file.
         """
         fp = TextIOWrapper(fp, encoding='ascii', errors='surrogateescape')
-        with fp:
+        try:
             return self.parser.parse(fp, headersonly)
+        finally:
+            fp.detach()
 
 
     def parsebytes(self, text, headersonly=False):
@@ -134,3 +122,11 @@ class BytesParser:
         """
         text = text.decode('ASCII', errors='surrogateescape')
         return self.parser.parsestr(text, headersonly)
+
+
+class BytesHeaderParser(BytesParser):
+    def parse(self, fp, headersonly=True):
+        return BytesParser.parse(self, fp, headersonly=True)
+
+    def parsebytes(self, text, headersonly=True):
+        return BytesParser.parsebytes(self, text, headersonly=True)

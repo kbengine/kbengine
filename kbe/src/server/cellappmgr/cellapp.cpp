@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "cellapp.hpp"
+#include "cellapp.h"
 
 namespace KBEngine{
 
@@ -27,7 +27,9 @@ numEntities_(0),
 load_(0.f),
 isDestroyed_(false),
 watchers_(),
-spaces_()
+spaces_(),
+initProgress_(0.f),
+flags_(APP_FLAGS_NONE)
 {
 }
 

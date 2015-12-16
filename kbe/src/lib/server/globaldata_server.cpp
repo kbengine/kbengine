@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -17,12 +17,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "globaldata_server.hpp"
-#include "components.hpp"
-#include "network/channel.hpp"
+#include "globaldata_server.h"
+#include "components.h"
+#include "network/channel.h"
 
-#include "../../server/cellapp/cellapp_interface.hpp"
-#include "../../server/baseapp/baseapp_interface.hpp"
+#include "../../server/cellapp/cellapp_interface.h"
+#include "../../server/baseapp/baseapp_interface.h"
 
 namespace KBEngine{ 
 		
@@ -38,7 +38,7 @@ GlobalDataServer::~GlobalDataServer()
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataServer::write(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
+bool GlobalDataServer::write(Network::Channel* pChannel, COMPONENT_TYPE componentType, 
 	const std::string& key, const std::string& value)
 {
 	// 广播所做的改变
@@ -55,10 +55,10 @@ bool GlobalDataServer::write(Mercury::Channel* pChannel, COMPONENT_TYPE componen
 }
 
 //-------------------------------------------------------------------------------------
-bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key)
+bool GlobalDataServer::del(Network::Channel* pChannel, COMPONENT_TYPE componentType, const std::string& key)
 {
 	if(!dict_.erase(key)){
-		ERROR_MSG(boost::format("GlobalDataServer::del: not found the key:[%1%]\n") % key.c_str());
+		ERROR_MSG(fmt::format("GlobalDataServer::del: not found the key:[{}]\n", key.c_str()));
 		return false;
 	}
 
@@ -67,22 +67,22 @@ bool GlobalDataServer::del(Mercury::Channel* pChannel, COMPONENT_TYPE componentT
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONENT_TYPE componentType, 
+void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONENT_TYPE componentType, 
 										const std::string& key, const std::string& value, bool isDelete)
 {
-	INFO_MSG(boost::format("GlobalDataServer::broadcastDataChanged: writer(%1%, addr=%5%), key_size=%2%, val_size=%3%, isdelete=%4%\n") %
-		COMPONENT_NAME_EX(componentType) % key.size() % value.size() % (int)isDelete % pChannel->c_str());
+	INFO_MSG(fmt::format("GlobalDataServer::broadcastDataChanged: writer({0}, addr={4}), key_size={1}, val_size={2}, isdelete={3}\n",
+		COMPONENT_NAME_EX(componentType), key.size(), value.size(), (int)isDelete, pChannel->c_str()));
 
 	std::vector<COMPONENT_TYPE>::iterator iter = concernComponentTypes_.begin();
-	for(; iter != concernComponentTypes_.end(); iter++)
+	for(; iter != concernComponentTypes_.end(); ++iter)
 	{
 		COMPONENT_TYPE ct = (*iter);
 		Components::COMPONENTS& channels = Components::getSingleton().getComponents(ct);
 		Components::COMPONENTS::iterator iter1 = channels.begin();
 		
-		for(; iter1 != channels.end(); iter1++)
+		for(; iter1 != channels.end(); ++iter1)
 		{
-			Mercury::Channel* lpChannel = iter1->pChannel;
+			Network::Channel* lpChannel = iter1->pChannel;
 			KBE_ASSERT(lpChannel != NULL);
 
 			if(pChannel == lpChannel)
@@ -94,7 +94,7 @@ void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONEN
 			if(dataType_ == CELLAPP_DATA && iter1->componentType != CELLAPP_TYPE)
 				continue;
 
-			Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 			switch(dataType_)
 			{
@@ -136,21 +136,20 @@ void GlobalDataServer::broadcastDataChanged(Mercury::Channel* pChannel, COMPONEN
 				(*pBundle).assign(value.data(), slen);
 			}
 
-			(*pBundle).send(lpChannel->networkInterface(), lpChannel);
-			Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+			lpChannel->send(pBundle);
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONENT_TYPE componentType)
+void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONENT_TYPE componentType)
 {
 	bool isDelete = false;
 
 	DATA_MAP_KEY iter = dict_.begin();
-	for(; iter != dict_.end(); iter++)
+	for(; iter != dict_.end(); ++iter)
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		
 		switch(dataType_)
 		{
@@ -171,7 +170,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		case BASEAPP_DATA:
 			if(componentType != BASEAPP_TYPE)
 			{
-				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+				Network::Bundle::ObjPool().reclaimObject(pBundle);
 				continue;
 			}
 
@@ -180,7 +179,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		case CELLAPP_DATA:
 			if(componentType != CELLAPP_TYPE)
 			{
-				Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+				Network::Bundle::ObjPool().reclaimObject(pBundle);
 				continue;
 			}
 
@@ -201,8 +200,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Mercury::Channel* client, COMPONE
 		(*pBundle) << slen;
 		(*pBundle).assign(iter->second.data(), slen);
 
-		(*pBundle).send(client->networkInterface(), client);
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		client->send(pBundle);
 	}
 }
 

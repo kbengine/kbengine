@@ -16,13 +16,20 @@ int
 Py_FrozenMain(int argc, char **argv)
 {
     char *p;
-    int i, n, sts;
+    int i, n, sts = 1;
     int inspect = 0;
     int unbuffered = 0;
-    char *oldloc;
-    wchar_t **argv_copy = PyMem_Malloc(sizeof(wchar_t*)*argc);
+    char *oldloc = NULL;
+    wchar_t **argv_copy = NULL;
     /* We need a second copies, as Python might modify the first one. */
-    wchar_t **argv_copy2 = PyMem_Malloc(sizeof(wchar_t*)*argc);
+    wchar_t **argv_copy2 = NULL;
+
+    argv_copy = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
+    argv_copy2 = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
+    if (!argv_copy || !argv_copy2) {
+        fprintf(stderr, "out of memory\n");
+        goto error;
+    }
 
     Py_FrozenFlag = 1; /* Suppress errors from getpath.c */
 
@@ -37,37 +44,26 @@ Py_FrozenMain(int argc, char **argv)
         setbuf(stderr, (char *)NULL);
     }
 
-    if (!argv_copy) {
+    oldloc = _PyMem_RawStrdup(setlocale(LC_ALL, NULL));
+    if (!oldloc) {
         fprintf(stderr, "out of memory\n");
-        return 1;
+        goto error;
     }
 
-    oldloc = setlocale(LC_ALL, NULL);
     setlocale(LC_ALL, "");
     for (i = 0; i < argc; i++) {
-#ifdef HAVE_BROKEN_MBSTOWCS
-        size_t argsize = strlen(argv[i]);
-#else
-        size_t argsize = mbstowcs(NULL, argv[i], 0);
-#endif
-        size_t count;
-        if (argsize == (size_t)-1) {
-            fprintf(stderr, "Could not convert argument %d to string\n", i);
-            return 1;
-        }
-        argv_copy[i] = PyMem_Malloc((argsize+1)*sizeof(wchar_t));
+        argv_copy[i] = _Py_char2wchar(argv[i], NULL);
         argv_copy2[i] = argv_copy[i];
         if (!argv_copy[i]) {
-            fprintf(stderr, "out of memory\n");
-            return 1;
-        }
-        count = mbstowcs(argv_copy[i], argv[i], argsize+1);
-        if (count == (size_t)-1) {
-            fprintf(stderr, "Could not convert argument %d to string\n", i);
-            return 1;
+            fprintf(stderr, "Unable to decode the command line argument #%i\n",
+                            i + 1);
+            argc = i;
+            goto error;
         }
     }
     setlocale(LC_ALL, oldloc);
+    PyMem_RawFree(oldloc);
+    oldloc = NULL;
 
 #ifdef MS_WINDOWS
     PyInitFrozenExtensions();
@@ -101,10 +97,14 @@ Py_FrozenMain(int argc, char **argv)
     PyWinFreeze_ExeTerm();
 #endif
     Py_Finalize();
-    for (i = 0; i < argc; i++) {
-        PyMem_Free(argv_copy2[i]);
+
+error:
+    PyMem_RawFree(argv_copy);
+    if (argv_copy2) {
+        for (i = 0; i < argc; i++)
+            PyMem_RawFree(argv_copy2[i]);
+        PyMem_RawFree(argv_copy2);
     }
-    PyMem_Free(argv_copy);
-    PyMem_Free(argv_copy2);
+    PyMem_RawFree(oldloc);
     return sts;
 }

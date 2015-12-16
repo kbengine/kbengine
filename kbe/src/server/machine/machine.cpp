@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,28 +19,26 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "machine.hpp"
-#include "machine_interface.hpp"
-#include "network/common.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/message_handler.hpp"
-#include "network/bundle_broadcast.hpp"
-#include "helper/sys_info.hpp"
-#include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
-#include "server/component_active_report_handler.hpp"
+#include "machine.h"
+#include "machine_interface.h"
+#include "network/common.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/message_handler.h"
+#include "network/bundle_broadcast.h"
+#include "helper/sys_info.h"
+#include "thread/threadpool.h"
+#include "server/component_active_report_handler.h"
 
-#include "../baseappmgr/baseappmgr_interface.hpp"
-#include "../cellappmgr/cellappmgr_interface.hpp"
-#include "../baseapp/baseapp_interface.hpp"
-#include "../cellapp/cellapp_interface.hpp"
-#include "../dbmgr/dbmgr_interface.hpp"
-#include "../loginapp/loginapp_interface.hpp"
-#include "../resourcemgr/resourcemgr_interface.hpp"
-#include "../tools/message_log/messagelog_interface.hpp"
-#include "../../server/tools/billing_system/billingsystem_interface.hpp"
-#include "../../server/tools/bots/bots_interface.hpp"
+#include "../baseappmgr/baseappmgr_interface.h"
+#include "../cellappmgr/cellappmgr_interface.h"
+#include "../baseapp/baseapp_interface.h"
+#include "../cellapp/cellapp_interface.h"
+#include "../dbmgr/dbmgr_interface.h"
+#include "../loginapp/loginapp_interface.h"
+#include "../tools/logger/logger_interface.h"
+#include "../../server/tools/interfaces/interfaces_interface.h"
+#include "../../server/tools/bots/bots_interface.h"
 
 namespace KBEngine{
 	
@@ -48,8 +46,8 @@ ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Machine);
 
 //-------------------------------------------------------------------------------------
-Machine::Machine(Mercury::EventDispatcher& dispatcher, 
-				 Mercury::NetworkInterface& ninterface, 
+Machine::Machine(Network::EventDispatcher& dispatcher, 
+				 Network::NetworkInterface& ninterface, 
 				 COMPONENT_TYPE componentType,
 				 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
@@ -79,57 +77,106 @@ Machine::~Machine()
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onBroadcastInterface(Mercury::Channel* pChannel, int32 uid, std::string& username,
-								   int8 componentType, uint64 componentID, uint64 componentIDEx, 
-								   int8 globalorderid, int8 grouporderid,
+void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username,
+								   COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ID componentIDEx, 
+								   COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
 									uint32 intaddr, uint16 intport,
-									uint32 extaddr, uint16 extport, uint32 pid,
+									uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
-									uint64 extradata1, uint64 extradata2, uint64 extradata3)
+									uint64 extradata1, uint64 extradata2, uint64 extradata3, uint32 backRecvAddr, uint16 backRecvPort)
 {
-	if(Componentbridge::getComponents().findComponent((COMPONENT_TYPE)componentType, uid, componentID))
-		return;
-
-	if(intaddr == this->getNetworkInterface().intaddr().ip)
+	// 先查询一下是否存在相同身份，如果是相同身份且不是一个进程我们需要告知对方启动非法
+	const Components::ComponentInfos* pinfos = Components::getSingleton().findComponent(componentID);
+	if(pinfos && isGameServerComponentType((COMPONENT_TYPE)componentType) && checkComponentUsable(pinfos, false, true))
 	{
+		if(pinfos->pid != pid || pinfos->pIntAddr->ip != intaddr ||
+			username != pinfos->username || uid != pinfos->uid)
+		{
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+			MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid,
+				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, 
+				pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
+				pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
+				(int8)pinfos->state, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
+
+			if(backRecvAddr != 0 && backRecvPort != 0)
+			{
+				Network::EndPoint ep;
+				ep.socket(SOCK_DGRAM);
+
+				if (!ep.good())
+				{
+					ERROR_MSG("Machine::onBroadcastInterface: Failed to create socket.\n");
+					return;
+				}
+
+				ep.sendto(pBundle, backRecvPort, backRecvAddr);
+				Network::Bundle::ObjPool().reclaimObject(pBundle);
+			}
+			else
+			{
+				pChannel->send(pBundle);
+			}
+
+			return;
+		}
+	}
+
+	// 只记录本机启动的进程
+	if(this->networkInterface().intaddr().ip == intaddr ||
+				this->networkInterface().extaddr().ip == intaddr)
+	{
+		pinfos = Components::getSingleton().findComponent((COMPONENT_TYPE)componentType, uid, componentID);
+		if(pinfos)
+		{
+			if(checkComponentUsable(pinfos, false, true))
+			{
+				WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} has running, pid={}, uid={}!\n", 
+					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
+
+				return;
+			}
+		}
+
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
 		{
-			WARNING_MSG("Machine::onBroadcastInterface: kbmachine has running!\n");
+			WARNING_MSG("Machine::onBroadcastInterface: machine has running!\n");
 			return;
 		}
 	
 		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
 		if(iter == localuids_.end())
 		{
-			INFO_MSG(boost::format("Machine::onBroadcastInterface: added newUID %1%.\n") % uid);
+			INFO_MSG(fmt::format("Machine::onBroadcastInterface: added newUID {0}.\n", uid));
 			localuids_.push_back(uid);
 		}
+
+		INFO_MSG(fmt::format("Machine::onBroadcastInterface[{0}]: uid:{1}, username:{2}, componentType:{3}, "
+			"componentID:{4}, globalorderid={9}, grouporderid={10}, pid:{11}, intaddr:{5}, intport:{6}, extaddr:{7}, extport:{8}.\n",
+				pChannel->c_str(),
+				uid,
+				username.c_str(),
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+				componentID,
+				inet_ntoa((struct in_addr&)intaddr),
+				ntohs(intport),
+				(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport"),
+				ntohs(extport),
+				((int32)globalorderid),
+				((int32)grouporderid),
+				pid));
+
+		Components::getSingleton().addComponent(uid, username.c_str(), 
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport, extaddrEx,
+			pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 	}
-
-	INFO_MSG(boost::format("Machine::onBroadcastInterface[%1%]: uid:%2%, username:%3%, componentType:%4%, "
-			"componentID:%5%, globalorderid=%10%, grouporderid=%11%, pid:%12%, intaddr:%6%, intport:%7%, extaddr:%8%, extport:%9%.\n") %
-			pChannel->c_str() % 
-			uid %
-			username.c_str() %
-			COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) %
-			componentID %
-			inet_ntoa((struct in_addr&)intaddr) %
-			ntohs(intport) %
-			(extaddr != 0 ? inet_ntoa((struct in_addr&)extaddr) : "nonsupport") %
-			ntohs(extport) %
-			((int32)globalorderid) %
-			((int32)grouporderid) %
-			pid);
-
-	Componentbridge::getComponents().addComponent(uid, username.c_str(), 
-		(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport,
-		pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::string& username, int8 componentType, uint64 componentID,
-								  int8 findComponentType, uint32 finderAddr, uint16 finderRecvPort)
+void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::string& username, COMPONENT_TYPE componentType, COMPONENT_ID componentID,
+								  COMPONENT_TYPE findComponentType, uint32 finderAddr, uint16 finderRecvPort)
 {
 	KBEngine::COMPONENT_TYPE tfindComponentType = (KBEngine::COMPONENT_TYPE)findComponentType;
 	KBEngine::COMPONENT_TYPE tComponentType = (KBEngine::COMPONENT_TYPE)componentType;
@@ -142,15 +189,15 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 			return;
 	}
 
-	INFO_MSG(boost::format("Machine::onFindInterfaceAddr[%1%]: uid:%2%, username:%3%, "
-			"componentType:%4%, componentID:%8%, find:%5%, finderaddr:%6%, finderRecvPort:%7%.\n") %
-		pChannel->c_str() % uid % username.c_str() % 
-		COMPONENT_NAME_EX((COMPONENT_TYPE)componentType) %
-		COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType) %
-		inet_ntoa((struct in_addr&)finderAddr) % ntohs(finderRecvPort) %
-		componentID);
+	INFO_MSG(fmt::format("Machine::onFindInterfaceAddr[{0}]: uid:{1}, username:{2}, "
+			"componentType:{3}, componentID:{7}, find:{4}, finderaddr:{5}, finderRecvPort:{6}.\n",
+		pChannel->c_str(), uid, username.c_str(), 
+		COMPONENT_NAME_EX((COMPONENT_TYPE)componentType),
+		COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType),
+		inet_ntoa((struct in_addr&)finderAddr), ntohs(finderRecvPort),
+		componentID));
 
-	Mercury::EndPoint ep;
+	Network::EndPoint ep;
 	ep.socket(SOCK_DGRAM);
 
 	if (!ep.good())
@@ -159,10 +206,11 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 		return;
 	}
 	
-	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(tfindComponentType);
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(tfindComponentType);
 	Components::COMPONENTS::iterator iter = components.begin();
+
 	bool found = false;
-	Mercury::Bundle bundle;
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	for(; iter != components.end(); )
 	{
@@ -177,29 +225,30 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 
 		const Components::ComponentInfos* pinfos = &(*iter);
 		
-		bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
+		bool usable = checkComponentUsable(pinfos, false, false);
 
 		if(usable)
 		{
-			if(ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
-				this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip)
+			if(this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+				this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip)
 			{
 				found = true;
-				MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, pinfos->uid, 
+
+				MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid, 
 					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, 
 					pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
-					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
-					pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3);
+					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
+					(int8)pinfos->state, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
 			}
 
 			++iter;
 		}
 		else
 		{
-			WARNING_MSG(boost::format("Machine::onFindInterfaceAddr: %1%[%2%] invalid, erase %3%.\n") %
-				COMPONENT_NAME_EX(pinfos->componentType) %
-				pinfos->cid %
-				COMPONENT_NAME_EX(pinfos->componentType));
+			WARNING_MSG(fmt::format("Machine::onFindInterfaceAddr: {}[{}] invalid, erase {}.\n",
+				COMPONENT_NAME_EX(pinfos->componentType),
+				pinfos->cid,
+				COMPONENT_NAME_EX(pinfos->componentType)));
 
 			iter = components.erase(iter);
 		}
@@ -216,22 +265,44 @@ void Machine::onFindInterfaceAddr(Mercury::Channel* pChannel, int32 uid, std::st
 				return;
 		}
 
-		WARNING_MSG(boost::format("Machine::onFindInterfaceAddr: %1% not found %2%.\n") %
-			COMPONENT_NAME_EX(tComponentType) % 
-			COMPONENT_NAME_EX(tfindComponentType));
+		WARNING_MSG(fmt::format("Machine::onFindInterfaceAddr: {} not found {}.\n",
+			COMPONENT_NAME_EX(tComponentType),
+			COMPONENT_NAME_EX(tfindComponentType)));
 
-		MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, KBEngine::getUserUID(), 
-			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0);
+		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), KBEngine::getUserUID(), 
+			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	}
 
 	if(finderAddr != 0 && finderRecvPort != 0)
-		bundle.sendto(ep, finderRecvPort, finderAddr);
+	{
+		ep.sendto(pBundle, finderRecvPort, finderAddr);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
 	else
-		bundle.send(this->getNetworkInterface(), pChannel);
+	{
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
+bool Machine::checkComponentUsable(const Components::ComponentInfos* info, bool getdatas, bool autoerase)
+{
+	bool ret = false;
+	
+	if(!getdatas)
+		ret = Components::getSingleton().lookupLocalComponentRunning(info->pid) != NULL;
+	else
+		ret = Components::getSingleton().updateComponentInfos(info);
+
+	// 如果已经不可用且允许自动擦除则擦除它
+	if(!ret && autoerase)
+		Components::getSingleton().delComponent(info->uid, info->componentType, info->cid);
+
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
 {
 	// uid不等于当前服务器的uid则不理会。
 	if(uid > 0)
@@ -241,12 +312,12 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 			return;
 	}
 
-	INFO_MSG(boost::format("Machine::onQueryAllInterfaceInfos[%1%]: uid:%2%, username:%3%, "
-			"finderRecvPort:%4%.\n") %
-		pChannel->c_str() % uid % username.c_str() % 
-		ntohs(finderRecvPort));
+	INFO_MSG(fmt::format("Machine::onQueryAllInterfaceInfos[{}]: uid:{}, username:{}, "
+			"finderRecvPort:{}.\n",
+		pChannel->c_str(), uid, username.c_str(),
+		ntohs(finderRecvPort)));
 
-	Mercury::EndPoint ep;
+	Network::EndPoint ep;
 	ep.socket(SOCK_DGRAM);
 
 	if (!ep.good())
@@ -256,35 +327,37 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 	}
 
 	{
-		Mercury::Bundle bundle;
+		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		
 		uint64 cidex = 0;
 		float cpu = SystemInfo::getSingleton().getCPUPer();
 		uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
 		uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
 
-		MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, getUserUID(), getUsername(), 
+		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
-			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, getProcessPID(),
+			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
 			cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 
-			getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100), 0);
+			getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100), 0, 0, 0);
 
 		if(finderRecvPort != 0)
-			bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
+		{
+			ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
+		}
 		else
-			bundle.send(this->getNetworkInterface(), pChannel);
+		{
+			pChannel->send(pBundle);
+		}
 	}
 
 	int i = 0;
 
 	while(ALL_SERVER_COMPONENT_TYPES[i] != UNKNOWN_COMPONENT_TYPE)
 	{
-		Mercury::Bundle bundle;
-
-		COMPONENT_TYPE tfindComponentType = ALL_SERVER_COMPONENT_TYPES[i++];
-		int8 findComponentType = (int8)tfindComponentType;
-		Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(tfindComponentType);
+		COMPONENT_TYPE findComponentType = ALL_SERVER_COMPONENT_TYPES[i++];
+		Components::COMPONENTS& components = Components::getSingleton().getComponents(findComponentType);
 		Components::COMPONENTS::iterator iter = components.begin();
 
 		for(; iter != components.end(); )
@@ -297,38 +370,43 @@ void Machine::onQueryAllInterfaceInfos(Mercury::Channel* pChannel, int32 uid, st
 
 			const Components::ComponentInfos* pinfos = &(*iter);
 			
-			bool islocal = ep_.addr().ip == pinfos->pIntAddr->ip || this->getNetworkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
-					this->getNetworkInterface().extaddr().ip == pinfos->pIntAddr->ip;
+			bool islocal = this->networkInterface().intaddr().ip == pinfos->pIntAddr->ip ||
+					this->networkInterface().extaddr().ip == pinfos->pIntAddr->ip;
 
-			bool usable = Componentbridge::getComponents().checkComponentUsable(pinfos);
+			bool usable = checkComponentUsable(pinfos, true, false);
 
 			if(usable)
 			{
 				if(islocal)
 				{
-					Mercury::Bundle bundle;
+					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 					
-					MachineInterface::onBroadcastInterfaceArgs21::staticAddToBundle(bundle, pinfos->uid, 
+					MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid, 
 						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
 						pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
-						pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->pid, 
+						pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, 
 						pinfos->cpu, pinfos->mem, pinfos->usedmem, 
-						pinfos->shutdownState, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3);
+						(int8)pinfos->state, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
 
 					if(finderRecvPort != 0)
-						bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
+					{
+						ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
+						Network::Bundle::ObjPool().reclaimObject(pBundle);
+					}
 					else
-						bundle.send(this->getNetworkInterface(), pChannel);
+					{
+						pChannel->send(pBundle);
+					}
 				}
 
 				++iter;
 			}
 			else
 			{
-				WARNING_MSG(boost::format("Machine::onQueryAllInterfaceInfos: %1%[%2%] invalid, erase %3%.\n") %
-					COMPONENT_NAME_EX(pinfos->componentType) %
-					pinfos->cid %
-					COMPONENT_NAME_EX(pinfos->componentType));
+				WARNING_MSG(fmt::format("Machine::onQueryAllInterfaceInfos: {}[{}] invalid, erase {}.\n",
+					COMPONENT_NAME_EX(pinfos->componentType),
+					pinfos->cid,
+					COMPONENT_NAME_EX(pinfos->componentType)));
 
 				iter = components.erase(iter);
 
@@ -344,7 +422,7 @@ bool Machine::findBroadcastInterface()
 {
 
 	std::map<u_int32_t, std::string> interfaces;
-	Mercury::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
+	Network::BundleBroadcast bhandler(networkInterface_, KBE_PORT_BROADCAST_DISCOVERY);
 
 	if (!bhandler.epListen().getInterfaces(interfaces))
 	{
@@ -356,8 +434,8 @@ bool Machine::findBroadcastInterface()
 	bhandler << data;
 	if (!bhandler.broadcast(KBE_PORT_BROADCAST_DISCOVERY))
 	{
-		ERROR_MSG(boost::format("Machine::findBroadcastInterface:Failed to send broadcast discovery message. error:%1%\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("Machine::findBroadcastInterface:Failed to send broadcast discovery message. error:{}\n",
+			kbe_strerror()));
 		return false;
 	}
 	
@@ -365,17 +443,17 @@ bool Machine::findBroadcastInterface()
 
 	if(bhandler.receive(NULL, &sin))
 	{
-		INFO_MSG(boost::format("Machine::findBroadcastInterface:Machine::findBroadcastInterface: Broadcast discovery receipt from %1%.\n") %
-					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) );
+		INFO_MSG(fmt::format("Machine::findBroadcastInterface:Machine::findBroadcastInterface: Broadcast discovery receipt from {}.\n",
+					inet_ntoa((struct in_addr&)sin.sin_addr.s_addr)));
 
 		std::map< u_int32_t, std::string >::iterator iter;
 
 		iter = interfaces.find( (u_int32_t &)sin.sin_addr.s_addr );
 		if (iter != interfaces.end())
 		{
-			INFO_MSG(boost::format("Machine::findBroadcastInterface: Confirmed %1% (%2%) as default broadcast route interface.\n") %
-				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) %
-				iter->second.c_str());
+			INFO_MSG(fmt::format("Machine::findBroadcastInterface: Confirmed {} ({}) as default broadcast route interface.\n",
+				inet_ntoa((struct in_addr&)sin.sin_addr.s_addr),
+				iter->second.c_str()));
 
 			broadcastAddr_ = sin.sin_addr.s_addr;
 			return true;
@@ -384,7 +462,7 @@ bool Machine::findBroadcastInterface()
 	
 	std::string sinterface = "\t[";
 	std::map< u_int32_t, std::string >::iterator iter = interfaces.begin();
-	for(; iter != interfaces.end(); iter++)
+	for(; iter != interfaces.end(); ++iter)
 	{
 		sinterface += inet_ntoa((struct in_addr&)iter->first);
 		sinterface += ", ";
@@ -392,9 +470,9 @@ bool Machine::findBroadcastInterface()
 
 	sinterface += "]";
 
-	ERROR_MSG(boost::format("Machine::findBroadcastInterface: Broadcast discovery [%1%] "
-		"not a valid interface. available interfaces:%2%\n") %
-		inet_ntoa((struct in_addr&)sin.sin_addr.s_addr) % sinterface.c_str());
+	ERROR_MSG(fmt::format("Machine::findBroadcastInterface: Broadcast discovery [{}] "
+		"not a valid interface. available interfaces:{}\n",
+		inet_ntoa((struct in_addr&)sin.sin_addr.s_addr), sinterface.c_str()));
 
 	return false;
 }
@@ -406,7 +484,7 @@ bool Machine::initNetwork()
 	ep_.socket(SOCK_DGRAM);
 	epLocal_.socket(SOCK_DGRAM); 
 
-	Mercury::Address address;
+	Network::Address address;
 	address.ip = 0;
 	address.port = 0;
 
@@ -422,10 +500,10 @@ bool Machine::initNetwork()
 	if (!ep_.good() ||
 		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), broadcastAddr_) == -1)
 	{
-		ERROR_MSG(boost::format("Machine::initNetwork: Failed to bind socket to '%1%:%2%'. %3%.\n") %
-							inet_ntoa((struct in_addr &)broadcastAddr_) %
-							(KBE_MACHINE_BRAODCAST_SEND_PORT) %
-							kbe_strerror());
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
+							inet_ntoa((struct in_addr &)broadcastAddr_),
+							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							kbe_strerror()));
 
 		return false;
 	}
@@ -435,27 +513,27 @@ bool Machine::initNetwork()
 	ep_.setbroadcast( true );
 	ep_.setnonblocking(true);
 	ep_.addr(address);
-	pEPPacketReceiver_ = new Mercury::UDPPacketReceiver(ep_, this->getNetworkInterface());
+	pEPPacketReceiver_ = new Network::UDPPacketReceiver(ep_, this->networkInterface());
 
-	if(!this->getMainDispatcher().registerFileDescriptor(ep_, pEPPacketReceiver_))
+	if(!this->dispatcher().registerReadFileDescriptor(ep_, pEPPacketReceiver_))
 	{
-		ERROR_MSG("Machine::initNetwork: registerFileDescriptor ep is failed!\n");
+		ERROR_MSG("Machine::initNetwork: registerReadFileDescriptor ep is failed!\n");
 		return false;
 	}
 	
 #if KBE_PLATFORM == PLATFORM_WIN32
 	u_int32_t baddr = htonl(INADDR_ANY);
 #else
-	u_int32_t baddr = Mercury::BROADCAST;
+	u_int32_t baddr = Network::BROADCAST;
 #endif
 
 	if (!epBroadcast_.good() ||
 		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), baddr) == -1)
 	{
-		ERROR_MSG(boost::format("Machine::initNetwork: Failed to bind socket to '%1%:%2%'. %3%.\n") %
-							inet_ntoa((struct in_addr &)baddr) %
-							(KBE_MACHINE_BRAODCAST_SEND_PORT) %
-							kbe_strerror());
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
+							inet_ntoa((struct in_addr &)baddr),
+							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							kbe_strerror()));
 
 #if KBE_PLATFORM != PLATFORM_WIN32
 		return false;
@@ -467,38 +545,38 @@ bool Machine::initNetwork()
 		address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
-		pEBPacketReceiver_ = new Mercury::UDPPacketReceiver(epBroadcast_, this->getNetworkInterface());
+		pEBPacketReceiver_ = new Network::UDPPacketReceiver(epBroadcast_, this->networkInterface());
 	
-		if(!this->getMainDispatcher().registerFileDescriptor(epBroadcast_, pEBPacketReceiver_))
+		if(!this->dispatcher().registerReadFileDescriptor(epBroadcast_, pEBPacketReceiver_))
 		{
-			ERROR_MSG("Machine::initNetwork: registerFileDescriptor epBroadcast is failed!\n");
+			ERROR_MSG("Machine::initNetwork: registerReadFileDescriptor epBroadcast is failed!\n");
 			return false;
 		}
 
 	}
 
 	if (!epLocal_.good() ||
-		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Mercury::LOCALHOST) == -1)
+		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Network::LOCALHOST) == -1)
 	{
-		ERROR_MSG(boost::format("Machine::initNetwork: Failed to bind socket to (lo). %1%.\n") %
-							kbe_strerror() );
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to (lo). {}.\n",
+							kbe_strerror()));
 
 		return false;
 	}
 
-	address.ip = Mercury::LOCALHOST;
+	address.ip = Network::LOCALHOST;
 	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
-	pEPLocalPacketReceiver_ = new Mercury::UDPPacketReceiver(epLocal_, this->getNetworkInterface());
+	pEPLocalPacketReceiver_ = new Network::UDPPacketReceiver(epLocal_, this->networkInterface());
 
-	if(!this->getMainDispatcher().registerFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
+	if(!this->dispatcher().registerReadFileDescriptor(epLocal_, pEPLocalPacketReceiver_))
 	{
-		ERROR_MSG("Machine::initNetwork: registerFileDescriptor epLocal is failed!\n");
+		ERROR_MSG("Machine::initNetwork: registerReadFileDescriptor epLocal is failed!\n");
 		return false;
 	}
 
-	INFO_MSG(boost::format("Machine::initNetwork: bind broadcast successfully! addr:%1%\n") % ep_.addr().c_str());
+	INFO_MSG(fmt::format("Machine::initNetwork: bind broadcast successfully! addr:{}\n", ep_.addr().c_str()));
 	return true;
 }
 
@@ -507,11 +585,11 @@ bool Machine::run()
 {
 	bool ret = true;
 
-	while(!this->getMainDispatcher().isBreakProcessing())
+	while(!this->dispatcher().hasBreakProcessing())
 	{
 		threadPool_.onMainThreadTick();
-		this->getMainDispatcher().processOnce(false);
-		getNetworkInterface().processAllChannelPackets(&MachineInterface::messageHandlers);
+		this->dispatcher().processOnce(false);
+		networkInterface().processChannels(&MachineInterface::messageHandlers);
 		KBEngine::sleep(100);
 	};
 
@@ -553,40 +631,314 @@ void Machine::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
+void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
+	uint64 cid = 0;
+	int16 gus = 0;
 
-	Mercury::Bundle bundle;
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
 
 	s >> uid;
 	s >> componentType;
+	s >> cid;
+	s >> gus;
 
-	if(s.opsize() > 0)
+	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(boost::format("Machine::startserver: uid=%1%, [%2%], addr=%3%\n") % 
-		uid %  COMPONENT_NAME_EX(componentType) % pChannel->c_str());
+	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}\n", 
+		uid, COMPONENT_NAME_EX(componentType), pChannel->c_str(), cid, gus));
 	
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
+	if (startWindowsProcess(uid, componentType, cid, gus) <= 0)
+	{
+		success = false;
+	}
+#else
+	if (startLinuxProcess(uid, componentType, cid, gus) <= 0)
+	{
+		success = false;
+	}
+#endif
+	
+	(*pBundle) << success;
+
+	if(finderRecvPort != 0)
+	{
+		Network::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
+
+		if (!ep.good())
+		{
+			ERROR_MSG("Machine::startserver: Failed to create socket.\n");
+			return;
+		}
+	
+		ep.sendto(pBundle, htons(finderRecvPort), pChannel->addr().ip);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+	else
+	{
+		pChannel->send(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	int32 uid = 0;
+	COMPONENT_TYPE componentType;
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	bool success = true;
+
+	uint16 finderRecvPort = 0;
+
+	s >> uid;
+	s >> componentType;
+	
+	if(s.length() > 0)
+	{
+		s >> finderRecvPort;
+	}
+
+	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, [{}], addr={}\n", 
+		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+
+	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
+	{
+		ERROR_MSG(fmt::format("Machine::stopserver: component({}) is error!", 
+			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)), 
+			pChannel->c_str()));
+
+		return;
+	}
+
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
+
+	if(components.size() > 0)
+	{
+		Components::COMPONENTS::iterator iter = components.begin();
+
+		for(; iter != components.end(); )
+		{
+			Components::ComponentInfos* cinfos = &(*iter);
+
+			if(cinfos->uid != uid)
+			{
+				iter++;
+				continue;
+			}
+
+			if(componentType != cinfos->componentType)
+			{
+				iter++;
+				continue;
+			}
+
+			if(((*iter).flags & COMPONENT_FLAG_SHUTTINGDOWN) > 0)
+			{
+				iter++;
+				continue;
+			}
+
+			INFO_MSG(fmt::format("--> stop {}({}), addr={}\n", 
+				(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown")));
+
+			bool usable = checkComponentUsable(&(*iter), false, false);
+		
+			if(!usable)
+			{
+				iter = components.erase(iter);
+				continue;
+			}
+
+
+			Network::Bundle closebundle;
+			if(componentType != BOTS_TYPE)
+			{
+				COMMON_NETWORK_MESSAGE(componentType, closebundle, reqCloseServer);
+			}
+			else
+			{
+				closebundle.newMessage(BotsInterface::reqCloseServer);
+			}
+
+			Network::EndPoint ep1;
+			ep1.socket(SOCK_STREAM);
+
+			if (!ep1.good())
+			{
+				ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+				success = false;
+				break;
+			}
+		
+			if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
+			{
+				ERROR_MSG(fmt::format("Machine::stopserver: connect server is error({})!\n", kbe_strerror()));
+				success = false;
+				break;
+			}
+
+			ep1.setnonblocking(false);
+			ep1.send(&closebundle);
+
+			Network::TCPPacket recvpacket;
+			recvpacket.resize(255);
+
+			fd_set	fds;
+			struct timeval tv = { 0, 1000000 }; // 1000ms
+
+			FD_ZERO( &fds );
+			FD_SET((int)ep1, &fds);
+
+			int selgot = select(ep1+1, &fds, NULL, NULL, &tv);
+			if(selgot == 0)
+			{
+				// 超时, 可能对方繁忙
+				ERROR_MSG(fmt::format("--> stop {}({}), addr={}, timeout!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
+
+				iter++;
+				continue;
+			}
+			else if(selgot == -1)
+			{
+				WARNING_MSG(fmt::format("--> stop {}({}), addr={}, recv_len == -1!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
+
+				iter++;
+				continue;
+			}
+
+			(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
+
+			int len = ep1.recv(recvpacket.data(), 1);
+			if(len != 1)
+			{
+				ERROR_MSG(fmt::format("--> stop {}({}), addr={}, recv_len != 1!\n", 
+					(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? 
+					cinfos->pIntAddr->c_str() : "unknown")));
+
+				success = false;
+				break;
+			}
+
+			recvpacket >> success;
+			iter++;
+		}
+	}
+	else
+	{
+		INFO_MSG(fmt::format("Machine::stopserver: uid={}, {} size is 0, addr={}\n", 
+			uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	}
+
+	(*pBundle) << success;
+
+	if(finderRecvPort != 0)
+	{
+		Network::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
+
+		if (!ep.good())
+		{
+			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+			return;
+		}
+	
+		ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+	else
+	{
+		pChannel->send(pBundle);
+	}
+}
+
+
+//-------------------------------------------------------------------------------------
+#if KBE_PLATFORM != PLATFORM_WIN32
+uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+{
+	uint16 childpid;
+
+	if ((childpid = fork()) == 0)
+	{
+		if (setuid(uid) == -1)
+		{
+			ERROR_MSG(fmt::format("Machine::startLinuxProcess: Failed to setuid to {}, aborting exec for '{}'\n", 
+				uid,  COMPONENT_NAME_EX(componentType)));
+
+			exit(1);
+		}
+
+		std::string bin_path = Resmgr::getSingleton().getEnv().bin_path;
+		std::string cmdLine = bin_path + COMPONENT_NAME_EX(componentType);
+
+		// 改变当前目录，以让出问题的时候core能在此处生成
+		//chdir(bin_path.c_str());
+
+		const char *argv[6];
+		std::string scid = fmt::format("{}", cid);
+		std::string sgus = fmt::format("{}", gus);
+		
+		argv[0] = cmdLine.c_str();
+		argv[1] = "--cid";
+		argv[2] = scid.c_str();
+		argv[3] = "--gus";
+		argv[4] = sgus.c_str();
+		argv[5] = NULL;
+
+		// 关闭父类的socket
+		ep_.close();
+		epBroadcast_.close();
+		epLocal_.close();
+
+		INFO_MSG(fmt::format("Machine::startLinuxProcess: UID {} execing '{}', cid = {}, gus = {}\n", uid, cmdLine, cid, gus));
+
+		DebugHelper::getSingleton().closeLogger();
+		int result = execv(cmdLine.c_str(), (char * const *)argv);
+
+		if (result == -1)
+		{
+			ERROR_MSG(fmt::format("Machine::startLinuxProcess: Failed to exec '{}'\n", cmdLine));
+		}
+
+		exit(1);
+		return 0;
+	}
+	else
+		return childpid;
+
+	return 0;
+}
+
+#else
+
+DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+{
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
-	std::string str = Resmgr::getSingleton().getEnv().hybrid_path;
+	std::string str = Resmgr::getSingleton().getEnv().bin_path;
 	str += COMPONENT_NAME_EX(componentType);
 	str += ".exe";
 
 	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().hybrid_path.c_str());
+	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
 
 	ZeroMemory( &si, sizeof(si));
 	si.cb = sizeof(si);
@@ -602,166 +954,20 @@ void Machine::startserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
 		currdir,        // Use parent's starting directory
 		&si,            // Pointer to STARTUPINFO structure
 		&pi )           // Pointer to PROCESS_INFORMATION structure
-	)
+		)
 	{
-		ERROR_MSG(boost::format("Machine::startserver:CreateProcess failed (%1%).\n") %
-			GetLastError());
+		ERROR_MSG(fmt::format("Machine::startWindowsProcess: CreateProcess failed ({}).\n",
+			GetLastError()));
 
-		success = false;
+		return 0;
 	}
-	
+
 	free(szCmdline);
 	free(currdir);
-#else
+
+	return pi.dwProcessId;
+}
+
 #endif
-	
-	bundle << success;
-
-	if(finderRecvPort != 0)
-	{
-		Mercury::EndPoint ep;
-		ep.socket(SOCK_DGRAM);
-
-		if (!ep.good())
-		{
-			ERROR_MSG("Machine::startserver: Failed to create socket.\n");
-			return;
-		}
-	
-		bundle.sendto(ep, htons(finderRecvPort), pChannel->addr().ip);
-	}
-	else
-	{
-		bundle.send(this->getNetworkInterface(), pChannel);
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Machine::stopserver(Mercury::Channel* pChannel, KBEngine::MemoryStream& s)
-{
-	int32 uid = 0;
-	COMPONENT_TYPE componentType;
-	Mercury::Bundle bundle;
-	bool success = true;
-
-	uint16 finderRecvPort = 0;
-
-	s >> uid;
-	s >> componentType;
-	
-	if(s.opsize() > 0)
-	{
-		s >> finderRecvPort;
-	}
-
-	INFO_MSG(boost::format("Machine::stopserver: request uid=%1%, [%2%], addr=%3%\n") % 
-		uid %  COMPONENT_NAME_EX(componentType) % pChannel->c_str());
-
-	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
-		return;
-
-	Components::COMPONENTS& components = Componentbridge::getComponents().getComponents(componentType);
-	Components::COMPONENTS::iterator iter = components.begin();
-
-	for(; iter != components.end(); )
-	{
-		Components::ComponentInfos* cinfos = &(*iter);
-
-		if(cinfos->uid != uid)
-		{
-			iter++;
-			continue;
-		}
-
-		if(componentType != cinfos->componentType)
-		{
-			iter++;
-			continue;
-		}
-
-		if(((*iter).flags & COMPONENT_FLAG_SHUTTINGDOWN) > 0)
-		{
-			iter++;
-			continue;
-		}
-
-		INFO_MSG(boost::format("--> stop %1%(%2%), addr=%3%\n") % 
-			(*iter).cid % COMPONENT_NAME[componentType] % (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown"));
-
-		bool usable = Componentbridge::getComponents().checkComponentUsable(&(*iter));
-		
-		if(!usable)
-		{
-			iter = components.erase(iter);
-			continue;
-		}
-
-		(*iter).flags |= COMPONENT_FLAG_SHUTTINGDOWN;
-
-		Mercury::Bundle closebundle;
-		if(componentType != BOTS_TYPE)
-		{
-			COMMON_MERCURY_MESSAGE(componentType, closebundle, reqCloseServer);
-		}
-		else
-		{
-			closebundle.newMessage(BotsInterface::reqCloseServer);
-		}
-
-		Mercury::EndPoint ep1;
-		ep1.socket(SOCK_STREAM);
-
-		if (!ep1.good())
-		{
-			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
-			success = false;
-			break;
-		}
-		
-		if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
-		{
-			ERROR_MSG(boost::format("Machine::stopserver: connect server is error(%1%)!\n") % kbe_strerror());
-			success = false;
-			break;
-		}
-
-		ep1.setnonblocking(false);
-		closebundle.send(ep1);
-		Mercury::TCPPacket recvpacket;
-		recvpacket.resize(255);
-		int len = ep1.recv(recvpacket.data(), 1);
-		if(len != 1)
-		{
-			success = false;
-			break;
-		}
-
-		recvpacket >> success;
-		break;
-	}
-
-	bundle << success;
-
-	if(finderRecvPort != 0)
-	{
-		Mercury::EndPoint ep;
-		ep.socket(SOCK_DGRAM);
-
-		if (!ep.good())
-		{
-			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
-			return;
-		}
-	
-		bundle.sendto(ep, finderRecvPort, pChannel->addr().ip);
-	}
-	else
-	{
-		bundle.send(this->getNetworkInterface(), pChannel);
-	}
-}
-
-
-//-------------------------------------------------------------------------------------
 
 }

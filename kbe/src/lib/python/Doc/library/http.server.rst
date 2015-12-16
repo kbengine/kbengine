@@ -29,8 +29,8 @@ handler.  Code to create and run the server looks like this::
 
 .. class:: HTTPServer(server_address, RequestHandlerClass)
 
-   This class builds on the :class:`TCPServer` class by storing the server
-   address as instance variables named :attr:`server_name` and
+   This class builds on the :class:`~socketserver.TCPServer` class by storing
+   the server address as instance variables named :attr:`server_name` and
    :attr:`server_port`. The server is accessible by the handler, typically
    through the handler's :attr:`server` instance variable.
 
@@ -81,7 +81,10 @@ of which this module provides three different variants:
 
       Holds an instance of the class specified by the :attr:`MessageClass` class
       variable. This instance parses and manages the headers in the HTTP
-      request.
+      request. The :func:`~http.client.parse_headers` function from
+      :mod:`http.client` is used to parse the headers and it requires that the
+      HTTP request provide a valid :rfc:`2822` style header.
+
 
    .. attribute:: rfile
 
@@ -116,7 +119,7 @@ of which this module provides three different variants:
       HTTP error code value. *message* should be a string containing a
       (detailed) error message of what occurred, and *explain* should be an
       explanation of the error code number. Default *message* and *explain*
-      values can found in the *responses* class variable.
+      values can found in the :attr:`responses` class variable.
 
    .. attribute:: error_content_type
 
@@ -170,28 +173,49 @@ of which this module provides three different variants:
 
       .. versionadded:: 3.2
 
-   .. method:: send_error(code, message=None)
+   .. method:: send_error(code, message=None, explain=None)
 
       Sends and logs a complete error reply to the client. The numeric *code*
-      specifies the HTTP error code, with *message* as optional, more specific text. A
-      complete set of headers is sent, followed by text composed using the
-      :attr:`error_message_format` class variable.
+      specifies the HTTP error code, with *message* as an optional, short, human
+      readable description of the error.  The *explain* argument can be used to
+      provide more detailed information about the error; it will be formatted
+      using the :attr:`error_message_format` class variable and emitted, after
+      a complete set of headers, as the response body.  The :attr:`responses`
+      class variable holds the default values for *message* and *explain* that
+      will be used if no value is provided; for unknown codes the default value
+      for both is the string ``???``.
+
+      .. versionchanged:: 3.4
+         The error response includes a Content-Length header.
+         Added the *explain* argument.
+
 
    .. method:: send_response(code, message=None)
 
-      Sends a response header and logs the accepted request. The HTTP response
-      line is sent, followed by *Server* and *Date* headers. The values for
-      these two headers are picked up from the :meth:`version_string` and
-      :meth:`date_time_string` methods, respectively.
+      Adds a response header to the headers buffer and logs the accepted
+      request. The HTTP response line is written to the internal buffer,
+      followed by *Server* and *Date* headers. The values for these two headers
+      are picked up from the :meth:`version_string` and
+      :meth:`date_time_string` methods, respectively. If the server does not
+      intend to send any other headers using the :meth:`send_header` method,
+      then :meth:`send_response` should be followed by a :meth:`end_headers`
+      call.
+
+      .. versionchanged:: 3.3
+         Headers are stored to an internal buffer and :meth:`end_headers`
+         needs to be called explicitly.
+
 
    .. method:: send_header(keyword, value)
 
-      Stores the HTTP header to an internal buffer which will be written to the
-      output stream when :meth:`end_headers` method is invoked.
-      *keyword* should specify the header keyword, with *value*
-      specifying its value.
+      Adds the HTTP header to an internal buffer which will be written to the
+      output stream when either :meth:`end_headers` or :meth:`flush_headers` is
+      invoked. *keyword* should specify the header keyword, with *value*
+      specifying its value. Note that, after the send_header calls are done,
+      :meth:`end_headers` MUST BE called in order to complete the operation.
 
-      .. versionchanged:: 3.2 Storing the headers in an internal buffer
+      .. versionchanged:: 3.2
+         Headers are stored in an internal buffer.
 
 
    .. method:: send_response_only(code, message=None)
@@ -205,10 +229,19 @@ of which this module provides three different variants:
 
    .. method:: end_headers()
 
-      Write the buffered HTTP headers to the output stream and send a blank
-      line, indicating the end of the HTTP headers in the response.
+      Adds a blank line
+      (indicating the end of the HTTP headers in the response)
+      to the headers buffer and calls :meth:`flush_headers()`.
 
-      .. versionchanged:: 3.2 Writing the buffered headers to the output stream.
+      .. versionchanged:: 3.2
+         The buffered headers are written to the output stream.
+
+   .. method:: flush_headers()
+
+      Finally send the headers to the output stream and flush the internal
+      headers buffer.
+
+      .. versionadded:: 3.3
 
    .. method:: log_request(code='-', size='-')
 
@@ -250,8 +283,11 @@ of which this module provides three different variants:
 
    .. method:: address_string()
 
-      Returns the client address, formatted for logging. A name lookup is
-      performed on the client's IP address.
+      Returns the client address.
+
+      .. versionchanged:: 3.3
+         Previously, a name lookup was performed. To avoid name resolution
+         delays, it now always returns the IP address.
 
 
 .. class:: SimpleHTTPRequestHandler(request, client_address, server)
@@ -296,10 +332,10 @@ of which this module provides three different variants:
       file's contents are returned; otherwise a directory listing is generated
       by calling the :meth:`list_directory` method. This method uses
       :func:`os.listdir` to scan the directory, and returns a ``404`` error
-      response if the :func:`listdir` fails.
+      response if the :func:`~os.listdir` fails.
 
       If the request was mapped to a file, it is opened and the contents are
-      returned.  Any :exc:`IOError` exception in opening the requested file is
+      returned.  Any :exc:`OSError` exception in opening the requested file is
       mapped to a ``404``, ``'File not found'`` error. Otherwise, the content
       type is guessed by calling the :meth:`guess_type` method, which in turn
       uses the *extensions_map* variable.
@@ -318,7 +354,7 @@ of which this module provides three different variants:
 
 The :class:`SimpleHTTPRequestHandler` class can be used in the following
 manner in order to create a very basic webserver serving files relative to
-the current directory. ::
+the current directory::
 
    import http.server
    import socketserver
@@ -332,11 +368,22 @@ the current directory. ::
    print("serving at port", PORT)
    httpd.serve_forever()
 
+.. _http-server-cli:
+
 :mod:`http.server` can also be invoked directly using the :option:`-m`
 switch of the interpreter with a ``port number`` argument.  Similar to
-the previous example, this serves files relative to the current directory. ::
+the previous example, this serves files relative to the current directory::
 
         python -m http.server 8000
+
+By default, server binds itself to all interfaces.  The option ``-b/--bind``
+specifies a specific address to which it should bind.  For example, the
+following command causes the server to bind to localhost only::
+
+        python -m http.server 8000 --bind 127.0.0.1
+
+.. versionadded:: 3.4
+    ``--bind`` argument was introduced.
 
 
 .. class:: CGIHTTPRequestHandler(request, client_address, server)
@@ -378,3 +425,9 @@ the previous example, this serves files relative to the current directory. ::
 
    Note that CGI scripts will be run with UID of user nobody, for security
    reasons.  Problems with the CGI script will be translated to error 403.
+
+:class:`CGIHTTPRequestHandler` can be enabled in the command line by passing
+the ``--cgi`` option::
+
+        python -m http.server --cgi 8000
+

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -17,27 +17,26 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "bots.hpp"
-#include "clientobject.hpp"
-#include "network/common.hpp"
-#include "network/message_handler.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/bundle.hpp"
-#include "network/fixed_messages.hpp"
-#include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
-#include "server/components.hpp"
-#include "server/serverconfig.hpp"
-#include "entitydef/scriptdef_module.hpp"
-#include "entitydef/entitydef.hpp"
-#include "client_lib/client_interface.hpp"
-#include "cstdkbe/kbeversion.hpp"
+#include "bots.h"
+#include "clientobject.h"
+#include "network/common.h"
+#include "network/message_handler.h"
+#include "network/tcp_packet.h"
+#include "network/bundle.h"
+#include "network/fixed_messages.h"
+#include "thread/threadpool.h"
+#include "server/components.h"
+#include "server/serverconfig.h"
+#include "entitydef/scriptdef_module.h"
+#include "entitydef/entitydef.h"
+#include "client_lib/client_interface.h"
+#include "common/kbeversion.h"
 
-#include "baseapp/baseapp_interface.hpp"
-#include "cellapp/cellapp_interface.hpp"
-#include "baseappmgr/baseappmgr_interface.hpp"
-#include "cellappmgr/cellappmgr_interface.hpp"
-#include "loginapp/loginapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
+#include "cellapp/cellapp_interface.h"
+#include "baseappmgr/baseappmgr_interface.h"
+#include "cellappmgr/cellappmgr_interface.h"
+#include "loginapp/loginapp_interface.h"
 
 
 namespace KBEngine{
@@ -53,15 +52,17 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(ClientObject, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-ClientObject::ClientObject(std::string name, Mercury::NetworkInterface& ninterface):
+ClientObject::ClientObject(std::string name, Network::NetworkInterface& ninterface):
 ClientObjectBase(ninterface, getScriptType()),
 error_(C_ERROR_NONE),
 state_(C_STATE_INIT),
-pBlowfishFilter_(0)
+pBlowfishFilter_(0),
+pTCPPacketSenderEx_(NULL),
+pTCPPacketReceiverEx_(NULL)
 {
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
-	extradatas_ = "bots";
+	clientDatas_ = "bots";
 }
 
 //-------------------------------------------------------------------------------------
@@ -70,16 +71,48 @@ ClientObject::~ClientObject()
 	SAFE_RELEASE(pBlowfishFilter_);
 }
 
+//-------------------------------------------------------------------------------------		
+void ClientObject::finalise(void)
+{
+	reset();
+	ClientObjectBase::finalise();
+}
+
+//-------------------------------------------------------------------------------------		
+void ClientObject::reset(void)
+{
+	if(pTCPPacketReceiverEx_)
+		Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
+
+	if(pServerChannel_ && pServerChannel_->pEndPoint())
+	{
+		pServerChannel_->stopSend();
+		pServerChannel_->pPacketSender(NULL);
+	}
+
+	SAFE_RELEASE(pTCPPacketSenderEx_);
+	SAFE_RELEASE(pTCPPacketReceiverEx_);
+
+	std::string name = name_;
+	std::string passwd = password_;
+	ClientObjectBase::reset();
+	
+	name_ = name;
+	password_ = passwd;
+	clientDatas_ = "bots";
+	state_ = C_STATE_INIT;
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
-	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObject::initNetwork: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
@@ -87,34 +120,42 @@ bool ClientObject::initCreate()
 	ENGINE_COMPONENT_INFO& infos = g_kbeSrvConfig.getBots();
 	u_int32_t address;
 
-	pEndpoint->convertAddress(infos.login_ip, address);
+	Network::Address::string2ip(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initNetwork: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
+			kbe_strerror(), name_, infos.login_ip, infos.login_port));
 
-		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_INIT;
 		return false;
 	}
 
-	Mercury::Address addr(infos.login_ip, infos.login_port);
+	Network::Address addr(infos.login_ip, infos.login_port);
 	pEndpoint->addr(addr);
 
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
 	pServerChannel_->pMsgHandlers(&ClientInterface::messageHandlers);
-	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->networkInterface_, this);
+	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->networkInterface_, this);
+	Bots::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor((*pEndpoint), pTCPPacketReceiverEx_);
+	
+	//不在这里注册
+	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
+	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::hello);
-	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
-	if(Mercury::g_channelExternalEncryptType == 1)
+	if(Network::g_channelExternalEncryptType == 1)
 	{
-		pBlowfishFilter_ = new Mercury::BlowfishFilter();
+		pBlowfishFilter_ = new Network::BlowfishFilter();
 		(*pBundle).appendBlob(pBlowfishFilter_->key());
 	}
 	else
@@ -123,100 +164,68 @@ bool ClientObject::initCreate()
 		(*pBundle).appendBlob(key);
 	}
 
-	pServerChannel_->pushBundle(pBundle);
+	pEndpoint->send(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientObject::processSocket(bool expectingPacket)
+bool ClientObject::initLoginBaseapp()
 {
-	
-	Mercury::TCPPacket* pReceiveWindow = Mercury::TCPPacket::ObjPool().createObject();
-	int len = pReceiveWindow->recvFromEndPoint(*pServerChannel_->endpoint());
+	Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
+	pServerChannel_->stopSend();
+	pServerChannel_->pPacketSender(NULL);
+	SAFE_RELEASE(pTCPPacketSenderEx_);
+	SAFE_RELEASE(pTCPPacketReceiverEx_);
 
-	if (len < 0)
-	{
-		Mercury::TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
-
-		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
-
-		if(rstate == Mercury::PacketReceiver::RECV_STATE_INTERRUPT)
-		{
-			Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
-			pServerChannel_->destroy();
-			Bots::getSingleton().delClient(this);
-			return false;
-		}
-
-		return rstate == Mercury::PacketReceiver::RECV_STATE_CONTINUE;
-	}
-	else if(len == 0) // 客户端正常退出
-	{
-		Mercury::TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
-
-		Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
-		pServerChannel_->destroy();
-		Bots::getSingleton().delClient(this);
-		return false;
-	}
-
-	Mercury::Reason ret = this->processPacket(pServerChannel_, pReceiveWindow);
-
-	if(ret != Mercury::REASON_SUCCESS)
-	{
-		ERROR_MSG(boost::format("ClientObject::processSocket: "
-					"Throwing %1%\n") %
-					Mercury::reasonToString(ret));
-	}
-
-	return true;
-}
-
-//-------------------------------------------------------------------------------------
-bool ClientObject::initLoginGateWay()
-{
-	Bots::getSingleton().pEventPoller()->deregisterForRead(*pServerChannel_->endpoint());
-	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObject::initLogin: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
 	
 	u_int32_t address;
 
-	pEndpoint->convertAddress(ip_.c_str(), address);
+	Network::Address::string2ip(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObject::initLogin: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",
+			kbe_strerror(), name_));
 
-		delete pEndpoint;
-		error_ = C_ERROR_INIT_NETWORK_FAILED;
+		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		// error_ = C_ERROR_INIT_NETWORK_FAILED;
+		state_ = C_STATE_LOGIN_BASEAPP_CREATE;
 		return false;
 	}
 
-	Mercury::Address addr(ip_.c_str(), port_);
+	Network::Address addr(ip_.c_str(), port_);
 	pEndpoint->addr(addr);
-
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
-	Bots::getSingleton().pEventPoller()->registerForRead((*pEndpoint), this);
-	connectedGateway_ = true;
+	pTCPPacketSenderEx_ = new Network::TCPPacketSenderEx(*pEndpoint, this->networkInterface_, this);
+	pTCPPacketReceiverEx_ = new Network::TCPPacketReceiverEx(*pEndpoint, this->networkInterface_, this);
+	Bots::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor((*pEndpoint), pTCPPacketReceiverEx_);
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	//不在这里注册
+	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
+	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
+
+	connectedBaseapp_ = true;
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::hello);
-	(*pBundle) << KBEVersion::versionString();
+	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 	
-	if(Mercury::g_channelExternalEncryptType == 1)
+	if(Network::g_channelExternalEncryptType == 1)
 	{
-		pBlowfishFilter_ = new Mercury::BlowfishFilter();
+		pBlowfishFilter_ = new Network::BlowfishFilter();
 		(*pBundle).appendBlob(pBlowfishFilter_->key());
 		pServerChannel_->pFilter(NULL);
 	}
@@ -226,26 +235,36 @@ bool ClientObject::initLoginGateWay()
 		(*pBundle).appendBlob(key);
 	}
 
-	pServerChannel_->pushBundle(pBundle);
+	pEndpoint->send(pBundle);
+	Network::Bundle::ObjPool().reclaimObject(pBundle);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void ClientObject::gameTick()
 {
-	if(pServerChannel()->endpoint())
+	if(pServerChannel()->pEndPoint())
 	{
 		pServerChannel()->processPackets(NULL);
 	}
 	else
 	{
-		if(connectedGateway_)
+		if(connectedBaseapp_)
 		{
 			EventData_ServerCloased eventdata;
 			eventHandler_.fire(&eventdata);
-			connectedGateway_ = false;
+			connectedBaseapp_ = false;
 			canReset_ = true;
+			state_ = C_STATE_INIT;
+			
+			DEBUG_MSG(fmt::format("ClientObject({})::tickSend: serverCloased! name({})!\n", 
+			this->appID(), this->name()));
 		}
+	}
+
+	if(locktime() > 0 && timestamp() < locktime())
+	{
+		return;
 	}
 
 	switch(state_)
@@ -274,19 +293,19 @@ void ClientObject::gameTick()
 				return;
 
 			break;
-		case C_STATE_LOGIN_GATEWAY_CREATE:
+		case C_STATE_LOGIN_BASEAPP_CREATE:
 
 			state_ = C_STATE_PLAY;
 
-			if(!initLoginGateWay())
+			if(!initLoginBaseapp())
 				return;
 
 			break;
-		case C_STATE_LOGIN_GATEWAY:
+		case C_STATE_LOGIN_BASEAPP:
 
 			state_ = C_STATE_PLAY;
 
-			if(!loginGateWay())
+			if(!loginBaseapp())
 				return;
 
 			break;
@@ -301,12 +320,13 @@ void ClientObject::gameTick()
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObject::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+void ClientObject::onHelloCB_(Network::Channel* pChannel, const std::string& verInfo, 
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
-	if(Mercury::g_channelExternalEncryptType == 1)
+	if(Network::g_channelExternalEncryptType == 1)
 	{
-		pChannel->pFilter(pBlowfishFilter_);
+		pServerChannel_->pFilter(pBlowfishFilter_);
 		pBlowfishFilter_ = NULL;
 	}
 
@@ -316,55 +336,66 @@ void ClientObject::onHelloCB_(Mercury::Channel* pChannel, const std::string& ver
 	}
 	else
 	{
-		state_ = C_STATE_LOGIN_GATEWAY;
+		state_ = C_STATE_LOGIN_BASEAPP;
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObject::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObject::onCreateAccountResult(Network::Channel * pChannel, MemoryStream& s)
 {
 	SERVER_ERROR_CODE retcode;
 
 	s >> retcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
 	if(retcode != 0)
 	{
-		error_ = C_ERROR_CREATE_FAILED;
-		INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is failed! code=%2%.\n") % name_ % retcode);
+		//error_ = C_ERROR_CREATE_FAILED;
+
+		// 继续尝试登录
+		state_ = C_STATE_LOGIN;
+		
+		INFO_MSG(fmt::format("ClientObject::onCreateAccountResult: {} create is failed! code={}.\n", 
+			name_, SERVER_ERR_STR[retcode]));
+		
 		return;
 	}
 
 	state_ = C_STATE_LOGIN;
-	INFO_MSG(boost::format("ClientObject::onCreateAccountResult: %1% create is successfully!\n") % name_);
+	INFO_MSG(fmt::format("ClientObject::onCreateAccountResult: {} create is successfully!\n", name_));
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObject::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObject::onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	std::string accountName;
 
 	s >> accountName;
 	s >> ip_;
 	s >> port_;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+	INFO_MSG(fmt::format("ClientObject::onLoginSuccessfully: {} addr={}:{}!\n", 
+		name_, ip_, port_));
 
-	state_ = C_STATE_LOGIN_GATEWAY_CREATE;
+	state_ = C_STATE_LOGIN_BASEAPP_CREATE;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObject::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObject::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 {
 	SERVER_ERROR_CODE failedcode;
 
 	s >> failedcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
-	INFO_MSG(boost::format("ClientObject::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	INFO_MSG(fmt::format("ClientObject::onLoginFailed: {} failedcode={}!\n", 
+		name_, SERVER_ERR_STR[failedcode]));
 
-	error_ = C_ERROR_LOGIN_FAILED;
+	// error_ = C_ERROR_LOGIN_FAILED;
+
+	// 继续尝试登录
+	state_ = C_STATE_LOGIN;
 }
 
 //-------------------------------------------------------------------------------------

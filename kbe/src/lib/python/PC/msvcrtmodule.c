@@ -27,6 +27,8 @@
 #ifdef _MSC_VER
 #if _MSC_VER >= 1500 && _MSC_VER < 1600
 #include <crtassem.h>
+#elif _MSC_VER >= 1600
+#include <crtversion.h>
 #endif
 #endif
 
@@ -111,11 +113,12 @@ os.O_BINARY.");
 static PyObject *
 msvcrt_open_osfhandle(PyObject *self, PyObject *args)
 {
-    long handle;
+    Py_intptr_t handle;
     int flags;
     int fd;
 
-    if (!PyArg_ParseTuple(args, "li:open_osfhandle", &handle, &flags))
+    if (!PyArg_ParseTuple(args, _Py_PARSE_INTPTR "i:open_osfhandle",
+                          &handle, &flags))
         return NULL;
 
     fd = _open_osfhandle(handle, flags);
@@ -211,8 +214,7 @@ cannot be read with this function.");
 static PyObject *
 msvcrt_getwch(PyObject *self, PyObject *args)
 {
-    Py_UNICODE ch;
-    Py_UNICODE u[1];
+    wchar_t ch;
 
     if (!PyArg_ParseTuple(args, ":getwch"))
         return NULL;
@@ -220,8 +222,7 @@ msvcrt_getwch(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     ch = _getwch();
     Py_END_ALLOW_THREADS
-    u[0] = ch;
-    return PyUnicode_FromUnicode(u, 1);
+    return PyUnicode_FromOrdinal(ch);
 }
 
 PyDoc_STRVAR(getwch_doc,
@@ -256,8 +257,7 @@ a printable character.");
 static PyObject *
 msvcrt_getwche(PyObject *self, PyObject *args)
 {
-    Py_UNICODE ch;
-    Py_UNICODE s[1];
+    wchar_t ch;
 
     if (!PyArg_ParseTuple(args, ":getwche"))
         return NULL;
@@ -265,8 +265,7 @@ msvcrt_getwche(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     ch = _getwche();
     Py_END_ALLOW_THREADS
-    s[0] = ch;
-    return PyUnicode_FromUnicode(s, 1);
+    return PyUnicode_FromOrdinal(ch);
 }
 
 PyDoc_STRVAR(getwche_doc,
@@ -468,7 +467,7 @@ PyMODINIT_FUNC
 PyInit_msvcrt(void)
 {
     int st;
-    PyObject *d;
+    PyObject *d, *version;
     PyObject *m = PyModule_Create(&msvcrtmodule);
     if (m == NULL)
         return NULL;
@@ -498,6 +497,7 @@ PyInit_msvcrt(void)
 #endif
 
     /* constants for the crt versions */
+    (void)st;
 #ifdef _VC_ASSEMBLY_PUBLICKEYTOKEN
     st = PyModule_AddStringConstant(m, "VC_ASSEMBLY_PUBLICKEYTOKEN",
                                     _VC_ASSEMBLY_PUBLICKEYTOKEN);
@@ -511,6 +511,16 @@ PyInit_msvcrt(void)
 #ifdef __LIBRARIES_ASSEMBLY_NAME_PREFIX
     st = PyModule_AddStringConstant(m, "LIBRARIES_ASSEMBLY_NAME_PREFIX",
                                     __LIBRARIES_ASSEMBLY_NAME_PREFIX);
+    if (st < 0) return NULL;
+#endif
+
+    /* constants for the 2010 crt versions */
+#if defined(_VC_CRT_MAJOR_VERSION) && defined (_VC_CRT_MINOR_VERSION) && defined(_VC_CRT_BUILD_VERSION) && defined(_VC_CRT_RBUILD_VERSION)
+    version = PyUnicode_FromFormat("%d.%d.%d.%d", _VC_CRT_MAJOR_VERSION,
+                                                  _VC_CRT_MINOR_VERSION,
+                                                  _VC_CRT_BUILD_VERSION,
+                                                  _VC_CRT_RBUILD_VERSION);
+    st = PyModule_AddObject(m, "CRT_ASSEMBLY_VERSION", version);
     if (st < 0) return NULL;
 #endif
 

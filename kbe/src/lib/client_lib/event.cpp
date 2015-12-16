@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "event.hpp"
-#include "helper/debug_helper.hpp"
+#include "event.h"
+#include "helper/debug_helper.h"
 
 namespace KBEngine{	
 
@@ -50,7 +50,7 @@ bool EventHandler::registerHandle(EventHandle* pHhandle)
 bool EventHandler::deregisterHandle(EventHandle* pHhandle)
 {
 	EVENT_HANDLES::iterator iter = eventHandles_.begin();
-	for(; iter != eventHandles_.end(); iter++)
+	for(; iter != eventHandles_.end(); ++iter)
 	{
 		if((*iter) == pHhandle)
 		{
@@ -66,7 +66,7 @@ bool EventHandler::deregisterHandle(EventHandle* pHhandle)
 void EventHandler::fire(const EventData* lpEventData)
 {
 	EVENT_HANDLES::iterator iter = eventHandles_.begin();
-	for(; iter != eventHandles_.end(); iter++)
+	for(; iter != eventHandles_.end(); ++iter)
 	{
 		(*iter)->kbengine_onEvent(lpEventData);
 	}

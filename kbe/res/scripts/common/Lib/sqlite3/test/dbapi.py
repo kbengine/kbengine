@@ -1,4 +1,4 @@
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 # pysqlite2/test/dbapi.py: tests for DB-API compliance
 #
 # Copyright (C) 2004-2010 Gerhard Häring <gh@ghaering.de>
@@ -27,6 +27,9 @@ try:
     import threading
 except ImportError:
     threading = None
+
+from test.support import TESTFN, unlink
+
 
 class ModuleTests(unittest.TestCase):
     def CheckAPILevel(self):
@@ -162,6 +165,21 @@ class ConnectionTests(unittest.TestCase):
     def CheckInTransactionRO(self):
         with self.assertRaises(AttributeError):
             self.cx.in_transaction = True
+
+    def CheckOpenUri(self):
+        if sqlite.sqlite_version_info < (3, 7, 7):
+            with self.assertRaises(sqlite.NotSupportedError):
+                sqlite.connect(':memory:', uri=True)
+            return
+        self.addCleanup(unlink, TESTFN)
+        with sqlite.connect(TESTFN) as cx:
+            cx.execute('create table test(id integer)')
+        with sqlite.connect('file:' + TESTFN, uri=True) as cx:
+            cx.execute('insert into test(id) values(0)')
+        with sqlite.connect('file:' + TESTFN + '?mode=ro', uri=True) as cx:
+            with self.assertRaises(sqlite.OperationalError):
+                cx.execute('insert into test(id) values(1)')
+
 
 class CursorTests(unittest.TestCase):
     def setUp(self):

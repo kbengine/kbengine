@@ -26,15 +26,16 @@ extern "C" {
 /* External C interface */
 
 PyObject *
-PyFile_FromFd(int fd, char *name, char *mode, int buffering, char *encoding,
-              char *errors, char *newline, int closefd)
+PyFile_FromFd(int fd, const char *name, const char *mode, int buffering, const char *encoding,
+              const char *errors, const char *newline, int closefd)
 {
     PyObject *io, *stream;
+    _Py_IDENTIFIER(open);
 
     io = PyImport_ImportModule("io");
     if (io == NULL)
         return NULL;
-    stream = PyObject_CallMethod(io, "open", "isisssi", fd, mode,
+    stream = _PyObject_CallMethodId(io, &PyId_open, "isisssi", fd, mode,
                                  buffering, encoding, errors,
                                  newline, closefd);
     Py_DECREF(io);
@@ -58,8 +59,9 @@ PyFile_GetLine(PyObject *f, int n)
     {
         PyObject *reader;
         PyObject *args;
+        _Py_IDENTIFIER(readline);
 
-        reader = PyObject_GetAttrString(f, "readline");
+        reader = _PyObject_GetAttrId(f, &PyId_readline);
         if (reader == NULL)
             return NULL;
         if (n <= 0)
@@ -103,23 +105,18 @@ PyFile_GetLine(PyObject *f, int n)
         }
     }
     if (n < 0 && result != NULL && PyUnicode_Check(result)) {
-        Py_UNICODE *s = PyUnicode_AS_UNICODE(result);
-        Py_ssize_t len = PyUnicode_GET_SIZE(result);
+        Py_ssize_t len = PyUnicode_GET_LENGTH(result);
         if (len == 0) {
             Py_DECREF(result);
             result = NULL;
             PyErr_SetString(PyExc_EOFError,
                             "EOF when reading a line");
         }
-        else if (s[len-1] == '\n') {
-            if (result->ob_refcnt == 1)
-                PyUnicode_Resize(&result, len-1);
-            else {
-                PyObject *v;
-                v = PyUnicode_FromUnicode(s, len-1);
-                Py_DECREF(result);
-                result = v;
-            }
+        else if (PyUnicode_READ_CHAR(result, len-1) == '\n') {
+            PyObject *v;
+            v = PyUnicode_Substring(result, 0, len-1);
+            Py_DECREF(result);
+            result = v;
         }
     }
     return result;
@@ -131,11 +128,13 @@ int
 PyFile_WriteObject(PyObject *v, PyObject *f, int flags)
 {
     PyObject *writer, *value, *args, *result;
+    _Py_IDENTIFIER(write);
+
     if (f == NULL) {
         PyErr_SetString(PyExc_TypeError, "writeobject with NULL file");
         return -1;
     }
-    writer = PyObject_GetAttrString(f, "write");
+    writer = _PyObject_GetAttrId(f, &PyId_write);
     if (writer == NULL)
         return -1;
     if (flags & Py_PRINT_RAW) {
@@ -187,9 +186,9 @@ PyFile_WriteString(const char *s, PyObject *f)
 }
 
 /* Try to get a file-descriptor from a Python object.  If the object
-   is an integer or long integer, its value is returned.  If not, the
+   is an integer, its value is returned.  If not, the
    object's fileno() method is called if it exists; the method must return
-   an integer or long integer, which is returned as the file descriptor value.
+   an integer, which is returned as the file descriptor value.
    -1 is returned on failure.
 */
 
@@ -198,11 +197,12 @@ PyObject_AsFileDescriptor(PyObject *o)
 {
     int fd;
     PyObject *meth;
+    _Py_IDENTIFIER(fileno);
 
     if (PyLong_Check(o)) {
         fd = _PyLong_AsInt(o);
     }
-    else if ((meth = PyObject_GetAttrString(o, "fileno")) != NULL)
+    else if ((meth = _PyObject_GetAttrId(o, &PyId_fileno)) != NULL)
     {
         PyObject *fno = PyEval_CallObject(meth, NULL);
         Py_DECREF(meth);
@@ -297,8 +297,8 @@ Py_UniversalNewlineFgets(char *buf, int n, FILE *stream, PyObject *fobj)
         *p++ = c;
         if (c == '\n') break;
     }
-    if ( c == EOF && skipnextlf )
-        newlinetypes |= NEWLINE_CR;
+    /* if ( c == EOF && skipnextlf )
+        newlinetypes |= NEWLINE_CR; */
     FUNLOCKFILE(stream);
     *p = '\0';
     if ( skipnextlf ) {
@@ -390,7 +390,7 @@ stdprinter_write(PyStdPrinter_Object *self, PyObject *args)
 
     Py_BEGIN_ALLOW_THREADS
     errno = 0;
-#if defined(MS_WIN64) || defined(MS_WINDOWS)
+#ifdef MS_WINDOWS
     if (n > INT_MAX)
         n = INT_MAX;
     n = write(self->fd, c, (int)n);

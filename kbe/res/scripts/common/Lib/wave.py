@@ -18,7 +18,7 @@ This returns an instance of a class with the following public methods:
       getcomptype()   -- returns compression type ('NONE' for linear samples)
       getcompname()   -- returns human-readable version of
                          compression type ('not compressed' linear samples)
-      getparams()     -- returns a tuple consisting of all of the
+      getparams()     -- returns a namedtuple consisting of all of the
                          above in the above order
       getmarkers()    -- returns None (for compatibility with the
                          aifc module)
@@ -80,16 +80,16 @@ class Error(Exception):
 
 WAVE_FORMAT_PCM = 0x0001
 
-_array_fmts = None, 'b', 'h', None, 'l'
+_array_fmts = None, 'b', 'h', None, 'i'
 
-# Determine endian-ness
+import audioop
 import struct
-if struct.pack("h", 1) == b"\000\001":
-    big_endian = 1
-else:
-    big_endian = 0
-
+import sys
 from chunk import Chunk
+from collections import namedtuple
+
+_wave_params = namedtuple('_wave_params',
+                     'nchannels sampwidth framerate nframes comptype compname')
 
 class Wave_read:
     """Variables used in this class:
@@ -168,6 +168,13 @@ class Wave_read:
 
     def __del__(self):
         self.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
     #
     # User visible methods.
     #
@@ -206,9 +213,9 @@ class Wave_read:
         return self._compname
 
     def getparams(self):
-        return self.getnchannels(), self.getsampwidth(), \
-               self.getframerate(), self.getnframes(), \
-               self.getcomptype(), self.getcompname()
+        return _wave_params(self.getnchannels(), self.getsampwidth(),
+                       self.getframerate(), self.getnframes(),
+                       self.getcomptype(), self.getcompname())
 
     def getmarkers(self):
         return None
@@ -231,26 +238,9 @@ class Wave_read:
             self._data_seek_needed = 0
         if nframes == 0:
             return b''
-        if self._sampwidth > 1 and big_endian:
-            # unfortunately the fromfile() method does not take
-            # something that only looks like a file object, so
-            # we have to reach into the innards of the chunk object
-            import array
-            chunk = self._data_chunk
-            data = array.array(_array_fmts[self._sampwidth])
-            nitems = nframes * self._nchannels
-            if nitems * self._sampwidth > chunk.chunksize - chunk.size_read:
-                nitems = (chunk.chunksize - chunk.size_read) // self._sampwidth
-            data.fromfile(chunk.file.file, nitems)
-            # "tell" data chunk how much was read
-            chunk.size_read = chunk.size_read + nitems * self._sampwidth
-            # do the same for the outermost chunk
-            chunk = chunk.file
-            chunk.size_read = chunk.size_read + nitems * self._sampwidth
-            data.byteswap()
-            data = data.tobytes()
-        else:
-            data = self._data_chunk.read(nframes * self._framesize)
+        data = self._data_chunk.read(nframes * self._framesize)
+        if self._sampwidth != 1 and sys.byteorder == 'big':
+            data = audioop.byteswap(data, self._sampwidth)
         if self._convert and data:
             data = self._convert(data)
         self._soundpos = self._soundpos + len(data) // (self._nchannels * self._sampwidth)
@@ -322,6 +312,12 @@ class Wave_write:
         self._headerwritten = False
 
     def __del__(self):
+        self.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
         self.close()
 
     #
@@ -398,8 +394,8 @@ class Wave_write:
     def getparams(self):
         if not self._nchannels or not self._sampwidth or not self._framerate:
             raise Error('not all parameters set')
-        return self._nchannels, self._sampwidth, self._framerate, \
-              self._nframes, self._comptype, self._compname
+        return _wave_params(self._nchannels, self._sampwidth, self._framerate,
+              self._nframes, self._comptype, self._compname)
 
     def setmark(self, id, pos, name):
         raise Error('setmark() not supported')
@@ -414,19 +410,16 @@ class Wave_write:
         return self._nframeswritten
 
     def writeframesraw(self, data):
+        if not isinstance(data, (bytes, bytearray)):
+            data = memoryview(data).cast('B')
         self._ensure_header_written(len(data))
         nframes = len(data) // (self._sampwidth * self._nchannels)
         if self._convert:
             data = self._convert(data)
-        if self._sampwidth > 1 and big_endian:
-            import array
-            data = array.array(_array_fmts[self._sampwidth], data)
-            data.byteswap()
-            data.tofile(self._file)
-            self._datawritten = self._datawritten + len(data) * self._sampwidth
-        else:
-            self._file.write(data)
-            self._datawritten = self._datawritten + len(data)
+        if self._sampwidth != 1 and sys.byteorder == 'big':
+            data = audioop.byteswap(data, self._sampwidth)
+        self._file.write(data)
+        self._datawritten += len(data)
         self._nframeswritten = self._nframeswritten + nframes
 
     def writeframes(self, data):
@@ -436,11 +429,13 @@ class Wave_write:
 
     def close(self):
         if self._file:
-            self._ensure_header_written(0)
-            if self._datalength != self._datawritten:
-                self._patchheader()
-            self._file.flush()
-            self._file = None
+            try:
+                self._ensure_header_written(0)
+                if self._datalength != self._datawritten:
+                    self._patchheader()
+                self._file.flush()
+            finally:
+                self._file = None
         if self._i_opened_the_file:
             self._i_opened_the_file.close()
             self._i_opened_the_file = None
@@ -465,14 +460,18 @@ class Wave_write:
         if not self._nframes:
             self._nframes = initlength // (self._nchannels * self._sampwidth)
         self._datalength = self._nframes * self._nchannels * self._sampwidth
-        self._form_length_pos = self._file.tell()
+        try:
+            self._form_length_pos = self._file.tell()
+        except (AttributeError, OSError):
+            self._form_length_pos = None
         self._file.write(struct.pack('<L4s4sLHHLLHH4s',
             36 + self._datalength, b'WAVE', b'fmt ', 16,
             WAVE_FORMAT_PCM, self._nchannels, self._framerate,
             self._nchannels * self._framerate * self._sampwidth,
             self._nchannels * self._sampwidth,
             self._sampwidth * 8, b'data'))
-        self._data_length_pos = self._file.tell()
+        if self._form_length_pos is not None:
+            self._data_length_pos = self._file.tell()
         self._file.write(struct.pack('<L', self._datalength))
         self._headerwritten = True
 

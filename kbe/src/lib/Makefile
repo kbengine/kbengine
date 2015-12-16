@@ -1,4 +1,3 @@
-
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/lib,,$(CURDIR))
 endif
@@ -21,10 +20,24 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
+	cd dependencies/hiredis && $(MAKE) $@
+	cd dependencies/zip && $(MAKE) $@
+	cd dependencies/g3dlite && $(MAKE) $@
+	cd dependencies/tinyxml && $(MAKE) $@
+	cd dependencies/sigar/linux && $(MAKE) $@
+	cd dependencies/tmxparser && $(MAKE) $@
+	cd dependencies/jwsmtp/jwsmtp/jwsmtp && $(MAKE) $@
+	cd dependencies/jemalloc && $(MAKE) $@
+	cd dependencies/apr && $(MAKE) $@
+	cd dependencies/expat && $(MAKE) $@
+	cd dependencies/apr-util && $(MAKE) $@
+	cd dependencies/log4cxx && $(MAKE) $@
+	cd python && $(MAKE) $@
 	cd client_lib && $(MAKE) $@
-	cd cstdkbe && $(MAKE) $@
+	cd common && $(MAKE) $@
+	cd db_redis && $(MAKE) $@
 	cd db_mysql && $(MAKE) $@
-	cd dbmgr_lib && $(MAKE) $@
+	cd db_interface && $(MAKE) $@
 	cd entitydef && $(MAKE) $@
 	cd math && $(MAKE) $@
 	cd resmgr && $(MAKE) $@
@@ -34,58 +47,5 @@ all install clean full:
 	cd network && $(MAKE) $@
 	cd helper && $(MAKE) $@
 	cd thread && $(MAKE) $@
-	cd xmlplus && $(MAKE) $@
-	cd third_party/zip && $(MAKE) $@
-	cd third_party/g3dlite && $(MAKE) $@
-	cd third_party/tinyxml && $(MAKE) $@
-	cd third_party/sigar/linux && $(MAKE) $@
-	cd third_party/jsoncpp/src/lib_json && $(MAKE) $@
-	cd third_party/tmxparser && $(MAKE) $@
+	cd xml && $(MAKE) $@
 
-UNITTEST_LIBS = cstdkbe \
-				entitydef \
-				math \
-				resmgr \
-				pyscript \
-				helper \
-				thread \
-				network \
-				thread	\
-				jsoncpp	\
-				tmxparser \
-
-
-unit_tests: unit_tests_build unit_tests_run
-
-unit_tests_build:
-	# Build the unit tests
-	@for i in $(UNITTEST_LIBS); do		\
-        $(MAKE) -C $$i/unit_test;		\
-		if [ $$? != 0 ]; then			\
-			exit 1;						\
-		fi								\
-     done
-
-unit_tests_run:
-	# Run the unit tests
-	@for i in $(UNITTEST_LIBS); do			\
-        echo "Running unit test:" $$i ;		\
-        $(MAKE) -s -C $$i/unit_test run;	\
-		if [ $$? != 0 ]; then				\
-			exit 1;							\
-		fi									\
-     done
-
-
-unit_tests_clean:
-	$(MAKE) -C unit_test_lib clean
-	# Clean the unit tests
-	@for i in $(UNITTEST_LIBS); do			\
-        $(MAKE) -C $$i/unit_test clean;		\
-		if [ $$? != 0 ]; then				\
-			exit 1;							\
-		fi									\
-     done
-
-version kbeversion kbe_version:
-	@$(MAKE) -s -C server $@

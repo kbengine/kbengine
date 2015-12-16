@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "method.hpp"
-#include "entitydef.hpp"
-#include "network/bundle.hpp"
+#include "method.h"
+#include "entitydef.h"
+#include "network/bundle.h"
 
 #ifndef CODE_INLINE
-#include "method.ipp"
+#include "method.inl"
 #endif
 
 namespace KBEngine{
@@ -53,9 +53,17 @@ aliasID_(-1)
 MethodDescription::~MethodDescription()
 {
 	std::vector<DataType*>::iterator iter = argTypes_.begin();
-	for(; iter != argTypes_.end(); iter++)
+	for(; iter != argTypes_.end(); ++iter)
 		(*iter)->decRef();
+
 	argTypes_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+void MethodDescription::setExposed(void)
+{ 
+	isExposed_ = true; 
+	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -72,6 +80,7 @@ bool MethodDescription::pushArgType(DataType* dataType)
 
 	DATATYPE_UID uid = dataType->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
+	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
 	return true;
 }
 
@@ -127,7 +136,7 @@ bool MethodDescription::checkArgs(PyObject* args)
 		}
 	}	
 	
-	for(uint8 i=0; i <argsSize; i++)
+	for(uint8 i=0; i <argsSize; ++i)
 	{
 		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
 		if (!argTypes_[i]->isSameType(pyArg))
@@ -156,7 +165,16 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	int offset = 0;
 
 	// 将utype放进去，方便对端识别这个方法
-	(*mstream) << utype_;
+	// 这里如果aliasID_大于0则采用一个优化的办法， 使用1字节传输
+	if(aliasID_ < 0)
+	{
+		(*mstream) << utype_;
+	}
+	else
+	{
+		uint8 utype = (uint8)aliasID_;
+		(*mstream) << utype;
+	}
 
 	// 如果是exposed方法则先将entityID打包进去
 	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
@@ -167,7 +185,7 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	}
 
 	// 将每一个参数添加到流中
-	for(uint8 i=0; i <argsSize; i++)
+	for(uint8 i=0; i <argsSize; ++i)
 	{
 		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
 		argTypes_[i]->addToStream(mstream, pyArg);
@@ -188,22 +206,22 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 
 		// 设置一个调用者ID提供给脚本判断来源是否正确
 		KBE_ASSERT(currCallerID_ > 0);
-		PyTuple_SET_ITEM(&*pyArgsTuple, 0, PyLong_FromLong(currCallerID_));
+		PyTuple_SET_ITEM(pyArgsTuple, 0, PyLong_FromLong(currCallerID_));
 	}
 	else
 		pyArgsTuple = PyTuple_New(argSize);
 
-	for(size_t index=0; index<argSize; index++)
+	for(size_t index=0; index<argSize; ++index)
 	{
 		PyObject* pyitem = argTypes_[index]->createFromStream(mstream);
 
 		if(pyitem == NULL)
 		{
-			WARNING_MSG(boost::format("MethodDescription::createFromStream:%1% arg[%2%][%3%] is NULL.\n") % 
-				this->getName() % index % argTypes_[index]->getName());
+			WARNING_MSG(fmt::format("MethodDescription::createFromStream: {} arg[{}][{}] is NULL.\n", 
+				this->getName(), index, argTypes_[index]->getName()));
 		}
 
-		PyTuple_SET_ITEM(&*pyArgsTuple, index + offset, pyitem);
+		PyTuple_SET_ITEM(pyArgsTuple, index + offset, pyitem);
 	}
 	
 	return pyArgsTuple;
@@ -221,17 +239,31 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 	PyObject* pyResult = NULL;
 	if (!PyCallable_Check(func))
 	{
-		PyErr_Format(PyExc_TypeError, "MethodDescription::call: Script[%s] call attempted on a error object!", 
+		PyErr_Format(PyExc_TypeError, "MethodDescription::call: method[%s] call attempted on a error object!", 
 			getName());
 	}
 	else
 	{
-		if(checkArgs(args))
-			pyResult = PyObject_CallObject(func, args);
+		if(args == NULL)
+		{
+			pyResult = PyObject_CallObject(func, NULL);
+		}
+		else
+		{
+			if(checkArgs(args))
+				pyResult = PyObject_CallObject(func, args);
+		}
 	}
 
- 	if (PyErr_Occurred())
- 	{
+	if (PyErr_Occurred())
+	{
+		if (isExposed() && PyErr_ExceptionMatches(PyExc_TypeError))
+		{
+			WARNING_MSG(fmt::format("MethodDescription::call: {} is method of exposed, if there is a missing arguments error, "
+				"try adding exposedID, For example: \ndef func(msg): => def func(exposedID, msg):\n",
+				this->getName()));
+		}
+
 		PyErr_PrintEx(0);
 	}
 

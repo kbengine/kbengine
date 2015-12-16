@@ -23,6 +23,8 @@ def cleanout(root):
 def fixdir(lst):
     if "__builtins__" in lst:
         lst.remove("__builtins__")
+    if "__initializing__" in lst:
+        lst.remove("__initializing__")
     return lst
 
 
@@ -196,14 +198,15 @@ class TestPkg(unittest.TestCase):
 
         import t5
         self.assertEqual(fixdir(dir(t5)),
-                         ['__cached__', '__doc__', '__file__', '__name__',
-                          '__package__', '__path__', 'foo', 'string', 't5'])
+                         ['__cached__', '__doc__', '__file__', '__loader__',
+                          '__name__', '__package__', '__path__', '__spec__',
+                          'foo', 'string', 't5'])
         self.assertEqual(fixdir(dir(t5.foo)),
-                         ['__cached__', '__doc__', '__file__', '__name__',
-                          '__package__', 'string'])
+                         ['__cached__', '__doc__', '__file__', '__loader__',
+                          '__name__', '__package__', '__spec__', 'string'])
         self.assertEqual(fixdir(dir(t5.string)),
-                         ['__cached__', '__doc__', '__file__', '__name__',
-                          '__package__', 'spam'])
+                         ['__cached__', '__doc__', '__file__', '__loader__',
+                          '__name__', '__package__', '__spec__', 'spam'])
 
     def test_6(self):
         hier = [
@@ -219,14 +222,15 @@ class TestPkg(unittest.TestCase):
         import t6
         self.assertEqual(fixdir(dir(t6)),
                          ['__all__', '__cached__', '__doc__', '__file__',
-                          '__name__', '__package__', '__path__'])
+                          '__loader__', '__name__', '__package__', '__path__',
+                          '__spec__'])
         s = """
             import t6
             from t6 import *
             self.assertEqual(fixdir(dir(t6)),
                              ['__all__', '__cached__', '__doc__', '__file__',
-                              '__name__', '__package__', '__path__',
-                              'eggs', 'ham', 'spam'])
+                              '__loader__', '__name__', '__package__',
+                              '__path__', '__spec__', 'eggs', 'ham', 'spam'])
             self.assertEqual(dir(), ['eggs', 'ham', 'self', 'spam', 't6'])
             """
         self.run_code(s)
@@ -252,19 +256,20 @@ class TestPkg(unittest.TestCase):
         t7, sub, subsub = None, None, None
         import t7 as tas
         self.assertEqual(fixdir(dir(tas)),
-                         ['__cached__', '__doc__', '__file__', '__name__',
-                          '__package__', '__path__'])
+                         ['__cached__', '__doc__', '__file__', '__loader__',
+                          '__name__', '__package__', '__path__', '__spec__'])
         self.assertFalse(t7)
         from t7 import sub as subpar
         self.assertEqual(fixdir(dir(subpar)),
-                         ['__cached__', '__doc__', '__file__', '__name__',
-                          '__package__', '__path__'])
+                         ['__cached__', '__doc__', '__file__', '__loader__',
+                          '__name__', '__package__', '__path__', '__spec__'])
         self.assertFalse(t7)
         self.assertFalse(sub)
         from t7.sub import subsub as subsubsub
         self.assertEqual(fixdir(dir(subsubsub)),
-                         ['__cached__', '__doc__', '__file__', '__name__',
-                         '__package__', '__path__', 'spam'])
+                         ['__cached__', '__doc__', '__file__', '__loader__',
+                          '__name__', '__package__', '__path__', '__spec__',
+                          'spam'])
         self.assertFalse(t7)
         self.assertFalse(sub)
         self.assertFalse(subsub)

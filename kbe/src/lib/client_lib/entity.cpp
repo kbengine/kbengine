@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,19 +19,22 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "clientapp.hpp"
-#include "entity.hpp"
-#include "clientobjectbase.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "network/channel.hpp"	
-#include "network/bundle.hpp"	
-#include "network/fixed_messages.hpp"
+#include "clientapp.h"
+#include "entity.h"
+#include "config.h"
+#include "clientobjectbase.h"
+#include "moveto_point_handler.h"	
+#include "entitydef/entity_mailbox.h"
+#include "network/channel.h"	
+#include "network/bundle.h"	
+#include "network/fixed_messages.h"
+#include "pyscript/py_gc.h"
 
-#include "../../../server/baseapp/baseapp_interface.hpp"
-#include "../../../server/cellapp/cellapp_interface.hpp"
+#include "../../../server/baseapp/baseapp_interface.h"
+#include "../../../server/cellapp/cellapp_interface.h"
 
 #ifndef CODE_INLINE
-#include "entity.ipp"
+#include "entity.inl"
 #endif
 
 namespace KBEngine{
@@ -39,24 +42,26 @@ namespace client
 {
 
 //-------------------------------------------------------------------------------------
-ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
-ENTITY_METHOD_DECLARE_END()
+CLIENT_ENTITY_METHOD_DECLARE_BEGIN(ClientApp, Entity)
+SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("cancelController",			pyCancelController,				METH_VARARGS,				0)
+CLIENT_ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
-ENTITY_GETSET_DECLARE_BEGIN(Entity)
+CLIENT_ENTITY_GETSET_DECLARE_BEGIN(Entity)
 SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
 SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
 SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("velocity",					pyGetMoveSpeed,					pySetMoveSpeed,		0,		0)
-ENTITY_GETSET_DECLARE_END()
+CLIENT_ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox* base, EntityMailbox* cell):
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityMailbox* base, EntityMailbox* cell):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
 cellMailbox_(cell),
@@ -67,23 +72,45 @@ direction_(),
 pClientApp_(NULL),
 aspect_(id),
 velocity_(3.0f),
-enterword_(false),
-isOnGound_(true)
+enterworld_(false),
+isOnGround_(true),
+pMoveHandlerID_(0)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
+	script::PyGC::incTracing("Entity");
 }
 
 //-------------------------------------------------------------------------------------
 Entity::~Entity()
 {
-	enterword_ = false;
+	enterworld_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
+	S_RELEASE(cellMailbox_);
+	S_RELEASE(baseMailbox_);
+
+	script::PyGC::decTracing("Entity");
+	
+	if(pClientApp_->pEntities())
+		pClientApp_->pEntities()->pGetbages()->erase(id());
+
+	Py_DECREF(pClientApp_);
 }	
+
+//-------------------------------------------------------------------------------------
+void Entity::pClientApp(ClientObjectBase* p)
+{ 
+	if(p)
+		Py_INCREF(p);
+	else
+		Py_DECREF(pClientApp_);
+
+	pClientApp_ = p; 
+}
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetBaseMailbox()
 { 
-	EntityMailbox* mailbox = getBaseMailbox();
+	EntityMailbox* mailbox = baseMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -94,7 +121,7 @@ PyObject* Entity::pyGetBaseMailbox()
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetCellMailbox()
 { 
-	EntityMailbox* mailbox = getCellMailbox();
+	EntityMailbox* mailbox = cellMailbox();
 	if(mailbox == NULL)
 		S_Return;
 
@@ -114,37 +141,73 @@ PyObject* Entity::pyGetClientApp()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Entity::onScriptGetAttribute(PyObject* attr)
+{
+	DEBUG_OP_ATTRIBUTE("get", attr)
+	return ScriptObject::onScriptGetAttribute(attr);
+}	
+
+//-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onRemoteMethodCall(Mercury::Channel* pChannel, MemoryStream& s)
+void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_METHOD_UID utype = 0;
-	s >> utype;
 	
-	DEBUG_MSG(boost::format("Entity::onRemoteMethodCall: entityID %1%, methodType %2%.\n") % 
-				id_ % utype);
+	MethodDescription* pMethodDescription = NULL;
 	
-	MethodDescription* md = scriptModule_->findClientMethodDescription(utype);
-	
-	if(md == NULL)
+	if(pScriptModule_->useMethodDescrAlias())
 	{
-		ERROR_MSG(boost::format("Entity::onRemoteMethodCall: can't found method. utype=%1%, callerID:%2%.\n") % 
-			utype % id_);
+		ENTITY_DEF_ALIASID aliasID;
+		s >> aliasID;
+		pMethodDescription = pScriptModule_->findAliasMethodDescription(aliasID);
+		utype = aliasID;
+	}
+	else
+	{
+		s >> utype;
+		pMethodDescription = pScriptModule_->findClientMethodDescription(utype);
+	}
+
+	if(pMethodDescription == NULL)
+	{
+		ERROR_MSG(fmt::format("Entity::onRemoteMethodCall: can't found method. utype={}, callerID:{}.\n", 
+			utype, id_));
 
 		return;
 	}
 
-	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName()));
-
-	if(md != NULL)
+	if(g_debugEntity)
 	{
-		PyObject* pyargs = md->createFromStream(&s);
-		md->call(pyFunc, pyargs);
-		Py_DECREF(pyargs);
+		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: entityID {}, methodType {}.\n", 
+				id_, utype));
+	}
+
+	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
+						(pMethodDescription->getName()));
+
+	if(pMethodDescription != NULL)
+	{
+		if(pMethodDescription->getArgSize() == 0)
+		{
+			pMethodDescription->call(pyFunc, NULL);
+		}
+		else
+		{
+			PyObject* pyargs = pMethodDescription->createFromStream(&s);
+			if(pyargs)
+			{
+				pMethodDescription->call(pyFunc, pyargs);
+				Py_DECREF(pyargs);
+			}
+			else
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+		}
 	}
 	
 	Py_XDECREF(pyFunc);
@@ -158,24 +221,43 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
-	Mercury::FixedMessages::MSGInfo* msgInfo =
-				Mercury::FixedMessages::getSingleton().isFixed("Property::position");
+	if(!pScriptModule_->usePropertyDescrAlias())
+	{
+		Network::FixedMessages::MSGInfo* msgInfo =
+					Network::FixedMessages::getSingleton().isFixed("Property::position");
 
-	if(msgInfo != NULL)
-		posuid = msgInfo->msgid;
+		if(msgInfo != NULL)
+			posuid = msgInfo->msgid;
 
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::direction");
-	if(msgInfo != NULL)
-		diruid = msgInfo->msgid;
+		msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");
+		if(msgInfo != NULL)
+			diruid = msgInfo->msgid;
 
-	msgInfo = Mercury::FixedMessages::getSingleton().isFixed("Property::spaceID");
-	if(msgInfo != NULL)
-		spaceuid = msgInfo->msgid;
+		msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		if(msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+	}
+	else
+	{
+		posuid = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
+		diruid = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
+		spaceuid = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+	}
 
-	while(s.opsize() > 0)
+	while(s.length() > 0)
 	{
 		ENTITY_PROPERTY_UID uid;
-		s >> uid;
+		uint8 aliasID = 0;
+
+		if(pScriptModule_->usePropertyDescrAlias())
+		{
+			s >> aliasID;
+			uid = aliasID;
+		}
+		else
+		{
+			s >> uid;
+		}
 
 		// 如果是位置或者朝向信息则
 		if(uid == posuid)
@@ -193,7 +275,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 #else
 			s >> size >> pos.x >> pos.y >> pos.z;
 #endif
-			setPosition(pos);
+			position(pos);
 			continue;
 		}
 		else if(uid == diruid)
@@ -216,21 +298,27 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			dir.roll(roll);
 #endif
 
-			setDirection(dir);
+			direction(dir);
 			continue;
 		}
 		else if(uid == spaceuid)
 		{
-			SPACE_ID spaceID;
-			s >> spaceID;
-			setSpaceID(spaceID);
+			SPACE_ID ispaceID;
+			s >> ispaceID;
+			spaceID(ispaceID);
 			continue;
 		}
 
-		PropertyDescription* pPropertyDescription = getScriptModule()->findClientPropertyDescription(uid);
+		PropertyDescription* pPropertyDescription = NULL;
+		
+		if(pScriptModule_->usePropertyDescrAlias())
+			pPropertyDescription = pScriptModule()->findAliasPropertyDescription(aliasID);
+		else
+			pPropertyDescription = pScriptModule()->findClientPropertyDescription(uid);
+
 		if(pPropertyDescription == NULL)
 		{
-			ERROR_MSG(boost::format("Entity::onUpdatePropertys: not found %1%\n") % uid);
+			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found {}\n", uid));
 			return;
 		}
 
@@ -252,7 +340,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB(void* data)
+void Entity::writeToDB(void* data, void* extra1, void* extra2)
 {
 }
 
@@ -262,7 +350,7 @@ int Entity::pySetPosition(PyObject *value)
 	if(!script::ScriptVector3::check(value))
 		return -1;
 
-	script::ScriptVector3::convertPyObjectToVector3(getPosition(), value);
+	script::ScriptVector3::convertPyObjectToVector3(position(), value);
 	onPositionChanged();
 	return 0;
 }
@@ -270,13 +358,13 @@ int Entity::pySetPosition(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetPosition()
 {
-	return new script::ScriptVector3(&getPosition(), NULL);
+	return new script::ScriptVector3(&position(), NULL);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onPositionChanged()
 {
-	if(pClientApp_->entityID() == this->getID())
+	if(pClientApp_->entityID() == this->id())
 		return;
 
 	EventData_PositionChanged eventdata;
@@ -285,7 +373,7 @@ void Entity::onPositionChanged()
 	eventdata.z = position_.z;
 	eventdata.speed = velocity_;
 	
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -308,7 +396,7 @@ int Entity::pySetDirection(PyObject *value)
 		return -1;
 	}
 
-	Direction3D& dir = getDirection();
+	Direction3D& dir = direction();
 	PyObject* pyItem = PySequence_GetItem(value, 0);
 	dir.roll(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
@@ -326,20 +414,20 @@ int Entity::pySetDirection(PyObject *value)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyGetDirection()
 {
-	return new script::ScriptVector3(&getDirection().dir, NULL);
+	return new script::ScriptVector3(&direction().dir, NULL);
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onDirectionChanged()
 {
-	if(pClientApp_->entityID() == this->getID())
+	if(pClientApp_->entityID() == this->id())
 		return;
 
 	EventData_DirectionChanged eventdata;
 	eventdata.yaw = direction_.yaw();
 	eventdata.pitch = direction_.pitch();
 	eventdata.roll = direction_.roll();
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -347,7 +435,7 @@ void Entity::onDirectionChanged()
 //-------------------------------------------------------------------------------------
 int Entity::pySetMoveSpeed(PyObject *value)
 {
-	setMoveSpeed((float)PyFloat_AsDouble(value));
+	moveSpeed((float)PyFloat_AsDouble(value));
 	return 0;
 }
 
@@ -362,7 +450,7 @@ void Entity::onMoveSpeedChanged()
 {
 	EventData_MoveSpeedChanged eventdata;
 	eventdata.speed = velocity_;
-	eventdata.pEntity = getAspect();
+	eventdata.entityID = id();
 
 	pClientApp_->fireEvent(&eventdata);
 }
@@ -371,16 +459,32 @@ void Entity::onMoveSpeedChanged()
 void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	enterword_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("enterWorld"));
+	enterworld_ = true;
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onLeaveWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	enterword_ = false;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("leaveWorld"));
+	enterworld_ = false;
+	spaceID(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onEnterSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onLeaveSpace()
+{
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	spaceID(0);
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -390,7 +494,7 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
+void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID)
 {
 }
 
@@ -398,10 +502,10 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream)
 void Entity::onBecomePlayer()
 {
 	std::string moduleName = "Player";
-	moduleName += this->scriptModule_->getName();
+	moduleName += this->pScriptModule_->getName();
 
 	PyObject* pyModule = 
-		PyImport_ImportModule(const_cast<char*>(this->scriptModule_->getName()));
+		PyImport_ImportModule(const_cast<char*>(this->pScriptModule_->getName()));
 
 	if(pyModule == NULL)
 	{
@@ -415,6 +519,7 @@ void Entity::onBecomePlayer()
 		if(pyClass == NULL)
 		{
 			SCRIPT_ERROR_CHECK();
+			ERROR_MSG(fmt::format("{}::onBecomePlayer(): please implement {}.\n", this->pScriptModule_->getName(), moduleName));
 		}
 		else
 		{
@@ -432,11 +537,203 @@ void Entity::onBecomePlayer()
 //-------------------------------------------------------------------------------------
 void Entity::onBecomeNonPlayer()
 {
-	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->scriptModule_->getScriptType());
-	SCRIPT_ERROR_CHECK();
-
+	if(!enterworld_)
+		return;
+	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomeNonPlayer"));
+
+	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->pScriptModule_->getScriptType());
+	SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::stopMove()
+{
+	if(pMoveHandlerID_ > 0)
+	{
+		pClientApp_->scriptCallbacks().delCallback(pMoveHandlerID_);
+		pMoveHandlerID_ = 0;
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Entity::moveToPoint(const Position3D& destination, float velocity, float distance, PyObject* userData, 
+						 bool faceMovement, bool moveVertically)
+{
+	stopMove();
+
+	int hertz = 0;
+	if(g_componentType == BOTS_TYPE)
+		hertz = g_kbeSrvConfig.gameUpdateHertz();
+	else
+		hertz = Config::getSingleton().gameUpdateHertz();
+
+	velocity = velocity / hertz;
+
+	pMoveHandlerID_ = pClientApp_->scriptCallbacks().addCallback(0.0f, 0.1f, new MoveToPointHandler(pClientApp_->scriptCallbacks(), this, 0, destination, velocity, 
+		distance, faceMovement, moveVertically, userData));
+
+	return pMoveHandlerID_;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, float distance, PyObject_ptr userData,
+								 int32 faceMovement, int32 moveVertically)
+{
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::moveToPoint: %d is destroyed!\n",		
+			scriptName(), id());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Position3D destination;
+
+	if(!PySequence_Check(pyDestination))
+	{
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) not is PySequence!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PySequence_Size(pyDestination) != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::moveToPoint: args1(position) invalid!", scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+	Py_INCREF(userData);
+
+	return PyLong_FromLong(moveToPoint(destination, velocity, distance, userData, faceMovement > 0, moveVertically > 0));
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg)
+{
+	if(this->isDestroyed())
+		return;
+
+	AUTO_SCOPED_PROFILE("onMove");
+
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
+		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos, PyObject* userarg)
+{
+	if(this->isDestroyed())
+		return;
+
+	stopMove();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
+		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
+{
+	if(this->isDestroyed())
+		return;
+
+	stopMove();
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
+		const_cast<char*>("IO"), controllerId, userarg);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::cancelController(uint32 id)
+{
+	if(this->isDestroyed())
+	{
+		return;
+	}
+
+	// 暂时只有回调, 主要是因为用在了移动中，当前可能不是非常合适
+	if(id == (uint32)pMoveHandlerID_)
+		this->stopMove();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
+{
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+
+	uint32 id = 0;
+	PyObject* pyargobj = NULL;
+
+	if(currargsSize != 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::cancel: args require 1 args(controllerID|int or \"Movement\"|str), gived %d! is script[%s].\n",								
+			pobj->scriptName(), currargsSize);														
+																																
+		PyErr_PrintEx(0);																										
+		return 0;																								
+	}
+
+	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	if(pyargobj == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(PyUnicode_Check(pyargobj))
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyargobj, NULL);
+		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		
+		if(strcmp(s, "Movement") == 0)
+		{
+			pobj->stopMove();
+		}
+		else
+		{
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args not is \"Movement\"!", pobj->scriptName());
+			PyErr_PrintEx(0);
+			free(s);
+			return 0;
+		}
+
+		free(s);
+
+		S_Return;
+	}
+	else
+	{
+		if(!PyLong_Check(pyargobj))
+		{
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int) is error!", pobj->scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		id = PyLong_AsLong(pyargobj);
+	}
+
+	pobj->cancelController(id);
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

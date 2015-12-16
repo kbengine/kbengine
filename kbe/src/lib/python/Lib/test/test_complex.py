@@ -101,7 +101,6 @@ class ComplexTest(unittest.TestCase):
         # FIXME: The following currently crashes on Alpha
         # self.assertRaises(OverflowError, pow, 1e200+1j, 1e200+1j)
 
-    def test_truediv(self):
         self.assertAlmostEqual(complex.__truediv__(2+0j, 1+1j), 1-1j)
         self.assertRaises(ZeroDivisionError, complex.__truediv__, 1+1j, 0+0j)
 
@@ -221,6 +220,8 @@ class ComplexTest(unittest.TestCase):
         self.assertRaises(TypeError, complex, OS(None))
         self.assertRaises(TypeError, complex, NS(None))
         self.assertRaises(TypeError, complex, {})
+        self.assertRaises(TypeError, complex, NS(1.5))
+        self.assertRaises(TypeError, complex, NS(1))
 
         self.assertAlmostEqual(complex("1+10j"), 1+10j)
         self.assertAlmostEqual(complex(10), 10+0j)
@@ -302,6 +303,7 @@ class ComplexTest(unittest.TestCase):
         self.assertRaises(TypeError, float, 5+3j)
         self.assertRaises(ValueError, complex, "")
         self.assertRaises(TypeError, complex, None)
+        self.assertRaisesRegex(TypeError, "not 'NoneType'", complex, None)
         self.assertRaises(ValueError, complex, "\0")
         self.assertRaises(ValueError, complex, "3\09")
         self.assertRaises(TypeError, complex, "1", "2")

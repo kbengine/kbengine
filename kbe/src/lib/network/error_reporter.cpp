@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,23 +19,23 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "error_reporter.hpp"
+#include "error_reporter.h"
 #ifndef CODE_INLINE
-#include "error_reporter.ipp"
+#include "error_reporter.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/endpoint.hpp"
+#include "network/address.h"
+#include "network/event_dispatcher.h"
+#include "network/endpoint.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 const uint ErrorReporter::ERROR_REPORT_MIN_PERIOD_MS = 2000; // 2 seconds
 
 /**
- *	The nominal maximum time that a report count for a Mercury address and
+ *	The nominal maximum time that a report count for a Network address and
  *	error is kept after the last raising of the error.
  */
 const uint ErrorReporter::ERROR_REPORT_COUNT_MAX_LIFETIME_MS = 10000; // 10 seconds
@@ -88,7 +88,8 @@ std::string ErrorReporter::addressErrorToString(
 		bufLen = strLen + 1;
 		delete [] buf;
 		buf = new char[ bufLen ];
-#ifdef _WIN32
+
+#if KBE_PLATFORM == PLATFORM_WIN32
 		strLen = _snprintf(buf, bufLen, "%d reports of '%s' "
 				"in the last %.00fms",
 			reportAndCount.count,
@@ -129,7 +130,8 @@ void ErrorReporter::reportError(
 
 		va_list va;
 		va_start(va, format);
-#ifdef _WIN32
+
+#if KBE_PLATFORM == PLATFORM_WIN32
 		strLen = _vsnprintf(buf, bufLen, format, va);
 		if (strLen == -1) strLen = (bufLen - 1) * 2;
 #else
@@ -155,7 +157,7 @@ void ErrorReporter::reportException(Reason reason,
 		const Address & addr,
 		const char* prefix)
 {
-	NubException ne(reason, addr);
+	NetworkException ne(reason, addr);
 	this->reportException(ne, prefix);
 
 }
@@ -170,7 +172,7 @@ void ErrorReporter::reportException(Reason reason,
  *	@param prefix 	any prefix to add to the error message, or NULL if no prefix
  *
  */
-void ErrorReporter::reportException(const NubException & ne, const char* prefix)
+void ErrorReporter::reportException(const NetworkException & ne, const char* prefix)
 {
 	Address offender(0, 0);
 	ne.getAddress(offender);
@@ -216,9 +218,9 @@ void ErrorReporter::addReport(const Address & address, const std::string & error
 
 		if (millisSinceLastReport >= ERROR_REPORT_MIN_PERIOD_MS)
 		{
-			ERROR_MSG(boost::format("%1%\n") %
+			ERROR_MSG(fmt::format("{}\n",
 				addressErrorToString(address, errorString,
-					reportAndCount, now).c_str());
+					reportAndCount, now).c_str()));
 
 			reportAndCount.count = 0;
 			reportAndCount.lastReportStamps = now;
@@ -227,8 +229,8 @@ void ErrorReporter::addReport(const Address & address, const std::string & error
 	}
 	else
 	{
-		ERROR_MSG(boost::format("%1%\n") %
-			addressErrorToString(address, errorString).c_str());
+		ERROR_MSG(fmt::format("{}\n",
+			addressErrorToString(address, errorString).c_str()));
 
 		ErrorReportAndCount reportAndCount = {
 			now, 	// lastReportStamps,
@@ -276,11 +278,11 @@ void ErrorReporter::reportPendingExceptions(bool reportBelowThreshold)
 		{
 			if (reportAndCount.count)
 			{
-				ERROR_MSG(boost::format("%1%\n") %
+				ERROR_MSG(fmt::format("{}\n",
 					addressErrorToString(
 						addressError.first, addressError.second,
 						reportAndCount, now).c_str()
-				);
+				));
 				reportAndCount.count = 0;
 				reportAndCount.lastReportStamps = now;
 

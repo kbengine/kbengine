@@ -16,13 +16,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Chinese (P.R.C.) resources
+// Chinese (Simplified, PRC) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
-#ifdef _WIN32
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -85,17 +83,29 @@ BEGIN
     EDITTEXT        IDC_EDIT2,7,130,302,43,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
 END
 
-IDD_LOG DIALOGEX 0, 0, 316, 180
+IDD_LOG DIALOGEX 0, 0, 457, 280
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LISTBOX         IDC_APP_LIST1,7,100,54,73,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
-    LISTBOX         IDC_MSGTYPE_LIST2,62,100,53,73,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
-    GROUPBOX        "option",IDC_STATIC_OPTION,119,99,77,74
-    LTEXT           "AppID:",IDC_STATIC_APPID,125,113,24,8
-    EDITTEXT        IDC_APPID_EDIT,152,113,27,14,ES_AUTOHSCROLL | ES_NUMBER
-    PUSHBUTTON      "pull",IDC_BUTTON1,259,159,50,14
-    LISTBOX         IDC_LOG_LIST1,7,7,302,81,NOT LBS_NOTIFY | LBS_SORT | LBS_OWNERDRAWVARIABLE | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    LISTBOX         IDC_APP_LIST1,7,200,54,73,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    LISTBOX         IDC_MSGTYPE_LIST2,62,200,53,73,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    GROUPBOX        "filter options",IDC_STATIC_OPTION,119,199,77,74
+    LTEXT           "globalOrder:",IDC_STATIC_APPID,125,113,55,8
+    EDITTEXT        IDC_APPID_EDIT,177,110,27,14,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "auto",IDC_BUTTON1,400,259,50,14
+    LISTBOX         IDC_LOG_LIST1,7,7,443,81,NOT LBS_NOTIFY | LBS_SORT | LBS_OWNERDRAWVARIABLE | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_ARROWKEYS,167,259,11,14
+    PUSHBUTTON      "0",IDC_ERROR,269,217,38,8,BS_FLAT
+    PUSHBUTTON      "0",IDC_WARNING,232,223,38,8
+    PUSHBUTTON      "0",IDC_INFO,307,217,40,8
+    CONTROL         "Clear",IDC_MFCBUTTON1,"MfcButton",WS_TABSTOP,319,247,7,7
+    LTEXT           "date:",IDC_LOG_DATE_STATIC,109,143,18,8
+    EDITTEXT        IDC_LOG_DATE,130,140,46,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LOG_FINDSTR,155,172,40,14,ES_AUTOHSCROLL
+    LTEXT           "keystr:",IDC_LOG_FIND,109,176,24,8
+    DEFPUSHBUTTON   "pull",IDC_BUTTON2,369,165,50,14
+    LTEXT           "groupOrder:",IDC_STATIC_APPID1,115,130,63,8
+    EDITTEXT        IDC_APPID_EDIT1,184,127,40,14,ES_AUTOHSCROLL | ES_NUMBER
 END
 
 IDD_STATUS DIALOGEX 0, 0, 316, 180
@@ -103,18 +113,19 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_STATUS_LIST1,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,198,113
+    DEFPUSHBUTTON   "",IDC_BUTTON1,302,173,7,0
 END
 
 IDD_PROFILE DIALOGEX 0, 0, 316, 180
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "pyprofile",IDC_BUTTON1,63,159,50,14
+    DEFPUSHBUTTON   "pyprofile",IDC_BUTTON1,63,159,50,14
     PUSHBUTTON      "cprofile",IDC_BUTTON2,116,159,50,14
     PUSHBUTTON      "eventprofile",IDC_BUTTON3,189,159,50,14
     CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,17,15,60,50
     EDITTEXT        IDC_RESULT,111,52,90,51,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | NOT WS_VISIBLE | WS_VSCROLL | WS_HSCROLL
-    PUSHBUTTON      "mercuryprofile",IDC_BUTTON4,259,159,50,14
+    PUSHBUTTON      "networkprofile",IDC_BUTTON4,259,159,50,14
 END
 
 IDD_SPACEVIEW DIALOGEX 0, 0, 316, 180
@@ -123,13 +134,14 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 END
 
-IDD_WATCHER DIALOGEX 0, 0, 316, 180
+IDD_WATCHER DIALOGEX 0, 0, 1378, 561
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_TREE1,"SysTreeView32",WS_BORDER | WS_HSCROLL | WS_TABSTOP,15,23,98,135
     CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | NOT WS_VISIBLE | WS_BORDER | WS_TABSTOP,119,19,60,50
     CONTROL         "",IDC_LIST2,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,179,85,60,50
+    DEFPUSHBUTTON   "",IDC_BUTTON1,1364,7,7,6
 END
 
 IDD_DIALOG_REMOTE_CONNECT DIALOGEX 0, 0, 316, 183
@@ -172,7 +184,7 @@ CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,323,176
-    PUSHBUTTON      "start",IDC_BUTTON2,224,196,50,14
+    DEFPUSHBUTTON   "start",IDC_BUTTON2,224,196,50,14
     PUSHBUTTON      "stop",IDC_BUTTON3,280,196,50,14
     COMBOBOX        IDC_COMBO3,7,197,197,137,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "layouts:",IDC_STATIC,6,185,32,8
@@ -185,7 +197,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "add",IDC_BUTTON1,281,201,40,14
+    DEFPUSHBUTTON   "add",IDC_BUTTON1,281,201,40,14
     LISTBOX         IDC_LIST2,139,153,137,46,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_IPADDRESS1,"SysIPAddress32",WS_TABSTOP,139,200,95,15
     CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,4,320,109
@@ -219,7 +231,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_DEBUG, DIALOG
     BEGIN
@@ -232,9 +244,9 @@ BEGIN
     IDD_LOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 309
+        RIGHTMARGIN, 450
         TOPMARGIN, 7
-        BOTTOMMARGIN, 173
+        BOTTOMMARGIN, 273
     END
 
     IDD_STATUS, DIALOG
@@ -264,9 +276,9 @@ BEGIN
     IDD_WATCHER, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 309
+        RIGHTMARGIN, 1371
         TOPMARGIN, 7
-        BOTTOMMARGIN, 173
+        BOTTOMMARGIN, 554
     END
 
     IDD_DIALOG_REMOTE_CONNECT, DIALOG
@@ -325,7 +337,7 @@ END
 // Menu
 //
 
-IDR_POPMENU MENU 
+IDR_POPMENU MENU
 BEGIN
     POPUP "操作"
     BEGIN
@@ -334,7 +346,7 @@ BEGIN
     END
 END
 
-IDR_MAIN_MENU1 MENU 
+IDR_MAIN_MENU1 MENU
 BEGIN
     POPUP "File"
     BEGIN
@@ -352,7 +364,7 @@ END
 // Toolbar
 //
 
-IDR_TOOLBAR1 TOOLBAR  19, 20
+IDR_TOOLBAR1 TOOLBAR 19, 20
 BEGIN
     BUTTON      ID_BUTTON32780
     BUTTON      ID_BUTTON32783
@@ -366,35 +378,72 @@ END
 //
 
 IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
+IDB_ERROR               BITMAP                  "res\\error.bmp"
+IDB_INFO                BITMAP                  "res\\info.bmp"
+IDB_WARNING             BITMAP                  "res\\warn.bmp"
+IDB_ERROR1              BITMAP                  "res\\error1.bmp"
+IDB_INFO1               BITMAP                  "res\\info1.bmp"
+IDB_WARNING1            BITMAP                  "res\\warn1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_LOG DLGINIT
+BEGIN
+    IDC_MFCBUTTON1, 0x37c, 368, 0
+0x4d3c, 0x4346, 0x7542, 0x7474, 0x6e6f, 0x535f, 0x7974, 0x656c, 0x343e, 
+0x2f3c, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x7453, 0x6c79, 0x3e65, 
+0x4d3c, 0x4346, 0x7542, 0x7474, 0x6e6f, 0x415f, 0x7475, 0x736f, 0x7a69, 
+0x3e65, 0x4146, 0x534c, 0x3c45, 0x4d2f, 0x4346, 0x7542, 0x7474, 0x6e6f, 
+0x415f, 0x7475, 0x736f, 0x7a69, 0x3e65, 0x4d3c, 0x4346, 0x7542, 0x7474, 
+0x6e6f, 0x545f, 0x6f6f, 0x746c, 0x7069, 0x3c3e, 0x4d2f, 0x4346, 0x7542, 
+0x7474, 0x6e6f, 0x545f, 0x6f6f, 0x746c, 0x7069, 0x3c3e, 0x464d, 0x4243, 
+0x7475, 0x6f74, 0x5f6e, 0x7546, 0x6c6c, 0x6554, 0x7478, 0x6f54, 0x6c6f, 
+0x543e, 0x5552, 0x3c45, 0x4d2f, 0x4346, 0x7542, 0x7474, 0x6e6f, 0x465f, 
+0x6c75, 0x546c, 0x7865, 0x5474, 0x6f6f, 0x3e6c, 0x4d3c, 0x4346, 0x7542, 
+0x7474, 0x6e6f, 0x435f, 0x7275, 0x6f73, 0x5472, 0x7079, 0x3e65, 0x3131, 
+0x2f3c, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x7543, 0x7372, 0x726f, 
+0x7954, 0x6570, 0x3c3e, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x6d49, 
+0x6761, 0x5465, 0x7079, 0x3e65, 0x3c38, 0x4d2f, 0x4346, 0x7542, 0x7474, 
+0x6e6f, 0x495f, 0x616d, 0x6567, 0x7954, 0x6570, 0x3c3e, 0x464d, 0x4243, 
+0x7475, 0x6f74, 0x5f6e, 0x6d49, 0x6761, 0x4f65, 0x546e, 0x706f, 0x463e, 
+0x4c41, 0x4553, 0x2f3c, 0x464d, 0x4243, 0x7475, 0x6f74, 0x5f6e, 0x6d49, 
+0x6761, 0x4f65, 0x546e, 0x706f, 0x3c3e, 0x464d, 0x4243, 0x7475, 0x6f74, 
+0x5f6e, 0x6d49, 0x6761, 0x4f65, 0x526e, 0x6769, 0x7468, 0x543e, 0x5552, 
+0x3c45, 0x4d2f, 0x4346, 0x7542, 0x7474, 0x6e6f, 0x495f, 0x616d, 0x6567, 
+0x6e4f, 0x6952, 0x6867, 0x3e74, 
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_BUTTON32780          "启动服务器"
     ID_BUTTON32783          "停止服务器"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_BUTTON32784          "查找服务器"
 END
 
-#endif    // Chinese (P.R.C.) resources
+#endif    // Chinese (Simplified, PRC) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -430,7 +479,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -473,8 +522,8 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
-            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "CompanyName", "kbengine"
+            VALUE "FileDescription", "kbengine"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "guiconsole.exe"
             VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
@@ -495,13 +544,13 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_ABOUTBOX            "&About guiconsole..."
     IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # test_multibytecodec.py
 #   Unit test for multibytecodec itself
@@ -176,57 +175,28 @@ class Test_StreamReader(unittest.TestCase):
             support.unlink(TESTFN)
 
 class Test_StreamWriter(unittest.TestCase):
-    if len('\U00012345') == 2: # UCS2
-        def test_gb18030(self):
-            s= io.BytesIO()
-            c = codecs.getwriter('gb18030')(s)
-            c.write('123')
-            self.assertEqual(s.getvalue(), b'123')
-            c.write('\U00012345')
-            self.assertEqual(s.getvalue(), b'123\x907\x959')
-            c.write('\U00012345'[0])
-            self.assertEqual(s.getvalue(), b'123\x907\x959')
-            c.write('\U00012345'[1] + '\U00012345' + '\uac00\u00ac')
-            self.assertEqual(s.getvalue(),
-                    b'123\x907\x959\x907\x959\x907\x959\x827\xcf5\x810\x851')
-            c.write('\U00012345'[0])
-            self.assertEqual(s.getvalue(),
-                    b'123\x907\x959\x907\x959\x907\x959\x827\xcf5\x810\x851')
-            self.assertRaises(UnicodeError, c.reset)
-            self.assertEqual(s.getvalue(),
-                    b'123\x907\x959\x907\x959\x907\x959\x827\xcf5\x810\x851')
+    def test_gb18030(self):
+        s= io.BytesIO()
+        c = codecs.getwriter('gb18030')(s)
+        c.write('123')
+        self.assertEqual(s.getvalue(), b'123')
+        c.write('\U00012345')
+        self.assertEqual(s.getvalue(), b'123\x907\x959')
+        c.write('\uac00\u00ac')
+        self.assertEqual(s.getvalue(),
+                b'123\x907\x959\x827\xcf5\x810\x851')
 
-        def test_utf_8(self):
-            s= io.BytesIO()
-            c = codecs.getwriter('utf-8')(s)
-            c.write('123')
-            self.assertEqual(s.getvalue(), b'123')
-            c.write('\U00012345')
-            self.assertEqual(s.getvalue(), b'123\xf0\x92\x8d\x85')
-
-            # Python utf-8 codec can't buffer surrogate pairs yet.
-            if 0:
-                c.write('\U00012345'[0])
-                self.assertEqual(s.getvalue(), b'123\xf0\x92\x8d\x85')
-                c.write('\U00012345'[1] + '\U00012345' + '\uac00\u00ac')
-                self.assertEqual(s.getvalue(),
-                    b'123\xf0\x92\x8d\x85\xf0\x92\x8d\x85\xf0\x92\x8d\x85'
-                    b'\xea\xb0\x80\xc2\xac')
-                c.write('\U00012345'[0])
-                self.assertEqual(s.getvalue(),
-                    b'123\xf0\x92\x8d\x85\xf0\x92\x8d\x85\xf0\x92\x8d\x85'
-                    b'\xea\xb0\x80\xc2\xac')
-                c.reset()
-                self.assertEqual(s.getvalue(),
-                    b'123\xf0\x92\x8d\x85\xf0\x92\x8d\x85\xf0\x92\x8d\x85'
-                    b'\xea\xb0\x80\xc2\xac\xed\xa0\x88')
-                c.write('\U00012345'[1])
-                self.assertEqual(s.getvalue(),
-                    b'123\xf0\x92\x8d\x85\xf0\x92\x8d\x85\xf0\x92\x8d\x85'
-                    b'\xea\xb0\x80\xc2\xac\xed\xa0\x88\xed\xbd\x85')
-
-    else: # UCS4
-        pass
+    def test_utf_8(self):
+        s= io.BytesIO()
+        c = codecs.getwriter('utf-8')(s)
+        c.write('123')
+        self.assertEqual(s.getvalue(), b'123')
+        c.write('\U00012345')
+        self.assertEqual(s.getvalue(), b'123\xf0\x92\x8d\x85')
+        c.write('\uac00\u00ac')
+        self.assertEqual(s.getvalue(),
+            b'123\xf0\x92\x8d\x85'
+            b'\xea\xb0\x80\xc2\xac')
 
     def test_streamwriter_strwrite(self):
         s = io.BytesIO()
@@ -247,20 +217,16 @@ class Test_ISO2022(unittest.TestCase):
             self.assertFalse(any(x > 0x80 for x in e))
 
     def test_bug1572832(self):
-        if sys.maxunicode >= 0x10000:
-            myunichr = chr
-        else:
-            myunichr = lambda x: chr(0xD7C0+(x>>10)) + chr(0xDC00+(x&0x3FF))
-
         for x in range(0x10000, 0x110000):
             # Any ISO 2022 codec will cause the segfault
-            myunichr(x).encode('iso_2022_jp', 'ignore')
+            chr(x).encode('iso_2022_jp', 'ignore')
 
 class TestStateful(unittest.TestCase):
     text = '\u4E16\u4E16'
     encoding = 'iso-2022-jp'
     expected = b'\x1b$B@$@$'
-    expected_reset = b'\x1b$B@$@$\x1b(B'
+    reset = b'\x1b(B'
+    expected_reset = expected + reset
 
     def test_encode(self):
         self.assertEqual(self.text.encode(self.encoding), self.expected_reset)
@@ -271,6 +237,8 @@ class TestStateful(unittest.TestCase):
             encoder.encode(char)
             for char in self.text)
         self.assertEqual(output, self.expected)
+        self.assertEqual(encoder.encode('', final=True), self.reset)
+        self.assertEqual(encoder.encode('', final=True), b'')
 
     def test_incrementalencoder_final(self):
         encoder = codecs.getincrementalencoder(self.encoding)()
@@ -279,12 +247,14 @@ class TestStateful(unittest.TestCase):
             encoder.encode(char, index == last_index)
             for index, char in enumerate(self.text))
         self.assertEqual(output, self.expected_reset)
+        self.assertEqual(encoder.encode('', final=True), b'')
 
 class TestHZStateful(TestStateful):
     text = '\u804a\u804a'
     encoding = 'hz'
     expected = b'~{ADAD'
-    expected_reset = b'~{ADAD~}'
+    reset = b'~}'
+    expected_reset = expected + reset
 
 def test_main():
     support.run_unittest(__name__)

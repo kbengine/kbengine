@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,26 +19,26 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "tcp_packet_receiver.hpp"
+#include "tcp_packet_receiver.h"
 #ifndef CODE_INLINE
-#include "tcp_packet_receiver.ipp"
+#include "tcp_packet_receiver.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
-#include "network/endpoint.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_poller.hpp"
-#include "network/error_reporter.hpp"
+#include "network/address.h"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/endpoint.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/event_poller.h"
+#include "network/error_reporter.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------
-static ObjectPool<TCPPacketReceiver> _g_objPool;
+static ObjectPool<TCPPacketReceiver> _g_objPool("TCPPacketReceiver");
 ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 {
 	return _g_objPool;
@@ -47,8 +47,8 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 //-------------------------------------------------------------------------------------
 void TCPPacketReceiver::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("TCPPacketReceiver::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("TCPPacketReceiver::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -72,17 +72,14 @@ TCPPacketReceiver::~TCPPacketReceiver()
 	//DEBUG_MSG("TCPPacketReceiver::~TCPPacketReceiver()\n");
 }
 
-
 //-------------------------------------------------------------------------------------
-bool TCPPacketReceiver::processSocket(bool expectingPacket)
+bool TCPPacketReceiver::processRecv(bool expectingPacket)
 {
-	Channel* pChannel = pNetworkInterface_->findChannel(pEndpoint_->addr());
+	Channel* pChannel = getChannel();
 	KBE_ASSERT(pChannel != NULL);
-	
+
 	if(pChannel->isCondemn())
 	{
-		pNetworkInterface_->deregisterChannel(pChannel);
-		pChannel->destroy();
 		return false;
 	}
 
@@ -97,8 +94,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 
 		if(rstate == PacketReceiver::RECV_STATE_INTERRUPT)
 		{
-			pNetworkInterface_->deregisterChannel(pChannel);
-			pChannel->destroy();
+			onGetError(pChannel);
 			return false;
 		}
 
@@ -107,8 +103,7 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 	else if(len == 0) // 客户端正常退出
 	{
 		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
-		pNetworkInterface_->deregisterChannel(pChannel);
-		pChannel->destroy();
+		onGetError(pChannel);
 		return false;
 	}
 	
@@ -121,12 +116,17 @@ bool TCPPacketReceiver::processSocket(bool expectingPacket)
 }
 
 //-------------------------------------------------------------------------------------
+void TCPPacketReceiver::onGetError(Channel* pChannel)
+{
+	pChannel->condemn();
+}
+
+//-------------------------------------------------------------------------------------
 Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPacket)
 {
 	// 如果为None， 则可能是被过滤器过滤掉了(过滤器正在按照自己的规则组包解密)
 	if(pPacket)
 	{
-		pNetworkInterface_->onPacketIn(*pPacket);
 		pChannel->addReceiveWindow(pPacket);
 	}
 
@@ -136,12 +136,12 @@ Reason TCPPacketReceiver::processFilteredPacket(Channel* pChannel, Packet * pPac
 //-------------------------------------------------------------------------------------
 PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool expectingPacket)
 {
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 	DWORD wsaErr = WSAGetLastError();
 #endif //def _WIN32
 
 	if (
-#ifdef _WIN32
+#if KBE_PLATFORM == PLATFORM_WIN32
 		wsaErr == WSAEWOULDBLOCK && !expectingPacket// send出错大概是缓冲区满了, recv出错已经无数据可读了
 #else
 		errno == EAGAIN && !expectingPacket			// recv缓冲区已经无数据可读了
@@ -185,14 +185,14 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 
 #endif // unix
 
-#ifdef _WIN32
-	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-				wsaErr);
+#if KBE_PLATFORM == PLATFORM_WIN32
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
+				wsaErr));
 #else
-	WARNING_MSG(boost::format("TCPPacketReceiver::processPendingEvents: "
-				"Throwing REASON_GENERAL_NETWORK - %1%\n") %
-			kbe_strerror());
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+				"Throwing REASON_GENERAL_NETWORK - {}\n",
+			kbe_strerror()));
 #endif
 	this->dispatcher().errorReporter().reportException(
 			REASON_GENERAL_NETWORK);

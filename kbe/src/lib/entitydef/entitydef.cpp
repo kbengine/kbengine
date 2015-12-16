@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,17 +19,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "entitydef.hpp"
-#include "scriptdef_module.hpp"
-#include "datatypes.hpp"
-#include "common.hpp"
-#include "blob.hpp"
-#include "resmgr/resmgr.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "entitydef/entity_mailbox.hpp"
+#include "entitydef.h"
+#include "scriptdef_module.h"
+#include "datatypes.h"
+#include "common.h"
+#include "pyscript/py_memorystream.h"
+#include "resmgr/resmgr.h"
+#include "common/smartpointer.h"
+#include "entitydef/entity_mailbox.h"
 
 #ifndef CODE_INLINE
-#include "entitydef.ipp"
+#include "entitydef.inl"
 #endif
 
 namespace KBEngine{
@@ -47,8 +47,8 @@ KBE_MD5 EntityDef::__md5;
 bool EntityDef::_isInit = false;
 bool g_isReload = false;
 
+bool EntityDef::__entityAliasID = false;
 bool EntityDef::__entitydefAliasID = false;
-
 
 // 方法产生时自动产生utype用的
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
@@ -71,8 +71,8 @@ EntityDef::~EntityDef()
 //-------------------------------------------------------------------------------------
 bool EntityDef::finalise(bool isReload)
 {
-	PropertyDescription::propertyDescriptionCount_ = 0;
-	MethodDescription::methodDescriptionCount_ = 0;
+	PropertyDescription::resetDescriptionCount();
+	MethodDescription::resetDescriptionCount();
 
 	EntityDef::__md5.clear();
 	g_methodUtypeAuto = 1;
@@ -84,13 +84,13 @@ bool EntityDef::finalise(bool isReload)
 	if(!isReload)
 	{
 		std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
-		for(; iter != EntityDef::__scriptModules.end(); iter++)
+		for(; iter != EntityDef::__scriptModules.end(); ++iter)
 		{
 			(*iter)->finalise();
 		}
 
 		iter = EntityDef::__oldScriptModules.begin();
-		for(; iter != EntityDef::__oldScriptModules.end(); iter++)
+		for(; iter != EntityDef::__oldScriptModules.end(); ++iter)
 		{
 			(*iter)->finalise();
 		}
@@ -117,7 +117,7 @@ void EntityDef::reload(bool fullReload)
 		EntityDef::__oldScriptTypeMappingUType.clear();
 
 		std::vector<ScriptDefModulePtr>::iterator iter = EntityDef::__scriptModules.begin();
-		for(; iter != EntityDef::__scriptModules.end(); iter++)
+		for(; iter != EntityDef::__scriptModules.end(); ++iter)
 		{
 			__oldScriptModules.push_back((*iter));
 			__oldScriptTypeMappingUType[(*iter)->getName()] = (*iter)->getUType();
@@ -131,7 +131,7 @@ void EntityDef::reload(bool fullReload)
 	}
 	else
 	{
-		loadAllScriptModule(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes);
+		loadAllScriptModules(EntityDef::__entitiesPath, EntityDef::__scriptBaseTypes);
 	}
 
 	EntityDef::_isInit = true;
@@ -144,7 +144,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	__loadComponentType = loadComponentType;
 	__scriptBaseTypes = scriptBaseTypes;
 
-	__entitiesPath = Resmgr::getSingleton().getPyUserResPath() + "scripts/";
+	__entitiesPath = Resmgr::getSingleton().getPyUserScriptsPath();
 
 	g_entityFlagMapping["CELL_PUBLIC"]							= ED_FLAG_CELL_PUBLIC;
 	g_entityFlagMapping["CELL_PRIVATE"]							= ED_FLAG_CELL_PRIVATE;
@@ -160,17 +160,17 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	ENTITY_SCRIPT_UID utype = 1;
 	
 	// 初始化数据类别
-	// demo/res/scripts/entity_defs/alias.xml
+	// assets/scripts/entity_defs/alias.xml
 	if(!DataTypes::initialize(defFilePath + "alias.xml"))
 		return false;
 
 	// 打开这个entities.xml文件
-	SmartPointer<XmlPlus> xml(new XmlPlus());
-	if(!xml.get()->openSection(entitiesFile.c_str()) && xml.get()->getRootElement() == NULL)
+	SmartPointer<XML> xml(new XML());
+	if(!xml->openSection(entitiesFile.c_str()))
 		return false;
 	
 	// 获得entities.xml根节点, 如果没有定义一个entity那么直接返回true
-	TiXmlNode* node = xml.get()->getRootNode();
+	TiXmlNode* node = xml->getRootNode();
 	if(node == NULL)
 		return true;
 
@@ -179,122 +179,127 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 	{
 		std::string moduleName = xml.get()->getKey(node);
 		__scriptTypeMappingUType[moduleName] = utype;
-		ScriptDefModule* scriptModule = new ScriptDefModule(moduleName);
-		scriptModule->setUType(utype++);
-		EntityDef::__scriptModules.push_back(scriptModule);
+		ScriptDefModule* pScriptModule = new ScriptDefModule(moduleName, utype++);
+		EntityDef::__scriptModules.push_back(pScriptModule);
 
 		std::string deffile = defFilePath + moduleName + ".def";
-		SmartPointer<XmlPlus> defxml(new XmlPlus());
+		SmartPointer<XML> defxml(new XML());
 
-		if(!defxml.get()->openSection(deffile.c_str()))
+		if(!defxml->openSection(deffile.c_str()))
 			return false;
 
-		TiXmlNode* defNode = defxml.get()->getRootNode();
+		TiXmlNode* defNode = defxml->getRootNode();
+		if(defNode == NULL)
+		{
+			// root节点下没有子节点了
+			continue;
+		}
 
 		// 加载def文件中的定义
-		if(!loadDefInfo(defFilePath, moduleName, defxml.get(), defNode, scriptModule))
+		if(!loadDefInfo(defFilePath, moduleName, defxml.get(), defNode, pScriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize: failed to load entity:%1% parentClass.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} parentClass.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
 		
 		// 尝试在主entity文件中加载detailLevel数据
-		if(!loadDetailLevelInfo(defFilePath, moduleName, defxml.get(), defNode, scriptModule))
+		if(!loadDetailLevelInfo(defFilePath, moduleName, defxml.get(), defNode, pScriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize: failed to load entity:%1% DetailLevelInfo.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} DetailLevelInfo.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
-		
-		scriptModule->onLoaded();
+
+		pScriptModule->onLoaded();
 	}
 	XML_FOR_END(node);
 
 	EntityDef::md5().final();
+
 	if(loadComponentType == DBMGR_TYPE)
 		return true;
 
-	return loadAllScriptModule(__entitiesPath, scriptBaseTypes) && initializeWatcher();
+	return loadAllScriptModules(__entitiesPath, scriptBaseTypes) && initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDefInfo(const std::string& defFilePath, 
 							const std::string& moduleName, 
-							XmlPlus* defxml, 
+							XML* defxml, 
 							TiXmlNode* defNode, 
-							ScriptDefModule* scriptModule)
+							ScriptDefModule* pScriptModule)
 {
-	if(!loadAllDefDescription(moduleName, defxml, defNode, scriptModule))
+	if(!loadAllDefDescriptions(moduleName, defxml, defNode, pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to loadAllDefDescription(), entity:%1%\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to loadAllDefDescription(), entity:{}\n",
+			moduleName.c_str()));
 
 		return false;
 	}
 	
 	// 遍历所有的interface， 并将他们的方法和属性加入到模块中
-	if(!loadInterfaces(defFilePath, moduleName, defxml, defNode, scriptModule))
+	if(!loadInterfaces(defFilePath, moduleName, defxml, defNode, pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% interface.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} interface.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
 	
 	// 加载父类所有的内容
-	if(!loadParentClass(defFilePath, moduleName, defxml, defNode, scriptModule))
+	if(!loadParentClass(defFilePath, moduleName, defxml, defNode, pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% parentClass.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} parentClass.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
 
 	// 尝试加载detailLevel数据
-	if(!loadDetailLevelInfo(defFilePath, moduleName, defxml, defNode, scriptModule))
+	if(!loadDetailLevelInfo(defFilePath, moduleName, defxml, defNode, pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% DetailLevelInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} DetailLevelInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
 
 	// 尝试加载VolatileInfo数据
-	if(!loadVolatileInfo(defFilePath, moduleName, defxml, defNode, scriptModule))
+	if(!loadVolatileInfo(defFilePath, moduleName, defxml, defNode, pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDefInfo: failed to load entity:%1% VolatileInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDefInfo: failed to load entity:{} VolatileInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
 	
-	scriptModule->autoMatchCompOwn();
+	pScriptModule->autoMatchCompOwn();
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath, 
 									const std::string& moduleName, 
-									XmlPlus* defxml, 
+									XML* defxml, 
 									TiXmlNode* defNode, 
-									ScriptDefModule* scriptModule)
+									ScriptDefModule* pScriptModule)
 {
 	TiXmlNode* detailLevelNode = defxml->enterNode(defNode, "DetailLevels");
 	if(detailLevelNode == NULL)
 		return true;
 
-	DetailLevel& dlInfo = scriptModule->getDetailLevel();
+	DetailLevel& dlInfo = pScriptModule->getDetailLevel();
 	
 	TiXmlNode* node = defxml->enterNode(detailLevelNode, "NEAR");
 	TiXmlNode* radiusNode = defxml->enterNode(node, "radius");
 	TiXmlNode* hystNode = defxml->enterNode(node, "hyst");
 	if(node == NULL || radiusNode == NULL || hystNode == NULL) 
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDetailLevelInfo: failed to load entity:%1% NEAR-DetailLevelInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDetailLevelInfo: failed to load entity:{} NEAR-DetailLevelInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -307,8 +312,8 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 	hystNode = defxml->enterNode(node, "hyst");
 	if(node == NULL || radiusNode == NULL || hystNode == NULL) 
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDetailLevelInfo: failed to load entity:%1% MEDIUM-DetailLevelInfo.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDetailLevelInfo: failed to load entity:{} MEDIUM-DetailLevelInfo.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -325,8 +330,8 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 	hystNode = defxml->enterNode(node, "hyst");
 	if(node == NULL || radiusNode == NULL || hystNode == NULL) 
 	{
-		ERROR_MSG(boost::format("EntityDef::loadDetailLevelInfo: failed to load entity:%1% FAR-DetailLevelInfo.\n") % 
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadDetailLevelInfo: failed to load entity:{} FAR-DetailLevelInfo.\n", 
+			moduleName.c_str()));
 
 		return false;
 	}
@@ -345,15 +350,15 @@ bool EntityDef::loadDetailLevelInfo(const std::string& defFilePath,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadVolatileInfo(const std::string& defFilePath, 
 									const std::string& moduleName, 
-									XmlPlus* defxml, 
+									XML* defxml, 
 									TiXmlNode* defNode, 
-									ScriptDefModule* scriptModule)
+									ScriptDefModule* pScriptModule)
 {
 	TiXmlNode* pNode = defxml->enterNode(defNode, "Volatile");
 	if(pNode == NULL)
 		return true;
 
-	VolatileInfo& vInfo = scriptModule->getVolatileInfo();
+	VolatileInfo& vInfo = pScriptModule->getVolatileInfo();
 	
 	TiXmlNode* node = defxml->enterNode(pNode, "position");
 	if(node) 
@@ -413,9 +418,9 @@ bool EntityDef::loadVolatileInfo(const std::string& defFilePath,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadInterfaces(const std::string& defFilePath, 
 							   const std::string& moduleName, 
-							   XmlPlus* defxml, 
+							   XML* defxml, 
 							   TiXmlNode* defNode, 
-							   ScriptDefModule* scriptModule)
+							   ScriptDefModule* pScriptModule)
 {
 	TiXmlNode* implementsNode = defxml->enterNode(defNode, "Implements");
 	if(implementsNode == NULL)
@@ -426,33 +431,39 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 		TiXmlNode* interfaceNode = defxml->enterNode(implementsNode, "Interface");
 		std::string interfaceName = defxml->getKey(interfaceNode);
 		std::string interfacefile = defFilePath + "interfaces/" + interfaceName + ".def";
-		SmartPointer<XmlPlus> interfaceXml(new XmlPlus());
+		SmartPointer<XML> interfaceXml(new XML());
 		if(!interfaceXml.get()->openSection(interfacefile.c_str()))
 			return false;
 
-		TiXmlNode* interfaceRootNode = interfaceXml.get()->getRootNode();
-		if(!loadAllDefDescription(moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
+		TiXmlNode* interfaceRootNode = interfaceXml->getRootNode();
+		if(interfaceRootNode == NULL)
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize: interface[%1%] is error!\n") % 
-				interfaceName.c_str());
+			// root节点下没有子节点了
+			return true;
+		}
+
+		if(!loadAllDefDescriptions(moduleName, interfaceXml.get(), interfaceRootNode, pScriptModule))
+		{
+			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] is error!\n", 
+				interfaceName.c_str()));
 
 			return false;
 		}
 
 		// 尝试加载detailLevel数据
-		if(!loadDetailLevelInfo(defFilePath, moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
+		if(!loadDetailLevelInfo(defFilePath, moduleName, interfaceXml.get(), interfaceRootNode, pScriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::loadInterfaces: failed to load entity:%1% DetailLevelInfo.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::loadInterfaces: failed to load entity:{} DetailLevelInfo.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
 
 		// 遍历所有的interface， 并将他们的方法和属性加入到模块中
-		if(!loadInterfaces(defFilePath, moduleName, interfaceXml.get(), interfaceRootNode, scriptModule))
+		if(!loadInterfaces(defFilePath, moduleName, interfaceXml.get(), interfaceRootNode, pScriptModule))
 		{
-			ERROR_MSG(boost::format("EntityDef::loadInterfaces: failed to load entity:%1% interface.\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::loadInterfaces: failed to load entity:{} interface.\n",
+				moduleName.c_str()));
 
 			return false;
 		}
@@ -466,79 +477,105 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadParentClass(const std::string& defFilePath, 
 								const std::string& moduleName, 
-								XmlPlus* defxml, 
+								XML* defxml, 
 								TiXmlNode* defNode, 
-								ScriptDefModule* scriptModule)
+								ScriptDefModule* pScriptModule)
 {
 	TiXmlNode* parentClassNode = defxml->enterNode(defNode, "Parent");
 	if(parentClassNode == NULL)
 		return true;
-	
+
 	std::string parentClassName = defxml->getKey(parentClassNode);
 	std::string parentClassfile = defFilePath + parentClassName + ".def";
 	
-	SmartPointer<XmlPlus> parentClassXml(new XmlPlus());
-	if(!parentClassXml.get()->openSection(parentClassfile.c_str()))
+	SmartPointer<XML> parentClassXml(new XML());
+	if(!parentClassXml->openSection(parentClassfile.c_str()))
 		return false;
 	
-	TiXmlNode* parentClassdefNode = parentClassXml.get()->getRootNode();
+	TiXmlNode* parentClassdefNode = parentClassXml->getRootNode();
+	if(parentClassdefNode == NULL)
+	{
+		// root节点下没有子节点了
+		return true;
+	}
 
 	// 加载def文件中的定义
-	if(!loadDefInfo(defFilePath, parentClassName, parentClassXml.get(), parentClassdefNode, scriptModule))
+	if(!loadDefInfo(defFilePath, parentClassName, parentClassXml.get(), parentClassdefNode, pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadParentClass: failed to load entity:%1% parentClass.\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadParentClass: failed to load entity:{} parentClass.\n",
+			moduleName.c_str()));
 
 		return false;
 	}
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadAllDefDescription(const std::string& moduleName, 
-									  XmlPlus* defxml, 
+bool EntityDef::loadAllDefDescriptions(const std::string& moduleName, 
+									  XML* defxml, 
 									  TiXmlNode* defNode, 
-									  ScriptDefModule* scriptModule)
+									  ScriptDefModule* pScriptModule)
 {
 	// 加载属性描述
-	if(!loadDefPropertys(moduleName, defxml, defxml->enterNode(defNode, "Properties"), scriptModule))
+	if(!loadDefPropertys(moduleName, defxml, defxml->enterNode(defNode, "Properties"), pScriptModule))
 		return false;
 	
 	// 加载cell方法描述
-	if(!loadDefCellMethods(moduleName, defxml, defxml->enterNode(defNode, "CellMethods"), scriptModule))
+	if(!loadDefCellMethods(moduleName, defxml, defxml->enterNode(defNode, "CellMethods"), pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadAllDefDescription:loadDefCellMethods[%1%] is failed!\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadAllDefDescription:loadDefCellMethods[{}] is failed!\n",
+			moduleName.c_str()));
 
 		return false;
 	}
 
 	// 加载base方法描述
-	if(!loadDefBaseMethods(moduleName, defxml, defxml->enterNode(defNode, "BaseMethods"), scriptModule))
+	if(!loadDefBaseMethods(moduleName, defxml, defxml->enterNode(defNode, "BaseMethods"), pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadAllDefDescription:loadDefBaseMethods[%1%] is failed!\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadAllDefDescription:loadDefBaseMethods[{}] is failed!\n",
+			moduleName.c_str()));
 
 		return false;
 	}
 
 	// 加载client方法描述
-	if(!loadDefClientMethods(moduleName, defxml, defxml->enterNode(defNode, "ClientMethods"), scriptModule))
+	if(!loadDefClientMethods(moduleName, defxml, defxml->enterNode(defNode, "ClientMethods"), pScriptModule))
 	{
-		ERROR_MSG(boost::format("EntityDef::loadAllDefDescription:loadDefClientMethods[%1%] is failed!\n") %
-			moduleName.c_str());
+		ERROR_MSG(fmt::format("EntityDef::loadAllDefDescription:loadDefClientMethods[{}] is failed!\n",
+			moduleName.c_str()));
 
 		return false;
 	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityDef::validDefPropertyName(ScriptDefModule* pScriptModule, const std::string& name)
+{
+	int i = 0;
+	while(true)
+	{
+		std::string limited = ENTITY_LIMITED_PROPERTYS[i];
+
+		if(limited == "")
+			break;
+
+		if(name == limited)
+			return false;
+
+		++i;
+	};
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDefPropertys(const std::string& moduleName, 
-								 XmlPlus* xml, 
+								 XML* xml, 
 								 TiXmlNode* defPropertyNode, 
-								 ScriptDefModule* scriptModule)
+								 ScriptDefModule* pScriptModule)
 {
 	if(defPropertyNode)
 	{
@@ -551,8 +588,9 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			int32						hasClientFlags = 0;
 			DataType*					dataType = NULL;
 			bool						isPersistent = false;
-			bool						isIdentifier = false;													// 是否是一个索引键
-			uint32						databaseLength = 0;														// 这个属性在数据库中的长度
+			bool						isIdentifier = false;		// 是否是一个索引键
+			uint32						databaseLength = 0;			// 这个属性在数据库中的长度
+			std::string					indexType;
 			DETAIL_TYPE					detailLevel = DETAIL_LEVEL_FAR;
 			std::string					detailLevelStr = "";
 			std::string					strType;
@@ -563,17 +601,25 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			std::string					name = "";
 
 			name = xml->getKey(defPropertyNode);
+			if(!validDefPropertyName(pScriptModule, name))
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: '{}' is limited, in module({})!\n", 
+					name, moduleName));
+
+				return false;
+			}
+
 			TiXmlNode* flagsNode = xml->enterNode(defPropertyNode->FirstChild(), "Flags");
 			if(flagsNode)
 			{
 				strFlags = xml->getValStr(flagsNode);
-				std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);					// 转换为大写
+				std::transform(strFlags.begin(), strFlags.end(), strFlags.begin(), toupper);
 
 				ENTITYFLAGMAP::iterator iter = g_entityFlagMapping.find(strFlags.c_str());
 				if(iter == g_entityFlagMapping.end())
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") % 
-						strFlags.c_str() % name.c_str());
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount flags[{}], is {}.{}!\n", 
+						strFlags, moduleName, name));
 
 					return false;
 				}
@@ -581,20 +627,21 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				flags = iter->second;
 				hasBaseFlags = flags & ENTITY_BASE_DATA_FLAGS;
 				if(hasBaseFlags > 0)
-					scriptModule->setBase(true);
+					pScriptModule->setBase(true);
 
 				hasCellFlags = flags & ENTITY_CELL_DATA_FLAGS;
 				if(hasCellFlags > 0)
-					scriptModule->setCell(true);
+					pScriptModule->setCell(true);
 
 				hasClientFlags = flags & ENTITY_CLIENT_DATA_FLAGS;
 				if(hasClientFlags > 0)
-					scriptModule->setClient(true);
+					pScriptModule->setClient(true);
 
 				if(hasBaseFlags <= 0 && hasCellFlags <= 0)
 				{
-					ERROR_MSG(boost::format("EntityDef::loadDefPropertys: can't fount flags[%1%] in %2%.\n") %
-						strFlags.c_str() % name.c_str());
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount flags[{}], is {}.{}!\n",
+						strFlags.c_str(), moduleName, name.c_str()));
+
 					return false;
 				}
 			}
@@ -606,7 +653,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				strisPersistent = xml->getValStr(persistentNode);
 
 				std::transform(strisPersistent.begin(), strisPersistent.end(), 
-					strisPersistent.begin(), tolower);				// 转换为小写
+					strisPersistent.begin(), tolower);
 
 				if(strisPersistent == "true")
 					isPersistent = true;
@@ -616,7 +663,6 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			if(typeNode)
 			{
 				strType = xml->getValStr(typeNode);
-				//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 				if(strType == "ARRAY")
 				{
@@ -627,24 +673,41 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 						return false;
 				}
 				else
+				{
 					dataType = DataTypes::getDataType(strType);
+				}
+
+				if(dataType == NULL)
+				{
+					return false;
+				}
 			}
+
+			TiXmlNode* indexTypeNode = xml->enterNode(defPropertyNode->FirstChild(), "Index");
+			if(indexTypeNode)
+			{
+				indexType = xml->getValStr(indexTypeNode);
+
+				std::transform(indexType.begin(), indexType.end(), 
+					indexType.begin(), toupper);
+			}
+			
 
 			TiXmlNode* identifierNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
 			if(identifierNode)
 			{
 				strIdentifierNode = xml->getValStr(identifierNode);
 				std::transform(strIdentifierNode.begin(), strIdentifierNode.end(), 
-					strIdentifierNode.begin(), tolower);			// 转换为小写
+					strIdentifierNode.begin(), tolower);
 
 				if(strIdentifierNode == "true")
 					isIdentifier = true;
 			}
 
-			//TiXmlNode* databaseLengthNode = xml->enterNode(defPropertyNode->FirstChild(), "Identifier");
-			if(identifierNode)
+			TiXmlNode* databaseLengthNode = xml->enterNode(defPropertyNode->FirstChild(), "DatabaseLength");
+			if(databaseLengthNode)
 			{
-				databaseLength = xml->getValInt(identifierNode);
+				databaseLength = xml->getValInt(databaseLengthNode);
 			}
 
 			TiXmlNode* defaultValNode = 
@@ -678,7 +741,14 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			{
 				int iUtype = xml->getValInt(utypeValNode);
 				futype = iUtype;
-				KBE_ASSERT(iUtype == int(futype) && "EntityDef::loadDefPropertys: Utype overflow!\n");
+
+				if (iUtype != int(futype))
+				{
+					ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+						iUtype, moduleName, name.c_str()));
+
+					return false;
+				}
 
 				puids.push_back(futype);
 			}
@@ -698,38 +768,42 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 			// 产生一个属性描述实例
 			PropertyDescription* propertyDescription = PropertyDescription::createDescription(futype, strType, 
 															name, flags, isPersistent, 
-															dataType, isIdentifier, 
+															dataType, isIdentifier, indexType,
 															databaseLength, defaultStr, 
 															detailLevel);
 
 			bool ret = true;
+
 			// 添加到模块中
 			if(hasCellFlags > 0)
-				ret = scriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, CELLAPP_TYPE);
+
 			if(hasBaseFlags > 0)
-				ret = scriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, BASEAPP_TYPE);
+
 			if(hasClientFlags > 0)
-				ret = scriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(), 
 						propertyDescription, CLIENT_TYPE);
-			
+
 			if(!ret)
 			{
-				ERROR_MSG(boost::format("EntityDef::addPropertyDescription(%1%): %2%.\n") % 
-					moduleName.c_str() % xml->getTxdoc()->Value());
+				ERROR_MSG(fmt::format("EntityDef::addPropertyDescription({}): {}.\n", 
+					moduleName.c_str(), xml->getTxdoc()->Value()));
 			}
 		}
 		XML_FOR_END(defPropertyNode);
 	}
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityDef::loadDefCellMethods(const std::string& moduleName, 
-								   XmlPlus* xml, 
+								   XML* xml, 
 								   TiXmlNode* defMethodNode, 
-								   ScriptDefModule* scriptModule)
+								   ScriptDefModule* pScriptModule)
 {
 	if(defMethodNode)
 	{
@@ -745,6 +819,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Exposed")
 					{
 						methodDescription->setExposed();
@@ -762,15 +837,18 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG(boost::format("EntityDef::loadDefCellMethods: dataType[%1%] not found, in %2%!\n") % 
-								strType.c_str() % name.c_str());
+							ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: dataType[{}] not found, in {}!\n", 
+								strType.c_str(), name.c_str()));
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -779,7 +857,14 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 
 						int iUtype = xml->getValInt(typeNode);
 						ENTITY_METHOD_UID muid = iUtype;
-						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefCellMethods: Utype overflow!\n");
+						
+						if (iUtype != int(muid))
+						{
+							ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+								iUtype, moduleName, name.c_str()));
+
+							return false;
+						}
 
 						methodDescription->setUType(muid);
 					}
@@ -806,7 +891,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				methodDescription->setUType(muid);
 			}
 
-			scriptModule->addCellMethodDescription(name.c_str(), methodDescription);
+			pScriptModule->addCellMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -815,8 +900,8 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml, 
-								   TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml, 
+								   TiXmlNode* defMethodNode, ScriptDefModule* pScriptModule)
 {
 	if(defMethodNode)
 	{
@@ -832,6 +917,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Exposed")
 					{
 						methodDescription->setExposed();
@@ -849,15 +935,18 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG(boost::format("EntityDef::loadDefBaseMethods: dataType[%1%] not found, in %2%!\n") %
-								strType.c_str() % name.c_str());
+							ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: dataType[{}] not found, in {}!\n",
+								strType.c_str(), name.c_str()));
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -866,7 +955,14 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 
 						int iUtype = xml->getValInt(typeNode);
 						ENTITY_METHOD_UID muid = iUtype;
-						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefBaseMethods: Utype overflow!\n");
+
+						if (iUtype != int(muid))
+						{
+							ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+								iUtype, moduleName, name.c_str()));
+
+							return false;
+						}
 
 						methodDescription->setUType(muid);
 					}
@@ -893,7 +989,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 				methodDescription->setUType(muid);
 			}
 
-			scriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
+			pScriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -902,8 +998,8 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XmlPlus* xml,
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml, 
-									 TiXmlNode* defMethodNode, ScriptDefModule* scriptModule)
+bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml, 
+									 TiXmlNode* defMethodNode, ScriptDefModule* pScriptModule)
 {
 	if(defMethodNode)
 	{
@@ -919,6 +1015,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 				XML_FOR_BEGIN(argNode)
 				{
 					std::string argType = xml->getKey(argNode);
+
 					if(argType == "Arg")
 					{
 						DataType* dataType = NULL;
@@ -932,15 +1029,18 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 								dataType = dataType1;
 						}
 						else
+						{
 							dataType = DataTypes::getDataType(strType);
+						}
 
 						if(dataType == NULL)
 						{
-							ERROR_MSG(boost::format("EntityDef::loadDefClientMethods: dataType[%1%] not found, in %2%!\n") %
-								strType.c_str() % name.c_str());
+							ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: dataType[{}] not found, in {}!\n",
+								strType.c_str(), name.c_str()));
 
 							return false;
 						}
+
 						methodDescription->pushArgType(dataType);
 					}
 					else if(argType == "Utype")
@@ -949,7 +1049,14 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 
 						int iUtype = xml->getValInt(typeNode);
 						ENTITY_METHOD_UID muid = iUtype;
-						KBE_ASSERT(iUtype == int(muid) && "EntityDef::loadDefClientMethods: Utype overflow!\n");
+
+						if (iUtype != int(muid))
+						{
+							ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: 'Utype' has overflowed({} > 65535), is {}.{}!\n",
+								iUtype, moduleName, name.c_str()));
+
+							return false;
+						}
 
 						methodDescription->setUType(muid);
 					}
@@ -976,7 +1083,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 				methodDescription->setUType(muid);
 			}
 
-			scriptModule->addClientMethodDescription(name.c_str(), methodDescription);
+			pScriptModule->addClientMethodDescription(name.c_str(), methodDescription);
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -985,34 +1092,46 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XmlPlus* xml
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::isLoadScriptModule(ScriptDefModule* scriptModule)
+bool EntityDef::isLoadScriptModule(ScriptDefModule* pScriptModule)
 {
 	switch(__loadComponentType)
 	{
 	case BASEAPP_TYPE:
-		if(!scriptModule->hasBase())
-			return false;
-		break;
+		{
+			if(!pScriptModule->hasBase())
+				return false;
+
+			break;
+		}
 	case CELLAPP_TYPE:
-		if(!scriptModule->hasCell())
-			return false;
-		break;
+		{
+			if(!pScriptModule->hasCell())
+				return false;
+
+			break;
+		}
 	case CLIENT_TYPE:
 	case BOTS_TYPE:
-		if(!scriptModule->hasClient())
-			return false;
-		break;
+		{
+			if(!pScriptModule->hasClient())
+				return false;
+
+			break;
+		}
 	default:
-		if(!scriptModule->hasCell())
-			return false;
-		break;
+		{
+			if(!pScriptModule->hasCell())
+				return false;
+
+			break;
+		}
 	};
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule, 
+bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule, 
 							   PyObject* moduleObj, const std::string& moduleName)
 {
 	ScriptDefModule::METHODDESCRIPTION_MAP* methodDescrsPtr = NULL;
@@ -1021,25 +1140,25 @@ bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule,
 	{
 	case BASEAPP_TYPE:
 		methodDescrsPtr = 
-			(ScriptDefModule::METHODDESCRIPTION_MAP*)&scriptModule->getBaseMethodDescriptions();
+			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getBaseMethodDescriptions();
 		break;
 	case CELLAPP_TYPE:
 		methodDescrsPtr = 
-			(ScriptDefModule::METHODDESCRIPTION_MAP*)&scriptModule->getCellMethodDescriptions();
+			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getCellMethodDescriptions();
 		break;
 	case CLIENT_TYPE:
 	case BOTS_TYPE:
 		methodDescrsPtr = 
-			(ScriptDefModule::METHODDESCRIPTION_MAP*)&scriptModule->getClientMethodDescriptions();
+			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getClientMethodDescriptions();
 		break;
 	default:
 		methodDescrsPtr = 
-			(ScriptDefModule::METHODDESCRIPTION_MAP*)&scriptModule->getCellMethodDescriptions();
+			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getCellMethodDescriptions();
 		break;
 	};
 
 	ScriptDefModule::METHODDESCRIPTION_MAP::iterator iter = methodDescrsPtr->begin();
-	for(; iter != methodDescrsPtr->end(); iter++)
+	for(; iter != methodDescrsPtr->end(); ++iter)
 	{
 		PyObject* pyMethod = 
 			PyObject_GetAttrString(moduleObj, const_cast<char *>(iter->first.c_str()));
@@ -1050,8 +1169,8 @@ bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule,
 		}
 		else
 		{
-			ERROR_MSG(boost::format("EntityDef::checkDefMethod:class %1% does not have method[%2%].\n") %
-					moduleName.c_str() % iter->first.c_str());
+			ERROR_MSG(fmt::format("EntityDef::checkDefMethod:class {} does not have method[{}].\n",
+					moduleName.c_str(), iter->first.c_str()));
 
 			return false;
 		}
@@ -1061,45 +1180,45 @@ bool EntityDef::checkDefMethod(ScriptDefModule* scriptModule,
 }
 
 //-------------------------------------------------------------------------------------
-void EntityDef::setScriptModuleHasComponentEntity(ScriptDefModule* scriptModule, 
+void EntityDef::setScriptModuleHasComponentEntity(ScriptDefModule* pScriptModule, 
 												  bool has)
 {
 	switch(__loadComponentType)
 	{
 	case BASEAPP_TYPE:
-		scriptModule->setBase(has);
+		pScriptModule->setBase(has);
 		return;
 	case CELLAPP_TYPE:
-		scriptModule->setCell(has);
+		pScriptModule->setCell(has);
 		return;
 	case CLIENT_TYPE:
 	case BOTS_TYPE:
-		scriptModule->setClient(has);
+		pScriptModule->setClient(has);
 		return;
 	default:
-		scriptModule->setCell(has);
+		pScriptModule->setCell(has);
 		return;
 	};
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityDef::loadAllScriptModule(std::string entitiesPath, 
+bool EntityDef::loadAllScriptModules(std::string entitiesPath, 
 									std::vector<PyTypeObject*>& scriptBaseTypes)
 {
 	std::string entitiesFile = entitiesPath + "entities.xml";
 
-	SmartPointer<XmlPlus> xml(new XmlPlus());
-	if(!xml.get()->openSection(entitiesFile.c_str()))
+	SmartPointer<XML> xml(new XML());
+	if(!xml->openSection(entitiesFile.c_str()))
 		return false;
 
-	TiXmlNode* node = xml.get()->getRootNode();
+	TiXmlNode* node = xml->getRootNode();
 	if(node == NULL)
 		return true;
 
 	XML_FOR_BEGIN(node)
 	{
 		std::string moduleName = xml.get()->getKey(node);
-		ScriptDefModule* scriptModule = findScriptModule(moduleName.c_str());
+		ScriptDefModule* pScriptModule = findScriptModule(moduleName.c_str());
 
 		PyObject* pyModule = 
 			PyImport_ImportModule(const_cast<char*>(moduleName.c_str()));
@@ -1110,29 +1229,31 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 		if (pyModule == NULL)
 		{
 			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
-			if(isLoadScriptModule(scriptModule))
+			if(isLoadScriptModule(pScriptModule))
 			{
-				ERROR_MSG(boost::format("EntityDef::initialize:Could not load module[%1%]\n") % 
-					moduleName.c_str());
+				ERROR_MSG(fmt::format("EntityDef::initialize:Could not load module[{}]\n", 
+					moduleName.c_str()));
 
 				PyErr_Print();
 				return false;
 			}
 
 			PyErr_Clear();
-			setScriptModuleHasComponentEntity(scriptModule, false);
+
+			// 必须在这里才设置， 在这之前设置会导致isLoadScriptModule失效，从而没有错误输出
+			setScriptModuleHasComponentEntity(pScriptModule, false);
 			continue;
 		}
 
-		setScriptModuleHasComponentEntity(scriptModule, true);
+		setScriptModuleHasComponentEntity(pScriptModule, true);
 
 		PyObject* pyClass = 
 			PyObject_GetAttrString(pyModule, const_cast<char *>(moduleName.c_str()));
 
 		if (pyClass == NULL)
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize:Could not find class[%1%]\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize:Could not find class[{}]\n",
+				moduleName.c_str()));
 
 			return false;
 		}
@@ -1141,7 +1262,7 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 			std::string typeNames = "";
 			bool valid = false;
 			std::vector<PyTypeObject*>::iterator iter = scriptBaseTypes.begin();
-			for(; iter != scriptBaseTypes.end(); iter++)
+			for(; iter != scriptBaseTypes.end(); ++iter)
 			{
 				if(!PyObject_IsSubclass(pyClass, (PyObject *)(*iter)))
 				{
@@ -1158,8 +1279,8 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 			
 			if(!valid)
 			{
-				ERROR_MSG(boost::format("EntityDef::initialize:Class %1% is not derived from KBEngine.[%2%]\n") %
-					moduleName.c_str() % typeNames.c_str());
+				ERROR_MSG(fmt::format("EntityDef::initialize:Class {} is not derived from KBEngine.[{}]\n",
+					moduleName.c_str(), typeNames.c_str()));
 
 				return false;
 			}
@@ -1167,24 +1288,24 @@ bool EntityDef::loadAllScriptModule(std::string entitiesPath,
 
 		if(!PyType_Check(pyClass))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize:class[%1%] is valid!\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] is valid!\n",
+				moduleName.c_str()));
 
 			return false;
 		}
 		
-		if(!checkDefMethod(scriptModule, pyClass, moduleName))
+		if(!checkDefMethod(pScriptModule, pyClass, moduleName))
 		{
-			ERROR_MSG(boost::format("EntityDef::initialize:class[%1%] checkDefMethod is failed!\n") %
-				moduleName.c_str());
+			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] checkDefMethod is failed!\n",
+				moduleName.c_str()));
 
 			return false;
 		}
 		
-		DEBUG_MSG(boost::format("loaded script:%1%(%2%).\n") % moduleName.c_str() % 
-			scriptModule->getUType());
+		DEBUG_MSG(fmt::format("loaded script:{}({}).\n", moduleName.c_str(), 
+			pScriptModule->getUType()));
 
-		scriptModule->setScriptType((PyTypeObject *)pyClass);
+		pScriptModule->setScriptType((PyTypeObject *)pyClass);
 		S_RELEASE(pyModule);
 	}
 	XML_FOR_END(node);
@@ -1197,7 +1318,7 @@ ScriptDefModule* EntityDef::findScriptModule(ENTITY_SCRIPT_UID utype)
 {
 	if (utype >= __scriptModules.size() + 1)
 	{
-		ERROR_MSG(boost::format("EntityDef::findScriptModule: is not exist(utype:%1%)!\n") % utype);
+		ERROR_MSG(fmt::format("EntityDef::findScriptModule: is not exist(utype:{})!\n", utype));
 		return NULL;
 	}
 
@@ -1212,7 +1333,7 @@ ScriptDefModule* EntityDef::findScriptModule(const char* scriptName)
 
 	if(iter == __scriptTypeMappingUType.end())
 	{
-		ERROR_MSG(boost::format("EntityDef::findScriptModule: [%1%] not found!\n") % scriptName);
+		ERROR_MSG(fmt::format("EntityDef::findScriptModule: [{}] not found!\n", scriptName));
 		return NULL;
 	}
 
@@ -1227,13 +1348,13 @@ ScriptDefModule* EntityDef::findOldScriptModule(const char* scriptName)
 
 	if(iter == __oldScriptTypeMappingUType.end())
 	{
-		ERROR_MSG(boost::format("EntityDef::findOldScriptModule: [%1%] not found!\n") % scriptName);
+		ERROR_MSG(fmt::format("EntityDef::findOldScriptModule: [{}] not found!\n", scriptName));
 		return NULL;
 	}
 
 	if (iter->second >= __oldScriptModules.size() + 1)
 	{
-		ERROR_MSG(boost::format("EntityDef::findOldScriptModule: is not exist(utype:%1%)!\n") % iter->second);
+		ERROR_MSG(fmt::format("EntityDef::findOldScriptModule: is not exist(utype:{})!\n", iter->second));
 		return NULL;
 	}
 
@@ -1244,12 +1365,16 @@ ScriptDefModule* EntityDef::findOldScriptModule(const char* scriptName)
 //-------------------------------------------------------------------------------------
 bool EntityDef::installScript(PyObject* mod)
 {
-	Blob::installScript(NULL);
-	APPEND_SCRIPT_MODULE_METHOD(mod, Blob, Blob::py_new, METH_VARARGS, 0);
+	if(_isInit)
+		return true;
+
+	script::PyMemoryStream::installScript(NULL);
+	APPEND_SCRIPT_MODULE_METHOD(mod, MemoryStream, script::PyMemoryStream::py_new, METH_VARARGS, 0);
 
 	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
+
 	_isInit = true;
 	return true;
 }
@@ -1259,7 +1384,7 @@ bool EntityDef::uninstallScript()
 {
 	if(_isInit)
 	{
-		Blob::uninstallScript();
+		script::PyMemoryStream::uninstallScript();
 		EntityMailbox::uninstallScript();
 		FixedArray::uninstallScript();
 		FixedDict::uninstallScript();
@@ -1272,18 +1397,6 @@ bool EntityDef::uninstallScript()
 bool EntityDef::initializeWatcher()
 {
 	return true;
-}
-
-//-------------------------------------------------------------------------------------
-void EntityDef::entitydefAliasID(bool v)
-{ 
-	__entitydefAliasID = v; 
-}
-
-//-------------------------------------------------------------------------------------
-bool EntityDef::entitydefAliasID()
-{ 
-	return __entitydefAliasID; 
 }
 
 //-------------------------------------------------------------------------------------

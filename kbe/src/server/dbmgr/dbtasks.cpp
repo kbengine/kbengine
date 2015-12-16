@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,27 +18,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "dbtasks.hpp"
-#include "dbmgr.hpp"
-#include "buffered_dbtasks.hpp"
-#include "network/common.hpp"
-#include "network/message_handler.hpp"
-#include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
-#include "server/components.hpp"
-#include "server/serverconfig.hpp"
-#include "dbmgr_lib/db_interface.hpp"
-#include "dbmgr_lib/kbe_tables.hpp"
-#include "db_mysql/db_exception.hpp"
-#include "db_mysql/db_interface_mysql.hpp"
-#include "entitydef/scriptdef_module.hpp"
+#include "dbtasks.h"
+#include "dbmgr.h"
+#include "buffered_dbtasks.h"
+#include "network/common.h"
+#include "network/message_handler.h"
+#include "thread/threadpool.h"
+#include "server/components.h"
+#include "server/serverconfig.h"
+#include "db_interface/db_interface.h"
+#include "db_interface/kbe_tables.h"
+#include "db_mysql/db_exception.h"
+#include "db_mysql/db_interface_mysql.h"
+#include "entitydef/scriptdef_module.h"
 #include "openssl/md5.h"
 
-#include "baseapp/baseapp_interface.hpp"
-#include "cellapp/cellapp_interface.hpp"
-#include "baseappmgr/baseappmgr_interface.hpp"
-#include "cellappmgr/cellappmgr_interface.hpp"
-#include "loginapp/loginapp_interface.hpp"
+#include "baseapp/baseapp_interface.h"
+#include "cellapp/cellapp_interface.h"
+#include "baseappmgr/baseappmgr_interface.h"
+#include "cellappmgr/cellappmgr_interface.h"
+#include "loginapp/loginapp_interface.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef _DEBUG
@@ -54,10 +53,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-DBTask::DBTask(const Mercury::Address& addr, MemoryStream& datas):
+DBTask::DBTask(const Network::Address& addr, MemoryStream& datas):
+DBTaskBase(),
 pDatas_(0),
-addr_(addr),
-pdbi_(NULL)
+addr_(addr)
 {
 	pDatas_ = MemoryStream::ObjPool().createObject();
 	*pDatas_ = datas;
@@ -71,12 +70,12 @@ DBTask::~DBTask()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTask::send(Mercury::Bundle& bundle)
+bool DBTask::send(Network::Bundle* pBundle)
 {
-	Mercury::Channel* pChannel = Dbmgr::getSingleton().getNetworkInterface().findChannel(addr_);
+	Network::Channel* pChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	
 	if(pChannel){
-		bundle.send(Dbmgr::getSingleton().getNetworkInterface(), pChannel);
+		pChannel->send(pBundle);
 	}
 	else{
 		return false;
@@ -86,38 +85,20 @@ bool DBTask::send(Mercury::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
-bool DBTask::process()
+DBTask* EntityDBTask::tryGetNextTask()
 {
-	uint64 startTime = timestamp();
-
-	bool ret = db_thread_process();
-
-	uint64 duration = timestamp() - startTime;
-	if (duration > stampsPerSecond())
-	{
-		WARNING_MSG(boost::format("DBTask::process(): took %.2f seconds\nsql:(%s)\n") % 
-			(double(duration)/stampsPerSecondD()) % static_cast<DBInterfaceMysql*>(pdbi_)->lastquery().c_str());
-	}
-
-	return ret;
-}
-
-//-------------------------------------------------------------------------------------
-thread::TPTask::TPTaskState DBTask::presentMainThread()
-{
-	return thread::TPTask::TPTASK_STATE_COMPLETED; 
+	KBE_ASSERT(_pBuffered_DBTasks != NULL);
+	return _pBuffered_DBTasks->tryGetNextTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState EntityDBTask::presentMainThread()
 {
-	KBE_ASSERT(_pBuffered_DBTasks != NULL);
-	_pBuffered_DBTasks->onFiniTask(this);
 	return DBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskExecuteRawDatabaseCommand::DBTaskExecuteRawDatabaseCommand(const Mercury::Address& addr, MemoryStream& datas):
+DBTaskExecuteRawDatabaseCommand::DBTaskExecuteRawDatabaseCommand(const Network::Address& addr, MemoryStream& datas):
 DBTask(addr, datas),
 componentID_(0),
 componentType_(UNKNOWN_COMPONENT_TYPE),
@@ -142,7 +123,7 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 
 	try
 	{
-		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -163,7 +144,7 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskExecuteRawDatabaseCommandByEntity::DBTaskExecuteRawDatabaseCommandByEntity(const Mercury::Address& addr, MemoryStream& datas, ENTITY_ID entityID):
+DBTaskExecuteRawDatabaseCommandByEntity::DBTaskExecuteRawDatabaseCommandByEntity(const Network::Address& addr, MemoryStream& datas, ENTITY_ID entityID):
 EntityDBTask(addr, datas, entityID, 0),
 componentID_(0),
 componentType_(UNKNOWN_COMPONENT_TYPE),
@@ -188,7 +169,7 @@ bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
 
 	try
 	{
-		if(!static_cast<DBInterfaceMysql*>(pdbi_)->execute(sdatas_.data(), sdatas_.size(), &execret_))
+		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -211,13 +192,13 @@ bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::DBTaskExecuteRawDatabaseCommandByEntity:%1%.\n") % sdatas_.c_str());
+	DEBUG_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {}.\n", sdatas_.c_str()));
 
 	// 如果不需要回调则结束
 	if(callbackID_ <= 0)
 		return EntityDBTask::presentMainThread();
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	if(componentType_ == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
@@ -238,28 +219,29 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 
 	if(cinfos && cinfos->pChannel)
 	{
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		cinfos->pChannel->send(pBundle);
 	}
 	else
 	{
-		ERROR_MSG(boost::format("DBTaskExecuteRawDatabaseCommandByEntity::presentMainThread: %1% not found.") %
-			COMPONENT_NAME_EX(componentType_));
+		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
+			COMPONENT_NAME_EX(componentType_)));
+
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::executeRawDatabaseCommand:%1%.\n") % sdatas_.c_str());
+	DEBUG_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {}.\n", sdatas_.c_str()));
 
 	// 如果不需要回调则结束
 	if(callbackID_ <= 0)
 		return thread::TPTask::TPTASK_STATE_COMPLETED;
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	if(componentType_ == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
@@ -280,20 +262,21 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 
 	if(cinfos && cinfos->pChannel)
 	{
-		(*pBundle).send(Dbmgr::getSingleton().getNetworkInterface(), cinfos->pChannel);
+		cinfos->pChannel->send(pBundle);
 	}
 	else
 	{
-		ERROR_MSG(boost::format("DBTaskExecuteRawDatabaseCommand::presentMainThread: %1% not found.") %
-			COMPONENT_NAME_EX(componentType_));
+		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
+			COMPONENT_NAME_EX(componentType_)));
+
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskWriteEntity::DBTaskWriteEntity(const Mercury::Address& addr, 
+DBTaskWriteEntity::DBTaskWriteEntity(const Network::Address& addr, 
 									 COMPONENT_ID componentID, ENTITY_ID eid, 
 									 DBID entityDBID, MemoryStream& datas):
 EntityDBTask(addr, datas, eid, entityDBID),
@@ -302,6 +285,7 @@ eid_(eid),
 entityDBID_(entityDBID),
 sid_(0),
 callbackID_(0),
+shouldAutoLoad_(-1),
 success_(false)
 {
 }
@@ -314,7 +298,7 @@ DBTaskWriteEntity::~DBTaskWriteEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskWriteEntity::db_thread_process()
 {
-	(*pDatas_) >> sid_ >> callbackID_;
+	(*pDatas_) >> sid_ >> callbackID_ >> shouldAutoLoad_;
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
 	bool writeEntityLog = (entityDBID_ == 0);
@@ -327,7 +311,9 @@ bool DBTaskWriteEntity::db_thread_process()
 		(*pDatas_) >> ip >> port;
 	}
 
-	entityDBID_ = EntityTables::getSingleton().writeEntity(pdbi_, entityDBID_, pDatas_, pModule);
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+
+	entityDBID_ = entityTables.writeEntity(pdbi_, entityDBID_, shouldAutoLoad_, pDatas_, pModule);
 	success_ = entityDBID_ > 0;
 
 	if(writeEntityLog && success_)
@@ -335,8 +321,7 @@ bool DBTaskWriteEntity::db_thread_process()
 		success_ = false;
 
 		// 先写log， 如果写失败则可能这个entity已经在线
-		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable("kbe_entitylog"));
 		KBE_ASSERT(pELTable);
 
 		success_ = pELTable->logEntity(pdbi_, inet_ntoa((struct in_addr&)ip), port, entityDBID_, 
@@ -355,27 +340,26 @@ bool DBTaskWriteEntity::db_thread_process()
 thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	DEBUG_MSG(boost::format("Dbmgr::writeEntity: %1%(%2%).\n") % pModule->getName() % entityDBID_);
+	DEBUG_MSG(fmt::format("Dbmgr::writeEntity: {0}({1}).\n", pModule->getName(), entityDBID_));
 
 	// 返回写entity的结果， 成功或者失败
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onWriteToDBCallback);
-	BaseappInterface::onWriteToDBCallbackArgs4::staticAddToBundle((*pBundle), 
-		eid_, entityDBID_, callbackID_, success_);
+	BaseappInterface::onWriteToDBCallbackArgs5::staticAddToBundle((*pBundle), 
+		eid_, entityDBID_, pdbi_->dbIndex(), callbackID_, success_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskWriteEntity::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskWriteEntity::presentMainThread: channel({0}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	
 	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskRemoveEntity::DBTaskRemoveEntity(const Mercury::Address& addr, 
+DBTaskRemoveEntity::DBTaskRemoveEntity(const Network::Address& addr, 
 									 COMPONENT_ID componentID, ENTITY_ID eid, 
 									 DBID entityDBID, MemoryStream& datas):
 EntityDBTask(addr, datas, eid, entityDBID),
@@ -396,12 +380,13 @@ bool DBTaskRemoveEntity::db_thread_process()
 {
 	(*pDatas_) >> sid_;
 
-	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
-	KBE_ASSERT(pELTable);
-	pELTable->eraseEntityLog(pdbi_, entityDBID_);
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable("kbe_entitylog"));
 
-	EntityTables::getSingleton().removeEntity(pdbi_, entityDBID_, EntityDef::findScriptModule(sid_));
+	KBE_ASSERT(pELTable);
+	pELTable->eraseEntityLog(pdbi_, entityDBID_, sid_);
+
+	entityTables.removeEntity(pdbi_, entityDBID_, EntityDef::findScriptModule(sid_));
 	return false;
 }
 
@@ -409,12 +394,12 @@ bool DBTaskRemoveEntity::db_thread_process()
 thread::TPTask::TPTaskState DBTaskRemoveEntity::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	DEBUG_MSG(boost::format("Dbmgr::removeEntity: %1%(%2%).\n") % pModule->getName() % entityDBID_);
+	DEBUG_MSG(fmt::format("Dbmgr::removeEntity: {}({}).\n", pModule->getName(), entityDBID_));
 	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskDeleteBaseByDBID::DBTaskDeleteBaseByDBID(const Mercury::Address& addr, COMPONENT_ID componentID, 
+DBTaskDeleteBaseByDBID::DBTaskDeleteBaseByDBID(const Network::Address& addr, COMPONENT_ID componentID, 
 		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid):
 DBTask(addr),
 componentID_(componentID),
@@ -435,8 +420,9 @@ DBTaskDeleteBaseByDBID::~DBTaskDeleteBaseByDBID()
 //-------------------------------------------------------------------------------------
 bool DBTaskDeleteBaseByDBID::db_thread_process()
 {
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+		(entityTables.findKBETable("kbe_entitylog"));
 
 	KBE_ASSERT(pELTable);
 
@@ -457,7 +443,7 @@ bool DBTaskDeleteBaseByDBID::db_thread_process()
 		return false;
 	}
 
-	EntityTables::getSingleton().removeEntity(pdbi_, entityDBID_, pModule);
+	entityTables.removeEntity(pdbi_, entityDBID_, pModule);
 	success_ = true;
 	return false;
 }
@@ -466,26 +452,150 @@ bool DBTaskDeleteBaseByDBID::db_thread_process()
 thread::TPTask::TPTaskState DBTaskDeleteBaseByDBID::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	DEBUG_MSG(boost::format("Dbmgr::DBTaskDeleteBaseByDBID: %1%(%2%), entityInAppID(%3%).\n") % 
-		pModule->getName() % entityDBID_ % entityInAppID_);
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskDeleteBaseByDBID: {}({}), entityInAppID({}).\n", 
+		pModule->getName(), entityDBID_, entityInAppID_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::deleteBaseByDBIDCB);
 
 	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskDeleteBaseByDBID::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskDeleteBaseByDBID::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskCreateAccount::DBTaskCreateAccount(const Mercury::Address& addr, 
+DBTaskEntityAutoLoad::DBTaskEntityAutoLoad(const Network::Address& addr, COMPONENT_ID componentID, 
+		ENTITY_SCRIPT_UID entityType, ENTITY_ID start, ENTITY_ID end):
+DBTask(addr),
+componentID_(componentID),
+entityType_(entityType),
+start_(start),
+end_(end),
+outs_()
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskEntityAutoLoad::~DBTaskEntityAutoLoad()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskEntityAutoLoad::db_thread_process()
+{
+	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_);
+	EntityTables::findByInterfaceName(pdbi_->name()).queryAutoLoadEntities(this->pdbi_, pModule, start_, end_, outs_);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskEntityAutoLoad::presentMainThread()
+{
+	int size = outs_.size();
+	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_);
+
+	if(size > 0)
+	{
+		DEBUG_MSG(fmt::format("Dbmgr::DBTaskEntityAutoLoad: {}, size({}).\n", 
+			pModule->getName(), size));
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::onEntityAutoLoadCBFromDBMgr);
+
+	(*pBundle) << pdbi_->dbIndex() << size << entityType_;
+
+	std::vector<DBID>::iterator iter = outs_.begin();
+	for(; iter != outs_.end(); iter++)
+	{
+		(*pBundle) << (*iter);
+	}
+
+	if(!this->send(pBundle))
+	{
+		ERROR_MSG(fmt::format("DBTaskEntityAutoLoad::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskLookUpBaseByDBID::DBTaskLookUpBaseByDBID(const Network::Address& addr, COMPONENT_ID componentID, 
+		DBID entityDBID, CALLBACK_ID callbackID, ENTITY_SCRIPT_UID sid):
+DBTask(addr),
+componentID_(componentID),
+callbackID_(callbackID),
+entityDBID_(entityDBID),
+sid_(sid),
+success_(false),
+entityID_(0),
+entityInAppID_(0)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskLookUpBaseByDBID::~DBTaskLookUpBaseByDBID()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskLookUpBaseByDBID::db_thread_process()
+{
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
+		(entityTables.findKBETable("kbe_entitylog"));
+
+	KBE_ASSERT(pELTable);
+
+	KBEEntityLogTable::EntityLog entitylog;
+
+	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
+
+	// 如果有在线纪录
+	if(pELTable->queryEntity(pdbi_, entityDBID_, entitylog, pModule->getUType()))
+	{
+		success_ = true;
+		entityInAppID_ = entitylog.componentID;
+		entityID_ = entitylog.entityID;
+		KBE_ASSERT(entityID_ > 0 && entityInAppID_ > 0);
+		return false;
+	}
+
+	MemoryStream s;
+	success_ = entityTables.queryEntity(pdbi_, entityDBID_, &s, pModule);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskLookUpBaseByDBID::presentMainThread()
+{
+	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskLookUpBaseByDBID: {}({}), entityInAppID({}).\n", 
+		pModule->getName(), entityDBID_, entityInAppID_));
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	(*pBundle).newMessage(BaseappInterface::lookUpBaseByDBIDCB);
+
+	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
+
+	if(!this->send(pBundle))
+	{
+		ERROR_MSG(fmt::format("DBTaskLookUpBaseByDBID::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	return thread::TPTask::TPTASK_STATE_COMPLETED;
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskCreateAccount::DBTaskCreateAccount(const Network::Address& addr, 
 										 std::string& registerName,
 										 std::string& accountName, 
 										 std::string& password, 
@@ -526,17 +636,25 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 
 	// 寻找dblog是否有此账号， 如果有则创建失败
 	// 如果没有则向account表新建一个entity数据同时在accountlog表写入一个log关联dbid
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): not found account script[{}], create[{}] error!\n", 
+			DBUtil::accountScriptName(), accountName));
+
+		return false;
+	}
 
 	if(pTable->queryAccount(pdbi, accountName, info) && (info.flags & ACCOUNT_FLAG_NOT_ACTIVATED) <= 0)
 	{
 		if(pdbi->getlasterror() > 0)
 		{
-			WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): queryAccount error: %1%\n") % 
-				pdbi->getstrerror());
+			WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): queryAccount error: {}\n", 
+				pdbi->getstrerror()));
 		}
 
 		return false;
@@ -556,13 +674,14 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 		// 防止多线程问题， 这里做一个拷贝。
 		MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
 
-		entityDBID = EntityTables::getSingleton().writeEntity(pdbi, 0, 
+		entityDBID = EntityTables::findByInterfaceName(pdbi->name()).writeEntity(pdbi, 0, -1,
 				&copyAccountDefMemoryStream, pModule);
 	}
 
 	KBE_ASSERT(entityDBID > 0);
 
 	info.name = accountName;
+	info.email = accountName + "@0.0";
 	info.password = passwd;
 	info.dbid = entityDBID;
 	info.datas = datas;
@@ -573,8 +692,8 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 		{
 			if(pdbi->getlasterror() > 0)
 			{
-				WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): logAccount error:%1%\n") % 
-					pdbi->getstrerror());
+				WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): logAccount error:{}\n", 
+					pdbi->getstrerror()));
 			}
 
 			return false;
@@ -586,8 +705,8 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 		{
 			if(pdbi->getlasterror() > 0)
 			{
-				WARNING_MSG(boost::format("DBTaskCreateAccount::writeAccount(): logAccount error:%1%\n") % 
-					pdbi->getstrerror());
+				WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): logAccount error:{}\n", 
+					pdbi->getstrerror()));
 			}
 
 			return false;
@@ -600,24 +719,23 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::reqCreateAccount:%1%.\n") % registerName_.c_str());
+	DEBUG_MSG(fmt::format("Dbmgr::reqCreateAccount: {}.\n", registerName_.c_str()));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_ACCOUNT_CREATE;
+		failedcode = SERVER_ERR_ACCOUNT_CREATE_FAILED;
 
 	(*pBundle) << failedcode << registerName_ << password_;
 	(*pBundle).appendBlob(getdatas_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskCreateAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskCreateAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
@@ -626,16 +744,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 std::string genmail_code(const std::string& str)
 {
 	std::string datas = KBEngine::StringConv::val2str(KBEngine::genUUID64());
-
-	unsigned char md[16];
-	MD5((unsigned char *)str.c_str(), str.length(), md);
-
-	char tmp[3] = {'\0'};
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2x", md[i]);
-		datas += tmp;
-	}
+	datas += KBE_MD5::getDigest(str.data(), str.length());
 
 	srand(getSystemTime());
 	datas += KBEngine::StringConv::val2str(rand());
@@ -643,7 +752,7 @@ std::string genmail_code(const std::string& str)
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskCreateMailAccount::DBTaskCreateMailAccount(const Mercury::Address& addr, 
+DBTaskCreateMailAccount::DBTaskCreateMailAccount(const Network::Address& addr, 
 										 std::string& registerName,
 										 std::string& accountName, 
 										 std::string& password, 
@@ -670,11 +779,13 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	ACCOUNT_INFOS info;
 	if(accountName_.size() == 0)
 	{
+		ERROR_MSG("DBTaskCreateMailAccount::db_thread_process(): accountName is NULL!\n");
 		return false;
 	}
 
 	// 寻找dblog是否有此账号， 如果有则创建失败
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 	
 	info.flags = 0;
@@ -682,8 +793,8 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	{
 		if(pdbi_->getlasterror() > 0)
 		{
-			WARNING_MSG(boost::format("DBTaskCreateMailAccount::db_thread_process(): queryAccount error: %1%\n") % 
-				pdbi_->getstrerror());
+			WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): queryAccount is error: {}\n", 
+				pdbi_->getstrerror()));
 		}
 
 		return false;
@@ -692,7 +803,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	getdatas_ = genmail_code(password_);
-	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(entityTables.findKBETable("kbe_email_verification"));
 	KBE_ASSERT(pTable1);
 	
 	info.datas = getdatas_;
@@ -700,6 +811,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	info.password = password_;
 	info.flags |= ACCOUNT_FLAG_NOT_ACTIVATED; 
 	info.email = info.name;
+	info.dbid = KBEngine::genUUID64();
 
 	try
 	{
@@ -707,19 +819,11 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	}
 	catch (...)
 	{
+		WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): logAccount(kbe_accountinfos) is error: {}\n{}\n", 
+			pdbi_->getstrerror(), pdbi_->lastquery()));
 	}
 
-	unsigned char md[16];
-	MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-	char tmp[3]={'\0'}, md5password[33] = {'\0'};
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
-
-	password_ = md5password;
+	password_ = KBE_MD5::getDigest(password_.data(), password_.length());
 
 	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT, 
 		registerName_, password_, getdatas_);
@@ -730,30 +834,29 @@ bool DBTaskCreateMailAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::reqCreateMailAccount:%1%.\n") % registerName_.c_str());
+	DEBUG_MSG(fmt::format("Dbmgr::reqCreateMailAccount: {}, success={}.\n", registerName_, success_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onReqCreateMailAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_ACCOUNT_CREATE;
+		failedcode = SERVER_ERR_ACCOUNT_CREATE_FAILED;
 
 	(*pBundle) << failedcode << registerName_ << password_;
 	(*pBundle).appendBlob(getdatas_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskCreateMailAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskCreateMailAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskActivateAccount::DBTaskActivateAccount(const Mercury::Address& addr, 
+DBTaskActivateAccount::DBTaskActivateAccount(const Network::Address& addr, 
 										 std::string& code):
 DBTask(addr),
 code_(code),
@@ -772,13 +875,17 @@ bool DBTaskActivateAccount::db_thread_process()
 	ACCOUNT_INFOS info;
 
 	KBEEmailVerificationTable* pTable1 = 
-		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+		static_cast<KBEEmailVerificationTable*>(EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
 
 	KBE_ASSERT(pTable1);
 
 	success_ = pTable1->activateAccount(pdbi_, code_, info);
 	if(!success_)
+	{
+		ERROR_MSG(fmt::format("DBTaskActivateAccount::db_thread_process(): activateAccount({1}) error: {0}\n", 
+				pdbi_->getstrerror(), code_));
 		return false;
+	}
 
 	return false;
 }
@@ -786,24 +893,23 @@ bool DBTaskActivateAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
 {
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
 	(*pBundle).newMessage(LoginappInterface::onAccountActivated);
-
-
 	(*pBundle) << code_ << success_;
-	if(!this->send((*pBundle)))
-	{
-		ERROR_MSG(boost::format("DBTaskActivateAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
-	}
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+	if(!this->send(pBundle))
+	{
+		ERROR_MSG(fmt::format("DBTaskActivateAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 
 //-------------------------------------------------------------------------------------
-DBTaskReqAccountResetPassword::DBTaskReqAccountResetPassword(const Mercury::Address& addr, std::string& accountName):
+DBTaskReqAccountResetPassword::DBTaskReqAccountResetPassword(const Network::Address& addr, std::string& accountName):
 DBTask(addr),
 code_(),
 email_(),
@@ -826,50 +932,60 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 		return false;
 	}
 
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
+	KBE_ASSERT(pTable);
+
+	if(!pTable->queryAccountAllInfos(pdbi_, accountName_, info))
+	{
+		return false;
+	}
+
+	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
+		return false;
+	
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	KBEEmailVerificationTable* pTable1 = 
-		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+		static_cast<KBEEmailVerificationTable*>(entityTables.findKBETable("kbe_email_verification"));
 	KBE_ASSERT(pTable1);
 
 	info.datas = genmail_code(accountName_);
-	info.name = accountName_;
-	email_ = accountName_;
 	code_ = info.datas;
-	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, "", code_);
+	email_ = info.email;
+	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_RESETPASSWORD, accountName_, email_, code_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 {
-	DEBUG_MSG(boost::format("DBTaskReqAccountResetPassword::presentMainThread: accountName=%1%, code_=%2%, success=%3%.\n") 
-		% accountName_ % code_ % success_);
+	DEBUG_MSG(fmt::format("DBTaskReqAccountResetPassword::presentMainThread: accountName={}, code_={}, success={}.\n",
+		accountName_, code_, success_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onReqAccountResetPasswordCB);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_FAILED;
+		failedcode = SERVER_ERR_OP_FAILED;
 
 	(*pBundle) << accountName_;
 	(*pBundle) << email_;
 	(*pBundle) << failedcode;
 	(*pBundle) << code_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskReqAccountResetPassword::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskReqAccountResetPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountResetPassword::DBTaskAccountResetPassword(const Mercury::Address& addr, std::string& accountName, 
+DBTaskAccountResetPassword::DBTaskAccountResetPassword(const Network::Address& addr, std::string& accountName, 
 		std::string& newpassword, std::string& code):
 DBTask(addr),
 code_(code),
@@ -887,8 +1003,8 @@ DBTaskAccountResetPassword::~DBTaskAccountResetPassword()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountResetPassword::db_thread_process()
 {
-	KBEEmailVerificationTable* pTable1 = 
-		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
 
 	KBE_ASSERT(pTable1);
 
@@ -899,27 +1015,26 @@ bool DBTaskAccountResetPassword::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
 {
-	DEBUG_MSG(boost::format("DBTaskAccountResetPassword::presentMainThread: code(%1%), success=%2%.\n") 
-		% code_ % success_);
+	DEBUG_MSG(fmt::format("DBTaskAccountResetPassword::presentMainThread: code({}), success={}.\n",
+		code_, success_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onAccountResetPassword);
 
 	(*pBundle) << code_;
 	(*pBundle) << success_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskAccountResetPassword::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskAccountResetPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskReqAccountBindEmail::DBTaskReqAccountBindEmail(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
+DBTaskReqAccountBindEmail::DBTaskReqAccountBindEmail(const Network::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string password,std::string& email):
 DBTask(addr),
 code_(),
@@ -947,8 +1062,9 @@ bool DBTaskReqAccountBindEmail::db_thread_process()
 
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
-	KBEEmailVerificationTable* pTable1 = 
-		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
+
 	KBE_ASSERT(pTable1);
 
 	info.datas = genmail_code(accountName_);
@@ -961,15 +1077,15 @@ bool DBTaskReqAccountBindEmail::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 {
-	DEBUG_MSG(boost::format("DBTaskReqAccountBindEmail::presentMainThread: code(%1%), success=%2%.\n") 
-		% code_ % success_);
+	DEBUG_MSG(fmt::format("DBTaskReqAccountBindEmail::presentMainThread: code({}), success={}.\n", 
+		code_, success_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCB);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_FAILED;
+		failedcode = SERVER_ERR_OP_FAILED;
 
 	(*pBundle) << entityID_; 
 	(*pBundle) << accountName_;
@@ -977,18 +1093,17 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 	(*pBundle) << failedcode;
 	(*pBundle) << code_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskReqAccountBindEmail::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskReqAccountBindEmail::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountBindEmail::DBTaskAccountBindEmail(const Mercury::Address& addr, std::string& accountName, 
+DBTaskAccountBindEmail::DBTaskAccountBindEmail(const Network::Address& addr, std::string& accountName, 
 		std::string& code):
 DBTask(addr),
 code_(code),
@@ -1005,8 +1120,8 @@ DBTaskAccountBindEmail::~DBTaskAccountBindEmail()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountBindEmail::db_thread_process()
 {
-	KBEEmailVerificationTable* pTable1 = 
-		static_cast<KBEEmailVerificationTable*>(EntityTables::getSingleton().findKBETable("kbe_email_verification"));
+	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
 
 	KBE_ASSERT(pTable1);
 
@@ -1017,27 +1132,26 @@ bool DBTaskAccountBindEmail::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
 {
-	DEBUG_MSG(boost::format("DBTaskAccountBindEmail::presentMainThread: code(%1%), success=%2%.\n") 
-		% code_ % success_);
+	DEBUG_MSG(fmt::format("DBTaskAccountBindEmail::presentMainThread: code({}), success={}.\n", 
+		code_, success_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onAccountBindedEmail);
 
 	(*pBundle) << code_;
 	(*pBundle) << success_;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskAccountBindEmail::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskAccountBindEmail::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountNewPassword::DBTaskAccountNewPassword(const Mercury::Address& addr, ENTITY_ID entityID, std::string& accountName, 
+DBTaskAccountNewPassword::DBTaskAccountNewPassword(const Network::Address& addr, ENTITY_ID entityID, std::string& accountName, 
 		std::string& oldpassword_, std::string& newpassword):
 DBTask(addr),
 accountName_(accountName),
@@ -1055,7 +1169,9 @@ DBTaskAccountNewPassword::~DBTaskAccountNewPassword()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountNewPassword::db_thread_process()
 {
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_accountinfos"));
+
 	KBE_ASSERT(pTable);
 
 	ACCOUNT_INFOS info;
@@ -1064,66 +1180,46 @@ bool DBTaskAccountNewPassword::db_thread_process()
 		return false;
 	}
 
-	if(info.dbid == 0)
+	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	unsigned char md[16];
-	MD5((unsigned char *)oldpassword_.c_str(), oldpassword_.length(), md);
-
-	char tmp[3]={'\0'}, md5password[33] = {'\0'};
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
-
-	if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+	if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(oldpassword_.data(), oldpassword_.length()).c_str()) != 0)
 	{
 		return false;
 	}
 
-	MD5((unsigned char *)newpassword_.c_str(), newpassword_.length(), md);
-	md5password[0] = '\0';
-
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(tmp,"%2.2X", md[i]);
-		strcat(md5password, tmp);
-	}
-
-	success_ = pTable->updatePassword(pdbi_, accountName_, md5password);
+	success_ = pTable->updatePassword(pdbi_, accountName_, KBE_MD5::getDigest(newpassword_.data(), newpassword_.length()));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 {
-	DEBUG_MSG(boost::format("DBTaskAccountNewPassword::presentMainThread: success=%1%.\n") 
-		% success_);
+	DEBUG_MSG(fmt::format("DBTaskAccountNewPassword::presentMainThread: success={}.\n", success_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onReqAccountNewPasswordCB);
 
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
-		failedcode = SERVER_ERR_FAILED;
+		failedcode = SERVER_ERR_OP_FAILED;
 
 	(*pBundle) << entityID_;
 	(*pBundle) << accountName_;
 	(*pBundle) << failedcode;
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskAccountNewPassword::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskAccountNewPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskQueryAccount::DBTaskQueryAccount(const Mercury::Address& addr, std::string& accountName, std::string& password, 
+DBTaskQueryAccount::DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, 
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port):
 EntityDBTask(addr, entityID, entityDBID),
 accountName_(accountName),
@@ -1151,10 +1247,12 @@ bool DBTaskQueryAccount::db_thread_process()
 {
 	if(accountName_.size() == 0)
 	{
+		error_ = "accountName_ is NULL";
 		return false;
 	}
 
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	ACCOUNT_INFOS info;
@@ -1165,27 +1263,32 @@ bool DBTaskQueryAccount::db_thread_process()
 	if(dbid_ == 0)
 	{
 		if(!pTable->queryAccount(pdbi_, accountName_, info))
-			return false;
-
-		if(info.dbid == 0)
-			return false;
-		
-		unsigned char md[16];
-		MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-		char tmp[3]={'\0'}, md5password[33] = {'\0'};
-		for (int i = 0; i < 16; i++)
 		{
-			sprintf(tmp,"%2.2X", md[i]);
-			strcat(md5password, tmp);
+			error_ = "pTable->queryAccount() is failed!";
+			
+			if(pdbi_->getlasterror() > 0)
+			{
+				error_ += pdbi_->getstrerror();
+			}
+	
+			return false;
 		}
 
-		if(kbe_stricmp(info.password.c_str(), md5password) != 0)
+		if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
+		{
+			error_ = "dbid is 0 or flags != ACCOUNT_FLAG_NORMAL";
 			return false;
+		}
+
+		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
+		{
+			error_ = "password is error";
+			return false;
+		}
 	}
 
-	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
-	success_ = EntityTables::getSingleton().queryEntity(pdbi_, info.dbid, &s_, pModule);
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+	success_ = entityTables.queryEntity(pdbi_, info.dbid, &s_, pModule);
 
 	if(!success_ && pdbi_->getlasterror() > 0)
 	{
@@ -1202,7 +1305,7 @@ bool DBTaskQueryAccount::db_thread_process()
 
 	// 先写log， 如果写失败则可能这个entity已经在线
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+		(entityTables.findKBETable("kbe_entitylog"));
 	KBE_ASSERT(pELTable);
 	
 	success_ = pELTable->logEntity(pdbi_, inet_ntoa((struct in_addr&)ip_), port_, dbid_, 
@@ -1223,11 +1326,12 @@ bool DBTaskQueryAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::queryAccount:%1%, success=%2%, flags=%3%, deadline=%4%.\n") 
-		% accountName_.c_str() % success_ % flags_ % deadline_);
+	DEBUG_MSG(fmt::format("Dbmgr::queryAccount: {}, success={}, flags={}, deadline={}.\n", 
+		 accountName_.c_str(), success_, flags_, deadline_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
+	(*pBundle) << pdbi_->dbIndex();
 	(*pBundle) << accountName_;
 	(*pBundle) << password_;
 	(*pBundle) << dbid_;
@@ -1245,22 +1349,21 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 		(*pBundle) << error_;
 	}
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskQueryAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskQueryAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountOnline::DBTaskAccountOnline(const Mercury::Address& addr, std::string& accountName,
+DBTaskAccountOnline::DBTaskAccountOnline(const Network::Address& addr, std::string& accountName,
 		COMPONENT_ID componentID, ENTITY_ID entityID):
-DBTask(addr),
+EntityDBTask(addr, entityID, 0),
 accountName_(accountName),
-componentID_(componentID),
-entityID_(entityID)
+componentID_(componentID)
 {
 }
 
@@ -1278,7 +1381,7 @@ bool DBTaskAccountOnline::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountOnline::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onAccountOnline:componentID:%1%, entityID:%2%.\n") % componentID_ % entityID_);
+	DEBUG_MSG(fmt::format("Dbmgr::onAccountOnline: componentID:{}, entityID:{}.\n", componentID_, EntityDBTask_entityID()));
 
 	/*
 	// 如果没有连接db则从log中查找账号是否还在线
@@ -1298,13 +1401,13 @@ thread::TPTask::TPTaskState DBTaskAccountOnline::presentMainThread()
 	}
 	*/
 
-	return DBTask::presentMainThread();
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskEntityOffline::DBTaskEntityOffline(const Mercury::Address& addr, DBID dbid):
-DBTask(addr),
-dbid_(dbid)
+DBTaskEntityOffline::DBTaskEntityOffline(const Network::Address& addr, DBID dbid, ENTITY_SCRIPT_UID sid):
+EntityDBTask(addr, 0, dbid),
+sid_(sid)
 {
 }
 
@@ -1317,25 +1420,27 @@ DBTaskEntityOffline::~DBTaskEntityOffline()
 bool DBTaskEntityOffline::db_thread_process()
 {
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+		(EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_entitylog"));
+
 	KBE_ASSERT(pELTable);
-	pELTable->eraseEntityLog(pdbi_, dbid_);
+
+	pELTable->eraseEntityLog(pdbi_, EntityDBTask_entityDBID(), sid_);
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskEntityOffline::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onEntityOffline:%1%.\n") % dbid_);
-	return DBTask::presentMainThread();
+	DEBUG_MSG(fmt::format("Dbmgr::onEntityOffline: {}, entityType={}.\n", EntityDBTask_entityDBID(), sid_));
+	return EntityDBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskAccountLogin::DBTaskAccountLogin(const Mercury::Address& addr, 
+DBTaskAccountLogin::DBTaskAccountLogin(const Network::Address& addr, 
 									   std::string& loginName, 
 									   std::string& accountName, 
 									   std::string& password, 
-									   bool success,
+									   SERVER_ERROR_CODE retcode,
 									   std::string& postdatas, 
 									   std::string& getdatas):
 DBTask(addr),
@@ -1344,7 +1449,7 @@ accountName_(accountName),
 password_(password),
 postdatas_(postdatas),
 getdatas_(getdatas),
-success_(success),
+retcode_(retcode),
 componentID_(0),
 entityID_(0),
 dbid_(0),
@@ -1361,24 +1466,40 @@ DBTaskAccountLogin::~DBTaskAccountLogin()
 //-------------------------------------------------------------------------------------
 bool DBTaskAccountLogin::db_thread_process()
 {
-	// 如果billing已经判断不成功就没必要继续下去
-	if(!success_)
+	// 如果Interfaces已经判断不成功就没必要继续下去
+	if(retcode_ != SERVER_SUCCESS)
 	{
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): interfaces is failed!\n"));
 		return false;
 	}
 
-	success_ = false;
+	retcode_ = SERVER_ERR_OP_FAILED;
 
 	if(accountName_.size() == 0)
 	{
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): accountName is NULL!\n"));
+		retcode_ = SERVER_ERR_NAME;
 		return false;
 	}
 
+	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
+
+	if(pModule == NULL)
+	{
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account script[{}], login[{}] failed!\n", 
+			DBUtil::accountScriptName(), accountName_));
+
+		retcode_ = SERVER_ERR_SRV_NO_READY;
+		return false;
+	}
+
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-					(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+		(entityTables.findKBETable("kbe_entitylog"));
+
 	KBE_ASSERT(pELTable);
 
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	ACCOUNT_INFOS info;
@@ -1393,83 +1514,70 @@ bool DBTaskAccountLogin::db_thread_process()
 		{
 			if (email_isvalid(accountName_.c_str()))
 			{
-				ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): account[%1%] is email, autocreate failed!\n") % 
-					accountName_);
+				ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): account[{}] is email, autocreate failed!\n", 
+					accountName_));
+
+				retcode_ = SERVER_ERR_CANNOT_USE_MAIL;
 				return false;
 			}
 		}
 
 		if(g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate)
 		{
-			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0)
+			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			{
-				ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate failed!\n") % 
-					accountName_);
+				ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): writeAccount[{}] is error!\n",
+					accountName_));
+
+				retcode_ = SERVER_ERR_DB;
 				return false;
 			}
 
-			INFO_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], autocreate successfully!\n") % 
-				accountName_);
+			INFO_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], autocreate successfully!\n", 
+				accountName_));
 
-			if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
+			if(kbe_stricmp(g_kbeSrvConfig.interfacesAccountType(), "normal") == 0)
 			{
-				unsigned char md[16];
-				MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-				char tmp[3]={'\0'}, md5password[33] = {'\0'};
-				for (int i = 0; i < 16; i++)
-				{
-					sprintf(tmp,"%2.2X", md[i]);
-					strcat(md5password, tmp);
-				}
-
-				info.password = md5password;
+				info.password = KBE_MD5::getDigest(password_.data(), password_.length());
 			}
 		}
 		else
 		{
-			ERROR_MSG(boost::format("DBTaskAccountLogin::db_thread_process(): not found account[%1%], login failed!\n") % 
-				accountName_);
+			ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], login failed!\n", 
+				accountName_));
+
+			retcode_ = SERVER_ERR_NOT_FOUND_ACCOUNT;
 			return false;
 		}
 	}
 
-	if(info.dbid == 0)
+	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	if(kbe_stricmp(g_kbeSrvConfig.billingSystemAccountType(), "normal") == 0)
+	if(kbe_stricmp(g_kbeSrvConfig.interfacesAccountType(), "normal") == 0)
 	{
-		unsigned char md[16];
-		MD5((unsigned char *)password_.c_str(), password_.length(), md);
-
-		char tmp[3]={'\0'}, md5password[33] = {'\0'};
-		for (int i = 0; i < 16; i++)
+		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
 		{
-			sprintf(tmp,"%2.2X", md[i]);
-			strcat(md5password, tmp);
-		}
-
-		if(kbe_stricmp(info.password.c_str(), md5password) != 0)
-		{
-			success_ = false;
+			retcode_ = SERVER_ERR_PASSWORD;
 			return false;
 		}
 	}
-	
-	pTable->updateCount(pdbi_, info.dbid);
 
-	success_ = false;
+	pTable->updateCount(pdbi_, accountName_, info.dbid);
+
+	retcode_ = SERVER_ERR_ACCOUNT_IS_ONLINE;
 	KBEEntityLogTable::EntityLog entitylog;
-
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
-	success_ = !pELTable->queryEntity(pdbi_, info.dbid, entitylog, pModule->getUType());
+	bool success = !pELTable->queryEntity(pdbi_, info.dbid, entitylog, pModule->getUType());
 
 	// 如果有在线纪录
-	if(!success_)
+	if(!success)
 	{
 		componentID_ = entitylog.componentID;
 		entityID_ = entitylog.entityID;
+	}
+	else
+	{
+		retcode_ = SERVER_SUCCESS;
 	}
 
 	dbid_ = info.dbid;
@@ -1481,21 +1589,21 @@ bool DBTaskAccountLogin::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::onAccountLogin:loginName=%1%, accountName=%2%, success=%3%, componentID=%4%, dbid=%5%, flags=%6%, deadline=%7%.\n") % 
-		loginName_ %
-		accountName_ %
-		success_ %
-		componentID_ %
-		dbid_ %
-		flags_ %
+	DEBUG_MSG(fmt::format("Dbmgr::onAccountLogin:loginName={0}, accountName={1}, success={2}, componentID={3}, dbid={4}, flags={5}, deadline={6}.\n", 
+		loginName_,
+		accountName_,
+		retcode_,
+		componentID_,
+		dbid_,
+		flags_,
 		deadline_
-		);
+		));
 
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 
-	(*pBundle) << success_;
+	(*pBundle) << retcode_;
 	(*pBundle) << loginName_;
 	(*pBundle) << accountName_;
 	(*pBundle) << password_;
@@ -1506,19 +1614,20 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << deadline_;
 	(*pBundle).appendBlob(getdatas_);
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskAccountLogin::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
 
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 	return DBTask::presentMainThread();
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskQueryEntity::DBTaskQueryEntity(const Mercury::Address& addr, std::string& entityType, DBID dbid, 
+DBTaskQueryEntity::DBTaskQueryEntity(const Network::Address& addr, int8 queryMode, std::string& entityType, DBID dbid, 
 		COMPONENT_ID componentID, CALLBACK_ID callbackID, ENTITY_ID entityID):
 EntityDBTask(addr, entityID, dbid),
+queryMode_(queryMode),
 entityType_(entityType),
 dbid_(dbid),
 componentID_(componentID),
@@ -1526,7 +1635,9 @@ callbackID_(callbackID),
 success_(false),
 s_(),
 entityID_(entityID),
-wasActive_(false)
+wasActive_(false),
+wasActiveCID_(0),
+wasActiveEntityID_(0)
 {
 }
 
@@ -1538,14 +1649,15 @@ DBTaskQueryEntity::~DBTaskQueryEntity()
 //-------------------------------------------------------------------------------------
 bool DBTaskQueryEntity::db_thread_process()
 {
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
 	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_.c_str());
-	success_ = EntityTables::getSingleton().queryEntity(pdbi_, dbid_, &s_, pModule);
+	success_ = entityTables.queryEntity(pdbi_, dbid_, &s_, pModule);
 
 	if(success_)
 	{
 		// 先写log， 如果写失败则可能这个entity已经在线
 		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-						(EntityTables::getSingleton().findKBETable("kbe_entitylog"));
+			(entityTables.findKBETable("kbe_entitylog"));
 		KBE_ASSERT(pELTable);
 
 		try
@@ -1566,7 +1678,29 @@ bool DBTaskQueryEntity::db_thread_process()
 		}
 
 		if(!success_)
+		{
+			KBEEntityLogTable::EntityLog entitylog;
+
+			try
+			{
+				pELTable->queryEntity(pdbi_, dbid_, entitylog, pModule->getUType());
+			}
+			catch (std::exception & e)
+			{
+				DBException& dbe = static_cast<DBException&>(e);
+				if(dbe.isLostConnection())
+				{
+					static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+					return true;
+				}
+				else
+					success_ = false;
+			}
+
+			wasActiveCID_ = entitylog.componentID;
+			wasActiveEntityID_ = entitylog.entityID;
 			wasActive_ = true;
+		}
 	}
 
 	return false;
@@ -1575,10 +1709,17 @@ bool DBTaskQueryEntity::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 {
-	DEBUG_MSG(boost::format("Dbmgr::DBTaskQueryEntity:%1%.\n") % entityType_.c_str());
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskQueryEntity: {}, dbid={}, entityID={}, wasActive={}, queryMode={}, success={}.\n", 
+		entityType_, dbid_, entityID_, wasActive_, ((int)queryMode_), success_));
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+	if(queryMode_ == 0)
+		pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
+	else if(queryMode_ == 1)
+		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDCallback);
+
+	(*pBundle) << pdbi_->dbIndex();
 	(*pBundle) << entityType_;
 	(*pBundle) << dbid_;
 	(*pBundle) << callbackID_;
@@ -1586,17 +1727,22 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 	(*pBundle) << entityID_;
 	(*pBundle) << wasActive_;
 
+	if(wasActive_)
+	{
+		(*pBundle) << wasActiveCID_;
+		(*pBundle) << wasActiveEntityID_;
+	}
+
 	if(success_)
 	{
 		pBundle->append(s_);
 	}
 
-	if(!this->send((*pBundle)))
+	if(!this->send(pBundle))
 	{
-		ERROR_MSG(boost::format("DBTaskQueryAccount::presentMainThread: channel(%1%) not found.\n") % addr_.c_str());
+		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: channel({}) not found.\n", addr_.c_str()));
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
 	}
-
-	Mercury::Bundle::ObjPool().reclaimObject(pBundle);
 
 	return EntityDBTask::presentMainThread();
 }

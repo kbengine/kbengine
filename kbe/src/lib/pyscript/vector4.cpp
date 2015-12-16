@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,9 +19,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "vector2.hpp"
-#include "vector3.hpp"
-#include "vector4.hpp"
+#include "vector2.h"
+#include "vector3.h"
+#include "vector4.h"
+#include "pyscript/py_gc.h"
+
 namespace KBEngine{ namespace script{
 
 const int ScriptVector4::VECTOR_SIZE = sizeof(Vector4) / sizeof(float);
@@ -125,8 +127,8 @@ ScriptObject(getScriptType(), false),
 val_(v),
 isCopy_(true)
 {
+	script::PyGC::incTracing("Vector4");
 }
-
 
 //-------------------------------------------------------------------------------------
 ScriptVector4::ScriptVector4(Vector4 v):
@@ -134,6 +136,7 @@ ScriptObject(getScriptType(), false),
 isCopy_(false)
 {
 	val_ = new Vector4(v);
+	script::PyGC::incTracing("Vector4");
 }
 
 //-------------------------------------------------------------------------------------
@@ -142,7 +145,7 @@ ScriptObject(getScriptType(), false),
 isCopy_(false)
 {
 	val_ = new Vector4(x, y, z, w);
-
+	script::PyGC::incTracing("Vector4");
 }
 
 //-------------------------------------------------------------------------------------
@@ -150,6 +153,8 @@ ScriptVector4::~ScriptVector4()
 {
 	if(!isCopy_)
 		delete val_;
+
+	script::PyGC::decTracing("Vector4");
 }
 
 //-------------------------------------------------------------------------------------
@@ -177,7 +182,7 @@ PyObject* ScriptVector4::tp_repr()
 	Vector4 v = this->getVector();
 
 	strcpy(str, "Vector4(");
-	for(int i=0; i < VECTOR_SIZE; i++)
+	for(int i=0; i < VECTOR_SIZE; ++i)
 	{
 		if (i > 0)
 			strcat(str, ", ");
@@ -264,7 +269,7 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 			{
 				Vector2 v;
 				
-				for(int i = startIndex; i < endIndex; i++){
+				for(int i = startIndex; i < endIndex; ++i){
 					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
@@ -274,7 +279,7 @@ PyObject* ScriptVector4::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 			case 3:
 			{
 				Vector3 v;
-				for (int i = startIndex; i < endIndex; i++){
+				for (int i = startIndex; i < endIndex; ++i){
 					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
@@ -416,13 +421,14 @@ void ScriptVector4::onInstallScript(PyObject* mod)
 //-------------------------------------------------------------------------------------
 bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 {
-	if(PySequence_Check(value) <= 0)
+	if(value == NULL || PySequence_Check(value) <= 0)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "args of position is must a sequence.");
+			PyErr_Format(PyExc_TypeError, "args is must a sequence.");
 			PyErr_PrintEx(0);
 		}
+
 		return false;
 	}
 
@@ -431,9 +437,10 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "len(position) != %d. can't set.", VECTOR_SIZE);
+			PyErr_Format(PyExc_TypeError, "len(args) != %d. can't set.", VECTOR_SIZE);
 			PyErr_PrintEx(0);
 		}
+
 		return false;
 	}
 	
@@ -441,8 +448,11 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptVector4::convertPyObjectToVector4(Vector4& v, PyObject* obj)
+bool ScriptVector4::convertPyObjectToVector4(Vector4& v, PyObject* obj)
 {
+	if(!check(obj))
+		return false;
+
 	PyObject* pyItem = PySequence_GetItem(obj, 0);
 	v.x = float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
@@ -458,6 +468,8 @@ void ScriptVector4::convertPyObjectToVector4(Vector4& v, PyObject* obj)
 	pyItem = PySequence_GetItem(obj, 3);
 	v.w = float(PyFloat_AsDouble(pyItem));
 	Py_DECREF(pyItem);
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -629,11 +641,17 @@ PyObject* ScriptVector4::__py_pyDistTo(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
+	PyObject* pyVal = PyTuple_GET_ITEM(args, 0);
+	if(!check(pyVal))
+	{
+		S_Return;
+	}
+
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 	
 	Vector4 v1;
-	convertPyObjectToVector4(v1, PyTuple_GET_ITEM(args, 0));
+	convertPyObjectToVector4(v1, pyVal);
 	
 	Vector4 rv = (v - v1);
 	return PyFloat_FromDouble(KBEVec4Length(&rv)); //计算长度并返回
@@ -648,12 +666,18 @@ PyObject* ScriptVector4::__py_pyDistSqrTo(PyObject* self, PyObject* args)
 		PyErr_PrintEx(0);
 		S_Return;
 	}
-	
+
+	PyObject* pyVal = PyTuple_GET_ITEM(args, 0);
+	if(!check(pyVal))
+	{
+		S_Return;
+	}
+
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 	
 	Vector4 v1;
-	convertPyObjectToVector4(v1, PyTuple_GET_ITEM(args, 0));
+	convertPyObjectToVector4(v1, pyVal);
 	
 	Vector4 rv = (v - v1);
 	return PyFloat_FromDouble(KBEVec4LengthSq(&rv)); //计算点乘并返回
@@ -720,7 +744,7 @@ PyObject* ScriptVector4::__py_pyTuple(PyObject* self, PyObject* args)
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 
-	for(int i = 0; i < VECTOR_SIZE; i++)
+	for(int i = 0; i < VECTOR_SIZE; ++i)
 		PyTuple_SetItem(pyTup, i, PyFloat_FromDouble(v[i]));
 
 	return pyTup;
@@ -740,7 +764,7 @@ PyObject* ScriptVector4::__py_pyList(PyObject* self, PyObject* args)
 	ScriptVector4* sv = static_cast<ScriptVector4*>(self);
 	Vector4& v = sv->getVector();
 	
-	for (int i=0; i < VECTOR_SIZE; i++)
+	for (int i=0; i < VECTOR_SIZE; ++i)
 		PyList_SetItem(pyList, i, PyFloat_FromDouble(v[i]));
 
 	return pyList;
@@ -755,6 +779,7 @@ PyObject* ScriptVector4::__py_pySet(PyObject* self, PyObject* args)
 
 	// 如果参数只有1个元素
 	int tupleSize = PyTuple_Size(args);
+
 	if(tupleSize == 1)
 	{
 		PyObject* pyItem = PyTuple_GetItem(args, 0);
@@ -767,10 +792,11 @@ PyObject* ScriptVector4::__py_pySet(PyObject* self, PyObject* args)
 		else
 		{
 			float f = float(PyFloat_AsDouble(pyItem));
-			for (int i=0; i < VECTOR_SIZE; i++)
+			for (int i=0; i < VECTOR_SIZE; ++i)
 			{
 				v[i] = f;
 			}
+
 			good = true;
 		}
 	}

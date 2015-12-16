@@ -1,31 +1,34 @@
 <root>
 	<smtp_server> smtp.163.com </smtp_server>
 	<smtp_port> 25 </smtp_port>
-	<!-- ÈÏÖ¤Ä£Ê½ LOGIN=1, PLAIN=2-->
+	<!-- è®¤è¯æ¨¡å¼ LOGIN=1, PLAIN=2-->
 	<smtp_auth>2</smtp_auth>
 	<username> kbengine@163.com </username>
-	<password> test123 </password>
+	
+	<!-- å¯†ç å¯ä½¿ç”¨æ˜Žæ–‡ï¼Œä¹Ÿå¯ä»¥ä½¿ç”¨kbe_private.key-RSAåŠ å¯†çš„å¯†ç , 
+		å¡«å†™æ˜Žæ–‡å¯†ç LOGä¼šæç¤ºè­¦å‘Šå¹¶ç»™å‡ºRSAå¯†ç , ç®€å•çš„ä»ŽLOGä¸­æ‹·è´è¿‡æ¥å³å¯ -->
+	<password> D4A3839D7E61930E4AC3D0DFACD681B609FAB7B60B7F5FF01E301573575D87844AEAF9390E0541671984EDF4927DD3274641A05A1F7B9C15CB421D38A525E89C70C04E4F576E27F30A344D0460628A418840EB16471174C53450C20818BFEAD04738563B5E535093911587CDFD808853CA3DC112E6032C5AF35058FB27F3017A </password>
 
 	<email_activation>
-		<subject>ÕËºÅ¼¤»î</subject>
-		<!-- ÓÊ¼þÑéÖ¤ÓÐÐ§ÆÚ -->
+		<subject>è´¦å·æ¿€æ´»</subject>
+		<!-- é‚®ä»¶éªŒè¯æœ‰æ•ˆæœŸ -->
 		<deadline> 259200 </deadline>
 		<message>
 			<![CDATA[
 				<html>
 				<body>
-				ÕËºÅ¼¤»î<br><br>
-				Õâ·âÐÅÊÇÓÉkbengine·¢ËÍµÄ¡£<br>
-				ÄúÊÕµ½Õâ·âÓÊ¼þ£¬ÊÇÓÉÓÚÔÚkbengineÐÂÓÃ»§×¢²áÊ±Ê¹ÓÃÁËÕâ¸öÓÊÏäµØÖ·¡£Èç¹ûÄú²¢Ã»ÓÐ·ÃÎÊ¹ýkbengine£¬ 
-				»òÃ»ÓÐ½øÐÐÉÏÊö²Ù×÷£¬ ÇëºöÂÔÕâ·âÓÊ¼þ¡£Äú²»ÐèÒªÍË¶©»ò½øÐÐÆäËû½øÒ»²½µÄ²Ù×÷¡£<br>
+				è´¦å·æ¿€æ´»<br><br>
+				è¿™å°ä¿¡æ˜¯ç”±KBEngineå‘é€çš„ã€‚<br>
+				æ‚¨æ”¶åˆ°è¿™å°é‚®ä»¶ï¼Œæ˜¯ç”±äºŽåœ¨KBEngineæ–°ç”¨æˆ·æ³¨å†Œæ—¶ä½¿ç”¨äº†è¿™ä¸ªé‚®ç®±åœ°å€ã€‚å¦‚æžœæ‚¨å¹¶æ²¡æœ‰è®¿é—®è¿‡KBEngineï¼Œ 
+				æˆ–æ²¡æœ‰è¿›è¡Œä¸Šè¿°æ“ä½œï¼Œ è¯·å¿½ç•¥è¿™å°é‚®ä»¶ã€‚æ‚¨ä¸éœ€è¦é€€è®¢æˆ–è¿›è¡Œå…¶ä»–è¿›ä¸€æ­¥çš„æ“ä½œã€‚<br>
 				----------------------------------------------------------------------<br>
-				<font size="7">ÐÂÓÃ»§×¢²áËµÃ÷</font><br>
+				<font size="7">æ–°ç”¨æˆ·æ³¨å†Œè¯´æ˜Ž</font><br>
 				----------------------------------------------------------------------<br><br>
-				Èç¹ûÄúÊÇkbengineµÄÐÂÓÃ»§£¬ »òÔÚÐÞ¸ÄÄúµÄ×¢²áEmailÊ±Ê¹ÓÃÁË±¾µØÖ·£¬ÎÒÃÇÐèÒª¶ÔÄúµÄµØÖ·ÓÐÐ§ÐÔ½øÐÐÑéÖ¤ÒÔ±ÜÃâÀ¬»øÓÊ¼þ»òµØÖ·±»ÀÄÓÃ¡£<br>
-				ÄúÖ»Ðèµã»÷ÏÂÃæµÄÁ´½Ó¼´¿É½øÐÐÓÃ»§×¢²á£¬ÒÔÏÂÁ´½ÓÓÐÐ§ÆÚÎª3Ìì¡£¹ýÆÚ¿ÉÒÔÖØÐÂÇëÇó·¢ËÍÒ»·âÐÂµÄÓÊ¼þÑéÖ¤£º<br>
+				å¦‚æžœæ‚¨æ˜¯KBEngineçš„æ–°ç”¨æˆ·ï¼Œ æˆ–åœ¨ä¿®æ”¹æ‚¨çš„æ³¨å†ŒEmailæ—¶ä½¿ç”¨äº†æœ¬åœ°å€ï¼Œæˆ‘ä»¬éœ€è¦å¯¹æ‚¨çš„åœ°å€æœ‰æ•ˆæ€§è¿›è¡ŒéªŒè¯ä»¥é¿å…åžƒåœ¾é‚®ä»¶æˆ–åœ°å€è¢«æ»¥ç”¨ã€‚<br>
+				æ‚¨åªéœ€ç‚¹å‡»ä¸‹é¢çš„é“¾æŽ¥å³å¯è¿›è¡Œç”¨æˆ·æ³¨å†Œï¼Œä»¥ä¸‹é“¾æŽ¥æœ‰æ•ˆæœŸä¸º3å¤©ã€‚è¿‡æœŸå¯ä»¥é‡æ–°è¯·æ±‚å‘é€ä¸€å°æ–°çš„é‚®ä»¶éªŒè¯ï¼š<br>
 				<a href="${backlink}">${backlink}</a><br>
-				(Èç¹ûÉÏÃæ²»ÊÇÁ´½ÓÐÎÊ½£¬Çë½«¸ÃµØÖ·ÊÖ¹¤Õ³Ìùµ½ä¯ÀÀÆ÷µØÖ·À¸ÔÙ·ÃÎÊ)<br><br>
-				¸ÐÐ»ÄúµÄ·ÃÎÊ£¬×£ÄúÊ¹ÓÃÓä¿ì£¡<br>
+				(å¦‚æžœä¸Šé¢ä¸æ˜¯é“¾æŽ¥å½¢å¼ï¼Œè¯·å°†è¯¥åœ°å€æ‰‹å·¥ç²˜è´´åˆ°æµè§ˆå™¨åœ°å€æ å†è®¿é—®)<br><br>
+				æ„Ÿè°¢æ‚¨çš„è®¿é—®ï¼Œç¥æ‚¨ä½¿ç”¨æ„‰å¿«ï¼<br>
 				</body>
 				</html>
 			]]>
@@ -37,10 +40,10 @@
 			<![CDATA[
 				<html>
 				<body>
-				<font size="7">ÕËºÅ¼¤»î³É¹¦!</font><br>
+				<font size="7">è´¦å·æ¿€æ´»æˆåŠŸ!</font><br>
 				----------------------------------------------------------------------<br><br>
-				<a href="${backlink}">µã»÷½øÈë¹ÙÍø</a><br><br>
-				¸ÐÐ»ÄúµÄ·ÃÎÊ£¬×£ÄúÊ¹ÓÃÓä¿ì£¡<br>
+				<a href="${backlink}">ç‚¹å‡»è¿›å…¥å®˜ç½‘</a><br><br>
+				æ„Ÿè°¢æ‚¨çš„è®¿é—®ï¼Œç¥æ‚¨ä½¿ç”¨æ„‰å¿«ï¼<br>
 				</body>
 				</html>
 			]]>
@@ -50,10 +53,10 @@
 			<![CDATA[
 				<html>
 				<body>
-				<font size="7">ÕËºÅ¼¤»îÊ§°Ü(¿ÉÄÜÊÇÓÉÓÚÊ§Ð§»òÕßÒÑ±»×¢²áµÈÔ­Òò)£¬ ÇëÖØÐÂ·¢ËÍ¼¤»îÓÊ¼þ!</font><br>
+				<font size="7">è´¦å·æ¿€æ´»å¤±è´¥(å¯èƒ½æ˜¯ç”±äºŽå¤±æ•ˆæˆ–è€…å·²è¢«æ³¨å†Œç­‰åŽŸå› )ï¼Œ è¯·é‡æ–°å‘é€æ¿€æ´»é‚®ä»¶!</font><br>
 				----------------------------------------------------------------------<br><br>
-				<a href="${backlink}">µã»÷½øÈë¹ÙÍø</a><br><br>
-				¸ÐÐ»ÄúµÄ·ÃÎÊ£¬×£ÄúÊ¹ÓÃÓä¿ì£¡<br>
+				<a href="${backlink}">ç‚¹å‡»è¿›å…¥å®˜ç½‘</a><br><br>
+				æ„Ÿè°¢æ‚¨çš„è®¿é—®ï¼Œç¥æ‚¨ä½¿ç”¨æ„‰å¿«ï¼<br>
 				</body>
 				</html>
 			]]>
@@ -61,23 +64,23 @@
 	</email_activation>
 	
 	<email_resetpassword>
-		<subject>ÖØÖÃÕËºÅ</subject>
-		<!-- ÓÊ¼þÑéÖ¤ÓÐÐ§ÆÚ -->
+		<subject>é‡ç½®è´¦å·</subject>
+		<!-- é‚®ä»¶éªŒè¯æœ‰æ•ˆæœŸ -->
 		<deadline> 3600 </deadline>
 		<message>
 			<![CDATA[
 				<html>
 				<body>
-				ÖØÖÃÕËºÅ<br><br>
-				Õâ·âÐÅÊÇÓÉkbengine·¢ËÍµÄ¡£<br>
-				ÄúÊÕµ½Õâ·âÓÊ¼þ£¬ÊÇÓÉÓÚÔÚkbengineµÄÓÃ»§°ó¶¨ÁËÕâ¸öÓÊÏäµØÖ·¡£Èç¹ûÄú²¢Ã»ÓÐ·ÃÎÊ¹ýkbengine£¬ 
-				»òÃ»ÓÐ½øÐÐÉÏÊö²Ù×÷£¬ ÇëºöÂÔÕâ·âÓÊ¼þ¡£Äú²»ÐèÒªÍË¶©»ò½øÐÐÆäËû½øÒ»²½µÄ²Ù×÷¡£<br>
+				é‡ç½®è´¦å·<br><br>
+				è¿™å°ä¿¡æ˜¯ç”±KBEngineå‘é€çš„ã€‚<br>
+				æ‚¨æ”¶åˆ°è¿™å°é‚®ä»¶ï¼Œæ˜¯ç”±äºŽåœ¨KBEngineçš„ç”¨æˆ·ç»‘å®šäº†è¿™ä¸ªé‚®ç®±åœ°å€ã€‚å¦‚æžœæ‚¨å¹¶æ²¡æœ‰è®¿é—®è¿‡KBEngineï¼Œ 
+				æˆ–æ²¡æœ‰è¿›è¡Œä¸Šè¿°æ“ä½œï¼Œ è¯·å¿½ç•¥è¿™å°é‚®ä»¶ã€‚æ‚¨ä¸éœ€è¦é€€è®¢æˆ–è¿›è¡Œå…¶ä»–è¿›ä¸€æ­¥çš„æ“ä½œã€‚<br>
 				----------------------------------------------------------------------<br>
-				<font size="7">·ÃÎÊÈçÏÂÁ´½ÓÖØÖÃÄúµÄÕËºÅ:</font><br>
+				<font size="7">è®¿é—®å¦‚ä¸‹é“¾æŽ¥é‡ç½®æ‚¨çš„è´¦å·:</font><br>
 				----------------------------------------------------------------------<br><br>
-				ÒÔÏÂÁ´½ÓÓÐÐ§ÆÚÎª1Ð¡Ê±¡£¹ýÆÚ¿ÉÒÔÖØÐÂÇëÇó·¢ËÍÒ»·âÐÂµÄÓÊ¼þ½øÐÐÖØÖÃ£º<br>
+				ä»¥ä¸‹é“¾æŽ¥æœ‰æ•ˆæœŸä¸º1å°æ—¶ã€‚è¿‡æœŸå¯ä»¥é‡æ–°è¯·æ±‚å‘é€ä¸€å°æ–°çš„é‚®ä»¶è¿›è¡Œé‡ç½®ï¼š<br>
 				<a href="${backlink}">${backlink}</a><br>
-				(Èç¹ûÉÏÃæ²»ÊÇÁ´½ÓÐÎÊ½£¬Çë½«¸ÃµØÖ·ÊÖ¹¤Õ³Ìùµ½ä¯ÀÀÆ÷µØÖ·À¸ÔÙ·ÃÎÊ)<br><br>
+				(å¦‚æžœä¸Šé¢ä¸æ˜¯é“¾æŽ¥å½¢å¼ï¼Œè¯·å°†è¯¥åœ°å€æ‰‹å·¥ç²˜è´´åˆ°æµè§ˆå™¨åœ°å€æ å†è®¿é—®)<br><br>
 				</body>
 				</html>
 			]]>
@@ -87,7 +90,7 @@
 			<![CDATA[
 				<!DOCTYPE HTML>
 				<head>
-				<title>ÖØÉèÃÜÂë</title>
+				<title>é‡è®¾å¯†ç </title>
 				<style type="text/css">
 				/* Font,  Link & Container */
 				body { font:12px/1.6 arial,helvetica,sans-serif; }
@@ -117,30 +120,30 @@
 				<body>
 				<form id="lzform" name="lzform" method="get" action="${backlink}" onsubmit="return validateForm(this);">
 				    <div id="item-error">
-				        <p class="error">ÖØÉèÃÜÂë²»ÄÜÎª¿Õ</p>
+				        <p class="error">é‡è®¾å¯†ç ä¸èƒ½ä¸ºç©º</p>
 				    </div>
 				    <div class="item">
-				        <label>ÓÃ»§Ãû</label>
+				        <label>ç”¨æˆ·å</label>
 				        <input id="username" name="username" type="text" class="basic-input" maxlength="60" value="" tabindex="1"/>
 				    </div>
 				    <div class="item">
-				        <label>ÊäÈëÃÜÂë</label>
+				        <label>è¾“å…¥å¯†ç </label>
 				        <input id="password1" name="password1" type="password" class="basic-input" maxlength="16" value="" tabindex="2"/>
 				    </div>
 				    <div class="item">
-				        <label>ÖØ¸´ÃÜÂë</label>
+				        <label>é‡å¤å¯†ç </label>
 				        <input id="password" name="password" type="password" class="basic-input" maxlength="16" tabindex="3"/>
 				    </div>
 				    <div class="item">
 				        <label>&nbsp;</label>
-				        <input type="submit" value="Ìá½»" name="user_submit" class="btn-submit" tabindex="4"/>
+				        <input type="submit" value="æäº¤" name="user_submit" class="btn-submit" tabindex="4"/>
 				    </div>
 				</form>
 
 				<script>
 				;(function(doc){
 				var $ = function(id) { return doc.getElementById(id); };
-				var placeholder = 'ÓÊÏäµØÖ·';
+				var placeholder = 'é‚®ç®±åœ°å€';
 				var password1 = $('password1'), password = $('password'),username = $('username');
 				    username.onfocus = function(){
 				      if ( this.value == placeholder ) {
@@ -182,11 +185,7 @@
 				  }
 				  
 				  if (username && username.value === '') {
-				    displayError(username, 'ÇëÊäÈëÓÊÏä');
-				    return false;
-				  } else if (! (/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(username.value)
-				                || /^1[358](\d){9}$/.test(username.value))){
-				    displayError(username, 'ÇëÊäÈëÕýÈ·µÄÓÊÏä');
+				    displayError(username, 'è¯·è¾“å…¥è´¦å·å');
 				    return false;
 				  } else {
 				    username && clearError(username);
@@ -194,10 +193,10 @@
 				  }
 				  
 				   if (passwd1 && passwd1.value === '') {
-				    displayError(passwd1, 'ÃÜÂë²»ÄÜÎª¿Õ');
+				    displayError(passwd1, 'å¯†ç ä¸èƒ½ä¸ºç©º');
 				    return false;
 				  } else if (! (/^([a-zA-Z0-9\_\-\.\\\~\!\@\#\$\%\&\=\^\*\(\)\[\]\"\:\;\?\<\{\+\-\=\`\>\/\|\,\.]{6,16})+$/.test(passwd1.value))){
-				    displayError(passwd1, 'ÇëÊäÈë6-16Î»Êý×Ö¡¢×ÖÄ¸»ò³£ÓÃ·ûºÅ£¬×ÖÄ¸Çø·Ö´óÐ¡Ð´');
+				    displayError(passwd1, 'è¯·è¾“å…¥6-16ä½æ•°å­—ã€å­—æ¯æˆ–å¸¸ç”¨ç¬¦å·ï¼Œå­—æ¯åŒºåˆ†å¤§å°å†™');
 				    return false;
 				  } else {
 				    passwd1 && clearError(passwd1);
@@ -205,7 +204,7 @@
 				  }
 				  
 				  if (passwd && passwd.value === '') {
-				    displayError(passwd, 'ÃÜÂë²»ÄÜÎª¿Õ');
+				    displayError(passwd, 'å¯†ç ä¸èƒ½ä¸ºç©º');
 				    return false;
 				  } else {
 				    passwd && clearError(passwd);
@@ -215,7 +214,7 @@
 				    if (passwd1.value != passwd.value && username.value != '') {
 				    clearError(passwd1);
 				    displayError(passwd1, '');
-				    displayError(passwd, '¶þ´ÎÃÜÂë±ØÐëÒ»ÖÂÇÒ²»ÄÜÎª¿Õ!');
+				    displayError(passwd, 'äºŒæ¬¡å¯†ç å¿…é¡»ä¸€è‡´ä¸”ä¸èƒ½ä¸ºç©º!');
 				    return false;
 				  } else {
 				    passwd && clearError(passwd);
@@ -253,34 +252,47 @@
 			<![CDATA[
 				<html>
 				<body>
-				<font size="7">²Ù×÷Ê§°Ü£¬ ÇëÖØÐÂ·¢ËÍÓÊ¼þ!</font><br>
+				<font size="7">æ“ä½œå¤±è´¥ï¼Œ è¯·é‡æ–°å‘é€é‚®ä»¶!</font><br>
 				----------------------------------------------------------------------<br><br>
-				<a href="${backlink}">µã»÷½øÈë¹ÙÍø</a><br><br>
-				¸ÐÐ»ÄúµÄ·ÃÎÊ£¬×£ÄúÊ¹ÓÃÓä¿ì£¡<br>
+				<a href="${backlink}">ç‚¹å‡»è¿›å…¥å®˜ç½‘</a><br><br>
+				æ„Ÿè°¢æ‚¨çš„è®¿é—®ï¼Œç¥æ‚¨ä½¿ç”¨æ„‰å¿«ï¼<br>
 				</body>
 				</html>
 			]]>
 		</backlink_fail_message>
+		
+		<backlink_success_message>
+			<![CDATA[
+				<html>
+				<body>
+				<font size="7">é‡ç½®æˆåŠŸ!</font><br>
+				----------------------------------------------------------------------<br><br>
+				<a href="${backlink}">ç‚¹å‡»è¿›å…¥å®˜ç½‘</a><br><br>
+				æ„Ÿè°¢æ‚¨çš„è®¿é—®ï¼Œç¥æ‚¨ä½¿ç”¨æ„‰å¿«ï¼<br>
+				</body>
+				</html>
+			]]>
+		</backlink_success_message>		
 	</email_resetpassword>
 	
 	<email_bind>
-		<subject>ÓÊÏä°ó¶¨</subject>
-		<!-- ÓÊ¼þÑéÖ¤ÓÐÐ§ÆÚ -->
+		<subject>é‚®ç®±ç»‘å®š</subject>
+		<!-- é‚®ä»¶éªŒè¯æœ‰æ•ˆæœŸ -->
 		<deadline> 3600 </deadline>
 		<message>
 			<![CDATA[
 				<html>
 				<body>
-				ÓÊÏä°ó¶¨<br><br>
-				Õâ·âÐÅÊÇÓÉkbengine·¢ËÍµÄ¡£<br>
-				ÄúÊÕµ½Õâ·âÓÊ¼þ£¬ÊÇÓÉÓÚÔÚkbengineµÄÓÃ»§°ó¶¨ÁËÕâ¸öÓÊÏäµØÖ·¡£Èç¹ûÄú²¢Ã»ÓÐ·ÃÎÊ¹ýkbengine£¬ 
-				»òÃ»ÓÐ½øÐÐÉÏÊö²Ù×÷£¬ ÇëºöÂÔÕâ·âÓÊ¼þ¡£Äú²»ÐèÒªÍË¶©»ò½øÐÐÆäËû½øÒ»²½µÄ²Ù×÷¡£<br>
+				é‚®ç®±ç»‘å®š<br><br>
+				è¿™å°ä¿¡æ˜¯ç”±KBEngineå‘é€çš„ã€‚<br>
+				æ‚¨æ”¶åˆ°è¿™å°é‚®ä»¶ï¼Œæ˜¯ç”±äºŽåœ¨KBEngineçš„ç”¨æˆ·ç»‘å®šäº†è¿™ä¸ªé‚®ç®±åœ°å€ã€‚å¦‚æžœæ‚¨å¹¶æ²¡æœ‰è®¿é—®è¿‡KBEngineï¼Œ 
+				æˆ–æ²¡æœ‰è¿›è¡Œä¸Šè¿°æ“ä½œï¼Œ è¯·å¿½ç•¥è¿™å°é‚®ä»¶ã€‚æ‚¨ä¸éœ€è¦é€€è®¢æˆ–è¿›è¡Œå…¶ä»–è¿›ä¸€æ­¥çš„æ“ä½œã€‚<br>
 				----------------------------------------------------------------------<br>
-				<font size="7">·ÃÎÊÈçÏÂÁ´½ÓÖØÖÃÄúµÄÃÜÂë:</font><br>
+				<font size="7">è®¿é—®å¦‚ä¸‹é“¾æŽ¥ç»‘å®šæ‚¨çš„é‚®ç®±:</font><br>
 				----------------------------------------------------------------------<br><br>
-				ÒÔÏÂÁ´½ÓÓÐÐ§ÆÚÎª3Ìì¡£¹ýÆÚ¿ÉÒÔÖØÐÂÇëÇó·¢ËÍÒ»·âÐÂµÄÓÊ¼þ½øÐÐÖØÖÃ£º<br>
+				ä»¥ä¸‹é“¾æŽ¥æœ‰æ•ˆæœŸä¸º3å¤©ã€‚è¿‡æœŸå¯ä»¥é‡æ–°è¯·æ±‚å‘é€ä¸€å°æ–°çš„é‚®ä»¶è¿›è¡Œç»‘å®šï¼š<br>
 				<a href="${backlink}?username=${username}">${backlink}?username=${username}</a><br>
-				(Èç¹ûÉÏÃæ²»ÊÇÁ´½ÓÐÎÊ½£¬Çë½«¸ÃµØÖ·ÊÖ¹¤Õ³Ìùµ½ä¯ÀÀÆ÷µØÖ·À¸ÔÙ·ÃÎÊ)<br><br>
+				(å¦‚æžœä¸Šé¢ä¸æ˜¯é“¾æŽ¥å½¢å¼ï¼Œè¯·å°†è¯¥åœ°å€æ‰‹å·¥ç²˜è´´åˆ°æµè§ˆå™¨åœ°å€æ å†è®¿é—®)<br><br>
 				</body>
 				</html>
 			]]>
@@ -292,10 +304,10 @@
 			<![CDATA[
 				<html>
 				<body>
-				<font size="7">²Ù×÷³É¹¦!</font><br>
+				<font size="7">æ“ä½œæˆåŠŸ!</font><br>
 				----------------------------------------------------------------------<br><br>
-				<a href="${backlink}">µã»÷½øÈë¹ÙÍø</a><br><br>
-				¸ÐÐ»ÄúµÄ·ÃÎÊ£¬×£ÄúÊ¹ÓÃÓä¿ì£¡<br>
+				<a href="${backlink}">ç‚¹å‡»è¿›å…¥å®˜ç½‘</a><br><br>
+				æ„Ÿè°¢æ‚¨çš„è®¿é—®ï¼Œç¥æ‚¨ä½¿ç”¨æ„‰å¿«ï¼<br>
 				</body>
 				</html>
 			]]>
@@ -305,10 +317,10 @@
 			<![CDATA[
 				<html>
 				<body>
-				<font size="7">²Ù×÷Ê§°Ü£¬ ÇëÖØÐÂ·¢ËÍÓÊ¼þ!</font><br>
+				<font size="7">æ“ä½œå¤±è´¥ï¼Œ è¯·é‡æ–°å‘é€é‚®ä»¶!</font><br>
 				----------------------------------------------------------------------<br><br>
-				<a href="${backlink}">µã»÷½øÈë¹ÙÍø</a><br><br>
-				¸ÐÐ»ÄúµÄ·ÃÎÊ£¬×£ÄúÊ¹ÓÃÓä¿ì£¡<br>
+				<a href="${backlink}">ç‚¹å‡»è¿›å…¥å®˜ç½‘</a><br><br>
+				æ„Ÿè°¢æ‚¨çš„è®¿é—®ï¼Œç¥æ‚¨ä½¿ç”¨æ„‰å¿«ï¼<br>
 				</body>
 				</html>
 			]]>

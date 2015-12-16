@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,32 +19,33 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "pendingLoginmgr.hpp"
-#include "network/bundle.hpp"
-#include "network/channel.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
+#include "pendingLoginmgr.h"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "helper/profile.h"
 
 namespace KBEngine { 
 
 #define OP_TIME_OUT_MAX 120 * stampsPerSecondD()
 
 //-------------------------------------------------------------------------------------
-PendingLoginMgr::PendingLoginMgr(Mercury::NetworkInterface & networkInterface) :
+PendingLoginMgr::PendingLoginMgr(Network::NetworkInterface & networkInterface) :
 	Task(),
 	networkInterface_(networkInterface),
 	start_(false)
 {
-	// dispatcher().addFrequentTask(this);
+	// dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 PendingLoginMgr::~PendingLoginMgr()
 {
-	//dispatcher().cancelFrequentTask(this);
+	//dispatcher().cancelTask(this);
 
 	PTINFO_MAP::iterator iter = pPLMap_.begin();
-	for(; iter != pPLMap_.end(); iter++)
+	for(; iter != pPLMap_.end(); ++iter)
 	{
 		delete iter->second;
 	}
@@ -53,7 +54,7 @@ PendingLoginMgr::~PendingLoginMgr()
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::EventDispatcher & PendingLoginMgr::dispatcher()
+Network::EventDispatcher & PendingLoginMgr::dispatcher()
 {
 	return networkInterface_.dispatcher();
 }
@@ -69,14 +70,15 @@ bool PendingLoginMgr::add(PLInfos* infos)
 
 	if(!start_)
 	{
-		//dispatcher().addFrequentTask(this);
+		//dispatcher().addTask(this);
 		start_ = true;
 	}
 	
 	pPLMap_[infos->accountName] = infos;
 	infos->lastProcessTime = timestamp();
 
-	DEBUG_MSG(boost::format("PendingLoginMgr::add: size=%1%.\n") % pPLMap_.size());
+
+	DEBUG_MSG(fmt::format("PendingLoginMgr::add: {}, size={}.\n", infos->accountName, pPLMap_.size()));
 	return true;
 }
 
@@ -88,6 +90,7 @@ PendingLoginMgr::PLInfos* PendingLoginMgr::remove(std::string& accountName)
 	{
 		PLInfos* infos = iter->second;
 		pPLMap_.erase(iter);
+		DEBUG_MSG(fmt::format("PendingLoginMgr::remove: {}, size={}.\n", accountName, pPLMap_.size()));
 		return infos;
 	}
 	
@@ -111,6 +114,8 @@ PendingLoginMgr::PLInfos* PendingLoginMgr::find(std::string& accountName)
 //-------------------------------------------------------------------------------------
 bool PendingLoginMgr::process()
 {
+	AUTO_SCOPED_PROFILE("PendingMgr_process");
+
 	if(pPLMap_.size() <= 0)
 	{
 		start_ = false;
@@ -126,8 +131,8 @@ bool PendingLoginMgr::process()
 		if(curr - infos->lastProcessTime >= OP_TIME_OUT_MAX)
 		{
 			iter = pPLMap_.erase(iter);
-			DEBUG_MSG(boost::format("PendingLoginMgr::process: size=%1%, remove=%2%.\n") % 
-				pPLMap_.size() % infos->accountName.c_str());
+			DEBUG_MSG(fmt::format("PendingLoginMgr::process: [{1}] is timeout, currsize={0}.\n", 
+				pPLMap_.size(), infos->accountName));
 
 			SAFE_RELEASE(infos);
 		}

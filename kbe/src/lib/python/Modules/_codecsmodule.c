@@ -38,6 +38,16 @@ Copyright (c) Corporation for National Research Initiatives.
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
 
+#ifdef MS_WINDOWS
+#include <windows.h>
+#endif
+
+/*[clinic input]
+module _codecs
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=e1390e3da3cb9deb]*/
+
+
 /* --- Registry ----------------------------------------------------------- */
 
 PyDoc_STRVAR(register__doc__,
@@ -130,6 +140,53 @@ codec_decode(PyObject *self, PyObject *args)
 
 /* --- Helpers ------------------------------------------------------------ */
 
+/*[clinic input]
+_codecs._forget_codec
+
+    encoding: str
+    /
+
+Purge the named codec from the internal codec lookup cache
+[clinic start generated code]*/
+
+PyDoc_STRVAR(_codecs__forget_codec__doc__,
+"_forget_codec($module, encoding, /)\n"
+"--\n"
+"\n"
+"Purge the named codec from the internal codec lookup cache");
+
+#define _CODECS__FORGET_CODEC_METHODDEF    \
+    {"_forget_codec", (PyCFunction)_codecs__forget_codec, METH_VARARGS, _codecs__forget_codec__doc__},
+
+static PyObject *
+_codecs__forget_codec_impl(PyModuleDef *module, const char *encoding);
+
+static PyObject *
+_codecs__forget_codec(PyModuleDef *module, PyObject *args)
+{
+    PyObject *return_value = NULL;
+    const char *encoding;
+
+    if (!PyArg_ParseTuple(args,
+        "s:_forget_codec",
+        &encoding))
+        goto exit;
+    return_value = _codecs__forget_codec_impl(module, encoding);
+
+exit:
+    return return_value;
+}
+
+static PyObject *
+_codecs__forget_codec_impl(PyModuleDef *module, const char *encoding)
+/*[clinic end generated code: output=a75e631591702a5c input=18d5d92d0e386c38]*/
+{
+    if (_PyCodec_Forget(encoding) < 0) {
+        return NULL;
+    };
+    Py_RETURN_NONE;
+}
+
 static
 PyObject *codec_tuple(PyObject *unicode,
                       Py_ssize_t len)
@@ -162,7 +219,6 @@ static PyObject *
 escape_encode(PyObject *self,
               PyObject *args)
 {
-    static const char *hexdigits = "0123456789abcdef";
     PyObject *str;
     Py_ssize_t size;
     Py_ssize_t newsize;
@@ -174,21 +230,21 @@ escape_encode(PyObject *self,
         return NULL;
 
     size = PyBytes_GET_SIZE(str);
-    newsize = 4*size;
-    if (newsize > PY_SSIZE_T_MAX || newsize / 4 != size) {
+    if (size > PY_SSIZE_T_MAX / 4) {
         PyErr_SetString(PyExc_OverflowError,
             "string is too large to encode");
             return NULL;
     }
+    newsize = 4*size;
     v = PyBytes_FromStringAndSize(NULL, newsize);
 
     if (v == NULL) {
         return NULL;
     }
     else {
-        register Py_ssize_t i;
-        register char c;
-        register char *p = PyBytes_AS_STRING(v);
+        Py_ssize_t i;
+        char c;
+        char *p = PyBytes_AS_STRING(v);
 
         for (i = 0; i < size; i++) {
             /* There's at least enough room for a hex escape */
@@ -205,8 +261,8 @@ escape_encode(PyObject *self,
             else if (c < ' ' || c >= 0x7f) {
                 *p++ = '\\';
                 *p++ = 'x';
-                *p++ = hexdigits[(c & 0xf0) >> 4];
-                *p++ = hexdigits[c & 0xf];
+                *p++ = Py_hexdigits[(c & 0xf0) >> 4];
+                *p++ = Py_hexdigits[c & 0xf];
             }
             else
                 *p++ = c;
@@ -236,8 +292,10 @@ unicode_internal_decode(PyObject *self,
         return NULL;
 
     if (PyUnicode_Check(obj)) {
+        if (PyUnicode_READY(obj) < 0)
+            return NULL;
         Py_INCREF(obj);
-        return codec_tuple(obj, PyUnicode_GET_SIZE(obj));
+        return codec_tuple(obj, PyUnicode_GET_LENGTH(obj));
     }
     else {
         if (PyObject_AsReadBuffer(obj, (const void **)&data, &size))
@@ -588,7 +646,7 @@ charmap_decode(PyObject *self,
     return codec_tuple(unicode, pbuf.len);
 }
 
-#if defined(MS_WINDOWS) && defined(HAVE_USABLE_WCHAR_T)
+#ifdef HAVE_MBCS
 
 static PyObject *
 mbcs_decode(PyObject *self,
@@ -613,7 +671,32 @@ mbcs_decode(PyObject *self,
     return codec_tuple(decoded, consumed);
 }
 
-#endif /* MS_WINDOWS */
+static PyObject *
+code_page_decode(PyObject *self,
+                 PyObject *args)
+{
+    Py_buffer pbuf;
+    const char *errors = NULL;
+    int final = 0;
+    Py_ssize_t consumed;
+    PyObject *decoded = NULL;
+    int code_page;
+
+    if (!PyArg_ParseTuple(args, "iy*|zi:code_page_decode",
+                          &code_page, &pbuf, &errors, &final))
+        return NULL;
+    consumed = pbuf.len;
+
+    decoded = PyUnicode_DecodeCodePageStateful(code_page,
+                                               pbuf.buf, pbuf.len, errors,
+                                               final ? NULL : &consumed);
+    PyBuffer_Release(&pbuf);
+    if (decoded == NULL)
+        return NULL;
+    return codec_tuple(decoded, consumed);
+}
+
+#endif /* HAVE_MBCS */
 
 /* --- Encoder ------------------------------------------------------------ */
 
@@ -645,17 +728,31 @@ unicode_internal_encode(PyObject *self,
     PyObject *obj;
     const char *errors = NULL;
     const char *data;
-    Py_ssize_t size;
+    Py_ssize_t len, size;
+
+    if (PyErr_WarnEx(PyExc_DeprecationWarning,
+                     "unicode_internal codec has been deprecated",
+                     1))
+        return NULL;
 
     if (!PyArg_ParseTuple(args, "O|z:unicode_internal_encode",
                           &obj, &errors))
         return NULL;
 
     if (PyUnicode_Check(obj)) {
-        data = PyUnicode_AS_DATA(obj);
-        size = PyUnicode_GET_DATA_SIZE(obj);
-        return codec_tuple(PyBytes_FromStringAndSize(data, size),
-                           PyUnicode_GET_SIZE(obj));
+        Py_UNICODE *u;
+
+        if (PyUnicode_READY(obj) < 0)
+            return NULL;
+
+        u = PyUnicode_AsUnicodeAndSize(obj, &len);
+        if (u == NULL)
+            return NULL;
+        if (len > PY_SSIZE_T_MAX / sizeof(Py_UNICODE))
+            return PyErr_NoMemory();
+        size = len * sizeof(Py_UNICODE);
+        return codec_tuple(PyBytes_FromStringAndSize((const char*)u, size),
+                           PyUnicode_GET_LENGTH(obj));
     }
     else {
         if (PyObject_AsReadBuffer(obj, (const void **)&data, &size))
@@ -676,14 +773,12 @@ utf_7_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF7(PyUnicode_AS_UNICODE(str),
-                                         PyUnicode_GET_SIZE(str),
-                                         0,
-                                         0,
-                                         errors),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeUTF7(str, 0, 0, errors),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -700,12 +795,12 @@ utf_8_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF8(PyUnicode_AS_UNICODE(str),
-                                         PyUnicode_GET_SIZE(str),
-                                         errors),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(PyUnicode_AsEncodedString(str, "utf-8", errors),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -730,13 +825,12 @@ utf_16_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF16(PyUnicode_AS_UNICODE(str),
-                                          PyUnicode_GET_SIZE(str),
-                                          errors,
-                                          byteorder),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeUTF16(str, errors, byteorder),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -753,13 +847,12 @@ utf_16_le_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF16(PyUnicode_AS_UNICODE(str),
-                                             PyUnicode_GET_SIZE(str),
-                                             errors,
-                                             -1),
-                       PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeUTF16(str, errors, -1),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -776,13 +869,12 @@ utf_16_be_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF16(PyUnicode_AS_UNICODE(str),
-                                          PyUnicode_GET_SIZE(str),
-                                          errors,
-                                          +1),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeUTF16(str, errors, +1),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -807,13 +899,12 @@ utf_32_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF32(PyUnicode_AS_UNICODE(str),
-                                          PyUnicode_GET_SIZE(str),
-                                          errors,
-                                          byteorder),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeUTF32(str, errors, byteorder),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -830,13 +921,12 @@ utf_32_le_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF32(PyUnicode_AS_UNICODE(str),
-                                             PyUnicode_GET_SIZE(str),
-                                             errors,
-                                             -1),
-                       PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeUTF32(str, errors, -1),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -853,13 +943,12 @@ utf_32_be_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUTF32(PyUnicode_AS_UNICODE(str),
-                                          PyUnicode_GET_SIZE(str),
-                                          errors,
-                                          +1),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeUTF32(str, errors, +1),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -876,11 +965,12 @@ unicode_escape_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeUnicodeEscape(PyUnicode_AS_UNICODE(str),
-                                                  PyUnicode_GET_SIZE(str)),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(PyUnicode_AsUnicodeEscapeString(str),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -897,12 +987,12 @@ raw_unicode_escape_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeRawUnicodeEscape(
-                               PyUnicode_AS_UNICODE(str),
-                               PyUnicode_GET_SIZE(str)),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(PyUnicode_AsRawUnicodeEscapeString(str),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -919,13 +1009,12 @@ latin_1_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeLatin1(
-                               PyUnicode_AS_UNICODE(str),
-                               PyUnicode_GET_SIZE(str),
-                               errors),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_AsLatin1String(str, errors),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -942,13 +1031,12 @@ ascii_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeASCII(
-                               PyUnicode_AS_UNICODE(str),
-                               PyUnicode_GET_SIZE(str),
-                               errors),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_AsASCIIString(str, errors),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -968,14 +1056,12 @@ charmap_encode(PyObject *self,
         mapping = NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeCharmap(
-                               PyUnicode_AS_UNICODE(str),
-                               PyUnicode_GET_SIZE(str),
-                               mapping,
-                               errors),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(_PyUnicode_EncodeCharmap(str, mapping, errors),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
@@ -989,7 +1075,7 @@ charmap_build(PyObject *self, PyObject *args)
     return PyUnicode_BuildEncodingMap(map);
 }
 
-#if defined(MS_WINDOWS) && defined(HAVE_USABLE_WCHAR_T)
+#ifdef HAVE_MBCS
 
 static PyObject *
 mbcs_encode(PyObject *self,
@@ -1003,18 +1089,42 @@ mbcs_encode(PyObject *self,
         return NULL;
 
     str = PyUnicode_FromObject(str);
-    if (str == NULL)
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
         return NULL;
-    v = codec_tuple(PyUnicode_EncodeMBCS(
-                               PyUnicode_AS_UNICODE(str),
-                               PyUnicode_GET_SIZE(str),
-                               errors),
-                    PyUnicode_GET_SIZE(str));
+    }
+    v = codec_tuple(PyUnicode_EncodeCodePage(CP_ACP, str, errors),
+                    PyUnicode_GET_LENGTH(str));
     Py_DECREF(str);
     return v;
 }
 
-#endif /* MS_WINDOWS */
+static PyObject *
+code_page_encode(PyObject *self,
+                 PyObject *args)
+{
+    PyObject *str, *v;
+    const char *errors = NULL;
+    int code_page;
+
+    if (!PyArg_ParseTuple(args, "iO|z:code_page_encode",
+                          &code_page, &str, &errors))
+        return NULL;
+
+    str = PyUnicode_FromObject(str);
+    if (str == NULL || PyUnicode_READY(str) < 0) {
+        Py_XDECREF(str);
+        return NULL;
+    }
+    v = codec_tuple(PyUnicode_EncodeCodePage(code_page,
+                                             str,
+                                             errors),
+                    PyUnicode_GET_LENGTH(str));
+    Py_DECREF(str);
+    return v;
+}
+
+#endif /* HAVE_MBCS */
 
 /* --- Error handler registry --------------------------------------------- */
 
@@ -1101,14 +1211,17 @@ static PyMethodDef _codecs_functions[] = {
     {"charmap_decode",          charmap_decode,                 METH_VARARGS},
     {"charmap_build",           charmap_build,                  METH_VARARGS},
     {"readbuffer_encode",       readbuffer_encode,              METH_VARARGS},
-#if defined(MS_WINDOWS) && defined(HAVE_USABLE_WCHAR_T)
+#ifdef HAVE_MBCS
     {"mbcs_encode",             mbcs_encode,                    METH_VARARGS},
     {"mbcs_decode",             mbcs_decode,                    METH_VARARGS},
+    {"code_page_encode",        code_page_encode,               METH_VARARGS},
+    {"code_page_decode",        code_page_decode,               METH_VARARGS},
 #endif
     {"register_error",          register_error,                 METH_VARARGS,
         register_error__doc__},
     {"lookup_error",            lookup_error,                   METH_VARARGS,
         lookup_error__doc__},
+    _CODECS__FORGET_CODEC_METHODDEF
     {NULL, NULL}                /* sentinel */
 };
 

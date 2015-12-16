@@ -1,6 +1,7 @@
 /* Range object implementation */
 
 #include "Python.h"
+#include "structmember.h"
 
 /* Support objects whose length is > PY_SSIZE_T_MAX.
 
@@ -138,7 +139,7 @@ PyDoc_STRVAR(range_doc,
 "range(stop) -> range object\n\
 range(start, stop[, step]) -> range object\n\
 \n\
-Returns a virtual sequence of numbers from start to stop by step.");
+Return a virtual sequence of numbers from start to stop by step.");
 
 static void
 range_dealloc(rangeobject *r)
@@ -317,195 +318,6 @@ range_item(rangeobject *r, Py_ssize_t i)
     return res;
 }
 
-/* Additional helpers, since the standard slice helpers
- * all clip to PY_SSIZE_T_MAX
- */
-
-/* Replace _PyEval_SliceIndex */
-static PyObject *
-compute_slice_element(PyObject *obj)
-{
-    PyObject *result = NULL;
-    if (obj != NULL) {
-        if (PyIndex_Check(obj)) {
-            result = PyNumber_Index(obj);
-        }
-        else {
-            PyErr_SetString(PyExc_TypeError,
-                            "slice indices must be integers or "
-                            "None or have an __index__ method");
-        }
-    }
-    return result;
-}
-
-/* Replace PySlice_GetIndicesEx
- *   Result indicates whether or not the slice is empty
- *    (-1 = error, 0 = empty slice, 1 = slice contains elements)
- */
-static int
-compute_slice_indices(rangeobject *r, PySliceObject *slice,
-                      PyObject **start, PyObject **stop, PyObject **step)
-{
-    int cmp_result, has_elements;
-    Py_ssize_t clamped_step = 0;
-    PyObject *zero = NULL, *one = NULL, *neg_one = NULL, *candidate = NULL;
-    PyObject *tmp_start = NULL, *tmp_stop = NULL, *tmp_step = NULL;
-    zero = PyLong_FromLong(0);
-    if (zero == NULL) goto Fail;
-    one = PyLong_FromLong(1);
-    if (one == NULL) goto Fail;
-    neg_one = PyLong_FromLong(-1);
-    if (neg_one == NULL) goto Fail;
-
-    /* Calculate step value */
-    if (slice->step == Py_None) {
-        clamped_step = 1;
-        tmp_step = one;
-        Py_INCREF(tmp_step);
-    } else {
-        if (!_PyEval_SliceIndex(slice->step, &clamped_step)) goto Fail;
-        if (clamped_step == 0) {
-            PyErr_SetString(PyExc_ValueError,
-                            "slice step cannot be zero");
-            goto Fail;
-        }
-        tmp_step = compute_slice_element(slice->step);
-        if (tmp_step == NULL) goto Fail;
-    }
-
-    /* Calculate start value */
-    if (slice->start == Py_None) {
-        if (clamped_step < 0) {
-            tmp_start = PyNumber_Subtract(r->length, one);
-            if (tmp_start == NULL) goto Fail;
-        } else {
-            tmp_start = zero;
-            Py_INCREF(tmp_start);
-        }
-    } else {
-        candidate = compute_slice_element(slice->start);
-        if (candidate == NULL) goto Fail;
-        cmp_result = PyObject_RichCompareBool(candidate, zero, Py_LT);
-        if (cmp_result == -1) goto Fail;
-        if (cmp_result) {
-            /* candidate < 0 */
-            tmp_start = PyNumber_Add(r->length, candidate);
-            if (tmp_start == NULL) goto Fail;
-            Py_CLEAR(candidate);
-        } else {
-            /* candidate >= 0 */
-            tmp_start = candidate;
-            candidate = NULL;
-        }
-        cmp_result = PyObject_RichCompareBool(tmp_start, zero, Py_LT);
-        if (cmp_result == -1) goto Fail;
-        if (cmp_result) {
-            /* tmp_start < 0 */
-            Py_CLEAR(tmp_start);
-            if (clamped_step < 0) {
-                tmp_start = neg_one;
-            } else {
-                tmp_start = zero;
-            }
-            Py_INCREF(tmp_start);
-        } else {
-            /* tmp_start >= 0 */
-            cmp_result = PyObject_RichCompareBool(tmp_start, r->length, Py_GE);
-            if (cmp_result == -1) goto Fail;
-            if (cmp_result) {
-                /* tmp_start >= r->length */
-                Py_CLEAR(tmp_start);
-                if (clamped_step < 0) {
-                    tmp_start = PyNumber_Subtract(r->length, one);
-                    if (tmp_start == NULL) goto Fail;
-                } else {
-                    tmp_start = r->length;
-                    Py_INCREF(tmp_start);
-                }
-            }
-        }
-    }
-
-    /* Calculate stop value */
-    if (slice->stop == Py_None) {
-        if (clamped_step < 0) {
-            tmp_stop = neg_one;
-        } else {
-            tmp_stop = r->length;
-        }
-        Py_INCREF(tmp_stop);
-    } else {
-        candidate = compute_slice_element(slice->stop);
-        if (candidate == NULL) goto Fail;
-        cmp_result = PyObject_RichCompareBool(candidate, zero, Py_LT);
-        if (cmp_result == -1) goto Fail;
-        if (cmp_result) {
-            /* candidate < 0 */
-            tmp_stop = PyNumber_Add(r->length, candidate);
-            if (tmp_stop == NULL) goto Fail;
-            Py_CLEAR(candidate);
-        } else {
-            /* candidate >= 0 */
-            tmp_stop = candidate;
-            candidate = NULL;
-        }
-        cmp_result = PyObject_RichCompareBool(tmp_stop, zero, Py_LT);
-        if (cmp_result == -1) goto Fail;
-        if (cmp_result) {
-            /* tmp_stop < 0 */
-            Py_CLEAR(tmp_stop);
-            if (clamped_step < 0) {
-                tmp_stop = neg_one;
-            } else {
-                tmp_stop = zero;
-            }
-            Py_INCREF(tmp_stop);
-        } else {
-            /* tmp_stop >= 0 */
-            cmp_result = PyObject_RichCompareBool(tmp_stop, r->length, Py_GE);
-            if (cmp_result == -1) goto Fail;
-            if (cmp_result) {
-                /* tmp_stop >= r->length */
-                Py_CLEAR(tmp_stop);
-                if (clamped_step < 0) {
-                    tmp_stop = PyNumber_Subtract(r->length, one);
-                    if (tmp_stop == NULL) goto Fail;
-                } else {
-                    tmp_stop = r->length;
-                    Py_INCREF(tmp_stop);
-                }
-            }
-        }
-    }
-
-    /* Check if the slice is empty or not */
-    if (clamped_step < 0) {
-        has_elements = PyObject_RichCompareBool(tmp_start, tmp_stop, Py_GT);
-    } else {
-        has_elements = PyObject_RichCompareBool(tmp_start, tmp_stop, Py_LT);
-    }
-    if (has_elements == -1) goto Fail;
-
-    *start = tmp_start;
-    *stop = tmp_stop;
-    *step = tmp_step;
-    Py_DECREF(neg_one);
-    Py_DECREF(one);
-    Py_DECREF(zero);
-    return has_elements;
-
-  Fail:
-    Py_XDECREF(tmp_start);
-    Py_XDECREF(tmp_stop);
-    Py_XDECREF(tmp_step);
-    Py_XDECREF(candidate);
-    Py_XDECREF(neg_one);
-    Py_XDECREF(one);
-    Py_XDECREF(zero);
-    return -1;
-}
-
 static PyObject *
 compute_slice(rangeobject *r, PyObject *_slice)
 {
@@ -513,10 +325,11 @@ compute_slice(rangeobject *r, PyObject *_slice)
     rangeobject *result;
     PyObject *start = NULL, *stop = NULL, *step = NULL;
     PyObject *substart = NULL, *substop = NULL, *substep = NULL;
-    int has_elements;
+    int error;
 
-    has_elements = compute_slice_indices(r, slice, &start, &stop, &step);
-    if (has_elements == -1) return NULL;
+    error = _PySlice_GetLongIndices(slice, r->length, &start, &stop, &step);
+    if (error == -1)
+        return NULL;
 
     substep = PyNumber_Multiply(r->step, step);
     if (substep == NULL) goto fail;
@@ -526,13 +339,8 @@ compute_slice(rangeobject *r, PyObject *_slice)
     if (substart == NULL) goto fail;
     Py_CLEAR(start);
 
-    if (has_elements) {
-        substop = compute_item(r, stop);
-        if (substop == NULL) goto fail;
-    } else {
-        substop = substart;
-        Py_INCREF(substop);
-    }
+    substop = compute_item(r, stop);
+    if (substop == NULL) goto fail;
     Py_CLEAR(stop);
 
     result = make_range_object(Py_TYPE(r), substart, substop, substep);
@@ -608,6 +416,137 @@ range_contains(rangeobject *r, PyObject *ob)
 
     return (int)_PySequence_IterSearch((PyObject*)r, ob,
                                        PY_ITERSEARCH_CONTAINS);
+}
+
+/* Compare two range objects.  Return 1 for equal, 0 for not equal
+   and -1 on error.  The algorithm is roughly the C equivalent of
+
+   if r0 is r1:
+       return True
+   if len(r0) != len(r1):
+       return False
+   if not len(r0):
+       return True
+   if r0.start != r1.start:
+       return False
+   if len(r0) == 1:
+       return True
+   return r0.step == r1.step
+*/
+static int
+range_equals(rangeobject *r0, rangeobject *r1)
+{
+    int cmp_result;
+    PyObject *one;
+
+    if (r0 == r1)
+        return 1;
+    cmp_result = PyObject_RichCompareBool(r0->length, r1->length, Py_EQ);
+    /* Return False or error to the caller. */
+    if (cmp_result != 1)
+        return cmp_result;
+    cmp_result = PyObject_Not(r0->length);
+    /* Return True or error to the caller. */
+    if (cmp_result != 0)
+        return cmp_result;
+    cmp_result = PyObject_RichCompareBool(r0->start, r1->start, Py_EQ);
+    /* Return False or error to the caller. */
+    if (cmp_result != 1)
+        return cmp_result;
+    one = PyLong_FromLong(1);
+    if (!one)
+        return -1;
+    cmp_result = PyObject_RichCompareBool(r0->length, one, Py_EQ);
+    Py_DECREF(one);
+    /* Return True or error to the caller. */
+    if (cmp_result != 0)
+        return cmp_result;
+    return PyObject_RichCompareBool(r0->step, r1->step, Py_EQ);
+}
+
+static PyObject *
+range_richcompare(PyObject *self, PyObject *other, int op)
+{
+    int result;
+
+    if (!PyRange_Check(other))
+        Py_RETURN_NOTIMPLEMENTED;
+    switch (op) {
+    case Py_NE:
+    case Py_EQ:
+        result = range_equals((rangeobject*)self, (rangeobject*)other);
+        if (result == -1)
+            return NULL;
+        if (op == Py_NE)
+            result = !result;
+        if (result)
+            Py_RETURN_TRUE;
+        else
+            Py_RETURN_FALSE;
+    case Py_LE:
+    case Py_GE:
+    case Py_LT:
+    case Py_GT:
+        Py_RETURN_NOTIMPLEMENTED;
+    default:
+        PyErr_BadArgument();
+        return NULL;
+    }
+}
+
+/* Hash function for range objects.  Rough C equivalent of
+
+   if not len(r):
+       return hash((len(r), None, None))
+   if len(r) == 1:
+       return hash((len(r), r.start, None))
+   return hash((len(r), r.start, r.step))
+*/
+static Py_hash_t
+range_hash(rangeobject *r)
+{
+    PyObject *t;
+    Py_hash_t result = -1;
+    int cmp_result;
+
+    t = PyTuple_New(3);
+    if (!t)
+        return -1;
+    Py_INCREF(r->length);
+    PyTuple_SET_ITEM(t, 0, r->length);
+    cmp_result = PyObject_Not(r->length);
+    if (cmp_result == -1)
+        goto end;
+    if (cmp_result == 1) {
+        Py_INCREF(Py_None);
+        Py_INCREF(Py_None);
+        PyTuple_SET_ITEM(t, 1, Py_None);
+        PyTuple_SET_ITEM(t, 2, Py_None);
+    }
+    else {
+        PyObject *one;
+        Py_INCREF(r->start);
+        PyTuple_SET_ITEM(t, 1, r->start);
+        one = PyLong_FromLong(1);
+        if (!one)
+            goto end;
+        cmp_result = PyObject_RichCompareBool(r->length, one, Py_EQ);
+        Py_DECREF(one);
+        if (cmp_result == -1)
+            goto end;
+        if (cmp_result == 1) {
+            Py_INCREF(Py_None);
+            PyTuple_SET_ITEM(t, 2, Py_None);
+        }
+        else {
+            Py_INCREF(r->step);
+            PyTuple_SET_ITEM(t, 2, r->step);
+        }
+    }
+    result = PyObject_Hash(t);
+  end:
+    Py_DECREF(t);
+    return result;
 }
 
 static PyObject *
@@ -733,14 +672,14 @@ static PyObject * range_iter(PyObject *seq);
 static PyObject * range_reverse(PyObject *seq);
 
 PyDoc_STRVAR(reverse_doc,
-"Returns a reverse iterator.");
+"Return a reverse iterator.");
 
 PyDoc_STRVAR(count_doc,
 "rangeobject.count(value) -> integer -- return number of occurrences of value");
 
 PyDoc_STRVAR(index_doc,
 "rangeobject.index(value, [start, [stop]]) -> integer -- return index of value.\n"
-"Raises ValueError if the value is not present.");
+"Raise ValueError if the value is not present.");
 
 static PyMethodDef range_methods[] = {
     {"__reversed__",    (PyCFunction)range_reverse, METH_NOARGS, reverse_doc},
@@ -748,6 +687,13 @@ static PyMethodDef range_methods[] = {
     {"count",           (PyCFunction)range_count,   METH_O,      count_doc},
     {"index",           (PyCFunction)range_index,   METH_O,      index_doc},
     {NULL,              NULL}           /* sentinel */
+};
+
+static PyMemberDef range_members[] = {
+    {"start",   T_OBJECT_EX,    offsetof(rangeobject, start),   READONLY},
+    {"stop",    T_OBJECT_EX,    offsetof(rangeobject, stop),    READONLY},
+    {"step",    T_OBJECT_EX,    offsetof(rangeobject, step),    READONLY},
+    {0}
 };
 
 PyTypeObject PyRange_Type = {
@@ -764,7 +710,7 @@ PyTypeObject PyRange_Type = {
         0,                      /* tp_as_number */
         &range_as_sequence,     /* tp_as_sequence */
         &range_as_mapping,      /* tp_as_mapping */
-        0,                      /* tp_hash */
+        (hashfunc)range_hash,   /* tp_hash */
         0,                      /* tp_call */
         0,                      /* tp_str */
         PyObject_GenericGetAttr,  /* tp_getattro */
@@ -774,12 +720,12 @@ PyTypeObject PyRange_Type = {
         range_doc,              /* tp_doc */
         0,                      /* tp_traverse */
         0,                      /* tp_clear */
-        0,                      /* tp_richcompare */
+        range_richcompare,      /* tp_richcompare */
         0,                      /* tp_weaklistoffset */
         range_iter,             /* tp_iter */
         0,                      /* tp_iternext */
         range_methods,          /* tp_methods */
-        0,                      /* tp_members */
+        range_members,          /* tp_members */
         0,                      /* tp_getset */
         0,                      /* tp_base */
         0,                      /* tp_dict */
@@ -794,7 +740,7 @@ PyTypeObject PyRange_Type = {
 /*********************** range Iterator **************************/
 
 /* There are 2 types of iterators, one for C longs, the other for
-   Python longs (ie, PyObjects).  This should make iteration fast
+   Python ints (ie, PyObjects).  This should make iteration fast
    in the normal case, but possible for any numeric value.
 */
 
@@ -826,9 +772,60 @@ rangeiter_len(rangeiterobject *r)
 PyDoc_STRVAR(length_hint_doc,
              "Private method returning an estimate of len(list(it)).");
 
+static PyObject *
+rangeiter_reduce(rangeiterobject *r)
+{
+    PyObject *start=NULL, *stop=NULL, *step=NULL;
+    PyObject *range;
+
+    /* create a range object for pickling */
+    start = PyLong_FromLong(r->start);
+    if (start == NULL)
+        goto err;
+    stop = PyLong_FromLong(r->start + r->len * r->step);
+    if (stop == NULL)
+        goto err;
+    step = PyLong_FromLong(r->step);
+    if (step == NULL)
+        goto err;
+    range = (PyObject*)make_range_object(&PyRange_Type,
+                               start, stop, step);
+    if (range == NULL)
+        goto err;
+    /* return the result */
+    return Py_BuildValue("N(N)i", _PyObject_GetBuiltin("iter"), range, r->index);
+err:
+    Py_XDECREF(start);
+    Py_XDECREF(stop);
+    Py_XDECREF(step);
+    return NULL;
+}
+
+static PyObject *
+rangeiter_setstate(rangeiterobject *r, PyObject *state)
+{
+    long index = PyLong_AsLong(state);
+    if (index == -1 && PyErr_Occurred())
+        return NULL;
+    /* silently clip the index value */
+    if (index < 0)
+        index = 0;
+    else if (index > r->len)
+        index = r->len; /* exhausted iterator */
+    r->index = index;
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(reduce_doc, "Return state information for pickling.");
+PyDoc_STRVAR(setstate_doc, "Set state information for unpickling.");
+
 static PyMethodDef rangeiter_methods[] = {
     {"__length_hint__", (PyCFunction)rangeiter_len, METH_NOARGS,
         length_hint_doc},
+    {"__reduce__", (PyCFunction)rangeiter_reduce, METH_NOARGS,
+        reduce_doc},
+    {"__setstate__", (PyCFunction)rangeiter_setstate, METH_O,
+        setstate_doc},
     {NULL,              NULL}           /* sentinel */
 };
 
@@ -957,9 +954,73 @@ longrangeiter_len(longrangeiterobject *r, PyObject *no_args)
     return PyNumber_Subtract(r->len, r->index);
 }
 
+static PyObject *
+longrangeiter_reduce(longrangeiterobject *r)
+{
+    PyObject *product, *stop=NULL;
+    PyObject *range;
+
+    /* create a range object for pickling.  Must calculate the "stop" value */
+    product = PyNumber_Multiply(r->len, r->step);
+    if (product == NULL)
+        return NULL;
+    stop = PyNumber_Add(r->start, product);
+    Py_DECREF(product);
+    if (stop ==  NULL)
+        return NULL;
+    Py_INCREF(r->start);
+    Py_INCREF(r->step);
+    range =  (PyObject*)make_range_object(&PyRange_Type,
+                               r->start, stop, r->step);
+    if (range == NULL) {
+        Py_DECREF(r->start);
+        Py_DECREF(stop);
+        Py_DECREF(r->step);
+        return NULL;
+    }
+
+    /* return the result */
+    return Py_BuildValue("N(N)O", _PyObject_GetBuiltin("iter"), range, r->index);
+}
+
+static PyObject *
+longrangeiter_setstate(longrangeiterobject *r, PyObject *state)
+{
+    int cmp;
+   
+    /* clip the value */
+    PyObject *zero = PyLong_FromLong(0);
+    if (zero == NULL)
+        return NULL;
+    cmp = PyObject_RichCompareBool(state, zero, Py_LT);
+    if (cmp > 0) {
+        Py_CLEAR(r->index);
+        r->index = zero;
+        Py_RETURN_NONE;
+    }
+    Py_DECREF(zero);
+    if (cmp < 0)
+        return NULL;
+
+    cmp = PyObject_RichCompareBool(r->len, state, Py_LT);
+    if (cmp < 0)
+        return NULL;
+    if (cmp > 0)
+        state = r->len;
+    
+    Py_CLEAR(r->index);
+    r->index = state;
+    Py_INCREF(r->index);
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef longrangeiter_methods[] = {
     {"__length_hint__", (PyCFunction)longrangeiter_len, METH_NOARGS,
         length_hint_doc},
+    {"__reduce__", (PyCFunction)longrangeiter_reduce, METH_NOARGS,
+        reduce_doc},
+    {"__setstate__", (PyCFunction)longrangeiter_setstate, METH_O,
+        setstate_doc},
     {NULL,              NULL}           /* sentinel */
 };
 

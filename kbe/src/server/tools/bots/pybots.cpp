@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,22 +19,21 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "bots.hpp"
-#include "pybots.hpp"
-#include "clientobject.hpp"
-#include "bots_interface.hpp"
-#include "resmgr/resmgr.hpp"
-#include "network/common.hpp"
-#include "network/tcp_packet.hpp"
-#include "network/udp_packet.hpp"
-#include "network/message_handler.hpp"
-#include "thread/threadpool.hpp"
-#include "server/componentbridge.hpp"
-#include "server/serverconfig.hpp"
-#include "helper/console_helper.hpp"
+#include "bots.h"
+#include "pybots.h"
+#include "clientobject.h"
+#include "bots_interface.h"
+#include "resmgr/resmgr.h"
+#include "network/common.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+#include "network/message_handler.h"
+#include "thread/threadpool.h"
+#include "server/serverconfig.h"
+#include "helper/console_helper.h"
 
-#include "../../../server/baseapp/baseapp_interface.hpp"
-#include "../../../server/loginapp/loginapp_interface.hpp"
+#include "../../../server/baseapp/baseapp_interface.h"
+#include "../../../server/loginapp/loginapp_interface.h"
 
 namespace KBEngine{
 
@@ -114,7 +113,7 @@ PyObject* PyBots::pyKeys()
 	Bots::CLIENTS::const_iterator iter = refclients.begin();
 	while (iter != refclients.end())
 	{
-		PyObject* clientID = PyLong_FromLong(iter->second.get()->appID());
+		PyObject* clientID = PyLong_FromLong(iter->second->appID());
 		PyList_SET_ITEM(pyList, i, clientID);
 
 		i++;
@@ -134,8 +133,8 @@ PyObject* PyBots::pyValues()
 	Bots::CLIENTS::const_iterator iter = refclients.begin();
 	while (iter != refclients.end())
 	{
-		Py_INCREF(iter->second.get());
-		PyList_SET_ITEM(pyList, i, iter->second.get());
+		Py_INCREF(iter->second);
+		PyList_SET_ITEM(pyList, i, iter->second);
 
 		i++;
 		iter++;
@@ -155,11 +154,11 @@ PyObject* PyBots::pyItems()
 	while (iter != refclients.end())
 	{
 		PyObject * pTuple = PyTuple_New(2);
-		PyObject* clientID = PyLong_FromLong(iter->second.get()->appID());
-		Py_INCREF(iter->second.get());							// PyObject Entity* 增加一个引用
+		PyObject* clientID = PyLong_FromLong(iter->second->appID());
+		Py_INCREF(iter->second);							// PyObject Entity* 增加一个引用
 
 		PyTuple_SET_ITEM(pTuple, 0, clientID);
-		PyTuple_SET_ITEM(pTuple, 1, iter->second.get());
+		PyTuple_SET_ITEM(pTuple, 1, iter->second);
 		PyList_SET_ITEM(pyList, i, pTuple);
 		i++;
 		iter++;

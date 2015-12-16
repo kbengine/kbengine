@@ -1,12 +1,9 @@
 """Python part of the warnings subsystem."""
 
-# Note: function level imports should *not* be used
-# in this module as it may cause import lock deadlock.
-# See bug 683658.
-import linecache
 import sys
 
-__all__ = ["warn", "showwarning", "formatwarning", "filterwarnings",
+__all__ = ["warn", "warn_explicit", "showwarning",
+           "formatwarning", "filterwarnings", "simplefilter",
            "resetwarnings", "catch_warnings"]
 
 
@@ -16,11 +13,12 @@ def showwarning(message, category, filename, lineno, file=None, line=None):
         file = sys.stderr
     try:
         file.write(formatwarning(message, category, filename, lineno, line))
-    except IOError:
+    except OSError:
         pass # the file (probably stderr) is invalid - this warning gets lost.
 
 def formatwarning(message, category, filename, lineno, line=None):
     """Function to format a warning the standard way."""
+    import linecache
     s =  "%s:%s: %s: %s\n" % (filename, lineno, category.__name__, message)
     line = linecache.getline(filename, lineno) if line is None else line
     if line:
@@ -55,6 +53,7 @@ def filterwarnings(action, message="", category=Warning, module="", lineno=0,
         filters.append(item)
     else:
         filters.insert(0, item)
+    _filters_mutated()
 
 def simplefilter(action, category=Warning, lineno=0, append=False):
     """Insert a simple entry into the list of warnings filters (at the front).
@@ -75,10 +74,12 @@ def simplefilter(action, category=Warning, lineno=0, append=False):
         filters.append(item)
     else:
         filters.insert(0, item)
+    _filters_mutated()
 
 def resetwarnings():
     """Clear the list of warning filters, so that no filters are active."""
     filters[:] = []
+    _filters_mutated()
 
 class _OptionError(Exception):
     """Exception used by option processing helpers."""
@@ -206,6 +207,9 @@ def warn_explicit(message, category, filename, lineno,
             module = module[:-3] # XXX What about leading pathname?
     if registry is None:
         registry = {}
+    if registry.get('version', 0) != _filters_version:
+        registry.clear()
+        registry['version'] = _filters_version
     if isinstance(message, Warning):
         text = str(message)
         category = message.__class__
@@ -233,6 +237,7 @@ def warn_explicit(message, category, filename, lineno,
 
     # Prime the linecache for formatting, in case the
     # "file" is actually in a zipfile or something.
+    import linecache
     linecache.getlines(filename, module_globals)
 
     if action == "error":
@@ -330,6 +335,7 @@ class catch_warnings(object):
         self._entered = True
         self._filters = self._module.filters
         self._module.filters = self._filters[:]
+        self._module._filters_mutated()
         self._showwarning = self._module.showwarning
         if self._record:
             log = []
@@ -344,6 +350,7 @@ class catch_warnings(object):
         if not self._entered:
             raise RuntimeError("Cannot exit %r without entering first" % self)
         self._module.filters = self._filters
+        self._module._filters_mutated()
         self._module.showwarning = self._showwarning
 
 
@@ -358,14 +365,21 @@ class catch_warnings(object):
 _warnings_defaults = False
 try:
     from _warnings import (filters, _defaultaction, _onceregistry,
-                            warn, warn_explicit)
+                           warn, warn_explicit, _filters_mutated)
     defaultaction = _defaultaction
     onceregistry = _onceregistry
     _warnings_defaults = True
+
 except ImportError:
     filters = []
     defaultaction = "default"
     onceregistry = {}
+
+    _filters_version = 1
+
+    def _filters_mutated():
+        global _filters_version
+        _filters_version += 1
 
 
 # Module initialization

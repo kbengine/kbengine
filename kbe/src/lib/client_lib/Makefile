@@ -5,9 +5,11 @@ SRCS =				\
 	clientapp		\
 	clientobjectbase	\
 	config			\
+	script_callbacks	\
 	entity			\
 	entity_aspect		\
 	event			\
+	moveto_point_handler	\
 	profile
 
 ifndef KBE_ROOT

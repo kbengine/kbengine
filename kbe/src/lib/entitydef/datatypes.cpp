@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "datatypes.hpp"
-#include "resmgr/resmgr.hpp"
+#include "datatypes.h"
+#include "resmgr/resmgr.h"
 
 namespace KBEngine{
 
@@ -43,7 +43,7 @@ DataTypes::~DataTypes()
 void DataTypes::finalise(void)
 {
 	//DATATYPE_MAP::iterator iter = dataTypes_.begin();
-	//for (; iter != dataTypes_.end(); iter++) 
+	//for (; iter != dataTypes_.end(); ++iter) 
 	//	iter->second->decRef();
 
 	uid_dataTypes_.clear();
@@ -55,30 +55,30 @@ void DataTypes::finalise(void)
 bool DataTypes::initialize(std::string file)
 {
 	// 初始化一些基础类别
-	addDateType("UINT8",	new IntType<uint8>);
-	addDateType("UINT16",	new IntType<uint16>);
-	addDateType("UINT64",	new UInt64Type);
-	addDateType("UINT32",	new UInt32Type);
+	addDataType("UINT8",	new IntType<uint8>);
+	addDataType("UINT16",	new IntType<uint16>);
+	addDataType("UINT64",	new UInt64Type);
+	addDataType("UINT32",	new UInt32Type);
 
-	addDateType("INT8",		new IntType<int8>);
-	addDateType("INT16",	new IntType<int16>);
-	addDateType("INT32",	new IntType<int32>);
-	addDateType("INT64",	new Int64Type);
+	addDataType("INT8",		new IntType<int8>);
+	addDataType("INT16",	new IntType<int16>);
+	addDataType("INT32",	new IntType<int32>);
+	addDataType("INT64",	new Int64Type);
 
-	addDateType("STRING",	new StringType);
-	addDateType("UNICODE",	new UnicodeType);
-	addDateType("FLOAT",	new FloatType);
-	addDateType("DOUBLE",	new DoubleType);
-	addDateType("PYTHON",	new PythonType);
-	addDateType("PY_DICT",	new PyDictType);
-	addDateType("PY_TUPLE",	new PyTupleType);
-	addDateType("PY_LIST",	new PyListType);
-	addDateType("MAILBOX",	new MailboxType);
-	addDateType("BLOB",		new BlobType);
+	addDataType("STRING",	new StringType);
+	addDataType("UNICODE",	new UnicodeType);
+	addDataType("FLOAT",	new FloatType);
+	addDataType("DOUBLE",	new DoubleType);
+	addDataType("PYTHON",	new PythonType);
+	addDataType("PY_DICT",	new PyDictType);
+	addDataType("PY_TUPLE",	new PyTupleType);
+	addDataType("PY_LIST",	new PyListType);
+	addDataType("MAILBOX",	new MailboxType);
+	addDataType("BLOB",		new BlobType);
 
-	addDateType("VECTOR2",	new VectorType(2));
-	addDateType("VECTOR3",	new VectorType(3));
-	addDateType("VECTOR4",	new VectorType(4));
+	addDataType("VECTOR2",	new VectorType(2));
+	addDataType("VECTOR3",	new VectorType(3));
+	addDataType("VECTOR4",	new VectorType(4));
 	return loadAlias(file);
 }
 
@@ -86,7 +86,7 @@ bool DataTypes::initialize(std::string file)
 bool DataTypes::loadAlias(std::string& file)
 {
 	TiXmlNode* node = NULL;
-	XmlPlus* xml = new XmlPlus(Resmgr::getSingleton().matchRes(file).c_str());
+	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(file).c_str()));
 
 	if(xml == NULL || !xml->isGood())
 		return false;
@@ -95,8 +95,8 @@ bool DataTypes::loadAlias(std::string& file)
 
 	if(node == NULL)
 	{
-		ERROR_MSG("DataTypes::loadAlias: not found node<root->firstChildNode> !\n");
-		return false;
+		// root节点下没有子节点了
+		return true;
 	}
 
 	XML_FOR_BEGIN(node)
@@ -112,14 +112,14 @@ bool DataTypes::loadAlias(std::string& file)
 			{
 				FixedDictType* fixedDict = new FixedDictType;
 				
-				if(fixedDict->initialize(xml, childNode))
+				if(fixedDict->initialize(xml.get(), childNode))
 				{
-					addDateType(aliasName, fixedDict);
+					addDataType(aliasName, fixedDict);
 				}
 				else
 				{
-					ERROR_MSG(boost::format("DataTypes::loadAlias:parse FIXED_DICT [%1%] is error!\n") % 
-						aliasName.c_str());
+					ERROR_MSG(fmt::format("DataTypes::loadAlias: parse FIXED_DICT [{}] error!\n", 
+						aliasName.c_str()));
 					
 					delete fixedDict;
 					return false;
@@ -129,14 +129,14 @@ bool DataTypes::loadAlias(std::string& file)
 			{
 				FixedArrayType* fixedArray = new FixedArrayType;
 				
-				if(fixedArray->initialize(xml, childNode))
+				if(fixedArray->initialize(xml.get(), childNode))
 				{
-					addDateType(aliasName, fixedArray);
+					addDataType(aliasName, fixedArray);
 				}
 				else
 				{
-					ERROR_MSG(boost::format("DataTypes::loadAlias:parse ARRAY [%1%] is error!\n") % 
-						aliasName.c_str());
+					ERROR_MSG(fmt::format("DataTypes::loadAlias: parse ARRAY [{}] error!\n", 
+						aliasName.c_str()));
 					
 					delete fixedArray;
 					return false;
@@ -147,32 +147,32 @@ bool DataTypes::loadAlias(std::string& file)
 				DataType* dataType = getDataType(type);
 				if(dataType == NULL)
 				{
-					ERROR_MSG(boost::format("DataTypes::loadAlias:can't fount type %1% by alias[%2%].\n") % 
-						type.c_str() % aliasName.c_str());
+					ERROR_MSG(fmt::format("DataTypes::loadAlias:can't fount type {} by alias[{}].\n", 
+						type.c_str(), aliasName.c_str()));
 					
 					return false;
 				}
 
-				addDateType(aliasName, dataType);
+				addDataType(aliasName, dataType);
 			}
 		}
 	}
 	XML_FOR_END(node);
 	
-	delete xml;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool DataTypes::addDateType(std::string name, DataType* dataType)
+bool DataTypes::addDataType(std::string name, DataType* dataType)
 {
 	dataType->aliasName(name);
 	std::string lowername = name;
 	std::transform(lowername.begin(), lowername.end(), lowername.begin(), tolower);	
+
 	DATATYPE_MAP::iterator iter = dataTypesLowerName_.find(lowername);
 	if (iter != dataTypesLowerName_.end())
 	{ 
-		ERROR_MSG(boost::format("DataTypes::addDateType:exist a type %1%.\n") % name.c_str());
+		ERROR_MSG(fmt::format("DataTypes::addDataType(name): name {} exist.\n", name.c_str()));
 		return false;
 	}
 
@@ -181,19 +181,34 @@ bool DataTypes::addDateType(std::string name, DataType* dataType)
 	uid_dataTypes_[dataType->id()] = dataType;
 
 	//dataType->incRef();
+
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(fmt::format("DataTypes::addDataType(name): {:p} name={}, aliasName={}, uid={}.\n", 
+			(void*)dataType, name, dataType->aliasName(), dataType->id()));
+	}
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool DataTypes::addDateType(DATATYPE_UID uid, DataType* dataType)
+bool DataTypes::addDataType(DATATYPE_UID uid, DataType* dataType)
 {
 	UID_DATATYPE_MAP::iterator iter = uid_dataTypes_.find(uid);
 	if (iter != uid_dataTypes_.end())
 	{
+		ERROR_MSG(fmt::format("DataTypes(uid)::addDataType: utype {} exist.\n", uid));
 		return false;
 	}
 
 	uid_dataTypes_[uid] = dataType;
+
+	if(g_debugEntity)
+	{
+		DEBUG_MSG(fmt::format("DataTypes::addDataType(uid): {:p} aliasName={}, uid={}.\n", 
+			(void*)dataType, dataType->aliasName(), uid));
+	}
+
 	return true;
 }
 
@@ -203,7 +218,7 @@ void DataTypes::delDataType(std::string name)
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter == dataTypes_.end())
 	{
-		ERROR_MSG(boost::format("DataTypes::delDataType:not found type %1%.\n") % name.c_str());
+		ERROR_MSG(fmt::format("DataTypes::delDataType:not found type {}.\n", name.c_str()));
 	}
 	else
 	{
@@ -221,7 +236,7 @@ DataType* DataTypes::getDataType(std::string name)
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(boost::format("DataTypes::getDataType:not found type %1%.\n") % name.c_str());
+	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name.c_str()));
 	return NULL;
 }
 
@@ -232,7 +247,7 @@ DataType* DataTypes::getDataType(const char* name)
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(boost::format("DataTypes::getDataType:not found type %1%.\n") % name);
+	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name));
 	return NULL;
 }
 
@@ -243,7 +258,7 @@ DataType* DataTypes::getDataType(DATATYPE_UID uid)
 	if (iter != uid_dataTypes_.end()) 
 		return iter->second;
 
-	ERROR_MSG(boost::format("DataTypes::getDataType:not found type %1%.\n") % uid);
+	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", uid));
 	return NULL;
 }
 

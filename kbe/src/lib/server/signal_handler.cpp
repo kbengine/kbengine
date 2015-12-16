@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,9 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "signal_handler.hpp"
-#include "helper/debug_helper.hpp"
-#include "server/serverapp.hpp"
+#include "signal_handler.h"
+#include "helper/debug_helper.h"
+#include "server/serverapp.h"
 
 namespace KBEngine{
 KBE_SINGLETON_INIT(SignalHandlers);
@@ -69,7 +69,7 @@ SignalHandlers g_signalHandlers;
 
 void signalHandler(int signum)
 {
-	DEBUG_MSG(boost::format("SignalHandlers: receive sigNum %1%.\n") % SIGNAL_NAMES[signum]);
+	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL_NAMES[signum]));
 	g_signalHandlers.onSignalled(signum);
 };
 
@@ -90,7 +90,7 @@ SignalHandlers::~SignalHandlers()
 void SignalHandlers::attachApp(ServerApp* app)
 { 
 	papp_ = app; 
-	app->getMainDispatcher().addFrequentTask(this);
+	app->dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -146,23 +146,27 @@ void SignalHandlers::onSignalled(int sigNum)
 //-------------------------------------------------------------------------------------	
 bool SignalHandlers::process()
 {
-	std::vector<int>::iterator iter = signalledVec_.begin();
-	for(; iter != signalledVec_.end(); iter++)
+	if(signalledVec_.size() > 0)
 	{
-		int sigNum = (*iter);
-		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
-		if(iter1 == singnalHandlerMap_.end())
+		std::vector<int>::iterator iter = signalledVec_.begin();
+		for(; iter != signalledVec_.end(); ++iter)
 		{
-			DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% unhandled, singnalHandlerMap(%2%).\n") % 
-				SIGNAL_NAMES[sigNum] % singnalHandlerMap_.size());
-			continue;
+			int sigNum = (*iter);
+			SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
+			if(iter1 == singnalHandlerMap_.end())
+			{
+				DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n", 
+					SIGNAL_NAMES[sigNum], singnalHandlerMap_.size()));
+				continue;
+			}
+			
+			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL_NAMES[sigNum]));
+				iter1->second->onSignalled(sigNum);
 		}
-		
-		DEBUG_MSG(boost::format("SignalHandlers::process: sigNum %1% handle.\n") % SIGNAL_NAMES[sigNum]);
-		iter1->second->onSignalled(sigNum);
+
+		signalledVec_.clear();
 	}
 
-	signalledVec_.clear();
 	return true;
 }
 

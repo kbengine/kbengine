@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2016 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,20 +19,20 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "tcp_packet.hpp"
+#include "tcp_packet.h"
 #ifndef CODE_INLINE
-#include "tcp_packet.ipp"
+#include "tcp_packet.inl"
 #endif
-#include "network/bundle.hpp"
-#include "network/endpoint.hpp"
-#include "network/network_interface.hpp"
-#include "network/message_handler.hpp"
+#include "network/bundle.h"
+#include "network/endpoint.h"
+#include "network/network_interface.h"
+#include "network/message_handler.h"
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 //-------------------------------------------------------------------------------------
-static ObjectPool<TCPPacket> _g_objPool;
+static ObjectPool<TCPPacket> _g_objPool("TCPPacket");
 ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 {
 	return _g_objPool;
@@ -41,8 +41,8 @@ ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 //-------------------------------------------------------------------------------------
 void TCPPacket::destroyObjPool()
 {
-	DEBUG_MSG(boost::format("TCPPacket::destroyObjPool(): size %1%.\n") % 
-		_g_objPool.size());
+	DEBUG_MSG(fmt::format("TCPPacket::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
 
 	_g_objPool.destroy();
 }
@@ -69,7 +69,14 @@ TCPPacket::~TCPPacket(void)
 //-------------------------------------------------------------------------------------
 size_t TCPPacket::maxBufferSize()
 {
-	return PACKET_MAX_SIZE_TCP * 4;
+	return PACKET_MAX_SIZE_TCP;
+}
+
+//-------------------------------------------------------------------------------------
+void TCPPacket::onReclaimObject()
+{
+	Packet::onReclaimObject();
+	data_resize(maxBufferSize());
 }
 
 //-------------------------------------------------------------------------------------
@@ -78,15 +85,15 @@ int TCPPacket::recvFromEndPoint(EndPoint & ep, Address* pAddr)
 	//KBE_ASSERT(MessageHandlers::pMainMessageHandlers != NULL && "Must set up a MainMessageHandlers!\n");
 	KBE_ASSERT(maxBufferSize() > wpos());
 	int len = ep.recv(data() + wpos(), size() - wpos());
-	wpos(wpos() + len);
 	
-	/*
-	// 注意:必须在大于0的时候否则DEBUG_MSG将会导致WSAGetLastError返回0从而陷入死循环
 	if(len > 0) 
 	{
-		DEBUG_MSG(boost::format("TCPPacket::recvFromEndPoint: datasize=%1%, wpos=%2%.\n") % len % wpos());
+		wpos(wpos() + len);
+
+		// 注意:必须在大于0的时候否则DEBUG_MSG将会导致WSAGetLastError返回0从而陷入死循环
+		// DEBUG_MSG(fmt::format("TCPPacket::recvFromEndPoint: datasize={}, wpos={}.\n", len, wpos()));
 	}
-	*/
+
 	return len; 
 }
 

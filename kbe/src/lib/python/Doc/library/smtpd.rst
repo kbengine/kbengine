@@ -4,7 +4,7 @@
 .. module:: smtpd
    :synopsis: A SMTP server implementation in Python.
 
-.. moduleauthor:: Barry Warsaw <barry@zope.com>
+.. moduleauthor:: Barry Warsaw <barry@python.org>
 .. sectionauthor:: Moshe Zadka <moshez@moshez.org>
 
 **Source code:** :source:`Lib/smtpd.py`
@@ -20,16 +20,26 @@ specific mail-sending strategies.
 Additionally the SMTPChannel may be extended to implement very specific
 interaction behaviour with SMTP clients.
 
+The code supports :RFC:`5321`, plus the :rfc:`1870` SIZE extension.
+
+
 SMTPServer Objects
 ------------------
 
 
-.. class:: SMTPServer(localaddr, remoteaddr)
+.. class:: SMTPServer(localaddr, remoteaddr, data_size_limit=33554432,\
+                      map=None)
 
    Create a new :class:`SMTPServer` object, which binds to local address
    *localaddr*.  It will treat *remoteaddr* as an upstream SMTP relayer.  It
    inherits from :class:`asyncore.dispatcher`, and so will insert itself into
    :mod:`asyncore`'s event loop on instantiation.
+
+   *data_size_limit* specifies the maximum number of bytes that will be
+   accepted in a ``DATA`` command.  A value of ``None`` or ``0`` means no
+   limit.
+
+   A dictionary can be specified in *map* to avoid using a global socket map.
 
    .. method:: process_message(peer, mailfrom, rcpttos, data)
 
@@ -45,6 +55,9 @@ SMTPServer Objects
 
       Override this in subclasses to use a custom :class:`SMTPChannel` for
       managing SMTP clients.
+
+   .. versionchanged:: 3.4
+      The *map* argument was added.
 
 
 DebuggingServer Objects
@@ -83,10 +96,19 @@ MailmanProxy Objects
 SMTPChannel Objects
 -------------------
 
-.. class:: SMTPChannel(server, conn, addr)
+.. class:: SMTPChannel(server, conn, addr, data_size_limit=33554432,\
+                       map=None))
 
    Create a new :class:`SMTPChannel` object which manages the communication
    between the server and a single SMTP client.
+
+   *conn* and *addr* are as per the instance variables described below.
+
+   *data_size_limit* specifies the maximum number of bytes that will be
+   accepted in a ``DATA`` command.  A value of ``None`` or ``0`` means no
+   limit.
+
+   A dictionary can be specified in *map* to avoid using a global socket map.
 
    To use a custom SMTPChannel implementation you need to override the
    :attr:`SMTPServer.channel_class` of your :class:`SMTPServer`.
@@ -156,11 +178,15 @@ SMTPChannel Objects
    Command  Action taken
    ======== ===================================================================
    HELO     Accepts the greeting from the client and stores it in
-            :attr:`seen_greeting`.
+            :attr:`seen_greeting`.  Sets server to base command mode.
+   EHLO     Accepts the greeting from the client and stores it in
+            :attr:`seen_greeting`.  Sets server to extended command mode.
    NOOP     Takes no action.
    QUIT     Closes the connection cleanly.
    MAIL     Accepts the "MAIL FROM:" syntax and stores the supplied address as
-            :attr:`mailfrom`.
+            :attr:`mailfrom`.  In extended command mode, accepts the
+            :rfc:`1870` SIZE attribute and responds appropriately based on the
+            value of *data_size_limit*.
    RCPT     Accepts the "RCPT TO:" syntax and stores the supplied addresses in
             the :attr:`rcpttos` list.
    RSET     Resets the :attr:`mailfrom`, :attr:`rcpttos`, and
@@ -168,4 +194,7 @@ SMTPChannel Objects
    DATA     Sets the internal state to :attr:`DATA` and stores remaining lines
             from the client in :attr:`received_data` until the terminator
             ``"\r\n.\r\n"`` is received.
+   HELP     Returns minimal information on command syntax
+   VRFY     Returns code 252 (the server doesn't know if the address is valid)
+   EXPN     Reports that the command is not implemented.
    ======== ===================================================================

@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
-
 import unittest
+import unittest.mock
 import random
 import time
 import pickle
 import warnings
+from functools import partial
 from math import log, exp, pi, fsum, sin
 from test import support
 
-class TestBasicOps(unittest.TestCase):
+class TestBasicOps:
     # Superclass with tests common to all generators.
     # Subclasses must arrange for self.gen to retrieve the Random instance
     # to be tested.
@@ -34,13 +34,59 @@ class TestBasicOps(unittest.TestCase):
         self.assertEqual(randseq, self.randomlist(N))
 
     def test_seedargs(self):
+        # Seed value with a negative hash.
+        class MySeed(object):
+            def __hash__(self):
+                return -1729
         for arg in [None, 0, 0, 1, 1, -1, -1, 10**20, -(10**20),
-                    3.14, 1+2j, 'a', tuple('abc')]:
+                    3.14, 1+2j, 'a', tuple('abc'), MySeed()]:
             self.gen.seed(arg)
         for arg in [list(range(3)), dict(one=1)]:
             self.assertRaises(TypeError, self.gen.seed, arg)
         self.assertRaises(TypeError, self.gen.seed, 1, 2, 3, 4)
         self.assertRaises(TypeError, type(self.gen), [])
+
+    @unittest.mock.patch('random._urandom') # os.urandom
+    def test_seed_when_randomness_source_not_found(self, urandom_mock):
+        # Random.seed() uses time.time() when an operating system specific
+        # randomness source is not found. To test this on machines were it
+        # exists, run the above test, test_seedargs(), again after mocking
+        # os.urandom() so that it raises the exception expected when the
+        # randomness source is not available.
+        urandom_mock.side_effect = NotImplementedError
+        self.test_seedargs()
+
+    def test_shuffle(self):
+        shuffle = self.gen.shuffle
+        lst = []
+        shuffle(lst)
+        self.assertEqual(lst, [])
+        lst = [37]
+        shuffle(lst)
+        self.assertEqual(lst, [37])
+        seqs = [list(range(n)) for n in range(10)]
+        shuffled_seqs = [list(range(n)) for n in range(10)]
+        for shuffled_seq in shuffled_seqs:
+            shuffle(shuffled_seq)
+        for (seq, shuffled_seq) in zip(seqs, shuffled_seqs):
+            self.assertEqual(len(seq), len(shuffled_seq))
+            self.assertEqual(set(seq), set(shuffled_seq))
+        # The above tests all would pass if the shuffle was a
+        # no-op. The following non-deterministic test covers that.  It
+        # asserts that the shuffled sequence of 1000 distinct elements
+        # must be different from the original one. Although there is
+        # mathematically a non-zero probability that this could
+        # actually happen in a genuinely random shuffle, it is
+        # completely negligible, given that the number of possible
+        # permutations of 1000 objects is 1000! (factorial of 1000),
+        # which is considerably larger than the number of atoms in the
+        # universe...
+        lst = list(range(1000))
+        shuffled_lst = list(range(1000))
+        shuffle(shuffled_lst)
+        self.assertTrue(lst != shuffled_lst)
+        shuffle(lst)
+        self.assertTrue(lst != shuffled_lst)
 
     def test_choice(self):
         choice = self.gen.choice
@@ -61,6 +107,8 @@ class TestBasicOps(unittest.TestCase):
             self.assertEqual(len(uniq), k)
             self.assertTrue(uniq <= set(population))
         self.assertEqual(self.gen.sample([], 0), [])  # test edge case N==k==0
+        # Exception raised if size of sample exceeds that of population
+        self.assertRaises(ValueError, self.gen.sample, population, N+1)
 
     def test_sample_distribution(self):
         # For the entire allowable range of 0 <= k <= N, validate that
@@ -138,7 +186,15 @@ class TestBasicOps(unittest.TestCase):
         k = sum(randrange(6755399441055744) % 3 == 2 for i in range(n))
         self.assertTrue(0.30 < k/n < .37, (k/n))
 
-class SystemRandom_TestBasicOps(TestBasicOps):
+try:
+    random.SystemRandom().random()
+except NotImplementedError:
+    SystemRandom_available = False
+else:
+    SystemRandom_available = True
+
+@unittest.skipUnless(SystemRandom_available, "random.SystemRandom not available")
+class SystemRandom_TestBasicOps(TestBasicOps, unittest.TestCase):
     gen = random.SystemRandom()
 
     def test_autoseed(self):
@@ -182,16 +238,35 @@ class SystemRandom_TestBasicOps(TestBasicOps):
 
     def test_bigrand_ranges(self):
         for i in [40,80, 160, 200, 211, 250, 375, 512, 550]:
-            start = self.gen.randrange(2 ** i)
-            stop = self.gen.randrange(2 ** (i-2))
+            start = self.gen.randrange(2 ** (i-2))
+            stop = self.gen.randrange(2 ** i)
             if stop <= start:
-                return
+                continue
             self.assertTrue(start <= self.gen.randrange(start, stop) < stop)
 
     def test_rangelimits(self):
         for start, stop in [(-2,0), (-(2**60)-2,-(2**60)), (2**60,2**60+2)]:
             self.assertEqual(set(range(start,stop)),
                 set([self.gen.randrange(start,stop) for i in range(100)]))
+
+    def test_randrange_nonunit_step(self):
+        rint = self.gen.randrange(0, 10, 2)
+        self.assertIn(rint, (0, 2, 4, 6, 8))
+        rint = self.gen.randrange(0, 2, 2)
+        self.assertEqual(rint, 0)
+
+    def test_randrange_errors(self):
+        raises = partial(self.assertRaises, ValueError, self.gen.randrange)
+        # Empty range
+        raises(3, 3)
+        raises(-721)
+        raises(0, 100, -12)
+        # Non-integer start/stop
+        raises(3.14159)
+        raises(0, 2.71828)
+        # Zero and non-integer step
+        raises(0, 42, 0)
+        raises(0, 42, 3.14159)
 
     def test_genrandbits(self):
         # Verify ranges
@@ -235,7 +310,7 @@ class SystemRandom_TestBasicOps(TestBasicOps):
             self.assertTrue(2**k > n > 2**(k-1))   # note the stronger assertion
 
 
-class MersenneTwister_TestBasicOps(TestBasicOps):
+class MersenneTwister_TestBasicOps(TestBasicOps, unittest.TestCase):
     gen = random.Random()
 
     def test_guaranteed_stable(self):
@@ -261,6 +336,16 @@ class MersenneTwister_TestBasicOps(TestBasicOps):
         self.assertRaises(TypeError, self.gen.setstate, (2, ('a',)*625, None))
         # Last element s/b an int also
         self.assertRaises(TypeError, self.gen.setstate, (2, (0,)*624+('a',), None))
+
+        # Little trick to make "tuple(x % (2**32) for x in internalstate)"
+        # raise ValueError. I cannot think of a simple way to achieve this, so
+        # I am opting for using a generator as the middle argument of setstate
+        # which attempts to cast a NaN to integer.
+        state_values = self.gen.getstate()[1]
+        state_values = list(state_values)
+        state_values[-1] = float('nan')
+        state = (int(x) for x in state_values)
+        self.assertRaises(TypeError, self.gen.setstate, (2, state, None))
 
     def test_referenceImplementation(self):
         # Compare the python implementation with results from the original
@@ -345,10 +430,10 @@ class MersenneTwister_TestBasicOps(TestBasicOps):
 
     def test_bigrand_ranges(self):
         for i in [40,80, 160, 200, 211, 250, 375, 512, 550]:
-            start = self.gen.randrange(2 ** i)
-            stop = self.gen.randrange(2 ** (i-2))
+            start = self.gen.randrange(2 ** (i-2))
+            stop = self.gen.randrange(2 ** i)
             if stop <= start:
-                return
+                continue
             self.assertTrue(start <= self.gen.randrange(start, stop) < stop)
 
     def test_rangelimits(self):
@@ -400,6 +485,38 @@ class MersenneTwister_TestBasicOps(TestBasicOps):
             k = int(1.00001 + _log(n, 2))
             self.assertEqual(k, numbits)        # note the stronger assertion
             self.assertTrue(2**k > n > 2**(k-1))   # note the stronger assertion
+
+    @unittest.mock.patch('random.Random.random')
+    def test_randbelow_overriden_random(self, random_mock):
+        # Random._randbelow() can only use random() when the built-in one
+        # has been overridden but no new getrandbits() method was supplied.
+        random_mock.side_effect = random.SystemRandom().random
+        maxsize = 1<<random.BPF
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            # Population range too large (n >= maxsize)
+            self.gen._randbelow(maxsize+1, maxsize = maxsize)
+        self.gen._randbelow(5640, maxsize = maxsize)
+
+        # This might be going too far to test a single line, but because of our
+        # noble aim of achieving 100% test coverage we need to write a case in
+        # which the following line in Random._randbelow() gets executed:
+        #
+        # rem = maxsize % n
+        # limit = (maxsize - rem) / maxsize
+        # r = random()
+        # while r >= limit:
+        #     r = random() # <== *This line* <==<
+        #
+        # Therefore, to guarantee that the while loop is executed at least
+        # once, we need to mock random() so that it returns a number greater
+        # than 'limit' the first time it gets called.
+
+        n = 42
+        epsilon = 0.01
+        limit = (maxsize - (maxsize % n)) / maxsize
+        random_mock.side_effect = [limit + epsilon, limit - epsilon]
+        self.gen._randbelow(n, maxsize = maxsize)
 
     def test_randrange_bug_1590891(self):
         start = 1000000000000
@@ -485,7 +602,7 @@ class TestDistributions(unittest.TestCase):
         for variate, args, expected in [
                 (g.uniform, (10.0, 10.0), 10.0),
                 (g.triangular, (10.0, 10.0), 10.0),
-                #(g.triangular, (10.0, 10.0, 10.0), 10.0),
+                (g.triangular, (10.0, 10.0, 10.0), 10.0),
                 (g.expovariate, (float('inf'),), 0.0),
                 (g.vonmisesvariate, (3.0, float('inf')), 3.0),
                 (g.gauss, (10.0, 0.0), 10.0),
@@ -518,6 +635,106 @@ class TestDistributions(unittest.TestCase):
         random.vonmisesvariate(0, 1e15)
         random.vonmisesvariate(0, 1e100)
 
+    def test_gammavariate_errors(self):
+        # Both alpha and beta must be > 0.0
+        self.assertRaises(ValueError, random.gammavariate, -1, 3)
+        self.assertRaises(ValueError, random.gammavariate, 0, 2)
+        self.assertRaises(ValueError, random.gammavariate, 2, 0)
+        self.assertRaises(ValueError, random.gammavariate, 1, -3)
+
+    @unittest.mock.patch('random.Random.random')
+    def test_gammavariate_full_code_coverage(self, random_mock):
+        # There are three different possibilities in the current implementation
+        # of random.gammavariate(), depending on the value of 'alpha'. What we
+        # are going to do here is to fix the values returned by random() to
+        # generate test cases that provide 100% line coverage of the method.
+
+        # #1: alpha > 1.0: we want the first random number to be outside the
+        # [1e-7, .9999999] range, so that the continue statement executes
+        # once. The values of u1 and u2 will be 0.5 and 0.3, respectively.
+        random_mock.side_effect = [1e-8, 0.5, 0.3]
+        returned_value = random.gammavariate(1.1, 2.3)
+        self.assertAlmostEqual(returned_value, 2.53)
+
+        # #2: alpha == 1: first random number less than 1e-7 to that the body
+        # of the while loop executes once. Then random.random() returns 0.45,
+        # which causes while to stop looping and the algorithm to terminate.
+        random_mock.side_effect = [1e-8, 0.45]
+        returned_value = random.gammavariate(1.0, 3.14)
+        self.assertAlmostEqual(returned_value, 2.507314166123803)
+
+        # #3: 0 < alpha < 1. This is the most complex region of code to cover,
+        # as there are multiple if-else statements. Let's take a look at the
+        # source code, and determine the values that we need accordingly:
+        #
+        # while 1:
+        #     u = random()
+        #     b = (_e + alpha)/_e
+        #     p = b*u
+        #     if p <= 1.0: # <=== (A)
+        #         x = p ** (1.0/alpha)
+        #     else: # <=== (B)
+        #         x = -_log((b-p)/alpha)
+        #     u1 = random()
+        #     if p > 1.0: # <=== (C)
+        #         if u1 <= x ** (alpha - 1.0): # <=== (D)
+        #             break
+        #     elif u1 <= _exp(-x): # <=== (E)
+        #         break
+        # return x * beta
+        #
+        # First, we want (A) to be True. For that we need that:
+        # b*random() <= 1.0
+        # r1 = random() <= 1.0 / b
+        #
+        # We now get to the second if-else branch, and here, since p <= 1.0,
+        # (C) is False and we take the elif branch, (E). For it to be True,
+        # so that the break is executed, we need that:
+        # r2 = random() <= _exp(-x)
+        # r2 <= _exp(-(p ** (1.0/alpha)))
+        # r2 <= _exp(-((b*r1) ** (1.0/alpha)))
+
+        _e = random._e
+        _exp = random._exp
+        _log = random._log
+        alpha = 0.35
+        beta = 1.45
+        b = (_e + alpha)/_e
+        epsilon = 0.01
+
+        r1 = 0.8859296441566 # 1.0 / b
+        r2 = 0.3678794411714 # _exp(-((b*r1) ** (1.0/alpha)))
+
+        # These four "random" values result in the following trace:
+        # (A) True, (E) False --> [next iteration of while]
+        # (A) True, (E) True --> [while loop breaks]
+        random_mock.side_effect = [r1, r2 + epsilon, r1, r2]
+        returned_value = random.gammavariate(alpha, beta)
+        self.assertAlmostEqual(returned_value, 1.4499999999997544)
+
+        # Let's now make (A) be False. If this is the case, when we get to the
+        # second if-else 'p' is greater than 1, so (C) evaluates to True. We
+        # now encounter a second if statement, (D), which in order to execute
+        # must satisfy the following condition:
+        # r2 <= x ** (alpha - 1.0)
+        # r2 <= (-_log((b-p)/alpha)) ** (alpha - 1.0)
+        # r2 <= (-_log((b-(b*r1))/alpha)) ** (alpha - 1.0)
+        r1 = 0.8959296441566 # (1.0 / b) + epsilon -- so that (A) is False
+        r2 = 0.9445400408898141
+
+        # And these four values result in the following trace:
+        # (B) and (C) True, (D) False --> [next iteration of while]
+        # (B) and (C) True, (D) True [while loop breaks]
+        random_mock.side_effect = [r1, r2 + epsilon, r1, r2]
+        returned_value = random.gammavariate(alpha, beta)
+        self.assertAlmostEqual(returned_value, 1.5830349561760781)
+
+    @unittest.mock.patch('random.Random.gammavariate')
+    def test_betavariate_return_zero(self, gammavariate_mock):
+        # betavariate() returns zero when the Gamma distribution
+        # that it uses internally returns this same value.
+        gammavariate_mock.return_value = 0.0
+        self.assertEqual(0.0, random.betavariate(2.71828, 3.14159))
 
 class TestModule(unittest.TestCase):
     def testMagicConstants(self):
@@ -538,28 +755,5 @@ class TestModule(unittest.TestCase):
         Subclass(newarg=1)
 
 
-def test_main(verbose=None):
-    testclasses =    [MersenneTwister_TestBasicOps,
-                      TestDistributions,
-                      TestModule]
-
-    try:
-        random.SystemRandom().random()
-    except NotImplementedError:
-        pass
-    else:
-        testclasses.append(SystemRandom_TestBasicOps)
-
-    support.run_unittest(*testclasses)
-
-    # verify reference counting
-    import sys
-    if verbose and hasattr(sys, "gettotalrefcount"):
-        counts = [None] * 5
-        for i in range(len(counts)):
-            support.run_unittest(*testclasses)
-            counts[i] = sys.gettotalrefcount()
-        print(counts)
-
 if __name__ == "__main__":
-    test_main(verbose=True)
+    unittest.main()
