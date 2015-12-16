@@ -20,8 +20,52 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "python_app.h"
+#include "server/py_file_descriptor.h"
 
 namespace KBEngine{
+
+KBEngine::ScriptTimers KBEngine::PythonApp::scriptTimers_;
+
+/**
+内部定时器处理类
+*/
+class ScriptTimerHandler : public TimerHandler
+{
+public:
+	ScriptTimerHandler(ScriptTimers* scriptTimers, PyObject * callback) :
+		pyCallback_(callback),
+		scriptTimers_(scriptTimers)
+	{
+	}
+
+	~ScriptTimerHandler()
+	{
+		Py_DECREF(pyCallback_);
+	}
+
+private:
+	virtual void handleTimeout(TimerHandle handle, void * pUser)
+	{
+		int id = ScriptTimersUtil::getIDForHandle(scriptTimers_, handle);
+
+		PyObject *pyRet = PyObject_CallFunction(pyCallback_, "i", id);
+		if (pyRet == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			return;
+		}
+		return;
+	}
+
+	virtual void onRelease(TimerHandle handle, void * /*pUser*/)
+	{
+		scriptTimers_->releaseTimer(handle);
+		delete this;
+	}
+
+	PyObject* pyCallback_;
+	ScriptTimers* scriptTimers_;
+};
 
 //-------------------------------------------------------------------------------------
 PythonApp::PythonApp(Network::EventDispatcher& dispatcher, 
@@ -32,6 +76,7 @@ ServerApp(dispatcher, ninterface, componentType, componentID),
 script_(),
 entryScript_()
 {
+	ScriptTimers::initialize(*this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -51,10 +96,25 @@ bool PythonApp::inInitialize()
 	return true;
 }
 
+void PythonApp::onShutdownBegin()
+{
+	ServerApp::onShutdownBegin();
+
+	scriptTimers_.cancelAll();
+}
+
+//-------------------------------------------------------------------------------------	
+void PythonApp::onShutdownEnd()
+{
+	ServerApp::onShutdownEnd();
+}
+
 //-------------------------------------------------------------------------------------
 void PythonApp::finalise(void)
 {
 	uninstallPyScript();
+	scriptTimers_.cancelAll();
+	ScriptTimers::finalise(*this);
 
 	ServerApp::finalise();
 }
@@ -177,61 +237,71 @@ bool PythonApp::installPyModules()
 		ERROR_MSG("PythonApp::installPyModules: Unsupported script!\n");
 	}
 
+	PyObject * module = getScript().getModule();
+
 	// 注册创建entity的方法到py
 	// 向脚本注册app发布状态
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,			__py_getAppPublish,						METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, publish, __py_getAppPublish, METH_VARARGS, 0);
 
 	// 注册设置脚本输出类型
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,		__py_setScriptLogType,					METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, scriptLogType, __py_setScriptLogType, METH_VARARGS, 0);
 	
 	// 获得资源全路径
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getResFullPath,		__py_getResFullPath,					METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, getResFullPath, __py_getResFullPath, METH_VARARGS, 0);
 
 	// 是否存在某个资源
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	hasRes,				__py_hasRes,							METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, hasRes, __py_hasRes, METH_VARARGS, 0);
 
 	// 打开一个文件
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	open,				__py_kbeOpen,							METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, open, __py_kbeOpen, METH_VARARGS, 0);
 
 	// 列出目录下所有文件
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	listPathRes,		__py_listPathRes,						METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, listPathRes, __py_listPathRes, METH_VARARGS, 0);
 
 	// 匹配相对路径获得全路径
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	matchPath,			__py_matchPath,							METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, matchPath, __py_matchPath, METH_VARARGS, 0);
 
 	// debug追踪kbe封装的py对象计数
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	debugTracing,		script::PyGC::__py_debugTracing,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, debugTracing, script::PyGC::__py_debugTracing, METH_VARARGS, 0);
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_NORMAL.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_INFO", log4cxx::ScriptLevel::SCRIPT_INFO))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_INFO", log4cxx::ScriptLevel::SCRIPT_INFO))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_INFO.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_ERR", log4cxx::ScriptLevel::SCRIPT_ERR))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_ERR", log4cxx::ScriptLevel::SCRIPT_ERR))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_ERR.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_DBG", log4cxx::ScriptLevel::SCRIPT_DBG))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_DBG", log4cxx::ScriptLevel::SCRIPT_DBG))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_DBG.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_WAR", log4cxx::ScriptLevel::SCRIPT_WAR))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_WAR", log4cxx::ScriptLevel::SCRIPT_WAR))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_WAR.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "NEXT_ONLY", KBE_NEXT_ONLY))
+	if (PyModule_AddIntConstant(module, "NEXT_ONLY", KBE_NEXT_ONLY))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.NEXT_ONLY.\n");
 	}
 	
+	// 注册所有pythonApp都要用到的通用接口
+	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,											METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS,	0);
+
 	onInstallPyModules();
 
 	if (entryScriptFileName != NULL)
@@ -601,6 +671,55 @@ void PythonApp::reloadScript(bool fullReload)
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PythonApp::__py_addTimer(PyObject* self, PyObject* args)
+{
+	float interval, repeat;
+	PyObject *callback;
+
+	if (!PyArg_ParseTuple(args, "ffO", &interval, &repeat, &callback))
+		S_Return;
+
+	if (!PyCallable_Check(callback))
+	{
+		PyErr_Format(PyExc_TypeError, "Interfaces::addTimer: '%.200s' object is not callable", callback->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	ScriptTimers * pTimers = &scriptTimers();
+	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, callback);
+
+	int id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, 0, handler);
+
+	if (id == 0)
+	{
+		delete handler;
+		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	Py_INCREF(callback);
+	return PyLong_FromLong(id);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PythonApp::__py_delTimer(PyObject* self, PyObject* args)
+{
+	ScriptID timerID;
+
+	if (!PyArg_ParseTuple(args, "i", &timerID))
+		return NULL;
+
+	if (!ScriptTimersUtil::delTimer(&scriptTimers(), timerID))
+	{
+		return PyLong_FromLong(-1);
+	}
+
+	return PyLong_FromLong(timerID);
 }
 
 //-------------------------------------------------------------------------------------

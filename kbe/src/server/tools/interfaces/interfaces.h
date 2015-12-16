@@ -28,7 +28,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/endpoint.h"
 #include "resmgr/resmgr.h"
 #include "thread/threadpool.h"
-#include "server/script_timers.h"
 	
 namespace KBEngine{
 
@@ -112,11 +111,6 @@ public:
 		std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode);
 	static PyObject* __py_createAccountResponse(PyObject* self, PyObject* args);
 
-	/** Timer操作
-	*/
-	static PyObject* __py_addTimer(PyObject* self, PyObject* args);
-	static PyObject* __py_delTimer(PyObject* self, PyObject* args);
-
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<Orders> > ORDERS;
 	Interfaces::ORDERS& orders(){ return orders_; }
 
@@ -128,8 +122,6 @@ public:
 	void eraseOrders(std::string ordersid);
 	bool hasOrders(std::string ordersid);
 	
-	ScriptTimers &scriptTimers() { return scriptTimers_; }
-
 protected:
 	TimerHandle																mainProcessTimer_;
 
@@ -139,8 +131,6 @@ protected:
 	// 所有的请求记录， 避免某类重复性请求。
 	REQCREATE_MAP															reqCreateAccount_requests_;
 	REQLOGIN_MAP															reqAccountLogin_requests_;
-
-	ScriptTimers															scriptTimers_;
 
 	TelnetServer*															pTelnetServer_;
 

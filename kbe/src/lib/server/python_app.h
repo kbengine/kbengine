@@ -38,6 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.h"
 #include "helper/console_helper.h"
 #include "server/serverapp.h"
+#include "server/script_timers.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #pragma warning (disable : 4996)
@@ -70,6 +71,8 @@ public:
 
 	virtual void finalise();
 	virtual bool inInitialize();
+	virtual void onShutdownBegin();
+	virtual void onShutdownEnd();
 
 	/** 网络接口
 		请求执行一段python指令
@@ -122,8 +125,17 @@ public:
 	*/
 	static PyObject* __py_matchPath(PyObject* self, PyObject* args);
 
+	/** Timer操作
+	*/
+	static PyObject* __py_addTimer(PyObject* self, PyObject* args);
+	static PyObject* __py_delTimer(PyObject* self, PyObject* args);
+
+	static ScriptTimers &scriptTimers() { return scriptTimers_; }
+
 
 protected:
+	static ScriptTimers										scriptTimers_;
+
 	KBEngine::script::Script								script_;
 
 	PyObjectPtr												entryScript_;
