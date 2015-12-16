@@ -316,6 +316,13 @@
 		<id>523</id>
 		<descr>引擎版本不匹配。</descr>
 	</Client::onVersionNotMatch>
+
+	<Client::onControlEntity>
+		<id>524</id>
+		<descr>告诉玩家：你当前控制谁的位移同步。</descr>
+		<arg>INT32</arg> <!-- entityID int32 -->
+		<arg>INT8</arg> <!-- 0 取消控制，1 开始控制 -->
+	</Client::onControlEntity>
 	
 	<Property::position>
 		<id>40000</id>
