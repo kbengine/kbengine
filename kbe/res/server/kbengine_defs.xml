@@ -522,12 +522,12 @@
 		<!-- 自动存档的时间周期(秒)
 			（Automatic archiving time period(secs)） 
 		-->
-		<archivePeriod> 100 </archivePeriod> 							<!-- Type: Float -->
+		<archivePeriod> 300 </archivePeriod> 							<!-- Type: Float -->
 		
 		<!-- 自动备份的时间(秒)
 			（Automatic backup time period(secs)） 
 		-->
-		<backupPeriod> 100 </backupPeriod>								<!-- Type: Float -->
+		<backupPeriod> 300 </backupPeriod>								<!-- Type: Float -->
 		
 		<!-- 是否备份未定义的属性
 			（Whether backup undefined property） 
