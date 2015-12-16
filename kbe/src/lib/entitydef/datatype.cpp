@@ -1157,7 +1157,8 @@ bool BlobType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	if(!PyBytes_Check(pyValue))
+	if (!PyBytes_Check(pyValue) && 
+		!PyObject_TypeCheck(pyValue, Blob::getScriptType()))
 	{
 		OUT_TYPE_ERROR("BLOB");
 		return false;
@@ -1175,9 +1176,18 @@ PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	Py_ssize_t datasize = PyBytes_GET_SIZE(pyValue);
-	char* datas = PyBytes_AsString(pyValue);
-	mstream->appendBlob(datas, datasize);
+	if (!PyBytes_Check(pyValue))
+	{
+		Blob* pBlob = static_cast<Blob*>(pyValue);
+		MemoryStream& m = pBlob->stream();
+		mstream->appendBlob((const char*)m.data() + m.rpos(), m.length());
+	}
+	else
+	{
+		Py_ssize_t datasize = PyBytes_GET_SIZE(pyValue);
+		char* datas = PyBytes_AsString(pyValue);
+		mstream->appendBlob(datas, datasize);
+	}
 }
 
 //-------------------------------------------------------------------------------------
