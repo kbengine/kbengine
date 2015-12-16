@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/python_app.h"
 #include "server/idallocate.h"
 #include "server/serverconfig.h"
-#include "server/script_timers.h"
 #include "server/globaldata_client.h"
 #include "server/globaldata_server.h"
 #include "common/timer.h"
@@ -226,13 +225,6 @@ public:
 	SyncAppDatasHandler* pSyncAppDatasHandler() const { return pSyncAppDatasHandler_; }
 	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 
-	/** Timer²Ù×÷
-	*/
-	static PyObject* __py_addTimer(PyObject* self, PyObject* args);
-	static PyObject* __py_delTimer(PyObject* self, PyObject* args);
-	
-	ScriptTimers &scriptTimers() { return scriptTimers_; }
-
 	std::string selectAccountDBInterfaceName(const std::string& name);
 
 	Buffered_DBTasks* findBufferedDBTask(const std::string& dbInterfaceName)
@@ -274,8 +266,6 @@ protected:
 	InterfacesHandler*									pInterfacesChargeHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
-
-	ScriptTimers										scriptTimers_;
 
 	TelnetServer*										pTelnetServer_;
 };

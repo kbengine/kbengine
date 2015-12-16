@@ -33,7 +33,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/components.h"
 #include "server/telnet_server.h"
 #include "server/sendmail_threadtasks.h"
-#include "server/py_file_descriptor.h"
 #include "client_lib/client_interface.h"
 #include "network/encryption_filter.h"
 
@@ -47,47 +46,6 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Loginapp);
 
-/**
-	内部定时器处理类
-*/
-class ScriptTimerHandler : public TimerHandler
-{
-public:
-	ScriptTimerHandler(ScriptTimers* scriptTimers, PyObject * callback) :
-		pyCallback_(callback),
-		scriptTimers_(scriptTimers)
-	{
-	}
-
-	~ScriptTimerHandler()
-	{
-		Py_DECREF(pyCallback_);
-	}
-
-private:
-	virtual void handleTimeout(TimerHandle handle, void * pUser)
-	{
-		int id = ScriptTimersUtil::getIDForHandle(scriptTimers_, handle);
-
-		PyObject *pyRet = PyObject_CallFunction(pyCallback_, "i", id);
-		if (pyRet == NULL)
-		{
-			SCRIPT_ERROR_CHECK();
-			return;
-		}
-		return;
-	}
-
-	virtual void onRelease(TimerHandle handle, void * /*pUser*/)
-	{
-		scriptTimers_->releaseTimer(handle);
-		delete this;
-	}
-
-	PyObject* pyCallback_;
-	ScriptTimers* scriptTimers_;
-};
-
 //-------------------------------------------------------------------------------------
 Loginapp::Loginapp(Network::EventDispatcher& dispatcher, 
 			 Network::NetworkInterface& ninterface, 
@@ -100,10 +58,8 @@ Loginapp::Loginapp(Network::EventDispatcher& dispatcher,
 	digest_(),
 	pHttpCBHandler(NULL),
 	initProgress_(0.f),
-	scriptTimers_(),
 	pTelnetServer_(NULL)
 {
-	ScriptTimers::initialize(*this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -120,8 +76,6 @@ void Loginapp::onShutdownBegin()
 	// 通知脚本
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoginAppShutDown"));
-	
-	scriptTimers_.cancelAll();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -249,20 +203,11 @@ void Loginapp::onInstallPyModules()
 			ERROR_MSG( fmt::format("Loginapp::onInstallPyModules: Unable to set KBEngine.{}.\n", SERVER_ERR_STR[i]));
 		}
 	}
-
-	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,											METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS,	0);
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
-	scriptTimers_.cancelAll();
-	ScriptTimers::finalise(*this);
 	mainProcessTimer_.cancel();
 	PythonApp::finalise();
 }
@@ -1480,55 +1425,6 @@ void Loginapp::onBaseappInitProgress(Network::Channel* pChannel, float progress)
 	}
 
 	initProgress_ = progress;
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Loginapp::__py_addTimer(PyObject* self, PyObject* args)
-{
-	float interval, repeat;
-	PyObject *callback;
-
-	if (!PyArg_ParseTuple(args, "ffO", &interval, &repeat, &callback))
-		S_Return;
-
-	if (!PyCallable_Check(callback))
-	{
-		PyErr_Format(PyExc_TypeError, "Loginapp::addTimer: '%.200s' object is not callable", callback->ob_type->tp_name);
-		PyErr_PrintEx(0);
-		S_Return;
-	}
-
-	ScriptTimers * pTimers = &Loginapp::getSingleton().scriptTimers();
-	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, callback);
-
-	int id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, 0, handler);
-
-	if (id == 0)
-	{
-		delete handler;
-		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
-		PyErr_PrintEx(0);
-		S_Return;
-	}
-
-	Py_INCREF(callback);
-	return PyLong_FromLong(id);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Loginapp::__py_delTimer(PyObject* self, PyObject* args)
-{
-	ScriptID timerID;
-
-	if (!PyArg_ParseTuple(args, "i", &timerID))
-		return NULL;
-
-	if (!ScriptTimersUtil::delTimer(&Loginapp::getSingleton().scriptTimers(), timerID))
-	{
-		return PyLong_FromLong(-1);
-	}
-
-	return PyLong_FromLong(timerID);
 }
 
 //-------------------------------------------------------------------------------------
