@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "blob.h"
 #include "datatype.h"
 #include "datatypes.h"
 #include "entitydef.h"
@@ -30,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector3.h"
 #include "pyscript/vector4.h"
 #include "pyscript/copy.h"
+#include "pyscript/py_memorystream.h"
 
 #ifndef CODE_INLINE
 #include "datatype.inl"
@@ -1158,7 +1158,7 @@ bool BlobType::isSameType(PyObject* pyValue)
 	}
 
 	if (!PyBytes_Check(pyValue) && 
-		!PyObject_TypeCheck(pyValue, Blob::getScriptType()))
+		!PyObject_TypeCheck(pyValue, script::PyMemoryStream::getScriptType()))
 	{
 		OUT_TYPE_ERROR("BLOB");
 		return false;
@@ -1178,8 +1178,8 @@ void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	if (!PyBytes_Check(pyValue))
 	{
-		Blob* pBlob = static_cast<Blob*>(pyValue);
-		MemoryStream& m = pBlob->stream();
+		script::PyMemoryStream* pPyMemoryStream = static_cast<script::PyMemoryStream*>(pyValue);
+		MemoryStream& m = pPyMemoryStream->stream();
 		mstream->appendBlob((const char*)m.data() + m.rpos(), m.length());
 	}
 	else

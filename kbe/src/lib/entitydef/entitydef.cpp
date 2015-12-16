@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "scriptdef_module.h"
 #include "datatypes.h"
 #include "common.h"
-#include "blob.h"
+#include "pyscript/py_memorystream.h"
 #include "resmgr/resmgr.h"
 #include "common/smartpointer.h"
 #include "entitydef/entity_mailbox.h"
@@ -1368,8 +1368,8 @@ bool EntityDef::installScript(PyObject* mod)
 	if(_isInit)
 		return true;
 
-	Blob::installScript(NULL);
-	APPEND_SCRIPT_MODULE_METHOD(mod, Blob, Blob::py_new, METH_VARARGS, 0);
+	script::PyMemoryStream::installScript(NULL);
+	APPEND_SCRIPT_MODULE_METHOD(mod, MemoryStream, script::PyMemoryStream::py_new, METH_VARARGS, 0);
 
 	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
@@ -1384,7 +1384,7 @@ bool EntityDef::uninstallScript()
 {
 	if(_isInit)
 	{
-		Blob::uninstallScript();
+		script::PyMemoryStream::uninstallScript();
 		EntityMailbox::uninstallScript();
 		FixedArray::uninstallScript();
 		FixedDict::uninstallScript();
