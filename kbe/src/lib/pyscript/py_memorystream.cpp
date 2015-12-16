@@ -124,7 +124,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
 	if(pyobj->readonly())
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::append: read only!");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::append: read only!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -132,7 +132,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	int argCount = PyTuple_Size(args);
 	if(argCount != 2)
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::append: args is error! arg1 is type[UINT8|STRING|...], arg2 is val.");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::append: args is error! arg1 is type[UINT8|STRING|...], arg2 is val.");
 		PyErr_PrintEx(0);
 	}
 	
@@ -141,7 +141,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 
 	if(PyArg_ParseTuple(args, "s|O", &type, &pyVal) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "Blob::append: args is error!");
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: args is error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -210,7 +210,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 		PyObject* obj = PyUnicode_AsUTF8String(pyVal);
 		if(obj == NULL)
 		{
-			PyErr_Format(PyExc_TypeError, "Blob::append: val is not UNICODE!");
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: val is not UNICODE!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}	
@@ -228,7 +228,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	{
 		if(!PyObject_TypeCheck(pyVal, PyMemoryStream::getScriptType()) && !PyBytes_Check(pyVal))
 		{
-			PyErr_Format(PyExc_TypeError, "Blob::append: val is not BLOB!");
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: val is not BLOB!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -254,7 +254,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "Blob::append: type %s no support!", type);
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: type %s no support!", type);
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -269,7 +269,7 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 
 	if(pyobj->readonly())
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::pop: read only!");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::pop: read only!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -277,14 +277,14 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 	int argCount = PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::pop: args is error! arg1 is type[UINT8|STRING|...].");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::pop: args is error! arg1 is type[UINT8|STRING|...].");
 		PyErr_PrintEx(0);
 	}
 	
 	char* type;
 	if(PyArg_ParseTuple(args, "s", &type) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "Blob::pop: args is error!");
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: args is error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -366,7 +366,7 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 			if(ret == NULL)
 			{
 				SCRIPT_ERROR_CHECK();
-				PyErr_Format(PyExc_TypeError, "Blob::pop: val is not UNICODE!");
+				PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: val is not UNICODE!");
 				PyErr_PrintEx(0);
 				return NULL;
 			}
@@ -382,14 +382,14 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 		}
 		else
 		{
-			PyErr_Format(PyExc_TypeError, "Blob::pop: type %s no support!", type);
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: type %s no support!", type);
 			PyErr_PrintEx(0);
 			return NULL;
 		}
 	}
 	catch(MemoryStreamException &e)
 	{
-		PyErr_Format(PyExc_Exception, "Blob::pop: get stream is error!");
+		PyErr_Format(PyExc_Exception, "PyMemoryStream::pop: get stream is error!");
 		e.PrintPosError();
 		PyErr_PrintEx(0);
 		return NULL;

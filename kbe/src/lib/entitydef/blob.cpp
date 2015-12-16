@@ -122,6 +122,7 @@ PyObject* Blob::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 		Py_DECREF(args);
 		return NULL;
 	}
+
 	return args;
 }
 
