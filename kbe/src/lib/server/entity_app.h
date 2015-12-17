@@ -237,12 +237,12 @@ protected:
 	EntityIDClient											idClient_;
 
 	// 存储所有的entity的容器
-	Entities<E>*											pEntities_;										
+	Entities<E>*											pEntities_;
 
 	TimerHandle												gameTimer_;
 
 	// globalData
-	GlobalDataClient*										pGlobalData_;									
+	GlobalDataClient*										pGlobalData_;
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
 

@@ -691,7 +691,7 @@ bool DBInterfaceMysql::processException(std::exception & e)
 
 	if (dbe->isLostConnection())
 	{
-		INFO_MSG(fmt::format("DBInterfaceMysql::processException: "
+		ERROR_MSG(fmt::format("DBInterfaceMysql::processException: "
 				"Thread {:p} lost connection to database. Exception: {}. "
 				"Attempting to reconnect.\n",
 			(void*)this,

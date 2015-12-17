@@ -99,8 +99,6 @@ bool PythonApp::inInitialize()
 void PythonApp::onShutdownBegin()
 {
 	ServerApp::onShutdownBegin();
-
-	scriptTimers_.cancelAll();
 }
 
 //-------------------------------------------------------------------------------------	

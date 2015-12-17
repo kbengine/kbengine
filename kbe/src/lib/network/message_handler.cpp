@@ -106,29 +106,29 @@ bool MessageHandlers::initializeWatcher()
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); ++iter)
 	{
-		char buf[MAX_BUF];
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/id", iter->second->name.c_str());
+		char buf[MAX_BUF * 2];
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/id", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second->msgID);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/len", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/len", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second->msgLen);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentCount", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendcount);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendavgsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvCount", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvavgsize);
 	}
 

@@ -42,7 +42,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/py_file_descriptor.h"
 #include "server/sendmail_threadtasks.h"
 #include "math/math.h"
-#include "entitydef/blob.h"
+#include "pyscript/py_memorystream.h"
 #include "client_lib/client_interface.h"
 
 #include "../../server/baseappmgr/baseappmgr_interface.h"
@@ -2237,7 +2237,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	if(!PyBytes_Check(pyDatas) && !PyObject_TypeCheck(pyDatas, Blob::getScriptType()))
+	if (!PyBytes_Check(pyDatas) && !PyObject_TypeCheck(pyDatas, script::PyMemoryStream::getScriptType()))
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::charge: byteDatas != bytes|BLOB!");
 		PyErr_PrintEx(0);
@@ -2255,8 +2255,8 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	if(!PyBytes_Check(pyDatas))
 	{
-		Blob* pBlob = static_cast<Blob*>(pyDatas);
-		pBlob->stream().readBlob(datas);
+		script::PyMemoryStream* pPyMemoryStream = static_cast<script::PyMemoryStream*>(pyDatas);
+		pPyMemoryStream->stream().readBlob(datas);
 	}
 	else
 	{
@@ -2341,7 +2341,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	PyObject* pyOrder = PyUnicode_FromString(chargeID.c_str());
 	PyObject* pydbid = PyLong_FromUnsignedLongLong(dbid);
 	PyObject* pySuccess = PyBool_FromLong((retcode == SERVER_SUCCESS));
-	Blob* pBlob = new Blob(datas);
+	script::PyMemoryStream* pPyMemoryStream = new script::PyMemoryStream(datas);
 
 	if(callbackID > 0)
 	{
@@ -2352,7 +2352,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
 												const_cast<char*>("OOOO"), 
-												pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
+												pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pPyMemoryStream));
 
 			if(pyResult != NULL)
 				Py_DECREF(pyResult);
@@ -2371,7 +2371,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onLoseChargeCB"), 
 										const_cast<char*>("OOOO"), 
-										pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pBlob));
+										pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pPyMemoryStream));
 
 		if(pyResult != NULL)
 			Py_DECREF(pyResult);
@@ -2382,7 +2382,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	Py_DECREF(pyOrder);
 	Py_DECREF(pydbid);
 	Py_DECREF(pySuccess);
-	Py_DECREF(pBlob);
+	Py_DECREF(pPyMemoryStream);
 }
 
 //-------------------------------------------------------------------------------------
