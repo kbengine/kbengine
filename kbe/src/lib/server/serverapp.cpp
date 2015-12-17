@@ -489,13 +489,13 @@ void ServerApp::hello(Network::Channel* pChannel, MemoryStream& s)
 	s >> verInfo >> scriptVerInfo;
 	s.readBlob(encryptedKey);
 
-	char buf[1024];
+	char buf[2048 + 1];
 
 	if(encryptedKey.size() > 3)
 	{
 		char *c = buf;
 
-		for (int i=0; i < (int)encryptedKey.size(); ++i)
+		for (int i=0; i < (encryptedKey.size() < 2048) ? (int)encryptedKey.size() : 2048; ++i)
 		{
 			c += sprintf(c, "%02hhX ", (unsigned char)encryptedKey.data()[i]);
 		}
