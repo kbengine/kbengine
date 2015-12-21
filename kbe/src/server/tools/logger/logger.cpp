@@ -297,7 +297,7 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 
 	// 记录下完整的日志，以在脚本回调时使用
-	std::stringstream::_Mystr sLog = pLogItem->logstream.str();
+	std::string sLog = pLogItem->logstream.str();
 
 	// 缓存一部分log，提供工具查看log时能快速获取初始上下文
 	buffered_logs_.push_back(pLogItem);
@@ -308,7 +308,7 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		delete pLogItem;
 	}
 
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+	PyObject_CallMethod(getEntryScript().get(),
 		const_cast<char*>("onLogWrote"),
 		const_cast<char*>("y#"),
 		sLog.c_str(),
