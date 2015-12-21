@@ -180,6 +180,10 @@ bool PythonApp::installPyScript()
 		pyPaths += user_scripts_path + L"server_common;";
 		pyPaths += user_scripts_path + L"login;";
 		break;
+	case LOGGER_TYPE:
+		pyPaths += user_scripts_path + L"server_common;";
+		pyPaths += user_scripts_path + L"logger;";
+		break;
 	default:
 		pyPaths += user_scripts_path + L"client;";
 		break;
@@ -228,6 +232,11 @@ bool PythonApp::installPyModules()
 	else if (componentType() == DBMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getDBMgr();
+		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
+	else if (componentType() == LOGGER_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLogger();
 		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
 	}
 	else

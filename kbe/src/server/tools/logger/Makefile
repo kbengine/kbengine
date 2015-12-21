@@ -3,6 +3,7 @@ SRCS =						\
 	logger					\
 	logger_interface			\
 	logwatcher				\
+	profile					\
 	main
 
 ASMS =
@@ -10,12 +11,14 @@ ASMS =
 MY_LIBS =		\
 	server		\
 	network		\
+	pyscript	\
 	thread
 	
 
 BUILD_TIME_FILE = main
 
 USE_OPENSSL = 1
+USE_PYTHON = 1
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0
