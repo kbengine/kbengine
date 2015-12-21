@@ -110,10 +110,10 @@ void PythonApp::onShutdownEnd()
 //-------------------------------------------------------------------------------------
 void PythonApp::finalise(void)
 {
-	uninstallPyScript();
 	scriptTimers_.cancelAll();
 	ScriptTimers::finalise(*this);
 
+	uninstallPyScript();
 	ServerApp::finalise();
 }
 
