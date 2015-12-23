@@ -109,7 +109,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 									ENTITY_ID,						entityID)
 		
 	// baseapp…œentityœ¬œﬂ°£
-	DBMGR_MESSAGE_DECLARE_ARGS3(onEntityOffline,					NETWORK_VARIABLE_MESSAGE,
+	DBMGR_MESSAGE_DECLARE_ARGS3(onEntityOffline,					NETWORK_FIXED_MESSAGE,
 									DBID,							dbid,
 									uint16,							sid,
 									uint16,							dbInterfaceIndex)
