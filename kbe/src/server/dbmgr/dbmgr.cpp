@@ -204,7 +204,7 @@ void Dbmgr::handleMainTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	DBUtil::handleMainTick();
 	handleTimers();

@@ -726,7 +726,7 @@ void EntityApp<E>::handleGameTick()
 	// time_t t = ::time(NULL);
 	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	handleTimers();
 	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);

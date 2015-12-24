@@ -128,7 +128,7 @@ void Interfaces::handleMainTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Interfaces::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	handleTimers();
 	networkInterface().processChannels(&InterfacesInterface::messageHandlers);

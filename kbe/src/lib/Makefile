@@ -20,6 +20,7 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
+	cd dependencies/openssl && $(MAKE) $@
 	cd dependencies/hiredis && $(MAKE) $@
 	cd dependencies/zip && $(MAKE) $@
 	cd dependencies/g3dlite && $(MAKE) $@

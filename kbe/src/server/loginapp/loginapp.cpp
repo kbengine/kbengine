@@ -108,7 +108,7 @@ void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Loginapp::handleMainTick()
 {
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&LoginappInterface::messageHandlers);
 	pendingLoginMgr_.process();

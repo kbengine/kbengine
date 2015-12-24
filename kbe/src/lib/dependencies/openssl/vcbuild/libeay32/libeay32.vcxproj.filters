@@ -1912,6 +1912,9 @@
     <ClCompile Include="..\..\crypto\cms\cms_kari.c">
       <Filter>cms</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\crypto\x509v3\v3_scts.c">
+      <Filter>x509v3</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\crypto\md4\md4_locl.h">
