@@ -1897,6 +1897,21 @@
     <ClCompile Include="..\..\crypto\o_str.c" />
     <ClCompile Include="..\..\crypto\o_time.c" />
     <ClCompile Include="..\..\crypto\uid.c" />
+    <ClCompile Include="..\..\crypto\modes\wrap128.c">
+      <Filter>modes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\crypto\ecdh\ech_kdf.c">
+      <Filter>ecdh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\crypto\dh\dh_kdf.c">
+      <Filter>dh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\crypto\dh\dh_rfc5114.c">
+      <Filter>dh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\crypto\cms\cms_kari.c">
+      <Filter>cms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\crypto\md4\md4_locl.h">
