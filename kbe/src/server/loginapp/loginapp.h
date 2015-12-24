@@ -43,7 +43,7 @@ class Loginapp :	public PythonApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
+		TIMEOUT_TICK = TIMEOUT_PYTHONAPP_MAX + 1
 	};
 
 	Loginapp(Network::EventDispatcher& dispatcher, 

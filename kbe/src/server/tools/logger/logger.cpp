@@ -90,6 +90,8 @@ bool Logger::run()
 //-------------------------------------------------------------------------------------
 void Logger::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 		case TIMEOUT_TICK:
@@ -99,7 +101,6 @@ void Logger::handleTimeout(TimerHandle handle, void * arg)
 			break;
 	}
 
-	PythonApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -131,6 +132,8 @@ bool Logger::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Logger::initializeEnd()
 {
+	PythonApp::initializeEnd();
+
 	// 由于logger接收其他app的log，如果跟踪包输出将会非常卡。
 	Network::g_trace_packet = 0;
 
@@ -308,12 +311,20 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		delete pLogItem;
 	}
 
-	PyObject_CallMethod(getEntryScript().get(),
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
 		const_cast<char*>("onLogWrote"),
 		const_cast<char*>("y#"),
 		sLog.c_str(),
 		sLog.length());
 
+	if (pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------

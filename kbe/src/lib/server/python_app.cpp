@@ -96,6 +96,16 @@ bool PythonApp::inInitialize()
 	return true;
 }
 
+//-------------------------------------------------------------------------------------	
+bool PythonApp::initializeEnd()
+{
+	gameTickTimerHandle_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+		reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
+	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
 void PythonApp::onShutdownBegin()
 {
 	ServerApp::onShutdownBegin();
@@ -115,6 +125,22 @@ void PythonApp::finalise(void)
 
 	uninstallPyScript();
 	ServerApp::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void PythonApp::handleTimeout(TimerHandle handle, void * arg)
+{
+	ServerApp::handleTimeout(handle, arg);
+
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+	case TIMEOUT_GAME_TICK:
+		g_kbetime++;
+		handleTimers();
+		break;
+	default:
+		break;
+	}
 }
 
 //-------------------------------------------------------------------------------------
