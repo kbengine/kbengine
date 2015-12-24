@@ -2,12 +2,6 @@
 # OpenSSL/crypto/md4/Makefile
 #
 
-ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/lib/dependencies/openssl/crypto/md4,,$(CURDIR))
-endif
-
-LIBDIR= $(KBE_ROOT)/kbe/src/libs
-
 DIR=    md4
 TOP=    ../..
 CC=     cc
@@ -23,9 +17,9 @@ GENERAL=Makefile
 TEST=md4test.c
 APPS=md4.c
 
-LIB=$(LIBDIR)/libcrypto.a
+LIB=$(TOP)/libcrypto.a
 LIBSRC=md4_dgst.c md4_one.c
-LIBOBJ=$(KBE_CONFIG)/md4_dgst.o $(KBE_CONFIG)/md4_one.o
+LIBOBJ=md4_dgst.o md4_one.o
 
 SRC= $(LIBSRC)
 
@@ -39,16 +33,10 @@ top:
 
 all:    lib
 
-$(KBE_CONFIG):
-	@-mkdir $(KBE_CONFIG)
-
-lib:    $(KBE_CONFIG) $(LIBOBJ)
+lib:    $(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
-
-$(KBE_CONFIG)/%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
 	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO
@@ -74,6 +62,8 @@ tests:
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
+update: depend
+
 depend:
 	@[ -n "$(MAKEDEPEND)" ] # should be set by upper Makefile...
 	$(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(LIBSRC)
@@ -81,18 +71,21 @@ depend:
 dclean:
 	$(PERL) -pe 'if (/^# DO NOT DELETE THIS LINE/) {print; exit(0);}' $(MAKEFILE) >Makefile.new
 	mv -f Makefile.new $(MAKEFILE)
+	rm -f ../../include/openssl/$(EXHEADER) ../../test/$(TEST) ../../apps/$(APPS)
 
 clean:
-	rm -f asm/mx86unix.cpp $(KBE_CONFIG)/*.o *.o asm/*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f asm/mx86unix.cpp *.o asm/*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(KBE_CONFIG)/md4_dgst.o: ../../include/openssl/e_os2.h ../../include/openssl/md4.h
-$(KBE_CONFIG)/md4_dgst.o: ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/md4_dgst.o: ../../include/openssl/opensslv.h ../md32_common.h md4_dgst.c
-$(KBE_CONFIG)/md4_dgst.o: md4_locl.h
-$(KBE_CONFIG)/md4_one.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(KBE_CONFIG)/md4_one.o: ../../include/openssl/md4.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/md4_one.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(KBE_CONFIG)/md4_one.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(KBE_CONFIG)/md4_one.o: ../../include/openssl/symhacks.h md4_one.c
+md4_dgst.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+md4_dgst.o: ../../include/openssl/md4.h ../../include/openssl/opensslconf.h
+md4_dgst.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+md4_dgst.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+md4_dgst.o: ../../include/openssl/symhacks.h ../md32_common.h md4_dgst.c
+md4_dgst.o: md4_locl.h
+md4_one.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+md4_one.o: ../../include/openssl/md4.h ../../include/openssl/opensslconf.h
+md4_one.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+md4_one.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+md4_one.o: ../../include/openssl/symhacks.h md4_one.c

@@ -12,6 +12,8 @@ B<openssl> B<s_server>
 [B<-context id>]
 [B<-verify depth>]
 [B<-Verify depth>]
+[B<-crl_check>]
+[B<-crl_check_all>]
 [B<-cert filename>]
 [B<-certform DER|PEM>]
 [B<-key keyfile>]
@@ -31,8 +33,10 @@ B<openssl> B<s_server>
 [B<-state>]
 [B<-CApath directory>]
 [B<-CAfile filename>]
+[B<-no_alt_chains>]
 [B<-nocert>]
 [B<-cipher cipherlist>]
+[B<-serverpref>]
 [B<-quiet>]
 [B<-no_tmp_rsa>]
 [B<-ssl2>]
@@ -52,6 +56,13 @@ B<openssl> B<s_server>
 [B<-no_ticket>]
 [B<-id_prefix arg>]
 [B<-rand file(s)>]
+[B<-serverinfo file>]
+[B<-no_resumption_on_reneg>]
+[B<-status>]
+[B<-status_verbose>]
+[B<-status_timeout nsec>]
+[B<-status_url url>]
+[B<-nextprotoneg protocols>]
 
 =head1 DESCRIPTION
 
@@ -109,7 +120,7 @@ by using an appropriate certificate.
 
 =item B<-dcertform format>, B<-dkeyform format>, B<-dpass arg>
 
-addtional certificate and private key format and passphrase respectively.
+additional certificate and private key format and passphrase respectively.
 
 =item B<-nocert>
 
@@ -142,6 +153,15 @@ the client. With the B<-verify> option a certificate is requested but the
 client does not have to send one, with the B<-Verify> option the client
 must supply a certificate or an error occurs.
 
+If the ciphersuite cannot request a client certificate (for example an
+anonymous ciphersuite or PSK) this option has no effect.
+
+=item B<-crl_check>, B<-crl_check_all>
+
+Check the peer certificate has not been revoked by its CA.
+The CRL(s) are appended to the certificate file. With the B<-crl_check_all>
+option all CRLs of all CAs in the chain are checked.
+
 =item B<-CApath directory>
 
 The directory to use for client certificate verification. This directory
@@ -154,6 +174,10 @@ A file containing trusted certificates to use during client authentication
 and to use when attempting to build the server certificate chain. The list
 is also used in the list of acceptable client CAs passed to the client when
 a certificate is requested.
+
+=item B<-no_alt_chains>
+
+See the L<B<verify>|verify(1)> manual page for details.
 
 =item B<-state>
 
@@ -183,6 +207,16 @@ this option translated a line feed from the terminal into CR+LF.
 
 inhibit printing of session and certificate information.
 
+=item B<-psk_hint hint>
+
+Use the PSK identity hint B<hint> when using a PSK cipher suite.
+
+=item B<-psk key>
+
+Use the PSK key B<key> when using a PSK cipher suite. The key is
+given as a hexadecimal number without leading 0x, for example -psk
+1a2b3c4d.
+
 =item B<-ssl2>, B<-ssl3>, B<-tls1>, B<-no_ssl2>, B<-no_ssl3>, B<-no_tls1>
 
 these options disable the use of certain SSL or TLS protocols. By default
@@ -206,6 +240,10 @@ the client sends a list of supported ciphers the first client cipher
 also included in the server list is used. Because the client specifies
 the preference order, the order of the server cipherlist irrelevant. See
 the B<ciphers> command for more information.
+
+=item B<-serverpref>
+
+use the server's cipher preferences, rather than the client's preferences.
 
 =item B<-tlsextdebug>
 
@@ -238,7 +276,7 @@ are part of the HTTP response line and headers must end with CRLF).
 
 =item B<-engine id>
 
-specifying an engine (by it's unique B<id> string) will cause B<s_server>
+specifying an engine (by its unique B<id> string) will cause B<s_server>
 to attempt to obtain a functional reference to the specified engine,
 thus initialising it if needed. The engine will then be set as the default
 for all available algorithms.
@@ -257,6 +295,45 @@ generator, or an EGD socket (see L<RAND_egd(3)|RAND_egd(3)>).
 Multiple files can be specified separated by a OS-dependent character.
 The separator is B<;> for MS-Windows, B<,> for OpenVMS, and B<:> for
 all others.
+
+=item B<-serverinfo file>
+
+a file containing one or more blocks of PEM data.  Each PEM block
+must encode a TLS ServerHello extension (2 bytes type, 2 bytes length,
+followed by "length" bytes of extension data).  If the client sends
+an empty TLS ClientHello extension matching the type, the corresponding
+ServerHello extension will be returned.
+
+=item B<-no_resumption_on_reneg>
+
+set SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION flag.
+
+=item B<-status>
+
+enables certificate status request support (aka OCSP stapling).
+
+=item B<-status_verbose>
+
+enables certificate status request support (aka OCSP stapling) and gives
+a verbose printout of the OCSP response.
+
+=item B<-status_timeout nsec>
+
+sets the timeout for OCSP response to B<nsec> seconds.
+
+=item B<-status_url url>
+
+sets a fallback responder URL to use if no responder URL is present in the
+server certificate. Without this option an error is returned if the server
+certificate does not contain a responder address.
+
+=item B<-nextprotoneg protocols>
+
+enable Next Protocol Negotiation TLS extension and provide a
+comma-separated list of supported protocol names.
+The list should contain most wanted protocols first.
+Protocol names are printable ASCII strings, for example "http/1.1" or
+"spdy/3".
 
 =back
 
@@ -317,9 +394,6 @@ mean any CA is acceptable. This is useful for debugging purposes.
 
 The session parameters can printed out using the B<sess_id> program.
 
-TLS extensions are only supported in OpenSSL 0.9.8 if they are explictly
-enabled at compile time using for example the B<enable-tlsext> switch.
-
 =head1 BUGS
 
 Because this program has a lot of options and also because some of
@@ -336,5 +410,9 @@ unknown cipher suites a client says it supports.
 =head1 SEE ALSO
 
 L<sess_id(1)|sess_id(1)>, L<s_client(1)|s_client(1)>, L<ciphers(1)|ciphers(1)>
+
+=head1 HISTORY
+
+The -no_alt_chains options was first added to OpenSSL 1.0.2b.
 
 =cut
