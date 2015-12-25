@@ -823,39 +823,51 @@ if __name__ == "__main__":
 		
 		# python cluster_controller.py showlog uid
 		elif cmdType == "showlog":
-			if len(sys.argv) < 3:
-				print("syntax: cluster_controller.py showlog uid")
-				print("exp: cluster_controller.py showlog 501")
-				exit(1)
-
 			uid = -1
-			
-			if sys.argv[2].isdigit():
-				uid = sys.argv[2]
-				uid = int(uid)
 
-			if uid <= 0:
+			if len(sys.argv) >= 3:
+				if sys.argv[2].isdigit():
+					uid = sys.argv[2]
+				else:
+					print("syntax: cluster_controller.py showlog [uid]")
+					print("exp: cluster_controller.py showlog 501")
+					exit(1)
+
+			uid = int(uid)
+			if uid < 0:
 				uid = getDefaultUID()
 
 			clusterHandler = ClusterLogWatchHandler(uid)
 		
 		# python cluster_controller.py sendlog uid NORMAL|INFO|DEBUG|ERROR|WARNING logstr
 		elif cmdType == "sendlog":
-			if len(sys.argv) < 5:
-				print("syntax: cluster_controller.py sendlog uid NORMAL|INFO|DEBUG|ERROR|WARNING logstr")
+			if len(sys.argv) < 4:
+				print("syntax: cluster_controller.py sendlog [uid] NORMAL|INFO|DEBUG|ERROR|WARNING logstr")
 				print("exp: cluster_controller.py sendlog 501 DEBUG \"send log test\"")
 				exit(1)
 			
 			uid = -1
 			
+			logType = ""
+			logStr = ""
 			if sys.argv[2].isdigit():
 				uid = sys.argv[2]
 				uid = int(uid)
+				if len(sys.argv) < 5:
+					print("syntax: cluster_controller.py sendlog [uid] NORMAL|INFO|DEBUG|ERROR|WARNING logstr")
+					print("exp: cluster_controller.py sendlog 501 DEBUG \"send log test\"")
+					exit(1)
+				else:
+					logType = sys.argv[3]
+					logStr = sys.argv[4]
+			else:
+				logType = sys.argv[2]
+				logStr = sys.argv[3]
 
 			if uid <= 0:
 				uid = getDefaultUID()
 
-			clusterHandler = ClusterSendLogHandler(uid, sys.argv[3], sys.argv[4])
+			clusterHandler = ClusterSendLogHandler(uid, logType, logStr)
 	else:
 		uid = -1
 
