@@ -119,6 +119,8 @@ void LogWatcher::onMessage(LOG_ITEM* pLogItem)
 	Network::Channel* pChannel = Logger::getSingleton().networkInterface().findChannel(addr_);
 
 	if(pChannel == NULL)
+		// phw: 既然channel不在了，那意谓着掉线了，是否应该把它从logWatchers_中清除？
+		// 否则，随着注册的watcher越来越多，留在logWatchers_中的残留就会越多
 		return;
 
 	if(!validDate_(pLogItem->logstream.str()) || !containKeyworlds_(pLogItem->logstream.str()))
