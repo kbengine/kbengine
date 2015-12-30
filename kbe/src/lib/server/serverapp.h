@@ -90,7 +90,7 @@ public:
 	
 	virtual bool initThreadPool();
 
-	bool installSignals();
+	virtual bool installSignals();
 
 	virtual bool initializeWatcher();
 

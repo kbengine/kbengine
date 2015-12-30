@@ -868,6 +868,29 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 }
 
+//-------------------------------------------------------------------------------------		
+bool Machine::installSignals()
+{
+	ServerApp::installSignals();
+	g_kbeSignalHandlers.addSignal(SIGCHLD, this);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+void Machine::onSignalled(int sigNum)
+{
+	if (sigNum == SIGCHLD)
+	{
+#if KBE_PLATFORM != PLATFORM_WIN32
+		// 清除僵尸（zombies）子进程.
+		waitpid(-1, NULL, WNOHANG);
+#endif
+	}
+	else
+	{
+		ServerApp::onSignalled(sigNum);
+	}
+}
 
 //-------------------------------------------------------------------------------------
 #if KBE_PLATFORM != PLATFORM_WIN32
