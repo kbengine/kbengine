@@ -51,7 +51,7 @@ class Dbmgr :	public PythonApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1,
+		TIMEOUT_TICK = TIMEOUT_PYTHONAPP_MAX + 1,
 		TIMEOUT_CHECK_STATUS
 	};
 	

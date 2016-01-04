@@ -317,6 +317,46 @@
 		<descr>引擎版本不匹配。</descr>
 	</Client::onVersionNotMatch>
 	
+	<Logger::onAppActiveTick>
+		<id>701</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Logger::onAppActiveTick>
+
+	<Logger::registerLogWatcher>
+		<id>702</id>
+		<descr>注册一个watcher。</descr>
+		<arg>INT32</arg>   <!-- uid -->
+		<arg>UINT32</arg>  <!-- logtypes filter -->
+		<arg>INT32</arg>   <!-- globalOrder -->
+		<arg>INT32</arg>   <!-- groupOrder -->
+		<arg>STRING</arg>  <!-- date -->
+		<arg>STRING</arg>  <!-- keyStr -->
+		<arg>UINT8_ARRAY</arg>  <!-- component type filter -->
+		<arg>UINT8</arg>   <!-- isfind -->
+		<arg>UINT8</arg>   <!-- first -->
+	</Logger::registerLogWatcher>
+	
+	<Logger::deregisterLogWatcher>
+		<id>703</id>
+		<descr>反注册一个watcher。</descr>
+	</Logger::deregisterLogWatcher>
+
+	<Logger::writeLog>
+		<id>704</id>
+		<descr>向logger发送一条日志。</descr>
+		<arg>INT32</arg>   <!-- uid -->
+		<arg>UINT32</arg>  <!-- logtype -->
+		<arg>INT32</arg>   <!-- componentType -->
+		<arg>UINT64</arg>  <!-- componentID -->
+		<arg>INT32</arg>   <!-- globalOrder -->
+		<arg>INT32</arg>   <!-- groupOrder -->
+		<arg>INT64</arg>   <!-- time -->
+		<arg>UINT32</arg>  <!-- kbetime -->
+		<arg>BLOB</arg>    <!-- log size and msg -->
+	</Logger::writeLog>
+
 	<Property::position>
 		<id>40000</id>
 		<descr>位置属性。</descr>

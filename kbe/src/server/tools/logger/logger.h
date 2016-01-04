@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 // common include	
 #include "server/kbemain.h"
-#include "server/serverapp.h"
+#include "server/python_app.h"
 #include "server/idallocate.h"
 #include "server/serverconfig.h"
 #include "common/timer.h"
@@ -43,6 +43,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
+class TelnetServer;
+
 struct LOG_ITEM
 {
 	int32 uid;
@@ -56,15 +58,16 @@ struct LOG_ITEM
 	std::stringstream logstream;
 };
 
-class Logger:	public ServerApp, 
+class Logger:	public PythonApp, 
 				public Singleton<Logger>
 {
 public:
 	typedef std::map<Network::Address, LogWatcher> LOG_WATCHERS;
+
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
+		TIMEOUT_TICK = TIMEOUT_PYTHONAPP_MAX + 1
 	};
 
 	Logger(Network::EventDispatcher& dispatcher, 
@@ -88,6 +91,8 @@ public:
 	void finalise();
 
 	virtual bool canShutdown();
+	virtual void onShutdownBegin();
+	virtual void onShutdownEnd();
 
 	uint32 bufferedLogsSize(){
 		return (uint32)buffered_logs_.size();
@@ -121,6 +126,8 @@ protected:
 	LOG_WATCHERS logWatchers_;
 	std::deque<LOG_ITEM*> buffered_logs_;
 	TimerHandle	timer_;
+
+	TelnetServer* pTelnetServer_;
 };
 
 }

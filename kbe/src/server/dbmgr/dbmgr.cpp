@@ -183,6 +183,8 @@ bool Dbmgr::run()
 //-------------------------------------------------------------------------------------
 void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 		case TIMEOUT_TICK:
@@ -194,8 +196,6 @@ void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
-
-	PythonApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -204,10 +204,8 @@ void Dbmgr::handleMainTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	DBUtil::handleMainTick();
-	handleTimers();
 	networkInterface().processChannels(&DbmgrInterface::messageHandlers);
 }
 
@@ -238,6 +236,8 @@ bool Dbmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::initializeEnd()
 {
+	PythonApp::initializeEnd();
+
 	// 添加一个timer， 每秒检查一些状态
 	loopCheckTimerHandle_ = this->dispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));

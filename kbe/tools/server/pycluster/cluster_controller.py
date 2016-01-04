@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import socket
+import socket, io, time
 import sys
 import os
 import struct
@@ -16,22 +16,19 @@ MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
 MachineInterface_onQueryAllInterfaceInfos = 4
 
-# 
-UNKNOWN_COMPONENT_TYPE	= 0
-DBMGR_TYPE				= 1
-LOGINAPP_TYPE			= 2
-BASEAPPMGR_TYPE			= 3
-CELLAPPMGR_TYPE			= 4
-CELLAPP_TYPE			= 5
-BASEAPP_TYPE			= 6
-CLIENT_TYPE				= 7
-MACHINE_TYPE			= 8
-CONSOLE_TYPE			= 9
-LOGGER_TYPE				= 10
-BOTS_TYPE				= 11
-WATCHER_TYPE			= 12
-INTERFACES_TYPE			= 13
-COMPONENT_END_TYPE		= 16
+def initRootPath():
+	"""
+	初始化root目录，以加载其它的脚本
+	"""
+	appdir = os.path.dirname( os.path.abspath( __file__ ) )
+	parentDir = os.path.dirname( appdir )
+	if parentDir not in sys.path:
+		sys.path.append( parentDir )
+
+initRootPath()
+from pycommon.Define import *
+from pycommon.LoggerWatcher import LoggerWatcher
+
 
 # ComponentName to type
 COMPONENT_NAME2TYPE = {
@@ -131,14 +128,14 @@ class ComponentInfo( object ):
 		self.intaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
 		ii += 4
 
-		self.intport = struct.unpack("H", streamStr[ii : ii + 2])[0]
+		self.intport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
 		ii += 2
 
 		#self.extaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
 		self.extaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
 		ii += 4
 
-		self.extport = struct.unpack("H", streamStr[ii : ii + 2])[0]
+		self.extport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
 		ii += 2
 		
 		# get extaddrEx
@@ -327,6 +324,12 @@ class ClusterControllerHandler:
 			if info.intaddr == ip:
 				return info
 		return None
+	
+	def getComponentInfos( self, componentType ):
+		"""
+		获取某一类型的组件信息
+		"""
+		return self._interfaces.get( componentType, [] )
 
 class ClusterConsoleHandler(ClusterControllerHandler):
 	def __init__(self, uid, consoleType):
@@ -582,6 +585,83 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 		print("ClusterStopHandler::do: completed!")
 
+class ClusterLogWatchHandler(ClusterControllerHandler):
+	"""
+	日志实时输出
+	"""
+	def __init__(self, uid):
+		ClusterControllerHandler.__init__(self)
+		
+		self.watcher = LoggerWatcher()
+		self.uid = uid
+
+	def do(self):
+		self.queryAllInterfaces()
+		
+		infos = self.getComponentInfos( LOGGER_TYPE )
+		if not infos:
+			print( "Error: no logger found!" )
+			return
+		
+		logger = None
+		for info in infos:
+			if info.uid == self.uid:
+				logger = info
+				break
+		
+		if not logger:
+			print( "Error: no logger found! (uid = %s)" % self.uid )
+			return
+		
+		print( "Logger found: internal %s:%s, external %s:%s" % ( logger.intaddr, logger.intport, logger.extaddr, logger.extport ) )
+		
+		self.watcher.connect( logger.extaddr, logger.extport )
+		self.watcher.registerToLogger( self.uid )
+		
+		def onReceivedLog( logs ):
+			for e in logs:
+				print( e )
+		
+		self.watcher.receiveLog(onReceivedLog, True)
+		
+class ClusterSendLogHandler(ClusterControllerHandler):
+	"""
+	日志实时输出
+	"""
+	def __init__(self, uid, type, logStr):
+		ClusterControllerHandler.__init__(self)
+		
+		self.watcher = LoggerWatcher()
+		self.uid = uid
+		self.type = type
+		self.logStr = logStr
+
+	def do(self):
+		self.queryAllInterfaces()
+		
+		infos = self.getComponentInfos( LOGGER_TYPE )
+		if not infos:
+			print( "Error: no logger found!" )
+			return
+		
+		logger = None
+		for info in infos:
+			if info.uid == self.uid:
+				logger = info
+				break
+		
+		if not logger:
+			print( "Error: no logger found! (uid = %s)" % self.uid )
+			return
+		
+		print( "Logger found: internal %s:%s, external %s:%s" % ( logger.intaddr, logger.intport, logger.extaddr, logger.extport ) )
+		
+		self.watcher.connect( logger.extaddr, logger.extport )
+		self.watcher.sendLog( self.uid, self.type, self.logStr )
+		time.sleep( 1.0 )
+		self.watcher.close()
+		
+
 def getDefaultUID():
 	"""
 	"""
@@ -609,6 +689,10 @@ def getDefaultUID():
 
 	return uid
 	
+
+
+
+
 if __name__ == "__main__":
 
 	clusterHandler = None
@@ -634,6 +718,32 @@ if __name__ == "__main__":
 				uid = getDefaultUID()
 			
 			if componentName not in COMPONENT_NAME:
+				print("Error: component name invalid. refer to:", templatestr)
+				exit(1)
+			
+			cid = int(cid)
+			gus = int(gus)
+			
+			clusterHandler = ClusterStartHandler(uid, componentName, machineip, cid, gus)
+
+		elif cmdType == "startprocess":
+			templatestr = "dbmgr|baseappmgr|cellappmgr|baseapp|cellapp|loginapp|interfaces|logger"
+			uid = -1
+			
+			# cluster_controller.py startprocess dbmgr 123456789012345678 123 [10.11.12.13] [uid]
+			if len(sys.argv) < 6:
+				print("syntax: cluster_controller.py startprocess componentName cid gus machine-ip [user-id]")
+				print("exp: cluster_controller.py startprocess dbmgr 123456789012345678 123 10.11.12.13")
+				exit(1)
+			
+			if len(sys.argv) > 6:
+				_, _, componentName, cid, gus, machineip, uid = sys.argv
+				uid = int(uid)
+			else:
+				_, _, componentName, cid, gus, machineip = sys.argv
+				uid = getDefaultUID()
+			
+			if componentName not in templatestr:
 				print("Error: component name invalid. refer to:", templatestr)
 				exit(1)
 			
@@ -710,6 +820,54 @@ if __name__ == "__main__":
 				uid = getDefaultUID()
 					
 			clusterHandler = ClusterQueryHandler(uid)
+		
+		# python cluster_controller.py showlog uid
+		elif cmdType == "showlog":
+			uid = -1
+
+			if len(sys.argv) >= 3:
+				if sys.argv[2].isdigit():
+					uid = sys.argv[2]
+				else:
+					print("syntax: cluster_controller.py showlog [uid]")
+					print("exp: cluster_controller.py showlog 501")
+					exit(1)
+
+			uid = int(uid)
+			if uid < 0:
+				uid = getDefaultUID()
+
+			clusterHandler = ClusterLogWatchHandler(uid)
+		
+		# python cluster_controller.py sendlog uid NORMAL|INFO|DEBUG|ERROR|WARNING logstr
+		elif cmdType == "sendlog":
+			if len(sys.argv) < 4:
+				print("syntax: cluster_controller.py sendlog [uid] NORMAL|INFO|DEBUG|ERROR|WARNING logstr")
+				print("exp: cluster_controller.py sendlog 501 DEBUG \"send log test\"")
+				exit(1)
+			
+			uid = -1
+			
+			logType = ""
+			logStr = ""
+			if sys.argv[2].isdigit():
+				uid = sys.argv[2]
+				uid = int(uid)
+				if len(sys.argv) < 5:
+					print("syntax: cluster_controller.py sendlog [uid] NORMAL|INFO|DEBUG|ERROR|WARNING logstr")
+					print("exp: cluster_controller.py sendlog 501 DEBUG \"send log test\"")
+					exit(1)
+				else:
+					logType = sys.argv[3]
+					logStr = sys.argv[4]
+			else:
+				logType = sys.argv[2]
+				logStr = sys.argv[3]
+
+			if uid <= 0:
+				uid = getDefaultUID()
+
+			clusterHandler = ClusterSendLogHandler(uid, logType, logStr)
 	else:
 		uid = -1
 

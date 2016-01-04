@@ -29,6 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.h"
 #include "server/components.h"
 #include <sstream>
+#include "server/telnet_server.h"
+#include "profile.h"	
 
 namespace KBEngine{
 	
@@ -54,10 +56,11 @@ Logger::Logger(Network::EventDispatcher& dispatcher,
 				 Network::NetworkInterface& ninterface, 
 				 COMPONENT_TYPE componentType,
 				 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID),
+	PythonApp(dispatcher, ninterface, componentType, componentID),
 logWatchers_(),
 buffered_logs_(),
-timer_()
+timer_(),
+pTelnetServer_(NULL)
 {
 }
 
@@ -87,6 +90,8 @@ bool Logger::run()
 //-------------------------------------------------------------------------------------
 void Logger::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 		case TIMEOUT_TICK:
@@ -96,7 +101,6 @@ void Logger::handleTimeout(TimerHandle handle, void * arg)
 			break;
 	}
 
-	ServerApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -121,18 +125,42 @@ bool Logger::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Logger::inInitialize()
 {
+	PythonApp::inInitialize();
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool Logger::initializeEnd()
 {
+	PythonApp::initializeEnd();
+
 	// 由于logger接收其他app的log，如果跟踪包输出将会非常卡。
 	Network::g_trace_packet = 0;
 
 	timer_ = this->dispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
-	return true;
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+		const_cast<char*>("onLoggerAppReady"),
+		const_cast<char*>(""));
+
+	if (pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+
+	pTelnetServer_ = new TelnetServer(&this->dispatcher(), &this->networkInterface());
+	pTelnetServer_->pScript(&this->getScript());
+
+	bool ret = pTelnetServer_->start(g_kbeSrvConfig.getLogger().telnet_passwd,
+		g_kbeSrvConfig.getLogger().telnet_deflayer,
+		g_kbeSrvConfig.getLogger().telnet_port);
+
+	Components::getSingleton().extraData4(pTelnetServer_->port());
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -147,7 +175,7 @@ void Logger::finalise()
 	buffered_logs_.clear();
 
 	timer_.cancel();
-	ServerApp::finalise();
+	PythonApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -161,7 +189,47 @@ bool Logger::canShutdown()
 		return false;
 	}
 
+	if (PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
+	{
+		// 所有脚本都加载完毕
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+			const_cast<char*>("onReadyForShutDown"),
+			const_cast<char*>(""));
+
+		if (pyResult != NULL)
+		{
+			bool isReady = (pyResult == Py_True);
+			Py_DECREF(pyResult);
+
+			if (isReady)
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			return false;
+		}
+	}
+
 	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+void Logger::onShutdownBegin()
+{
+	PythonApp::onShutdownBegin();
+
+	// 通知脚本
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoggerAppShutDown"));
+}
+
+//-------------------------------------------------------------------------------------	
+void Logger::onShutdownEnd()
+{
+	PythonApp::onShutdownEnd();
 }
 
 //-------------------------------------------------------------------------------------
@@ -229,6 +297,28 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	for(; iter != logWatchers_.end(); ++iter)
 	{
 		iter->second.onMessage(pLogItem);
+	}
+
+	static bool notificationScript_ = PyObject_HasAttrString(getEntryScript().get(), "onLogWrote") > 0;
+	if(notificationScript_)
+	{
+		// 记录下完整的日志，以在脚本回调时使用
+		std::string sLog = pLogItem->logstream.str();
+		
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+			const_cast<char*>("onLogWrote"),
+			const_cast<char*>("y#"),
+			sLog.c_str(),
+			sLog.length());
+
+		if (pyResult != NULL)
+		{
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
 	}
 
 	// 缓存一部分log，提供工具查看log时能快速获取初始上下文

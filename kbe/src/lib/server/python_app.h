@@ -50,7 +50,15 @@ namespace KBEngine{
 class PythonApp : public ServerApp
 {
 public:
-	PythonApp(Network::EventDispatcher& dispatcher, 
+	enum TimeOutType
+	{
+		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1,
+
+		// 这个必须放在最后面，表示当前最大的枚举值是多少
+		TIMEOUT_PYTHONAPP_MAX = TIMEOUT_GAME_TICK
+	};
+
+	PythonApp(Network::EventDispatcher& dispatcher,
 		Network::NetworkInterface& ninterface, 
 		COMPONENT_TYPE componentType,
 		COMPONENT_ID componentID);
@@ -71,8 +79,11 @@ public:
 
 	virtual void finalise();
 	virtual bool inInitialize();
+	virtual bool initializeEnd();
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
+
+	virtual void handleTimeout(TimerHandle, void * arg);
 
 	/** 网络接口
 		请求执行一段python指令
@@ -135,6 +146,8 @@ public:
 
 protected:
 	static ScriptTimers										scriptTimers_;
+
+	TimerHandle												gameTickTimerHandle_;
 
 	KBEngine::script::Script								script_;
 

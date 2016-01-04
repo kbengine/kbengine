@@ -110,6 +110,8 @@ bool Interfaces::run()
 //-------------------------------------------------------------------------------------
 void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 		case TIMEOUT_TICK:
@@ -118,8 +120,6 @@ void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
-
-	PythonApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -128,9 +128,7 @@ void Interfaces::handleMainTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Interfaces::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	++g_kbetime;
 	threadPool_.onMainThreadTick();
-	handleTimers();
 	networkInterface().processChannels(&InterfacesInterface::messageHandlers);
 }
 
@@ -152,6 +150,8 @@ bool Interfaces::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Interfaces::initializeEnd()
 {
+	PythonApp::initializeEnd();
+
 	mainProcessTimer_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 

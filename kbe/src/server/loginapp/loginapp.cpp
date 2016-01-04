@@ -93,6 +93,8 @@ bool Loginapp::run()
 //-------------------------------------------------------------------------------------
 void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 		case TIMEOUT_TICK:
@@ -101,19 +103,15 @@ void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
-
-	PythonApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::handleMainTick()
 {
-	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&LoginappInterface::messageHandlers);
 	pendingLoginMgr_.process();
 	pendingCreateMgr_.process();
-	handleTimers();
 }
 
 //-------------------------------------------------------------------------------------
@@ -164,6 +162,8 @@ bool Loginapp::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Loginapp::initializeEnd()
 {
+	PythonApp::initializeEnd();
+
 	// 添加一个timer， 每秒检查一些状态
 	mainProcessTimer_ = this->dispatcher().addTimer(1000000 / 50, this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));

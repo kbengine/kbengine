@@ -96,6 +96,16 @@ bool PythonApp::inInitialize()
 	return true;
 }
 
+//-------------------------------------------------------------------------------------	
+bool PythonApp::initializeEnd()
+{
+	gameTickTimerHandle_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+		reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
+	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
 void PythonApp::onShutdownBegin()
 {
 	ServerApp::onShutdownBegin();
@@ -110,11 +120,28 @@ void PythonApp::onShutdownEnd()
 //-------------------------------------------------------------------------------------
 void PythonApp::finalise(void)
 {
+	gameTickTimerHandle_.cancel();
 	scriptTimers_.cancelAll();
 	ScriptTimers::finalise(*this);
 
 	uninstallPyScript();
 	ServerApp::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void PythonApp::handleTimeout(TimerHandle handle, void * arg)
+{
+	ServerApp::handleTimeout(handle, arg);
+
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+	case TIMEOUT_GAME_TICK:
+		++g_kbetime;
+		handleTimers();
+		break;
+	default:
+		break;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -180,6 +207,10 @@ bool PythonApp::installPyScript()
 		pyPaths += user_scripts_path + L"server_common;";
 		pyPaths += user_scripts_path + L"login;";
 		break;
+	case LOGGER_TYPE:
+		pyPaths += user_scripts_path + L"server_common;";
+		pyPaths += user_scripts_path + L"logger;";
+		break;
 	default:
 		pyPaths += user_scripts_path + L"client;";
 		break;
@@ -228,6 +259,11 @@ bool PythonApp::installPyModules()
 	else if (componentType() == DBMGR_TYPE)
 	{
 		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getDBMgr();
+		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
+	else if (componentType() == LOGGER_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLogger();
 		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
 	}
 	else
