@@ -105,6 +105,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define SIGQUIT 3
 #define SIGUSR1 10
 #define SIGPIPE 13
+#define SIGCHLD 17
 #define SIGSYS	32
 #endif
 
