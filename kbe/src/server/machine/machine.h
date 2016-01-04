@@ -101,6 +101,11 @@ public:
 	*/
 	void startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 信号处理
+	*/
+	virtual bool installSignals();
+	virtual void onSignalled(int sigNum);
+
 #if KBE_PLATFORM != PLATFORM_WIN32
 	/**
 	* 在linux下启动一个新进程
