@@ -882,8 +882,11 @@ void Machine::onSignalled(int sigNum)
 	if (sigNum == SIGCHLD)
 	{
 #if KBE_PLATFORM != PLATFORM_WIN32
-		// 清除僵尸（zombies）子进程.
-		waitpid(-1, NULL, WNOHANG);
+		/* Wait for all dead processes.
+		* We use a non-blocking call to be sure this signal handler will not
+		* block if a child was cleaned up in another part of the program. */
+		while (waitpid(-1, NULL, WNOHANG) > 0) {
+		}
 #endif
 	}
 	else
