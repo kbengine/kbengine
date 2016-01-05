@@ -82,7 +82,6 @@ entryScript_()
 //-------------------------------------------------------------------------------------
 PythonApp::~PythonApp()
 {
-	gameTickTimerHandle_.cancel();
 }
 
 //-------------------------------------------------------------------------------------
@@ -121,6 +120,7 @@ void PythonApp::onShutdownEnd()
 //-------------------------------------------------------------------------------------
 void PythonApp::finalise(void)
 {
+	gameTickTimerHandle_.cancel();
 	scriptTimers_.cancelAll();
 	ScriptTimers::finalise(*this);
 
@@ -136,7 +136,7 @@ void PythonApp::handleTimeout(TimerHandle handle, void * arg)
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 	case TIMEOUT_GAME_TICK:
-		g_kbetime++;
+		++g_kbetime;
 		handleTimers();
 		break;
 	default:

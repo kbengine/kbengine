@@ -9,7 +9,7 @@ import select
 import getpass
 import time
 
-import Define
+from . import Define
 
 Logger_onAppActiveTick         = 701
 Logger_registerLogWatcher      = 702

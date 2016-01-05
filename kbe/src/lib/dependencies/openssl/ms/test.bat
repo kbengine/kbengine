@@ -35,10 +35,6 @@ echo md5test
 md5test
 if errorlevel 1 goto done
 
-echo md2test
-md2test
-if errorlevel 1 goto done
-
 echo rc2test
 rc2test
 if errorlevel 1 goto done
@@ -74,10 +70,6 @@ if errorlevel 1 goto done
 echo testpem
 call %test%\testpem openssl
 if errorlevel 1 goto done
-
-echo verify
-copy ..\certs\*.pem cert.tmp >nul
-openssl verify -CAfile cert.tmp ..\certs\*.pem
 
 echo testss
 call %test%\testss openssl
@@ -184,8 +176,6 @@ if errorlevel 1 goto done
 echo test sslv2/sslv3 with both client and server authentication via BIO pair
 %SSL_TEST% -bio_pair -server_auth -client_auth
 if errorlevel 1 goto done
-
-del cert.tmp
 
 echo passed all tests
 goto end

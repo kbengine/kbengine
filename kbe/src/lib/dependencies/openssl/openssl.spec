@@ -1,17 +1,14 @@
-%define libmaj 0
-%define libmin 9
-%define librel 8
-%define librev g
+%define _unpackaged_files_terminate_build 0
+
 Release: 1
 
 %define openssldir /var/ssl
 
 Summary: Secure Sockets Layer and cryptography libraries and tools
 Name: openssl
-#Version: %{libmaj}.%{libmin}.%{librel}
-Version: %{libmaj}.%{libmin}.%{librel}%{librev}
+Version: 1.0.2e
 Source0: ftp://ftp.openssl.org/source/%{name}-%{version}.tar.gz
-Copyright: Freely distributable
+License: OpenSSL
 Group: System Environment/Libraries
 Provides: SSL
 URL: http://www.openssl.org/
@@ -95,6 +92,9 @@ perl util/perlpath.pl /usr/bin/perl
 %endif
 %ifarch alpha
 ./Configure %{CONFIG_FLAGS} linux-alpha shared
+%endif
+%ifarch x86_64
+./Configure %{CONFIG_FLAGS} linux-x86_64 shared
 %endif
 LD_LIBRARY_PATH=`pwd` make
 LD_LIBRARY_PATH=`pwd` make rehash

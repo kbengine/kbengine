@@ -7,18 +7,19 @@ $!                A-Com Computing, Inc.
 $!                byer@mail.all-net.net
 $!
 $! Changes by Richard Levitte <richard@levitte.org>
+$!	      Zoltan Arpadffy <zoli@polarhome.com>
 $!
 $! This procedure creates the SSL libraries of "[.xxx.EXE.CRYPTO]LIBCRYPTO.OLB"
 $! "[.xxx.EXE.SSL]LIBSSL.OLB"
-$! The "xxx" denotes the machine architecture of AXP or VAX.
+$! The "xxx" denotes the machine architecture of ALPHA, IA64 or VAX.
 $!
 $! This procedures accepts two command line options listed below.
 $!
-$! Specify one of the following build options for P1.
+$! P1 specifies one of the following build options:
 $!
 $!      ALL       Just build "everything".
-$!      CONFIG    Just build the "[.CRYPTO]OPENSSLCONF.H" file.
-$!      BUILDINF  Just build the "[.CRYPTO]BUILDINF.H" file.
+$!      CONFIG    Just build the "[.CRYPTO._xxx]OPENSSLCONF.H" file.
+$!      BUILDINF  Just build the "[.CRYPTO._xxx]BUILDINF.H" file.
 $!      SOFTLINKS Just fix the Unix soft links.
 $!      BUILDALL  Same as ALL, except CONFIG, BUILDINF and SOFTILNKS aren't done.
 $!      CRYPTO    Just build the "[.xxx.EXE.CRYPTO]LIBCRYPTO.OLB" library.
@@ -30,14 +31,21 @@ $!      TEST      Just build the "[.xxx.EXE.TEST]" test programs for OpenSSL.
 $!      APPS      Just build the "[.xxx.EXE.APPS]" application programs for OpenSSL.
 $!      ENGINES   Just build the "[.xxx.EXE.ENGINES]" application programs for OpenSSL.
 $!
+$! P2, if defined, specifies the C pointer size.  Ignored on VAX.
+$!      ("64=ARGV" gives more efficient code with HP C V7.3 or newer.)
+$!      Supported values are:
 $!
-$! P2 is ignored (it was used to denote if RSAref should be used or not,
-$! and is simply kept so surrounding scripts don't get confused)
+$!      ""       Compile with default (/NOPOINTER_SIZE).
+$!      32       Compile with /POINTER_SIZE=32 (SHORT).
+$!      64       Compile with /POINTER_SIZE=64[=ARGV] (LONG[=ARGV]).
+$!               (Automatically select ARGV if compiler supports it.)
+$!      64=      Compile with /POINTER_SIZE=64 (LONG).
+$!      64=ARGV  Compile with /POINTER_SIZE=64=ARGV (LONG=ARGV).
 $!
-$! Speficy DEBUG or NODEBUG as P3 to compile with or without debugging
-$! information.
+$! P3 specifies DEBUG or NODEBUG, to compile with or without debugging
+$!    information.
 $!
-$! Specify which compiler at P4 to try to compile under.
+$! P4 specifies which compiler to try to compile under.
 $!
 $!	  VAXC	 For VAX C.
 $!	  DECC	 For DEC C.
@@ -45,7 +53,7 @@ $!	  GNUC	 For GNU C.
 $!	  LINK   To only link the programs from existing object files.
 $!               (not yet implemented)
 $!
-$! If you don't speficy a compiler, it will try to determine which
+$! If you don't specify a compiler, it will try to determine which
 $! "C" compiler to use.
 $!
 $! P5, if defined, sets a TCP/IP library to use, through one of the following
@@ -59,8 +67,22 @@ $!	NONE		to avoid specifying which TCP/IP implementation to
 $!			use at build time (this works with DEC C).  This is
 $!			the default.
 $!
-$! P6, if defined, sets a compiler thread NOT needed on OpenVMS 7.1 (and up)
+$! P6, if defined, sets a compiler thread NOT needed on OpenVMS 7.1 (and up).
 $!
+$! P7, if defined, specifies a directory where ZLIB files (zlib.h,
+$! libz.olb) may be found.  Optionally, a non-default object library
+$! name may be included ("dev:[dir]libz_64.olb", for example).
+$!
+$!
+$! Announce/identify.
+$!
+$ proc = f$environment( "procedure")
+$ write sys$output "@@@ "+ -
+   f$parse( proc, , , "name")+ f$parse( proc, , , "type")
+$!
+$ DEF_ORIG = F$ENVIRONMENT( "DEFAULT")
+$ ON ERROR THEN GOTO TIDY
+$ ON CONTROL_C THEN GOTO TIDY
 $!
 $! Check if we're in a batch job, and make sure we get to 
 $! the directory this script is in
@@ -72,26 +94,35 @@ $   COMPATH=F$PARSE("A.;",COMNAME) - "A.;"
 $   SET DEF 'COMPATH'
 $ ENDIF
 $!
-$! Check Which Architecture We Are Using.
+$! Check What Architecture We Are Using.
 $!
-$ IF (F$GETSYI("CPU").GE.128)
+$ IF (F$GETSYI("CPU").LT.128)
 $ THEN
 $!
-$!  The Architecture Is AXP.
+$!  The Architecture Is VAX.
 $!
-$   ARCH := AXP
+$   ARCH = "VAX"
 $!
 $! Else...
 $!
 $ ELSE
 $!
-$!  The Architecture Is VAX.
+$!  The Architecture Is Alpha, IA64 or whatever comes in the future.
 $!
-$   ARCH := VAX
+$   ARCH = F$EDIT( F$GETSYI( "ARCH_NAME"), "UPCASE")
+$   IF (ARCH .EQS. "") THEN ARCH = "UNK"
 $!
 $! End The Architecture Check.
 $!
 $ ENDIF
+$!
+$ ARCHD = ARCH
+$ LIB32 = "32"
+$ POINTER_SIZE = ""
+$!
+$! Get VMS version.
+$!
+$ VMS_VERSION = f$edit( f$getsyi( "VERSION"), "TRIM")
 $!
 $! Check To Make Sure We Have Valid Command Line Parameters.
 $!
@@ -155,25 +186,55 @@ $ ENDIF
 $!
 $! Time To EXIT.
 $!
-$ EXIT
+$ GOTO TIDY
 $!
-$! Rebuild The "[.CRYPTO]OPENSSLCONF.H" file.
+$! Rebuild The [.CRYPTO._xxx]OPENSSLCONF.H" file.
 $!
 $ CONFIG:
 $!
-$! Tell The User We Are Creating The [.CRYPTO]OPENSSLCONF.H File.
+$! Tell The User We Are Creating The [.CRYPTO._xxx]OPENSSLCONF.H File.
 $!
-$ WRITE SYS$OUTPUT "Creating [.CRYPTO]OPENSSLCONF.H Include File."
+$ WRITE SYS$OUTPUT "Creating [.CRYPTO.''ARCHD']OPENSSLCONF.H Include File."
 $!
-$! Create The [.CRYPTO]OPENSSLCONF.H File.
+$! First, make sure the directory exists.
 $!
-$ OPEN/WRITE H_FILE SYS$DISK:[.CRYPTO]OPENSSLCONF.H
+$ IF F$PARSE("SYS$DISK:[.CRYPTO.''ARCHD']") .EQS. "" THEN -
+     CREATE/DIRECTORY SYS$DISK:[.CRYPTO.'ARCHD']
 $!
-$! Write The [.CRYPTO]OPENSSLCONF.H File.
+$! Different tar/UnZip versions/option may have named the file differently
+$ IF F$SEARCH("[.crypto]opensslconf.h_in") .NES. ""
+$ THEN
+$   OPENSSLCONF_H_IN = "[.crypto]opensslconf.h_in"
+$ ELSE
+$   IF F$SEARCH( "[.crypto]opensslconf_h.in") .NES. ""
+$   THEN
+$     OPENSSLCONF_H_IN = "[.crypto]opensslconf_h.in"
+$   ELSE
+$     ! For ODS-5
+$     IF F$SEARCH( "[.crypto]opensslconf.h.in") .NES. ""
+$     THEN
+$       OPENSSLCONF_H_IN = "[.crypto]opensslconf.h.in"
+$     ELSE
+$       WRITE SYS$ERROR "Couldn't find a [.crypto]opensslconf.h.in.  Exiting!"
+$       $STATUS = %X00018294 ! "%RMS-F-FNF, file not found".
+$       GOTO TIDY
+$     ENDIF
+$   ENDIF
+$ ENDIF
+$!
+$! Create The [.CRYPTO._xxx]OPENSSLCONF.H File.
+$! Make sure it has the right format.
+$!
+$ OSCH_NAME = "SYS$DISK:[.CRYPTO.''ARCHD']OPENSSLCONF.H"
+$ CREATE /FDL=SYS$INPUT: 'OSCH_NAME'
+RECORD
+        FORMAT stream_lf
+$ OPEN /APPEND H_FILE 'OSCH_NAME'
+$!
+$! Write The [.CRYPTO._xxx]OPENSSLCONF.H File.
 $!
 $ WRITE H_FILE "/* This file was automatically built using makevms.com */"
-$ WRITE H_FILE "/* and [.CRYPTO]OPENSSLCONF.H_IN */"
-$
+$ WRITE H_FILE "/* and ''OPENSSLCONF_H_IN' */"
 $!
 $! Write a few macros that indicate how this system was built.
 $!
@@ -181,78 +242,291 @@ $ WRITE H_FILE ""
 $ WRITE H_FILE "#ifndef OPENSSL_SYS_VMS"
 $ WRITE H_FILE "# define OPENSSL_SYS_VMS"
 $ WRITE H_FILE "#endif"
-$ CONFIG_LOGICALS := NO_ASM,NO_RSA,NO_DSA,NO_DH,NO_MD2,NO_MD5,NO_RIPEMD,-
-	NO_SHA,NO_SHA0,NO_SHA1,NO_DES/NO_MDC2;NO_MDC2,NO_RC2,NO_RC4,NO_RC5,-
-	NO_IDEA,NO_BF,NO_CAST,NO_CAMELLIA,NO_SEED,NO_HMAC,NO_SSL2
+$!
+$! One of the best way to figure out what the list should be is to do
+$! the following on a Unix system:
+$!   grep OPENSSL_NO_ crypto/*/*.h ssl/*.h engines/*.h engines/*/*.h|grep ':# *if'|sed -e 's/^.*def //'|sort|uniq
+$! For that reason, the list will also always end up in alphabetical order
+$ CONFIG_LOGICALS := AES,-
+		     ASM,INLINE_ASM,-
+		     BF,-
+		     BIO,-
+		     BUFFER,-
+		     BUF_FREELISTS,-
+		     CAMELLIA,-
+		     CAST,-
+		     CMS,-
+		     COMP,-
+		     DEPRECATED,-
+		     DES,-
+		     DGRAM,-
+		     DH,-
+		     DSA,-
+		     EC,-
+		     EC2M,-
+		     ECDH,-
+		     ECDSA,-
+		     EC_NISTP_64_GCC_128,-
+		     ENGINE,-
+		     ERR,-
+		     EVP,-
+		     FP_API,-
+		     GMP,-
+		     GOST,-
+		     HASH_COMP,-
+		     HEARTBEATS,-
+		     HMAC,-
+		     IDEA,-
+		     JPAKE,-
+		     KRB5,-
+		     LHASH,-
+		     MD2,-
+		     MD4,-
+		     MD5,-
+		     MDC2,-
+		     NEXTPROTONEG,-
+		     OCSP,-
+		     PSK,-
+		     RC2,-
+		     RC4,-
+		     RC5,-
+		     RFC3779,-
+		     RIPEMD,-
+		     RSA,-
+		     SCTP,-
+		     SEED,-
+		     SHA,-
+		     SHA0,-
+		     SHA1,-
+		     SHA256,-
+		     SHA512,-
+		     SOCK,-
+		     SRP,-
+		     SSL2,-
+		     SSL_INTERN,-
+		     SSL_TRACE,-
+		     STACK,-
+		     STATIC_ENGINE,-
+		     STDIO,-
+		     STORE,-
+		     TLSEXT,-
+		     WHIRLPOOL,-
+		     X509
+$! Add a few that we know about
+$ CONFIG_LOGICALS := 'CONFIG_LOGICALS',-
+		     THREADS
+$! The following rules, which dictate how some algorithm choices affect
+$! others, are picked from Configure.
+$! Quick syntax:
+$!  list = item[ ; list]
+$!  item = algos / dependents
+$!  algos = algo [, algos]
+$!  dependents = dependent [, dependents]
+$! When a list of algos is specified in one item, it means that they must
+$! all be disabled for the rule to apply.
+$! When a list of dependents is specified in one item, it means that they
+$! will all be disabled if the rule applies.
+$! Rules are checked sequentially.  If a rule disables an algorithm, it will
+$! affect all following rules that depend on that algorithm being disabled.
+$! To force something to be enabled or disabled, have no algorithms in the
+$! algos part.
+$ CONFIG_DISABLE_RULES := RIJNDAEL/AES;-
+			  DES/MDC2;-
+			  EC/ECDSA,ECDH;-
+			  MD5/SSL2,SSL3,TLS1;-
+			  SHA/SSL3,TLS1;-
+			  RSA/SSL2;-
+			  RSA,DSA/SSL2;-
+			  DH/SSL3,TLS1;-
+			  TLS1/TLSEXT;-
+			  EC/GOST;-
+			  DSA/GOST;-
+			  DH/GOST;-
+			  /STATIC_ENGINE;-
+			  /KRB5;-
+			  /EC_NISTP_64_GCC_128;-
+			  /GMP;-
+			  /MD2;-
+			  /RC5;-
+			  /RFC3779;-
+			  /SCTP;-
+			  /SSL_TRACE
+$ CONFIG_ENABLE_RULES := ZLIB_DYNAMIC/ZLIB;-
+			 /THREADS
+$
+$! Architecture specific rule addtions
+$ IF ARCH .EQS. "VAX"
+$ THEN
+$   ! Disable algorithms that require 64-bit integers in C
+$   CONFIG_DISABLE_RULES = CONFIG_DISABLE_RULES + -
+			   ";/GOST" + -
+			   ";/WHIRLPOOL"
+$ ENDIF
+$
 $ CONFIG_LOG_I = 0
-$ CONFIG_LOG_LOOP:
-$   CONFIG_LOG_E1 = F$ELEMENT(CONFIG_LOG_I,",",CONFIG_LOGICALS)
+$ CONFIG_LOG_LOOP1:
+$   CONFIG_LOG_E = F$EDIT(F$ELEMENT(CONFIG_LOG_I,",",CONFIG_LOGICALS),"TRIM")
 $   CONFIG_LOG_I = CONFIG_LOG_I + 1
-$   IF CONFIG_LOG_E1 .EQS. "" THEN GOTO CONFIG_LOG_LOOP
-$   IF CONFIG_LOG_E1 .EQS. "," THEN GOTO CONFIG_LOG_LOOP_END
-$   CONFIG_LOG_E2 = F$EDIT(CONFIG_LOG_E1,"TRIM")
-$   CONFIG_LOG_E1 = F$ELEMENT(0,";",CONFIG_LOG_E2)
-$   CONFIG_LOG_E2 = F$ELEMENT(1,";",CONFIG_LOG_E2)
-$   CONFIG_LOG_E0 = F$ELEMENT(0,"/",CONFIG_LOG_E1)
-$   CONFIG_LOG_E1 = F$ELEMENT(1,"/",CONFIG_LOG_E1)
-$   IF F$TRNLNM("OPENSSL_"+CONFIG_LOG_E0)
+$   IF CONFIG_LOG_E .EQS. "" THEN GOTO CONFIG_LOG_LOOP1
+$   IF CONFIG_LOG_E .EQS. "," THEN GOTO CONFIG_LOG_LOOP1_END
+$   IF F$TRNLNM("OPENSSL_NO_"+CONFIG_LOG_E)
 $   THEN
-$     WRITE H_FILE "#ifndef OPENSSL_",CONFIG_LOG_E0
-$     WRITE H_FILE "# define OPENSSL_",CONFIG_LOG_E0
-$     WRITE H_FILE "#endif"
-$     IF CONFIG_LOG_E1 .NES. "/"
-$     THEN
-$       WRITE H_FILE "#ifndef OPENSSL_",CONFIG_LOG_E1
-$       WRITE H_FILE "# define OPENSSL_",CONFIG_LOG_E1
-$       WRITE H_FILE "#endif"
-$     ENDIF
+$       CONFIG_DISABLED_'CONFIG_LOG_E' := YES
+$       CONFIG_ENABLED_'CONFIG_LOG_E' := NO
+$	CONFIG_CHANGED_'CONFIG_LOG_E' := YES
 $   ELSE
-$     IF CONFIG_LOG_E2 .NES. ";"
+$       CONFIG_DISABLED_'CONFIG_LOG_E' := NO
+$       CONFIG_ENABLED_'CONFIG_LOG_E' := YES
+$	! Because all algorithms are assumed enabled by default
+$	CONFIG_CHANGED_'CONFIG_LOG_E' := NO
+$   ENDIF
+$   GOTO CONFIG_LOG_LOOP1
+$ CONFIG_LOG_LOOP1_END:
+$
+$! Apply cascading disable rules
+$ CONFIG_DISABLE_I = 0
+$ CONFIG_DISABLE_LOOP0:
+$   CONFIG_DISABLE_E = F$EDIT(F$ELEMENT(CONFIG_DISABLE_I,";", -
+     CONFIG_DISABLE_RULES),"TRIM")
+$   CONFIG_DISABLE_I = CONFIG_DISABLE_I + 1
+$   IF CONFIG_DISABLE_E .EQS. "" THEN GOTO CONFIG_DISABLE_LOOP0
+$   IF CONFIG_DISABLE_E .EQS. ";" THEN GOTO CONFIG_DISABLE_LOOP0_END
+$
+$   CONFIG_DISABLE_ALGOS = F$EDIT(F$ELEMENT(0,"/",CONFIG_DISABLE_E),"TRIM")
+$   CONFIG_DISABLE_DEPENDENTS = F$EDIT(F$ELEMENT(1,"/",CONFIG_DISABLE_E),"TRIM")
+$   TO_DISABLE := YES
+$   CONFIG_ALGO_I = 0
+$   CONFIG_DISABLE_LOOP1:
+$     CONFIG_ALGO_E = F$EDIT(F$ELEMENT(CONFIG_ALGO_I,",", -
+       CONFIG_DISABLE_ALGOS),"TRIM")
+$     CONFIG_ALGO_I = CONFIG_ALGO_I + 1
+$     IF CONFIG_ALGO_E .EQS. "" THEN GOTO CONFIG_DISABLE_LOOP1
+$     IF CONFIG_ALGO_E .EQS. "," THEN GOTO CONFIG_DISABLE_LOOP1_END
+$     IF F$TYPE(CONFIG_DISABLED_'CONFIG_ALGO_E') .EQS. ""
 $     THEN
-$       IF F$TRNLNM("OPENSSL_"+CONFIG_LOG_E2)
-$       THEN
-$         WRITE H_FILE "#ifndef OPENSSL_",CONFIG_LOG_E2
-$         WRITE H_FILE "# define OPENSSL_",CONFIG_LOG_E2
-$         WRITE H_FILE "#endif"
-$       ENDIF
+$	TO_DISABLE := NO
+$     ELSE
+$	IF .NOT. CONFIG_DISABLED_'CONFIG_ALGO_E' THEN TO_DISABLE := NO
+$     ENDIF
+$     GOTO CONFIG_DISABLE_LOOP1
+$   CONFIG_DISABLE_LOOP1_END:
+$
+$   IF TO_DISABLE
+$   THEN
+$     CONFIG_DEPENDENT_I = 0
+$     CONFIG_DISABLE_LOOP2:
+$	CONFIG_DEPENDENT_E = F$EDIT(F$ELEMENT(CONFIG_DEPENDENT_I,",", -
+         CONFIG_DISABLE_DEPENDENTS),"TRIM")
+$	CONFIG_DEPENDENT_I = CONFIG_DEPENDENT_I + 1
+$	IF CONFIG_DEPENDENT_E .EQS. "" THEN GOTO CONFIG_DISABLE_LOOP2
+$	IF CONFIG_DEPENDENT_E .EQS. "," THEN GOTO CONFIG_DISABLE_LOOP2_END
+$       CONFIG_DISABLED_'CONFIG_DEPENDENT_E' := YES
+$       CONFIG_ENABLED_'CONFIG_DEPENDENT_E' := NO
+$	! Better not to assume defaults at this point...
+$	CONFIG_CHANGED_'CONFIG_DEPENDENT_E' := YES
+$	WRITE SYS$ERROR -
+         "''CONFIG_DEPENDENT_E' disabled by rule ''CONFIG_DISABLE_E'"
+$	GOTO CONFIG_DISABLE_LOOP2
+$     CONFIG_DISABLE_LOOP2_END:
+$   ENDIF
+$   GOTO CONFIG_DISABLE_LOOP0
+$ CONFIG_DISABLE_LOOP0_END:
+$	
+$! Apply cascading enable rules
+$ CONFIG_ENABLE_I = 0
+$ CONFIG_ENABLE_LOOP0:
+$   CONFIG_ENABLE_E = F$EDIT(F$ELEMENT(CONFIG_ENABLE_I,";", -
+     CONFIG_ENABLE_RULES),"TRIM")
+$   CONFIG_ENABLE_I = CONFIG_ENABLE_I + 1
+$   IF CONFIG_ENABLE_E .EQS. "" THEN GOTO CONFIG_ENABLE_LOOP0
+$   IF CONFIG_ENABLE_E .EQS. ";" THEN GOTO CONFIG_ENABLE_LOOP0_END
+$
+$   CONFIG_ENABLE_ALGOS = F$EDIT(F$ELEMENT(0,"/",CONFIG_ENABLE_E),"TRIM")
+$   CONFIG_ENABLE_DEPENDENTS = F$EDIT(F$ELEMENT(1,"/",CONFIG_ENABLE_E),"TRIM")
+$   TO_ENABLE := YES
+$   CONFIG_ALGO_I = 0
+$   CONFIG_ENABLE_LOOP1:
+$     CONFIG_ALGO_E = F$EDIT(F$ELEMENT(CONFIG_ALGO_I,",", -
+       CONFIG_ENABLE_ALGOS),"TRIM")
+$     CONFIG_ALGO_I = CONFIG_ALGO_I + 1
+$     IF CONFIG_ALGO_E .EQS. "" THEN GOTO CONFIG_ENABLE_LOOP1
+$     IF CONFIG_ALGO_E .EQS. "," THEN GOTO CONFIG_ENABLE_LOOP1_END
+$     IF F$TYPE(CONFIG_ENABLED_'CONFIG_ALGO_E') .EQS. ""
+$     THEN
+$	TO_ENABLE := NO
+$     ELSE
+$	IF .NOT. CONFIG_ENABLED_'CONFIG_ALGO_E' THEN TO_ENABLE := NO
+$     ENDIF
+$     GOTO CONFIG_ENABLE_LOOP1
+$   CONFIG_ENABLE_LOOP1_END:
+$
+$   IF TO_ENABLE
+$   THEN
+$     CONFIG_DEPENDENT_I = 0
+$     CONFIG_ENABLE_LOOP2:
+$	CONFIG_DEPENDENT_E = F$EDIT(F$ELEMENT(CONFIG_DEPENDENT_I,",", -
+         CONFIG_ENABLE_DEPENDENTS),"TRIM")
+$	CONFIG_DEPENDENT_I = CONFIG_DEPENDENT_I + 1
+$	IF CONFIG_DEPENDENT_E .EQS. "" THEN GOTO CONFIG_ENABLE_LOOP2
+$	IF CONFIG_DEPENDENT_E .EQS. "," THEN GOTO CONFIG_ENABLE_LOOP2_END
+$       CONFIG_DISABLED_'CONFIG_DEPENDENT_E' := NO
+$       CONFIG_ENABLED_'CONFIG_DEPENDENT_E' := YES
+$	! Better not to assume defaults at this point...
+$	CONFIG_CHANGED_'CONFIG_DEPENDENT_E' := YES
+$	WRITE SYS$ERROR -
+         "''CONFIG_DEPENDENT_E' enabled by rule ''CONFIG_ENABLE_E'"
+$	GOTO CONFIG_ENABLE_LOOP2
+$     CONFIG_ENABLE_LOOP2_END:
+$   ENDIF
+$   GOTO CONFIG_ENABLE_LOOP0
+$ CONFIG_ENABLE_LOOP0_END:
+$
+$! Write to the configuration
+$ CONFIG_LOG_I = 0
+$ CONFIG_LOG_LOOP2:
+$   CONFIG_LOG_E = F$EDIT(F$ELEMENT(CONFIG_LOG_I,",",CONFIG_LOGICALS),"TRIM")
+$   CONFIG_LOG_I = CONFIG_LOG_I + 1
+$   IF CONFIG_LOG_E .EQS. "" THEN GOTO CONFIG_LOG_LOOP2
+$   IF CONFIG_LOG_E .EQS. "," THEN GOTO CONFIG_LOG_LOOP2_END
+$   IF CONFIG_CHANGED_'CONFIG_LOG_E'
+$   THEN
+$     IF CONFIG_DISABLED_'CONFIG_LOG_E'
+$     THEN
+$	WRITE H_FILE "#ifndef OPENSSL_NO_",CONFIG_LOG_E
+$	WRITE H_FILE "# define OPENSSL_NO_",CONFIG_LOG_E
+$	WRITE H_FILE "#endif"
+$     ELSE
+$	WRITE H_FILE "#ifndef OPENSSL_",CONFIG_LOG_E
+$	WRITE H_FILE "# define OPENSSL_",CONFIG_LOG_E
+$	WRITE H_FILE "#endif"
 $     ENDIF
 $   ENDIF
-$   GOTO CONFIG_LOG_LOOP
-$ CONFIG_LOG_LOOP_END:
-$ WRITE H_FILE "#ifndef OPENSSL_NO_STATIC_ENGINE"
-$ WRITE H_FILE "# define OPENSSL_NO_STATIC_ENGINE"
-$ WRITE H_FILE "#endif"
-$ WRITE H_FILE "#ifndef OPENSSL_THREADS"
-$ WRITE H_FILE "# define OPENSSL_THREADS"
-$ WRITE H_FILE "#endif"
-$ WRITE H_FILE "#ifndef OPENSSL_NO_KRB5"
-$ WRITE H_FILE "# define OPENSSL_NO_KRB5"
-$ WRITE H_FILE "#endif"
+$   GOTO CONFIG_LOG_LOOP2
+$ CONFIG_LOG_LOOP2_END:
+$!
+$ WRITE H_FILE ""
+$ WRITE H_FILE "/* 2011-02-23 SMS."
+$ WRITE H_FILE " * On VMS (V8.3), setvbuf() doesn't support a 64-bit"
+$ WRITE H_FILE " * ""in"" pointer, and the help says:"
+$ WRITE H_FILE " *       Please note that the previously documented"
+$ WRITE H_FILE " *       value _IONBF is not supported."
+$ WRITE H_FILE " * So, skip it on VMS."
+$ WRITE H_FILE " */"
+$ WRITE H_FILE "#define OPENSSL_NO_SETVBUF_IONBF"
+$ WRITE H_FILE "/* STCP support comes with TCPIP 5.7 ECO 2 "
+$ WRITE H_FILE " * enable on newer systems / 2012-02-24 arpadffy */"
+$ WRITE H_FILE "#define OPENSSL_NO_SCTP"
+$ WRITE H_FILE "#define OPENSSL_NO_LIBUNBOUND"
 $ WRITE H_FILE ""
 $!
-$! Different tar version may have named the file differently
-$ IF F$SEARCH("[.CRYPTO]OPENSSLCONF.H_IN") .NES. ""
-$ THEN
-$   TYPE [.CRYPTO]OPENSSLCONF.H_IN /OUTPUT=H_FILE:
-$ ELSE
-$   IF F$SEARCH("[.CRYPTO]OPENSSLCONF_H.IN") .NES. ""
-$   THEN
-$     TYPE [.CRYPTO]OPENSSLCONF_H.IN /OUTPUT=H_FILE:
-$   ELSE
-$     ! For ODS-5
-$     IF F$SEARCH("[.CRYPTO]OPENSSLCONF.H.IN") .NES. ""
-$     THEN
-$       TYPE [.CRYPTO]OPENSSLCONF.H.IN /OUTPUT=H_FILE:
-$     ELSE
-$       WRITE SYS$ERROR "Couldn't find a [.CRYPTO]OPENSSLCONF.H_IN.  Exiting!"
-$       EXIT 0
-$     ENDIF
-$   ENDIF
-$ ENDIF
-$ IF ARCH .EQS. "AXP"
+$! Add in the common "crypto/opensslconf.h.in".
+$!
+$ TYPE 'OPENSSLCONF_H_IN' /OUTPUT=H_FILE:
+$!
+$ IF ARCH .NES. "VAX"
 $ THEN
 $!
-$!  Write the Alpha specific data
+$!  Write the non-VAX specific data
 $!
 $   WRITE H_FILE "#if defined(HEADER_RC4_H)"
 $   WRITE H_FILE "#undef RC4_INT"
@@ -318,10 +592,11 @@ $   WRITE H_FILE "#undef SIXTEEN_BIT"
 $   WRITE H_FILE "#undef EIGHT_BIT"
 $   WRITE H_FILE "#endif"
 $!
-$   WRITE H_FILE "#if defined(HEADER_SHA_H)"
+$! Oddly enough, the following symbol is tested in crypto/sha/sha512.c
+$! before sha.h gets included (and HEADER_SHA_H defined), so we will not
+$! protect this one...
 $   WRITE H_FILE "#undef OPENSSL_NO_SHA512"
 $   WRITE H_FILE "#define OPENSSL_NO_SHA512"
-$   WRITE H_FILE "#endif"
 $!
 $   WRITE H_FILE "#undef OPENSSL_EXPORT_VAR_AS_FUNCTION"
 $   WRITE H_FILE "#define OPENSSL_EXPORT_VAR_AS_FUNCTION"
@@ -330,39 +605,69 @@ $!  End
 $!
 $ ENDIF
 $!
-$! Close the [.CRYPTO]OPENSSLCONF.H file
+$! Close the [.CRYPTO._xxx]OPENSSLCONF.H file
 $!
 $ CLOSE H_FILE
+$!
+$! Purge The [.CRYPTO._xxx]OPENSSLCONF.H file
+$!
+$ PURGE SYS$DISK:[.CRYPTO.'ARCHD']OPENSSLCONF.H
 $!
 $! That's All, Time To RETURN.
 $!
 $ RETURN
 $!
-$! Rebuild The "[.CRYPTO]BUILDINF.H" file.
+$! Rebuild The "[.CRYPTO._xxx]BUILDINF.H" file.
 $!
 $ BUILDINF:
 $!
-$! Tell The User We Are Creating The [.CRYPTO]BUILDINF.H File.
+$! Tell The User We Are Creating The [.CRYPTO._xxx]BUILDINF.H File.
 $!
-$ WRITE SYS$OUTPUT "Creating [.CRYPTO]BUILDINF.H Include File."
+$ WRITE SYS$OUTPUT "Creating [.CRYPTO.''ARCHD']BUILDINF.H Include File."
 $!
-$! Create The [.CRYPTO]BUILDINF.H File.
+$! Create The [.CRYPTO._xxx]BUILDINF.H File.
 $!
-$ OPEN/WRITE H_FILE SYS$DISK:[.CRYPTO]BUILDINF.H
+$ BIH_NAME = "SYS$DISK:[.CRYPTO.''ARCHD']BUILDINF.H"
+$ CREATE /FDL=SYS$INPUT: 'BIH_NAME'
+RECORD
+        FORMAT stream_lf
+$!
+$ OPEN /APPEND H_FILE 'bih_name'
 $!
 $! Get The Current Date & Time.
 $!
 $ TIME = F$TIME()
 $!
-$! Write The [.CRYPTO]BUILDINF.H File.
+$! Write The [.CRYPTO._xxx]BUILDINF.H File.
 $!
-$ WRITE H_FILE "#define CFLAGS """" /* Not filled in for now */"
-$ WRITE H_FILE "#define PLATFORM ""VMS"""
-$ WRITE H_FILE "#define DATE ""''TIME'"" "
+$ CFLAGS = ""
+$ if (POINTER_SIZE .nes. "")
+$ then
+$   CFLAGS = CFLAGS+ "/POINTER_SIZE=''POINTER_SIZE'"
+$ endif
+$ if (ZLIB .nes. "")
+$ then
+$   if (CFLAGS .nes. "") then CFLAGS = CFLAGS+ " "
+$   CFLAGS = CFLAGS+ "/DEFINE=ZLIB"
+$ endif
+$! 
+$ WRITE H_FILE "#define CFLAGS cflags"
+$ WRITE H_FILE "static const char cflags[] = ""compiler: ''CFLAGS'"";"
+$ WRITE H_FILE "#define PLATFORM ""platform: VMS ''ARCHD' ''VMS_VERSION'"""
+$ WRITE H_FILE "#define DATE ""built on: ''TIME'"" "
 $!
-$! Close The [.CRYPTO]BUILDINF.H File.
+$! Close The [.CRYPTO._xxx]BUILDINF.H File.
 $!
 $ CLOSE H_FILE
+$!
+$! Purge The [.CRYPTO._xxx]BUILDINF.H File.
+$!
+$ PURGE SYS$DISK:[.CRYPTO.'ARCHD']BUILDINF.H
+$!
+$! Delete [.CRYPTO]BUILDINF.H File, as there might be some residue from Unix.
+$!
+$ IF F$SEARCH("[.CRYPTO]BUILDINF.H") .NES. "" THEN -
+     DELETE SYS$DISK:[.CRYPTO]BUILDINF.H;*
 $!
 $! That's All, Time To RETURN.
 $!
@@ -372,71 +677,58 @@ $! Copy a lot of files around.
 $!
 $ SOFTLINKS: 
 $!
-$! Tell The User We Are Partly Rebuilding The [.APPS] Directory.
+$!!!! Tell The User We Are Partly Rebuilding The [.APPS] Directory.
+$!!!!
+$!!! WRITE SYS$OUTPUT "Rebuilding The '[.APPS]MD4.C' File."
+$!!!!
+$!!! DELETE SYS$DISK:[.APPS]MD4.C;*
+$!!!!
+$!!!! Copy MD4.C from [.CRYPTO.MD4] into [.APPS]
+$!!!!
+$!!! COPY SYS$DISK:[.CRYPTO.MD4]MD4.C SYS$DISK:[.APPS]
 $!
-$ WRITE SYS$OUTPUT "Rebuilding The '[.APPS]MD4.C', '[.APPS]MD5.C' And '[.APPS]RMD160.C' Files."
+$! Ensure that the [.include.openssl] directory contains a full set of
+$! real header files.  The distribution kit may have left real or fake
+$! symlinks there.  Rather than think about what's there, simply delete
+$! the destination files (fake or real symlinks) before copying the real
+$! header files in.  (Copying a real header file onto a real symlink
+$! merely duplicates the real header file at its source.)
 $!
-$ DELETE SYS$DISK:[.APPS]MD4.C;*,MD5.C;*,RMD160.C;*
+$! Tell The User We Are Rebuilding The [.include.openssl] Directory.
 $!
-$! Copy MD4.C from [.CRYPTO.MD4] into [.APPS]
+$ WRITE SYS$OUTPUT "Rebuilding The '[.include.openssl]' Directory."
 $!
-$ COPY SYS$DISK:[.CRYPTO.MD4]MD4.C SYS$DISK:[.APPS]
+$! First, make sure the directory exists.  If it did exist, delete all
+$! the existing header files (or fake or real symlinks).
 $!
-$! Copy MD5.C from [.CRYPTO.MD5] into [.APPS]
-$!
-$ COPY SYS$DISK:[.CRYPTO.MD5]MD5.C SYS$DISK:[.APPS]
-$!
-$! Copy RMD160.C from [.CRYPTO.RIPEMD] into [.APPS]
-$!
-$ COPY SYS$DISK:[.CRYPTO.RIPEMD]RMD160.C SYS$DISK:[.APPS]
-$!
-$! Tell The User We Are Partly Rebuilding The [.TEST] Directory.
-$!
-$ WRITE SYS$OUTPUT "Rebuilding The '[.TEST]*.C' Files."
-$!
-$! First, We Have To "Rebuild" The "[.TEST]" Directory, So Delete
-$! All The "C" Files That Are Currently There Now.
-$!
-$ DELETE SYS$DISK:[.TEST]*.C;*
-$ DELETE SYS$DISK:[.TEST]EVPTESTS.TXT;*
-$!
-$! Copy all the *TEST.C files from [.CRYPTO...] into [.TEST]
-$!
-$ COPY SYS$DISK:[.CRYPTO.*]%*TEST.C SYS$DISK:[.TEST]
-$ COPY SYS$DISK:[.CRYPTO.SHA]SHA%%%T.C SYS$DISK:[.TEST]
-$ COPY SYS$DISK:[.CRYPTO.EVP]EVPTESTS.TXT SYS$DISK:[.TEST]
-$!
-$! Copy all the *TEST.C files from [.SSL...] into [.TEST]
-$!
-$ COPY SYS$DISK:[.SSL]%*TEST.C SYS$DISK:[.TEST]
-$!
-$! Tell The User We Are Rebuilding The [.INCLUDE.OPENSSL] Directory.
-$!
-$ WRITE SYS$OUTPUT "Rebuilding The '[.INCLUDE.OPENSSL]' Directory."
-$!
-$! First, make sure the directory exists
-$!
-$ IF F$PARSE("SYS$DISK:[.INCLUDE.OPENSSL]") .EQS. "" THEN -
-     CREATE/DIRECTORY SYS$DISK:[.INCLUDE.OPENSSL]
+$ if f$parse( "sys$disk:[.include.openssl]") .eqs. ""
+$ then
+$   create /directory sys$disk:[.include.openssl]
+$ else
+$   delete sys$disk:[.include.openssl]*.h;*
+$ endif
 $!
 $! Copy All The ".H" Files From The Main Directory.
 $!
 $ EXHEADER := e_os2.h
-$ COPY 'EXHEADER' SYS$DISK:[.INCLUDE.OPENSSL]
+$ copy 'exheader' sys$disk:[.include.openssl]
 $!
 $! Copy All The ".H" Files From The [.CRYPTO] Directory Tree.
 $!
-$ SDIRS := ,-
-   OBJECTS,-
-   MD2,MD4,MD5,SHA,MDC2,HMAC,RIPEMD,-
-   DES,RC2,RC4,RC5,IDEA,BF,CAST,CAMELLIA,SEED,-
-   BN,EC,RSA,DSA,ECDSA,DH,ECDH,DSO,ENGINE,AES,-
-   BUFFER,BIO,STACK,LHASH,RAND,ERR,-
-   EVP,ASN1,PEM,X509,X509V3,CONF,TXT_DB,PKCS7,PKCS12,COMP,OCSP,UI,KRB5,-
-   STORE,PQUEUE
-$ EXHEADER_ := crypto.h,tmdiff.h,opensslv.h,opensslconf.h,ebcdic.h,symhacks.h,-
-		ossl_typ.h
-$ EXHEADER_OBJECTS := objects.h,obj_mac.h
+$ SDIRS := , -
+   'ARCHD', -
+   OBJECTS, -
+   MD4, MD5, SHA, MDC2, HMAC, RIPEMD, WHRLPOOL, -
+   DES, AES, RC2, RC4, IDEA, BF, CAST, CAMELLIA, SEED, MODES, -
+   BN, EC, RSA, DSA, ECDSA, DH, ECDH, DSO, ENGINE, -
+   BUFFER, BIO, STACK, LHASH, RAND, ERR, -
+   EVP, ASN1, PEM, X509, X509V3, CONF, TXT_DB, PKCS7, PKCS12, -
+   COMP, OCSP, UI, KRB5, -
+   CMS, PQUEUE, TS, JPAKE, SRP, STORE, CMAC
+$!
+$ EXHEADER_ := crypto.h, opensslv.h, ebcdic.h, symhacks.h, ossl_typ.h
+$ EXHEADER_'ARCHD' := opensslconf.h
+$ EXHEADER_OBJECTS := objects.h, obj_mac.h
 $ EXHEADER_MD2 := md2.h
 $ EXHEADER_MD4 := md4.h
 $ EXHEADER_MD5 := md5.h
@@ -444,7 +736,9 @@ $ EXHEADER_SHA := sha.h
 $ EXHEADER_MDC2 := mdc2.h
 $ EXHEADER_HMAC := hmac.h
 $ EXHEADER_RIPEMD := ripemd.h
-$ EXHEADER_DES := des.h,des_old.h
+$ EXHEADER_WHRLPOOL := whrlpool.h
+$ EXHEADER_DES := des.h, des_old.h
+$ EXHEADER_AES := aes.h
 $ EXHEADER_RC2 := rc2.h
 $ EXHEADER_RC4 := rc4.h
 $ EXHEADER_RC5 := rc5.h
@@ -453,6 +747,7 @@ $ EXHEADER_BF := blowfish.h
 $ EXHEADER_CAST := cast.h
 $ EXHEADER_CAMELLIA := camellia.h
 $ EXHEADER_SEED := seed.h
+$ EXHEADER_MODES := modes.h
 $ EXHEADER_BN := bn.h
 $ EXHEADER_EC := ec.h
 $ EXHEADER_RSA := rsa.h
@@ -462,66 +757,68 @@ $ EXHEADER_DH := dh.h
 $ EXHEADER_ECDH := ecdh.h
 $ EXHEADER_DSO := dso.h
 $ EXHEADER_ENGINE := engine.h
-$ EXHEADER_AES := aes.h
 $ EXHEADER_BUFFER := buffer.h
 $ EXHEADER_BIO := bio.h
-$ EXHEADER_STACK := stack.h,safestack.h
+$ EXHEADER_STACK := stack.h, safestack.h
 $ EXHEADER_LHASH := lhash.h
 $ EXHEADER_RAND := rand.h
 $ EXHEADER_ERR := err.h
 $ EXHEADER_EVP := evp.h
-$ EXHEADER_ASN1 := asn1.h,asn1_mac.h,asn1t.h
-$ EXHEADER_PEM := pem.h,pem2.h
-$ EXHEADER_X509 := x509.h,x509_vfy.h
+$ EXHEADER_ASN1 := asn1.h, asn1_mac.h, asn1t.h
+$ EXHEADER_PEM := pem.h, pem2.h
+$ EXHEADER_X509 := x509.h, x509_vfy.h
 $ EXHEADER_X509V3 := x509v3.h
-$ EXHEADER_CONF := conf.h,conf_api.h
+$ EXHEADER_CONF := conf.h, conf_api.h
 $ EXHEADER_TXT_DB := txt_db.h
 $ EXHEADER_PKCS7 := pkcs7.h
 $ EXHEADER_PKCS12 := pkcs12.h
 $ EXHEADER_COMP := comp.h
 $ EXHEADER_OCSP := ocsp.h
-$ EXHEADER_UI := ui.h,ui_compat.h
+$ EXHEADER_UI := ui.h, ui_compat.h
 $ EXHEADER_KRB5 := krb5_asn.h
-$!EXHEADER_STORE := store.h,str_compat.h
+$ EXHEADER_CMS := cms.h
+$ EXHEADER_PQUEUE := pqueue.h
+$ EXHEADER_TS := ts.h
+$ EXHEADER_JPAKE := jpake.h
+$ EXHEADER_SRP := srp.h
+$!!! EXHEADER_STORE := store.h, str_compat.h
 $ EXHEADER_STORE := store.h
-$ EXHEADER_PQUEUE := pqueue.h,pq_compat.h
-$
-$ I = 0
-$ LOOP_SDIRS: 
-$ D = F$EDIT(F$ELEMENT(I, ",", SDIRS),"TRIM")
-$ I = I + 1
-$ IF D .EQS. "," THEN GOTO LOOP_SDIRS_END
-$ tmp = EXHEADER_'D'
-$ IF D .EQS. ""
-$ THEN
-$   COPY [.CRYPTO]'tmp' SYS$DISK:[.INCLUDE.OPENSSL] !/LOG
-$ ELSE
-$   COPY [.CRYPTO.'D']'tmp' SYS$DISK:[.INCLUDE.OPENSSL] !/LOG
-$ ENDIF
-$ GOTO LOOP_SDIRS
-$ LOOP_SDIRS_END:
+$ EXHEADER_CMAC := cmac.h
+$!
+$ i = 0
+$ loop_sdirs:
+$   sdir = f$edit( f$element( i, ",", sdirs), "trim")
+$   i = i + 1
+$   if (sdir .eqs. ",") then goto loop_sdirs_end
+$   hdr_list = exheader_'sdir'
+$   if (sdir .nes. "") then sdir = "."+ sdir
+$   copy [.crypto'sdir']'hdr_list' sys$disk:[.include.openssl]
+$ goto loop_sdirs
+$ loop_sdirs_end:
 $!
 $! Copy All The ".H" Files From The [.SSL] Directory.
 $!
-$ EXHEADER := ssl.h,ssl2.h,ssl3.h,ssl23.h,tls1.h,dtls1.h,kssl.h
-$ COPY SYS$DISK:[.SSL]'EXHEADER' SYS$DISK:[.INCLUDE.OPENSSL]
+$! (keep these in the same order as ssl/Makefile)
+$ EXHEADER := ssl.h, ssl2.h, ssl3.h, ssl23.h, tls1.h, dtls1.h, kssl.h, srtp.h
+$ copy sys$disk:[.ssl]'exheader' sys$disk:[.include.openssl]
 $!
-$! Purge all doubles
+$! Purge the [.include.openssl] header files.
 $!
-$ PURGE SYS$DISK:[.INCLUDE.OPENSSL]*.H
+$ purge sys$disk:[.include.openssl]*.h
 $!
 $! That's All, Time To RETURN.
 $!
 $ RETURN
 $!
-$! Build The "[.xxx.EXE.CRYPTO]LIBCRYPTO.OLB" Library.
+$! Build The "[.xxx.EXE.CRYPTO]SSL_LIBCRYPTO''LIB32'.OLB" Library.
 $!
 $ CRYPTO:
 $!
 $! Tell The User What We Are Doing.
 $!
 $ WRITE SYS$OUTPUT ""
-$ WRITE SYS$OUTPUT "Building The [.",ARCH,".EXE.CRYPTO]LIBCRYPTO.OLB Library."
+$ WRITE SYS$OUTPUT -
+   "Building The [.",ARCHD,".EXE.CRYPTO]SSL_LIBCRYPTO''LIB32'.OLB Library."
 $!
 $! Go To The [.CRYPTO] Directory.
 $!
@@ -529,11 +826,14 @@ $ SET DEFAULT SYS$DISK:[.CRYPTO]
 $!
 $! Build The [.xxx.EXE.CRYPTO]LIBCRYPTO.OLB Library.
 $!  
-$ @CRYPTO-LIB LIBRARY 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" "''ISSEVEN'" "''BUILDPART'"
+$ @CRYPTO-LIB LIBRARY 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" -
+   "''ISSEVEN'" "''BUILDPART'" "''POINTER_SIZE'" "''ZLIB'"
 $!
 $! Build The [.xxx.EXE.CRYPTO]*.EXE Test Applications.
-$!  
-$ @CRYPTO-LIB APPS 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" 'ISSEVEN' "''BUILDPART'"
+$!
+$!!! DISABLED, as these test programs lack any support
+$!!!$ @CRYPTO-LIB APPS 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" -
+$!!!   "''ISSEVEN'" "''BUILDPART'" "''POINTER_SIZE'" "''ZLIB'"
 $!
 $! Go Back To The Main Directory.
 $!
@@ -543,14 +843,15 @@ $! Time To RETURN.
 $!
 $ RETURN
 $!
-$! Build The "[.xxx.EXE.SSL]LIBSSL.OLB" Library.
+$! Build The "[.xxx.EXE.SSL]SSL_LIBSSL''LIB32'.OLB" Library.
 $!
 $ SSL:
 $!
 $! Tell The User What We Are Doing.
 $!
 $ WRITE SYS$OUTPUT ""
-$ WRITE SYS$OUTPUT "Building The [.",ARCH,".EXE.SSL]LIBSSL.OLB Library."
+$ WRITE SYS$OUTPUT -
+   "Building The [.",ARCHD,".EXE.SSL]SSL_LIBSSL''LIB32'.OLB Library."
 $!
 $! Go To The [.SSL] Directory.
 $!
@@ -558,7 +859,8 @@ $ SET DEFAULT SYS$DISK:[.SSL]
 $!
 $! Build The [.xxx.EXE.SSL]LIBSSL.OLB Library.
 $!
-$ @SSL-LIB LIBRARY 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" 'ISSEVEN'
+$ @SSL-LIB LIBRARY 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" -
+   "''ISSEVEN'" "''POINTER_SIZE'" "''ZLIB'"
 $!
 $! Go Back To The Main Directory.
 $!
@@ -575,7 +877,8 @@ $!
 $! Tell The User What We Are Doing.
 $!
 $ WRITE SYS$OUTPUT ""
-$ WRITE SYS$OUTPUT "Building DECNet Based SSL Engine, [.",ARCH,".EXE.SSL]SSL_TASK.EXE"
+$ WRITE SYS$OUTPUT -
+   "Building DECNet Based SSL Engine, [.",ARCHD,".EXE.SSL]SSL_TASK.EXE"
 $!
 $! Go To The [.SSL] Directory.
 $!
@@ -583,7 +886,8 @@ $ SET DEFAULT SYS$DISK:[.SSL]
 $!
 $! Build The [.xxx.EXE.SSL]SSL_TASK.EXE
 $!
-$ @SSL-LIB SSL_TASK 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" 'ISSEVEN'
+$ @SSL-LIB SSL_TASK 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" -
+   "''ISSEVEN'" "''POINTER_SIZE'" "''ZLIB'"
 $!
 $! Go Back To The Main Directory.
 $!
@@ -600,7 +904,7 @@ $!
 $! Tell The User What We Are Doing.
 $!
 $ WRITE SYS$OUTPUT ""
-$ WRITE SYS$OUTPUT "Building The OpenSSL [.",ARCH,".EXE.TEST] Test Utilities."
+$ WRITE SYS$OUTPUT "Building The OpenSSL [.",ARCHD,".EXE.TEST] Test Utilities."
 $!
 $! Go To The [.TEST] Directory.
 $!
@@ -608,7 +912,8 @@ $ SET DEFAULT SYS$DISK:[.TEST]
 $!
 $! Build The Test Programs.
 $!
-$ @MAKETESTS 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" 'ISSEVEN'
+$ @MAKETESTS 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" "''ISSEVEN'" -
+   "''POINTER_SIZE'" "''ZLIB'"
 $!
 $! Go Back To The Main Directory.
 $!
@@ -625,7 +930,7 @@ $!
 $! Tell The User What We Are Doing.
 $!
 $ WRITE SYS$OUTPUT ""
-$ WRITE SYS$OUTPUT "Building OpenSSL [.",ARCH,".EXE.APPS] Applications."
+$ WRITE SYS$OUTPUT "Building OpenSSL [.",ARCHD,".EXE.APPS] Applications."
 $!
 $! Go To The [.APPS] Directory.
 $!
@@ -633,7 +938,8 @@ $ SET DEFAULT SYS$DISK:[.APPS]
 $!
 $! Build The Application Programs.
 $!
-$ @MAKEAPPS 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" 'ISSEVEN'
+$ @MAKEAPPS 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" "''ISSEVEN'" -
+   "" "''POINTER_SIZE'" "''ZLIB'"
 $!
 $! Go Back To The Main Directory.
 $!
@@ -650,7 +956,7 @@ $!
 $! Tell The User What We Are Doing.
 $!
 $ WRITE SYS$OUTPUT ""
-$ WRITE SYS$OUTPUT "Building OpenSSL [.",ARCH,".EXE.ENGINES] Engines."
+$ WRITE SYS$OUTPUT "Building OpenSSL [.",ARCHD,".EXE.ENGINES] Engines."
 $!
 $! Go To The [.ENGINES] Directory.
 $!
@@ -658,7 +964,8 @@ $ SET DEFAULT SYS$DISK:[.ENGINES]
 $!
 $! Build The Application Programs.
 $!
-$ @MAKEENGINES ENGINES 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" 'ISSEVEN' "''BUILDPART'"
+$ @MAKEENGINES ENGINES 'DEBUGGER' "''COMPILER'" "''TCPIP_TYPE'" -
+   "''ISSEVEN'" "''BUILDPART'" "''POINTER_SIZE'" "''ZLIB'"
 $!
 $! Go Back To The Main Directory.
 $!
@@ -695,15 +1002,16 @@ $! Else...
 $!
 $ ELSE
 $!
-$!  Else, Check To See If P1 Has A Valid Arguement.
+$!  Else, Check To See If P1 Has A Valid Argument.
 $!
 $   IF (P1.EQS."CONFIG").OR.(P1.EQS."BUILDINF").OR.(P1.EQS."SOFTLINKS") -
        .OR.(P1.EQS."BUILDALL") -
        .OR.(P1.EQS."CRYPTO").OR.(P1.EQS."SSL") -
-       .OR.(P1.EQS."SSL_TASK").OR.(P1.EQS."TEST").OR.(P1.EQS."APPS")
+       .OR.(P1.EQS."SSL_TASK").OR.(P1.EQS."TEST").OR.(P1.EQS."APPS") -
+       .OR.(P1.EQS."ENGINES")
 $   THEN
 $!
-$!    A Valid Arguement.
+$!    A Valid Argument.
 $!
 $     BUILDCOMMAND = P1
 $!
@@ -714,11 +1022,15 @@ $!
 $!    Tell The User We Don't Know What They Want.
 $!
 $     WRITE SYS$OUTPUT ""
-$     WRITE SYS$OUTPUT "The Option ",P1," Is Invalid.  The Valid Options Are:"
+$     WRITE SYS$OUTPUT "USAGE:   @MAKEVMS.COM [Target] [Pointer size] [Debug option] <Compiler> <TCP/IP library>"
+$     WRITE SYS$OUTPUT ""
+$     WRITE SYS$OUTPUT "Example: @MAKEVMS.COM ALL """" NODEBUG DECC TCPIP"
+$     WRITE SYS$OUTPUT ""
+$     WRITE SYS$OUTPUT "The Target ",P1," Is Invalid.  The Valid Target Options Are:"
 $     WRITE SYS$OUTPUT ""
 $     WRITE SYS$OUTPUT "    ALL      :  Just Build Everything."
-$     WRITE SYS$OUTPUT "    CONFIG   :  Just build the [.CRYPTO]OPENSSLCONF.H file."
-$     WRITE SYS$OUTPUT "    BUILDINF :  Just build the [.CRYPTO]BUILDINF.H file."
+$     WRITE SYS$OUTPUT "    CONFIG   :  Just build the [.CRYPTO._xxx]OPENSSLCONF.H file."
+$     WRITE SYS$OUTPUT "    BUILDINF :  Just build the [.CRYPTO._xxx]BUILDINF.H file."
 $     WRITE SYS$OUTPUT "    SOFTLINKS:  Just Fix The Unix soft links."
 $     WRITE SYS$OUTPUT "    BUILDALL :  Same as ALL, except CONFIG, BUILDINF and SOFTILNKS aren't done."
 $     WRITE SYS$OUTPUT "    CRYPTO   :  To Build Just The [.xxx.EXE.CRYPTO]LIBCRYPTO.OLB Library."
@@ -728,22 +1040,72 @@ $     WRITE SYS$OUTPUT "    SSL      :  To Build Just The [.xxx.EXE.SSL]LIBSSL.O
 $     WRITE SYS$OUTPUT "    SSL_TASK :  To Build Just The [.xxx.EXE.SSL]SSL_TASK.EXE Program."
 $     WRITE SYS$OUTPUT "    TEST     :  To Build Just The OpenSSL Test Programs."
 $     WRITE SYS$OUTPUT "    APPS     :  To Build Just The OpenSSL Application Programs."
+$     WRITE SYS$OUTPUT "    ENGINES  :  To Build Just The ENGINES"
 $     WRITE SYS$OUTPUT ""
 $     WRITE SYS$OUTPUT " Where 'xxx' Stands For:"
 $     WRITE SYS$OUTPUT ""
-$     WRITE SYS$OUTPUT "        AXP  :  Alpha Architecture."
-$     WRITE SYS$OUTPUT "        VAX  :  VAX Architecture."
+$     WRITE SYS$OUTPUT "    ALPHA[64]:  Alpha Architecture."
+$     WRITE SYS$OUTPUT "    IA64[64] :  IA64 Architecture."
+$     WRITE SYS$OUTPUT "    VAX      :  VAX Architecture."
 $     WRITE SYS$OUTPUT ""
 $!
 $!    Time To EXIT.
 $!
-$     EXIT
+$     GOTO TIDY
 $!
 $!  End The Valid Argument Check.
 $!
 $   ENDIF
 $!
 $! End The P1 Check.
+$!
+$ ENDIF
+$!
+$! Check P2 (POINTER_SIZE).
+$!
+$ IF (P2 .NES. "") .AND. (ARCH .NES. "VAX")
+$ THEN
+$!
+$   IF (P2 .EQS. "32")
+$   THEN
+$     POINTER_SIZE = "32"
+$   ELSE
+$     POINTER_SIZE = F$EDIT( P2, "COLLAPSE, UPCASE")
+$     IF ((POINTER_SIZE .EQS. "64") .OR. -
+       (POINTER_SIZE .EQS. "64=") .OR. -
+       (POINTER_SIZE .EQS. "64=ARGV"))
+$     THEN
+$       ARCHD = ARCH+ "_64"
+$       LIB32 = ""
+$     ELSE
+$!
+$!      Tell The User Entered An Invalid Option.
+$!
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT "The Option ", P2, -
+         " Is Invalid.  The Valid Options Are:"
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT -
+         "    """"       :  Compile with default (short) pointers."
+$       WRITE SYS$OUTPUT -
+         "    32       :  Compile with 32-bit (short) pointers."
+$       WRITE SYS$OUTPUT -
+         "    64       :  Compile with 64-bit (long) pointers (auto ARGV)."
+$       WRITE SYS$OUTPUT -
+         "    64=      :  Compile with 64-bit (long) pointers (no ARGV)."
+$       WRITE SYS$OUTPUT -
+         "    64=ARGV  :  Compile with 64-bit (long) pointers (ARGV)."
+$       WRITE SYS$OUTPUT ""
+$! 
+$!      Time To EXIT.
+$!
+$       GOTO TIDY
+$!
+$     ENDIF
+$!
+$   ENDIF
+$!
+$! End The P2 (POINTER_SIZE) Check.
 $!
 $ ENDIF
 $!
@@ -773,7 +1135,7 @@ $!  Else...
 $!
 $   ELSE
 $!
-$!    Tell The User Entered An Invalid Option..
+$!    Tell The User Entered An Invalid Option.
 $!
 $     WRITE SYS$OUTPUT ""
 $     WRITE SYS$OUTPUT "The Option ",P3," Is Invalid.  The Valid Options Are:"
@@ -784,9 +1146,9 @@ $     WRITE SYS$OUTPUT ""
 $!
 $!    Time To EXIT.
 $!
-$     EXIT
+$     GOTO TIDY
 $!
-$!  End The Valid Arguement Check.
+$!  End The Valid Argument Check.
 $!
 $   ENDIF
 $!
@@ -852,7 +1214,7 @@ $! Else...
 $!
 $ ELSE
 $!
-$!  Check To See If The User Entered A Valid Paramter.
+$!  Check To See If The User Entered A Valid Parameter.
 $!
 $   IF (P4.EQS."VAXC").OR.(P4.EQS."DECC").OR.(P4.EQS."GNUC")!.OR.(P4.EQS."LINK")
 $   THEN
@@ -925,7 +1287,7 @@ $!    End The GNU C Check.
 $!
 $     ENDIF
 $!
-$!  Else The User Entered An Invalid Arguement.
+$!  Else The User Entered An Invalid Argument.
 $!
 $   ELSE
 $!
@@ -941,9 +1303,9 @@ $     WRITE SYS$OUTPUT ""
 $!
 $!    Time To EXIT.
 $!
-$     EXIT
+$     GOTO TIDY
 $!
-$!  End The Valid Arguement Check.
+$!  End The Valid Argument Check.
 $!
 $   ENDIF
 $!
@@ -951,7 +1313,8 @@ $! End The P4 Check.
 $!
 $ ENDIF
 $!
-$! Time to check the contents of P5, and to make sure we get the correct library.
+$! Time to check the contents of P5, and to make sure we get the correct
+$! library.
 $!
 $ IF P5.EQS."SOCKETSHR" .OR. P5.EQS."MULTINET" .OR. P5.EQS."UCX" -
      .OR. P5.EQS."TCPIP" .OR. P5.EQS."NONE"
@@ -964,7 +1327,7 @@ $   THEN
 $!
 $!    Set the library to use SOCKETSHR
 $!
-$     TCPIP_LIB = "SYS$DISK:[-.VMS]SOCKETSHR_SHR.OPT/OPT"
+$     TCPIP_LIB = "SYS$DISK:[-.VMS]SOCKETSHR_SHR.OPT /OPTIONS"
 $!
 $!    Tell the user
 $!
@@ -998,7 +1361,7 @@ $   THEN
 $!
 $!    Set the library to use UCX.
 $!
-$     TCPIP_LIB = "SYS$DISK:[-.VMS]UCX_SHR_DECC.OPT/OPT"
+$     TCPIP_LIB = "SYS$DISK:[-.VMS]UCX_SHR_DECC.OPT /OPTIONS"
 $!
 $!    Tell the user
 $!
@@ -1015,7 +1378,7 @@ $   THEN
 $!
 $!    Set the library to use TCPIP (post UCX).
 $!
-$     TCPIP_LIB = "SYS$DISK:[-.VMS]TCPIP_SHR_DECC.OPT/OPT"
+$     TCPIP_LIB = "SYS$DISK:[-.VMS]TCPIP_SHR_DECC.OPT /OPTIONS"
 $!
 $!    Tell the user
 $!
@@ -1050,7 +1413,7 @@ $!  Print info
 $!
 $   WRITE SYS$OUTPUT "TCP/IP library spec: ", TCPIP_LIB
 $!
-$!  Else The User Entered An Invalid Arguement.
+$!  Else The User Entered An Invalid Argument.
 $!
 $ ELSE
 $   IF P5 .NES. ""
@@ -1069,7 +1432,7 @@ $     WRITE SYS$OUTPUT ""
 $!
 $!    Time To EXIT.
 $!
-$     EXIT
+$     GOTO TIDY
 $   ELSE
 $!
 $! If TCPIP is not defined, then hardcode it to make
@@ -1105,7 +1468,7 @@ $!
 $!  Get The Version Of VMS We Are Using.
 $!
 $   ISSEVEN :=
-$   TMP = F$ELEMENT(0,"-",F$EXTRACT(1,4,F$GETSYI("VERSION")))
+$   TMP = F$ELEMENT(0,"-",F$EXTRACT(1,4,VMS_VERSION))
 $   TMP = F$INTEGER(F$ELEMENT(0,".",TMP)+F$ELEMENT(1,".",TMP))
 $!
 $!  Check To See If The VMS Version Is v7.1 Or Later.
@@ -1125,6 +1488,69 @@ $! End The P6 Check.
 $!
 $ ENDIF
 $!
+$!
+$! Check To See If We Have A ZLIB Option.
+$!
+$ ZLIB = P7
+$ IF (ZLIB .NES. "")
+$ THEN
+$!
+$!  Check for expected ZLIB files.
+$!
+$   err = 0
+$   file1 = f$parse( "zlib.h", ZLIB, , , "SYNTAX_ONLY")
+$   if (f$search( file1) .eqs. "")
+$   then
+$     WRITE SYS$OUTPUT ""
+$     WRITE SYS$OUTPUT "The Option ", ZLIB, " Is Invalid."
+$     WRITE SYS$OUTPUT "    Can't find header: ''file1'"
+$     err = 1
+$   endif
+$!
+$   file2 = f$parse( ZLIB, "libz.olb", , , "SYNTAX_ONLY")
+$   if (f$search( file2) .eqs. "")
+$   then
+$     if (err .eq. 0)
+$     then
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT "The Option ", ZLIB, " Is Invalid."
+$     endif
+$     WRITE SYS$OUTPUT "    Can't find library: ''file2'"
+$     WRITE SYS$OUTPUT ""
+$     err = err+ 2
+$   endif
+$   if (err .eq. 1)
+$   then
+$     WRITE SYS$OUTPUT ""
+$   endif
+$!
+$   if (err .ne. 0)
+$   then
+$     GOTO TIDY
+$   endif
+$!
+$!  Print info
+$!
+$   WRITE SYS$OUTPUT "ZLIB library spec: ", file2
+$!
+$! End The ZLIB Check.
+$!
+$ ENDIF
+$!
 $!  Time To RETURN...
 $!
 $ RETURN
+$!
+$ TIDY:
+$!
+$! Close any open files.
+$!
+$ if (f$trnlnm( "h_file", "LNM$PROCESS", 0, "SUPERVISOR") .nes. "") then -
+   close h_file
+$!
+$! Restore the original default device:[directory].
+$!
+$ SET DEFAULT 'DEF_ORIG'
+$!
+$ EXIT
+$!

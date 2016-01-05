@@ -355,7 +355,7 @@ void ClientApp::onServerClosed()
 //-------------------------------------------------------------------------------------
 void ClientApp::handleGameTick()
 {
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	
 	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);

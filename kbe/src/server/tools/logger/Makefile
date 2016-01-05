@@ -1,7 +1,7 @@
 BIN  = logger
 SRCS =						\
 	logger					\
-	logger_interface			\
+	logger_interface		\
 	logwatcher				\
 	profile					\
 	main

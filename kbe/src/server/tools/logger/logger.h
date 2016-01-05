@@ -63,6 +63,7 @@ class Logger:	public PythonApp,
 {
 public:
 	typedef std::map<Network::Address, LogWatcher> LOG_WATCHERS;
+
 public:
 	enum TimeOutType
 	{
@@ -126,7 +127,7 @@ protected:
 	std::deque<LOG_ITEM*> buffered_logs_;
 	TimerHandle	timer_;
 
-	TelnetServer*															pTelnetServer_;
+	TelnetServer* pTelnetServer_;
 };
 
 }

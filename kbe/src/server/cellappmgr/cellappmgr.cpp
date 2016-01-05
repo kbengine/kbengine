@@ -113,7 +113,7 @@ void Cellappmgr::handleGameTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Cellappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&CellappmgrInterface::messageHandlers);
 }

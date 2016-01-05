@@ -87,7 +87,7 @@ void Baseappmgr::handleGameTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Baseappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&BaseappmgrInterface::messageHandlers);
 }

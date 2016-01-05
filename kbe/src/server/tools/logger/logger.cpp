@@ -299,8 +299,27 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		iter->second.onMessage(pLogItem);
 	}
 
-	// 记录下完整的日志，以在脚本回调时使用
-	std::string sLog = pLogItem->logstream.str();
+	static bool notificationScript_ = PyObject_HasAttrString(getEntryScript().get(), "onLogWrote") > 0;
+	if(notificationScript_)
+	{
+		// 记录下完整的日志，以在脚本回调时使用
+		std::string sLog = pLogItem->logstream.str();
+		
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+			const_cast<char*>("onLogWrote"),
+			const_cast<char*>("y#"),
+			sLog.c_str(),
+			sLog.length());
+
+		if (pyResult != NULL)
+		{
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+	}
 
 	// 缓存一部分log，提供工具查看log时能快速获取初始上下文
 	buffered_logs_.push_back(pLogItem);
@@ -309,21 +328,6 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		pLogItem = buffered_logs_.front();
 		buffered_logs_.pop_front();
 		delete pLogItem;
-	}
-
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
-		const_cast<char*>("onLogWrote"),
-		const_cast<char*>("y#"),
-		sLog.c_str(),
-		sLog.length());
-
-	if (pyResult != NULL)
-	{
-		Py_DECREF(pyResult);
-	}
-	else
-	{
-		SCRIPT_ERROR_CHECK();
 	}
 }
 

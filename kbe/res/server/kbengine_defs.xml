@@ -789,8 +789,8 @@
 		-->
 		<tick_sync_logs> 0 </tick_sync_logs>
 
-		<!-- Telnet服务, 如果端口被占用则向后尝试51001.. 
-			(Telnet service, if the port is occupied backwards to try 51001)
+		<!-- Telnet服务, 如果端口被占用则向后尝试34001.. 
+			(Telnet service, if the port is occupied backwards to try 34001)
 		-->
 		<telnet_service>
 			<port> 34000 </port>

@@ -477,7 +477,7 @@ int EndPoint::getInterfaceAddressByMAC(const char * mac, u_int32_t & address)
 }
 
 //-------------------------------------------------------------------------------------
-int EndPoint::findDefaultInterface(char * name)
+int EndPoint::findDefaultInterface(char * name, int buffsize)
 {
 #ifndef unix
 	strcpy(name, "eth0");
@@ -500,7 +500,7 @@ int EndPoint::findDefaultInterface(char * name)
 				u_int32_t	addr;
 				if (this->getInterfaceAddress(pIfInfoCur->if_name, addr) == 0)
 				{
-					strcpy(name, pIfInfoCur->if_name);
+					strncpy(name, pIfInfoCur->if_name, MAX_BUF);
 					ret = 0;
 
 					// we only stop if it's not a loopback address,
@@ -528,8 +528,8 @@ int EndPoint::getDefaultInterfaceAddress(u_int32_t & address)
 {
 	int ret = -1;
 
-	char interfaceName[256] = {0};
-	ret = findDefaultInterface(interfaceName);
+	char interfaceName[MAX_BUF] = {0};
+	ret = findDefaultInterface(interfaceName, MAX_BUF);
 	if(0 == ret)
 	{
 		ret = getInterfaceAddressByName(interfaceName, address);

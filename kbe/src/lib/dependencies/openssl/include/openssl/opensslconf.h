@@ -1,64 +1,54 @@
 /* opensslconf.h */
 /* WARNING: Generated automatically from opensslconf.h.in by Configure. */
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
 /* OpenSSL was configured with the following options: */
+#ifndef OPENSSL_SYSNAME_WIN32
+# define OPENSSL_SYSNAME_WIN32
+#endif
 #ifndef OPENSSL_DOING_MAKEDEPEND
 
-#ifndef OPENSSL_NO_CAMELLIA
-# define OPENSSL_NO_CAMELLIA
-#endif
-#ifndef OPENSSL_NO_CAST
-# define OPENSSL_NO_CAST
-#endif
-#ifndef OPENSSL_NO_DES
-# define OPENSSL_NO_DES
-#endif
-#ifndef OPENSSL_NO_DH
-# define OPENSSL_NO_DH
-#endif
-#ifndef OPENSSL_NO_DSA
-# define OPENSSL_NO_DSA
+
+#ifndef OPENSSL_NO_EC_NISTP_64_GCC_128
+# define OPENSSL_NO_EC_NISTP_64_GCC_128
 #endif
 #ifndef OPENSSL_NO_GMP
 # define OPENSSL_NO_GMP
 #endif
+#ifndef OPENSSL_NO_JPAKE
+# define OPENSSL_NO_JPAKE
+#endif
 #ifndef OPENSSL_NO_KRB5
 # define OPENSSL_NO_KRB5
 #endif
-#ifndef OPENSSL_NO_MD2
-# define OPENSSL_NO_MD2
-#endif
-#ifndef OPENSSL_NO_MDC2
-# define OPENSSL_NO_MDC2
-#endif
-#ifndef OPENSSL_NO_RC2
-# define OPENSSL_NO_RC2
-#endif
-#ifndef OPENSSL_NO_RC4
-# define OPENSSL_NO_RC4
-#endif
-#ifndef OPENSSL_NO_RC5
-# define OPENSSL_NO_RC5
+#ifndef OPENSSL_NO_LIBUNBOUND
+# define OPENSSL_NO_LIBUNBOUND
 #endif
 #ifndef OPENSSL_NO_RFC3779
 # define OPENSSL_NO_RFC3779
 #endif
-#ifndef OPENSSL_NO_SEED
-# define OPENSSL_NO_SEED
+#ifndef OPENSSL_NO_SCTP
+# define OPENSSL_NO_SCTP
 #endif
-#ifndef OPENSSL_NO_TLSEXT
-# define OPENSSL_NO_TLSEXT
+#ifndef OPENSSL_NO_SSL_TRACE
+# define OPENSSL_NO_SSL_TRACE
+#endif
+#ifndef OPENSSL_NO_STORE
+# define OPENSSL_NO_STORE
+#endif
+#ifndef OPENSSL_NO_UNIT_TEST
+# define OPENSSL_NO_UNIT_TEST
 #endif
 
 #endif /* OPENSSL_DOING_MAKEDEPEND */
+
 #ifndef OPENSSL_THREADS
 # define OPENSSL_THREADS
 #endif
 #ifndef OPENSSL_NO_ASM
 # define OPENSSL_NO_ASM
-#endif
-#ifndef OPENSSL_NO_DYNAMIC_ENGINE
-# define OPENSSL_NO_DYNAMIC_ENGINE
 #endif
 
 /* The OPENSSL_NO_* macros are also defined as NO_* if the application
@@ -66,38 +56,23 @@
    who haven't had the time to do the appropriate changes in their
    applications.  */
 #ifdef OPENSSL_ALGORITHM_DEFINES
-# if defined(OPENSSL_NO_CAMELLIA) && !defined(NO_CAMELLIA)
-#  define NO_CAMELLIA
-# endif
-# if defined(OPENSSL_NO_CAST) && !defined(NO_CAST)
-#  define NO_CAST
-# endif
-# if defined(OPENSSL_NO_DES) && !defined(NO_DES)
-#  define NO_DES
-# endif
-# if defined(OPENSSL_NO_DH) && !defined(NO_DH)
-#  define NO_DH
-# endif
-# if defined(OPENSSL_NO_DSA) && !defined(NO_DSA)
-#  define NO_DSA
+# if defined(OPENSSL_NO_EC_NISTP_64_GCC_128) && !defined(NO_EC_NISTP_64_GCC_128)
+#  define NO_EC_NISTP_64_GCC_128
 # endif
 # if defined(OPENSSL_NO_GMP) && !defined(NO_GMP)
 #  define NO_GMP
 # endif
+# if defined(OPENSSL_NO_JPAKE) && !defined(NO_JPAKE)
+#  define NO_JPAKE
+# endif
 # if defined(OPENSSL_NO_KRB5) && !defined(NO_KRB5)
 #  define NO_KRB5
 # endif
+# if defined(OPENSSL_NO_LIBUNBOUND) && !defined(NO_LIBUNBOUND)
+#  define NO_LIBUNBOUND
+# endif
 # if defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
 #  define NO_MD2
-# endif
-# if defined(OPENSSL_NO_MDC2) && !defined(NO_MDC2)
-#  define NO_MDC2
-# endif
-# if defined(OPENSSL_NO_RC2) && !defined(NO_RC2)
-#  define NO_RC2
-# endif
-# if defined(OPENSSL_NO_RC4) && !defined(NO_RC4)
-#  define NO_RC4
 # endif
 # if defined(OPENSSL_NO_RC5) && !defined(NO_RC5)
 #  define NO_RC5
@@ -105,11 +80,17 @@
 # if defined(OPENSSL_NO_RFC3779) && !defined(NO_RFC3779)
 #  define NO_RFC3779
 # endif
-# if defined(OPENSSL_NO_SEED) && !defined(NO_SEED)
-#  define NO_SEED
+# if defined(OPENSSL_NO_SCTP) && !defined(NO_SCTP)
+#  define NO_SCTP
 # endif
-# if defined(OPENSSL_NO_TLSEXT) && !defined(NO_TLSEXT)
-#  define NO_TLSEXT
+# if defined(OPENSSL_NO_SSL_TRACE) && !defined(NO_SSL_TRACE)
+#  define NO_SSL_TRACE
+# endif
+# if defined(OPENSSL_NO_STORE) && !defined(NO_STORE)
+#  define NO_STORE
+# endif
+# if defined(OPENSSL_NO_UNIT_TEST) && !defined(NO_UNIT_TEST)
+#  define NO_UNIT_TEST
 # endif
 #endif
 
@@ -129,6 +110,7 @@
 #define OPENSSL_UNISTD <unistd.h>
 
 #undef OPENSSL_EXPORT_VAR_AS_FUNCTION
+#define OPENSSL_EXPORT_VAR_AS_FUNCTION
 
 #if defined(HEADER_IDEA_H) && !defined(IDEA_INT)
 #define IDEA_INT unsigned int
@@ -178,14 +160,9 @@
 /* Should we define BN_DIV2W here? */
 
 /* Only one for the following should be defined */
-/* The prime number generation stuff may not work when
- * EIGHT_BIT but I don't care since I've only used this mode
- * for debuging the bignum libraries */
 #undef SIXTY_FOUR_BIT_LONG
 #undef SIXTY_FOUR_BIT
 #define THIRTY_TWO_BIT
-#undef SIXTEEN_BIT
-#undef EIGHT_BIT
 #endif
 
 #if defined(HEADER_RC4_LOCL_H) && !defined(CONFIG_HEADER_RC4_LOCL_H)
@@ -206,14 +183,14 @@
 /* the following is tweaked from a config script, that is why it is a
  * protected undef/define */
 #ifndef DES_PTR
-#define DES_PTR
+#undef DES_PTR
 #endif
 
 /* This helps C compiler generate the correct code for multiple functional
  * units.  It reduces register dependancies at the expense of 2 more
  * registers */
 #ifndef DES_RISC1
-#define DES_RISC1
+#undef DES_RISC1
 #endif
 
 #ifndef DES_RISC2
@@ -221,13 +198,13 @@
 #endif
 
 #if defined(DES_RISC1) && defined(DES_RISC2)
-YOU SHOULD NOT HAVE BOTH DES_RISC1 AND DES_RISC2 DEFINED!!!!!
+#error YOU SHOULD NOT HAVE BOTH DES_RISC1 AND DES_RISC2 DEFINED!!!!!
 #endif
 
 /* Unroll the inner loop, this sometimes helps, sometimes hinders.
  * Very mucy CPU dependant */
 #ifndef DES_UNROLL
-#define DES_UNROLL
+#undef DES_UNROLL
 #endif
 
 /* These default values were supplied by
@@ -240,7 +217,7 @@ YOU SHOULD NOT HAVE BOTH DES_RISC1 AND DES_RISC2 DEFINED!!!!!
    optimization options.  Older Sparc's work better with only UNROLL, but
    there's no way to tell at compile time what it is you're running on */
  
-#if defined( sun )		/* Newer Sparc's */
+#if defined( __sun ) || defined ( sun )		/* Newer Sparc's */
 #  define DES_PTR
 #  define DES_RISC1
 #  define DES_UNROLL
@@ -272,15 +249,6 @@ YOU SHOULD NOT HAVE BOTH DES_RISC1 AND DES_RISC2 DEFINED!!!!!
 
 #endif /* DES_DEFAULT_OPTIONS */
 #endif /* HEADER_DES_LOCL_H */
-#ifdef _LP64
-#define RC4_CHUNK unsigned long
-#undef DES_LONG
-#define DES_LONG unsigned int
-#undef BN_LLONG
-#define SIXTY_FOUR_BIT_LONG
-#undef THIRTY_TWO_BIT
-#undef RC4_INDEX
-#define BF_PTR2
-#undef DES_PTR
-#undef DES_RISC1
+#ifdef  __cplusplus
+}
 #endif
