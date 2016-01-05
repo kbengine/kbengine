@@ -30,6 +30,7 @@ class Map : public ScriptObject
 {		
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(Map, ScriptObject)
+
 public:	
 	static PyMappingMethods mappingMethods;
 	static PySequenceMethods mappingSequenceMethods;
@@ -69,7 +70,8 @@ public:
 		bool isDelete = false);
 
 protected:
-	PyObject* pyDict_;											// 字典数据， 所有的数据都往这里面写
+	// 字典数据， 所有的数据都往这里面写
+	PyObject* pyDict_;
 } ;
 
 }
