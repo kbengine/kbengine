@@ -317,7 +317,7 @@ bool DBInterfaceMysql::checkEnvironment()
 				else
 				{
 					CRITICAL_MSG(fmt::format("DBInterfaceMysql::checkEnvironment: [my.cnf or my.ini]->lower_case_table_names != 2 or 0, curr={}!\n"
-						"Windows use cmd('sc qc MySQL|find \".ini\"') to view the configuration directory.\n", v));
+						"Windows use CMD(wmic service where \"name like 'mysql%'\") to view the configuration directory.\n", v));
 				}
 			}
 			else if(s == "max_allowed_packet")
