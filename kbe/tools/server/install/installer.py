@@ -726,8 +726,8 @@ def findMysqlService():
 					continue
 					
 			if len(mysql_sercive_name) == 0:
-				if "mysqld" in s:
-					mysql_sercive_name = "mysqld"
+				if "mysql" in s.lower().strip():
+					mysql_sercive_name = s.strip()
 				else:
 					mysql_sercive_name = "mysql"
 					
