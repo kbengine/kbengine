@@ -938,11 +938,11 @@ def createDatabase():
 
 				mysql_root = ret[7].strip()
 
-				if lower_case_table_names != '0':
-					ERROR_MSG('mysql lower_case_table_names not is 0')
+				if lower_case_table_names != '2':
+					ERROR_MSG('mysql lower_case_table_names not is 2')
 					config, cnf = getMysqlConfig()
 					INFO_MSG('Attempt to modify the [%s]...' % cnf)
-					config.set('mysqld', 'lower_case_table_names', '0')
+					config.set('mysqld', 'lower_case_table_names', '2')
 					config.write(open(cnf, "w"))
 					restartMsql()
 					continue
