@@ -274,7 +274,7 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("requestCreateAccount"), 
+										const_cast<char*>("onRequestCreateAccount"), 
 										const_cast<char*>("ssy#"), 
 										registerName.c_str(), 
 										password.c_str(),
@@ -383,7 +383,7 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("requestAccountLogin"), 
+										const_cast<char*>("onRequestAccountLogin"), 
 										const_cast<char*>("ssy#"), 
 										loginName.c_str(), 
 										password.c_str(), 
@@ -495,7 +495,7 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("requestCharge"), 
+										const_cast<char*>("onRequestCharge"), 
 										const_cast<char*>("sKy#"), 
 										pOrdersCharge->ordersID.c_str(),
 										pOrdersCharge->dbid, 

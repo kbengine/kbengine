@@ -1907,11 +1907,11 @@ bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Positi
 	{
 		WARNING_MSG(fmt::format("Entity::navigatePathPoints(): space({}), entityID({}), not found navhandle!\n",
 			spaceID(), id()));
+
 		return false;
 	}
 
-	int resultCount = pNavHandle->findStraightPath(layer, position_, destination, outPaths);
-	if (resultCount < 0)
+	if (pNavHandle->findStraightPath(layer, position_, destination, outPaths) < 0)
 	{
 		return false;
 	}
@@ -1925,6 +1925,7 @@ bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Positi
 			iter++;
 			continue;
 		}
+
 		break;
 	}
 
