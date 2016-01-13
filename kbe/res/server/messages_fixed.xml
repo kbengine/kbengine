@@ -26,6 +26,11 @@
 		<id>4</id>
 		<descr>查询所有接口信息。</descr>
 	</Machine::onQueryAllInterfaceInfos>
+
+	<Machine::onQueryMachines>
+		<id>5</id>
+		<descr>查询所有machine进程。</descr>
+	</Machine::onQueryMachines>
 	
 	<Loginapp::reqClose>
 		<id>1</id>
