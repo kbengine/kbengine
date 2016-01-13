@@ -301,8 +301,51 @@ bool Machine::checkComponentUsable(const Components::ComponentInfos* info, bool 
 	return ret;
 }
 
+void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string& username,
+	uint16 finderRecvPort)
+{
+	INFO_MSG(fmt::format("Machine::onQueryMachines[{}]: uid:{}, username:{}, "
+		"finderRecvPort:{}.\n",
+		pChannel->c_str(), uid, username.c_str(),
+		ntohs(finderRecvPort)));
+
+	Network::EndPoint ep;
+	ep.socket(SOCK_DGRAM);
+
+	if (!ep.good())
+	{
+		ERROR_MSG("Machine::onQueryMachines: Failed to create socket.\n");
+		return;
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+	uint64 cidex = 0;
+	float cpu = SystemInfo::getSingleton().getCPUPer();
+	uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
+	uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
+
+	MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), getUserUID(), getUsername(),
+		g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+		networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+		networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
+		cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0,
+		getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100), 0, 0, 0);
+
+	if (finderRecvPort != 0)
+	{
+		ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+	else
+	{
+		pChannel->send(pBundle);
+	}
+}
+
 //-------------------------------------------------------------------------------------
-void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
+void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, 
+	uint16 finderRecvPort)
 {
 	// uid不等于当前服务器的uid则不理会。
 	if(uid > 0)

@@ -15,6 +15,7 @@ MachineInterface_onFindInterfaceAddr = 1
 MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
 MachineInterface_onQueryAllInterfaceInfos = 4
+MachineInterface_onQueryMachines = 5
 
 def initRootPath():
 	"""
@@ -269,7 +270,26 @@ class ClusterControllerHandler:
                            
 		self.writePacket("B", 0)
 		self.sendto()
-		
+		self.parseQueryDatas()
+
+	def queryMachines(self):
+		#print("queryMachines...")
+		self.resetPacket()
+		self.writePacket("H", MachineInterface_onQueryMachines)
+		self.writePacket("H", 6 + len(getpass.getuser().encode()) + 1)
+		self.writePacket("i", self.uid)
+
+		for x in getpass.getuser().encode():
+			if type(x) == str:
+				self.writePacket("B", ord(x))
+			else:
+				self.writePacket("B", x)
+                           
+		self.writePacket("B", 0)
+		self.sendto()
+		self.parseQueryDatas()
+
+	def parseQueryDatas(self):
 		self._interfaces = {}
 		if len(self.recvDatas) == 0:
 			return
@@ -868,18 +888,22 @@ if __name__ == "__main__":
 				uid = getDefaultUID()
 
 			clusterHandler = ClusterSendLogHandler(uid, logType, logStr)
+		else:
+			uid = -1
+
+			if len(sys.argv) >= 2:
+				if sys.argv[1].isdigit():
+					uid = sys.argv[1]
+
+			uid = int(uid)
+
+			#如果没有给UID参数，则默认为0，查询所有机器
+			if uid < 0:
+				uid = 0
+
+			clusterHandler = ClusterQueryHandler(uid)
 	else:
-		uid = -1
-
-		if len(sys.argv) >= 2:
-			if sys.argv[1].isdigit():
-				uid = sys.argv[1]
-
-		uid = int(uid)
-		if uid < 0:
-			uid = getDefaultUID()
-
-		clusterHandler = ClusterQueryHandler(uid)
+		clusterHandler = ClusterQueryHandler(0)
 			
 	if clusterHandler is not None: 
 		clusterHandler.do()
