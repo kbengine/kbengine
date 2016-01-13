@@ -255,7 +255,7 @@ bool DBInterfaceRedis::query(const std::string& cmd, redisReply** pRedisReply, b
 	*pRedisReply = (redisReply*)redisCommand(pRedisContext_, cmd.c_str());  
 	
 	lastquery_ = cmd;
-	RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
+	RedisWatcher::querystatistics(lastquery_.c_str(), (uint32)lastquery_.size());
 	
 	if (pRedisContext_->err) 
 	{
@@ -289,7 +289,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool printlog, Memory
 	redisReply* pRedisReply = (redisReply*)redisCommand(pRedisContext_, cmd);
 	
 	lastquery_ = cmd;
-	RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
+	RedisWatcher::querystatistics(lastquery_.c_str(), (uint32)lastquery_.size());
 	write_query_result(pRedisReply, result);
 	
 	if (pRedisContext_->err) 
@@ -332,7 +332,7 @@ bool DBInterfaceRedis::query(bool printlog, const char* format, ...)
 	if(cnt > 0)
 	{
 		lastquery_ = buffer;
-		RedisWatcher::querystatistics(lastquery_.c_str(), lastquery_.size());
+		RedisWatcher::querystatistics(lastquery_.c_str(), (uint32)lastquery_.size());
 	}
 	
 	if (pRedisContext_->err) 
@@ -430,7 +430,7 @@ void DBInterfaceRedis::write_query_result(redisReply* pRedisReply, MemoryStream 
 		uint32 nfields = 1;
 
 		if(pRedisReply->type == REDIS_REPLY_ARRAY)
-			nfields = pRedisReply->elements;
+			nfields = (uint32)pRedisReply->elements;
 
 		(*result) << nfields << nrows;
 		

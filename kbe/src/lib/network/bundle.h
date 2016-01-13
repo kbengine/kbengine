@@ -293,14 +293,14 @@ public:
 	Bundle &append(MemoryStream& s)
 	{
 		if(s.length() > 0)
-			return append(s.data() + s.rpos(), s.length());
+			return append(s.data() + s.rpos(), (int)s.length());
 
 		return *this;
 	}
 
 	Bundle &appendBlob(const std::string& str)
 	{
-		return appendBlob((const uint8 *)str.data(), str.size());
+		return appendBlob((const uint8 *)str.data(), (ArraySize)str.size());
 	}
 
 	Bundle &appendBlob(const char* str, ArraySize n)

@@ -68,7 +68,7 @@ name_(name),
 usePropertyDescrAlias_(false),
 useMethodDescrAlias_(false)
 {
-	EntityDef::md5().append((void*)name.c_str(), name.size());
+	EntityDef::md5().append((void*)name.c_str(), (int)name.size());
 }
 
 //-------------------------------------------------------------------------------------

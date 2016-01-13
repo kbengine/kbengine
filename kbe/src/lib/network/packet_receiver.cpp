@@ -74,7 +74,7 @@ Reason PacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 {
 	if (pChannel != NULL)
 	{
-		pChannel->onPacketReceived(pPacket->length());
+		pChannel->onPacketReceived((int)pPacket->length());
 
 		if (pChannel->pFilter())
 		{

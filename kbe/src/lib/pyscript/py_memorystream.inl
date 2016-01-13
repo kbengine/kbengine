@@ -39,7 +39,7 @@ INLINE PyObject* PyMemoryStream::pyBytes()
 
 INLINE int PyMemoryStream::length(void) const
 { 
-	return stream_.size(); 
+	return (int)stream_.size();
 }
 
 INLINE bool PyMemoryStream::readonly() const

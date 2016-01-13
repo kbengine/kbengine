@@ -251,7 +251,7 @@ PyObject* FixedArray::__py_insert(PyObject* self, PyObject* args, PyObject* kwar
 	PyObject* pyTuple = PyTuple_New(1);
 	PyTuple_SET_ITEM(&*pyTuple, 0, pyobj);
 
-	const int argsize = PyTuple_Size(args);
+	const int argsize = (int)PyTuple_Size(args);
 	if(argsize > 2)
 	{
 		PyErr_SetString(PyExc_ValueError, "FixedArray::insert: args is wrong!");
@@ -275,7 +275,7 @@ PyObject* FixedArray::__py_pop(PyObject* self, PyObject* args, PyObject* kwargs)
 
 	PyObject* pyItem = PyTuple_GetItem(args, 0);
 	int index = PyLong_AsLong(pyItem);
-	if (index < 0) index += values.size();
+	if (index < 0) index += (int)values.size();
 	if (uint32(index) >= values.size())
 	{
 		PyErr_SetString(PyExc_IndexError, "FixedArray.pop: index out of range");
