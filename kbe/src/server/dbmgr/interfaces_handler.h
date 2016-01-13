@@ -73,11 +73,11 @@ public:
 protected:
 };
 
-class InterfacesHandler_Normal : public InterfacesHandler
+class InterfacesHandler_Dbmgr : public InterfacesHandler
 {
 public:
-	InterfacesHandler_Normal();
-	virtual ~InterfacesHandler_Normal();
+	InterfacesHandler_Dbmgr();
+	virtual ~InterfacesHandler_Dbmgr();
 	
 	virtual bool initialize(){ return true; }
 
@@ -107,11 +107,11 @@ public:
 protected:
 };
 
-class InterfacesHandler_ThirdParty : public InterfacesHandler_Normal, public thread::TPTask
+class InterfacesHandler_Interfaces : public InterfacesHandler_Dbmgr, public thread::TPTask
 {
 public:
-	InterfacesHandler_ThirdParty();
-	virtual ~InterfacesHandler_ThirdParty();
+	InterfacesHandler_Interfaces();
+	virtual ~InterfacesHandler_Interfaces();
 	
 	virtual bool initialize();
 
