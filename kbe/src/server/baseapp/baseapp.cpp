@@ -761,7 +761,7 @@ Base* Baseapp::onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_createBase(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	PyObject* params = NULL;
 	char* entityType = NULL;
 	int ret = -1;
@@ -788,7 +788,7 @@ PyObject* Baseapp::__py_createBase(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	PyObject* params = NULL, *pyCallback = NULL;
 	char* entityType = NULL;
 	int ret = -1;
@@ -823,7 +823,7 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
@@ -1135,7 +1135,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
@@ -1402,7 +1402,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 		return;
 	}
 
-	s.rpos(currpos);
+	s.rpos((int)currpos);
 
 	MemoryStream* stream = MemoryStream::ObjPool().createObject();
 	(*stream) << g_componentID;
@@ -1633,7 +1633,7 @@ void Baseapp::createBaseAnywhere(const char* entityType, PyObject* params, PyObj
 	if(params != NULL && PyDict_Check(params))
 	{
 		strInitData = script::Pickler::pickle(params);
-		initDataLength = strInitData.length();
+		initDataLength = (uint32)strInitData.length();
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
@@ -1995,7 +1995,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	int ret = -1;
@@ -2039,7 +2039,7 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 		}
 	}
 
-	Baseapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback, eid, dbInterfaceName);
+	Baseapp::getSingleton().executeRawDatabaseCommand(data, (uint32)size, pycallback, eid, dbInterfaceName);
 	S_Return;
 }
 
@@ -2871,7 +2871,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	PyDict_SetItemString(pyDict, "__ACCOUNT_NAME__", py__ACCOUNT_NAME__);
 	Py_DECREF(py__ACCOUNT_NAME__);
 
-	PyObject* py__ACCOUNT_PASSWD__ = PyUnicode_FromString(KBE_MD5::getDigest(password.data(), password.length()).c_str());
+	PyObject* py__ACCOUNT_PASSWD__ = PyUnicode_FromString(KBE_MD5::getDigest(password.data(), (int)password.length()).c_str());
 	PyDict_SetItemString(pyDict, "__ACCOUNT_PASSWORD__", py__ACCOUNT_PASSWD__);
 	Py_DECREF(py__ACCOUNT_PASSWD__);
 
@@ -3478,13 +3478,13 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 		}
 
 		bundle.newMessage(ClientInterface::onImportClientMessages);
-		uint16 size = messages.size();
+		uint16 size = (uint16)messages.size();
 		bundle << size;
 
 		std::map< Network::MessageID, Network::ExposedMessageInfo >::iterator iter = messages.begin();
 		for(; iter != messages.end(); ++iter)
 		{
-			uint8 argsize = iter->second.argsTypes.size();
+			uint8 argsize = (uint8)iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
@@ -3526,7 +3526,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 		bundle.newMessage(ClientInterface::onImportClientEntityDef);
 		
 		const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
-		uint16 aliassize = dataTypes.size();
+		uint16 aliassize = (uint16)dataTypes.size();
 		bundle << aliassize;
 
 		DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
@@ -3544,7 +3544,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				
 				FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
 
-				uint8 keysize = keys.size();
+				uint8 keysize = (uint8)keys.size();
 				bundle << keysize;
 				bundle << dictdatatype->moduleName();
 
@@ -3573,10 +3573,10 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			if(!iter->get()->hasClient())
 				continue;
 
-			uint16 size = propers.size() + 3 /* pos, dir, spaceID */;
-			uint16 size1 = methods.size();
-			uint16 size2 = methods1.size();
-			uint16 size3 = methods2.size();
+			uint16 size = (uint16)propers.size() + 3 /* pos, dir, spaceID */;
+			uint16 size1 = (uint16)methods.size();
+			uint16 size2 = (uint16)methods1.size();
+			uint16 size3 = (uint16)methods2.size();
 
 			bundle << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
@@ -3609,7 +3609,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
-				uint8 argssize = args.size();
+				uint8 argssize = (uint8)args.size();
 
 				bundle << methodUtype << aliasID << name << argssize;
 				
@@ -3629,7 +3629,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
-				uint8 argssize = args.size();
+				uint8 argssize = (uint8)args.size();
 
 				bundle << methodUtype << aliasID << name << argssize;
 				
@@ -3649,7 +3649,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				std::string	name = miter->second->getName();
 				
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
-				uint8 argssize = args.size();
+				uint8 argssize = (uint8)args.size();
 
 				bundle << methodUtype << aliasID << name << argssize;
 				
@@ -3669,7 +3669,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 PyObject* Baseapp::__py_reloadScript(PyObject* self, PyObject* args)
 {
 	bool fullReload = true;
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount == 1)
 	{
 		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
@@ -3722,7 +3722,7 @@ PyObject* Baseapp::__py_address(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 {
-	uint16 currargsSize = PyTuple_Size(args);
+	uint16 currargsSize = (uint16)PyTuple_Size(args);
 	if (currargsSize < 3 || currargsSize > 4)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: args != (entityType, dbID, pycallback, dbInterfaceName)!");
@@ -3885,7 +3885,7 @@ void Baseapp::deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 //-------------------------------------------------------------------------------------
 PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 {
-	uint16 currargsSize = PyTuple_Size(args);
+	uint16 currargsSize = (uint16)PyTuple_Size(args);
 	if (currargsSize < 3 || currargsSize > 4)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: args != (entityType, dbID, pycallback, dbInterfaceName)!");

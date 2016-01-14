@@ -196,7 +196,7 @@ DataDownload(objptr, descr, id)
 	}	
 	else
 	{
-		totalBytes_ = PyBytes_GET_SIZE(pyobj);
+		totalBytes_ = (uint32)PyBytes_GET_SIZE(pyobj);
 		stream_ = new char[totalBytes_ + 1];
 		memcpy(getOutStream(), PyBytes_AS_STRING(pyobj), totalBytes_);
 		Py_DECREF(pyobj);

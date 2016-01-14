@@ -993,7 +993,7 @@ PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
@@ -1016,7 +1016,7 @@ PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 2)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
@@ -1051,7 +1051,7 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
@@ -1075,7 +1075,7 @@ PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount < 1 || argCount > 2)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
