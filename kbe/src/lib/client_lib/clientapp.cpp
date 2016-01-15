@@ -533,7 +533,7 @@ PyObject* ClientApp::__py_fireEvent(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------	
 PyObject* ClientApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");

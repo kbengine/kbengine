@@ -392,7 +392,7 @@ void Baseapp::onUpdateLoad()
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappmgrInterface::updateBaseapp);
 		BaseappmgrInterface::updateBaseappArgs5::staticAddToBundle((*pBundle), 
-			componentID_, pEntities_->getEntities().size() - numProxices(), numProxices(), getLoad(), flags_);
+			componentID_, (ENTITY_ID)(pEntities_->getEntities().size() - numProxices()), (ENTITY_ID)numProxices(), getLoad(), flags_);
 
 		pChannel->send(pBundle);
 	}

@@ -79,19 +79,19 @@ Reason BlowfishFilter::send(Channel * pChannel, PacketSender& sender, Packet * p
 		Packet * pOutPacket = NULL;
 		MALLOC_PACKET(pOutPacket, pPacket->isTCPPacket());
 
-		PacketLength oldlen = pPacket->length();
+		PacketLength oldlen = (PacketLength)pPacket->length();
 		pOutPacket->wpos(PACKET_LENGTH_SIZE + 1);
 		encrypt(pPacket, pOutPacket);
 
-		PacketLength packetLen = pPacket->length() + 1;
-		uint8 padSize = pPacket->length() - oldlen;
+		PacketLength packetLen = (PacketLength)(pPacket->length() + 1);
+		uint8 padSize = (uint8)(pPacket->length() - oldlen);
 		size_t oldwpos =  pOutPacket->wpos();
 		pOutPacket->wpos(0);
 
 		(*pOutPacket) << packetLen;
 		(*pOutPacket) << padSize;
 
-		pOutPacket->wpos(oldwpos);
+		pOutPacket->wpos((int)oldwpos);
 		pPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pOutPacket)));
 		RECLAIM_PACKET(pPacket->isTCPPacket(), pOutPacket);
 
@@ -149,7 +149,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 				{
 					MALLOC_PACKET(pPacket_, pPacket->isTCPPacket());
 					pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
-					pPacket->wpos(pPacket->rpos() + packetLen_);
+					pPacket->wpos((int)(pPacket->rpos() + packetLen_));
 				}
 				else if(pPacket->length() == packetLen_)
 				{
@@ -179,7 +179,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 			{
 				MALLOC_PACKET(pPacket_, pPacket->isTCPPacket());
 				pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
-				pPacket->wpos(pPacket->rpos() + packetLen_);
+				pPacket->wpos((int)(pPacket->rpos() + packetLen_));
 			}
 			else if(pPacket->length() == packetLen_)
 			{
@@ -197,7 +197,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 
 		decrypt(pPacket, pPacket);
 
-		pPacket->wpos(pPacket->wpos() - padSize_);
+		pPacket->wpos((int)(pPacket->wpos() - padSize_));
 
 		/*
 		if(Network::g_trace_packet > 0)
@@ -245,14 +245,14 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 		// Моід0
 		memset(pInPacket->data() + pInPacket->wpos(), 0, padSize);
 
-		pInPacket->wpos(pInPacket->wpos() + padSize);
+		pInPacket->wpos((int)(pInPacket->wpos() + padSize));
 	}
 	
 	if(pInPacket != pOutPacket)
 	{
 		pOutPacket->data_resize(pInPacket->size() + pOutPacket->wpos());
-		int size = KBEBlowfish::encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->wpos(),  pInPacket->wpos());
-		pOutPacket->wpos(size + pOutPacket->wpos());
+		int size = KBEBlowfish::encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->wpos(), (int)pInPacket->wpos());
+		pOutPacket->wpos((int)(size + pOutPacket->wpos()));
 	}
 	else
 	{
@@ -263,7 +263,7 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 
 		pOutPacket->data_resize(pInPacket->size() + 1);
 
-		int size = KBEBlowfish::encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->wpos(),  pInPacket->wpos());
+		int size = KBEBlowfish::encrypt(pInPacket->data(), pOutPacket->data() + pOutPacket->wpos(), (int)pInPacket->wpos());
 		pOutPacket->wpos(size);
 
 		pInPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pOutPacket)));
@@ -282,16 +282,16 @@ void BlowfishFilter::decrypt(Packet * pInPacket, Packet * pOutPacket)
 
 		int size = KBEBlowfish::decrypt(pInPacket->data() + pInPacket->rpos(), 
 			pOutPacket->data() + pOutPacket->rpos(),  
-			pInPacket->wpos() - pInPacket->rpos());
+			(int)(pInPacket->wpos() - pInPacket->rpos()));
 
-		pOutPacket->wpos(size + pOutPacket->wpos());
+		pOutPacket->wpos((int)(size + pOutPacket->wpos()));
 	}
 	else
 	{
 		KBEBlowfish::decrypt(pInPacket->data() + pInPacket->rpos(), pInPacket->data(),  
-			pInPacket->wpos() - pInPacket->rpos());
+			(int)(pInPacket->wpos() - pInPacket->rpos()));
 
-		pInPacket->wpos(pInPacket->wpos() - pInPacket->rpos());
+		pInPacket->wpos((int)(pInPacket->wpos() - pInPacket->rpos()));
 		pInPacket->rpos(0);
 	}
 }

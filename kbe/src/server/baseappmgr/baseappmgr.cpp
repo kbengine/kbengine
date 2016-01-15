@@ -179,7 +179,7 @@ void Baseappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }
@@ -280,7 +280,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
-		(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
 		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhere: not found baseapp, message is buffered.\n");
@@ -295,7 +295,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }
@@ -319,7 +319,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
-		(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
 		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp, message is buffered.\n");
@@ -334,7 +334,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }

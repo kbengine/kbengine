@@ -155,7 +155,7 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }
