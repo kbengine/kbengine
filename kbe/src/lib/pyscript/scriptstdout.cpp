@@ -110,7 +110,7 @@ PyObject* ScriptStdOut::__py_write(PyObject* self, PyObject *args)
 		
 	Py_ssize_t size = 0;
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(obj, &size);
-	static_cast<ScriptStdOut*>(self)->pScriptStdOutErr()->info_msg(PyUnicode_AsWideCharStringRet0, size);
+	static_cast<ScriptStdOut*>(self)->pScriptStdOutErr()->info_msg(PyUnicode_AsWideCharStringRet0, (uint32)size);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 	S_Return;
 }

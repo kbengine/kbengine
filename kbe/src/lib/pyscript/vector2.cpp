@@ -247,7 +247,7 @@ PyObject* ScriptVector2::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 	Vector2& my_v = sv->getVector();
 	PyObject* pyResult = NULL;
 
-	int length = endIndex - startIndex;
+	int length = (int)(endIndex - startIndex);
 
 	if (length == VECTOR_SIZE)
 	{
@@ -268,7 +268,7 @@ PyObject* ScriptVector2::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 			{
 				Vector2 v;
 				
-				for(int i = startIndex; i < endIndex; ++i){
+				for (int i = (int)startIndex; i < (int)endIndex; ++i){
 					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
@@ -278,7 +278,7 @@ PyObject* ScriptVector2::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssi
 			case 3:
 			{
 				Vector3 v;
-				for (int i = startIndex; i < endIndex; ++i){
+				for (int i = (int)startIndex; i < (int)endIndex; ++i){
 					v[i - static_cast<int>(startIndex)] = my_v[i];
 				}
 
@@ -758,7 +758,7 @@ PyObject* ScriptVector2::__py_pySet(PyObject* self, PyObject* args)
 	Vector2 v;
 
 	// 如果参数只有1个元素
-	int tupleSize = PyTuple_Size(args);
+	int tupleSize = (int)PyTuple_Size(args);
 	if(tupleSize == 1)
 	{
 		PyObject* pyItem = PyTuple_GetItem(args, 0);

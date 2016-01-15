@@ -409,7 +409,7 @@ void Cellapp::onUpdateLoad()
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappmgrInterface::updateCellapp);
 		CellappmgrInterface::updateCellappArgs4::staticAddToBundle((*pBundle), 
-			componentID_, pEntities_->getEntities().size(), getLoad(), flags_);
+			componentID_, (ENTITY_ID)pEntities_->getEntities().size(), getLoad(), flags_);
 
 		pChannel->send(pBundle);
 	}
@@ -476,7 +476,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	int ret = -1;
@@ -520,7 +520,7 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 		}
 	}
 
-	Cellapp::getSingleton().executeRawDatabaseCommand(data, size, pycallback, eid, dbInterfaceName);
+	Cellapp::getSingleton().executeRawDatabaseCommand(data, (uint32)size, pycallback, eid, dbInterfaceName);
 	S_Return;
 }
 
@@ -1490,7 +1490,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 		size_t wpos = s.wpos();
 		// size_t rpos = s.rpos();
 		size_t frpos = s.rpos() + currMsgLen;
-		s.wpos(frpos);
+		s.wpos((int)frpos);
 
 		try
 		{
@@ -1512,11 +1512,11 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 				CRITICAL_MSG(fmt::format("Cellapp::forwardEntityMessageToCellappFromClient[{}]: rpos({}) invalid, expect={}. msgID={}, msglen={}.\n",
 					pMsgHandler->name.c_str(), s.rpos(), frpos, currMsgID, currMsgLen));
 
-				s.rpos(frpos);
+				s.rpos((int)frpos);
 			}
 		}
 
-		s.wpos(wpos);
+		s.wpos((int)wpos);
 	}
 }
 
@@ -1564,7 +1564,7 @@ void Cellapp::lookApp(Network::Channel* pChannel)
 PyObject* Cellapp::__py_reloadScript(PyObject* self, PyObject* args)
 {
 	bool fullReload = true;
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount == 1)
 	{
 		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
@@ -1636,7 +1636,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	Entity* refEntity = Cellapp::getSingleton().findEntity(nearbyMBRefID);
 	if(refEntity == NULL || refEntity->isDestroyed())
 	{
-		s.rpos(rpos);
+		s.rpos((int)rpos);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
@@ -1656,7 +1656,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	Space* space = Spaces::findSpace(refEntity->spaceID());
 	if(space == NULL || !space->isGood())
 	{
-		s.rpos(rpos);
+		s.rpos((int)rpos);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
@@ -1675,7 +1675,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	Entity* e = createEntity(EntityDef::findScriptModule(entityType)->getName(), NULL, false, teleportEntityID, false);
 	if(e == NULL)
 	{
-		s.rpos(rpos);
+		s.rpos((int)rpos);
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
@@ -1835,7 +1835,7 @@ int Cellapp::raycast(SPACE_ID spaceID, int layer, const Position3D& start, const
 //-------------------------------------------------------------------------------------
 PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 {
-	uint16 currargsSize = PyTuple_Size(args);
+	uint16 currargsSize = (uint16)PyTuple_Size(args);
 
 	int layer = 0;
 	SPACE_ID spaceID = 0;
