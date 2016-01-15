@@ -97,10 +97,10 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_LIB;COMPILED_FROM_DSP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AssemblerListingLocation>$(IntDir)\tmp\Release_static\</AssemblerListingLocation>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>$(IntDir)\tmp\Release_static\expat_static.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName>$(IntDir)\tmp\Release_static\</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)\tmp\Release_static\</ProgramDataBaseFileName>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -125,9 +125,9 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_LIB;COMPILED_FROM_DSP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AssemblerListingLocation>$(IntDir)\tmp\Release_static\</AssemblerListingLocation>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>$(IntDir)\tmp\Release_static\expat_static.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName>$(IntDir)\tmp\Release_static\</ObjectFileName>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)\tmp\Release_static\</ProgramDataBaseFileName>
     </ClCompile>
     <ResourceCompile>
@@ -153,11 +153,11 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;COMPILED_FROM_DSP;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AssemblerListingLocation>$(IntDir)\tmp\Debug_static\</AssemblerListingLocation>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BrowseInformation>true</BrowseInformation>
       <PrecompiledHeaderOutputFile>$(IntDir)\tmp\Debug_static\expat_static.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName>$(IntDir)\tmp\Debug_static\</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)\tmp\Debug_static\</ProgramDataBaseFileName>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <ResourceCompile>
@@ -183,11 +183,11 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;COMPILED_FROM_DSP;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AssemblerListingLocation>$(IntDir)\tmp\Debug_static\</AssemblerListingLocation>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BrowseInformation>true</BrowseInformation>
       <PrecompiledHeaderOutputFile>$(IntDir)\tmp\Debug_static\expat_static.pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName>$(IntDir)\tmp\Debug_static\</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)\tmp\Debug_static\</ProgramDataBaseFileName>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <ResourceCompile>
