@@ -141,7 +141,7 @@ bool EntityAutoLoader::process()
 			if (start_ == 0 && end_ == 0)
 				end_ = LOAD_ENTITY_SIZE;
 
-			uint16 dbInterfaceIndex = g_kbeSrvConfig.getDBMgr().dbInterfaceInfos.size() - entityTypes_.size();
+			uint16 dbInterfaceIndex = (uint16)(g_kbeSrvConfig.getDBMgr().dbInterfaceInfos.size() - entityTypes_.size());
 			(*pBundle).newMessage(DbmgrInterface::entityAutoLoad);
 			(*pBundle) << dbInterfaceIndex << g_componentID << (*(*entityTypes_.begin()).begin()) << start_ << end_;
 			pChannel->send(pBundle);
