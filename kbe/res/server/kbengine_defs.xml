@@ -1,6 +1,6 @@
 <root>
-	<!-- 游戏逻辑处理频率 
-		(Update frequency process)
+	<!-- 游戏逻辑处理频率HZ
+		(Update frequency process, HZ)
 	-->
 	<gameUpdateHertz> 10 </gameUpdateHertz>
 	
