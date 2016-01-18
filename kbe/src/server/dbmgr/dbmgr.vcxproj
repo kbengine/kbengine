@@ -97,7 +97,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies/mysql/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;USE_KBE_REDIS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -126,7 +126,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies/mysql/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;USE_KBE_REDIS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -154,7 +154,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies/mysql/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;USE_KBE_REDIS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -183,7 +183,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies/mysql/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;USE_KBE_REDIS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

@@ -1,4 +1,7 @@
-/* Copyright (C) 2000 MySQL AB
+#ifndef MYSQL_EMBED_INCLUDED
+#define MYSQL_EMBED_INCLUDED
+
+/* Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -11,7 +14,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA */
 
 /* Defines that are unique to the embedded version of MySQL */
 
@@ -20,12 +23,7 @@
 /* Things we don't need in the embedded version of MySQL */
 /* TODO HF add #undef HAVE_VIO if we don't want client in embedded library */
 
-#undef HAVE_PSTACK				/* No stacktrace */
 #undef HAVE_DLOPEN				/* No udf functions */
-#undef HAVE_OPENSSL
-#undef HAVE_SMEM				/* No shared memory */
-#undef HAVE_NDBCLUSTER_DB /* No NDB cluster */
-
-#define DONT_USE_RAID
 
 #endif /* EMBEDDED_LIBRARY */
+#endif /* MYSQL_EMBED_INCLUDED */
