@@ -198,8 +198,10 @@ namespace KBEngine
 #endif
 #endif
 
-#ifdef _WIN64
+#ifndef X64
+#if defined( _WIN64 ) || defined( __x86_64__ ) || defined( __amd64 ) || defined( __LP64__ )
 #define X64
+#endif
 #endif
 
 #ifdef X64
