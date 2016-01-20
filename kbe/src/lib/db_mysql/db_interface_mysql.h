@@ -32,11 +32,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "mysql/mysql.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef X64
-#pragma comment (lib, "yassl64.lib")
 #pragma comment (lib, "libmysql64.lib")
 #pragma comment (lib, "mysqlclient64.lib")
 #else
-#pragma comment (lib, "yassl32.lib")
 #pragma comment (lib, "libmysql32.lib")
 #pragma comment (lib, "mysqlclient32.lib")
 #endif
