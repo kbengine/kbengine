@@ -154,11 +154,11 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">apr-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>..\..\..\..\_objs\$(ProjectName)\</IntDir>
+    <IntDir>..\..\..\_objs\$(ProjectName)\</IntDir>
     <OutDir>..\..\..\libs\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>..\..\..\..\_objs\$(ProjectName)_d\</IntDir>
+    <IntDir>..\..\..\_objs\$(ProjectName)_d\</IntDir>
     <OutDir>..\..\..\libs\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

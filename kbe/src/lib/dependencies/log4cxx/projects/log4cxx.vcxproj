@@ -85,11 +85,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\..\..\..\libs\</OutDir>
-    <IntDir>..\..\..\..\_objs\$(ProjectName)_d\</IntDir>
+    <IntDir>..\..\..\_objs\$(ProjectName)_d\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\..\..\..\libs\</OutDir>
-    <IntDir>..\..\..\..\_objs\$(ProjectName)\</IntDir>
+    <IntDir>..\..\..\_objs\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
