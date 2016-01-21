@@ -53,6 +53,7 @@ namespace log4cxx
                 void releaseRef() const;
 
 				// added for VS2015
+				#if _MSC_VER >= 1900
 				Layout(Layout && o)
 					: helpers::ObjectImpl(std::move(o))
 				{ }
@@ -62,6 +63,7 @@ namespace log4cxx
 					helpers::ObjectImpl::operator=(std::move(o));
 					return *this;
 				}
+				#endif
 				// end of added for VS2015
 
                 /**

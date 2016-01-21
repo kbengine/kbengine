@@ -34,6 +34,7 @@ namespace log4cxx
 		   void releaseRef() const;
 
 		   // added for VS2015
+		   #if _MSC_VER >= 1900
 		   ObjectImpl(ObjectImpl && o)
 		   {
 			   ref = o.ref;
@@ -47,6 +48,7 @@ namespace log4cxx
 
 			   return *this;
 		   }
+		   #endif
 		   // -----
 
 	   protected:

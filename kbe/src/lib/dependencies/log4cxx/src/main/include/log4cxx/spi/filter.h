@@ -77,6 +77,7 @@ namespace log4cxx
                         Filter();
 
 						// added for VS2015
+						#if _MSC_VER >= 1900
 						Filter(Filter && o)
 							: helpers::ObjectImpl(std::move(o))
 							, next(o.next)
@@ -88,6 +89,7 @@ namespace log4cxx
 							next = o.next;
 							return *this;
 						}
+						#endif
 						// end of added for VS2015
 
                         void addRef() const;

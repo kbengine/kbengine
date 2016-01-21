@@ -76,6 +76,7 @@ public:
   END_LOG4CXX_CAST_MAP()
 
   // added for VS2015
+  #if _MSC_VER >= 1900
   PatternConverter(PatternConverter && o)
 	  : helpers::ObjectImpl(std::move(o))
 	  , name(o.name)
@@ -90,6 +91,7 @@ public:
 	  //style = o.style;
 	  return *this;
   }
+  #endif
   // end of added for VS2015
 
   /**
