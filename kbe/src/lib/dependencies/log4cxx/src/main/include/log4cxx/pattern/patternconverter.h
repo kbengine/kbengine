@@ -75,6 +75,23 @@ public:
           LOG4CXX_CAST_ENTRY(PatternConverter)
   END_LOG4CXX_CAST_MAP()
 
+  // added for VS2015
+  PatternConverter(PatternConverter && o)
+	  : helpers::ObjectImpl(std::move(o))
+	  , name(o.name)
+	  , style(o.style)
+  { }
+
+  PatternConverter& operator=(PatternConverter && o)
+  {
+	  helpers::ObjectImpl::operator=(std::move(o));
+
+	  //name = o.name;
+	  //style = o.style;
+	  return *this;
+  }
+  // end of added for VS2015
+
   /**
    * Formats an object into a string buffer.
    * @param obj event to format, may not be null.

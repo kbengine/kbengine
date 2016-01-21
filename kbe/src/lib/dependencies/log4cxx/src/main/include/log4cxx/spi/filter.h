@@ -76,6 +76,20 @@ namespace log4cxx
                 public:
                         Filter();
 
+						// added for VS2015
+						Filter(Filter && o)
+							: helpers::ObjectImpl(std::move(o))
+							, next(o.next)
+						{ }
+
+						Filter& operator=(Filter && o)
+						{
+							helpers::ObjectImpl::operator=(std::move(o));
+							next = o.next;
+							return *this;
+						}
+						// end of added for VS2015
+
                         void addRef() const;
                         void releaseRef() const;
 

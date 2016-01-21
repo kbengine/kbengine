@@ -48,9 +48,22 @@ namespace log4cxx {
                       LOG4CXX_CAST_ENTRY(spi::OptionHandler)
               END_LOG4CXX_CAST_MAP()
         public:
+			TriggeringPolicy() {}
              virtual ~TriggeringPolicy();
              void addRef() const;
              void releaseRef() const;
+
+			 // added for VS2015
+			 TriggeringPolicy(TriggeringPolicy && o)
+				 : helpers::ObjectImpl(std::move(o))
+			 { }
+
+			 TriggeringPolicy& operator=(TriggeringPolicy && o)
+			 {
+				 helpers::ObjectImpl::operator=(std::move(o));
+				 return *this;
+			 }
+			 // end of added for VS2015
 
             /**
              * Determines if a rollover may be appropriate at this time.  If
