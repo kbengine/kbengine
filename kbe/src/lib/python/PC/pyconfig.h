@@ -218,6 +218,13 @@ typedef int pid_t;
 #define HAVE_SXS 1
 #endif
 
+/* VS 2015 defines these names with a leading underscore */
+#if _MSC_VER >= 1900
+#define timezone _timezone
+#define daylight _daylight
+#define tzname _tzname
+#endif
+
 /* define some ANSI types that are not defined in earlier Win headers */
 #if _MSC_VER >= 1200
 /* This file only exists in VC 6.0 or higher */
