@@ -1,0 +1,13 @@
+shallow_clone: true
+
+os:
+  - Visual Studio 2013
+
+environment:
+  matrix:
+  - TOOLSET: vs2010
+  - TOOLSET: vs2013
+  - TOOLSET: vs2015
+
+build:
+  project: kbe/src/kbengine_vs120.sln
