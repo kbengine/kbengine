@@ -1100,19 +1100,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "defaultAddBots");
 		if(node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "totalcount");
+			TiXmlNode* childnode = xml->enterNode(node, "totalCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_totalCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "tickcount");
+			childnode = xml->enterNode(node, "tickCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "ticktime");
+			childnode = xml->enterNode(node, "tickTime");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickTime = (float)xml->getValFloat(childnode);
