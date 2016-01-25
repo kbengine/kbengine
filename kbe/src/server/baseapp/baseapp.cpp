@@ -1560,6 +1560,10 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
 
+	EntityMailbox* clientMailbox = base->clientMailbox();
+	bool hasClient = (clientMailbox != NULL);
+	(*pBundle) << hasClient;
+
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);
 	(*pBundle).append(*s);
@@ -1599,6 +1603,10 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
 	(*pBundle) << base->spaceID();
+
+	EntityMailbox* clientMailbox = base->clientMailbox();
+	bool hasClient = (clientMailbox != NULL);
+	(*pBundle) << hasClient;
 
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	base->addCellDataToStream(ED_FLAG_ALL, s);

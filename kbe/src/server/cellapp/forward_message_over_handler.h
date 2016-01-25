@@ -44,7 +44,7 @@ public:
 private:
 	Entity* _e;
 	SPACE_ID _spaceID;
-	PyObject* params_;
+	PyObject* _params;
 };
 
 class FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp : public ForwardMessageOverHandler
