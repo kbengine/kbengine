@@ -91,6 +91,7 @@ SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
 SCRIPT_GET_DECLARE("isOnGround",					pyGetIsOnGround,				0,							0)
 SCRIPT_GET_DECLARE("spaceID",						pyGetSpaceID,					0,							0)
 SCRIPT_GETSET_DECLARE("layer",						pyGetLayer,						pySetLayer,					0,		0)
+SCRIPT_GETSET_DECLARE("dontSyncPosToOtherClient",	pyGetDontSyncPosToOtherClient,	pySetDontSyncPosToOtherClient,					0,		0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
@@ -127,6 +128,7 @@ pControllers_(new Controllers(id)),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
 layer_(0),
+dontSyncPosToOtherClient_(0),
 isDirty_(true)
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
@@ -1688,6 +1690,42 @@ int Entity::pySetLayer(PyObject *value)
 PyObject* Entity::pyGetLayer()
 {
 	return PyLong_FromLong(layer_);
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetDontSyncPosToOtherClient(PyObject *value)
+{
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			scriptName(), id());		
+		PyErr_PrintEx(0);
+		return 0;																				
+	}
+
+	if(!PyLong_Check(value))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d set layer value is not int!\n",		
+			scriptName(), id());		
+		PyErr_PrintEx(0);
+		return 0;	
+	}
+
+	dontSyncPosToOtherClient_ = (int8)PyLong_AsLong(value);
+	
+	if (dontSyncPosToOtherClient_ == 0)
+	{		
+		posChangedTime_ = 0;
+		dirChangedTime_ = 0;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetDontSyncPosToOtherClient()
+{
+	return PyLong_FromLong(dontSyncPosToOtherClient_);
 }
 
 //-------------------------------------------------------------------------------------

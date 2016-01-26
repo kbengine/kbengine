@@ -725,7 +725,13 @@ bool Witness::update()
 						--clientAOISize_;
 						continue;
 					}
-					
+
+					if(otherEntity->dontSyncPosToOtherClient())
+					{
+						++iter;
+						continue;
+					}
+
 					KBE_ASSERT((*iter)->flags() == ENTITYREF_FLAG_NORMAL);
 
 					Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();

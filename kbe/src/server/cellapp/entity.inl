@@ -254,6 +254,12 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE int8 Entity::dontSyncPosToOtherClient() const
+{
+	return dontSyncPosToOtherClient_;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE EntityMailbox* Entity::controlledBy() const
 {
 	return controlledBy_; 
