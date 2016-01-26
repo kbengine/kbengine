@@ -340,42 +340,74 @@ int Entity::pySetControlledBy(PyObject *value)
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
 		PyErr_PrintEx(0);
-		return -1;																				
-	}
-
-	if( value != Py_None && (!PyObject_TypeCheck( value, EntityMailbox::getScriptType() ) || !((EntityMailbox *)value)->isBase()) )
-	{
-		PyErr_Format(PyExc_AssertionError, "%s: param must be base entity mailbox!\n",		
-			scriptName());		
-		PyErr_PrintEx(0);
-		return -1;
-	}
-
-	if(value == Py_None)
-	{
-		setControlledBy( NULL );
 		return 0;
 	}
-	else
+
+	EntityMailbox* mailbox = NULL;
+
+	if (value != Py_None )
 	{
-		if (setControlledBy( static_cast<EntityMailbox *>(value) ))
+		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()) || !((EntityMailbox *)value)->isBase())
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: param must be base entity mailbox!\n",
+				scriptName());
+			PyErr_PrintEx(0);
 			return 0;
-		else
-			return -1;
+		}
+
+		mailbox = static_cast<EntityMailbox *>(value);
+
+		if (mailbox->id() == id())
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: base entity mailbox can't set to self.base!\n",
+				scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		// 如果看不见我，就不要控制我
+		if (!entityInWitnessed(mailbox->id()))
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: entity '%d' can't witnessed me!\n",
+				scriptName(), mailbox->id());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		PyObject* clientMB = PyObject_GetAttrString(mailbox, "client");
+		if (clientMB == Py_None)
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox has no 'client' mailbox!\n",
+				scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		Network::Channel* pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
+		if (!pChannel)
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox.client has no channel!\n",
+				scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
 	}
+
+	setControlledBy(mailbox);
+	return 0;
 }
 
 bool Entity::setControlledBy(EntityMailbox* baseMailbox)
 {
-	if (baseMailbox && baseMailbox->id() == id())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s: base entity mailbox can't set to self.base!\n",		
-			scriptName());		
-		PyErr_PrintEx(0);
-		return false;
-	}
 
 	EntityMailbox *oldMailbox = controlledBy();
+
+	if (oldMailbox != NULL && baseMailbox != NULL &&
+		oldMailbox->id() == baseMailbox->id())
+	{
+		ERROR_MSG(fmt::format("Entity {0} is already a controller, don't repeat settings\n", oldMailbox->id()));
+		return false;
+	}
 
 	if(oldMailbox != NULL)
 	{
@@ -384,60 +416,80 @@ bool Entity::setControlledBy(EntityMailbox* baseMailbox)
 
 		// 如果旧的控制者也是我的观察者之一，那就表示它的客户端能看到我，
 		// 所以，需要通知旧的客户端：当前你不需要控制某人的位移了
-		ENTITY_ID oldID = oldMailbox->id();
-		if (entityInWitnessed(oldID))
-		{
+		if (entityInWitnessed(oldMailbox->id()))
 			sendControlledByStatusMessage( oldMailbox, 0 );
-		}
+		else
+			sendControlledByStatusMessage(NULL, 0);
 	}
 
 	if(baseMailbox != NULL)
 	{
-		// @TODO(phw): 理论上，这里需要判断basemailbox是否有proxies
-		// add code here...
-
 		Py_INCREF(baseMailbox);
 		controlledBy( baseMailbox );
 		
 		// 既然由别人控制移动了，自己的移动行为也就必须停止了
 		stopMove();
 
-		// @TODO(phw): 这里要通知客户端：当前你控制谁的位移同步
-		if (!sendControlledByStatusMessage( baseMailbox, 1 ))
-		{
-			PyErr_Format(PyExc_AssertionError, "%s: base entity mailbox has no client channel!\n",		
-				scriptName());		
-			PyErr_PrintEx(0);
-			return false;
-		}
-		return true;
+		return sendControlledByStatusMessage(baseMailbox, 1);
 	}
 	return true;
 }
 
 bool Entity::sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled)
 {
-	PyObject* clientMB = PyObject_GetAttrString(baseMailbox, "client");
-	if(clientMB == Py_None)
-		return false;
+	Network::Channel* pChannels[3];
+	EntityMailbox* pMailboxs[3];
 
-	EntityMailbox* client = static_cast<EntityMailbox*>(clientMB);	
-	// Py_INCREF(client); 这里不需要增加引用， 因为每次都会产生一个新的对象
+	Network::Channel** pCs = pChannels;
+	EntityMailbox** pMs = pMailboxs;
 
-	Network::Channel* pChannel = client->getChannel();
-	if(!pChannel)
-		return false;
-	
-	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+	// 有控制者，就需要通知控制者
+	if (baseMailbox)
+	{
+		PyObject* clientMB = PyObject_GetAttrString(baseMailbox, "client");
+		if (clientMB != Py_None)
+		{
+			Network::Channel* pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
+			if (pChannel)
+			{
+				*pCs++ = pChannel;
+				*pMs++ = baseMailbox;
+			}
+		}
+	}
 
-	(*pForwardBundle).newMessage(ClientInterface::onControlEntity);
-	(*pForwardBundle) << id();
-	(*pForwardBundle) << isControlled;
+	// 如果我有客户端mailbox，则表示我是玩家，
+	// 那么，需要通知玩家自己的客户端：你已经（解除）被别人控制了
+	if (clientMailbox_)
+	{
+		*pCs++ = clientMailbox_->getChannel();
+		*pMs++ = clientMailbox_;
+	}
 
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(baseMailbox->id(), (*pSendBundle), (*pForwardBundle));
-	pChannel->send(pSendBundle);
-	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	// 空终结
+	*pCs = (Network::Channel*)NULL;
+	*pMs = (EntityMailbox*)NULL;
+
+	// 重置位置
+	pCs = pChannels;
+	pMs = pMailboxs;
+
+	while (*pCs)
+	{
+		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+
+		(*pForwardBundle).newMessage(ClientInterface::onControlEntity);
+		(*pForwardBundle) << id();
+		(*pForwardBundle) << isControlled;
+
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT((*pMs)->id(), (*pSendBundle), (*pForwardBundle));
+		(*pCs)->send(pSendBundle);
+		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+
+		++pCs;
+		++pMs;
+	}
 	
 	return true;
 }
