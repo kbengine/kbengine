@@ -36,7 +36,6 @@ public:
 
 	VolatileInfo(float position = VolatileInfo::ALWAYS, float yaw = VolatileInfo::ALWAYS, 
 		float roll = VolatileInfo::ALWAYS, float pitch = VolatileInfo::ALWAYS):
-
 	position_(position),
 	yaw_(yaw),
 	roll_(roll),
@@ -44,15 +43,15 @@ public:
 	{
 	}
 
-	virtual ~VolatileInfo(){
-	}
-	
-	void setToNEVER()
+	VolatileInfo(const VolatileInfo& info) :
+		position_(info.position_),
+		yaw_(info.yaw_),
+		roll_(info.roll_),
+		pitch_(info.pitch_)
 	{
-		position_ = NEVER;
-		yaw_ = NEVER;
-		roll_ = NEVER;
-		pitch_ = NEVER;
+	}
+
+	virtual ~VolatileInfo(){
 	}
 
 	void update(bool pos_isALWAYS, bool yaw_isALWAYS, bool pitch_isALWAYS, bool roll_isALWAYS)
@@ -71,7 +70,15 @@ public:
 		pitch_ = roll;
 	}
 
-	void setToALWAYS()
+	void updateToNEVER()
+	{
+		position_ = NEVER;
+		yaw_ = NEVER;
+		roll_ = NEVER;
+		pitch_ = NEVER;
+	}
+
+	void updateToALWAYS()
 	{
 		position_ = ALWAYS;
 		yaw_ = ALWAYS;
