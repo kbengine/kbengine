@@ -1401,7 +1401,6 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 	}
 
 	std::string strType = xml->getValStr(arrayNode);
-	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 	if(strType == "ARRAY")
 	{
@@ -1709,7 +1708,6 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 		if(typeNode)
 		{
 			strType = xml->getValStr(typeNode);
-			//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 			if(strType == "ARRAY")
 			{
