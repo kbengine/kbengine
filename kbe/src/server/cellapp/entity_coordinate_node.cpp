@@ -151,10 +151,6 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 				{
 					findentities.push_back(pEntity);
 				}
-				else
-				{
-					break;
-				}
 			}
 		}
 
@@ -178,10 +174,6 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 				if(dist <= radius)
 				{
 					findentities.push_back(pEntity);
-				}
-				else
-				{
-					break;
 				}
 			}
 		}
