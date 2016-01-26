@@ -32,6 +32,7 @@ class VolatileInfo
 {
 public:
 	static const float ALWAYS;
+	static const float NEVER;
 
 	VolatileInfo(float position = VolatileInfo::ALWAYS, float yaw = VolatileInfo::ALWAYS, 
 		float roll = VolatileInfo::ALWAYS, float pitch = VolatileInfo::ALWAYS):
@@ -46,6 +47,38 @@ public:
 	virtual ~VolatileInfo(){
 	}
 	
+	void setToNEVER()
+	{
+		position_ = NEVER;
+		yaw_ = NEVER;
+		roll_ = NEVER;
+		pitch_ = NEVER;
+	}
+
+	void update(bool pos_isALWAYS, bool yaw_isALWAYS, bool pitch_isALWAYS, bool roll_isALWAYS)
+	{
+		position_ = pos_isALWAYS ? ALWAYS : NEVER;
+		yaw_ = yaw_isALWAYS ? ALWAYS : NEVER;
+		roll_ = pitch_isALWAYS ? ALWAYS : NEVER;
+		pitch_ = roll_isALWAYS ? ALWAYS : NEVER;
+	}
+
+	void update(float pos, float yaw, float pitch, float roll)
+	{
+		position_ = pos;
+		yaw_ = yaw;
+		roll_ = pitch;
+		pitch_ = roll;
+	}
+
+	void setToALWAYS()
+	{
+		position_ = ALWAYS;
+		yaw_ = ALWAYS;
+		roll_ = ALWAYS;
+		pitch_ = ALWAYS;
+	}
+
 	float position() const{ return position_; };
 	float yaw() const{ return yaw_; };
 	float roll() const{ return roll_; };

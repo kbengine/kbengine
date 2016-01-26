@@ -24,6 +24,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 //-------------------------------------------------------------------------------------
 const float VolatileInfo::ALWAYS = FLT_MAX;
-
+const float VolatileInfo::NEVER = 0.f;
 
 }
