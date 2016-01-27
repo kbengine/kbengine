@@ -126,7 +126,8 @@ pControllers_(new Controllers(id)),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
 layer_(0),
-isDirty_(true)
+isDirty_(true),
+pCustomVolatileinfo_(NULL)
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
@@ -147,6 +148,8 @@ isDirty_(true)
 Entity::~Entity()
 {
 	ENTITY_DECONSTRUCTION(Entity);
+
+	S_RELEASE(pCustomVolatileinfo_);
 
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(baseMailbox_);

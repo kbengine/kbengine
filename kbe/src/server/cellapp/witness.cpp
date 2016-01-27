@@ -771,7 +771,9 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 {
-	const VolatileInfo* pVolatileInfo = pEntity_->pScriptModule()->getPVolatileInfo();
+	const VolatileInfo* pVolatileInfo = pEntity_->pCustomVolatileinfo();
+	if (!pVolatileInfo)
+		pVolatileInfo = pEntity_->pScriptModule()->getPVolatileInfo();
 
 	if ((pVolatileInfo->position() <= 0.0004f))
 		return;
@@ -963,7 +965,9 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	const VolatileInfo* pVolatileInfo = otherEntity->pScriptModule()->getPVolatileInfo();
+	const VolatileInfo* pVolatileInfo = otherEntity->pCustomVolatileinfo();
+	if (!pVolatileInfo)
+		pVolatileInfo = otherEntity->pScriptModule()->getPVolatileInfo();
 
 	static uint16 entity_posdir_additional_updates = g_kbeSrvConfig.getCellApp().entity_posdir_additional_updates;
 	

@@ -57,6 +57,7 @@ class EntityCoordinateNode;
 class Controller;
 class Controllers;
 class Space;
+class VolatileInfo;
 
 namespace Network
 {
@@ -574,6 +575,8 @@ public:
 	INLINE void setDirty(bool dirty = true);
 	INLINE bool isDirty() const;
 	
+	INLINE VolatileInfo* pCustomVolatileinfo(void);
+
 private:
 	/** 
 		发送teleport结果到base端
@@ -647,6 +650,9 @@ protected:
 	
 	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
 	bool													isDirty_;
+
+	// 如果用户有设置过Volatileinfo，则此处创建Volatileinfo，否则为NULL使用ScriptDefModule的Volatileinfo
+	VolatileInfo*											pCustomVolatileinfo_;
 };
 
 }
