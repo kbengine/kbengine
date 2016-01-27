@@ -28,22 +28,28 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-class VolatileInfo
+class VolatileInfo : public script::ScriptObject
 {
+	/**
+	子类化 将一些py操作填充进派生类
+	*/
+	INSTANCE_SCRIPT_HREADER(VolatileInfo, ScriptObject)
 public:
 	static const float ALWAYS;
 	static const float NEVER;
 
 	VolatileInfo(float position = VolatileInfo::ALWAYS, float yaw = VolatileInfo::ALWAYS, 
 		float roll = VolatileInfo::ALWAYS, float pitch = VolatileInfo::ALWAYS):
-	position_(position),
-	yaw_(yaw),
-	roll_(roll),
-	pitch_(pitch)
+		ScriptObject(getScriptType(), false),
+		position_(position),
+		yaw_(yaw),
+		roll_(roll),
+		pitch_(pitch)
 	{
 	}
 
 	VolatileInfo(const VolatileInfo& info) :
+		ScriptObject(getScriptType(), false),
 		position_(info.position_),
 		yaw_(info.yaw_),
 		roll_(info.roll_),

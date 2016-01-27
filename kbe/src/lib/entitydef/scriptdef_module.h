@@ -70,7 +70,7 @@ public:
 	INLINE void setScriptType(PyTypeObject* scriptType);
 
 	INLINE DetailLevel& getDetailLevel(void);
-	INLINE VolatileInfo& getVolatileInfo(void);
+	INLINE VolatileInfo* getPVolatileInfo(void);
 
 	PyObject* createObject(void);
 	PyObject* getInitDict(void);
@@ -201,7 +201,7 @@ protected:
 	
 	// entity的详情级别数据
 	DetailLevel							detailLevel_;
-	VolatileInfo						volatileinfo_;
+	VolatileInfo*						pVolatileinfo_;
 
 	// 这个模块的名称
 	std::string							name_;

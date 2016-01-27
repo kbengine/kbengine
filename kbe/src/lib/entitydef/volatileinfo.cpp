@@ -22,6 +22,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef.h"
 
 namespace KBEngine{
+
+SCRIPT_METHOD_DECLARE_BEGIN(VolatileInfo)
+SCRIPT_METHOD_DECLARE_END()
+
+SCRIPT_MEMBER_DECLARE_BEGIN(VolatileInfo)
+SCRIPT_MEMBER_DECLARE_END()
+
+SCRIPT_GETSET_DECLARE_BEGIN(VolatileInfo)
+SCRIPT_GETSET_DECLARE_END()
+SCRIPT_INIT(VolatileInfo, 0, 0, 0, 0, 0)
+
 //-------------------------------------------------------------------------------------
 const float VolatileInfo::ALWAYS = FLT_MAX;
 const float VolatileInfo::NEVER = 0.f;
