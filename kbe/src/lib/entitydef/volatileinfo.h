@@ -113,6 +113,11 @@ public:
 		pitch_ = v;
 	};
 
+	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
+	DECLARE_PY_GETSET_MOTHOD(pyGetYaw, pySetYaw);
+	DECLARE_PY_GETSET_MOTHOD(pyGetPitch, pySetPitch);
+	DECLARE_PY_GETSET_MOTHOD(pyGetRoll, pySetRoll);
+
 protected:	
 	float position_;
 	float yaw_;

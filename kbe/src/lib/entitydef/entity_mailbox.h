@@ -133,7 +133,10 @@ protected:
 	// 该entity所使用的脚本模块对象
 	ScriptDefModule*						pScriptModule_;	
 
-	void _setATIdx(MAILBOXS::size_type idx){ atIdx_ = idx; }
+	void _setATIdx(MAILBOXS::size_type idx) { 
+		atIdx_ = idx; 
+	}
+
 	MAILBOXS::size_type	atIdx_;
 };
 

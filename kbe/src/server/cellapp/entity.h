@@ -167,7 +167,6 @@ public:
 	INLINE Direction3D& direction();
 	INLINE void direction(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
-	
 
 	/**
 		是否在地面上
@@ -575,7 +574,11 @@ public:
 	INLINE void setDirty(bool dirty = true);
 	INLINE bool isDirty() const;
 	
+	/**
+	VolatileInfo section
+	*/
 	INLINE VolatileInfo* pCustomVolatileinfo(void);
+	DECLARE_PY_GETSET_MOTHOD(pyGetVolatileinfo, pySetVolatileinfo);
 
 private:
 	/** 
