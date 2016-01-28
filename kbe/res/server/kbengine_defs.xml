@@ -197,8 +197,7 @@
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
 		
-		<!-- interfaces的地址，多组游戏服务端可以共用一个interfaces，host为空则为没有interfaces服务，
-			其他组件不再尝试将信息转发到该进程。
+		<!-- interfaces的地址，多组游戏服务端可以共用一个interfaces
 			(interfaces address, multiple gameserver can share a interfaces)
 		-->
 		<host> localhost </host>
