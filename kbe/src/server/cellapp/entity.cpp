@@ -3126,9 +3126,14 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 		baseMailboxComponentID = baseMailbox_->componentID();
 	}
 
+	bool hasCustomVolatileinfo = (pCustomVolatileinfo_ != NULL);
+		
 	s << pScriptModule_->getUType() << spaceID_ << isDestroyed_ << 
 		isOnGround_ << topSpeed_ << topSpeedY_ << 
-		layer_ << baseMailboxComponentID;
+		layer_ << baseMailboxComponentID << hasCustomVolatileinfo;
+
+	if (pCustomVolatileinfo_)
+		pCustomVolatileinfo_->addToStream(s);
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
@@ -3145,9 +3150,18 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_SCRIPT_UID scriptUType;
 	COMPONENT_ID baseMailboxComponentID;
+	bool hasCustomVolatileinfo;
 
 	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
-		topSpeedY_ >> layer_ >> baseMailboxComponentID;
+		topSpeedY_ >> layer_ >> baseMailboxComponentID >> hasCustomVolatileinfo;
+
+	if (hasCustomVolatileinfo)
+	{
+		if (!pCustomVolatileinfo_)
+			pCustomVolatileinfo_ = new VolatileInfo();
+
+		pCustomVolatileinfo_->createFromStream(s);
+	}
 
 	// 此时强制设置为不在地面，无法判定其是否在地面，角色需要客户端上报是否在地面
 	// 而服务端的NPC则与移动后是否在地面来判定。

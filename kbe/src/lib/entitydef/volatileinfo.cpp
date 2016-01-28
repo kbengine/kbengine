@@ -126,6 +126,18 @@ PyObject* VolatileInfo::pyGetRoll()
 }
 
 //-------------------------------------------------------------------------------------
+void VolatileInfo::addToStream(KBEngine::MemoryStream& s)
+{
+	s << position_ << yaw_ << roll_ << pitch_;
+}
+
+//-------------------------------------------------------------------------------------
+void VolatileInfo::createFromStream(KBEngine::MemoryStream& s)
+{
+	s >> position_ >> yaw_ >> roll_ >> pitch_;
+}
+
+//-------------------------------------------------------------------------------------
 
 
 }
