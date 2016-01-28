@@ -225,12 +225,15 @@ bool Dbmgr::inInitialize()
 {
 	// 初始化所有扩展模块
 	// assets/scripts/
+	if (!PythonApp::inInitialize())
+		return false;
+
 	std::vector<PyTypeObject*>	scriptBaseTypes;
 	if(!EntityDef::initialize(scriptBaseTypes, componentType_)){
 		return false;
 	}
 
-	return PythonApp::inInitialize();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -298,13 +301,14 @@ void Dbmgr::onInstallPyModules()
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initInterfacesHandler()
 {
-	pInterfacesAccountHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesAccountType());
-	pInterfacesChargeHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesChargeType());
+	std::string type = Network::Address::NONE == g_kbeSrvConfig.interfacesAddr() ? "dbmgr" : "interfaces";
+	pInterfacesAccountHandler_ = InterfacesHandlerFactory::create(type);
+	pInterfacesChargeHandler_ = InterfacesHandlerFactory::create(type);
 
 	INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: interfaces addr({}), accountType:({}), chargeType:({}).\n", 
 		g_kbeSrvConfig.interfacesAddr().c_str(),
-		g_kbeSrvConfig.interfacesAccountType(),
-		g_kbeSrvConfig.interfacesChargeType()));
+		type,
+		type));
 
 	return pInterfacesAccountHandler_->initialize() && pInterfacesChargeHandler_->initialize();
 }

@@ -94,12 +94,12 @@ INLINE void EndPoint::setFileDescriptor(int fd)
 
 INLINE void EndPoint::socket(int type)
 {
-	this->setFileDescriptor(::socket(AF_INET, type, 0));
+	this->setFileDescriptor((int)::socket(AF_INET, type, 0));
 #if KBE_PLATFORM == PLATFORM_WIN32
 	if ((socket_ == INVALID_SOCKET) && (WSAGetLastError() == WSANOTINITIALISED))
 	{
 		EndPoint::initNetwork();
-		this->setFileDescriptor(::socket(AF_INET, type, 0));
+		this->setFileDescriptor((int)::socket(AF_INET, type, 0));
 		KBE_ASSERT((socket_ != INVALID_SOCKET) && (WSAGetLastError() != WSANOTINITIALISED) && \
 				"EndPoint::socket: create socket is error!");
 	}
@@ -374,7 +374,7 @@ INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkA
 {
 	sockaddr_in		sin;
 	socklen_t		sinLen = sizeof(sin);
-	int ret = ::accept(socket_, (sockaddr*)&sin, &sinLen);
+	int ret = (int)::accept(socket_, (sockaddr*)&sin, &sinLen);
 
 #if defined(unix)
 	if (ret < 0) return NULL;

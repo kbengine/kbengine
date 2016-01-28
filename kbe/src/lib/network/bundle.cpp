@@ -141,14 +141,14 @@ void Bundle::_calcPacketMaxSize()
 	// 这样我们在加密一个满载包时不需要额外填充字节
 	if(g_channelExternalEncryptType == 1)
 	{
-		packetMaxSize_ = isTCPPacket_ ? (TCPPacket::maxBufferSize() - ENCRYPTTION_WASTAGE_SIZE):
+		packetMaxSize_ = isTCPPacket_ ? (int)(TCPPacket::maxBufferSize() - ENCRYPTTION_WASTAGE_SIZE) :
 			(PACKET_MAX_SIZE_UDP - ENCRYPTTION_WASTAGE_SIZE);
 
 		packetMaxSize_ -= packetMaxSize_ % KBEngine::KBEBlowfish::BLOCK_SIZE;
 	}
 	else
 	{
-		packetMaxSize_ = isTCPPacket_ ? TCPPacket::maxBufferSize() : PACKET_MAX_SIZE_UDP;
+		packetMaxSize_ = isTCPPacket_ ? (int)TCPPacket::maxBufferSize() : PACKET_MAX_SIZE_UDP;
 	}
 }
 
@@ -160,11 +160,11 @@ int32 Bundle::packetsLength(bool calccurr)
 	Packets::iterator iter = packets_.begin();
 	for (; iter != packets_.end(); ++iter)
 	{
-		len += (*iter)->length();
+		len += (int)(*iter)->length();
 	}
 
 	if(calccurr && pCurrPacket_)
-		len += pCurrPacket_->length();
+		len += (int)pCurrPacket_->length();
 
 	return len;
 }
@@ -466,9 +466,9 @@ void Bundle::_debugMessages()
 				
 				if(pPacket->length() >= totallen - pMemoryStream->length())
 				{
-					MessageLength1 len  = totallen - pMemoryStream->length();
+					MessageLength1 len = totallen - (MessageLength1)pMemoryStream->length();
 					pMemoryStream->append(pPacket->data() + pPacket->rpos(), len);
-					pPacket->rpos(pPacket->rpos() + len);
+					pPacket->rpos((int)(pPacket->rpos() + len));
 				}
 				else
 				{
@@ -492,8 +492,8 @@ void Bundle::_debugMessages()
 			}
 		};
 
-		pPacket->rpos(rpos);
-		pPacket->wpos(wpos);
+		pPacket->rpos((int)rpos);
+		pPacket->wpos((int)wpos);
 	}
 
 	MemoryStream::ObjPool().reclaimObject(pMemoryStream);

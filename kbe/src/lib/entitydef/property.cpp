@@ -67,9 +67,9 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 		isPersistent_ = false;
 	}
 
-	EntityDef::md5().append((void*)name_.c_str(), name_.size());
-	EntityDef::md5().append((void*)defaultValStr_.c_str(), defaultValStr_.size());
-	EntityDef::md5().append((void*)dataTypeName.c_str(), dataTypeName.size());
+	EntityDef::md5().append((void*)name_.c_str(), (int)name_.size());
+	EntityDef::md5().append((void*)defaultValStr_.c_str(), (int)defaultValStr_.size());
+	EntityDef::md5().append((void*)dataTypeName.c_str(), (int)dataTypeName.size());
 	EntityDef::md5().append((void*)&utype_, sizeof(ENTITY_PROPERTY_UID));
 	EntityDef::md5().append((void*)&flags_, sizeof(uint32));
 	EntityDef::md5().append((void*)&isPersistent_, sizeof(bool));

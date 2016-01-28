@@ -83,7 +83,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		methodDescription->addToStream(mstream, args);
 
 		if(mstream->wpos() > 0)
-			(*pBundle).append(mstream->data(), mstream->wpos());
+			(*pBundle).append(mstream->data(), (int)mstream->wpos());
 
 		// 记录这个事件产生的数据量大小
 		g_privateClientEventHistoryStats.trackEvent(pEntity->scriptName(), 

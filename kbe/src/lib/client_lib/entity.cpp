@@ -669,7 +669,7 @@ void Entity::cancelController(uint32 id)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 {
-	uint16 currargsSize = PyTuple_Size(args);
+	uint16 currargsSize = (uint16)PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 
 	uint32 id = 0;

@@ -281,6 +281,12 @@ INLINE bool Entity::isDirty() const
 {
 	return isDirty_;
 }
-	
+
+//-------------------------------------------------------------------------------------
+INLINE VolatileInfo* Entity::pCustomVolatileinfo(void)
+{
+	return pCustomVolatileinfo_;
+}
+
 //-------------------------------------------------------------------------------------
 }

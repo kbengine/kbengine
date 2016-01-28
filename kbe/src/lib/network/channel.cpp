@@ -511,13 +511,13 @@ void Channel::send(Bundle * pBundle)
 	{
 		if(this->isExternal())
 		{
-			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}).\n", 
+			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send-window bufferedMessages has overflowed({} > {}).\n", 
 				(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
 
 			if(Network::g_extSendWindowMessagesOverflow > 0 && 
 				bundleSize >  Network::g_extSendWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->send.\n", 
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send-window bufferedMessages has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->send.\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_extSendWindowMessagesOverflow));
 
 				this->condemn();
@@ -528,14 +528,14 @@ void Channel::send(Bundle * pBundle)
 			if(Network::g_intSendWindowMessagesOverflow > 0 && 
 				bundleSize > Network::g_intSendWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send-window bufferedMessages has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_intSendWindowMessagesOverflow));
 
 				this->condemn();
 			}
 			else
 			{
-				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
+				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send-window bufferedMessages has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
 			}
 		}

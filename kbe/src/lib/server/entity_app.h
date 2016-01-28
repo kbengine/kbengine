@@ -125,7 +125,7 @@ public:
 	virtual void onSignalled(int sigNum);
 	
 	Entities<E>* pEntities() const{ return pEntities_; }
-	ArraySize entitiesSize() const { return pEntities_->size(); }
+	ArraySize entitiesSize() const { return (ArraySize)pEntities_->size(); }
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
@@ -769,7 +769,7 @@ PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
@@ -908,7 +908,7 @@ PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
@@ -942,7 +942,7 @@ PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
@@ -966,7 +966,7 @@ PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
@@ -993,7 +993,7 @@ PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
@@ -1016,7 +1016,7 @@ PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 2)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
@@ -1051,7 +1051,7 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
@@ -1075,7 +1075,7 @@ PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount < 1 || argCount > 2)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");

@@ -155,7 +155,7 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }
@@ -223,10 +223,12 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	std::string entityType;
 	ENTITY_ID id;
 	COMPONENT_ID componentID;
+	bool hasClient;
 
 	s >> entityType;
 	s >> id;
 	s >> componentID;
+	s >> hasClient;
 
 	static SPACE_ID spaceID = 1;
 
@@ -236,6 +238,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	(*pBundle) << id;
 	(*pBundle) << spaceID++;
 	(*pBundle) << componentID;
+	(*pBundle) << hasClient;
 
 	(*pBundle).append(&s);
 	s.done();
@@ -267,11 +270,13 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	ENTITY_ID id;
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID;
+	bool hasClient;
 
 	s >> entityType;
 	s >> id;
 	s >> componentID;
 	s >> spaceID;
+	s >> hasClient;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::onRestoreSpaceInCellFromBaseapp);
@@ -279,6 +284,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	(*pBundle) << id;
 	(*pBundle) << spaceID;
 	(*pBundle) << componentID;
+	(*pBundle) << hasClient;
 
 	(*pBundle).append(&s);
 	s.done();

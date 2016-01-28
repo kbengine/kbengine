@@ -121,9 +121,6 @@ INLINE int16 ServerConfig::gameUpdateHertz(void) const { return gameUpdateHertz_
 //-------------------------------------------------------------------------------------	
 INLINE Network::Address ServerConfig::interfacesAddr(void) const { return interfacesAddr_;}
 
-INLINE const char* ServerConfig::interfacesAccountType() const { return interfaces_accountType_.c_str(); }
-INLINE const char* ServerConfig::interfacesChargeType() const { return interfaces_chargeType_.c_str(); }
-
 //-------------------------------------------------------------------------------------	
 DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)
 {

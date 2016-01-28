@@ -49,14 +49,14 @@ inline void START_MSG(const char * name, uint64 appuid)
 			"Version: {}. "
 			"ScriptVersion: {}. "
 			"Protocol: {}. "
-			"Config: {}. "
+			"Config: {} {}. "
 			"Built: {} {}. "
 			"AppID: {}. "
 			"UID: {}. "
 			"PID: {} ----\n",
 		name, KBEVersion::versionString(), KBEVersion::scriptVersionString(),
 		Network::MessageHandlers::getDigestStr(),
-		KBE_CONFIG, __TIME__, __DATE__,
+		KBE_CONFIG, KBE_ARCH, __TIME__, __DATE__,
 		appuid, getUserUID(), getProcessPID()));
 
 	INFO_MSG(s);

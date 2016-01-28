@@ -80,6 +80,20 @@ namespace log4cxx {
           virtual void activateOptions(log4cxx::helpers::Pool& p) = 0;
           virtual log4cxx::pattern::PatternMap getFormatSpecifiers() const = 0;
 
+		  // added for VS2015
+		  #if _MSC_VER >= 1900
+		  RollingPolicyBase(RollingPolicyBase && o)
+			  : helpers::ObjectImpl(std::move(o))
+		  { }
+
+		  RollingPolicyBase& operator=(RollingPolicyBase && o)
+		  {
+			  helpers::ObjectImpl::operator=(std::move(o));
+			  return *this;
+		  }
+		  #endif
+		  // end of added for VS2015
+
           virtual void setOption(const LogString& option,
                const LogString& value);
 

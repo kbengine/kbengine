@@ -54,7 +54,7 @@ class Channel;
 		if(pPacket->length() >= remainSize)																	\
 		{																									\
 			memcpy(((uint8*)&v) + currSize, pPacket->data() + pPacket->rpos(), remainSize);					\
-			pPacket->rpos(pPacket->rpos() + remainSize);													\
+			pPacket->rpos((int)(pPacket->rpos() + remainSize));												\
 																											\
 			if(pPacket->length() == 0)																		\
 			{																								\
@@ -275,13 +275,13 @@ public:
 		Packets::iterator iter = bundle.packets_.begin();
 		for(; iter!=bundle.packets_.end(); ++iter)
 		{
-			append((*iter)->data(), (*iter)->length());
+			append((*iter)->data(), (int)(*iter)->length());
 		}
 		
 		if(bundle.pCurrPacket_ == NULL)
 			return *this;
 
-		return append(bundle.pCurrPacket_->data(), bundle.pCurrPacket_->length());
+		return append(bundle.pCurrPacket_->data(), (int)bundle.pCurrPacket_->length());
 	}
 
 	Bundle &append(MemoryStream* s)
@@ -293,14 +293,14 @@ public:
 	Bundle &append(MemoryStream& s)
 	{
 		if(s.length() > 0)
-			return append(s.data() + s.rpos(), s.length());
+			return append(s.data() + s.rpos(), (int)s.length());
 
 		return *this;
 	}
 
 	Bundle &appendBlob(const std::string& str)
 	{
-		return appendBlob((const uint8 *)str.data(), str.size());
+		return appendBlob((const uint8 *)str.data(), (ArraySize)str.size());
 	}
 
 	Bundle &appendBlob(const char* str, ArraySize n)
@@ -470,7 +470,7 @@ public:
 			if(pPacket->length() > rsize - datas.size())
 			{
 				datas.append((char*)pPacket->data() + pPacket->rpos(), rsize - datas.size());
-				pPacket->rpos(pPacket->rpos() + rsize - datas.size());
+				pPacket->rpos((int)(pPacket->rpos() + rsize - datas.size()));
 				if(pPacket->length() == 0)
 				{
 					RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
@@ -481,7 +481,7 @@ public:
 			}
 			else
 			{
-				datas.append((char*)pPacket->data() + pPacket->rpos(), pPacket->length());
+				datas.append((char*)pPacket->data() + pPacket->rpos(), (int)pPacket->length());
 				pPacket->done();
 				RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 				++reclaimCount;

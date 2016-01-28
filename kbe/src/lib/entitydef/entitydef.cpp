@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/py_memorystream.h"
 #include "resmgr/resmgr.h"
 #include "common/smartpointer.h"
+#include "entitydef/volatileinfo.h"
 #include "entitydef/entity_mailbox.h"
 
 #ifndef CODE_INLINE
@@ -358,58 +359,58 @@ bool EntityDef::loadVolatileInfo(const std::string& defFilePath,
 	if(pNode == NULL)
 		return true;
 
-	VolatileInfo& vInfo = pScriptModule->getVolatileInfo();
+	VolatileInfo* pVolatileInfo = pScriptModule->getPVolatileInfo();
 	
 	TiXmlNode* node = defxml->enterNode(pNode, "position");
 	if(node) 
 	{
-		vInfo.position((float)defxml->getValFloat(node));
+		pVolatileInfo->position((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "position"))
-			vInfo.position(VolatileInfo::ALWAYS);
+			pVolatileInfo->position(VolatileInfo::ALWAYS);
 		else
-			vInfo.position(-1.f);
+			pVolatileInfo->position(-1.f);
 	}
 
 	node = defxml->enterNode(pNode, "yaw");
 	if(node) 
 	{
-		vInfo.yaw((float)defxml->getValFloat(node));
+		pVolatileInfo->yaw((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "yaw"))
-			vInfo.yaw(VolatileInfo::ALWAYS);
+			pVolatileInfo->yaw(VolatileInfo::ALWAYS);
 		else
-			vInfo.yaw(-1.f);
+			pVolatileInfo->yaw(-1.f);
 	}
 
 	node = defxml->enterNode(pNode, "pitch");
 	if(node) 
 	{
-		vInfo.pitch((float)defxml->getValFloat(node));
+		pVolatileInfo->pitch((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "pitch"))
-			vInfo.pitch(VolatileInfo::ALWAYS);
+			pVolatileInfo->pitch(VolatileInfo::ALWAYS);
 		else
-			vInfo.pitch(-1.f);
+			pVolatileInfo->pitch(-1.f);
 	}
 
 	node = defxml->enterNode(pNode, "roll");
 	if(node) 
 	{
-		vInfo.roll((float)defxml->getValFloat(node));
+		pVolatileInfo->roll((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "roll"))
-			vInfo.roll(VolatileInfo::ALWAYS);
+			pVolatileInfo->roll(VolatileInfo::ALWAYS);
 		else
-			vInfo.roll(-1.f);
+			pVolatileInfo->roll(-1.f);
 	}
 
 	return true;
@@ -1374,6 +1375,7 @@ bool EntityDef::installScript(PyObject* mod)
 	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
+	VolatileInfo::installScript(NULL);
 
 	_isInit = true;
 	return true;
@@ -1388,6 +1390,7 @@ bool EntityDef::uninstallScript()
 		EntityMailbox::uninstallScript();
 		FixedArray::uninstallScript();
 		FixedDict::uninstallScript();
+		VolatileInfo::uninstallScript();
 	}
 
 	return EntityDef::finalise();

@@ -674,7 +674,7 @@ public:																										\
 																											\
 	static PyObject* __py_pyWriteToDB(PyObject* self, PyObject* args)										\
 	{																										\
-		uint16 currargsSize = PyTuple_Size(args);															\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);													\
 		CLASS* pobj = static_cast<CLASS*>(self);															\
 																											\
 		if((g_componentType == CELLAPP_TYPE && currargsSize > 2) ||											\

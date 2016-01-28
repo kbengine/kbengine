@@ -39,8 +39,6 @@ gameUpdateHertz_(10),
 tick_max_buffered_logs_(4096),
 tick_max_sync_logs_(32),
 interfacesAddr_(),
-interfaces_accountType_(""),
-interfaces_chargeType_(""),
 shutdown_time_(1.f),
 shutdown_waitTickTime_(1.f),
 callback_timeout_(180.f),
@@ -359,23 +357,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("interfaces");
 	if(rootNode != NULL)
 	{
-		TiXmlNode* childnode = xml->enterNode(rootNode, "accountType");
-		if(childnode)
-		{
-			interfaces_accountType_ = xml->getValStr(childnode);
-			if(interfaces_accountType_.size() == 0)
-				interfaces_accountType_ = "normal";
-		}
-
-		childnode = xml->enterNode(rootNode, "chargeType");
-		if(childnode)
-		{
-			interfaces_chargeType_ = xml->getValStr(childnode);
-			if(interfaces_chargeType_.size() == 0)
-				interfaces_chargeType_ = "normal";
-		}
-
-		childnode = xml->enterNode(rootNode, "entryScriptFile");	
+		TiXmlNode* childnode = xml->enterNode(rootNode, "entryScriptFile");	
 		if(childnode != NULL)
 			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
 
@@ -384,11 +366,15 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(childnode)
 		{
 			ip = xml->getValStr(childnode);
-			if(ip.size() == 0)
-				ip = "localhost";
-
-			Network::Address addr(ip, ntohs(interfacesAddr_.port));
-			interfacesAddr_ = addr;
+			if (ip.size() > 0)
+			{
+				Network::Address addr(ip, ntohs(interfacesAddr_.port));
+				interfacesAddr_ = addr;
+			}
+			else
+			{
+				interfacesAddr_ = Network::Address::NONE;
+			}
 		}
 
 		uint16 port = 0;
@@ -1114,19 +1100,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "defaultAddBots");
 		if(node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "totalcount");
+			TiXmlNode* childnode = xml->enterNode(node, "totalCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_totalCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "tickcount");
+			childnode = xml->enterNode(node, "tickCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "ticktime");
+			childnode = xml->enterNode(node, "tickTime");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickTime = (float)xml->getValFloat(childnode);

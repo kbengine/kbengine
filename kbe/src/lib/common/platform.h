@@ -126,14 +126,14 @@ namespace KBEngine
 
 
 // current platform and compiler
-#define PLATFORM_WIN32 0
-#define PLATFORM_UNIX  1
-#define PLATFORM_APPLE 2
+#define PLATFORM_WIN32			0
+#define PLATFORM_UNIX			1
+#define PLATFORM_APPLE			2
 
-#define UNIX_FLAVOUR_LINUX 1
-#define UNIX_FLAVOUR_BSD 2
-#define UNIX_FLAVOUR_OTHER 3
-#define UNIX_FLAVOUR_OSX 4
+#define UNIX_FLAVOUR_LINUX		1
+#define UNIX_FLAVOUR_BSD		2
+#define UNIX_FLAVOUR_OTHER		3
+#define UNIX_FLAVOUR_OSX		4
 
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #  define KBE_PLATFORM PLATFORM_WIN32
@@ -195,6 +195,12 @@ namespace KBEngine
 #define KBE_CONFIG "Debug"
 #else
 #define KBE_CONFIG "Release"
+#endif
+#endif
+
+#ifndef X64
+#if defined( _WIN64 ) || defined( __x86_64__ ) || defined( __amd64 ) || defined( __LP64__ )
+#define X64
 #endif
 #endif
 

@@ -48,7 +48,7 @@ aliasName_()
 
 	DataTypes::addDataType(id_, this);
 
-	EntityDef::md5().append((void*)this->aliasName(), strlen(this->aliasName()));
+	EntityDef::md5().append((void*)this->aliasName(), (int)strlen(this->aliasName()));
 	EntityDef::md5().append((void*)&id_, sizeof(DATATYPE_UID));
 }
 
@@ -913,7 +913,7 @@ void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 		return;
 	}	
 
-	mstream->appendBlob(PyBytes_AS_STRING(pyobj), PyBytes_GET_SIZE(pyobj));
+	mstream->appendBlob(PyBytes_AS_STRING(pyobj), (ArraySize)PyBytes_GET_SIZE(pyobj));
 	Py_DECREF(pyobj);
 }
 
@@ -1180,13 +1180,13 @@ void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	{
 		script::PyMemoryStream* pPyMemoryStream = static_cast<script::PyMemoryStream*>(pyValue);
 		MemoryStream& m = pPyMemoryStream->stream();
-		mstream->appendBlob((const char*)m.data() + m.rpos(), m.length());
+		mstream->appendBlob((const char*)m.data() + m.rpos(), (ArraySize)m.length());
 	}
 	else
 	{
 		Py_ssize_t datasize = PyBytes_GET_SIZE(pyValue);
 		char* datas = PyBytes_AsString(pyValue);
-		mstream->appendBlob(datas, datasize);
+		mstream->appendBlob(datas, (ArraySize)datasize);
 	}
 }
 
@@ -1401,7 +1401,6 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 	}
 
 	std::string strType = xml->getValStr(arrayNode);
-	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 	if(strType == "ARRAY")
 	{
@@ -1444,7 +1443,7 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 
 	DATATYPE_UID uid = dataType_->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
-	EntityDef::md5().append((void*)strType.c_str(), strType.size());
+	EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
 	return true;
 }
 
@@ -1498,7 +1497,7 @@ void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 void FixedArrayType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents)
 {
-	ArraySize size = PySequence_Size(pyValue);
+	ArraySize size = (ArraySize)PySequence_Size(pyValue);
 	(*mstream) << size;
 
 	for(ArraySize i=0; i<size; ++i)
@@ -1709,7 +1708,6 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 		if(typeNode)
 		{
 			strType = xml->getValStr(typeNode);
-			//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 			if(strType == "ARRAY")
 			{
@@ -1721,8 +1719,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 				{
 					DATATYPE_UID uid = dataType->id();
 					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
-					EntityDef::md5().append((void*)strType.c_str(), strType.size());
-					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
+					EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+					EntityDef::md5().append((void*)typeName.c_str(), (int)typeName.size());
 
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
@@ -1754,8 +1752,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 				{
 					DATATYPE_UID uid = dataType->id();
 					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
-					EntityDef::md5().append((void*)strType.c_str(), strType.size());
-					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
+					EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+					EntityDef::md5().append((void*)typeName.c_str(), (int)typeName.size());
 
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
@@ -1795,7 +1793,7 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 		}
 
 		if(strType.size() > 0)
-			EntityDef::md5().append((void*)strType.c_str(), strType.size());
+			EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
 	}
 
 	return true;

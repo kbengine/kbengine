@@ -133,8 +133,8 @@ public:
 	{
 		size_t rpos = s.rpos(), wpos = s.wpos();
 		std::swap(data_, s.data_);
-		s.rpos(rpos_);
-		s.wpos(wpos_);
+		s.rpos((int)rpos_);
+		s.wpos((int)wpos_);
 		rpos_ = rpos;
 		wpos_ = wpos;
 	}
@@ -527,7 +527,7 @@ public:
 
 	void appendBlob(const std::string& datas)
     {
-		ArraySize len = datas.size();
+		ArraySize len = (ArraySize)datas.size();
 		(*this) << len;
 
 		if(len > 0)
@@ -701,7 +701,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = rpos(); i < wpos(); ++i)
+        for(size_t i = rpos(); i < wpos(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%u ", read<uint8>(i));
 			fbuffer += buf;
@@ -723,7 +723,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = rpos(); i < wpos(); ++i)
+		for (size_t i = rpos(); i < wpos(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%c", read<uint8>(i));
 			fbuffer += buf;
@@ -746,7 +746,7 @@ public:
 		fbuffer += buf;
 		
 		uint32 i = 0;
-        for(uint32 idx = rpos(); idx < wpos(); ++idx)
+		for (size_t idx = rpos(); idx < wpos(); ++idx)
         {
 			++i;
             if ((i == (j * 8)) && ((i != (k * 16))))

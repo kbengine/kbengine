@@ -1,6 +1,6 @@
 <root>
-	<!-- 游戏逻辑处理频率 
-		(Update frequency process)
+	<!-- 游戏逻辑处理频率HZ
+		(Update frequency process, HZ)
 	-->
 	<gameUpdateHertz> 10 </gameUpdateHertz>
 	
@@ -196,20 +196,6 @@
 			(Entry module, like the main-function)
 		-->
 		<entryScriptFile> kbengine </entryScriptFile>
-			
-		<!-- 
-			账号的类型(Account Type):
-			normal: 默认当前进程处理(default handling the current process), 
-			thirdparty: 由第三方服务商处理(handled by third-party service providers) 
-		-->
-		<accountType> normal </accountType>
-		
-		<!-- 
-			计费的类型(Charge Type):
-			normal: 默认当前进程处理(default handling the current process), 
-			thirdparty: 由第三方服务商处理(handled by third-party service providers) 
-		-->
-		<chargeType> normal </chargeType>
 		
 		<!-- interfaces的地址，多组游戏服务端可以共用一个interfaces
 			(interfaces address, multiple gameserver can share a interfaces)
@@ -730,14 +716,14 @@
 		
 		<!-- 默认启动进程后自动添加这么多个机器人 
 			(After starting the process, automatically add some robots)
-			totalcount	： 添加总数量			(Add the total-number)
-			ticktime	： 每次添加所用时间(s)	(Interval time-secs)
-			tickcount	： 每次添加数量			(Each time you add the number of)
+			totalCount	： 添加总数量			(Add the total-number)
+			tickTime	： 每次添加所用时间(s)	(Interval time-secs)
+			tickCount	： 每次添加数量			(Each time you add the number of)
 		-->
 		<defaultAddBots> 
-			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
-			<ticktime> 0.1  </ticktime>									<!-- Type: Float -->
-			<tickcount> 5  </tickcount>									<!-- Type: Integer -->
+			<totalCount> 10  </totalCount>								<!-- Type: Integer -->
+			<tickTime> 0.1  </tickTime>									<!-- Type: Float -->
+			<tickCount> 5  </tickCount>									<!-- Type: Integer -->
 		</defaultAddBots>
 		
 		<!-- 机器人账号相关 

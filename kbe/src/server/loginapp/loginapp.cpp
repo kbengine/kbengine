@@ -1331,13 +1331,13 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 	
 		bundle.newMessage(ClientInterface::onImportClientMessages);
 		
-		uint16 size = messages.size() + clientMessages.size();
+		uint16 size = (uint16)(messages.size() + clientMessages.size());
 		bundle << size;
 
 		std::map< Network::MessageID, Network::ExposedMessageInfo >::iterator iter = clientMessages.begin();
 		for(; iter != clientMessages.end(); ++iter)
 		{
-			uint8 argsize = iter->second.argsTypes.size();
+			uint8 argsize = (uint8)iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
@@ -1350,7 +1350,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		iter = messages.begin();
 		for(; iter != messages.end(); ++iter)
 		{
-			uint8 argsize = iter->second.argsTypes.size();
+			uint8 argsize = (uint8)iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
@@ -1401,14 +1401,14 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 
 		bundle.newMessage(ClientInterface::onImportServerErrorsDescr);
 		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();
-		uint16 size = errsDescrs.size();
+		uint16 size = (uint16)errsDescrs.size();
 
 		bundle << size;
 		for(; iter != errsDescrs.end(); ++iter)
 		{
 			bundle << iter->first;
-			bundle.appendBlob(iter->second.first.data(), iter->second.first.size());
-			bundle.appendBlob(iter->second.second.data(), iter->second.second.size());
+			bundle.appendBlob(iter->second.first.data(), (ArraySize)iter->second.first.size());
+			bundle.appendBlob(iter->second.second.data(), (ArraySize)iter->second.second.size());
 		}
 	}
 

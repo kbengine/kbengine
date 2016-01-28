@@ -123,7 +123,7 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 
 	try
 	{
-		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
+		if (!pdbi_->query(sdatas_.data(), (uint32)sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -169,7 +169,7 @@ bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
 
 	try
 	{
-		if(!pdbi_->query(sdatas_.data(), sdatas_.size(), false, &execret_))
+		if (!pdbi_->query(sdatas_.data(), (uint32)sdatas_.size(), false, &execret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -497,7 +497,7 @@ bool DBTaskEntityAutoLoad::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskEntityAutoLoad::presentMainThread()
 {
-	int size = outs_.size();
+	int size = (int)outs_.size();
 	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_);
 
 	if(size > 0)
@@ -744,7 +744,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 std::string genmail_code(const std::string& str)
 {
 	std::string datas = KBEngine::StringConv::val2str(KBEngine::genUUID64());
-	datas += KBE_MD5::getDigest(str.data(), str.length());
+	datas += KBE_MD5::getDigest(str.data(), (int)str.length());
 
 	srand(getSystemTime());
 	datas += KBEngine::StringConv::val2str(rand());
@@ -823,7 +823,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 			pdbi_->getstrerror(), pdbi_->lastquery()));
 	}
 
-	password_ = KBE_MD5::getDigest(password_.data(), password_.length());
+	password_ = KBE_MD5::getDigest(password_.data(), (int)password_.length());
 
 	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT, 
 		registerName_, password_, getdatas_);
@@ -1183,12 +1183,12 @@ bool DBTaskAccountNewPassword::db_thread_process()
 	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(oldpassword_.data(), oldpassword_.length()).c_str()) != 0)
+	if (kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(oldpassword_.data(), (int)oldpassword_.length()).c_str()) != 0)
 	{
 		return false;
 	}
 
-	success_ = pTable->updatePassword(pdbi_, accountName_, KBE_MD5::getDigest(newpassword_.data(), newpassword_.length()));
+	success_ = pTable->updatePassword(pdbi_, accountName_, KBE_MD5::getDigest(newpassword_.data(), (int)newpassword_.length()));
 	return false;
 }
 
@@ -1280,7 +1280,7 @@ bool DBTaskQueryAccount::db_thread_process()
 			return false;
 		}
 
-		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
+		if (kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), (int)password_.length()).c_str()) != 0)
 		{
 			error_ = "password is error";
 			return false;
@@ -1536,9 +1536,9 @@ bool DBTaskAccountLogin::db_thread_process()
 			INFO_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], autocreate successfully!\n", 
 				accountName_));
 
-			if(kbe_stricmp(g_kbeSrvConfig.interfacesAccountType(), "normal") == 0)
+			if (Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
 			{
-				info.password = KBE_MD5::getDigest(password_.data(), password_.length());
+				info.password = KBE_MD5::getDigest(password_.data(), (int)password_.length());
 			}
 		}
 		else
@@ -1554,9 +1554,9 @@ bool DBTaskAccountLogin::db_thread_process()
 	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	if(kbe_stricmp(g_kbeSrvConfig.interfacesAccountType(), "normal") == 0)
+	if (Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
 	{
-		if(kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), password_.length()).c_str()) != 0)
+		if (kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), (int)password_.length()).c_str()) != 0)
 		{
 			retcode_ = SERVER_ERR_PASSWORD;
 			return false;

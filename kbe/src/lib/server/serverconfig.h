@@ -241,9 +241,6 @@ public:
 
 	INLINE int16 gameUpdateHertz(void) const;
 	INLINE Network::Address interfacesAddr(void) const;
-	
-	INLINE const char* interfacesAccountType() const;
-	INLINE const char* interfacesChargeType() const;
 
 	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
 
@@ -306,8 +303,6 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Network::Address interfacesAddr_;
-	std::string interfaces_accountType_;							// 账号系统类别
-	std::string interfaces_chargeType_;								// 计费系统类别
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

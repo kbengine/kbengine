@@ -18,8 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iterator>
 #include "entity_coordinate_node.h"
 #include "entity.h"
+#include "coordinate_system.h"
 
 namespace KBEngine{	
 
@@ -155,25 +157,29 @@ bool EntityCoordinateNode::delWatcherNode(CoordinateNode* pNode)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, CoordinateNode* rootNode, 
-									  const Position3D& originpos, float radius, int entityUType)
+void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& foundEntities, CoordinateNode* rootNode,
+									  const Position3D& originPos, float radius, int entityUType)
 {
+	std::set<Entity*> entities_X;
+	std::set<Entity*> entities_Z;
+
 	if((rootNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
 	{
 		Entity* pEntity = static_cast<EntityCoordinateNode*>(rootNode)->pEntity();
 		if(entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 		{
-			Position3D distVec = originpos - pEntity->position();
+			Position3D distVec = originPos - pEntity->position();
 			float dist = KBEVec3Length(&distVec);
 
 			if(dist <= radius)
 			{
-				findentities.push_back(pEntity);
+				foundEntities.push_back(pEntity);
 			}
 		}
 	}
 
 	CoordinateNode* pCoordinateNode = rootNode;
+
 	while(pCoordinateNode->pPrevX())
 	{
 		CoordinateNode* pPrevCoordinateNode = pCoordinateNode->pPrevX();
@@ -183,12 +189,13 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 			
 			if(entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
-				Position3D distVec = originpos - pEntity->position();
-				float dist = KBEVec3Length(&distVec);
-
-				if(dist <= radius)
+				if (fabs(originPos.x - pEntity->position().x) <= radius)
 				{
-					findentities.push_back(pEntity);
+					entities_X.insert(pEntity);
+				}
+				else
+				{
+					break;
 				}
 			}
 		}
@@ -207,18 +214,133 @@ void EntityCoordinateNode::entitiesInRange(std::vector<Entity*>& findentities, C
 			
 			if(entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
 			{
-				Position3D distVec = originpos - pEntity->position();
-				float dist = KBEVec3Length(&distVec);
-
-				if(dist <= radius)
+				if (fabs(originPos.x - pEntity->position().x) <= radius)
 				{
-					findentities.push_back(pEntity);
+					entities_X.insert(pEntity);
+				}
+				else
+				{
+					break;
 				}
 			}
 		}
 
 		pCoordinateNode = pNextCoordinateNode;
 	};
+
+	// ²éÕÒZÖá
+	pCoordinateNode = rootNode;
+
+	while (pCoordinateNode->pPrevZ())
+	{
+		CoordinateNode* pPrevCoordinateNode = pCoordinateNode->pPrevZ();
+		if ((pPrevCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityCoordinateNode*>(pPrevCoordinateNode)->pEntity();
+
+			if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				if (fabs(originPos.z - pEntity->position().z) <= radius)
+				{
+					entities_Z.insert(pEntity);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		pCoordinateNode = pPrevCoordinateNode;
+	};
+
+	pCoordinateNode = rootNode;
+
+	while (pCoordinateNode->pNextZ())
+	{
+		CoordinateNode* pNextCoordinateNode = pCoordinateNode->pNextZ();
+		if ((pNextCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityCoordinateNode*>(pNextCoordinateNode)->pEntity();
+
+			if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				if (fabs(originPos.z - pEntity->position().z) <= radius)
+				{
+					entities_Z.insert(pEntity);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		pCoordinateNode = pNextCoordinateNode;
+	};
+
+	// ²éÕÒY
+	if (CoordinateSystem::hasY)
+	{
+		pCoordinateNode = rootNode;
+		std::set<Entity*> entities_Y;
+
+		while (pCoordinateNode->pPrevY())
+		{
+			CoordinateNode* pPrevCoordinateNode = pCoordinateNode->pPrevY();
+			if ((pPrevCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+			{
+				Entity* pEntity = static_cast<EntityCoordinateNode*>(pPrevCoordinateNode)->pEntity();
+
+				if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+				{
+					if (fabs(originPos.y - pEntity->position().y) <= radius)
+					{
+						entities_Y.insert(pEntity);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+
+			pCoordinateNode = pPrevCoordinateNode;
+		};
+
+		pCoordinateNode = rootNode;
+
+		while (pCoordinateNode->pNextY())
+		{
+			CoordinateNode* pNextCoordinateNode = pCoordinateNode->pNextY();
+			if ((pNextCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+			{
+				Entity* pEntity = static_cast<EntityCoordinateNode*>(pNextCoordinateNode)->pEntity();
+
+				if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+				{
+					if (fabs(originPos.y - pEntity->position().y) <= radius)
+					{
+						entities_Y.insert(pEntity);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+
+			pCoordinateNode = pNextCoordinateNode;
+		};
+
+		std::set<Entity*> res_set;
+		set_intersection(entities_X.begin(), entities_X.end(), entities_Z.begin(), entities_Z.end(), std::inserter(res_set, res_set.end()));
+		set_intersection(res_set.begin(), res_set.end(), entities_Y.begin(), entities_Y.end(), std::back_inserter(foundEntities));
+	}
+	else
+	{
+		set_intersection(entities_X.begin(), entities_X.end(), entities_Z.begin(), entities_Z.end(), std::back_inserter(foundEntities));
+	}
 }
 
 //-------------------------------------------------------------------------------------
