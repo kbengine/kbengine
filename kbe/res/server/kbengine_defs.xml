@@ -248,7 +248,7 @@
 		-->
 		<internalInterface>  </internalInterface>
 		
-		<!-- Interfaces进程的地址（参考interfaces中地址配置
+		<!-- Interfaces进程的地址（参考interfaces中地址配置）
 			(Address of Interfaces process)
 		-->
 		<InterfacesServiceAddr>

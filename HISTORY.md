@@ -1,3 +1,29 @@
+###v0.8.0
+
+	2016/1/30
+
+	新增与改善：
+		多数据库横向扩展支持（#264）
+		VS2015编译支持（#292）
+		Windows X64位编译支持（#282）
+		OPENSSL 升级到1.0.2e
+		API文档更新
+		Recastnavigation 更新至最新版本
+		cluster_controller.py支持远程启动进程
+		错误信息在linux上也打印到控制台， 有助于启动时及时发现错误（#280）
+		KBEngine.Blob改名为KBEngine.MemoryStream
+		规范化API命名，所有脚本主动调用的称为引擎API函数，所有由引擎通知脚本被动接受调用的称为引擎回调（requestCreateAccount、requestAccountLogin、requestCharge分别改名为onRequestCreateAccount、onReques、onRequestCharge）
+		logger脚本支持
+		entitiesInRange优化（#298）
+		base上实体调用createInNewSpace之后， 在cell上也应该走一次enterspace等流程。
+		Entity.volatileInfo脚本可改支持
+
+	BUG修正：
+		修正邮件绑定后不能使用邮件登录问题
+		其他修正：#289、#290
+
+
+
 ###v0.7.0
 
 	2015/11/25
