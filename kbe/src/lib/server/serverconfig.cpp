@@ -361,20 +361,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(childnode != NULL)
 			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
 
-		std::string ip = "";
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
 		{
-			ip = xml->getValStr(childnode);
-			if (ip.size() > 0)
-			{
-				Network::Address addr(ip, ntohs(interfacesAddr_.port));
-				interfacesAddr_ = addr;
-			}
-			else
-			{
-				interfacesAddr_ = Network::Address::NONE;
-			}
+			std::string ip = xml->getValStr(childnode);
+			Network::Address addr(ip, ntohs(interfacesAddr_.port));
+			interfacesAddr_ = addr;
 		}
 
 		uint16 port = 0;
@@ -777,6 +769,38 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if (childnode)
 			{
 				_dbmgrInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
+		node = xml->enterNode(rootNode, "InterfacesServiceAddr");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "host");
+			if (childnode)
+			{
+				std::string ip = xml->getValStr(childnode);
+				Network::Address addr(ip, ntohs(interfacesAddr_.port));
+				interfacesAddr_ = addr;
+			}
+
+			uint16 port = 0;
+			childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				port = xml->getValInt(childnode);
+
+				if (port <= 0)
+					port = KBE_INTERFACES_TCP_PORT;
+
+				Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
+				interfacesAddr_ = addr;
+			}
+
+			childnode = xml->enterNode(node, "enable");
+			if (childnode)
+			{
+				if(xml->getValStr(childnode) != "true")
+					interfacesAddr_ = Network::Address::NONE;
 			}
 		}
 

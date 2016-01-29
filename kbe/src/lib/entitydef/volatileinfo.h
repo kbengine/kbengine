@@ -118,6 +118,9 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetPitch, pySetPitch);
 	DECLARE_PY_GETSET_MOTHOD(pyGetRoll, pySetRoll);
 
+	void addToStream(KBEngine::MemoryStream& s);
+	void createFromStream(KBEngine::MemoryStream& s);
+
 protected:	
 	float position_;
 	float yaw_;
