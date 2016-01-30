@@ -1,12 +1,5 @@
 language: cpp
 sudo: required
-env:
-  #matrix:
-  - OS_TYPE=centos OS_VERSION=6 ANSIBLE_VERSION=1.9.2
-  - OS_TYPE=centos OS_VERSION=7 ANSIBLE_VERSION=1.9.2
-  - OS_TYPE=ubuntu OS_VERSION=12.04 ANSIBLE_VERSION=1.9.2
-  - OS_TYPE=ubuntu OS_VERSION=14.04 ANSIBLE_VERSION=1.9.2
-#  - OS_TYPE=fedora OS_VERSION=22
 compiler:
    - gcc
 branches:
