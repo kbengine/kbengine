@@ -305,12 +305,6 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetLayer, pySetLayer);
 
 	/** 
-		脚本获取和设置entity的dontSyncPosToOtherClient
-	*/
-	INLINE int8 dontSyncPosToOtherClient() const;
-	DECLARE_PY_GETSET_MOTHOD(pyGetDontSyncPosToOtherClient, pySetDontSyncPosToOtherClient);
-
-	/** 
 		entity移动导航 
 	*/
 	bool canNavigate();
@@ -670,7 +664,6 @@ protected:
 	// entity层，可以做任意表示，基于tile的游戏可以表示为海陆空等层，纯3d也可以表示各种层
 	// 在脚本层做搜索的时候可以按层搜索.
 	int8													layer_;
-	int8													dontSyncPosToOtherClient_;
 	
 	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
 	bool													isDirty_;
