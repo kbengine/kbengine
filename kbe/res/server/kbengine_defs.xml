@@ -248,6 +248,16 @@
 		-->
 		<internalInterface>  </internalInterface>
 		
+		<!-- Interfaces进程的地址（参考interfaces中地址配置）
+			(Address of Interfaces process)
+		-->
+		<InterfacesServiceAddr>
+			<!-- 如果enable为false则相关数据不转发到Interfaces进程 -->
+			<enable> true		</enable>
+			<host>	 localhost	</host>
+			<port>	 30099		</port>
+		</InterfacesServiceAddr>
+
 		<!-- 数据库接口 
 			(database interfaces)
 		-->
@@ -716,14 +726,14 @@
 		
 		<!-- 默认启动进程后自动添加这么多个机器人 
 			(After starting the process, automatically add some robots)
-			totalcount	： 添加总数量			(Add the total-number)
-			ticktime	： 每次添加所用时间(s)	(Interval time-secs)
-			tickcount	： 每次添加数量			(Each time you add the number of)
+			totalCount	： 添加总数量			(Add the total-number)
+			tickTime	： 每次添加所用时间(s)	(Interval time-secs)
+			tickCount	： 每次添加数量			(Each time you add the number of)
 		-->
 		<defaultAddBots> 
-			<totalcount> 10  </totalcount>								<!-- Type: Integer -->
-			<ticktime> 0.1  </ticktime>									<!-- Type: Float -->
-			<tickcount> 5  </tickcount>									<!-- Type: Integer -->
+			<totalCount> 10  </totalCount>								<!-- Type: Integer -->
+			<tickTime> 0.1  </tickTime>									<!-- Type: Float -->
+			<tickCount> 5  </tickCount>									<!-- Type: Integer -->
 		</defaultAddBots>
 		
 		<!-- 机器人账号相关 

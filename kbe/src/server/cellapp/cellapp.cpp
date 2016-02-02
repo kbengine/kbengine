@@ -811,11 +811,13 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 	ENTITY_ID mailboxEntityID;
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID = 1;
+	bool hasClient;
 
 	s >> entityType;
 	s >> mailboxEntityID;
 	s >> spaceID;
 	s >> componentID;
+	s >> hasClient;
 
 	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
@@ -829,6 +831,15 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		if(e == NULL)
 		{
 			s.done();
+
+			ERROR_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: createEntity error!\n");
+
+			/* 目前来说除非内存或者系统问题，否则不会出现这个错误
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			pBundle->newMessage(BaseappInterface::onCreateCellFailure);
+			BaseappInterface::onCreateCellFailureArgs1::staticAddToBundle(*pBundle, mailboxEntityID);
+			cinfos->pChannel->send(pBundle);
+			*/
 			return;
 		}
 
@@ -838,6 +849,20 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		EntityMailbox* mailbox = new EntityMailbox(e->pScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
 		e->baseMailbox(mailbox);
 		
+		if (hasClient)
+		{
+			KBE_ASSERT(e->baseMailbox() != NULL && !e->hasWitness());
+			PyObject* clientMailbox = PyObject_GetAttrString(e->baseMailbox(), "client");
+			KBE_ASSERT(clientMailbox != Py_None);
+
+			EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);
+			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
+
+			// 为了能够让entity.__init__中能够修改属性立刻能广播到客户端我们需要提前设置这些
+			e->clientMailbox(client);
+			e->setWitness(Witness::ObjPool().createObject());
+		}
+
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
@@ -856,18 +881,29 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 			
 			return;
 		}
-		
+
+		space->addEntity(e);
 		e->spaceID(space->id());
 		e->initializeEntity(cellData);
 		Py_XDECREF(cellData);
 
 		// 添加到space
-		space->addEntityAndEnterWorld(e);
+		space->addEntityToNode(e);
+
+		if (hasClient)
+		{
+			e->onGetWitness();
+		}
+		else
+		{
+			space->onEnterWorld(e);
+		}
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), mailboxEntityID, componentID_, spaceID);
 		cinfos->pChannel->send(pBundle);
+
 		return;
 	}
 	
@@ -882,11 +918,13 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 	ENTITY_ID mailboxEntityID;
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID = 1;
+	bool hasClient;
 
 	s >> entityType;
 	s >> mailboxEntityID;
 	s >> spaceID;
 	s >> componentID;
+	s >> hasClient;
 
 	// DEBUG_MSG("Cellapp::onRestoreSpaceInCellFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
@@ -909,6 +947,20 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		EntityMailbox* mailbox = new EntityMailbox(e->pScriptModule(), NULL, componentID, mailboxEntityID, MAILBOX_TYPE_BASE);
 		e->baseMailbox(mailbox);
 		
+		if (hasClient)
+		{
+			KBE_ASSERT(e->baseMailbox() != NULL && !e->hasWitness());
+			PyObject* clientMailbox = PyObject_GetAttrString(e->baseMailbox(), "client");
+			KBE_ASSERT(clientMailbox != Py_None);
+
+			EntityMailbox* client = static_cast<EntityMailbox*>(clientMailbox);
+			// Py_INCREF(clientMailbox); 这里不需要增加引用， 因为每次都会产生一个新的对象
+
+			// 为了能够让entity.__init__中能够修改属性立刻能广播到客户端我们需要提前设置这些
+			e->clientMailbox(client);
+			e->setWitness(Witness::ObjPool().createObject());
+		}
+
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
@@ -1082,14 +1134,14 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 			e->setWitness(Witness::ObjPool().createObject());
 		}
 
+		space->addEntity(e);
+
 		if(!inRescore)
 		{
-			space->addEntity(e);
 			e->initializeScript();
 		}
 		else
 		{
-			space->addEntity(e);
 			e->onRestore();
 		}
 

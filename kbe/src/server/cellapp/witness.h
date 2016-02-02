@@ -185,8 +185,10 @@ private:
 private:
 	Entity*									pEntity_;
 
-	float									aoiRadius_;							// 当前entity的aoi半径
-	float									aoiHysteresisArea_;					// 当前entityAoi的一个滞后范围
+	// 当前entity的aoi半径
+	float									aoiRadius_;
+	// 当前entityAoi的一个滞后范围
+	float									aoiHysteresisArea_;
 
 	AOITrigger*								pAOITrigger_;
 
@@ -195,7 +197,6 @@ private:
 	Position3D								lastBasePos;
 
 	uint16									clientAOISize_;
-
 };
 
 }

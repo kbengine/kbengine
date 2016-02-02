@@ -92,6 +92,7 @@ public:
 
 	EntityGarbages<T>* pGetbages(){ return _pGarbages; }
 	DECLARE_PY_GET_MOTHOD(pyGarbages);
+
 private:
 	ENTITYS_MAP _entities;
 

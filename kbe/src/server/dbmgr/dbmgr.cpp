@@ -225,12 +225,15 @@ bool Dbmgr::inInitialize()
 {
 	// 初始化所有扩展模块
 	// assets/scripts/
+	if (!PythonApp::inInitialize())
+		return false;
+
 	std::vector<PyTypeObject*>	scriptBaseTypes;
 	if(!EntityDef::initialize(scriptBaseTypes, componentType_)){
 		return false;
 	}
 
-	return PythonApp::inInitialize();
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

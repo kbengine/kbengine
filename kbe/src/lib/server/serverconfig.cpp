@@ -361,20 +361,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(childnode != NULL)
 			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
 
-		std::string ip = "";
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
 		{
-			ip = xml->getValStr(childnode);
-			if (ip.size() > 0)
-			{
-				Network::Address addr(ip, ntohs(interfacesAddr_.port));
-				interfacesAddr_ = addr;
-			}
-			else
-			{
-				interfacesAddr_ = Network::Address::NONE;
-			}
+			std::string ip = xml->getValStr(childnode);
+			Network::Address addr(ip, ntohs(interfacesAddr_.port));
+			interfacesAddr_ = addr;
 		}
 
 		uint16 port = 0;
@@ -780,6 +772,38 @@ bool ServerConfig::loadConfig(std::string fileName)
 			}
 		}
 
+		node = xml->enterNode(rootNode, "InterfacesServiceAddr");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "host");
+			if (childnode)
+			{
+				std::string ip = xml->getValStr(childnode);
+				Network::Address addr(ip, ntohs(interfacesAddr_.port));
+				interfacesAddr_ = addr;
+			}
+
+			uint16 port = 0;
+			childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				port = xml->getValInt(childnode);
+
+				if (port <= 0)
+					port = KBE_INTERFACES_TCP_PORT;
+
+				Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
+				interfacesAddr_ = addr;
+			}
+
+			childnode = xml->enterNode(node, "enable");
+			if (childnode)
+			{
+				if(xml->getValStr(childnode) != "true")
+					interfacesAddr_ = Network::Address::NONE;
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
@@ -1100,19 +1124,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "defaultAddBots");
 		if(node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "totalcount");
+			TiXmlNode* childnode = xml->enterNode(node, "totalCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_totalCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "tickcount");
+			childnode = xml->enterNode(node, "tickCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "ticktime");
+			childnode = xml->enterNode(node, "tickTime");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickTime = (float)xml->getValFloat(childnode);

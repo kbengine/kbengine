@@ -38,6 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "rotator_handler.h"
 #include "turn_controller.h"
 #include "pyscript/py_gc.h"
+#include "entitydef/volatileinfo.h"
 #include "entitydef/entity_mailbox.h"
 #include "network/channel.h"	
 #include "network/bundle.h"	
@@ -95,6 +96,7 @@ SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
+SCRIPT_GETSET_DECLARE("volatileInfo",				pyGetVolatileinfo,				pySetVolatileinfo,			0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 
@@ -126,7 +128,8 @@ pControllers_(new Controllers(id)),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
 layer_(0),
-isDirty_(true)
+isDirty_(true),
+pCustomVolatileinfo_(NULL)
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
@@ -147,6 +150,8 @@ isDirty_(true)
 Entity::~Entity()
 {
 	ENTITY_DECONSTRUCTION(Entity);
+
+	S_RELEASE(pCustomVolatileinfo_);
 
 	S_RELEASE(clientMailbox_);
 	S_RELEASE(baseMailbox_);
@@ -1549,6 +1554,65 @@ int Entity::pySetLayer(PyObject *value)
 PyObject* Entity::pyGetLayer()
 {
 	return PyLong_FromLong(layer_);
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetVolatileinfo(PyObject *value)
+{
+	if (isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+
+	if (!PySequence_Check(value))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d set volatileInfo value is not tuple!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (PySequence_Size(value) != 4)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d set volatileInfo value is not tuple(position, yaw, pitch, roll)!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (pCustomVolatileinfo_ == NULL)
+		pCustomVolatileinfo_ = new VolatileInfo();
+
+	PyObject* pyPos = PySequence_GetItem(value, 0);
+	PyObject* pyYaw = PySequence_GetItem(value, 1);
+	PyObject* pyPitch = PySequence_GetItem(value, 2);
+	PyObject* pyRoll = PySequence_GetItem(value, 3);
+
+	pCustomVolatileinfo_->position(float(PyFloat_AsDouble(pyPos)));
+	pCustomVolatileinfo_->yaw(float(PyFloat_AsDouble(pyYaw)));
+	pCustomVolatileinfo_->pitch(float(PyFloat_AsDouble(pyPitch)));
+	pCustomVolatileinfo_->roll(float(PyFloat_AsDouble(pyRoll)));
+
+	Py_DECREF(pyPos);
+	Py_DECREF(pyYaw);
+	Py_DECREF(pyPitch);
+	Py_DECREF(pyRoll);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetVolatileinfo()
+{
+	if (pCustomVolatileinfo_ == NULL)
+		pCustomVolatileinfo_ = new VolatileInfo();
+
+	Py_INCREF(pCustomVolatileinfo_);
+	return pCustomVolatileinfo_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -3062,9 +3126,14 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 		baseMailboxComponentID = baseMailbox_->componentID();
 	}
 
+	bool hasCustomVolatileinfo = (pCustomVolatileinfo_ != NULL);
+		
 	s << pScriptModule_->getUType() << spaceID_ << isDestroyed_ << 
 		isOnGround_ << topSpeed_ << topSpeedY_ << 
-		layer_ << baseMailboxComponentID;
+		layer_ << baseMailboxComponentID << hasCustomVolatileinfo;
+
+	if (pCustomVolatileinfo_)
+		pCustomVolatileinfo_->addToStream(s);
 
 	addCellDataToStream(ENTITY_CELL_DATA_FLAGS, &s);
 	
@@ -3081,9 +3150,18 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_SCRIPT_UID scriptUType;
 	COMPONENT_ID baseMailboxComponentID;
+	bool hasCustomVolatileinfo;
 
 	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
-		topSpeedY_ >> layer_ >> baseMailboxComponentID;
+		topSpeedY_ >> layer_ >> baseMailboxComponentID >> hasCustomVolatileinfo;
+
+	if (hasCustomVolatileinfo)
+	{
+		if (!pCustomVolatileinfo_)
+			pCustomVolatileinfo_ = new VolatileInfo();
+
+		pCustomVolatileinfo_->createFromStream(s);
+	}
 
 	// 此时强制设置为不在地面，无法判定其是否在地面，角色需要客户端上报是否在地面
 	// 而服务端的NPC则与移动后是否在地面来判定。

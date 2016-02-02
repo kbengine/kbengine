@@ -63,7 +63,7 @@ methodDescr_aliasmap_(),
 hasCell_(false),
 hasBase_(false),
 hasClient_(false),
-volatileinfo_(),
+pVolatileinfo_(new VolatileInfo()),
 name_(name),
 usePropertyDescrAlias_(false),
 useMethodDescrAlias_(false)
@@ -81,6 +81,8 @@ ScriptDefModule::~ScriptDefModule()
 void ScriptDefModule::finalise(void)
 {
 	S_RELEASE(scriptType_);
+	S_RELEASE(pVolatileinfo_);
+
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
 	for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();

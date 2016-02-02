@@ -771,8 +771,11 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 {
-	const VolatileInfo& volatileInfo = pEntity_->pScriptModule()->getVolatileInfo();
-	if((volatileInfo.position() <= 0.0004f))
+	const VolatileInfo* pVolatileInfo = pEntity_->pCustomVolatileinfo();
+	if (!pVolatileInfo)
+		pVolatileInfo = pEntity_->pScriptModule()->getPVolatileInfo();
+
+	if ((pVolatileInfo->position() <= 0.0004f))
 		return;
 
 	const Position3D& bpos = basePos();
@@ -962,11 +965,13 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	const VolatileInfo& volatileInfo = otherEntity->pScriptModule()->getVolatileInfo();
-	
+	const VolatileInfo* pVolatileInfo = otherEntity->pCustomVolatileinfo();
+	if (!pVolatileInfo)
+		pVolatileInfo = otherEntity->pScriptModule()->getPVolatileInfo();
+
 	static uint16 entity_posdir_additional_updates = g_kbeSrvConfig.getCellApp().entity_posdir_additional_updates;
 	
-	if((volatileInfo.position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
+	if ((pVolatileInfo->position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
 	{
 		Position3D relativePos = otherEntity->position() - this->pEntity()->position();
 		mstream->appendPackXZ(relativePos.x, relativePos.z);
@@ -985,7 +990,7 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 	if((entity_posdir_additional_updates == 0) || (g_kbetime - otherEntity->dirChangedTime() < entity_posdir_additional_updates))
 	{
 		const Direction3D& dir = otherEntity->direction();
-		if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
+		if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 			(*mstream) << angle2int8(dir.pitch());
@@ -993,40 +998,40 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 
 			flags |= UPDATE_FLAG_YAW_PITCH_ROLL; 
 		}
-		else if(volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
+		else if (pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.pitch());
 			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_PITCH_ROLL; 
 		}
-		else if(volatileInfo.yaw() > 0.f && volatileInfo.pitch() > 0.f)
+		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 			(*mstream) << angle2int8(dir.pitch());
 
 			flags |= UPDATE_FLAG_YAW_PITCH; 
 		}
-		else if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f)
+		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_YAW_ROLL; 
 		}
-		else if(volatileInfo.yaw() > 0.f)
+		else if (pVolatileInfo->yaw() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 
 			flags |= UPDATE_FLAG_YAW; 
 		}
-		else if(volatileInfo.roll() > 0.f)
+		else if (pVolatileInfo->roll() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_ROLL; 
 		}
-		else if(volatileInfo.pitch() > 0.f)
+		else if (pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.pitch());
 
