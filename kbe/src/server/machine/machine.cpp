@@ -961,15 +961,14 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 		//chdir(bin_path.c_str());
 
 		const char *argv[6];
-		std::string scid = fmt::format("{}", cid);
-		std::string sgus = fmt::format("{}", gus);
+		const char **pArgv = argv;
+		std::string scid = fmt::format("--cid={}", cid);
+		std::string sgus = fmt::format("--gus={}", gus);
 		
-		argv[0] = cmdLine.c_str();
-		argv[1] = "--cid";
-		argv[2] = scid.c_str();
-		argv[3] = "--gus";
-		argv[4] = sgus.c_str();
-		argv[5] = NULL;
+		*pArgv++ = cmdLine.c_str();
+		*pArgv++ = scid.c_str();
+		*pArgv++ = sgus.c_str();
+		*pArgv = NULL;
 
 		// ¹Ø±Õ¸¸ÀàµÄsocket
 		ep_.close();
