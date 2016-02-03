@@ -44,8 +44,6 @@ updating_(0)
 //-------------------------------------------------------------------------------------
 CoordinateSystem::~CoordinateSystem()
 {
-	KBE_ASSERT(releases_.size() == 0);
-
 	dels_.clear();
 	dels_count_ = 0;
 
