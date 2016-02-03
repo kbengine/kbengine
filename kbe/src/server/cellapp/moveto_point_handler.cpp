@@ -39,6 +39,8 @@ distance_(distance),
 pController_(pController),
 layer_(layer)
 {
+	Py_INCREF(userarg);
+
 	//std::static_pointer_cast<MoveController>(pController)->pMoveToPointHandler(this);
 	static_cast<MoveController*>(pController.get())->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
@@ -180,9 +182,10 @@ bool MoveToPointHandler::update()
 		pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
 
 	// 如果达到目的地则返回true
-	if(!ret)
+	if (!ret && requestMoveOver(currpos_backup))
 	{
-		return !requestMoveOver(currpos_backup);
+		delete this;
+		return false;
 	}
 
 	return true;
