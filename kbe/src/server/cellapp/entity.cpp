@@ -1903,11 +1903,11 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxDistance, 
+uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxSearchDistance,
 	bool faceMovement, int8 layer, PyObject* userData)
 {
 	VECTOR_POS3D_PTR paths_ptr( new std::vector<Position3D>() );
-	navigatePathPoints(*paths_ptr, destination, maxDistance, layer);
+	navigatePathPoints(*paths_ptr, destination, maxSearchDistance, layer);
 	if (paths_ptr->size() <= 0)
 	{
 		return 0;
