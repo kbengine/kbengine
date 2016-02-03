@@ -33,6 +33,8 @@ velocity_(velocity),
 pyuserarg_(userarg),
 pController_(pController)
 {
+	Py_INCREF(userarg);
+
 	static_cast<TurnController*>(pController.get())->pRotatorHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
 }
@@ -132,9 +134,10 @@ bool RotatorHandler::update()
 		pEntity->setPositionAndDirection(pEntity->position(), currDir);
 
 	// 如果达到目的地则返回true
-	if (fabs(deltaYaw) < 0.01f)
+	if (fabs(deltaYaw) < 0.01f && requestTurnOver())
 	{
-		return !requestTurnOver();
+		delete this;
+		return false;
 	}
 
 	return true;
