@@ -114,7 +114,7 @@ bool BundleBroadcast::broadcast(uint16 port)
 		return false;
 	
 	if(port == 0)
-		port = KBE_MACHINE_BRAODCAST_SEND_PORT;
+		port = KBE_MACHINE_BROADCAST_SEND_PORT;
 
 	epBroadcast_.addr(port, Network::BROADCAST);
 

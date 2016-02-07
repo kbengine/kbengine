@@ -541,18 +541,18 @@ bool Machine::initNetwork()
 	}
 
 	if (!ep_.good() ||
-		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), broadcastAddr_) == -1)
+		ep_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), broadcastAddr_) == -1)
 	{
 		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
 							inet_ntoa((struct in_addr &)broadcastAddr_),
-							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							(KBE_MACHINE_BROADCAST_SEND_PORT),
 							kbe_strerror()));
 
 		return false;
 	}
 
 	address.ip = broadcastAddr_;
-	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
+	address.port = htons(KBE_MACHINE_BROADCAST_SEND_PORT);
 	ep_.setbroadcast( true );
 	ep_.setnonblocking(true);
 	ep_.addr(address);
@@ -571,11 +571,11 @@ bool Machine::initNetwork()
 #endif
 
 	if (!epBroadcast_.good() ||
-		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), baddr) == -1)
+		epBroadcast_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), baddr) == -1)
 	{
 		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
 							inet_ntoa((struct in_addr &)baddr),
-							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							(KBE_MACHINE_BROADCAST_SEND_PORT),
 							kbe_strerror()));
 
 #if KBE_PLATFORM != PLATFORM_WIN32
@@ -585,7 +585,7 @@ bool Machine::initNetwork()
 	else
 	{
 		address.ip = baddr;
-		address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
+		address.port = htons(KBE_MACHINE_BROADCAST_SEND_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
 		pEBPacketReceiver_ = new Network::UDPPacketReceiver(epBroadcast_, this->networkInterface());
@@ -599,7 +599,7 @@ bool Machine::initNetwork()
 	}
 
 	if (!epLocal_.good() ||
-		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Network::LOCALHOST) == -1)
+		epLocal_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), Network::LOCALHOST) == -1)
 	{
 		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to (lo). {}.\n",
 							kbe_strerror()));
@@ -608,7 +608,7 @@ bool Machine::initNetwork()
 	}
 
 	address.ip = Network::LOCALHOST;
-	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
+	address.port = htons(KBE_MACHINE_BROADCAST_SEND_PORT);
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
 	pEPLocalPacketReceiver_ = new Network::UDPPacketReceiver(epLocal_, this->networkInterface());
