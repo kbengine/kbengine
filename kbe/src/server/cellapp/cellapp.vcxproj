@@ -208,6 +208,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="all_clients.cpp" />
     <ClCompile Include="aoi_trigger.cpp" />
     <ClCompile Include="cell.cpp" />

@@ -205,6 +205,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="baseapp.cpp" />
     <ClCompile Include="baseappmgr.cpp" />
     <ClCompile Include="baseappmgr_interface.cpp" />

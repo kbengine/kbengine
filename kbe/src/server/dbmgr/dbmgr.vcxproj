@@ -208,6 +208,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="interfaces_handler.cpp" />
     <ClCompile Include="buffered_dbtasks.cpp" />
     <ClCompile Include="dbmgr.cpp" />

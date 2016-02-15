@@ -208,6 +208,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="bots.cpp" />
     <ClCompile Include="bots_interface.cpp" />
     <ClCompile Include="clientobject.cpp" />

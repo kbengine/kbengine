@@ -212,6 +212,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="archiver.cpp" />
     <ClCompile Include="backuper.cpp" />
     <ClCompile Include="base.cpp" />

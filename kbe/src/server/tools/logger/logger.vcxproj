@@ -206,6 +206,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="..\..\..\lib\python\Modules\getbuildinfo.c" />
     <ClCompile Include="logwatcher.cpp" />
     <ClCompile Include="main.cpp" />
