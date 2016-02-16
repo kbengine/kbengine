@@ -116,13 +116,6 @@ void *OPENSSL_UplinkTable[] = {
     lazy16, lazy17, lazy18, lazy19, lazy20,
     lazy21, lazy22, lazy23, lazy24, lazy25,
 };
-#else
-// openssl在vc 64位下编译会出错， 这里先做个简单的处理，暂时不影响服务器运行，等新版本试试OPENSSL_NO_STDIO能否解决
-#if defined(_MSC_VER)
-void *OPENSSL_UplinkTable[] = {
-	(void *)APPLINK_MAX,
-};
-#endif
 #endif
 
 #ifdef SELFTEST
