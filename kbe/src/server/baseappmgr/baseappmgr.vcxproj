@@ -138,7 +138,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/ignore:4049 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;server_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openssl_uptable.obj;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;server_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat_d.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -194,7 +194,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/ignore:4049 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;Version.lib;netapi32.lib;resmgr.lib;server.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openssl_uptable.obj;apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;Version.lib;netapi32.lib;resmgr.lib;server.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
