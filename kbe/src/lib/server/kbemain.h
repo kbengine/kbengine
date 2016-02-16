@@ -37,6 +37,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #include "helper/crashhandler.h"
+
+#ifdef X64
+#pragma comment (lib, "openssl_uptable.obj")
+#endif
+
 #endif
 
 namespace KBEngine{
