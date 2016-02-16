@@ -955,10 +955,8 @@ PyObject* Entity::pyHasWitness()
 //-------------------------------------------------------------------------------------
 void Entity::restoreProximitys()
 {
-	if(this->pWitness() && this->pWitness()->pAOITrigger())
-	{
-		((RangeTrigger*)(this->pWitness()->pAOITrigger()))->reinstall(static_cast<CoordinateNode*>(this->pEntityCoordinateNode()));
-	}
+	if(this->pWitness())
+		this->pWitness()->installAOITrigger();
 
 	Controllers::CONTROLLERS_MAP& objects = pControllers_->objects();
 	Controllers::CONTROLLERS_MAP::iterator iter = objects.begin();
