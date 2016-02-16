@@ -10,6 +10,12 @@
 #define new DEBUG_NEW
 #endif
 
+#ifdef X64
+#if _MSC_VER >= 1900
+#pragma comment (lib, "openssl_uptable.obj")
+#endif
+#endif
+
 int g_diffHeight = 0;
 bool g_isDestroyed = false;
 

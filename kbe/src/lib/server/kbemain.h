@@ -39,7 +39,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/crashhandler.h"
 
 #ifdef X64
+#if _MSC_VER >= 1900
 #pragma comment (lib, "openssl_uptable.obj")
+#endif
 #endif
 
 #endif
