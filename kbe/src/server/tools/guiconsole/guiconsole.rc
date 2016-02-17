@@ -566,7 +566,7 @@ END
 #define _AFX_NO_PROPERTY_RESOURCES
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE 4, 2
+LANGUAGE 9, 1
 #pragma code_page(1252)
 #include "res\guiconsole.rc2"  // non-Microsoft Visual C++ edited resources
 #include "afxres.rc"     // Standard components
