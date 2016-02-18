@@ -82,7 +82,7 @@ def onRequestCreateAccount(registerName, password, datas):
 	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
 	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
-	KBEngine.createAccountResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS, False)
+	KBEngine.createAccountResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS)
 	
 def onRequestAccountLogin(loginName, password, datas):
 	"""
@@ -110,7 +110,7 @@ def onRequestAccountLogin(loginName, password, datas):
 	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
 	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
 	
-	KBEngine.accountLoginResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS, False)
+	KBEngine.accountLoginResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS)
 	
 def onRequestCharge(ordersID, entityDBID, datas):
 	"""

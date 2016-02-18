@@ -480,7 +480,7 @@ class DBTaskAccountLogin : public DBTask
 {
 public:
 	DBTaskAccountLogin(const Network::Address& addr, std::string& loginName, 
-		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, std::string& getdatas, bool processedByThirdparty);
+		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, std::string& getdatas);
 
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
@@ -497,7 +497,6 @@ protected:
 	DBID dbid_;
 	uint32 flags_;
 	uint64 deadline_;
-	bool processedByThirdparty_;
 };
 
 /**
