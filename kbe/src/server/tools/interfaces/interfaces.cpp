@@ -288,7 +288,7 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 
 //-------------------------------------------------------------------------------------
 void Interfaces::createAccountResponse(std::string commitName, std::string realAccountName, 
-	std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
+	std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode, bool processedByThirdparty)
 {
 	REQCREATE_MAP::iterator iter = reqCreateAccount_requests_.find(commitName);
 	if (iter == reqCreateAccount_requests_.end())
@@ -308,7 +308,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
-	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
+	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode << processedByThirdparty;
 
 	(*pBundle).appendBlob(task->postDatas);
 	(*pBundle).appendBlob(extraDatas);
@@ -338,14 +338,15 @@ PyObject* Interfaces::__py_createAccountResponse(PyObject* self, PyObject* args)
     char *extraDatas = NULL;
     Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
+	bool processedByThirdparty;
 
-	if (!PyArg_ParseTuple(args, "ssy#H", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode))
+	if (!PyArg_ParseTuple(args, "ssy#Hb", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode, &processedByThirdparty))
 		return NULL;
 
 	Interfaces::getSingleton().createAccountResponse(std::string(commitName),
 		std::string(realAccountName),
 		(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
-		errCode);
+		errCode, processedByThirdparty);
 
 	SCRIPT_ERROR_CHECK();
 	S_Return;
@@ -397,7 +398,7 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 
 //-------------------------------------------------------------------------------------
 void Interfaces::accountLoginResponse(std::string commitName, std::string realAccountName, 
-	std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode)
+	std::string extraDatas, KBEngine::SERVER_ERROR_CODE errorCode, bool processedByThirdparty)
 {
 	REQLOGIN_MAP::iterator iter = reqAccountLogin_requests_.find(commitName);
 	if (iter == reqAccountLogin_requests_.end())
@@ -417,7 +418,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	
 	(*pBundle).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
-	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
+	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode << processedByThirdparty;
 
 	(*pBundle).appendBlob(task->postDatas);
 	(*pBundle).appendBlob(extraDatas);
@@ -447,14 +448,15 @@ PyObject* Interfaces::__py_accountLoginResponse(PyObject* self, PyObject* args)
     char *extraDatas = NULL;
     Py_ssize_t extraDatas_size = 0;
 	KBEngine::SERVER_ERROR_CODE errCode;
+	bool processedByThirdparty;
 
-	if (!PyArg_ParseTuple(args, "ssy#H", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode))
+	if (!PyArg_ParseTuple(args, "ssy#Hb", &commitName, &realAccountName, &extraDatas, &extraDatas_size, &errCode, &processedByThirdparty))
 		return NULL;
 
 	Interfaces::getSingleton().accountLoginResponse(std::string(commitName),
 		std::string(realAccountName),
 		(extraDatas && extraDatas_size > 0) ? std::string(extraDatas, extraDatas_size) : std::string(""),
-		errCode);
+		errCode, processedByThirdparty);
 
 	SCRIPT_ERROR_CHECK();
 	S_Return;

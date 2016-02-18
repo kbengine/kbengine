@@ -121,7 +121,7 @@ bool InterfacesHandler_Dbmgr::loginAccount(Network::Channel* pChannel, std::stri
 	}
 
 	pThreadPool->addTask(new DBTaskAccountLogin(pChannel->addr(),
-		loginName, loginName, password, SERVER_SUCCESS, datas, datas));
+		loginName, loginName, password, SERVER_SUCCESS, datas, datas, false));
 
 	return true;
 }
@@ -308,8 +308,9 @@ void InterfacesHandler_Interfaces::onCreateAccountCB(KBEngine::MemoryStream& s)
 	std::string registerName, accountName, password, postdatas, getdatas;
 	COMPONENT_ID cid;
 	SERVER_ERROR_CODE success = SERVER_ERR_OP_FAILED;
+	bool processedByThirdparty;
 
-	s >> cid >> registerName >> accountName >> password >> success;
+	s >> cid >> registerName >> accountName >> password >> success >> processedByThirdparty;
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
@@ -369,8 +370,9 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	std::string loginName, accountName, password, postdatas, getdatas;
 	COMPONENT_ID cid;
 	SERVER_ERROR_CODE success = SERVER_ERR_OP_FAILED;
+	bool processedByThirdparty;
 
-	s >> cid >> loginName >> accountName >> password >> success;
+	s >> cid >> loginName >> accountName >> password >> success >> processedByThirdparty;
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
@@ -398,7 +400,7 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	}
 
 	pThreadPool->addTask(new DBTaskAccountLogin(cinfos->pChannel->addr(),
-		loginName, accountName, password, success, postdatas, getdatas));
+		loginName, accountName, password, success, postdatas, getdatas, processedByThirdparty));
 }
 
 //-------------------------------------------------------------------------------------
