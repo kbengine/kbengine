@@ -771,13 +771,6 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 {
-	const VolatileInfo* pVolatileInfo = pEntity_->pCustomVolatileinfo();
-	if (!pVolatileInfo)
-		pVolatileInfo = pEntity_->pScriptModule()->getPVolatileInfo();
-
-	if ((pVolatileInfo->position() <= 0.0004f))
-		return;
-
 	const Position3D& bpos = basePos();
 	Vector3 movement = bpos - lastBasePos;
 
