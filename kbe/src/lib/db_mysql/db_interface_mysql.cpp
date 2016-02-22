@@ -542,7 +542,6 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 		if(mysql())
 			affectedRows = mysql()->affected_rows;
 		
-		(*result) << ""; // errormsg
 		(*result) << nfields;
 		(*result) << affectedRows;
 	}
