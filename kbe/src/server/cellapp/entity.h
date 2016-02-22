@@ -309,7 +309,7 @@ public:
 	*/
 	bool canNavigate();
 	uint32 navigate(const Position3D& destination, float velocity, float distance,
-					float maxMoveDistance, float maxDistance, 
+					float maxMoveDistance, float maxSearchDistance,
 					bool faceMovement, int8 layer, PyObject* userData);
 	bool navigatePathPoints(std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer);
 

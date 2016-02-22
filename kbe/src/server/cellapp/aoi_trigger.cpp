@@ -48,7 +48,7 @@ void AOITrigger::onEnter(CoordinateNode * pNode)
 	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onEnterAOI(pEntity);
+	pWitness_->onEnterAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ void AOITrigger::onLeave(CoordinateNode * pNode)
 	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onLeaveAOI(pEntity);
+	pWitness_->onLeaveAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------

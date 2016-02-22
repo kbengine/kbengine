@@ -654,8 +654,10 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			Py_INCREF(pAffectedRows);
 	}
 
-	DEBUG_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
-		nrows, nfields, err.c_str()));
+	s.done();
+
+	//DEBUG_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
+	//	nrows, nfields, err.c_str()));
 
 	if(callbackID > 0)
 	{

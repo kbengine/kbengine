@@ -56,8 +56,9 @@ public:
 	lastquery_()
 	{
 		strncpy(name_, name, MAX_NAME);
-		dbIndex_ = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(this->name());
-		KBE_ASSERT(dbIndex_ >= 0);
+		int dbIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(this->name());
+		KBE_ASSERT(dbIndex >= 0);
+		dbIndex_ = dbIndex;
 	};
 
 	virtual ~DBInterface()

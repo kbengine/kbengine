@@ -1442,7 +1442,7 @@ DBTaskAccountLogin::DBTaskAccountLogin(const Network::Address& addr,
 									   std::string& password, 
 									   SERVER_ERROR_CODE retcode,
 									   std::string& postdatas, 
-									   std::string& getdatas):
+									   std::string& getdatas) :
 DBTask(addr),
 loginName_(loginName),
 accountName_(accountName),
