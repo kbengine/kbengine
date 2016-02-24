@@ -874,7 +874,17 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
 		free(ccattr);
 
-		int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+		DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(dbInterfaceName);
+		if (pDBInterfaceInfo->isPure)
+		{
+			ERROR_MSG(fmt::format("KBEngine::createBaseFromDBID: dbInterface({}) is a pure database does not support Entity! "
+				"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+				dbInterfaceName));
+
+			return NULL;
+		}
+
+		int dbInterfaceIndex = pDBInterfaceInfo->index;
 		if (dbInterfaceIndex < 0)
 		{
 			PyErr_Format(PyExc_TypeError, "Baseapp::createBaseFromDBID: not found dbInterface(%s)!",
@@ -955,7 +965,17 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 		return;
 	}
 
-	int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+	DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(dbInterfaceName);
+	if (pDBInterfaceInfo->isPure)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseFromDBID: dbInterface({}) is a pure database does not support Entity! "
+			"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+			dbInterfaceName));
+
+		return;
+	}
+
+	int dbInterfaceIndex = pDBInterfaceInfo->index;
 	if (dbInterfaceIndex < 0)
 	{
 		PyErr_Format(PyExc_TypeError, "Baseapp::createBaseFromDBID: not found dbInterface(%s)!", 
@@ -1186,7 +1206,17 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);
 		free(ccattr);
 
-		int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+		DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(dbInterfaceName);
+		if (pDBInterfaceInfo->isPure)
+		{
+			ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: dbInterface({}) is a pure database does not support Entity! "
+				"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+				dbInterfaceName));
+
+			return NULL;
+		}
+
+		int dbInterfaceIndex = pDBInterfaceInfo->index;
 		if (dbInterfaceIndex < 0)
 		{
 			PyErr_Format(PyExc_TypeError, "Baseapp::createBaseAnywhereFromDBID: not found dbInterface(%s)!",
@@ -1267,7 +1297,17 @@ void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyOb
 		return;
 	}
 
-	int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+	DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(dbInterfaceName);
+	if (pDBInterfaceInfo->isPure)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: dbInterface({}) is a pure database does not support Entity! "
+			"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+			dbInterfaceName));
+
+		return;
+	}
+
+	int dbInterfaceIndex = pDBInterfaceInfo->index;
 	if (dbInterfaceIndex < 0)
 	{
 		PyErr_Format(PyExc_TypeError, "Baseapp::createBaseAnywhereFromDBID: not found dbInterface(%s)!", 
@@ -3798,7 +3838,17 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+	DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(dbInterfaceName);
+	if (pDBInterfaceInfo->isPure)
+	{
+		ERROR_MSG(fmt::format("Baseapp::deleteBaseByDBID: dbInterface({}) is a pure database does not support Entity! "
+			"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+			dbInterfaceName));
+
+		return NULL;
+	}
+
+	int dbInterfaceIndex = pDBInterfaceInfo->index;
 	if (dbInterfaceIndex < 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: not found dbInterface(%s)!", dbInterfaceName.c_str());
@@ -3959,7 +4009,17 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 		return NULL;
 	}
 	
-	int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+	DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(dbInterfaceName);
+	if (pDBInterfaceInfo->isPure)
+	{
+		ERROR_MSG(fmt::format("Baseapp::lookUpBaseByDBID: dbInterface({}) is a pure database does not support Entity! "
+			"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+			dbInterfaceName));
+
+		return NULL;
+	}
+
+	int dbInterfaceIndex = pDBInterfaceInfo->index;
 	if (dbInterfaceIndex < 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: not found dbInterface(%s)!", dbInterfaceName.c_str());

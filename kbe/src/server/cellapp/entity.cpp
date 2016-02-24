@@ -829,7 +829,17 @@ void Entity::writeToDB(void* data, void* extra1, void* extra2)
 	{
 		if (strlen(static_cast<char*>(extra2)) > 0)
 		{
-			int fdbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(static_cast<char*>(extra2));
+			DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(static_cast<char*>(extra2));
+			if (pDBInterfaceInfo->isPure)
+			{
+				ERROR_MSG(fmt::format("Entity::writeToDB: dbInterface({}) is a pure database does not support Entity! "
+					"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+					static_cast<char*>(extra2)));
+
+				return;
+			}
+
+			int fdbInterfaceIndex = pDBInterfaceInfo->index;
 			if (fdbInterfaceIndex >= 0)
 			{
 				dbInterfaceIndex = fdbInterfaceIndex;

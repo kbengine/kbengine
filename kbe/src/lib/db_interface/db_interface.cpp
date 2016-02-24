@@ -94,7 +94,7 @@ bool DBUtil::initialize()
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if (dbcfg.dbInterfaceInfos.size() == 0)
 	{
-		ERROR_MSG(fmt::format("DBUtil::initialize: not found database interface! (kbengine_defs.xml->dbmgr->databaseInterfaces)\n"));
+		ERROR_MSG(fmt::format("DBUtil::initialize: not found database interface! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n"));
 		return false;
 	}
 
@@ -256,7 +256,13 @@ bool DBUtil::initInterface(DBInterface* pdbi)
 		ret = pdbi->checkErrors();
 	}
 
-	return ret && entityTables.syncToDB(pdbi);
+	if (ret)
+	{
+		if (!pDBInfo->isPure)
+			ret = entityTables.syncToDB(pdbi);
+	}
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
