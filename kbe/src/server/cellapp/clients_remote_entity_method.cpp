@@ -101,7 +101,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			pEntity->clientMailbox()->newMail((*pBundle));
 
 			if(mstream->wpos() > 0)
-				(*pBundle).append(mstream->data(), mstream->wpos());
+				(*pBundle).append(mstream->data(), (int)mstream->wpos());
 
 			if(Network::g_trace_packet > 0)
 			{
@@ -166,7 +166,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 					ClientInterface::onRemoteMethodCallOptimized, pEntity->id());
 
 			if(mstream->wpos() > 0)
-				(*pForwardBundle).append(mstream->data(), mstream->wpos());
+				(*pForwardBundle).append(mstream->data(), (int)mstream->wpos());
 
 			if(Network::g_trace_packet > 0)
 			{

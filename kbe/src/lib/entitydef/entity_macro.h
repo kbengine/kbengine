@@ -44,7 +44,7 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
 	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
-
+	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
 
 #define ENTITY_GETSET_DECLARE_END()																			\
 	SCRIPT_GETSET_DECLARE_END()																				\
@@ -882,6 +882,8 @@ public:																										\
 	void destroyEntity();																					\
 	static PyObject* __py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs);				\
 																											\
+	DECLARE_PY_GET_MOTHOD(pyGetClassName);																	\
+																											\
 	void initProperty(bool isReload = false);																\
 
 
@@ -949,6 +951,11 @@ public:																										\
 	PyObject* CLASS::pyGetIsDestroyed()																		\
 	{																										\
 		return PyBool_FromLong(isDestroyed());																\
+	}																										\
+																											\
+	PyObject* CLASS::pyGetClassName()																		\
+	{																										\
+		return PyUnicode_FromString(scriptName());															\
 	}																										\
 																											\
 	void CLASS::addPositionAndDirectionToStream(MemoryStream& s, bool useAliasID)							\

@@ -67,7 +67,7 @@ NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
 		if(extlisteningPort_min != -1)
 		{
 			KBE_ASSERT(extEndpoint_.good() && "Channel::EXTERNAL: no available port, "
-				"please check for kbengine_defs.xml!\n");
+				"please check for kbengine[_defs].xml!\n");
 		}
 	}
 
@@ -79,7 +79,7 @@ NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
 	}
 
 	KBE_ASSERT(good() && "NetworkInterface::NetworkInterface: no available port, "
-		"please check for kbengine_defs.xml!\n");
+		"please check for kbengine[_defs].xml!\n");
 
 	pDelayedChannels_->init(this->dispatcher(), this);
 }
