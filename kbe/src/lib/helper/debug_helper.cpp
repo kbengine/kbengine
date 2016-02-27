@@ -492,7 +492,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 #ifdef NO_USE_LOG4CXX
 #else
-		LOG4CXX_WARN(g_logger, fmt::format("DebugHelper::onMessage: bufferedLogPackets is full({} > kbengine_defs.xml->logger->tick_max_buffered_logs->{}), discard logs!\n", 
+		LOG4CXX_WARN(g_logger, fmt::format("DebugHelper::onMessage: bufferedLogPackets is full({} > kbengine[_defs].xml->logger->tick_max_buffered_logs->{}), discard logs!\n", 
 			hasBufferedLogPackets_, g_kbeSrvConfig.tickMaxBufferedLogs()));
 #endif
 

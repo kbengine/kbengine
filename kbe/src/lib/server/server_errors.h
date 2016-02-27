@@ -57,7 +57,17 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_CANNOT_USE_MAIL					22			// 不能使用email地址。
 #define SERVER_ERR_NOT_FOUND_ACCOUNT				23			// 找不到此账号。
 #define SERVER_ERR_DB								24			// 数据库错误(请检查dbmgr日志和DB)。
-#define SERVER_ERR_MAX                              25          // 请把这条放在所有错误的最后面，这本身不是一个错误标识，仅表示一共有多少条错误定义
+#define SERVER_ERR_USER1							25			// 用户自定义错误码1
+#define SERVER_ERR_USER2							26			// 用户自定义错误码2
+#define SERVER_ERR_USER3							27			// 用户自定义错误码3
+#define SERVER_ERR_USER4							28			// 用户自定义错误码4
+#define SERVER_ERR_USER5							29			// 用户自定义错误码5
+#define SERVER_ERR_USER6							30			// 用户自定义错误码6
+#define SERVER_ERR_USER7							31			// 用户自定义错误码7
+#define SERVER_ERR_USER8							32			// 用户自定义错误码8
+#define SERVER_ERR_USER9							33			// 用户自定义错误码9
+#define SERVER_ERR_USER10							34			// 用户自定义错误码10
+#define SERVER_ERR_MAX                              35          // 请把这条放在所有错误的最后面，这本身不是一个错误标识，仅表示一共有多少条错误定义
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",
@@ -84,7 +94,17 @@ const char SERVER_ERR_STR[][256] = {
 	"SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE",
 	"SERVER_ERR_CANNOT_USE_MAIL",
 	"SERVER_ERR_NOT_FOUND_ACCOUNT",
-	"SERVER_ERR_DB"
+	"SERVER_ERR_DB",
+	"SERVER_ERR_USER1",
+	"SERVER_ERR_USER2",
+	"SERVER_ERR_USER3",
+	"SERVER_ERR_USER4",
+	"SERVER_ERR_USER5",
+	"SERVER_ERR_USER6",
+	"SERVER_ERR_USER7",
+	"SERVER_ERR_USER8",
+	"SERVER_ERR_USER9",
+	"SERVER_ERR_USER10"
 };
 
 }

@@ -450,7 +450,7 @@ void DBInterfaceRedis::write_query_result(redisReply* pRedisReply, MemoryStream 
 	{
 		uint32 nfields = 0;
 		uint64 affectedRows = 0;
-		(*result) << ""; // errormsg
+
 		(*result) << nfields;
 		(*result) << affectedRows;
 	}
