@@ -55,6 +55,7 @@ const char* getTimingMethodName()
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef KBE_USE_RDTSC
 static uint64 calcStampsPerSecond_rdtsc()
 {
 	struct timeval	tvBefore,	tvSleep = {0, 500000},	tvAfter;
@@ -81,7 +82,7 @@ static uint64 calcStampsPerSecond_rdtsc()
 
 	return (stampDelta * 1000000ULL) / microDelta;
 }
-
+#else
 static uint64 calcStampsPerSecond_gettime()
 {
 	return 1000000000ULL;
@@ -91,6 +92,7 @@ static uint64 calcStampsPerSecond_gettimeofday()
 {
 	return 1000000ULL;
 }
+#endif
 
 static uint64 calcStampsPerSecond()
 {
