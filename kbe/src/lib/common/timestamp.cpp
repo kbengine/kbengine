@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "timestamp.h"
 namespace KBEngine{
 
+#define KBE_USE_RDTSC
 #ifdef KBE_USE_RDTSC
 KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
 #else // KBE_USE_RDTSC
