@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "event_poller.h"
 #include "poller_select.h"
 #include "poller_epoll.h"
+#include "poller_iocp.h"
 #include "helper/profile.h"
 
 namespace KBEngine { 
@@ -203,7 +204,12 @@ EventPoller * EventPoller::create()
 #ifdef HAS_EPOLL
 	return new EpollPoller();
 #else
+#ifdef USE_IOCP
+	return new IocpPoller();
+#else
 	return new SelectPoller();
+#endif
+	
 #endif // HAS_EPOLL
 }
 

@@ -25,7 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 #ifndef HAS_EPOLL
-
+#ifndef USE_IOCP
 ProfileVal g_idleProfile("Idle");
 
 namespace Network
@@ -273,8 +273,7 @@ bool SelectPoller::doDeregisterForWrite(int fd)
 	--fdWriteCount_;
 	return true;
 }
-
-#endif // HAS_EPOLL
-
 }
+#endif // USE_IOCP
+#endif // HAS_EPOLL
 }
