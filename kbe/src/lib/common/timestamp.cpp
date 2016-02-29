@@ -87,12 +87,12 @@ static uint64 calcStampsPerSecond_gettime()
 {
 	return 1000000000ULL;
 }
+#endif
 
 static uint64 calcStampsPerSecond_gettimeofday()
 {
 	return 1000000ULL;
 }
-#endif
 
 static uint64 calcStampsPerSecond()
 {
