@@ -2829,6 +2829,40 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 
 	currspace->addEntityToNode(this);
 
+	std::list<ENTITY_ID>::iterator witer = witnesses_.begin();
+	for (; witer != witnesses_.end(); ++witer)
+	{
+		Entity* pEntity = Cellapp::getSingleton().findEntity((*witer));
+		if (pEntity == NULL || pEntity->pWitness() == NULL)
+			continue;
+
+		EntityMailbox* clientMailbox = pEntity->clientMailbox();
+		if (clientMailbox == NULL)
+			continue;
+
+		Network::Channel* pChannel = clientMailbox->getChannel();
+		if (pChannel == NULL)
+			continue;
+
+		// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
+		// 又如自己的entity还未在目标客户端上创建
+		if (!pEntity->pWitness()->entityInAOI(id()))
+			continue;
+
+		// 通知位置强制改变
+		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+
+		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
+		(*pForwardBundle) << id();
+		(*pForwardBundle) << pos.x << pos.y << pos.z;
+		(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
+
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	}
+
 	onTeleportSuccess(nearbyMBRef, lastSpaceID);
 }
 
