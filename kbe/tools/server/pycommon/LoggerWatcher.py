@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import socket, select, io
+import socket, select
 import sys
 import os
 import struct
@@ -11,6 +11,11 @@ import time
 
 from . import Define
 
+if sys.hexversion >= 0x03000000:
+	import io
+else:
+	import StringIO
+	
 Logger_onAppActiveTick         = 701
 Logger_registerLogWatcher      = 702
 Logger_deregisterLogWatcher    = 703
@@ -40,7 +45,11 @@ class LoggerWatcher:
 		"""
 		"""
 		self.socket = None
-		self.msgBuffer = b""
+		
+		if sys.hexversion >= 0x03000000:
+			self.msgBuffer = eval("b''")
+		else:
+			self.msgBuffer = ""
 
 	def connect( self, ip, port ):
 		"""
@@ -69,7 +78,12 @@ class LoggerWatcher:
 		msg.write( struct.pack("=H", struct.calcsize("=iIiiccB" + "i" * Define.COMPONENT_END_TYPE + "BB") ) ) # package len
 		msg.write( struct.pack("=i", uid ) )
 		msg.write( struct.pack("=I", 0xffffffff) ) # logtypes filter
-		msg.write( struct.pack("=iicc", 0, 0, b"\0", b"\0" ) ) # globalOrder, groupOrder, date, keyStr
+		
+		if sys.hexversion >= 0x03000000:
+			msg.write( struct.pack("=iicc", 0, 0, eval("b'\\0'"), eval("b'\\0'") ) ) # globalOrder, groupOrder, date, keyStr
+		else:
+			msg.write( struct.pack("=iicc", 0, 0, "\0", "\0" ) ) # globalOrder, groupOrder, date, keyStr
+			
 		msg.write( struct.pack("=B", Define.COMPONENT_END_TYPE ) ) # component type filter count
 		msg.write( struct.pack("=" + "i" * Define.COMPONENT_END_TYPE, *list( range( Define.COMPONENT_END_TYPE ) ))) # component type filter
 		msg.write( struct.pack("=BB", 0, 1 ) ) # isfind, first
@@ -104,9 +118,13 @@ class LoggerWatcher:
 		if not isinstance(logStr, bytes):
 			logStr = logStr.encode( "utf-8" )
 		
-		if logStr[-1] != b'\n':
-			logStr += b'\n'
-		
+		if sys.hexversion >= 0x03000000:
+			if logStr[-1] != eval("b'\\n'"):
+				logStr += eval("b'\\n'")
+		else:
+			if logStr[-1] != '\n':
+				logStr += '\n'
+				
 		logSize = len( logStr )
 		
 		msg = io.BytesIO()
