@@ -148,6 +148,9 @@ void CStartServerWindow::OnBnClickedButton2()
 		
 		endpoint->setnonblocking(true);
 
+		KBEngine::uint64 cid = KBEngine::genUUID64();
+		KBEngine::int16 gus = -1;
+
 		KBEngine::Network::Bundle bundle;
 		bundle.newMessage(KBEngine::MachineInterface::startserver);
 		bundle << KBEngine::getUserUID();

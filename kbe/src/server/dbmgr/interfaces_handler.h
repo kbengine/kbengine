@@ -36,15 +36,13 @@ namespace Network{
 	class EndPoint;
 }
 
-class DBThreadPool;
-
 /*
 	处理计费、第三方运营账号、注册登录系统等挂接
 */
 class InterfacesHandler
 {
 public:
-	InterfacesHandler(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
+	InterfacesHandler();
 	virtual ~InterfacesHandler();
 	
 	virtual bool initialize() = 0;
@@ -71,16 +69,15 @@ public:
 	virtual void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email) = 0;
 	virtual void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode) = 0;
 	virtual void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword) = 0;
+
 protected:
-	DBThreadPool& dbThreadPool_;
-	thread::ThreadPool& threadPool_;
 };
 
-class InterfacesHandler_Normal : public InterfacesHandler
+class InterfacesHandler_Dbmgr : public InterfacesHandler
 {
 public:
-	InterfacesHandler_Normal(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
-	virtual ~InterfacesHandler_Normal();
+	InterfacesHandler_Dbmgr();
+	virtual ~InterfacesHandler_Dbmgr();
 	
 	virtual bool initialize(){ return true; }
 
@@ -106,14 +103,15 @@ public:
 	virtual void accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& email);
 	virtual void accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode);
 	virtual void accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& password, std::string& newpassword);
+
 protected:
 };
 
-class InterfacesHandler_ThirdParty : public InterfacesHandler_Normal, public thread::TPTask
+class InterfacesHandler_Interfaces : public InterfacesHandler_Dbmgr, public thread::TPTask
 {
 public:
-	InterfacesHandler_ThirdParty(thread::ThreadPool& threadPool, DBThreadPool& dbThreadPool);
-	virtual ~InterfacesHandler_ThirdParty();
+	InterfacesHandler_Interfaces();
+	virtual ~InterfacesHandler_Interfaces();
 	
 	virtual bool initialize();
 
@@ -143,15 +141,15 @@ public:
 	bool reconnect();
 
 	virtual bool process();
+
 protected:
-	Network::Channel* pInterfacesChannel_;
+
 };
 
 class InterfacesHandlerFactory
 {
 public:
-	static InterfacesHandler* create(std::string type, thread::ThreadPool& threadPool, 
-		DBThreadPool& dbThreadPool);
+	static InterfacesHandler* create(std::string type);
 };
 
 }

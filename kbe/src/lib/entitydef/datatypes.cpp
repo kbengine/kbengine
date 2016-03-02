@@ -118,7 +118,7 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("DataTypes::loadAlias:parse FIXED_DICT [{}] is error!\n", 
+					ERROR_MSG(fmt::format("DataTypes::loadAlias: parse FIXED_DICT [{}] error!\n", 
 						aliasName.c_str()));
 					
 					delete fixedDict;
@@ -135,7 +135,7 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("DataTypes::loadAlias:parse ARRAY [{}] is error!\n", 
+					ERROR_MSG(fmt::format("DataTypes::loadAlias: parse ARRAY [{}] error!\n", 
 						aliasName.c_str()));
 					
 					delete fixedArray;

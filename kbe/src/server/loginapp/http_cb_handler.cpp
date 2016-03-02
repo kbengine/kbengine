@@ -157,7 +157,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(client.state != 1)
 			{
 				std::string response = "<?xml version='1.0'?><cross-domain-policy><allow-access-from domain=""*"" to-ports=""*"" /></cross-domain-policy>";
-				iter->second.endpoint->send(response.c_str(), response.size());
+				iter->second.endpoint->send(response.c_str(), (int)response.size());
 				Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
@@ -204,7 +204,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		std::string code;
 		if(fi1 != std::string::npos && fi2 != std::string::npos)
 		{
-			int ilen = keys.size();
+			int ilen = (int)keys.size();
 			code.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 		}
 
@@ -257,7 +257,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					client.state = 2;
 					if(fi1 < fi2)
 					{
-						int ilen = strlen("password=");
+						int ilen = (int)strlen("password=");
 						password.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 					}
 
@@ -273,7 +273,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					{
 						if(fi1 < fi2)
 						{
-							int ilen = strlen("username=");
+							int ilen = (int)strlen("username=");
 							username.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 						}
 					}
@@ -303,7 +303,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 				{
 					if(fi1 < fi2)
 					{
-						int ilen = strlen("username=");
+						int ilen = (int)strlen("username=");
 						username.assign(s.c_str() + fi1 + ilen, fi2 - (fi1 + ilen));
 					}
 				}
@@ -312,7 +312,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 				{
 					username = HttpUtility::URLDecode(username);
 
-					// ÏòdbmgrÖØÖÃÕËºÅ
+					// Ïòdbmgr°ó¶¨ÕËºÅÕËºÅ
 					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 					(*pBundle).newMessage(DbmgrInterface::accountBindMail);
 					(*pBundle) << KBEngine::strutil::kbe_trim(username);
@@ -333,10 +333,10 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 				KBEngine::strutil::kbe_replace(hellomessage, "${code}", code);
 
-				std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+				std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 					hellomessage.size(), hellomessage);
 
-				newclient->send(response.c_str(), response.size());
+				newclient->send(response.c_str(), (int)response.size());
 			}
 
 			client.state = 2;
@@ -372,10 +372,10 @@ void HTTPCBHandler::onAccountActivated(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailAtivationInfo_.backlink_fail_message;
 
-			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 				message.size(), message);
 
-			iter->second.endpoint->send(response.c_str(), response.size());
+			iter->second.endpoint->send(response.c_str(), (int)response.size());
 		}
 	}
 }
@@ -398,10 +398,10 @@ void HTTPCBHandler::onAccountBindedEmail(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailBindInfo_.backlink_fail_message;
 
-			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 				message.size(), message);
 
-			iter->second.endpoint->send(response.c_str(), response.size());
+			iter->second.endpoint->send(response.c_str(), (int)response.size());
 		}
 	}
 }
@@ -424,10 +424,10 @@ void HTTPCBHandler::onAccountResetPassword(std::string& code, bool success)
 			else
 				message = g_kbeSrvConfig.emailResetPasswordInfo_.backlink_fail_message;
 
-			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {}\r\n\r\n{}", 
+			std::string response = fmt::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\n\r\n{}", 
 				message.size(), message);
 
-			iter->second.endpoint->send(response.c_str(), response.size());
+			iter->second.endpoint->send(response.c_str(), (int)response.size());
 		}
 	}
 }

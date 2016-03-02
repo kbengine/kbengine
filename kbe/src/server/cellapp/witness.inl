@@ -78,6 +78,12 @@ INLINE AOITrigger* Witness::pAOITrigger()
 }
 
 //-------------------------------------------------------------------------------------
+INLINE AOITrigger* Witness::pAOIHysteresisAreaTrigger()
+{
+	return pAOIHysteresisAreaTrigger_;
+}
+
+//-------------------------------------------------------------------------------------
 INLINE EntityRef::AOI_ENTITIES& Witness::aoiEntities()
 { 
 	return aoiEntities_; 

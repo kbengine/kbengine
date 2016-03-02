@@ -2,12 +2,6 @@
 # OpenSSL/crypto/buffer/Makefile
 #
 
-ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/lib/dependencies/openssl/crypto/buffer,,$(CURDIR))
-endif
-
-LIBDIR= $(KBE_ROOT)/kbe/src/libs
-
 DIR=	buffer
 TOP=	../..
 CC=	cc
@@ -22,9 +16,9 @@ GENERAL=Makefile
 TEST=
 APPS=
 
-LIB=$(LIBDIR)/libcrypto.a
-LIBSRC= buffer.c buf_err.c
-LIBOBJ= $(KBE_CONFIG)/buffer.o $(KBE_CONFIG)/buf_err.o
+LIB=$(TOP)/libcrypto.a
+LIBSRC= buffer.c buf_str.c buf_err.c
+LIBOBJ= buffer.o buf_str.o buf_err.o
 
 SRC= $(LIBSRC)
 
@@ -38,16 +32,10 @@ top:
 
 all:	lib
 
-$(KBE_CONFIG):
-	@-mkdir $(KBE_CONFIG)
-
-lib:	$(KBE_CONFIG) $(LIBOBJ)
+lib:	$(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
-
-$(KBE_CONFIG)/%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
 	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO
@@ -73,6 +61,8 @@ tests:
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
+update: depend
+
 depend:
 	@[ -n "$(MAKEDEPEND)" ] # should be set by upper Makefile...
 	$(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(LIBSRC)
@@ -82,21 +72,28 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(KBE_CONFIG)/buf_err.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
-$(KBE_CONFIG)/buf_err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
-$(KBE_CONFIG)/buf_err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
-$(KBE_CONFIG)/buf_err.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(KBE_CONFIG)/buf_err.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
-$(KBE_CONFIG)/buf_err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
-$(KBE_CONFIG)/buf_err.o: buf_err.c
-$(KBE_CONFIG)/buffer.o: ../../e_os.h ../../include/openssl/bio.h
-$(KBE_CONFIG)/buffer.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(KBE_CONFIG)/buffer.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(KBE_CONFIG)/buffer.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/buffer.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(KBE_CONFIG)/buffer.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(KBE_CONFIG)/buffer.o: ../../include/openssl/symhacks.h ../cryptlib.h buffer.c
+buf_err.o: ../../include/openssl/bio.h ../../include/openssl/buffer.h
+buf_err.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+buf_err.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
+buf_err.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+buf_err.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
+buf_err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
+buf_err.o: buf_err.c
+buf_str.o: ../../e_os.h ../../include/openssl/bio.h
+buf_str.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+buf_str.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+buf_str.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+buf_str.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+buf_str.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+buf_str.o: ../../include/openssl/symhacks.h ../cryptlib.h buf_str.c
+buffer.o: ../../e_os.h ../../include/openssl/bio.h
+buffer.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+buffer.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+buffer.o: ../../include/openssl/lhash.h ../../include/openssl/opensslconf.h
+buffer.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+buffer.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+buffer.o: ../../include/openssl/symhacks.h ../cryptlib.h buffer.c

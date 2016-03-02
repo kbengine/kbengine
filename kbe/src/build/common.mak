@@ -170,6 +170,12 @@ CPPFLAGS += -DUSE_KBE_MYSQL
 
 endif # USE_MYSQL
 
+ifdef USE_REDIS
+LDLIBS += -lhiredis
+CPPFLAGS += -DUSE_REDIS
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/hiredis
+endif # USE_REDIS
+
 # everyone needs pthread if LDLINUX_TLS_IS_BROKEN
 ifdef LDLINUX_TLS_IS_BROKEN
 CPPFLAGS += -DLDLINUX_TLS_IS_BROKEN
@@ -245,10 +251,8 @@ LDLIBS += -ltinyxml
 
 ifneq (,$(findstring 64,$(KBE_CONFIG)))
 	x86_64=1
-	OPENSSL_CONFIG="x86_64=1"
 	ARCHFLAGS=-m64 -fPIC
 else
-	OPENSSL_CONFIG=
 	ARCHFLAGS=-m32
 endif
 
@@ -443,14 +447,6 @@ MY_LIBNAMES = $(foreach L, $(MY_LIBS), $(LIBDIR)/lib$(L).a)
 .PHONY: always
 
 KBE_PYTHONLIB=$(LIBDIR)/lib$(PYTHONLIB).a
-
-ifeq ($(USE_OPENSSL),1)
-$(LIBDIR)/libcrypto.a: always
-	@$(MAKE) -C $(OPENSSL_DIR) $(OPENSSL_CONFIG) build_crypto
-
-$(LIBDIR)/libssl.a: always
-	@$(MAKE) -C $(OPENSSL_DIR) $(OPENSSL_CONFIG) build_ssl
-endif
 
 
 # Strip the prefixed "lib" string. Be careful not to strip any _lib

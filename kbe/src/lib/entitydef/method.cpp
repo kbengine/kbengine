@@ -44,7 +44,7 @@ aliasID_(-1)
 {
 	MethodDescription::methodDescriptionCount_++;
 
-	EntityDef::md5().append((void*)name_.c_str(), name_.size());
+	EntityDef::md5().append((void*)name_.c_str(), (int)name_.size());
 	EntityDef::md5().append((void*)&utype_, sizeof(ENTITY_METHOD_UID));
 	EntityDef::md5().append((void*)&isExposed_, sizeof(bool));
 }
@@ -97,8 +97,8 @@ bool MethodDescription::checkArgs(PyObject* args)
 	}
 	
 	int offset = (isExposed() == true && g_componentType == CELLAPP_TYPE && isCell()) ? 1 : 0;
-	uint8 argsSize = argTypes_.size();
-	uint8 giveArgsSize = PyTuple_Size(args);
+	uint8 argsSize = (uint8)argTypes_.size();
+	uint8 giveArgsSize = (uint8)PyTuple_Size(args);
 
 	if (giveArgsSize != argsSize + offset)
 	{
@@ -217,7 +217,7 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 
 		if(pyitem == NULL)
 		{
-			WARNING_MSG(fmt::format("MethodDescription::createFromStream:{} arg[{}][{}] is NULL.\n", 
+			WARNING_MSG(fmt::format("MethodDescription::createFromStream: {} arg[{}][{}] is NULL.\n", 
 				this->getName(), index, argTypes_[index]->getName()));
 		}
 
@@ -255,7 +255,18 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 		}
 	}
 
- 	SCRIPT_ERROR_CHECK();
+	if (PyErr_Occurred())
+	{
+		if (isExposed() && PyErr_ExceptionMatches(PyExc_TypeError))
+		{
+			WARNING_MSG(fmt::format("MethodDescription::call: {} is method of exposed, if there is a missing arguments error, "
+				"try adding exposedID, For example: \ndef func(msg): => def func(exposedID, msg):\n",
+				this->getName()));
+		}
+
+		PyErr_PrintEx(0);
+	}
+
 	return pyResult;
 }
 

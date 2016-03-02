@@ -63,12 +63,12 @@ methodDescr_aliasmap_(),
 hasCell_(false),
 hasBase_(false),
 hasClient_(false),
-volatileinfo_(),
+pVolatileinfo_(new VolatileInfo()),
 name_(name),
 usePropertyDescrAlias_(false),
 useMethodDescrAlias_(false)
 {
-	EntityDef::md5().append((void*)name.c_str(), name.size());
+	EntityDef::md5().append((void*)name.c_str(), (int)name.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,6 +81,8 @@ ScriptDefModule::~ScriptDefModule()
 void ScriptDefModule::finalise(void)
 {
 	S_RELEASE(scriptType_);
+	S_RELEASE(pVolatileinfo_);
+
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
 	for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();
@@ -377,7 +379,7 @@ void ScriptDefModule::autoMatchCompOwn()
 					assertionHasCell = 0;
 			}
 
-			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
+			EntityDef::md5().append((void*)&assertionHasCell, sizeof(int));
 
 			val = node->ToElement()->Attribute("hasBase");
 			if(val)
@@ -388,7 +390,7 @@ void ScriptDefModule::autoMatchCompOwn()
 					assertionHasBase = 0;
 			}
 
-			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
+			EntityDef::md5().append((void*)&assertionHasBase, sizeof(int));
 			break;
 		}
 	}

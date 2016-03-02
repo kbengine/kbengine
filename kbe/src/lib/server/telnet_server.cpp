@@ -207,7 +207,7 @@ int	TelnetServer::handleInputNotification(int fd)
 				s = pTelnetHandler->getWelcome();
 			}
 
-			pNewEndPoint->send(s.c_str(), s.size());
+			pNewEndPoint->send(s.c_str(), (int)s.size());
 		}
 	}
 

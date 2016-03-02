@@ -26,6 +26,11 @@
 		<id>4</id>
 		<descr>查询所有接口信息。</descr>
 	</Machine::onQueryAllInterfaceInfos>
+
+	<Machine::onQueryMachines>
+		<id>5</id>
+		<descr>查询所有machine进程。</descr>
+	</Machine::onQueryMachines>
 	
 	<Loginapp::reqClose>
 		<id>1</id>
@@ -77,21 +82,21 @@
 		<descr>客户端请求断线。</descr>
 	</Baseapp::reqClose>
 	
-	<Baseapp::loginGateway>
+	<Baseapp::loginBaseapp>
 		<id>202</id>
 		<descr>客户端请求登录到服务器的网关进程， 如果合法则将进入游戏。</descr>
 		<arg>STRING</arg> <!-- 账号名 -->
 		<arg>STRING</arg> <!-- 密码 -->
-	</Baseapp::loginGateway>
+	</Baseapp::loginBaseapp>
 	
-	<Baseapp::reLoginGateway>
+	<Baseapp::reLoginBaseapp>
 		<id>204</id>
 		<descr>重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
 			之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
 		</descr>
 		<arg>UINT64</arg> <!-- 64位随机GUID码 -->
 		<arg>INT32</arg> <!-- ENTITY_ID -->
-	</Baseapp::reLoginGateway>
+	</Baseapp::reLoginBaseapp>
 	
 	<Baseapp::onRemoteCallCellMethodFromClient>
 		<id>205</id>
@@ -183,13 +188,13 @@
 	   <arg>STRING</arg> <!-- 脚本类型 -->
 	</Client::onCreatedEntity>
 	
-	<Client::onLoginGatewayFailed>
+	<Client::onLoginBaseappFailed>
 		<id>505</id>
 		<descr>客户端登陆到网关，服务器返回失败。</descr>
 		<arg>UINT16</arg> <!-- 错误码 MERCURY_ERR_SRV_NO_READY:服务器没有准备好, 
 									MERCURY_ERR_ILLEGAL_LOGIN:非法登录, 
 									MERCURY_ERR_NAME_PASSWORD:用户名或者密码不正确 -->
-	</Client::onLoginGatewayFailed>
+	</Client::onLoginBaseappFailed>
 	
 	<Client::onRemoteMethodCall>
 		<id>506</id>
@@ -317,6 +322,46 @@
 		<descr>引擎版本不匹配。</descr>
 	</Client::onVersionNotMatch>
 	
+	<Logger::onAppActiveTick>
+		<id>701</id>
+		<descr>心跳协议</descr>
+		<arg>INT32</arg>   <!-- COMPONENT_TYPE -->
+		<arg>UINT64</arg> <!-- COMPONENT_ID -->
+	</Logger::onAppActiveTick>
+
+	<Logger::registerLogWatcher>
+		<id>702</id>
+		<descr>注册一个watcher。</descr>
+		<arg>INT32</arg>   <!-- uid -->
+		<arg>UINT32</arg>  <!-- logtypes filter -->
+		<arg>INT32</arg>   <!-- globalOrder -->
+		<arg>INT32</arg>   <!-- groupOrder -->
+		<arg>STRING</arg>  <!-- date -->
+		<arg>STRING</arg>  <!-- keyStr -->
+		<arg>UINT8_ARRAY</arg>  <!-- component type filter -->
+		<arg>UINT8</arg>   <!-- isfind -->
+		<arg>UINT8</arg>   <!-- first -->
+	</Logger::registerLogWatcher>
+	
+	<Logger::deregisterLogWatcher>
+		<id>703</id>
+		<descr>反注册一个watcher。</descr>
+	</Logger::deregisterLogWatcher>
+
+	<Logger::writeLog>
+		<id>704</id>
+		<descr>向logger发送一条日志。</descr>
+		<arg>INT32</arg>   <!-- uid -->
+		<arg>UINT32</arg>  <!-- logtype -->
+		<arg>INT32</arg>   <!-- componentType -->
+		<arg>UINT64</arg>  <!-- componentID -->
+		<arg>INT32</arg>   <!-- globalOrder -->
+		<arg>INT32</arg>   <!-- groupOrder -->
+		<arg>INT64</arg>   <!-- time -->
+		<arg>UINT32</arg>  <!-- kbetime -->
+		<arg>BLOB</arg>    <!-- log size and msg -->
+	</Logger::writeLog>
+
 	<Property::position>
 		<id>40000</id>
 		<descr>位置属性。</descr>

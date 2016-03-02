@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr.h"
 #include "dbmgr_interface.h"
 #include "dbtasks.h"
+#include "profile.h"
 #include "interfaces_handler.h"
 #include "sync_app_datas_handler.h"
 #include "db_mysql/kbe_table_mysql.h"
@@ -31,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.h"
 #include "thread/threadpool.h"
 #include "server/components.h"
+#include "server/telnet_server.h"
 #include "db_interface/db_interface.h"
 #include "db_mysql/db_interface_mysql.h"
 #include "entitydef/scriptdef_module.h"
@@ -42,7 +44,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "loginapp/loginapp_interface.h"
 
 namespace KBEngine{
-	
+
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Dbmgr);
 
@@ -51,14 +53,14 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 			 Network::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID),
+	PythonApp(dispatcher, ninterface, componentType, componentID),
 	loopCheckTimerHandle_(),
 	mainProcessTimer_(),
 	idServer_(1, 1024),
 	pGlobalData_(NULL),
 	pBaseAppData_(NULL),
 	pCellAppData_(NULL),
-	bufferedDBTasks_(),
+	bufferedDBTasksMaps_(),
 	numWrittenEntity_(0),
 	numRemovedEntity_(0),
 	numQueryEntity_(0),
@@ -66,7 +68,8 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 	numCreatedAccount_(0),
 	pInterfacesAccountHandler_(NULL),
 	pInterfacesChargeHandler_(NULL),
-	pSyncAppDatasHandler_(NULL)
+	pSyncAppDatasHandler_(NULL),
+	pTelnetServer_(NULL)
 {
 }
 
@@ -84,12 +87,19 @@ Dbmgr::~Dbmgr()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::canShutdown()
 {
-	if(bufferedDBTasks_.size() > 0)
+	KBEUnordered_map<std::string, Buffered_DBTasks>::iterator bditer = bufferedDBTasksMaps_.begin();
+	for (; bditer != bufferedDBTasksMaps_.end(); ++bditer)
 	{
-		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Wait for the task to complete, tasks={}, threads={}, threadpoolDestroyed={}!\n", 
-			bufferedDBTasks_.size(), DBUtil::pThreadPool()->currentThreadCount(), DBUtil::pThreadPool()->isDestroyed()));
+		if (bditer->second.size() > 0)
+		{
+			thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(bditer->first);
+			KBE_ASSERT(pThreadPool);
 
-		return false;
+			INFO_MSG(fmt::format("Dbmgr::canShutdown(): Wait for the task to complete, dbInterface={}, tasks={}, threads={}, threadpoolDestroyed={}!\n",
+				bditer->first, bditer->second.size(), pThreadPool->currentThreadCount(), pThreadPool->isDestroyed()));
+
+			return false;
+		}
 	}
 
 	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
@@ -125,6 +135,22 @@ bool Dbmgr::canShutdown()
 	return true;
 }
 
+//-------------------------------------------------------------------------------------	
+void Dbmgr::onShutdownBegin()
+{
+	PythonApp::onShutdownBegin();
+
+	// 通知脚本
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onDBMgrShutDown"));
+}
+
+//-------------------------------------------------------------------------------------	
+void Dbmgr::onShutdownEnd()
+{
+	PythonApp::onShutdownEnd();
+}
+
 //-------------------------------------------------------------------------------------
 bool Dbmgr::initializeWatcher()
 {
@@ -134,23 +160,31 @@ bool Dbmgr::initializeWatcher()
 	WATCH_OBJECT("numExecuteRawDatabaseCommand", numExecuteRawDatabaseCommand_);
 	WATCH_OBJECT("numCreatedAccount", numCreatedAccount_);
 
-	WATCH_OBJECT("DBThreadPool/dbid_tasksSize", &bufferedDBTasks_, &Buffered_DBTasks::dbid_tasksSize);
-	WATCH_OBJECT("DBThreadPool/entityid_tasksSize", &bufferedDBTasks_, &Buffered_DBTasks::entityid_tasksSize);
-	WATCH_OBJECT("DBThreadPool/printBuffered_dbid", &bufferedDBTasks_, &Buffered_DBTasks::printBuffered_dbid);
-	WATCH_OBJECT("DBThreadPool/printBuffered_entityID", &bufferedDBTasks_, &Buffered_DBTasks::printBuffered_entityID);
 
-	return ServerApp::initializeWatcher() && DBUtil::pThreadPool()->initializeWatcher();
+	KBEUnordered_map<std::string, Buffered_DBTasks>::iterator bditer = bufferedDBTasksMaps_.begin();
+	for (; bditer != bufferedDBTasksMaps_.end(); ++bditer)
+	{
+		WATCH_OBJECT(fmt::format("DBThreadPool/{}/dbid_tasksSize", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::dbid_tasksSize);
+		WATCH_OBJECT(fmt::format("DBThreadPool/{}/entityid_tasksSize", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::entityid_tasksSize);
+		WATCH_OBJECT(fmt::format("DBThreadPool/{}/printBuffered_dbid", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::printBuffered_dbid);
+		WATCH_OBJECT(fmt::format("DBThreadPool/{}/printBuffered_entityID", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::printBuffered_entityID);
+	}
+
+
+	return ServerApp::initializeWatcher() && DBUtil::initializeWatcher();
 }
 
 //-------------------------------------------------------------------------------------
 bool Dbmgr::run()
 {
-	return ServerApp::run();
+	return PythonApp::run();
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 		case TIMEOUT_TICK:
@@ -162,8 +196,6 @@ void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
-
-	ServerApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -172,9 +204,8 @@ void Dbmgr::handleMainTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	DBUtil::pThreadPool()->onMainThreadTick();
+	DBUtil::handleMainTick();
 	networkInterface().processChannels(&DbmgrInterface::messageHandlers);
 }
 
@@ -194,6 +225,9 @@ bool Dbmgr::inInitialize()
 {
 	// 初始化所有扩展模块
 	// assets/scripts/
+	if (!PythonApp::inInitialize())
+		return false;
+
 	std::vector<PyTypeObject*>	scriptBaseTypes;
 	if(!EntityDef::initialize(scriptBaseTypes, componentType_)){
 		return false;
@@ -205,6 +239,8 @@ bool Dbmgr::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::initializeEnd()
 {
+	PythonApp::initializeEnd();
+
 	// 添加一个timer， 每秒检查一些状态
 	loopCheckTimerHandle_ = this->dispatcher().addTimer(1000000, this,
 							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
@@ -224,33 +260,55 @@ bool Dbmgr::initializeEnd()
 	INFO_MSG(fmt::format("Dbmgr::initializeEnd: digest({})\n", 
 		EntityDef::md5().getDigestStr()));
 	
-	return initInterfacesHandler() && initDB();
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onDBMgrReady"), 
+										const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+
+	pTelnetServer_ = new TelnetServer(&this->dispatcher(), &this->networkInterface());
+	pTelnetServer_->pScript(&this->getScript());
+
+	bool ret = pTelnetServer_->start(g_kbeSrvConfig.getDBMgr().telnet_passwd,
+		g_kbeSrvConfig.getDBMgr().telnet_deflayer,
+		g_kbeSrvConfig.getDBMgr().telnet_port);
+
+	Components::getSingleton().extraData4(pTelnetServer_->port());
+	
+	return ret && initInterfacesHandler() && initDB();
+}
+
+//-------------------------------------------------------------------------------------		
+void Dbmgr::onInstallPyModules()
+{
+	PyObject * module = getScript().getModule();
+
+	for (int i = 0; i < SERVER_ERR_MAX; i++)
+	{
+		if(PyModule_AddIntConstant(module, SERVER_ERR_STR[i], i))
+		{
+			ERROR_MSG( fmt::format("Dbmgr::onInstallPyModules: Unable to set KBEngine.{}.\n", SERVER_ERR_STR[i]));
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------		
 bool Dbmgr::initInterfacesHandler()
 {
-	pInterfacesAccountHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesAccountType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
-	pInterfacesChargeHandler_ = InterfacesHandlerFactory::create(g_kbeSrvConfig.interfacesChargeType(), threadPool(), *static_cast<KBEngine::DBThreadPool*>(DBUtil::pThreadPool()));
+	std::string type = Network::Address::NONE == g_kbeSrvConfig.interfacesAddr() ? "dbmgr" : "interfaces";
+	pInterfacesAccountHandler_ = InterfacesHandlerFactory::create(type);
+	pInterfacesChargeHandler_ = InterfacesHandlerFactory::create(type);
 
 	INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: interfaces addr({}), accountType:({}), chargeType:({}).\n", 
 		g_kbeSrvConfig.interfacesAddr().c_str(),
-		g_kbeSrvConfig.interfacesAccountType(),
-		g_kbeSrvConfig.interfacesChargeType()));
-
-	if(strlen(g_kbeSrvConfig.interfacesThirdpartyAccountServiceAddr()) > 0)
-	{
-		INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: thirdpartyAccountService_addr({}:{}).\n", 
-			g_kbeSrvConfig.interfacesThirdpartyAccountServiceAddr(),
-			g_kbeSrvConfig.interfacesThirdpartyAccountServicePort()));
-	}
-
-	if(strlen(g_kbeSrvConfig.interfacesThirdpartyChargeServiceAddr()) > 0)
-	{
-		INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: thirdpartyChargeService_addr({}:{}).\n", 
-			g_kbeSrvConfig.interfacesThirdpartyChargeServiceAddr(),
-			g_kbeSrvConfig.interfacesThirdpartyChargeServicePort()));
-	}
+		type,
+		type));
 
 	return pInterfacesAccountHandler_->initialize() && pInterfacesChargeHandler_->initialize();
 }
@@ -267,27 +325,57 @@ bool Dbmgr::initDB()
 		return false;
 	}
 
-	if(!DBUtil::initialize())
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	if (dbcfg.dbInterfaceInfos.size() == 0)
 	{
-		ERROR_MSG("Dbmgr::initDB(): can't initialize dbinterface!\n");
+		ERROR_MSG(fmt::format("DBUtil::initialize: not found dbInterface! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n"));
 		return false;
 	}
 
-	DBInterface* pDBInterface = DBUtil::createInterface();
-	if(pDBInterface == NULL)
+	if (!DBUtil::initialize())
 	{
-		ERROR_MSG("Dbmgr::initDB(): can't create dbinterface!\n");
+		ERROR_MSG("Dbmgr::initDB(): can't initialize dbInterface!\n");
 		return false;
 	}
 
-	bool ret = DBUtil::initInterface(pDBInterface);
-	pDBInterface->detach();
-	SAFE_RELEASE(pDBInterface);
+	bool hasDefaultInterface = false;
 
-	if(!ret)
+	std::vector<DBInterfaceInfo>::iterator dbinfo_iter = dbcfg.dbInterfaceInfos.begin();
+	for (; dbinfo_iter != dbcfg.dbInterfaceInfos.end(); ++dbinfo_iter)
+	{
+		Buffered_DBTasks buffered_DBTasks;
+		bufferedDBTasksMaps_.insert(std::make_pair((*dbinfo_iter).name, buffered_DBTasks));
+		BUFFERED_DBTASKS_MAP::iterator buffered_DBTasks_iter = bufferedDBTasksMaps_.find((*dbinfo_iter).name);
+		buffered_DBTasks_iter->second.dbInterfaceName((*dbinfo_iter).name);
+	}
+
+	for (dbinfo_iter = dbcfg.dbInterfaceInfos.begin(); dbinfo_iter != dbcfg.dbInterfaceInfos.end(); ++dbinfo_iter)
+	{
+		DBInterface* pDBInterface = DBUtil::createInterface((*dbinfo_iter).name);
+		if(pDBInterface == NULL)
+		{
+			ERROR_MSG("Dbmgr::initDB(): can't create dbInterface!\n");
+			return false;
+		}
+
+		bool ret = DBUtil::initInterface(pDBInterface);
+		pDBInterface->detach();
+		SAFE_RELEASE(pDBInterface);
+
+		if(!ret)
+			return false;
+
+		if (std::string("default") == (*dbinfo_iter).name)
+			hasDefaultInterface = true;
+	}
+
+	if (!hasDefaultInterface)
+	{
+		ERROR_MSG("Dbmgr::initDB(): \"default\" dbInterface was not found! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n");
 		return false;
+	}
 
-	return ret;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -298,7 +386,7 @@ void Dbmgr::finalise()
 	SAFE_RELEASE(pCellAppData_);
 
 	DBUtil::finalise();
-	ServerApp::finalise();
+	PythonApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
@@ -544,8 +632,18 @@ void Dbmgr::queryAccount(Network::Channel* pChannel,
 		return;
 	}
 
-	bufferedDBTasks_.addTask(new DBTaskQueryAccount(pChannel->addr(), 
-		accountName, password, componentID, entityID, entityDBID, ip, port));
+	Buffered_DBTasks* pBuffered_DBTasks = 
+		findBufferedDBTask(Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName));
+
+	if (!pBuffered_DBTasks)
+	{
+		ERROR_MSG(fmt::format("Dbmgr::queryAccount: not found dbInterface({})!\n", 
+			Dbmgr::getSingleton().selectAccountDBInterfaceName(accountName)));
+		return;
+	}
+
+	pBuffered_DBTasks->addTask(new DBTaskQueryAccount(pChannel->addr(), accountName, password, 
+		componentID, entityID, entityDBID, ip, port));
 
 	numQueryEntity_++;
 }
@@ -561,9 +659,16 @@ void Dbmgr::onAccountOnline(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::onEntityOffline(Network::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid)
+void Dbmgr::onEntityOffline(Network::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid, uint16 dbInterfaceIndex)
 {
-	bufferedDBTasks_.addTask(new DBTaskEntityOffline(pChannel->addr(), dbid, sid));
+	Buffered_DBTasks* pBuffered_DBTasks = findBufferedDBTask(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex));
+	if (!pBuffered_DBTasks)
+	{
+		ERROR_MSG(fmt::format("Dbmgr::onEntityOffline: not found dbInterfaceIndex({})!\n", dbInterfaceIndex));
+		return;
+	}
+
+	pBuffered_DBTasks->addTask(new DBTaskEntityOffline(pChannel->addr(), dbid, sid));
 }
 
 //-------------------------------------------------------------------------------------
@@ -573,14 +678,45 @@ void Dbmgr::executeRawDatabaseCommand(Network::Channel* pChannel,
 	ENTITY_ID entityID = -1;
 	s >> entityID;
 
-	if(entityID == -1)
-		DBUtil::pThreadPool()->addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+	uint16 dbInterfaceIndex = 0;
+	s >> dbInterfaceIndex;
+
+	std::string dbInterfaceName = g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex);
+	if (dbInterfaceName.size() == 0)
+	{
+		ERROR_MSG(fmt::format("Dbmgr::executeRawDatabaseCommand: not found dbInterface({})!\n", dbInterfaceName));
+		s.done();
+		return;
+	}
+
+	if (entityID == -1)
+	{
+		thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
+		if (!pThreadPool)
+		{
+			ERROR_MSG(fmt::format("Dbmgr::executeRawDatabaseCommand: not found pThreadPool(dbInterface={})!\n", dbInterfaceName));
+			s.done();
+			return;
+		}
+
+		pThreadPool->addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+	}
 	else
-		bufferedDBTasks_.addTask(new DBTaskExecuteRawDatabaseCommandByEntity(pChannel->addr(), s, entityID));
+	{
+		Buffered_DBTasks* pBuffered_DBTasks = findBufferedDBTask(dbInterfaceName);
+		if (!pBuffered_DBTasks)
+		{
+			ERROR_MSG(fmt::format("Dbmgr::executeRawDatabaseCommand: not found pBuffered_DBTasks(dbInterface={})!\n", dbInterfaceName));
+			s.done();
+			return;
+		}
+
+		pBuffered_DBTasks->addTask(new DBTaskExecuteRawDatabaseCommandByEntity(pChannel->addr(), s, entityID));
+	}
 
 	s.done();
 
-	numExecuteRawDatabaseCommand_++;
+	++numExecuteRawDatabaseCommand_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -590,13 +726,22 @@ void Dbmgr::writeEntity(Network::Channel* pChannel,
 	ENTITY_ID eid;
 	DBID entityDBID;
 	COMPONENT_ID componentID;
+	uint16 dbInterfaceIndex;
 
-	s >> componentID >> eid >> entityDBID;
+	s >> componentID >> eid >> entityDBID >> dbInterfaceIndex;
 
-	bufferedDBTasks_.addTask(new DBTaskWriteEntity(pChannel->addr(), componentID, eid, entityDBID, s));
+	Buffered_DBTasks* pBuffered_DBTasks = findBufferedDBTask(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex));
+	if (!pBuffered_DBTasks)
+	{
+		ERROR_MSG(fmt::format("Dbmgr::writeEntity: not found dbInterfaceIndex({})!\n", dbInterfaceIndex));
+		s.done();
+		return;
+	}
+
+	pBuffered_DBTasks->addTask(new DBTaskWriteEntity(pChannel->addr(), componentID, eid, entityDBID, s));
 	s.done();
 
-	numWrittenEntity_++;
+	++numWrittenEntity_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -605,16 +750,25 @@ void Dbmgr::removeEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	ENTITY_ID eid;
 	DBID entityDBID;
 	COMPONENT_ID componentID;
+	uint16 dbInterfaceIndex;
 
-	s >> componentID >> eid >> entityDBID;
+	s >> dbInterfaceIndex >> componentID >> eid >> entityDBID;
 	KBE_ASSERT(entityDBID > 0);
 
-	bufferedDBTasks_.addTask(new DBTaskRemoveEntity(pChannel->addr(), 
+	Buffered_DBTasks* pBuffered_DBTasks = findBufferedDBTask(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex));
+	if (!pBuffered_DBTasks)
+	{
+		ERROR_MSG(fmt::format("Dbmgr::removeEntity: not found dbInterfaceIndex({})!\n", dbInterfaceIndex));
+		s.done();
+		return;
+	}
+
+	pBuffered_DBTasks->addTask(new DBTaskRemoveEntity(pChannel->addr(),
 		componentID, eid, entityDBID, s));
 
 	s.done();
 
-	numRemovedEntity_++;
+	++numRemovedEntity_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -624,11 +778,12 @@ void Dbmgr::entityAutoLoad(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	ENTITY_SCRIPT_UID entityType;
 	ENTITY_ID start;
 	ENTITY_ID end;
+	uint16 dbInterfaceIndex = 0;
 
-	s >> componentID >> entityType >> start >> end;
+	s >> dbInterfaceIndex >> componentID >> entityType >> start >> end;
 
-	DBUtil::pThreadPool()->addTask(new DBTaskEntityAutoLoad(pChannel->addr(), 
-		componentID, entityType, start, end));
+	DBUtil::pThreadPool(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex))->
+		addTask(new DBTaskEntityAutoLoad(pChannel->addr(), componentID, entityType, start, end));
 }
 
 //-------------------------------------------------------------------------------------
@@ -638,12 +793,13 @@ void Dbmgr::deleteBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream&
 	ENTITY_SCRIPT_UID sid;
 	CALLBACK_ID callbackID = 0;
 	DBID entityDBID;
+	uint16 dbInterfaceIndex = 0;
 
-	s >> componentID >> entityDBID >> callbackID >> sid;
+	s >> dbInterfaceIndex >> componentID >> entityDBID >> callbackID >> sid;
 	KBE_ASSERT(entityDBID > 0);
 
-	DBUtil::pThreadPool()->addTask(new DBTaskDeleteBaseByDBID(pChannel->addr(), 
-		componentID, entityDBID, callbackID, sid));
+	DBUtil::pThreadPool(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex))->
+		addTask(new DBTaskDeleteBaseByDBID(pChannel->addr(), componentID, entityDBID, callbackID, sid));
 }
 
 //-------------------------------------------------------------------------------------
@@ -653,20 +809,21 @@ void Dbmgr::lookUpBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream&
 	ENTITY_SCRIPT_UID sid;
 	CALLBACK_ID callbackID = 0;
 	DBID entityDBID;
+	uint16 dbInterfaceIndex = 0;
 
-	s >> componentID >> entityDBID >> callbackID >> sid;
+	s >> dbInterfaceIndex >> componentID >> entityDBID >> callbackID >> sid;
 	KBE_ASSERT(entityDBID > 0);
 
-	DBUtil::pThreadPool()->addTask(new DBTaskLookUpBaseByDBID(pChannel->addr(), 
-		componentID, entityDBID, callbackID, sid));
+	DBUtil::pThreadPool(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex))->
+		addTask(new DBTaskLookUpBaseByDBID(pChannel->addr(), componentID, entityDBID, callbackID, sid));
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::queryEntity(Network::Channel* pChannel, COMPONENT_ID componentID, int8 queryMode, DBID dbid, 
+void Dbmgr::queryEntity(Network::Channel* pChannel, uint16 dbInterfaceIndex, COMPONENT_ID componentID, int8 queryMode, DBID dbid,
 	std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID)
 {
-	bufferedDBTasks_.addTask(new DBTaskQueryEntity(pChannel->addr(), queryMode, entityType, 
-		dbid, componentID, callbackID, entityID));
+	bufferedDBTasksMaps_[g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex)].
+		addTask(new DBTaskQueryEntity(pChannel->addr(), queryMode, entityType, dbid, componentID, callbackID, entityID));
 
 	numQueryEntity_++;
 }
@@ -674,12 +831,19 @@ void Dbmgr::queryEntity(Network::Channel* pChannel, COMPONENT_ID componentID, in
 //-------------------------------------------------------------------------------------
 void Dbmgr::syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	KBEAccountTable* pTable = 
-		static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	int rpos = s.rpos();
+	EntityTables::ENTITY_TABLES_MAP::iterator iter = EntityTables::sEntityTables.begin();
+	for (; iter != EntityTables::sEntityTables.end(); ++iter)
+	{
+		KBEAccountTable* pTable =
+			static_cast<KBEAccountTable*>(iter->second.findKBETable("kbe_accountinfos"));
 
-	KBE_ASSERT(pTable);
+		KBE_ASSERT(pTable);
 
-	pTable->accountDefMemoryStream(s);
+		s.rpos(rpos);
+		pTable->accountDefMemoryStream(s);
+	}
+
 	s.done();
 }
 
@@ -746,5 +910,39 @@ void Dbmgr::accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, s
 }
 
 //-------------------------------------------------------------------------------------
+std::string Dbmgr::selectAccountDBInterfaceName(const std::string& name)
+{
+	std::string dbInterfaceName = "default";
 
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+		const_cast<char*>("onSelectAccountDBInterface"),
+		const_cast<char*>("s"),
+		name.c_str());
+
+	if (pyResult != NULL)
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyResult, NULL);
+		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		dbInterfaceName = ccattr;
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		Py_DECREF(pyResult);
+		free(ccattr);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
+	if (dbInterfaceName == "" || g_kbeSrvConfig.dbInterface(dbInterfaceName) == NULL)
+	{
+		ERROR_MSG(fmt::format("Dbmgr::selectAccountDBInterfaceName: not found dbInterface({}), accountName={}.\n", dbInterfaceName, name));
+		return "default";
+	}
+
+	return dbInterfaceName;
+}
+
+//-------------------------------------------------------------------------------------
 }

@@ -36,7 +36,7 @@ bool DBTaskBase::process()
 	uint64 duration = startTime - initTime_;
 	if(duration > stampsPerSecond())
 	{
-		WARNING_MSG(fmt::format("DBTask::process(): delay {0:.2f} seconds, try adjusting the kbengine_defs.xml(numConnections) and MySQL(my.cnf->max_connections or innodb_flush_log_at_trx_commit)!\nsql:({1})\n", 
+		WARNING_MSG(fmt::format("DBTask::process(): delay {0:.2f} seconds, try adjusting the kbengine[_defs].xml(numConnections) and MySQL(my.cnf->max_connections or innodb_flush_log_at_trx_commit)!\nsql:({1})\n", 
 			(double(duration)/stampsPerSecondD()), pdbi_->lastquery()));
 	}
 
@@ -57,9 +57,10 @@ thread::TPTask::TPTaskState DBTaskBase::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskSyncTable::DBTaskSyncTable(KBEShared_ptr<EntityTable> pEntityTable):
+DBTaskSyncTable::DBTaskSyncTable(EntityTables* pEntityTables, KBEShared_ptr<EntityTable> pEntityTable) :
 pEntityTable_(pEntityTable),
-success_(false)
+success_(false),
+pEntityTables_(pEntityTables)
 {
 }
 
@@ -78,7 +79,7 @@ bool DBTaskSyncTable::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskSyncTable::presentMainThread()
 {
-	EntityTables::getSingleton().onTableSyncSuccessfully(pEntityTable_, success_);
+	pEntityTables_->onTableSyncSuccessfully(pEntityTable_, success_);
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
 }
 

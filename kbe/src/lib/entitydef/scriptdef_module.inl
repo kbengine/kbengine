@@ -35,9 +35,9 @@ INLINE DetailLevel& ScriptDefModule::getDetailLevel(void)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE VolatileInfo& ScriptDefModule::getVolatileInfo(void)
+INLINE VolatileInfo* ScriptDefModule::getPVolatileInfo(void)
 {
-	return volatileinfo_; 
+	return pVolatileinfo_;
 }
 
 //-------------------------------------------------------------------------------------

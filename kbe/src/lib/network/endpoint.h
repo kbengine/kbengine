@@ -99,7 +99,7 @@ public:
 	bool getInterfaces(std::map< u_int32_t, std::string > &interfaces);
 
 	int findIndicatedInterface(const char * spec, u_int32_t & address);
-	int findDefaultInterface(char * name);
+	int findDefaultInterface(char * name, int buffsize);
 
 	int getInterfaceAddressByName(const char * name, u_int32_t & address);
 	int getInterfaceAddressByMAC(const char * mac, u_int32_t & address);

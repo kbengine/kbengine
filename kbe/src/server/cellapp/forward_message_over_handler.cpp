@@ -30,18 +30,18 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::
-FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params):
+FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params) :
 _e(e),
 _spaceID(spaceID),
-params_(params)
+_params(params)
 {
 }
 
 //-------------------------------------------------------------------------------------
 FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::~FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp()
 {
-	if(params_)
-		Py_XDECREF(params_);
+	if (_params)
+		Py_XDECREF(_params);
 }
 
 //-------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	
 	Space* space = Spaces::findSpace(_spaceID);
 	
-	if(space == NULL)
+	if(space == NULL || !space->isGood())
 	{
 		ERROR_MSG(fmt::format("FMH_Baseapp_onEntityGetCell::process: not found space({}), {} {}.\n",
 			_spaceID, _e->scriptName(), _e->id()));
@@ -60,12 +60,21 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	}
 
 	_e->spaceID(space->id());
-	_e->initializeEntity(params_);
-	Py_XDECREF(params_);
-	params_ = NULL;
+	_e->initializeEntity(_params);
+	Py_XDECREF(_params);
+	_params = NULL;
 
 	// Ìí¼Óµ½space
-	space->addEntityAndEnterWorld(_e);
+	space->addEntityToNode(_e);
+
+	if (_e->clientMailbox())
+	{
+		_e->onGetWitness();
+	}
+	else
+	{
+		space->onEnterWorld(_e);
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -41,6 +41,10 @@ class dtQueryFilter
 public:
 	dtQueryFilter();
 	
+#ifdef DT_VIRTUAL_QUERYFILTER
+	virtual ~dtQueryFilter() { }
+#endif
+	
 	/// Returns true if the polygon can be visited.  (I.e. Is traversable.)
 	///  @param[in]		ref		The reference id of the polygon test.
 	///  @param[in]		tile	The tile containing the polygon.
@@ -115,6 +119,37 @@ public:
 
 };
 
+
+
+/// Provides information about raycast hit
+/// filled by dtNavMeshQuery::raycast
+/// @ingroup detour
+struct dtRaycastHit
+{
+	/// The hit parameter. (FLT_MAX if no wall hit.)
+	float t; 
+	
+	/// hitNormal	The normal of the nearest wall hit. [(x, y, z)]
+	float hitNormal[3];
+
+	/// The index of the edge on the final polygon where the wall was hit.
+	int hitEdgeIndex;
+	
+	/// Pointer to an array of reference ids of the visited polygons. [opt]
+	dtPolyRef* path;
+	
+	/// The number of visited polygons. [opt]
+	int pathCount;
+
+	/// The maximum number of polygons the @p path array can hold.
+	int maxPath;
+
+	///  The cost of the path until hit.
+	float pathCost;
+};
+
+
+
 /// Provides the ability to perform pathfinding related queries against
 /// a navigation mesh.
 /// @ingroup detour
@@ -179,10 +214,11 @@ public:
 	///  @param[in]		startPos	A position within the start polygon. [(x, y, z)]
 	///  @param[in]		endPos		A position within the end polygon. [(x, y, z)]
 	///  @param[in]		filter		The polygon filter to apply to the query.
+	///  @param[in]		options		query options (see: #dtFindPathOptions)
 	/// @returns The status flags for the query.
 	dtStatus initSlicedFindPath(dtPolyRef startRef, dtPolyRef endRef,
 								const float* startPos, const float* endPos,
-								const dtQueryFilter* filter);
+								const dtQueryFilter* filter, const unsigned int options = 0);
 
 	/// Updates an in-progress sliced path query.
 	///  @param[in]		maxIter		The maximum number of iterations to perform.
@@ -200,8 +236,8 @@ public:
 	
 	/// Finalizes and returns the results of an incomplete sliced path query, returning the path to the furthest
 	/// polygon on the existing path that was visited during the search.
-	///  @param[out]	existing		An array of polygon references for the existing path.
-	///  @param[out]	existingSize	The number of polygon in the @p existing array.
+	///  @param[in]		existing		An array of polygon references for the existing path.
+	///  @param[in]		existingSize	The number of polygon in the @p existing array.
 	///  @param[out]	path			An ordered list of polygon references representing the path. (Start to end.) 
 	///  								[(polyRef) * @p pathCount]
 	///  @param[out]	pathCount		The number of polygons returned in the @p path array.
@@ -308,6 +344,7 @@ public:
 	
 	/// Casts a 'walkability' ray along the surface of the navigation mesh from 
 	/// the start position toward the end position.
+	/// @note A wrapper around raycast(..., RaycastHit*). Retained for backward compatibility.
 	///  @param[in]		startRef	The reference id of the start polygon.
 	///  @param[in]		startPos	A position within the start polygon representing 
 	///  							the start of the ray. [(x, y, z)]
@@ -323,6 +360,22 @@ public:
 					 const dtQueryFilter* filter,
 					 float* t, float* hitNormal, dtPolyRef* path, int* pathCount, const int maxPath) const;
 	
+	/// Casts a 'walkability' ray along the surface of the navigation mesh from 
+	/// the start position toward the end position.
+	///  @param[in]		startRef	The reference id of the start polygon.
+	///  @param[in]		startPos	A position within the start polygon representing 
+	///  							the start of the ray. [(x, y, z)]
+	///  @param[in]		endPos		The position to cast the ray toward. [(x, y, z)]
+	///  @param[in]		filter		The polygon filter to apply to the query.
+	///  @param[in]		flags		govern how the raycast behaves. See dtRaycastOptions
+	///  @param[out]	hit			Pointer to a raycast hit structure which will be filled by the results.
+	///  @param[in]		prevRef		parent of start ref. Used during for cost calculation [opt]
+	/// @returns The status flags for the query.
+	dtStatus raycast(dtPolyRef startRef, const float* startPos, const float* endPos,
+					 const dtQueryFilter* filter, const unsigned int options,
+					 dtRaycastHit* hit, dtPolyRef prevRef = 0) const;
+
+
 	/// Finds the distance from the specified position to the nearest polygon wall.
 	///  @param[in]		startRef		The reference id of the polygon containing @p centerPos.
 	///  @param[in]		centerPos		The center of the search circle. [(x, y, z)]
@@ -378,8 +431,9 @@ public:
 	///  @param[in]		ref			The reference id of the polygon.
 	///  @param[in]		pos			The position to check. [(x, y, z)]
 	///  @param[out]	closest		The closest point on the polygon. [(x, y, z)]
+	///  @param[out]	posOverPoly	True of the position is over the polygon.
 	/// @returns The status flags for the query.
-	dtStatus closestPointOnPoly(dtPolyRef ref, const float* pos, float* closest) const;
+	dtStatus closestPointOnPoly(dtPolyRef ref, const float* pos, float* closest, bool* posOverPoly) const;
 	
 	/// Returns a point on the boundary closest to the source point if the source point is outside the 
 	/// polygon's xz-bounds.
@@ -428,12 +482,7 @@ private:
 	/// Queries polygons within a tile.
 	int queryPolygonsInTile(const dtMeshTile* tile, const float* qmin, const float* qmax, const dtQueryFilter* filter,
 							dtPolyRef* polys, const int maxPolys) const;
-	/// Find nearest polygon within a tile.
-	dtPolyRef findNearestPolyInTile(const dtMeshTile* tile, const float* center, const float* extents,
-									const dtQueryFilter* filter, float* nearestPt) const;
-	/// Returns closest point on polygon.
-	void closestPointOnPolyInTile(const dtMeshTile* tile, const dtPoly* poly, const float* pos, float* closest) const;
-	
+
 	/// Returns portal points between two polygons.
 	dtStatus getPortalPoints(dtPolyRef from, dtPolyRef to, float* left, float* right,
 							 unsigned char& fromType, unsigned char& toType) const;
@@ -467,6 +516,8 @@ private:
 		dtPolyRef startRef, endRef;
 		float startPos[3], endPos[3];
 		const dtQueryFilter* filter;
+		unsigned int options;
+		float raycastLimitSqr;
 	};
 	dtQueryData m_query;				///< Sliced query state.
 

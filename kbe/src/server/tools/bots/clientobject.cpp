@@ -170,7 +170,7 @@ bool ClientObject::initCreate()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientObject::initLoginGateWay()
+bool ClientObject::initLoginBaseapp()
 {
 	Bots::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pTCPPacketReceiverEx_->pEndPoint());
 	pServerChannel_->stopSend();
@@ -199,7 +199,7 @@ bool ClientObject::initLoginGateWay()
 
 		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
-		state_ = C_STATE_LOGIN_GATEWAY_CREATE;
+		state_ = C_STATE_LOGIN_BASEAPP_CREATE;
 		return false;
 	}
 
@@ -217,7 +217,7 @@ bool ClientObject::initLoginGateWay()
 	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
 	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
 
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::hello);
@@ -249,11 +249,11 @@ void ClientObject::gameTick()
 	}
 	else
 	{
-		if(connectedGateway_)
+		if(connectedBaseapp_)
 		{
 			EventData_ServerCloased eventdata;
 			eventHandler_.fire(&eventdata);
-			connectedGateway_ = false;
+			connectedBaseapp_ = false;
 			canReset_ = true;
 			state_ = C_STATE_INIT;
 			
@@ -293,19 +293,19 @@ void ClientObject::gameTick()
 				return;
 
 			break;
-		case C_STATE_LOGIN_GATEWAY_CREATE:
+		case C_STATE_LOGIN_BASEAPP_CREATE:
 
 			state_ = C_STATE_PLAY;
 
-			if(!initLoginGateWay())
+			if(!initLoginBaseapp())
 				return;
 
 			break;
-		case C_STATE_LOGIN_GATEWAY:
+		case C_STATE_LOGIN_BASEAPP:
 
 			state_ = C_STATE_PLAY;
 
-			if(!loginGateWay())
+			if(!loginBaseapp())
 				return;
 
 			break;
@@ -336,7 +336,7 @@ void ClientObject::onHelloCB_(Network::Channel* pChannel, const std::string& ver
 	}
 	else
 	{
-		state_ = C_STATE_LOGIN_GATEWAY;
+		state_ = C_STATE_LOGIN_BASEAPP;
 	}
 }
 
@@ -378,7 +378,7 @@ void ClientObject::onLoginSuccessfully(Network::Channel * pChannel, MemoryStream
 	INFO_MSG(fmt::format("ClientObject::onLoginSuccessfully: {} addr={}:{}!\n", 
 		name_, ip_, port_));
 
-	state_ = C_STATE_LOGIN_GATEWAY_CREATE;
+	state_ = C_STATE_LOGIN_BASEAPP_CREATE;
 }
 
 //-------------------------------------------------------------------------------------	

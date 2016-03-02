@@ -40,14 +40,15 @@ class TPThread;
 class DBThreadPool : public thread::ThreadPool
 {
 public:
-	DBThreadPool();
+	DBThreadPool(const std::string& dbinterfaceName);
 	~DBThreadPool();
 
 	virtual thread::TPThread* createThread(int threadWaitSecond = 0);
 
-	virtual std::string name() const{ return "DBThreadPool"; }
-protected:
+	virtual std::string name() const{ return std::string("DBThreadPool/") + dbinterfaceName_; }
 
+protected:
+	std::string dbinterfaceName_;
 };
 
 }

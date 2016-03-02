@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DB_EXCEPTION_H
-#define KBE_DB_EXCEPTION_H
+#ifndef KBE_MYSQL_EXCEPTION_H
+#define KBE_MYSQL_EXCEPTION_H
 
 #include <string>
 
@@ -29,7 +29,7 @@ class DBInterface;
 class DBException : public std::exception
 {
 public:
-	DBException(DBInterface* dbi);
+	DBException(DBInterface* pdbi);
 	~DBException() throw();
 
 	virtual const char * what() const throw() { return errStr_.c_str(); }
@@ -44,6 +44,6 @@ private:
 
 }
 
-#endif // KBE_DB_EXCEPTION_H
+#endif // KBE_MYSQL_EXCEPTION_H
 
 

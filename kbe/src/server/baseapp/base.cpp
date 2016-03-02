@@ -58,7 +58,7 @@ ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Base, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Base::Base(ENTITY_ID id, const ScriptDefModule* scriptModule, 
+Base::Base(ENTITY_ID id, const ScriptDefModule* pScriptModule, 
 		   PyTypeObject* pyType, bool isInitialised):
 ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Base),
@@ -74,7 +74,9 @@ shouldAutoBackup_(1),
 creatingCell_(false),
 createdSpace_(false),
 inRestore_(false),
-pBufferedSendToCellappMessages_(NULL)
+pBufferedSendToCellappMessages_(NULL),
+isDirty_(true),
+dbInterfaceIndex_(0)
 {
 	script::PyGC::incTracing("Base");
 	ENTITY_INIT_PROPERTYS(Base);
@@ -102,9 +104,12 @@ Base::~Base()
 void Base::onDefDataChanged(const PropertyDescription* propertyDescription, 
 		PyObject* pyData)
 {
-	if(initing_)
+	if(initing())
 		return;
 
+	if(propertyDescription->isPersistent())
+		setDirty();
+	
 	uint32 flags = propertyDescription->getFlags();
 
 	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientMailbox_ == NULL)
@@ -119,7 +124,7 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 	(*pBundle) << id();
 
-	if(scriptModule_->usePropertyDescrAlias())
+	if(pScriptModule_->usePropertyDescrAlias())
 		(*pBundle) << propertyDescription->aliasIDAsUint8();
 	else
 		(*pBundle) << propertyDescription->getUType();
@@ -137,8 +142,10 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onDestroy(bool callScript)																					
+void Base::onDestroy(bool callScript)
 {
+	setDirty();
+	
 	if(callScript)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -147,10 +154,15 @@ void Base::onDestroy(bool callScript)
 
 	if(this->hasDB())
 	{
-		onCellWriteToDBCompleted(0, -1);
+		onCellWriteToDBCompleted(0, -1, -1);
 	}
 	
 	eraseEntityLog();
+
+	// 按照当前的设计来说，有clientMailbox_必定是proxy
+	// 至于为何跑到base里来和python本身是C语言实现有关
+	if(clientMailbox_)
+		static_cast<Proxy*>(this)->kick();
 }
 
 //-------------------------------------------------------------------------------------
@@ -164,7 +176,8 @@ void Base::eraseEntityLog()
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(DbmgrInterface::onEntityOffline);
 		(*pBundle) << this->dbid();
-		(*pBundle) << this->scriptModule()->getUType();
+		(*pBundle) << this->pScriptModule()->getUType();
+		(*pBundle) << dbInterfaceIndex();
 
 		Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 		Components::ComponentInfos* dbmgrinfos = NULL;
@@ -219,21 +232,21 @@ bool Base::installCellDataAttr(PyObject* dictData, bool installpy)
 //-------------------------------------------------------------------------------------
 void Base::createCellData(void)
 {
-	if(!scriptModule_->hasCell() || !installCellDataAttr())
+	if(!pScriptModule_->hasCell() || !installCellDataAttr())
 	{
-		if(scriptModule_->getCellPropertyDescriptions().size() > 0)
+		if(pScriptModule_->getCellPropertyDescriptions().size() > 0)
 		{
-			if(!scriptModule_->hasCell())
+			if(!pScriptModule_->hasCell())
 			{
 				WARNING_MSG(fmt::format("{}::createCellData: do not create cellData, cannot find the cellapp script({})!\n", 
-					scriptModule_->getName(), scriptModule_->getName()));
+					pScriptModule_->getName(), pScriptModule_->getName()));
 			}
 		}
 
 		return;
 	}
 	
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); ++iter)
 	{
@@ -280,7 +293,7 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 {
 	addPositionAndDirectionToStream(*s, useAliasID);
 
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
 	for(; iter != propertyDescrs.end(); ++iter)
@@ -290,7 +303,7 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 		{
 			PyObject* pyVal = PyDict_GetItemString(cellDataDict_, propertyDescription->getName());
 
-			if(useAliasID && scriptModule_->usePropertyDescrAlias())
+			if(useAliasID && pScriptModule_->usePropertyDescrAlias())
 			{
 				(*s) << propertyDescription->aliasIDAsUint8();
 			}
@@ -332,10 +345,10 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 	PyObject* pydict = PyObject_GetAttrString(this, "__dict__");
 
 	// 先将celldata中的存储属性取出
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule_->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
-	if(scriptModule_->hasCell())
+	if(pScriptModule_->hasCell())
 	{
 		addPositionAndDirectionToStream(*s);
 	}
@@ -359,7 +372,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent[{}] type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -375,7 +388,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent[{}] type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -388,8 +401,12 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			}
 			else
 			{
-				CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent[{}].\n",
+				WARNING_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent({}), use default values!\n",
 					this->scriptName(), this->id(), attrname));
+
+				(*s) << propertyDescription->getUType();
+				log.push_back(propertyDescription->getUType());
+				propertyDescription->addPersistentToStream(s, NULL);
 			}
 
 			Py_DECREF(key);
@@ -407,7 +424,7 @@ PyObject* Base::createCellDataDict(uint32 flags)
 {
 	PyObject* cellData = PyDict_New();
 
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule_->getCellPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); ++iter)
 	{
@@ -591,11 +608,12 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 
 		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 		(*pBundle).newMessage(DbmgrInterface::removeEntity);
-
+		
+		(*pBundle) << this->dbInterfaceIndex();
 		(*pBundle) << g_componentID;
 		(*pBundle) << this->id();
 		(*pBundle) << this->dbid();
-		(*pBundle) << this->scriptModule()->getUType();
+		(*pBundle) << this->pScriptModule()->getUType();
 		dbmgrinfos->pChannel->send(pBundle);
 
 		this->hasDB(false);
@@ -620,6 +638,20 @@ void Base::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 PyObject* Base::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
+		
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
+	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	
+	// 如果访问了def持久化类容器属性
+	// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
+	PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pScriptModule())->findPersistentPropertyDescription(ccattr);
+	if(pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_BASE_DATA_FLAGS) > 0)
+	{
+		setDirty();
+	}
+
+	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
 
@@ -761,8 +793,8 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	MethodDescription* md = scriptModule_->findBaseMethodDescription(utype);
-	if(md == NULL)
+	MethodDescription* pMethodDescription = pScriptModule_->findBaseMethodDescription(utype);
+	if(pMethodDescription == NULL)
 	{
 		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n", 
 			utype, id_, this->scriptName()));
@@ -778,16 +810,16 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		if (srcEntityID <= 0 || srcEntityID != this->id())
 		{
 			WARNING_MSG(fmt::format("{2}::onRemoteMethodCall({3}): srcEntityID:{0} != thisEntityID:{1}.\n",
-				srcEntityID, this->id(), this->scriptName(), md->getName()));
+				srcEntityID, this->id(), this->scriptName(), pMethodDescription->getName()));
 
 			s.done();
 			return;
 		}
 
-		if(!md->isExposed())
+		if(!pMethodDescription->isExposed())
 		{
 			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! srcEntityID:{1}.\n",
-				md->getName(), srcEntityID, this->scriptName()));
+				pMethodDescription->getName(), srcEntityID, this->scriptName()));
 
 			s.done();
 			return;
@@ -797,25 +829,25 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	if(g_debugEntity)
 	{
 		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n", 
-			id_, (md ? md->getName() : "unknown"), utype, this->scriptName()));
+			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName()));
 	}
 
-	md->currCallerID(this->id());
+	pMethodDescription->currCallerID(this->id());
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
-						(md->getName()));
+						(pMethodDescription->getName()));
 
-	if(md != NULL)
+	if(pMethodDescription != NULL)
 	{
-		if(md->getArgSize() == 0)
+		if(pMethodDescription->getArgSize() == 0)
 		{
-			md->call(pyFunc, NULL);
+			pMethodDescription->call(pyFunc, NULL);
 		}
 		else
 		{
-			PyObject* pyargs = md->createFromStream(&s);
+			PyObject* pyargs = pMethodDescription->createFromStream(&s);
 			if(pyargs)
 			{
-				md->call(pyFunc, pyargs);
+				pMethodDescription->call(pyFunc, pyargs);
 				Py_XDECREF(pyargs);
 			}
 			else
@@ -840,7 +872,7 @@ void Base::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 	
 	// 回调给脚本，获得了cell
 	if(cellMailbox_ == NULL)
-		cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
+		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 
 	if(!inRestore_)
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
@@ -863,7 +895,8 @@ void Base::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 
 	isArchiveing_ = false;
 	isGetingCellData_ = false;
-
+	createdSpace_ = false;
+	
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
 }
 
@@ -903,9 +936,16 @@ void Base::onBackupCellData(Network::Channel* pChannel, MemoryStream& s)
 {
 	isGetingCellData_ = false;
 
-	PyObject* cellData = createCellDataFromStream(&s);
-	installCellDataAttr(cellData);
-	Py_DECREF(cellData);
+	bool isDirty = false;
+	s >> isDirty;
+	
+	if(isDirty)
+	{		
+		PyObject* cellData = createCellDataFromStream(&s);
+		installCellDataAttr(cellData);
+		Py_DECREF(cellData);
+		setDirty();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -921,17 +961,46 @@ void Base::onBackup()
 }
 
 //-------------------------------------------------------------------------------------
-void Base::writeToDB(void* data, void* extra)
+void Base::writeToDB(void* data, void* extra1, void* extra2)
 {
 	PyObject* pyCallback = NULL;
-	int8 shouldAutoLoad = -1;
+	int8 shouldAutoLoad = dbid() <= 0 ? 0 : -1;
 
 	// data 是有可能会NULL的， 比如定时存档是不需要回调函数的
 	if(data != NULL)
 		pyCallback = static_cast<PyObject*>(data);
 
-	if(extra != NULL)
-		shouldAutoLoad = (*static_cast<int*>(extra)) ? 1 : 0;
+	if(extra1 != NULL && (*static_cast<int*>(extra1)) != -1)
+		shouldAutoLoad = (*static_cast<int*>(extra1)) > 0 ? 1 : 0;
+
+	if (extra2)
+	{
+		if (strlen(static_cast<char*>(extra2)) > 0)
+		{
+			DBInterfaceInfo* pDBInterfaceInfo = g_kbeSrvConfig.dbInterface(static_cast<char*>(extra2));
+			if (pDBInterfaceInfo->isPure)
+			{
+				ERROR_MSG(fmt::format("Base::writeToDB: dbInterface({}) is a pure database does not support Entity! "
+					"kbengine[_defs].xml->dbmgr->databaseInterfaces->*->pure\n",
+					static_cast<char*>(extra2)));
+
+				return;
+			}
+
+			int dbInterfaceIndex = pDBInterfaceInfo->index;
+			if (dbInterfaceIndex >= 0)
+			{
+				dbInterfaceIndex_ = dbInterfaceIndex;
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("Base::writeToDB: not found dbInterface({})!\n",
+					static_cast<char*>(extra2)));
+
+				return;
+			}
+		}
+	}
 
 	if(isArchiveing_)
 	{
@@ -947,7 +1016,7 @@ void Base::writeToDB(void* data, void* extra)
 
 	isArchiveing_ = true;
 
-	if(isDestroyed())																				
+	if(isDestroyed())
 	{	
 		// __py_pyWriteToDB没有增加引用
 		//if(pyCallback != NULL)
@@ -956,7 +1025,7 @@ void Base::writeToDB(void* data, void* extra)
 		ERROR_MSG(fmt::format("{}::writeToDB(): is destroyed! entityid={}, dbid={}.\n", 
 			this->scriptName(), this->id(), this->dbid()));
 
-		return;																							
+		return;
 	}
 
 	CALLBACK_ID callbackID = 0;
@@ -970,7 +1039,7 @@ void Base::writeToDB(void* data, void* extra)
 	// 写入数据库的是该entity的初始值， 并不影响
 	if(this->cellMailbox() == NULL) 
 	{
-		onCellWriteToDBCompleted(callbackID, shouldAutoLoad);
+		onCellWriteToDBCompleted(callbackID, shouldAutoLoad, -1);
 	}
 	else
 	{
@@ -986,6 +1055,7 @@ void Base::writeToDB(void* data, void* extra)
 //-------------------------------------------------------------------------------------
 void Base::onWriteToDBCallback(ENTITY_ID eid, 
 								DBID entityDBID, 
+								uint16 dbInterfaceIndex,
 								CALLBACK_ID callbackID, 
 								int8 shouldAutoLoad,
 								bool success)
@@ -998,7 +1068,7 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 		pyCallback = callbackMgr().take(callbackID);
 
 	if(dbid() <= 0)
-		dbid(entityDBID);
+		dbid(dbInterfaceIndex, entityDBID);
 
 	if(callbackID > 0)
 	{
@@ -1031,11 +1101,14 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
+void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad, int dbInterfaceIndex)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
+	
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"));
+
+	if (dbInterfaceIndex >= 0)
+		dbInterfaceIndex_ = dbInterfaceIndex;
 
 	hasDB(true);
 	
@@ -1044,7 +1117,15 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	// 如果在数据库中已经存在该entity则允许应用层多次调用写库进行数据及时覆盖需求
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
-
+	else
+		setDirty();
+	
+	// 如果数据没有改变那么不需要持久化
+	if(!isDirty())
+		return;
+	
+	setDirty(false);
+	
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
 
@@ -1057,7 +1138,7 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 			this->scriptName(), this->id()));
 		return;
 	}
-
+	
 	MemoryStream* s = MemoryStream::ObjPool().createObject();
 	addPersistentsDataToStream(ED_FLAG_ALL, s);
 
@@ -1067,7 +1148,8 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad)
 	(*pBundle) << g_componentID;
 	(*pBundle) << this->id();
 	(*pBundle) << this->dbid();
-	(*pBundle) << this->scriptModule()->getUType();
+	(*pBundle) << this->dbInterfaceIndex();
+	(*pBundle) << this->pScriptModule()->getUType();
 	(*pBundle) << callbackID;
 	(*pBundle) << shouldAutoLoad;
 
@@ -1112,13 +1194,13 @@ void Base::onCellAppDeath()
 //-------------------------------------------------------------------------------------
 PyObject* Base::createCellEntity(PyObject* pyobj)
 {
-	if(isDestroyed())																				
-	{																										
-		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d is destroyed!\n",											
-			scriptName(), id());												
-		PyErr_PrintEx(0);																					
-		return 0;																						
-	}																										
+	if(isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
 
 	if(Baseapp::getSingleton().findEntity(id()) == NULL)
 	{
@@ -1183,17 +1265,17 @@ void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
 //-------------------------------------------------------------------------------------
 PyObject* Base::createInNewSpace(PyObject* params)
 {
-	if(isDestroyed())																				
-	{																										
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",											
-			scriptName(), id());												
-		PyErr_PrintEx(0);																					
-		return 0;																						
+	if(isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
 	}	
 
-	if(createdSpace_)
+	if(createdSpace_ || this->cellMailbox() != NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d has a space!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d in space!\n", 
 			scriptName(), id());
 
 		PyErr_PrintEx(0);

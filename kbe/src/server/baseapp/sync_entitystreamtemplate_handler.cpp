@@ -42,13 +42,13 @@ networkInterface_(networkInterface)
 
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 
-	ScriptDefModule* scriptModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
-	if(scriptModule != NULL)
+	ScriptDefModule* pScriptModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	if(pScriptModule != NULL)
 	{
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule->getPersistentPropertyDescriptions();
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
-		if(scriptModule->hasCell())
+		if(pScriptModule->hasCell())
 		{
 			Vector3 pos, dir;
 			ADD_POSDIR_TO_STREAM(accountDefMemoryStream, pos, dir);
@@ -92,17 +92,17 @@ bool SyncEntityStreamTemplateHandler::process()
 
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 
-	ScriptDefModule* scriptModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
-	if(scriptModule == NULL)
+	ScriptDefModule* pScriptModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
+	if(pScriptModule == NULL)
 	{
 		delete this;
 		return false;
 	}
 
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = scriptModule->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
-	if(scriptModule->hasCell())
+	if(pScriptModule->hasCell())
 	{
 		Vector3 pos, dir;
 		ADD_POSDIR_TO_STREAM(accountDefMemoryStream, pos, dir);

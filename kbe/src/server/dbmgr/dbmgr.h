@@ -20,15 +20,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_DBMGR_H
 #define KBE_DBMGR_H
-	
-// common include	
+
 #include "db_interface/db_threadpool.h"
 #include "buffered_dbtasks.h"
 #include "server/kbemain.h"
 #include "pyscript/script.h"
 #include "pyscript/pyobject_pointer.h"
 #include "entitydef/entitydef.h"
-#include "server/serverapp.h"
+#include "server/python_app.h"
 #include "server/idallocate.h"
 #include "server/serverconfig.h"
 #include "server/globaldata_client.h"
@@ -38,26 +37,21 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.h"
 #include "thread/threadpool.h"
 
-//#define NDEBUG
-// windows include	
-#if KBE_PLATFORM == PLATFORM_WIN32
-#else
-// linux include
-#endif
-	
+
 namespace KBEngine{
 
 class DBInterface;
+class TelnetServer;
 class InterfacesHandler;
 class SyncAppDatasHandler;
 
-class Dbmgr :	public ServerApp, 
+class Dbmgr :	public PythonApp, 
 				public Singleton<Dbmgr>
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1,
+		TIMEOUT_TICK = TIMEOUT_PYTHONAPP_MAX + 1,
 		TIMEOUT_CHECK_STATUS
 	};
 	
@@ -79,12 +73,16 @@ public:
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	void onInstallPyModules();
 	
 	bool initInterfacesHandler();
 
 	bool initDB();
 
 	virtual bool canShutdown();
+
+	virtual void onShutdownBegin();
+	virtual void onShutdownEnd();
 
 	/** 获取ID服务器指针 */
 	IDServer<ENTITY_ID>& idServer(void){ return idServer_; }
@@ -148,7 +146,7 @@ public:
 	/** 网络接口
 		entity-baseapp下线了
 	*/
-	void onEntityOffline(Network::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid);
+	void onEntityOffline(Network::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid, uint16 dbInterfaceIndex);
 
 	/** 网络接口
 		执行数据库查询
@@ -178,7 +176,7 @@ public:
 	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
-	void queryEntity(Network::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
+	void queryEntity(Network::Channel* pChannel, uint16 dbInterfaceIndex, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
 		std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	/** 网络接口
@@ -227,23 +225,35 @@ public:
 	SyncAppDatasHandler* pSyncAppDatasHandler() const { return pSyncAppDatasHandler_; }
 	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 
+	std::string selectAccountDBInterfaceName(const std::string& name);
+
+	Buffered_DBTasks* findBufferedDBTask(const std::string& dbInterfaceName)
+	{
+		BUFFERED_DBTASKS_MAP::iterator dbin_iter = bufferedDBTasksMaps_.find(dbInterfaceName);
+		if (dbin_iter == bufferedDBTasksMaps_.end())
+			return NULL;
+
+		return &dbin_iter->second;
+	}
+
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
 
 	// entityID分配服务端
-	IDServer<ENTITY_ID>									idServer_;									
+	IDServer<ENTITY_ID>									idServer_;
 
 	// globalData
-	GlobalDataServer*									pGlobalData_;								
+	GlobalDataServer*									pGlobalData_;
 
 	// baseAppData
-	GlobalDataServer*									pBaseAppData_;								
+	GlobalDataServer*									pBaseAppData_;
 
 	// cellAppData
-	GlobalDataServer*									pCellAppData_;														
+	GlobalDataServer*									pCellAppData_;
 
-	Buffered_DBTasks									bufferedDBTasks_;
+	typedef KBEUnordered_map<std::string, Buffered_DBTasks> BUFFERED_DBTASKS_MAP;
+	BUFFERED_DBTASKS_MAP								bufferedDBTasksMaps_;
 
 	// Statistics
 	uint32												numWrittenEntity_;
@@ -256,6 +266,8 @@ protected:
 	InterfacesHandler*									pInterfacesChargeHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
+
+	TelnetServer*										pTelnetServer_;
 };
 
 }

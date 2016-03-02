@@ -24,7 +24,7 @@ namespace script{
 
 INLINE int Sequence::length(void) const
 { 
-	return values_.size(); 
+	return (int)values_.size();
 }
 
 INLINE std::vector<PyObject*>& Sequence::getValues(void)

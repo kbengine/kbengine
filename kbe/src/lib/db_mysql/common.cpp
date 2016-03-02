@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ 
 
-
+uint32 ALL_MYSQL_SET_FLAGS = 0;
 
 }
 

@@ -163,6 +163,7 @@ public:
 	void unregisterLogger(Network::MessageID msgID, Network::Address* pAddr);
 
 	void changeLogger(const std::string& name);
+	void closeLogger();  // close logger for fork + execv
 
 	void clearBufferedLog(bool destroy = false);
 

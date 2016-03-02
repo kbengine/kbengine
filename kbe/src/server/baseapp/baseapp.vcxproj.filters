@@ -63,9 +63,6 @@
     <ClCompile Include="proxy_forwarder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="py_file_descriptor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="restore_entity_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -76,6 +73,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="entity_autoloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -126,9 +126,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="proxy_interface_macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="py_file_descriptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="restore_entity_handler.h">

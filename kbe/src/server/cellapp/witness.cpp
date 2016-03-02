@@ -55,6 +55,7 @@ pEntity_(NULL),
 aoiRadius_(0.0f),
 aoiHysteresisArea_(5.0f),
 pAOITrigger_(NULL),
+pAOIHysteresisAreaTrigger_(NULL),
 aoiEntities_(),
 clientAOISize_(0)
 {
@@ -65,13 +66,24 @@ Witness::~Witness()
 {
 	pEntity_ = NULL;
 	SAFE_RELEASE(pAOITrigger_);
+	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::addToStream(KBEngine::MemoryStream& s)
 {
-	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;
-
+	/**
+	 * @TODO(phw): 注释下面的原始代码，简单修正如下的问题：
+	 * 想象一下：A、B、C三个玩家互相能看见对方，那么它们的aoiEntities_里面必须会互相记录着对方的entityID，
+	 * 那么假如三个玩家都在同一时间传送到另一个cellapp的地图的同一点上，
+	 * 这时三个玩家还原的时候都会为另两个玩家生成一个flags_ == ENTITYREF_FLAG_UNKONWN的EntityRef实例，
+	 * 把它们记录在自己的aoiEntities_，
+	 * 但是，Witness::update()并没有针对flags_ == ENTITYREF_FLAG_UNKONWN的情况做特殊处理——把玩家entity数据发送给客户端，
+	 * 所以进入了默认的updateVolatileData()流程，
+	 * 使得客户端在没有别的玩家entity的情况下就收到了别的玩家的坐标更新的信息，导致客户端错误发生。
+	
+	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
+	
 	uint32 size = aoiEntities_.size();
 	s << size;
 
@@ -80,6 +92,11 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	{
 		(*iter)->addToStream(s);
 	}
+	*/
+
+	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
+	s << aoiRadius_ << aoiHysteresisArea_ << (uint16)0;	
+	s << (uint32)0; // aoiEntities_.size();
 }
 
 //-------------------------------------------------------------------------------------
@@ -107,7 +124,20 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 			}
 			else
 			{
-				pAOITrigger_->range(aoiRadius_, aoiRadius_);
+				pAOITrigger_->update(aoiRadius_, aoiRadius_);
+			}
+
+			if (pAOIHysteresisAreaTrigger_ == NULL)
+			{
+				if (aoiHysteresisArea_ > 0.01f)
+				{
+					pAOIHysteresisAreaTrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
+						aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+				}
+			}
+			else
+			{
+				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
 			}
 		}
 	}
@@ -159,7 +189,7 @@ void Witness::onAttach(Entity* pEntity)
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
 
 	(*pForwardBundle) << pEntity_->id();
-	pEntity_->scriptModule()->addSmartUTypeToBundle(pForwardBundle);
+	pEntity_->pScriptModule()->addSmartUTypeToBundle(pForwardBundle);
 	if(!pEntity_->isOnGround())
 		(*pForwardBundle) << pEntity_->isOnGround();
 
@@ -220,8 +250,10 @@ void Witness::clear(Entity* pEntity)
 	aoiRadius_ = 0.0f;
 	aoiHysteresisArea_ = 5.0f;
 	clientAOISize_ = 0;
-	SAFE_RELEASE(pAOITrigger_);
 
+	SAFE_RELEASE(pAOITrigger_);
+	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
+	
 	aoiEntities_.clear();
 
 	Cellapp::getSingleton().removeUpdatable(this);
@@ -245,7 +277,6 @@ void Witness::onReclaimObject()
 {
 }
 
-
 //-------------------------------------------------------------------------------------
 const Position3D& Witness::basePos()
 {
@@ -267,22 +298,39 @@ void Witness::setAoiRadius(float radius, float hyst)
 		aoiHysteresisArea_ = 5.0f;
 	}
 
-	if(aoiRadius_ > 0.f)
+	if (aoiRadius_ > 0.f)
 	{
-		if(pAOITrigger_ == NULL)
+		if (pAOITrigger_ == NULL)
 		{
 			pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
 		}
 		else
 		{
-			pAOITrigger_->range(aoiRadius_, aoiRadius_);
+			pAOITrigger_->update(aoiRadius_, aoiRadius_);
+		}
+
+		if (aoiHysteresisArea_ > 0.01f)
+		{
+			if (pAOIHysteresisAreaTrigger_ == NULL)
+			{
+				pAOIHysteresisAreaTrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
+					aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+			}
+			else
+			{
+				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+			}
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::onEnterAOI(Entity* pEntity)
+void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 {
+	// 如果进入的是Hysteresis区域，那么不产生作用
+	if (pAOIHysteresisAreaTrigger_ == pAOITrigger)
+		return;
+
 	pEntity_->onEnteredAoI(pEntity);
 
 	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
@@ -321,8 +369,12 @@ void Witness::onEnterAOI(Entity* pEntity)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::onLeaveAOI(Entity* pEntity)
+void Witness::onLeaveAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 {
+	// 如果设置过Hysteresis区域，那么离开Hysteresis区域才算离开AOI
+	if (pAOIHysteresisAreaTrigger_ && pAOIHysteresisAreaTrigger_ != pAOITrigger)
+		return;
+
 	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
 		findif_vector_entityref_exist_by_entityid_handler(pEntity->id()));
 
@@ -355,7 +407,7 @@ void Witness::resetAOIEntities()
 {
 	clientAOISize_ = 0;
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); ++iter)
+	for(; iter != aoiEntities_.end(); )
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
@@ -365,6 +417,7 @@ void Witness::resetAOIEntities()
 		}
 
 		(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+		++iter;
 	}
 }
 
@@ -372,17 +425,19 @@ void Witness::resetAOIEntities()
 void Witness::onEnterSpace(Space* pSpace)
 {
 	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
 	
-	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
-	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	// 通知位置强制改变
+	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
+	Position3D &pos = pEntity_->position();
+	Direction3D &dir = pEntity_->direction();
+	(*pForwardPosDirBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 	(*pForwardPosDirBundle) << pEntity_->id();
-	pEntity_->addPositionAndDirectionToStream(*s1, true);
-	(*pForwardPosDirBundle).append(*s1);
-	MemoryStream::ObjPool().reclaimObject(s1);
+	(*pForwardPosDirBundle) << pos.x << pos.y << pos.z;
+	(*pForwardPosDirBundle) << dir.roll() << dir.pitch() << dir.yaw();
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
 	
+	// 通知进入了新地图
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
 
 	(*pForwardBundle) << pEntity_->id();
@@ -391,22 +446,20 @@ void Witness::onEnterSpace(Space* pSpace)
 		(*pForwardBundle) << pEntity_->isOnGround();
 
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+
+	// 发送消息并清理
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
 	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	Network::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
 
-	if(pAOITrigger_)
-	{
-		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
-	}
+	installAOITrigger();
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::onLeaveSpace(Space* pSpace)
 {
-	if(pAOITrigger_)
-		pAOITrigger_->uninstall();
+	uninstallAOITrigger();
 
 	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
 	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
@@ -432,6 +485,35 @@ void Witness::onLeaveSpace(Space* pSpace)
 	}
 
 	aoiEntities_.clear();
+	clientAOISize_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::installAOITrigger()
+{
+	if (pAOITrigger_)
+	{
+		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
+
+		if (pAOIHysteresisAreaTrigger_)
+		{
+			pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
+		}
+	}
+	else
+	{
+		KBE_ASSERT(pAOIHysteresisAreaTrigger_ == NULL);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::uninstallAOITrigger()
+{
+	if (pAOITrigger_)
+		pAOITrigger_->uninstall();
+
+	if (pAOIHysteresisAreaTrigger_)
+		pAOIHysteresisAreaTrigger_->uninstall();
 }
 
 //-------------------------------------------------------------------------------------
@@ -655,7 +737,7 @@ bool Witness::update()
 			
 					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 					(*pForwardBundle2) << otherEntity->id();
-					otherEntity->scriptModule()->addSmartUTypeToBundle(pForwardBundle2);
+					otherEntity->pScriptModule()->addSmartUTypeToBundle(pForwardBundle2);
 					if(!otherEntity->isOnGround())
 						(*pForwardBundle2) << otherEntity->isOnGround();
 
@@ -702,6 +784,7 @@ bool Witness::update()
 					{
 						delete (*iter);
 						iter = aoiEntities_.erase(iter);
+						--clientAOISize_;
 						continue;
 					}
 					
@@ -750,10 +833,6 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 {
-	const VolatileInfo& volatileInfo = pEntity_->scriptModule()->getVolatileInfo();
-	if((volatileInfo.position() <= 0.0004f))
-		return;
-
 	const Position3D& bpos = basePos();
 	Vector3 movement = bpos - lastBasePos;
 
@@ -941,11 +1020,13 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	const VolatileInfo& volatileInfo = otherEntity->scriptModule()->getVolatileInfo();
-	
+	const VolatileInfo* pVolatileInfo = otherEntity->pCustomVolatileinfo();
+	if (!pVolatileInfo)
+		pVolatileInfo = otherEntity->pScriptModule()->getPVolatileInfo();
+
 	static uint16 entity_posdir_additional_updates = g_kbeSrvConfig.getCellApp().entity_posdir_additional_updates;
 	
-	if((volatileInfo.position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
+	if ((pVolatileInfo->position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
 	{
 		Position3D relativePos = otherEntity->position() - this->pEntity()->position();
 		mstream->appendPackXZ(relativePos.x, relativePos.z);
@@ -964,7 +1045,7 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 	if((entity_posdir_additional_updates == 0) || (g_kbetime - otherEntity->dirChangedTime() < entity_posdir_additional_updates))
 	{
 		const Direction3D& dir = otherEntity->direction();
-		if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
+		if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 			(*mstream) << angle2int8(dir.pitch());
@@ -972,40 +1053,40 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 
 			flags |= UPDATE_FLAG_YAW_PITCH_ROLL; 
 		}
-		else if(volatileInfo.roll() > 0.f && volatileInfo.pitch() > 0.f)
+		else if (pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.pitch());
 			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_PITCH_ROLL; 
 		}
-		else if(volatileInfo.yaw() > 0.f && volatileInfo.pitch() > 0.f)
+		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 			(*mstream) << angle2int8(dir.pitch());
 
 			flags |= UPDATE_FLAG_YAW_PITCH; 
 		}
-		else if(volatileInfo.yaw() > 0.f && volatileInfo.roll() > 0.f)
+		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_YAW_ROLL; 
 		}
-		else if(volatileInfo.yaw() > 0.f)
+		else if (pVolatileInfo->yaw() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.yaw());
 
 			flags |= UPDATE_FLAG_YAW; 
 		}
-		else if(volatileInfo.roll() > 0.f)
+		else if (pVolatileInfo->roll() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.roll());
 
 			flags |= UPDATE_FLAG_ROLL; 
 		}
-		else if(volatileInfo.pitch() > 0.f)
+		else if (pVolatileInfo->pitch() > 0.f)
 		{
 			(*mstream) << angle2int8(dir.pitch());
 

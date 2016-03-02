@@ -254,4 +254,22 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE void Entity::setDirty(bool dirty)
+{
+	isDirty_ = dirty;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool Entity::isDirty() const
+{
+	return isDirty_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE VolatileInfo* Entity::pCustomVolatileinfo(void)
+{
+	return pCustomVolatileinfo_;
+}
+
+//-------------------------------------------------------------------------------------
 }

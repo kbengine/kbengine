@@ -10,8 +10,8 @@ def onBaseAppReady(isBootstrap):
 	@param isBootstrap: 是否为第一个启动的baseapp
 	@type isBootstrap: BOOL
 	"""
-	INFO_MSG('onBaseAppReady: isBootstrap=%s, bootstrapGroupIndex=%s, bootstrapGlobalIndex=%s' % \
-	 (isBootstrap, os.getenv("KBE_BOOTIDX_GROUP"), os.getenv("KBE_BOOTIDX_GLOBAL")))
+	INFO_MSG('onBaseAppReady: isBootstrap=%s, appID=%s, bootstrapGroupIndex=%s, bootstrapGlobalIndex=%s' % \
+	 (isBootstrap, os.getenv("KBE_COMPONENTID"), os.getenv("KBE_BOOTIDX_GROUP"), os.getenv("KBE_BOOTIDX_GLOBAL")))
 
 def onReadyForLogin(isBootstrap):
 	"""

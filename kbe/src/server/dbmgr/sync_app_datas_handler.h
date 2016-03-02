@@ -49,6 +49,7 @@ public:
 	bool process();
 
 	void pushApp(COMPONENT_ID cid, COMPONENT_ORDER startGroupOrder, COMPONENT_ORDER startGlobalOrder);
+
 private:
 	Network::NetworkInterface &		networkInterface_;
 	uint64							lastRegAppTime_;

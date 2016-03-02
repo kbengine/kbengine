@@ -27,33 +27,33 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																				\
-	ENTITY_CPP_IMPL(APP, CLASS)																								\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,							0)		\
-	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,			0)		\
+#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																\
+	ENTITY_CPP_IMPL(APP, CLASS)																				\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,0)	\
 
 	
-#define ENTITY_METHOD_DECLARE_END()																							\
-	SCRIPT_METHOD_DECLARE_END()																								\
+#define ENTITY_METHOD_DECLARE_END()																			\
+	SCRIPT_METHOD_DECLARE_END()																				\
 
-#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																					\
-	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																						\
-	SCRIPT_GET_DECLARE("id",				pyGetID,						0,										0)		\
-	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,										0)		\
+#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
+	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
+
+#define ENTITY_GETSET_DECLARE_END()																			\
+	SCRIPT_GETSET_DECLARE_END()																				\
 
 
-#define ENTITY_GETSET_DECLARE_END()																							\
-	SCRIPT_GETSET_DECLARE_END()																								\
-
-
-#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																		\
-	ENTITY_CPP_IMPL(APP, CLASS)																								\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																						\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,							0)		\
+#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)														\
+	ENTITY_CPP_IMPL(APP, CLASS)																				\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
 
 	
 #define CLIENT_ENTITY_METHOD_DECLARE_END()																	\
@@ -252,7 +252,7 @@ namespace KBEngine{
 												tentity->scriptName(),										\
 												static_cast<PyObject*>(tentity)->ob_refcnt,					\
 												tentity->id(),												\
-												tentity->scriptModule()->getUType()));						\
+												tentity->pScriptModule()->getUType()));						\
 		}																									\
 
 
@@ -276,22 +276,27 @@ namespace KBEngine{
 }																											\
 
 
+// 实体的标志
+#define ENTITY_FLAGS_UNKNOWN		0x00000000
+#define ENTITY_FLAGS_DESTROYING		0x00000001
+#define ENTITY_FLAGS_INITING		0x00000002
+
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
-	ENTITY_ID		id_;																					\
-	ScriptDefModule*	scriptModule_;																		\
-	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs_;										\
-	SPACE_ID spaceID_;																						\
-	ScriptTimers scriptTimers_;																				\
-	PY_CALLBACKMGR pyCallbackMgr_;																			\
-	bool isDestroyed_;																						\
-	bool initing_;																							\
+	ENTITY_ID										id_;													\
+	ScriptDefModule*								pScriptModule_;											\
+	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs_;										\
+	SPACE_ID										spaceID_;												\
+	ScriptTimers									scriptTimers_;											\
+	PY_CALLBACKMGR									pyCallbackMgr_;											\
+	bool											isDestroyed_;											\
+	uint32											flags_;													\
 public:																										\
-	bool initing() const{ return initing_; }																	\
+	bool initing() const{ return hasFlags(ENTITY_FLAGS_INITING); }											\
 																											\
 	void initializeScript()																					\
 	{																										\
-		initing_ = false;																					\
+		removeFlags(ENTITY_FLAGS_INITING);																	\
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);																	\
 		if(PyObject_HasAttrString(this, "__init__"))														\
 		{																									\
@@ -315,16 +320,16 @@ public:																										\
 	{																										\
 		if(fullReload)																						\
 		{																									\
-			scriptModule_ = EntityDef::findScriptModule(scriptName());										\
-			KBE_ASSERT(scriptModule_);																		\
-			lpPropertyDescrs_ = &scriptModule_->getPropertyDescrs();										\
+			pScriptModule_ = EntityDef::findScriptModule(scriptName());										\
+			KBE_ASSERT(pScriptModule_);																		\
+			pPropertyDescrs_ = &pScriptModule_->getPropertyDescrs();										\
 		}																									\
 																											\
-		if(PyObject_SetAttrString(this, "__class__", (PyObject*)scriptModule_->getScriptType()) == -1)		\
+		if(PyObject_SetAttrString(this, "__class__", (PyObject*)pScriptModule_->getScriptType()) == -1)		\
 		{																									\
 			WARNING_MSG(fmt::format("Base::reload: "														\
 				"{} {} could not change __class__ to new class!\n",											\
-				scriptModule_->getName(), id_));															\
+				pScriptModule_->getName(), id_));															\
 			PyErr_Print();																					\
 			return false;																					\
 		}																									\
@@ -381,7 +386,7 @@ public:																										\
 		ADD_POSDIR_TO_PYDICT(cellData, pos, dir);															\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& propertyDescrs =										\
-								scriptModule_->getCellPropertyDescriptions_uidmap();						\
+								pScriptModule_->getCellPropertyDescriptions_uidmap();						\
 																											\
 		size_t count = 0;																					\
 																											\
@@ -409,14 +414,14 @@ public:																										\
 		PyObject* cellData = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
-				scriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);						\
+				pScriptModule_->getCellPropertyDescriptionsByDetailLevel(detailLevel);						\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();				\
 		for(; iter != propertyDescrs.end(); ++iter)															\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());				\
 																											\
-			if(useAliasID && scriptModule_->usePropertyDescrAlias())										\
+			if(useAliasID && pScriptModule_->usePropertyDescrAlias())										\
 			{																								\
 				(*mstream) << propertyDescription->aliasIDAsUint8();										\
 			}																								\
@@ -437,7 +442,7 @@ public:																										\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
-				scriptModule()->getClientPropertyDescriptions();											\
+				pScriptModule()->getClientPropertyDescriptions();											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = propertyDescrs.begin();					\
 		for(; iter != propertyDescrs.end(); ++iter)															\
 		{																									\
@@ -452,7 +457,7 @@ public:																										\
 																											\
 			if(PyDict_Contains(pydict, key) > 0)															\
 			{																								\
-				if(scriptModule()->usePropertyDescrAlias())													\
+				if(pScriptModule()->usePropertyDescrAlias())												\
 				{																							\
 	    			(*s) << propertyDescription->aliasIDAsUint8();											\
 				}																							\
@@ -482,7 +487,7 @@ public:																										\
 		PyObject* args1 = PyTuple_New(4);																	\
 		PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(entity->id()));									\
 		PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(g_componentID));								\
-		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->scriptModule()->getUType()));			\
+		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->pScriptModule()->getUType()));			\
 		if(g_componentType == BASEAPP_TYPE)																	\
 			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(MAILBOX_TYPE_BASE));							\
 		else																								\
@@ -521,9 +526,36 @@ public:																										\
 		return id_;																							\
 	}																										\
 																											\
-	INLINE void id(int v)																					\
+	INLINE void id(ENTITY_ID v)																				\
 	{																										\
 		id_ = v; 																							\
+	}																										\
+																											\
+	INLINE bool hasFlags(uint32 v) const																	\
+	{																										\
+		return (flags_ & v) > 0;																			\
+	}																										\
+																											\
+	INLINE uint32 flags() const																				\
+	{																										\
+		return flags_;																						\
+	}																										\
+																											\
+	INLINE void flags(uint32 v)																				\
+	{																										\
+		flags_ = v; 																						\
+	}																										\
+																											\
+	INLINE uint32 addFlags(uint32 v)																		\
+	{																										\
+		flags_ |= v;																						\
+		return flags_;																						\
+	}																										\
+																											\
+	INLINE uint32 removeFlags(uint32 v)																		\
+	{																										\
+		flags_ &= ~v; 																						\
+		return flags_;																						\
 	}																										\
 																											\
 	INLINE SPACE_ID spaceID() const																			\
@@ -539,9 +571,9 @@ public:																										\
 		return PyLong_FromLong(self->spaceID());															\
 	}																										\
 																											\
-	INLINE ScriptDefModule* scriptModule(void) const															\
+	INLINE ScriptDefModule* pScriptModule(void) const														\
 	{																										\
-		return scriptModule_; 																				\
+		return pScriptModule_; 																				\
 	}																										\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
@@ -551,11 +583,11 @@ public:																										\
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
-		if(lpPropertyDescrs_)																				\
+		if(pPropertyDescrs_)																				\
 		{																									\
 																											\
-			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);\
-			if(iter != lpPropertyDescrs_->end())															\
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs_->find(ccattr);	\
+			if(iter != pPropertyDescrs_->end())																\
 			{																								\
 				char err[255];																				\
 				kbe_snprintf(err, 255, "property[%s] is in [%s] def. del failed.", ccattr, scriptName());	\
@@ -566,7 +598,7 @@ public:																										\
 			}																								\
 		}																									\
 																											\
-		if(scriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
+		if(pScriptModule_->findMethodDescription(ccattr, g_componentType) != NULL)							\
 		{																									\
 			char err[255];																					\
 			kbe_snprintf(err, 255, "method[%s] is in [%s] def. del failed.", ccattr, scriptName());			\
@@ -587,10 +619,10 @@ public:																										\
 		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
 		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
 																											\
-		if(lpPropertyDescrs_)																				\
+		if(pPropertyDescrs_)																				\
 		{																									\
-			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->find(ccattr);\
-			if(iter != lpPropertyDescrs_->end())															\
+			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs_->find(ccattr);	\
+			if(iter != pPropertyDescrs_->end())																\
 			{																								\
 				PropertyDescription* propertyDescription = iter->second;									\
 				DataType* dataType = propertyDescription->getDataType();									\
@@ -642,19 +674,24 @@ public:																										\
 																											\
 	static PyObject* __py_pyWriteToDB(PyObject* self, PyObject* args)										\
 	{																										\
-		uint16 currargsSize = PyTuple_Size(args);															\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);													\
 		CLASS* pobj = static_cast<CLASS*>(self);															\
 																											\
-		if((g_componentType == CELLAPP_TYPE && currargsSize > 0) ||											\
-			(g_componentType == BASEAPP_TYPE && currargsSize > 2))											\
+		if((g_componentType == CELLAPP_TYPE && currargsSize > 2) ||											\
+			(g_componentType == BASEAPP_TYPE && currargsSize > 3))											\
 		{																									\
 			PyErr_Format(PyExc_AssertionError,																\
 							"%s: args max require %d args, gived %d! is script[%s].\n",						\
 				__FUNCTION__, 1, currargsSize, pobj->scriptName());											\
+																											\
 			PyErr_PrintEx(0);																				\
+			S_Return;																						\
 		}																									\
 																											\
+		int extra = 0;																						\
+		std::string strextra;																				\
 		PyObject* pycallback = NULL;																		\
+																											\
 		if(g_componentType == CELLAPP_TYPE)																	\
 		{																									\
 			PyObject* baseMB = PyObject_GetAttrString(self, "base");										\
@@ -666,70 +703,172 @@ public:																										\
 				PyErr_PrintEx(0);																			\
 			}																								\
 		}																									\
-																											\
-		int extra = 0;																						\
+		else if(g_componentType == BASEAPP_TYPE)															\
+		{																									\
+			extra = -1;	/* shouldAutoLoad -1默认不改变设置 */												\
+		}																									\
 																											\
 		if(currargsSize == 1)																				\
 		{																									\
-			if(PyArg_ParseTuple(args, "O", &pycallback) == -1)												\
+			if(g_componentType == BASEAPP_TYPE)																\
 			{																								\
-				PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");					\
-				PyErr_PrintEx(0);																			\
-				pycallback = NULL;																			\
-				S_Return;																					\
-			}																								\
-																											\
-			if(!PyCallable_Check(pycallback))																\
-			{																								\
-				if(pycallback != Py_None)																	\
+				if(PyArg_ParseTuple(args, "O", &pycallback) == -1)											\
 				{																							\
-					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");			\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
 					PyErr_PrintEx(0);																		\
+					pycallback = NULL;																		\
 					S_Return;																				\
 				}																							\
-				else																						\
+																											\
+				if(!PyCallable_Check(pycallback))															\
 				{																							\
+					if(pycallback != Py_None)																\
+					{																						\
+						PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");		\
+						PyErr_PrintEx(0);																	\
+						S_Return;																			\
+					}																						\
+					else																					\
+					{																						\
+						pycallback = NULL;																	\
+					}																						\
+				}																							\
+			}																								\
+			else																							\
+			{																								\
+				if(PyArg_ParseTuple(args, "i", &extra) == -1)												\
+				{																							\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
+					S_Return;																				\
 				}																							\
 			}																								\
 		}																									\
 		else if(currargsSize == 2)																			\
 		{																									\
-			if(PyArg_ParseTuple(args, "O|i", &pycallback, &extra) == -1)									\
+			if(g_componentType == BASEAPP_TYPE)																\
 			{																								\
-				PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");					\
-				PyErr_PrintEx(0);																			\
-				pycallback = NULL;																			\
-				S_Return;																					\
-			}																								\
-																											\
-			if(!PyCallable_Check(pycallback))																\
-			{																								\
-				if(pycallback != Py_None)																	\
+				if(PyArg_ParseTuple(args, "O|i", &pycallback, &extra) == -1)								\
 				{																							\
-					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");			\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_PrintEx(0);																		\
+					pycallback = NULL;																		\
+					S_Return;																				\
+				}																							\
+																											\
+				if(!PyCallable_Check(pycallback))															\
+				{																							\
+					if(pycallback != Py_None)																\
+					{																						\
+						PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");		\
+						PyErr_PrintEx(0);																	\
+						S_Return;																			\
+					}																						\
+					else																					\
+					{																						\
+						pycallback = NULL;																	\
+					}																						\
+				}																							\
+			}																								\
+			else																							\
+			{																								\
+				PyObject* pystr_extra = NULL;																\
+				if(PyArg_ParseTuple(args, "i|O", &extra, &pystr_extra) == -1)								\
+				{																							\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_PrintEx(0);																		\
+					pycallback = NULL;																		\
+					S_Return;																				\
+				}																							\
+																											\
+				if(pystr_extra)																				\
+				{																							\
+					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);\
+					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);						\
+					strextra = ccattr;																		\
+					PyMem_Free(PyUnicode_AsWideCharStringRet0);												\
+					free(ccattr);																			\
+				}																							\
+																											\
+				if(!g_kbeSrvConfig.dbInterface(strextra))													\
+				{																							\
+					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args2, "							\
+													"incorrect dbInterfaceName(%s)!",						\
+													strextra.c_str());										\
 					PyErr_PrintEx(0);																		\
 					S_Return;																				\
 				}																							\
-				else																						\
+			}																								\
+		}																									\
+		else if(currargsSize == 3)																			\
+		{																									\
+			if(g_componentType == BASEAPP_TYPE)																\
+			{																								\
+				PyObject* pystr_extra = NULL;																\
+				if(PyArg_ParseTuple(args, "O|i|O", &pycallback, &extra, &pystr_extra) == -1)				\
 				{																							\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
+					S_Return;																				\
 				}																							\
+																											\
+				if(!PyCallable_Check(pycallback))															\
+				{																							\
+					if(pycallback != Py_None)																\
+					{																						\
+						PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");		\
+						PyErr_PrintEx(0);																	\
+						S_Return;																			\
+					}																						\
+					else																					\
+					{																						\
+						pycallback = NULL;																	\
+					}																						\
+				}																							\
+																											\
+				if(pystr_extra)																				\
+				{																							\
+					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);\
+					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);						\
+					strextra = ccattr;																		\
+					PyMem_Free(PyUnicode_AsWideCharStringRet0);												\
+					free(ccattr);																			\
+				}																							\
+																											\
+				if(!g_kbeSrvConfig.dbInterface(strextra))													\
+				{																							\
+					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args3, "							\
+										"incorrect dbInterfaceName(%s)!",									\
+											strextra.c_str());												\
+					PyErr_PrintEx(0);																		\
+					S_Return;																				\
+				}																							\
+			}																								\
+			else																							\
+			{																								\
+				KBE_ASSERT(false);																			\
 			}																								\
 		}																									\
 																											\
-		pobj->writeToDB(pycallback, (void*)&extra);															\
+		pobj->writeToDB(pycallback, (void*)&extra, (void*)strextra.c_str());								\
 		S_Return;																							\
 	}																										\
 																											\
-	void writeToDB(void* data, void* extra);																\
+	void writeToDB(void* data, void* extra1, void* extra2);													\
 																											\
 	void destroy(bool callScript = true)																	\
 	{																										\
+		if(hasFlags(ENTITY_FLAGS_DESTROYING))																\
+			return;																							\
+																											\
 		if(!isDestroyed_)																					\
 		{																									\
+			addFlags(ENTITY_FLAGS_DESTROYING);																\
 			onDestroy(callScript);																			\
 			scriptTimers_.cancelAll();																		\
+			removeFlags(ENTITY_FLAGS_DESTROYING);															\
 			isDestroyed_ = true;																			\
 			Py_DECREF(this);																				\
 		}																									\
@@ -742,6 +881,8 @@ public:																										\
 																											\
 	void destroyEntity();																					\
 	static PyObject* __py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs);				\
+																											\
+	DECLARE_PY_GET_MOTHOD(pyGetClassName);																	\
 																											\
 	void initProperty(bool isReload = false);																\
 
@@ -812,6 +953,11 @@ public:																										\
 		return PyBool_FromLong(isDestroyed());																\
 	}																										\
 																											\
+	PyObject* CLASS::pyGetClassName()																		\
+	{																										\
+		return PyUnicode_FromString(scriptName());															\
+	}																										\
+																											\
 	void CLASS::addPositionAndDirectionToStream(MemoryStream& s, bool useAliasID)							\
 	{																										\
 		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;								\
@@ -870,7 +1016,7 @@ public:																										\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\
 																											\
-		if(scriptModule()->usePropertyDescrAlias() && useAliasID)											\
+		if(pScriptModule()->usePropertyDescrAlias() && useAliasID)											\
 		{																									\
 			ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		}																									\
@@ -893,20 +1039,20 @@ public:																										\
 		if(isReload)																						\
 		{																									\
 			ScriptDefModule* pOldScriptDefModule =															\
-										EntityDef::findOldScriptModule(scriptModule_->getName());			\
+										EntityDef::findOldScriptModule(pScriptModule_->getName());			\
 			if(!pOldScriptDefModule)																		\
 			{																								\
-				ERROR_MSG(fmt::format("{}::initProperty: not found oldmodule!\n",							\
-					scriptModule_->getName()));																\
-				KBE_ASSERT(false && "Entity::initProperty: not found oldmodule");							\
+				ERROR_MSG(fmt::format("{}::initProperty: not found old_module!\n",							\
+					pScriptModule_->getName()));															\
+				KBE_ASSERT(false && "Entity::initProperty: not found old_module");							\
 			}																								\
 																											\
 			oldpropers =																					\
 											&pOldScriptDefModule->getPropertyDescrs();						\
 		}																									\
 																											\
-		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = lpPropertyDescrs_->begin();			\
-		for(; iter != lpPropertyDescrs_->end(); ++iter)														\
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs_->begin();			\
+		for(; iter != pPropertyDescrs_->end(); ++iter)														\
 		{																									\
 			PropertyDescription* propertyDescription = iter->second;										\
 			DataType* dataType = propertyDescription->getDataType();										\
@@ -946,20 +1092,20 @@ public:																										\
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\
 	id_(id),																								\
-	scriptModule_(const_cast<ScriptDefModule*>(scriptModule)),												\
-	lpPropertyDescrs_(&scriptModule_->getPropertyDescrs()),													\
+	pScriptModule_(const_cast<ScriptDefModule*>(pScriptModule)),											\
+	pPropertyDescrs_(&pScriptModule_->getPropertyDescrs()),													\
 	spaceID_(0),																							\
 	scriptTimers_(),																						\
 	pyCallbackMgr_(),																						\
 	isDestroyed_(false),																					\
-	initing_(true)																							\
+	flags_(ENTITY_FLAGS_INITING)																			\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
 	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
-	scriptModule_ = NULL;																					\
+	pScriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
-	initing_ = false;																						\
+	removeFlags(ENTITY_FLAGS_INITING);																		\
 
 
 #define ENTITY_INIT_PROPERTYS(CLASS)																		\

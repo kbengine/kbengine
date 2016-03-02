@@ -28,7 +28,8 @@ load_(0.f),
 isDestroyed_(false),
 watchers_(),
 spaces_(),
-initProgress_(0.f)
+initProgress_(0.f),
+flags_(APP_FLAGS_NONE)
 {
 }
 

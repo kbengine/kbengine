@@ -175,5 +175,8 @@
     <ClInclude Include="stlstarfsa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DetourMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

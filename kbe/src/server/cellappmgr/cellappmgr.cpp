@@ -113,7 +113,7 @@ void Cellappmgr::handleGameTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Cellappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&CellappmgrInterface::messageHandlers);
 }
@@ -155,7 +155,7 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }
@@ -171,6 +171,9 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 
 	for(; iter != cellapps_.end(); ++iter)
 	{
+		if ((iter->second.flags() & APP_FLAGS_NONE) > 0)
+			continue;
+		
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
 			(iter->second.numEntities() == 0 ||
@@ -220,10 +223,12 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	std::string entityType;
 	ENTITY_ID id;
 	COMPONENT_ID componentID;
+	bool hasClient;
 
 	s >> entityType;
 	s >> id;
 	s >> componentID;
+	s >> hasClient;
 
 	static SPACE_ID spaceID = 1;
 
@@ -233,6 +238,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	(*pBundle) << id;
 	(*pBundle) << spaceID++;
 	(*pBundle) << componentID;
+	(*pBundle) << hasClient;
 
 	(*pBundle).append(&s);
 	s.done();
@@ -264,11 +270,13 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	ENTITY_ID id;
 	COMPONENT_ID componentID;
 	SPACE_ID spaceID;
+	bool hasClient;
 
 	s >> entityType;
 	s >> id;
 	s >> componentID;
 	s >> spaceID;
+	s >> hasClient;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(CellappInterface::onRestoreSpaceInCellFromBaseapp);
@@ -276,6 +284,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	(*pBundle) << id;
 	(*pBundle) << spaceID;
 	(*pBundle) << componentID;
+	(*pBundle) << hasClient;
 
 	(*pBundle).append(&s);
 	s.done();
@@ -300,13 +309,15 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, ENTITY_ID numEntities, float load)
+void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, 
+	ENTITY_ID numEntities, float load, uint32 flags)
 {
 	Cellapp& cellapp = cellapps_[componentID];
 	
 	cellapp.load(load);
 	cellapp.numEntities(numEntities);
-
+	cellapp.flags(flags);
+	
 	updateBestCellapp();
 }
 

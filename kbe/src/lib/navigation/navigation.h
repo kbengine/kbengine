@@ -38,13 +38,16 @@ public:
 	Navigation();
 	virtual ~Navigation();
 	
-	NavigationHandlePtr loadNavigation(std::string name);
+	void finalise();
 
-	bool hasNavigation(std::string name);
+	NavigationHandlePtr loadNavigation(std::string resPath, const std::map< int, std::string >& params);
 
-	bool removeNavigation(std::string name);
+	bool hasNavigation(std::string resPath);
 
-	NavigationHandlePtr findNavigation(std::string name);
+	bool removeNavigation(std::string resPath);
+
+	NavigationHandlePtr findNavigation(std::string resPath);
+
 private:
 	KBEUnordered_map<std::string, NavigationHandlePtr> navhandles_;
 	KBEngine::thread::ThreadMutex mutex_;

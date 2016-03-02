@@ -312,7 +312,7 @@ void Components::delComponent(int32 uid, COMPONENT_TYPE componentType,
 }
 
 //-------------------------------------------------------------------------------------		
-void Components::removeComponentFromChannel(Network::Channel * pChannel, bool isShutingdown)
+void Components::removeComponentByChannel(Network::Channel * pChannel, bool isShutingdown)
 {
 	int ifind = 0;
 	while(ALL_COMPONENT_TYPES[ifind] != UNKNOWN_COMPONENT_TYPE)
@@ -331,17 +331,17 @@ void Components::removeComponentFromChannel(Network::Channel * pChannel, bool is
 
 				if(!isShutingdown)
 				{
-					ERROR_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}, Abnormal exit.\n",
+					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit.\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentFromChannel: {} : {}, Abnormal exit!\n",
+					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit!\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
 #endif
 				}
 				else
 				{
-					INFO_MSG(fmt::format("Components::removeComponentFromChannel: {} : {}, Normal exit!\n",
+					INFO_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Normal exit!\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid));
 				}
 
@@ -362,7 +362,7 @@ void Components::removeComponentFromChannel(Network::Channel * pChannel, bool is
 }
 
 //-------------------------------------------------------------------------------------		
-int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID)
+int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID, bool printlog)
 {
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
 	KBE_ASSERT(pComponentInfos != NULL);
@@ -371,7 +371,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
-		ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
+		if (printlog)
+		{
+			ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
+		}
+
 		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return -1;
 	}
@@ -385,8 +389,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		bool ret = pChannel->initialize(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
 		if(!ret)
 		{
-			ERROR_MSG(fmt::format("Components::connectComponent: initialize({}) is failed!\n",
-				pChannel->c_str()));
+			if (printlog)
+			{
+				ERROR_MSG(fmt::format("Components::connectComponent: initialize({}) is failed!\n",
+					pChannel->c_str()));
+			}
 
 			pChannel->destroy();
 			Network::Channel::ObjPool().reclaimObject(pChannel);
@@ -397,8 +404,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		pComponentInfos->pChannel->componentID(componentID);
 		if(!_pNetworkInterface->registerChannel(pComponentInfos->pChannel))
 		{
-			ERROR_MSG(fmt::format("Components::connectComponent: registerChannel({}) is failed!\n",
-				pComponentInfos->pChannel->c_str()));
+			if (printlog)
+			{
+				ERROR_MSG(fmt::format("Components::connectComponent: registerChannel({}) is failed!\n",
+					pComponentInfos->pChannel->c_str()));
+			}
 
 			pComponentInfos->pChannel->destroy();
 			Network::Channel::ObjPool().reclaimObject(pComponentInfos->pChannel);
@@ -481,8 +491,11 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
-			pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
+		if (printlog)
+		{
+			ERROR_MSG(fmt::format("Components::connectComponent: connect({}) is failed! {}.\n",
+				pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
+		}
 
 		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
 		return -1;
@@ -941,11 +954,137 @@ Network::EventDispatcher & Components::dispatcher()
 //-------------------------------------------------------------------------------------
 void Components::onChannelDeregister(Network::Channel * pChannel, bool isShutingdown)
 {
-	removeComponentFromChannel(pChannel, isShutingdown);
+	removeComponentByChannel(pChannel, isShutingdown);
 }
 
 //-------------------------------------------------------------------------------------
-bool Components::findInterfaces()
+bool Components::findLogger()
+{
+	if(g_componentType == LOGGER_TYPE || g_componentType == MACHINE_TYPE ||
+		componentType_ == INTERFACES_TYPE)
+	{
+		return true;
+	}
+	
+	int i = 0;
+	
+	while(i++ < 1/*如果Logger与其他游戏进程同时启动，这里设定的查找次数越多，
+		找到Logger的概率越大，当前只设定查找一次，假定用户已经提前好启动Logger服务*/)
+	{
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+			
+		Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
+		if(!bhandler.good())
+		{
+			continue;
+		}
+
+		bhandler.itry(0);
+		if(bhandler.pCurrPacket() != NULL)
+		{
+			bhandler.pCurrPacket()->resetPacket();
+		}
+			
+		COMPONENT_TYPE findComponentType = LOGGER_TYPE;
+		bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
+		MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+			g_componentType, g_componentID, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+
+		if(!bhandler.broadcast())
+		{
+			//ERROR_MSG("Components::findLogger: broadcast error!\n");
+			continue;
+		}
+
+		int32 timeout = 1500000;
+		MachineInterface::onBroadcastInterfaceArgs24 args;
+
+RESTART_RECV:
+
+		if(bhandler.receive(&args, 0, timeout, false))
+		{
+			bool isContinue = false;
+			timeout = 1000000;
+
+			do
+			{
+				if(isContinue)
+				{
+					try
+					{
+						args.createFromStream(*bhandler.pCurrPacket());
+					}catch(MemoryStreamException &)
+					{
+						break;
+					}
+				}
+				
+				if(args.componentIDEx != g_componentID)
+				{
+					//WARNING_MSG(fmt::format("Components::findLogger: msg.componentID {} != {}.\n", 
+					//	args.componentIDEx, g_componentID));
+					
+					args.componentIDEx = 0;
+					goto RESTART_RECV;
+				}
+
+				// 如果找不到
+				if(args.componentType == UNKNOWN_COMPONENT_TYPE)
+				{
+					isContinue = true;
+					continue;
+				}
+
+				INFO_MSG(fmt::format("Components::findLogger: found {}, addr:{}:{}\n",
+					COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
+					inet_ntoa((struct in_addr&)args.intaddr),
+					ntohs(args.intport)));
+
+				Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
+					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+					args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, 
+					args.usedmem, args.extradata, args.extradata1, args.extradata2, 123);
+
+				isContinue = true;
+			}while(bhandler.pCurrPacket()->length() > 0);
+
+			// 防止接收到的数据不是想要的数据
+			if(findComponentType == args.componentType)
+			{
+				for(int iconn=0; iconn<5; iconn++)
+				{
+					if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0, false) != 0)
+					{
+						//ERROR_MSG(fmt::format("Components::findLogger: register self to {} is error!\n",
+						//COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
+						//dispatcher().breakProcessing();
+						KBEngine::sleep(200);
+					}
+					else
+					{
+						//findComponentTypes_[0] = -1;
+						for(size_t ic=1; ic<sizeof(findComponentTypes_) - 1; ++ic)
+						{
+							findComponentTypes_[ic - 1] = findComponentTypes_[ic];
+						}
+
+						return true;
+					}
+				}
+			}
+		}
+		else
+		{
+			// 接受数据超时了
+		}
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool Components::findComponents()
 {
 	if(state_ == 1)
 	{
@@ -962,12 +1101,12 @@ bool Components::findInterfaces()
 
 			if(count <= 15)
 			{
-				INFO_MSG(fmt::format("Components::findInterfaces: find {}({})...\n",
+				INFO_MSG(fmt::format("Components::findComponents: find {}({})...\n",
 					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count));
 			}
 			else
 			{
-				std::string s = fmt::format("Components::findInterfaces: find {}({})...\n",
+				std::string s = fmt::format("Components::findComponents: find {}({})...\n",
 					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count);
 				WARNING_MSG(s);
 
@@ -1000,7 +1139,7 @@ bool Components::findInterfaces()
 
 			if(!bhandler.broadcast())
 			{
-				ERROR_MSG("Components::findInterfaces: broadcast error!\n");
+				ERROR_MSG("Components::findComponents: broadcast error!\n");
 				return false;
 			}
 		
@@ -1031,7 +1170,7 @@ RESTART_RECV:
 					
 					if(args.componentIDEx != componentID_)
 					{
-						WARNING_MSG(fmt::format("Components::findInterfaces: msg.componentID {} != {}.\n", 
+						WARNING_MSG(fmt::format("Components::findComponents: msg.componentID {} != {}.\n", 
 							args.componentIDEx, componentID_));
 						
 						args.componentIDEx = 0;
@@ -1045,7 +1184,7 @@ RESTART_RECV:
 						continue;
 					}
 
-					INFO_MSG(fmt::format("Components::findInterfaces: found {}, addr:{}:{}\n",
+					INFO_MSG(fmt::format("Components::findComponents: found {}, addr:{}:{}\n",
 						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType),
 						inet_ntoa((struct in_addr&)args.intaddr),
 						ntohs(args.intport)));
@@ -1067,7 +1206,7 @@ RESTART_RECV:
 						findComponentTypes_[findIdx_] = -1;
 						if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG(fmt::format("Components::findInterfaces: register self to {} is error!\n",
+							ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 							findIdx_++;
 							//dispatcher().breakProcessing();
@@ -1094,7 +1233,7 @@ RESTART_RECV:
 				{
 					if(showerr)
 					{
-						ERROR_MSG("Components::findInterfaces: receive error!\n");
+						ERROR_MSG("Components::findComponents: receive error!\n");
 					}
 
 					// 如果是这些辅助组件没找到则跳过
@@ -1109,7 +1248,7 @@ RESTART_RECV:
 						}
 						else if(findComponentType == helperComponentType)
 						{
-							WARNING_MSG(fmt::format("Components::findInterfaces: not found {}!\n",
+							WARNING_MSG(fmt::format("Components::findComponents: not found {}!\n",
 								COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 							findComponentTypes_[findIdx_] = -1; // 跳过标志
@@ -1145,12 +1284,12 @@ RESTART_RECV:
 				return false;
 			}
 
-			INFO_MSG(fmt::format("Components::findInterfaces: register self to {}...\n",
+			INFO_MSG(fmt::format("Components::findComponents: register self to {}...\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 
 			if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG(fmt::format("Components::findInterfaces: register self to {} is error!\n",
+				ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				//dispatcher().breakProcessing();
 				return false;
@@ -1275,7 +1414,7 @@ bool Components::process()
 			
 		if(timestamp() - lastTime > uint64(stampsPerSecond()))
 		{
-			if(!findInterfaces())
+			if(!findComponents())
 			{
 				if(state_ != 2)
 					lastTime = timestamp();

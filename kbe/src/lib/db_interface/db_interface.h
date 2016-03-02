@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/singleton.h"
 #include "helper/debug_helper.h"
 #include "db_interface/entity_table.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine { 
 
@@ -49,11 +50,15 @@ public:
 
 	friend class DBUtil;
 
-	DBInterface():
+	DBInterface(const char* name) :
 	db_port_(3306),
 	db_numConnections_(1),
 	lastquery_()
 	{
+		strncpy(name_, name, MAX_NAME);
+		int dbIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(this->name());
+		KBE_ASSERT(dbIndex >= 0);
+		dbIndex_ = dbIndex;
 	};
 
 	virtual ~DBInterface()
@@ -74,7 +79,7 @@ public:
 	/**
 		与某个数据库关联
 	*/
-	virtual bool attach(const char* databaseName) = 0;
+	virtual bool attach(const char* databaseName = NULL) = 0;
 	virtual bool detach() = 0;
 
 	/**
@@ -85,16 +90,26 @@ public:
 	/**
 		获取数据库某个表所有的字段名称
 	*/
-	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames) = 0;
+	virtual bool getTableItemNames(const char* tableName, std::vector<std::string>& itemNames) = 0;
 
 	/**
 		查询表
 	*/
-	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true) = 0;
-	virtual bool query(const std::string& cmd, bool showexecinfo = true)
+	virtual bool query(const char* cmd, uint32 size, bool printlog = true, MemoryStream * result = NULL) = 0;
+	virtual bool query(const std::string& cmd, bool printlog = true, MemoryStream * result = NULL)
 	{
-		return query(cmd.c_str(), cmd.size(), showexecinfo);
+		return query(cmd.c_str(), (uint32)cmd.size(), printlog, result);
 	}
+
+	/**
+	返回这个接口的名称
+	*/
+	const char* name() const { return name_; }
+
+	/**
+	返回这个接口的索引
+	*/
+	uint16 dbIndex() const { return dbIndex_; }
 
 	/**
 		返回这个接口的描述
@@ -114,17 +129,17 @@ public:
 	/**
 		创建一个entity存储表
 	*/
-	virtual EntityTable* createEntityTable() = 0;
+	virtual EntityTable* createEntityTable(EntityTables* pEntityTables) = 0;
 
 	/** 
 		从数据库删除entity表
 	*/
-	virtual bool dropEntityTableFromDB(const char* tablename) = 0;
+	virtual bool dropEntityTableFromDB(const char* tableName) = 0;
 
 	/** 
 		从数据库删除entity表字段
 	*/
-	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName) = 0;
+	virtual bool dropEntityTableItemFromDB(const char* tableName, const char* tableItemName) = 0;
 
 	/**
 		锁住接口操作
@@ -141,7 +156,9 @@ public:
 		获取最后一次查询的sql语句
 	*/
 	virtual const std::string& lastquery() const{ return lastquery_; }
+
 protected:
+	char name_[MAX_BUF];									// 数据库接口的名称
 	char db_type_[MAX_BUF];									// 数据库的类别
 	uint32 db_port_;										// 数据库的端口
 	char db_ip_[MAX_IP];									// 数据库的ip地址
@@ -150,6 +167,7 @@ protected:
 	char db_name_[MAX_BUF];									// 数据库名
 	uint16 db_numConnections_;								// 数据库最大连接
 	std::string lastquery_;									// 最后一次查询描述
+	uint16 dbIndex_;										// 对应的数据库接口索引
 };
 
 /*
@@ -163,19 +181,29 @@ public:
 	
 	static bool initialize();
 	static void finalise();
+	static bool initializeWatcher();
 
-	static bool initThread();
-	static bool finiThread();
+	static bool initThread(const std::string& dbinterfaceName);
+	static bool finiThread(const std::string& dbinterfaceName);
 
-	static DBInterface* createInterface(bool showinfo = true);
-	static const char* dbname();
-	static const char* dbtype();
+	static DBInterface* createInterface(const std::string& name, bool showinfo = true);
 	static const char* accountScriptName();
-	static bool initInterface(DBInterface* dbi);
+	static bool initInterface(DBInterface* pdbi);
 
-	static thread::ThreadPool* pThreadPool(){ return pThreadPool_; }
+	static void handleMainTick();
+
+	typedef KBEUnordered_map<std::string, thread::ThreadPool*> DBThreadPoolMap;
+	static thread::ThreadPool* pThreadPool(const std::string& name)
+	{ 
+		DBThreadPoolMap::iterator iter = pThreadPoolMaps_.find(name);
+		if (iter != pThreadPoolMaps_.end())
+			return iter->second;
+
+		return NULL;
+	}
+
 private:
-	static thread::ThreadPool* pThreadPool_;
+	static DBThreadPoolMap pThreadPoolMaps_;
 };
 
 }

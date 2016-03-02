@@ -45,11 +45,26 @@ namespace log4cxx
                         LOG4CXX_CAST_ENTRY(Layout)
                         LOG4CXX_CAST_ENTRY(spi::OptionHandler)
                 END_LOG4CXX_CAST_MAP()
-    
+   
+				Layout(){}
+
                 virtual ~Layout();
                 void addRef() const;
                 void releaseRef() const;
 
+				// added for VS2015
+				#if _MSC_VER >= 1900
+				Layout(Layout && o)
+					: helpers::ObjectImpl(std::move(o))
+				{ }
+
+				Layout& operator=(Layout && o)
+				{
+					helpers::ObjectImpl::operator=(std::move(o));
+					return *this;
+				}
+				#endif
+				// end of added for VS2015
 
                 /**
                 Implement this method to create your own layout format.

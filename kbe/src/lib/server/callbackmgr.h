@@ -151,7 +151,7 @@ protected:
 template<>
 inline void CallbackMgr<PyObjectPtr>::addToStream(KBEngine::MemoryStream& s)
 {
-	uint32 size = cbMap_.size();
+	uint32 size = (uint32)cbMap_.size();
 
 	s << idAlloc_.lastID() << size;
 

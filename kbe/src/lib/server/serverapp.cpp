@@ -76,6 +76,11 @@ threadPool_()
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
+	// 广播自己的地址给网上上的所有kbemachine
+	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
+	Components::getSingleton().pHandler(this);
+	this->dispatcher().addTask(&Components::getSingleton());
+	
 	pActiveTimerHandle_ = new ComponentActiveReportHandler(this);
 	pActiveTimerHandle_->startActiveTick(KBE_MAX(1.f, Network::g_channelInternalTimeout / 2.0f));
 
@@ -128,7 +133,7 @@ bool ServerApp::loadConfig()
 }
 
 //-------------------------------------------------------------------------------------		
-bool ServerApp::installSingnals()
+bool ServerApp::installSignals()
 {
 	g_kbeSignalHandlers.attachApp(this);
 	g_kbeSignalHandlers.addSignal(SIGINT, this);
@@ -143,7 +148,7 @@ bool ServerApp::initialize()
 	if(!initThreadPool())
 		return false;
 
-	if(!installSingnals())
+	if(!installSignals())
 		return false;
 	
 	if(!loadConfig())
@@ -154,11 +159,6 @@ bool ServerApp::initialize()
 	
 	if(!inInitialize())
 		return false;
-	
-	// 广播自己的地址给网上上的所有kbemachine
-	// 并且从kbemachine获取basappmgr和cellappmgr以及dbmgr地址
-	Components::getSingleton().pHandler(this);
-	this->dispatcher().addTask(&Components::getSingleton());
 
 	bool ret = initializeEnd();
 
@@ -310,7 +310,8 @@ void ServerApp::onAddComponent(const Components::ComponentInfos* pInfos)
 //-------------------------------------------------------------------------------------
 void ServerApp::onIdentityillegal(COMPONENT_TYPE componentType, COMPONENT_ID componentID, uint32 pid, const char* pAddr)
 {
-	ERROR_MSG(fmt::format("ServerApp::onIdentityillegal: The current process and {}(componentID={} ->conflicted???, pid={}, addr={}) conflict, the process will exit!\n",
+	ERROR_MSG(fmt::format("ServerApp::onIdentityillegal: The current process and {}(componentID={} ->conflicted???, pid={}, addr={}) conflict, the process will exit!\n"
+			"Can modify the components-CID and UID to avoid conflict.\n",
 		COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, pid, pAddr));
 
 	this->shutDown(1.f);
@@ -488,28 +489,26 @@ void ServerApp::hello(Network::Channel* pChannel, MemoryStream& s)
 	s >> verInfo >> scriptVerInfo;
 	s.readBlob(encryptedKey);
 
-	char buf[1024];
+	char buf[MAX_BUF];
+	std::string encryptedKey_str;
 
-	if(encryptedKey.size() > 3)
+	if (encryptedKey.size() > 3 && encryptedKey.size() <= 65535)
 	{
-		char *c = buf;
-
-		for (int i=0; i < (int)encryptedKey.size(); ++i)
+		for (int i = 0; i < (int)encryptedKey.size(); ++i)
 		{
-			c += sprintf(c, "%02hhX ", (unsigned char)encryptedKey.data()[i]);
+			memset(buf, 0, MAX_BUF);
+			kbe_snprintf(buf, MAX_BUF / 2, "%02hhX ", (unsigned char)encryptedKey.data()[i]);
+			encryptedKey_str += buf;
 		}
-
-		c[-1] = '\0';
 	}
 	else
 	{
 		encryptedKey = "";
-		sprintf(buf, "None");
-		buf[4] = '\0';
+		encryptedKey_str = "None";
 	}
 
 	INFO_MSG(fmt::format("ServerApp::onHello: verInfo={}, scriptVerInfo={}, encryptedKey={}, addr:{}\n", 
-		verInfo, scriptVerInfo, buf, pChannel->c_str()));
+		verInfo, scriptVerInfo, encryptedKey_str, pChannel->c_str()));
 
 	if(verInfo != KBEVersion::versionString())
 		onVersionNotMatch(pChannel);

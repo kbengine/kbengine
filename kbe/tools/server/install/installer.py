@@ -726,8 +726,8 @@ def findMysqlService():
 					continue
 					
 			if len(mysql_sercive_name) == 0:
-				if "mysqld" in s:
-					mysql_sercive_name = "mysqld"
+				if "mysql" in s.lower().strip():
+					mysql_sercive_name = s.strip()
 				else:
 					mysql_sercive_name = "mysql"
 					
@@ -816,7 +816,7 @@ def modifyKBEConfig():
 	state = 0
 
 	f = None
-	
+
 	try:
 		f = open(kbengine_defs, encoding='UTF-8')
 	except:
@@ -938,11 +938,11 @@ def createDatabase():
 
 				mysql_root = ret[7].strip()
 
-				if lower_case_table_names != '0':
-					ERROR_MSG('mysql lower_case_table_names not is 0')
+				if lower_case_table_names != '2':
+					ERROR_MSG('mysql lower_case_table_names not is 2')
 					config, cnf = getMysqlConfig()
 					INFO_MSG('Attempt to modify the [%s]...' % cnf)
-					config.set('mysqld', 'lower_case_table_names', '0')
+					config.set('mysqld', 'lower_case_table_names', '2')
 					config.write(open(cnf, "w"))
 					restartMsql()
 					continue
@@ -1131,8 +1131,8 @@ def get_sources_infos():
 	ziplist = re.compile("""=\"[a-zA-Z0-9//\/\.?]+.zip""").findall(html)
 	tgzlist = re.compile("""=\"[a-zA-Z0-9//\/\.?]+.gz""").findall(html)
 
-	src_master_zip_url = ziplist[0].replace("=\"", "https://github.com")
-	src_zip_url = ziplist[1].replace("=\"", "https://github.com")
+	src_master_zip_url = """https://github.com/kbengine/kbengine/archive/master.zip"""
+	src_zip_url = ziplist[0].replace("=\"", "https://github.com")
 	src_tgz_url = tgzlist[0].replace("=\"", "https://github.com")
 
 	# title

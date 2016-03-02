@@ -1,3 +1,82 @@
+###v0.8.0
+
+	2016/1/30
+
+	新增与改善：
+		多数据库横向扩展支持（#264）
+		VS2015编译支持（#292）
+		Windows X64位编译支持（#282）
+		OPENSSL 升级到1.0.2e
+		API文档更新
+		Recastnavigation 更新至最新版本
+		cluster_controller.py支持远程启动进程
+		错误信息在linux上也打印到控制台， 有助于启动时及时发现错误（#280）
+		KBEngine.Blob改名为KBEngine.MemoryStream
+		规范化API命名，所有脚本主动调用的称为引擎API函数，所有由引擎通知脚本被动接受调用的称为引擎回调（requestCreateAccount、requestAccountLogin、requestCharge分别改名为onRequestCreateAccount、onReques、onRequestCharge）
+		logger脚本支持
+		entitiesInRange优化（#298）
+		base上实体调用createInNewSpace之后， 在cell上也应该走一次enterspace等流程。
+		Entity.volatileInfo脚本可改支持
+
+	BUG修正：
+		修正邮件绑定后不能使用邮件登录问题
+		其他修正：#289、#290
+
+
+
+###v0.7.0
+
+	2015/11/25
+
+	新增与改善：
+		邮件重置密码完善
+		更新API文档
+		抽象化interfaces，interfaces使用python进行扩展
+		loginapp支持脚本了,可扩展脚本做类似登陆排队功能和控制账号的登陆等行为
+		deregisterFileDescriptor改名为deregisterReadFileDescriptor
+		proxy在destroy后及时通知客户端被服务器踢出
+		支持让某个baseapp、cellapp不参与负载均衡（KBEngine.setAppFlags、KBEngine.getAppFlags）
+		增加新的API：Entity.getRandomPoints用于随机获取目的坐标点周围navigate可到达的指定数量的坐标点（可用于NPC随机移动，掉落物品坐标计算等）。
+		
+	BUG修正：
+		修正loginapp的http回调端口返回页面时乱码现象
+		修正:一个entity属性设成BOOL（也就是UINT8），然后退出服务器，改成了INT8，重起服务器以后，数据表不会变bug(#263)
+		修正在服务器上不存在某实体的时候，客户端请求实体方法可能造成crash
+		防止APP在退出时有日志没有同步完（同步到logger）。
+
+
+
+###v0.6.21
+
+	2015/10/26
+
+	新增与改善：
+		将原有的CLIENYT_TYPE_PC拆分成CLIENYT_TYPE_WIN、CLIENYT_TYPE_LlINUX、CLIENYT_TYPE_MAC
+		Entitydef的摘要检查不再与客户端类型绑定在一起，如果客户端提交了摘要则检查，没有提交则客户端对自己的协议正确性负责（如果客户端严格从服务器远程导入协议，理论上不会有问题）
+		标准化一些协议名称
+
+
+
+###v0.6.20
+
+	2015/10/23
+
+	新增与改善：
+		增加新的API：Entity.addYawRotator
+		更新API文档
+		vs2010项目升级到vs2013
+		实体容器类属性标脏机制(#259)
+		addSpaceGeometryMapping参数调整可指定参数加载navmesh到某个layer下(#240)
+		调整数据库查询接口，更好的支持不同形式的数据库扩展
+
+	BUG修正：
+		修正email激活邮件乱码问题
+		修正指定FIXED_DICT类型存档字段不对的问题(#255)
+		修正dbmgr多次与interfaces连接的问题
+		修正moveToPoint的参数distance大于0时当实体距离目的地小于distance时实体会忘相反的地方行走
+
+
+
 ###v0.6.1
 
 	2015/6/1

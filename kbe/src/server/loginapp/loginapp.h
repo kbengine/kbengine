@@ -28,22 +28,22 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/idallocate.h"
 #include "server/serverconfig.h"
 #include "server/pendingLoginmgr.h"
+#include "server/python_app.h"
 #include "common/timer.h"
 #include "network/endpoint.h"
 	
 namespace KBEngine{
 
 class HTTPCBHandler;
+class TelnetServer;
 
-class Loginapp :	public ServerApp, 
+class Loginapp :	public PythonApp, 
 					public Singleton<Loginapp>
 {
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_GAME_TICK = TIMEOUT_SERVERAPP_MAX + 1,
-		TIMEOUT_CHECK_STATUS,
-		TIMEOUT_MAX
+		TIMEOUT_TICK = TIMEOUT_PYTHONAPP_MAX + 1
 	};
 
 	Loginapp(Network::EventDispatcher& dispatcher, 
@@ -58,15 +58,17 @@ public:
 	virtual void onChannelDeregister(Network::Channel * pChannel);
 
 	virtual void handleTimeout(TimerHandle handle, void * arg);
-	void handleCheckStatusTick();
+	void handleMainTick();
 
 	/* 初始化相关接口 */
 	bool initializeBegin();
 	bool inInitialize();
 	bool initializeEnd();
 	void finalise();
+	void onInstallPyModules();
 	
 	virtual void onShutdownBegin();
+	virtual void onShutdownEnd();
 
 	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
@@ -133,7 +135,8 @@ public:
 									NETWORK_ERR_SRV_OVERLOAD:服务器负载过重, 
 									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
-	void _loginFailed(Network::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force = false);
+	void _loginFailed(Network::Channel* pChannel, std::string& loginName, 
+		SERVER_ERROR_CODE failedcode, std::string& datas, bool force = false);
 	
 	/** 网络接口
 		dbmgr返回的登录账号检测结果
@@ -179,7 +182,7 @@ public:
 	void onBaseappInitProgress(Network::Channel* pChannel, float progress);
 
 protected:
-	TimerHandle							loopCheckTimerHandle_;
+	TimerHandle							mainProcessTimer_;
 
 	// 记录注册账号还未登陆的请求
 	PendingLoginMgr						pendingCreateMgr_;
@@ -192,6 +195,8 @@ protected:
 	HTTPCBHandler*						pHttpCBHandler;
 
 	float								initProgress_;
+	
+	TelnetServer*						pTelnetServer_;
 };
 
 }

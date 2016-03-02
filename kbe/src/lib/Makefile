@@ -20,6 +20,8 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
+	cd dependencies/openssl && $(MAKE) $@
+	cd dependencies/hiredis && $(MAKE) $@
 	cd dependencies/zip && $(MAKE) $@
 	cd dependencies/g3dlite && $(MAKE) $@
 	cd dependencies/tinyxml && $(MAKE) $@
@@ -34,6 +36,7 @@ all install clean full:
 	cd python && $(MAKE) $@
 	cd client_lib && $(MAKE) $@
 	cd common && $(MAKE) $@
+	cd db_redis && $(MAKE) $@
 	cd db_mysql && $(MAKE) $@
 	cd db_interface && $(MAKE) $@
 	cd entitydef && $(MAKE) $@

@@ -126,7 +126,7 @@ public:
 	void delComponent(int32 uid, COMPONENT_TYPE componentType, 
 		COMPONENT_ID componentID, bool ignoreComponentID = false, bool shouldShowLog = true);
 
-	void removeComponentFromChannel(Network::Channel * pChannel, bool isShutingdown = false);
+	void removeComponentByChannel(Network::Channel * pChannel, bool isShutingdown = false);
 
 	void clear(int32 uid = -1, bool shouldShowLog = true);
 
@@ -146,7 +146,7 @@ public:
 	*/
 	Components::ComponentInfos* findLocalComponent(uint32 pid);
 
-	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID);
+	int connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID, bool printlog = true);
 
 	typedef std::map<int32/*uid*/, COMPONENT_ORDER/*lastorder*/> ORDER_LOG;
 	ORDER_LOG& getGlobalOrderLog(){ return _globalOrderLog; }
@@ -209,9 +209,11 @@ public:
 	void extraData3(uint64 v){ extraData3_ = v; }
 	void extraData4(uint64 v){ extraData4_ = v; }
 
+	bool findLogger();
+	
 private:
 	virtual bool process();
-	bool findInterfaces();
+	bool findComponents();
 
 	void onFoundAllComponents();
 

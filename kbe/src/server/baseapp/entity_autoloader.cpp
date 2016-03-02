@@ -33,7 +33,6 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 EntityAutoLoader::EntityAutoLoader(Network::NetworkInterface & networkInterface, InitProgressHandler* pInitProgressHandler):
-Task(),
 networkInterface_(networkInterface),
 pInitProgressHandler_(pInitProgressHandler),
 entityTypes_(),
@@ -41,20 +40,25 @@ start_(0),
 end_(0),
 querying_(false)
 {
-	networkInterface.dispatcher().addTask(this);
+	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 
-	const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
-	EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
-	for(; iter!= modules.end(); ++iter)
+	std::vector<DBInterfaceInfo>::iterator dbinfo_iter = dbcfg.dbInterfaceInfos.begin();
+	for (; dbinfo_iter != dbcfg.dbInterfaceInfos.end(); ++dbinfo_iter)
 	{
-		entityTypes_.push_back((*iter)->getUType());
+		entityTypes_.push_back(std::vector<ENTITY_SCRIPT_UID>());
+
+		const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
+		EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
+		for (; iter != modules.end(); ++iter)
+		{
+			entityTypes_[entityTypes_.size() - 1].push_back((*iter)->getUType());
+		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
 EntityAutoLoader::~EntityAutoLoader()
 {
-	// networkInterface_.dispatcher().cancelTask(this);
 	DEBUG_MSG("EntityAutoLoader::~EntityAutoLoader()\n");
 
 	if(pInitProgressHandler_)
@@ -64,6 +68,9 @@ EntityAutoLoader::~EntityAutoLoader()
 //-------------------------------------------------------------------------------------
 void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, MemoryStream& s)
 {
+	uint16 dbInterfaceIndex = 0;
+	s >> dbInterfaceIndex;
+
 	int size = 0;
 	s >> size;
 
@@ -77,7 +84,7 @@ void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, M
 		start_ = 0;
 		end_ = 0;
 
-		entityTypes_.erase(entityTypes_.begin());
+		(*entityTypes_.begin()).erase((*entityTypes_.begin()).begin());
 	}
 
 	querying_ = false;
@@ -112,7 +119,8 @@ void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, M
 		}
 		else
 		{
-			Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL);
+			Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL, 
+				g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex));
 		}
 	}
 }
@@ -126,15 +134,24 @@ bool EntityAutoLoader::process()
 
 	if(entityTypes_.size() > 0)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		if ((*entityTypes_.begin()).size() > 0)
+		{
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 
-		if(start_ == 0 && end_ == 0)
-			end_ = LOAD_ENTITY_SIZE;
+			if (start_ == 0 && end_ == 0)
+				end_ = LOAD_ENTITY_SIZE;
 
-		(*pBundle).newMessage(DbmgrInterface::entityAutoLoad);
-		(*pBundle) << g_componentID << (*entityTypes_.begin()) << start_ << end_;
-		pChannel->send(pBundle);
-		querying_ = true;
+			uint16 dbInterfaceIndex = (uint16)(g_kbeSrvConfig.getDBMgr().dbInterfaceInfos.size() - entityTypes_.size());
+			(*pBundle).newMessage(DbmgrInterface::entityAutoLoad);
+			(*pBundle) << dbInterfaceIndex << g_componentID << (*(*entityTypes_.begin()).begin()) << start_ << end_;
+			pChannel->send(pBundle);
+			querying_ = true;
+		}
+		else
+		{
+			entityTypes_.erase(entityTypes_.begin());
+		}
+
 		return true;
 	}
 

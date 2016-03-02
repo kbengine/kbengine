@@ -87,7 +87,7 @@ void Baseappmgr::handleGameTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Baseappmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&BaseappmgrInterface::messageHandlers);
 }
@@ -179,7 +179,7 @@ void Baseappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }
@@ -213,14 +213,15 @@ bool Baseappmgr::componentReady(COMPONENT_ID cid)
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
-							ENTITY_ID numBases, ENTITY_ID numProxices, float load)
+							ENTITY_ID numBases, ENTITY_ID numProxices, float load, uint32 flags)
 {
 	Baseapp& baseapp = baseapps_[componentID];
 	
 	baseapp.load(load);
 	baseapp.numProxices(numProxices);
 	baseapp.numBases(numBases);
-
+	baseapp.flags(flags);
+	
 	updateBestBaseapp();
 }
 
@@ -235,6 +236,9 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 
 	for(; iter != baseapps_.end(); ++iter)
 	{
+		if ((iter->second.flags() & APP_FLAGS_NONE) > 0)
+			continue;
+		
 		if(!iter->second.isDestroyed() &&
 			iter->second.initProgress() > 1.f && 
 			(iter->second.numEntities() == 0 || 
@@ -276,7 +280,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
-		(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
 		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhere: not found baseapp, message is buffered.\n");
@@ -291,7 +295,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }
@@ -315,7 +319,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
-		(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
 		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp, message is buffered.\n");
@@ -330,7 +334,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 
-	(*pBundle).append((char*)s.data() + s.rpos(), s.length());
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
 }

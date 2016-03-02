@@ -28,16 +28,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4251)
 #endif
 
-#include "method.h"	
+#include "method.h"
 #include "property.h"
 #include "detaillevel.h"
 #include "volatileinfo.h"
 #include "math/math.h"
 #include "pyscript/scriptobject.h"
-#include "xml/xml.h"	
+#include "xml/xml.h"
 #include "common/refcountable.h"
 
-	
+
 namespace KBEngine{
 
 /**
@@ -54,7 +54,7 @@ public:
 	typedef std::map<ENTITY_DEF_ALIASID, MethodDescription*> METHODDESCRIPTION_ALIASMAP;
 
 	ScriptDefModule(std::string name, ENTITY_SCRIPT_UID utype);
-	~ScriptDefModule();	
+	~ScriptDefModule();
 
 	void finalise(void);
 	void onLoaded(void);
@@ -70,7 +70,7 @@ public:
 	INLINE void setScriptType(PyTypeObject* scriptType);
 
 	INLINE DetailLevel& getDetailLevel(void);
-	INLINE VolatileInfo& getVolatileInfo(void);
+	INLINE VolatileInfo* getPVolatileInfo(void);
 
 	PyObject* createObject(void);
 	PyObject* getInitDict(void);
@@ -146,65 +146,65 @@ public:
 	void c_str();
 
 	INLINE bool usePropertyDescrAlias() const;
-	INLINE bool	useMethodDescrAlias() const;
+	INLINE bool useMethodDescrAlias() const;
 	
 protected:
 	// 脚本类别
-	PyTypeObject*						scriptType_;	
+	PyTypeObject*						scriptType_;
 
 	// 数字类别  主要用于方便查找和网络间传输识别这个脚本模块
-	ENTITY_SCRIPT_UID					uType_;									
+	ENTITY_SCRIPT_UID					uType_;
 	
 	// 这个脚本所有的存储到db的属性
-	PROPERTYDESCRIPTION_MAP				persistentPropertyDescr_;	
+	PROPERTYDESCRIPTION_MAP				persistentPropertyDescr_;
 
 	// 这个脚本cell部分所拥有的所有属性描述
-	PROPERTYDESCRIPTION_MAP				cellPropertyDescr_;		
+	PROPERTYDESCRIPTION_MAP				cellPropertyDescr_;
 
 	// cell近中远级别属性描述
-	PROPERTYDESCRIPTION_MAP				cellDetailLevelPropertyDescrs_[3];	
+	PROPERTYDESCRIPTION_MAP				cellDetailLevelPropertyDescrs_[3];
 
 	// 这个脚本base部分所拥有的属性描述
-	PROPERTYDESCRIPTION_MAP				basePropertyDescr_;		
+	PROPERTYDESCRIPTION_MAP				basePropertyDescr_;
 
 	// 这个脚本client部分所拥有的属性描述
-	PROPERTYDESCRIPTION_MAP				clientPropertyDescr_;					
+	PROPERTYDESCRIPTION_MAP				clientPropertyDescr_;
 	
 	// 这个脚本所拥有的属性描述uid映射
-	PROPERTYDESCRIPTION_UIDMAP			persistentPropertyDescr_uidmap_;		
-	PROPERTYDESCRIPTION_UIDMAP			cellPropertyDescr_uidmap_;				
-	PROPERTYDESCRIPTION_UIDMAP			basePropertyDescr_uidmap_;				
-	PROPERTYDESCRIPTION_UIDMAP			clientPropertyDescr_uidmap_;			
+	PROPERTYDESCRIPTION_UIDMAP			persistentPropertyDescr_uidmap_;
+	PROPERTYDESCRIPTION_UIDMAP			cellPropertyDescr_uidmap_;
+	PROPERTYDESCRIPTION_UIDMAP			basePropertyDescr_uidmap_;
+	PROPERTYDESCRIPTION_UIDMAP			clientPropertyDescr_uidmap_;
 	
-	// 这个脚本所拥有的属性描述aliasID映射	
-	PROPERTYDESCRIPTION_ALIASMAP		propertyDescr_aliasmap_;		
+	// 这个脚本所拥有的属性描述aliasID映射
+	PROPERTYDESCRIPTION_ALIASMAP		propertyDescr_aliasmap_;
 
 	// 这个脚本所拥有的方法描述
-	METHODDESCRIPTION_MAP				methodCellDescr_;						
-	METHODDESCRIPTION_MAP				methodBaseDescr_;						
-	METHODDESCRIPTION_MAP				methodClientDescr_;						
+	METHODDESCRIPTION_MAP				methodCellDescr_;
+	METHODDESCRIPTION_MAP				methodBaseDescr_;
+	METHODDESCRIPTION_MAP				methodClientDescr_;
 	
-	METHODDESCRIPTION_MAP				methodBaseExposedDescr_;		
-	METHODDESCRIPTION_MAP				methodCellExposedDescr_;		
+	METHODDESCRIPTION_MAP				methodBaseExposedDescr_;
+	METHODDESCRIPTION_MAP				methodCellExposedDescr_;
 
 	// 这个脚本所拥有的方法描述uid映射
-	METHODDESCRIPTION_UIDMAP			methodCellDescr_uidmap_;				
-	METHODDESCRIPTION_UIDMAP			methodBaseDescr_uidmap_;				
-	METHODDESCRIPTION_UIDMAP			methodClientDescr_uidmap_;				
+	METHODDESCRIPTION_UIDMAP			methodCellDescr_uidmap_;
+	METHODDESCRIPTION_UIDMAP			methodBaseDescr_uidmap_;
+	METHODDESCRIPTION_UIDMAP			methodClientDescr_uidmap_;
 			
-	METHODDESCRIPTION_ALIASMAP			methodDescr_aliasmap_;		
+	METHODDESCRIPTION_ALIASMAP			methodDescr_aliasmap_;
 
 	// 是否有cell部分等
-	bool								hasCell_;								
-	bool								hasBase_;								
-	bool								hasClient_;							
+	bool								hasCell_;
+	bool								hasBase_;
+	bool								hasClient_;
 	
 	// entity的详情级别数据
-	DetailLevel							detailLevel_;							
-	VolatileInfo						volatileinfo_;
+	DetailLevel							detailLevel_;
+	VolatileInfo*						pVolatileinfo_;
 
 	// 这个模块的名称
-	std::string							name_;		
+	std::string							name_;
 
 	bool								usePropertyDescrAlias_;
 	bool								useMethodDescrAlias_;

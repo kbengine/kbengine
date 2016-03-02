@@ -1,6 +1,11 @@
 language: cpp
+sudo: required
 compiler:
    - gcc
+branches:
+  only:
+  - master
+#  - stable
 before_install:
    - sudo apt-get update
 notifications:

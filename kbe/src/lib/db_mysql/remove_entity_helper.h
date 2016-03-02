@@ -46,19 +46,19 @@ public:
 	{
 	}
 
-	static bool removeDB(DBInterface* dbi, DBContext& context)
+	static bool removeDB(DBInterface* dbi, mysql::DBContext& context)
 	{
 		bool ret = _removeDB(dbi, context);
 
 		if(!ret)
 			return false;
 
-		std::string sqlstr = "delete from "ENTITY_TABLE_PERFIX"_";
+		std::string sqlstr = "delete from " ENTITY_TABLE_PERFIX "_";
 		sqlstr += context.tableName;
-		sqlstr += " where "TABLE_ID_CONST_STR"=";
+		sqlstr += " where " TABLE_ID_CONST_STR "=";
 
 		char sqlstr1[MAX_BUF];
-		kbe_snprintf(sqlstr1, MAX_BUF, "%"PRDBID, context.dbid);
+		kbe_snprintf(sqlstr1, MAX_BUF, "%" PRDBID, context.dbid);
 		sqlstr += sqlstr1;
 		
 		ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
@@ -67,16 +67,16 @@ public:
 		return ret;
 	}
 
-	static bool _removeDB(DBInterface* dbi, DBContext& context)
+	static bool _removeDB(DBInterface* dbi, mysql::DBContext& context)
 	{
 		bool ret = true;
 
 		KBEUnordered_map< std::string, std::vector<DBID> > childTableDBIDs;
 
-		DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+		mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 		for(; iter1 != context.optable.end(); ++iter1)
 		{
-			DBContext& wbox = *iter1->second.get();
+			mysql::DBContext& wbox = *iter1->second.get();
 
 			KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 				childTableDBIDs.find(context.tableName);
@@ -95,13 +95,13 @@ public:
 			for(; tabiter != childTableDBIDs.end();)
 			{
 				char sqlstr[MAX_BUF * 10];
-				kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID" union all ", 
+				kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID " union all ", 
 					tabiter->first.c_str(),
 					context.dbid);
 				
 				sqlstr_getids += sqlstr;
 
-				kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
+				kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID, 
 					tabiter->first.c_str(),
 					context.dbid);
 
@@ -145,7 +145,7 @@ public:
 		{
 			KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 				char sqlstr[MAX_BUF * 10];
-				kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
+				kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID, 
 					tabiter->first.c_str(),
 					context.dbid);
 
@@ -175,9 +175,9 @@ public:
 				continue;
 
 			// 先删除数据库中的记录
-			std::string sqlstr = "delete from "ENTITY_TABLE_PERFIX"_";
+			std::string sqlstr = "delete from " ENTITY_TABLE_PERFIX "_";
 			sqlstr += tabiter->first;
-			sqlstr += " where "TABLE_ID_CONST_STR" in (";
+			sqlstr += " where " TABLE_ID_CONST_STR " in (";
 
 			std::vector<DBID>::iterator iter = tabiter->second.begin();
 			for(; iter != tabiter->second.end(); ++iter)
@@ -185,7 +185,7 @@ public:
 				DBID dbid = (*iter);
 
 				char sqlstr1[MAX_BUF];
-				kbe_snprintf(sqlstr1, MAX_BUF, "%"PRDBID, dbid);
+				kbe_snprintf(sqlstr1, MAX_BUF, "%" PRDBID, dbid);
 				sqlstr += sqlstr1;
 				sqlstr += ",";
 			}
@@ -195,10 +195,10 @@ public:
 			bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
 			KBE_ASSERT(ret);
 
-			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 			for(; iter1 != context.optable.end(); ++iter1)
 			{
-				DBContext& wbox = *iter1->second.get();
+				mysql::DBContext& wbox = *iter1->second.get();
 				if(wbox.tableName == tabiter->first)
 				{
 					std::vector<DBID>::iterator iter = tabiter->second.begin();
@@ -220,6 +220,7 @@ public:
 	}
 
 protected:
+
 };
 
 }

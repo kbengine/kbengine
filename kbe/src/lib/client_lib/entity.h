@@ -54,7 +54,7 @@ class Entity : public script::ScriptObject
 	ENTITY_HEADER(Entity)
 		
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule, EntityMailbox* base, EntityMailbox* cell);
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityMailbox* base, EntityMailbox* cell);
 	~Entity();
 	
 	/** 
@@ -169,8 +169,8 @@ public:
 	void onBecomePlayer();
 	void onBecomeNonPlayer();
 	
-	bool isOnGound() const { return isOnGound_;}
-	void isOnGound(bool v) { isOnGound_ = v;}
+	bool isOnGround() const { return isOnGround_;}
+	void isOnGround(bool v) { isOnGround_ = v;}
 
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox
@@ -187,7 +187,7 @@ protected:
 
 	bool									enterworld_;						// 是否已经enterworld了， restore时有用
 	
-	bool									isOnGound_;
+	bool									isOnGround_;
 
 	ScriptID								pMoveHandlerID_;
 };																										

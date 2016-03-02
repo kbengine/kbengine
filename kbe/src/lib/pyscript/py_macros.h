@@ -177,7 +177,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE1 arg1;																								\
 																																	\
 		const uint8 argsSize = 1;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -214,7 +214,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE2##_ARG arg2;																						\
 																																	\
 		const uint8 argsSize = 2;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -254,7 +254,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE3##_ARG arg3;																						\
 																																	\
 		const uint8 argsSize = 3;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -296,7 +296,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE4##_ARG arg4;																						\
 																																	\
 		const uint8 argsSize = 4;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -343,7 +343,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE5##_ARG arg5;																						\
 																																	\
 		const uint8 argsSize = 5;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -393,7 +393,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE6##_ARG arg6;																						\
 																																	\
 		const uint8 argsSize = 6;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -447,7 +447,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE7##_ARG arg7;																						\
 																																	\
 		const uint8 argsSize = 7;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -504,7 +504,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE8##_ARG arg8;																						\
 																																	\
 		const uint8 argsSize = 8;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -565,7 +565,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE9##_ARG arg9;																						\
 																																	\
 		const uint8 argsSize = 9;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -629,7 +629,7 @@ namespace KBEngine{ namespace script{
 		PY_METHOD_ARG_##ARG_TYPE10##_ARG arg10;																						\
 																																	\
 		const uint8 argsSize = 10;																									\
-		uint16 currargsSize = PyTuple_Size(args);																					\
+		uint16 currargsSize = (uint16)PyTuple_Size(args);																			\
 		ThisClass* pobj = static_cast<ThisClass*>(self);																			\
 																																	\
 		if(currargsSize == argsSize)																								\
@@ -674,109 +674,151 @@ namespace KBEngine{ namespace script{
 */
 #define SCRIPT_OBJECT_CALL_ARGS0(OBJ, METHOT_NAME)														\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), (METHOT_NAME), 									\
-															const_cast<char*>(""));						\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), (METHOT_NAME), 								\
+																const_cast<char*>(""));					\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 			
 			
 #define SCRIPT_OBJECT_CALL_ARGS1(OBJ, METHOT_NAME, FORMAT, ARG1)										\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 			
 			
 #define SCRIPT_OBJECT_CALL_ARGS2(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2)									\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 
 
 #define SCRIPT_OBJECT_CALL_ARGS3(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3)							\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2),													\
-												(ARG3)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2),												\
+													(ARG3)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 
 
 #define SCRIPT_OBJECT_CALL_ARGS4(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4)						\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2),													\
-												(ARG3),													\
-												(ARG4)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2),												\
+													(ARG3),												\
+													(ARG4)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 
 
 #define SCRIPT_OBJECT_CALL_ARGS5(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4, ARG5)				\
 {																										\
-	if(PyObject_HasAttrString(OBJ, METHOT_NAME))														\
+	if(OBJ == NULL)																						\
 	{																									\
-		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
-												(METHOT_NAME), 											\
-												(FORMAT),												\
-												(ARG1),													\
-												(ARG2),													\
-												(ARG3),													\
-												(ARG4),													\
-												(ARG5)													\
-													);													\
-		if(pyResult != NULL)																			\
-			Py_DECREF(pyResult);																		\
-		else																							\
-			PyErr_PrintEx(0);																			\
+		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
+	}																									\
+	else																								\
+	{																									\
+		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		{																								\
+			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
+													(METHOT_NAME), 										\
+													(FORMAT),											\
+													(ARG1),												\
+													(ARG2),												\
+													(ARG3),												\
+													(ARG4),												\
+													(ARG5)												\
+														);												\
+			if(pyResult != NULL)																		\
+				Py_DECREF(pyResult);																	\
+			else																						\
+				PyErr_PrintEx(0);																		\
+		}																								\
 	}																									\
 }																										\
 			

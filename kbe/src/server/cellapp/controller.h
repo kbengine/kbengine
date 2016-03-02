@@ -43,6 +43,7 @@ public:
 		CONTROLLER_TYPE_NORMAL = 0,			// 常规类型
 		CONTROLLER_TYPE_PROXIMITY = 1,		// 范围触发器类型
 		CONTROLLER_TYPE_MOVE = 2,			// 移动控制器类型
+		CONTROLLER_TYPE_ROTATE = 3,			// 旋转控制器类型
 	};
 
 	Controller(Controller::ControllerType type, Entity* pEntity, int32 userarg, uint32 id = 0);

@@ -18,15 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_DB_RW_CONTEXT_H
-#define KBE_DB_RW_CONTEXT_H
+#ifndef KBE_MYSQL_DB_RW_CONTEXT_H
+#define KBE_MYSQL_DB_RW_CONTEXT_H
 
 #include "common/common.h"
 #include "common/memorystream.h"
 #include "helper/debug_helper.h"
 
 namespace KBEngine { 
-
+namespace mysql {
 
 /**
 	读写删操作时会用到，包含取到或待写入的各种信息。
@@ -77,21 +77,26 @@ public:
 	}
 	
 	DB_ITEM_DATAS items;
+	
 	std::string tableName;
 	std::string parentTableName;
+	
 	DBID parentTableDBID;
 	DBID dbid;
+	
 	DB_RW_CONTEXTS optable;
+	
 	bool isEmpty;
+	
 	std::map<DBID, std::vector<DBID> > dbids;
 	std::vector< std::string >results;
 	std::vector< std::string >::size_type readresultIdx;
-
 
 private:
 
 };
 
 }
-#endif // KBE_DB_RW_CONTEXT_H
+}
+#endif // KBE_MYSQL_DB_RW_CONTEXT_H
 

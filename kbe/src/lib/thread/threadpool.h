@@ -304,7 +304,7 @@ public:
 	*/
 	INLINE uint32 finiTaskSize() const;
 
-	virtual std::string name() const{ return "ThreadPool"; }
+	virtual std::string name() const { return "ThreadPool"; }
 
 public:
 	static int timeout;

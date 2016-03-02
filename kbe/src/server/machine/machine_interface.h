@@ -88,7 +88,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									int32,							uid, 
 									std::string,					username,
 									uint16,							finderRecvPort)
-						
+		
+	// 查询所有machine进程
+	MACHINE_MESSAGE_DECLARE_ARGS3(onQueryMachines,					NETWORK_VARIABLE_MESSAGE,
+									int32,							uid, 
+									std::string,					username,
+									uint16,							finderRecvPort)
 	// 某app主动请求look。
 	MACHINE_MESSAGE_DECLARE_ARGS0(lookApp,							NETWORK_FIXED_MESSAGE)
 

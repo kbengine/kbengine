@@ -128,7 +128,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_);
 
 		if(mstream->wpos() > 0)
-			(*pForwardBundle).append(mstream->data(), mstream->wpos());
+			(*pForwardBundle).append(mstream->data(), (int)mstream->wpos());
 
 		if(Network::g_trace_packet > 0)
 		{

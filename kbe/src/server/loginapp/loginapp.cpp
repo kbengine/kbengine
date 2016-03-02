@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "jwsmtp.h"
 #include "loginapp.h"
+#include "profile.h"	
 #include "http_cb_handler.h"
 #include "loginapp_interface.h"
 #include "network/common.h"
@@ -30,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.h"
 #include "common/kbeversion.h"
 #include "server/components.h"
+#include "server/telnet_server.h"
 #include "server/sendmail_threadtasks.h"
 #include "client_lib/client_interface.h"
 #include "network/encryption_filter.h"
@@ -37,6 +39,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp/baseapp_interface.h"
 #include "baseappmgr/baseappmgr_interface.h"
 #include "dbmgr/dbmgr_interface.h"
+
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -47,13 +51,14 @@ Loginapp::Loginapp(Network::EventDispatcher& dispatcher,
 			 Network::NetworkInterface& ninterface, 
 			 COMPONENT_TYPE componentType,
 			 COMPONENT_ID componentID):
-	ServerApp(dispatcher, ninterface, componentType, componentID),
-	loopCheckTimerHandle_(),
+	PythonApp(dispatcher, ninterface, componentType, componentID),
+	mainProcessTimer_(),
 	pendingCreateMgr_(ninterface),
 	pendingLoginMgr_(ninterface),
 	digest_(),
 	pHttpCBHandler(NULL),
-	initProgress_(0.f)
+	initProgress_(0.f),
+	pTelnetServer_(NULL)
 {
 }
 
@@ -66,32 +71,42 @@ Loginapp::~Loginapp()
 //-------------------------------------------------------------------------------------	
 void Loginapp::onShutdownBegin()
 {
-	ServerApp::onShutdownBegin();
+	PythonApp::onShutdownBegin();
+	
+	// 通知脚本
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoginAppShutDown"));
+}
+
+//-------------------------------------------------------------------------------------	
+void Loginapp::onShutdownEnd()
+{
+	PythonApp::onShutdownEnd();
 }
 
 //-------------------------------------------------------------------------------------
 bool Loginapp::run()
 {
-	return ServerApp::run();
+	return PythonApp::run();
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
-		case TIMEOUT_CHECK_STATUS:
-			this->handleCheckStatusTick();
-			return;
+		case TIMEOUT_TICK:
+			this->handleMainTick();
+			break;
 		default:
 			break;
 	}
-
-	ServerApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
-void Loginapp::handleCheckStatusTick()
+void Loginapp::handleMainTick()
 {
 	threadPool_.onMainThreadTick();
 	networkInterface().processChannels(&LoginappInterface::messageHandlers);
@@ -107,7 +122,7 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 	{
 		const std::string& extra = pChannel->extra();
 
-		// 通知Interfaces从队列中清除他的请求， 避免拥塞
+		// 通知dbmgr从队列中清除他的请求， 避免拥塞
 		if(extra.size() > 0)
 		{
 			Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
@@ -129,7 +144,7 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 		}
 	}
 
-	ServerApp::onChannelDeregister(pChannel);
+	PythonApp::onChannelDeregister(pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -141,24 +156,60 @@ bool Loginapp::initializeBegin()
 //-------------------------------------------------------------------------------------
 bool Loginapp::inInitialize()
 {
-	return true;
+	return PythonApp::inInitialize();
 }
 
 //-------------------------------------------------------------------------------------
 bool Loginapp::initializeEnd()
 {
-	// 添加一个timer， 每秒检查一些状态
-	loopCheckTimerHandle_ = this->dispatcher().addTimer(1000000 / 50, this,
-							reinterpret_cast<void *>(TIMEOUT_CHECK_STATUS));
+	PythonApp::initializeEnd();
 
-	return true;
+	// 添加一个timer， 每秒检查一些状态
+	mainProcessTimer_ = this->dispatcher().addTimer(1000000 / 50, this,
+							reinterpret_cast<void *>(TIMEOUT_TICK));
+
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	// 所有脚本都加载完毕
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onLoginAppReady"), 
+										const_cast<char*>(""));
+
+	if(pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+	
+	pTelnetServer_ = new TelnetServer(&this->dispatcher(), &this->networkInterface());
+	pTelnetServer_->pScript(&this->getScript());
+
+	bool ret = pTelnetServer_->start(g_kbeSrvConfig.getLoginApp().telnet_passwd,
+		g_kbeSrvConfig.getLoginApp().telnet_deflayer,
+		g_kbeSrvConfig.getLoginApp().telnet_port);
+
+	Components::getSingleton().extraData4(pTelnetServer_->port());
+	return ret;
+}
+
+//-------------------------------------------------------------------------------------		
+void Loginapp::onInstallPyModules()
+{
+	PyObject * module = getScript().getModule();
+
+	for (int i = 0; i < SERVER_ERR_MAX; i++)
+	{
+		if(PyModule_AddIntConstant(module, SERVER_ERR_STR[i], i))
+		{
+			ERROR_MSG( fmt::format("Loginapp::onInstallPyModules: Unable to set KBEngine.{}.\n", SERVER_ERR_STR[i]));
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
-	loopCheckTimerHandle_.cancel();
-	ServerApp::finalise();
+	mainProcessTimer_.cancel();
+	PythonApp::finalise();
 }
 
 //-------------------------------------------------------------------------------------
@@ -266,6 +317,87 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		return false;
 	}
 	
+	{
+		// 把请求交由脚本处理
+		SERVER_ERROR_CODE retcode = SERVER_SUCCESS;
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+											const_cast<char*>("onRequestCreateAccount"), 
+											const_cast<char*>("ssy#"), 
+											accountName.c_str(),
+											password.c_str(),
+											datas.c_str(), datas.length());
+
+		if(pyResult != NULL)
+		{
+			if(PySequence_Check(pyResult) && PySequence_Size(pyResult) == 4)
+			{
+				char* sname;
+				char* spassword;
+			    char *extraDatas;
+			    Py_ssize_t extraDatas_size = 0;
+				
+				if(PyArg_ParseTuple(pyResult, "H|s|s|y#",  &retcode, &sname, &spassword, &extraDatas, &extraDatas_size) == -1)
+				{
+					ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error! accountName={}\n", 
+						g_kbeSrvConfig.getLoginApp().entryScriptFile, accountName));
+
+					retcode = SERVER_ERR_OP_FAILED;
+				}
+				else
+				{
+					accountName = sname;
+					password = spassword;
+
+					if (extraDatas && extraDatas_size > 0)
+						datas.assign(extraDatas, extraDatas_size);
+					else
+						SCRIPT_ERROR_CHECK();
+				}
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error, must be errorcode or tuple! accountName={}\n", 
+					g_kbeSrvConfig.getLoginApp().entryScriptFile, accountName));
+
+				retcode = SERVER_ERR_OP_FAILED;
+			}
+			
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			retcode = SERVER_ERR_OP_FAILED;
+		}
+			
+		if(retcode != SERVER_SUCCESS)
+		{
+			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
+			(*pBundle) << retcode;
+			(*pBundle).appendBlob(retdatas);
+			pChannel->send(pBundle);
+			return false;
+		}
+		else
+		{
+			if(accountName.size() == 0)
+			{
+				ERROR_MSG(fmt::format("Loginapp::_createAccount: accountName is empty!\n"));
+
+				retcode = SERVER_ERR_NAME;
+				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
+				(*pBundle) << retcode;
+				(*pBundle).appendBlob(retdatas);
+				pChannel->send(pBundle);
+				return false;
+			}
+		}
+	}
+
 	if(type == ACCOUNT_TYPE_SMART)
 	{
 		if (email_isvalid(accountName.c_str()))
@@ -404,6 +536,24 @@ void Loginapp::onReqCreateAccountResult(Network::Channel* pChannel, MemoryStream
 
 	s >> failedcode >> accountName >> password;
 	s.readBlob(retdatas);
+
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onCreateAccountCallbackFromDB"), 
+										const_cast<char*>("sHy#"), 
+										accountName.c_str(),
+										failedcode,
+										retdatas.c_str(), retdatas.length());
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
 
 	DEBUG_MSG(fmt::format("Loginapp::onReqCreateAccountResult: accountName={}, failedcode={}.\n",
 		accountName.c_str(), failedcode));
@@ -699,26 +849,123 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest && (ctype != CLIENT_TYPE_BROWSER && 
-		ctype != CLIENT_TYPE_MINI && ctype != CLIENT_TYPE_MOBILE))
+	if(!g_kbeSrvConfig.getDBMgr().allowEmptyDigest)
 	{
 		std::string clientDigest;
 
 		if(s.length() > 0)
 			s >> clientDigest;
 
-		if(clientDigest != digest_)
+		if(clientDigest.size() > 0)
 		{
-			INFO_MSG(fmt::format("Loginapp::login: loginName({}), digest not match. curr({}) != dbmgr({})\n",
-				loginName, clientDigest, digest_));
+			if(clientDigest != digest_)
+			{
+				INFO_MSG(fmt::format("Loginapp::login: loginName({}), digest not match. curr({}) != dbmgr({})\n",
+					loginName, clientDigest, digest_));
 
-			datas = "";
-			_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
-			return;
+				datas = "";
+				_loginFailed(pChannel, loginName, SERVER_ERR_ENTITYDEFS_NOT_MATCH, datas, true);
+				return;
+			}
+		}
+		else
+		{
+			//WARNING_MSG(fmt::format("Loginapp::login: loginName={} no check entitydefs!\n", loginName));
 		}
 	}
 
 	s.done();
+
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	{
+		INFO_MSG(fmt::format("Loginapp::login: shutting down, {} login failed!\n", loginName));
+
+		datas = "";
+		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas, true);
+		return;
+	}
+
+	if(initProgress_ < 1.f)
+	{
+		datas = fmt::format("initProgress: {}", initProgress_);
+		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_STARTING, datas, true);
+		return;
+	}
+	
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onReuqestLogin"), 
+										const_cast<char*>("ssby#"), 
+										loginName.c_str(),
+										password.c_str(),
+										tctype,
+										datas.c_str(), datas.length());
+
+	if(pyResult != NULL)
+	{
+		bool login_check = true;
+		if(PySequence_Check(pyResult) && PySequence_Size(pyResult) == 5)
+		{
+			char* sname;
+			char* spassword;
+		    char *extraDatas;
+		    Py_ssize_t extraDatas_size = 0;
+			SERVER_ERROR_CODE error;
+			
+			if(PyArg_ParseTuple(pyResult, "H|s|s|b|y#",  &error, &sname, &spassword, &tctype, &extraDatas, &extraDatas_size) == -1)
+			{
+				ERROR_MSG(fmt::format("Loginapp::login: {}.onReuqestLogin, Return value error! loginName={}\n", 
+					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
+
+				login_check = false;
+				_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
+			}
+			
+			if(login_check)
+			{
+				loginName = sname;
+				password = spassword;
+
+				if (extraDatas && extraDatas_size > 0)
+					datas.assign(extraDatas, extraDatas_size);
+				else
+					SCRIPT_ERROR_CHECK();
+			}
+			
+			if(error != SERVER_SUCCESS)
+			{
+				login_check = false;
+				_loginFailed(pChannel, loginName, error, datas, true);
+			}
+			
+			if(loginName.size() == 0)
+			{
+				INFO_MSG("Loginapp::login: loginName is NULL.\n");
+				_loginFailed(pChannel, loginName, SERVER_ERR_NAME, datas, true);
+				s.done();
+				return;
+			}
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Loginapp::login: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
+				g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
+
+			login_check = false;
+			_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
+		}
+		
+		Py_DECREF(pyResult);
+		
+		if(!login_check)
+			return;
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+		_loginFailed(pChannel, loginName, SERVER_ERR_OP_FAILED, datas, true);
+	}
 
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.find(loginName);
 	if(ptinfos != NULL)
@@ -738,22 +985,6 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 
 	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
 		ctype = UNKNOWN_CLIENT_COMPONENT_TYPE;
-
-	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
-	{
-		INFO_MSG(fmt::format("Loginapp::login: shutting down, {} login failed!\n", loginName));
-
-		datas = "";
-		_loginFailed(pChannel, loginName, SERVER_ERR_IN_SHUTTINGDOWN, datas);
-		return;
-	}
-
-	if(initProgress_ < 1.f)
-	{
-		datas = fmt::format("initProgress: {}", initProgress_);
-		_loginFailed(pChannel, loginName, SERVER_ERR_SRV_STARTING, datas);
-		return;
-	}
 
 	INFO_MSG(fmt::format("Loginapp::login: new client[{0}], loginName={1}, datas={2}.\n",
 		COMPONENT_CLIENT_NAME[ctype], loginName, datas));
@@ -875,6 +1106,25 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		return;
 	}
 
+	// 把请求交由脚本处理
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
+										const_cast<char*>("onLoginCallbackFromDB"), 
+										const_cast<char*>("ssHy#"), 
+										loginName.c_str(),
+										accountName.c_str(),
+										retcode,
+										datas.c_str(), datas.length());
+
+	if(pyResult != NULL)
+	{
+		Py_DECREF(pyResult);
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	
 	infos->datas = datas;
 
 	Network::Channel* pClientChannel = this->networkInterface().findChannel(infos->addr);
@@ -1081,13 +1331,13 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 	
 		bundle.newMessage(ClientInterface::onImportClientMessages);
 		
-		uint16 size = messages.size() + clientMessages.size();
+		uint16 size = (uint16)(messages.size() + clientMessages.size());
 		bundle << size;
 
 		std::map< Network::MessageID, Network::ExposedMessageInfo >::iterator iter = clientMessages.begin();
 		for(; iter != clientMessages.end(); ++iter)
 		{
-			uint8 argsize = iter->second.argsTypes.size();
+			uint8 argsize = (uint8)iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
@@ -1100,7 +1350,7 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		iter = messages.begin();
 		for(; iter != messages.end(); ++iter)
 		{
-			uint8 argsize = iter->second.argsTypes.size();
+			uint8 argsize = (uint8)iter->second.argsTypes.size();
 			bundle << iter->second.id << iter->second.msgLen << iter->second.name << iter->second.argsType << argsize;
 
 			std::vector<uint8>::iterator argiter = iter->second.argsTypes.begin();
@@ -1151,14 +1401,14 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 
 		bundle.newMessage(ClientInterface::onImportServerErrorsDescr);
 		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();
-		uint16 size = errsDescrs.size();
+		uint16 size = (uint16)errsDescrs.size();
 
 		bundle << size;
 		for(; iter != errsDescrs.end(); ++iter)
 		{
 			bundle << iter->first;
-			bundle.appendBlob(iter->second.first.data(), iter->second.first.size());
-			bundle.appendBlob(iter->second.second.data(), iter->second.second.size());
+			bundle.appendBlob(iter->second.first.data(), (ArraySize)iter->second.first.size());
+			bundle.appendBlob(iter->second.second.data(), (ArraySize)iter->second.second.size());
 		}
 	}
 

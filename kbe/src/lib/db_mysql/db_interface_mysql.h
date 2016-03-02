@@ -31,18 +31,30 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "mysql/mysql.h"
 #if KBE_PLATFORM == PLATFORM_WIN32
-#ifdef _DEBUG
-#pragma comment (lib, "libmysql_d.lib")
-#pragma comment (lib, "mysqlclient_d.lib")
+#ifdef X64
+// added for VS2015
+#if _MSC_VER >= 1900
+#pragma comment (lib, "libmysql64_vs140.lib")
+#pragma comment (lib, "mysqlclient64_vs140.lib")
 #else
-#pragma comment (lib, "libmysql.lib")
-#pragma comment (lib, "mysqlclient.lib")
+#pragma comment (lib, "libmysql64.lib")
+#pragma comment (lib, "mysqlclient64.lib")
+#endif
+#else
+// added for VS2015
+#if _MSC_VER >= 1900
+#pragma comment (lib, "libmysql32_vs140.lib")
+#pragma comment (lib, "mysqlclient32_vs140.lib")
+#else
+#pragma comment (lib, "libmysql32.lib")
+#pragma comment (lib, "mysqlclient32.lib")
+#endif
 #endif
 #endif
 
 namespace KBEngine { 
 
-struct TABLE_FIELD
+struct MYSQL_TABLE_FIELD
 {
 	std::string name;
 	int32 length;
@@ -57,20 +69,21 @@ struct TABLE_FIELD
 class DBInterfaceMysql : public DBInterface
 {
 public:
-	DBInterfaceMysql(std::string characterSet, std::string collation);
+	DBInterfaceMysql(const char* name, std::string characterSet, std::string collation);
 	virtual ~DBInterfaceMysql();
 
+	static bool initInterface(DBInterface* pdbi);
+	
 	/**
 		与某个数据库关联
 	*/
+	bool reattach();
 	virtual bool attach(const char* databaseName = NULL);
 	virtual bool detach();
 
 	bool ping(){ 
 		return mysql_ping(pMysql_) == 0; 
 	}
-
-	bool reattach();
 
 	void inTransaction(bool value)
 	{
@@ -92,9 +105,9 @@ public:
 	*/
 	virtual bool checkErrors();
 
-	virtual bool query(const char* strCommand, uint32 size, bool showexecinfo = true);
+	virtual bool query(const char* strCommand, uint32 size, bool printlog = true, MemoryStream * result = NULL);
 
-	bool execute(const char* strCommand, uint32 size, MemoryStream * resdata);
+	bool write_query_result(MemoryStream * result);
 
 	/**
 		获取数据库所有的表名
@@ -104,12 +117,12 @@ public:
 	/**
 		获取数据库某个表所有的字段名称
 	*/
-	virtual bool getTableItemNames(const char* tablename, std::vector<std::string>& itemNames);
+	virtual bool getTableItemNames(const char* tableName, std::vector<std::string>& itemNames);
 
 	/** 
 		从数据库删除entity表字段
 	*/
-	virtual bool dropEntityTableItemFromDB(const char* tablename, const char* tableItemName);
+	virtual bool dropEntityTableItemFromDB(const char* tableName, const char* tableItemName);
 
 	MYSQL* mysql(){ return pMysql_; }
 
@@ -131,8 +144,8 @@ public:
 
 	unsigned int getLastErrorNum() { return mysql_errno( pMysql_ ); }
 
-	typedef KBEUnordered_map<std::string, TABLE_FIELD> TABLE_FIELDS;
-	void getFields(TABLE_FIELDS& outs, const char* tablename);
+	typedef KBEUnordered_map<std::string, MYSQL_TABLE_FIELD> TABLE_FIELDS;
+	void getFields(TABLE_FIELDS& outs, const char* tableName);
 
 	/**
 		返回这个接口的描述
@@ -157,12 +170,12 @@ public:
 	/**
 		创建一个entity存储表
 	*/
-	virtual EntityTable* createEntityTable();
+	virtual EntityTable* createEntityTable(EntityTables* pEntityTables);
 
 	/** 
 		从数据库删除entity表
 	*/
-	virtual bool dropEntityTableFromDB(const char* tablename);
+	virtual bool dropEntityTableFromDB(const char* tableName);
 
 	/**
 		锁住接口操作
@@ -187,7 +200,7 @@ protected:
 
 	bool inTransaction_;
 
-	DBTransaction lock_;
+	mysql::DBTransaction lock_;
 
 	std::string characterSet_;
 	std::string collation_;

@@ -66,7 +66,7 @@ PyObject * PyTuple_FromIntVector(const std::vector< T > & v)
 template<>
 inline PyObject * PyTuple_FromIntVector<int64>(const std::vector< int64 > & v)
 {
-	int sz = v.size();
+	int sz = (int)v.size();
 	PyObject * t = PyTuple_New( sz );
 	for (int i = 0; i < sz; ++i)
 	{
@@ -79,7 +79,7 @@ inline PyObject * PyTuple_FromIntVector<int64>(const std::vector< int64 > & v)
 template<>
 inline PyObject * PyTuple_FromIntVector<uint64>(const std::vector< uint64 > & v)
 {
-	int sz = v.size();
+	int sz = (int)v.size();
 	PyObject * t = PyTuple_New( sz );
 	for (int i = 0; i < sz; ++i)
 	{

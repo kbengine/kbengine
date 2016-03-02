@@ -39,13 +39,6 @@ gameUpdateHertz_(10),
 tick_max_buffered_logs_(4096),
 tick_max_sync_logs_(32),
 interfacesAddr_(),
-interfaces_accountType_(""),
-interfaces_chargeType_(""),
-interfaces_thirdpartyAccountServiceAddr_(""),
-interfaces_thirdpartyAccountServicePort_(80),
-interfaces_thirdpartyChargeServiceAddr_(""),
-interfaces_thirdpartyChargeServicePort_(80),
-interfaces_thirdpartyServiceCBPort_(0),
 shutdown_time_(1.f),
 shutdown_waitTickTime_(1.f),
 callback_timeout_(180.f),
@@ -364,30 +357,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("interfaces");
 	if(rootNode != NULL)
 	{
-		TiXmlNode* childnode = xml->enterNode(rootNode, "accountType");
-		if(childnode)
-		{
-			interfaces_accountType_ = xml->getValStr(childnode);
-			if(interfaces_accountType_.size() == 0)
-				interfaces_accountType_ = "normal";
-		}
+		TiXmlNode* childnode = xml->enterNode(rootNode, "entryScriptFile");	
+		if(childnode != NULL)
+			strncpy((char*)&_interfacesInfo.entryScriptFile, xml->getValStr(childnode).c_str(), MAX_NAME);
 
-		childnode = xml->enterNode(rootNode, "chargeType");
-		if(childnode)
-		{
-			interfaces_chargeType_ = xml->getValStr(childnode);
-			if(interfaces_chargeType_.size() == 0)
-				interfaces_chargeType_ = "normal";
-		}
-
-		std::string ip = "";
 		childnode = xml->enterNode(rootNode, "host");
 		if(childnode)
 		{
-			ip = xml->getValStr(childnode);
-			if(ip.size() == 0)
-				ip = "localhost";
-
+			std::string ip = xml->getValStr(childnode);
 			Network::Address addr(ip, ntohs(interfacesAddr_.port));
 			interfacesAddr_ = addr;
 		}
@@ -405,36 +382,6 @@ bool ServerConfig::loadConfig(std::string fileName)
 			interfacesAddr_ = addr;
 		}
 
-		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_addr");
-		if(childnode)
-		{
-			interfaces_thirdpartyAccountServiceAddr_ = xml->getValStr(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyAccountService_port");
-		if(childnode)
-		{
-			interfaces_thirdpartyAccountServicePort_ = xml->getValInt(childnode);
-		}
-		
-		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_addr");
-		if(childnode)
-		{
-			interfaces_thirdpartyChargeServiceAddr_ = xml->getValStr(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyChargeService_port");
-		if(childnode)
-		{
-			interfaces_thirdpartyChargeServicePort_ = xml->getValInt(childnode);
-		}
-
-		childnode = xml->enterNode(rootNode, "thirdpartyService_cbport");
-		if(childnode)
-		{
-			interfaces_thirdpartyServiceCBPort_ = xml->getValInt(childnode);
-		}
-
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_interfacesInfo.tcp_SOMAXCONN = xml->getValInt(node);
@@ -443,6 +390,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "orders_timeout");
 		if(node != NULL){
 			interfaces_orders_timeout_ = xml->getValInt(node);
+		}
+	
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_interfacesInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 
@@ -777,65 +746,180 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("dbmgr");
 	if(rootNode != NULL)
 	{
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_dbmgrInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+		
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_dbmgrInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
+		node = xml->enterNode(rootNode, "InterfacesServiceAddr");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "host");
+			if (childnode)
+			{
+				std::string ip = xml->getValStr(childnode);
+				Network::Address addr(ip, ntohs(interfacesAddr_.port));
+				interfacesAddr_ = addr;
+			}
+
+			uint16 port = 0;
+			childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				port = xml->getValInt(childnode);
+
+				if (port <= 0)
+					port = KBE_INTERFACES_TCP_PORT;
+
+				Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
+				interfacesAddr_ = addr;
+			}
+
+			childnode = xml->enterNode(node, "enable");
+			if (childnode)
+			{
+				if(xml->getValStr(childnode) != "true")
+					interfacesAddr_ = Network::Address::NONE;
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_dbmgrInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
 
-		node = xml->enterNode(rootNode, "type");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_type, xml->getValStr(node).c_str(), MAX_NAME);
-
-		node = xml->enterNode(rootNode, "host");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_ip, xml->getValStr(node).c_str(), MAX_IP);
-
-		node = xml->enterNode(rootNode, "port");	
-		if(node != NULL)
-			_dbmgrInfo.db_port = xml->getValInt(node);	
-
-		node = xml->enterNode(rootNode, "auth");	
-		if(node != NULL)
+		TiXmlNode* databaseInterfacesNode = xml->enterNode(rootNode, "databaseInterfaces");	
+		if(databaseInterfacesNode != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "password");
-			if(childnode)
+			if (databaseInterfacesNode->FirstChild() != NULL)
 			{
-				strncpy((char*)&_dbmgrInfo.db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10);
-			}
+				do
+				{
+					std::string name = databaseInterfacesNode->Value();
 
-			childnode = xml->enterNode(node, "username");
-			if(childnode)
-			{
-				strncpy((char*)&_dbmgrInfo.db_username, xml->getValStr(childnode).c_str(), MAX_NAME);
-			}
+					DBInterfaceInfo dbinfo;
+					DBInterfaceInfo* pDBInfo = dbInterface(name);
+					if (!pDBInfo)
+						pDBInfo = &dbinfo;
+					
+					strncpy((char*)&pDBInfo->name, name.c_str(), MAX_NAME);
 
-			childnode = xml->enterNode(node, "encrypt");
-			if(childnode)
-			{
-				_dbmgrInfo.db_passwordEncrypt = xml->getValStr(childnode) == "true";
-			}
-		}
-		
-		node = xml->enterNode(rootNode, "databaseName");	
-		if(node != NULL)
-			strncpy((char*)&_dbmgrInfo.db_name, xml->getValStr(node).c_str(), MAX_NAME);
+					TiXmlNode* interfaceNode = databaseInterfacesNode->FirstChild();
+					
+					node = xml->enterNode(interfaceNode, "pure");
+					if (node)
+						pDBInfo->isPure = xml->getValStr(node) == "true";
 
-		node = xml->enterNode(rootNode, "numConnections");	
-		if(node != NULL)
-			_dbmgrInfo.db_numConnections = xml->getValInt(node);
-		
-		node = xml->enterNode(rootNode, "unicodeString");
-		if(node != NULL)
-		{
-			TiXmlNode* childnode = xml->enterNode(node, "characterSet");
-			if(childnode)
-			{
-				_dbmgrInfo.db_unicodeString_characterSet = xml->getValStr(childnode);
-			}
+					// 默认库不允许是纯净库，引擎需要创建实体表
+					if (name == "default")
+						pDBInfo->isPure = false;
 
-			childnode = xml->enterNode(node, "collation");
-			if(childnode)
-			{
-				_dbmgrInfo.db_unicodeString_collation = xml->getValStr(childnode);
+					node = xml->enterNode(interfaceNode, "type");
+					if(node != NULL)
+						strncpy((char*)&pDBInfo->db_type, xml->getValStr(node).c_str(), MAX_NAME);
+					
+					node = xml->enterNode(interfaceNode, "host");
+					if(node != NULL)
+						strncpy((char*)&pDBInfo->db_ip, xml->getValStr(node).c_str(), MAX_IP);
+
+					node = xml->enterNode(interfaceNode, "port");
+					if(node != NULL)
+						pDBInfo->db_port = xml->getValInt(node);
+
+					node = xml->enterNode(interfaceNode, "auth");
+					if(node != NULL)
+					{
+						TiXmlNode* childnode = xml->enterNode(node, "password");
+						if(childnode)
+						{
+							strncpy((char*)&pDBInfo->db_password, xml->getValStr(childnode).c_str(), MAX_BUF * 10);
+						}
+
+						childnode = xml->enterNode(node, "username");
+						if(childnode)
+						{
+							strncpy((char*)&pDBInfo->db_username, xml->getValStr(childnode).c_str(), MAX_NAME);
+						}
+
+						childnode = xml->enterNode(node, "encrypt");
+						if(childnode)
+						{
+							pDBInfo->db_passwordEncrypt = xml->getValStr(childnode) == "true";
+						}
+					}
+						
+					node = xml->enterNode(interfaceNode, "databaseName");
+					if(node != NULL)
+						strncpy((char*)&pDBInfo->db_name, xml->getValStr(node).c_str(), MAX_NAME);
+
+					node = xml->enterNode(interfaceNode, "numConnections");
+					if(node != NULL)
+						pDBInfo->db_numConnections = xml->getValInt(node);
+						
+					node = xml->enterNode(interfaceNode, "unicodeString");
+					if(node != NULL)
+					{
+						TiXmlNode* childnode = xml->enterNode(node, "characterSet");
+						if(childnode)
+						{
+							pDBInfo->db_unicodeString_characterSet = xml->getValStr(childnode);
+						}
+
+						childnode = xml->enterNode(node, "collation");
+						if(childnode)
+						{
+							pDBInfo->db_unicodeString_collation = xml->getValStr(childnode);
+						}
+					}
+
+					if (pDBInfo->db_unicodeString_characterSet.size() == 0)
+						pDBInfo->db_unicodeString_characterSet = "utf8";
+
+					if (pDBInfo->db_unicodeString_collation.size() == 0)
+						pDBInfo->db_unicodeString_collation = "utf8_bin";
+	
+					if (pDBInfo == &dbinfo)
+					{
+						// 检查不能在不同的接口中使用相同的数据库与相同的表
+						std::vector<DBInterfaceInfo>::iterator dbinfo_iter = _dbmgrInfo.dbInterfaceInfos.begin();
+						for (; dbinfo_iter != _dbmgrInfo.dbInterfaceInfos.end(); ++dbinfo_iter)
+						{
+							if (kbe_stricmp((*dbinfo_iter).db_ip, dbinfo.db_ip) == 0 && 
+								kbe_stricmp((*dbinfo_iter).db_type, dbinfo.db_type) == 0 &&
+								(*dbinfo_iter).db_port == dbinfo.db_port &&
+								strcmp(dbinfo.db_name, (*dbinfo_iter).db_name) == 0)
+							{
+								ERROR_MSG(fmt::format("ServerConfig::loadConfig: databaseInterfaces, Conflict between \"{}\" and \"{}\", file={}!\n",
+									(*dbinfo_iter).name, dbinfo.name, fileName.c_str()));
+
+								return false;
+							}
+						}
+
+						_dbmgrInfo.dbInterfaceInfos.push_back(dbinfo);
+					}
+
+				} while ((databaseInterfacesNode = databaseInterfacesNode->NextSibling()));
 			}
 		}
 
@@ -892,15 +976,35 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 	}
 
-	if(_dbmgrInfo.db_unicodeString_characterSet.size() == 0)
-		_dbmgrInfo.db_unicodeString_characterSet = "utf8";
-
-	if(_dbmgrInfo.db_unicodeString_collation.size() == 0)
-		_dbmgrInfo.db_unicodeString_collation = "utf8_bin";
-
 	rootNode = xml->getRootNode("loginapp");
 	if(rootNode != NULL)
 	{
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_loginAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
+		
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_loginAppInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loginAppInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
@@ -1028,19 +1132,19 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "defaultAddBots");
 		if(node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "totalcount");
+			TiXmlNode* childnode = xml->enterNode(node, "totalCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_totalCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "tickcount");
+			childnode = xml->enterNode(node, "tickCount");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickCount = xml->getValInt(childnode);
 			}
 
-			childnode = xml->enterNode(node, "ticktime");
+			childnode = xml->enterNode(node, "tickTime");
 			if(childnode)
 			{
 				_botsInfo.defaultAddBots_tickTime = (float)xml->getValFloat(childnode);
@@ -1094,9 +1198,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 	rootNode = xml->getRootNode("logger");
 	if(rootNode != NULL)
 	{
-		node = xml->enterNode(rootNode, "logger");	
+		node = xml->enterNode(rootNode, "internalInterface");	
 		if(node != NULL)
 			strncpy((char*)&_loggerInfo.internalInterface, xml->getValStr(node).c_str(), MAX_NAME);
+
+		node = xml->enterNode(rootNode, "entryScriptFile");
+		if (node != NULL)
+			strncpy((char*)&_loggerInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
@@ -1111,6 +1219,28 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "tick_sync_logs");
 		if(node != NULL){
 			tick_max_sync_logs_ = (uint32)xml->getValInt(node);
+		}
+	
+		node = xml->enterNode(rootNode, "telnet_service");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "port");
+			if (childnode)
+			{
+				_loggerInfo.telnet_port = xml->getValInt(childnode);
+			}
+
+			childnode = xml->enterNode(node, "password");
+			if (childnode)
+			{
+				_loggerInfo.telnet_passwd = xml->getValStr(childnode);
+			}
+
+			childnode = xml->enterNode(node, "default_layer");
+			if (childnode)
+			{
+				_loggerInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
 		}
 	}
 
@@ -1289,6 +1419,9 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 							   const Network::Address& internalAddr, const Network::Address& externalAddr)
 {
 	std::string infostr = "";
+
+	for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
+		_dbmgrInfo.dbInterfaceInfos[i].index = i;
 
 	//updateExternalAddress(getBaseApp().externalAddress);
 	//updateExternalAddress(getLoginApp().externalAddress);

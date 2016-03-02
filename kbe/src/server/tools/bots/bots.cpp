@@ -379,7 +379,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------	
 PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
@@ -634,22 +634,22 @@ void Bots::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onLoginGatewayFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void Bots::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onLoginGatewayFailed(pChannel, failedcode);
+		pClient->onLoginBaseappFailed(pChannel, failedcode);
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onReLoginGatewaySuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void Bots::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onReLoginGatewaySuccessfully(pChannel, s);
+		pClient->onReLoginBaseappSuccessfully(pChannel, s);
 	}
 }
 

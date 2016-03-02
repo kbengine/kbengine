@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class InitProgressHandler;
-class EntityAutoLoader : public Task
+class EntityAutoLoader
 {
 public:
 	EntityAutoLoader(Network::NetworkInterface & networkInterface, InitProgressHandler* pInitProgressHandler);
@@ -46,7 +46,7 @@ private:
 	Network::NetworkInterface & networkInterface_;
 	InitProgressHandler* pInitProgressHandler_;
 
-	std::vector<ENTITY_SCRIPT_UID> entityTypes_;
+	std::vector< std::vector<ENTITY_SCRIPT_UID> > entityTypes_;
 
 	// 每次取查询结果集的区段
 	ENTITY_ID start_;

@@ -151,14 +151,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityAutoLoadCBFromDBMgr,						NETWORK_VARIABLE_MESSAGE)
 
 	// 前端请求登录到网关上。
-	BASEAPP_MESSAGE_EXPOSED(loginGateway)
-	BASEAPP_MESSAGE_DECLARE_ARGS2(loginGateway,										NETWORK_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_EXPOSED(loginBaseapp)
+	BASEAPP_MESSAGE_DECLARE_ARGS2(loginBaseapp,										NETWORK_VARIABLE_MESSAGE,
 									std::string,									accountName,
 									std::string,									password)
 
 	// 前端请求重新登录到网关上。
-	BASEAPP_MESSAGE_EXPOSED(reLoginGateway)
-	BASEAPP_MESSAGE_DECLARE_ARGS4(reLoginGateway,									NETWORK_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_EXPOSED(reLoginBaseapp)
+	BASEAPP_MESSAGE_DECLARE_ARGS4(reLoginBaseapp,									NETWORK_VARIABLE_MESSAGE,
 									std::string,									accountName,
 									std::string,									password,
 									uint64,											key,
@@ -197,9 +197,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									NETWORK_VARIABLE_MESSAGE)
 
 	// 写entity到db回调。
-	BASEAPP_MESSAGE_DECLARE_ARGS4(onWriteToDBCallback,								NETWORK_FIXED_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onWriteToDBCallback,								NETWORK_FIXED_MESSAGE,
 									ENTITY_ID,										eid,
 									DBID,											entityDBID,
+									uint16,											dbInterfaceIndex,
 									CALLBACK_ID,									callbackID,
 									bool,											success)
 

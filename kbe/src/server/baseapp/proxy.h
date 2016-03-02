@@ -49,7 +49,7 @@ class Proxy : public Base
 	BASE_SCRIPT_HREADER(Proxy, Base)	
 
 public:
-	Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule);
+	Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule);
 	~Proxy();
 	
 	INLINE void addr(const Network::Address& address);
@@ -171,6 +171,11 @@ public:
 		绑定了witness
 	*/
 	void onGetWitness();
+
+	/**
+		将客户端从服务器踢出
+	*/
+	void kick();
 
 protected:
 	uint64 rndUUID_;

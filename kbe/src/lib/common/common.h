@@ -271,53 +271,77 @@ enum COMPONENT_CLIENT_TYPE
 	UNKNOWN_CLIENT_COMPONENT_TYPE	= 0,
 
 	// 移动类，手机，平板电脑
-	// Mobile, Phone, Pad(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
+	// Mobile, Phone, Pad
 	CLIENT_TYPE_MOBILE				= 1,
 
-	// 独立的Windows/Linux/Mac应用程序(包含python脚本，entitydefs解析与检查entitydefs的MD5，原生的)
-	// Windows/Linux/Mac Application program (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
-	CLIENT_TYPE_PC					= 2,	
+	// 独立的Windows应用程序
+	// Windows Application program
+	CLIENT_TYPE_WIN					= 2,
 
-	// 不包含Python脚本，entitydefs协议可使用网络导入
+	// 独立的Linux应用程序
+	// Linux Application program
+	CLIENT_TYPE_LINUX				= 3,
+		
+	// Mac应用程序
+	// Mac Application program
+	CLIENT_TYPE_MAC					= 4,
+				
 	// Web, HTML5, Flash
-	CLIENT_TYPE_BROWSER				= 3,	
+	CLIENT_TYPE_BROWSER				= 5,
 
-	// 包含Python脚本，entitydefs解析与检查entitydefs的MD5，原生的
-	// bots	 (Contains the Python-scripts, entitydefs parsing and check entitydefs-MD5, Native)
-	CLIENT_TYPE_BOTS				= 4,	
+	// bots
+	CLIENT_TYPE_BOTS				= 6,
 
-	// 轻端类, 可不包含python脚本，entitydefs协议可使用网络导入
-	// Mini-Client(Allowing does not contain Python-scripts and entitydefs analysis, can be imported protocol from network)
-	CLIENT_TYPE_MINI				= 5,	
+	// 轻端类
+	CLIENT_TYPE_MINI				= 7,
 
 	// End
-	CLIENT_TYPE_END					= 6		
+	CLIENT_TYPE_END					= 8
 };
 
 /** 定义前端应用的类别名称 */
 const char COMPONENT_CLIENT_NAME[][255] = {
 	"UNKNOWN_CLIENT_COMPONENT_TYPE",
 	"CLIENT_TYPE_MOBILE",
-	"CLIENT_TYPE_PC",
+	"CLIENT_TYPE_WIN",
+	"CLIENT_TYPE_LINUX",
+	"CLIENT_TYPE_MAC",
 	"CLIENT_TYPE_BROWSER",
 	"CLIENT_TYPE_BOTS",
 	"CLIENT_TYPE_MINI",
 };
 
 // 所有前端应用的类别
-const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_MOBILE, CLIENT_TYPE_PC, CLIENT_TYPE_BROWSER, 
-												CLIENT_TYPE_BOTS, CLIENT_TYPE_MINI, UNKNOWN_CLIENT_COMPONENT_TYPE};
+const COMPONENT_CLIENT_TYPE ALL_CLIENT_TYPES[] = {CLIENT_TYPE_MOBILE, CLIENT_TYPE_WIN, CLIENT_TYPE_LINUX, CLIENT_TYPE_MAC, 
+												CLIENT_TYPE_BROWSER, CLIENT_TYPE_BOTS, CLIENT_TYPE_MINI, UNKNOWN_CLIENT_COMPONENT_TYPE};
 
 typedef int8 CLIENT_CTYPE;
+
+/*
+ APP设置的标志
+*/
+// 默认的(未设置标记)
+#define APP_FLAGS_NONE								0x00000000
+// 不参与负载均衡
+#define APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING	0x00000001
+
+// 建立一个通过标记值得到名称的map，提供初始化python暴露给脚本使用
+inline std::map<uint32, std::string> createAppFlagsMaps()
+{
+	std::map<uint32, std::string> datas;
+	datas[APP_FLAGS_NONE] = "APP_FLAGS_NONE";
+	datas[APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING] = "APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING";
+	return datas;
+}
 
 // 前端是否支持浮点数
 // #define CLIENT_NO_FLOAT
 
 // 一个cell的默认的边界或者最小大小
-#define CELL_DEF_MIN_AREA_SIZE				500.0f
+#define CELL_DEF_MIN_AREA_SIZE						500.0f
 
 /** 一个空间的一个chunk大小 */
-#define SPACE_CHUNK_SIZE					100
+#define SPACE_CHUNK_SIZE							100
 
 
 /** 检查用户名合法性 */
@@ -340,7 +364,7 @@ inline bool validName(const char* name, int size)
 
 inline bool validName(const std::string& name)
 {
-	return validName(name.c_str(), name.size());
+	return validName(name.c_str(), (int)name.size());
 }
 
 /** 检查email地址合法性 
@@ -357,7 +381,7 @@ inline bool email_isvalid(const char *address)
 	std::tr1::regex _mail_pattern("([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)");
 	return std::tr1::regex_match(accountName, _mail_pattern);
 #endif
-	int len = strlen(address);
+	int len = (int)strlen(address);
 	if(len <= 3)
 		return false;
 

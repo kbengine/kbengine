@@ -46,9 +46,9 @@ public:
 	{
 	}
 
-	static SqlStatement* createSql(DBInterface* dbi, DB_TABLE_OP opType, 
+	static SqlStatement* createSql(DBInterface* pdbi, DB_TABLE_OP opType, 
 		std::string tableName, DBID parentDBID, 
-		DBID dbid, DBContext::DB_ITEM_DATAS& tableVal)
+		DBID dbid, mysql::DBContext::DB_ITEM_DATAS& tableVal)
 	{
 		SqlStatement* pSqlcmd = NULL;
 
@@ -56,12 +56,12 @@ public:
 		{
 		case TABLE_OP_UPDATE:
 			if(dbid > 0)
-				pSqlcmd = new SqlStatementUpdate(dbi, tableName, parentDBID, dbid, tableVal);
+				pSqlcmd = new SqlStatementUpdate(pdbi, tableName, parentDBID, dbid, tableVal);
 			else
-				pSqlcmd = new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
+				pSqlcmd = new SqlStatementInsert(pdbi, tableName, parentDBID, dbid, tableVal);
 			break;
 		case TABLE_OP_INSERT:
-			pSqlcmd = new SqlStatementInsert(dbi, tableName, parentDBID, dbid, tableVal);
+			pSqlcmd = new SqlStatementInsert(pdbi, tableName, parentDBID, dbid, tableVal);
 			break;
 		case TABLE_OP_DELETE:
 			break;
@@ -75,13 +75,13 @@ public:
 	/**
 		将数据更新到表中
 	*/
-	static bool writeDB(DB_TABLE_OP optype, DBInterface* dbi, DBContext& context)
+	static bool writeDB(DB_TABLE_OP optype, DBInterface* pdbi, mysql::DBContext& context)
 	{
 		bool ret = true;
 
 		if(!context.isEmpty)
 		{
-			SqlStatement* pSqlcmd = createSql(dbi, optype, context.tableName, 
+			SqlStatement* pSqlcmd = createSql(pdbi, optype, context.tableName, 
 				context.parentTableDBID, 
 				context.dbid, context.items);
 
@@ -93,16 +93,16 @@ public:
 		if(optype == TABLE_OP_INSERT)
 		{
 			// 开始更新所有的子表
-			DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+			mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 			for(; iter1 != context.optable.end(); ++iter1)
 			{
-				DBContext& wbox = *iter1->second.get();
+				mysql::DBContext& wbox = *iter1->second.get();
 				
 				// 绑定表关系
 				wbox.parentTableDBID = context.dbid;
 
 				// 更新子表
-				writeDB(optype, dbi, wbox);
+				writeDB(optype, pdbi, wbox);
 			}
 		}
 		else
@@ -115,10 +115,10 @@ public:
 
 			if(context.dbid > 0)
 			{
-				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); ++iter1)
 				{
-					DBContext& wbox = *iter1->second.get();
+					mysql::DBContext& wbox = *iter1->second.get();
 
 					KBEUnordered_map<std::string, std::vector<DBID> >::iterator iter = 
 						childTableDBIDs.find(context.tableName);
@@ -137,13 +137,13 @@ public:
 					for(; tabiter != childTableDBIDs.end();)
 					{
 						char sqlstr[MAX_BUF * 10];
-						kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID" union all ", 
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select count(id) from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID " union all ", 
 							tabiter->first.c_str(),
 							context.dbid);
 						
 						sqlstr_getids += sqlstr;
 
-						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID, 
 							tabiter->first.c_str(),
 							context.dbid);
 
@@ -152,9 +152,9 @@ public:
 							sqlstr_getids += " union all ";
 					}
 					
-					if(dbi->query(sqlstr_getids.c_str(), sqlstr_getids.size(), false))
+					if(pdbi->query(sqlstr_getids.c_str(), sqlstr_getids.size(), false))
 					{
-						MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+						MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 						if(pResult)
 						{
 							MYSQL_ROW arow;
@@ -187,13 +187,13 @@ public:
 				{
 					KBEUnordered_map< std::string, std::vector<DBID> >::iterator tabiter = childTableDBIDs.begin();
 						char sqlstr[MAX_BUF * 10];
-						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from "ENTITY_TABLE_PERFIX"_%s where "TABLE_PARENTID_CONST_STR"=%"PRDBID, 
+						kbe_snprintf(sqlstr, MAX_BUF * 10, "select id from " ENTITY_TABLE_PERFIX "_%s where " TABLE_PARENTID_CONST_STR "=%" PRDBID, 
 							tabiter->first.c_str(),
 							context.dbid);
 
-						if(dbi->query(sqlstr, strlen(sqlstr), false))
+						if(pdbi->query(sqlstr, strlen(sqlstr), false))
 						{
-							MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(dbi)->mysql());
+							MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 							if(pResult)
 							{
 								MYSQL_ROW arow;
@@ -214,10 +214,10 @@ public:
 			if(!context.isEmpty)
 			{
 				// 开始更新所有的子表
-				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); ++iter1)
 				{
-					DBContext& wbox = *iter1->second.get();
+					mysql::DBContext& wbox = *iter1->second.get();
 					
 					if(wbox.isEmpty)
 						continue;
@@ -243,7 +243,7 @@ public:
 					}
 
 					// 更新子表
-					writeDB(optype, dbi, wbox);
+					writeDB(optype, pdbi, wbox);
 				}
 			}
 			
@@ -255,9 +255,9 @@ public:
 					continue;
 
 				// 先删除数据库中的记录
-				std::string sqlstr = "delete from "ENTITY_TABLE_PERFIX"_";
+				std::string sqlstr = "delete from " ENTITY_TABLE_PERFIX "_";
 				sqlstr += tabiter->first;
-				sqlstr += " where "TABLE_ID_CONST_STR" in (";
+				sqlstr += " where " TABLE_ID_CONST_STR " in (";
 
 				std::vector<DBID>::iterator iter = tabiter->second.begin();
 				for(; iter != tabiter->second.end(); ++iter)
@@ -265,20 +265,20 @@ public:
 					DBID dbid = (*iter);
 
 					char sqlstr1[MAX_BUF];
-					kbe_snprintf(sqlstr1, MAX_BUF, "%"PRDBID, dbid);
+					kbe_snprintf(sqlstr1, MAX_BUF, "%" PRDBID, dbid);
 					sqlstr += sqlstr1;
 					sqlstr += ",";
 				}
 				
 				sqlstr.erase(sqlstr.size() - 1);
 				sqlstr += ")";
-				bool ret = dbi->query(sqlstr.c_str(), sqlstr.size(), false);
+				bool ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
 				KBE_ASSERT(ret);
 
-				DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
+				mysql::DBContext::DB_RW_CONTEXTS::iterator iter1 = context.optable.begin();
 				for(; iter1 != context.optable.end(); ++iter1)
 				{
-					DBContext& wbox = *iter1->second.get();
+					mysql::DBContext& wbox = *iter1->second.get();
 					if(wbox.tableName == tabiter->first)
 					{
 						std::vector<DBID>::iterator iter = tabiter->second.begin();
@@ -291,7 +291,7 @@ public:
 							wbox.isEmpty = true;
 
 							// 更新子表
-							writeDB(optype, dbi, wbox);
+							writeDB(optype, pdbi, wbox);
 						}
 					}
 				}
@@ -301,6 +301,7 @@ public:
 	}
 
 protected:
+
 };
 
 }

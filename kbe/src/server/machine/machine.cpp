@@ -301,8 +301,51 @@ bool Machine::checkComponentUsable(const Components::ComponentInfos* info, bool 
 	return ret;
 }
 
+void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string& username,
+	uint16 finderRecvPort)
+{
+	INFO_MSG(fmt::format("Machine::onQueryMachines[{}]: uid:{}, username:{}, "
+		"finderRecvPort:{}.\n",
+		pChannel->c_str(), uid, username.c_str(),
+		ntohs(finderRecvPort)));
+
+	Network::EndPoint ep;
+	ep.socket(SOCK_DGRAM);
+
+	if (!ep.good())
+	{
+		ERROR_MSG("Machine::onQueryMachines: Failed to create socket.\n");
+		return;
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+
+	uint64 cidex = 0;
+	float cpu = SystemInfo::getSingleton().getCPUPer();
+	uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
+	uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
+
+	MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), getUserUID(), getUsername(),
+		g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+		networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
+		networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
+		cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0,
+		getProcessPID(), totalmem, totalusedmem, uint64(SystemInfo::getSingleton().getCPUPerByPID() * 100), 0, 0, 0);
+
+	if (finderRecvPort != 0)
+	{
+		ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+	else
+	{
+		pChannel->send(pBundle);
+	}
+}
+
 //-------------------------------------------------------------------------------------
-void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, uint16 finderRecvPort)
+void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, 
+	uint16 finderRecvPort)
 {
 	// uid不等于当前服务器的uid则不理会。
 	if(uid > 0)
@@ -498,18 +541,18 @@ bool Machine::initNetwork()
 	}
 
 	if (!ep_.good() ||
-		 ep_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), broadcastAddr_) == -1)
+		ep_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), broadcastAddr_) == -1)
 	{
 		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
 							inet_ntoa((struct in_addr &)broadcastAddr_),
-							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							(KBE_MACHINE_BROADCAST_SEND_PORT),
 							kbe_strerror()));
 
 		return false;
 	}
 
 	address.ip = broadcastAddr_;
-	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
+	address.port = htons(KBE_MACHINE_BROADCAST_SEND_PORT);
 	ep_.setbroadcast( true );
 	ep_.setnonblocking(true);
 	ep_.addr(address);
@@ -528,11 +571,11 @@ bool Machine::initNetwork()
 #endif
 
 	if (!epBroadcast_.good() ||
-		epBroadcast_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), baddr) == -1)
+		epBroadcast_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), baddr) == -1)
 	{
 		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
 							inet_ntoa((struct in_addr &)baddr),
-							(KBE_MACHINE_BRAODCAST_SEND_PORT),
+							(KBE_MACHINE_BROADCAST_SEND_PORT),
 							kbe_strerror()));
 
 #if KBE_PLATFORM != PLATFORM_WIN32
@@ -542,7 +585,7 @@ bool Machine::initNetwork()
 	else
 	{
 		address.ip = baddr;
-		address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
+		address.port = htons(KBE_MACHINE_BROADCAST_SEND_PORT);
 		epBroadcast_.setnonblocking(true);
 		epBroadcast_.addr(address);
 		pEBPacketReceiver_ = new Network::UDPPacketReceiver(epBroadcast_, this->networkInterface());
@@ -556,7 +599,7 @@ bool Machine::initNetwork()
 	}
 
 	if (!epLocal_.good() ||
-		 epLocal_.bind(htons(KBE_MACHINE_BRAODCAST_SEND_PORT), Network::LOCALHOST) == -1)
+		epLocal_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), Network::LOCALHOST) == -1)
 	{
 		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to (lo). {}.\n",
 							kbe_strerror()));
@@ -565,7 +608,7 @@ bool Machine::initNetwork()
 	}
 
 	address.ip = Network::LOCALHOST;
-	address.port = htons(KBE_MACHINE_BRAODCAST_SEND_PORT);
+	address.port = htons(KBE_MACHINE_BROADCAST_SEND_PORT);
 	epLocal_.setnonblocking(true);
 	epLocal_.addr(address);
 	pEPLocalPacketReceiver_ = new Network::UDPPacketReceiver(epLocal_, this->networkInterface());
@@ -635,6 +678,8 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
+	uint64 cid = 0;
+	int16 gus = 0;
 
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	bool success = true;
@@ -643,54 +688,30 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	s >> uid;
 	s >> componentType;
+	s >> cid;
+	s >> gus;
 
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}\n", 
-		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}\n", 
+		uid, COMPONENT_NAME_EX(componentType), pChannel->c_str(), cid, gus));
 	
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-
-	std::string str = Resmgr::getSingleton().getEnv().bin_path;
-	str += COMPONENT_NAME_EX(componentType);
-	str += ".exe";
-
-	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
-
-	ZeroMemory( &si, sizeof(si));
-	si.cb = sizeof(si);
-	ZeroMemory( &pi, sizeof(pi));
-
-	if(!CreateProcess( NULL,   // No module name (use command line)
-		szCmdline,      // Command line
-		NULL,           // Process handle not inheritable
-		NULL,           // Thread handle not inheritable
-		FALSE,          // Set handle inheritance to FALSE
-		CREATE_NEW_CONSOLE,    // No creation flags
-		NULL,           // Use parent's environment block
-		currdir,        // Use parent's starting directory
-		&si,            // Pointer to STARTUPINFO structure
-		&pi )           // Pointer to PROCESS_INFORMATION structure
-	)
+	if (startWindowsProcess(uid, componentType, cid, gus) <= 0)
 	{
-		ERROR_MSG(fmt::format("Machine::startserver:CreateProcess failed ({}).\n",
-			GetLastError()));
-
 		success = false;
 	}
-	
-	free(szCmdline);
-	free(currdir);
 #else
+	if (startLinuxProcess(uid, componentType, cid, gus) <= 0)
+	{
+		success = false;
+	}
 #endif
 	
 	(*pBundle) << success;
@@ -890,7 +911,131 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	}
 }
 
+//-------------------------------------------------------------------------------------		
+bool Machine::installSignals()
+{
+	ServerApp::installSignals();
+	g_kbeSignalHandlers.addSignal(SIGCHLD, this);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+void Machine::onSignalled(int sigNum)
+{
+	if (sigNum == SIGCHLD)
+	{
+#if KBE_PLATFORM != PLATFORM_WIN32
+		/* Wait for all dead processes.
+		* We use a non-blocking call to be sure this signal handler will not
+		* block if a child was cleaned up in another part of the program. */
+		while (waitpid(-1, NULL, WNOHANG) > 0) {
+		}
+#endif
+	}
+	else
+	{
+		ServerApp::onSignalled(sigNum);
+	}
+}
 
 //-------------------------------------------------------------------------------------
+#if KBE_PLATFORM != PLATFORM_WIN32
+uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+{
+	uint16 childpid;
+
+	if ((childpid = fork()) == 0)
+	{
+		if (setuid(uid) == -1)
+		{
+			ERROR_MSG(fmt::format("Machine::startLinuxProcess: Failed to setuid to {}, aborting exec for '{}'\n", 
+				uid,  COMPONENT_NAME_EX(componentType)));
+
+			exit(1);
+		}
+
+		std::string bin_path = Resmgr::getSingleton().getEnv().bin_path;
+		std::string cmdLine = bin_path + COMPONENT_NAME_EX(componentType);
+
+		// 改变当前目录，以让出问题的时候core能在此处生成
+		//chdir(bin_path.c_str());
+
+		const char *argv[6];
+		const char **pArgv = argv;
+		std::string scid = fmt::format("--cid={}", cid);
+		std::string sgus = fmt::format("--gus={}", gus);
+		
+		*pArgv++ = cmdLine.c_str();
+		*pArgv++ = scid.c_str();
+		*pArgv++ = sgus.c_str();
+		*pArgv = NULL;
+
+		// 关闭父类的socket
+		ep_.close();
+		epBroadcast_.close();
+		epLocal_.close();
+
+		INFO_MSG(fmt::format("Machine::startLinuxProcess: UID {} execing '{}', cid = {}, gus = {}\n", uid, cmdLine, cid, gus));
+
+		DebugHelper::getSingleton().closeLogger();
+		int result = execv(cmdLine.c_str(), (char * const *)argv);
+
+		if (result == -1)
+		{
+			ERROR_MSG(fmt::format("Machine::startLinuxProcess: Failed to exec '{}'\n", cmdLine));
+		}
+
+		exit(1);
+		return 0;
+	}
+	else
+		return childpid;
+
+	return 0;
+}
+
+#else
+
+DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+{
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	std::string str = Resmgr::getSingleton().getEnv().bin_path;
+	str += COMPONENT_NAME_EX(componentType);
+	str += ".exe";
+
+	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
+	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
+
+	ZeroMemory( &si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory( &pi, sizeof(pi));
+
+	if(!CreateProcess( NULL,   // No module name (use command line)
+		szCmdline,      // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		CREATE_NEW_CONSOLE,    // No creation flags
+		NULL,           // Use parent's environment block
+		currdir,        // Use parent's starting directory
+		&si,            // Pointer to STARTUPINFO structure
+		&pi )           // Pointer to PROCESS_INFORMATION structure
+		)
+	{
+		ERROR_MSG(fmt::format("Machine::startWindowsProcess: CreateProcess failed ({}).\n",
+			GetLastError()));
+
+		return 0;
+	}
+
+	free(szCmdline);
+	free(currdir);
+
+	return pi.dwProcessId;
+}
+
+#endif
 
 }

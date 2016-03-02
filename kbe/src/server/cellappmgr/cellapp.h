@@ -35,9 +35,6 @@ public:
 	Cellapp();
 	virtual ~Cellapp();
 	
-	ENTITY_ID numEntitis() const { return numEntities_; }
-	void numEntitis(ENTITY_ID num) { numEntities_ = num; }
-	
 	float load() const { return load_; }
 	void load(float v) { load_ = v; }
 	
@@ -50,6 +47,9 @@ public:
 	ENTITY_ID numEntities() const { return numEntities_; }
 	void numEntities(ENTITY_ID num) { numEntities_ = num; }
 
+	uint32 flags() const { return flags_; }
+	void flags(uint32 v) { flags_ = v; }
+	
 protected:
 	ENTITY_ID numEntities_;
 
@@ -62,6 +62,8 @@ protected:
 	Spaces spaces_;
 
 	float initProgress_;
+
+	uint32 flags_;
 };
 
 }

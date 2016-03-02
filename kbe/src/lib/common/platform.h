@@ -105,6 +105,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define SIGQUIT 3
 #define SIGUSR1 10
 #define SIGPIPE 13
+#define SIGCHLD 17
 #define SIGSYS	32
 #endif
 
@@ -125,14 +126,14 @@ namespace KBEngine
 
 
 // current platform and compiler
-#define PLATFORM_WIN32 0
-#define PLATFORM_UNIX  1
-#define PLATFORM_APPLE 2
+#define PLATFORM_WIN32			0
+#define PLATFORM_UNIX			1
+#define PLATFORM_APPLE			2
 
-#define UNIX_FLAVOUR_LINUX 1
-#define UNIX_FLAVOUR_BSD 2
-#define UNIX_FLAVOUR_OTHER 3
-#define UNIX_FLAVOUR_OSX 4
+#define UNIX_FLAVOUR_LINUX		1
+#define UNIX_FLAVOUR_BSD		2
+#define UNIX_FLAVOUR_OTHER		3
+#define UNIX_FLAVOUR_OSX		4
 
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #  define KBE_PLATFORM PLATFORM_WIN32
@@ -194,6 +195,12 @@ namespace KBEngine
 #define KBE_CONFIG "Debug"
 #else
 #define KBE_CONFIG "Release"
+#endif
+#endif
+
+#ifndef X64
+#if defined( _WIN64 ) || defined( __x86_64__ ) || defined( __amd64 ) || defined( __LP64__ )
+#define X64
 #endif
 #endif
 
@@ -574,9 +581,24 @@ inline const char * getUsername()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
 	DWORD dwSize = MAX_NAME;
+	wchar_t wusername[MAX_NAME];
+	::GetUserNameW(wusername, &dwSize);	
+	
 	static char username[MAX_NAME];
 	memset(username, 0, MAX_NAME);
-	::GetUserNameA(username, &dwSize);	
+
+	if(dwSize > 0)
+	{
+		size_t outsize = 0;
+		strutil::wchar2char((wchar_t*)&wusername, &outsize);
+
+		if(outsize == 0)
+		{
+			// 可能是中文名，不支持中文名称
+			strcpy(username, "error_name");
+		}
+	}
+	
 	return username;
 #else
 	char * pUsername = cuserid( NULL );
@@ -614,11 +636,13 @@ inline int32 getProcessPID()
 /** 获取2个系统时间差 */
 inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 {
-    // getSystemTime() have limited data range and this is case when it overflow in this tick
+    // 防止getSystemTime()溢出的情况
     if (oldTime > newTime)
-        return (0xFFFFFFFF - oldTime) + newTime;
-    else
-        return newTime - oldTime;
+    {
+        return (uint32)((int64)0xFFFFFFFF + 1 - (int64)oldTime) + newTime;
+    }
+
+	return newTime - oldTime;
 }
 
 /* 产生一个64位的uuid 

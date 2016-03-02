@@ -57,6 +57,7 @@ class EntityCoordinateNode;
 class Controller;
 class Controllers;
 class Space;
+class VolatileInfo;
 
 namespace Network
 {
@@ -74,7 +75,7 @@ class Entity : public script::ScriptObject
 	ENTITY_HEADER(Entity)
 
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* scriptModule);
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule);
 	~Entity();
 	
 	/** 
@@ -88,6 +89,11 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyDestroySpace);
 	void destroySpace(void);
 
+	/** 
+		当前实体所在的space将要销毁时触发  
+	*/
+	void onSpaceGone();
+	
 	/** 
 		判断自身是否是一个realEntity 
 	*/
@@ -161,7 +167,6 @@ public:
 	INLINE Direction3D& direction();
 	INLINE void direction(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
-	
 
 	/**
 		是否在地面上
@@ -291,22 +296,23 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetLayer, pySetLayer);
 
 	/** 
-		射线 
-	*/
-	int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
-	static PyObject* __py_pyRaycast(PyObject* self, PyObject* args);
-
-	/** 
 		entity移动导航 
 	*/
 	bool canNavigate();
 	uint32 navigate(const Position3D& destination, float velocity, float distance,
-					float maxMoveDistance, float maxDistance, 
-					bool faceMovement, float girth, PyObject* userData);
-
+					float maxMoveDistance, float maxSearchDistance,
+					bool faceMovement, int8 layer, PyObject* userData);
+	bool navigatePathPoints(std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer);
 
 	DECLARE_PY_MOTHOD_ARG0(pycanNavigate);
-	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, float, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG3(pyNavigatePathPoints, PyObject_ptr, float, int8);
+	DECLARE_PY_MOTHOD_ARG8(pyNavigate, PyObject_ptr, float, float, float, float, int8, int8, PyObject_ptr);
+
+	/** 
+		entity获得随机点 
+	*/
+	bool getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos, float maxRadius, uint32 maxPoints, int8 layer);
+	DECLARE_PY_MOTHOD_ARG4(pyGetRandomPoints, PyObject_ptr, float, uint32, int8);
 
 	/** 
 		entity移动到某个点 
@@ -360,7 +366,7 @@ public:
 	*/
 	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 	void onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID srcEntityID, MemoryStream& s);
-	void onRemoteMethodCall_(MethodDescription* md, ENTITY_ID srcEntityID, MemoryStream& s);
+	void onRemoteMethodCall_(MethodDescription* pMethodDescription, ENTITY_ID srcEntityID, MemoryStream& s);
 
 	/**
 		观察者
@@ -481,6 +487,19 @@ public:
 	void onMoveFailure(uint32 controllerId, PyObject* userarg);
 
 	/**
+		entity转动朝向
+	*/
+	uint32 addYawRotator(float yaw, float velocity,
+		PyObject* userData);
+
+	DECLARE_PY_MOTHOD_ARG3(pyAddYawRotator, float, float, PyObject_ptr);
+	
+	/**
+		entity转向完成
+	*/
+	void onTurn(uint32 controllerId, PyObject* userarg);
+	
+	/**
 		获取自身在space的entities中的位置
 	*/
 	INLINE SPACE_ENTITIES::size_type spaceEntityIdx() const;
@@ -541,13 +560,25 @@ public:
 	void addWitnessToStream(KBEngine::MemoryStream& s);
 	void createWitnessFromStream(KBEngine::MemoryStream& s);
 
-	void addMoveHandlerToStream(KBEngine::MemoryStream& s);
-	void createMoveHandlerFromStream(KBEngine::MemoryStream& s);
-
+	void addMovementHandlerToStream(KBEngine::MemoryStream& s);
+	void createMovementHandlerFromStream(KBEngine::MemoryStream& s);
+	
 	/** 
 		获得实体控制器管理器
 	*/
 	INLINE Controllers*	pControllers() const;
+
+	/** 
+		设置实体持久化数据是否已脏，脏了会自动存档 
+	*/
+	INLINE void setDirty(bool dirty = true);
+	INLINE bool isDirty() const;
+	
+	/**
+	VolatileInfo section
+	*/
+	INLINE VolatileInfo* pCustomVolatileinfo(void);
+	DECLARE_PY_GETSET_MOTHOD(pyGetVolatileinfo, pySetVolatileinfo);
 
 private:
 	/** 
@@ -557,26 +588,26 @@ private:
 		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
 
 protected:
-	// 这个entity的客户端mailbox
-	EntityMailbox*											clientMailbox_;						
+	// 这个entity的客户端部分的mailbox
+	EntityMailbox*											clientMailbox_;
 
-	// 这个entity的baseapp mailbox
-	EntityMailbox*											baseMailbox_;						
+	// 这个entity的baseapp部分的mailbox
+	EntityMailbox*											baseMailbox_;
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
-	COMPONENT_ID											realCell_;	
+	COMPONENT_ID											realCell_;
 
 	// 如果一个entity为real，那么entity可能会存在一个ghost的指向
 	COMPONENT_ID											ghostCell_;	
 
 	// entity的当前位置
-	Position3D												lastpos_;	
-	Position3D												position_;							
-	script::ScriptVector3*									pPyPosition_;	
+	Position3D												lastpos_;
+	Position3D												position_;
+	script::ScriptVector3*									pPyPosition_;
 
 	// entity的当前方向
-	Direction3D												direction_;		
-	script::ScriptVector3*									pPyDirection_;	
+	Direction3D												direction_;	
+	script::ScriptVector3*									pPyDirection_;
 
 	// entity位置朝向在某时间是否改变过
 	// 此属性可用于如:决定在某期间是否要高度同步该entity
@@ -584,40 +615,47 @@ protected:
 	GAME_TIME												dirChangedTime_;
 
 	// 是否在地面上
-	bool													isOnGround_;						
+	bool													isOnGround_;
 
 	// entity x,z轴最高移动速度
-	float													topSpeed_;							
+	float													topSpeed_;
 
 	// entity y轴最高移动速度
-	float													topSpeedY_;							
+	float													topSpeedY_;
 
 	// 自身在space的entities中的位置
-	SPACE_ENTITIES::size_type								spaceEntityIdx_;					
+	SPACE_ENTITIES::size_type								spaceEntityIdx_;
 
 	// 是否被任何观察者监视到
 	std::list<ENTITY_ID>									witnesses_;
 	size_t													witnesses_count_;
 
 	// 观察者对象
-	Witness*												pWitness_;							
+	Witness*												pWitness_;
 
 	AllClients*												allClients_;
 	AllClients*												otherClients_;
 
 	// entity节点
-	EntityCoordinateNode*									pEntityCoordinateNode_;					
+	EntityCoordinateNode*									pEntityCoordinateNode_;	
 
 	// 控制器管理器
-	Controllers*											pControllers_;						
-	Controller*												pMoveController_;
-
+	Controllers*											pControllers_;
+	KBEShared_ptr<Controller>								pMoveController_;
+	KBEShared_ptr<Controller>								pTurnController_;
+	
 	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
 	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
 	
-	// entity层， 可以做任意表示， 基于tile的游戏可以表示为海陆空等层， 纯3d也可以表示各种层
+	// entity层，可以做任意表示，基于tile的游戏可以表示为海陆空等层，纯3d也可以表示各种层
 	// 在脚本层做搜索的时候可以按层搜索.
 	int8													layer_;
+	
+	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
+	bool													isDirty_;
+
+	// 如果用户有设置过Volatileinfo，则此处创建Volatileinfo，否则为NULL使用ScriptDefModule的Volatileinfo
+	VolatileInfo*											pCustomVolatileinfo_;
 };
 
 }

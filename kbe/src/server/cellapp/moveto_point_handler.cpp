@@ -27,7 +27,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveToPointHandler::MoveToPointHandler(Controller* pController, int layer, const Position3D& destPos, 
+MoveToPointHandler::MoveToPointHandler(KBEShared_ptr<Controller> pController, int layer, const Position3D& destPos, 
 											 float velocity, float distance, bool faceMovement, 
 											bool moveVertically, PyObject* userarg):
 destPos_(destPos),
@@ -39,7 +39,10 @@ distance_(distance),
 pController_(pController),
 layer_(layer)
 {
-	static_cast<MoveController*>(pController)->pMoveToPointHandler(this);
+	Py_INCREF(userarg);
+
+	//std::static_pointer_cast<MoveController>(pController)->pMoveToPointHandler(this);
+	static_cast<MoveController*>(pController.get())->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
 }
 
@@ -51,7 +54,6 @@ faceMovement_(false),
 moveVertically_(false),
 pyuserarg_(NULL),
 distance_(0.f),
-pController_(NULL),
 layer_(0)
 {
 	Cellapp::getSingleton().addUpdatable(this);
@@ -98,7 +100,10 @@ bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 	{
 		if(pController_->pEntity())
 			pController_->pEntity()->onMoveOver(pController_->id(), layer_, oldPos, pyuserarg_);
-		pController_->destroy();
+
+		// 如果在onMoveOver中调用cancelController（id）会导致MoveController析构导致pController_为NULL
+		if(pController_)
+			pController_->destroy();
 	}
 
 	return true;
@@ -123,20 +128,28 @@ bool MoveToPointHandler::update()
 	if (!moveVertically_) movement.y = 0.f;
 	
 	bool ret = true;
+	float dist_len = KBEVec3Length(&movement);
 
-	if(KBEVec3Length(&movement) < velocity_ + distance_)
+	if (dist_len < velocity_ + distance_)
 	{
 		float y = currpos.y;
-		currpos = dstPos;
 
-		if(distance_ > 0.0f)
+		if (distance_ > 0.0f)
 		{
 			// 单位化向量
 			KBEVec3Normalize(&movement, &movement); 
-			movement *= distance_;
-			currpos -= movement;
+				
+			if(dist_len > distance_)
+			{
+				movement *= distance_;
+				currpos = dstPos - movement;
+			}
 		}
-
+		else
+		{
+			currpos = dstPos;
+		}
+		
 		if (!moveVertically_)
 			currpos.y = y;
 
@@ -169,9 +182,10 @@ bool MoveToPointHandler::update()
 		pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
 
 	// 如果达到目的地则返回true
-	if(!ret)
+	if (!ret && requestMoveOver(currpos_backup))
 	{
-		return !requestMoveOver(currpos_backup);
+		delete this;
+		return false;
 	}
 
 	return true;

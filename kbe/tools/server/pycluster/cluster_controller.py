@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import socket
+import socket, time
 import sys
-import os
 import struct
 import traceback
 import select
 import getpass 
 import time
+import os
+
+if sys.hexversion >= 0x03000000:
+	import io
+else:
+	import StringIO
 
 host = '' # Bind to all interfaces
 
@@ -15,23 +20,21 @@ MachineInterface_onFindInterfaceAddr = 1
 MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
 MachineInterface_onQueryAllInterfaceInfos = 4
+MachineInterface_onQueryMachines = 5
 
-# 
-UNKNOWN_COMPONENT_TYPE	= 0
-DBMGR_TYPE				= 1
-LOGINAPP_TYPE			= 2
-BASEAPPMGR_TYPE			= 3
-CELLAPPMGR_TYPE			= 4
-CELLAPP_TYPE			= 5
-BASEAPP_TYPE			= 6
-CLIENT_TYPE				= 7
-MACHINE_TYPE			= 8
-CONSOLE_TYPE			= 9
-LOGGER_TYPE				= 10
-BOTS_TYPE				= 11
-WATCHER_TYPE			= 12
-INTERFACES_TYPE			= 13
-COMPONENT_END_TYPE		= 16
+def initRootPath():
+	"""
+	初始化root目录，以加载其它的脚本
+	"""
+	appdir = os.path.dirname( os.path.abspath( __file__ ) )
+	parentDir = os.path.dirname( appdir )
+	if parentDir not in sys.path:
+		sys.path.append( parentDir )
+
+initRootPath()
+from pycommon.Define import *
+from pycommon.LoggerWatcher import LoggerWatcher
+
 
 # ComponentName to type
 COMPONENT_NAME2TYPE = {
@@ -80,6 +83,125 @@ NO_SHUTDOWN_COMPONENTS = (
 	"client",
 )
 
+
+
+class ComponentInfo( object ):
+	"""
+	"""
+	def __init__( self, streamStr = None ):
+		"""
+		"""
+		if streamStr:
+			self.initFromStream( streamStr )
+	
+	def initFromStream( self, streamStr ):
+		"""
+		"""
+		i = 4
+		self.uid = struct.unpack("i", streamStr[0:i])[0]
+		
+		ii = i
+		for x in streamStr[i:]:
+			if type(x) == str:
+				if ord(x) == 0:
+					break
+			else:
+				if x == 0:
+					break
+
+			ii += 1
+
+		self.username = streamStr[i: ii];
+		if type(self.username) == 'bytes':
+			self.username = self.username.decode()
+                            
+		ii += 1
+
+		self.componentType = struct.unpack("i", streamStr[ii : ii + 4])[0]
+		self.componentName = COMPONENT_NAME[self.componentType]
+		ii += 4
+		
+		self.componentID = struct.unpack("Q", streamStr[ii : ii + 8])[0]
+		ii += 16
+
+		self.globalOrderID = struct.unpack("i", streamStr[ii : ii + 4])[0]
+		ii += 4
+
+		self.groupOrderID = struct.unpack("i", streamStr[ii : ii + 4])[0]
+		ii += 4
+
+		#self.intaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
+		self.intaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
+		ii += 4
+
+		self.intport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
+		ii += 2
+
+		#self.extaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
+		self.extaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
+		ii += 4
+
+		self.extport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
+		ii += 2
+		
+		# get extaddrEx
+		i1 = ii
+		for x in streamStr[ii:]:
+			if type(x) == str:
+				if ord(x) == 0:
+					break
+			else:
+				if x == 0:
+					break
+
+			ii += 1
+
+		self.extaddrEx = streamStr[i1: ii];
+		if type(self.extaddrEx) == 'bytes':
+			self.extaddrEx = extaddrEx.decode()
+
+		ii += 1
+
+		self.pid = struct.unpack("I", streamStr[ii : ii + 4])[0]
+		ii += 4
+		
+		self.cpu = struct.unpack("f", streamStr[ii : ii + 4])[0]
+		ii += 4
+
+		self.mem = struct.unpack("f", streamStr[ii : ii + 4])[0]
+		ii += 4
+
+		self.usedmem = struct.unpack("I", streamStr[ii : ii + 4])[0]
+		ii += 4
+
+		self.state = struct.unpack("b", streamStr[ii : ii + 1])[0]
+		ii += 1
+		
+		self.machineID = struct.unpack("I", streamStr[ii : ii + 4])[0]
+		ii += 4
+		
+		self.extradata = struct.unpack("Q", streamStr[ii : ii + 8])[0]
+		ii += 8
+
+		self.extradata1 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
+		ii += 8
+		
+		self.extradata2 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
+		ii += 8
+
+		self.extradata3 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
+		ii += 8
+		
+		self.backaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
+		ii += 4
+
+		self.backport = struct.unpack("H", streamStr[ii : ii + 2])[0]
+		ii += 2
+		
+		#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[self.componentType], \
+		#	self.uid, self.componentID, self.globalOrderID, self.groupOrderID, self.username))
+		
+
 class ClusterControllerHandler:
 	def __init__(self):
 		self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -91,22 +213,31 @@ class ClusterControllerHandler:
 		self._interfaces = {}
 		self._interfaces_groups = {}
 		self._interfaces_groups_uid = {}
+		self._machines = []
 		
 	def do(self):
 		pass
 	
 	def resetPacket(self):
 		self.recvDatas = []
-		self.postDatas = b""
-		
-	def sendto(self, trycount = 1, timeout = 3):
+
+		if sys.hexversion >= 0x03000000:
+			self.postDatas = eval("b''")
+		else:
+			self.postDatas = ""
+
+	def sendto(self, ip = "<broadcast>", trycount = 1, timeout = 1):
 		self.writePacket("H", socket.htons(self.udp_socket.getsockname()[1]))
 		
 		_udp_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-		_udp_broadcast_socket.sendto(self.postDatas, ('255.255.255.255', 20086))
-		#print("posted udp broadcast(size=%i), waiting for recv..." % len(self.postDatas))
+		
+		if ip == "<broadcast>":
+			_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+			_udp_broadcast_socket.sendto(self.postDatas, ('255.255.255.255', 20086))
+		else:
+			_udp_broadcast_socket.sendto(self.postDatas, (ip, 20086))
+		
 		self.resetPacket()
 		
 		self.udp_socket.settimeout(timeout)
@@ -148,7 +279,26 @@ class ClusterControllerHandler:
                            
 		self.writePacket("B", 0)
 		self.sendto()
-		
+		self.parseQueryDatas()
+
+	def queryMachines(self):
+		#print("queryMachines...")
+		self.resetPacket()
+		self.writePacket("H", MachineInterface_onQueryMachines)
+		self.writePacket("H", 6 + len(getpass.getuser().encode()) + 1)
+		self.writePacket("i", self.uid)
+
+		for x in getpass.getuser().encode():
+			if type(x) == str:
+				self.writePacket("B", ord(x))
+			else:
+				self.writePacket("B", x)
+                           
+		self.writePacket("B", 0)
+		self.sendto()
+		self.parseQueryDatas()
+
+	def parseQueryDatas(self):
 		self._interfaces = {}
 		if len(self.recvDatas) == 0:
 			return
@@ -156,143 +306,60 @@ class ClusterControllerHandler:
 		count = 0
 
 		while(count < len(self.recvDatas)):
-			i = 4
-			uid = struct.unpack("i", self.recvDatas[count][0:i])[0]
-			
-			ii = i
-			for x in self.recvDatas[count][i:]:
-				if type(x) == str:
-					if ord(x) == 0:
-						break
-				else:
-					if x == 0:
-						break
+			cinfo = ComponentInfo( self.recvDatas[count] )
+			count += 1
 
-				ii += 1
-
-			username = self.recvDatas[count][i: ii];
-			if type(username) == 'bytes':
-				username = username.decode()
-                                
-			ii += 1
-
-			componentType = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-			
-			componentID = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
-			ii += 16
-
-			globalorderid = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			grouporderid = struct.unpack("i", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			intaddr = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			intport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
-			ii += 2
-
-			extaddr = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			extport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
-			ii += 2
-			
-			# get extaddrEx
-			i1 = ii
-			for x in self.recvDatas[count][ii:]:
-				if type(x) == str:
-					if ord(x) == 0:
-						break
-				else:
-					if x == 0:
-						break
-
-				ii += 1
-
-			extaddrEx = self.recvDatas[count][i1: ii];
-			if type(extaddrEx) == 'bytes':
-				extaddrEx = extaddrEx.decode()
-                                
-			ii += 1
-
-			pid = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-			
-			cpu = struct.unpack("f", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			mem = struct.unpack("f", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			usedmem = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			state = struct.unpack("b", self.recvDatas[count][ii : ii + 1])[0]
-			ii += 1
-			
-			machineID = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-			
-			extradata = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
-			ii += 8
-
-			extradata1 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
-			ii += 8
-			
-			extradata2 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
-			ii += 8
-
-			extradata3 = struct.unpack("Q", self.recvDatas[count][ii : ii + 8])[0]
-			ii += 8
-			
-			backaddr = struct.unpack("I", self.recvDatas[count][ii : ii + 4])[0]
-			ii += 4
-
-			backport = struct.unpack("H", self.recvDatas[count][ii : ii + 2])[0]
-			ii += 2
-			
-			#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (COMPONENT_NAME[componentType], \
-			#	uid, componentID, globalorderid, grouporderid, username))
-			
-			componentInfos = self._interfaces.get(componentType)
+			componentInfos = self._interfaces.get(cinfo.componentType)
 			if componentInfos is None:
 				componentInfos = []
-				self._interfaces[componentType] = componentInfos
+				self._interfaces[cinfo.componentType] = componentInfos
 			
 			found = False
 			for info in componentInfos:
-				if info[1] == componentID and info[13] == pid:
+				if info.componentID == cinfo.componentID and info.pid == cinfo.pid:
 					found = True
 					break
 			
 			if not found:
-				componentInfos.append((uid, componentID, globalorderid, grouporderid, username, cpu, mem, usedmem, 0, \
-									intaddr, intport, extaddr, extport, pid, machineID, state, componentType, extradata, extradata1, extradata2, extradata3, extaddrEx))
-				
-			count += 1
+				componentInfos.append(cinfo)
 		
 		self._interfaces_groups = {}
 		self._interfaces_groups_uid = {}
 		for ctype in self._interfaces:
 			infos = self._interfaces.get(ctype, [])
 			for info in infos:
-				machineID = info[14]
+				machineID = info.machineID
 				
 				gourps = self._interfaces_groups.get(machineID, [])
 				if machineID not in self._interfaces_groups:
 					self._interfaces_groups[machineID] = gourps
 					self._interfaces_groups_uid[machineID] = []
 					
-				if info[13] != machineID:
+				# 如果pid与machineID相等，说明这个是machine进程
+				if info.pid != machineID:
 					gourps.append(info)
-					if info[0] not in self._interfaces_groups_uid[machineID]:
-						self._interfaces_groups_uid[machineID].append(info[0])
+					if info.uid not in self._interfaces_groups_uid[machineID]:
+						self._interfaces_groups_uid[machineID].append(info.uid)
 				else:
+					# 是machine进程，把它放在最前面，并且加到machines列表中
 					gourps.insert(0, info)
-				
+					self._machines.append( infos )
+
+	def getMachine( self, ip ):
+		"""
+		通过ip地址找到对应的machine的info
+		"""
+		for info in self.self._machines:
+			if info.intaddr == ip:
+				return info
+		return None
+	
+	def getComponentInfos( self, componentType ):
+		"""
+		获取某一类型的组件信息
+		"""
+		return self._interfaces.get( componentType, [] )
+
 class ClusterConsoleHandler(ClusterControllerHandler):
 	def __init__(self, uid, consoleType):
 		ClusterControllerHandler.__init__(self)
@@ -303,7 +370,6 @@ class ClusterConsoleHandler(ClusterControllerHandler):
 		self._interfaces_groups = {}
 		print("finding(" + self.consoleType  + ")...")
 		self.queryAllInterfaces()
-		interfaces = self._interfaces
 		
 		for machineID in self._interfaces_groups:
 			infos = self._interfaces_groups.get(machineID, [])
@@ -311,9 +377,9 @@ class ClusterConsoleHandler(ClusterControllerHandler):
 				info = infos.pop(0)
 
 			for info in infos:
-				if COMPONENT_NAME[info[16]] + str(info[3]) == self.consoleType or \
-					COMPONENT_NAME[info[16]] + str("%02d" %(info[3])) == self.consoleType:
-					os.system('telnet %s %i' % (socket.inet_ntoa(struct.pack('I', info[9])), info[20]))
+				if info.componentName + str(info.groupOrderID) == self.consoleType or \
+					info.componentName + str("%02d" %(info.groupOrderID)) == self.consoleType:
+					os.system('telnet %s %i' % (info.intaddr, info.extradata3))
 					return
 		
 		print("not found " + self.consoleType  + "!")
@@ -326,7 +392,6 @@ class ClusterQueryHandler(ClusterControllerHandler):
 	def do(self):
 		self._interfaces_groups = {}
 		self.queryAllInterfaces()
-		interfaces = self._interfaces
 		
 		numBases = 0
 		numEntities = 0
@@ -341,63 +406,50 @@ class ClusterQueryHandler(ClusterControllerHandler):
 			if len(infos) > 0:
 				info = infos.pop(0)
 				print("[%s: %%CPU:%.2f, %%MEM:%.2f, %%pCPU:%.2f, pMem:%.2fm, totalMem=%.2fm/%.2fm, addr=%s]" % \
-					(COMPONENT_NAME[info[16]], info[5], info[6], info[19] / 100.0, info[7] / 1024.0 / 1024.0, info[18] / 1024.0 / 1024.0, info[17] / 1024.0 / 1024.0, \
-					socket.inet_ntoa(struct.pack('I', info[9]))))
+					(info.componentName, info.cpu, info.mem, info.extradata2 / 100.0, info.usedmem / 1024.0 / 1024.0, 
+					 info.extradata1 / 1024.0 / 1024.0, info.extradata / 1024.0 / 1024.0, info.intaddr))
 			
 			numComponent += len(infos)
 			
 			print("      proc\t\tcid\t\tuid\tpid\tgid\t%CPU\t%MEM\tusedMem\textra1\t\textra2\t\textra3")
 			for info in infos:
-				if info[16] == BASEAPP_TYPE:
+				if info.componentType == BASEAPP_TYPE:
 					print("|-%12s%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tbases=%i\t\tclients=%i\tproxices=%i" % \
-					(COMPONENT_NAME[info[16]], info[3], info[1], info[0], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-					info[17], info[18], info[19]))
+					(info.componentName, info.groupOrderID, info.componentID, info.uid, info.pid, info.globalOrderID, 
+					 info.cpu, info.mem, info.usedmem / 1024.0 / 1024.0, info.extradata, info.extradata1, info.extradata2))
 
-					numBases += info[17]
-					numClients += info[18]
-					numProxices += info[19]
+					numBases += info.extradata
+					numClients += info.extradata1
+					numProxices += info.extradata2
 		
-				elif info[16] == CELLAPP_TYPE:
+				elif info.componentType == CELLAPP_TYPE:
 					print("|-%12s%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tentities=%i\tcells=%i\t\t%i" % \
-					(COMPONENT_NAME[info[16]], info[3], info[1], info[0],info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-					info[17], info[18], 0))
+					(info.componentName, info.groupOrderID, info.componentID, info.uid, info.pid, info.globalOrderID, 
+					 info.cpu, info.mem, info.usedmem / 1024.0 / 1024.0, info.extradata, info.extradata1, 0))
 					
-					numEntities += info[17]
+					numEntities += info.extradata
 				else:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
-					(COMPONENT_NAME[info[16]], info[1], info[0], info[13], info[2], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-					0, 0, 0))
+					(info.componentName, info.componentID, info.uid, info.pid, info.globalOrderID, info.cpu, 
+					 info.mem, info.usedmem / 1024.0 / 1024.0, 0, 0, 0))
 					
-			"""
-			for info in infos:
-				if info[16] == BASEAPP_TYPE:
-					print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%CPU:%.2f, %%MEM:%.2f, usedMem=%.2fMB, entities=%i, clients=%i, addr=%s:%i" % \
-					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-					info[17], info[18], socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
-				elif info[16] == CELLAPP_TYPE:
-					print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%CPU:%.2f, %%MEM:%.2f, usedMem=%.2fMB, entities=%i, cells=%i, addr=%s:%i" % \
-					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-					info[17], info[18], socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
-				else:
-					print("\t%s[%i]: uid=%i, pid=%i, gid=%i, tid=%i, %%CPU:%.2f, %%MEM:%.2f, usedMem=%.2fMB, addr=%s:%i" % \
-					(COMPONENT_NAME[info[16]], info[1], self.uid, info[13], info[2], info[3], info[5], info[6], info[7] / 1024.0 / 1024.0, \
-					socket.inet_ntoa(struct.pack('I', info[9])), socket.htons(info[10])))
-			"""
 			
 		print('-----------------------------------------------------')
 		print("machines: %i, components=%i, numBases=%i, numProxices=%i, numClients=%i, numEntities=%i, numCells=%i." % \
 			(len(self._interfaces_groups), numComponent, numBases, numProxices, numClients, numEntities, numCells))
 		
 class ClusterStartHandler(ClusterControllerHandler):
-	def __init__(self, uid, startTemplate):
+	def __init__(self, uid, startTemplate, machineIP, cid, gus):
 		ClusterControllerHandler.__init__(self)
 		
 		self.uid = uid
 		self.startTemplate = startTemplate.split("|")
+		self.machineIP = machineIP
+		self.cid = cid
+		self.gus = gus
 		
 	def do(self):
 		self.queryAllInterfaces()
-		interfaces = self._interfaces
 		
 		print("[curr-online-components:]")
 		for ctype in self._interfaces:
@@ -421,10 +473,12 @@ class ClusterStartHandler(ClusterControllerHandler):
 				continue
 				
 			self.writePacket("H", MachineInterface_startserver)
-			self.writePacket("H", 10)
+			self.writePacket("H", 20)  # package size
 			self.writePacket("i", self.uid)
 			self.writePacket("i", COMPONENT_NAME2TYPE[ctype])
-			self.sendto()
+			self.writePacket("Q", self.cid)
+			self.writePacket("h", self.gus)
+			self.sendto( self.machineIP )
 		
 		
 		qcount = 1
@@ -487,8 +541,8 @@ class ClusterStopHandler(ClusterControllerHandler):
 			
 			clist = []
 			for info in infos: 
-				if info[0] == self.uid:
-					clist.append(info[1])
+				if info.uid == self.uid:
+					clist.append(info.componentID)
 						
 			self.interfacesCount[ctype] = len(clist)
 
@@ -538,8 +592,8 @@ class ClusterStopHandler(ClusterControllerHandler):
 				
 				clist = []
 				for info in infos: 
-					if info[0] == self.uid:
-						clist.append(info[1])
+					if info.uid == self.uid:
+						clist.append(info.componentID)
 						
 				print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 				waitcount += len(clist)
@@ -554,11 +608,88 @@ class ClusterStopHandler(ClusterControllerHandler):
 			infos = self._interfaces.get(ctype, [])
 			clist = []
 			for info in infos: 
-				if info[0] == self.uid:
-					clist.append(info[1])
+				if info.uid == self.uid:
+					clist.append(info.componentID)
 			print("\t\t%s : %i\t%s" % (COMPONENT_NAME[ctype], len(clist), clist))
 			
 		print("ClusterStopHandler::do: completed!")
+
+class ClusterLogWatchHandler(ClusterControllerHandler):
+	"""
+	日志实时输出
+	"""
+	def __init__(self, uid):
+		ClusterControllerHandler.__init__(self)
+		
+		self.watcher = LoggerWatcher()
+		self.uid = uid
+
+	def do(self):
+		self.queryAllInterfaces()
+		
+		infos = self.getComponentInfos( LOGGER_TYPE )
+		if not infos:
+			print( "Error: no logger found!" )
+			return
+		
+		logger = None
+		for info in infos:
+			if info.uid == self.uid:
+				logger = info
+				break
+		
+		if not logger:
+			print( "Error: no logger found! (uid = %s)" % self.uid )
+			return
+		
+		print( "Logger found: internal %s:%s, external %s:%s" % ( logger.intaddr, logger.intport, logger.extaddr, logger.extport ) )
+		
+		self.watcher.connect( logger.extaddr, logger.extport )
+		self.watcher.registerToLogger( self.uid )
+		
+		def onReceivedLog( logs ):
+			for e in logs:
+				print( e )
+		
+		self.watcher.receiveLog(onReceivedLog, True)
+		
+class ClusterSendLogHandler(ClusterControllerHandler):
+	"""
+	日志实时输出
+	"""
+	def __init__(self, uid, type, logStr):
+		ClusterControllerHandler.__init__(self)
+		
+		self.watcher = LoggerWatcher()
+		self.uid = uid
+		self.type = type
+		self.logStr = logStr
+
+	def do(self):
+		self.queryAllInterfaces()
+		
+		infos = self.getComponentInfos( LOGGER_TYPE )
+		if not infos:
+			print( "Error: no logger found!" )
+			return
+		
+		logger = None
+		for info in infos:
+			if info.uid == self.uid:
+				logger = info
+				break
+		
+		if not logger:
+			print( "Error: no logger found! (uid = %s)" % self.uid )
+			return
+		
+		print( "Logger found: internal %s:%s, external %s:%s" % ( logger.intaddr, logger.intport, logger.extaddr, logger.extport ) )
+		
+		self.watcher.connect( logger.extaddr, logger.extport )
+		self.watcher.sendLog( self.uid, self.type, self.logStr )
+		time.sleep( 1.0 )
+		self.watcher.close()
+		
 
 def getDefaultUID():
 	"""
@@ -587,6 +718,10 @@ def getDefaultUID():
 
 	return uid
 	
+
+
+
+
 if __name__ == "__main__":
 
 	clusterHandler = None
@@ -595,26 +730,57 @@ if __name__ == "__main__":
 		cmdType = sys.argv[1]
 		
 		if cmdType == "start":
-			templatestr = "dbmgr|baseappmgr|cellappmgr|baseapp|cellapp|loginapp"
+			templatestr = "dbmgr|baseappmgr|cellappmgr|baseapp|cellapp|loginapp|interfaces|logger|bots"
 			uid = -1
 			
-			if len(sys.argv) >= 3:
-				if sys.argv[2].isdigit():
-					uid = sys.argv[2]
-				else:
-					templatestr = sys.argv[2]
-
-			if len(sys.argv) == 4:
-				if sys.argv[3].isdigit():
-					uid = sys.argv[3]
-				else:
-					templatestr = sys.argv[3]
-					
-			uid = int(uid)
-			if uid < 0:
+			# cluster_controller.py start dbmgr 123456789012345678 123 [10.11.12.13] [uid]
+			if len(sys.argv) < 6:
+				print("syntax: cluster_controller.py start componentName cid gus machine-ip [user-id]")
+				print("exp: cluster_controller.py start dbmgr 123456789012345678 123 10.11.12.13")
+				exit(1)
+			
+			if len(sys.argv) > 6:
+				_, _, componentName, cid, gus, machineip, uid = sys.argv
+				uid = int(uid)
+			else:
+				_, _, componentName, cid, gus, machineip = sys.argv
 				uid = getDefaultUID()
+			
+			if componentName not in COMPONENT_NAME:
+				print("Error: component name invalid. refer to:", templatestr)
+				exit(1)
+			
+			cid = int(cid)
+			gus = int(gus)
+			
+			clusterHandler = ClusterStartHandler(uid, componentName, machineip, cid, gus)
 
-			clusterHandler = ClusterStartHandler(uid, templatestr)
+		elif cmdType == "startprocess":
+			templatestr = "dbmgr|baseappmgr|cellappmgr|baseapp|cellapp|loginapp|interfaces|logger"
+			uid = -1
+			
+			# cluster_controller.py startprocess dbmgr 123456789012345678 123 [10.11.12.13] [uid]
+			if len(sys.argv) < 6:
+				print("syntax: cluster_controller.py startprocess componentName cid gus machine-ip [user-id]")
+				print("exp: cluster_controller.py startprocess dbmgr 123456789012345678 123 10.11.12.13")
+				exit(1)
+			
+			if len(sys.argv) > 6:
+				_, _, componentName, cid, gus, machineip, uid = sys.argv
+				uid = int(uid)
+			else:
+				_, _, componentName, cid, gus, machineip = sys.argv
+				uid = getDefaultUID()
+			
+			if componentName not in templatestr:
+				print("Error: component name invalid. refer to:", templatestr)
+				exit(1)
+			
+			cid = int(cid)
+			gus = int(gus)
+			
+			clusterHandler = ClusterStartHandler(uid, componentName, machineip, cid, gus)
+
 		elif cmdType == "stop":
 			templatestr = ""
 			uid = -1
@@ -683,18 +849,70 @@ if __name__ == "__main__":
 				uid = getDefaultUID()
 					
 			clusterHandler = ClusterQueryHandler(uid)
+		
+		# python cluster_controller.py showlog uid
+		elif cmdType == "showlog":
+			uid = -1
+
+			if len(sys.argv) >= 3:
+				if sys.argv[2].isdigit():
+					uid = sys.argv[2]
+				else:
+					print("syntax: cluster_controller.py showlog [uid]")
+					print("exp: cluster_controller.py showlog 501")
+					exit(1)
+
+			uid = int(uid)
+			if uid < 0:
+				uid = getDefaultUID()
+
+			clusterHandler = ClusterLogWatchHandler(uid)
+		
+		# python cluster_controller.py sendlog uid NORMAL|INFO|DEBUG|ERROR|WARNING logstr
+		elif cmdType == "sendlog":
+			if len(sys.argv) < 4:
+				print("syntax: cluster_controller.py sendlog [uid] NORMAL|INFO|DEBUG|ERROR|WARNING logstr")
+				print("exp: cluster_controller.py sendlog 501 DEBUG \"send log test\"")
+				exit(1)
+			
+			uid = -1
+			
+			logType = ""
+			logStr = ""
+			if sys.argv[2].isdigit():
+				uid = sys.argv[2]
+				uid = int(uid)
+				if len(sys.argv) < 5:
+					print("syntax: cluster_controller.py sendlog [uid] NORMAL|INFO|DEBUG|ERROR|WARNING logstr")
+					print("exp: cluster_controller.py sendlog 501 DEBUG \"send log test\"")
+					exit(1)
+				else:
+					logType = sys.argv[3]
+					logStr = sys.argv[4]
+			else:
+				logType = sys.argv[2]
+				logStr = sys.argv[3]
+
+			if uid <= 0:
+				uid = getDefaultUID()
+
+			clusterHandler = ClusterSendLogHandler(uid, logType, logStr)
+		else:
+			uid = -1
+
+			if len(sys.argv) >= 2:
+				if sys.argv[1].isdigit():
+					uid = sys.argv[1]
+
+			uid = int(uid)
+
+			#如果没有给UID参数，则默认为0，查询所有机器
+			if uid < 0:
+				uid = 0
+
+			clusterHandler = ClusterQueryHandler(uid)
 	else:
-		uid = -1
-
-		if len(sys.argv) >= 2:
-			if sys.argv[1].isdigit():
-				uid = sys.argv[1]
-
-		uid = int(uid)
-		if uid < 0:
-			uid = getDefaultUID()
-
-		clusterHandler = ClusterQueryHandler(uid)
+		clusterHandler = ClusterQueryHandler(0)
 			
 	if clusterHandler is not None: 
 		clusterHandler.do()

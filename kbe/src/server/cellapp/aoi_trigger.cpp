@@ -45,10 +45,10 @@ void AOITrigger::onEnter(CoordinateNode * pNode)
 
 	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
 	Entity* pEntity = pEntityCoordinateNode->pEntity();
-	if(!pEntity->scriptModule()->hasClient())
+	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onEnterAOI(pEntity);
+	pWitness_->onEnterAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -59,10 +59,10 @@ void AOITrigger::onLeave(CoordinateNode * pNode)
 
 	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
 	Entity* pEntity = pEntityCoordinateNode->pEntity();
-	if(!pEntity->scriptModule()->hasClient())
+	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onLeaveAOI(pEntity);
+	pWitness_->onLeaveAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------

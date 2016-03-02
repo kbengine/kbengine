@@ -93,6 +93,7 @@ public:
 	const char* getValue(){ return strval_.c_str(); }
 
 	virtual WATCHER_VALUE_TYPE getType(){ return WATCHER_VALUE_TYPE_UNKNOWN; }
+
 protected:
 	std::string path_, name_, strval_;
 	WATCHER_ID id_;
@@ -267,6 +268,7 @@ public:
 	T getValue(){ return watchVal_; }
 
 	WATCHER_VALUE_TYPE getType(){ return type<T>(); }
+
 protected:
 	const T& watchVal_;
 	T val_;
@@ -301,6 +303,7 @@ public:
 
 	RETURN_TYPE getValue(){ return (*func_)(); }
 	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
+
 protected:
 	FUNC func_;
 };
@@ -335,6 +338,7 @@ public:
 
 	RETURN_TYPE getValue(){ return (obj_->*func_)(); }
 	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
+
 protected:
 	FUNC func_;
 	OBJ_TYPE* obj_;
@@ -368,6 +372,7 @@ public:
 
 	RETURN_TYPE getValue(){ return (obj_->*func_)(); }
 	WATCHER_VALUE_TYPE getType(){ return type<RETURN_TYPE>(); }
+
 protected:
 	FUNC func_;
 	OBJ_TYPE* obj_;
@@ -400,6 +405,7 @@ public:
 	void updateStream(MemoryStream* s);
 
 	WATCHER_MAP& watcherObjs(){ return watcherObjs_; }
+
 protected:
 	WATCHER_MAP watcherObjs_;
 };
@@ -437,6 +443,7 @@ public:
 
 	Watchers& watchers(){ return watchers_; }
 	WATCHER_PATHS& watcherPaths(){ return watcherPaths_; }
+
 protected:
 	WATCHER_PATHS watcherPaths_;
 	Watchers watchers_;
@@ -510,9 +517,6 @@ inline WatcherObject* addWatcher(std::string path, OBJ_TYPE* obj, RETURN_TYPE (O
 	#define WATCH_OBJECT __addWatcher
 	#define WATCH_FINALIZE
 #endif
-
-
-
 
 
 }

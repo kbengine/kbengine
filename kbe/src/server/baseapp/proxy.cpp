@@ -57,8 +57,8 @@ SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* scriptModule):
-Base(id, scriptModule, getScriptType(), true),
+Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule):
+Base(id, pScriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Network::Address::NONE),
 dataDownloads_(),
@@ -78,7 +78,13 @@ clientDatas_()
 Proxy::~Proxy()
 {
 	Baseapp::getSingleton().decProxicesCount();
+	kick();
+	SAFE_RELEASE(pProxyForwarder_);
+}
 
+//-------------------------------------------------------------------------------------
+void Proxy::kick()
+{
 	// 如果被销毁频道仍然存活则将其关闭
 	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
 	if(pChannel && !pChannel->isDestroyed())
@@ -91,8 +97,6 @@ Proxy::~Proxy()
 		this->sendToClient();
 		pChannel->condemn();
 	}
-
-	SAFE_RELEASE(pProxyForwarder_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -137,7 +141,7 @@ void Proxy::initClientCellPropertys()
 		spaceuid = msgInfo->msgid;
 	}
 	
-	if(scriptModule()->usePropertyDescrAlias())
+	if(pScriptModule()->usePropertyDescrAlias())
 	{
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
 		(*pBundle) << aliasID << this->spaceID();
@@ -219,7 +223,7 @@ void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID
 {
 	// 回调给脚本，获得了cell
 	if(cellMailbox_ == NULL)
-		cellMailbox_ = new EntityMailbox(scriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
+		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -244,7 +248,7 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 {
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -272,11 +276,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 {
 	if(isDestroyed())
 	{
-		char err[255];																				
+		char err[255];
 		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: %d is destroyed.", 
-			scriptName(), id());			
+			scriptName(), id());
 
-		PyErr_SetString(PyExc_TypeError, err);														
+		PyErr_SetString(PyExc_TypeError, err);
 		PyErr_PrintEx(0);	
 		onGiveClientToFailure();
 		return;
@@ -284,10 +288,10 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
 	{
-		char err[255];																				
-		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", scriptName());			
-		PyErr_SetString(PyExc_TypeError, err);														
-		PyErr_PrintEx(0);	
+		char err[255];
+		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", scriptName());
+		PyErr_SetString(PyExc_TypeError, err);
+		PyErr_PrintEx(0);
 		onGiveClientToFailure();
 		return;
 	}
@@ -298,11 +302,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 	{
 		if(proxy->isDestroyed())
 		{
-			char err[255];																				
-			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is destroyed.", 
-				scriptName(), proxy->id());			
+			char err[255];
+			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is destroyed.",
+				scriptName(), proxy->id());
 
-			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_SetString(PyExc_TypeError, err);
 			PyErr_PrintEx(0);	
 			onGiveClientToFailure();
 			return;
@@ -310,11 +314,11 @@ void Proxy::giveClientTo(Proxy* proxy)
 
 		if(proxy->id() == this->id())
 		{
-			char err[255];																				
+			char err[255];
 			kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: target(%d) is self.", 
-				scriptName(), proxy->id());			
+				scriptName(), proxy->id());	
 
-			PyErr_SetString(PyExc_TypeError, err);														
+			PyErr_SetString(PyExc_TypeError, err);
 			PyErr_PrintEx(0);	
 			onGiveClientToFailure();
 			return;
@@ -368,7 +372,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientTo(Network::Channel* lpChannel)
 {
-	clientMailbox(new EntityMailbox(this->scriptModule_, 
+	clientMailbox(new EntityMailbox(this->pScriptModule_, 
 		&lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
 
 	addr(lpChannel->addr());

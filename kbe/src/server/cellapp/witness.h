@@ -97,8 +97,8 @@ public:
 	{
 		size_t bytes = sizeof(pEntity_)
 		 + sizeof(aoiRadius_) + sizeof(aoiHysteresisArea_)
-		  + sizeof(pAOITrigger_) + sizeof(clientAOISize_)
-		  + sizeof(lastBasePos) + (sizeof(EntityRef*) * aoiEntities_.size());
+		 + sizeof(pAOITrigger_) + sizeof(pAOIHysteresisAreaTrigger_) + sizeof(clientAOISize_)
+		 + sizeof(lastBasePos) + (sizeof(EntityRef*) * aoiEntities_.size());
 
 		return bytes;
 	}
@@ -129,8 +129,8 @@ public:
 	void onEnterSpace(Space* pSpace);
 	void onLeaveSpace(Space* pSpace);
 
-	void onEnterAOI(Entity* pEntity);
-	void onLeaveAOI(Entity* pEntity);
+	void onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity);
+	void onLeaveAOI(AOITrigger* pAOITrigger, Entity* pEntity);
 	void _onLeaveAOI(EntityRef* pEntityRef);
 
 	/**
@@ -168,11 +168,16 @@ public:
 	INLINE bool entityInAOI(ENTITY_ID entityID);
 
 	INLINE AOITrigger* pAOITrigger();
+	INLINE AOITrigger* pAOIHysteresisAreaTrigger();
+	
+	void installAOITrigger();
+	void uninstallAOITrigger();
 
 	/**
 		重置AOI范围内的entities， 使其同步状态恢复到最初未同步的状态
 	*/
 	void resetAOIEntities();
+
 private:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置
@@ -180,20 +185,23 @@ private:
 	INLINE void _addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
 	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef);
 	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID);
+
 private:
 	Entity*									pEntity_;
 
-	float									aoiRadius_;							// 当前entity的aoi半径
-	float									aoiHysteresisArea_;					// 当前entityAoi的一个滞后范围
+	// 当前entity的aoi半径
+	float									aoiRadius_;
+	// 当前entityAoi的一个滞后范围
+	float									aoiHysteresisArea_;
 
 	AOITrigger*								pAOITrigger_;
+	AOITrigger*								pAOIHysteresisAreaTrigger_;
 
 	EntityRef::AOI_ENTITIES					aoiEntities_;
 
 	Position3D								lastBasePos;
 
 	uint16									clientAOISize_;
-
 };
 
 }

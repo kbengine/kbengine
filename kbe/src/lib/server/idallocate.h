@@ -51,7 +51,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		用法:
 		IDClient<ENTITY_ID>* m_idClient = new IDClient<ENTITY_ID>;
 		// 添加IDServer发送过来的id段
-		m_idClient->onAddRange(idBegin, idEnd);
+		m_idClient->onAddRange(id_begin, id_end);
 		// 分配一个id 
 		m_idClient->alloc()
 */
@@ -78,7 +78,7 @@ template<typename T>
 class IDAllocate
 {
 public:
-	IDAllocate(): lastID_(0)
+	IDAllocate(): last_id_(0)
 	{
 	}
 
@@ -91,9 +91,9 @@ public:
 	*/
 	T alloc(void)
 	{
-		T t = ++lastID_;
+		T t = ++last_id_;
 		if(t == 0)
-			t = ++lastID_;
+			t = ++last_id_;
 
 		return t;
 	}
@@ -105,11 +105,12 @@ public:
 	{
 	}
 
-	T lastID() const{ return lastID_; }
-	void lastID(T v){ lastID_ = v; }
+	T lastID() const{ return last_id_; }
+	void lastID(T v){ last_id_ = v; }
 
 protected:
-	T lastID_;													// 最后一次申请到的ID
+	// 最后一次申请到的ID
+	T last_id_;
 };
 
 // 分配的id用完会存储在列表中， 下次使用会从中获取
@@ -130,16 +131,16 @@ public:
 	*/
 	T alloc(void)
 	{
-		if(idList_.size() > 0)
+		if(id_list_.size() > 0)
 		{
-			T n = idList_.front();
-			idList_.pop();
+			T n = id_list_.front();
+			id_list_.pop();
 			return n;
 		}
 		
-		T t = ++IDAllocate<T>::lastID_;
+		T t = ++IDAllocate<T>::last_id_;
 		if(t == 0)
-			t = ++IDAllocate<T>::lastID_;
+			t = ++IDAllocate<T>::last_id_;
 
 		return t;
 	}
@@ -149,30 +150,28 @@ public:
 	*/
 	void reclaim(T id)
 	{
-		idList_.push(id);
+		id_list_.push(id);
 	}
 
 protected:
-	typename std::queue< T > idList_;							// id列表， 所有ID都存在这个列表里
+	// id列表， 所有ID都存在这个列表里
+	typename std::queue< T > id_list_;
 };
 
 
 template< typename T >
 class IDServer
 {
-protected:
-	T lastIDRange_begin_;										// 最后一次申请到的ID段的起始位置
-	T rangeStep_;												// id段的一个段长度
 public:
-	IDServer(T idBegin, T rangeStep): 
-	lastIDRange_begin_(idBegin), 
-	rangeStep_(rangeStep)
+	IDServer(T id_begin, T range_step): 
+	last_id_range_begin_(id_begin), 
+	range_step_(range_step)
 	{
 	}
 
 	~IDServer()
 	{
-	}	
+	}
 	
 	/** 
 		分配一个id段 
@@ -180,12 +179,19 @@ public:
 	std::pair< T, T > allocRange(void)
 	{
 		INFO_MSG(fmt::format("IDServer::allocRange: {}-{}.\n", 
-			lastIDRange_begin_, (lastIDRange_begin_ + rangeStep_)));
+			last_id_range_begin_, (last_id_range_begin_ + range_step_)));
 		
-		std::pair< T, T > p = std::make_pair(lastIDRange_begin_, lastIDRange_begin_ + rangeStep_);
-		lastIDRange_begin_ += rangeStep_;
+		std::pair< T, T > p = std::make_pair(last_id_range_begin_, last_id_range_begin_ + range_step_);
+		last_id_range_begin_ += range_step_;
 		return p;
 	}
+
+protected:
+	// 最后一次申请到的ID段的起始位置
+	T last_id_range_begin_;
+	
+	// id段的一个段长度
+	T range_step_;	
 };
 
 template< typename T >
@@ -193,9 +199,9 @@ class IDClient
 {										
 public:
 	IDClient():
-	  lastIDRange_begin_(0), 
-	lastIDRange_end_(0),
-	requestedIDServerAlloc_(false)
+	  last_id_range_begin_(0), 
+	last_id_range_end_(0),
+	requested_idserver_alloc_(false)
 	{
 	}
 	
@@ -207,30 +213,30 @@ public:
 	}	
 	
 	bool hasReqServerAlloc() const { 
-		return requestedIDServerAlloc_; 
+		return requested_idserver_alloc_; 
 	}
 
 	void setReqServerAllocFlag(bool has){ 
-		requestedIDServerAlloc_ = has; 
+		requested_idserver_alloc_ = has; 
 	}
 
-	size_t getSize()
+	size_t size()
 	{ 
-		size_t ncount = lastIDRange_end_ - lastIDRange_begin_; 
-		if(ncount <= 0)
+		size_t nCount = last_id_range_end_ - last_id_range_begin_; 
+		if(nCount <= 0)
 		{
 			// 看看是否有缓存的ID段（会在id快用尽时向服务器申请缓存到这里）
-			if(idList_.size() > 0)
+			if(id_list_.size() > 0)
 			{
-				std::pair< T, T > n = idList_.front();
-				lastIDRange_begin_ = n.first;
-				lastIDRange_end_ = n.second;
-				idList_.pop();
-				ncount = lastIDRange_end_ - lastIDRange_begin_; 
+				std::pair< T, T > n = id_list_.front();
+				last_id_range_begin_ = n.first;
+				last_id_range_end_ = n.second;
+				id_list_.pop();
+				nCount = last_id_range_end_ - last_id_range_begin_; 
 			}
 		}
 
-		return ncount;
+		return nCount;
 	}
 	
 	/**
@@ -243,17 +249,17 @@ public:
 	/** 
 		idserver 分配过来的一个id段 
 	*/
-	void onAddRange(T idBegin, T idEnd)
+	void onAddRange(T id_begin, T id_end)
 	{
-		INFO_MSG(fmt::format("IDClient::onAddRange: number of ids increased from {} to {}.\n", idBegin, idEnd));
-		if(getSize() <= 0)
+		INFO_MSG(fmt::format("IDClient::onAddRange: number of ids increased from {} to {}.\n", id_begin, id_end));
+		if(size() <= 0)
 		{
-			lastIDRange_begin_ = idBegin;
-			lastIDRange_end_ = idEnd;
+			last_id_range_begin_ = id_begin;
+			last_id_range_end_ = id_end;
 		}
 		else
 		{
-			idList_.push(std::make_pair(idBegin, idEnd));
+			id_list_.push(std::make_pair(id_begin, id_end));
 		}
 	}
 	
@@ -262,24 +268,23 @@ public:
 	*/
 	T alloc(void)
 	{
-		KBE_ASSERT(getSize() > 0 && "IDClient:: alloc:no usable of the id.\n");
+		KBE_ASSERT(size() > 0 && "IDClient:: alloc:no usable of the id.\n");
 
-		T id = lastIDRange_begin_;
-		lastIDRange_begin_ ++;
+		T id = last_id_range_begin_++;
 
-		if(lastIDRange_begin_ > lastIDRange_end_)
+		if(last_id_range_begin_ > last_id_range_end_)
 		{
 			// 看看是否有缓存的ID段（会在id快用尽时向服务器申请缓存到这里）
-			if(idList_.size() > 0)
+			if(id_list_.size() > 0)
 			{
-				std::pair< T, T > n = idList_.front();
-				lastIDRange_begin_ = n.first;
-				lastIDRange_end_ = n.second;
-				idList_.pop();
+				std::pair< T, T > n = id_list_.front();
+				last_id_range_begin_ = n.first;
+				last_id_range_end_ = n.second;
+				id_list_.pop();
 			}
 			else
 			{
-				lastIDRange_begin_ = lastIDRange_end_ = 0;
+				last_id_range_begin_ = last_id_range_end_ = 0;
 			}
 		}
 		
@@ -295,12 +300,15 @@ public:
 	}
 	
 protected:
-	typename std::queue< std::pair< T, T > > idList_;					// id列表， 所有ID段都存在这个列表里
+	// id列表， 所有ID段都存在这个列表里
+	typename std::queue< std::pair< T, T > > id_list_;
 
-	T lastIDRange_begin_;												// 最后一次申请到的ID段的起始位置
-	T lastIDRange_end_;	
+	// 最后一次申请到的ID段的起始位置
+	T last_id_range_begin_;
+	T last_id_range_end_;
 
-	bool requestedIDServerAlloc_;										// 是否已经请求ID服务端分配ID
+	// 是否已经请求ID服务端分配ID
+	bool requested_idserver_alloc_;	
 };
 
 class EntityIDClient : public IDClient<ENTITY_ID>

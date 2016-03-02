@@ -39,7 +39,7 @@ ThreadPool* TPThread::threadPool()
 
 INLINE uint32 ThreadPool::bufferTaskSize() const
 {
-	return bufferedTaskList_.size();
+	return (uint32)bufferedTaskList_.size();
 }
 
 INLINE std::queue<thread::TPTask*>& ThreadPool::bufferedTaskList()
@@ -59,7 +59,7 @@ INLINE void ThreadPool::unlockBufferedTaskList()
 	
 INLINE uint32 ThreadPool::finiTaskSize() const
 {
-	return finiTaskList_count_;
+	return (uint32)finiTaskList_count_;
 }
 
 INLINE THREAD_ID TPThread::id(void) const

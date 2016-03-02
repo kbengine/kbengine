@@ -131,7 +131,7 @@ bool MoveToPointHandler::update(TimerHandle& handle)
 	pEntity_->direction(direction);
 
 	// 非navigate都不能确定其在地面上
-	pEntity_->isOnGound(false);
+	pEntity_->isOnGround(false);
 
 	// 通知脚本
 	pEntity->onMove(scriptCallbacks_.getIDForHandle(handle), layer_, currpos_backup, pyuserarg_);
