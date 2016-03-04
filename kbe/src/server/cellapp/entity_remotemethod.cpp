@@ -83,7 +83,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		methodDescription->addToStream(mstream, args);
 
 		if(mstream->wpos() > 0)
-			(*pBundle).append(mstream->data(), mstream->wpos());
+			(*pBundle).append(mstream->data(), (int)mstream->wpos());
 
 		if(Network::g_trace_packet > 0)
 		{

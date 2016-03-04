@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "timestamp.h"
 namespace KBEngine{
 
+#define KBE_USE_RDTSC
 #ifdef KBE_USE_RDTSC
 KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
 #else // KBE_USE_RDTSC
@@ -54,6 +55,7 @@ const char* getTimingMethodName()
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef KBE_USE_RDTSC
 static uint64 calcStampsPerSecond_rdtsc()
 {
 	struct timeval	tvBefore,	tvSleep = {0, 500000},	tvAfter;
@@ -80,11 +82,12 @@ static uint64 calcStampsPerSecond_rdtsc()
 
 	return (stampDelta * 1000000ULL) / microDelta;
 }
-
+#else
 static uint64 calcStampsPerSecond_gettime()
 {
 	return 1000000000ULL;
 }
+#endif
 
 static uint64 calcStampsPerSecond_gettimeofday()
 {

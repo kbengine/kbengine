@@ -36,7 +36,7 @@ bool DBTaskBase::process()
 	uint64 duration = startTime - initTime_;
 	if(duration > stampsPerSecond())
 	{
-		WARNING_MSG(fmt::format("DBTask::process(): delay {0:.2f} seconds, try adjusting the kbengine_defs.xml(numConnections) and MySQL(my.cnf->max_connections or innodb_flush_log_at_trx_commit)!\nsql:({1})\n", 
+		WARNING_MSG(fmt::format("DBTask::process(): delay {0:.2f} seconds, try adjusting the kbengine[_defs].xml(numConnections) and MySQL(my.cnf->max_connections or innodb_flush_log_at_trx_commit)!\nsql:({1})\n", 
 			(double(duration)/stampsPerSecondD()), pdbi_->lastquery()));
 	}
 

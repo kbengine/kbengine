@@ -93,6 +93,17 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/**
+		实体客户端的位置和朝向
+	*/
+	INLINE Position3D& clientPos();
+	INLINE void clientPos(const Position3D& pos);
+	INLINE void clientPos(float x, float y, float z);
+
+	INLINE Direction3D& clientDir();
+	INLINE void clientDir(const Direction3D& dir);
+	INLINE void clientDir(float roll, float pitch, float yaw);
+
+	/**
 		移动速度
 	*/
 	INLINE void moveSpeed(float speed);
@@ -178,6 +189,9 @@ protected:
 
 	Position3D								position_, serverPosition_;			// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向
+
+	Position3D								clientPos_;							// 客户端位置，如果实体被客户端控制用于向服务器同步位置
+	Direction3D								clientDir_;							// 客户端朝向，如果实体被客户端控制用于向服务器同步朝向
 
 	ClientObjectBase*						pClientApp_;
 

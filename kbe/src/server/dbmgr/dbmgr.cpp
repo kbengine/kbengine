@@ -328,7 +328,7 @@ bool Dbmgr::initDB()
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if (dbcfg.dbInterfaceInfos.size() == 0)
 	{
-		ERROR_MSG(fmt::format("DBUtil::initialize: not found dbInterface! (kbengine_defs.xml->dbmgr->databaseInterfaces)\n"));
+		ERROR_MSG(fmt::format("DBUtil::initialize: not found dbInterface! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n"));
 		return false;
 	}
 
@@ -371,7 +371,7 @@ bool Dbmgr::initDB()
 
 	if (!hasDefaultInterface)
 	{
-		ERROR_MSG("Dbmgr::initDB(): \"default\" dbInterface was not found! (kbengine_defs.xml->dbmgr->databaseInterfaces)\n");
+		ERROR_MSG("Dbmgr::initDB(): \"default\" dbInterface was not found! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n");
 		return false;
 	}
 

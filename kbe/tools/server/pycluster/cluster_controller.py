@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import socket, io, time
+import socket, time
 import sys
-import os
 import struct
 import traceback
 import select
 import getpass 
 import time
+import os
+
+if sys.hexversion >= 0x03000000:
+	import io
+else:
+	import StringIO
 
 host = '' # Bind to all interfaces
 
@@ -154,7 +159,7 @@ class ComponentInfo( object ):
 		self.extaddrEx = streamStr[i1: ii];
 		if type(self.extaddrEx) == 'bytes':
 			self.extaddrEx = extaddrEx.decode()
-                            
+
 		ii += 1
 
 		self.pid = struct.unpack("I", streamStr[ii : ii + 4])[0]
@@ -215,8 +220,12 @@ class ClusterControllerHandler:
 	
 	def resetPacket(self):
 		self.recvDatas = []
-		self.postDatas = b""
-		
+
+		if sys.hexversion >= 0x03000000:
+			self.postDatas = eval("b''")
+		else:
+			self.postDatas = ""
+
 	def sendto(self, ip = "<broadcast>", trycount = 1, timeout = 1):
 		self.writePacket("H", socket.htons(self.udp_socket.getsockname()[1]))
 		

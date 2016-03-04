@@ -68,7 +68,9 @@ public:
 	virtual void handleTimeout(TimerHandle handle, void * pUser) = 0;
 
 protected:
-	virtual void onRelease( TimerHandle handle, void * pUser ) {}
+	virtual void onRelease( TimerHandle handle, void * pUser ) {
+	}
+
 private:
 	friend class TimeBase;
 
@@ -98,6 +100,7 @@ public:
 
 	bool isCancelled() const{ return state_ == TIME_CANCELLED; }
 	bool isExecuting() const{ return state_ == TIME_EXECUTING; }
+
 protected:
 	enum TimeState
 	{

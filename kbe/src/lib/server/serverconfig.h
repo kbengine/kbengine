@@ -99,6 +99,16 @@ struct EmailSendInfo
 
 struct DBInterfaceInfo
 {
+	DBInterfaceInfo()
+	{
+		index = 0;
+		isPure = false;
+		db_numConnections = 5;
+		db_passwordEncrypt = true;
+	}
+
+	int index;
+	bool isPure;											// 是否为纯净库（没有引擎创建的实体表）
 	char name[MAX_BUF];										// 数据库的接口名称
 	char db_type[MAX_BUF];									// 数据库的类别
 	uint32 db_port;											// 数据库的端口
@@ -209,7 +219,7 @@ typedef struct EngineComponentInfo
 	uint16 http_cbport;										// 用户http回调接口，处理认证、密码重置等
 
 	bool debugDBMgr;										// debug模式下可输出读写操作信息
-}ENGINE_COMPONENT_INFO;
+} ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
 {
@@ -242,8 +252,6 @@ public:
 	INLINE int16 gameUpdateHertz(void) const;
 	INLINE Network::Address interfacesAddr(void) const;
 
-	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
-
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
 	uint32 tcp_SOMAXCONN(COMPONENT_TYPE componentType);
@@ -254,28 +262,10 @@ public:
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
 
-	int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName)
-	{
-		for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
-		{
-			if (_dbmgrInfo.dbInterfaceInfos[i].name == dbInterfaceName)
-			{
-				return (int)i;
-			}
-		}
-
-		return -1;
-	}
-
-	const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex)
-	{
-		if (_dbmgrInfo.dbInterfaceInfos.size() > dbInterfaceIndex)
-		{
-			return _dbmgrInfo.dbInterfaceInfos[dbInterfaceIndex].name;
-		}
-
-		return "";
-	}
+	INLINE bool IsPureDBInterfaceName(const std::string& dbInterfaceName);
+	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
+	INLINE int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName);
+	INLINE const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex);
 
 private:
 	void _updateEmailInfos();

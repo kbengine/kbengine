@@ -826,6 +826,14 @@ bool ServerConfig::loadConfig(std::string fileName)
 
 					TiXmlNode* interfaceNode = databaseInterfacesNode->FirstChild();
 					
+					node = xml->enterNode(interfaceNode, "pure");
+					if (node)
+						pDBInfo->isPure = xml->getValStr(node) == "true";
+
+					// 默认库不允许是纯净库，引擎需要创建实体表
+					if (name == "default")
+						pDBInfo->isPure = false;
+
 					node = xml->enterNode(interfaceNode, "type");
 					if(node != NULL)
 						strncpy((char*)&pDBInfo->db_type, xml->getValStr(node).c_str(), MAX_NAME);
@@ -1411,6 +1419,9 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 							   const Network::Address& internalAddr, const Network::Address& externalAddr)
 {
 	std::string infostr = "";
+
+	for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
+		_dbmgrInfo.dbInterfaceInfos[i].index = i;
 
 	//updateExternalAddress(getBaseApp().externalAddress);
 	//updateExternalAddress(getLoginApp().externalAddress);

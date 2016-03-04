@@ -268,17 +268,22 @@
 				（Database interface name)
 			-->
 			<default>
+				<!-- 如果为true，则为纯净的数据库，引擎不创建实体表 
+					（If true is pure database, engine does not create the entity table)
+				-->
+				<pure> false </pure>
+
 				<!-- 数据库类型 （mysql、redis）
 					（Database type(mysql, redis))
 				-->
 				<type> mysql </type>											<!-- Type: String -->
-				
+
 				<!-- 数据库地址 
 					（Database address)
 				-->
 				<host> localhost </host>										<!-- Type: String -->
 				<port> 0 </port>												<!-- Type: Integer -->
-				
+
 				<!-- 数据库账号验证 
 					（Database auth)
 				-->
@@ -291,7 +296,7 @@
 					-->
 					<encrypt> true </encrypt>
 				</auth>
-				
+
 				<!-- 数据库名称 
 					(Database name)
 				-->

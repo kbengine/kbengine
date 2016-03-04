@@ -122,7 +122,7 @@ INLINE int16 ServerConfig::gameUpdateHertz(void) const { return gameUpdateHertz_
 INLINE Network::Address ServerConfig::interfacesAddr(void) const { return interfacesAddr_;}
 
 //-------------------------------------------------------------------------------------	
-DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)
+INLINE DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)
 {
 	std::vector<DBInterfaceInfo>::iterator dbinfo_iter = _dbmgrInfo.dbInterfaceInfos.begin();
 	for (; dbinfo_iter != _dbmgrInfo.dbInterfaceInfos.end(); ++dbinfo_iter)
@@ -134,6 +134,45 @@ DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)
 	}
 
 	return NULL;
+}
+
+//-------------------------------------------------------------------------------------	
+INLINE bool ServerConfig::IsPureDBInterfaceName(const std::string& dbInterfaceName)
+{
+	for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
+	{
+		if (_dbmgrInfo.dbInterfaceInfos[i].name == dbInterfaceName)
+		{
+			return _dbmgrInfo.dbInterfaceInfos[i].isPure;
+		}
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------	
+INLINE int ServerConfig::dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName)
+{
+	for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
+	{
+		if (_dbmgrInfo.dbInterfaceInfos[i].name == dbInterfaceName)
+		{
+			return (int)i;
+		}
+	}
+
+	return -1;
+}
+
+//-------------------------------------------------------------------------------------	
+INLINE const char* ServerConfig::dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex)
+{
+	if (_dbmgrInfo.dbInterfaceInfos.size() > dbInterfaceIndex)
+	{
+		return _dbmgrInfo.dbInterfaceInfos[dbInterfaceIndex].name;
+	}
+
+	return "";
 }
 
 //-------------------------------------------------------------------------------------	
