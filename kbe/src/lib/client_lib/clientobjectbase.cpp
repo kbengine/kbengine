@@ -65,8 +65,6 @@ pEntityIDAliasIDList_(),
 pyCallbackMgr_(),
 entityID_(0),
 spaceID_(0),
-entityPos_(FLT_MAX, FLT_MAX, FLT_MAX),
-entityDir_(FLT_MAX, FLT_MAX, FLT_MAX),
 dbid_(0),
 ip_(),
 port_(),
@@ -835,8 +833,8 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	{
 		spaceID_ = entity->spaceID();
 		entity->isOnGround(isOnGround > 0);
-		entityPos_ = entity->position();
-		entityDir_ = entity->direction();
+		entity->clientPos(entity->position());
+		entity->clientDir(entity->direction());
 
 		// 初始化一下服务端当前的位置
 		entity->serverPosition(entity->position());
@@ -953,8 +951,8 @@ void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStr
 
 	entity->isOnGround(isOnGround > 0);
 
-	entityPos_ = entity->position();
-	entityDir_ = entity->direction();
+	entity->clientPos(entity->position());
+	entity->clientDir(entity->direction());
 
 	// 初始化一下服务端当前的位置
 	entity->serverPosition(entity->position());
@@ -1135,8 +1133,11 @@ void ClientObjectBase::updatePlayerToServer()
 	Position3D& pos = pEntity->position();
 	Direction3D& dir = pEntity->direction();
 
-	bool dirNoChanged = almostEqual(dir.yaw(), entityDir_.yaw()) && almostEqual(dir.pitch(), entityDir_.pitch()) && almostEqual(dir.roll(), entityDir_.roll());
-	Vector3 movement = pos - entityPos_;
+	Position3D& clientPos = pEntity->clientPos();
+	Direction3D& clientDir = pEntity->clientDir();
+
+	bool dirNoChanged = almostEqual(dir.yaw(), clientDir.yaw()) && almostEqual(dir.pitch(), clientDir.pitch()) && almostEqual(dir.roll(), clientDir.roll());
+	Vector3 movement = pos - clientPos;
 
 	bool posNoChanged =  KBEVec3Length(&movement) < 0.0004f;
 
@@ -1146,8 +1147,8 @@ void ClientObjectBase::updatePlayerToServer()
 	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
 	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 	
-	pEntity->position(entityPos_);
-	pEntity->direction(entityDir_);
+	pEntity->position(clientPos);
+	pEntity->direction(clientDir);
 
 	(*pBundle) << pos.x;
 	(*pBundle) << pos.y;
@@ -1214,8 +1215,8 @@ void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemorySt
 	entity->position(pos);
 	entity->direction(dir);
 
-	entityPos_ = pos;
-	entityDir_ = dir;
+	entity->clientPos(pos);
+	entity->clientDir(dir);
 
 	EventData_PositionForce eventdata;
 	eventdata.x = pos.x;

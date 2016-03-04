@@ -44,6 +44,42 @@ INLINE void Entity::serverPosition(const Position3D& pos)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE Position3D& Entity::clientPos()
+{
+	return clientPos_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::clientPos(const Position3D& pos)
+{
+	clientPos_ = pos;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::clientPos(float x, float y, float z)
+{ 
+	clientPos_ = Position3D(x, y, z);
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Direction3D& Entity::clientDir()
+{
+	return clientDir_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::clientDir(const Direction3D& dir)
+{
+	clientDir_ = dir;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::clientDir(float roll, float pitch, float yaw)
+{
+	clientDir_ = Direction3D(roll, pitch, yaw);
+}
+
+//-------------------------------------------------------------------------------------
 INLINE void Entity::moveSpeed(float speed)
 {
 	velocity_ = speed; 
