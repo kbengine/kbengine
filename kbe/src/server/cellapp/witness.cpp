@@ -1020,10 +1020,9 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
-	/*
-	如果目标被我控制了，则目标的位置不通知我的客户端。
-	注意：这里有一个问题——当这个被我控制的entity在服务器中使用moveToPoint()等接口移动时，
-	     也会由于这个判定导致坐标不会同步到控制者的客户端中，这个问题也许挺严重的……
+	/* 如果目标被我控制了，则目标的位置不通知我的客户端。
+	   注意：当这个被我控制的entity在服务器中使用moveToPoint()等接口移动时，
+	         也会由于这个判定导致坐标不会同步到控制者的客户端中
 	*/
 	if (otherEntity->controlledBy() && pEntity_->id() == otherEntity->controlledBy()->id())
 		return flags;
@@ -1052,46 +1051,55 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 	if((entity_posdir_additional_updates == 0) || (g_kbetime - otherEntity->dirChangedTime() < entity_posdir_additional_updates))
 	{
 		const Direction3D& dir = otherEntity->direction();
-		if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
+		if (pVolatileInfo->yaw() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.yaw());
-			(*mstream) << angle2int8(dir.pitch());
-			(*mstream) << angle2int8(dir.roll());
+			if (pVolatileInfo->roll() > 0.f)
+			{
+				if (pVolatileInfo->pitch() > 0.f)
+				{
+					(*mstream) << angle2int8(dir.yaw());
+					(*mstream) << angle2int8(dir.pitch());
+					(*mstream) << angle2int8(dir.roll());
 
-			flags |= UPDATE_FLAG_YAW_PITCH_ROLL; 
-		}
-		else if (pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
-		{
-			(*mstream) << angle2int8(dir.pitch());
-			(*mstream) << angle2int8(dir.roll());
+					flags |= UPDATE_FLAG_YAW_PITCH_ROLL;
+				}
+				else
+				{
+					(*mstream) << angle2int8(dir.yaw());
+					(*mstream) << angle2int8(dir.roll());
 
-			flags |= UPDATE_FLAG_PITCH_ROLL; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->pitch() > 0.f)
-		{
-			(*mstream) << angle2int8(dir.yaw());
-			(*mstream) << angle2int8(dir.pitch());
+					flags |= UPDATE_FLAG_YAW_ROLL;
+				}
+			}
+			else if (pVolatileInfo->pitch() > 0.f)
+			{
+				(*mstream) << angle2int8(dir.yaw());
+				(*mstream) << angle2int8(dir.pitch());
 
-			flags |= UPDATE_FLAG_YAW_PITCH; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f)
-		{
-			(*mstream) << angle2int8(dir.yaw());
-			(*mstream) << angle2int8(dir.roll());
+				flags |= UPDATE_FLAG_YAW_PITCH;
+			}
+			else
+			{
+				(*mstream) << angle2int8(dir.yaw());
 
-			flags |= UPDATE_FLAG_YAW_ROLL; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f)
-		{
-			(*mstream) << angle2int8(dir.yaw());
-
-			flags |= UPDATE_FLAG_YAW; 
+				flags |= UPDATE_FLAG_YAW;
+			}
 		}
 		else if (pVolatileInfo->roll() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.roll());
+			if (pVolatileInfo->pitch() > 0.f)
+			{
+				(*mstream) << angle2int8(dir.pitch());
+				(*mstream) << angle2int8(dir.roll());
 
-			flags |= UPDATE_FLAG_ROLL; 
+				flags |= UPDATE_FLAG_PITCH_ROLL;
+			}
+			else
+			{
+				(*mstream) << angle2int8(dir.roll());
+
+				flags |= UPDATE_FLAG_ROLL;
+			}
 		}
 		else if (pVolatileInfo->pitch() > 0.f)
 		{
