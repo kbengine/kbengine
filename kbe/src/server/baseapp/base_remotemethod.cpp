@@ -76,10 +76,10 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	// 如果是调用客户端方法， 我们记录事件并且记录带宽
 	if(methodDescription->checkArgs(args))
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		mailbox->newMail((*pBundle));
 
-		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
 		if(mstream->wpos() > 0)
@@ -93,7 +93,7 @@ PyObject* BaseRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		
 		static_cast<Proxy*>(pEntity)->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
 
-		MemoryStream::ObjPool().reclaimObject(mstream);
+		MemoryStream::reclaimPoolObject(mstream);
 	}
 	
 	S_Return;

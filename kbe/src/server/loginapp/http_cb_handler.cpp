@@ -37,7 +37,7 @@ HTTPCBHandler::HTTPCBHandler():
 pEndPoint_(NULL),
 clients_()
 {
-	pEndPoint_ = Network::EndPoint::ObjPool().createObject();
+	pEndPoint_ = Network::EndPoint::createPoolObject();
 
 	pEndPoint_->socket(SOCK_STREAM);
 
@@ -83,7 +83,7 @@ HTTPCBHandler::~HTTPCBHandler()
 	clients_.clear();
 	Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*pEndPoint_);
 
-	Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
+	Network::EndPoint::reclaimPoolObject(pEndPoint_);
 	pEndPoint_ = NULL;
 }
 
@@ -235,7 +235,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(type == 1)
 			{
 				// œÚdbmgrº§ªÓ’À∫≈
-				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 				(*pBundle).newMessage(DbmgrInterface::accountActivate);
 				(*pBundle) << code;
 				dbmgrinfos->pChannel->send(pBundle);
@@ -282,7 +282,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					password = HttpUtility::URLDecode(password);
 
 					// œÚdbmgr÷ÿ÷√’À∫≈
-					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					(*pBundle).newMessage(DbmgrInterface::accountResetPassword);
 					(*pBundle) << KBEngine::strutil::kbe_trim(username);
 					(*pBundle) << KBEngine::strutil::kbe_trim(password);
@@ -313,7 +313,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 					username = HttpUtility::URLDecode(username);
 
 					// œÚdbmgr∞Û∂®’À∫≈’À∫≈
-					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					(*pBundle).newMessage(DbmgrInterface::accountBindMail);
 					(*pBundle) << KBEngine::strutil::kbe_trim(username);
 					(*pBundle) << code;

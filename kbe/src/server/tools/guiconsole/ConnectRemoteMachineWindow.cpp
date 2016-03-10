@@ -96,7 +96,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	command += csport;
 	free(csport);
 
-	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
+	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
 
 	KBEngine::u_int32_t address;
 	Network::Address::string2ip(strip, address);
@@ -105,7 +105,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	if(addr.ip == 0)
 	{
 		::AfxMessageBox(L"address is error!");
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;
 	}
 
@@ -113,7 +113,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	if (!endpoint->good())
 	{
 		AfxMessageBox(L"couldn't create a socket\n");
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;
 	}
 
@@ -123,7 +123,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		CString err;
 		err.Format(L"connect server is error! %d", ::WSAGetLastError());
 		AfxMessageBox(err);
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;
 	}
 
@@ -181,7 +181,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 END:
 	dlg->updateTree();
 
-	KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+	KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 	wchar_t* wcommand = KBEngine::strutil::char2wchar(command.c_str());
 	bool found = false;
 	std::deque<CString>::iterator iter = m_historyCommand.begin();

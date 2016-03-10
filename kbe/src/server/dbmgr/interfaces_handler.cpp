@@ -290,7 +290,7 @@ bool InterfacesHandler_Interfaces::createAccount(Network::Channel* pChannel, std
 		}
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	
 	(*pBundle).newMessage(InterfacesInterface::reqCreateAccount);
 	(*pBundle) << pChannel->componentID();
@@ -353,7 +353,7 @@ bool InterfacesHandler_Interfaces::loginAccount(Network::Channel* pChannel, std:
 			return false;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(InterfacesInterface::onAccountLogin);
 	(*pBundle) << pChannel->componentID();
@@ -422,11 +422,11 @@ bool InterfacesHandler_Interfaces::reconnect()
 			Dbmgr::getSingleton().networkInterface().deregisterChannel(pInterfacesChannel);
 
 		pInterfacesChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel);
+		Network::Channel::reclaimPoolObject(pInterfacesChannel);
 	}
 
 	Network::Address addr = g_kbeSrvConfig.interfacesAddr();
-	Network::EndPoint* pEndPoint = Network::EndPoint::ObjPool().createObject();
+	Network::EndPoint* pEndPoint = Network::EndPoint::createPoolObject();
 	pEndPoint->addr(addr);
 
 	pEndPoint->socket(SOCK_STREAM);
@@ -439,7 +439,7 @@ bool InterfacesHandler_Interfaces::reconnect()
 	pEndPoint->setnonblocking(true);
 	pEndPoint->setnodelay(true);
 
-	pInterfacesChannel = Network::Channel::ObjPool().createObject();
+	pInterfacesChannel = Network::Channel::createPoolObject();
 	bool ret = pInterfacesChannel->initialize(Dbmgr::getSingleton().networkInterface(), pEndPoint, Network::Channel::INTERNAL);
 	if(!ret)
 	{
@@ -447,7 +447,7 @@ bool InterfacesHandler_Interfaces::reconnect()
 			pInterfacesChannel->c_str()));
 
 		pInterfacesChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pInterfacesChannel);
+		Network::Channel::reclaimPoolObject(pInterfacesChannel);
 		return 0;
 	}
 
@@ -479,7 +479,7 @@ bool InterfacesHandler_Interfaces::reconnect()
 				pInterfacesChannel->pEndPoint()->addr().c_str()));
 
 			pInterfacesChannel->destroy();
-			Network::Channel::ObjPool().reclaimObject(pInterfacesChannel);
+			Network::Channel::reclaimPoolObject(pInterfacesChannel);
 			return false;
 		}
 	}
@@ -521,7 +521,7 @@ void InterfacesHandler_Interfaces::charge(Network::Channel* pChannel, KBEngine::
 	INFO_MSG(fmt::format("InterfacesHandler_Interfaces::charge: chargeID={0}, dbid={3}, cbid={1}, datas={2}!\n",
 		chargeID, cbid, datas, dbid));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(InterfacesInterface::charge);
 	(*pBundle) << pChannel->componentID();
@@ -561,7 +561,7 @@ void InterfacesHandler_Interfaces::onChargeCB(KBEngine::MemoryStream& s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(BaseappInterface::onChargeCB);
 	(*pBundle) << chargeID;
@@ -585,7 +585,7 @@ void InterfacesHandler_Interfaces::eraseClientReq(Network::Channel* pChannel, st
 			return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(InterfacesInterface::eraseClientReq);
 	(*pBundle) << logkey;

@@ -305,7 +305,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 
 	CreateAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -322,7 +322,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 	else
 	{
 		ERROR_MSG(fmt::format("Interfaces::createAccountResponse: not found channel. commitName={}\n", commitName));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	// 清理
@@ -414,7 +414,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 
 	LoginAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	
 	(*pBundle).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -431,7 +431,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 	else
 	{
 		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: not found channel. commitName={}\n", commitName));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	// 清理
@@ -522,7 +522,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 	}
 
 	KBEShared_ptr<Orders> orders = iter->second;
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
 	(*pBundle) << orders->baseappID << orders->ordersID << orders->dbid;
@@ -544,7 +544,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 		ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channel. orders={}\n", 
 			orders->ordersID));
 
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	orders_.erase(iter);

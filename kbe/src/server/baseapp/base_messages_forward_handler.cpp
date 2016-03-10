@@ -47,7 +47,7 @@ BaseMessagesForwardHandler::~BaseMessagesForwardHandler()
 	std::vector<Network::Bundle*>::iterator iter = bufferedSendToCellappMessages_.begin();
 	for(; iter != bufferedSendToCellappMessages_.end(); ++iter)
 	{
-		Network::Bundle::ObjPool().reclaimObject((*iter));
+		Network::Bundle::reclaimPoolObject((*iter));
 	}
 
 	bufferedSendToCellappMessages_.clear();

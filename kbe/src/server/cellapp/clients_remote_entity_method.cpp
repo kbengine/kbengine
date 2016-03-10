@@ -92,12 +92,12 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	// 先发给自己
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
 		if((!otherClients_ && (pEntity->pWitness() || (pEntity->clientMailbox()))))
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			pEntity->clientMailbox()->newMail((*pBundle));
 
 			if(mstream->wpos() > 0)
@@ -159,8 +159,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if (!pAoiEntity->pWitness()->entityInAOI(pEntity->id()))
 				continue;
 
-			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-			Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 			
 			pAoiEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
 					ClientInterface::onRemoteMethodCallOptimized, pEntity->id());
@@ -204,10 +204,10 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				pForwardBundle->currMsgLength(), 
 				"::");
 
-			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			Network::Bundle::reclaimPoolObject(pForwardBundle);
 		}
 
-		MemoryStream::ObjPool().reclaimObject(mstream);
+		MemoryStream::reclaimPoolObject(mstream);
 	}
 
 	S_Return;

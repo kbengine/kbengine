@@ -144,7 +144,7 @@ bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 			addr_.c_str(), id_));
 	}
 
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::reclaimPoolObject(pBundle);
 	return false;
 }
 

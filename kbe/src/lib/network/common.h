@@ -302,18 +302,18 @@ const char * reasonToString(Reason reason)
 #define MALLOC_PACKET(outputPacket, isTCPPacket)															\
 {																											\
 	if(isTCPPacket)																							\
-		outputPacket = TCPPacket::ObjPool().createObject();													\
+		outputPacket = TCPPacket::createPoolObject();													\
 	else																									\
-		outputPacket = UDPPacket::ObjPool().createObject();													\
+		outputPacket = UDPPacket::createPoolObject();													\
 }																											\
 
 
 #define RECLAIM_PACKET(isTCPPacket, pPacket)																\
 {																											\
 	if(isTCPPacket)																							\
-		TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));								\
+		TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));								\
 	else																									\
-		UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));								\
+		UDPPacket::reclaimPoolObject(static_cast<UDPPacket*>(pPacket));								\
 }																											\
 
 

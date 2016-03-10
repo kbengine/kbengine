@@ -52,6 +52,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Channel>& ObjPool();
+	static Channel* createPoolObject();
+	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
 	void onReclaimObject();
 	virtual size_t getPoolObjectBytes();

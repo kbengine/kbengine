@@ -45,6 +45,18 @@ ObjectPool<Bundle>& Bundle::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Bundle* Bundle::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::reclaimPoolObject(Bundle* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void Bundle::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("Bundle::destroyObjPool(): size {}.\n", 
@@ -384,7 +396,7 @@ void Bundle::_debugMessages()
 	if(pCurrPacket_)
 		packets.push_back(pCurrPacket_);
 
-	MemoryStream* pMemoryStream = MemoryStream::ObjPool().createObject();
+	MemoryStream* pMemoryStream = MemoryStream::createPoolObject();
 	MessageID msgid = 0;
 	MessageLength msglen = 0;
 	MessageLength1 msglen1 = 0;
@@ -496,7 +508,7 @@ void Bundle::_debugMessages()
 		pPacket->wpos((int)wpos);
 	}
 
-	MemoryStream::ObjPool().reclaimObject(pMemoryStream);
+	MemoryStream::reclaimPoolObject(pMemoryStream);
 }
 
 //-------------------------------------------------------------------------------------

@@ -502,7 +502,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	int8 v = Network::g_trace_packet;
 	Network::g_trace_packet = 0;

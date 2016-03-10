@@ -39,6 +39,18 @@ ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+TCPPacket* TCPPacket::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void TCPPacket::reclaimPoolObject(TCPPacket* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void TCPPacket::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("TCPPacket::destroyObjPool(): size {}.\n", 

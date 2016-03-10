@@ -207,7 +207,7 @@ void Entity::onDestroy(bool callScript)
 			setDirty();
 			this->backupCellData();
 
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			(*pBundle).newMessage(BaseappInterface::onLoseCell);
 			(*pBundle) << id_;
 			baseMailbox_->postMail(pBundle);
@@ -219,7 +219,7 @@ void Entity::onDestroy(bool callScript)
 	if(pWitness_)
 	{
 		pWitness_->detach(this);
-		Witness::ObjPool().reclaimObject(pWitness_);
+		Witness::reclaimPoolObject(pWitness_);
 		pWitness_ = NULL;
 	}
 
@@ -436,7 +436,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	uint32 flags = propertyDescription->getFlags();
 
 	// 首先创建一个需要广播的模板流
-	MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+	MemoryStream* mstream = MemoryStream::createPoolObject();
 
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
 
@@ -444,7 +444,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 只有在cell边界一定范围内的entity才拥有ghost实体, 或者在跳转space时也会短暂的置为ghost状态
 	if((flags & ENTITY_BROADCAST_CELL_FLAGS) > 0 && hasGhost())
 	{
-		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 		(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostPropertys);
 		(*pForwardBundle) << id();
 		(*pForwardBundle) << propertyDescription->getUType();
@@ -463,7 +463,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		}
 		else
 		{
-			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			Network::Bundle::reclaimPoolObject(pForwardBundle);
 		}
 	}
 	
@@ -497,7 +497,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 			if(pScriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
-				Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+				Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
 					ClientInterface::onUpdatePropertysOptimized, id());
@@ -514,11 +514,11 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 					propertyDescription->getName(), 
 					pForwardBundle->currMsgLength());
 
-				Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+				Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertysOptimized, pSendBundle);
-				Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+				Network::Bundle::reclaimPoolObject(pForwardBundle);
 			}
 		}
 	}
@@ -581,7 +581,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 判断这个属性是否还需要广播给自己的客户端
 	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL && pWitness_)
 	{
-		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 		(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pForwardBundle) << id();
 
@@ -600,14 +600,14 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				pForwardBundle->currMsgLength());
 		}
 
-		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
 
 		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
-		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
-	MemoryStream::ObjPool().reclaimObject(mstream);
+	MemoryStream::reclaimPoolObject(mstream);
 }
 
 //-------------------------------------------------------------------------------------
@@ -784,17 +784,17 @@ void Entity::backupCellData()
 	if(baseMailbox_ != NULL)
 	{
 		// 将当前的cell部分数据打包 一起发送给base部分备份
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
 		(*pBundle) << isDirty();
 		
 		if(isDirty())
 		{
-			MemoryStream* s = MemoryStream::ObjPool().createObject();
+			MemoryStream* s = MemoryStream::createPoolObject();
 			addCellDataToStream(ENTITY_CELL_DATA_FLAGS, s);
 			(*pBundle).append(s);
-			MemoryStream::ObjPool().reclaimObject(s);
+			MemoryStream::reclaimPoolObject(s);
 		}
 		
 		baseMailbox_->postMail(pBundle);
@@ -856,7 +856,7 @@ void Entity::writeToDB(void* data, void* extra1, void* extra2)
 	onWriteToDB();
 	backupCellData();
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onCellWriteToDBCompleted);
 	(*pBundle) << this->id();
 	(*pBundle) << callbackID;
@@ -1486,7 +1486,7 @@ void Entity::onGetWitness(bool fromBase)
 
 		if(pWitness_ == NULL)
 		{
-			setWitness(Witness::ObjPool().createObject());
+			setWitness(Witness::createPoolObject());
 		}
 		else
 		{
@@ -1527,7 +1527,7 @@ void Entity::onLoseWitness(Network::Channel* pChannel)
 	clientMailbox(NULL);
 
 	pWitness_->detach(this);
-	Witness::ObjPool().reclaimObject(pWitness_);
+	Witness::reclaimPoolObject(pWitness_);
 	pWitness_ = NULL;
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -1699,8 +1699,8 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		// this->position(currpos);
 
 		// 通知重置
-		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << id();
@@ -1709,7 +1709,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 }
 
@@ -2501,7 +2501,7 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
 	if(cinfos != NULL && cinfos->pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
 		(*pBundle) << sourceEntityID;
 		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
@@ -2749,7 +2749,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 			// 同时需要通知base暂存发往cellapp的消息，因为后面如果跳转成功需要切换cellMailbox映射关系到新的cellapp
 			// 为了避免在切换的一瞬间消息次序发生混乱(旧的cellapp消息也会转到新的cellapp上)， 因此需要在传送前进行
 			// 暂存， 传送成功后通知旧的cellapp销毁entity之后同时通知baseapp改变映射关系。
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
@@ -2771,7 +2771,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
 	// 我们需要将entity打包发往目的cellapp
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(CellappInterface::reqTeleportToCellApp);
 	(*pBundle) << id();
 	(*pBundle) << nearbyMBRef->id();
@@ -2780,12 +2780,12 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << dir.pitch() << dir.yaw();
 
-	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	MemoryStream* s = MemoryStream::createPoolObject();
 	changeToGhost(nearbyMBRef->componentID(), *s);
 
 	(*s) << g_componentID;
 	(*pBundle).append(s);
-	MemoryStream::ObjPool().reclaimObject(s);
+	MemoryStream::reclaimPoolObject(s);
 
 	// 暂时不销毁这个entity, 等那边成功创建之后再回来销毁
 	// 此期间的消息可以通过ghost转发给real
@@ -2814,8 +2814,8 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 	if(this->pWitness())
 	{
 		// 通知位置强制改变
-		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << id();
@@ -2824,7 +2824,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	currspace->addEntityToNode(this);
@@ -2850,8 +2850,8 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 			continue;
 
 		// 通知位置强制改变
-		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
 		(*pForwardBundle) << id();
@@ -2860,7 +2860,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	onTeleportSuccess(nearbyMBRef, lastSpaceID);
@@ -3128,7 +3128,7 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 	if(pWitness())
 	{
 		pWitness()->clear(this);
-		Witness::ObjPool().reclaimObject(pWitness_);
+		Witness::reclaimPoolObject(pWitness_);
 		pWitness_ = NULL;
 	}
 
@@ -3315,8 +3315,8 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 		clientMailbox(client);
 
 		// 不要使用setWitness，因为此时不需要走onAttach流程，客户端不需要重新enterworld。
-		// setWitness(Witness::ObjPool().createObject());
-		pWitness_ = Witness::ObjPool().createObject();
+		// setWitness(Witness::createPoolObject());
+		pWitness_ = Witness::createPoolObject();
 		pWitness_->pEntity(this);
 		pWitness_->createFromStream(s);
 	}

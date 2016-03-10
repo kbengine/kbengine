@@ -118,11 +118,11 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-		Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 
 		srcEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
 				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_);
@@ -165,8 +165,8 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			pForwardBundle->currMsgLength(), 
 			"::");
 
-		MemoryStream::ObjPool().reclaimObject(mstream);
-		Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+		MemoryStream::reclaimPoolObject(mstream);
+		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	S_Return;

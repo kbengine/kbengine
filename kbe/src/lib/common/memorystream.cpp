@@ -29,6 +29,18 @@ ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+MemoryStream* MemoryStream::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void MemoryStream::reclaimPoolObject(MemoryStream* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void MemoryStream::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("MemoryStream::destroyObjPool(): size {}.\n", 

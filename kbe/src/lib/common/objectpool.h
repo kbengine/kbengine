@@ -367,7 +367,7 @@ private:
 };
 
 
-#define NEW_POOL_OBJECT(TYPE) TYPE::ObjPool().createObject();
+#define NEW_POOL_OBJECT(TYPE) TYPE::createPoolObject();
 
 
 }

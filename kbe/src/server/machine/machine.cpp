@@ -92,7 +92,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		if(pinfos->pid != pid || pinfos->pIntAddr->ip != intaddr ||
 			username != pinfos->username || uid != pinfos->uid)
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 			MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid,
 				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, 
@@ -112,7 +112,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 				}
 
 				ep.sendto(pBundle, backRecvPort, backRecvAddr);
-				Network::Bundle::ObjPool().reclaimObject(pBundle);
+				Network::Bundle::reclaimPoolObject(pBundle);
 			}
 			else
 			{
@@ -210,7 +210,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 	Components::COMPONENTS::iterator iter = components.begin();
 
 	bool found = false;
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	for(; iter != components.end(); )
 	{
@@ -276,7 +276,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 	if(finderAddr != 0 && finderRecvPort != 0)
 	{
 		ep.sendto(pBundle, finderRecvPort, finderAddr);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 	else
 	{
@@ -318,7 +318,7 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	uint64 cidex = 0;
 	float cpu = SystemInfo::getSingleton().getCPUPer();
@@ -335,7 +335,7 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 	if (finderRecvPort != 0)
 	{
 		ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 	else
 	{
@@ -370,7 +370,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 	}
 
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		
 		uint64 cidex = 0;
 		float cpu = SystemInfo::getSingleton().getCPUPer();
@@ -387,7 +387,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 		if(finderRecvPort != 0)
 		{
 			ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::reclaimPoolObject(pBundle);
 		}
 		else
 		{
@@ -422,7 +422,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 			{
 				if(islocal)
 				{
-					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					
 					MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid, 
 						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
@@ -434,7 +434,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 					if(finderRecvPort != 0)
 					{
 						ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
-						Network::Bundle::ObjPool().reclaimObject(pBundle);
+						Network::Bundle::reclaimPoolObject(pBundle);
 					}
 					else
 					{
@@ -681,7 +681,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	uint64 cid = 0;
 	int16 gus = 0;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -728,7 +728,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		}
 	
 		ep.sendto(pBundle, htons(finderRecvPort), pChannel->addr().ip);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 	else
 	{
@@ -741,7 +741,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -903,7 +903,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		}
 	
 		ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 	else
 	{

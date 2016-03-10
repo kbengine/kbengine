@@ -367,7 +367,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
 	KBE_ASSERT(pComponentInfos != NULL);
 
-	Network::EndPoint * pEndpoint = Network::EndPoint::ObjPool().createObject();
+	Network::EndPoint * pEndpoint = Network::EndPoint::createPoolObject();
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
@@ -376,7 +376,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			ERROR_MSG("Components::connectComponent: couldn't create a socket\n");
 		}
 
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return -1;
 	}
 
@@ -385,7 +385,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 
 	if(ret == 0)
 	{
-		Network::Channel* pChannel = Network::Channel::ObjPool().createObject();
+		Network::Channel* pChannel = Network::Channel::createPoolObject();
 		bool ret = pChannel->initialize(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
 		if(!ret)
 		{
@@ -396,7 +396,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			}
 
 			pChannel->destroy();
-			Network::Channel::ObjPool().reclaimObject(pChannel);
+			Network::Channel::reclaimPoolObject(pChannel);
 			return -1;
 		}
 
@@ -411,7 +411,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 			}
 
 			pComponentInfos->pChannel->destroy();
-			Network::Channel::ObjPool().reclaimObject(pComponentInfos->pChannel);
+			Network::Channel::reclaimPoolObject(pComponentInfos->pChannel);
 
 			// 此时不可强制释放内存，destroy中已经对其减引用
 			// SAFE_RELEASE(pComponentInfos->pChannel);
@@ -420,7 +420,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		}
 		else
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			if(componentType == BASEAPPMGR_TYPE)
 			{
 				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
@@ -497,7 +497,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 				pComponentInfos->pIntAddr->c_str(), kbe_strerror()));
 		}
 
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return -1;
 	}
 
@@ -749,7 +749,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 	
 	epListen.setnodelay(true);
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	// 由于COMMON_NETWORK_MESSAGE不包含client， 如果是bots， 我们需要单独处理
 	if(info->componentType != BOTS_TYPE)
@@ -762,7 +762,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 	}
 
 	epListen.send(pBundle->pCurrPacket()->data(), pBundle->pCurrPacket()->wpos());
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::reclaimPoolObject(pBundle);
 
 	fd_set	fds;
 	struct timeval tv = { 0, 300000 }; // 100ms

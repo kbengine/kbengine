@@ -38,6 +38,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< EndPoint > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<EndPoint>& ObjPool();
+	static EndPoint* createPoolObject();
+	static void reclaimPoolObject(EndPoint* obj);
 	static void destroyObjPool();
 	void onReclaimObject();
 

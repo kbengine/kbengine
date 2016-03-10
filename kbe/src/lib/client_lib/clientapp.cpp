@@ -388,7 +388,7 @@ void ClientApp::handleGameTick()
 				if(ret)
 				{
 					// 先握手然后等helloCB之后再进行登录
-					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					(*pBundle).newMessage(BaseappInterface::hello);
 					(*pBundle) << KBEVersion::versionString();
 					(*pBundle) << KBEVersion::scriptVersionString();
@@ -406,7 +406,7 @@ void ClientApp::handleGameTick()
 					}
 
 					pServerChannel_->pEndPoint()->send(pBundle);
-					Network::Bundle::ObjPool().reclaimObject(pBundle);
+					Network::Bundle::reclaimPoolObject(pBundle);
 					// ret = ClientObjectBase::loginBaseapp();
 				}
 			}
@@ -573,7 +573,7 @@ void ClientApp::onChannelTimeOut(Network::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
-	Network::Channel::ObjPool().reclaimObject(pChannel);
+	Network::Channel::reclaimPoolObject(pChannel);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -643,7 +643,7 @@ bool ClientApp::login(std::string accountName, std::string passwd, std::string d
 	if(ret)
 	{
 		// 先握手然后等helloCB之后再进行登录
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(LoginappInterface::hello);
 		(*pBundle) << KBEVersion::versionString();
 		(*pBundle) << KBEVersion::scriptVersionString();
@@ -660,7 +660,7 @@ bool ClientApp::login(std::string accountName, std::string passwd, std::string d
 		}
 
 		pServerChannel_->pEndPoint()->send(pBundle);
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 		//ret = ClientObjectBase::login();
 	}
 

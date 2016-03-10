@@ -81,9 +81,9 @@ class Channel;
 
 
 // 从对象池中创建与回收
-#define MALLOC_BUNDLE() Network::Bundle::ObjPool().createObject()
-#define DELETE_BUNDLE(obj) { Network::Bundle::ObjPool().reclaimObject(obj); obj = NULL; }
-#define RECLAIM_BUNDLE(obj) { Network::Bundle::ObjPool().reclaimObject(obj);}
+#define MALLOC_BUNDLE() Network::Bundle::createPoolObject()
+#define DELETE_BUNDLE(obj) { Network::Bundle::reclaimPoolObject(obj); obj = NULL; }
+#define RECLAIM_BUNDLE(obj) { Network::Bundle::reclaimPoolObject(obj);}
 
 class Bundle : public PoolObject
 {
@@ -91,6 +91,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< Bundle > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Bundle>& ObjPool();
+	static Bundle* createPoolObject();
+	static void reclaimPoolObject(Bundle* obj);
 	static void destroyObjPool();
 	virtual void onReclaimObject();
 	virtual size_t getPoolObjectBytes();

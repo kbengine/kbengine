@@ -47,6 +47,18 @@ ObjectPool<TCPPacketSender>& TCPPacketSender::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+TCPPacketSender* TCPPacketSender::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void TCPPacketSender::reclaimPoolObject(TCPPacketSender* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void TCPPacketSender::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("TCPPacketSender::destroyObjPool(): size {}.\n", 
@@ -116,7 +128,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 		if(reason == REASON_SUCCESS)
 		{
 			pakcets.clear();
-			Network::Bundle::ObjPool().reclaimObject((*iter));
+			Network::Bundle::reclaimPoolObject((*iter));
 		}
 		else
 		{

@@ -40,6 +40,18 @@ ObjectPool<Address>& Address::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Address* Address::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void Address::reclaimPoolObject(Address* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void Address::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("Address::destroyObjPool(): size {}.\n",

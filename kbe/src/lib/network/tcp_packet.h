@@ -34,6 +34,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< TCPPacket > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<TCPPacket>& ObjPool();
+	static TCPPacket* createPoolObject();
+	static void reclaimPoolObject(TCPPacket* obj);
 	static void destroyObjPool();
 
 	static size_t maxBufferSize();
