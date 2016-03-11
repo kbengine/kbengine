@@ -35,11 +35,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define OBJECT_POOL_INIT_SIZE	16
-#define OBJECT_POOL_INIT_MAX_SIZE	OBJECT_POOL_INIT_SIZE * 16
+#define OBJECT_POOL_INIT_SIZE			16
+#define OBJECT_POOL_INIT_MAX_SIZE		OBJECT_POOL_INIT_SIZE * 1024
 
-// 每10分钟检查一次瘦身
-#define OBJECT_POOL_REDUCING_TIME_OUT 600 * stampsPerSecondD()
+// 每5分钟检查一次瘦身
+#define OBJECT_POOL_REDUCING_TIME_OUT	300 * stampsPerSecondD()
 
 template< typename T >
 class SmartPoolObject;
@@ -279,15 +279,15 @@ protected:
 			}
 		}
 
-		if (lastReducingRecordMaxNum_ <= obj_count_)
+		if (obj_count_ <= OBJECT_POOL_INIT_SIZE)
 		{
-			// 记录被打破，刷新检查时间
+			// 小于等于则刷新检查时间
 			lastReducingCheckTime_ = timestamp();
 		}
 		else if (lastReducingCheckTime_ - timestamp() > OBJECT_POOL_REDUCING_TIME_OUT)
 		{
-			// 长时间未打破记录，开始做清理工作
-			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(lastReducingRecordMaxNum_ - obj_count_)));
+			// 长时间大于OBJECT_POOL_INIT_SIZE未使用的对象则开始做清理工作
+			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(obj_count_ - OBJECT_POOL_INIT_SIZE)));
 			
 			while (reducing-- > 0)
 			{
@@ -320,10 +320,8 @@ protected:
 	size_t obj_count_;
 
 	// 最后一次瘦身检查时间
-	// 如果lastReducingRecordMaxNum_记录被刷新，则重置lastReducingCheckTime_时间到最新时间
-	// 如果长达OBJECT_POOL_REDUCING_TIME_OUT未打破记录，则瘦身OBJECT_POOL_INIT_SIZE
+	// 如果长达OBJECT_POOL_REDUCING_TIME_OUT大于OBJECT_POOL_INIT_SIZE，则最多瘦身OBJECT_POOL_INIT_SIZE个
 	uint64 lastReducingCheckTime_;
-	size_t lastReducingRecordMaxNum_;
 };
 
 /*
