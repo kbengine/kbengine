@@ -52,20 +52,20 @@ public:
 	{
 	}
 
-	virtual ~ThreadMutexNull(void)
+	~ThreadMutexNull(void)
 	{
 	}
 
-	virtual void lockMutex(void)
+	void lockMutex(void)
 	{
 	}
 
-	virtual void unlockMutex(void)
+	void unlockMutex(void)
 	{
 	}
 };
 
-class ThreadMutex : public ThreadMutexNull
+class ThreadMutex
 {
 public:
 	ThreadMutex(void)
@@ -80,17 +80,17 @@ public:
 		THREAD_MUTEX_INIT(mutex_);
 	}
 
-	virtual ~ThreadMutex(void) 
+	~ThreadMutex(void) 
 	{ 
 		THREAD_MUTEX_DELETE(mutex_);
 	}	
 	
-	virtual void lockMutex(void)
+	void lockMutex(void)
 	{
 		THREAD_MUTEX_LOCK(mutex_);
 	}
 
-	virtual void unlockMutex(void)
+	void unlockMutex(void)
 	{
 		THREAD_MUTEX_UNLOCK(mutex_);
 	}
