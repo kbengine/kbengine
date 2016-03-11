@@ -78,7 +78,7 @@ inline uint64 timestamp_gettimeofday()
 inline uint64 timestamp_gettime()
 {
 	timespec tv;
-	KBE_VERIFY(syscall( __NR_clock_gettime, CLOCK_MONOTONIC, &tv ) == 0);
+	assert(syscall( __NR_clock_gettime, CLOCK_MONOTONIC, &tv ) == 0);
 	return 1000000000ULL * tv.tv_sec + tv.tv_nsec;
 }
 
