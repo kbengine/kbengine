@@ -58,7 +58,7 @@ DBTaskBase(),
 pDatas_(0),
 addr_(addr)
 {
-	pDatas_ = MemoryStream::ObjPool().createObject();
+	pDatas_ = MemoryStream::createPoolObject();
 	*pDatas_ = datas;
 }
 
@@ -66,7 +66,7 @@ addr_(addr)
 DBTask::~DBTask()
 {
 	if(pDatas_)
-		MemoryStream::ObjPool().reclaimObject(pDatas_);
+		MemoryStream::reclaimPoolObject(pDatas_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -198,7 +198,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	if(callbackID_ <= 0)
 		return EntityDBTask::presentMainThread();
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	if(componentType_ == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
@@ -226,7 +226,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
 			COMPONENT_NAME_EX(componentType_)));
 
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return EntityDBTask::presentMainThread();
@@ -241,7 +241,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 	if(callbackID_ <= 0)
 		return thread::TPTask::TPTASK_STATE_COMPLETED;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	if(componentType_ == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
@@ -269,7 +269,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
 			COMPONENT_NAME_EX(componentType_)));
 
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -344,7 +344,7 @@ thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 
 	// 返回写entity的结果， 成功或者失败
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onWriteToDBCallback);
 	BaseappInterface::onWriteToDBCallbackArgs5::staticAddToBundle((*pBundle), 
 		eid_, entityDBID_, pdbi_->dbIndex(), callbackID_, success_);
@@ -352,7 +352,7 @@ thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskWriteEntity::presentMainThread: channel({0}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 	
 	return EntityDBTask::presentMainThread();
@@ -455,7 +455,7 @@ thread::TPTask::TPTaskState DBTaskDeleteBaseByDBID::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskDeleteBaseByDBID: {}({}), entityInAppID({}).\n", 
 		pModule->getName(), entityDBID_, entityInAppID_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::deleteBaseByDBIDCB);
 
 	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
@@ -463,7 +463,7 @@ thread::TPTask::TPTaskState DBTaskDeleteBaseByDBID::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskDeleteBaseByDBID::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -506,7 +506,7 @@ thread::TPTask::TPTaskState DBTaskEntityAutoLoad::presentMainThread()
 			pModule->getName(), size));
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onEntityAutoLoadCBFromDBMgr);
 
 	(*pBundle) << pdbi_->dbIndex() << size << entityType_;
@@ -520,7 +520,7 @@ thread::TPTask::TPTaskState DBTaskEntityAutoLoad::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskEntityAutoLoad::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -580,7 +580,7 @@ thread::TPTask::TPTaskState DBTaskLookUpBaseByDBID::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskLookUpBaseByDBID: {}({}), entityInAppID({}).\n", 
 		pModule->getName(), entityDBID_, entityInAppID_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::lookUpBaseByDBIDCB);
 
 	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
@@ -588,7 +588,7 @@ thread::TPTask::TPTaskState DBTaskLookUpBaseByDBID::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskLookUpBaseByDBID::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -721,7 +721,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 {
 	DEBUG_MSG(fmt::format("Dbmgr::reqCreateAccount: {}.\n", registerName_.c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
@@ -734,7 +734,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskCreateAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -836,7 +836,7 @@ thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 {
 	DEBUG_MSG(fmt::format("Dbmgr::reqCreateMailAccount: {}, success={}.\n", registerName_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::onReqCreateMailAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
@@ -849,7 +849,7 @@ thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskCreateMailAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -893,7 +893,7 @@ bool DBTaskActivateAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
 {
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(LoginappInterface::onAccountActivated);
 	(*pBundle) << code_ << success_;
@@ -901,7 +901,7 @@ thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskActivateAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -963,7 +963,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 	DEBUG_MSG(fmt::format("DBTaskReqAccountResetPassword::presentMainThread: accountName={}, code_={}, success={}.\n",
 		accountName_, code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::onReqAccountResetPasswordCB);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
@@ -978,7 +978,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskReqAccountResetPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -1018,7 +1018,7 @@ thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
 	DEBUG_MSG(fmt::format("DBTaskAccountResetPassword::presentMainThread: code({}), success={}.\n",
 		code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::onAccountResetPassword);
 
 	(*pBundle) << code_;
@@ -1027,7 +1027,7 @@ thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountResetPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -1080,7 +1080,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 	DEBUG_MSG(fmt::format("DBTaskReqAccountBindEmail::presentMainThread: code({}), success={}.\n", 
 		code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCB);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
@@ -1096,7 +1096,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskReqAccountBindEmail::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -1135,7 +1135,7 @@ thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
 	DEBUG_MSG(fmt::format("DBTaskAccountBindEmail::presentMainThread: code({}), success={}.\n", 
 		code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::onAccountBindedEmail);
 
 	(*pBundle) << code_;
@@ -1144,7 +1144,7 @@ thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountBindEmail::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -1197,7 +1197,7 @@ thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 {
 	DEBUG_MSG(fmt::format("DBTaskAccountNewPassword::presentMainThread: success={}.\n", success_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onReqAccountNewPasswordCB);
 
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
@@ -1212,7 +1212,7 @@ thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountNewPassword::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -1329,7 +1329,7 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::queryAccount: {}, success={}, flags={}, deadline={}.\n", 
 		 accountName_.c_str(), success_, flags_, deadline_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
 	(*pBundle) << pdbi_->dbIndex();
 	(*pBundle) << accountName_;
@@ -1352,7 +1352,7 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskQueryAccount::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return EntityDBTask::presentMainThread();
@@ -1600,7 +1600,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 		));
 
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 
 	(*pBundle) << retcode_;
@@ -1617,7 +1617,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountLogin::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return DBTask::presentMainThread();
@@ -1712,7 +1712,7 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskQueryEntity: {}, dbid={}, entityID={}, wasActive={}, queryMode={}, success={}.\n", 
 		entityType_, dbid_, entityID_, wasActive_, ((int)queryMode_), success_));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	if(queryMode_ == 0)
 		pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
@@ -1741,7 +1741,7 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 	if(!this->send(pBundle))
 	{
 		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: channel({}) not found.\n", addr_.c_str()));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	return EntityDBTask::presentMainThread();

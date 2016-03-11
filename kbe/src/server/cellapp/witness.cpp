@@ -174,16 +174,16 @@ void Witness::onAttach(Entity* pEntity)
 	lastBasePos.z = -FLT_MAX;
 
 	// 通知客户端enterworld
-	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pForwardPosDirBundle = Network::Bundle::createPoolObject();
 	
 	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
-	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	MemoryStream* s1 = MemoryStream::createPoolObject();
 	(*pForwardPosDirBundle) << pEntity_->id();
 	pEntity_->addPositionAndDirectionToStream(*s1, true);
 	(*pForwardPosDirBundle).append(*s1);
-	MemoryStream::ObjPool().reclaimObject(s1);
+	MemoryStream::reclaimPoolObject(s1);
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
 	
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
@@ -196,8 +196,8 @@ void Witness::onAttach(Entity* pEntity)
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
-	Network::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
+	Network::Bundle::reclaimPoolObject(pForwardBundle);
+	Network::Bundle::reclaimPoolObject(pForwardPosDirBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -215,15 +215,15 @@ void Witness::detach(Entity* pEntity)
 			pChannel->send();
 
 			// 通知客户端leaveworld
-			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-			Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 			(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
 			(*pForwardBundle) << pEntity->id();
 
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
 			pClientMB->postMail(pSendBundle);
-			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			Network::Bundle::reclaimPoolObject(pForwardBundle);
 		}
 	}
 
@@ -264,6 +264,18 @@ static ObjectPool<Witness> _g_objPool("Witness");
 ObjectPool<Witness>& Witness::ObjPool()
 {
 	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+Witness* Witness::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::reclaimPoolObject(Witness* obj)
+{
+	_g_objPool.reclaimObject(obj);
 }
 
 //-------------------------------------------------------------------------------------
@@ -424,10 +436,10 @@ void Witness::resetAOIEntities()
 //-------------------------------------------------------------------------------------
 void Witness::onEnterSpace(Space* pSpace)
 {
-	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 	
 	// 通知位置强制改变
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardPosDirBundle = Network::Bundle::createPoolObject();
 	Position3D &pos = pEntity_->position();
 	Direction3D &dir = pEntity_->direction();
 	(*pForwardPosDirBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
@@ -437,7 +449,7 @@ void Witness::onEnterSpace(Space* pSpace)
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
 	
 	// 通知进入了新地图
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
 
 	(*pForwardBundle) << pEntity_->id();
@@ -450,8 +462,8 @@ void Witness::onEnterSpace(Space* pSpace)
 	// 发送消息并清理
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
-	Network::Bundle::ObjPool().reclaimObject(pForwardPosDirBundle);
+	Network::Bundle::reclaimPoolObject(pForwardBundle);
+	Network::Bundle::reclaimPoolObject(pForwardPosDirBundle);
 
 	installAOITrigger();
 }
@@ -461,15 +473,15 @@ void Witness::onLeaveSpace(Space* pSpace)
 {
 	uninstallAOITrigger();
 
-	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
 	(*pForwardBundle) << pEntity_->id();
 
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+	Network::Bundle::reclaimPoolObject(pForwardBundle);
 
 	lastBasePos.z = -FLT_MAX;
 
@@ -723,17 +735,17 @@ bool Witness::update()
 					
 					(*iter)->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
-					Network::Bundle* pForwardBundle1 = Network::Bundle::ObjPool().createObject();
-					Network::Bundle* pForwardBundle2 = Network::Bundle::ObjPool().createObject();
+					Network::Bundle* pForwardBundle1 = Network::Bundle::createPoolObject();
+					Network::Bundle* pForwardBundle2 = Network::Bundle::createPoolObject();
 
-					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+					MemoryStream* s1 = MemoryStream::createPoolObject();
 					otherEntity->addPositionAndDirectionToStream(*s1, true);			
 					otherEntity->addClientDataToStream(s1, true);
 
 					(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);
 					(*pForwardBundle1) << otherEntity->id();
 					(*pForwardBundle1).append(*s1);
-					MemoryStream::ObjPool().reclaimObject(s1);
+					MemoryStream::reclaimPoolObject(s1);
 			
 					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
 					(*pForwardBundle2) << otherEntity->id();
@@ -747,8 +759,8 @@ bool Witness::update()
 					remainPacketSize -= pForwardBundle1->packetsLength();
 					remainPacketSize -= pForwardBundle2->packetsLength();
 
-					Network::Bundle::ObjPool().reclaimObject(pForwardBundle1);
-					Network::Bundle::ObjPool().reclaimObject(pForwardBundle2);
+					Network::Bundle::reclaimPoolObject(pForwardBundle1);
+					Network::Bundle::reclaimPoolObject(pForwardBundle2);
 
 					(*iter)->flags(ENTITYREF_FLAG_NORMAL);
 					
@@ -762,13 +774,13 @@ bool Witness::update()
 
 					if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
 					{
-						Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+						Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 						(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
 						_addAOIEntityIDToBundle(pForwardBundle, (*iter)->id());
 
 						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-						Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+						Network::Bundle::reclaimPoolObject(pForwardBundle);
 
 						--clientAOISize_;
 					}
@@ -790,20 +802,20 @@ bool Witness::update()
 					
 					KBE_ASSERT((*iter)->flags() == ENTITYREF_FLAG_NORMAL);
 
-					Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-					MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+					Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+					MemoryStream* s1 = MemoryStream::createPoolObject();
 					
 					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity), (*iter));
 
 					(*pForwardBundle).append(*s1);
-					MemoryStream::ObjPool().reclaimObject(s1);
+					MemoryStream::reclaimPoolObject(s1);
 					
 					if(pForwardBundle->packetsLength() > 0)
 					{
 						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 					}
 
-					Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+					Network::Bundle::reclaimPoolObject(pForwardBundle);
 				}
 
 				++iter;
@@ -822,7 +834,7 @@ bool Witness::update()
 			}
 			else
 			{
-				Network::Bundle::ObjPool().reclaimObject(pSendBundle);
+				Network::Bundle::reclaimPoolObject(pSendBundle);
 			}
 		}
 	}
@@ -839,8 +851,8 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 	if(KBEVec3Length(&movement) < 0.0004f)
 		return;
 
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
-	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+	MemoryStream* s1 = MemoryStream::createPoolObject();
 
 	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
 	{
@@ -855,8 +867,8 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 
 	(*pForwardBundle).append(*s1);
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
-	MemoryStream::ObjPool().reclaimObject(s1);
+	Network::Bundle::reclaimPoolObject(pForwardBundle);
+	MemoryStream::reclaimPoolObject(s1);
 
 	lastBasePos = bpos;
 }
@@ -1119,7 +1131,7 @@ bool Witness::sendToClient(const Network::MessageHandler& msgHandler, Network::B
 		return true;
 
 	ERROR_MSG(fmt::format("Witness::sendToClient: {} pBundles is NULL, not found channel.\n", pEntity_->id()));
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::reclaimPoolObject(pBundle);
 	return false;
 }
 

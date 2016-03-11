@@ -89,7 +89,7 @@ void Proxy::kick()
 	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
 	if(pChannel && !pChannel->isDestroyed())
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(ClientInterface::onKicked);
 		ClientInterface::onKickedArgs1::staticAddToBundle(*pBundle, SERVER_ERR_PROXY_DESTROYED);
 		//pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
@@ -105,12 +105,12 @@ void Proxy::initClientBasePropertys()
 	if(clientMailbox() == NULL)
 		return;
 
-	MemoryStream* s1 = MemoryStream::ObjPool().createObject();
+	MemoryStream* s1 = MemoryStream::createPoolObject();
 	addClientDataToStream(s1);
 	
 	if(s1->wpos() > 0)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pBundle) << this->id();
 		(*pBundle).append(*s1);
@@ -118,7 +118,7 @@ void Proxy::initClientBasePropertys()
 		//clientMailbox()->postMail((*pBundle));
 	}
 
-	MemoryStream::ObjPool().reclaimObject(s1);
+	MemoryStream::reclaimPoolObject(s1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -127,7 +127,7 @@ void Proxy::initClientCellPropertys()
 	if(clientMailbox() == NULL)
 		return;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 	(*pBundle) << this->id();
 
@@ -151,12 +151,12 @@ void Proxy::initClientCellPropertys()
 		(*pBundle) << spaceuid << this->spaceID();
 	}
 
-	MemoryStream* s = MemoryStream::ObjPool().createObject();
+	MemoryStream* s = MemoryStream::createPoolObject();
 
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
 	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
 	(*pBundle).append(*s);
-	MemoryStream::ObjPool().reclaimObject(s);
+	MemoryStream::reclaimPoolObject(s);
 	//clientMailbox()->postMail((*pBundle));
 	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 }
@@ -343,14 +343,14 @@ void Proxy::giveClientTo(Proxy* proxy)
 			// 当前这个entity如果有cell，说明已经绑定了witness， 那么既然我们将控制权
 			// 交换给了另一个entity， 这个entity需要解绑定witness。
 			// 通知cell丢失witness
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			(*pBundle).newMessage(CellappInterface::onLoseWitness);
 			(*pBundle) << this->id();
 			sendToCellapp(pBundle);
 		}
 
 		// 既然客户端失去对其的控制, 那么通知client销毁这个entity
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
 		(*pBundle) << this->id();
 		sendToClient(ClientInterface::onEntityDestroyed, pBundle);
@@ -389,7 +389,7 @@ void Proxy::onGetWitness()
 	if(cellMailbox())
 	{
 		// 通知cell获得客户端
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::onGetWitnessFromBase);
 		(*pBundle) << this->id();
 		sendToCellapp(pBundle);
@@ -738,7 +738,7 @@ bool Proxy::sendToClient(Network::Bundle* pBundle)
 		return true;
 
 	ERROR_MSG(fmt::format("Proxy::sendToClient: {} pBundles is NULL, not found channel.\n", id()));
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::reclaimPoolObject(pBundle);
 	return false;
 }
 

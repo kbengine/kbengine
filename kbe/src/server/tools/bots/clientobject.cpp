@@ -106,13 +106,13 @@ void ClientObject::reset(void)
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
-	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObject::initNetwork: couldn't create a socket\n");
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
@@ -126,7 +126,7 @@ bool ClientObject::initCreate()
 		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
 			kbe_strerror(), name_, infos.login_ip, infos.login_port));
 
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
 		state_ = C_STATE_INIT;
 		return false;
@@ -149,7 +149,7 @@ bool ClientObject::initCreate()
 	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
 	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::hello);
 	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
@@ -165,7 +165,7 @@ bool ClientObject::initCreate()
 	}
 
 	pEndpoint->send(pBundle);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::reclaimPoolObject(pBundle);
 	return true;
 }
 
@@ -178,13 +178,13 @@ bool ClientObject::initLoginBaseapp()
 	SAFE_RELEASE(pTCPPacketSenderEx_);
 	SAFE_RELEASE(pTCPPacketReceiverEx_);
 
-	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObject::initLogin: couldn't create a socket\n");
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		error_ = C_ERROR_INIT_NETWORK_FAILED;
 		return false;
 	}
@@ -197,7 +197,7 @@ bool ClientObject::initLoginBaseapp()
 		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",
 			kbe_strerror(), name_));
 
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		// error_ = C_ERROR_INIT_NETWORK_FAILED;
 		state_ = C_STATE_LOGIN_BASEAPP_CREATE;
 		return false;
@@ -219,7 +219,7 @@ bool ClientObject::initLoginBaseapp()
 
 	connectedBaseapp_ = true;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::hello);
 	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 	
@@ -236,7 +236,7 @@ bool ClientObject::initLoginBaseapp()
 	}
 
 	pEndpoint->send(pBundle);
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::reclaimPoolObject(pBundle);
 	return true;
 }
 

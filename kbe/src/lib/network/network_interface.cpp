@@ -369,7 +369,7 @@ bool NetworkInterface::deregisterAllChannels()
 		ChannelMap::iterator oldIter = iter++;
 		Channel * pChannel = oldIter->second;
 		pChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pChannel);
+		Network::Channel::reclaimPoolObject(pChannel);
 	}
 
 	channelMap_.clear();
@@ -440,7 +440,7 @@ void NetworkInterface::processChannels(KBEngine::Network::MessageHandlers* pMsgH
 
 			deregisterChannel(pChannel);
 			pChannel->destroy();
-			Network::Channel::ObjPool().reclaimObject(pChannel);
+			Network::Channel::reclaimPoolObject(pChannel);
 		}
 		else
 		{

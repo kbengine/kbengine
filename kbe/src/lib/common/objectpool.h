@@ -45,7 +45,7 @@ class SmartPoolObject;
 	这个对象池对通过服务端峰值有效的预估提前创建出一些对象缓存起来，在用到的时候直接从对象池中
 	获取一个未被使用的对象即可。
 */
-template< typename T >
+template< typename T, typename THREADMUTEX = KBEngine::thread::ThreadMutexNull >
 class ObjectPool
 {
 public:
@@ -283,7 +283,7 @@ protected:
 
 	// 一些原因导致锁还是有必要的
 	// 例如：dbmgr任务线程中输出log，cellapp中加载navmesh后的线程回调导致的log输出
-	KBEngine::thread::ThreadMutex mutex_;
+	THREADMUTEX mutex_;
 
 	std::string name_;
 
@@ -367,7 +367,7 @@ private:
 };
 
 
-#define NEW_POOL_OBJECT(TYPE) TYPE::ObjPool().createObject();
+#define NEW_POOL_OBJECT(TYPE) TYPE::createPoolObject();
 
 
 }

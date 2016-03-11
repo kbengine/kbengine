@@ -586,7 +586,7 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			(*pBundle).newMessage(BaseappInterface::onExecScriptCommand);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
@@ -845,7 +845,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 			for(; iter != channels.end(); iter++)
 			{
 				Network::Channel* pChannel = const_cast<KBEngine::Network::Channel*>(iter->second);
-				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 				if(pChannel->proxyID() != BOTS_TYPE)
 				{
@@ -1162,7 +1162,7 @@ void CguiconsoleDlg::reqQueryWatcher(std::string paths)
 
 	if(pChannel)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 		if(debugComponentType == BOTS_TYPE)
 		{
@@ -1347,7 +1347,7 @@ bool CguiconsoleDlg::connectTo()
 		return false;
 	}
 	
-	Network::EndPoint* endpoint = Network::EndPoint::ObjPool().createObject();
+	Network::EndPoint* endpoint = Network::EndPoint::createPoolObject();
 	endpoint->socket(SOCK_STREAM);
 	if (!endpoint->good())
 	{
@@ -1371,10 +1371,10 @@ bool CguiconsoleDlg::connectTo()
 	{
 		_networkInterface.deregisterChannel(pChannel);
 		pChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pChannel);
+		Network::Channel::reclaimPoolObject(pChannel);
 	}
 
-	pChannel = Network::Channel::ObjPool().createObject();
+	pChannel = Network::Channel::createPoolObject();
 	bool ret = pChannel->initialize(_networkInterface, endpoint, Network::Channel::INTERNAL);
 	if(!ret)
 	{
@@ -1382,7 +1382,7 @@ bool CguiconsoleDlg::connectTo()
 			pChannel->c_str()));
 
 		pChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pChannel);
+		Network::Channel::reclaimPoolObject(pChannel);
 		return 0;
 	}
 
@@ -1390,7 +1390,7 @@ bool CguiconsoleDlg::connectTo()
 	if(!_networkInterface.registerChannel(pChannel))
 	{
 		pChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pChannel);
+		Network::Channel::reclaimPoolObject(pChannel);
 
 		CString err;
 		err.Format(L"CguiconsoleDlg::connectTo: registerChannel(%s) is failed!\n",
@@ -1417,7 +1417,7 @@ void CguiconsoleDlg::closeCurrTreeSelChannel()
 	{
 		_networkInterface.deregisterChannel(pChannel);
 		pChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pChannel);
+		Network::Channel::reclaimPoolObject(pChannel);
 	}
 }
 
@@ -1750,7 +1750,7 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			(*pBundle).newMessage(BaseappInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPPMGR_TYPE)
@@ -1770,7 +1770,7 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 		else
 		{
 			::AfxMessageBox(L"not support!");
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::reclaimPoolObject(pBundle);
 			return false;
 		}
 

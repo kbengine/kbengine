@@ -66,7 +66,7 @@ void WebSocketPacketFilter::reset()
 	pFragmentDatasRemain_ = 0;
 	fragmentDatasFlag_ = FRAGMENT_MESSAGE_HREAD;
 
-	TCPPacket::ObjPool().reclaimObject(pTCPPacket_);
+	TCPPacket::reclaimPoolObject(pTCPPacket_);
 	pTCPPacket_ = NULL;
 }
 
@@ -77,7 +77,7 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 		return PacketFilter::send(pChannel, sender, pPacket);
 
 	Bundle* pBundle = pPacket->pBundle();
-	TCPPacket* pRetTCPPacket = TCPPacket::ObjPool().createObject();
+	TCPPacket* pRetTCPPacket = TCPPacket::createPoolObject();
 	websocket::WebSocketProtocol::FrameType frameType = websocket::WebSocketProtocol::BINARY_FRAME;
 
 	if(pBundle && pBundle->packets().size() > 1)
@@ -115,7 +115,7 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 
 	(*pRetTCPPacket).append(pPacket->data() + pPacket->rpos(), pPacket->length());
 	pRetTCPPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pPacket)));
-	TCPPacket::ObjPool().reclaimObject(pRetTCPPacket);
+	TCPPacket::reclaimPoolObject(pRetTCPPacket);
 
 	pPacket->encrypted(true);
 	return PacketFilter::send(pChannel, sender, pPacket);
@@ -143,7 +143,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				if(pFragmentDatasRemain_ > 0)
 				{
 					pPacket->rpos(rpos);
-					pTCPPacket_ = TCPPacket::ObjPool().createObject();
+					pTCPPacket_ = TCPPacket::createPoolObject();
 					pTCPPacket_->append(*(static_cast<MemoryStream*>(pPacket)));
 					pPacket->done();
 				}
@@ -167,7 +167,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 					KBE_ASSERT(pFragmentDatasRemain_ == 0);
 
 					// frame解析完毕，将对象回收
-					TCPPacket::ObjPool().reclaimObject(pTCPPacket_);
+					TCPPacket::reclaimPoolObject(pTCPPacket_);
 					pTCPPacket_ = NULL;
 
 					// 是否有数据携带？如果没有则不进入data解析
@@ -194,7 +194,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				this->pChannel_->condemn();
 				reset();
 
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
 				return REASON_WEBSOCKET_ERROR;
 			}
 			else if(msg_frameType_ == websocket::WebSocketProtocol::TEXT_FRAME || 
@@ -208,7 +208,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				this->pChannel_->condemn();
 				reset();
 
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
 				return REASON_WEBSOCKET_ERROR;
 			}
 			else if(msg_frameType_ == websocket::WebSocketProtocol::CLOSE_FRAME)
@@ -216,7 +216,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				this->pChannel_->condemn();
 				reset();
 
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
 				return REASON_SUCCESS;
 			}
 			else if(msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_FRAME)
@@ -229,7 +229,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 			KBE_ASSERT(pFragmentDatasRemain_ > 0);
 
 			if(pTCPPacket_ == NULL)
-				pTCPPacket_ = TCPPacket::ObjPool().createObject();
+				pTCPPacket_ = TCPPacket::createPoolObject();
 
 			if(pFragmentDatasRemain_ <= (int32)pPacket->length())
 			{
@@ -252,7 +252,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				this->pChannel_->condemn();
 				reset();
 
-				TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
 				return REASON_WEBSOCKET_ERROR;
 			}
 
@@ -269,7 +269,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 		}
 	}
 
-	TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));
+	TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
 	return REASON_SUCCESS;
 }
 

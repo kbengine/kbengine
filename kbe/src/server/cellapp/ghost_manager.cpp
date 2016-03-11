@@ -44,7 +44,7 @@ GhostManager::~GhostManager()
 	{
 		std::vector< Network::Bundle* >::iterator iter1 = iter->second.begin();
 		for(; iter1 != iter->second.end(); ++iter1)
-			Network::Bundle::ObjPool().reclaimObject((*iter1));
+			Network::Bundle::reclaimPoolObject((*iter1));
 	}
 
 	cancel();
@@ -140,7 +140,7 @@ void GhostManager::syncMessages()
 			ERROR_MSG(fmt::format("GhostManager::syncMessages: not found cellapp({})!\n", iter->first));
 			
 			for(; iter1 != iter->second.end(); ++iter1)
-				Network::Bundle::ObjPool().reclaimObject((*iter1));
+				Network::Bundle::reclaimPoolObject((*iter1));
 
 			iter->second.clear();
 			continue;

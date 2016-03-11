@@ -58,7 +58,7 @@ void PacketReader::reset()
 	currMsgLen_ = 0;
 	
 	SAFE_RELEASE_ARRAY(pFragmentDatas_);
-	MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
+	MemoryStream::reclaimPoolObject(pFragmentStream_);
 	pFragmentStream_ = NULL;
 }
 
@@ -186,7 +186,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			{
 				TRACE_MESSAGE_PACKET(true, pFragmentStream_, pMsgHandler, currMsgLen_, pChannel_->c_str());
 				pMsgHandler->handle(pChannel_, *pFragmentStream_);
-				MemoryStream::ObjPool().reclaimObject(pFragmentStream_);
+				MemoryStream::reclaimPoolObject(pFragmentStream_);
 				pFragmentStream_ = NULL;
 			}
 			else
@@ -282,7 +282,7 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
-			pFragmentStream_ = MemoryStream::ObjPool().createObject();
+			pFragmentStream_ = MemoryStream::createPoolObject();
 			pFragmentStream_->append(pFragmentDatas_, currMsgLen_);
 			break;
 

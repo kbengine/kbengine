@@ -78,7 +78,7 @@ void PyProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);

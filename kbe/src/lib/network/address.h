@@ -36,6 +36,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< Address > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Address>& ObjPool();
+	static Address* createPoolObject();
+	static void reclaimPoolObject(Address* obj);
 	static void destroyObjPool();
 	void onReclaimObject();
 

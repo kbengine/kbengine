@@ -81,6 +81,8 @@ class MemoryStream : public PoolObject
 
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
+	static MemoryStream* createPoolObject();
+	static void reclaimPoolObject(MemoryStream* obj);
 	static void destroyObjPool();
 
 	typedef KBEShared_ptr< SmartPoolObject< MemoryStream > > SmartPoolObjectPtr;
@@ -909,8 +911,8 @@ inline void MemoryStream::read_skip<std::string>()
 }
 
 // 从对象池中创建与回收 
-#define NEW_MEMORY_STREAM() MemoryStream::ObjPool().createObject()
-#define DELETE_MEMORY_STREAM(obj) { MemoryStream::ObjPool().reclaimObject(obj); obj = NULL; }
+#define NEW_MEMORY_STREAM() MemoryStream::createPoolObject()
+#define DELETE_MEMORY_STREAM(obj) { MemoryStream::reclaimPoolObject(obj); obj = NULL; }
 
 }
 #endif

@@ -91,6 +91,8 @@ public:
 	static SmartPoolObjectPtr createSmartPoolObj();
 
 	static ObjectPool<Witness>& ObjPool();
+	static Witness* createPoolObject();
+	static void reclaimPoolObject(Witness* obj);
 	void onReclaimObject();
 
 	virtual size_t getPoolObjectBytes()

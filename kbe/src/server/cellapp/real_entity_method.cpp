@@ -68,10 +68,10 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 		
 		(*pForwardBundle).newMessage(CellappInterface::onRemoteRealMethodCall);
 		(*pForwardBundle) << ghostEntityID_;
@@ -110,7 +110,7 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			pForwardBundle->currMsgLength(), 
 			"::");
 
-		MemoryStream::ObjPool().reclaimObject(mstream);
+		MemoryStream::reclaimPoolObject(mstream);
 		
 		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
 		if(gm)
@@ -119,7 +119,7 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		}
 		else
 		{
-			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			Network::Bundle::reclaimPoolObject(pForwardBundle);
 		}
 	}
 

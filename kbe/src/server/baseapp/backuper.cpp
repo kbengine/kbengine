@@ -66,13 +66,13 @@ void Backuper::tick()
 		Base * pBase = Baseapp::getSingleton().findEntity(backupEntityIDs_.back());
 		backupEntityIDs_.pop_back();
 		
-		MemoryStream* s = MemoryStream::ObjPool().createObject();
+		MemoryStream* s = MemoryStream::createPoolObject();
 		if (pBase && backup(*pBase, *s))
 		{
 			--numToBackUp;
 		}
 
-		MemoryStream::ObjPool().reclaimObject(s);
+		MemoryStream::reclaimPoolObject(s);
 	}
 }
 

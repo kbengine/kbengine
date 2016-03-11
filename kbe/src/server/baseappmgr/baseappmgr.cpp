@@ -124,7 +124,7 @@ void Baseappmgr::onAddComponent(const Components::ComponentInfos* pInfos)
 
 	if(pInfos->componentType == LOGINAPP_TYPE && cinfo->pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 		(*pBundle).newMessage(LoginappInterface::onBaseappInitProgress);
 		(*pBundle) << baseappsInitProgress_;
@@ -178,7 +178,7 @@ void Baseappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
@@ -276,7 +276,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
@@ -292,7 +292,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	//DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhere: %s opsize=%d, selBaseappIdx=%d.\n", 
 	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
@@ -315,7 +315,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
@@ -331,7 +331,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	//DEBUG_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: %s opsize=%d, selBaseappIdx=%d.\n", 
 	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 
 	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
@@ -368,7 +368,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		ForwardItem* pFI = new ForwardItem();
 
 		pFI->pBundle = pBundle;
@@ -386,7 +386,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{0}. allocBaseapp=[{1}].\n",
 		accountName, bestBaseappID_));
 	
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
 	pBundle->appendBlob(datas);
@@ -430,7 +430,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 		return;
 	}
 	
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
 	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
 	pBundle->appendBlob(datas);
@@ -462,7 +462,7 @@ void Baseappmgr::sendAllocatedBaseappAddr(Network::Channel* pChannel,
 		return;
 	}
 
-	Network::Bundle* pBundleToLoginapp = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundleToLoginapp = Network::Bundle::createPoolObject();
 	(*pBundleToLoginapp).newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
 
 	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs4::staticAddToBundle((*pBundleToLoginapp), loginName, 
@@ -518,7 +518,7 @@ void Baseappmgr::onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 		if((*iter).pChannel == NULL)
 			continue;
 
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 		(*pBundle).newMessage(LoginappInterface::onBaseappInitProgress);
 		(*pBundle) << baseappsInitProgress_;

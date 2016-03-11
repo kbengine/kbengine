@@ -78,6 +78,18 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+EndPoint* EndPoint::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void EndPoint::reclaimPoolObject(EndPoint* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void EndPoint::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("EndPoint::destroyObjPool(): size {}.\n", 

@@ -191,7 +191,7 @@ const char * reasonToString(Reason reason)
 		if(slen != (int)pPacket->totalSize())																\
 		{																									\
 			reason = Network::PacketSender::checkSocketErrors(ep, slen, pPacket->totalSize());				\
-			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/									\
+			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/										\
 			if (reason == Network::REASON_NO_SUCH_PORT && retries <= 3)										\
 			{																								\
 				continue;																					\
@@ -247,7 +247,7 @@ const char * reasonToString(Reason reason)
 			if(pPacket->sentSize != pPacket->length())														\
 			{																								\
 				reason = PacketSender::checkSocketErrors(&ep);												\
-				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/								\
+				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/									\
 				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
 				{																							\
 					continue;																				\
@@ -302,18 +302,18 @@ const char * reasonToString(Reason reason)
 #define MALLOC_PACKET(outputPacket, isTCPPacket)															\
 {																											\
 	if(isTCPPacket)																							\
-		outputPacket = TCPPacket::ObjPool().createObject();													\
+		outputPacket = TCPPacket::createPoolObject();														\
 	else																									\
-		outputPacket = UDPPacket::ObjPool().createObject();													\
+		outputPacket = UDPPacket::createPoolObject();														\
 }																											\
 
 
 #define RECLAIM_PACKET(isTCPPacket, pPacket)																\
 {																											\
 	if(isTCPPacket)																							\
-		TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));								\
+		TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));										\
 	else																									\
-		UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));								\
+		UDPPacket::reclaimPoolObject(static_cast<UDPPacket*>(pPacket));										\
 }																											\
 
 
