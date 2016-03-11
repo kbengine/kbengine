@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_TIMESTAMP_H
 
 #include "common/platform.h"
-#include "helper/debug_helper.h"
+
 namespace KBEngine{
 
 // 指示是否可以通过调用RDTSC（时间戳计数器）
