@@ -107,8 +107,6 @@ public:
 	void finiMessage(bool isSend = true);
 
 	void clearPackets();
-
-	INLINE MessageLength currMsgLength() const;
 	
 	INLINE void pCurrMsgHandler(const Network::MessageHandler* pMsgHandler);
 	INLINE const Network::MessageHandler* pCurrMsgHandler() const;
@@ -135,6 +133,15 @@ public:
 	
 	INLINE MessageID messageID() const;
 	INLINE int32 numMessages() const;
+
+	INLINE void currMsgPacketCount(uint32 v);
+	INLINE uint32 currMsgPacketCount() const;
+
+	INLINE void currMsgLength(MessageLength1 v);
+	INLINE MessageLength currMsgLength() const;
+
+	INLINE void currMsgLengthPos(size_t v);
+	INLINE size_t currMsgLengthPos() const;
 
 protected:
 	void _calcPacketMaxSize();
@@ -499,7 +506,7 @@ public:
 private:
 	Channel* pChannel_;
 	int32 numMessages_;
-	
+
 	Packet* pCurrPacket_;
 	MessageID currMsgID_;
 	uint32 currMsgPacketCount_;
@@ -508,12 +515,11 @@ private:
 	size_t currMsgLengthPos_;
 
 	Packets packets_;
-	
+
 	bool isTCPPacket_;
 	int32 packetMaxSize_;
 
 	const Network::MessageHandler* pCurrMsgHandler_;
-
 };
 
 }

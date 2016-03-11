@@ -37,6 +37,11 @@ INLINE int Bundle::packetsSize() const
 	return (int)i;
 }
 
+INLINE void Bundle::currMsgLength(MessageLength1 v)
+{
+	currMsgLength_ = v;
+}
+
 INLINE MessageLength Bundle::currMsgLength() const 
 { 
 	return currMsgLength_; 
@@ -81,5 +86,26 @@ INLINE void Bundle::finiCurrPacket(){
 	packets_.push_back(pCurrPacket_); 
 	pCurrPacket_ = NULL; 
 }
+
+INLINE void Bundle::currMsgPacketCount(uint32 v)
+{
+	currMsgPacketCount_ = v;
+}
+
+INLINE uint32 Bundle::currMsgPacketCount() const
+{
+	return currMsgPacketCount_;
+}
+
+INLINE void Bundle::currMsgLengthPos(size_t v)
+{
+	currMsgLengthPos_ = v;
+}
+
+INLINE size_t Bundle::currMsgLengthPos() const
+{
+	return currMsgLengthPos_;
+}
+
 }
 }

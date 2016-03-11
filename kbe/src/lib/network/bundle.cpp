@@ -314,7 +314,7 @@ void Bundle::finiMessage(bool isSend)
 
 	if(isSend)
 	{
-		currMsgPacketCount_++;
+		++currMsgPacketCount_;
 		packets_.push_back(pCurrPacket_);
 	}
 

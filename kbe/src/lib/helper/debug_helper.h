@@ -204,6 +204,17 @@ private:
 	bool noSyncLog_;
 
 	bool canLogFile_;
+
+	// 记录下主线程ID，用于判断是否是子线程输出日志
+	// 当子线程输出日志时，对相关日志进行缓存到主线程时再同步给logger
+#if KBE_PLATFORM == PLATFORM_WIN32
+	DWORD mainThreadID_;
+#else
+	THREAD_ID mainThreadID_;
+#endif
+
+	ObjectPool<MemoryStream> memoryStreamPool_;
+	std::queue< MemoryStream* > childThreadBufferedLogPackets_;
 };
 
 /*---------------------------------------------------------------------------------
