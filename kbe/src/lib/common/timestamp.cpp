@@ -19,6 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "timestamp.h"
+#include "helper/debug_helper.h"
+
 namespace KBEngine{
 
 #define KBE_USE_RDTSC
