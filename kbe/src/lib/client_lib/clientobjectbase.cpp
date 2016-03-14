@@ -352,6 +352,10 @@ client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject*
 
 	SCRIPT_ERROR_CHECK();
 
+	entity->isInited(true);
+	if (g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods)
+		entity->callPropertysSetMethods();
+
 	if(g_debugEntity)
 	{
 		INFO_MSG(fmt::format("ClientObjectBase::createEntity: new {} ({}) refc={}.\n", 
@@ -767,6 +771,10 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 		bufferedCreateEntityMessage_.erase(iter);
 		pEntity->initializeEntity(NULL);
 		SCRIPT_ERROR_CHECK();
+
+		pEntity->isInited(true);
+		if (g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods)
+			entity->callPropertysSetMethods();
 	}
 }
 
@@ -820,7 +828,9 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			entity->initializeEntity(NULL);
 			SCRIPT_ERROR_CHECK();
 			
-			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGround({}), appID({}).\n", 
+			entity->isInited(true);
+
+			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGround({}), appID({}).\n",
 				entity->scriptName(), eid, (int)isOnGround, appID()));
 		}
 		else
@@ -879,6 +889,9 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	}
 	
 	entity->onEnterWorld();
+
+	if (g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods)
+		entity->callPropertysSetMethods();
 }
 
 //-------------------------------------------------------------------------------------	

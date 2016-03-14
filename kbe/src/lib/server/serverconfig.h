@@ -219,6 +219,8 @@ typedef struct EngineComponentInfo
 	uint16 http_cbport;										// 用户http回调接口，处理认证、密码重置等
 
 	bool debugDBMgr;										// debug模式下可输出读写操作信息
+
+	bool isOnInitCallPropertysSetMethods;					// 机器人(bots)专用：在Entity初始化时是否触发属性的set_*事件
 } ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
