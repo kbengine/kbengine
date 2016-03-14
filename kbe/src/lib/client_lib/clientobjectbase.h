@@ -374,9 +374,9 @@ public:
 
 	const std::string& getGeometryPath();
 	
-	void initSpaceData(Network::Channel* pChannel, MemoryStream& s);
-	void setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
-	void delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
+	virtual void initSpaceData(Network::Channel* pChannel, MemoryStream& s);
+	virtual void setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
+	virtual void delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
 	bool hasSpaceData(const std::string& key);
 	const std::string& getSpaceData(const std::string& key);
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);

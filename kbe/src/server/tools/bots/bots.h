@@ -315,8 +315,9 @@ public:
 		space相关操作接口
 		服务端添加了某个space的几何映射
 	*/
-	void setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
-	void delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
+	virtual void initSpaceData(Network::Channel* pChannel, MemoryStream& s);
+	virtual void setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
+	virtual void delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
 
 	/** 网络接口
 		请求查看watcher

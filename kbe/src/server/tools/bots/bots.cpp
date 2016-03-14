@@ -1075,6 +1075,16 @@ void Bots::onStreamDataCompleted(Network::Channel* pChannel, int16 id)
 }
 
 //-------------------------------------------------------------------------------------	
+void Bots::initSpaceData(Network::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->initSpaceData(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------	
 void Bots::setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
 {
 	ClientObject* pClient = findClient(pChannel);
