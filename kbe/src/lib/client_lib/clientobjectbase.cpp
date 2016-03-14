@@ -258,7 +258,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 	
 	float time = 0;
@@ -268,7 +268,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 
 	if(!PyCallable_Check(pyCallback))
@@ -291,7 +291,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
@@ -302,7 +302,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 
 	pClientObjectBase->scriptCallbacks().delCallback(id);
@@ -1934,7 +1934,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 	
 	char* key = NULL;
@@ -1942,7 +1942,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
@@ -1953,7 +1953,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 			key);
 
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 
 	return PyUnicode_FromString(pClientObjectBase->getSpaceData(key).c_str());
@@ -1967,7 +1967,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 	
 	char* path;
@@ -1976,7 +1976,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 
 	//DebugHelper::getSingleton().setScriptMsgType(type);
@@ -1986,7 +1986,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): not found watcher[%s]!", path);
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 
 	WATCHER_VALUE_TYPE wtype = pWobj->getType();
@@ -2106,7 +2106,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 	
 	char* path;
@@ -2115,7 +2115,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		return Py_None;
 	}
 
 	std::vector<std::string> vec;
@@ -2146,7 +2146,7 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] is error!");
 			PyErr_PrintEx(0);
-			return 0;
+			return Py_None;
 		}
 
 		pClientObjectBase->locktime(timestamp() + stampsPerSecond() * i);
