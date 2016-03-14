@@ -1129,6 +1129,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL)
 			_botsInfo.login_port = xml->getValInt(node);
 
+		node = xml->enterNode(rootNode, "isOnInitCallPropertysSetMethods");
+		if (node != NULL)
+			_botsInfo.isOnInitCallPropertysSetMethods = xml->getValInt(node);
+
 		node = xml->enterNode(rootNode, "defaultAddBots");
 		if(node != NULL)
 		{

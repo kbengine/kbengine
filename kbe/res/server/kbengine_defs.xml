@@ -730,6 +730,8 @@
 		<host> localhost </host>										<!-- Type: String -->
 		<port> 20013 </port>											<!-- Type: Integer -->
 		
+		<!-- 在Entity初始化时是否触发属性的set_*事件 -->
+		<isOnInitCallPropertysSetMethods> true </isOnInitCallPropertysSetMethods>
 		
 		<!-- 默认启动进程后自动添加这么多个机器人 
 			(After starting the process, automatically add some robots)

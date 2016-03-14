@@ -44,7 +44,8 @@ fileName_(),
 useLastAccountName_(false),
 telnet_port(0),
 telnet_passwd(),
-telnet_deflayer()
+telnet_deflayer(),
+isOnInitCallPropertysSetMethods_(true)
 {
 }
 
@@ -337,6 +338,10 @@ bool Config::loadConfig(std::string fileName)
 	if(rootNode != NULL){
 		EntityDef::entitydefAliasID((xml->getValStr(rootNode) == "true"));
 	}
+
+	rootNode = xml->getRootNode("isOnInitCallPropertysSetMethods");
+	if (rootNode != NULL)
+		isOnInitCallPropertysSetMethods_ = (xml->getValStr(rootNode) == "true");
 
 	return true;
 }
