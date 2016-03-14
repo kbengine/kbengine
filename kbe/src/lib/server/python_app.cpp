@@ -711,22 +711,22 @@ void PythonApp::reloadScript(bool fullReload)
 PyObject* PythonApp::__py_addTimer(PyObject* self, PyObject* args)
 {
 	float interval, repeat;
-	PyObject *callback;
+	PyObject *pyCallback;
 
-	if (!PyArg_ParseTuple(args, "ffO", &interval, &repeat, &callback))
+	if (!PyArg_ParseTuple(args, "ffO", &interval, &repeat, &pyCallback))
 		S_Return;
 
-	if (!PyCallable_Check(callback))
+	if (!PyCallable_Check(pyCallback))
 	{
-		PyErr_Format(PyExc_TypeError, "Interfaces::addTimer: '%.200s' object is not callable", callback->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "KBEngine::addTimer: '%.200s' object is not callable", (pyCallback ? pyCallback->ob_type->tp_name : "NULL"));
 		PyErr_PrintEx(0);
 		S_Return;
 	}
 
 	ScriptTimers * pTimers = &scriptTimers();
-	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, callback);
+	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, pyCallback);
 
-	int id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, 0, handler);
+	ScriptID id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, 0, handler);
 
 	if (id == 0)
 	{
@@ -736,7 +736,7 @@ PyObject* PythonApp::__py_addTimer(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	Py_INCREF(callback);
+	Py_INCREF(pyCallback);
 	return PyLong_FromLong(id);
 }
 
@@ -746,10 +746,16 @@ PyObject* PythonApp::__py_delTimer(PyObject* self, PyObject* args)
 	ScriptID timerID;
 
 	if (!PyArg_ParseTuple(args, "i", &timerID))
-		return NULL;
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::delTimer: args error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
 
 	if (!ScriptTimersUtil::delTimer(&scriptTimers(), timerID))
 	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::delTimer: error!");
+		PyErr_PrintEx(0);
 		return PyLong_FromLong(-1);
 	}
 

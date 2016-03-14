@@ -371,7 +371,7 @@ public:
 		space相关操作接口
 		服务端添加了某个space的几何映射
 	*/
-	void addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath);
+	virtual void addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath);
 	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath){}
 	virtual void onLoadedSpaceGeometryMapping(SPACE_ID spaceID){
 		isLoadedGeometry_ = true;
