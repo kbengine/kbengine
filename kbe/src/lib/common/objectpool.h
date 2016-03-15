@@ -297,6 +297,8 @@ protected:
 
 				--obj_count_;
 			}
+
+			lastReducingCheckTime_ = timestamp();
 		}
 	}
 
