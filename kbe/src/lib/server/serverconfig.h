@@ -135,6 +135,8 @@ typedef struct EngineComponentInfo
 		debugDBMgr = false;
 
 		externalAddress[0] = '\0';
+
+		isOnInitCallPropertysSetMethods = true;
 	}
 
 	~EngineComponentInfo()

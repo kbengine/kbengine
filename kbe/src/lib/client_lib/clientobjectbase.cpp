@@ -353,7 +353,12 @@ client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject*
 	SCRIPT_ERROR_CHECK();
 
 	entity->isInited(true);
-	if (g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods)
+	
+	bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+		g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+		Config::getSingleton().isOnInitCallPropertysSetMethods();
+
+	if (isOnInitCallPropertysSetMethods)
 		entity->callPropertysSetMethods();
 
 	if(g_debugEntity)
@@ -773,7 +778,12 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 		SCRIPT_ERROR_CHECK();
 
 		pEntity->isInited(true);
-		if (g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods)
+		
+		bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+			g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+			Config::getSingleton().isOnInitCallPropertysSetMethods();
+	
+		if (isOnInitCallPropertysSetMethods)
 			entity->callPropertysSetMethods();
 	}
 }
@@ -890,7 +900,11 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	
 	entity->onEnterWorld();
 
-	if (g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods)
+	bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+		g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+		Config::getSingleton().isOnInitCallPropertysSetMethods();
+
+	if (isOnInitCallPropertysSetMethods)
 		entity->callPropertysSetMethods();
 }
 
