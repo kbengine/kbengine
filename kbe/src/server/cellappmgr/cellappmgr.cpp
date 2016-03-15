@@ -174,16 +174,22 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 		if ((iter->second.flags() & APP_FLAGS_NONE) > 0)
 			continue;
 		
-		if(!iter->second.isDestroyed() &&
-			iter->second.initProgress() > 1.f && 
-			(iter->second.numEntities() == 0 ||
-			minload > iter->second.load() || 
-			(minload == iter->second.load() && numEntities > iter->second.numEntities())))
+		// 首先进程必须活着且初始化完毕
+		if(!iter->second.isDestroyed() && iter->second.initProgress() > 1.f)
 		{
-			cid = iter->first;
+			// 如果没有任何实体则无条件分配
+			if(iter->second.numEntities() == 0)
+				return iter->first;
 
-			numEntities = iter->second.numEntities();
-			minload = iter->second.load();
+			// 比较并记录负载最小的进程最终被分配
+			if(minload > iter->second.load() || 
+				(minload == iter->second.load() && numEntities > iter->second.numEntities())))
+			{
+				cid = iter->first;
+
+				numEntities = iter->second.numEntities();
+				minload = iter->second.load();
+			}
 		}
 	}
 
