@@ -279,12 +279,14 @@ protected:
 			}
 		}
 
+		uint64 now_timestamp = timestamp();
+
 		if (obj_count_ <= OBJECT_POOL_INIT_SIZE)
 		{
 			// 小于等于则刷新检查时间
-			lastReducingCheckTime_ = timestamp();
+			lastReducingCheckTime_ = now_timestamp;
 		}
-		else if (lastReducingCheckTime_ - timestamp() > OBJECT_POOL_REDUCING_TIME_OUT)
+		else if (lastReducingCheckTime_ - now_timestamp > OBJECT_POOL_REDUCING_TIME_OUT)
 		{
 			// 长时间大于OBJECT_POOL_INIT_SIZE未使用的对象则开始做清理工作
 			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(obj_count_ - OBJECT_POOL_INIT_SIZE)));
@@ -297,6 +299,8 @@ protected:
 
 				--obj_count_;
 			}
+
+			lastReducingCheckTime_ = now_timestamp;
 		}
 	}
 
