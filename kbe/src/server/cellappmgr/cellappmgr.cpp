@@ -183,7 +183,7 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 
 			// 比较并记录负载最小的进程最终被分配
 			if(minload > iter->second.load() || 
-				(minload == iter->second.load() && numEntities > iter->second.numEntities())))
+				(minload == iter->second.load() && numEntities > iter->second.numEntities()))
 			{
 				cid = iter->first;
 
