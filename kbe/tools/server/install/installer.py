@@ -21,7 +21,7 @@ if sys.hexversion >= 0x03000000:
 	if platform.system() == 'Windows':
 		import winreg
 else:
-	import ConfigParser
+	import ConfigParser as configparser
 	import urlparse
 	import httplib
 	

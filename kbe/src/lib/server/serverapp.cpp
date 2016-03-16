@@ -333,6 +333,16 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 			g_componentType != WATCHER_TYPE)
 			this->shutDown(0.f);
 	}
+	else if (pInfos->componentType == CELLAPPMGR_TYPE)
+	{
+		if (g_componentType == CELLAPP_TYPE)
+			this->shutDown(0.f);
+	}
+	else if (pInfos->componentType == BASEAPPMGR_TYPE)
+	{
+		if (g_componentType == BASEAPP_TYPE)
+			this->shutDown(0.f);
+	}
 }
 
 //-------------------------------------------------------------------------------------
