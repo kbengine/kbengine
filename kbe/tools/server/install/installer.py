@@ -824,28 +824,34 @@ def modifyKBEConfig():
 		
 	newxml = []
 	for x in f.readlines():
-		if "</dbmgr>" in x:
+		if "</databaseInterfaces>" in x:
 			state = -1
 
 		if state == 0:
-			if "<dbmgr>" in x:
+			if "<databaseInterfaces>" in x:
 				state += 1
 				
 		if state == 1:
-			if "<host>" in x and "localhost" in x:
-				x = x.replace("localhost", mysql_ip)
+			xx = x.replace(" ", "").replace("	", "")
+			if "<host>" in xx:
+				xx = xx.split("</")[0].replace("<host>", "")
+				x = x.replace(xx, mysql_ip)
 
-			if "<port>" in x and "0" in x:
-				x = x.replace("0", mysql_port)
+			if "<port>" in xx:
+				xx = xx.split("</")[0].replace("<port>", "")
+				x = x.replace(xx, mysql_port)
 
-			if "<username>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_name)
+			if "<username>" in xx:
+				xx = xx.split("</")[0].replace("<username>", "")
+				x = x.replace(xx, mysql_kbe_name)
 
-			if "<password>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_password)
+			if "<password>" in xx:
+				xx = xx.split("</")[0].replace("<password>", "")
+				x = x.replace(xx, mysql_kbe_password)
 
-			if "<databaseName>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_db_name)
+			if "<databaseName>" in xx:
+				xx = xx.split("</")[0].replace("<databaseName>", "")
+				x = x.replace(xx, mysql_kbe_db_name)
 	                
 		newxml.append(x)
 
