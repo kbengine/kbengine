@@ -267,6 +267,13 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	{
 		cinfos->pChannel->send(pBundle);
 	}
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
+	if (cellapp_iter != cellapps_.end())
+	{
+		cellapp_iter->second.incNumEntities();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -311,6 +318,13 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	else
 	{
 		cinfos->pChannel->send(pBundle);
+	}
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
+	if (cellapp_iter != cellapps_.end())
+	{
+		cellapp_iter->second.incNumEntities();
 	}
 }
 

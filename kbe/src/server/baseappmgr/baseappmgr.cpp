@@ -304,6 +304,13 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
+	if (baseapps_iter != baseapps_.end())
+	{
+		baseapps_iter->second.incNumEntities();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -343,6 +350,13 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
+	if (baseapps_iter != baseapps_.end())
+	{
+		baseapps_iter->second.incNumEntities();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -397,6 +411,13 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
 	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
+	if (baseapps_iter != baseapps_.end())
+	{
+		baseapps_iter->second.incNumProxices();
+	}
 }
 
 //-------------------------------------------------------------------------------------

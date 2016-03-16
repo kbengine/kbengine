@@ -46,6 +46,7 @@ public:
 
 	ENTITY_ID numEntities() const { return numEntities_; }
 	void numEntities(ENTITY_ID num) { numEntities_ = num; }
+	void incNumEntities() { ++numEntities_; }
 
 	uint32 flags() const { return flags_; }
 	void flags(uint32 v) { flags_ = v; }
