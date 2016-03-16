@@ -222,6 +222,31 @@ public:
 		return ClientObjectBase::__py_disconnect(&ClientApp::getSingleton(), args);	
 	}
 
+	/**
+	通过相对路径获取资源的全路径
+	*/
+	static PyObject* __py_getResFullPath(PyObject* self, PyObject* args);
+
+	/**
+	通过相对路径判断资源是否存在
+	*/
+	static PyObject* __py_hasRes(PyObject* self, PyObject* args);
+
+	/**
+	open文件
+	*/
+	static PyObject* __py_kbeOpen(PyObject* self, PyObject* args);
+
+	/**
+	列出目录下所有文件
+	*/
+	static PyObject* __py_listPathRes(PyObject* self, PyObject* args);
+
+	/**
+	匹配相对路径获得全路径
+	*/
+	static PyObject* __py_matchPath(PyObject* self, PyObject* args);
+
 protected:
 	KBEngine::script::Script*								pScript_;
 	std::vector<PyTypeObject*>								scriptBaseTypes_;

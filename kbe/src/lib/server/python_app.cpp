@@ -377,7 +377,7 @@ PyObject* PythonApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	int type = -1;
@@ -386,7 +386,7 @@ PyObject* PythonApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	DebugHelper::getSingleton().setScriptMsgType(type);
@@ -401,7 +401,7 @@ PyObject* PythonApp::__py_getResFullPath(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
@@ -410,7 +410,7 @@ PyObject* PythonApp::__py_getResFullPath(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(!Resmgr::getSingleton().hasRes(respath))
@@ -428,7 +428,7 @@ PyObject* PythonApp::__py_hasRes(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
@@ -437,7 +437,7 @@ PyObject* PythonApp::__py_hasRes(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	return PyBool_FromLong(Resmgr::getSingleton().hasRes(respath));
@@ -451,7 +451,7 @@ PyObject* PythonApp::__py_kbeOpen(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
@@ -461,7 +461,7 @@ PyObject* PythonApp::__py_kbeOpen(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	std::string sfullpath = Resmgr::getSingleton().matchRes(respath);
@@ -486,7 +486,7 @@ PyObject* PythonApp::__py_matchPath(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
@@ -495,7 +495,7 @@ PyObject* PythonApp::__py_matchPath(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	std::string path = Resmgr::getSingleton().matchPath(respath);
@@ -510,7 +510,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	std::wstring wExtendName = L"*";
@@ -523,7 +523,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
 			PyErr_PrintEx(0);
-			return 0;
+			S_Return;
 		}
 	}
 	else
@@ -532,7 +532,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
 			PyErr_PrintEx(0);
-			return 0;
+			S_Return;
 		}
 		
 		if(PyUnicode_Check(path_argsobj))
@@ -555,7 +555,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 					{
 						PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
 						PyErr_PrintEx(0);
-						return 0;
+						S_Return;
 					}
 					
 					wchar_t* wtemp = NULL;
@@ -569,7 +569,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 			{
 				PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is error!");
 				PyErr_PrintEx(0);
-				return 0;
+				S_Return;
 			}
 		}
 	}
@@ -578,21 +578,21 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(PyUnicode_GET_LENGTH(pathobj) == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is NULL!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(wExtendName.size() == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is NULL!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(wExtendName[0] == '.')
@@ -606,7 +606,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is NULL!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* cpath = strutil::wchar2char(respath);
