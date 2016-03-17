@@ -236,7 +236,7 @@ COMPONENT_ID Baseappmgr::findFreeBaseapp()
 
 	for(; iter != baseapps_.end(); ++iter)
 	{
-		if ((iter->second.flags() & APP_FLAGS_NONE) > 0)
+		if ((iter->second.flags() & APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING) > 0)
 			continue;
 		
 		// 首先进程必须活着且初始化完毕

@@ -97,6 +97,9 @@ public:
 	bool componentsReady();
 	bool componentReady(COMPONENT_ID cid);
 
+	void removeCellapp(COMPONENT_ID cid);
+	Cellapp& getCellapp(COMPONENT_ID cid);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;
@@ -104,8 +107,9 @@ protected:
 	COMPONENT_ID						bestCellappID_;
 
 	std::map< COMPONENT_ID, Cellapp >	cellapps_;
+	std::vector<COMPONENT_ID>			cellapp_cids_;
 };
 
-}
+} 
 
 #endif // KBE_CELLAPPMGR_H

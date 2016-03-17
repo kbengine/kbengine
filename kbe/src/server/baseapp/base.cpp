@@ -1263,7 +1263,7 @@ void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Base::createInNewSpace(PyObject* params)
+PyObject* Base::createInNewSpace(PyObject* args)
 {
 	if(isDestroyed())
 	{
@@ -1283,7 +1283,7 @@ PyObject* Base::createInNewSpace(PyObject* params)
 	}
 
 	createdSpace_ = true;
-	Baseapp::getSingleton().createInNewSpace(this, params);
+	Baseapp::getSingleton().createInNewSpace(this, args);
 	S_Return;
 }
 
