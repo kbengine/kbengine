@@ -402,7 +402,6 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 		return;
 	}
 
-
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{0}. allocBaseapp=[{1}].\n",
 		accountName, bestBaseappID_));
 	
