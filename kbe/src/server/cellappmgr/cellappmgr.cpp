@@ -296,12 +296,12 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	updateBestCellapp();
 	
 	// 选择特定的cellapp创建space
-	 if (cellappIndex > 0)
-	 {
-		 uint32 cellappSize = cellapp_cids_.size();
-		 uint32 index = (cellappIndex - 1) % cellappSize;
-		 bestCellappID_ = cellapp_cids_[index];
-	 }
+	if (cellappIndex > 0)
+	{
+		uint32 cellappSize = cellapp_cids_.size();
+		uint32 index = (cellappIndex - 1) % cellappSize;
+		bestCellappID_ = cellapp_cids_[index];
+	}
 
 	 std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
 	 DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
