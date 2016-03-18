@@ -2478,7 +2478,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	std::vector<Entity*> findentities;
 
 	// 用户总是期望在entity附近搜寻， 因此我们从身边搜索
-	CoordinateSystem::entitiesInRange(findentities, pobj, originpos, radius, entityUType);
+	EntityCoordinateNode::entitiesInRange(findentities,  pobj->pEntityCoordinateNode(), originpos, radius, entityUType);
 
 	PyObject* pyList = PyList_New(findentities.size());
 

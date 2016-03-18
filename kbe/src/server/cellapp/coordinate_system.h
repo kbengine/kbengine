@@ -23,11 +23,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/debug_helper.h"
 #include "common/common.h"	
-#include "math/math.h"
 
 namespace KBEngine{
 
-class Entity;
 class CoordinateNode;
 
 class CoordinateSystem
@@ -71,9 +69,6 @@ public:
 	INLINE uint32 size() const;
 
 	static bool hasY;
-
-	static void entitiesInRange(std::vector<Entity*>& foundEntities, Entity* pOrginEntity,
-		const Position3D& orginPos, float radius, int entityUType = -1);
 
 private:
 	uint32 size_;

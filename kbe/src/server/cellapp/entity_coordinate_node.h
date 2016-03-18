@@ -50,6 +50,9 @@ public:
 	bool addWatcherNode(CoordinateNode* pNode);
 	bool delWatcherNode(CoordinateNode* pNode);
 
+	static void entitiesInRange(std::vector<Entity*>& foundEntities, CoordinateNode* rootNode, 
+		const Position3D& orginPos, float radius, int entityUType = -1);
+
 	virtual void onRemove();
 
 protected:
