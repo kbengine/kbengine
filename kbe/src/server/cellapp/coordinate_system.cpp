@@ -19,7 +19,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "coordinate_node.h"
 #include "coordinate_system.h"
+#include "entity_coordinate_node.h"
 #include "profile.h"
+#include "entity.h"
 
 #ifndef CODE_INLINE
 #include "coordinate_system.inl"
@@ -650,6 +652,238 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 //	if(first_y_coordinateNode_)first_y_coordinateNode_->debugY();
 //	DEBUG_MSG(fmt::format("CoordinateSystem::update[ z ]:[{}]\n", pNode));
 //	first_z_coordinateNode_->debugZ();
+}
+
+//-------------------------------------------------------------------------------------
+void CoordinateSystem::entitiesInRange(std::vector<Entity*>& foundEntities, Entity* pOrginEntity,
+	const Position3D& originPos, float radius, int entityUType)
+{
+	std::set<Entity*> entities_X;
+	std::set<Entity*> entities_Z;
+
+	CoordinateNode* rootNode = pOrginEntity->pEntityCoordinateNode();
+	if (entityUType == -1 || pOrginEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+	{
+		Position3D distVec = originPos - pOrginEntity->position();
+		float dist = KBEVec3Length(&distVec);
+
+		if (dist <= radius)
+		{
+			foundEntities.push_back(pOrginEntity);
+		}
+	}
+
+	// 如果当前entity节点不在范围内，我们需要为这个originPos定位到某个Node附近
+	if (fabs(originPos.x - pOrginEntity->position().x) > radius)
+	{
+		rootNode = rootNode->pCoordinateSystem()->pFirstXNode();
+		while (rootNode->pNextX())
+		{
+			CoordinateNode* pNextCoordinateNode = rootNode->pNextX();
+			if (fabs(originPos.x - pNextCoordinateNode->x()) <= radius)
+			{
+				break;
+			}
+
+			rootNode = pNextCoordinateNode;
+		}
+	}
+
+	CoordinateNode* pCoordinateNode = rootNode;
+
+	while (pCoordinateNode->pPrevX())
+	{
+		CoordinateNode* pPrevCoordinateNode = pCoordinateNode->pPrevX();
+		if ((pPrevCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityCoordinateNode*>(pPrevCoordinateNode)->pEntity();
+
+			if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				if (fabs(originPos.x - pEntity->position().x) <= radius)
+				{
+					entities_X.insert(pEntity);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		pCoordinateNode = pPrevCoordinateNode;
+	};
+
+	pCoordinateNode = rootNode;
+
+	while (pCoordinateNode->pNextX())
+	{
+		CoordinateNode* pNextCoordinateNode = pCoordinateNode->pNextX();
+		if ((pNextCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityCoordinateNode*>(pNextCoordinateNode)->pEntity();
+
+			if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				if (fabs(originPos.x - pEntity->position().x) <= radius)
+				{
+					entities_X.insert(pEntity);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		pCoordinateNode = pNextCoordinateNode;
+	};
+
+	// 如果当前entity节点不在范围内，我们需要为这个originPos定位到某个Node附近
+	if (fabs(originPos.z - pOrginEntity->position().z) > radius)
+	{
+		rootNode = rootNode->pCoordinateSystem()->pFirstZNode();
+		while (rootNode->pNextZ())
+		{
+			CoordinateNode* pNextCoordinateNode = rootNode->pNextZ();
+			if (fabs(originPos.z - pNextCoordinateNode->z()) <= radius)
+			{
+				break;
+			}
+
+			rootNode = pNextCoordinateNode;
+		}
+	}
+
+	// 查找Z轴
+	pCoordinateNode = rootNode;
+
+	while (pCoordinateNode->pPrevZ())
+	{
+		CoordinateNode* pPrevCoordinateNode = pCoordinateNode->pPrevZ();
+		if ((pPrevCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityCoordinateNode*>(pPrevCoordinateNode)->pEntity();
+
+			if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				if (fabs(originPos.z - pEntity->position().z) <= radius)
+				{
+					entities_Z.insert(pEntity);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		pCoordinateNode = pPrevCoordinateNode;
+	};
+
+	pCoordinateNode = rootNode;
+
+	while (pCoordinateNode->pNextZ())
+	{
+		CoordinateNode* pNextCoordinateNode = pCoordinateNode->pNextZ();
+		if ((pNextCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+		{
+			Entity* pEntity = static_cast<EntityCoordinateNode*>(pNextCoordinateNode)->pEntity();
+
+			if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+			{
+				if (fabs(originPos.z - pEntity->position().z) <= radius)
+				{
+					entities_Z.insert(pEntity);
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		pCoordinateNode = pNextCoordinateNode;
+	};
+
+	// 查找Y
+	if (CoordinateSystem::hasY)
+	{
+		// 如果当前entity节点不在范围内，我们需要为这个originPos定位到某个Node附近
+		if (fabs(originPos.y - pOrginEntity->position().y) > radius)
+		{
+			rootNode = rootNode->pCoordinateSystem()->pFirstYNode();
+			while (rootNode->pNextY())
+			{
+				CoordinateNode* pNextCoordinateNode = rootNode->pNextY();
+				if (fabs(originPos.y - pNextCoordinateNode->y()) <= radius)
+				{
+					break;
+				}
+
+				rootNode = pNextCoordinateNode;
+			}
+		}
+
+		pCoordinateNode = rootNode;
+		std::set<Entity*> entities_Y;
+
+		while (pCoordinateNode->pPrevY())
+		{
+			CoordinateNode* pPrevCoordinateNode = pCoordinateNode->pPrevY();
+			if ((pPrevCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+			{
+				Entity* pEntity = static_cast<EntityCoordinateNode*>(pPrevCoordinateNode)->pEntity();
+
+				if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+				{
+					if (fabs(originPos.y - pEntity->position().y) <= radius)
+					{
+						entities_Y.insert(pEntity);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+
+			pCoordinateNode = pPrevCoordinateNode;
+		};
+
+		pCoordinateNode = rootNode;
+
+		while (pCoordinateNode->pNextY())
+		{
+			CoordinateNode* pNextCoordinateNode = pCoordinateNode->pNextY();
+			if ((pNextCoordinateNode->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0)
+			{
+				Entity* pEntity = static_cast<EntityCoordinateNode*>(pNextCoordinateNode)->pEntity();
+
+				if (entityUType == -1 || pEntity->pScriptModule()->getUType() == (ENTITY_SCRIPT_UID)entityUType)
+				{
+					if (fabs(originPos.y - pEntity->position().y) <= radius)
+					{
+						entities_Y.insert(pEntity);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+
+			pCoordinateNode = pNextCoordinateNode;
+		};
+
+		std::set<Entity*> res_set;
+		set_intersection(entities_X.begin(), entities_X.end(), entities_Z.begin(), entities_Z.end(), std::inserter(res_set, res_set.end()));
+		set_intersection(res_set.begin(), res_set.end(), entities_Y.begin(), entities_Y.end(), std::back_inserter(foundEntities));
+	}
+	else
+	{
+		set_intersection(entities_X.begin(), entities_X.end(), entities_Z.begin(), entities_Z.end(), std::back_inserter(foundEntities));
+	}
 }
 
 //-------------------------------------------------------------------------------------
