@@ -257,10 +257,11 @@ public:
 	virtual void onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-		服务器更新avatar基础位置
+		服务器更新avatar基础位置和朝向
 	*/
 	virtual void onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s);
 	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器更新VolatileData

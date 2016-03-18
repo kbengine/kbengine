@@ -1889,6 +1889,14 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		
 		// this->position(currpos);
 
+		// 如果我已经被控制，那么，数据的来源则是控制者的客户端，
+		// 所以，我们需要做的是通知来源客户端，而不仅仅是自己的客户端。
+		KBEngine::ENTITY_ID targetID = 0;
+		if (controlledBy_ != NULL)
+			targetID = controlledBy_->id();
+		else
+			targetID = id_;
+
 		// 通知重置
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
@@ -1898,7 +1906,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		(*pForwardBundle) << currpos.x << currpos.y << currpos.z;
 		(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(targetID, (*pSendBundle), (*pForwardBundle));
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
 		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}

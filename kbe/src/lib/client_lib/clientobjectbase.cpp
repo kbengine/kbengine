@@ -1217,6 +1217,19 @@ void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStrea
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	float yaw, pitch, roll;
+	s >> yaw >> pitch >> roll;
+
+	client::Entity* pEntity = pPlayer();
+	if (pEntity)
+	{
+		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid;
