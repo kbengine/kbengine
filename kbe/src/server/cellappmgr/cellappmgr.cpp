@@ -45,7 +45,8 @@ Cellappmgr::Cellappmgr(Network::EventDispatcher& dispatcher,
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	gameTimer_(),
 	forward_cellapp_messagebuffer_(ninterface, CELLAPP_TYPE),
-	cellapps_()
+	cellapps_(),
+	cellapp_cids_()
 {
 }
 
@@ -53,12 +54,57 @@ Cellappmgr::Cellappmgr(Network::EventDispatcher& dispatcher,
 Cellappmgr::~Cellappmgr()
 {
 	cellapps_.clear();
+	cellapp_cids_.clear();
 }
 
 //-------------------------------------------------------------------------------------
 bool Cellappmgr::run()
 {
 	return ServerApp::run();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::removeCellapp(COMPONENT_ID cid)
+{
+	std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.find(cid);
+	if (iter != cellapps_.end())
+	{
+		WARNING_MSG(fmt::format("Cellappmgr::removeCellapp: erase cellapp[{0}], currsize={1}\n",
+			cid, (cellapps_.size() - 1)));
+
+		cellapps_.erase(iter);
+		
+		std::vector<COMPONENT_ID>::iterator viter = cellapp_cids_.begin();
+		for (; viter != cellapp_cids_.end(); ++viter)
+		{
+			if ((*viter) == cid)
+			{
+				cellapp_cids_.erase(viter);
+				break;
+			}
+		}
+
+		updateBestCellapp();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+Cellapp& Cellappmgr::getCellapp(COMPONENT_ID cid)
+{
+	std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.find(cid);
+	if (iter != cellapps_.end())
+	{
+		return iter->second;
+	}
+
+	// 添加了一个新的cellapp
+	Cellapp& cellapp = cellapps_[cid];
+
+	INFO_MSG(fmt::format("Cellappmgr::getCellapp: added new cellapp({0}).\n",
+		cid));
+
+	cellapp_cids_.push_back(cid);
+	return cellapp;
 }
 
 //-------------------------------------------------------------------------------------
@@ -86,15 +132,7 @@ void Cellappmgr::onChannelDeregister(Network::Channel * pChannel)
 		if(cinfo)
 		{
 			cinfo->state = COMPONENT_STATE_STOP;
-			std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.find(cinfo->cid);
-			if(iter != cellapps_.end())
-			{
-				WARNING_MSG(fmt::format("Cellappmgr::onChannelDeregister: erase cellapp[{0}], currsize={1}\n",
-					cinfo->cid, (cellapps_.size() - 1)));
-
-				cellapps_.erase(iter);
-				updateBestCellapp();
-			}
+			removeCellapp(cinfo->cid);
 		}
 	}
 
@@ -171,7 +209,7 @@ COMPONENT_ID Cellappmgr::findFreeCellapp(void)
 
 	for(; iter != cellapps_.end(); ++iter)
 	{
-		if ((iter->second.flags() & APP_FLAGS_NONE) > 0)
+		if ((iter->second.flags() & APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING) > 0)
 			continue;
 		
 		// 首先进程必须活着且初始化完毕
@@ -231,8 +269,14 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	COMPONENT_ID componentID;
 	bool hasClient;
 
+	// 如果cellappIndex为0，则代表不强制指定cellapp
+	// 非0的情况下，选择的cellapp可以用1,2,3,4来代替
+	// 假如预期有4个cellapp， 假如不够4个， 只有3个， 那么4代表1
+	uint32 cellappIndex = 0;
+
 	s >> entityType;
 	s >> id;
+	s >> cellappIndex;
 	s >> componentID;
 	s >> hasClient;
 
@@ -249,12 +293,22 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	(*pBundle).append(&s);
 	s.done();
 
-	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={0}, entityID={1}, componentID={2}.\n",
-		entityType, id, componentID));
-
 	updateBestCellapp();
+	
+	// 选择特定的cellapp创建space
+	if (cellappIndex > 0)
+	{
+		uint32 cellappSize = cellapp_cids_.size();
+		uint32 index = (cellappIndex - 1) % cellappSize;
+		bestCellappID_ = cellapp_cids_[index];
+	}
+
+	 std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
+	 DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
+		 entityType, id, componentID, bestCellappID_, cellapp_iter->second.load(), cellapp_iter->second.numEntities()));
+
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
-	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
 		ForwardItem* pFI = new ForwardItem();
@@ -269,7 +323,6 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	}
 
 	// 预先将实体数量增加
-	std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
 	if (cellapp_iter != cellapps_.end())
 	{
 		cellapp_iter->second.incNumEntities();
@@ -332,7 +385,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componentID, 
 	ENTITY_ID numEntities, float load, uint32 flags)
 {
-	Cellapp& cellapp = cellapps_[componentID];
+	Cellapp& cellapp = getCellapp(componentID);
 	
 	cellapp.load(load);
 	cellapp.numEntities(numEntities);
@@ -356,7 +409,7 @@ void Cellappmgr::onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 
 	KBE_ASSERT(cellapps_.find(cid) != cellapps_.end());
 
-	cellapps_[cid].initProgress(progress);
+	getCellapp(cid).initProgress(progress);
 }
 
 //-------------------------------------------------------------------------------------

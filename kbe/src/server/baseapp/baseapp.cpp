@@ -1587,8 +1587,16 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::createInNewSpace(Base* base, PyObject* cell)
+void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 {
+	// 如果cellappIndex为0，则代表不强制指定cellapp
+	// 非0的情况下，选择的cellapp可以用1,2,3,4来代替
+	// 假如预期有4个cellapp， 假如不够4个， 只有3个， 那么4代表1
+	uint32 cellappIndex = 0;
+
+	if (PyLong_Check(pyCellappIndex))
+		cellappIndex = (uint32)PyLong_AsUnsignedLong(pyCellappIndex);
+
 	ENTITY_ID id = base->id();
 	std::string entityType = base->ob_type->tp_name;
 
@@ -1598,6 +1606,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* cell)
 
 	(*pBundle) << entityType;
 	(*pBundle) << id;
+	(*pBundle) << cellappIndex;
 	(*pBundle) << componentID_;
 
 	EntityMailbox* clientMailbox = base->clientMailbox();

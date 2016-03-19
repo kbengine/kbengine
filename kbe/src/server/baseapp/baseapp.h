@@ -144,7 +144,7 @@ public:
 	/**
 		创建一个新的space 
 	*/
-	void createInNewSpace(Base* base, PyObject* cell);
+	void createInNewSpace(Base* base, PyObject* pyCellappIndex);
 
 	/**
 		恢复一个space 
