@@ -293,19 +293,19 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	(*pBundle).append(&s);
 	s.done();
 
-	updateBestCellapp();
-	
-	// 选择特定的cellapp创建space
-	if (cellappIndex > 0)
-	{
-		uint32 cellappSize = cellapp_cids_.size();
-		uint32 index = (cellappIndex - 1) % cellappSize;
-		bestCellappID_ = cellapp_cids_[index];
-	}
+	uint32 cellappSize = cellapp_cids_.size();
 
-	 std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
-	 DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
-		 entityType, id, componentID, bestCellappID_, cellapp_iter->second.load(), cellapp_iter->second.numEntities()));
+	if (cellappSize > 0)
+	{
+		updateBestCellapp();
+
+		// 选择特定的cellapp创建space
+		if (cellappIndex > 0)
+		{
+			uint32 index = (cellappIndex - 1) % cellappSize;
+			bestCellappID_ = cellapp_cids_[index];
+		}
+	}
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
 	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
@@ -321,6 +321,10 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	{
 		cinfos->pChannel->send(pBundle);
 	}
+
+	std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
+	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
+		entityType, id, componentID, bestCellappID_, cellapp_iter->second.load(), cellapp_iter->second.numEntities()));
 
 	// 预先将实体数量增加
 	if (cellapp_iter != cellapps_.end())
