@@ -52,7 +52,7 @@ public:
 
 	INLINE int compare() {
 		float v = currentNodeEntity()->position().x;
-		if (v == originPos_.x) // 谁说float就一定不能相等的？试想position.x == position.x
+		if (v == originPos_.x)
 			return 0;
 		else if (v > originPos_.x)
 			return 1;
@@ -88,7 +88,7 @@ public:
 
 	INLINE int compare() {
 		float v = currentNodeEntity()->position().z;
-		if (v == originPos_.z) // 谁说float就一定不能相等的？试想position.z == position.z
+		if (v == originPos_.z)
 			return 0;
 		else if (v > originPos_.z)
 			return 1;
@@ -119,7 +119,7 @@ public:
 
 	INLINE int compare() {
 		float v = currentNodeEntity()->position().y;
-		if (v == originPos_.y) // 谁说float就一定不能相等的？试想position.y == position.y
+		if (v == originPos_.y)
 			return 0;
 		else if (v > originPos_.y)
 			return 1;
@@ -172,7 +172,7 @@ CoordinateNode* findNearestNode(CoordinateNode* rootNode, const Position3D& orig
 				}
 			}
 
-			// 理论上不可能找不到，但如果真发生了这么奇葩的事……
+			// 理论上不可能找不到
 			if (!pRN)
 				return NULL;
 		}
@@ -181,6 +181,7 @@ CoordinateNode* findNearestNode(CoordinateNode* rootNode, const Position3D& orig
 	// 能来到这里，表示一定是找到了，开始找离目标位置最近的Node
 	NODEWRAP wrap(pRN, originPos);
 	int v = wrap.compare();
+	
 	if (v == 0)  // 相等
 	{
 		return wrap.currentNode();
@@ -221,6 +222,7 @@ CoordinateNode* findNearestNode(CoordinateNode* rootNode, const Position3D& orig
 
 			pCoordinateNode = wrap.currentNode();
 		}
+
 		return pCoordinateNode;
 	}
 }
