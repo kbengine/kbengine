@@ -40,8 +40,36 @@ KBE_SINGLETON_INIT(Cellappmgr);
 class AppForwardItem : public ForwardItem
 {
 public:
-	virtual bool isOK(){
-		return true;
+	virtual bool isOK()
+	{
+		bool ok = false;
+
+		// 必须存在一个准备好的进程
+		Components::COMPONENTS& cts = Components::getSingleton().getComponents(CELLAPP_TYPE);
+		Components::COMPONENTS::iterator ctiter = cts.begin();
+		for (; ctiter != cts.end(); ++ctiter)
+		{
+			if (Cellappmgr::getSingleton().componentReady((*ctiter).cid))
+			{
+				std::map< COMPONENT_ID, Cellapp >& cellapps = Cellappmgr::getSingleton().cellapps();
+				std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps.find((*ctiter).cid);
+				if (cellapp_iter == cellapps.end())
+					continue;
+
+				if ((cellapp_iter->second.flags() & APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING) > 0)
+					continue;
+
+				if (cellapp_iter->second.isDestroyed())
+					continue;
+
+				if (cellapp_iter->second.initProgress() < 1.f)
+					continue;
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 };
 
@@ -52,7 +80,8 @@ Cellappmgr::Cellappmgr(Network::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	gameTimer_(),
-	forward_cellapp_messagebuffer_(ninterface, CELLAPP_TYPE),
+	forward_anywhere_cellapp_messagebuffer_(ninterface, CELLAPP_TYPE),
+	forward_cellapp_messagebuffer_(ninterface),
 	cellapps_(),
 	cellapp_cids_()
 {
@@ -69,6 +98,12 @@ Cellappmgr::~Cellappmgr()
 bool Cellappmgr::run()
 {
 	return ServerApp::run();
+}
+
+//-------------------------------------------------------------------------------------
+std::map< COMPONENT_ID, Cellapp >& Cellappmgr::cellapps()
+{
+	return cellapps_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -270,6 +305,23 @@ bool Cellappmgr::componentReady(COMPONENT_ID cid)
 }
 
 //-------------------------------------------------------------------------------------
+uint32 Cellappmgr::numLoadBalancingApp()
+{
+	uint32 num = 0;
+	std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.begin();
+
+	for (; iter != cellapps_.end(); ++iter)
+	{
+		if ((iter->second.flags() & APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING) > 0)
+			continue;
+
+		++num;
+	}
+
+	return num;
+}
+
+//-------------------------------------------------------------------------------------
 void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s) 
 {
 	std::string entityType;
@@ -313,16 +365,27 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 			uint32 index = (cellappIndex - 1) % cellappSize;
 			bestCellappID_ = cellapp_cids_[index];
 		}
+		else if (bestCellappID_ == 0 && numLoadBalancingApp() == 0)
+		{
+			ERROR_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: Unable to allocate cellapp for load balancing! entityType={}, entityID={}, componentID={}, cellappSize={}.\n",
+				entityType, id, componentID, cellappSize));
+		}
 	}
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
 	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
+
 		ForwardItem* pFI = new AppForwardItem();
 		pFI->pHandler = NULL;
 		pFI->pBundle = pBundle;
-		forward_cellapp_messagebuffer_.push(pFI);
+
+		if (cellappIndex == 0 || bestCellappID_ == 0)
+			forward_anywhere_cellapp_messagebuffer_.push(pFI);
+		else
+			forward_cellapp_messagebuffer_.push(bestCellappID_, pFI);
+
 		return;
 	}
 	else
@@ -377,7 +440,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 		ForwardItem* pFI = new AppForwardItem();
 		pFI->pHandler = NULL;
 		pFI->pBundle = pBundle;
-		forward_cellapp_messagebuffer_.push(pFI);
+		forward_anywhere_cellapp_messagebuffer_.push(pFI);
 		return;
 	}
 	else
