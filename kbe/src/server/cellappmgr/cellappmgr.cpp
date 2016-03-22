@@ -37,6 +37,14 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Cellappmgr);
 
+class AppForwardItem : public ForwardItem
+{
+public:
+	virtual bool isOK(){
+		return true;
+	}
+};
+
 //-------------------------------------------------------------------------------------
 Cellappmgr::Cellappmgr(Network::EventDispatcher& dispatcher, 
 			 Network::NetworkInterface& ninterface, 
@@ -311,7 +319,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 		pFI->pHandler = NULL;
 		pFI->pBundle = pBundle;
 		forward_cellapp_messagebuffer_.push(pFI);
@@ -366,7 +374,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		WARNING_MSG("Cellappmgr::reqRestoreSpaceInCell: not found cellapp, message is buffered.\n");
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 		pFI->pHandler = NULL;
 		pFI->pBundle = pBundle;
 		forward_cellapp_messagebuffer_.push(pFI);

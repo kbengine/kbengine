@@ -39,6 +39,15 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseappmgr);
 
+
+class AppForwardItem : public ForwardItem
+{
+public:
+	virtual bool isOK(){
+		return true;
+	}
+};
+
 //-------------------------------------------------------------------------------------
 Baseappmgr::Baseappmgr(Network::EventDispatcher& dispatcher, 
 			 Network::NetworkInterface& ninterface, 
@@ -283,7 +292,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
@@ -329,7 +338,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
@@ -389,7 +398,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
