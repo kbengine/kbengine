@@ -111,6 +111,9 @@ bool ForwardComponent_MessageBuffer::process()
 
 			for(; itervec != iter->second.end(); )
 			{
+				if (!(*itervec)->isOK())
+					return true;
+
 				cinfos->pChannel->send((*itervec)->pBundle);
 				(*itervec)->pBundle = NULL;
 
@@ -215,6 +218,17 @@ bool ForwardAnywhere_MessageBuffer::process()
 		int icount = 5;
 
 		std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
+		for (; iter != pBundles_.end(); ++iter)
+		{
+			if ((*iter)->isOK())
+				break;
+		}
+		
+		// 必须所有的ForwardItem都处于ok状态
+		// 何时不处于ok状态？例如：cellappmgr中的ForwardItem需要等待cellapp初始化完毕之后才ok
+		if (iter == pBundles_.end())
+			return true;
+
 		for(; iter != pBundles_.end(); )
 		{
 			Network::Channel* pChannel = NULL;

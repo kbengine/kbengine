@@ -53,10 +53,25 @@ public:
 	virtual ~ForwardMessageOverHandler(){}
 };
 
-struct ForwardItem
+class ForwardItem
 {
+public:
+	ForwardItem():
+		pBundle(NULL),
+		pHandler(NULL)
+	{
+	}
+
+	virtual ~ForwardItem()
+	{
+	}
+
 	Network::Bundle* pBundle;
 	ForwardMessageOverHandler* pHandler;
+
+	virtual bool isOK(){
+		return true;
+	}
 };
 
 /*
