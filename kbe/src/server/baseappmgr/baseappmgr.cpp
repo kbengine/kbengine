@@ -45,8 +45,6 @@ class AppForwardItem : public ForwardItem
 public:
 	virtual bool isOK()
 	{
-		bool ok = false;
-
 		// 必须存在一个准备好的进程
 		Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPP_TYPE);
 		Components::COMPONENTS::iterator ctiter = cts.begin();
