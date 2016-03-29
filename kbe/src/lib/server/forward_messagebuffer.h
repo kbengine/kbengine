@@ -90,6 +90,8 @@ public:
 	
 	bool process();
 
+	virtual void clear();
+	
 private:
 	Network::NetworkInterface & networkInterface_;
 	bool start_;
@@ -116,6 +118,8 @@ public:
 	
 	bool process();
 
+	virtual void clear();
+	
 private:
 	Network::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE forwardComponentType_;

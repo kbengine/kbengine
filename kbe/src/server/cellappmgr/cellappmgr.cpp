@@ -221,6 +221,9 @@ bool Cellappmgr::initializeEnd()
 void Cellappmgr::finalise()
 {
 	gameTimer_.cancel();
+	forward_anywhere_cellapp_messagebuffer_.clear();
+	forward_cellapp_messagebuffer_.clear();
+	
 	ServerApp::finalise();
 }
 

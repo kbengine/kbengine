@@ -41,7 +41,12 @@ ForwardComponent_MessageBuffer::ForwardComponent_MessageBuffer(Network::NetworkI
 ForwardComponent_MessageBuffer::~ForwardComponent_MessageBuffer()
 {
 	//dispatcher().cancelTask(this);
+	clear();
+}
 
+//-------------------------------------------------------------------------------------
+void ForwardComponent_MessageBuffer::clear()
+{
 	MSGMAP::iterator iter = pMap_.begin();
 	for(; iter != pMap_.end(); ++iter)
 	{
@@ -155,6 +160,12 @@ ForwardAnywhere_MessageBuffer::~ForwardAnywhere_MessageBuffer()
 {
 	//dispatcher().cancelTask(this);
 
+	clear();
+}
+
+//-------------------------------------------------------------------------------------
+void ForwardAnywhere_MessageBuffer::clear()
+{
 	std::vector<ForwardItem*>::iterator iter = pBundles_.begin();
 	for(; iter != pBundles_.end(); )
 	{

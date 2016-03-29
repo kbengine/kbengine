@@ -508,6 +508,8 @@ void Baseapp::finalise()
 	pRestoreEntityHandlers_.clear();
 	loopCheckTimerHandle_.cancel();
 	pResmgrTimerHandle_.cancel();
+	forward_messagebuffer_.clear();
+
 	EntityApp<Base>::finalise();
 }
 

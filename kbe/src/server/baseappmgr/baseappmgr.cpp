@@ -199,6 +199,8 @@ bool Baseappmgr::initializeEnd()
 void Baseappmgr::finalise()
 {
 	gameTimer_.cancel();
+	forward_baseapp_messagebuffer_.clear();
+
 	ServerApp::finalise();
 }
 
