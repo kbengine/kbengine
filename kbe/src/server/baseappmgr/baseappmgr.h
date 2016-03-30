@@ -127,6 +127,10 @@ public:
 	bool componentsReady();
 	bool componentReady(COMPONENT_ID cid);
 
+	std::map< COMPONENT_ID, Baseapp >& baseapps();
+
+	uint32 numLoadBalancingApp();
+
 protected:
 	TimerHandle													gameTimer_;
 

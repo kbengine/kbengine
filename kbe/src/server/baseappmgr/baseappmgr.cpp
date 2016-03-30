@@ -39,6 +39,41 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseappmgr);
 
+
+class AppForwardItem : public ForwardItem
+{
+public:
+	virtual bool isOK()
+	{
+		// 必须存在一个准备好的进程
+		Components::COMPONENTS& cts = Components::getSingleton().getComponents(BASEAPP_TYPE);
+		Components::COMPONENTS::iterator ctiter = cts.begin();
+		for (; ctiter != cts.end(); ++ctiter)
+		{
+			if (Baseappmgr::getSingleton().componentReady((*ctiter).cid))
+			{
+				std::map< COMPONENT_ID, Baseapp >& baseapps = Baseappmgr::getSingleton().baseapps();
+				std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps.find((*ctiter).cid);
+				if (baseapps_iter == baseapps.end())
+					continue;
+
+				if ((baseapps_iter->second.flags() & APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING) > 0)
+					continue;
+
+				if (baseapps_iter->second.isDestroyed())
+					continue;
+
+				if (baseapps_iter->second.initProgress() < 1.f)
+					continue;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+};
+
 //-------------------------------------------------------------------------------------
 Baseappmgr::Baseappmgr(Network::EventDispatcher& dispatcher, 
 			 Network::NetworkInterface& ninterface, 
@@ -58,6 +93,12 @@ Baseappmgr::Baseappmgr(Network::EventDispatcher& dispatcher,
 Baseappmgr::~Baseappmgr()
 {
 	baseapps_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+std::map< COMPONENT_ID, Baseapp >& Baseappmgr::baseapps()
+{
+	return baseapps_;
 }
 
 //-------------------------------------------------------------------------------------
@@ -158,6 +199,8 @@ bool Baseappmgr::initializeEnd()
 void Baseappmgr::finalise()
 {
 	gameTimer_.cancel();
+	forward_baseapp_messagebuffer_.clear();
+
 	ServerApp::finalise();
 }
 
@@ -209,6 +252,23 @@ bool Baseappmgr::componentReady(COMPONENT_ID cid)
 		return false;
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 Baseappmgr::numLoadBalancingApp()
+{
+	uint32 num = 0;
+	std::map< COMPONENT_ID, Baseapp >::iterator iter = baseapps_.begin();
+
+	for (; iter != baseapps_.end(); ++iter)
+	{
+		if ((iter->second.flags() & APP_FLAGS_NOT_PARTCIPATING_LOAD_BALANCING) > 0)
+			continue;
+
+		++num;
+	}
+
+	return num;
 }
 
 //-------------------------------------------------------------------------------------
@@ -279,11 +339,19 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	if(cinfos)
 		cinfos->state = COMPONENT_STATE_RUN;
 
+	updateBestBaseapp();
+
+	if (bestBaseappID_ == 0 && numLoadBalancingApp() == 0)
+	{
+		ERROR_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhere: Unable to allocate baseapp for load balancing! baseappSize={}.\n",
+			baseapps_.size()));
+	}
+
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhere);
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
@@ -325,11 +393,19 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	if(cinfos)
 		cinfos->state = COMPONENT_STATE_RUN;
 
+	updateBestBaseapp();
+
+	if (bestBaseappID_ == 0 && numLoadBalancingApp() == 0)
+	{
+		ERROR_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBID: Unable to allocate baseapp for load balancing! baseappSize={}.\n",
+			baseapps_.size()));
+	}
+
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::createBaseAnywhereFromDBIDOtherBaseapp);
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
@@ -383,13 +459,21 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 
 	pending_logins_[loginName] = cinfos->cid;
 
+	updateBestBaseapp();
+
+	if (bestBaseappID_ == 0 && numLoadBalancingApp() == 0)
+	{
+		ERROR_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp: Unable to allocate baseapp for load balancing! baseappSize={}, accountName={}.\n",
+			baseapps_.size(), loginName));
+	}
+
 	ENTITY_ID eid = 0;
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		ForwardItem* pFI = new ForwardItem();
+		ForwardItem* pFI = new AppForwardItem();
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
@@ -402,8 +486,10 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 		return;
 	}
 
-	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{0}. allocBaseapp=[{1}].\n",
-		accountName, bestBaseappID_));
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
+
+	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{}. allocBaseapp={}, numEntities={}.\n",
+		accountName, bestBaseappID_, baseapps_iter->second.numEntities()));
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
@@ -412,7 +498,6 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	cinfos->pChannel->send(pBundle);
 
 	// 预先将实体数量增加
-	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
 	if (baseapps_iter != baseapps_.end())
 	{
 		baseapps_iter->second.incNumProxices();

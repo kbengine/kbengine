@@ -304,6 +304,8 @@ void Cellapp::finalise()
 
 	Spaces::finalise();
 	Navigation::getSingleton().finalise();
+	forward_messagebuffer_.clear();
+
 	EntityApp<Entity>::finalise();
 }
 

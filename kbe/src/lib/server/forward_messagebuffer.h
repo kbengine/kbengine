@@ -53,10 +53,25 @@ public:
 	virtual ~ForwardMessageOverHandler(){}
 };
 
-struct ForwardItem
+class ForwardItem
 {
+public:
+	ForwardItem():
+		pBundle(NULL),
+		pHandler(NULL)
+	{
+	}
+
+	virtual ~ForwardItem()
+	{
+	}
+
 	Network::Bundle* pBundle;
 	ForwardMessageOverHandler* pHandler;
+
+	virtual bool isOK(){
+		return true;
+	}
 };
 
 /*
@@ -75,6 +90,8 @@ public:
 	
 	bool process();
 
+	virtual void clear();
+	
 private:
 	Network::NetworkInterface & networkInterface_;
 	bool start_;
@@ -101,6 +118,8 @@ public:
 	
 	bool process();
 
+	virtual void clear();
+	
 private:
 	Network::NetworkInterface & networkInterface_;
 	COMPONENT_TYPE forwardComponentType_;
