@@ -347,14 +347,6 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, 
 	uint16 finderRecvPort)
 {
-	// uid不等于当前服务器的uid则不理会。
-	if(uid > 0)
-	{
-		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
-		if(iter == localuids_.end())
-			return;
-	}
-
 	INFO_MSG(fmt::format("Machine::onQueryAllInterfaceInfos[{}]: uid:{}, username:{}, "
 			"finderRecvPort:{}.\n",
 		pChannel->c_str(), uid, username.c_str(),
@@ -393,6 +385,14 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 		{
 			pChannel->send(pBundle);
 		}
+	}
+
+	// uid不等于当前服务器的uid则不理会。
+	if (uid > 0)
+	{
+		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
+		if (iter == localuids_.end())
+			return;
 	}
 
 	int i = 0;
