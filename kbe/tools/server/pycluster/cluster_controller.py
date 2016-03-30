@@ -343,7 +343,7 @@ class ClusterControllerHandler:
 				else:
 					# 是machine进程，把它放在最前面，并且加到machines列表中
 					gourps.insert(0, info)
-					self._machines.append( infos )
+					self._machines.append( info )
 
 	def getMachine( self, ip ):
 		"""
