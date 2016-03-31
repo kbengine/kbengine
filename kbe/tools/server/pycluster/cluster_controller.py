@@ -245,7 +245,6 @@ class ClusterControllerHandler:
 		
 		while(dectrycount > 0):
 			try:
-				dectrycount = trycount
 				recvdata, address = self.udp_socket.recvfrom(10240)
 				self.recvDatas.append(recvdata)
 				#print ("received %r from %r" % (self.recvDatas, address))
@@ -343,7 +342,7 @@ class ClusterControllerHandler:
 				else:
 					# 是machine进程，把它放在最前面，并且加到machines列表中
 					gourps.insert(0, info)
-					self._machines.append( info )
+					self._machines.append( infos )
 
 	def getMachine( self, ip ):
 		"""
