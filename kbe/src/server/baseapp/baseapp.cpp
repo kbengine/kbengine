@@ -1591,6 +1591,15 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 //-------------------------------------------------------------------------------------
 void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 {
+	ScriptDefModule* pScriptModule = base->pScriptModule();
+	if (!pScriptModule || !pScriptModule->hasCell())
+	{
+		ERROR_MSG(fmt::format("{}::createInNewSpace: cannot find the cellapp script({})!\n",
+			pScriptModule->getName(), pScriptModule->getName()));
+
+		return;
+	}
+
 	// 如果cellappIndex为0，则代表不强制指定cellapp
 	// 非0的情况下，选择的cellapp可以用1,2,3,4来代替
 	// 假如预期有4个cellapp， 假如不够4个， 只有3个， 那么4代表1

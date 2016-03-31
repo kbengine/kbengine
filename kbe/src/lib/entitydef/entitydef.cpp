@@ -1317,7 +1317,8 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 //-------------------------------------------------------------------------------------
 ScriptDefModule* EntityDef::findScriptModule(ENTITY_SCRIPT_UID utype)
 {
-	if (utype >= __scriptModules.size() + 1)
+	// utype ×îÐ¡Îª1
+	if (utype == 0 || utype >= __scriptModules.size() + 1)
 	{
 		ERROR_MSG(fmt::format("EntityDef::findScriptModule: is not exist(utype:{})!\n", utype));
 		return NULL;
