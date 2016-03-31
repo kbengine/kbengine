@@ -159,7 +159,7 @@ class ComponentInfo( object ):
 		
 
 class Machines:
-	def __init__(self, uid, username):
+	def __init__(self, uid, username, listenPort = 0):
 		"""
 		"""
 		self.uid = uid
@@ -171,7 +171,9 @@ class Machines:
 		
 		
 		self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.udp_socket.bind((host, 0))
+		self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.udp_socket.bind((host, listenPort))
+		#print( "udp receive addr: %s" % (self.udp_socket.getsockname(), ) )
 		
 		self.interfaces = {}
 		self.interfaces_groups = {}
@@ -196,7 +198,6 @@ class Machines:
 		recvDatas = []
 		while(dectrycount > 0):
 			try:
-				dectrycount = trycount
 				datas, address = self.udp_socket.recvfrom(10240)
 				recvDatas.append(datas)
 				#print ("received %s data from %r" % (len(recvDatas), address))
