@@ -245,7 +245,6 @@ class ClusterControllerHandler:
 		
 		while(dectrycount > 0):
 			try:
-				dectrycount = trycount
 				recvdata, address = self.udp_socket.recvfrom(10240)
 				self.recvDatas.append(recvdata)
 				#print ("received %r from %r" % (self.recvDatas, address))
