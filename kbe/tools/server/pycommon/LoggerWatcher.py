@@ -11,11 +11,6 @@ import time
 
 from . import Define
 
-if sys.hexversion >= 0x03000000:
-	import io
-else:
-	import StringIO
-	
 Logger_onAppActiveTick         = 701
 Logger_registerLogWatcher      = 702
 Logger_deregisterLogWatcher    = 703
@@ -46,10 +41,7 @@ class LoggerWatcher:
 		"""
 		self.socket = None
 		
-		if sys.hexversion >= 0x03000000:
-			self.msgBuffer = eval("b''")
-		else:
-			self.msgBuffer = ""
+		self.msgBuffer = "".encode()
 
 	def connect( self, ip, port ):
 		"""
@@ -73,17 +65,12 @@ class LoggerWatcher:
 		"""
 		向logger注册
 		"""
-		msg = io.BytesIO()
+		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", Logger_registerLogWatcher ) ) # command
 		msg.write( struct.pack("=H", struct.calcsize("=iIiiccB" + "i" * Define.COMPONENT_END_TYPE + "BB") ) ) # package len
 		msg.write( struct.pack("=i", uid ) )
 		msg.write( struct.pack("=I", 0xffffffff) ) # logtypes filter
-		
-		if sys.hexversion >= 0x03000000:
-			msg.write( struct.pack("=iicc", 0, 0, eval("b'\\0'"), eval("b'\\0'") ) ) # globalOrder, groupOrder, date, keyStr
-		else:
-			msg.write( struct.pack("=iicc", 0, 0, "\0", "\0" ) ) # globalOrder, groupOrder, date, keyStr
-			
+		msg.write( struct.pack("=iicc", 0, 0, "\0".encode(), "\0".encode() ) ) # globalOrder, groupOrder, date, keyStr
 		msg.write( struct.pack("=B", Define.COMPONENT_END_TYPE ) ) # component type filter count
 		msg.write( struct.pack("=" + "i" * Define.COMPONENT_END_TYPE, *list( range( Define.COMPONENT_END_TYPE ) ))) # component type filter
 		msg.write( struct.pack("=BB", 0, 1 ) ) # isfind, first
@@ -93,7 +80,7 @@ class LoggerWatcher:
 		"""
 		从logger取消注册
 		"""
-		msg = io.BytesIO()
+		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", Logger_deregisterLogWatcher ) ) # command
 		msg.write( struct.pack("=H", 0) ) # package len
 		self.socket.sendall( msg.getvalue() )
@@ -102,7 +89,7 @@ class LoggerWatcher:
 		"""
 		发送心跳包
 		"""
-		msg = io.BytesIO()
+		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", Logger_onAppActiveTick ) ) # command
 		msg.write( struct.pack("=iQ", Define.WATCHER_TYPE, 0) ) # componentType, componentID
 		self.socket.sendall( msg.getvalue() )
@@ -118,16 +105,12 @@ class LoggerWatcher:
 		if not isinstance(logStr, bytes):
 			logStr = logStr.encode( "utf-8" )
 		
-		if sys.hexversion >= 0x03000000:
-			if logStr[-1] != eval("b'\\n'"):
-				logStr += eval("b'\\n'")
-		else:
-			if logStr[-1] != '\n':
-				logStr += '\n'
+		if logStr[-1] != '\n'.encode():
+			logStr += '\n'.encode()
 				
 		logSize = len( logStr )
 		
-		msg = io.BytesIO()
+		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", Logger_writeLog ) ) # command
 		msg.write( struct.pack("=H", struct.calcsize("=iIiQiiqII") + logSize ) ) # package len
 		msg.write( struct.pack("=i", uid ) )
