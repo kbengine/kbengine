@@ -48,7 +48,7 @@ acatadog, colin
 
 ##中文
 
-[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321
+[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412
 
 
 ##什么是KBEngine?
