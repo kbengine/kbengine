@@ -93,7 +93,7 @@ private:
 	bool processCommand();
 	void processPythonCommand(std::string command);
 
-	bool checkUDLR(std::string &cmd);
+	bool checkUDLR(const std::string &cmd);
 
 	std::string getInputStartString();
 

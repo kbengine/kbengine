@@ -357,7 +357,7 @@ void TelnetHandler::checkAfterStr()
 }
 
 //-------------------------------------------------------------------------------------
-bool TelnetHandler::checkUDLR(std::string &cmd)
+bool TelnetHandler::checkUDLR(const std::string &cmd)
 {
 	if (cmd.find(TELNET_CMD_UP) != std::string::npos)		// 上 
 	{
@@ -423,7 +423,7 @@ bool TelnetHandler::checkUDLR(std::string &cmd)
 	{
 		if (currPos_ > 0)
 		{
-			std::string &cmdstr = fmt::format("\033[{}D", currPos_);
+			std::string cmdstr = fmt::format("\033[{}D", currPos_);
 			pEndPoint_->send(cmdstr.c_str(), cmdstr.length());
 			currPos_ = 0;
 		}
@@ -431,9 +431,9 @@ bool TelnetHandler::checkUDLR(std::string &cmd)
 	}
 	else if (cmd.find(TELNET_CMD_END) != std::string::npos)	    // 移动到行尾
 	{
-		if (currPos_ != command_.length())
+		if (currPos_ != (int32)command_.length())
 		{
-			std::string &cmdstr = fmt::format("\033[{}C", command_.length() - currPos_);
+			std::string cmdstr = fmt::format("\033[{}C", command_.length() - currPos_);
 			pEndPoint_->send(cmdstr.c_str(), cmdstr.length());
 			currPos_ = command_.length();
 		}
