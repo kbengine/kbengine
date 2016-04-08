@@ -431,7 +431,6 @@ bool TelnetHandler::checkUDLR(std::string &cmd)
 	}
 	else if (cmd.find(TELNET_CMD_END) != std::string::npos)	    // ÒÆ¶¯µ½ÐÐÎ²
 	{
-		int cmdlen = strlen(TELNET_CMD_END);
 		if (currPos_ != command_.length())
 		{
 			std::string &cmdstr = fmt::format("\033[{}C", command_.length() - currPos_);
