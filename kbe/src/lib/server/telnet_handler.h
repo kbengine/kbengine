@@ -89,18 +89,17 @@ private:
 	void checkAfterStr();
 
 	int	handleInputNotification(int fd);
-	void onRecvInput();
+	void onRecvInput(const char *buffer, int size);
 	bool processCommand();
 	void processPythonCommand(std::string command);
 
-	bool checkUDLR();
+	bool checkUDLR(const std::string &cmd);
 
 	std::string getInputStartString();
 
 	void historyCommandCheck();
 	std::string getHistoryCommand(bool isNextCommand);
 
-	std::deque<unsigned char> buffer_;
 	std::deque<std::string> historyCommand_;
 	int8 historyCommandIndex_;
 
