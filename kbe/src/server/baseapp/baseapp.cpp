@@ -442,12 +442,14 @@ void Baseapp::handleGameTick()
 //-------------------------------------------------------------------------------------
 void Baseapp::handleBackup()
 {
+	AUTO_SCOPED_PROFILE("backup");
 	pBackuper_->tick();
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::handleArchive()
 {
+	AUTO_SCOPED_PROFILE("archive");
 	pArchiver_->tick();
 }
 
