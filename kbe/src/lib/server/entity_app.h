@@ -731,7 +731,7 @@ void EntityApp<E>::handleGameTick()
 	handleTimers();
 	
 	{
-		AUTO_SCOPED_PROFILE("processMessages");
+		AUTO_SCOPED_PROFILE("processRecvMessages");
 		networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
 	}
 }
