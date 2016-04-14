@@ -2987,6 +2987,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel, 
 												KBEngine::MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("forwardMessageToClientFromCellapp");
+	
 	if(pChannel->isExternal())
 		return;
 	
