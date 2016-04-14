@@ -3330,6 +3330,8 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 //-------------------------------------------------------------------------------------
 void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("onUpdateDataFromClient");
+
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
 	{
