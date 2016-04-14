@@ -729,7 +729,11 @@ void EntityApp<E>::handleGameTick()
 	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	
+	{
+		AUTO_SCOPED_PROFILE("processMessages");
+		networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	}
 }
 
 template<class E>
