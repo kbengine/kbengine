@@ -1512,6 +1512,46 @@ void Entity::onGetWitness(bool fromBase)
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+	
+	// 如果一个实体已经有cell的情况下giveToClient，那么需要将最新的客户端属性值更新到客户端
+	if(fromBase)
+	{
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pForwardCellClientsDataBundle = Network::Bundle::createPoolObject();
+		
+		(*pForwardCellClientsDataBundle).newMessage(ClientInterface::onUpdatePropertys);
+		MemoryStream* s1 = MemoryStream::createPoolObject();
+		(*pForwardCellClientsDataBundle) << id();
+		
+		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+
+		Network::FixedMessages::MSGInfo* msgInfo = 
+			Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
+
+		if(msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+		
+		if(pScriptModule()->usePropertyDescrAlias())
+		{
+			uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+			(*s1) << aliasID << this->spaceID();
+		}
+		else
+		{
+			(*s1) << spaceuid << this->spaceID();
+		}
+
+		addClientDataToStream(s1);
+		(*pForwardCellClientsDataBundle).append(*s1);
+		MemoryStream::reclaimPoolObject(s1);
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardCellClientsDataBundle));
+		
+		clientMailbox()->postMail(pSendBundle);
+
+		Network::Bundle::reclaimPoolObject(pForwardBundle);
+		Network::Bundle::reclaimPoolObject(pForwardCellClientsDataBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
