@@ -179,14 +179,7 @@ PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 		return pyobj;
 	}
 
-	/*
-	if(values.size() > 0)
-	{
-		PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
-		PyErr_PrintEx(0);
-	}
-	*/
-
+	PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
 	return NULL;
 }
 

@@ -442,12 +442,14 @@ void Baseapp::handleGameTick()
 //-------------------------------------------------------------------------------------
 void Baseapp::handleBackup()
 {
+	AUTO_SCOPED_PROFILE("backup");
 	pBackuper_->tick();
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::handleArchive()
 {
+	AUTO_SCOPED_PROFILE("archive");
 	pArchiver_->tick();
 }
 
@@ -1591,6 +1593,15 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 //-------------------------------------------------------------------------------------
 void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 {
+	ScriptDefModule* pScriptModule = base->pScriptModule();
+	if (!pScriptModule || !pScriptModule->hasCell())
+	{
+		ERROR_MSG(fmt::format("{}::createInNewSpace: cannot find the cellapp script({})!\n",
+			pScriptModule->getName(), pScriptModule->getName()));
+
+		return;
+	}
+
 	// 如果cellappIndex为0，则代表不强制指定cellapp
 	// 非0的情况下，选择的cellapp可以用1,2,3,4来代替
 	// 假如预期有4个cellapp， 假如不够4个， 只有3个， 那么4代表1
@@ -2272,7 +2283,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 	}
 
 	PyObject* pyDatas = NULL, *pycallback = NULL;
-	char* pChargeID;
+	char* pChargeID = NULL;
 	DBID dbid;
 
 	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
@@ -2282,7 +2293,14 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 		return NULL;
 	}
 	
-	if(pChargeID == NULL || strlen(pChargeID) <= 0)
+	if (pChargeID == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: ordersID not is string!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(strlen(pChargeID) <= 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::charge: ordersID is NULL!");
 		PyErr_PrintEx(0);
