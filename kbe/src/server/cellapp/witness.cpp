@@ -830,6 +830,7 @@ bool Witness::update()
 						pEntity_->id(), packetsLength));
 				}
 
+				AUTO_SCOPED_PROFILE("sendToClient");
 				pChannel->send(pSendBundle);
 			}
 			else
