@@ -2281,7 +2281,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 	}
 
 	PyObject* pyDatas = NULL, *pycallback = NULL;
-	char* pChargeID;
+	char* pChargeID = NULL;
 	DBID dbid;
 
 	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
@@ -2291,7 +2291,14 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 		return NULL;
 	}
 	
-	if(pChargeID == NULL || strlen(pChargeID) <= 0)
+	if (pChargeID == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: ordersID not is string!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(strlen(pChargeID) <= 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::charge: ordersID is NULL!");
 		PyErr_PrintEx(0);
