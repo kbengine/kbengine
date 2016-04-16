@@ -149,7 +149,7 @@ public:
 	/**
 		使用何种协议来更新客户端
 	*/
-	void addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef);
+	void addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef, int inputAliasID);
 
 	/**
 		添加基础位置到更新包
@@ -185,7 +185,7 @@ private:
 		如果aoi中entity数量小于256则只发送索引位置
 	*/
 	INLINE void _addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
-	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef);
+	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef, int inputAliasID = -1);
 	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID);
 
 private:
