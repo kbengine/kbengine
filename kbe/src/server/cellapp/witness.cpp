@@ -621,8 +621,10 @@ void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entit
 		else
 		{
 			uint8 aliasID = 0;
-			if(entityID2AliasID(entityRef->id(), aliasID))
+			if (entityID2AliasID(entityRef->id(), aliasID))
+			{
 				(*pBundle) << aliasID;
+			}
 			else
 			{
 				(*pBundle) << entityRef->id();
