@@ -72,6 +72,7 @@ class MemoryStreamException
 */
 class MemoryStream : public PoolObject
 {
+public:
 	union PackFloatXType
 	{
 		float	fv;

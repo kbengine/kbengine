@@ -139,9 +139,9 @@ public:
 	void _onLeaveAOI(EntityRef* pEntityRef);
 
 	/**
-		写Volatile数据到流
+		获得实体本次同步Volatile数据的标记
 	*/
-	uint32 addEntityVolatileDataToStream(MemoryStream* mstream, Entity* otherEntity);
+	uint32 getEntityVolatileDataUpdateFlags(Entity* otherEntity);
 	
 
 	void addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const Network::MessageHandler& normalMsgHandler, 
