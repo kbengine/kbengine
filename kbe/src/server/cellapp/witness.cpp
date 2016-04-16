@@ -547,64 +547,6 @@ bool Witness::pushBundle(Network::Bundle* pBundle)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID)
-{
-	if(!EntityDef::entityAliasID())
-	{
-		(*pBundle) << entityID;
-	}
-	else
-	{
-		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
-		if(clientAOISize_ > 255)
-		{
-			(*pBundle) << entityID;
-		}
-		else
-		{
-			uint8 aliasID = 0;
-			if(entityID2AliasID(entityID, aliasID))
-			{
-				(*pBundle) << aliasID;
-			}
-			else
-			{
-				(*pBundle) << entityID;
-			}
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef)
-{
-	if(!EntityDef::entityAliasID())
-	{
-		(*mstream) << entityRef->id();
-	}
-	else
-	{
-		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
-		if(clientAOISize_ > 255)
-		{
-			(*mstream) << entityRef->id();
-		}
-		else
-		{
-			uint8 aliasID = 0;
-			if(entityID2AliasID(entityRef->id(), aliasID))
-			{
-				(*mstream) << aliasID;
-			}
-			else
-			{
-				(*mstream) << entityRef->id();
-			}
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
 void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef, int inputAliasID)
 {
 	if(!EntityDef::entityAliasID())
@@ -792,7 +734,7 @@ bool Witness::update()
 						Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 						(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
-						_addAOIEntityIDToBundle(pForwardBundle, (*iter)->id());
+						_addAOIEntityIDToBundle(pForwardBundle, (*iter), aliasID);
 
 						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 						Network::Bundle::reclaimPoolObject(pForwardBundle);

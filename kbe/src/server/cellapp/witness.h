@@ -184,9 +184,7 @@ private:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置
 	*/
-	INLINE void _addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef);
 	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef, int inputAliasID = -1);
-	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID);
 
 private:
 	Entity*									pEntity_;
