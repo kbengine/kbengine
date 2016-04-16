@@ -708,32 +708,28 @@ bool Witness::update()
 					
 					pEntityRef->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
-					Network::Bundle* pForwardBundle1 = Network::Bundle::createPoolObject();
-					Network::Bundle* pForwardBundle2 = Network::Bundle::createPoolObject();
+					Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 					MemoryStream* s1 = MemoryStream::createPoolObject();
 					otherEntity->addPositionAndDirectionToStream(*s1, true);			
 					otherEntity->addClientDataToStream(s1, true);
 
-					(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);
-					(*pForwardBundle1) << otherEntity->id();
-					(*pForwardBundle1).append(*s1);
+					(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
+					(*pForwardBundle) << otherEntity->id();
+					(*pForwardBundle).append(*s1);
 					MemoryStream::reclaimPoolObject(s1);
 			
-					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
-					(*pForwardBundle2) << otherEntity->id();
-					otherEntity->pScriptModule()->addSmartUTypeToBundle(pForwardBundle2);
+					(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
+					(*pForwardBundle) << otherEntity->id();
+					otherEntity->pScriptModule()->addSmartUTypeToBundle(pForwardBundle);
 					if(!otherEntity->isOnGround())
-						(*pForwardBundle2) << otherEntity->isOnGround();
+						(*pForwardBundle) << otherEntity->isOnGround();
 
-					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
-					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
+					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 					
-					remainPacketSize -= pForwardBundle1->packetsLength();
-					remainPacketSize -= pForwardBundle2->packetsLength();
+					remainPacketSize -= pForwardBundle->packetsLength();
 
-					Network::Bundle::reclaimPoolObject(pForwardBundle1);
-					Network::Bundle::reclaimPoolObject(pForwardBundle2);
+					Network::Bundle::reclaimPoolObject(pForwardBundle);
 
 					pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
 
