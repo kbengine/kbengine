@@ -37,8 +37,6 @@ class MemoryStream;
 class EntityRef
 {
 public:
-	typedef std::vector<EntityRef*> AOI_ENTITIES;
-
 	EntityRef(Entity* pEntity);
 	EntityRef();
 
@@ -53,38 +51,17 @@ public:
 
 	ENTITY_ID id() const{ return id_; }
 
+	uint8 aliasID() const{ return aliasID_; }
+	void aliasID(uint8 id) { aliasID_ = id; }
+
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 
 private:
 	ENTITY_ID id_;
+	uint8 aliasID_;
 	Entity* pEntity_;
 	uint32 flags_;
-};
-
-class Entity;
-class findif_vector_entityref_exist_by_entity_handler
-{
-public:
-	findif_vector_entityref_exist_by_entity_handler(Entity* obj)
-	: obj_(obj) {}
-
-	bool operator()(const EntityRef* obj);
-
-private:
-	Entity* obj_;
-};
-
-class findif_vector_entityref_exist_by_entityid_handler
-{
-public:
-	findif_vector_entityref_exist_by_entityid_handler(ENTITY_ID entityID)
-	: entityID_(entityID) {}
-
-	bool operator()(const EntityRef* obj);
-
-private:
-	ENTITY_ID entityID_;
 };
 
 }

@@ -57,6 +57,7 @@ aoiHysteresisArea_(5.0f),
 pAOITrigger_(NULL),
 pAOIHysteresisAreaTrigger_(NULL),
 aoiEntities_(),
+aoiEntities_map_(),
 clientAOISize_(0)
 {
 }
@@ -84,7 +85,7 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	
 	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
 	
-	uint32 size = aoiEntities_.size();
+	uint32 size = aoiEntitiesmap_.size();
 	s << size;
 
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
@@ -96,7 +97,7 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 
 	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
 	s << aoiRadius_ << aoiHysteresisArea_ << (uint16)0;	
-	s << (uint32)0; // aoiEntities_.size();
+	s << (uint32)0; // aoiEntities_map_.size();
 }
 
 //-------------------------------------------------------------------------------------
@@ -112,6 +113,8 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 		EntityRef* pEntityRef = new EntityRef();
 		pEntityRef->createFromStream(s);
 		aoiEntities_.push_back(pEntityRef);
+		aoiEntities_map_[pEntityRef->id()] = pEntityRef;
+		pEntityRef->aliasID(i);
 	}
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
@@ -235,7 +238,7 @@ void Witness::clear(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity == pEntity_);
 
-	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
@@ -255,6 +258,7 @@ void Witness::clear(Entity* pEntity)
 	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
 	
 	aoiEntities_.clear();
+	aoiEntities_map_.clear();
 
 	Cellapp::getSingleton().removeUpdatable(this);
 }
@@ -345,12 +349,11 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 
 	pEntity_->onEnteredAoI(pEntity);
 
-	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
-		findif_vector_entityref_exist_by_entity_handler(pEntity));
-
-	if(iter != aoiEntities_.end())
+	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
+	if (iter != aoiEntities_map_.end())
 	{
-		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
+		EntityRef* pEntityRef = iter->second;
+		if ((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
 			//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
 			//	pEntity_->id(), pEntity->id()));
@@ -358,12 +361,12 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 			// 如果flags是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING | ENTITYREF_FLAG_NORMAL状态那么我们
 			// 只需要撤销离开状态并将其还原到ENTITYREF_FLAG_NORMAL即可
 			// 如果是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING状态那么此时应该将它设置为进入状态 ENTITYREF_FLAG_ENTER_CLIENT_PENDING
-			if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
-				(*iter)->flags(ENTITYREF_FLAG_NORMAL);
+			if ((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
+				pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
 			else
-				(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+				pEntityRef->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
-			(*iter)->pEntity(pEntity);
+			pEntityRef->pEntity(pEntity);
 			pEntity->addWitnessed(pEntity_);
 		}
 
@@ -376,7 +379,9 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 	EntityRef* pEntityRef = new EntityRef(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 	aoiEntities_.push_back(pEntityRef);
-
+	aoiEntities_map_[pEntityRef->id()] = pEntityRef;
+	pEntityRef->aliasID(aoiEntities_map_.size() - 1);
+	
 	pEntity->addWitnessed(pEntity_);
 }
 
@@ -387,13 +392,11 @@ void Witness::onLeaveAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 	if (pAOIHysteresisAreaTrigger_ && pAOIHysteresisAreaTrigger_ != pAOITrigger)
 		return;
 
-	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
-		findif_vector_entityref_exist_by_entityid_handler(pEntity->id()));
-
-	if(iter == aoiEntities_.end())
+	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
+	if (iter == aoiEntities_map_.end())
 		return;
 
-	_onLeaveAOI((*iter));
+	_onLeaveAOI(iter->second);
 }
 
 //-------------------------------------------------------------------------------------
@@ -405,7 +408,8 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
 	//delete (*iter);
 	//aoiEntities_.erase(iter);
-	
+	//aoiEntities_map_.erase(iter);
+
 	pEntityRef->flags(((pEntityRef->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~(ENTITYREF_FLAG_ENTER_CLIENT_PENDING)));
 
 	if(pEntityRef->pEntity())
@@ -418,11 +422,12 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 void Witness::resetAOIEntities()
 {
 	clientAOISize_ = 0;
-	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); )
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
+			aoiEntities_map_.erase((*iter)->id());
 			delete (*iter);
 			iter = aoiEntities_.erase(iter);
 			continue;
@@ -485,7 +490,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 
 	lastBasePos.z = -FLT_MAX;
 
-	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
@@ -497,6 +502,8 @@ void Witness::onLeaveSpace(Space* pSpace)
 	}
 
 	aoiEntities_.clear();
+	aoiEntities_map_.clear();
+
 	clientAOISize_ = 0;
 }
 
@@ -547,41 +554,29 @@ bool Witness::pushBundle(Network::Bundle* pBundle)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef, int inputAliasID)
+void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEntityRef)
 {
 	if(!EntityDef::entityAliasID())
 	{
-		(*pBundle) << entityRef->id();
+		(*pBundle) << pEntityRef->id();
 	}
 	else
 	{
 		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
+		// clientAOISize_需要实体真正同步到客户端时才会增加
 		if(clientAOISize_ > 255)
 		{
-			(*pBundle) << entityRef->id();
+			(*pBundle) << pEntityRef->id();
 		}
 		else
 		{
-			if ((entityRef->flags() & (ENTITYREF_FLAG_NORMAL)) > 0)
+			if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) > 0)
 			{
-				// 如果外部没有给出aliasID就查找aliasID
-				// 如果已经给出aliasID，那么信任这个ID直接使用
-				if (inputAliasID < 0)
-				{
-					uint8 aliasID = 0;
-					if(!entityID2AliasID(entityRef->id(), aliasID))
-						(*pBundle) << entityRef->id();
-					else
-						(*pBundle) << aliasID;
-				}
-				else
-				{
-					(*pBundle) << (uint8)inputAliasID;
-				}
+				(*pBundle) << pEntityRef->aliasID();
 			}
 			else
 			{
-				(*pBundle) << entityRef->id();
+				(*pBundle) << pEntityRef->id();
 			}
 		}
 	}
@@ -598,7 +593,7 @@ void Witness::addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const N
 	}
 	else
 	{
-		if(aoiEntities_.size() > 255)
+		if (aoiEntities_map_.size() > 255)
 		{
 			(*pBundle).newMessage(normalMsgHandler);
 			(*pBundle) << entityID;
@@ -621,29 +616,47 @@ void Witness::addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const N
 }
 
 //-------------------------------------------------------------------------------------
-bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID) const
+bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 {
-	aliasID = 0;
-	EntityRef::AOI_ENTITIES::const_iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); ++iter)
+	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(id);
+	if (iter == aoiEntities_map_.end())
 	{
-		EntityRef* pEntityRef = (*iter);
-		if(pEntityRef->id() == id)
-		{
-			if((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) <= 0)
-				return false;
-
-			break;
-		}
-		
-		// 将要溢出
-		if(aliasID == 255)
-			return false;
-		
-		++aliasID;
+		aliasID = 0;
+		return false;
 	}
 
+	EntityRef* pEntityRef = iter->second;
+	if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) <= 0)
+	{
+		aliasID = 0;
+		return false;
+	}
+
+	aliasID = pEntityRef->aliasID();
+
+	// 溢出
+	if (aliasID >= 255)
+	{
+		aliasID = 0;
+		return false;
+	}
+ 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::updateEntitiesAliasID()
+{
+	int n = 0;
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	for(; iter != aoiEntities_.end(); ++iter)
+	{
+		if(n >= 255)
+			break;
+		
+		EntityRef* pEntityRef = (*iter);
+		pEntityRef->aliasID(n++);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -660,37 +673,40 @@ bool Witness::update()
 	
 	// 获取每帧剩余可写大小， 将优先更新的内容写入， 剩余的内容往下一个周期递推
 	int remainPacketSize = PACKET_MAX_SIZE_TCP - pChannel->bundlesLength();
-	int aliasID = 0;
 	
 	if(remainPacketSize > 0)
 	{
-		if(aoiEntities_.size() > 0)
+		if (aoiEntities_map_.size() > 0)
 		{
 			Network::Bundle* pSendBundle = MALLOC_BUNDLE();
 
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 			addBasePosToStream(pSendBundle);
 
-			EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+			AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 			for(; iter != aoiEntities_.end(); )
 			{
 				if(remainPacketSize <= 0)
 					break;
 				
-				if(((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
+				EntityRef* pEntityRef = (*iter);
+				
+				if((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
 				{
 					// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
-					Entity* otherEntity = Cellapp::getSingleton().findEntity((*iter)->id());
+					Entity* otherEntity = Cellapp::getSingleton().findEntity(pEntityRef->id());
 					if(otherEntity == NULL)
 					{
-						(*iter)->pEntity(NULL);
-						_onLeaveAOI((*iter));
-						delete (*iter);
+						pEntityRef->pEntity(NULL);
+						_onLeaveAOI(pEntityRef);
+						aoiEntities_map_.erase(pEntityRef->id());
+						delete pEntityRef;
 						iter = aoiEntities_.erase(iter);
+						updateEntitiesAliasID();
 						continue;
 					}
 					
-					(*iter)->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+					pEntityRef->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
 					Network::Bundle* pForwardBundle1 = Network::Bundle::createPoolObject();
 					Network::Bundle* pForwardBundle2 = Network::Bundle::createPoolObject();
@@ -719,22 +735,22 @@ bool Witness::update()
 					Network::Bundle::reclaimPoolObject(pForwardBundle1);
 					Network::Bundle::reclaimPoolObject(pForwardBundle2);
 
-					(*iter)->flags(ENTITYREF_FLAG_NORMAL);
-					
+					pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
+
 					KBE_ASSERT(clientAOISize_ != 65535);
 
 					++clientAOISize_;
 				}
-				else if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
+				else if((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 				{
-					(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+					pEntityRef->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
 
-					if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
+					if((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
 					{
 						Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 
 						(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
-						_addAOIEntityIDToBundle(pForwardBundle, (*iter), aliasID);
+						_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 
 						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
 						Network::Bundle::reclaimPoolObject(pForwardBundle);
@@ -742,27 +758,31 @@ bool Witness::update()
 						--clientAOISize_;
 					}
 
-					delete (*iter);
+					aoiEntities_map_.erase(pEntityRef->id());
+					delete pEntityRef;
 					iter = aoiEntities_.erase(iter);
+					updateEntitiesAliasID();
 					continue;
 				}
 				else
 				{
-					Entity* otherEntity = (*iter)->pEntity();
+					Entity* otherEntity = pEntityRef->pEntity();
 					if(otherEntity == NULL)
 					{
-						delete (*iter);
+						aoiEntities_map_.erase(pEntityRef->id());
+						delete pEntityRef;
 						iter = aoiEntities_.erase(iter);
 						--clientAOISize_;
+						updateEntitiesAliasID();
 						continue;
 					}
 					
-					KBE_ASSERT((*iter)->flags() == ENTITYREF_FLAG_NORMAL);
+					KBE_ASSERT(pEntityRef->flags() == ENTITYREF_FLAG_NORMAL);
 
 					Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 					MemoryStream* s1 = MemoryStream::createPoolObject();
 					
-					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity), (*iter), aliasID);
+					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity), pEntityRef);
 
 					(*pForwardBundle).append(*s1);
 					MemoryStream::reclaimPoolObject(s1);
@@ -776,7 +796,6 @@ bool Witness::update()
 				}
 
 				++iter;
-				++aliasID;
 			}
 			
 			int32 packetsLength = pSendBundle->packetsLength();
@@ -833,7 +852,7 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef, int inputAliasID)
+void Witness::addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef)
 {
 	switch(flags)
 	{
@@ -845,139 +864,139 @@ void Witness::addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flag
 	case UPDATE_FLAG_XZ:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_XYZ:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_y);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_r);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_PITCH:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_p);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW_PITCH_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_ypr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW_PITCH:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yp);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_YAW_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case UPDATE_FLAG_PITCH_ROLL:
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_pr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_y);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_p);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_r);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yp);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_pr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_ypr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_y);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_p);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_r);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yp);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_pr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
 			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_ypr);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef, inputAliasID);
+			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 		}
 		break;
 	default:

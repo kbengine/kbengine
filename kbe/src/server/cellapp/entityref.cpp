@@ -27,6 +27,7 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 EntityRef::EntityRef(Entity* pEntity):
 id_(0),
+aliasID_(0),
 pEntity_(pEntity),
 flags_(ENTITYREF_FLAG_UNKONWN)
 {
@@ -36,6 +37,7 @@ flags_(ENTITYREF_FLAG_UNKONWN)
 //-------------------------------------------------------------------------------------
 EntityRef::EntityRef():
 id_(0),
+aliasID_(0),
 pEntity_(NULL),
 flags_(ENTITYREF_FLAG_UNKONWN)
 {
@@ -56,32 +58,20 @@ void EntityRef::pEntity(Entity* e)
 }
 
 //-------------------------------------------------------------------------------------
-bool findif_vector_entityref_exist_by_entity_handler::operator()(const EntityRef* obj)
-{
-	return obj->id() == obj_->id();
-}
-
-//-------------------------------------------------------------------------------------
-bool findif_vector_entityref_exist_by_entityid_handler::operator()(const EntityRef* obj)
-{
-	return obj->id() == entityID_;
-}
-
-//-------------------------------------------------------------------------------------
 void EntityRef::addToStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	if(pEntity_)
 		eid = pEntity_->id();
 
-	s << id_ << flags_ << eid;
+	s << id_ << aliasID_ << flags_ << eid;
 }
 
 //-------------------------------------------------------------------------------------
 void EntityRef::createFromStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
-	s >> id_ >> flags_ >> eid;
+	s >> id_ >> aliasID_ >> flags_ >> eid;
 
 	if(eid > 0)
 	{
