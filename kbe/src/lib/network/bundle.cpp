@@ -292,7 +292,7 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 	pCurrPacket_->messageID(msgHandler.msgID);
 
 	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
-	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE)
+	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
 	{
 		MessageLength msglen = 0;
 		currMsgLengthPos_ = pCurrPacket_->wpos();
