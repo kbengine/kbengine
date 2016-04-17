@@ -152,7 +152,7 @@ public:
 	/**
 		使用何种协议来更新客户端
 	*/
-	void addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef);
+	void addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef);
 
 	/**
 		添加基础位置到更新包

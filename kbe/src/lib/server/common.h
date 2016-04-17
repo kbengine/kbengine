@@ -70,6 +70,7 @@ namespace KBEngine {
 	}																																	\
 	else																																\
 	{																																	\
+		messageLength += pCurrPacket->length();																							\
 		Network::Bundle::Packets& packets = SENDBUNDLE->packets();																		\
 		Network::Bundle::Packets::reverse_iterator packiter = packets.rbegin();															\
 		for (; packiter != packets.rend(); ++packiter)																					\
