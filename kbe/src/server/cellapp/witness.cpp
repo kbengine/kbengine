@@ -110,7 +110,7 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 	
 	for(uint32 i=0; i<size; ++i)
 	{
-		EntityRef* pEntityRef = new EntityRef();
+		EntityRef* pEntityRef = EntityRef::createPoolObject();
 		pEntityRef->createFromStream(s);
 		aoiEntities_.push_back(pEntityRef);
 		aoiEntities_map_[pEntityRef->id()] = pEntityRef;
@@ -245,8 +245,8 @@ void Witness::clear(Entity* pEntity)
 		{
 			(*iter)->pEntity()->delWitnessed(pEntity_);
 		}
-
-		delete (*iter);
+		
+		EntityRef::reclaimPoolObject((*iter));
 	}
 	
 	pEntity_ = NULL;
@@ -376,7 +376,8 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 	//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
 	//	pEntity_->id(), pEntity->id()));
 	
-	EntityRef* pEntityRef = new EntityRef(pEntity);
+	EntityRef* pEntityRef = EntityRef::createPoolObject();
+	pEntityRef->pEntity(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 	aoiEntities_.push_back(pEntityRef);
 	aoiEntities_map_[pEntityRef->id()] = pEntityRef;
@@ -406,7 +407,7 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 	//	pEntity_->id(), pEntityRef->id()));
 
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
-	//delete (*iter);
+	//EntityRef::reclaimPoolObject((*iter));
 	//aoiEntities_.erase(iter);
 	//aoiEntities_map_.erase(iter);
 
@@ -428,7 +429,7 @@ void Witness::resetAOIEntities()
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
 			aoiEntities_map_.erase((*iter)->id());
-			delete (*iter);
+			EntityRef::reclaimPoolObject((*iter));
 			iter = aoiEntities_.erase(iter);
 			continue;
 		}
@@ -498,7 +499,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 			(*iter)->pEntity()->delWitnessed(pEntity_);
 		}
 
-		delete (*iter);
+		EntityRef::reclaimPoolObject((*iter));
 	}
 
 	aoiEntities_.clear();
@@ -700,7 +701,7 @@ bool Witness::update()
 						pEntityRef->pEntity(NULL);
 						_onLeaveAOI(pEntityRef);
 						aoiEntities_map_.erase(pEntityRef->id());
-						delete pEntityRef;
+						EntityRef::reclaimPoolObject(pEntityRef);
 						iter = aoiEntities_.erase(iter);
 						updateEntitiesAliasID();
 						continue;
@@ -746,7 +747,7 @@ bool Witness::update()
 					}
 
 					aoiEntities_map_.erase(pEntityRef->id());
-					delete pEntityRef;
+					EntityRef::reclaimPoolObject(pEntityRef);
 					iter = aoiEntities_.erase(iter);
 					updateEntitiesAliasID();
 					continue;
@@ -757,7 +758,7 @@ bool Witness::update()
 					if(otherEntity == NULL)
 					{
 						aoiEntities_map_.erase(pEntityRef->id());
-						delete pEntityRef;
+						EntityRef::reclaimPoolObject(pEntityRef);
 						iter = aoiEntities_.erase(iter);
 						--clientAOISize_;
 						updateEntitiesAliasID();
