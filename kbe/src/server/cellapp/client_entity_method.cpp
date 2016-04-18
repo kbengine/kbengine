@@ -70,7 +70,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(srcEntity == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) not found!\n",		
+		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) not found!\n",
 			methodDescription_->getName(), srcEntityID_);		
 		PyErr_PrintEx(0);
 		return 0;
@@ -78,15 +78,15 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(srcEntity->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) is destroyed!\n",		
-			methodDescription_->getName(), srcEntityID_);		
+		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) is destroyed!\n",
+			methodDescription_->getName(), srcEntityID_);
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(srcEntity->pWitness() == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): no client, srcEntityID(%d).\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): no client, srcEntityID(%d).\n",
 			srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -98,7 +98,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(e == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): not found entity(%d), srcEntityID(%d).\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): not found entity(%d), srcEntityID(%d).\n",
 			srcEntity->scriptName(), methodDescription_->getName(), clientEntityID_, srcEntity->id());	
 
 		PyErr_PrintEx(0);
@@ -128,21 +128,21 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 			DEBUG_MSG(fmt::format("ClientEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n",
 				srcEntity->scriptName(), methodDescription->getName()));
-																								
-			switch(Network::g_trace_packet)							
-			{																								
-			case 1:																							
-				mstream->hexlike();																			
-				break;																						
-			case 2:																							
-				mstream->textlike();																			
-				break;																						
-			default:																						
-				mstream->print_storage();																	
-				break;																						
-			};																								
 
-			if(Network::g_trace_packet_use_logfile)	
+			switch(Network::g_trace_packet)
+			{
+			case 1:
+				mstream->hexlike();
+				break;
+			case 2:
+				mstream->textlike();
+				break;
+			default:
+				mstream->print_storage();
+				break;
+			};
+
+			if(Network::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 		}
 
