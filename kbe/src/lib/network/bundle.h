@@ -122,6 +122,7 @@ public:
 	void clear(bool isRecl);
 	bool empty() const;
 	
+	INLINE int32 packetMaxSize() const;
 	int packetsSize() const;
 	INLINE Packets& packets();
 	INLINE Packet* pCurrPacket() const;

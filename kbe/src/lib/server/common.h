@@ -122,6 +122,14 @@ namespace KBEngine {
 	Network::Packet* pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																\
 	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE)																				\
 	{																																	\
+		if(SENDBUNDLE->packetMaxSize() - pCurrPacket_##ACTIONNAME->wpos() < NETWORK_MESSAGE_LENGTH_SIZE)								\
+		{																																\
+			SENDBUNDLE->finiCurrPacket();																								\
+			SENDBUNDLE->newPacket();																									\
+			SENDBUNDLE->currMsgPacketCount(SENDBUNDLE->currMsgPacketCount() + 1);														\
+			pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																		\
+		}																																\
+																																		\
 		Network::MessageLength msglen = 0;																								\
 		currMsgLengthPos_##ACTIONNAME = pCurrPacket_##ACTIONNAME->wpos();																\
 		(*SENDBUNDLE) << msglen;																										\

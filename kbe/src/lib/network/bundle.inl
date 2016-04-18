@@ -77,6 +77,11 @@ INLINE MessageID Bundle::messageID() const
 	return currMsgID_; 
 }
 
+INLINE int32 Bundle::packetMaxSize() const
+{
+	return packetMaxSize_;
+}
+
 INLINE int32 Bundle::numMessages() const
 { 
 	return numMessages_; 
