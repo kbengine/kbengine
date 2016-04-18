@@ -818,17 +818,10 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 
 	if (pEntity_->controlledBy() != NULL)
 	{
-		pForwardBundle = Network::Bundle::createPoolObject();
-		s1 = MemoryStream::createPoolObject();
-
-		(*pForwardBundle).newMessage(ClientInterface::onUpdateBaseDir);
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
 		Direction3D &dir = pEntity_->direction();
-		(*s1) << dir.yaw() << dir.pitch() << dir.roll();
-
-		(*pForwardBundle).append(*s1);
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
-		MemoryStream::reclaimPoolObject(s1);
+		(*pSendBundle) << dir.yaw() << dir.pitch() << dir.roll();
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
 	}
 
 	lastBasePos = bpos;
