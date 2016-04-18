@@ -573,36 +573,36 @@ void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnti
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const Network::MessageHandler& normalMsgHandler, 
-											   const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID)
+const Network::MessageHandler& Witness::getAOIEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
+	const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID, int& ialiasID)
 {
+	ialiasID = -1;
 	if(!EntityDef::entityAliasID())
 	{
-		(*pBundle).newMessage(normalMsgHandler);
-		(*pBundle) << entityID;
+		return normalMsgHandler;
 	}
 	else
 	{
 		if (aoiEntities_map_.size() > 255)
 		{
-			(*pBundle).newMessage(normalMsgHandler);
-			(*pBundle) << entityID;
+			return normalMsgHandler;
 		}
 		else
 		{
 			uint8 aliasID = 0;
 			if(entityID2AliasID(entityID, aliasID))
 			{
-				(*pBundle).newMessage(optimizedMsgHandler);
-				(*pBundle) << aliasID;
+				ialiasID = aliasID;
+				return optimizedMsgHandler;
 			}
 			else
 			{
-				(*pBundle).newMessage(normalMsgHandler);
-				(*pBundle) << entityID;
+				return normalMsgHandler;
 			}
 		}
 	}
+	
+	return normalMsgHandler;
 }
 
 //-------------------------------------------------------------------------------------

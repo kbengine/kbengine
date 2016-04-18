@@ -144,8 +144,8 @@ public:
 	uint32 getEntityVolatileDataUpdateFlags(Entity* otherEntity);
 	
 
-	void addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const Network::MessageHandler& normalMsgHandler, 
-		const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID);
+	const Network::MessageHandler& getAOIEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
+											   const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID, int& ialiasID);
 
 	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID);
 

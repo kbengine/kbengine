@@ -112,14 +112,23 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(srcEntity->id(), (*pSendBundle));
 
-		srcEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
-				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_);
+		int ialiasID = -1;
+		const Network::MessageHandler& msgHandler = 
+				srcEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onRemoteMethodCall, 
+				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_, ialiasID);
 
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
+		
+		if(ialiasID != -1)
+			(*pSendBundle)  << (uint8)ialiasID;
+		else
+			(*pSendBundle)  << clientEntityID_;
+				
 		if(mstream->wpos() > 0)
-			(*pForwardBundle).append(mstream->data(), (int)mstream->wpos());
+			(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
 
 		if(Network::g_trace_packet > 0)
 		{
@@ -146,18 +155,17 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 		}
 
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(srcEntity->id(), (*pSendBundle), (*pForwardBundle));
-
-		srcEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, aOIEntityMessage);
 
 		// 记录这个事件产生的数据量大小
 		g_publicClientEventHistoryStats.trackEvent(srcEntity->scriptName(), 
 			(std::string(e->scriptName()) + "." + methodDescription->getName()), 
-			pForwardBundle->currMsgLength(), 
+			pSendBundle->currMsgLength(), 
 			"::");
+		
+		srcEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 
 		MemoryStream::reclaimPoolObject(mstream);
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	S_Return;

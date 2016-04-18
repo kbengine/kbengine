@@ -497,28 +497,35 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 			if(pScriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
-				Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-
-				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
-					ClientInterface::onUpdatePropertysOptimized, id());
-
-				if(pScriptModule_->usePropertyDescrAlias())
-					(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
+				Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+				
+				int ialiasID = -1;
+				const Network::MessageHandler& msgHandler = pEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onUpdatePropertys, 
+					ClientInterface::onUpdatePropertysOptimized, id(), ialiasID);
+				
+				ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
+				
+				if(ialiasID != -1)
+					(*pSendBundle)  << (uint8)ialiasID;
 				else
-					(*pForwardBundle) << propertyDescription->getUType();
+					(*pSendBundle)  << id();
+				
+				if(pScriptModule_->usePropertyDescrAlias())
+					(*pSendBundle) << propertyDescription->aliasIDAsUint8();
+				else
+					(*pSendBundle) << propertyDescription->getUType();
 
-				pForwardBundle->append(*mstream);
+				pSendBundle->append(*mstream);
 				
 				// 记录这个事件产生的数据量大小
 				g_publicClientEventHistoryStats.trackEvent(scriptName(), 
 					propertyDescription->getName(), 
-					pForwardBundle->currMsgLength());
+					pSendBundle->currMsgLength());
 
-				Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+				ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, aOIEntityMessage);
 
 				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertysOptimized, pSendBundle);
-				Network::Bundle::reclaimPoolObject(pForwardBundle);
 			}
 		}
 	}
