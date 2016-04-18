@@ -1767,12 +1767,11 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	if(e->clientMailbox())
 	{
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-		(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
-		(*pForwardBundle) << e->id();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(e->id(), (*pSendBundle), (*pForwardBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(e->id(), (*pSendBundle));
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveSpace, leaveSpace);
+		(*pSendBundle) << e->id();
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, leaveSpace);
 		e->clientMailbox()->postMail(pSendBundle);
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	// 进入新的space中

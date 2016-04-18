@@ -178,29 +178,25 @@ void Witness::onAttach(Entity* pEntity)
 
 	// 通知客户端enterworld
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::createPoolObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 	
-	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 	MemoryStream* s1 = MemoryStream::createPoolObject();
-	(*pForwardPosDirBundle) << pEntity_->id();
+	(*pSendBundle) << pEntity_->id();
 	pEntity_->addPositionAndDirectionToStream(*s1, true);
-	(*pForwardPosDirBundle).append(*s1);
+	(*pSendBundle).append(*s1);
 	MemoryStream::reclaimPoolObject(s1);
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 	
-	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 
-	(*pForwardBundle) << pEntity_->id();
-	pEntity_->pScriptModule()->addSmartUTypeToBundle(pForwardBundle);
+	(*pSendBundle) << pEntity_->id();
+	pEntity_->pScriptModule()->addSmartUTypeToBundle(pSendBundle);
 	if(!pEntity_->isOnGround())
-		(*pForwardBundle) << pEntity_->isOnGround();
+		(*pSendBundle) << pEntity_->isOnGround();
 
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
-	Network::Bundle::reclaimPoolObject(pForwardPosDirBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -219,14 +215,12 @@ void Witness::detach(Entity* pEntity)
 
 			// 通知客户端leaveworld
 			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-			Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 
-			(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-			(*pForwardBundle) << pEntity->id();
-
-			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveWorld, entityLeaveWorld);
+			(*pSendBundle) << pEntity->id();
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorld, entityLeaveWorld);
 			pClientMB->postMail(pSendBundle);
-			Network::Bundle::reclaimPoolObject(pForwardBundle);
 		}
 	}
 
@@ -443,33 +437,30 @@ void Witness::resetAOIEntities()
 void Witness::onEnterSpace(Space* pSpace)
 {
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
+
 	// 通知位置强制改变
 	Network::Bundle* pForwardPosDirBundle = Network::Bundle::createPoolObject();
 	Position3D &pos = pEntity_->position();
 	Direction3D &dir = pEntity_->direction();
-	(*pForwardPosDirBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
-	(*pForwardPosDirBundle) << pEntity_->id();
-	(*pForwardPosDirBundle) << pos.x << pos.y << pos.z;
-	(*pForwardPosDirBundle) << dir.roll() << dir.pitch() << dir.yaw();
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+	(*pSendBundle) << pEntity_->id();
+	(*pSendBundle) << pos.x << pos.y << pos.z;
+	(*pSendBundle) << dir.roll() << dir.pitch() << dir.yaw();
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 	
 	// 通知进入了新地图
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterSpace, entityEnterSpace);
 
-	(*pForwardBundle) << pEntity_->id();
-	(*pForwardBundle) << pSpace->id();
+	(*pSendBundle) << pEntity_->id();
+	(*pSendBundle) << pSpace->id();
 	if(!pEntity_->isOnGround())
-		(*pForwardBundle) << pEntity_->isOnGround();
+		(*pSendBundle) << pEntity_->isOnGround();
 
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterSpace, entityEnterSpace);
 
 	// 发送消息并清理
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
-	Network::Bundle::reclaimPoolObject(pForwardPosDirBundle);
 
 	installAOITrigger();
 }
@@ -480,14 +471,12 @@ void Witness::onLeaveSpace(Space* pSpace)
 	uninstallAOITrigger();
 
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 
-	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
-	(*pForwardBundle) << pEntity_->id();
-
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
+	(*pSendBundle) << pEntity_->id();
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
 
 	lastBasePos.z = -FLT_MAX;
 
