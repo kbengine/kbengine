@@ -59,6 +59,75 @@ namespace KBEngine {
 	FORWARDBUNDLE.finiMessage(true);																									\
 	SENDBUNDLE.append(FORWARDBUNDLE);																									\
 
+#define ENTITY_MESSAGE_FORWARD_CLIENT_END(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
+{																																		\
+	size_t messageLength = 0;																											\
+	Network::Packet* pCurrPacket = SENDBUNDLE->pCurrPacket();																			\
+																																		\
+	if(pCurrPacket == pCurrPacket_##ACTIONNAME)																							\
+	{																																	\
+		messageLength += pCurrPacket->length() - currMsgLengthPos_##ACTIONNAME - NETWORK_MESSAGE_LENGTH_SIZE;							\
+	}																																	\
+	else																																\
+	{																																	\
+		messageLength += pCurrPacket->length();																							\
+		Network::Bundle::Packets& packets = SENDBUNDLE->packets();																		\
+		Network::Bundle::Packets::reverse_iterator packiter = packets.rbegin();															\
+		for (; packiter != packets.rend(); ++packiter)																					\
+		{																																\
+			Network::Packet* pPacket = (*packiter);																						\
+																																		\
+			if(pCurrPacket_##ACTIONNAME == pPacket)																						\
+			{																															\
+				messageLength += pPacket->length() - currMsgLengthPos_##ACTIONNAME - NETWORK_MESSAGE_LENGTH_SIZE;						\
+				break;																													\
+			}																															\
+																																		\
+			messageLength += pPacket->length();																							\
+		}																																\
+	}																																	\
+																																		\
+	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE || Network::g_packetAlwaysContainLength)										\
+	{																																	\
+		if(messageLength >= NETWORK_MESSAGE_MAX_SIZE)																					\
+		{																																\
+			Network::MessageLength1 ex_msg_length = messageLength;																		\
+			KBEngine::EndianConvert(ex_msg_length);																						\
+																																		\
+			Network::MessageLength msgLen = NETWORK_MESSAGE_MAX_SIZE;																	\
+			KBEngine::EndianConvert(msgLen);																							\
+																																		\
+			memcpy(&pCurrPacket_##ACTIONNAME->data()[currMsgLengthPos_##ACTIONNAME], 													\
+				(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);																			\
+																																		\
+			pCurrPacket_##ACTIONNAME->insert(currMsgLengthPos_##ACTIONNAME + NETWORK_MESSAGE_LENGTH_SIZE, 								\
+											(uint8*)&ex_msg_length, NETWORK_MESSAGE_LENGTH1_SIZE);										\
+		}																																\
+		else																															\
+		{																																\
+			Network::MessageLength msgLen = messageLength;																				\
+			KBEngine::EndianConvert(msgLen);																							\
+																																		\
+			memcpy(&pCurrPacket_##ACTIONNAME->data()[currMsgLengthPos_##ACTIONNAME], 													\
+				(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);																			\
+		}																																\
+	}																																	\
+}																																		\
+
+// cellapp转发消息给客户端消息包追加消息(直接在SENDBUNDLE追加)
+// 如果上一个消息不是BaseappInterface::forwardMessageToClientFromCellapp则代表已追加过消息，需要对消息设置结束状态
+#define ENTITY_MESSAGE_FORWARD_CLIENT_START(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
+	(*SENDBUNDLE) << MESSAGEHANDLE.msgID;																								\
+	size_t currMsgLengthPos_##ACTIONNAME = 0;																							\
+	Network::Packet* pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																\
+	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE)																				\
+	{																																	\
+		Network::MessageLength msglen = 0;																								\
+		currMsgLengthPos_##ACTIONNAME = pCurrPacket_##ACTIONNAME->wpos();																\
+		(*SENDBUNDLE) << msglen;																										\
+	}
+
+
 // 公共消息
 #define COMMON_NETWORK_MESSAGE(COMPONENTTYPE, BUNDLE, MESSAGENAME)											\
 		switch(COMPONENTTYPE)																				\

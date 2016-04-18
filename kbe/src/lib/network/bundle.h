@@ -333,6 +333,117 @@ public:
 		return assign(str, n);
 	}
 
+	Bundle &appendPackAnyXYZ(float x, float y, float z, const float epsilon = 0.5f)
+	{
+		if(epsilon > 0.f)
+		{
+			x = floorf(x + epsilon);
+			y = floorf(y + epsilon);
+			z = floorf(z + epsilon);
+		}
+		
+		*this << x << y << z;
+		return (*this);
+	}
+
+	Bundle &appendPackAnyXZ(float x, float z, const float epsilon = 0.5f)
+    {
+		if(epsilon > 0.f)
+		{
+			x = floorf(x + epsilon);
+			z = floorf(z + epsilon);
+		}
+
+        *this << x << z;
+		return (*this);
+	}
+
+    Bundle &appendPackXYZ(float x, float y, float z, float minf = -256.f)
+    {
+		x -= minf;
+		y -= minf / 2.f;
+		z -= minf;
+
+		// 最大值不要超过-256~256
+		// y 不要超过-128~128
+        uint32 packed = 0;
+        packed |= ((int)(x / 0.25f) & 0x7FF);
+        packed |= ((int)(z / 0.25f) & 0x7FF) << 11;
+        packed |= ((int)(y / 0.25f) & 0x3FF) << 22;
+        *this << packed;
+        return (*this);
+    }
+
+    Bundle &appendPackXZ(float x, float z)
+    {
+		MemoryStream::PackFloatXType xPackData; 
+		xPackData.fv = x;
+
+		MemoryStream::PackFloatXType zPackData; 
+		zPackData.fv = z;
+		
+		// 0-7位存放尾数, 8-10位存放指数, 11位存放标志
+		// 由于使用了24位来存储2个float， 并且要求能够达到-512~512之间的数
+		// 8位尾数只能放最大值256, 指数只有3位(决定浮点数最大值为2^(2^3)=256) 
+		// 我们舍去第一位使范围达到(-512~-2), (2~512)之间
+		// 因此这里我们保证最小数为-2.f或者2.f
+		xPackData.fv += xPackData.iv < 0 ? -2.f : 2.f;
+		zPackData.fv += zPackData.iv < 0 ? -2.f : 2.f;
+
+		uint32 data = 0;
+
+		// 0x7ff000 = 11111111111000000000000
+		// 0x0007ff = 00000000000011111111111
+		const uint32 xCeilingValues[] = { 0, 0x7ff000 };
+		const uint32 zCeilingValues[] = { 0, 0x0007ff };
+
+		// 这里如果这个浮点数溢出了则设置浮点数为最大数
+		// 这里检查了指数高4位和标记位， 如果高四位不为0则肯定溢出， 如果低4位和8位尾数不为0则溢出
+		// 0x7c000000 = 1111100000000000000000000000000
+		// 0x40000000 = 1000000000000000000000000000000
+		// 0x3ffc000  = 0000011111111111100000000000000
+		data |= xCeilingValues[((xPackData.uv & 0x7c000000) != 0x40000000) || ((xPackData.uv & 0x3ffc000) == 0x3ffc000)];
+		data |= zCeilingValues[((zPackData.uv & 0x7c000000) != 0x40000000) || ((zPackData.uv & 0x3ffc000) == 0x3ffc000)];
+		
+		// 复制8位尾数和3位指数， 如果浮点数剩余尾数最高位是1则+1四舍五入, 并且存放到data中
+		// 0x7ff000 = 11111111111000000000000
+		// 0x0007ff = 00000000000011111111111
+		// 0x4000	= 00000000100000000000000
+		data |= ((xPackData.uv >>  3) & 0x7ff000) + ((xPackData.uv & 0x4000) >> 2);
+		data |= ((zPackData.uv >> 15) & 0x0007ff) + ((zPackData.uv & 0x4000) >> 14);
+		
+		// 确保值在范围内
+		// 0x7ff7ff = 11111111111011111111111
+		data &= 0x7ff7ff;
+
+		// 复制标记位
+		// 0x800000 = 100000000000000000000000
+		// 0x000800 = 000000000000100000000000
+		data |=  (xPackData.uv >>  8) & 0x800000;
+		data |=  (zPackData.uv >> 20) & 0x000800;
+
+		uint8 packs[3];
+		packs[0] = (uint8)(data >> 16);
+		packs[1] = (uint8)(data >> 8);
+		packs[2] = (uint8)data;
+		(*this).append(packs, 3);
+		return (*this);
+    }
+
+	Bundle &appendPackY(float y)
+	{
+		MemoryStream::PackFloatXType yPackData; 
+		yPackData.fv = y;
+
+		yPackData.fv += yPackData.iv < 0 ? -2.f : 2.f;
+		uint16 data = 0;
+		data = (yPackData.uv >> 12) & 0x7fff;
+ 		data |= ((yPackData.uv >> 16) & 0x8000);
+
+		(*this) << data;
+		return (*this);
+	}
+	
 	Bundle &assign(const char *str, int n)
 	{
 		int32 len = (int32)n;

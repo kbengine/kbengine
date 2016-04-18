@@ -2987,6 +2987,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel, 
 												KBEngine::MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("forwardMessageToClientFromCellapp");
+	
 	if(pChannel->isExternal())
 		return;
 	
@@ -3311,7 +3313,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} has no cell.\n",
+		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();
@@ -3330,6 +3332,8 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 //-------------------------------------------------------------------------------------
 void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("onUpdateDataFromClient");
+
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
 	{
@@ -3352,7 +3356,7 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: {} {} has no cell.\n",
+		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();

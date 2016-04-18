@@ -2500,8 +2500,8 @@ void Entity::debugAOI()
 	}
 	
 	int pending = 0;
-	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
-	for(; iter != pWitness_->aoiEntities().end(); ++iter)
+	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	for (; iter != pWitness_->aoiEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 
@@ -2513,7 +2513,7 @@ void Entity::debugAOI()
 	}
 
 	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} size={}, Seen={}, Pending={}, aoiRadius={}, aoiHyst={}", scriptName(), this->id(), 
-		pWitness_->aoiEntities().size(), pWitness_->aoiEntities().size() - pending, pending, pWitness_->aoiRadius(), pWitness_->aoiHysteresisArea()));
+		pWitness_->aoiEntitiesMap().size(), pWitness_->aoiEntitiesMap().size() - pending, pending, pWitness_->aoiRadius(), pWitness_->aoiHysteresisArea()));
 
 	iter = pWitness_->aoiEntities().begin();
 	for(; iter != pWitness_->aoiEntities().end(); ++iter)
@@ -2581,9 +2581,9 @@ PyObject* Entity::pyEntitiesInAOI()
 		return 0;
 	}
 
-	PyObject* pyList = PyList_New(pWitness_->aoiEntities().size());
+	PyObject* pyList = PyList_New(pWitness_->aoiEntitiesMap().size());
 
-	EntityRef::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
 	int i = 0;
 	for(; iter != pWitness_->aoiEntities().end(); ++iter)
 	{
