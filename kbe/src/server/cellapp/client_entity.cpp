@@ -93,7 +93,7 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 	}
 
 	EntityRef* pEntityRef = srcEntity->pWitness()->getAOIEntityRef(clientEntityID_);
-	Entity* e = pEntityRef && (pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) <= 0
+	Entity* e = (pEntityRef && ((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) <= 0))
 		? pEntityRef->pEntity() : NULL;
 
 	if(e == NULL)
