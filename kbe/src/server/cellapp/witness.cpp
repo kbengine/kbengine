@@ -440,7 +440,6 @@ void Witness::onEnterSpace(Space* pSpace)
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 
 	// 通知位置强制改变
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::createPoolObject();
 	Position3D &pos = pEntity_->position();
 	Direction3D &dir = pEntity_->direction();
 	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
