@@ -775,22 +775,22 @@ void Bots::onUpdatePropertysOptimized(Network::Channel* pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------
-void Bots::onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s)
+void Bots::onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onUpdateBasePos(pChannel, s);
+		pClient->onUpdateBasePos(pChannel, x, y, z);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Bots::onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s)
+void Bots::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onUpdateBasePosXZ(pChannel, s);
+		pClient->onUpdateBasePosXZ(pChannel, x, z);
 	}
 }
 

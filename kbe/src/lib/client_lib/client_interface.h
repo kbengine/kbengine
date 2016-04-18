@@ -62,38 +62,38 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// 服务器端已经创建了一个与客户端关联的代理Entity || 登录网关成功。
 	CLIENT_MESSAGE_DECLARE_ARGS3(onCreatedProxies,							NETWORK_VARIABLE_MESSAGE,
-									uint64,									rndUUID,
-									ENTITY_ID,								eid,
-									std::string,							entityType)
+								uint64,										rndUUID,
+								ENTITY_ID,									eid,
+								std::string,								entityType)
 
 	// 登录网关失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onLoginBaseappFailed,						NETWORK_FIXED_MESSAGE,
-									SERVER_ERROR_CODE,						failedcode)
+								SERVER_ERROR_CODE,							failedcode)
 
 	// 登录网关失败。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReLoginBaseappFailed,					NETWORK_FIXED_MESSAGE,
-									SERVER_ERROR_CODE,						failedcode)
+								SERVER_ERROR_CODE,							failedcode)
 
 	// 服务器上的entity已经进入游戏世界了。
 	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterWorld,						NETWORK_VARIABLE_MESSAGE)
 
 	// 服务器上的entity已经离开游戏世界了。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveWorld,						NETWORK_FIXED_MESSAGE,
-									ENTITY_ID,								eid)
+								ENTITY_ID,									eid)
 
 	// 服务器上的entity已经离开游戏世界了。
 	CLIENT_MESSAGE_DECLARE_STREAM(onEntityLeaveWorldOptimized,				NETWORK_VARIABLE_MESSAGE)
 
 	// 告诉客户端某个entity销毁了， 此类entity通常是还未onEntityEnterWorld。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityDestroyed,							NETWORK_FIXED_MESSAGE,
-									ENTITY_ID,								eid)
+								ENTITY_ID,									eid)
 
 	// 服务器上的entity已经进入space了。
 	CLIENT_MESSAGE_DECLARE_STREAM(onEntityEnterSpace,						NETWORK_VARIABLE_MESSAGE)
 
 	// 服务器上的entity已经离开space了。
 	CLIENT_MESSAGE_DECLARE_ARGS1(onEntityLeaveSpace,						NETWORK_FIXED_MESSAGE,
-									ENTITY_ID,								eid)
+								ENTITY_ID,									eid)
 
 	// 远程呼叫entity方法
 	CLIENT_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						NETWORK_VARIABLE_MESSAGE)
@@ -101,7 +101,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// 被踢出服务器
 	CLIENT_MESSAGE_DECLARE_ARGS1(onKicked,									NETWORK_FIXED_MESSAGE,
-									SERVER_ERROR_CODE,						failedcode)
+								SERVER_ERROR_CODE,							failedcode)
 
 	// 服务器更新entity属性
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdatePropertys,						NETWORK_VARIABLE_MESSAGE)
@@ -111,8 +111,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_STREAM(onSetEntityPosAndDir,						NETWORK_VARIABLE_MESSAGE)
 
 	// 服务器更新包
-	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateBasePos,							NETWORK_VARIABLE_MESSAGE)
-	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateBasePosXZ,						NETWORK_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_ARGS3(onUpdateBasePos,							NETWORK_FIXED_MESSAGE,
+								float,										x,
+								float,										y,
+								float,										z)
+
+	CLIENT_MESSAGE_DECLARE_ARGS2(onUpdateBasePosXZ,							NETWORK_FIXED_MESSAGE,
+								float,										x,
+								float,										z)
 
 	CLIENT_MESSAGE_DECLARE_STREAM(onUpdateData,								NETWORK_VARIABLE_MESSAGE)
 
@@ -144,16 +150,16 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// download stream开始了 
 	CLIENT_MESSAGE_DECLARE_ARGS3(onStreamDataStarted,						NETWORK_VARIABLE_MESSAGE,
-									int16,									id,
-									uint32,									datasize,
-									std::string,							descr)
+								int16,										id,
+								uint32,										datasize,
+								std::string,								descr)
 
 	// 接收到streamData
 	CLIENT_MESSAGE_DECLARE_STREAM(onStreamDataRecv,							NETWORK_VARIABLE_MESSAGE)
 
 	// download stream完成了 
 	CLIENT_MESSAGE_DECLARE_ARGS1(onStreamDataCompleted,						NETWORK_FIXED_MESSAGE,
-									int16,									id)
+								int16,										id)
 
 	// 导入协议
 	CLIENT_MESSAGE_DECLARE_STREAM(onImportClientMessages,					NETWORK_VARIABLE_MESSAGE)
@@ -169,26 +175,26 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 
 	// 服务端设置了spacedata
 	CLIENT_MESSAGE_DECLARE_ARGS3(setSpaceData,								NETWORK_VARIABLE_MESSAGE,
-									SPACE_ID,								spaceID,
-									std::string,							key,
-									std::string,							valye)
+								SPACE_ID,									spaceID,
+								std::string,								key,
+								std::string,								valye)
 
 	// 服务端删除了spacedata
 	CLIENT_MESSAGE_DECLARE_ARGS2(delSpaceData,								NETWORK_VARIABLE_MESSAGE,
-									SPACE_ID,								spaceID,
-									std::string,							key)
+								SPACE_ID,									spaceID,
+								std::string,								key)
 
 	// 重置账号密码请求返回
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountResetPasswordCB,				NETWORK_FIXED_MESSAGE,
-									SERVER_ERROR_CODE,						failedcode)
+								SERVER_ERROR_CODE,							failedcode)
 
 	// 重置账号密码请求返回
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountBindEmailCB,					NETWORK_FIXED_MESSAGE,
-									SERVER_ERROR_CODE,						failedcode)
+								SERVER_ERROR_CODE,							failedcode)
 
 	// 重置账号密码请求返回
 	CLIENT_MESSAGE_DECLARE_ARGS1(onReqAccountNewPasswordCB,					NETWORK_FIXED_MESSAGE,
-									SERVER_ERROR_CODE,						failedcode)
+								SERVER_ERROR_CODE,							failedcode)
 
 	// 重登陆网关成功 
 	CLIENT_MESSAGE_DECLARE_STREAM(onReLoginBaseappSuccessfully,				NETWORK_VARIABLE_MESSAGE)

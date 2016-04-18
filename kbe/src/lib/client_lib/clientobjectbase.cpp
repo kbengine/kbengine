@@ -1191,11 +1191,8 @@ void ClientObjectBase::updatePlayerToServer()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z)
 {
-	float x, y, z;
-	s >> x >> y >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
@@ -1204,11 +1201,8 @@ void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 {
-	float x, z;
-	s >> x >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{

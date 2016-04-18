@@ -257,8 +257,8 @@ public:
 	/** 网络接口
 		服务器更新avatar基础位置
 	*/
-	virtual void onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s);
-	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z);
+	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z);
 
 	/** 网络接口
 		服务器强制设置entity的位置与朝向
