@@ -49,6 +49,36 @@ EntityRef::~EntityRef()
 }
 
 //-------------------------------------------------------------------------------------
+static ObjectPool<EntityRef> _g_objPool("EntityRef");
+ObjectPool<EntityRef>& EntityRef::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+EntityRef* EntityRef::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::reclaimPoolObject(EntityRef* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
+EntityRef::SmartPoolObjectPtr EntityRef::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<EntityRef>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::onReclaimObject()
+{
+}
+
+//-------------------------------------------------------------------------------------
 void EntityRef::pEntity(Entity* e)
 {
 	pEntity_ = e; 

@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/debug_helper.h"
 #include "common/common.h"	
+#include "common/objectpool.h"
 
 namespace KBEngine{
 
@@ -34,7 +35,7 @@ class MemoryStream;
 #define ENTITYREF_FLAG_LEAVE_CLIENT_PENDING				0x00000002	// 离开客户端中标志
 #define ENTITYREF_FLAG_NORMAL							0x00000004	// 常规状态
 
-class EntityRef
+class EntityRef : public PoolObject
 {
 public:
 	EntityRef(Entity* pEntity);
@@ -42,6 +43,23 @@ public:
 
 	~EntityRef();
 	
+	typedef KBEShared_ptr< SmartPoolObject< EntityRef > > SmartPoolObjectPtr;
+	static SmartPoolObjectPtr createSmartPoolObj();
+
+	static ObjectPool<EntityRef>& ObjPool();
+	static EntityRef* createPoolObject();
+	static void reclaimPoolObject(EntityRef* obj);
+	void onReclaimObject();
+
+	virtual size_t getPoolObjectBytes()
+	{
+		size_t bytes = sizeof(id_)
+			+ sizeof(aliasID_) + sizeof(pEntity_)
+			+ sizeof(flags_);
+
+		return bytes;
+	}
+
 	void flags(uint32 v){ flags_ = v; }
 	void removeflags(uint32 v){ flags_ &= ~v; }
 	uint32 flags(){ return flags_; }

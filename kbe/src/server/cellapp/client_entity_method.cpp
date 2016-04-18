@@ -93,7 +93,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	}
 
 	EntityRef* pEntityRef = srcEntity->pWitness()->getAOIEntityRef(clientEntityID_);
-	Entity* e = pEntityRef && (pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) <= 0
+	Entity* e = (pEntityRef && ((pEntityRef->flags() & (ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) <= 0))
 		? pEntityRef->pEntity() : NULL;
 
 	if(e == NULL)

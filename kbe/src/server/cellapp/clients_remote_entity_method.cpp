@@ -110,22 +110,22 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall({}::{})\n", 
 					pEntity->scriptName(), methodDescription->getName()));
-																									
-				switch(Network::g_trace_packet)																	
-				{																								
-				case 1:																							
-					mstream->hexlike();																			
-					break;																						
-				case 2:																							
-					mstream->textlike();																			
-					break;																						
-				default:																						
-					mstream->print_storage();																	
-					break;																						
-				};																								
+
+				switch(Network::g_trace_packet)
+				{
+				case 1:
+					mstream->hexlike();
+					break;
+				case 2:
+					mstream->textlike();
+					break;
+				default:
+					mstream->print_storage();
+					break;
+				};
 
 				if(Network::g_trace_packet_use_logfile)	
-					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
+					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
 			}
 
 			//mailbox->postMail((*pBundle));
@@ -175,22 +175,22 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n", 
 					pAoiEntity->scriptName(), methodDescription->getName()));
-																									
-				switch(Network::g_trace_packet)																	
-				{																								
-				case 1:																							
-					mstream->hexlike();																			
-					break;																						
-				case 2:																							
-					mstream->textlike();																			
-					break;																						
-				default:																						
-					mstream->print_storage();																	
-					break;																						
-				};																								
+
+				switch(Network::g_trace_packet)	
+				{
+				case 1:
+					mstream->hexlike();
+					break;
+				case 2:
+					mstream->textlike();
+					break;
+				default:
+					mstream->print_storage();
+					break;
+				};
 
 				if(Network::g_trace_packet_use_logfile)	
-					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
+					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
 			}
 
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pAoiEntity->id(), (*pSendBundle), (*pForwardBundle));
