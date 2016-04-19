@@ -126,7 +126,6 @@ namespace KBEngine {
 		{																																\
 			SENDBUNDLE->finiCurrPacket();																								\
 			SENDBUNDLE->newPacket();																									\
-			SENDBUNDLE->currMsgPacketCount(SENDBUNDLE->currMsgPacketCount() + 1);														\
 			pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																		\
 		}																																\
 																																		\

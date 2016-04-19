@@ -87,8 +87,10 @@ INLINE int32 Bundle::numMessages() const
 	return numMessages_; 
 }
 
-INLINE void Bundle::finiCurrPacket(){ 
+INLINE void Bundle::finiCurrPacket()
+{ 
 	packets_.push_back(pCurrPacket_); 
+	currMsgPacketCount(currMsgPacketCount() + 1);
 	pCurrPacket_ = NULL; 
 }
 

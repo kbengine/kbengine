@@ -379,7 +379,6 @@ void DebugHelper::sync()
 
 		pBundle->newMessage(LoggerInterface::writeLog);
 		pBundle->finiCurrPacket();
-		pBundle->currMsgPacketCount(pBundle->currMsgPacketCount() + 1);
 		pBundle->newPacket();
 
 		// 将他们的内存交换进去
