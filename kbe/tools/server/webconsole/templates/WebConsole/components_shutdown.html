@@ -1,0 +1,76 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+<div class="row placeholders">
+    <div class="form-group">
+      <label for="textarea">停止服务器</label>
+      <textarea name="textarea" rows="30" readonly class="form-control" id="textarea">
+      </textarea>
+    </div>
+    <div class="shutdown-finish form-group sr-only">
+      <input type="button" class="form-control btn btn-default" name="button" id="button" value="完成" onClick="window.location.href='/wc/components/manage'">
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script src="/static/js/pytools.js"></script>
+<script>
+    $("document").ready(queryComponents);
+    g_queryCount = 0;
+    g_queryMsg = ""
+
+    function queryComponents()
+    {
+        $.ajax({
+                url : "/wc/components/query",
+                dataType : "json",
+                data : { timestap : (new Date()).valueOf() }
+            }).done(function(data, textStatus, jqXHR){
+                    onReceiveComponents( data );
+                });
+    }
+    
+    function onReceiveComponents( components )
+    {
+        g_queryCount++;
+        
+        var str = "";
+        str += "Query count: " + g_queryCount + "\n\n";
+        str += "Machines: " + components.length + "\n\n";
+        var counter = 0;
+        for (var i = 0; i < components.length; i++)
+        {
+            var comps = components[i];
+            for (var ii = 0; ii < comps.length; ii++)
+            {
+                counter++;
+                var comp = comps[ii];
+                if (ii == 0)
+                {
+                    str += "[ " + comp.fullname + " }";
+                }
+                else
+                {
+                    str += "    " + comp.fullname;;
+                }
+                str += "\n";
+            }
+            str += "\n";
+        }
+        g_queryMsg += str;
+        $("#textarea").text( g_queryMsg );
+        $("#textarea").scrollTop($("#textarea")[0].scrollHeight);
+        
+        if (components.length == counter)
+        {
+            g_queryCount = 0;
+            g_queryMsg = "";
+            $(".shutdown-finish").removeClass("sr-only");
+        }
+        else
+            setTimeout(queryComponents, 1000);
+    }
+</script>
+{% endblock %}
