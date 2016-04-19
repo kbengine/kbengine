@@ -564,31 +564,29 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 		if(pEntity == NULL || pEntity->isDestroyed() || !pEntity->hasWitness())
 			continue;
 
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+		
 		if(!isdel)
 		{
-			pForwardBundle->newMessage(ClientInterface::setSpaceData);
-			(*pForwardBundle) << this->id();
-			(*pForwardBundle) << key;
-			(*pForwardBundle) << value;
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::setSpaceData, set);
+			(*pSendBundle) << this->id();
+			(*pSendBundle) << key;
+			(*pSendBundle) << value;
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::setSpaceData, set);
 		}
 		else
 		{
-			pForwardBundle->newMessage(ClientInterface::delSpaceData);
-			(*pForwardBundle) << this->id();
-			(*pForwardBundle) << key;
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::delSpaceData, del);
+			(*pSendBundle) << this->id();
+			(*pSendBundle) << key;
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::delSpaceData, del);
 		}
-
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 		if(!isdel)
 			pEntity->pWitness()->sendToClient(ClientInterface::setSpaceData, pSendBundle);
 		else
 			pEntity->pWitness()->sendToClient(ClientInterface::delSpaceData, pSendBundle);
-
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 }
 
@@ -613,23 +611,22 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 		return;
 	}
 
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
 
-	pForwardBundle->newMessage(ClientInterface::initSpaceData);
-	(*pForwardBundle) << this->id();
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::initSpaceData, init);
+	(*pSendBundle) << this->id();
 
 	SPACE_DATA::iterator iter = datas_.begin();
 	for(; iter != datas_.end(); ++iter)
 	{
-		(*pForwardBundle) << iter->first;
-		(*pForwardBundle) << iter->second;
+		(*pSendBundle) << iter->first;
+		(*pSendBundle) << iter->second;
 	}
 
-	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::initSpaceData, init);
 
 	pEntity->pWitness()->sendToClient(ClientInterface::initSpaceData, pSendBundle);
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
 }
 
 //-------------------------------------------------------------------------------------

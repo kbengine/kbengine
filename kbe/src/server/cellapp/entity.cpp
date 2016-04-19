@@ -671,28 +671,35 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 			if(pScriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
-				Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-
-				pEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onUpdatePropertys, 
-					ClientInterface::onUpdatePropertysOptimized, id());
-
-				if(pScriptModule_->usePropertyDescrAlias())
-					(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
+				Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+				
+				int ialiasID = -1;
+				const Network::MessageHandler& msgHandler = pEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onUpdatePropertys, 
+					ClientInterface::onUpdatePropertysOptimized, id(), ialiasID);
+				
+				ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
+				
+				if(ialiasID != -1)
+					(*pSendBundle)  << (uint8)ialiasID;
 				else
-					(*pForwardBundle) << propertyDescription->getUType();
+					(*pSendBundle)  << id();
+				
+				if(pScriptModule_->usePropertyDescrAlias())
+					(*pSendBundle) << propertyDescription->aliasIDAsUint8();
+				else
+					(*pSendBundle) << propertyDescription->getUType();
 
-				pForwardBundle->append(*mstream);
+				pSendBundle->append(*mstream);
 				
 				// 记录这个事件产生的数据量大小
 				g_publicClientEventHistoryStats.trackEvent(scriptName(), 
 					propertyDescription->getName(), 
-					pForwardBundle->currMsgLength());
+					pSendBundle->currMsgLength());
 
-				Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+				ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, aOIEntityMessage);
 
 				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertysOptimized, pSendBundle);
-				Network::Bundle::reclaimPoolObject(pForwardBundle);
 			}
 		}
 	}
@@ -755,30 +762,31 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 判断这个属性是否还需要广播给自己的客户端
 	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL && pWitness_)
 	{
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-		(*pForwardBundle).newMessage(ClientInterface::onUpdatePropertys);
-		(*pForwardBundle) << id();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+		
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+		(*pSendBundle) << id();
 
 		if(pScriptModule_->usePropertyDescrAlias())
-			(*pForwardBundle) << propertyDescription->aliasIDAsUint8();
+			(*pSendBundle) << propertyDescription->aliasIDAsUint8();
 		else
-			(*pForwardBundle) << propertyDescription->getUType();
+			(*pSendBundle) << propertyDescription->getUType();
 
-		pForwardBundle->append(*mstream);
+		pSendBundle->append(*mstream);
 		
 		// 记录这个事件产生的数据量大小
 		if((flags & ENTITY_BROADCAST_OTHER_CLIENT_FLAGS) <= 0)
 		{
 			g_privateClientEventHistoryStats.trackEvent(scriptName(), 
 				propertyDescription->getName(), 
-				pForwardBundle->currMsgLength());
+				pSendBundle->currMsgLength());
 		}
 
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
+		
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 
 		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	MemoryStream::reclaimPoolObject(mstream);
@@ -1708,12 +1716,11 @@ void Entity::onGetWitness(bool fromBase)
 	if(fromBase)
 	{
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-		Network::Bundle* pForwardCellClientsDataBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
 		
-		(*pForwardCellClientsDataBundle).newMessage(ClientInterface::onUpdatePropertys);
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 		MemoryStream* s1 = MemoryStream::createPoolObject();
-		(*pForwardCellClientsDataBundle) << id();
+		(*pSendBundle) << id();
 		
 		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
 
@@ -1734,14 +1741,11 @@ void Entity::onGetWitness(bool fromBase)
 		}
 
 		addClientDataToStream(s1);
-		(*pForwardCellClientsDataBundle).append(*s1);
+		(*pSendBundle).append(*s1);
 		MemoryStream::reclaimPoolObject(s1);
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardCellClientsDataBundle));
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 		
 		clientMailbox()->postMail(pSendBundle);
-
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
-		Network::Bundle::reclaimPoolObject(pForwardCellClientsDataBundle);
 	}
 }
 
@@ -1939,16 +1943,16 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 
 		// 通知重置
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+		
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 
-		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
-		(*pForwardBundle) << id();
-		(*pForwardBundle) << currpos.x << currpos.y << currpos.z;
-		(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
+		(*pSendBundle) << id();
+		(*pSendBundle) << currpos.x << currpos.y << currpos.z;
+		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(targetID, (*pSendBundle), (*pForwardBundle));
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 }
 
@@ -3054,16 +3058,16 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 	{
 		// 通知位置强制改变
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+		
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+		(*pSendBundle) << id();
+		(*pSendBundle) << pos.x << pos.y << pos.z;
+		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
-		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
-		(*pForwardBundle) << id();
-		(*pForwardBundle) << pos.x << pos.y << pos.z;
-		(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
-
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(id(), (*pSendBundle), (*pForwardBundle));
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
+		Network::Bundle::reclaimPoolObject(pSendBundle);
 	}
 
 	currspace->addEntityToNode(this);
@@ -3090,16 +3094,15 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 
 		// 通知位置强制改变
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+		
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+		(*pSendBundle) << id();
+		(*pSendBundle) << pos.x << pos.y << pos.z;
+		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
-		(*pForwardBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
-		(*pForwardBundle) << id();
-		(*pForwardBundle) << pos.x << pos.y << pos.z;
-		(*pForwardBundle) << direction().roll() << direction().pitch() << direction().yaw();
-
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	onTeleportSuccess(nearbyMBRef, lastSpaceID);
