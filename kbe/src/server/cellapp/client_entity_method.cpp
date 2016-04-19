@@ -70,7 +70,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(srcEntity == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) not found!\n",		
+		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) not found!\n",
 			methodDescription_->getName(), srcEntityID_);		
 		PyErr_PrintEx(0);
 		return 0;
@@ -78,36 +78,27 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(srcEntity->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) is destroyed!\n",		
-			methodDescription_->getName(), srcEntityID_);		
+		PyErr_Format(PyExc_AssertionError, "Entity::clientEntity(%s): srcEntityID(%d) is destroyed!\n",
+			methodDescription_->getName(), srcEntityID_);
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(srcEntity->pWitness() == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): no client, srcEntityID(%d).\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): no client, srcEntityID(%d).\n",
 			srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id());		
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	EntityRef::AOI_ENTITIES::iterator iter = srcEntity->pWitness()->aoiEntities().begin();
-	Entity* e = NULL;
-
-	for(; iter != srcEntity->pWitness()->aoiEntities().end(); ++iter)
-	{
-		if((*iter)->id() == clientEntityID_ && ((*iter)->flags() & 
-			(ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) <= 0)
-		{
-			e = (*iter)->pEntity();
-			break;
-		}
-	}
+	EntityRef* pEntityRef = srcEntity->pWitness()->getAOIEntityRef(clientEntityID_);
+	Entity* e = (pEntityRef && ((pEntityRef->flags() & (ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) <= 0))
+		? pEntityRef->pEntity() : NULL;
 
 	if(e == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): not found entity(%d), srcEntityID(%d).\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): not found entity(%d), srcEntityID(%d).\n",
 			srcEntity->scriptName(), methodDescription_->getName(), clientEntityID_, srcEntity->id());	
 
 		PyErr_PrintEx(0);
@@ -121,14 +112,23 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(srcEntity->id(), (*pSendBundle));
 
-		srcEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
-				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_);
+		int ialiasID = -1;
+		const Network::MessageHandler& msgHandler = 
+				srcEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onRemoteMethodCall, 
+				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_, ialiasID);
 
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
+		
+		if(ialiasID != -1)
+			(*pSendBundle)  << (uint8)ialiasID;
+		else
+			(*pSendBundle)  << clientEntityID_;
+				
 		if(mstream->wpos() > 0)
-			(*pForwardBundle).append(mstream->data(), (int)mstream->wpos());
+			(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
 
 		if(Network::g_trace_packet > 0)
 		{
@@ -137,36 +137,35 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 			DEBUG_MSG(fmt::format("ClientEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n",
 				srcEntity->scriptName(), methodDescription->getName()));
-																								
-			switch(Network::g_trace_packet)							
-			{																								
-			case 1:																							
-				mstream->hexlike();																			
-				break;																						
-			case 2:																							
-				mstream->textlike();																			
-				break;																						
-			default:																						
-				mstream->print_storage();																	
-				break;																						
-			};																								
 
-			if(Network::g_trace_packet_use_logfile)	
+			switch(Network::g_trace_packet)
+			{
+			case 1:
+				mstream->hexlike();
+				break;
+			case 2:
+				mstream->textlike();
+				break;
+			default:
+				mstream->print_storage();
+				break;
+			};
+
+			if(Network::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 		}
 
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(srcEntity->id(), (*pSendBundle), (*pForwardBundle));
-
-		srcEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, aOIEntityMessage);
 
 		// 记录这个事件产生的数据量大小
 		g_publicClientEventHistoryStats.trackEvent(srcEntity->scriptName(), 
 			(std::string(e->scriptName()) + "." + methodDescription->getName()), 
-			pForwardBundle->currMsgLength(), 
+			pSendBundle->currMsgLength(), 
 			"::");
+		
+		srcEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 
 		MemoryStream::reclaimPoolObject(mstream);
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 
 	S_Return;

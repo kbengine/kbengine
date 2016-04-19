@@ -442,12 +442,14 @@ void Baseapp::handleGameTick()
 //-------------------------------------------------------------------------------------
 void Baseapp::handleBackup()
 {
+	AUTO_SCOPED_PROFILE("backup");
 	pBackuper_->tick();
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::handleArchive()
 {
+	AUTO_SCOPED_PROFILE("archive");
 	pArchiver_->tick();
 }
 
@@ -1591,6 +1593,15 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 //-------------------------------------------------------------------------------------
 void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 {
+	ScriptDefModule* pScriptModule = base->pScriptModule();
+	if (!pScriptModule || !pScriptModule->hasCell())
+	{
+		ERROR_MSG(fmt::format("{}::createInNewSpace: cannot find the cellapp script({})!\n",
+			pScriptModule->getName(), pScriptModule->getName()));
+
+		return;
+	}
+
 	// 如果cellappIndex为0，则代表不强制指定cellapp
 	// 非0的情况下，选择的cellapp可以用1,2,3,4来代替
 	// 假如预期有4个cellapp， 假如不够4个， 只有3个， 那么4代表1
@@ -2272,7 +2283,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 	}
 
 	PyObject* pyDatas = NULL, *pycallback = NULL;
-	char* pChargeID;
+	char* pChargeID = NULL;
 	DBID dbid;
 
 	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
@@ -2282,7 +2293,14 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 		return NULL;
 	}
 	
-	if(pChargeID == NULL || strlen(pChargeID) <= 0)
+	if (pChargeID == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: ordersID not is string!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if(strlen(pChargeID) <= 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::charge: ordersID is NULL!");
 		PyErr_PrintEx(0);
@@ -2969,6 +2987,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel, 
 												KBEngine::MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("forwardMessageToClientFromCellapp");
+	
 	if(pChannel->isExternal())
 		return;
 	
@@ -3293,7 +3313,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} has no cell.\n",
+		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();
@@ -3312,6 +3332,8 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 //-------------------------------------------------------------------------------------
 void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	AUTO_SCOPED_PROFILE("onUpdateDataFromClient");
+
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
 	{
@@ -3334,7 +3356,7 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: {} {} has no cell.\n",
+		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();

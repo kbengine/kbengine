@@ -57,6 +57,7 @@ aoiHysteresisArea_(5.0f),
 pAOITrigger_(NULL),
 pAOIHysteresisAreaTrigger_(NULL),
 aoiEntities_(),
+aoiEntities_map_(),
 clientAOISize_(0)
 {
 }
@@ -84,7 +85,7 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 	
 	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
 	
-	uint32 size = aoiEntities_.size();
+	uint32 size = aoiEntitiesmap_.size();
 	s << size;
 
 	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
@@ -96,7 +97,7 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 
 	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
 	s << aoiRadius_ << aoiHysteresisArea_ << (uint16)0;	
-	s << (uint32)0; // aoiEntities_.size();
+	s << (uint32)0; // aoiEntities_map_.size();
 }
 
 //-------------------------------------------------------------------------------------
@@ -109,9 +110,11 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 	
 	for(uint32 i=0; i<size; ++i)
 	{
-		EntityRef* pEntityRef = new EntityRef();
+		EntityRef* pEntityRef = EntityRef::createPoolObject();
 		pEntityRef->createFromStream(s);
 		aoiEntities_.push_back(pEntityRef);
+		aoiEntities_map_[pEntityRef->id()] = pEntityRef;
+		pEntityRef->aliasID(i);
 	}
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
@@ -175,29 +178,25 @@ void Witness::onAttach(Entity* pEntity)
 
 	// 通知客户端enterworld
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::createPoolObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 	
-	(*pForwardPosDirBundle).newMessage(ClientInterface::onUpdatePropertys);
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 	MemoryStream* s1 = MemoryStream::createPoolObject();
-	(*pForwardPosDirBundle) << pEntity_->id();
+	(*pSendBundle) << pEntity_->id();
 	pEntity_->addPositionAndDirectionToStream(*s1, true);
-	(*pForwardPosDirBundle).append(*s1);
+	(*pSendBundle).append(*s1);
 	MemoryStream::reclaimPoolObject(s1);
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 	
-	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterWorld);
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 
-	(*pForwardBundle) << pEntity_->id();
-	pEntity_->pScriptModule()->addSmartUTypeToBundle(pForwardBundle);
+	(*pSendBundle) << pEntity_->id();
+	pEntity_->pScriptModule()->addSmartUTypeToBundle(pSendBundle);
 	if(!pEntity_->isOnGround())
-		(*pForwardBundle) << pEntity_->isOnGround();
+		(*pSendBundle) << pEntity_->isOnGround();
 
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
-	Network::Bundle::reclaimPoolObject(pForwardPosDirBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -216,14 +215,12 @@ void Witness::detach(Entity* pEntity)
 
 			// 通知客户端leaveworld
 			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-			Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 
-			(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorld);
-			(*pForwardBundle) << pEntity->id();
-
-			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveWorld, entityLeaveWorld);
+			(*pSendBundle) << pEntity->id();
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorld, entityLeaveWorld);
 			pClientMB->postMail(pSendBundle);
-			Network::Bundle::reclaimPoolObject(pForwardBundle);
 		}
 	}
 
@@ -235,15 +232,15 @@ void Witness::clear(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity == pEntity_);
 
-	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
 		{
 			(*iter)->pEntity()->delWitnessed(pEntity_);
 		}
-
-		delete (*iter);
+		
+		EntityRef::reclaimPoolObject((*iter));
 	}
 	
 	pEntity_ = NULL;
@@ -255,6 +252,7 @@ void Witness::clear(Entity* pEntity)
 	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
 	
 	aoiEntities_.clear();
+	aoiEntities_map_.clear();
 
 	Cellapp::getSingleton().removeUpdatable(this);
 }
@@ -345,12 +343,11 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 
 	pEntity_->onEnteredAoI(pEntity);
 
-	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
-		findif_vector_entityref_exist_by_entity_handler(pEntity));
-
-	if(iter != aoiEntities_.end())
+	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
+	if (iter != aoiEntities_map_.end())
 	{
-		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
+		EntityRef* pEntityRef = iter->second;
+		if ((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
 			//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
 			//	pEntity_->id(), pEntity->id()));
@@ -358,12 +355,12 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 			// 如果flags是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING | ENTITYREF_FLAG_NORMAL状态那么我们
 			// 只需要撤销离开状态并将其还原到ENTITYREF_FLAG_NORMAL即可
 			// 如果是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING状态那么此时应该将它设置为进入状态 ENTITYREF_FLAG_ENTER_CLIENT_PENDING
-			if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
-				(*iter)->flags(ENTITYREF_FLAG_NORMAL);
+			if ((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
+				pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
 			else
-				(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
+				pEntityRef->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
-			(*iter)->pEntity(pEntity);
+			pEntityRef->pEntity(pEntity);
 			pEntity->addWitnessed(pEntity_);
 		}
 
@@ -373,10 +370,13 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 	//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
 	//	pEntity_->id(), pEntity->id()));
 	
-	EntityRef* pEntityRef = new EntityRef(pEntity);
+	EntityRef* pEntityRef = EntityRef::createPoolObject();
+	pEntityRef->pEntity(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 	aoiEntities_.push_back(pEntityRef);
-
+	aoiEntities_map_[pEntityRef->id()] = pEntityRef;
+	pEntityRef->aliasID(aoiEntities_map_.size() - 1);
+	
 	pEntity->addWitnessed(pEntity_);
 }
 
@@ -387,13 +387,11 @@ void Witness::onLeaveAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 	if (pAOIHysteresisAreaTrigger_ && pAOIHysteresisAreaTrigger_ != pAOITrigger)
 		return;
 
-	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
-		findif_vector_entityref_exist_by_entityid_handler(pEntity->id()));
-
-	if(iter == aoiEntities_.end())
+	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
+	if (iter == aoiEntities_map_.end())
 		return;
 
-	_onLeaveAOI((*iter));
+	_onLeaveAOI(iter->second);
 }
 
 //-------------------------------------------------------------------------------------
@@ -403,9 +401,10 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 	//	pEntity_->id(), pEntityRef->id()));
 
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
-	//delete (*iter);
+	//EntityRef::reclaimPoolObject((*iter));
 	//aoiEntities_.erase(iter);
-	
+	//aoiEntities_map_.erase(iter);
+
 	pEntityRef->flags(((pEntityRef->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~(ENTITYREF_FLAG_ENTER_CLIENT_PENDING)));
 
 	if(pEntityRef->pEntity())
@@ -418,12 +417,13 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 void Witness::resetAOIEntities()
 {
 	clientAOISize_ = 0;
-	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); )
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
-			delete (*iter);
+			aoiEntities_map_.erase((*iter)->id());
+			EntityRef::reclaimPoolObject((*iter));
 			iter = aoiEntities_.erase(iter);
 			continue;
 		}
@@ -437,33 +437,29 @@ void Witness::resetAOIEntities()
 void Witness::onEnterSpace(Space* pSpace)
 {
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
+
 	// 通知位置强制改变
-	Network::Bundle* pForwardPosDirBundle = Network::Bundle::createPoolObject();
 	Position3D &pos = pEntity_->position();
 	Direction3D &dir = pEntity_->direction();
-	(*pForwardPosDirBundle).newMessage(ClientInterface::onSetEntityPosAndDir);
-	(*pForwardPosDirBundle) << pEntity_->id();
-	(*pForwardPosDirBundle) << pos.x << pos.y << pos.z;
-	(*pForwardPosDirBundle) << dir.roll() << dir.pitch() << dir.yaw();
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardPosDirBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+	(*pSendBundle) << pEntity_->id();
+	(*pSendBundle) << pos.x << pos.y << pos.z;
+	(*pSendBundle) << dir.roll() << dir.pitch() << dir.yaw();
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 	
 	// 通知进入了新地图
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-	(*pForwardBundle).newMessage(ClientInterface::onEntityEnterSpace);
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterSpace, entityEnterSpace);
 
-	(*pForwardBundle) << pEntity_->id();
-	(*pForwardBundle) << pSpace->id();
+	(*pSendBundle) << pEntity_->id();
+	(*pSendBundle) << pSpace->id();
 	if(!pEntity_->isOnGround())
-		(*pForwardBundle) << pEntity_->isOnGround();
+		(*pSendBundle) << pEntity_->isOnGround();
 
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterSpace, entityEnterSpace);
 
 	// 发送消息并清理
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
-	Network::Bundle::reclaimPoolObject(pForwardPosDirBundle);
 
 	installAOITrigger();
 }
@@ -474,18 +470,16 @@ void Witness::onLeaveSpace(Space* pSpace)
 	uninstallAOITrigger();
 
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 
-	(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveSpace);
-	(*pForwardBundle) << pEntity_->id();
-
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity_->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
+	(*pSendBundle) << pEntity_->id();
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
 
 	lastBasePos.z = -FLT_MAX;
 
-	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
@@ -493,10 +487,12 @@ void Witness::onLeaveSpace(Space* pSpace)
 			(*iter)->pEntity()->delWitnessed(pEntity_);
 		}
 
-		delete (*iter);
+		EntityRef::reclaimPoolObject((*iter));
 	}
 
 	aoiEntities_.clear();
+	aoiEntities_map_.clear();
+
 	clientAOISize_ = 0;
 }
 
@@ -547,147 +543,109 @@ bool Witness::pushBundle(Network::Bundle* pBundle)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, ENTITY_ID entityID)
+void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEntityRef)
 {
 	if(!EntityDef::entityAliasID())
 	{
-		(*pBundle) << entityID;
+		(*pBundle) << pEntityRef->id();
 	}
 	else
 	{
 		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
+		// clientAOISize_需要实体真正同步到客户端时才会增加
 		if(clientAOISize_ > 255)
 		{
-			(*pBundle) << entityID;
+			(*pBundle) << pEntityRef->id();
+		}
+		else
+		{
+			if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) > 0)
+			{
+				(*pBundle) << pEntityRef->aliasID();
+			}
+			else
+			{
+				(*pBundle) << pEntityRef->id();
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+const Network::MessageHandler& Witness::getAOIEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
+	const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID, int& ialiasID)
+{
+	ialiasID = -1;
+	if(!EntityDef::entityAliasID())
+	{
+		return normalMsgHandler;
+	}
+	else
+	{
+		if (aoiEntities_map_.size() > 255)
+		{
+			return normalMsgHandler;
 		}
 		else
 		{
 			uint8 aliasID = 0;
 			if(entityID2AliasID(entityID, aliasID))
 			{
-				(*pBundle) << aliasID;
+				ialiasID = aliasID;
+				return optimizedMsgHandler;
 			}
 			else
 			{
-				(*pBundle) << entityID;
+				return normalMsgHandler;
 			}
 		}
 	}
+	
+	return normalMsgHandler;
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToStream(MemoryStream* mstream, EntityRef* entityRef)
+bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 {
-	if(!EntityDef::entityAliasID())
+	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(id);
+	if (iter == aoiEntities_map_.end())
 	{
-		(*mstream) << entityRef->id();
+		aliasID = 0;
+		return false;
 	}
-	else
+
+	EntityRef* pEntityRef = iter->second;
+	if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) <= 0)
 	{
-		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
-		if(clientAOISize_ > 255)
-		{
-			(*mstream) << entityRef->id();
-		}
-		else
-		{
-			uint8 aliasID = 0;
-			if(entityID2AliasID(entityRef->id(), aliasID))
-			{
-				(*mstream) << aliasID;
-			}
-			else
-			{
-				(*mstream) << entityRef->id();
-			}
-		}
+		aliasID = 0;
+		return false;
 	}
+
+	aliasID = pEntityRef->aliasID();
+
+	// 溢出
+	if (aliasID >= 255)
+	{
+		aliasID = 0;
+		return false;
+	}
+ 
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* entityRef)
+void Witness::updateEntitiesAliasID()
 {
-	if(!EntityDef::entityAliasID())
-	{
-		(*pBundle) << entityRef->id();
-	}
-	else
-	{
-		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
-		if(clientAOISize_ > 255)
-		{
-			(*pBundle) << entityRef->id();
-		}
-		else
-		{
-			uint8 aliasID = 0;
-			if(entityID2AliasID(entityRef->id(), aliasID))
-				(*pBundle) << aliasID;
-			else
-			{
-				(*pBundle) << entityRef->id();
-			}
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
-void Witness::addSmartAOIEntityMessageToBundle(Network::Bundle* pBundle, const Network::MessageHandler& normalMsgHandler, 
-											   const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID)
-{
-	if(!EntityDef::entityAliasID())
-	{
-		(*pBundle).newMessage(normalMsgHandler);
-		(*pBundle) << entityID;
-	}
-	else
-	{
-		if(aoiEntities_.size() > 255)
-		{
-			(*pBundle).newMessage(normalMsgHandler);
-			(*pBundle) << entityID;
-		}
-		else
-		{
-			uint8 aliasID = 0;
-			if(entityID2AliasID(entityID, aliasID))
-			{
-				(*pBundle).newMessage(optimizedMsgHandler);
-				(*pBundle) << aliasID;
-			}
-			else
-			{
-				(*pBundle).newMessage(normalMsgHandler);
-				(*pBundle) << entityID;
-			}
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------
-bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID) const
-{
-	aliasID = 0;
-	EntityRef::AOI_ENTITIES::const_iterator iter = aoiEntities_.begin();
+	int n = 0;
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
 	{
-		EntityRef* pEntityRef = (*iter);
-		if(pEntityRef->id() == id)
-		{
-			if((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) <= 0)
-				return false;
-
+		if(n >= 255)
 			break;
-		}
 		
-		// 将要溢出
-		if(aliasID == 255)
-			return false;
-		
-		++aliasID;
+		EntityRef* pEntityRef = (*iter);
+		pEntityRef->aliasID(n++);
 	}
-
-	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -704,123 +662,105 @@ bool Witness::update()
 	
 	// 获取每帧剩余可写大小， 将优先更新的内容写入， 剩余的内容往下一个周期递推
 	int remainPacketSize = PACKET_MAX_SIZE_TCP - pChannel->bundlesLength();
-
+	
 	if(remainPacketSize > 0)
 	{
-		if(aoiEntities_.size() > 0)
+		if (aoiEntities_map_.size() > 0)
 		{
 			Network::Bundle* pSendBundle = MALLOC_BUNDLE();
 
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 			addBasePosToStream(pSendBundle);
 
-			EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+			AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 			for(; iter != aoiEntities_.end(); )
 			{
 				if(remainPacketSize <= 0)
 					break;
 				
-				if(((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
+				EntityRef* pEntityRef = (*iter);
+				
+				if((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
 				{
 					// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
-					Entity* otherEntity = Cellapp::getSingleton().findEntity((*iter)->id());
+					Entity* otherEntity = Cellapp::getSingleton().findEntity(pEntityRef->id());
 					if(otherEntity == NULL)
 					{
-						(*iter)->pEntity(NULL);
-						_onLeaveAOI((*iter));
-						delete (*iter);
+						pEntityRef->pEntity(NULL);
+						_onLeaveAOI(pEntityRef);
+						aoiEntities_map_.erase(pEntityRef->id());
+						EntityRef::reclaimPoolObject(pEntityRef);
 						iter = aoiEntities_.erase(iter);
+						updateEntitiesAliasID();
 						continue;
 					}
 					
-					(*iter)->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
-
-					Network::Bundle* pForwardBundle1 = Network::Bundle::createPoolObject();
-					Network::Bundle* pForwardBundle2 = Network::Bundle::createPoolObject();
+					pEntityRef->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
 					MemoryStream* s1 = MemoryStream::createPoolObject();
 					otherEntity->addPositionAndDirectionToStream(*s1, true);			
 					otherEntity->addClientDataToStream(s1, true);
-
-					(*pForwardBundle1).newMessage(ClientInterface::onUpdatePropertys);
-					(*pForwardBundle1) << otherEntity->id();
-					(*pForwardBundle1).append(*s1);
+					
+					ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+					(*pSendBundle) << otherEntity->id();
+					(*pSendBundle).append(*s1);
 					MemoryStream::reclaimPoolObject(s1);
-			
-					(*pForwardBundle2).newMessage(ClientInterface::onEntityEnterWorld);
-					(*pForwardBundle2) << otherEntity->id();
-					otherEntity->pScriptModule()->addSmartUTypeToBundle(pForwardBundle2);
+					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+					
+					ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
+					(*pSendBundle) << otherEntity->id();
+					otherEntity->pScriptModule()->addSmartUTypeToBundle(pSendBundle);
 					if(!otherEntity->isOnGround())
-						(*pForwardBundle2) << otherEntity->isOnGround();
+						(*pSendBundle) << otherEntity->isOnGround();
 
-					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle1));
-					NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle2));
-					
-					remainPacketSize -= pForwardBundle1->packetsLength();
-					remainPacketSize -= pForwardBundle2->packetsLength();
+					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 
-					Network::Bundle::reclaimPoolObject(pForwardBundle1);
-					Network::Bundle::reclaimPoolObject(pForwardBundle2);
+					pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
 
-					(*iter)->flags(ENTITYREF_FLAG_NORMAL);
-					
 					KBE_ASSERT(clientAOISize_ != 65535);
 
 					++clientAOISize_;
 				}
-				else if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
+				else if((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 				{
-					(*iter)->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+					pEntityRef->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
 
-					if(((*iter)->flags() & ENTITYREF_FLAG_NORMAL) > 0)
+					if((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
 					{
-						Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-
-						(*pForwardBundle).newMessage(ClientInterface::onEntityLeaveWorldOptimized);
-						_addAOIEntityIDToBundle(pForwardBundle, (*iter)->id());
-
-						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-						Network::Bundle::reclaimPoolObject(pForwardBundle);
+						ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
+						_addAOIEntityIDToBundle(pSendBundle, pEntityRef);
+						ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
 
 						--clientAOISize_;
 					}
 
-					delete (*iter);
+					aoiEntities_map_.erase(pEntityRef->id());
+					EntityRef::reclaimPoolObject(pEntityRef);
 					iter = aoiEntities_.erase(iter);
+					updateEntitiesAliasID();
 					continue;
 				}
 				else
 				{
-					Entity* otherEntity = (*iter)->pEntity();
+					Entity* otherEntity = pEntityRef->pEntity();
 					if(otherEntity == NULL)
 					{
-						delete (*iter);
+						aoiEntities_map_.erase(pEntityRef->id());
+						EntityRef::reclaimPoolObject(pEntityRef);
 						iter = aoiEntities_.erase(iter);
 						--clientAOISize_;
+						updateEntitiesAliasID();
 						continue;
 					}
 					
-					KBE_ASSERT((*iter)->flags() == ENTITYREF_FLAG_NORMAL);
-
-					Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-					MemoryStream* s1 = MemoryStream::createPoolObject();
+					KBE_ASSERT(pEntityRef->flags() == ENTITYREF_FLAG_NORMAL);
 					
-					addUpdateHeadToStream(pForwardBundle, addEntityVolatileDataToStream(s1, otherEntity), (*iter));
-
-					(*pForwardBundle).append(*s1);
-					MemoryStream::reclaimPoolObject(s1);
-					
-					if(pForwardBundle->packetsLength() > 0)
-					{
-						NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-					}
-
-					Network::Bundle::reclaimPoolObject(pForwardBundle);
+					addUpdateToStream(pSendBundle, getEntityVolatileDataUpdateFlags(otherEntity), pEntityRef);
 				}
 
 				++iter;
 			}
-			
+
 			int32 packetsLength = pSendBundle->packetsLength();
 			if(packetsLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
 			{
@@ -830,6 +770,7 @@ bool Witness::update()
 						pEntity_->id(), packetsLength));
 				}
 
+				AUTO_SCOPED_PROFILE("sendToClient");
 				pChannel->send(pSendBundle);
 			}
 			else
@@ -851,46 +792,35 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 	if(KBEVec3Length(&movement) < 0.0004f)
 		return;
 
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-	MemoryStream* s1 = MemoryStream::createPoolObject();
-
 	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
 	{
-		(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePos);
-		s1->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z, 0.f);
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBasePos, basePos);
+		pSendBundle->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z, 0.f);
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBasePos, basePos);
 	}
 	else
 	{
-		(*pForwardBundle).newMessage(ClientInterface::onUpdateBasePosXZ);
-		s1->appendPackAnyXZ(bpos.x, bpos.z, 0.f);
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBasePosXZ, basePos);
+		pSendBundle->appendPackAnyXZ(bpos.x, bpos.z, 0.f);
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBasePosXZ, basePos);
 	}
-
-	(*pForwardBundle).append(*s1);
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
-	MemoryStream::reclaimPoolObject(s1);
 
 	if (pEntity_->controlledBy() != NULL)
 	{
-		pForwardBundle = Network::Bundle::createPoolObject();
-		s1 = MemoryStream::createPoolObject();
-
-		(*pForwardBundle).newMessage(ClientInterface::onUpdateBaseDir);
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
 		Direction3D &dir = pEntity_->direction();
-		(*s1) << dir.yaw() << dir.pitch() << dir.roll();
-
-		(*pForwardBundle).append(*s1);
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_APPEND((*pSendBundle), (*pForwardBundle));
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
-		MemoryStream::reclaimPoolObject(s1);
+		(*pSendBundle) << dir.yaw() << dir.pitch() << dir.roll();
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
 	}
 
 	lastBasePos = bpos;
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef)
+void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, EntityRef* pEntityRef)
 {
+	Entity* otherEntity = pEntityRef->pEntity();
+
 	switch(flags)
 	{
 	case UPDATE_FLAG_NULL:
@@ -900,140 +830,283 @@ void Witness::addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flag
 		break;
 	case UPDATE_FLAG_XZ:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz, update);
 		}
 		break;
 	case UPDATE_FLAG_XYZ:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz, update);
 		}
 		break;
 	case UPDATE_FLAG_YAW:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_y);
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_y, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_y, update);
 		}
 		break;
 	case UPDATE_FLAG_ROLL:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_r);
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_r, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_r, update);
 		}
 		break;
 	case UPDATE_FLAG_PITCH:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_p);
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_p, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_p, update);
 		}
 		break;
 	case UPDATE_FLAG_YAW_PITCH_ROLL:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_ypr);
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_ypr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_ypr, update);
 		}
 		break;
 	case UPDATE_FLAG_YAW_PITCH:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yp);
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_yp, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_yp, update);
 		}
 		break;
 	case UPDATE_FLAG_YAW_ROLL:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_yr);
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_yr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_yr, update);
 		}
 		break;
 	case UPDATE_FLAG_PITCH_ROLL:
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_pr);
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_pr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_pr, update);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_y);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_y, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_y, update);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_p);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_p, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_p, update);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_r);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_r, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_r, update);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yr);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_yr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_yr, update);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_yp);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_yp, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_yp, update);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_pr);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_pr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_pr, update);
 		}
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xz_ypr);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_ypr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_ypr, update);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_y);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_y, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz_y, update);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_p);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_p, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz_p, update);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_r);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_r, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz_r, update);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yr);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_yr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz_yr, update);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_yp);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_yp, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz_yp, update);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_pr);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_pr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz_pr, update);
 		}
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
-			(*pForwardBundle).newMessage(ClientInterface::onUpdateData_xyz_ypr);
+			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			const Direction3D& dir = otherEntity->direction();
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_ypr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
+			pForwardBundle->appendPackY(relativePos.y);
+			(*pForwardBundle) << angle2int8(dir.yaw());
+			(*pForwardBundle) << angle2int8(dir.pitch());
+			(*pForwardBundle) << angle2int8(dir.roll());
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz_ypr, update);
 		}
 		break;
 	default:
@@ -1043,7 +1116,7 @@ void Witness::addUpdateHeadToStream(Network::Bundle* pForwardBundle, uint32 flag
 }
 
 //-------------------------------------------------------------------------------------
-uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* otherEntity)
+uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
@@ -1061,12 +1134,8 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 	
 	if ((pVolatileInfo->position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
 	{
-		Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-		mstream->appendPackXZ(relativePos.x, relativePos.z);
-
 		if(!otherEntity->isOnGround())
 		{
-			mstream->appendPackY(relativePos.y);
 			flags |= UPDATE_FLAG_XYZ; 
 		}
 		else
@@ -1077,38 +1146,25 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 
 	if((entity_posdir_additional_updates == 0) || (g_kbetime - otherEntity->dirChangedTime() < entity_posdir_additional_updates))
 	{
-		const Direction3D& dir = otherEntity->direction();
 		if (pVolatileInfo->yaw() > 0.f)
 		{
 			if (pVolatileInfo->roll() > 0.f)
 			{
 				if (pVolatileInfo->pitch() > 0.f)
 				{
-					(*mstream) << angle2int8(dir.yaw());
-					(*mstream) << angle2int8(dir.pitch());
-					(*mstream) << angle2int8(dir.roll());
-
 					flags |= UPDATE_FLAG_YAW_PITCH_ROLL;
 				}
 				else
 				{
-					(*mstream) << angle2int8(dir.yaw());
-					(*mstream) << angle2int8(dir.roll());
-
 					flags |= UPDATE_FLAG_YAW_ROLL;
 				}
 			}
 			else if (pVolatileInfo->pitch() > 0.f)
 			{
-				(*mstream) << angle2int8(dir.yaw());
-				(*mstream) << angle2int8(dir.pitch());
-
 				flags |= UPDATE_FLAG_YAW_PITCH;
 			}
 			else
 			{
-				(*mstream) << angle2int8(dir.yaw());
-
 				flags |= UPDATE_FLAG_YAW;
 			}
 		}
@@ -1116,22 +1172,15 @@ uint32 Witness::addEntityVolatileDataToStream(MemoryStream* mstream, Entity* oth
 		{
 			if (pVolatileInfo->pitch() > 0.f)
 			{
-				(*mstream) << angle2int8(dir.pitch());
-				(*mstream) << angle2int8(dir.roll());
-
 				flags |= UPDATE_FLAG_PITCH_ROLL;
 			}
 			else
 			{
-				(*mstream) << angle2int8(dir.roll());
-
 				flags |= UPDATE_FLAG_ROLL;
 			}
 		}
 		else if (pVolatileInfo->pitch() > 0.f)
 		{
-			(*mstream) << angle2int8(dir.pitch());
-
 			flags |= UPDATE_FLAG_PITCH; 
 		}
 	}
