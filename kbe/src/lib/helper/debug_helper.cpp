@@ -370,7 +370,7 @@ void DebugHelper::sync()
 	// 将子线程日志放入bufferedLogPackets_
 	while (childThreadBufferedLogPackets_.size() > 0)
 	{
-		// 从主对象池去出一个对象，将子线程中对象vector内存交换进去
+		// 从主对象池取出一个对象，将子线程中对象vector内存交换进去
 		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
 		childThreadBufferedLogPackets_.pop();
 
