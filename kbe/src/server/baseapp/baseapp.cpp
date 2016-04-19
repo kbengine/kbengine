@@ -3004,19 +3004,20 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 			{
 				Network::MessageID fmsgid = 0;
 				s >> fmsgid;
+
 				Network::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
 				bool isprint = true;
 
 				if(pMessageHandler)
 				{
-					std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),	
-															Network::g_trace_packet_disables.end(),				
-																pMessageHandler->name);							
-																													
-					if(iter != Network::g_trace_packet_disables.end())												
-					{																								
-						isprint = false;																			
-					}																								
+					std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),
+															Network::g_trace_packet_disables.end(),
+																pMessageHandler->name);	
+
+					if(iter != Network::g_trace_packet_disables.end())
+					{
+						isprint = false;
+					}
 				}
 
 				if(isprint)
@@ -3048,19 +3049,20 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 			{
 				Network::MessageID fmsgid = 0;
 				s >> fmsgid;
+
 				Network::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
 				bool isprint = true;
 
 				if(pMessageHandler)
 				{
-					std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),	
-															Network::g_trace_packet_disables.end(),				
-																pMessageHandler->name);							
-																													
-					if(iter != Network::g_trace_packet_disables.end())												
-					{																								
-						isprint = false;																			
-					}																								
+					std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),
+															Network::g_trace_packet_disables.end(),
+																pMessageHandler->name);
+
+					if(iter != Network::g_trace_packet_disables.end())
+					{
+						isprint = false;
+					}
 				}
 
 				if(isprint)
@@ -3096,26 +3098,26 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).append(s);
 	static_cast<Proxy*>(base)->sendToClient(pBundle);
-	//mailbox->postMail((*pBundle));
 	
 	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
 		Network::MessageID fmsgid = 0;
 		s >> fmsgid;
+
 		Network::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
 		bool isprint = true;
 
 		if(pMessageHandler)
 		{
 			(*pBundle).pCurrMsgHandler(pMessageHandler);
-			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),	
-													Network::g_trace_packet_disables.end(),				
-														pMessageHandler->name);							
-																											
-			if(iter != Network::g_trace_packet_disables.end())												
-			{																								
-				isprint = false;																			
-			}																								
+			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),
+													Network::g_trace_packet_disables.end(),
+														pMessageHandler->name);
+
+			if(iter != Network::g_trace_packet_disables.end())
+			{
+				isprint = false;
+			}
 		}
 
 		if(isprint)
@@ -3168,20 +3170,21 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 	{
 		Network::MessageID fmsgid = 0;
 		s >> fmsgid;
+
 		Network::MessageHandler* pMessageHandler = CellappInterface::messageHandlers.find(fmsgid);
 		bool isprint = true;
 
 		if(pMessageHandler)
 		{
 			(*pBundle).pCurrMsgHandler(pMessageHandler);
-			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),	
-													Network::g_trace_packet_disables.end(),				
-														pMessageHandler->name);							
-																											
-			if(iter != Network::g_trace_packet_disables.end())												
-			{																								
-				isprint = false;																			
-			}																								
+			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),
+													Network::g_trace_packet_disables.end(),
+														pMessageHandler->name);
+
+			if(iter != Network::g_trace_packet_disables.end())
+			{
+				isprint = false;
+			}
 		}
 
 		if(isprint)
@@ -3270,13 +3273,13 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				{
 					ENTITY_METHOD_UID utype = 0;
 					s >> utype;
+
 					DEBUG_MSG(fmt::format("Baseapp::onEntityMail: onRemoteMethodCall(entityID={}, method={}).\n",
 						eid, utype));
 				}
 
 				s.done();
 
-				//mailbox->postMail(bundle);
 				static_cast<Proxy*>(base)->sendToClient(pBundle);
 				reclaim = false;
 			}

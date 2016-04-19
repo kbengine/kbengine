@@ -285,13 +285,13 @@ public:
 		Packets::iterator iter = bundle.packets_.begin();
 		for(; iter!=bundle.packets_.end(); ++iter)
 		{
-			append((*iter)->data(), (int)(*iter)->length());
+			append((*iter)->data() + (*iter)->rpos(), (int)(*iter)->length());
 		}
 		
 		if(bundle.pCurrPacket_ == NULL)
 			return *this;
 
-		return append(bundle.pCurrPacket_->data(), (int)bundle.pCurrPacket_->length());
+		return append(bundle.pCurrPacket_->data() + bundle.pCurrPacket_->rpos(), (int)bundle.pCurrPacket_->length());
 	}
 
 	Bundle &append(MemoryStream* s)
