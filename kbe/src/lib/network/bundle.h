@@ -124,10 +124,22 @@ public:
 	
 	INLINE int32 packetMaxSize() const;
 	int packetsSize() const;
+
+	/**
+		撤销一些消息字节
+	*/
+	bool revokeMessageSize(int32 size);
+		
+	/**
+		计算packetMaxSize-最后一个包的length后剩余的可用空间
+	*/
+	INLINE int32 lastPacketSpace();
+	INLINE bool packetHaveSpace();
+	
 	INLINE Packets& packets();
 	INLINE Packet* pCurrPacket() const;
 	INLINE void pCurrPacket(Packet* p);
-
+	
 	INLINE void finiCurrPacket();
 
 	Packet* newPacket();

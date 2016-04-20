@@ -286,10 +286,9 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 	{
 		if(packets_.size() > 0)
 		{
-			Packet* pBackPacket = packets_.back();
-			if (packetMaxSize() - pBackPacket->wpos() > 8)
+			if (packetHaveSpace())
 			{
-				pCurrPacket_ = pBackPacket;
+				pCurrPacket_ = packets_.back();
 				packets_.pop_back();
 			}
 			else
@@ -527,6 +526,29 @@ void Bundle::_debugMessages()
 	}
 
 	MemoryStream::reclaimPoolObject(pMemoryStream);
+}
+
+//-------------------------------------------------------------------------------------
+bool Bundle::revokeMessageSize(int32 size)
+{
+	while(packets_.size() > 0 && size > 0)
+	{
+		Network::Packet* pPacket = packets_.back();
+		if(pPacket->wpos() > size)
+		{
+			pPacket->wpos(pPacket->wpos() - size);
+			size = 0;
+			break;
+		}
+		else
+		{
+			size -= pPacket->wpos();
+			RECLAIM_PACKET(isTCPPacket_, pPacket);
+			packets_.pop_back();
+		}
+	}
+	
+	return size == 0;
 }
 
 //-------------------------------------------------------------------------------------

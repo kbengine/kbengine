@@ -82,6 +82,19 @@ INLINE int32 Bundle::packetMaxSize() const
 	return packetMaxSize_;
 }
 
+INLINE int32 Bundle::lastPacketSpace()
+{
+	if(packets_.size() > 0)
+		return packetMaxSize() - packets_.back()->wpos();
+	
+	return 0;
+}
+
+INLINE bool Bundle::packetHaveSpace()
+{
+	return lastPacketSpace() > 8;
+}
+
 INLINE int32 Bundle::numMessages() const
 { 
 	return numMessages_; 
