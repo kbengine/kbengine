@@ -89,7 +89,7 @@ def components_manage( request ):
 	kbeComps = []
 	for mID, comps in components.interfaces_groups.items():
 		if len( comps ) > 1:
-			kbeComps.append( ( comps[0], comps[1:]) )
+			kbeComps.extend( comps[1:] )
 
 	context = {
 		"KBEComps" : kbeComps,
@@ -321,3 +321,25 @@ def components_load_layout( request ):
 		"run_counter" : str(t2c)
 	}
 	return render( request, "WebConsole/components_load_layout.html", context )
+
+def machines_show_all( request ):
+	"""
+	忽略用户，显示所有的machine
+	"""
+	components = Machines.Machines( 0, "WebConsole" )
+	components.queryAllInterfaces(timeout = 0.5)
+
+	targetIP = request.GET.get( "target", None )
+	
+	kbeComps = []
+	for mID, comps in components.interfaces_groups.items():
+		if len( comps ) > 1 and comps[0].intaddr == targetIP:
+			kbeComps = comps[1:]
+			break
+
+
+	context = {
+		"KBEMachines" : components.machines,
+		"KBEComps" : kbeComps,
+	}
+	return render( request, "WebConsole/machines_show_all.html", context )

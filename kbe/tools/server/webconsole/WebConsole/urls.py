@@ -25,6 +25,7 @@ urlpatterns = [
 
     url(r'^$', views.index, name = "index"),
     url(r'^index$', views.index, name = "index"),
+    
     url(r'^components/$', views.components_manage, name = "components_manage"),
     url(r'^components/manage$', views.components_manage, name = "components_manage"),
     url(r'^components/run$', views.components_run, name = "components_run"),
@@ -35,5 +36,7 @@ urlpatterns = [
     url(r'^components/show_layout$', views.components_show_layout, name = "components_show_layout" ),
     url(r'^components/delete_layout$', views.components_delete_layout, name = "components_delete_layout" ),
     url(r'^components/load_layout$', views.components_load_layout, name = "components_load_layout" ),
+   
+    url(r'^machines/show_all$', views.machines_show_all, name = "machines_show_all" ),
    
 ]
