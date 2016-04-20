@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Django settings for KBEWebConsole project.
 
@@ -12,6 +14,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import django
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,8 +28,7 @@ SECRET_KEY = '(z-^8#+9$zm1fz^k7c-g!$%8d62d3jaomcl4f05%4kxqj71o2_'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -41,23 +43,34 @@ INSTALLED_APPS = (
     'WebConsole',
 )
 
-MIDDLEWARE_CLASSES = (
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-)
+if django.VERSION < (1, 7):
+	MIDDLEWARE_CLASSES = (
+	    'django.contrib.sessions.middleware.SessionMiddleware',
+	    'django.middleware.common.CommonMiddleware',
+	    #'django.middleware.csrf.CsrfViewMiddleware',
+	    'django.contrib.auth.middleware.AuthenticationMiddleware',
+	    'django.contrib.messages.middleware.MessageMiddleware',
+	    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	)
+
+if django.VERSION >= (1, 8):
+	MIDDLEWARE_CLASSES = (
+	    'django.contrib.sessions.middleware.SessionMiddleware',
+	    'django.middleware.common.CommonMiddleware',
+	    #'django.middleware.csrf.CsrfViewMiddleware',
+	    'django.contrib.auth.middleware.AuthenticationMiddleware',
+	    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+	    'django.contrib.messages.middleware.MessageMiddleware',
+	    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	    'django.middleware.security.SecurityMiddleware',
+	)
 
 ROOT_URLCONF = 'KBESettings.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Ä£°æÎÄ¼şµÄ´æ·ÅÂ·¾¶£¬¿ÉÒÔÓĞ¶à¸ö
+        # æ¨¡ç‰ˆæ–‡ä»¶çš„å­˜æ”¾è·¯å¾„ï¼Œå¯ä»¥æœ‰å¤šä¸ª
         'DIRS': [
             BASE_DIR + "/templates"
             ],
@@ -110,8 +123,16 @@ DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 STATIC_URL = '/static/'
 
-# ¾²Ì¬ÎÄ¼şµÄ´æ·ÅÂ·¾¶£¬¿ÉÒÔÓĞ¶à¸ö
+# é™æ€æ–‡ä»¶çš„å­˜æ”¾è·¯å¾„ï¼Œå¯ä»¥æœ‰å¤šä¸ª
 STATICFILES_DIRS  = (
     os.path.join(BASE_DIR, "static"),
 )
+
+if django.VERSION < (1, 7):
+	# for Django-1.6.11
+	TEMPLATE_DIRS = ( BASE_DIR + "/templates", )
+	TEMPLATE_DEBUG = True
+	TEMPLATE_CONTEXT_PROCESSORS = (
+	    'django.core.context_processors.request',
+	)
 
