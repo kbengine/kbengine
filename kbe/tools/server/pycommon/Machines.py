@@ -171,6 +171,12 @@ class Machines:
 		self.username = username
 		if type(self.username) is str:
 			self.username = username.encode( "utf-8" )
+		else:
+			try:
+				if type(self.username) is unicode:
+					self.username = username.encode( "utf-8" )
+			except:
+				pass
 		
 		self.startListen()
 		
