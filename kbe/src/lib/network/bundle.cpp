@@ -534,7 +534,7 @@ bool Bundle::revokeMessageSize(int32 size)
 	while(packets_.size() > 0 && size > 0)
 	{
 		Network::Packet* pPacket = packets_.back();
-		if(pPacket->wpos() > size)
+		if(pPacket->wpos() > (size_t)size)
 		{
 			pPacket->wpos(pPacket->wpos() - size);
 			size = 0;
