@@ -283,7 +283,25 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 	pCurrMsgHandler_ = &msgHandler;
 	
 	if(pCurrPacket_ == NULL)
-		this->newPacket();
+	{
+		if(packets_.size() > 0)
+		{
+			Packet* pBackPacket = packets_.back();
+			if (packetMaxSize() - pBackPacket->wpos() > 8)
+			{
+				pCurrPacket_ = pBackPacket;
+				packets_.pop_back();
+			}
+			else
+			{
+				this->newPacket();
+			}
+		}
+		else
+		{
+			this->newPacket();
+		}
+	}
 
 	finiMessage(false);
 	KBE_ASSERT(pCurrPacket_ != NULL);
