@@ -741,7 +741,8 @@ bool Witness::update()
 						ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
 						_addAOIEntityIDToBundle(pSendBundle, pEntityRef);
 						ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
-
+						
+						KBE_ASSERT(clientAOISize_ > 0);
 						--clientAOISize_;
 					}
 
@@ -759,6 +760,7 @@ bool Witness::update()
 						aoiEntities_map_.erase(pEntityRef->id());
 						EntityRef::reclaimPoolObject(pEntityRef);
 						iter = aoiEntities_.erase(iter);
+						KBE_ASSERT(clientAOISize_ > 0);
 						--clientAOISize_;
 						updateEntitiesAliasID();
 						continue;
