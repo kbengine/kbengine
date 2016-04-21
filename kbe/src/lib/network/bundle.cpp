@@ -439,12 +439,12 @@ void Bundle::_debugCurrentMessages()
 				Network::Packet* pPacket = (*packiter);
 				
 				// 如果所有内容都在当前包中
-				if(pPacket->length() >= msglen)
+				if((int)pPacket->length() >= msglen)
 				{
 					int wpos = pPacket->length() - msglen;
 					pMemoryStream->append(pPacket->data() + wpos, pCurrPacket_->length() - wpos);
 					
-					for(int i=packets_.size() - idx; i<packets_.size(); ++i)
+					for(size_t i=packets_.size() - idx; i<packets_.size(); ++i)
 					{
 						Network::Packet* pPacket1 = packets_[i];
 						
