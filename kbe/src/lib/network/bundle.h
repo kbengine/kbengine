@@ -160,7 +160,7 @@ protected:
 	void _calcPacketMaxSize();
 	int32 onPacketAppend(int32 addsize, bool inseparable = true);
 
-	void _debugMessages();
+	void _debugCurrentMessages();
 
 public:
     Bundle &operator<<(uint8 value)
