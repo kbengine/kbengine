@@ -809,6 +809,23 @@ EventDispatcher & Channel::dispatcher()
 }
 
 //-------------------------------------------------------------------------------------
+Bundle* Channel::createSendBundle()
+{
+	if(bundles_.size() > 0)
+	{
+		Bundle* pBundle = bundles_.back();
+		if(pBundle->packetHaveSpace())
+		{
+			// 先从队列删除
+			bundles_.pop_back();
+			return pBundle;
+		}
+	}
+	
+	return Bundle::createPoolObject();
+}
+
+//-------------------------------------------------------------------------------------
 
 }
 }

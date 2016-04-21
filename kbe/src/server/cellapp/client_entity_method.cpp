@@ -92,6 +92,15 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		return 0;
 	}
 
+	Network::Channel* pChannel = srcEntity->pWitness()->pChannel();
+	if(!pChannel)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): no client, srcEntityID(%d).\n",
+			srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+			
 	EntityRef* pEntityRef = srcEntity->pWitness()->getAOIEntityRef(clientEntityID_);
 	Entity* e = (pEntityRef && ((pEntityRef->flags() & (ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) <= 0))
 		? pEntityRef->pEntity() : NULL;
@@ -111,8 +120,8 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	{
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
-
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		
+		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(srcEntity->id(), (*pSendBundle));
 
 		int ialiasID = -1;

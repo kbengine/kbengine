@@ -671,7 +671,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 			if(pScriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
-				Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pSendBundle = pChannel->createSendBundle();
 				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
 				
 				int ialiasID = -1;
@@ -762,7 +762,14 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 判断这个属性是否还需要广播给自己的客户端
 	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL && pWitness_)
 	{
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pSendBundle = NULL;
+		
+		Network::Channel* pChannel = pWitness_->pChannel();
+		if(!pChannel)
+			pSendBundle = Network::Bundle::createPoolObject();
+		else
+			pSendBundle = pChannel->createSendBundle();
+		
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
 		
 		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
