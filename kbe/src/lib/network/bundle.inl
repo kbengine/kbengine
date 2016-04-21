@@ -46,10 +46,11 @@ INLINE MessageLength Bundle::currMsgLength() const
 { 
 	return currMsgLength_; 
 }
-	
+
 INLINE void Bundle::pCurrMsgHandler(const Network::MessageHandler* pMsgHandler)
 { 
 	pCurrMsgHandler_ = pMsgHandler; 
+	currMsgID_ = pMsgHandler->msgID;
 }
 
 INLINE const Network::MessageHandler* Bundle::pCurrMsgHandler() const
