@@ -527,19 +527,29 @@ void Witness::uninstallAOITrigger()
 //-------------------------------------------------------------------------------------
 bool Witness::pushBundle(Network::Bundle* pBundle)
 {
-	if(pEntity_ == NULL)
+	Network::Channel* pc = pChannel();
+	if(!pc)
 		return false;
+
+	pc->send(pBundle);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+Network::Channel* Witness::pChannel()
+{
+	if(pEntity_ == NULL)
+		return NULL;
 
 	EntityMailbox* clientMB = pEntity_->clientMailbox();
 	if(!clientMB)
-		return false;
+		return NULL;
 
 	Network::Channel* pChannel = clientMB->getChannel();
 	if(!pChannel)
-		return false;
-
-	pChannel->send(pBundle);
-	return true;
+		return NULL;
+	
+	return pChannel;
 }
 
 //-------------------------------------------------------------------------------------
@@ -667,8 +677,9 @@ bool Witness::update()
 	{
 		if (aoiEntities_map_.size() > 0)
 		{
-			Network::Bundle* pSendBundle = MALLOC_BUNDLE();
-
+			Network::Bundle* pSendBundle = pChannel->createSendBundle();
+			int32 old_packetsLength = pSendBundle->packetsLength(true);
+			
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
 			addBasePosToStream(pSendBundle);
 
@@ -730,7 +741,8 @@ bool Witness::update()
 						ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
 						_addAOIEntityIDToBundle(pSendBundle, pEntityRef);
 						ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
-
+						
+						KBE_ASSERT(clientAOISize_ > 0);
 						--clientAOISize_;
 					}
 
@@ -748,6 +760,7 @@ bool Witness::update()
 						aoiEntities_map_.erase(pEntityRef->id());
 						EntityRef::reclaimPoolObject(pEntityRef);
 						iter = aoiEntities_.erase(iter);
+						KBE_ASSERT(clientAOISize_ > 0);
 						--clientAOISize_;
 						updateEntitiesAliasID();
 						continue;
@@ -762,7 +775,7 @@ bool Witness::update()
 			}
 
 			int32 packetsLength = pSendBundle->packetsLength();
-			if(packetsLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
+			if(packetsLength - old_packetsLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
 			{
 				if(packetsLength > PACKET_MAX_SIZE_TCP)
 				{
@@ -775,7 +788,18 @@ bool Witness::update()
 			}
 			else
 			{
-				Network::Bundle::reclaimPoolObject(pSendBundle);
+				// 如果大于8说明bundle是channel缓存的包
+				// 取出来重复利用的如果想丢弃本次消息发送
+				// 此时应该将NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START从其中抹除掉
+				if(old_packetsLength != 8)
+				{
+					pSendBundle->revokeMessageSize(8);
+					pChannel->pushBundle(pSendBundle);
+				}
+				else
+				{
+					Network::Bundle::reclaimPoolObject(pSendBundle);
+				}
 			}
 		}
 	}

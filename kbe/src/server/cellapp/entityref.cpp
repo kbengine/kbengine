@@ -76,6 +76,10 @@ EntityRef::SmartPoolObjectPtr EntityRef::createSmartPoolObj()
 //-------------------------------------------------------------------------------------
 void EntityRef::onReclaimObject()
 {
+	id_ = 0;
+	aliasID_ =  0;
+	pEntity_ = NULL;
+	flags_ = ENTITYREF_FLAG_UNKONWN;
 }
 
 //-------------------------------------------------------------------------------------

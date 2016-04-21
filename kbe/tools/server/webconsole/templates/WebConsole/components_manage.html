@@ -1,0 +1,103 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+<div class="row placeholders">
+    <table class="table table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>Machine</th>
+          <th>组件名称</th>
+          <th>uid</th>
+          <th>pid</th>
+          <th>cid</th>
+          <th>gid</th>
+          <th>CPU负载</th>
+          <th>内存消耗比</th>
+          <th>内存消耗数</th>
+          <th>实体数量</th>
+          <th>Proxy实体数量</th>
+          <th>客户端数量</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for machine, components in KBEComps %}
+        {% for comp in components %}
+        <tr>
+          <td>{{ comp.intaddr }}</td>
+          <td>{{ comp.fullname }}</td>
+          <td>{{ comp.uid }}</td>
+          <td>{{ comp.pid }}</td>
+          <td>{{ comp.componentID }}</td>
+          <td>{{ comp.globalOrderID }}</td>
+          <td>{{ comp.cpu|floatformat:2 }}%</td>
+          <td>{{ comp.mem|floatformat:2 }}%</td>
+          <td>{% widthratio comp.usedmem 1048576 1.0 %}m</td>
+          <td>{{ comp.entities }}</td>
+          <td>{{ comp.proxies }}</td>
+          <td>{{ comp.clients }}</td>
+          <td>停止</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div>
+        <ul class="list-inline">
+            <li>{% if hasMachines %}<a href="/wc/components/run">{% endif %}启动新组件{% if hasMachines %}</a>{% endif %}</li>
+            <li>|</li>
+            <li>{% if hasComponents %}<a href="#" onClick="shutdown()">{% endif %}停止服务器{% if hasComponents %}</a>{% endif %}</li>
+            <li>|</li>
+            <li>{% if hasComponents %}<a href="#" onClick="saveLayouts()">{% endif %}保存当前服务器运行配置{% if hasComponents %}</a>{% endif %}</li>
+        </ul>
+      <p>&nbsp;</p>
+    </div>
+    <div>
+      <form action="" method="post" name="form1" id="form1">
+        <input type="button" class="btn btn-default" name="button" id="button" value="刷新" onClick="flush()">
+      </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script>
+    function saveLayouts()
+    {
+        layer.prompt({
+            title: '请为这个配置起个名',
+            formType: 0 //prompt风格，支持0-2
+          }, 
+          function(data){
+            $.ajax({
+                    url : "/wc/components/save_layout",
+                    dataType : "json",
+                    data : { timestap : (new Date()).valueOf(), name : data }
+                }).done(function(data, textStatus, jqXHR){
+                        if (data.state == "success")
+                            layer.alert( "保存完成", {
+                                    title : "保存完成",
+                                } );
+                        else
+                            layer.alert( data.message, {
+                                    title : "保存失败",
+                                } );
+                    });
+            });
+    }
+
+    function flush()
+    {
+        $("#form1").submit();
+        layer.load(2);
+    }
+    
+    function shutdown()
+    {
+        window.location.href='/wc/components/shutdown';
+        layer.load(2);
+    }
+</script>
+    
+{% endblock %}

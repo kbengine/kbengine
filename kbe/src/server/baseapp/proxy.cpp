@@ -712,6 +712,19 @@ int16 Proxy::streamStringToClient(PyObjectPtr objptr,
 }
 
 //-------------------------------------------------------------------------------------
+Network::Channel* Proxy::pChannel()
+{
+	if(!clientMailbox())
+		return NULL;
+
+	Network::Channel* pChannel = clientMailbox()->getChannel();
+	if(!pChannel)
+		return NULL;
+	
+	return pChannel;
+}
+
+//-------------------------------------------------------------------------------------
 bool Proxy::pushBundle(Network::Bundle* pBundle)
 {
 	if(!clientMailbox())

@@ -124,10 +124,22 @@ public:
 	
 	INLINE int32 packetMaxSize() const;
 	int packetsSize() const;
+
+	/**
+		撤销一些消息字节
+	*/
+	bool revokeMessageSize(int32 size);
+		
+	/**
+		计算packetMaxSize-最后一个包的length后剩余的可用空间
+	*/
+	INLINE int32 lastPacketSpace();
+	INLINE bool packetHaveSpace();
+	
 	INLINE Packets& packets();
 	INLINE Packet* pCurrPacket() const;
 	INLINE void pCurrPacket(Packet* p);
-
+	
 	INLINE void finiCurrPacket();
 
 	Packet* newPacket();
@@ -148,7 +160,7 @@ protected:
 	void _calcPacketMaxSize();
 	int32 onPacketAppend(int32 addsize, bool inseparable = true);
 
-	void _debugMessages();
+	void _debugCurrentMessages();
 
 public:
     Bundle &operator<<(uint8 value)
@@ -285,13 +297,13 @@ public:
 		Packets::iterator iter = bundle.packets_.begin();
 		for(; iter!=bundle.packets_.end(); ++iter)
 		{
-			append((*iter)->data(), (int)(*iter)->length());
+			append((*iter)->data() + (*iter)->rpos(), (int)(*iter)->length());
 		}
 		
 		if(bundle.pCurrPacket_ == NULL)
 			return *this;
 
-		return append(bundle.pCurrPacket_->data(), (int)bundle.pCurrPacket_->length());
+		return append(bundle.pCurrPacket_->data() + bundle.pCurrPacket_->rpos(), (int)bundle.pCurrPacket_->length());
 	}
 
 	Bundle &append(MemoryStream* s)

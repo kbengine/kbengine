@@ -158,8 +158,8 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			// 又如自己的entity还未在目标客户端上创建
 			if (!pAoiEntity->pWitness()->entityInAOI(pEntity->id()))
 				continue;
-
-			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+			
+			Network::Bundle* pSendBundle = pChannel->createSendBundle();
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pAoiEntity->id(), (*pSendBundle));
 			
 			int ialiasID = -1;

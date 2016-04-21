@@ -163,7 +163,8 @@ public:
 		向witness客户端推送一条消息
 	*/
 	bool sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
-
+	Network::Channel* pChannel();
+		
 	INLINE AOI_ENTITIES_MAP& aoiEntitiesMap();
 	INLINE AOI_ENTITIES& aoiEntities();
 
