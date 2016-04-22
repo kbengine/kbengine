@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "python_app.h"
+#include "pyscript/py_memorystream.h"
 #include "server/py_file_descriptor.h"
 
 namespace KBEngine{
@@ -222,12 +223,17 @@ bool PythonApp::installPyScript()
 	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
 	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
 	free(tbuf);
+
+	if (ret)
+		script::PyMemoryStream::installScript(NULL);
+
 	return ret;
 }
 
 //-------------------------------------------------------------------------------------
 bool PythonApp::uninstallPyScript()
 {
+	script::PyMemoryStream::uninstallScript();
 	return uninstallPyModules() && getScript().uninstall();
 }
 
@@ -272,6 +278,8 @@ bool PythonApp::installPyModules()
 	}
 
 	PyObject * module = getScript().getModule();
+
+	APPEND_SCRIPT_MODULE_METHOD(module, MemoryStream, script::PyMemoryStream::py_new, METH_VARARGS, 0);
 
 	// 注册创建entity的方法到py
 	// 向脚本注册app发布状态
