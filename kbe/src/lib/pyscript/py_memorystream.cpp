@@ -40,7 +40,8 @@ PySequenceMethods PyMemoryStream::seqMethods =
 
 SCRIPT_METHOD_DECLARE_BEGIN(PyMemoryStream)
 SCRIPT_METHOD_DECLARE("append",				append,			METH_VARARGS, 0)
-SCRIPT_METHOD_DECLARE("pop",				pop,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("bytes",				bytes,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("__reduce_ex__",		reduce_ex__,	METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",		reduce_ex__,	METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
@@ -250,6 +251,13 @@ Py_ssize_t PyMemoryStream::seq_length(PyObject* self)
 {
 	PyMemoryStream* seq = static_cast<PyMemoryStream*>(self);
 	return seq->length();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_bytes(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+	return pyobj->pyBytes();
 }
 
 //-------------------------------------------------------------------------------------
