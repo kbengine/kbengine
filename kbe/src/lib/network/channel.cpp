@@ -828,7 +828,9 @@ Bundle* Channel::createSendBundle()
 		}
 	}
 	
-	return Bundle::createPoolObject();
+	Bundle* pBundle = Bundle::createPoolObject();
+	pBundle->pChannel(this);
+	return pBundle;
 }
 
 //-------------------------------------------------------------------------------------

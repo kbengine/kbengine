@@ -115,6 +115,11 @@ INLINE void Bundle::pChannel(Channel* p)
 	pChannel_= p;
 }
 
+INLINE Channel* Bundle::pChannel()
+{
+	return pChannel_;
+}
+
 INLINE void Bundle::finiCurrPacket()
 { 
 	if(!pCurrPacket_)

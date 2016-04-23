@@ -403,7 +403,7 @@ void Bundle::finiMessage(bool isSend)
 }
 
 //-------------------------------------------------------------------------------------
-void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHandler* pCurrMsgHandler, 
+void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHandler* pCurrMsgHandler,
 	Network::Packet* pCurrPacket, Network::Bundle::Packets& packets, Network::MessageLength1 currMsgLength,
 	Network::Channel* pChannel)
 {
@@ -412,6 +412,14 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 
 	if (!pCurrMsgHandler || currMsgID != pCurrMsgHandler->msgID || !pCurrMsgHandler->pMessageHandlers)
 		return;
+
+	currMsgLength += NETWORK_MESSAGE_ID_SIZE;
+	if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+	{
+		currMsgLength += NETWORK_MESSAGE_LENGTH_SIZE;
+		if (currMsgLength >= NETWORK_MESSAGE_MAX_SIZE)
+			currMsgLength += NETWORK_MESSAGE_LENGTH1_SIZE;
+	}
 	
 	MemoryStream* pMemoryStream = MemoryStream::createPoolObject();
 	
