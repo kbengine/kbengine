@@ -103,6 +103,9 @@ INLINE int32 Bundle::numMessages() const
 
 INLINE void Bundle::finiCurrPacket()
 { 
+	if(!pCurrPacket_)
+		return;
+	
 	packets_.push_back(pCurrPacket_); 
 	currMsgPacketCount(currMsgPacketCount() + 1);
 	pCurrPacket_ = NULL; 

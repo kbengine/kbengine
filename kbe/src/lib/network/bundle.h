@@ -128,7 +128,7 @@ public:
 	/**
 		撤销一些消息字节
 	*/
-	bool revokeMessageSize(int32 size);
+	bool revokeMessage(int32 size);
 		
 	/**
 		计算packetMaxSize-最后一个包的length后剩余的可用空间
@@ -156,11 +156,13 @@ public:
 	INLINE void currMsgLengthPos(size_t v);
 	INLINE size_t currMsgLengthPos() const;
 
+	static void debugCurrentMessages(MessageID currMsgID, const Network::MessageHandler* pCurrMsgHandler, 
+		Network::Packet* pCurrPacket, Network::Bundle::Packets& packets, Network::MessageLength1 currMsgLength,
+		Network::Channel* pChannel);
+	
 protected:
 	void _calcPacketMaxSize();
 	int32 onPacketAppend(int32 addsize, bool inseparable = true);
-
-	void _debugCurrentMessages();
 
 public:
     Bundle &operator<<(uint8 value)

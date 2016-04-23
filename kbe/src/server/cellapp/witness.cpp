@@ -774,8 +774,8 @@ bool Witness::update()
 				++iter;
 			}
 
-			int32 packetsLength = pSendBundle->packetsLength();
-			if(packetsLength - old_packetsLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
+			int32 packetsLength = pSendBundle->packetsLength() - old_packetsLength;
+			if(packetsLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
 			{
 				if(packetsLength > PACKET_MAX_SIZE_TCP)
 				{
@@ -793,7 +793,7 @@ bool Witness::update()
 				// 此时应该将NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START从其中抹除掉
 				if(old_packetsLength != 8)
 				{
-					pSendBundle->revokeMessageSize(8);
+					pSendBundle->revokeMessage(8);
 					pChannel->pushBundle(pSendBundle);
 				}
 				else
