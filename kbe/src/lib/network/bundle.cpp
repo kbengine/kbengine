@@ -435,8 +435,12 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 				++idx;
 
 				Network::Packet* pPacket = (*packiter);
-				
-				// 如果所有内容都在当前包中
+
+				// 当前包可能已经计算过
+				if (pCurrPacket == pPacket)
+					continue;
+
+				// 如果所有内容都在包中
 				if((int)pPacket->length() >= msglen)
 				{
 					int wpos = pPacket->length() - msglen;
@@ -447,8 +451,8 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 						Network::Packet* pPacket1 = packets[i];
 						
 						// 这个包已经在上面处理过了
-						if(pPacket1 == pPacket)
-							break;
+						if (pPacket1 == pPacket || pCurrPacket == pPacket1)
+							continue;
 						
 						// 期间的包内容全部加入
 						pMemoryStream->append(pPacket1->data() + pPacket1->rpos(), pPacket1->length());
@@ -486,7 +490,7 @@ bool Bundle::revokeMessage(int32 size)
 {
 	if(pCurrPacket_)
 	{
-		if(size >= pCurrPacket_->wpos())
+		if(size >= (int32)pCurrPacket_->wpos())
 		{
 			size -= pCurrPacket_->wpos();
 			RECLAIM_PACKET(isTCPPacket_, pCurrPacket_);

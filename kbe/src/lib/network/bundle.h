@@ -144,6 +144,8 @@ public:
 
 	Packet* newPacket();
 	
+	INLINE void pChannel(Channel* p);
+	
 	INLINE MessageID messageID() const;
 	INLINE int32 numMessages() const;
 

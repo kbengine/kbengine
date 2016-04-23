@@ -496,6 +496,7 @@ void Channel::send(Bundle * pBundle)
 
 	if(pBundle)
 	{
+		pBundle->pChannel(this);
 		pBundle->finiMessage(true);
 		bundles_.push_back(pBundle);
 	}
@@ -818,6 +819,7 @@ Bundle* Channel::createSendBundle()
 		{
 			// 先从队列删除
 			bundles_.pop_back();
+			pBundle->pChannel(this);
 			return pBundle;
 		}
 	}
