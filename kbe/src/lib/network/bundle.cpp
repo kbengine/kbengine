@@ -435,8 +435,12 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 				++idx;
 
 				Network::Packet* pPacket = (*packiter);
-				
-				// 如果所有内容都在当前包中
+
+				// 当前包可能已经计算过
+				if (pCurrPacket == pPacket)
+					continue;
+
+				// 如果所有内容都在包中
 				if((int)pPacket->length() >= msglen)
 				{
 					int wpos = pPacket->length() - msglen;
@@ -447,7 +451,7 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 						Network::Packet* pPacket1 = packets[i];
 						
 						// 这个包已经在上面处理过了
-						if(pPacket1 == pPacket)
+						if (pPacket1 == pPacket || pCurrPacket == pPacket)
 							continue;
 						
 						// 期间的包内容全部加入
