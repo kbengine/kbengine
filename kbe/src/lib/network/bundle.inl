@@ -101,6 +101,11 @@ INLINE int32 Bundle::numMessages() const
 	return numMessages_; 
 }
 
+INLINE Channel* Bundle::pChannel(Channel* p)
+{
+	pChannel_= p;
+}
+
 INLINE void Bundle::finiCurrPacket()
 { 
 	if(!pCurrPacket_)
