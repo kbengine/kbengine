@@ -791,7 +791,7 @@ bool Witness::update()
 				// 如果大于8说明bundle是channel缓存的包
 				// 取出来重复利用的如果想丢弃本次消息发送
 				// 此时应该将NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START从其中抹除掉
-				if(old_packetsLength != 8)
+				if(old_packetsLength > 8)
 				{
 					pSendBundle->revokeMessage(8);
 					pChannel->pushBundle(pSendBundle);
