@@ -112,6 +112,10 @@ namespace KBEngine {
 				(uint8*)&msgLen, NETWORK_MESSAGE_LENGTH_SIZE);																			\
 		}																																\
 	}																																	\
+																																		\
+	if (Network::g_trace_packet > 0)																									\
+		Network::Bundle::debugCurrentMessages(MESSAGEHANDLE.msgID, &MESSAGEHANDLE, 														\
+				pCurrPacket, SENDBUNDLE->packets(), messageLength, NULL);																\
 }																																		\
 
 // cellapp转发消息给客户端消息包追加消息(直接在SENDBUNDLE追加)
