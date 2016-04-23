@@ -101,7 +101,7 @@ INLINE int32 Bundle::numMessages() const
 	return numMessages_; 
 }
 
-INLINE Channel* Bundle::pChannel(Channel* p)
+INLINE void Bundle::pChannel(Channel* p)
 {
 	pChannel_= p;
 }
