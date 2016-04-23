@@ -820,6 +820,10 @@ Bundle* Channel::createSendBundle()
 			// 先从队列删除
 			bundles_.pop_back();
 			pBundle->pChannel(this);
+			pBundle->pCurrMsgHandler(NULL);
+			pBundle->currMsgPacketCount(0);
+			pBundle->currMsgLength(0);
+			pBundle->currMsgLengthPos(0);
 			return pBundle;
 		}
 	}
