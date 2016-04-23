@@ -451,7 +451,7 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 						Network::Packet* pPacket1 = packets[i];
 						
 						// 这个包已经在上面处理过了
-						if (pPacket1 == pPacket || pCurrPacket == pPacket)
+						if (pPacket1 == pPacket || pCurrPacket == pPacket1)
 							continue;
 						
 						// 期间的包内容全部加入
