@@ -115,7 +115,7 @@ namespace KBEngine {
 																																		\
 	if (Network::g_trace_packet > 0)																									\
 		Network::Bundle::debugCurrentMessages(MESSAGEHANDLE.msgID, &MESSAGEHANDLE, 														\
-				pCurrPacket, SENDBUNDLE->packets(), messageLength, NULL);																\
+				pCurrPacket, SENDBUNDLE->packets(), messageLength, SENDBUNDLE->pChannel());												\
 }																																		\
 
 // cellapp转发消息给客户端消息包追加消息(直接在SENDBUNDLE追加)
@@ -126,7 +126,7 @@ namespace KBEngine {
 	Network::Packet* pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																\
 	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE)																				\
 	{																																	\
-		if(SENDBUNDLE->packetMaxSize() - pCurrPacket_##ACTIONNAME->wpos() < NETWORK_MESSAGE_LENGTH_SIZE)								\
+		if(SENDBUNDLE->packetMaxSize() - pCurrPacket_##ACTIONNAME->wpos() - 1 < NETWORK_MESSAGE_LENGTH_SIZE)								\
 		{																																\
 			SENDBUNDLE->finiCurrPacket();																								\
 			SENDBUNDLE->newPacket();																									\

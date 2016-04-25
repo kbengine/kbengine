@@ -145,8 +145,11 @@ public:
 	Packet* newPacket();
 	
 	INLINE void pChannel(Channel* p);
+	INLINE Channel* pChannel();
 	
 	INLINE MessageID messageID() const;
+	INLINE void messageID(MessageID id);
+	
 	INLINE int32 numMessages() const;
 
 	INLINE void currMsgPacketCount(uint32 v);

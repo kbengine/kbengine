@@ -3116,7 +3116,6 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 
 		if(pMessageHandler)
 		{
-			(*pSendBundle).pCurrMsgHandler(pMessageHandler);
 			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),
 													Network::g_trace_packet_disables.end(),
 														pMessageHandler->name);
@@ -3190,7 +3189,6 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 
 		if(pMessageHandler)
 		{
-			(*pSendBundle).pCurrMsgHandler(pMessageHandler);
 			std::vector<std::string>::iterator iter = std::find(Network::g_trace_packet_disables.begin(),
 													Network::g_trace_packet_disables.end(),
 														pMessageHandler->name);

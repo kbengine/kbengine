@@ -50,7 +50,11 @@ INLINE MessageLength Bundle::currMsgLength() const
 INLINE void Bundle::pCurrMsgHandler(const Network::MessageHandler* pMsgHandler)
 { 
 	pCurrMsgHandler_ = pMsgHandler; 
-	currMsgID_ = pMsgHandler->msgID;
+	
+	if(pCurrMsgHandler_)
+		currMsgID_ = pMsgHandler->msgID;
+	else
+		currMsgID_ = 0;
 }
 
 INLINE const Network::MessageHandler* Bundle::pCurrMsgHandler() const
@@ -76,6 +80,11 @@ INLINE void Bundle::pCurrPacket(Packet* p)
 INLINE MessageID Bundle::messageID() const 
 { 
 	return currMsgID_; 
+}
+
+INLINE void Bundle::messageID(MessageID id)
+{
+	currMsgID_ = 0;
 }
 
 INLINE int32 Bundle::packetMaxSize() const
@@ -104,6 +113,11 @@ INLINE int32 Bundle::numMessages() const
 INLINE void Bundle::pChannel(Channel* p)
 {
 	pChannel_= p;
+}
+
+INLINE Channel* Bundle::pChannel()
+{
+	return pChannel_;
 }
 
 INLINE void Bundle::finiCurrPacket()
