@@ -417,7 +417,7 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 	if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
 	{
 		currMsgLength += NETWORK_MESSAGE_LENGTH_SIZE;
-		if (currMsgLength >= NETWORK_MESSAGE_MAX_SIZE)
+		if (currMsgLength - NETWORK_MESSAGE_ID_SIZE - NETWORK_MESSAGE_LENGTH_SIZE >= NETWORK_MESSAGE_MAX_SIZE)
 			currMsgLength += NETWORK_MESSAGE_LENGTH1_SIZE;
 	}
 	
@@ -488,7 +488,7 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 	KBE_ASSERT(currMsgLength == pMemoryStream->length());
 	
 	TRACE_MESSAGE_PACKET(false, pMemoryStream, pCurrMsgHandler, pMemoryStream->length(),
-		(pChannel != NULL ? pChannel->c_str() : "None"));
+		(pChannel != NULL ? pChannel->c_str() : "None"), false);
 					
 	MemoryStream::reclaimPoolObject(pMemoryStream);
 }
