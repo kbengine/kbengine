@@ -61,31 +61,8 @@ namespace KBEngine {
 
 #define ENTITY_MESSAGE_FORWARD_CLIENT_END(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
 {																																		\
-	size_t messageLength = 0;																											\
+	size_t messageLength = SENDBUNDLE->currMsgLength() - messageLength_last_##ACTIONNAME;												\
 	Network::Packet* pCurrPacket = SENDBUNDLE->pCurrPacket();																			\
-																																		\
-	if(pCurrPacket == pCurrPacket_##ACTIONNAME)																							\
-	{																																	\
-		messageLength += pCurrPacket->length() - currMsgLengthPos_##ACTIONNAME - NETWORK_MESSAGE_LENGTH_SIZE;							\
-	}																																	\
-	else																																\
-	{																																	\
-		messageLength += pCurrPacket->length();																							\
-		Network::Bundle::Packets& packets = SENDBUNDLE->packets();																		\
-		Network::Bundle::Packets::reverse_iterator packiter = packets.rbegin();															\
-		for (; packiter != packets.rend(); ++packiter)																					\
-		{																																\
-			Network::Packet* pPacket = (*packiter);																						\
-																																		\
-			if(pCurrPacket_##ACTIONNAME == pPacket)																						\
-			{																															\
-				messageLength += pPacket->length() - currMsgLengthPos_##ACTIONNAME - NETWORK_MESSAGE_LENGTH_SIZE;						\
-				break;																													\
-			}																															\
-																																		\
-			messageLength += pPacket->length();																							\
-		}																																\
-	}																																	\
 																																		\
 	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE || Network::g_packetAlwaysContainLength)										\
 	{																																	\
@@ -136,7 +113,9 @@ namespace KBEngine {
 		Network::MessageLength msglen = 0;																								\
 		currMsgLengthPos_##ACTIONNAME = pCurrPacket_##ACTIONNAME->wpos();																\
 		(*SENDBUNDLE) << msglen;																										\
-	}
+	}																																		\
+																																			\
+	size_t messageLength_last_##ACTIONNAME = SENDBUNDLE->currMsgLength();															\
 
 
 // 公共消息
