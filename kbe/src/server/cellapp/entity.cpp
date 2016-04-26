@@ -622,7 +622,6 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				pSendBundle->currMsgLength());
 		}
 
-		
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 
 		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);
