@@ -681,9 +681,15 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
 				
 				if(ialiasID != -1)
+				{
+					KBE_ASSERT(msgHandler.msgID == ClientInterface::onUpdatePropertysOptimized.msgID);
 					(*pSendBundle)  << (uint8)ialiasID;
+				}
 				else
+				{
+					KBE_ASSERT(msgHandler.msgID == ClientInterface::onUpdatePropertys.msgID);
 					(*pSendBundle)  << id();
+				}
 				
 				if(pScriptModule_->usePropertyDescrAlias())
 					(*pSendBundle) << propertyDescription->aliasIDAsUint8();
@@ -790,7 +796,6 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				pSendBundle->currMsgLength());
 		}
 
-		
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 
 		pWitness_->sendToClient(ClientInterface::onUpdatePropertys, pSendBundle);

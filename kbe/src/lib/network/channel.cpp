@@ -782,7 +782,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 	}catch(MemoryStreamException &)
 	{
 		Network::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
-		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=(name={}, id={}, len={}), currMsgLen={}\n",
+		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=({}, id={}, len={}), currMsgLen={}\n",
 			this->c_str()
 			, (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
 			, pPacketReader_->currMsgID() 
