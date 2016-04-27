@@ -42,7 +42,7 @@ INLINE void Bundle::currMsgLength(MessageLength1 v)
 	currMsgLength_ = v;
 }
 
-INLINE MessageLength Bundle::currMsgLength() const 
+INLINE MessageLength1 Bundle::currMsgLength() const 
 { 
 	return currMsgLength_; 
 }

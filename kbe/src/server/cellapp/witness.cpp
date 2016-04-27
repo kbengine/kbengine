@@ -669,137 +669,132 @@ bool Witness::update()
 	Network::Channel* pChannel = pEntity_->clientMailbox()->getChannel();
 	if(!pChannel)
 		return true;
-	
-	// 获取每帧剩余可写大小， 将优先更新的内容写入， 剩余的内容往下一个周期递推
-	int remainPacketSize = PACKET_MAX_SIZE_TCP - pChannel->bundlesLength();
-	
-	if(remainPacketSize > 0)
+
+	if (aoiEntities_map_.size() > 0)
 	{
-		if (aoiEntities_map_.size() > 0)
+		Network::Bundle* pSendBundle = pChannel->createSendBundle();
+		
+		// 得到当前pSendBundle中是否有数据，如果有数据表示该bundle是重用的缓存的数据包
+		bool isBufferedSendBundleMessageLength = pSendBundle->packets().size() > 0 ? true : 
+			(pSendBundle->pCurrPacket() && pSendBundle->pCurrPacket()->length() > 0);
+		
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
+		addBasePosToStream(pSendBundle);
+
+		AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+		for(; iter != aoiEntities_.end(); )
 		{
-			Network::Bundle* pSendBundle = pChannel->createSendBundle();
-			int32 old_packetsLength = pSendBundle->packetsLength(true);
+			EntityRef* pEntityRef = (*iter);
 			
-			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
-			addBasePosToStream(pSendBundle);
-
-			AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-			for(; iter != aoiEntities_.end(); )
+			if((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
 			{
-				if(remainPacketSize <= 0)
-					break;
-				
-				EntityRef* pEntityRef = (*iter);
-				
-				if((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
+				// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
+				Entity* otherEntity = Cellapp::getSingleton().findEntity(pEntityRef->id());
+				if(otherEntity == NULL)
 				{
-					// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
-					Entity* otherEntity = Cellapp::getSingleton().findEntity(pEntityRef->id());
-					if(otherEntity == NULL)
-					{
-						pEntityRef->pEntity(NULL);
-						_onLeaveAOI(pEntityRef);
-						aoiEntities_map_.erase(pEntityRef->id());
-						EntityRef::reclaimPoolObject(pEntityRef);
-						iter = aoiEntities_.erase(iter);
-						updateEntitiesAliasID();
-						continue;
-					}
-					
-					pEntityRef->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
-
-					MemoryStream* s1 = MemoryStream::createPoolObject();
-					otherEntity->addPositionAndDirectionToStream(*s1, true);			
-					otherEntity->addClientDataToStream(s1, true);
-					
-					ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
-					(*pSendBundle) << otherEntity->id();
-					(*pSendBundle).append(*s1);
-					MemoryStream::reclaimPoolObject(s1);
-					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
-					
-					ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
-					(*pSendBundle) << otherEntity->id();
-					otherEntity->pScriptModule()->addSmartUTypeToBundle(pSendBundle);
-					if(!otherEntity->isOnGround())
-						(*pSendBundle) << otherEntity->isOnGround();
-
-					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
-
-					pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
-
-					KBE_ASSERT(clientAOISize_ != 65535);
-
-					++clientAOISize_;
-				}
-				else if((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
-				{
-					pEntityRef->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
-
-					if((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
-					{
-						ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
-						_addAOIEntityIDToBundle(pSendBundle, pEntityRef);
-						ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
-						
-						KBE_ASSERT(clientAOISize_ > 0);
-						--clientAOISize_;
-					}
-
+					pEntityRef->pEntity(NULL);
+					_onLeaveAOI(pEntityRef);
 					aoiEntities_map_.erase(pEntityRef->id());
 					EntityRef::reclaimPoolObject(pEntityRef);
 					iter = aoiEntities_.erase(iter);
 					updateEntitiesAliasID();
 					continue;
 				}
-				else
-				{
-					Entity* otherEntity = pEntityRef->pEntity();
-					if(otherEntity == NULL)
-					{
-						aoiEntities_map_.erase(pEntityRef->id());
-						EntityRef::reclaimPoolObject(pEntityRef);
-						iter = aoiEntities_.erase(iter);
-						KBE_ASSERT(clientAOISize_ > 0);
-						--clientAOISize_;
-						updateEntitiesAliasID();
-						continue;
-					}
-					
-					KBE_ASSERT(pEntityRef->flags() == ENTITYREF_FLAG_NORMAL);
-					
-					addUpdateToStream(pSendBundle, getEntityVolatileDataUpdateFlags(otherEntity), pEntityRef);
-				}
+				
+				pEntityRef->removeflags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 
-				++iter;
+				MemoryStream* s1 = MemoryStream::createPoolObject();
+				otherEntity->addPositionAndDirectionToStream(*s1, true);			
+				otherEntity->addClientDataToStream(s1, true);
+				
+				ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+				(*pSendBundle) << otherEntity->id();
+				(*pSendBundle).append(*s1);
+				MemoryStream::reclaimPoolObject(s1);
+				ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+				
+				ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
+				(*pSendBundle) << otherEntity->id();
+				otherEntity->pScriptModule()->addSmartUTypeToBundle(pSendBundle);
+				if(!otherEntity->isOnGround())
+					(*pSendBundle) << otherEntity->isOnGround();
+
+				ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
+
+				pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
+
+				KBE_ASSERT(clientAOISize_ != 65535);
+
+				++clientAOISize_;
 			}
-
-			int32 packetsLength = pSendBundle->packetsLength() - old_packetsLength;
-			if(packetsLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
+			else if((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 			{
-				if(packetsLength > PACKET_MAX_SIZE_TCP)
+				pEntityRef->removeflags(ENTITYREF_FLAG_LEAVE_CLIENT_PENDING);
+
+				if((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
 				{
-					WARNING_MSG(fmt::format("Witness::update({}): sendToClient {} Bytes.\n", 
-						pEntity_->id(), packetsLength));
+					ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
+					_addAOIEntityIDToBundle(pSendBundle, pEntityRef);
+					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
+					
+					KBE_ASSERT(clientAOISize_ > 0);
+					--clientAOISize_;
 				}
 
-				AUTO_SCOPED_PROFILE("sendToClient");
-				pChannel->send(pSendBundle);
+				aoiEntities_map_.erase(pEntityRef->id());
+				EntityRef::reclaimPoolObject(pEntityRef);
+				iter = aoiEntities_.erase(iter);
+				updateEntitiesAliasID();
+				continue;
 			}
 			else
 			{
-				// 如果大于8说明bundle是channel缓存的包
-				// 取出来重复利用的如果想丢弃本次消息发送
-				// 此时应该将NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START从其中抹除掉
-				if(old_packetsLength > 8)
+				Entity* otherEntity = pEntityRef->pEntity();
+				if(otherEntity == NULL)
 				{
-					pSendBundle->revokeMessage(8);
-					pChannel->pushBundle(pSendBundle);
+					aoiEntities_map_.erase(pEntityRef->id());
+					EntityRef::reclaimPoolObject(pEntityRef);
+					iter = aoiEntities_.erase(iter);
+					KBE_ASSERT(clientAOISize_ > 0);
+					--clientAOISize_;
+					updateEntitiesAliasID();
+					continue;
 				}
-				else
-				{
-					Network::Bundle::reclaimPoolObject(pSendBundle);
-				}
+				
+				KBE_ASSERT(pEntityRef->flags() == ENTITYREF_FLAG_NORMAL);
+				
+				addUpdateToStream(pSendBundle, getEntityVolatileDataUpdateFlags(otherEntity), pEntityRef);
+			}
+
+			++iter;
+		}
+
+		size_t pSendBundleMessageLength = pSendBundle->currMsgLength();
+		if (pSendBundleMessageLength > 8/*NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START产生的基础包大小*/)
+		{
+			if(pSendBundleMessageLength > PACKET_MAX_SIZE_TCP)
+			{
+				WARNING_MSG(fmt::format("Witness::update({}): sendToClient {} Bytes.\n", 
+					pEntity_->id(), pSendBundleMessageLength));
+			}
+
+			AUTO_SCOPED_PROFILE("sendToClient");
+			pChannel->send(pSendBundle);
+		}
+		else
+		{
+			// 如果bundle是channel缓存的包
+			// 取出来重复利用的如果想丢弃本次消息发送
+			// 此时应该将NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START从其中抹除掉
+			if(isBufferedSendBundleMessageLength)
+			{
+				KBE_ASSERT(pSendBundleMessageLength == 8);
+				pSendBundle->revokeMessage(8);
+				pChannel->pushBundle(pSendBundle);
+			}
+			else
+			{
+				Network::Bundle::reclaimPoolObject(pSendBundle);
 			}
 		}
 	}

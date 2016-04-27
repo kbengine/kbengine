@@ -156,7 +156,7 @@ public:
 	INLINE uint32 currMsgPacketCount() const;
 
 	INLINE void currMsgLength(MessageLength1 v);
-	INLINE MessageLength currMsgLength() const;
+	INLINE MessageLength1 currMsgLength() const;
 
 	INLINE void currMsgLengthPos(size_t v);
 	INLINE size_t currMsgLengthPos() const;
