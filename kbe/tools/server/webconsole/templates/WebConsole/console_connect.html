@@ -1,0 +1,169 @@
+{% extends "WebConsole/base.html" %}
+  
+  {% block content %}</p>
+<div class="container-win row placeholders">
+  <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
+  <div id="output_block_area">
+  </div>
+  <br>
+  <div id="input-block">
+      <input class="form-control" type="text" name="textfield" id="input_cmd_line">
+      <textarea name="textarea" rows="10" class="form-control sr-only" id="input_cmd_area"></textarea>
+  </div>
+  <br>
+  <div id="execute-block">
+      <input name="component_ip" type="hidden" id="component_ip" value="{{ request.GET.ip }}">
+    <input name="component_port" type="hidden" id="component_port" value="{{ request.GET.port }}">
+    <input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url }}">
+<input class="btn btn-default" type="button" name="exec" value="执行" id="exec" onClick="execute_cmd()">
+    <label class="control-label">
+    <input name="isMultiline" type="checkbox" class="" id="mutiline" onClick="console_input_toggle();">
+    多行输入
+    </label>
+  </div>
+</div>
+ {% endblock %}
+
+{% block tail_js %}
+<script>
+
+$(document).ready(function() {
+    console_input_toggle();
+    connect_to();
+ });
+
+$(window).resize(function(e) {
+    console_input_toggle();
+});
+
+function console_input_toggle()
+{
+	var ismutiline = $("#mutiline").is(':checked');
+
+	var elem1 = $("#input_cmd_line");
+	var elem2 = $("#input_cmd_area");
+
+	if (!ismutiline) {
+        elem1.removeClass("sr-only");
+        elem2.addClass("sr-only");
+	} else {
+        elem1.addClass("sr-only");
+        elem2.removeClass("sr-only");
+	}
+
+    calcConsoleHeight();
+}
+
+function calcConsoleHeight()
+{
+    var cnt = $("#output_block_area");
+    var h = $("body nav").outerHeight() + 150 + $("#execute-block").outerHeight() + $("#server-title").outerHeight();
+    if ($("#mutiline").is(':checked'))
+        h += $("#input_cmd_area").height();
+    else
+        h += $("#input_cmd_line").height();
+    var wh = $(window).height();
+
+    cnt.height( wh - h );
+}
+
+function execute_cmd()
+{
+    if ($.data.connect_closed)
+    {
+        alert("连接已关闭，请重新连接！！！");
+        return;
+    }
+    
+    var host = $("#component_ip").val();
+    var port = $("#component_port").val();
+    var cmd = "";
+    
+    if ($("#mutiline").is(':checked'))
+        cmd = $("#input_cmd_area").val();
+    else
+        cmd = $("#input_cmd_line").val();
+    
+    cmd = cmd.replace("\r\n", "\n");
+    lastIdx = cmd.length - 1;
+    while (cmd[lastIdx] == "\n")
+    {
+        cmd = cmd.slice(0, -1)
+    }
+    if (cmd.length == 0)
+        return;
+        
+    cmd += "\r\n";
+    
+    window.kbe_socket.send( cmd );
+    show_cmd( cmd );
+}
+
+function connect_to()
+{
+    var socket = new WebSocket($("#ws_url").val());
+    socket.onopen = function(evt) { 
+        $('#output_block_area').append("<p> 连接成功！欢迎使用WebConsole python 控制台。 </p>");
+    }; 
+    socket.onclose = function(evt) { 
+        $('#output_block_area').append("<p> 连接已关闭，请重新连接！！！ </p>");
+        $.data.connect_closed = true;
+    }; 
+    socket.onmessage = function(evt) { 
+        //$('#output_block_area').append('<span>' + evt.data + '</span> <br>');
+        show_result( evt.data, false );
+    }; 
+    socket.onerror = function(evt) { 
+        //alert("websocket onerror: " + evt);
+        $('#output_block_area').append("<p> 连接python 控制台失败！！！请刷新重试。 </p>");
+    }; 
+    window.kbe_socket = socket;
+    $.data.connect_closed = false;
+}
+
+function show_result(data, ignoreBlankLine)
+{
+    var ds = data.replace("\r\n", "\n");
+    ds = ds.replace("[9999999999D", "");
+    ds = ds.replace("[23C", "");
+    ds = ds.split("\n");
+    var em = $.data.lastEM;
+    for (var i = 0; i < ds.length; i++)
+    {
+        var d = ds[i];
+        if (ignoreBlankLine && d.length == 0)
+            continue;
+        if ($.data.lastEM)
+        {
+            em.text(em.text() + d);
+            $.data.lastEM = null;
+        }
+        else
+        {
+            em = $('<span>' + d + '</span>');
+            $('#output_block_area').append(em);
+            $('#output_block_area').append('<br>');
+        }
+    }
+    if (data[data.length - 1] != "\n")
+        $.data.lastEM = em;
+     $('#output_block_area').scrollTop( $('#output_block_area').height());
+}
+
+function show_cmd(data)
+{
+    var ds = data.replace("\r\n", "\n").split("\n");
+    
+    show_result(ds[0] + "\n", true);
+    for (var i = 1; i < ds.length; i++)
+    {
+        var d = ds[i];
+        if (d.length == 0)
+            continue;
+        show_result("... " + ds[i] + "\n", true);
+    }
+}
+
+</script>
+    
+{% endblock %}

@@ -109,3 +109,15 @@ body {
 .machines-all-block {
     width: 600px;
 }
+
+
+
+#output_block_area {
+	display: block;
+	border: 1px solid #999999;
+	background-color: #f6f0f0;
+	margin-top: .3em;
+	overflow: auto;
+}
+
+

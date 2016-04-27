@@ -38,5 +38,9 @@ urlpatterns = [
     url(r'^components/load_layout$', views.components_load_layout, name = "components_load_layout" ),
    
     url(r'^machines/show_all$', views.machines_show_all, name = "machines_show_all" ),
+
+    url(r'^console/show_components$', views.console_show_components, name = "console_show_components" ),
+    url(r'^console/connect$', views.console_connect, name = "console_connect" ),
+    url(r'^console/process_cmd$', views.console_process_cmd, name = "console_process_cmd" ),
    
 ]
