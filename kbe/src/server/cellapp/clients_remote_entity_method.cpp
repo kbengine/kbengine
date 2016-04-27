@@ -170,10 +170,16 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
 			
 			if(ialiasID != -1)
+			{
+				KBE_ASSERT(msgHandler.msgID == ClientInterface::onRemoteMethodCallOptimized.msgID);
 				(*pSendBundle)  << (uint8)ialiasID;
+			}
 			else
+			{
+				KBE_ASSERT(msgHandler.msgID == ClientInterface::onRemoteMethodCall.msgID);
 				(*pSendBundle)  << pEntity->id();
-		
+			}
+				
 			if(mstream->wpos() > 0)
 				(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
 
