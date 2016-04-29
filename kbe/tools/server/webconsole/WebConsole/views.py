@@ -435,10 +435,14 @@ def console_process_cmd( request ):
 			rl, wl, xl = select.select(rlist, [], [], 0.1)
 			if tlfd in rl:
 				data = telnet.read_some()
+				if not data:
+					break # socket closed
 				request.websocket.send( data )
 
 			if wsfd in rl:
 				data = request.websocket.read()
+				if data is None:
+					break # socket closed
 				if len(data) == 0:
 					continue
 				if data == ":quit":
