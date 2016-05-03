@@ -425,6 +425,7 @@ void Witness::resetAOIEntities()
 			aoiEntities_map_.erase((*iter)->id());
 			EntityRef::reclaimPoolObject((*iter));
 			iter = aoiEntities_.erase(iter);
+			updateEntitiesAliasID();
 			continue;
 		}
 
@@ -592,7 +593,7 @@ const Network::MessageHandler& Witness::getAOIEntityMessageHandler(const Network
 	}
 	else
 	{
-		if (aoiEntities_map_.size() > 255)
+		if (clientAOISize_ > 255)
 		{
 			return normalMsgHandler;
 		}
@@ -634,7 +635,7 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 	aliasID = pEntityRef->aliasID();
 
 	// Òç³ö
-	if (aliasID >= 255)
+	if (aliasID > 255)
 	{
 		aliasID = 0;
 		return false;
@@ -650,9 +651,6 @@ void Witness::updateEntitiesAliasID()
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
 	{
-		if(n >= 255)
-			break;
-		
 		EntityRef* pEntityRef = (*iter);
 		pEntityRef->aliasID(n++);
 	}
