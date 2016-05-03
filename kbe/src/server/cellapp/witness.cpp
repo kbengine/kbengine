@@ -572,7 +572,8 @@ void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnti
 		{
 			if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) > 0)
 			{
-				(*pBundle) << pEntityRef->aliasID();
+				KBE_ASSERT(pEntityRef->aliasID() <= 255);
+				(*pBundle) << (uint8)pEntityRef->aliasID();
 			}
 			else
 			{
@@ -632,15 +633,14 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 		return false;
 	}
 
-	aliasID = pEntityRef->aliasID();
-
 	// Òç³ö
-	if (aliasID > 255)
+	if (pEntityRef->aliasID() > 255)
 	{
 		aliasID = 0;
 		return false;
 	}
- 
+	
+	aliasID = (uint8)pEntityRef->aliasID();
 	return true;
 }
 
@@ -653,6 +653,9 @@ void Witness::updateEntitiesAliasID()
 	{
 		EntityRef* pEntityRef = (*iter);
 		pEntityRef->aliasID(n++);
+		
+		if(n >= 255)
+			break;
 	}
 }
 
