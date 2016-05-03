@@ -96,7 +96,6 @@ namespace KBEngine {
 }																																		\
 
 // cellapp转发消息给客户端消息包追加消息(直接在SENDBUNDLE追加)
-// 如果上一个消息不是BaseappInterface::forwardMessageToClientFromCellapp则代表已追加过消息，需要对消息设置结束状态
 #define ENTITY_MESSAGE_FORWARD_CLIENT_START(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
 	(*SENDBUNDLE) << MESSAGEHANDLE.msgID;																								\
 	size_t currMsgLengthPos_##ACTIONNAME = 0;																							\

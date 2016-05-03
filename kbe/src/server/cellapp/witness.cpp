@@ -425,6 +425,7 @@ void Witness::resetAOIEntities()
 			aoiEntities_map_.erase((*iter)->id());
 			EntityRef::reclaimPoolObject((*iter));
 			iter = aoiEntities_.erase(iter);
+			updateEntitiesAliasID();
 			continue;
 		}
 
@@ -571,7 +572,8 @@ void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnti
 		{
 			if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) > 0)
 			{
-				(*pBundle) << pEntityRef->aliasID();
+				KBE_ASSERT(pEntityRef->aliasID() <= 255);
+				(*pBundle) << (uint8)pEntityRef->aliasID();
 			}
 			else
 			{
@@ -592,7 +594,7 @@ const Network::MessageHandler& Witness::getAOIEntityMessageHandler(const Network
 	}
 	else
 	{
-		if (aoiEntities_map_.size() > 255)
+		if (clientAOISize_ > 255)
 		{
 			return normalMsgHandler;
 		}
@@ -631,15 +633,14 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 		return false;
 	}
 
-	aliasID = pEntityRef->aliasID();
-
 	// Òç³ö
-	if (aliasID >= 255)
+	if (pEntityRef->aliasID() > 255)
 	{
 		aliasID = 0;
 		return false;
 	}
- 
+	
+	aliasID = (uint8)pEntityRef->aliasID();
 	return true;
 }
 
@@ -650,11 +651,11 @@ void Witness::updateEntitiesAliasID()
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
 	{
-		if(n >= 255)
-			break;
-		
 		EntityRef* pEntityRef = (*iter);
 		pEntityRef->aliasID(n++);
+		
+		if(n >= 255)
+			break;
 	}
 }
 

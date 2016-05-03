@@ -69,15 +69,15 @@ public:
 
 	ENTITY_ID id() const{ return id_; }
 
-	uint8 aliasID() const{ return aliasID_; }
-	void aliasID(uint8 id) { aliasID_ = id; }
+	int aliasID() const{ return aliasID_; }
+	void aliasID(int id) { aliasID_ = id; }
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 
 private:
 	ENTITY_ID id_;
-	uint8 aliasID_;
+	int aliasID_;
 	Entity* pEntity_;
 	uint32 flags_;
 };
