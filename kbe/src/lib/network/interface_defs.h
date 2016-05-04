@@ -6142,7 +6142,7 @@ namespace Network
 			strArgsTypes.push_back(#ARG_TYPE24);					\
 			strArgsTypes.push_back(#ARG_TYPE25);					\
 		}															\
-		NAME##Args24(ARG_TYPE1 init_##ARG_NAME1, 					\
+		NAME##Args25(ARG_TYPE1 init_##ARG_NAME1, 					\
 		ARG_TYPE2 init_##ARG_NAME2,									\
 		ARG_TYPE3 init_##ARG_NAME3,									\
 		ARG_TYPE4 init_##ARG_NAME4,									\
@@ -6353,7 +6353,7 @@ namespace Network
 					sizeof(ARG_TYPE21) +							\
 					sizeof(ARG_TYPE22) +							\
 					sizeof(ARG_TYPE23) +							\
-					sizeof(ARG_TYPE24) +;							\
+					sizeof(ARG_TYPE24) +							\
 					sizeof(ARG_TYPE25);								\
 		}															\
 		virtual void addToStream(MemoryStream& s)					\
