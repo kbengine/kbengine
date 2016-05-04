@@ -25,7 +25,12 @@
  {% endblock %}
 
 {% block tail_js %}
+<script>$(".py-coupling").addClass("active");</script>
 <script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .pyconsole .dd").show();
+  $(".kbe-list .pyconsole").css({"background-color":"#317eb4"});
+  $(".kbe-list .pyconsole").find('li').addClass("menu_chioce");
 
 $(document).ready(function() {
     console_input_toggle();

@@ -60,7 +60,13 @@
 {% endblock %}
 
 {% block tail_js %}
+<script>$(".components-manage").addClass("active");</script>
+
 <script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
     function saveLayouts()
     {
         layer.prompt({
@@ -96,6 +102,8 @@
         window.location.href='/wc/components/shutdown';
         layer.load(2);
     }
+
+
 </script>
     
 {% endblock %}

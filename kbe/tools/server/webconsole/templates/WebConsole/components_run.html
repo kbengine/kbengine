@@ -77,6 +77,11 @@
 
 {% block tail_js %}
 <script>
+  $(".components-manage").addClass("active");
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
     function run_components()
     {
         $("#form1").submit();

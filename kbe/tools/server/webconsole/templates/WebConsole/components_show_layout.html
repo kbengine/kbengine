@@ -45,7 +45,12 @@
 {% endblock %}
 
 {% block tail_js %}
+<script>$(".config").addClass("active");</script>
 <script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
     function load_layout(layoutID)
     {
         window.location.href='/wc/components/load_layout?id=' + layoutID;
