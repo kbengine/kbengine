@@ -97,11 +97,18 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 		if((!otherClients_ && (pEntity->pWitness() || (pEntity->clientMailbox()))))
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-			pEntity->clientMailbox()->newMail((*pBundle));
+			Network::Bundle* pSendBundle = NULL;
+			Network::Channel* pChannel = pEntity->clientMailbox()->getChannel();
+
+			if (!pChannel)
+				pSendBundle = Network::Bundle::createPoolObject();
+			else
+				pSendBundle = pEntity->clientMailbox()->getChannel()->createSendBundle();
+
+			pEntity->clientMailbox()->newMail((*pSendBundle));
 
 			if(mstream->wpos() > 0)
-				(*pBundle).append(mstream->data(), (int)mstream->wpos());
+				(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
 
 			if(Network::g_trace_packet > 0)
 			{
@@ -128,16 +135,16 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
 			}
 
-			//mailbox->postMail((*pBundle));
-			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
-
 			// 记录这个事件产生的数据量大小
-			g_publicClientEventHistoryStats.trackEvent(pEntity->scriptName(), 
-				methodDescription->getName(), 
-				pBundle->currMsgLength(), 
+			g_publicClientEventHistoryStats.trackEvent(pEntity->scriptName(),
+				methodDescription->getName(),
+				pSendBundle->currMsgLength(),
 				"::");
+
+			//mailbox->postMail((*pBundle));
+			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pSendBundle);
 		}
-		
+
 		// 广播给其他人
 		std::list<ENTITY_ID>::const_iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
@@ -168,7 +175,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 					ClientInterface::onRemoteMethodCallOptimized, pEntity->id(), ialiasID);
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
-			
+
 			if(ialiasID != -1)
 			{
 				KBE_ASSERT(msgHandler.msgID == ClientInterface::onRemoteMethodCallOptimized.msgID);
@@ -179,7 +186,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				KBE_ASSERT(msgHandler.msgID == ClientInterface::onRemoteMethodCall.msgID);
 				(*pSendBundle)  << pEntity->id();
 			}
-				
+
 			if(mstream->wpos() > 0)
 				(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
 
@@ -204,19 +211,18 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 					break;
 				};
 
-				if(Network::g_trace_packet_use_logfile)	
+				if(Network::g_trace_packet_use_logfile)
 					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
 			}
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, aOIEntityMessage);
-			
+
 			// 记录这个事件产生的数据量大小
 			g_publicClientEventHistoryStats.trackEvent(pAoiEntity->scriptName(), 
 				methodDescription->getName(), 
 				pSendBundle->currMsgLength(), 
 				"::");
-			
-			//mailbox->postMail((*pBundle));
+
 			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 		}
 
