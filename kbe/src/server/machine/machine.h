@@ -67,9 +67,8 @@ public:
 	*/
 	void onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username, 
 							COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ID componentIDEx, 
-							COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
-							uint32 intaddr, uint16 intport,
-							uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
+							COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid, COMPONENT_GUS gus,
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 							float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
 							uint64 extradata1, uint64 extradata2, uint64 extradata3, uint32 backRecvAddr, uint16 backRecvPort);
 	

@@ -375,7 +375,7 @@ void ServerApp::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Components::getSingleton().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, extaddrEx, 0,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, 0, intaddr, intport, extaddr, extport, extaddrEx, 0,
 			0.f, 0.f, 0, 0, 0, 0, 0, pChannel);
 	}
 	else

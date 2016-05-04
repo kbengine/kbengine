@@ -79,9 +79,8 @@ Machine::~Machine()
 //-------------------------------------------------------------------------------------
 void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username,
 								   COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ID componentIDEx, 
-								   COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
-									uint32 intaddr, uint16 intport,
-									uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
+								   COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid, COMPONENT_GUS gus,
+									uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
 									uint64 extradata1, uint64 extradata2, uint64 extradata3, uint32 backRecvAddr, uint16 backRecvPort)
 {
@@ -94,8 +93,8 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		{
 			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
-			MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid,
-				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, 
+			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid,
+				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
 				pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 				pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
 				(int8)pinfos->state, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
@@ -169,7 +168,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 				pid));
 
 		Components::getSingleton().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport, extaddrEx,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, gus, intaddr, intport, extaddr, extport, extaddrEx,
 			pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 	}
 }
@@ -234,8 +233,8 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 			{
 				found = true;
 
-				MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid, 
-					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, 
+				MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid, 
+					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
 					pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
 					(int8)pinfos->state, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
@@ -269,8 +268,8 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 			COMPONENT_NAME_EX(tComponentType),
 			COMPONENT_NAME_EX(tfindComponentType)));
 
-		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), KBEngine::getUserUID(), 
-			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+		MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), KBEngine::getUserUID(),
+			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	}
 
 	if(finderAddr != 0 && finderRecvPort != 0)
@@ -325,8 +324,8 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 	uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
 	uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
 
-	MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), getUserUID(), getUsername(),
-		g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+	MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), getUserUID(), getUsername(),
+		g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
 		networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 		networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
 		cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0,
@@ -369,8 +368,8 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 		uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
 		uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
 
-		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+		MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
 			cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 
@@ -424,8 +423,8 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 				{
 					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					
-					MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid, 
-						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
+					MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid, 
+						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
 						pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 						pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, 
 						pinfos->cpu, pinfos->mem, pinfos->usedmem, 
