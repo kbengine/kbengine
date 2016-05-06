@@ -16,7 +16,13 @@
 
 {% block tail_js %}
 <script src="/static/js/pytools.js"></script>
+<script>$(".components-manage").addClass("active");</script>
+
 <script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
     $("document").ready(queryComponents);
     g_queryCount = 0;
     g_queryMsg = ""

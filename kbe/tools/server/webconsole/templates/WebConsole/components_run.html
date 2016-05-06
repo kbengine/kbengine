@@ -6,7 +6,7 @@
     <table class="table table-bordered table-condensed">
       <tbody>
         <tr>
-          <th colspan="2" align="left">组件将使用以下用户启动用户ID</th>
+          <th colspan="2" align="left">KBEngine组件将使用以下用户启动</th>
         </tr>
         <tr>
           <th>用户名</th>
@@ -77,6 +77,11 @@
 
 {% block tail_js %}
 <script>
+  $(".components-manage").addClass("active");
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
     function run_components()
     {
         $("#form1").submit();

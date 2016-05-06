@@ -22,7 +22,12 @@
 {% block tail_js %}
 <script src="/static/js/pytools.js"></script>
 <script src="/static/js/kbengine.js"></script>
+<script>$(".config").addClass("active");</script>
 <script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
     
     //{% comment %}
     // 下面的注释并非真的注释，仅仅是为了让下面的代码在javascript下解释不出错而已，

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import time, json
+import time, json, telnetlib, socket, sys, select
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
 from .models import ServerLayout
 from pycommon import Machines, Define
@@ -89,7 +90,7 @@ def components_manage( request ):
 	kbeComps = []
 	for mID, comps in components.interfaces_groups.items():
 		if len( comps ) > 1:
-			kbeComps.append( ( comps[0], comps[1:]) )
+			kbeComps.extend( comps[1:] )
 
 	context = {
 		"KBEComps" : kbeComps,
@@ -167,6 +168,7 @@ def components_shutdown( request ):
 	
 	return render( request, "WebConsole/components_shutdown.html", {} )
 
+@login_check
 def components_save_layout( request ):
 	"""
 	保存当前服务器运行状态
@@ -176,7 +178,7 @@ def components_save_layout( request ):
 		result = { "state" : "fault", "message" : "invalid layout name!!!" }
 		return HttpResponse( json.dumps( result ), content_type="application/json" )
 	
-	VALIDATE_CT = set( [
+	VALID_CT = set( [
 			Define.DBMGR_TYPE,
 			Define.LOGINAPP_TYPE,
 			Define.BASEAPPMGR_TYPE,
@@ -194,7 +196,7 @@ def components_save_layout( request ):
 	
 	for machineID, infos in components.interfaces_groups.items():
 		for info in infos:
-			if info.componentType not in VALIDATE_CT:
+			if info.componentType not in VALID_CT:
 				continue
 
 			compnentName = Define.COMPONENT_NAME[info.componentType]
@@ -220,11 +222,12 @@ def components_save_layout( request ):
 	result = { "state" : "success", "message" : "" }
 	return HttpResponse( json.dumps( result ), content_type="application/json" )
 
+@login_check
 def components_show_layout( request ):
 	"""
 	显示保存的所有服务器运行配置
 	"""
-	VALIDATE_CT = set( [
+	VALID_CT = set( [
 			Define.DBMGR_TYPE,
 			Define.LOGINAPP_TYPE,
 			Define.BASEAPPMGR_TYPE,
@@ -243,7 +246,7 @@ def components_show_layout( request ):
 		d["layout_name"] = q.name
 		d["sys_user"] = q.sys_user
 		layoutData = json.loads( q.config )
-		for ct in VALIDATE_CT:
+		for ct in VALID_CT:
 			compnentName = Define.COMPONENT_NAME[ct]
 			if compnentName not in layoutData:
 				d[compnentName] = 0
@@ -253,6 +256,7 @@ def components_show_layout( request ):
 
 	return render( request, "WebConsole/components_show_layout.html", { "KBELayouts" : datas } )
 
+@login_check
 def components_delete_layout( request ):
 	"""
 	删除某个保存的服务器运行配置
@@ -269,11 +273,12 @@ def components_delete_layout( request ):
 
 	return HttpResponseRedirect( "/wc/components/show_layout" )
 
+@login_check
 def components_load_layout( request ):
 	"""
 	加载某个保存的服务器运行配置，并启动服务器
 	"""
-	VALIDATE_CT = set( [
+	VALID_CT = set( [
 			Define.DBMGR_TYPE,
 			Define.LOGINAPP_TYPE,
 			Define.BASEAPPMGR_TYPE,
@@ -304,7 +309,7 @@ def components_load_layout( request ):
 
 	ly = ServerLayout.objects.get(pk = id)
 	layoutData = json.loads( ly.config )
-	for ct in VALIDATE_CT:
+	for ct in VALID_CT:
 		compnentName = Define.COMPONENT_NAME[ct]
 		for comp in layoutData.get( compnentName, [] ):
 			cid = comp["cid"]
@@ -321,3 +326,137 @@ def components_load_layout( request ):
 		"run_counter" : str(t2c)
 	}
 	return render( request, "WebConsole/components_load_layout.html", context )
+
+@login_check
+def machines_show_all( request ):
+	"""
+	忽略用户，显示所有的machine
+	"""
+	components = Machines.Machines( 0, "WebConsole" )
+	components.queryAllInterfaces(timeout = 0.5)
+
+	targetIP = request.GET.get( "target", None )
+	
+	kbeComps = []
+	for mID, comps in components.interfaces_groups.items():
+		if len( comps ) > 1 and comps[0].intaddr == targetIP:
+			kbeComps = comps[1:]
+			break
+
+
+	context = {
+		"KBEMachines" : components.machines,
+		"KBEComps" : kbeComps,
+	}
+	return render( request, "WebConsole/machines_show_all.html", context )
+
+@login_check
+def console_show_components( request ):
+	"""
+	控制台可连接的组件显示页面
+	"""
+	VALID_CT = set( [
+			Define.DBMGR_TYPE,
+			Define.LOGINAPP_TYPE,
+			Define.CELLAPP_TYPE,
+			Define.BASEAPP_TYPE,
+			Define.INTERFACES_TYPE,
+			Define.LOGGER_TYPE,
+		] )
+
+	html_template = "WebConsole/console_show_components.html"
+	
+	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
+	components.queryAllInterfaces(timeout = 0.5)
+
+	# [(machine, [components, ...]), ...]
+	kbeComps = []
+	for mID, comps in components.interfaces_groups.items():
+		for comp in comps:
+			if comp.componentType in VALID_CT:
+				kbeComps.append( comp)
+
+	context = {
+		"KBEComps" : kbeComps,
+	}
+	return render( request, html_template, context )
+
+@login_check
+def console_connect( request ):
+	"""
+	控制台页面
+	"""
+	# 通过获取参数的方式校验参数是否存在
+	GET = request.GET
+	port = int( GET["port"] )
+	ip = GET["ip"]
+	title = GET["title"]
+
+	ws_url = "ws://%s/wc/console/process_cmd?host=%s&port=%s" % ( request.META["HTTP_HOST"], ip, port )
+
+	context = { "ws_url" : ws_url }
+	return render( request, "WebConsole/console_connect.html", context )
+
+
+from dwebsocket.decorators import accept_websocket
+
+#@login_check
+@accept_websocket
+def console_process_cmd( request ):
+	"""
+	"""
+	GET = request.GET
+	port = int( GET["port"] )
+	host = GET["host"]
+
+	def pre_process_cmd(cmd):
+		if cmd.endswith( b"\r\n" ):
+			return cmd
+		elif cmd[-1] == b"\r":
+			cmd += b"\n"
+		elif cmd[-1] == b"\n":
+			cmd = cmd[:-1] + b"\r\n"
+		else:
+			cmd += b"\r\n"
+		return cmd
+
+	try:
+		telnet = telnetlib.Telnet( host, port )
+	except Exception:
+		request.websocket.send("服务器连接失败！\n")
+		return
+
+	try:
+		tlfd = telnet.fileno()
+		wsfd = request.websocket.protocol.sock.fileno()
+		rlist = [ tlfd, wsfd]
+		
+		while True:
+			rl, wl, xl = select.select(rlist, [], [], 0.1)
+			if tlfd in rl:
+				data = telnet.read_some()
+				if not data:
+					break # socket closed
+				request.websocket.send( data )
+
+			if wsfd in rl:
+				data = request.websocket.read()
+				if data is None:
+					break # socket closed
+				if len(data) == 0:
+					continue
+				if data == ":quit":
+					return HttpResponse("")
+				telnet.write( pre_process_cmd( data ) )
+	except:
+		sys.excepthook( *sys.exc_info() )
+	return
+
+	# test code
+	try:
+		for message in request.websocket:
+			request.websocket.send(message)
+	except:
+		sys.excepthook( *sys.exc_info() )
+	return
+

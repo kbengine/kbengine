@@ -21,8 +21,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for machine, components in KBEComps %}
-        {% for comp in components %}
+        {% for comp in KBEComps %}
         <tr>
           <td>{{ comp.intaddr }}</td>
           <td>{{ comp.fullname }}</td>
@@ -38,7 +37,6 @@
           <td>{{ comp.clients }}</td>
           <td>停止</td>
         </tr>
-        {% endfor %}
         {% endfor %}
       </tbody>
     </table>
@@ -62,7 +60,13 @@
 {% endblock %}
 
 {% block tail_js %}
+<script>$(".components-manage").addClass("active");</script>
+
 <script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
     function saveLayouts()
     {
         layer.prompt({
@@ -98,6 +102,8 @@
         window.location.href='/wc/components/shutdown';
         layer.load(2);
     }
+
+
 </script>
     
 {% endblock %}
