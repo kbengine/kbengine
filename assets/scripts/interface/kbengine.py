@@ -6,6 +6,7 @@ from Poller import Poller
 
 """
 interfaces进程主要处理KBEngine服务端与第三方平台的接入接出工作。
+(注意：由于interfaces是一个单线程服务器，如果需要使用python的http服务器库，建议使用异步的（例如：Tornado），否则会卡主线程造成阻塞)
 目前支持几种功能:
 1: 注册账号
 	当客户端请求注册账号后，请求会由loginapp转发到dbmgr，如果dbmgr挂接了interfaces，则dbmgr将请求转发至这里（KBEngine.onRequestCreateAccount）

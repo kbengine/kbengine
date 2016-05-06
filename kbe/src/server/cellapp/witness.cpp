@@ -425,13 +425,14 @@ void Witness::resetAOIEntities()
 			aoiEntities_map_.erase((*iter)->id());
 			EntityRef::reclaimPoolObject((*iter));
 			iter = aoiEntities_.erase(iter);
-			updateEntitiesAliasID();
 			continue;
 		}
 
 		(*iter)->flags(ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
 		++iter;
 	}
+	
+	updateEntitiesAliasID();
 }
 
 //-------------------------------------------------------------------------------------

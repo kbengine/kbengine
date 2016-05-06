@@ -47,7 +47,7 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentGlobalOrder = -1;
 COMPONENT_ORDER g_componentGroupOrder = -1;
-int32 g_genuuid_sections = -1;
+COMPONENT_GUS g_genuuid_sections = -1;
 
 GAME_TIME g_kbetime = 0;
 
@@ -375,7 +375,7 @@ void ServerApp::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Components::getSingleton().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, extaddrEx, 0,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, 0, intaddr, intport, extaddr, extport, extaddrEx, 0,
 			0.f, 0.f, 0, 0, 0, 0, 0, pChannel);
 	}
 	else

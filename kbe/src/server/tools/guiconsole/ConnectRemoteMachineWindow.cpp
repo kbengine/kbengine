@@ -158,7 +158,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		while(packet.length() > 0)
 		{
-			MachineInterface::onBroadcastInterfaceArgs24 args;
+			MachineInterface::onBroadcastInterfaceArgs25 args;
 			
 			try
 			{
@@ -172,7 +172,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intport)));
 
 			Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, args.gus,
 				args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, args.usedmem, 
 				args.extradata, args.extradata1, args.extradata2, args.extradata3);
 

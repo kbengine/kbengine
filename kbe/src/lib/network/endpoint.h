@@ -55,13 +55,13 @@ public:
 	EndPoint(u_int32_t networkAddr = 0, u_int16_t networkPort = 0);
 	virtual ~EndPoint();
 
-	operator KBESOCKET() const;
+	INLINE operator KBESOCKET() const;
 	
 	static void initNetwork();
-	bool good() const;
+	INLINE bool good() const;
 		
 	void socket(int type);
-	KBESOCKET socket() const;
+	INLINE KBESOCKET socket() const;
 	
 	INLINE void setFileDescriptor(int fd);
 
@@ -79,25 +79,25 @@ public:
 
 	INLINE int bind(u_int16_t networkPort = 0, u_int32_t networkAddr = INADDR_ANY);
 
-	int listen(int backlog = 5);
+	INLINE int listen(int backlog = 5);
 
-	int connect(u_int16_t networkPort, u_int32_t networkAddr = INADDR_BROADCAST, bool autosetflags = true);
-	int connect(bool autosetflags = true);
+	INLINE int connect(u_int16_t networkPort, u_int32_t networkAddr = INADDR_BROADCAST, bool autosetflags = true);
+	INLINE int connect(bool autosetflags = true);
 
-	EndPoint* accept(u_int16_t * networkPort = NULL, u_int32_t * networkAddr = NULL, bool autosetflags = true);
+	INLINE EndPoint* accept(u_int16_t * networkPort = NULL, u_int32_t * networkAddr = NULL, bool autosetflags = true);
 	
 	INLINE int send(const void * gramData, int gramSize);
 	void send(Bundle * pBundle);
 	void sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 
-	int recv(void * gramData, int gramSize);
+	INLINE int recv(void * gramData, int gramSize);
 	bool recvAll(void * gramData, int gramSize);
 	
 	INLINE uint32 getRTT();
 
-	int getInterfaceFlags(char * name, int & flags);
-	int getInterfaceAddress(const char * name, u_int32_t & address);
-	int getInterfaceNetmask(const char * name, u_int32_t & netmask);
+	INLINE int getInterfaceFlags(char * name, int & flags);
+	INLINE int getInterfaceAddress(const char * name, u_int32_t & address);
+	INLINE int getInterfaceNetmask(const char * name, u_int32_t & netmask);
 	bool getInterfaces(std::map< u_int32_t, std::string > &interfaces);
 
 	int findIndicatedInterface(const char * spec, u_int32_t & address);
@@ -110,30 +110,30 @@ public:
 	int getBufferSize(int optname) const;
 	bool setBufferSize(int optname, int size);
 	
-	int getlocaladdress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
-	int getremoteaddress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
+	INLINE int getlocaladdress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
+	INLINE int getremoteaddress(u_int16_t * networkPort, u_int32_t * networkAddr) const;
 	
 	Network::Address getLocalAddress() const;
 	Network::Address getRemoteAddress() const;
 
 	bool getClosedPort(Network::Address & closedPort);
 
-	const char * c_str() const;
-	int getremotehostname(std::string * name) const;
+	INLINE const char * c_str() const;
+	INLINE int getremotehostname(std::string * name) const;
 	
-	int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
+	INLINE int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);
 	INLINE int recvfrom(void * gramData, int gramSize, u_int16_t * networkPort, u_int32_t * networkAddr);
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);
 	
 	INLINE const Address& addr() const;
-	void addr(const Address& newAddress);
-	void addr(u_int16_t newNetworkPort, u_int32_t newNetworkAddress);
+	INLINE void addr(const Address& newAddress);
+	INLINE void addr(u_int16_t newNetworkPort, u_int32_t newNetworkAddress);
 
 	bool waitSend();
 
 protected:
-	KBESOCKET	socket_;
+	KBESOCKET socket_;
 	Address address_;
 };
 
