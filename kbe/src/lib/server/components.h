@@ -191,6 +191,11 @@ public:
 	Network::Channel* getDbmgrChannel();
 	Network::Channel* getLoggerChannel();
 
+	/**
+		统计某个UID下的所有组件数量
+	*/
+	size_t getGameSrvComponentsSize(int32 uid);
+
 	/** 
 		获取游戏服务端必要组件的注册数量。
 	*/
