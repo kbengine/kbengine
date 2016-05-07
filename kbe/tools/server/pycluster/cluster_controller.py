@@ -404,7 +404,7 @@ class ClusterSaveProcessHandler(ClusterControllerHandler):
 					continue
 					
 				t2c[info.componentType] += 1
-				v = vt % (info.intaddr, info.componentID, 0)
+				v = vt % (info.intaddr, info.componentID, info.genuuid_sections)
 				cper.set(COMPONENT_NAME[info.componentType], "item_%s" % t2c[info.componentType], v)
 		
 		if self.filename:
