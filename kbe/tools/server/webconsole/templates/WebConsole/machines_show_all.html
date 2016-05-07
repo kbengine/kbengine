@@ -43,6 +43,7 @@
           <th>pid</th>
           <th>cid</th>
           <th>gid</th>
+          <th>gus</th>
           <th>CPU负载</th>
           <th>内存消耗比</th>
           <th>内存消耗数</th>
@@ -61,6 +62,7 @@
           <td>{{ comp.pid }}</td>
           <td>{{ comp.componentID }}</td>
           <td>{{ comp.globalOrderID }}</td>
+          <td>{{ comp.genuuid_sections }}</td>
           <td>{{ comp.cpu|floatformat:2 }}%</td>
           <td>{{ comp.mem|floatformat:2 }}%</td>
           <td>{% widthratio comp.usedmem 1048576 1.0 %}m</td>
