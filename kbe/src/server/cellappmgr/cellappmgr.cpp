@@ -373,7 +373,10 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 		}
 	}
 
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+	Components::ComponentInfos* cinfos = NULL;
+	if (bestCellappID_ > 0)
+		cinfos = Components::getSingleton().findComponent(CELLAPP_TYPE, bestCellappID_);
+
 	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
