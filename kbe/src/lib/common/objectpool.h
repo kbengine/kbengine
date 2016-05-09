@@ -82,6 +82,7 @@ public:
 	~ObjectPool()
 	{
 		destroy();
+		SAFE_RELEASE(pMutex_);
 	}	
 	
 	void destroy()
@@ -102,10 +103,23 @@ public:
 		objects_.clear();	
 		obj_count_ = 0;
 		pMutex_->unlockMutex();
-		SAFE_RELEASE(pMutex_);
 	}
 
-	const OBJECTS& objects(void) const { return objects_; }
+	const OBJECTS& objects(void) const 
+	{ 
+		return objects_; 
+	}
+
+	void pMutex(KBEngine::thread::ThreadMutexNull* pMutex)
+	{
+		SAFE_RELEASE(pMutex_);
+		pMutex_ = pMutex;
+	}
+
+	KBEngine::thread::ThreadMutexNull* pMutex()
+	{
+		return pMutex_;
+	}
 
 	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
 	{
