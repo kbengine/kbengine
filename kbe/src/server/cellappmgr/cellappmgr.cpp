@@ -474,7 +474,8 @@ void Cellappmgr::updateCellapp(Network::Channel* pChannel, COMPONENT_ID componen
 }
 
 //-------------------------------------------------------------------------------------
-void Cellappmgr::onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress)
+void Cellappmgr::onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress, 
+	COMPONENT_ORDER componentGlobalOrder, COMPONENT_ORDER componentGroupOrder)
 {
 	if(progress > 1.f)
 	{
