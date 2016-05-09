@@ -198,6 +198,18 @@ void Components::addComponent(int32 uid, const char* username,
 		return;
 	}
 	
+	// 如果该uid下没有已经运行的任何相关组件，那么重置计数器
+	if (getGameSrvComponentsSize(uid) == 0)
+	{
+		_globalOrderLog[uid] = 0;
+		_baseappGrouplOrderLog[uid] = 0;
+		_cellappGrouplOrderLog[uid] = 0;
+		_loginappGrouplOrderLog[uid] = 0;
+
+		INFO_MSG(fmt::format("Components::addComponent: reset orderLog, uid={}!\n",
+			uid));
+	}
+
 	ComponentInfos componentInfos;
 
 	componentInfos.pIntAddr.reset(new Network::Address(intaddr, intport));
@@ -933,15 +945,58 @@ Network::Channel* Components::getLoggerChannel()
 }
 
 //-------------------------------------------------------------------------------------	
+size_t Components::getGameSrvComponentsSize(int32 uid)
+{
+	size_t size = 0;
+
+	COMPONENTS::iterator iter = _baseapps.begin();
+	for (; iter != _baseapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _baseappmgrs.begin();
+	for (; iter != _baseappmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _cellapps.begin();
+	for (; iter != _cellapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _cellappmgrs.begin();
+	for (; iter != _cellappmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _dbmgrs.begin();
+	for (; iter != _dbmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _loginapps.begin();
+	for (; iter != _loginapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	return size;
+}
+
+//-------------------------------------------------------------------------------------	
 size_t Components::getGameSrvComponentsSize()
 {
-	COMPONENTS	_baseapps;
-	COMPONENTS	_cellapps;
-	COMPONENTS	_dbmgrs;
-	COMPONENTS	_loginapps;
-	COMPONENTS	_cellappmgrs;
-	COMPONENTS	_baseappmgrs;
-
 	return _baseapps.size() + _cellapps.size() + _dbmgrs.size() + 
 		_loginapps.size() + _cellappmgrs.size() + _baseappmgrs.size();
 }
