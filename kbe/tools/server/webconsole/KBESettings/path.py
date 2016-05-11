@@ -19,10 +19,10 @@ def initExtraRootPath():
 		import django
 	except:
 		if sys.hexversion >= 0x02060000 and sys.hexversion < 0x02070000:
-			djp = os.path.join( parentDir, "django/Django-1.6.11" )
+			djp = os.path.join( parentDir, "django_packages/Django-1.6.11" )
 			if djp not in sys.path:
 				sys.path.append( djp )
 		elif sys.hexversion > 0x02070000:
-			djp = os.path.join( parentDir, "django/Django-1.8.9" )
+			djp = os.path.join( parentDir, "django_packages/Django-1.8.9" )
 			if djp not in sys.path:
 				sys.path.append( djp )
