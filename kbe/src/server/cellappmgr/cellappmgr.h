@@ -104,6 +104,11 @@ public:
 
 	uint32 numLoadBalancingApp();
 
+	/* 以groupOrderID为排序基准，
+	   増加一个cellapp component id到cellapp_cids_列表中
+	*/
+	void addCellappComponentID(COMPONENT_ID cid);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_anywhere_cellapp_messagebuffer_;
