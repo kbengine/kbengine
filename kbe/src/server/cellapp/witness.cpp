@@ -571,7 +571,10 @@ void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnti
 		}
 		else
 		{
-			if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) > 0)
+			Entity* pEntity = pEntityRef->pEntity();
+
+			if ((pEntityRef->flags() & (ENTITYREF_FLAG_NORMAL)) > 0 && 
+			!(pEntity && pEntity->hasFlags(ENTITY_FLAGS_TELEPORTING)))
 			{
 				KBE_ASSERT(pEntityRef->aliasID() <= 255);
 				(*pBundle) << (uint8)pEntityRef->aliasID();
@@ -641,6 +644,14 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 		return false;
 	}
 	
+	// 如果是传送中状态则不使用aliasID
+	Entity* pEntity = pEntityRef->pEntity();
+	if (pEntity && pEntity->hasFlags(ENTITY_FLAGS_TELEPORTING))
+	{
+		aliasID = 0;
+		return false;
+	}
+
 	aliasID = (uint8)pEntityRef->aliasID();
 	return true;
 }
