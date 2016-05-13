@@ -253,7 +253,7 @@
 		-->
 		<InterfacesServiceAddr>
 			<!-- 如果enable为false则相关数据不转发到Interfaces进程 
-				注意：如果为true，dbmgr认为数据将由interfaces交给第三方平台处理，本地不再验证登陆密码
+				注意：如果为true，dbmgr认为数据将由interfaces交给第三方平台处理
 			-->
 			<enable> false		</enable>
 			<host>	 localhost	</host>

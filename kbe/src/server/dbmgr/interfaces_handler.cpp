@@ -121,7 +121,7 @@ bool InterfacesHandler_Dbmgr::loginAccount(Network::Channel* pChannel, std::stri
 	}
 
 	pThreadPool->addTask(new DBTaskAccountLogin(pChannel->addr(),
-		loginName, loginName, password, SERVER_SUCCESS, datas, datas));
+		loginName, loginName, password, SERVER_SUCCESS, datas, datas, true));
 
 	return true;
 }
@@ -374,7 +374,7 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	if(success != SERVER_SUCCESS)
+	if(success != SERVER_SUCCESS && success != SERVER_ERR_NEED_CHECK_PASSWORD)
 	{
 		accountName = "";
 	}
@@ -398,7 +398,7 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	}
 
 	pThreadPool->addTask(new DBTaskAccountLogin(cinfos->pChannel->addr(),
-		loginName, accountName, password, success, postdatas, getdatas));
+		loginName, accountName, password, success, postdatas, getdatas, success == SERVER_ERR_NEED_CHECK_PASSWORD));
 }
 
 //-------------------------------------------------------------------------------------
