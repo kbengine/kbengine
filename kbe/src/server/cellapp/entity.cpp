@@ -2398,6 +2398,14 @@ PyObject* Entity::pyEntitiesInAOI()
 		return 0;
 	}
 
+	if (!pWitness_)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: %d has no witness!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	PyObject* pyList = PyList_New(pWitness_->aoiEntitiesMap().size());
 
 	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
