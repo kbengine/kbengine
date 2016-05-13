@@ -28,6 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "backuper.h"
 #include "initprogress_handler.h"
 #include "restore_entity_handler.h"
+#include "base_messages_forward_handler.h"
 #include "forward_message_over_handler.h"
 #include "sync_entitystreamtemplate_handler.h"
 #include "common/timestamp.h"
@@ -3095,17 +3096,31 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	if(s.length() <= 0)
 		return;
 
+	BaseMessagesForwardClientHandler* pBufferedSendToClientMessages = base->pBufferedSendToClientMessages();
+	
+	// 需要判断来源是否符合
+	if(pBufferedSendToClientMessages)
+	{
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
+		if (cinfos->cid != pBufferedSendToClientMessages->cellappID())
+			pBufferedSendToClientMessages = NULL;
+	}
+	
 	Network::Channel* pClientChannel = mailbox->getChannel();
 	Network::Bundle* pSendBundle = NULL;
 	
-	if (!pClientChannel)
+	if (!pClientChannel || pBufferedSendToClientMessages)
 		pSendBundle = Network::Bundle::createPoolObject();
 	else
 		pSendBundle = pClientChannel->createSendBundle();
 
 	(*pSendBundle).append(s);
-	static_cast<Proxy*>(base)->sendToClient(pSendBundle);
 	
+	if(!pBufferedSendToClientMessages)
+		static_cast<Proxy*>(base)->sendToClient(pSendBundle);
+	else
+		pBufferedSendToClientMessages->pushMessages(pSendBundle);
+
 	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
 		Network::MessageID fmsgid = 0;

@@ -75,6 +75,7 @@ creatingCell_(false),
 createdSpace_(false),
 inRestore_(false),
 pBufferedSendToCellappMessages_(NULL),
+pBufferedSendToClientMessages_(NULL),
 isDirty_(true),
 dbInterfaceIndex_(0)
 {
@@ -93,6 +94,7 @@ Base::~Base()
 	S_RELEASE(cellMailbox_);
 	S_RELEASE(cellDataDict_);
 	SAFE_RELEASE(pBufferedSendToCellappMessages_);
+	SAFE_RELEASE(pBufferedSendToClientMessages_);
 
 	if(Baseapp::getSingleton().pEntities())
 		Baseapp::getSingleton().pEntities()->pGetbages()->erase(id());
@@ -1446,7 +1448,7 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 
 	if(this->cellMailbox() == NULL || this->cellMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, cellMailbox is NULL, "
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, cellMailbox is NULL, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
 			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
@@ -1456,16 +1458,16 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqTeleportEntityCellAppID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, not found cellapp, "
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, not found cellapp, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
 			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
 		return;
 	}
 
-	if(pBufferedSendToCellappMessages_)
+	if(pBufferedSendToCellappMessages_ || pBufferedSendToClientMessages_ || hasFlags(ENTITY_FLAGS_TELEPORTING))
 	{
-		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, is transfer, "
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, is transfer, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
 			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
@@ -1485,22 +1487,45 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",											
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",
 		scriptName(), id(), cellappID));
 
 	// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
 	// 当onTeleportCellappEnd被调用时将缓存的包发往cell
 
 	if(pBufferedSendToCellappMessages_ == NULL)
-		pBufferedSendToCellappMessages_ = new BaseMessagesForwardHandler(this);
+		pBufferedSendToCellappMessages_ = new BaseMessagesForwardCellappHandler(this);
 
 	pBufferedSendToCellappMessages_->stopForward();
+
+	addFlags(ENTITY_FLAGS_TELEPORTING);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID cellappID)
+{
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappArrived: {}, targetCellappID={}\n",
+		scriptName(), id(), cellappID));
+	
+	// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORTING,  说明onMigrationCellappArrived包优先于
+	// onMigrationCellappStart到达(某些压力所致的情况下会导致实体跨进程跳转时（由cell1跳转到cell2），
+	// 跳转前所产生的包会比cell2的enterSpace包慢到达)，因此发生这种情况时需要将cell2的包先缓存
+	// 等cell1的包到达后执行完毕再执行cell2的包
+	if(!hasFlags(ENTITY_FLAGS_TELEPORTING))
+	{
+		if(pBufferedSendToClientMessages_ == NULL)
+			pBufferedSendToClientMessages_ = new BaseMessagesForwardClientHandler(this, cellappID);
+		
+		pBufferedSendToClientMessages_->stopForward();
+	}
+
+	addFlags(ENTITY_FLAGS_TELEPORTING);
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",											
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",
 		scriptName(), id(), cellappID));
 
 	// 改变cell的指向到新的cellapp
@@ -1508,12 +1533,23 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellap
 
 	KBE_ASSERT(pBufferedSendToCellappMessages_);
 	pBufferedSendToCellappMessages_->startForward();
+
+	removeFlags(ENTITY_FLAGS_TELEPORTING);
+	
+	if(pBufferedSendToClientMessages_)
+		pBufferedSendToClientMessages_->startForward();
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onBufferedForwardToCellappMessagesOver()
 {
 	SAFE_RELEASE(pBufferedSendToCellappMessages_);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onBufferedForwardToClientMessagesOver()
+{
+	SAFE_RELEASE(pBufferedSendToClientMessages_);
 }
 
 //-------------------------------------------------------------------------------------
