@@ -374,10 +374,12 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	if(success != SERVER_SUCCESS && success != SERVER_ERR_NEED_CHECK_PASSWORD)
-	{
+	bool needCheckPassword = (success == SERVER_ERR_NEED_CHECK_PASSWORD);
+
+	if (success != SERVER_SUCCESS && success != SERVER_ERR_NEED_CHECK_PASSWORD)
 		accountName = "";
-	}
+	else
+		success = SERVER_SUCCESS;
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(LOGINAPP_TYPE, cid);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
@@ -398,7 +400,7 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	}
 
 	pThreadPool->addTask(new DBTaskAccountLogin(cinfos->pChannel->addr(),
-		loginName, accountName, password, success, postdatas, getdatas, success == SERVER_ERR_NEED_CHECK_PASSWORD));
+		loginName, accountName, password, success, postdatas, getdatas, needCheckPassword));
 }
 
 //-------------------------------------------------------------------------------------
