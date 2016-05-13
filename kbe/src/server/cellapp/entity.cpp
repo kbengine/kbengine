@@ -264,10 +264,10 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 	pobj->destroyEntity();
 
 	S_Return;
-}																							
+}
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDestroySpace()																		
+PyObject* Entity::pyDestroySpace()
 {
 	if(!isReal())
 	{
@@ -279,7 +279,7 @@ PyObject* Entity::pyDestroySpace()
 
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -292,8 +292,8 @@ PyObject* Entity::pyDestroySpace()
 		S_Return;
 	}
 
-	destroySpace();																					
-	S_Return;																							
+	destroySpace();
+	S_Return;
 }	
 
 //-------------------------------------------------------------------------------------

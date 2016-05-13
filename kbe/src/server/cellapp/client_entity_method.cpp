@@ -86,7 +86,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	if(!srcEntity->isReal())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): not is realEntity, srcEntityID(%d).\n",
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): not is real entity, srcEntityID(%d).\n",
 			srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id());		
 		PyErr_PrintEx(0);
 		return 0;
