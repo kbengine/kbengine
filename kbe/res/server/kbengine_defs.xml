@@ -711,6 +711,16 @@
 		-->
 		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
+		
+		<!-- 服务组使用多台硬件组成网络，在某些网络环境由于路由器的设置不允许UDP广播造成跨物理机组网不成功时
+			可在此填入所有相关物理机的地址，引擎将会向具体的地址发送探测包来完成组网，
+			注意：同时也会发送一个全网广播包。
+			（When the network is composed of a plurality of hardware, the specific network address is detected.） 
+		-->
+		<addresses>
+			<!--<item> 127.0.0.1 </item>-->
+			<!--<item> 192.168.10.18 </item>-->
+		</addresses>
 	</machine>
 	
 	<bots>
