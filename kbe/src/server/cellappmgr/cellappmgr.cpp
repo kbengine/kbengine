@@ -144,7 +144,6 @@ Cellapp& Cellappmgr::getCellapp(COMPONENT_ID cid)
 	INFO_MSG(fmt::format("Cellappmgr::getCellapp: added new cellapp({0}).\n",
 		cid));
 
-	cellapp_cids_.push_back(cid);
 	return cellapp;
 }
 
@@ -488,8 +487,55 @@ void Cellappmgr::onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 	}
 
 	KBE_ASSERT(cellapps_.find(cid) != cellapps_.end());
+	Cellapp& cellapp = getCellapp(cid);
 
-	getCellapp(cid).initProgress(progress);
+	cellapp.globalOrderID(componentGlobalOrder);
+	cellapp.groupOrderID(componentGroupOrder);
+	cellapp.initProgress(progress);
+	addCellappComponentID(cid);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::addCellappComponentID(COMPONENT_ID cid)
+{
+	COMPONENT_ORDER newGOID = getCellapp(cid).groupOrderID();
+
+	DEBUG_MSG(fmt::format("Cellappmgr::addCellappComponentID: cellapp component id {}, group order id {}\n", cid, newGOID));
+
+	std::vector<COMPONENT_ID>::iterator iter = cellapp_cids_.begin();
+	bool isInserted = false;
+	while (iter != cellapp_cids_.end())
+	{
+		Cellapp& cellapp = getCellapp(*iter);
+		if (newGOID < cellapp.groupOrderID())
+		{
+			cellapp_cids_.insert(iter, cid);
+			isInserted = true;
+			break;
+		}
+		++iter;
+	}
+	
+	if (!isInserted)
+		cellapp_cids_.push_back(cid);
+
+	// 输出日志，如果要校验cellapp插入的顺序是否正确，可以打开下面的注释进行测试
+	/*
+	{
+		std::string sCID = "";
+		std::string sGOID = "";
+		for (iter = cellapp_cids_.begin(); iter != cellapp_cids_.end(); ++iter)
+		{
+			std::string s = fmt::format("{},", *iter);
+			sCID += s;
+			std::string t = fmt::format("{{:{}d}},", s.length() - 1);
+			sGOID += fmt::format(t, getCellapp(*iter).groupOrderID());
+		}
+
+		DEBUG_MSG(fmt::format("Cellappmgr::addCellappComponentID: component id list   [{}]\n", sCID));
+		DEBUG_MSG(fmt::format("Cellappmgr::addCellappComponentID: group order id list [{}]\n", sGOID));
+	}
+	*/
 }
 
 //-------------------------------------------------------------------------------------
