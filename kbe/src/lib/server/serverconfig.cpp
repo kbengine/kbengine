@@ -1123,7 +1123,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 						_kbMachineInfo.machine_addresses.push_back(c);
 					}
 				}
-			}while((node = node->NextSibling()));
+			} while((node = node->NextSibling()));
 		}
 	}
 	
