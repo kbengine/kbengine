@@ -175,4 +175,10 @@
 		<id>34</id>
 		<descr>	用户自定义错误码10。</descr>
 	</SERVER_ERR_USER10>
+	
+	<SERVER_ERR_NEED_CHECK_PASSWORD>
+		<id>35</id>
+		<descr>	需要检查密码。</descr>
+	</SERVER_ERR_NEED_CHECK_PASSWORD>
+	
 </root>

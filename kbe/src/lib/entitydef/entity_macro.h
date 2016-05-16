@@ -280,6 +280,7 @@ namespace KBEngine{
 #define ENTITY_FLAGS_UNKNOWN		0x00000000
 #define ENTITY_FLAGS_DESTROYING		0x00000001
 #define ENTITY_FLAGS_INITING		0x00000002
+#define ENTITY_FLAGS_TELEPORTING	0x00000004
 
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\

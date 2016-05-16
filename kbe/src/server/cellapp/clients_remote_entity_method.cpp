@@ -103,7 +103,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if (!pChannel)
 				pSendBundle = Network::Bundle::createPoolObject();
 			else
-				pSendBundle = pEntity->clientMailbox()->getChannel()->createSendBundle();
+				pSendBundle = pChannel->createSendBundle();
 
 			pEntity->clientMailbox()->newMail((*pSendBundle));
 

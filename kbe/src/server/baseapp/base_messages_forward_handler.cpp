@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "proxy.h"
 #include "baseapp.h"
 #include "base_messages_forward_handler.h"
 #include "network/bundle.h"
@@ -26,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-BaseMessagesForwardHandler::BaseMessagesForwardHandler(Base* pBase):
+BaseMessagesForwardCellappHandler::BaseMessagesForwardCellappHandler(Base* pBase):
 Task(),
 pBase_(pBase),
 completed_(false),
@@ -36,9 +37,9 @@ startForward_(false)
 }
 
 //-------------------------------------------------------------------------------------
-BaseMessagesForwardHandler::~BaseMessagesForwardHandler()
+BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler()
 {
-	DEBUG_MSG(fmt::format("BaseMessagesForwardHandler::~BaseMessagesForwardHandler(): size({})!\n", 
+	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler(): size({})!\n", 
 		bufferedSendToCellappMessages_.size()));
 
 	if(!completed_)
@@ -54,20 +55,20 @@ BaseMessagesForwardHandler::~BaseMessagesForwardHandler()
 }
 
 //-------------------------------------------------------------------------------------
-void BaseMessagesForwardHandler::pushMessages(Network::Bundle* pBundle)
+void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 {
 	bufferedSendToCellappMessages_.push_back(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void BaseMessagesForwardHandler::startForward()
+void BaseMessagesForwardCellappHandler::startForward()
 {
 	startForward_ = true;
-	DEBUG_MSG(fmt::format("BaseMessagesForwardHandler::startForward(): size({})!\n", bufferedSendToCellappMessages_.size()));
+	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::startForward(): size({})!\n", bufferedSendToCellappMessages_.size()));
 }
 
 //-------------------------------------------------------------------------------------
-bool BaseMessagesForwardHandler::process()
+bool BaseMessagesForwardCellappHandler::process()
 {
 	if(!startForward_)
 		return true;
@@ -91,6 +92,81 @@ bool BaseMessagesForwardHandler::process()
 		remainPacketSize -= pBundle->packetsLength();
 		iter = bufferedSendToCellappMessages_.erase(iter);
 		pBase_->sendToCellapp(pBundle);
+
+		if(remainPacketSize <= 0)
+			return true;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+BaseMessagesForwardClientHandler::BaseMessagesForwardClientHandler(Base* pBase, COMPONENT_ID cellappID):
+Task(),
+pBase_(pBase),
+completed_(false),
+startForward_(false),
+cellappID_(cellappID)
+{
+	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
+}
+
+//-------------------------------------------------------------------------------------
+BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler()
+{
+	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler(): size({})!\n", 
+		bufferedSendToClientMessages_.size()));
+
+	if(!completed_)
+		Baseapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
+
+	std::vector<Network::Bundle*>::iterator iter = bufferedSendToClientMessages_.begin();
+	for(; iter != bufferedSendToClientMessages_.end(); ++iter)
+	{
+		Network::Bundle::reclaimPoolObject((*iter));
+	}
+
+	bufferedSendToClientMessages_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+void BaseMessagesForwardClientHandler::pushMessages(Network::Bundle* pBundle)
+{
+	bufferedSendToClientMessages_.push_back(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void BaseMessagesForwardClientHandler::startForward()
+{
+	startForward_ = true;
+	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::startForward(): size({})!\n", bufferedSendToClientMessages_.size()));
+}
+
+//-------------------------------------------------------------------------------------
+bool BaseMessagesForwardClientHandler::process()
+{
+	if(!startForward_)
+		return true;
+
+	if(bufferedSendToClientMessages_.size() == 0)
+	{
+		completed_ = true;
+		pBase_->onBufferedForwardToClientMessagesOver();
+		return false;
+	}
+
+	if(pBase_->clientMailbox() == NULL || pBase_->clientMailbox()->getChannel() == NULL)
+		return true;
+
+	int remainPacketSize = PACKET_MAX_SIZE_TCP * 10;
+
+	std::vector<Network::Bundle*>::iterator iter = bufferedSendToClientMessages_.begin();
+	for(; iter != bufferedSendToClientMessages_.end(); )
+	{
+		Network::Bundle* pBundle = (*iter); 
+		remainPacketSize -= pBundle->packetsLength();
+		iter = bufferedSendToClientMessages_.erase(iter);
+		static_cast<Proxy*>(pBase_)->sendToClient(pBundle);
 
 		if(remainPacketSize <= 0)
 			return true;

@@ -1747,11 +1747,11 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	s >> entityType;
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
-	
+
 	bool success = false;
 
 	Entity* refEntity = Cellapp::getSingleton().findEntity(nearbyMBRefID);
-	if(refEntity == NULL || refEntity->isDestroyed())
+	if (refEntity == NULL || refEntity->isDestroyed())
 	{
 		s.rpos((int)rpos);
 
@@ -1763,7 +1763,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle).append(&s);
 		pChannel->send(pBundle);
 
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found refEntity({}), spaceID({}), reqTeleportEntity({})!\n", 
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellApp: not found refEntity({}), spaceID({}), reqTeleportEntity({})!\n",
 			nearbyMBRefID, spaceID, teleportEntityID));
 
 		s.done();
@@ -1771,7 +1771,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	Space* space = Spaces::findSpace(refEntity->spaceID());
-	if(space == NULL || !space->isGood())
+	if (space == NULL || !space->isGood())
 	{
 		s.rpos((int)rpos);
 
@@ -1790,7 +1790,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 	// 创建entity
 	Entity* e = createEntity(EntityDef::findScriptModule(entityType)->getName(), NULL, false, teleportEntityID, false);
-	if(e == NULL)
+	if (e == NULL)
 	{
 		s.rpos((int)rpos);
 
@@ -1806,7 +1806,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		s.done();
 		return;
 	}
-	
+
 	e->createFromStream(s);
 
 	// 有可能序列化过来的ghost内容包含移动控制器，之所以序列化过来是为了
@@ -1823,9 +1823,22 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	e->ghostCell(ghostCell);
 	e->spaceID(space->id());
 	e->setPositionAndDirection(pos, dir);
-	
+
+	if (e->baseMailbox())
+	{
+		// 如果是有base的实体，需要将baseappID填入，以便在reqTeleportToCellAppCB中回调给baseapp传输结束状态
+		entityBaseappID = e->baseMailbox()->componentID();
+
+		// 向baseapp发送传送到达通知
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(BaseappInterface::onMigrationCellappArrived);
+		(*pBundle) << e->id();
+		(*pBundle) << g_componentID;
+		e->baseMailbox()->postMail(pBundle);
+	}
+
 	// 进入新space之前必须通知客户端leaveSpace
-	if(e->clientMailbox())
+	if (e->clientMailbox())
 	{
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(e->id(), (*pSendBundle));
@@ -1840,12 +1853,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 	Entity* nearbyMBRef = Cellapp::getSingleton().findEntity(nearbyMBRefID);
 	e->onTeleportSuccess(nearbyMBRef, space->id());
-	
-	success = true;
 
-	// 如果是有base的实体，需要将baseappID填入，以便在reqTeleportToCellAppCB中回调给baseapp传输结束状态
-	if(e->baseMailbox())
-		entityBaseappID = e->baseMailbox()->componentID();
+	success = true;
 
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -1919,6 +1928,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 
+	entity->removeFlags(ENTITY_FLAGS_TELEPORTING);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
 

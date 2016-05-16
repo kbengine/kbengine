@@ -265,10 +265,10 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 	pobj->destroyEntity();
 
 	S_Return;
-}																							
+}
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDestroySpace()																		
+PyObject* Entity::pyDestroySpace()
 {
 	if(!isReal())
 	{
@@ -280,7 +280,7 @@ PyObject* Entity::pyDestroySpace()
 
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -293,8 +293,8 @@ PyObject* Entity::pyDestroySpace()
 		S_Return;
 	}
 
-	destroySpace();																					
-	S_Return;																							
+	destroySpace();
+	S_Return;
 }	
 
 //-------------------------------------------------------------------------------------
@@ -2597,6 +2597,14 @@ PyObject* Entity::pyEntitiesInAOI()
 		return 0;
 	}
 
+	if (!pWitness_)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: %d has no witness!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	PyObject* pyList = PyList_New(pWitness_->aoiEntitiesMap().size());
 
 	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
@@ -3001,6 +3009,8 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 		Network::Channel* pBaseChannel = baseMailbox()->getChannel();
 		if(pBaseChannel)
 		{
+			addFlags(ENTITY_FLAGS_TELEPORTING);
+
 			// 同时需要通知base暂存发往cellapp的消息，因为后面如果跳转成功需要切换cellMailbox映射关系到新的cellapp
 			// 为了避免在切换的一瞬间消息次序发生混乱(旧的cellapp消息也会转到新的cellapp上)， 因此需要在传送前进行
 			// 暂存， 传送成功后通知旧的cellapp销毁entity之后同时通知baseapp改变映射关系。
