@@ -123,18 +123,24 @@ bool BundleBroadcast::broadcast(uint16 port)
 	if(port == 0)
 		port = KBE_MACHINE_BROADCAST_SEND_PORT;
 
-	epBroadcast_.addr(port, Network::BROADCAST);
-
-	if(epBroadcast_.setbroadcast(true) != 0)
+	if (machine_addresses_.size() == 0)
 	{
-		ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Cannot broadcast socket on port {}, {}\n", 
-			port, kbe_strerror()));
+		epBroadcast_.addr(port, Network::BROADCAST);
 
-		networkInterface_.dispatcher().breakProcessing();
-		return false;
+		if (epBroadcast_.setbroadcast(true) != 0)
+		{
+			ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Cannot broadcast socket on port {}, {}\n",
+				port, kbe_strerror()));
+
+			networkInterface_.dispatcher().breakProcessing();
+			return false;
+		}
+
+		epBroadcast_.sendto(this, htons(port), Network::BROADCAST);
+		return true;
 	}
 
-	epBroadcast_.sendto(this, htons(port), Network::BROADCAST);
+	this->finiMessage();
 
 	// 如果指定了地址池，则向所有地址发送消息
 	std::vector< std::string >::iterator addr_iter = machine_addresses_.begin();
