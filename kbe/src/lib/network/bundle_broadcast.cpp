@@ -41,7 +41,8 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 	networkInterface_(networkInterface),
 	recvWindowSize_(recvWindowSize),
 	good_(false),
-	itry_(5)
+	itry_(5),
+	machine_addresses_()
 {
 	epListen_.socket(SOCK_DGRAM);
 	epBroadcast_.socket(SOCK_DGRAM);
@@ -108,6 +109,12 @@ EventDispatcher & BundleBroadcast::dispatcher()
 }
 
 //-------------------------------------------------------------------------------------
+void BundleBroadcast::addBroadCastAddress(std::string addr)
+{
+	machine_addresses_.push_back(addr);
+}
+
+//-------------------------------------------------------------------------------------
 bool BundleBroadcast::broadcast(uint16 port)
 {
 	if (!epBroadcast_.good())
@@ -128,6 +135,25 @@ bool BundleBroadcast::broadcast(uint16 port)
 	}
 
 	epBroadcast_.sendto(this, htons(port), Network::BROADCAST);
+
+	// 如果指定了地址池，则向所有地址发送消息
+	std::vector< std::string >::iterator addr_iter = machine_addresses_.begin();
+	for (; addr_iter != machine_addresses_.end(); ++addr_iter)
+	{
+		Network::EndPoint epBroadcast;
+		epBroadcast.socket(SOCK_DGRAM);
+
+		if (!epBroadcast.good())
+		{
+			ERROR_MSG("BundleBroadcast::broadcast: epBroadcast error!\n");
+			break;
+		}
+
+		u_int32_t  uaddress;
+		Network::Address::string2ip((*addr_iter).c_str(), uaddress);
+		epBroadcast.sendto(packets()[0]->data(), packets()[0]->length(), htons(KBE_MACHINE_BROADCAST_SEND_PORT), uaddress);
+	}
+
 	return true;
 }
 

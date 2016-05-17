@@ -1180,6 +1180,7 @@ bool Components::findComponents()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 			if(!bhandler.good())
 			{
+				ERROR_MSG("Components::findComponents: bhandler error!\n");
 				return false;
 			}
 
@@ -1398,9 +1399,7 @@ bool Components::process()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 
 			if(!bhandler.good())
-			{
 				continue;
-			}
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
 			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
@@ -1454,7 +1453,7 @@ bool Components::process()
 
 					return false;
 
-				}while(bhandler.pCurrPacket()->length() > 0);
+				} while(bhandler.pCurrPacket()->length() > 0);
 			}
 
 			bhandler.close();
