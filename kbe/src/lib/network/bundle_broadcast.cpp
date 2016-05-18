@@ -123,41 +123,38 @@ bool BundleBroadcast::broadcast(uint16 port)
 	if(port == 0)
 		port = KBE_MACHINE_BROADCAST_SEND_PORT;
 
-	if (machine_addresses_.size() == 0)
+	epBroadcast_.addr(port, Network::BROADCAST);
+
+	if (epBroadcast_.setbroadcast(true) != 0)
 	{
-		epBroadcast_.addr(port, Network::BROADCAST);
+		ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Cannot broadcast socket on port {}, {}\n",
+			port, kbe_strerror()));
 
-		if (epBroadcast_.setbroadcast(true) != 0)
-		{
-			ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Cannot broadcast socket on port {}, {}\n",
-				port, kbe_strerror()));
-
-			networkInterface_.dispatcher().breakProcessing();
-			return false;
-		}
-
-		epBroadcast_.sendto(this, htons(port), Network::BROADCAST);
-		return true;
+		networkInterface_.dispatcher().breakProcessing();
+		return false;
 	}
 
 	this->finiMessage();
+	KBE_ASSERT(packets().size() == 1);
+
+	epBroadcast_.sendto(packets()[0]->data(), packets()[0]->length(), htons(port), Network::BROADCAST);
 
 	// 如果指定了地址池，则向所有地址发送消息
 	std::vector< std::string >::iterator addr_iter = machine_addresses_.begin();
 	for (; addr_iter != machine_addresses_.end(); ++addr_iter)
 	{
-		Network::EndPoint epBroadcast;
-		epBroadcast.socket(SOCK_DGRAM);
+		Network::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
 
-		if (!epBroadcast.good())
+		if (!ep.good())
 		{
-			ERROR_MSG("BundleBroadcast::broadcast: epBroadcast error!\n");
+			ERROR_MSG("BundleBroadcast::broadcast: ep error!\n");
 			break;
 		}
 
 		u_int32_t  uaddress;
 		Network::Address::string2ip((*addr_iter).c_str(), uaddress);
-		epBroadcast.sendto(packets()[0]->data(), packets()[0]->length(), htons(KBE_MACHINE_BROADCAST_SEND_PORT), uaddress);
+		ep.sendto(packets()[0]->data(), packets()[0]->length(), htons(KBE_MACHINE_BROADCAST_SEND_PORT), uaddress);
 	}
 
 	return true;
