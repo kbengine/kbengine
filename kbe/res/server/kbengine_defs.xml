@@ -765,6 +765,7 @@
 			<account_name_prefix>		bot_	</account_name_prefix>
 			
 			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照填写的数递增 
+				注意：想让机器人每次登陆使用相同的账号请设置固定的bots程序启动时的cid参数，具体参考服务器启动脚本，机器人账号由"前缀+cid+后缀组成"。
 				(The account name suffix, 0 is the use of random number, Otherwise, use account_name_suffix_inc and increasing.)
 			-->
 			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
