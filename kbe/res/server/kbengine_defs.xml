@@ -764,8 +764,8 @@
 			-->
 			<account_name_prefix>		bot_	</account_name_prefix>
 			
-			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增 
-				(The account name suffix, 0 is the use of random number, Otherwise, use baseNum and increasing.)
+			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照填写的数递增 
+				(The account name suffix, 0 is the use of random number, Otherwise, use account_name_suffix_inc and increasing.)
 			-->
 			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
 		</account_infos>
