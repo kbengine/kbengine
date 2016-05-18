@@ -1180,7 +1180,7 @@ bool Components::findComponents()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 			if(!bhandler.good())
 			{
-				ERROR_MSG("Components::findComponents: bhandler error!\n");
+				//ERROR_MSG("Components::findComponents: bhandler error!\n");
 				return false;
 			}
 
