@@ -1105,7 +1105,7 @@ public:																										\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
+	DEBUG_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
 	pScriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	removeFlags(ENTITY_FLAGS_INITING);																		\
