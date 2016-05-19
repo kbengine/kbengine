@@ -1979,8 +1979,8 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
 		PyErr_Format(PyExc_TypeError, 
-			"FIXED_DICT(%s) key no match. size:%d-%d, keyNames=[%s].", 
-			this->aliasName(),dictSize, keyTypes_.size(), 
+			"FIXED_DICT(%s) key does not match! keySize=%d,  giveKeySize=%d, keyNames=[%s].", 
+			this->aliasName(), dictSize, keyTypes_.size(), 
 			debugInfos().c_str());
 		
 		PyErr_PrintEx(0);
