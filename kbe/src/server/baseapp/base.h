@@ -331,7 +331,7 @@ protected:
 	// 在一些状态下(传送过程中)，发往cellapp的数据包需要被缓存, 合适的状态需要继续转发
 	BaseMessagesForwardCellappHandler*	pBufferedSendToCellappMessages_;
 	
-	// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORTING,  说明onMigrationCellappArrived包优先于
+	// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORT_START,  说明onMigrationCellappArrived包优先于
 	// onMigrationCellappStart到达(某些压力所致的情况下会导致实体跨进程跳转时（由cell1跳转到cell2），
 	// 跳转前所产生的包会比cell2的enterSpace包慢到达)，因此发生这种情况时需要将cell2的包先缓存
 	// 等cell1的包到达后执行完毕再执行cell2的包

@@ -63,12 +63,15 @@ public:
 		itry_ = i; 
 	}
 
+	void addBroadCastAddress(std::string addr);
+
 protected:
 	Network::EndPoint epListen_, epBroadcast_;
 	NetworkInterface & networkInterface_;
 	uint32 recvWindowSize_;
 	bool good_;
 	int8 itry_;
+	std::vector< std::string > machine_addresses_;
 };
 
 }

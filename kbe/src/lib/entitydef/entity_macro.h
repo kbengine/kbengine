@@ -277,10 +277,12 @@ namespace KBEngine{
 
 
 // 实体的标志
-#define ENTITY_FLAGS_UNKNOWN		0x00000000
-#define ENTITY_FLAGS_DESTROYING		0x00000001
-#define ENTITY_FLAGS_INITING		0x00000002
-#define ENTITY_FLAGS_TELEPORTING	0x00000004
+#define ENTITY_FLAGS_UNKNOWN			0x00000000
+#define ENTITY_FLAGS_DESTROYING			0x00000001
+#define ENTITY_FLAGS_INITING			0x00000002
+#define ENTITY_FLAGS_TELEPORT_START		0x00000004
+#define ENTITY_FLAGS_TELEPORT_ARRIVED	0x00000008
+#define ENTITY_FLAGS_TELEPORT_END		0x00000010
 
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
@@ -1103,7 +1105,7 @@ public:																										\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
+	DEBUG_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
 	pScriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	removeFlags(ENTITY_FLAGS_INITING);																		\

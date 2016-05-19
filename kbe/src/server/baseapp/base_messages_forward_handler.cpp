@@ -33,14 +33,17 @@ pBase_(pBase),
 completed_(false),
 startForward_(false)
 {
+	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::BaseMessagesForwardCellappHandler() : entityID({})!\n", 
+		(pBase_ ? pBase_->id() : 0)));
+	
 	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler()
 {
-	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler(): size({})!\n", 
-		bufferedSendToCellappMessages_.size()));
+	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler(): size({}), entityID({})!\n", 
+		bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
 
 	if(!completed_)
 		Baseapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
@@ -64,7 +67,9 @@ void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 void BaseMessagesForwardCellappHandler::startForward()
 {
 	startForward_ = true;
-	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::startForward(): size({})!\n", bufferedSendToCellappMessages_.size()));
+
+	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::startForward(): size({}), entityID({})!\n", 
+		bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -108,14 +113,17 @@ completed_(false),
 startForward_(false),
 cellappID_(cellappID)
 {
+	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::BaseMessagesForwardClientHandler() : cellappID({})!\n", 
+		cellappID_));
+	
 	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
 }
 
 //-------------------------------------------------------------------------------------
 BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler()
 {
-	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler(): size({})!\n", 
-		bufferedSendToClientMessages_.size()));
+	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler(): size({}), cellappID({})!\n", 
+		bufferedSendToClientMessages_.size(), cellappID_));
 
 	if(!completed_)
 		Baseapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
@@ -139,7 +147,9 @@ void BaseMessagesForwardClientHandler::pushMessages(Network::Bundle* pBundle)
 void BaseMessagesForwardClientHandler::startForward()
 {
 	startForward_ = true;
-	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::startForward(): size({})!\n", bufferedSendToClientMessages_.size()));
+
+	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::startForward(): size({}), cellappID({})!\n", 
+		bufferedSendToClientMessages_.size(), cellappID_));
 }
 
 //-------------------------------------------------------------------------------------

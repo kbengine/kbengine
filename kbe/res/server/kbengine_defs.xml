@@ -711,6 +711,16 @@
 		-->
 		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
 		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
+		
+		<!-- 服务组使用多台硬件组成网络，在某些网络环境由于路由器的设置不允许UDP广播造成跨物理机组网不成功时
+			可在此填入所有相关物理机的地址，引擎将会向具体的地址发送探测包来完成组网，
+			注意：如果指定了地址池引擎将不再发送全网广播包。
+			（When the network is composed of a plurality of hardware, the specific network address is detected.） 
+		-->
+		<addresses>
+			<!--<item> 127.0.0.1 </item>-->
+			<!--<item> 192.168.10.18 </item>-->
+		</addresses>
 	</machine>
 	
 	<bots>
@@ -754,8 +764,9 @@
 			-->
 			<account_name_prefix>		bot_	</account_name_prefix>
 			
-			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增 
-				(The account name suffix, 0 is the use of random number, Otherwise, use baseNum and increasing.)
+			<!-- 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照填写的数递增 
+				注意：想让机器人每次登陆使用相同的账号请设置固定的bots程序启动时的cid参数，具体参考服务器启动脚本，机器人账号由"前缀+cid+后缀组成"。
+				(The account name suffix, 0 is the use of random number, Otherwise, use account_name_suffix_inc and increasing.)
 			-->
 			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
 		</account_infos>

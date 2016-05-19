@@ -1047,6 +1047,11 @@ bool Components::findLogger()
 		MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 			g_componentType, g_componentID, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 
+		ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+		std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+		for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+			bhandler.addBroadCastAddress((*machine_addresses_iter));
+			
 		if(!bhandler.broadcast())
 		{
 			//ERROR_MSG("Components::findLogger: broadcast error!\n");
@@ -1180,6 +1185,7 @@ bool Components::findComponents()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 			if(!bhandler.good())
 			{
+				//ERROR_MSG("Components::findComponents: bhandler error!\n");
 				return false;
 			}
 
@@ -1193,6 +1199,11 @@ bool Components::findComponents()
 			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 				componentType_, componentID_, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 
+			ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+			std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+			for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+				bhandler.addBroadCastAddress((*machine_addresses_iter));
+			
 			if(!bhandler.broadcast())
 			{
 				ERROR_MSG("Components::findComponents: broadcast error!\n");
@@ -1398,9 +1409,7 @@ bool Components::process()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 
 			if(!bhandler.good())
-			{
 				continue;
-			}
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
 			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
@@ -1409,6 +1418,11 @@ bool Components::process()
 				pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
 				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, extraData1_, extraData2_, extraData3_, extraData4_, 
 				pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+			
+			ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+			std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+			for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+				bhandler.addBroadCastAddress((*machine_addresses_iter));
 			
 			bhandler.broadcast();
 
@@ -1454,7 +1468,7 @@ bool Components::process()
 
 					return false;
 
-				}while(bhandler.pCurrPacket()->length() > 0);
+				} while(bhandler.pCurrPacket()->length() > 0);
 			}
 
 			bhandler.close();

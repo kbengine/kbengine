@@ -463,12 +463,12 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		space->addEntityAndEnterWorld(pEntity);
 
 		// 有可能在addEntityAndEnterWorld中被销毁了
-		// 是否能在创建过程中被销毁还需要考虑
-		if(pEntity->isDestroyed())
-		{
-			Py_DECREF(pEntity);
-			return NULL;
-		}
+		// 这里需要让实体返回给脚本，只不过实体为isDestroyed = true状态
+		//if(pEntity->isDestroyed())
+		//{
+		//	Py_DECREF(pEntity);
+		//	return NULL;
+		//}
 	}
 
 	//Py_XDECREF(params);
@@ -1928,7 +1928,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 
-	entity->removeFlags(ENTITY_FLAGS_TELEPORTING);
+	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
 

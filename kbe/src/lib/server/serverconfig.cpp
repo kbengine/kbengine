@@ -1108,6 +1108,23 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_kbMachineInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
+		
+		node = xml->enterNode(rootNode, "addresses");
+		if(node)
+		{
+			do
+			{
+				if(node->FirstChild() != NULL)
+				{
+					std::string c = node->FirstChild()->Value();
+					c = strutil::kbe_trim(c);
+					if(c.size() > 0)
+					{
+						_kbMachineInfo.machine_addresses.push_back(c);
+					}
+				}
+			} while((node = node->NextSibling()));
+		}
 	}
 	
 	rootNode = xml->getRootNode("bots");
