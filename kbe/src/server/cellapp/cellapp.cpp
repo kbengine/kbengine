@@ -1871,7 +1871,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 
-	entity->removeFlags(ENTITY_FLAGS_TELEPORTING);
+	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
 
