@@ -1775,6 +1775,11 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 				}
 			}
 		}
+		else
+		{
+			ERROR_MSG(fmt::format("FixedDictType::initialize: can't found label[Type] by key[{}].\n",
+				typeName.c_str()));
+		}
 	}
 	XML_FOR_END(propertiesNode);
 
@@ -1794,6 +1799,14 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 
 		if(strType.size() > 0)
 			EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+	}
+
+	if (keyTypes_.size() == 0)
+	{
+		ERROR_MSG(fmt::format("FixedDictType::initialize(): FIXED_DICT({}) no keys! \n",
+			this->aliasName()));
+
+		return false;
 	}
 
 	return true;
@@ -1873,6 +1886,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 	if(pyRet == NULL || !impl_isSameType(pyRet))
 	{
 		SCRIPT_ERROR_CHECK();
+
 		ERROR_MSG(fmt::format("FixedDictType::impl_createObjFromDict: {}.isSameType() is failed!\n",
 			moduleName_.c_str()));
 		
