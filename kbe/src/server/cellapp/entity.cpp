@@ -444,26 +444,22 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	// 只有在cell边界一定范围内的entity才拥有ghost实体, 或者在跳转space时也会短暂的置为ghost状态
 	if((flags & ENTITY_BROADCAST_CELL_FLAGS) > 0 && hasGhost())
 	{
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-		(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostPropertys);
-		(*pForwardBundle) << id();
-		(*pForwardBundle) << propertyDescription->getUType();
-
-		pForwardBundle->append(*mstream);
-
 		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
 		if(gm)
 		{
+			Network::Bundle* pForwardBundle = gm->createSendBundle(ghostCell());
+			(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostPropertys);
+			(*pForwardBundle) << id();
+			(*pForwardBundle) << propertyDescription->getUType();
+
+			pForwardBundle->append(*mstream);
+
 			// 记录这个事件产生的数据量大小
 			g_publicCellEventHistoryStats.trackEvent(scriptName(), 
 				propertyDescription->getName(), 
 				pForwardBundle->currMsgLength());
 
 			gm->pushMessage(ghostCell(), pForwardBundle);
-		}
-		else
-		{
-			Network::Bundle::reclaimPoolObject(pForwardBundle);
 		}
 	}
 	

@@ -1213,7 +1213,7 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 			COMPONENT_ID cellID = gm->getRoute(eid);
 			if(gm && cellID > 0)
 			{
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = gm->createSendBundle(cellID);
 				(*pBundle).newMessage(CellappInterface::onEntityMail);
 				(*pBundle) << eid << mailtype;
 				(*pBundle).append(s);
@@ -1227,10 +1227,6 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		s.done();
 		return;
 	}
-	
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	Network::Bundle& bundle = *pBundle;
-	bool reclaim = true;
 
 	switch(mailtype)
 	{
@@ -1242,11 +1238,11 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 					GhostManager* gm = Cellapp::getSingleton().pGhostManager();
 					if(gm)
 					{
-						bundle.newMessage(CellappInterface::onEntityMail);
-						bundle << eid << mailtype;
-						bundle.append(s);
+						Network::Bundle* pBundle = gm->createSendBundle(entity->realCell());
+						pBundle->newMessage(CellappInterface::onEntityMail);
+						(*pBundle) << eid << mailtype;
+						pBundle->append(s);
 						gm->pushMessage(entity->realCell(), pBundle);
-						reclaim = false;
 					}
 				}
 				else
@@ -1269,10 +1265,14 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 					break;
 				}
 				
-				mailbox->newMail(bundle);
-				bundle.append(s);
-				mailbox->postMail(pBundle);
-				reclaim = false;
+				Network::Channel* pChannel = mailbox->getChannel();
+				if (pChannel)
+				{
+					Network::Bundle* pBundle = pChannel->createSendBundle();
+					mailbox->newMail(*pBundle);
+					pBundle->append(s);
+					pChannel->send(pBundle);
+				}
 			}
 			break;
 		
@@ -1288,11 +1288,14 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 					break;
 				}
 				
-				mailbox->newMail(bundle);
-				bundle.append(s);
-				s.done();
-				mailbox->postMail(pBundle);
-				reclaim = false;
+				Network::Channel* pChannel = mailbox->getChannel();
+				if (pChannel)
+				{
+					Network::Bundle* pBundle = pChannel->createSendBundle();
+					mailbox->newMail(*pBundle);
+					pBundle->append(s);
+					pChannel->send(pBundle);
+				}
 			}
 			break;
 		default:
@@ -1301,9 +1304,6 @@ void Cellapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 					mailtype, eid));
 			}
 	};
-
-	if(reclaim)
-		Network::Bundle::reclaimPoolObject(pBundle);
 
 	s.done();
 }
@@ -1382,7 +1382,7 @@ void Cellapp::onUpdateGhostPropertys(Network::Channel* pChannel, KBEngine::Memor
 			COMPONENT_ID targetCell = gm->getRoute(entityID);
 			if(targetCell > 0)
 			{
-				Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pForwardBundle = gm->createSendBundle(targetCell);
 				(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostPropertys);
 				(*pForwardBundle) << entityID;
 				pForwardBundle->append(s);
@@ -1419,7 +1419,7 @@ void Cellapp::onRemoteRealMethodCall(Network::Channel* pChannel, KBEngine::Memor
 			COMPONENT_ID targetCell = gm->getRoute(entityID);
 			if(targetCell > 0)
 			{
-				Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pForwardBundle = gm->createSendBundle(targetCell);
 				(*pForwardBundle).newMessage(CellappInterface::onRemoteRealMethodCall);
 				(*pForwardBundle) << entityID;
 				pForwardBundle->append(s);
@@ -1456,7 +1456,7 @@ void Cellapp::onUpdateGhostVolatileData(Network::Channel* pChannel, KBEngine::Me
 			COMPONENT_ID targetCell = gm->getRoute(entityID);
 			if(targetCell > 0)
 			{
-				Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pForwardBundle = gm->createSendBundle(targetCell);
 				(*pForwardBundle).newMessage(CellappInterface::onUpdateGhostVolatileData);
 				(*pForwardBundle) << entityID;
 				pForwardBundle->append(s);
