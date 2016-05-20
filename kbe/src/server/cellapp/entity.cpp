@@ -77,6 +77,8 @@ SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("debugAOI",					pyDebugAOI,						METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("setPositionForOthers",		pySetPositionForOthers,			METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("setDirectionForOthers",		pySetDirectionForOthers,		METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -598,7 +600,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 }	
 
 //-------------------------------------------------------------------------------------
-void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
+void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData, bool dontNotifySelf)
 {
 	// 如果不是一个realEntity或者在初始化则不理会
 	if(!isReal() || initing())
@@ -766,7 +768,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 	*/
 
 	// 判断这个属性是否还需要广播给自己的客户端
-	if((flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL && pWitness_)
+	if (!dontNotifySelf && (flags & ENTITY_BROADCAST_OWN_CLIENT_FLAGS) > 0 && clientMailbox_ != NULL && pWitness_)
 	{
 		Network::Bundle* pSendBundle = NULL;
 		
@@ -1401,18 +1403,33 @@ void Entity::onEnteredAoI(Entity* entity)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Entity::pySetPositionForOthers(PyObject *value)
+{
+	setPositionFromPyObject(value, true);
+	Py_RETURN_NONE;
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::pySetPosition(PyObject *value)
+{
+	if (!setPositionFromPyObject(value, false))
+		return -1;
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::setPositionFromPyObject(PyObject *value, bool dontNotifySelfClient)
 {
 	if(isDestroyed())	
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
 		PyErr_PrintEx(0);
-		return -1;																				
+		return false;																				
 	}
 
 	if(!script::ScriptVector3::check(value))
-		return -1;
+		return false;
 
 	Position3D pos;
 	script::ScriptVector3::convertPyObjectToVector3(pos, value);
@@ -1433,8 +1450,8 @@ int Entity::pySetPosition(PyObject *value)
 	if(pScriptModule_->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
-	onDefDataChanged(&positionDescription, value);
-	return 0;
+	onDefDataChanged(&positionDescription, value, dontNotifySelfClient);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1482,21 +1499,36 @@ void Entity::setPosition_XYZ_float(Network::Channel* pChannel, float x, float y,
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Entity::pySetDirectionForOthers(PyObject *value)
+{
+	setDirectionFromPyObject(value, true);
+	Py_RETURN_NONE;
+}
+
+//-------------------------------------------------------------------------------------
 int Entity::pySetDirection(PyObject *value)
+{
+	if (!setDirectionFromPyObject(value, false))
+		return -1;
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::setDirectionFromPyObject(PyObject *value, bool dontNotifySelfClient)
 {
 	if(isDestroyed())	
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
 		PyErr_PrintEx(0);
-		return -1;																				
+		return false;																				
 	}
 
 	if(PySequence_Check(value) <= 0)
 	{
 		PyErr_Format(PyExc_TypeError, "args of direction is must a sequence.");
 		PyErr_PrintEx(0);
-		return -1;
+		return false;
 	}
 
 	Py_ssize_t size = PySequence_Size(value);
@@ -1504,7 +1536,7 @@ int Entity::pySetDirection(PyObject *value)
 	{
 		PyErr_Format(PyExc_TypeError, "len(direction) != 3. can't set.");
 		PyErr_PrintEx(0);
-		return -1;
+		return false;
 	}
 
 	Direction3D& dir = direction();
@@ -1515,7 +1547,7 @@ int Entity::pySetDirection(PyObject *value)
 		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
 		PyErr_PrintEx(0);
 		Py_DECREF(pyItem);
-		return -1;
+		return false;
 	}
 
 	dir.roll(float(PyFloat_AsDouble(pyItem)));
@@ -1528,7 +1560,7 @@ int Entity::pySetDirection(PyObject *value)
 		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
 		PyErr_PrintEx(0);
 		Py_DECREF(pyItem);
-		return -1;
+		return false;
 	}
 
 	dir.pitch(float(PyFloat_AsDouble(pyItem)));
@@ -1541,7 +1573,7 @@ int Entity::pySetDirection(PyObject *value)
 		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
 		PyErr_PrintEx(0);
 		Py_DECREF(pyItem);
-		return -1;
+		return false;
 	}
 
 	dir.yaw(float(PyFloat_AsDouble(pyItem)));
@@ -1560,9 +1592,9 @@ int Entity::pySetDirection(PyObject *value)
 	if(pScriptModule_->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
-	onDefDataChanged(&directionDescription, value);
+	onDefDataChanged(&directionDescription, value, dontNotifySelfClient);
 
-	return 0;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

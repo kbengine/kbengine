@@ -118,9 +118,10 @@ public:
 
 	/** 
 		定义属性数据被改变了 
+		@param dontNotifySelfClient: 用于setPositionForOthers()或setDirectionForOthers()方法
 	*/
 	void onDefDataChanged(const PropertyDescription* propertyDescription, 
-			PyObject* pyData);
+		PyObject* pyData, bool dontNotifySelfClient = false);
 	
 	/** 
 		该entity通信通道
@@ -176,6 +177,23 @@ public:
 	INLINE Direction3D& direction();
 	INLINE void direction(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
+
+	/**
+	一个特殊的方法：强制设置自己的position，但不通知自己的客户端，
+	当我们希望手动同步客户端的坐标给周围的客户端时，
+	可以使用这个方法来代替self.position = pos的模式，以避免通知自己的客户端
+	*/
+	DECLARE_PY_MOTHOD_ARG1(pySetPositionForOthers, PyObject_ptr);
+	bool setPositionFromPyObject(PyObject_ptr, bool dontNotifySelfClient = false);
+
+	/**
+	一个特殊的方法：强制设置自己的direction，但不通知自己的客户端，
+	当我们希望手动同步客户端的坐标给周围的客户端时，
+	可以使用这个方法来代替self.direction = pos的模式，以避免通知自己的客户端
+	*/
+	DECLARE_PY_MOTHOD_ARG1(pySetDirectionForOthers, PyObject_ptr);
+	bool setDirectionFromPyObject(PyObject_ptr, bool dontNotifySelfClient = false);
+
 
 	/**
 		是否在地面上
