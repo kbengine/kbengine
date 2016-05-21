@@ -1428,8 +1428,8 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedArrayType::initialize: can't found type[{}] by key[{}].\n", 
-				strType.c_str(), "ARRAY"));
+			ERROR_MSG(fmt::format("FixedArrayType::initialize: key[{}] did not find type[{}]!\n", 
+				"ARRAY", strType.c_str()));
 			
 			return false;
 		}			
@@ -1736,8 +1736,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found array type[{}] by key[{}].\n", 
-						strType.c_str(), typeName.c_str()));
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n", 
+						typeName.c_str(), strType.c_str()));
 
 					return false;
 				}
@@ -1768,8 +1768,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found type[{}] by key[{}].\n", 
-						strType.c_str(), typeName.c_str()));
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find type[{}]!\n", 
+						typeName.c_str(), strType.c_str()));
 					
 					return false;
 				}
@@ -1777,8 +1777,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedDictType::initialize: can't found label[Type] by key[{}].\n",
-				typeName.c_str()));
+			ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] no label[\"Type\"], key[{}] will be ignored!\n",
+				typeName, typeName));
 		}
 	}
 	XML_FOR_END(propertiesNode);
