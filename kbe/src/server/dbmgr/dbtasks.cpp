@@ -1538,7 +1538,7 @@ bool DBTaskAccountLogin::db_thread_process()
 			INFO_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], autocreate successfully!\n", 
 				accountName_));
 
-			if (Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
+			if (needCheckPassword_ || Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
 			{
 				info.password = KBE_MD5::getDigest(password_.data(), (int)password_.length());
 			}
