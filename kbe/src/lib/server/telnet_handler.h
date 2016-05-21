@@ -134,6 +134,22 @@ public:
 	void sendStream(MemoryStream* s);
 };
 
+class TelnetPyTickProfileHandler : public TelnetProfileHandler, public PyTickProfileHandler
+{
+public:
+	TelnetPyTickProfileHandler(TelnetHandler* pTelnetHandler, Network::NetworkInterface & networkInterface, uint32 timinglen,
+		std::string name, const Network::Address& addr) :
+		TelnetProfileHandler(pTelnetHandler),
+		PyTickProfileHandler(networkInterface, timinglen, name, addr)
+	{
+	}
+
+	virtual ~TelnetPyTickProfileHandler(){}
+
+	void sendStream(MemoryStream* s);
+	virtual void timeout();
+};
+
 class TelnetCProfileHandler : public TelnetProfileHandler, public CProfileHandler
 {
 public:

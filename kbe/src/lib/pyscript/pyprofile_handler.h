@@ -36,6 +36,23 @@ public:
 	void sendStream(MemoryStream* s);
 };
 
+
+
+class PyTickProfileHandler : public Task,
+                             public ProfileHandler
+{
+public:
+	PyTickProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen,
+		std::string name, const Network::Address& addr);
+	virtual ~PyTickProfileHandler();
+
+	virtual void timeout();
+	virtual bool process();
+	virtual void sendStream(MemoryStream* s);
+
+};
+
+
 }
 
 #endif // KBE_PYPROFILE_HANDLER_H

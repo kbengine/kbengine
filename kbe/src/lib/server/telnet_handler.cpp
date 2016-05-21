@@ -586,7 +586,36 @@ bool TelnetHandler::processCommand()
 		readonly();
 		return false;
 	}
-	else if(cmd.find(":eventprofile") == 0)
+	else if (cmd.find(":pytickprofile") == 0)
+	{
+		uint32 timelen = 10;
+
+		cmd.erase(cmd.find(":pytickprofile"), strlen(":pytickprofile"));
+		if (cmd.size() > 0)
+		{
+			try
+			{
+				KBEngine::StringConv::str2value(timelen, cmd.c_str());
+			}
+			catch (...)
+			{
+				timelen = 10;
+			}
+
+			if (timelen < 1 || timelen > 999999999)
+				timelen = 10;
+		}
+
+		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+		if (pProfileHandler_) pProfileHandler_->destroy();
+		pProfileHandler_ = new TelnetPyTickProfileHandler(this, *pTelnetServer_->pNetworkInterface(),
+			timelen, profileName, pEndPoint_->addr());
+
+		readonly();
+		return false;
+	}
+	else if (cmd.find(":eventprofile") == 0)
 	{
 		uint32 timelen = 10;
 
@@ -761,8 +790,11 @@ void TelnetHandler::readonly()
 //-------------------------------------------------------------------------------------
 void TelnetHandler::onProfileEnd(const std::string& datas)
 {
-	sendEnter();
-	pEndPoint()->send(datas.c_str(), datas.size());
+	if (datas.size() > 0)
+	{
+		sendEnter();
+		pEndPoint()->send(datas.c_str(), datas.size());
+	}
 	setReadWrite();
 	sendEnter();
 	sendNewLine();
@@ -790,6 +822,38 @@ void TelnetPyProfileHandler::sendStream(MemoryStream* s)
 	}
 
 	pTelnetHandler_->onProfileEnd(datas);
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetPyTickProfileHandler::sendStream(MemoryStream* s)
+{
+	if (isDestroyed_) return;
+
+	std::string datas;
+	(*s) >> datas;
+
+	// 把返回值中的'\n'替換成'\r\n'，以解决在vt100终端中显示不正确的问题
+	std::string::size_type pos = 0;
+	while ((pos = datas.find('\n', pos)) != std::string::npos)
+	{
+		if (datas[pos - 1] != '\r')
+		{
+			datas.insert(pos, "\r");
+			pos++;
+		}
+		pos++;
+	}
+
+	pTelnetHandler_->sendEnter();
+	pTelnetHandler_->pEndPoint()->send(datas.c_str(), datas.size());
+	//pTelnetHandler_->onProfileEnd(datas);
+}
+
+void TelnetPyTickProfileHandler::timeout()
+{
+	PyTickProfileHandler::timeout();
+
+	pTelnetHandler_->onProfileEnd("");
 }
 
 //-------------------------------------------------------------------------------------
