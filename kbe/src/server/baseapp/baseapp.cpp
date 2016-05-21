@@ -3251,9 +3251,6 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		return;
 	}
 	
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	Network::Bundle& bundle = *pBundle;
-	bool reclaim = true;
 
 	switch(mailtype)
 	{
@@ -3274,10 +3271,14 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 					break;
 				}
 				
-				mailbox->newMail(bundle);
-				bundle.append(s);
-				mailbox->postMail(pBundle);
-				reclaim = false;
+				Network::Channel* pChannel = mailbox->getChannel();
+				if (pChannel)
+				{
+					Network::Bundle* pBundle = pChannel->createSendBundle();
+					mailbox->newMail(*pBundle);
+					pBundle->append(s);
+					pChannel->send(pBundle);
+				}
 			}
 			break;
 
@@ -3293,22 +3294,24 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 					break;
 				}
 				
-				mailbox->newMail(bundle);
-				bundle.append(s);
-
-				if(Network::g_trace_packet > 0 && s.length() >= sizeof(ENTITY_METHOD_UID))
+				Network::Channel* pChannel = mailbox->getChannel();
+				if (pChannel)
 				{
-					ENTITY_METHOD_UID utype = 0;
-					s >> utype;
+					Network::Bundle* pBundle = pChannel->createSendBundle();
+					mailbox->newMail(*pBundle);
+					pBundle->append(s);
 
-					DEBUG_MSG(fmt::format("Baseapp::onEntityMail: onRemoteMethodCall(entityID={}, method={}).\n",
-						eid, utype));
+					if(Network::g_trace_packet > 0 && s.length() >= sizeof(ENTITY_METHOD_UID))
+					{
+						ENTITY_METHOD_UID utype = 0;
+						s >> utype;
+
+						DEBUG_MSG(fmt::format("Baseapp::onEntityMail: onRemoteMethodCall(entityID={}, method={}).\n",
+							eid, utype));
+					}
+
+					static_cast<Proxy*>(base)->sendToClient(pBundle);
 				}
-
-				s.done();
-
-				static_cast<Proxy*>(base)->sendToClient(pBundle);
-				reclaim = false;
 			}
 			break;
 
@@ -3318,9 +3321,6 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 					mailtype, eid));
 			}
 	};
-
-	if(reclaim)
-		Network::Bundle::reclaimPoolObject(pBundle);
 
 	s.done();
 }

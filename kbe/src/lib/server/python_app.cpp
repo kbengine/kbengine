@@ -165,7 +165,7 @@ bool PythonApp::installPyScript()
 		Resmgr::getSingleton().getPySysResPath().size() == 0 ||
 		Resmgr::getSingleton().getPyUserScriptsPath().size() == 0)
 	{
-		KBE_ASSERT(false && "PythonApp::installPyScript: KBE_RES_PATH is error!\n");
+		KBE_ASSERT(false && "PythonApp::installPyScript: KBE_RES_PATH error!\n");
 		return false;
 	}
 

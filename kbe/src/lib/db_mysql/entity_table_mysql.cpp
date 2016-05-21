@@ -78,7 +78,8 @@ bool sync_item_to_db(DBInterface* pdbi,
 	{
 	}	
 
-	if(pdbi->getlasterror() == 1060)	
+	unsigned int mysql_errorno = pdbi->getlasterror();
+	if (mysql_errorno == 1060/* Duplicate column name */)
 	{
 		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `" ENTITY_TABLE_PERFIX "_%s` MODIFY COLUMN `%s` %s;",	
 			tableName, itemName, datatype);
@@ -95,11 +96,19 @@ bool sync_item_to_db(DBInterface* pdbi,
 		}
 		catch(...)
 		{
-			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}) is error({}: {})\n lastQuery: {}.\n", 
+			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}), error({}: {})\n lastQuery: {}.\n", 
 				tableName, itemName, datatype, pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
 
 			return false;
 		}
+	}
+	else if (mysql_errorno == 1064/* You have an error in your SQL syntax */ || 
+		mysql_errorno == 1101/* 1101: BLOB/TEXT column 'sm_s11s11' can't have a default value */)
+	{
+		ERROR_MSG(fmt::format("syncToDB(): {}->{}({}), error({}: {})\n lastQuery: {}.\n",
+			tableName, itemName, datatype, pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
+
+		return false;
 	}
 
 	if(callback)
@@ -148,7 +157,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 	{
 		PropertyDescription* pdescrs = iter->second;
 
-		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName());
+		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
 
 		pETItem->pParentTable(this);
 		pETItem->utype(pdescrs->getUType());
@@ -188,7 +197,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 			msgInfo = NULL;	
 		}
 
-		EntityTableItem* pETItem = this->createItem("VECTOR3");
+		EntityTableItem* pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(posuid);
 		pETItem->tableName(this->tableName());
@@ -196,7 +205,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 		tableItems_[pETItem->utype()].reset(pETItem);
 		tableFixedOrderItems_.push_back(pETItem);
 
-		pETItem = this->createItem("VECTOR3");
+		pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(diruid);
 		pETItem->tableName(this->tableName());
@@ -492,47 +501,157 @@ void EntityTableMysql::queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule*
 }
 
 //-------------------------------------------------------------------------------------
-EntityTableItem* EntityTableMysql::createItem(std::string type)
+EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defaultVal)
 {
 	if(type == "INT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint not null DEFAULT 0", 4, NOT_NULL_FLAG, FIELD_TYPE_TINY);
+		try
+		{
+			int8 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint not null DEFAULT {}", defaultVal),
+			4, NOT_NULL_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "INT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint not null DEFAULT 0", 6, NOT_NULL_FLAG, FIELD_TYPE_SHORT);
+		try
+		{
+			int16 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint not null DEFAULT {}", defaultVal), 
+			6, NOT_NULL_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "INT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int not null DEFAULT 0", 11, NOT_NULL_FLAG, FIELD_TYPE_LONG);
+		try
+		{
+			int32 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int not null DEFAULT {}", defaultVal), 
+			11, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "INT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint not null DEFAULT 0", 20, NOT_NULL_FLAG, FIELD_TYPE_LONGLONG);
+		try
+		{
+			int64 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint not null DEFAULT {}", defaultVal), 
+			20, NOT_NULL_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "UINT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint unsigned not null DEFAULT 0", 3, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_TINY);
+		try
+		{
+			uint8 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint unsigned not null DEFAULT {}", defaultVal), 
+			3, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "UINT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint unsigned not null DEFAULT 0", 5, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_SHORT);
+		try
+		{
+			uint16 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint unsigned not null DEFAULT {}", defaultVal), 
+			5, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "UINT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int unsigned not null DEFAULT 0", 10, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_LONG);
+		try
+		{
+			uint32 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int unsigned not null DEFAULT {}", defaultVal),
+			10, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "UINT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint unsigned not null DEFAULT 0", 20, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_LONGLONG);
+		try
+		{
+			uint64 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint unsigned not null DEFAULT {}", defaultVal), 
+			20, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "FLOAT")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
+		try
+		{
+			float v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("float not null DEFAULT {}", defaultVal), 
+			0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 	else if(type == "DOUBLE")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "double not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_DOUBLE);
+		try
+		{
+			double v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "0";
+		}
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("double not null DEFAULT {}", defaultVal), 
+			0, NOT_NULL_FLAG, FIELD_TYPE_DOUBLE);
 	}
 	else if(type == "STRING")
 	{
@@ -1133,7 +1252,7 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 	pTable->isChild(true);
 
 	EntityTableItem* pArrayTableItem;
-	pArrayTableItem = pParentTable_->createItem(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->getName());
+	pArrayTableItem = pParentTable_->createItem(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->getName(), pPropertyDescription->getDefaultValStr());
 	pArrayTableItem->utype(-pPropertyDescription->getUType());
 	pArrayTableItem->pParentTable(this->pParentTable());
 	pArrayTableItem->pParentTableItem(this);
@@ -1264,7 +1383,7 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 		if(!iter->second->persistent)
 			continue;
 
-		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->dataType->getName());
+		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->dataType->getName(), pPropertyDescription->getDefaultValStr());
 
 		tableItem->pParentTable(this->pParentTable());
 		tableItem->pParentTableItem(this);

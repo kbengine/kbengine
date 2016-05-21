@@ -51,6 +51,33 @@ GhostManager::~GhostManager()
 }
 
 //-------------------------------------------------------------------------------------
+Network::Bundle* GhostManager::createSendBundle(COMPONENT_ID componentID)
+{
+	std::map<COMPONENT_ID, std::vector< Network::Bundle* > >::iterator iter = messages_.find(componentID);
+
+	if (iter != messages_.end())
+	{
+		if (iter->second.size() > 0)
+		{
+			Network::Bundle* pBundle = iter->second.back();
+			if (pBundle->packetHaveSpace())
+			{
+				// 先从队列删除
+				iter->second.pop_back();
+				pBundle->pChannel(NULL);
+				pBundle->pCurrMsgHandler(NULL);
+				pBundle->currMsgPacketCount(0);
+				pBundle->currMsgLength(0);
+				pBundle->currMsgLengthPos(0);
+				return pBundle;
+			}
+		}
+	}
+
+	return Network::Bundle::createPoolObject();
+}
+
+//-------------------------------------------------------------------------------------
 void GhostManager::cancel()
 {
 	if(pTimerHandle_)

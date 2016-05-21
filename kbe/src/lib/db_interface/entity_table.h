@@ -226,7 +226,7 @@ public:
 	/** 
 		创建一个表item
 	*/
-	virtual EntityTableItem* createItem(std::string type) = 0;
+	virtual EntityTableItem* createItem(std::string type, std::string defaultVal) = 0;
 
 	/** 
 		获得所有表字段
