@@ -262,6 +262,15 @@ int FixedDict::mp_length(PyObject* self)
 int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);
+	if (PyUnicode_AsWideCharStringRet0 == NULL)
+	{
+		char err[255];
+		kbe_snprintf(err, 255, "FixedDict::mp_ass_subscript: key not is string!\n");
+		PyErr_SetString(PyExc_TypeError, err);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	char* dictKeyName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
