@@ -43,8 +43,7 @@ bool sync_item_to_db(DBInterface* pdbi,
 					 const char* tableName, 
 					 const char* itemName, 
 					 uint32 length, 
-					 enum_field_types 
-					 sqlitemtype, 
+					 enum_field_types sqlitemtype, 
 					 unsigned int itemflags, 
 					 void* pData, onSyncItemToDBSuccessPtr callback = NULL)	
 {
@@ -685,11 +684,13 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 	}
 	else if(type == "STRING")
 	{
-		return new EntityTableItemMysql_STRING("text", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_STRING(fmt::format("varchar($DATALEN) not null DEFAULT '{}'", defaultVal), 
+			0, 0, MYSQL_TYPE_VAR_STRING);
 	}
 	else if(type == "UNICODE")
 	{
-		return new EntityTableItemMysql_UNICODE("text", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_UNICODE(fmt::format("varchar($DATALEN) not null DEFAULT '{}'", defaultVal), 
+			0, 0, MYSQL_TYPE_VAR_STRING);
 	}
 	else if(type == "PYTHON")
 	{
@@ -1683,14 +1684,14 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length > 0)
+	if(length <= 0)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
+		// 默认长度255
+		length = 255;
 	}
-	else
-	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
-	}
+
+	KBEngine::strutil::kbe_replace(itemDBType_, "$DATALEN", fmt::format("{}", length).c_str());
+	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
 		this->mysqlItemtype_, this->flags(), pData);
@@ -1748,14 +1749,14 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length > 0)
+	if (length <= 0)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
+		// 默认长度255
+		length = 255;
 	}
-	else
-	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
-	}
+
+	KBEngine::strutil::kbe_replace(itemDBType_, "$DATALEN", fmt::format("{}", length).c_str());
+	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
 		this->mysqlItemtype_, this->flags(), pData);

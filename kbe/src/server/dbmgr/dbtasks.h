@@ -480,7 +480,8 @@ class DBTaskAccountLogin : public DBTask
 {
 public:
 	DBTaskAccountLogin(const Network::Address& addr, std::string& loginName, 
-		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, std::string& getdatas, bool needCheckPassword);
+		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, 
+		std::string& getdatas, bool needCheckPassword);
 
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();

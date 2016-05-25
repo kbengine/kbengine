@@ -156,5 +156,65 @@ void PyTickProfileHandler::sendStream(MemoryStream* s)
 }
 
 //-------------------------------------------------------------------------------------
+PyTickProfileHandler::PyTickProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen,
+	std::string name, const Network::Address& addr) :
+	ProfileHandler(networkInterface, timinglen, name, addr)
+{
+	DEBUG_MSG(fmt::format("PyTickProfileHandler::PyTickProfileHandler(), name = {}, timinglen = {}\n", name_, timinglen));
+	networkInterface_.dispatcher().addTask(this);
+	script::PyProfile::start(name_);
+}
+
+//-------------------------------------------------------------------------------------
+PyTickProfileHandler::~PyTickProfileHandler()
+{
+	DEBUG_MSG(fmt::format("PyTickProfileHandler::~PyTickProfileHandler(), name = {}\n", name_));
+	networkInterface_.dispatcher().cancelTask(this);
+	script::PyProfile::remove(name_);
+}
+
+//-------------------------------------------------------------------------------------
+void PyTickProfileHandler::timeout()
+{
+	script::PyProfile::stop(name_);
+}
+
+//-------------------------------------------------------------------------------------
+bool PyTickProfileHandler::process()
+{
+	MemoryStream s;
+	script::PyProfile::stop(name_);
+	script::PyProfile::addToStream(name_, &s);
+	script::PyProfile::remove(name_);
+	script::PyProfile::start(name_);
+	sendStream(&s);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void PyTickProfileHandler::sendStream(MemoryStream* s)
+{
+	Network::Channel* pChannel = networkInterface_.findChannel(addr_);
+	if (pChannel == NULL)
+	{
+		WARNING_MSG(fmt::format("PyTickProfileHandler::sendStream: not found {} addr({})\n",
+			name_, addr_.c_str()));
+		timeout();
+		return;
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+
+	ConsoleInterface::ConsoleProfileHandler msgHandler;
+	(*pBundle).newMessage(msgHandler);
+
+	int8 type = 4;
+	(*pBundle) << type;
+	(*pBundle) << timinglen_;
+	(*pBundle).append(s);
+	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

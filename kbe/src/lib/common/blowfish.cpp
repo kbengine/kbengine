@@ -136,7 +136,7 @@ int KBEBlowfish::decrypt( const unsigned char * src, unsigned char * dest,
 {
 	if (length % BLOCK_SIZE != 0)
 	{
-		WARNING_MSG(fmt::format("Blowfish::decrypt:"
+		ERROR_MSG(fmt::format("Blowfish::decrypt:"
 			"Input stream size ({}) is not a multiple of the block size ({})\n",
 			length, (int)(BLOCK_SIZE)));
 

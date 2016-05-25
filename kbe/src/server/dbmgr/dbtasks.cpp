@@ -1524,7 +1524,8 @@ bool DBTaskAccountLogin::db_thread_process()
 			}
 		}
 
-		if(g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate)
+		if (g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate || 
+			(Network::Address::NONE != g_kbeSrvConfig.interfacesAddr() && !needCheckPassword_/*第三方处理成功则自动创建账号*/))
 		{
 			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			{
@@ -1538,10 +1539,7 @@ bool DBTaskAccountLogin::db_thread_process()
 			INFO_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], autocreate successfully!\n", 
 				accountName_));
 
-			if (Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
-			{
-				info.password = KBE_MD5::getDigest(password_.data(), (int)password_.length());
-			}
+			info.password = KBE_MD5::getDigest(password_.data(), (int)password_.length());
 		}
 		else
 		{
