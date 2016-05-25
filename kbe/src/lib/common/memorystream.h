@@ -516,6 +516,8 @@ public:
 
     void reserve(size_t ressize)
     {
+    	KBE_ASSERT(ressize <= 655350);
+
         if (ressize > size())
             data_.reserve(ressize);
     }
