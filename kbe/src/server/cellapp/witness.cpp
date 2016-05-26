@@ -231,6 +231,7 @@ void Witness::detach(Entity* pEntity)
 void Witness::clear(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity == pEntity_);
+	uninstallAOITrigger();
 
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
@@ -248,9 +249,12 @@ void Witness::clear(Entity* pEntity)
 	aoiHysteresisArea_ = 5.0f;
 	clientAOISize_ = 0;
 
-	SAFE_RELEASE(pAOITrigger_);
-	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
-	
+	// 不需要销毁，后面还可以重用
+	// 此处销毁可能会产生错误，因为enteraoi过程中可能导致实体销毁
+	// 在pAOITrigger_流程没走完之前这里销毁了pAOITrigger_就crash
+	//SAFE_RELEASE(pAOITrigger_);
+	//SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
+
 	aoiEntities_.clear();
 	aoiEntities_map_.clear();
 
@@ -518,7 +522,7 @@ void Witness::installAOITrigger()
 	{
 		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 
-		if (pAOIHysteresisAreaTrigger_)
+		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)
 		{
 			pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		}

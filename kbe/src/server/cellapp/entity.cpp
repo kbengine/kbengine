@@ -246,17 +246,23 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 	if(pobj->initing())
 	{
 		PyErr_Format(PyExc_AssertionError,
-			"Entity::destroy(): %s is in initing, reject the request!\n",	
-			pobj->scriptName());
+			"%s::destroy(): %d initing, reject the request!\n",
+			pobj->scriptName(), pobj->id());
 		PyErr_PrintEx(0);
 		return NULL;
 	}
-
-	if(currargsSize > 0)
+	else if (pobj->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::destroy: %d is destroyed!\n",
+			pobj->scriptName(), pobj->id());
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+	else if(currargsSize > 0)
 	{
 		PyErr_Format(PyExc_AssertionError,
-						"%s: args max require %d args, gived %d! is script[%s].\n",	
-			__FUNCTION__, 0, currargsSize, pobj->scriptName());
+			"%s: args max require %d args, gived %d! is script(%s), id(%d)!\n",	
+			__FUNCTION__, 0, currargsSize, pobj->scriptName(), pobj->id());
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -1520,6 +1526,9 @@ void Entity::onGetWitness(bool fromBase)
 		}
 	}
 
+	// 防止自己在一些脚本回调中被销毁，这里对自己做一次引用
+	Py_INCREF(this);
+
 	Space* space = Spaces::findSpace(this->spaceID());
 	if(space && space->isGood())
 	{
@@ -1564,6 +1573,8 @@ void Entity::onGetWitness(bool fromBase)
 		
 		clientMailbox()->postMail(pSendBundle);
 	}
+
+	Py_DECREF(this);
 }
 
 //-------------------------------------------------------------------------------------

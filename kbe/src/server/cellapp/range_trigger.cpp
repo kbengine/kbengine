@@ -77,13 +77,17 @@ bool RangeTrigger::install()
 	positiveBoundary_->old_range(range_xz_, range_y_);
 	positiveBoundary_->update();
 
+	// update可能导致实体销毁间接导致自己被重置，此时应该返回安装失败
+	if (!positiveBoundary_)
+		return false;
+
 	negativeBoundary_->old_xx(-FLT_MAX);
 	negativeBoundary_->old_yy(-FLT_MAX);
 	negativeBoundary_->old_zz(-FLT_MAX);
 	negativeBoundary_->range(-range_xz_, -range_y_);
 	negativeBoundary_->old_range(-range_xz_, -range_y_);
 	negativeBoundary_->update();
-	return true;
+	return negativeBoundary_ != NULL;
 }
 
 //-------------------------------------------------------------------------------------
