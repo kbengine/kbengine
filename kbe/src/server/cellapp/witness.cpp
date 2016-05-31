@@ -231,6 +231,7 @@ void Witness::detach(Entity* pEntity)
 void Witness::clear(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity == pEntity_);
+	uninstallAOITrigger();
 
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
@@ -248,9 +249,12 @@ void Witness::clear(Entity* pEntity)
 	aoiHysteresisArea_ = 5.0f;
 	clientAOISize_ = 0;
 
-	SAFE_RELEASE(pAOITrigger_);
-	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
-	
+	// 不需要销毁，后面还可以重用
+	// 此处销毁可能会产生错误，因为enteraoi过程中可能导致实体销毁
+	// 在pAOITrigger_流程没走完之前这里销毁了pAOITrigger_就crash
+	//SAFE_RELEASE(pAOITrigger_);
+	//SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
+
 	aoiEntities_.clear();
 	aoiEntities_map_.clear();
 
@@ -338,10 +342,16 @@ void Witness::setAoiRadius(float radius, float hyst)
 void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 {
 	// 如果进入的是Hysteresis区域，那么不产生作用
-	if (pAOIHysteresisAreaTrigger_ == pAOITrigger)
+	 if (pAOIHysteresisAreaTrigger_ == pAOITrigger)
 		return;
 
-	pEntity_->onEnteredAoI(pEntity);
+	// 先增加一个引用，避免实体在回调中被销毁造成后续判断出错
+	Py_INCREF(pEntity);
+
+	// 在onEnteredAoI和addWitnessed可能导致自己销毁然后
+	// pEntity_将被设置为NULL，后面没有机会DECREF
+	Entity* pSelfEntity = pEntity_;
+	Py_INCREF(pSelfEntity);
 
 	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
 	if (iter != aoiEntities_map_.end())
@@ -362,8 +372,11 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 
 			pEntityRef->pEntity(pEntity);
 			pEntity->addWitnessed(pEntity_);
+			pSelfEntity->onEnteredAoI(pEntity);
 		}
 
+		Py_DECREF(pEntity);
+		Py_DECREF(pSelfEntity);
 		return;
 	}
 
@@ -378,6 +391,10 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 	pEntityRef->aliasID(aoiEntities_map_.size() - 1);
 	
 	pEntity->addWitnessed(pEntity_);
+	pSelfEntity->onEnteredAoI(pEntity);
+
+	Py_DECREF(pEntity);
+	Py_DECREF(pSelfEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -505,7 +522,7 @@ void Witness::installAOITrigger()
 	{
 		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 
-		if (pAOIHysteresisAreaTrigger_)
+		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)
 		{
 			pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		}

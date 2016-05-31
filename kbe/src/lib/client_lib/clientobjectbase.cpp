@@ -784,7 +784,7 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 			Config::getSingleton().isOnInitCallPropertysSetMethods();
 	
 		if (isOnInitCallPropertysSetMethods)
-			entity->callPropertysSetMethods();
+			pEntity->callPropertysSetMethods();
 	}
 }
 

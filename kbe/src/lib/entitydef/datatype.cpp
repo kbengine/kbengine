@@ -1272,8 +1272,20 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 				if(PyObject_IsInstance(pyValue, (PyObject *)stype))
 				{
 					PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
-					id = PyLong_AsLong(pyid);
-					Py_DECREF(pyid);
+
+					if (pyid)
+					{
+						id = PyLong_AsLong(pyid);
+						Py_DECREF(pyid);
+					}
+					else
+					{
+						// 某些情况下会为NULL， 例如：使用了weakproxy，而mailbox已经变为NULL了
+						SCRIPT_ERROR_CHECK();
+						id = 0;
+						cid = 0;
+						break;
+					}
 
 					cid = g_componentID;
 
