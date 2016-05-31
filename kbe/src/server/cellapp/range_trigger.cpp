@@ -69,6 +69,25 @@ bool RangeTrigger::install()
 	origin_->pCoordinateSystem()->insert(positiveBoundary_);
 	origin_->pCoordinateSystem()->insert(negativeBoundary_);
 	
+	/*
+	注意：此处必须是先安装negativeBoundary_再安装positiveBoundary_，如果调换顺序则会导致AOI的BUG，例如：在一个实体enterAoi触发时销毁了进入AOI的实体
+	此时实体销毁时并未触发离开AOI事件，而未触发AOI事件导致其他实体的AOI列表中引用的该销毁的实体是一个无效指针。
+
+	原因如下：
+	由于总是优先安装在positiveBoundary_，而边界在安装过程中导致另一个实体进入AOI了， 然后他在这个过程中可能销毁了， 而另一个边界negativeBoundary_还没有安装， 
+	而节点删除时会设置节点的xx为-FLT_MAX，让其向negativeBoundary_方向离开，所以positiveBoundary_不能检查到这个边界也就不会触发AOI离开事件。
+	*/
+	negativeBoundary_->old_xx(-FLT_MAX);
+	negativeBoundary_->old_yy(-FLT_MAX);
+	negativeBoundary_->old_zz(-FLT_MAX);
+	negativeBoundary_->range(-range_xz_, -range_y_);
+	negativeBoundary_->old_range(-range_xz_, -range_y_);
+	negativeBoundary_->update();
+
+	// update可能导致实体销毁间接导致自己被重置，此时应该返回安装失败
+	if (!negativeBoundary_)
+		return false;
+
 	positiveBoundary_->old_xx(FLT_MAX);
 	positiveBoundary_->old_yy(FLT_MAX);
 	positiveBoundary_->old_zz(FLT_MAX);
@@ -76,18 +95,7 @@ bool RangeTrigger::install()
 	positiveBoundary_->range(range_xz_, range_y_);
 	positiveBoundary_->old_range(range_xz_, range_y_);
 	positiveBoundary_->update();
-
-	// update可能导致实体销毁间接导致自己被重置，此时应该返回安装失败
-	if (!positiveBoundary_)
-		return false;
-
-	negativeBoundary_->old_xx(-FLT_MAX);
-	negativeBoundary_->old_yy(-FLT_MAX);
-	negativeBoundary_->old_zz(-FLT_MAX);
-	negativeBoundary_->range(-range_xz_, -range_y_);
-	negativeBoundary_->old_range(-range_xz_, -range_y_);
-	negativeBoundary_->update();
-	return negativeBoundary_ != NULL;
+	return positiveBoundary_ != NULL;
 }
 
 //-------------------------------------------------------------------------------------
