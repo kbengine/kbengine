@@ -236,6 +236,9 @@ void Entity::onDestroy(bool callScript)
 	// 在进程强制关闭时这里可能不为0
 	//KBE_ASSERT(spaceID() == 0);
 
+	// 此时不应该还有witnesses，否则为AOI BUG
+	KBE_ASSERT(witnesses_count_ == 0);
+	
 	pPyPosition_->onLoseRef();
 	pPyDirection_->onLoseRef();
 }
