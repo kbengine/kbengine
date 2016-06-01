@@ -119,6 +119,8 @@ bool MoveToPointHandler::update()
 	}
 	
 	Entity* pEntity = pController_->pEntity();
+	Py_INCREF(pEntity);
+
 	const Position3D& dstPos = destPos();
 	Position3D currpos = pEntity->position();
 	Position3D currpos_backup = currpos;
@@ -184,10 +186,12 @@ bool MoveToPointHandler::update()
 	// 如果达到目的地则返回true
 	if (!ret && requestMoveOver(currpos_backup))
 	{
+		Py_DECREF(pEntity);
 		delete this;
 		return false;
 	}
 
+	Py_DECREF(pEntity);
 	return true;
 }
 
