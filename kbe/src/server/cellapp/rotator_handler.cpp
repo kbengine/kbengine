@@ -106,6 +106,8 @@ bool RotatorHandler::update()
 	}
 		
 	Entity* pEntity = pController_->pEntity();
+	Py_INCREF(pEntity);
+
 	const Direction3D& dstDir = destDir();
 	Direction3D currDir = pEntity->direction();
 
@@ -136,10 +138,12 @@ bool RotatorHandler::update()
 	// 如果达到目的地则返回true
 	if (fabs(deltaYaw) < 0.01f && requestTurnOver())
 	{
+		Py_DECREF(pEntity);
 		delete this;
 		return false;
 	}
 
+	Py_DECREF(pEntity);
 	return true;
 }
 
