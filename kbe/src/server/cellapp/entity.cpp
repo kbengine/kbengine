@@ -2962,6 +2962,29 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 
 	Py_INCREF(this);
 
+	onTeleport();
+
+	// 再次检查实体状态的合法性，防止回调中有改变
+	if(!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: not is real entity(%d).", 
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		
+		Py_DECREF(this);
+		return;
+	}
+
+	if(this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d is destroyed!\n",		
+			scriptName(), id());		
+		PyErr_PrintEx(0);
+		
+		Py_DECREF(this);
+		return;
+	}
+			
 	// 如果为None则是entity自己想在本space上跳转到某位置
 	if(nearbyMBRef == Py_None)
 	{
