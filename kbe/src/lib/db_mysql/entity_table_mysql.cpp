@@ -684,12 +684,12 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 	}
 	else if(type == "STRING")
 	{
-		return new EntityTableItemMysql_STRING(fmt::format("varchar($DATALEN) not null DEFAULT '{}'", defaultVal), 
+		return new EntityTableItemMysql_STRING(fmt::format("varchar(@DATALEN@) not null DEFAULT '{}'", defaultVal), 
 			0, 0, MYSQL_TYPE_VAR_STRING);
 	}
 	else if(type == "UNICODE")
 	{
-		return new EntityTableItemMysql_UNICODE(fmt::format("varchar($DATALEN) not null DEFAULT '{}'", defaultVal), 
+		return new EntityTableItemMysql_UNICODE(fmt::format("varchar(@DATALEN@) not null DEFAULT '{}'", defaultVal), 
 			0, 0, MYSQL_TYPE_VAR_STRING);
 	}
 	else if(type == "PYTHON")
@@ -1690,7 +1690,7 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 		length = 255;
 	}
 
-	KBEngine::strutil::kbe_replace(itemDBType_, "$DATALEN", fmt::format("{}", length).c_str());
+	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
 	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
@@ -1755,7 +1755,7 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 		length = 255;
 	}
 
-	KBEngine::strutil::kbe_replace(itemDBType_, "$DATALEN", fmt::format("{}", length).c_str());
+	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
 	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
