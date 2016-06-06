@@ -1495,13 +1495,13 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 		return;
 	}
 
-	if(e->isDestroyed())																				
-	{																										
-		ERROR_MSG(fmt::format("{}::forwardEntityMessageToCellappFromClient: {} is destroyed!\n",										
+	if(e->isDestroyed())
+	{
+		ERROR_MSG(fmt::format("{}::forwardEntityMessageToCellappFromClient: {} is destroyed!\n",	
 			e->scriptName(), e->id()));
 
 		s.done();
-		return;																							
+		return;
 	}
 
 	// 检查是否是entity消息， 否则不合法.
@@ -1532,7 +1532,7 @@ void Cellapp::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel
 			return;
 		}
 
-		if((pMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE) || Network::g_packetAlwaysContainLength)
+		if(pMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)
 			s >> currMsgLen;
 		else
 			currMsgLen = pMsgHandler->msgLen;

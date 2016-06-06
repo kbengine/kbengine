@@ -113,7 +113,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 			if(currMsgLen_ == 0)
 			{
 				// 如果长度信息是可变的或者配置了永远包含长度信息选项时，从流中分析长度数据
-				if(pMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+				if(pMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)
 				{
 					// 如果长度信息不完整，则等待下一个包处理
 					if(pPacket->length() < NETWORK_MESSAGE_LENGTH_SIZE)
