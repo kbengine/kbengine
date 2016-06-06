@@ -103,8 +103,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
 		{
-			do																				
-			{	
+			do
+			{
 				if(childnode->FirstChild() != NULL)
 				{
 					std::string c = childnode->FirstChild()->Value();
@@ -112,9 +112,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 					if(c.size() > 0)
 					{
 						Network::g_trace_packet_disables.push_back(c);
+						
+						// ²»debug¼ÓÃÜ°ü
+						if(c == "Encrypted::packet")
+							Network::g_trace_encrypted_packet = false;
 					}
 				}
-			}while((childnode = childnode->NextSibling()));												
+			}while((childnode = childnode->NextSibling()));
 		}
 	}
 

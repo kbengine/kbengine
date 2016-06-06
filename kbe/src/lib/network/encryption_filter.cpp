@@ -95,15 +95,32 @@ Reason BlowfishFilter::send(Channel * pChannel, PacketSender& sender, Packet * p
 		pPacket->swap(*(static_cast<KBEngine::MemoryStream*>(pOutPacket)));
 		RECLAIM_PACKET(pPacket->isTCPPacket(), pOutPacket);
 
-		/*
-		if(Network::g_trace_packet > 0)
+		if (Network::g_trace_packet > 0 && Network::g_trace_encrypted_packet)
 		{
-			DEBUG_MSG(fmt::format("BlowfishFilter::send: packetLen={}, padSize={}\n",
-				packetLen, (int)padSize));
-		}
-		*/
-	}
+			if (Network::g_trace_packet_use_logfile)
+				DebugHelper::getSingleton().changeLogger("packetlogs");
 
+			DEBUG_MSG(fmt::format("<==== BlowfishFilter::send: encryptedLen={}, padSize={}\n",
+				packetLen, (int)padSize));
+
+			switch (Network::g_trace_packet)
+			{
+			case 1:
+				pPacket->hexlike();
+				break;
+			case 2:
+				pPacket->textlike();
+				break;
+			default:
+				pPacket->print_storage();
+				break;
+			};
+
+			if (Network::g_trace_packet_use_logfile)
+				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
+		}
+	}
+	
 	return sender.processFilterPacket(pChannel, pPacket);
 }
 
@@ -195,17 +212,34 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 			}
 		}
 
+		if(Network::g_trace_packet > 0 && Network::g_trace_encrypted_packet)
+		{
+			if(Network::g_trace_packet_use_logfile)
+				DebugHelper::getSingleton().changeLogger("packetlogs");
+			
+			DEBUG_MSG(fmt::format("====> BlowfishFilter::recv: encryptedLen={}, padSize={}\n",
+				(packetLen_ + 1), (int)padSize_));
+
+			switch(Network::g_trace_packet)
+			{
+			case 1:
+				pPacket->hexlike();
+				break;
+			case 2:
+				pPacket->textlike();
+				break;
+			default:
+				pPacket->print_storage();
+				break;
+			};
+			
+			if(Network::g_trace_packet_use_logfile)
+				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
+		}
+		
 		decrypt(pPacket, pPacket);
 
 		pPacket->wpos((int)(pPacket->wpos() - padSize_));
-
-		/*
-		if(Network::g_trace_packet > 0)
-		{
-			DEBUG_MSG(fmt::format("BlowfishFilter::recv: packetLen={}, padSize={}\n",
-				(packetLen_ + 1), (int)padSize_));
-		}
-		*/
 
 		packetLen_ = 0;
 		padSize_ = 0;
