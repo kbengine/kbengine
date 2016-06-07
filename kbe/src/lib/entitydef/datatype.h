@@ -644,6 +644,9 @@ public:
 
 		// 作为一个数据类别在alias中可对dict中的某个项指定是否持久化
 		bool persistent;
+
+		// 这个属性在数据库中的长度
+		uint32 databaseLength;
 	};
 
 	typedef KBEShared_ptr< DictItemDataType > DictItemDataTypePtr;

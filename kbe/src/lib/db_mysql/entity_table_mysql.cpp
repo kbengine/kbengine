@@ -1435,6 +1435,25 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 }
 
 //-------------------------------------------------------------------------------------
+uint32 EntityTableItemMysql_FIXED_DICT::getItemDatabaseLength(const std::string& name)
+{
+	KBEngine::FixedDictType* fdatatype = static_cast<KBEngine::FixedDictType*>(const_cast<DataType*>(pDataType()));
+
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = fdatatype->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
+
+	for (; iter != keyTypes.end(); ++iter)
+	{
+		if (iter->first != name)
+			continue;
+
+		return iter->second->databaseLength;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::syncToDB(DBInterface* pdbi, void* pData)
 {
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES::iterator iter = keyTypes_.begin();
@@ -1691,6 +1710,12 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 		length = 255;
 	}
 
+	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
+	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
+	{
+		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
+	}
+
 	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
 	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
@@ -1754,6 +1779,12 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 	{
 		// 默认长度255
 		length = 255;
+	}
+
+	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
+	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
+	{
+		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
 	}
 
 	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());

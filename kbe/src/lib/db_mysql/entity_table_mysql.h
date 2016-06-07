@@ -490,6 +490,8 @@ public:
 
 	virtual void init_db_item_name(const char* exstrFlag = "");
 
+	uint32 getItemDatabaseLength(const std::string& name);
+
 protected:
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
 };
