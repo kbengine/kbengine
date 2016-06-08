@@ -328,8 +328,7 @@ const char * reasonToString(Reason reason)
 		if(pCurrMsgHandler && readPacketHead)																\
 		{																									\
 			headsize = NETWORK_MESSAGE_ID_SIZE;																\
-			if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || 										\
-				g_packetAlwaysContainLength)																\
+			if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)										\
 			{																								\
 				headsize += NETWORK_MESSAGE_LENGTH_SIZE;													\
 				if (length >= NETWORK_MESSAGE_MAX_SIZE)														\

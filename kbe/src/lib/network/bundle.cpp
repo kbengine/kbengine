@@ -309,7 +309,7 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 	pCurrPacket_->messageID(msgHandler.msgID);
 
 	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
-	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
 		MessageLength msglen = 0;
 		currMsgLengthPos_ = pCurrPacket_->wpos();
@@ -345,7 +345,7 @@ void Bundle::finiMessage(bool isSend)
 	}
 
 	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
-	if(currMsgID_ > 0 && (currMsgHandlerLength_ < 0 || g_packetAlwaysContainLength))
+	if(currMsgID_ > 0 && (currMsgHandlerLength_ < 0))
 	{
 		Packet* pPacket = pCurrPacket_;
 		if(currMsgPacketCount_ > 0)
@@ -414,7 +414,7 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 		return;
 
 	currMsgLength += NETWORK_MESSAGE_ID_SIZE;
-	if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+	if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
 		currMsgLength += NETWORK_MESSAGE_LENGTH_SIZE;
 		if (currMsgLength - NETWORK_MESSAGE_ID_SIZE - NETWORK_MESSAGE_LENGTH_SIZE >= NETWORK_MESSAGE_MAX_SIZE)

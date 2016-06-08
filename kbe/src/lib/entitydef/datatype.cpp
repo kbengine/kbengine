@@ -1706,7 +1706,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 
 		TiXmlNode* typeNode = xml->enterNode(propertiesNode->FirstChild(), "Type");
 		TiXmlNode* PersistentNode = xml->enterNode(propertiesNode->FirstChild(), "Persistent");
-		
+		TiXmlNode* DatabaseLengthNode = xml->enterNode(propertiesNode->FirstChild(), "DatabaseLength");
+
 		bool persistent = true;
 		if(PersistentNode)
 		{
@@ -1715,6 +1716,12 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 			{
 				persistent = false;
 			}
+		}
+
+		uint32 databaseLength = 0;
+		if (DatabaseLengthNode)
+		{
+			databaseLength = xml->getValInt(DatabaseLengthNode);
 		}
 
 		if(typeNode)
@@ -1740,10 +1747,12 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 					if(dataType->getDataType()->type() == DATA_TYPE_MAILBOX)
 					{
 						persistent = false;
-						EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					}
 
 					pDictItemDataType->persistent = persistent;
+					pDictItemDataType->databaseLength = databaseLength;
+					EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
 					DataTypes::addDataType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + typeName, dataType);
 				}
 				else
@@ -1773,10 +1782,12 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 					if(dataType->type() == DATA_TYPE_MAILBOX)
 					{
 						persistent = false;
-						EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					}
 
 					pDictItemDataType->persistent = persistent;
+					pDictItemDataType->databaseLength = databaseLength;
+					EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
 				}
 				else
 				{

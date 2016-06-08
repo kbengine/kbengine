@@ -64,7 +64,7 @@ namespace KBEngine {
 	size_t messageLength = SENDBUNDLE->currMsgLength() - messageLength_last_##ACTIONNAME;												\
 	Network::Packet* pCurrPacket = SENDBUNDLE->pCurrPacket();																			\
 																																		\
-	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE || Network::g_packetAlwaysContainLength)										\
+	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE)																				\
 	{																																	\
 		if(messageLength >= NETWORK_MESSAGE_MAX_SIZE)																					\
 		{																																\
@@ -102,7 +102,7 @@ namespace KBEngine {
 	Network::Packet* pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																\
 	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE)																				\
 	{																																	\
-		if(SENDBUNDLE->packetMaxSize() - pCurrPacket_##ACTIONNAME->wpos() - 1 < NETWORK_MESSAGE_LENGTH_SIZE)								\
+		if(SENDBUNDLE->packetMaxSize() - pCurrPacket_##ACTIONNAME->wpos() - 1 < NETWORK_MESSAGE_LENGTH_SIZE)							\
 		{																																\
 			SENDBUNDLE->finiCurrPacket();																								\
 			SENDBUNDLE->newPacket();																									\
@@ -112,9 +112,9 @@ namespace KBEngine {
 		Network::MessageLength msglen = 0;																								\
 		currMsgLengthPos_##ACTIONNAME = pCurrPacket_##ACTIONNAME->wpos();																\
 		(*SENDBUNDLE) << msglen;																										\
-	}																																		\
-																																			\
-	size_t messageLength_last_##ACTIONNAME = SENDBUNDLE->currMsgLength();															\
+	}																																	\
+																																		\
+	size_t messageLength_last_##ACTIONNAME = SENDBUNDLE->currMsgLength();																\
 
 
 // 公共消息

@@ -56,7 +56,8 @@ bool sync_item_to_db(DBInterface* pdbi,
 			MYSQL_TABLE_FIELD& tf = iter->second;
 			if (tf.type == sqlitemtype && ((tf.flags & ALL_MYSQL_SET_FLAGS) == itemflags))
 			{
-				if((length == 0) || (int32)length == tf.length)
+				if ((length == 0) || (sqlitemtype == FIELD_TYPE_VAR_STRING ? (int32)length == tf.length / SYSTEM_CHARSET_MBMAXLEN/*Mysql将length放大了N倍*/ : 
+					(int32)length == tf.length))
 					return true;
 			}
 		}
@@ -684,41 +685,41 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 	}
 	else if(type == "STRING")
 	{
-		return new EntityTableItemMysql_STRING(fmt::format("varchar($DATALEN) not null DEFAULT '{}'", defaultVal), 
-			0, 0, MYSQL_TYPE_VAR_STRING);
+		return new EntityTableItemMysql_STRING(fmt::format("varchar(@DATALEN@) not null DEFAULT '{}'", defaultVal), 
+			0, NOT_NULL_FLAG | BINARY_FLAG, FIELD_TYPE_VAR_STRING);
 	}
 	else if(type == "UNICODE")
 	{
-		return new EntityTableItemMysql_UNICODE(fmt::format("varchar($DATALEN) not null DEFAULT '{}'", defaultVal), 
-			0, 0, MYSQL_TYPE_VAR_STRING);
+		return new EntityTableItemMysql_UNICODE(fmt::format("varchar(@DATALEN@) not null DEFAULT '{}'", defaultVal), 
+			0, NOT_NULL_FLAG | BINARY_FLAG, FIELD_TYPE_VAR_STRING);
 	}
 	else if(type == "PYTHON")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PY_DICT")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PY_TUPLE")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PY_LIST")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "BLOB")
 	{
-		return new EntityTableItemMysql_BLOB("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_BLOB("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "ARRAY")
 	{
-		return new EntityTableItemMysql_ARRAY("", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_ARRAY("", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "FIXED_DICT")
 	{
-		return new EntityTableItemMysql_FIXED_DICT("", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_FIXED_DICT("", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 #ifdef CLIENT_NO_FLOAT
 	else if(type == "VECTOR2")
@@ -749,7 +750,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 #endif
 	else if(type == "MAILBOX")
 	{
-		return new EntityTableItemMysql_MAILBOX("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_MAILBOX("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 
 	KBE_ASSERT(false && "not found type.\n");
@@ -1434,6 +1435,25 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 }
 
 //-------------------------------------------------------------------------------------
+uint32 EntityTableItemMysql_FIXED_DICT::getItemDatabaseLength(const std::string& name)
+{
+	KBEngine::FixedDictType* fdatatype = static_cast<KBEngine::FixedDictType*>(const_cast<DataType*>(pDataType()));
+
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = fdatatype->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
+
+	for (; iter != keyTypes.end(); ++iter)
+	{
+		if (iter->first != name)
+			continue;
+
+		return iter->second->databaseLength;
+	}
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_FIXED_DICT::syncToDB(DBInterface* pdbi, void* pData)
 {
 	EntityTableItemMysql_FIXED_DICT::FIXEDDICT_KEYTYPES::iterator iter = keyTypes_.begin();
@@ -1690,7 +1710,13 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 		length = 255;
 	}
 
-	KBEngine::strutil::kbe_replace(itemDBType_, "$DATALEN", fmt::format("{}", length).c_str());
+	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
+	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
+	{
+		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
+	}
+
+	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
 	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
@@ -1755,7 +1781,13 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 		length = 255;
 	}
 
-	KBEngine::strutil::kbe_replace(itemDBType_, "$DATALEN", fmt::format("{}", length).c_str());
+	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
+	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
+	{
+		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
+	}
+
+	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
 	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
