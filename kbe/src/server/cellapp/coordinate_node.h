@@ -80,7 +80,7 @@ public:
 		old_zz_ = zz();
 	}
 
-	void c_str();
+	std::string c_str();
 
 	void debugX();
 	void debugY();
