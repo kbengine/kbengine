@@ -302,7 +302,6 @@ void entitiesInAxisRange(std::set<Entity*>& foundEntities, CoordinateNode* rootN
 	};
 }
 
-
 //-------------------------------------------------------------------------------------
 EntityCoordinateNode::EntityCoordinateNode(Entity* pEntity):
 CoordinateNode(NULL),
@@ -334,7 +333,7 @@ float EntityCoordinateNode::xx() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::yy() const
 {
-	if(pEntity_ == NULL)
+	if(pEntity_ == NULL || (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
 		return -FLT_MAX;
 
 	return pEntity_->position().y;
@@ -343,7 +342,7 @@ float EntityCoordinateNode::yy() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::zz() const
 {
-	if(pEntity_ == NULL)
+	if(pEntity_ == NULL || (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
 		return -FLT_MAX;
 
 	return pEntity_->position().z;

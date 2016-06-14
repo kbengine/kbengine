@@ -70,18 +70,18 @@ void CoordinateNode::update()
 }
 
 //-------------------------------------------------------------------------------------
-void CoordinateNode::c_str()
+std::string CoordinateNode::c_str()
 {
-	DEBUG_MSG(fmt::format("CoordinateNode::c_str(): {:p} curr({}, {}, {}), old({}, {}, {}) pPreX={:p} pNextX={:p} pPreZ={:p} pNextZ={:p} descr={}\n", 
+	return fmt::format("CoordinateNode::c_str(): {:p} curr({}, {}, {}), old({}, {}, {}) pPreX={:p} pNextX={:p} pPreZ={:p} pNextZ={:p} flags={} descr={}\n",
 		(void*)this, x(), y(), z(),
 		old_xx_, old_yy_, old_zz_,
-		(void*)pPrevX_, (void*)pNextX_, (void*)pPrevZ_, (void*)pNextZ_, descr()));
+		(void*)pPrevX_, (void*)pNextX_, (void*)pPrevZ_, (void*)pNextZ_, flags_, descr());
 }
 
 //-------------------------------------------------------------------------------------
 void CoordinateNode::debugX()
 {
-	c_str();
+	DEBUG_MSG(c_str());
 
 	if(pNextX_)
 	{
@@ -97,7 +97,7 @@ void CoordinateNode::debugX()
 //-------------------------------------------------------------------------------------
 void CoordinateNode::debugY()
 {
-	c_str();
+	DEBUG_MSG(c_str());
 
 	if(pNextY_)
 	{
@@ -113,7 +113,7 @@ void CoordinateNode::debugY()
 //-------------------------------------------------------------------------------------
 void CoordinateNode::debugZ()
 {
-	c_str();
+	DEBUG_MSG(c_str());
 
 	if(pNextZ_)
 	{
@@ -149,6 +149,8 @@ void CoordinateNode::onRemove()
 	old_zz(z_);
 
 	x_ = -FLT_MAX;
+	y_ = -FLT_MAX;
+	z_ = -FLT_MAX;
 }
 
 //-------------------------------------------------------------------------------------

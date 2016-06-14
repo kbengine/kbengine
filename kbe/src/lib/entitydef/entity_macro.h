@@ -40,11 +40,13 @@ namespace KBEngine{
 #define ENTITY_METHOD_DECLARE_END()																			\
 	SCRIPT_METHOD_DECLARE_END()																				\
 
+
 #define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
 	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
 	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
+
 
 #define ENTITY_GETSET_DECLARE_END()																			\
 	SCRIPT_GETSET_DECLARE_END()																				\
@@ -64,6 +66,8 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
 	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
+	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
 
 
 #define CLIENT_ENTITY_GETSET_DECLARE_END()																	\
