@@ -135,12 +135,14 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 	bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
 	bool isInZ = pRangeTriggerNode->isInZRange(pNode);
 
+	// 如果Z轴情况有变化，则Z轴再判断，优先级为zyx，这样才可以保证只有一次enter或者leave
 	if(wasInZ != isInZ)
 		return;
 
 	bool wasIn = false;
 	bool isIn = false;
 
+	// 必须同时检查其他轴， 如果节点x轴在范围内，理论上其他轴也在范围内
 	if(CoordinateSystem::hasY)
 	{
 		bool wasInY = pRangeTriggerNode->wasInYRange(pNode);
@@ -158,6 +160,7 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 		isIn = pRangeTriggerNode->isInXRange(pNode) && isInZ;
 	}
 
+	// 如果情况没有发生变化则忽略
 	if(wasIn == isIn)
 		return;
 
@@ -181,7 +184,7 @@ bool RangeTriggerNode::wasInYRange(CoordinateNode * pNode)
 
 	volatile float lowerBound = originY - fabs(old_range_y_);
 	volatile float upperBound = originY + fabs(old_range_y_);
-	return (lowerBound < pNode->old_yy()) && (pNode->old_yy() <= upperBound);
+	return (pNode->old_yy() >= lowerBound) && (pNode->old_yy() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -193,6 +196,7 @@ void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 	bool wasInZ = pRangeTriggerNode->wasInZRange(pNode);
 	bool isInZ = pRangeTriggerNode->isInZRange(pNode);
 
+	// 如果Z轴情况有变化，则Z轴再判断，优先级为zyx，这样才可以保证只有一次enter或者leave
 	if(wasInZ != isInZ)
 		return;
 
@@ -202,6 +206,7 @@ void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 	if(wasInY == isInY)
 		return;
 
+	// 必须同时检查其他轴， 如果节点x轴在范围内，理论上其他轴也在范围内
 	bool wasIn = pRangeTriggerNode->wasInXRange(pNode) && wasInY && wasInZ;
 	bool isIn = pRangeTriggerNode->isInXRange(pNode) && isInY && isInZ;
 
