@@ -1,0 +1,80 @@
+{% extends "WebConsole/base.html" %}
+  
+  {% block content %}</p>
+<div class="container-win row placeholders">
+  <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
+  <div id="output_block_area">
+  </div>
+  <br>
+  <div id="execute-block">
+      <input name="component_ip" type="hidden" id="component_ip" value="{{ request.GET.ip }}">
+    <input name="component_port" type="hidden" id="component_port" value="{{ request.GET.port }}">
+    <input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url }}">
+<input class="btn btn-default" type="button" name="exec" value="开始" id="exec" onClick="onProfile(this)">
+  </div>
+</div>
+ {% endblock %}
+
+{% block tail_js %}
+<script src="/static/js/pytools.js"></script>
+<script src="/static/js/kbengine.js"></script>
+<script>$(".profile-comps").addClass("active");</script>
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .statistics .dd").show();
+  $(".kbe-list .statistics").css({"background-color":"#317eb4"});
+  $(".kbe-list .statistics").find('li').addClass("menu_chioce");
+
+function onProfile(elm)
+{
+    var elmm = $(elm);
+    if (!$.data.profile_started)
+    {
+        elmm.val("结束");
+        $.data.profile_started = true;
+        KBEngine.resetPyTickProfileData();
+        connect_to();
+    }
+    else
+    {
+        elmm.val("开始");
+        $.data.profile_started = false;
+        window.kbe_socket.close();
+    }
+}
+
+function connect_to()
+{
+    var socket = new WebSocket($("#ws_url").val());
+    socket.onopen = function(evt) { 
+        $('#output_block_area').append("<p> 连接成功！欢迎使用WebConsole。</p>");
+    }; 
+    socket.onclose = function(evt) { 
+        $('#output_block_area').append("<p> 连接已关闭，请重新连接！！！ </p>");
+        $.data.connect_closed = true;
+    }; 
+    socket.onmessage = function(evt) { 
+        //$('#output_block_area').append('<span>' + evt.data + '</span> <br>');
+        show_result( evt.data );
+    }; 
+    socket.onerror = function(evt) { 
+        //alert("websocket onerror: " + evt);
+        $('#output_block_area').append("<p> 连接失败！！！请刷新重试。 </p>");
+    }; 
+    window.kbe_socket = socket;
+    $.data.connect_closed = false;
+}
+
+function show_result(data)
+{
+    KBEngine.parsePyTickProfileData(data);
+    
+    //$('#output_block_area').append( data );
+    //$('#output_block_area').append( "<p>" + $.data.pyTickProfileDatas.length + "</p>" );
+    $('#output_block_area').append( $.data.pyTickProfileDatas.length + " - " );
+}
+
+
+</script>
+    
+{% endblock %}
