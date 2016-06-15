@@ -64,10 +64,11 @@ void CoordinateNode::update()
 //-------------------------------------------------------------------------------------
 std::string CoordinateNode::c_str()
 {
-	return fmt::format("CoordinateNode::c_str(): {:p} curr({}, {}, {}), xxyyzz({}, {}, {}), old_xxyyzz({}, {}, {}) pPreX={:p} pNextX={:p} pPreZ={:p} pNextZ={:p} flags={} descr={}\n",
+	return fmt::format("CoordinateNode::c_str(): {:p} curr({}, {}, {}), {}, pPreX={:p} pNextX={:p} pPreZ={:p} pNextZ={:p} flags={} descr={}\n",
 		(void*)this, x(), y(), z(),
+		fmt::format("xxyyzz({}, {}, {}), old_xxyyzz({}, {}, {})",
 		xx(), yy(), zz(),
-		old_xx(), old_yy(), old_zz(),
+		old_xx(), old_yy(), old_zz()),
 		(void*)pPrevX_, (void*)pNextX_, (void*)pPrevZ_, (void*)pNextZ_, flags_, descr());
 }
 
