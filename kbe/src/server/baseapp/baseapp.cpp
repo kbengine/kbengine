@@ -67,55 +67,93 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
-	for(; iter != propertyDescrs.end(); ++iter)
+	try
 	{
-		PropertyDescription* propertyDescription = iter->second;
-
-		const char* attrname = propertyDescription->getName();
-
-		PyObject* pyVal = propertyDescription->createFromPersistentStream(&s);
-
-		if(!propertyDescription->getDataType()->isSameType(pyVal))
+		for (; iter != propertyDescrs.end(); ++iter)
 		{
-			if(pyVal)
-			{
-				Py_DECREF(pyVal);
-			}
-			
-			ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: {}.{} error, set to default!\n", 
-				entityType, attrname));
+			PropertyDescription* propertyDescription = iter->second;
 
-			pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+			const char* attrname = propertyDescription->getName();
+
+			PyObject* pyVal = propertyDescription->createFromPersistentStream(&s);
+
+			if (!propertyDescription->getDataType()->isSameType(pyVal))
+			{
+				if (pyVal)
+				{
+					Py_DECREF(pyVal);
+				}
+
+				ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: {}.{} error, set to default!\n",
+					entityType, attrname));
+
+				pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+			}
+
+			PyDict_SetItemString(pyDict, attrname, pyVal);
+			Py_DECREF(pyVal);
 		}
 
-		PyDict_SetItemString(pyDict, attrname, pyVal);
-		Py_DECREF(pyVal);
-	}
-	
-	if(pScriptModule->hasCell())
-	{
-		ArraySize size = 0;
+		if (pScriptModule->hasCell())
+		{
+			ArraySize size = 0;
 #ifdef CLIENT_NO_FLOAT
-		int32 v1, v2, v3;
-		int32 vv1, vv2, vv3;
+			int32 v1, v2, v3;
+			int32 vv1, vv2, vv3;
 #else
-		float v1, v2, v3;
-		float vv1, vv2, vv3;
+			float v1, v2, v3;
+			float vv1, vv2, vv3;
 #endif
-		
-		s >> size >> v1 >> v2 >> v3;
-		s >> size >> vv1 >> vv2 >> vv3;
+
+			s >> size >> v1 >> v2 >> v3;
+			s >> size >> vv1 >> vv2 >> vv3;
+
+			PyObject* position = PyTuple_New(3);
+			PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
+			PyTuple_SET_ITEM(position, 1, PyFloat_FromDouble((float)v2));
+			PyTuple_SET_ITEM(position, 2, PyFloat_FromDouble((float)v3));
+
+			PyObject* direction = PyTuple_New(3);
+			PyTuple_SET_ITEM(direction, 0, PyFloat_FromDouble((float)vv1));
+			PyTuple_SET_ITEM(direction, 1, PyFloat_FromDouble((float)vv2));
+			PyTuple_SET_ITEM(direction, 2, PyFloat_FromDouble((float)vv3));
+
+			PyDict_SetItemString(pyDict, "position", position);
+			PyDict_SetItemString(pyDict, "direction", direction);
+
+			Py_DECREF(position);
+			Py_DECREF(direction);
+		}
+	}
+	catch (MemoryStreamException & e)
+	{
+		e.PrintPosError();
+
+		for (; iter != propertyDescrs.end(); ++iter)
+		{
+			PropertyDescription* propertyDescription = iter->second;
+
+			const char* attrname = propertyDescription->getName();
+
+			ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: set({}.{}) to default!\n",
+				entityType, attrname));
+
+			PyObject* pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+
+			PyDict_SetItemString(pyDict, attrname, pyVal);
+			Py_DECREF(pyVal);
+		}
 
 		PyObject* position = PyTuple_New(3);
-		PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
-		PyTuple_SET_ITEM(position, 1, PyFloat_FromDouble((float)v2));
-		PyTuple_SET_ITEM(position, 2, PyFloat_FromDouble((float)v3));
-		
+		PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble(0.f));
+		PyTuple_SET_ITEM(position, 1, PyFloat_FromDouble(0.f));
+		PyTuple_SET_ITEM(position, 2, PyFloat_FromDouble(0.f));
+
 		PyObject* direction = PyTuple_New(3);
-		PyTuple_SET_ITEM(direction, 0, PyFloat_FromDouble((float)vv1));
-		PyTuple_SET_ITEM(direction, 1, PyFloat_FromDouble((float)vv2));
-		PyTuple_SET_ITEM(direction, 2, PyFloat_FromDouble((float)vv3));
-		
+		PyTuple_SET_ITEM(direction, 0, PyFloat_FromDouble(0.f));
+		PyTuple_SET_ITEM(direction, 1, PyFloat_FromDouble(0.f));
+		PyTuple_SET_ITEM(direction, 2, PyFloat_FromDouble(0.f));
+
 		PyDict_SetItemString(pyDict, "position", position);
 		PyDict_SetItemString(pyDict, "direction", direction);
 
