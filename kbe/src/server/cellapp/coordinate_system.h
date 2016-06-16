@@ -24,6 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.h"
 #include "common/common.h"	
 
+//#define DEBUG_COORDINATE_SYSTEM
+
 namespace KBEngine{
 
 class CoordinateNode;
