@@ -82,7 +82,7 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 				Py_DECREF(pyVal);
 			}
 			
-			ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: {}.{} is error, set to default!\n", 
+			ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: {}.{} error, set to default!\n", 
 				entityType, attrname));
 
 			pyVal = propertyDescription->getDataType()->parseDefaultStr("");
