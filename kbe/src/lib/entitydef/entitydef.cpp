@@ -55,8 +55,8 @@ bool EntityDef::__entitydefAliasID = false;
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
 std::vector<ENTITY_METHOD_UID> g_methodCusUtypes;																									
 
-ENTITY_PROPERTY_UID auto_puid = 1;
-std::vector<ENTITY_PROPERTY_UID> puids;
+ENTITY_PROPERTY_UID g_propertyUtypeAuto = 1;
+std::vector<ENTITY_PROPERTY_UID> g_propertyUtypes;
 
 //-------------------------------------------------------------------------------------
 EntityDef::EntityDef()
@@ -79,8 +79,8 @@ bool EntityDef::finalise(bool isReload)
 	g_methodUtypeAuto = 1;
 	EntityDef::_isInit = false;
 
-	auto_puid = 1;
-	puids.clear();
+	g_propertyUtypeAuto = 1;
+	g_propertyUtypes.clear();
 
 	if(!isReload)
 	{
@@ -751,17 +751,17 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					return false;
 				}
 
-				puids.push_back(futype);
+				g_propertyUtypes.push_back(futype);
 			}
 			else
 			{
 				while(true)
 				{
-					futype = auto_puid++;
+					futype = g_propertyUtypeAuto++;
 					std::vector<ENTITY_PROPERTY_UID>::iterator iter = 
-								std::find(puids.begin(), puids.end(), futype);
+						std::find(g_propertyUtypes.begin(), g_propertyUtypes.end(), futype);
 
-					if(iter == puids.end())
+					if (iter == g_propertyUtypes.end())
 						break;
 				}
 			}
