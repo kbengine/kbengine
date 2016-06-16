@@ -1704,16 +1704,16 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length <= 0)
-	{
-		// 默认长度255
-		length = 255;
-	}
-
 	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
 	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
 	{
 		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
+	}
+
+	if (length <= 0)
+	{
+		// 默认长度255
+		length = 255;
 	}
 
 	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
@@ -1775,16 +1775,16 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if (length <= 0)
-	{
-		// 默认长度255
-		length = 255;
-	}
-
 	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
 	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
 	{
 		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
+	}
+
+	if (length <= 0)
+	{
+		// 默认长度255
+		length = 255;
 	}
 
 	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
