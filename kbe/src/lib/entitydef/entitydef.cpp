@@ -55,8 +55,8 @@ bool EntityDef::__entitydefAliasID = false;
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
 std::vector<ENTITY_METHOD_UID> g_methodCusUtypes;																									
 
-ENTITY_PROPERTY_UID auto_puid = 1;
-std::vector<ENTITY_PROPERTY_UID> puids;
+ENTITY_PROPERTY_UID g_propertyUtypeAuto = 1;
+std::vector<ENTITY_PROPERTY_UID> g_propertyUtypes;
 
 //-------------------------------------------------------------------------------------
 EntityDef::EntityDef()
@@ -79,8 +79,8 @@ bool EntityDef::finalise(bool isReload)
 	g_methodUtypeAuto = 1;
 	EntityDef::_isInit = false;
 
-	auto_puid = 1;
-	puids.clear();
+	g_propertyUtypeAuto = 1;
+	g_propertyUtypes.clear();
 
 	if(!isReload)
 	{
@@ -751,19 +751,57 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					return false;
 				}
 
-				puids.push_back(futype);
+				// 检查是否有重复的Utype
+				std::vector<ENTITY_PROPERTY_UID>::iterator iter =
+					std::find(g_propertyUtypes.begin(), g_propertyUtypes.end(), futype);
+
+				if (iter != g_propertyUtypes.end())
+				{
+					bool foundConflict = false;
+
+					PropertyDescription* pConflictPropertyDescription = pScriptModule->findPropertyDescription(futype, BASEAPP_TYPE);
+					if (pConflictPropertyDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+						foundConflict = true;
+					}
+
+					pConflictPropertyDescription = pScriptModule->findPropertyDescription(futype, CELLAPP_TYPE);
+					if (pConflictPropertyDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+						foundConflict = true;
+					}
+
+					pConflictPropertyDescription = pScriptModule->findPropertyDescription(futype, CLIENT_TYPE);
+					if (pConflictPropertyDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
+
+				g_propertyUtypes.push_back(futype);
 			}
 			else
 			{
 				while(true)
 				{
-					futype = auto_puid++;
+					futype = g_propertyUtypeAuto++;
 					std::vector<ENTITY_PROPERTY_UID>::iterator iter = 
-								std::find(puids.begin(), puids.end(), futype);
+						std::find(g_propertyUtypes.begin(), g_propertyUtypes.end(), futype);
 
-					if(iter == puids.end())
+					if (iter == g_propertyUtypes.end())
 						break;
 				}
+
+				g_propertyUtypes.push_back(futype);
 			}
 
 			// 产生一个属性描述实例
@@ -868,6 +906,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 						}
 
 						methodDescription->setUType(muid);
+						g_methodCusUtypes.push_back(muid);
 					}
 				}
 				XML_FOR_END(argNode);		
@@ -890,6 +929,46 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				}
 
 				methodDescription->setUType(muid);
+				g_methodCusUtypes.push_back(muid);
+			}
+			else
+			{
+				// 检查是否有重复的Utype
+				ENTITY_METHOD_UID muid = methodDescription->getUType();
+				std::vector<ENTITY_METHOD_UID>::iterator iter =
+					std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+				if (iter != g_methodCusUtypes.end())
+				{
+					bool foundConflict = false;
+
+					MethodDescription* pConflictMethodDescription = pScriptModule->findBaseMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findCellMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findClientMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
 			}
 
 			pScriptModule->addCellMethodDescription(name.c_str(), methodDescription);
@@ -966,6 +1045,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 						}
 
 						methodDescription->setUType(muid);
+						g_methodCusUtypes.push_back(muid);
 					}
 				}
 				XML_FOR_END(argNode);		
@@ -988,6 +1068,46 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 				}
 
 				methodDescription->setUType(muid);
+				g_methodCusUtypes.push_back(muid);
+			}
+			else
+			{
+				// 检查是否有重复的Utype
+				ENTITY_METHOD_UID muid = methodDescription->getUType();
+				std::vector<ENTITY_METHOD_UID>::iterator iter =
+					std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+				if (iter != g_methodCusUtypes.end())
+				{
+					bool foundConflict = false;
+
+					MethodDescription* pConflictMethodDescription = pScriptModule->findBaseMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findCellMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findClientMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
 			}
 
 			pScriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
@@ -1060,6 +1180,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 						}
 
 						methodDescription->setUType(muid);
+						g_methodCusUtypes.push_back(muid);
 					}
 				}
 				XML_FOR_END(argNode);		
@@ -1082,6 +1203,46 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 				}
 
 				methodDescription->setUType(muid);
+				g_methodCusUtypes.push_back(muid);
+			}
+			else
+			{
+				// 检查是否有重复的Utype
+				ENTITY_METHOD_UID muid = methodDescription->getUType();
+				std::vector<ENTITY_METHOD_UID>::iterator iter =
+					std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+				if (iter != g_methodCusUtypes.end())
+				{
+					bool foundConflict = false;
+
+					MethodDescription* pConflictMethodDescription = pScriptModule->findBaseMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findCellMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findClientMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
 			}
 
 			pScriptModule->addClientMethodDescription(name.c_str(), methodDescription);
