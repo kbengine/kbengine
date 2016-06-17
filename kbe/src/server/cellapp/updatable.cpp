@@ -24,7 +24,8 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 Updatable::Updatable():
-removeIdx(-1)
+removeIdx(-1),
+updatableName("Updatable")
 {
 }
 

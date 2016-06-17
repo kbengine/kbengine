@@ -60,6 +60,7 @@ aoiEntities_(),
 aoiEntities_map_(),
 clientAOISize_(0)
 {
+	updatableName = "Witness";
 }
 
 //-------------------------------------------------------------------------------------
