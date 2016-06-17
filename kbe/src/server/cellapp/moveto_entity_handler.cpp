@@ -31,6 +31,7 @@ MoveToEntityHandler::MoveToEntityHandler(KBEShared_ptr<Controller> pController, 
 MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, range, faceMovement, moveVertically, userarg),
 pTargetID_(pTargetID)
 {
+	updatableName = "MoveToEntityHandler";
 }
 
 //-------------------------------------------------------------------------------------
@@ -38,6 +39,7 @@ MoveToEntityHandler::MoveToEntityHandler():
 MoveToPointHandler(),
 pTargetID_(0)
 {
+	updatableName = "MoveToEntityHandler";
 }
 
 //-------------------------------------------------------------------------------------

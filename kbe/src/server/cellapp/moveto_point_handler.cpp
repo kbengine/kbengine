@@ -39,7 +39,7 @@ distance_(distance),
 pController_(pController),
 layer_(layer)
 {
-	updatableName = "Move_Handler";
+	updatableName = "MoveToPointHandler";
 
 	Py_INCREF(userarg);
 
@@ -58,7 +58,7 @@ pyuserarg_(NULL),
 distance_(0.f),
 layer_(0)
 {
-	updatableName = "Move_Handler";
+	updatableName = "MoveToPointHandler";
 
 	Cellapp::getSingleton().addUpdatable(this);
 }

@@ -33,7 +33,7 @@ velocity_(velocity),
 pyuserarg_(userarg),
 pController_(pController)
 {
-	updatableName = "Rotator_Handler";
+	updatableName = "RotatorHandler";
 
 	Py_INCREF(userarg);
 
@@ -48,7 +48,7 @@ velocity_(0.f),
 pyuserarg_(NULL),
 pController_(KBEShared_ptr<Controller>())
 {
-	updatableName = "Rotator_Handler";
+	updatableName = "RotatorHandler";
 }
 
 //-------------------------------------------------------------------------------------
