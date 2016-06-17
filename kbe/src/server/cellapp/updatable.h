@@ -45,10 +45,12 @@ public:
 	~Updatable();
 
 	virtual bool update() = 0;
-	virtual std::string c_str() { return "Updatable"; }
+	std::string c_str() { return updatableName; }
 
-	int removeIdx;					// 自身在Updatables容器中的位置
+	// 自身在Updatables容器中的位置
+	int removeIdx;
 
+	std::string updatableName;
 };
 
 }

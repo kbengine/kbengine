@@ -37,8 +37,6 @@ public:
 	RotatorHandler();
 	virtual ~RotatorHandler();
 
-	virtual std::string c_str(){ return "Rotator_Handler"; }
-	
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 

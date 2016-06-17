@@ -33,6 +33,8 @@ velocity_(velocity),
 pyuserarg_(userarg),
 pController_(pController)
 {
+	updatableName = "Rotator_Handler";
+
 	Py_INCREF(userarg);
 
 	static_cast<TurnController*>(pController.get())->pRotatorHandler(this);
@@ -46,6 +48,7 @@ velocity_(0.f),
 pyuserarg_(NULL),
 pController_(KBEShared_ptr<Controller>())
 {
+	updatableName = "Rotator_Handler";
 }
 
 //-------------------------------------------------------------------------------------
