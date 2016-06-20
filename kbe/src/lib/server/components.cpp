@@ -725,7 +725,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 		return true;
 	}
 
-	if (lookupLocalComponentRunning(info->pid))
+	if (!lookupLocalComponentRunning(info->pid))
 		return false;
 
 	Network::EndPoint epListen;
