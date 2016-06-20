@@ -131,7 +131,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		{
 			if(checkComponentUsable(pinfos, false, true))
 			{
-				WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} has running, pid={}, uid={}!\n", 
+				WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} is already running, pid={}, uid={}!\n", 
 					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
 
 				return;
@@ -141,7 +141,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
 		{
-			WARNING_MSG("Machine::onBroadcastInterface: machine has running!\n");
+			WARNING_MSG("Machine::onBroadcastInterface: machine is already running!\n");
 			return;
 		}
 	
