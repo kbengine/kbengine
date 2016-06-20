@@ -725,6 +725,9 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 		return true;
 	}
 
+	if (lookupLocalComponentRunning(info->pid))
+		return false;
+
 	Network::EndPoint epListen;
 	epListen.socket(SOCK_STREAM);
 	if (!epListen.good())
