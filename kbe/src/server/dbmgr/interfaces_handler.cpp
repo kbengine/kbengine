@@ -555,7 +555,7 @@ void InterfacesHandler_Interfaces::onChargeCB(KBEngine::MemoryStream& s)
 		chargeID, cbid, datas, dbid, cid));
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, cid);
-	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
+	if (cid == 0 || cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::onChargeCB: baseapp not found!, chargeID={}, cid={}.\n", 
 			chargeID, cid));
