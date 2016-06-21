@@ -300,6 +300,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 			realAccountName, 
 			extraDatas, 
 			errorCode));
+
 		return;
 	}
 
@@ -409,6 +410,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 			realAccountName, 
 			extraDatas, 
 			errorCode));
+
 		return;
 	}
 
@@ -518,10 +520,13 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 			orderID, 
 			extraDatas, 
 			errorCode));
+
 		return;
 	}
 
 	KBEShared_ptr<Orders> orders = iter->second;
+	orders->getDatas = extraDatas;
+
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
