@@ -572,7 +572,7 @@ void InterfacesHandler_Interfaces::onChargeCB(KBEngine::MemoryStream& s)
 				continue;
 			}
 
-			WARNING_MSG(fmt::format("InterfacesHandler_Interfaces::onChargeCB: , chargeID={}, not found cid={}, forward to {} processing!\n",
+			WARNING_MSG(fmt::format("InterfacesHandler_Interfaces::onChargeCB: , chargeID={}, not found cid={}, forward to component({}) processing!\n",
 				chargeID, cid, cinfos->cid));
 
 			found = true;

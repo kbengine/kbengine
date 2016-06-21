@@ -295,7 +295,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 	{
 		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
 		ERROR_MSG(fmt::format("Interfaces::createAccountResponse: accountName '{}' not found!" \
-			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'\n", 
 			commitName, 
 			realAccountName, 
 			extraDatas, 
@@ -405,7 +405,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 	{
 		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
 		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: commitName '{}' not found!" \
-			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'\n", 
 			commitName, 
 			realAccountName, 
 			extraDatas, 
@@ -515,7 +515,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 	ORDERS::iterator iter = orders_.find(orderID);
 	if (iter == orders_.end())
 	{
-		ERROR_MSG(fmt::format("Interfaces::chargeResponse: order id '{}' not found! extra datas = '{}', error code = '{}'", 
+		ERROR_MSG(fmt::format("Interfaces::chargeResponse: order id '{}' not found! extra datas = '{}', error code = '{}'\n", 
 			orderID, 
 			extraDatas, 
 			errorCode));
