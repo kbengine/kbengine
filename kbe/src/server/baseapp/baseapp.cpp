@@ -2369,18 +2369,16 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	std::string datas;
 
+	char *buffer;
+	Py_ssize_t length;
+
+	if(PyBytes_AsStringAndSize(pyDatas, &buffer, &length) < 0)
 	{
-		char *buffer;
-		Py_ssize_t length;
-
-		if(PyBytes_AsStringAndSize(pyDatas, &buffer, &length) < 0)
-		{
-			SCRIPT_ERROR_CHECK();
-			return NULL;
-		}
-
-		datas.assign(buffer, length);
+		SCRIPT_ERROR_CHECK();
+		return NULL;
 	}
+
+	datas.assign(buffer, length);
 
 	if(Baseapp::getSingleton().isShuttingdown())
 	{
