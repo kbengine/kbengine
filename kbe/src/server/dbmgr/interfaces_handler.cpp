@@ -555,12 +555,32 @@ void InterfacesHandler_Interfaces::onChargeCB(KBEngine::MemoryStream& s)
 		chargeID, cbid, datas, dbid, cid));
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, cid);
-	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
+	if (cid == 0 || cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::onChargeCB: baseapp not found!, chargeID={}, cid={}.\n", 
 			chargeID, cid));
 
-		return;
+		// 此时应该随机找一个baseapp调用onLoseChargeCB
+		bool found = false;
+
+		Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
+		for (Components::COMPONENTS::iterator iter = components.begin(); iter != components.end(); ++iter)
+		{
+			cinfos = &(*iter);
+			if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
+			{
+				continue;
+			}
+
+			WARNING_MSG(fmt::format("InterfacesHandler_Interfaces::onChargeCB: , chargeID={}, not found cid={}, forward to component({}) processing!\n",
+				chargeID, cid, cinfos->cid));
+
+			found = true;
+			break;
+		}
+
+		if (!found)
+			return;
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();

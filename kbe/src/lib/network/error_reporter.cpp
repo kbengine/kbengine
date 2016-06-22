@@ -155,10 +155,11 @@ void ErrorReporter::reportError(
  */
 void ErrorReporter::reportException(Reason reason,
 		const Address & addr,
-		const char* prefix)
+		const char* prefix,
+		const char* suffix)
 {
 	NetworkException ne(reason, addr);
-	this->reportException(ne, prefix);
+	this->reportException(ne, prefix, suffix);
 
 }
 
@@ -170,23 +171,41 @@ void ErrorReporter::reportException(Reason reason,
  *
  *	@param ne 		the NubException
  *	@param prefix 	any prefix to add to the error message, or NULL if no prefix
+ *  @param suffix 	any prefix to add to the error message, or NULL if no suffix
  *
  */
-void ErrorReporter::reportException(const NetworkException & ne, const char* prefix)
+void ErrorReporter::reportException(const NetworkException & ne, const char* prefix, const char* suffix)
 {
 	Address offender(0, 0);
 	ne.getAddress(offender);
 
 	if (prefix)
 	{
-		this->reportError(offender,
-			"%s: Exception occurred: %s",
-			prefix, reasonToString(ne.reason()));
+		if (!suffix)
+		{
+			this->reportError(offender,
+				"%s: Exception occurred: %s",
+				prefix, reasonToString(ne.reason()));
+		}
+		else
+		{
+			this->reportError(offender,
+				"%s: Exception occurred: %s %s",
+				prefix, reasonToString(ne.reason()), suffix);
+		}
 	}
 	else
 	{
-		this->reportError(offender, "Exception occurred: %s",
+		if (!suffix)
+		{
+			this->reportError(offender, "Exception occurred: %s",
 				reasonToString(ne.reason()));
+		}
+		else
+		{
+			this->reportError(offender, "Exception occurred: %s %s",
+				reasonToString(ne.reason()), suffix);
+		}
 	}
 }
 
