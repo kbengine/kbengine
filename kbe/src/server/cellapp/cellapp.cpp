@@ -1362,8 +1362,8 @@ void Cellapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 		return;
 	}
 
-	// 如果被别人控制了，则忽略来自自己客户端的更新消息
-	if (e->controlledBy() != NULL)
+	// 如果是被系统控制了，又或被别人控制了，则忽略来自自己客户端的更新消息
+	if (e->controlledBy() == NULL || e->controlledBy()->id() != srcEntityID)
 	{
 		// phw: 经测试发现，由于controlledBy改变时通知客户端存在一定的时间差，
 		//      所以客户端收到消息前仍然发送位移消息，这使得下面的错误日志变得有点多，

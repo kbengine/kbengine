@@ -162,7 +162,7 @@ public:
 	INLINE void controlledBy(EntityMailbox* baseMailbox);
 	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
 	bool setControlledBy(EntityMailbox* baseMailbox);
-	bool sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
+	void sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
 
 	/** 
 		脚本获取和设置entity的position 
@@ -622,8 +622,11 @@ protected:
 	// 这个entity的baseapp部分的mailbox
 	EntityMailbox*											baseMailbox_;
 
-	// 这个entity的坐标和朝向当前受谁的客户端控制
-	// null表示没有客户端在控制，否则指向控制这个entity的对象的baseMailbox_
+	/** 这个entity的坐标和朝向当前受谁的客户端控制
+	    null表示没有客户端在控制（即系统控制），
+	    否则指向控制这个entity的对象的baseMailbox_，
+		玩家自己控制自己则Entity.controlledBy = self.base
+	*/
 	EntityMailbox *											controlledBy_;
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向

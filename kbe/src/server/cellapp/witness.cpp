@@ -844,7 +844,7 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBasePosXZ, basePos);
 	}
 
-	if (pEntity_->controlledBy() != NULL)
+	if (pEntity_->controlledBy() == NULL || pEntity_->controlledBy()->id() != pEntity_->id())
 	{
 		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
 		Direction3D &dir = pEntity_->direction();
