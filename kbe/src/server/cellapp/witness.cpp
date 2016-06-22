@@ -844,6 +844,14 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBasePosXZ, basePos);
 	}
 
+	if (pEntity_->controlledBy() == NULL || pEntity_->controlledBy()->id() != pEntity_->id())
+	{
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+		Direction3D &dir = pEntity_->direction();
+		(*pSendBundle) << dir.yaw() << dir.pitch() << dir.roll();
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+	}
+
 	lastBasePos = bpos;
 }
 
@@ -1151,6 +1159,13 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
+	/* 如果目标被我控制了，则目标的位置不通知我的客户端。
+	   注意：当这个被我控制的entity在服务器中使用moveToPoint()等接口移动时，
+	         也会由于这个判定导致坐标不会同步到控制者的客户端中
+	*/
+	if (otherEntity->controlledBy() && pEntity_->id() == otherEntity->controlledBy()->id())
+		return flags;
+
 	const VolatileInfo* pVolatileInfo = otherEntity->pCustomVolatileinfo();
 	if (!pVolatileInfo)
 		pVolatileInfo = otherEntity->pScriptModule()->getPVolatileInfo();
@@ -1171,29 +1186,38 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 
 	if((entity_posdir_additional_updates == 0) || (g_kbetime - otherEntity->dirChangedTime() < entity_posdir_additional_updates))
 	{
-		if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
+		if (pVolatileInfo->yaw() > 0.f)
 		{
-			flags |= UPDATE_FLAG_YAW_PITCH_ROLL; 
-		}
-		else if (pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
-		{
-			flags |= UPDATE_FLAG_PITCH_ROLL; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->pitch() > 0.f)
-		{
-			flags |= UPDATE_FLAG_YAW_PITCH; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f)
-		{
-			flags |= UPDATE_FLAG_YAW_ROLL; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f)
-		{
-			flags |= UPDATE_FLAG_YAW; 
+			if (pVolatileInfo->roll() > 0.f)
+			{
+				if (pVolatileInfo->pitch() > 0.f)
+				{
+					flags |= UPDATE_FLAG_YAW_PITCH_ROLL;
+				}
+				else
+				{
+					flags |= UPDATE_FLAG_YAW_ROLL;
+				}
+			}
+			else if (pVolatileInfo->pitch() > 0.f)
+			{
+				flags |= UPDATE_FLAG_YAW_PITCH;
+			}
+			else
+			{
+				flags |= UPDATE_FLAG_YAW;
+			}
 		}
 		else if (pVolatileInfo->roll() > 0.f)
 		{
-			flags |= UPDATE_FLAG_ROLL; 
+			if (pVolatileInfo->pitch() > 0.f)
+			{
+				flags |= UPDATE_FLAG_PITCH_ROLL;
+			}
+			else
+			{
+				flags |= UPDATE_FLAG_ROLL;
+			}
 		}
 		else if (pVolatileInfo->pitch() > 0.f)
 		{

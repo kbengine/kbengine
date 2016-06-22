@@ -254,6 +254,23 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE EntityMailbox* Entity::controlledBy() const
+{
+	return controlledBy_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::controlledBy(EntityMailbox* baseMailbox)
+{
+	if (controlledBy_)
+		Py_DECREF(controlledBy_);
+
+	controlledBy_ = baseMailbox;
+
+	if (controlledBy_)
+		Py_INCREF(controlledBy_);
+}
+
 INLINE void Entity::setDirty(bool dirty)
 {
 	isDirty_ = dirty;

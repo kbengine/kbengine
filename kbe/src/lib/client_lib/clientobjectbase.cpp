@@ -1211,6 +1211,19 @@ void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, fl
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	float yaw, pitch, roll;
+	s >> yaw >> pitch >> roll;
+
+	client::Entity* pEntity = pPlayer();
+	if (pEntity)
+	{
+		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid;
@@ -1768,6 +1781,11 @@ void ClientObjectBase::onStreamDataRecv(Network::Channel* pChannel, MemoryStream
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 id)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
 {
 }
 

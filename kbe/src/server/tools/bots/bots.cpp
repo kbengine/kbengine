@@ -795,6 +795,16 @@ void Bots::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onUpdateBaseDir(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
@@ -1041,6 +1051,16 @@ void Bots::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
 	if(pClient)
 	{
 		pClient->onUpdateData_xyz_r(pChannel, s);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onControlEntity(pChannel, entityID, isControlled);
 	}
 }
 

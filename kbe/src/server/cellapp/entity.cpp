@@ -96,6 +96,7 @@ SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
+SCRIPT_GETSET_DECLARE("controlledBy",				pyGetControlledBy,				pySetControlledBy,			0,		0)
 SCRIPT_GETSET_DECLARE("volatileInfo",				pyGetVolatileinfo,				pySetVolatileinfo,			0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
@@ -151,6 +152,7 @@ Entity::~Entity()
 {
 	ENTITY_DECONSTRUCTION(Entity);
 
+	S_RELEASE(controlledBy_);
 	S_RELEASE(pCustomVolatileinfo_);
 
 	S_RELEASE(clientMailbox_);
@@ -215,6 +217,9 @@ void Entity::onDestroy(bool callScript)
 	}
 
 	stopMove();
+
+	// 解除控制者的引用
+	S_RELEASE(controlledBy_);
 
 	if(pWitness_)
 	{
@@ -330,6 +335,172 @@ PyObject* Entity::pyGetBaseMailbox()
 
 	Py_INCREF(mailbox);
 	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetControlledBy( )
+{
+	EntityMailbox* mailbox = controlledBy();
+	if(mailbox == NULL)
+		S_Return;
+
+	Py_INCREF(mailbox);
+	return mailbox; 
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetControlledBy(PyObject *value)
+{ 
+	if(isDestroyed())	
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
+			scriptName(), id());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	EntityMailbox* mailbox = NULL;
+
+	if (value != Py_None )
+	{
+		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()) || !((EntityMailbox *)value)->isBase())
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: param must be base entity mailbox!\n",
+				scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		mailbox = static_cast<EntityMailbox *>(value);
+
+		// 如果看不见我，就不要控制我
+		if (!entityInWitnessed(mailbox->id()) && mailbox->id() != id())
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: entity '%d' can't witnessed me!\n",
+				scriptName(), mailbox->id());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		PyObject* clientMB = PyObject_GetAttrString(mailbox, "client");
+		if (clientMB == Py_None)
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox has no 'client' mailbox!\n",
+				scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		Network::Channel* pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
+		if (!pChannel)
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox.client has no channel!\n",
+				scriptName());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
+	setControlledBy(mailbox);
+	return 0;
+}
+
+bool Entity::setControlledBy(EntityMailbox* controllerBaseMailbox)
+{
+	EntityMailbox *oldMailbox = controlledBy();
+
+	//  如果新旧的mailbox是同一个人，则不做任何更改
+	if (oldMailbox != NULL && controllerBaseMailbox != NULL &&
+		oldMailbox->id() == controllerBaseMailbox->id())
+	{
+		ERROR_MSG(fmt::format("Entity {0} is already a controller, don't repeat settings\n", oldMailbox->id()));
+		return false;
+	}
+
+	if (oldMailbox != NULL)
+	{
+		// 如果旧的控制者是我自己的客户端，
+		// 那就需要通知自己的客户端：你不能再控制你自己了，也就是你被其它人控制了
+		if (oldMailbox->id() == id())
+			sendControlledByStatusMessage(oldMailbox, 1);
+
+		// 如果旧的控制者也是我的观察者之一，那就表示它的客户端能看到我，
+		// 所以，需要通知旧的客户端：你不能再控制某人的位移了
+		else if (entityInWitnessed(oldMailbox->id()))
+			sendControlledByStatusMessage(oldMailbox, 0);
+
+		if (controllerBaseMailbox != NULL)
+		{
+			controlledBy(controllerBaseMailbox);
+
+			// 如果是恢复自我控制，那么需要通知我的客户端：没有人控制你了
+			if (controllerBaseMailbox->id() == id())
+			{
+				KBE_ASSERT(clientMailbox_);
+				sendControlledByStatusMessage(controllerBaseMailbox, 0);
+			}
+
+			// 如果是别人接手了控制，那么只需要通知接手者即可，
+			//     ——因为之前自己还是被别人控制着的，所以不需要另行通知，
+			// 所以，通知接手的控制者：你控制了谁
+			else
+			{
+				sendControlledByStatusMessage(controllerBaseMailbox, 1);
+			}
+
+		}
+		else  // NULL表示交由系统控制，所以不需要通知其他人
+		{
+			controlledBy(NULL);
+		}
+	}
+	else if (controllerBaseMailbox != NULL)
+	{
+		controlledBy(controllerBaseMailbox);
+		
+		// 既然有新的控制者了，系统的移动行为也就必须停止了
+		stopMove();
+		
+		// 如果是恢复自我控制，那么需要通知我的客户端：没有人控制你了
+		if (controllerBaseMailbox->id() == id())
+		{
+			KBE_ASSERT(clientMailbox_);
+			sendControlledByStatusMessage(controllerBaseMailbox, 0);
+		}
+
+		// 如果是别人接手了控制，那么只需要通知接手者即可，
+		//     ——因为之前自己还是被别人控制着的，所以不需要另行通知，
+		// 所以，通知接手的控制者：你控制了谁
+		else
+		{
+			sendControlledByStatusMessage(controllerBaseMailbox, 1);
+		}
+	}
+	return true;
+}
+
+void Entity::sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled)
+{
+	KBE_ASSERT(baseMailbox);
+
+	Network::Channel* pChannel = NULL;
+
+	PyObject* clientMB = PyObject_GetAttrString(baseMailbox, "client");
+	if (clientMB != Py_None)
+	{
+		pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
+	}
+
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+
+	(*pForwardBundle).newMessage(ClientInterface::onControlEntity);
+	(*pForwardBundle) << id();
+	(*pForwardBundle) << isControlled;
+
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(baseMailbox->id(), (*pSendBundle), (*pForwardBundle));
+	pChannel->send(pSendBundle);
+	Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -956,6 +1127,20 @@ void Entity::delWitnessed(Entity* entity)
 	witnesses_.remove(entity->id());
 	--witnesses_count_;
 
+	if (controlledBy_ != NULL && entity->id() == controlledBy_->id())
+	{
+		if (clientMailbox_ && clientMailbox_->getChannel())
+			setControlledBy(baseMailbox_);
+		else
+			setControlledBy(NULL);
+
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onLoseControlledBy"),
+			const_cast<char*>("i"), entity->id());
+
+	}
+
 	// 延时执行
 	// onDelWitnessed();
 
@@ -973,6 +1158,18 @@ void Entity::onDelWitnessed()
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
 			const_cast<char*>("O"), PyBool_FromLong(0));
 	}
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::entityInWitnessed(ENTITY_ID entityID)
+{
+	std::list<ENTITY_ID>::iterator it = witnesses_.begin();
+	for (; it != witnesses_.end(); ++it)
+	{
+		if (*it == entityID)
+			return true;
+	}
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1577,6 +1774,9 @@ void Entity::onGetWitness(bool fromBase)
 		clientMailbox()->postMail(pSendBundle);
 	}
 
+	// 最后，设置controlledBy为自己的base
+	controlledBy(baseMailbox());
+
 	Py_DECREF(this);
 }
 
@@ -1764,9 +1964,17 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		
 		// this->position(currpos);
 
+		// 如果我已经被控制，那么，数据的来源则是控制者的客户端，
+		// 所以，我们需要做的是通知来源客户端，而不仅仅是自己的客户端。
+		KBEngine::ENTITY_ID targetID = 0;
+		if (controlledBy_ != NULL)
+			targetID = controlledBy_->id();
+		else
+			targetID = id();
+
 		// 通知重置
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(targetID, (*pSendBundle));
 		
 		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 
@@ -3244,10 +3452,11 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 	}
 
 	bool hasCustomVolatileinfo = (pCustomVolatileinfo_ != NULL);
+	ENTITY_ID controlledByID = (controlledBy_ != NULL ? controlledBy_->id() : 0);
 		
 	s << pScriptModule_->getUType() << spaceID_ << isDestroyed_ << 
 		isOnGround_ << topSpeed_ << topSpeedY_ << 
-		layer_ << baseMailboxComponentID << hasCustomVolatileinfo;
+		layer_ << baseMailboxComponentID << hasCustomVolatileinfo << controlledByID;
 
 	if (pCustomVolatileinfo_)
 		pCustomVolatileinfo_->addToStream(s);
@@ -3268,9 +3477,10 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	ENTITY_SCRIPT_UID scriptUType;
 	COMPONENT_ID baseMailboxComponentID;
 	bool hasCustomVolatileinfo;
+	ENTITY_ID controlledByID;
 
 	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
-		topSpeedY_ >> layer_ >> baseMailboxComponentID >> hasCustomVolatileinfo;
+		topSpeedY_ >> layer_ >> baseMailboxComponentID >> hasCustomVolatileinfo >> controlledByID;
 
 	if (hasCustomVolatileinfo)
 	{
@@ -3289,6 +3499,22 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	// 设置entity的baseMailbox
 	if(baseMailboxComponentID > 0)
 		baseMailbox(new EntityMailbox(pScriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
+
+	// 如果传送前的控制者是系统或自己的客户端，则继续保持
+	// 如果是其它客户端在控制，则尝试恢复控制关系，如果无法恢复，则重置
+	if (controlledByID == id())
+		controlledBy(baseMailbox());
+	else if (controlledByID == 0)
+		controlledBy(NULL);
+	else
+	{
+		Entity* controllerEntity = Cellapp::getSingleton().findEntity(controlledByID);
+		if (controllerEntity && spaceID() == controllerEntity->spaceID() && \
+			controllerEntity->clientMailbox())
+			controlledBy(controllerEntity->baseMailbox());
+		else
+			setControlledBy(baseMailbox());
+	}
 
 	PyObject* cellData = createCellDataFromStream(&s);
 	createNamespace(cellData);

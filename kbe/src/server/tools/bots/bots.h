@@ -255,10 +255,11 @@ public:
 	virtual void onUpdatePropertysOptimized(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-		服务器更新avatar基础位置
+		服务器更新avatar基础位置和朝向
 	*/
 	virtual void onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z);
 	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z);
+	virtual void onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器强制设置entity的位置与朝向
@@ -329,6 +330,11 @@ public:
 	*/
 	void startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
+
+	/** 网络接口
+	    服务器告诉客户端：你当前（取消）控制谁的位移同步
+	*/
+	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
 
 protected:
 	PyBots*													pPyBots_;
