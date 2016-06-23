@@ -1331,7 +1331,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("EntityDef::checkDefMethod:class {} does not have method[{}].\n",
+			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: class {} does not have method[{}].\n",
 					moduleName.c_str(), iter->first.c_str()));
 
 			return false;
@@ -1393,7 +1393,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
 			if(isLoadScriptModule(pScriptModule))
 			{
-				ERROR_MSG(fmt::format("EntityDef::initialize:Could not load module[{}]\n", 
+				ERROR_MSG(fmt::format("EntityDef::initialize: Could not load module[{}]\n", 
 					moduleName.c_str()));
 
 				PyErr_Print();
@@ -1414,7 +1414,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 
 		if (pyClass == NULL)
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize:Could not find class[{}]\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: Could not find class[{}]\n",
 				moduleName.c_str()));
 
 			return false;
@@ -1441,7 +1441,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 			
 			if(!valid)
 			{
-				ERROR_MSG(fmt::format("EntityDef::initialize:Class {} is not derived from KBEngine.[{}]\n",
+				ERROR_MSG(fmt::format("EntityDef::initialize: Class {} is not derived from KBEngine.[{}]\n",
 					moduleName.c_str(), typeNames.c_str()));
 
 				return false;
@@ -1450,7 +1450,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 
 		if(!PyType_Check(pyClass))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] is valid!\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: class[{}] is valid!\n",
 				moduleName.c_str()));
 
 			return false;
@@ -1458,7 +1458,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		
 		if(!checkDefMethod(pScriptModule, pyClass, moduleName))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] checkDefMethod is failed!\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: class[{}] checkDefMethod is failed!\n",
 				moduleName.c_str()));
 
 			return false;
