@@ -1388,6 +1388,26 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		if(g_isReload)
 			pyModule = PyImport_ReloadModule(pyModule);
 
+		// 检查该模块路径是否是KBE脚本目录下的，防止因用户取名与python模块名称冲突而误导入了系统模块
+		if (pyModule)
+		{
+			std::string userScriptsPath = Resmgr::getSingleton().getPyUserScriptsPath();
+			std::string pyModulePath = PyModule_GetFilename(pyModule);
+
+			strutil::kbe_replace(userScriptsPath, "/", "");
+			strutil::kbe_replace(userScriptsPath, "\\", "");
+			strutil::kbe_replace(pyModulePath, "/", "");
+			strutil::kbe_replace(pyModulePath, "\\", "");
+
+			if (pyModulePath.find(userScriptsPath) == std::string::npos)
+			{
+				WARNING_MSG(fmt::format("EntityDef::initialize: The script module name[{}] and system module name conflict!\n",
+					moduleName.c_str()));
+
+				pyModule = NULL;
+			}
+		}
+
 		if (pyModule == NULL)
 		{
 			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
