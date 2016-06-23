@@ -96,7 +96,7 @@ bool SystemInfo::_autocreate()
 		int status = sigar_proc_list_get(_g_sigarproclist, &_g_proclist);
 		if (status != SIGAR_OK) 
 		{
-			DEBUG_MSG(fmt::format("SystemInfo::autocreate:error: {} ({}) sigar_proc_list_get\n",
+			ERROR_MSG(fmt::format("SystemInfo::autocreate:error: {} ({}) sigar_proc_list_get\n",
 					   status, sigar_strerror(_g_sigarproclist, status)));
 
 			sigar_close(_g_sigarproclist);
@@ -139,7 +139,7 @@ uint32 SystemInfo::countCPU()
 		
 		if (status != SIGAR_OK) 
 		{
-			DEBUG_MSG(fmt::format("error: {} ({}) cpu_list_get\n",
+			ERROR_MSG(fmt::format("error: {} ({}) cpu_list_get\n",
 				   status, sigar_strerror(sigarcpulist, status)));
 
 			count = 1;
@@ -172,7 +172,7 @@ SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: error: not found pid({})\n", pid));
+		ERROR_MSG(fmt::format("SystemInfo::getProcessInfo: error: not found pid({})\n", pid));
 		
 		if(!tryed)
 		{
@@ -181,11 +181,22 @@ _TRYGET:
 			tryed = true;
 			infos.error = true;
 
+			DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: try to find the pid({})\n", pid));
+
 			if(_autocreate())
 				goto _TRYGET;
 		}
 
 		goto _END;
+	}
+	else
+	{
+		if (tryed)
+		{
+			DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: found pid({})\n", pid));
+		}
+
+		infos.error = false;
 	}
 
 	infos.cpu = getCPUPerByPID(pid);
@@ -238,7 +249,7 @@ float SystemInfo::getCPUPerByPID(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(fmt::format("SystemInfo::getCPUPerByPID: error: not found pid({})\n", pid));
+		ERROR_MSG(fmt::format("SystemInfo::getCPUPerByPID: error: not found pid({})\n", pid));
 
 		if(!tryed)
 		{
@@ -297,7 +308,7 @@ _TRYGET:
         }
 		else
 		{
-			DEBUG_MSG(fmt::format("error: {} ({}) proc_cpu_get({})\n",
+			ERROR_MSG(fmt::format("error: {} ({}) proc_cpu_get({})\n",
 				   status, sigar_strerror(_g_sigarproclist, status), pid));
 
 			return 0.f;
@@ -349,7 +360,7 @@ uint64 SystemInfo::getMemUsedByPID(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(fmt::format("SystemInfo::getMemUsedByPID: error: not found pid({})\n", pid));
+		ERROR_MSG(fmt::format("SystemInfo::getMemUsedByPID: error: not found pid({})\n", pid));
 
 		if(!tryed)
 		{
@@ -371,7 +382,7 @@ _TRYGET:
         status = sigar_proc_state_get(_g_sigarproclist, pid, &pstate);
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(fmt::format("error: {} ({}) proc_state({})\n",
+			ERROR_MSG(fmt::format("error: {} ({}) proc_state({})\n",
                    status, sigar_strerror(_g_sigarproclist, status), pid));
 			
 			goto _END;
@@ -380,7 +391,7 @@ _TRYGET:
         status = sigar_proc_time_get(_g_sigarproclist, pid, &ptime);
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(fmt::format("error: {} ({}) proc_time({})\n",
+			ERROR_MSG(fmt::format("error: {} ({}) proc_time({})\n",
                    status, sigar_strerror(_g_sigarproclist, status), pid));
 
            goto _END;
@@ -391,7 +402,7 @@ _TRYGET:
 
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(fmt::format("error: {} ({}) sigar_proc_mem_get({})\n",
+			ERROR_MSG(fmt::format("error: {} ({}) sigar_proc_mem_get({})\n",
                    status, sigar_strerror(_g_sigarproclist, status), pid));
             
 			goto _END;
