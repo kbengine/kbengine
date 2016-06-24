@@ -252,10 +252,14 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 				RECLAIM_PACKET(pPacket_->isTCPPacket(), pPacket);
 				pPacket_ = NULL;
 			}
+
 			return ret;
 		}
 
 		pPacket = NULL;
+		
+		if (pPacket_ && pPacket_->length() == 0)
+			pPacket_ = NULL;
 	}
 
 	return REASON_SUCCESS;
