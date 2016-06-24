@@ -199,7 +199,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		// 加载def文件中的定义
 		if(!loadDefInfo(defFilePath, moduleName, defxml.get(), defNode, pScriptModule))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} parentClass.\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity({}) module!\n",
 				moduleName.c_str()));
 
 			return false;
@@ -208,7 +208,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		// 尝试在主entity文件中加载detailLevel数据
 		if(!loadDetailLevelInfo(defFilePath, moduleName, defxml.get(), defNode, pScriptModule))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} DetailLevelInfo.\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity({}) DetailLevelInfo!\n",
 				moduleName.c_str()));
 
 			return false;
@@ -646,7 +646,13 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					return false;
 				}
 			}
+			else
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount flagsNode, is {}.{}!\n",
+					moduleName, name.c_str()));
 
+				return false;
+			}
 
 			TiXmlNode* persistentNode = xml->enterNode(defPropertyNode->FirstChild(), "Persistent");
 			if(persistentNode)
@@ -682,6 +688,13 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				{
 					return false;
 				}
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount TypeNode, is {}.{}!\n",
+					moduleName, name.c_str()));
+
+				return false;
 			}
 
 			TiXmlNode* indexTypeNode = xml->enterNode(defPropertyNode->FirstChild(), "Index");

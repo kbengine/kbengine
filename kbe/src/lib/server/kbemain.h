@@ -166,7 +166,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	if(!app.initialize())
 	{
-		ERROR_MSG("app::initialize() is error!\n");
+		ERROR_MSG("app::initialize(): initialization failed!\n");
 
 		Components::getSingleton().finalise();
 		app.finalise();
