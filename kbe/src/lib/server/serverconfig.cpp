@@ -114,7 +114,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 						Network::g_trace_packet_disables.push_back(c);
 						
 						// ²»debug¼ÓÃÜ°ü
-						if(c == "Encrypted::packet")
+						if(c == "Encrypted::packets")
 							Network::g_trace_encrypted_packet = false;
 					}
 				}
