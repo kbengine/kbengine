@@ -166,7 +166,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 				{
 					MALLOC_PACKET(pPacket_, pPacket->isTCPPacket());
 					int currLen = pPacket->rpos() + packetLen_;
-					pPacket_->append(pPacket->data() + currLen, pPacket->wpos() - currLen));
+					pPacket_->append(pPacket->data() + currLen, pPacket->wpos() - currLen);
 					pPacket->wpos(currLen);
 				}
 				else if(pPacket->length() == packetLen_)
@@ -198,7 +198,7 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 			{
 				MALLOC_PACKET(pPacket_, pPacket->isTCPPacket());
 				int currLen = pPacket->rpos() + packetLen_;
-				pPacket_->append(pPacket->data() + currLen, pPacket->wpos() - currLen));
+				pPacket_->append(pPacket->data() + currLen, pPacket->wpos() - currLen);
 				pPacket->wpos(currLen);
 			}
 			else if(pPacket->length() == packetLen_)
