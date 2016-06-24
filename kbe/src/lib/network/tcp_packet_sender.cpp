@@ -143,11 +143,17 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 						(pChannel->isInternal() ? "internal" : "external")));
 				*/
 
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()");
 			}
 			else
 			{
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
+#ifdef unix
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()", 
+					fmt::format(", errno: {}", errno).c_str());
+#else
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()", 
+					fmt::format(", errno: {}", WSAGetLastError()).c_str());
+#endif
 				onGetError(pChannel);
 			}
 

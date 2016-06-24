@@ -38,8 +38,6 @@ public:
 		MOVE_TYPE_NAV = 2,			// 移动控制器类型
 	};
 
-	virtual std::string c_str(){ return "Move_Handler"; }
-
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 

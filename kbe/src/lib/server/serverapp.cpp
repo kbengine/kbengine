@@ -380,7 +380,16 @@ void ServerApp::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::str
 	}
 	else
 	{
-		KBE_ASSERT(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport);
+		if (!(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport))
+		{
+			ERROR_MSG(fmt::format("ServerApp::onRegisterNewApp: error component(uid:{}, username:{}, componentType:{}, componentID:{}, from {})!\n",
+				uid,
+				username.c_str(),
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, pChannel->c_str()));
+
+			return;
+		}
+
 		cinfos->pChannel = pChannel;
 	}
 }

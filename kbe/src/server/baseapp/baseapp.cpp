@@ -2316,7 +2316,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 4)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args != (ordersID, dbid, byteDatas[bytes|BLOB], pycallback)!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args != (ordersID, dbid, byteDatas[bytes], pycallback)!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -2353,9 +2353,9 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	if (!PyBytes_Check(pyDatas) && !PyObject_TypeCheck(pyDatas, script::PyMemoryStream::getScriptType()))
+	if (!PyBytes_Check(pyDatas))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge: byteDatas != bytes|BLOB!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: byteDatas != bytes!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -2369,24 +2369,16 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	std::string datas;
 
-	if(!PyBytes_Check(pyDatas))
-	{
-		script::PyMemoryStream* pPyMemoryStream = static_cast<script::PyMemoryStream*>(pyDatas);
-		pPyMemoryStream->stream().readBlob(datas);
-	}
-	else
-	{
-		char *buffer;
-		Py_ssize_t length;
+	char *buffer;
+	Py_ssize_t length;
 
-		if(PyBytes_AsStringAndSize(pyDatas, &buffer, &length) < 0)
-		{
-			SCRIPT_ERROR_CHECK();
-			return NULL;
-		}
-
-		datas.assign(buffer, length);
+	if(PyBytes_AsStringAndSize(pyDatas, &buffer, &length) < 0)
+	{
+		SCRIPT_ERROR_CHECK();
+		return NULL;
 	}
+
+	datas.assign(buffer, length);
 
 	if(Baseapp::getSingleton().isShuttingdown())
 	{
@@ -2457,7 +2449,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	PyObject* pyOrder = PyUnicode_FromString(chargeID.c_str());
 	PyObject* pydbid = PyLong_FromUnsignedLongLong(dbid);
 	PyObject* pySuccess = PyBool_FromLong((retcode == SERVER_SUCCESS));
-	script::PyMemoryStream* pPyMemoryStream = new script::PyMemoryStream(datas);
+	PyObject* pyBytes = PyBytes_FromStringAndSize(datas.data(), datas.length());
 
 	if(callbackID > 0)
 	{
@@ -2468,7 +2460,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			PyObject* pyResult = PyObject_CallFunction(pycallback.get(), 
 												const_cast<char*>("OOOO"), 
-												pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pPyMemoryStream));
+												pyOrder, pydbid, pySuccess, pyBytes);
 
 			if(pyResult != NULL)
 				Py_DECREF(pyResult);
@@ -2487,7 +2479,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onLoseChargeCB"), 
 										const_cast<char*>("OOOO"), 
-										pyOrder, pydbid, pySuccess, static_cast<PyObject*>(pPyMemoryStream));
+										pyOrder, pydbid, pySuccess, pyBytes);
 
 		if(pyResult != NULL)
 			Py_DECREF(pyResult);
@@ -2498,7 +2490,7 @@ void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	Py_DECREF(pyOrder);
 	Py_DECREF(pydbid);
 	Py_DECREF(pySuccess);
-	Py_DECREF(pPyMemoryStream);
+	Py_DECREF(pyBytes);
 }
 
 //-------------------------------------------------------------------------------------

@@ -37,6 +37,8 @@ paths_(paths_ptr),
 maxMoveDistance_(maxMoveDistance)
 {
 	destPos_ = (*paths_)[destPosIdx_++];
+	
+	updatableName = "NavigateHandler";
 }
 
 //-------------------------------------------------------------------------------------
@@ -46,6 +48,7 @@ destPosIdx_(0),
 paths_(),
 maxMoveDistance_(0.f)
 {
+	updatableName = "NavigateHandler";
 }
 
 //-------------------------------------------------------------------------------------
