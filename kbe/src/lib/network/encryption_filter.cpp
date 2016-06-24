@@ -161,16 +161,17 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 				
 				packetLen_ -= 1;
 
-				// 如果包是完整下面流出会解密， 如果有多余的内容需要将其剪裁出来待与下一个包合并
+				// 如果包是完整的下面流程会解密， 如果有多余的内容需要将其剪裁出来待与下一个包合并
 				if(pPacket->length() > packetLen_)
 				{
 					MALLOC_PACKET(pPacket_, pPacket->isTCPPacket());
-					pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
-					pPacket->wpos((int)(pPacket->rpos() + packetLen_));
+					int currLen = pPacket->rpos() + packetLen_;
+					pPacket_->append(pPacket->data() + currLen, pPacket->wpos() - currLen));
+					pPacket->wpos(currLen);
 				}
 				else if(pPacket->length() == packetLen_)
 				{
-					if(pPacket_ != NULL)
+					if(pPacket_ != NULL && pPacket_ == pPacket)
 						pPacket_ = NULL;
 				}
 				else
@@ -192,15 +193,17 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		else
 		{
 			// 如果上一次有做过解包行为但包还没有完整则继续处理
+			// 如果包是完整的下面流程会解密， 如果有多余的内容需要将其剪裁出来待与下一个包合并
 			if(pPacket->length() > packetLen_)
 			{
 				MALLOC_PACKET(pPacket_, pPacket->isTCPPacket());
-				pPacket_->append(pPacket->data() + pPacket->rpos() + packetLen_, pPacket->wpos() - (packetLen_ + pPacket->rpos()));
-				pPacket->wpos((int)(pPacket->rpos() + packetLen_));
+				int currLen = pPacket->rpos() + packetLen_;
+				pPacket_->append(pPacket->data() + currLen, pPacket->wpos() - currLen));
+				pPacket->wpos(currLen);
 			}
 			else if(pPacket->length() == packetLen_)
 			{
-				if(pPacket_ != NULL)
+				if(pPacket_ != NULL && pPacket_ == pPacket)
 					pPacket_ = NULL;
 			}
 			else
@@ -239,6 +242,8 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		
 		decrypt(pPacket, pPacket);
 
+		// 上面的流程能保证wpos之后不会有多余的包
+		// 如果有多余的包数据会放在pPacket_
 		pPacket->wpos((int)(pPacket->wpos() - padSize_));
 
 		packetLen_ = 0;
@@ -257,9 +262,6 @@ Reason BlowfishFilter::recv(Channel * pChannel, PacketReceiver & receiver, Packe
 		}
 
 		pPacket = NULL;
-		
-		if (pPacket_ && pPacket_->length() == 0)
-			pPacket_ = NULL;
 	}
 
 	return REASON_SUCCESS;
