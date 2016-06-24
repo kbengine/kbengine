@@ -2002,7 +2002,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		if (controlledBy_ != NULL)
 			targetID = controlledBy_->id();
 		else
-			targetID = id_;
+			targetID = id();
 
 		// Í¨ÖªÖØÖÃ
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();

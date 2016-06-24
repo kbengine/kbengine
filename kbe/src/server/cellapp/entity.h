@@ -423,7 +423,11 @@ public:
 	*/
 	void delWitnessed(Entity* entity);
 	void onDelWitnessed();
-	bool entityInWitnessed(ENTITY_ID entityID);  // 指定的entity是否是观察自己的人之一
+
+	/**
+		 指定的entity是否是观察自己的人之一
+	*/
+	bool entityInWitnessed(ENTITY_ID entityID);
 
 	INLINE const std::list<ENTITY_ID>&	witnesses();
 	INLINE size_t witnessesSize() const;

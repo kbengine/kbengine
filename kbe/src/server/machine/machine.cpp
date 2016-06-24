@@ -300,6 +300,7 @@ bool Machine::checkComponentUsable(const Components::ComponentInfos* info, bool 
 	return ret;
 }
 
+//-------------------------------------------------------------------------------------
 void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string& username,
 	uint16 finderRecvPort)
 {
