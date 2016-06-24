@@ -1,0 +1,33 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Handling Errors</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#intro" title="Getting Started">Getting Started</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Handling Errors</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">Many functions in Libbson can result in errors. To simplify this, Libbson contains a structure called <span class="code"><a href="bson_error_t.html" title="bson_error_t">bson_error_t</a></span>. This structure enapsulates an error from the underlying system and can be passed back up the stack. Think of it as an exception as an <span class="code">out parameter</span>.</p>
+<p class="p">The structure contains <span class="code">domain</span> and <span class="code">code</span> fields that can be used to check for specific error conditions. The value of these fields is API specific. If you simply want to print an error message, use the <span class="code">message</span> field of <span class="code"><a href="bson_error_t.html" title="bson_error_t">bson_error_t</a></span>.</p>
+<p class="p">Functions that can result in error specify the return value that indicates the <span class="code">error</span> out parameter was initialized. Typically this is <span class="code">0</span> or <span class="code">NULL</span>, but may sometimes be <span class="code">-1</span> depending on the API.</p>
+<p class="p">This structure should be stack-allocated and requires no explicit freeing.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#intro" title="Getting Started">Getting Started</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

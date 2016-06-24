@@ -1,0 +1,56 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_CLIENT_SET_READ_CONCERN" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_client_set_read_concern() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+mongoc_client_set_read_concern (mongoc_client_t              *client,
+                                const mongoc_read_concern_t  *read_concern);
+.fi
+.fi
+
+Sets the read concern for the client. This only affects future operations, collections, and databases inheriting from
+.B client
+\e&.
+
+The default read concern is MONGOC_READ_CONCERN_LEVEL_LOCAL. This is the correct read concern for the great majority of applications.
+
+It is a programming error to call this function on a client from a
+.B mongoc_client_pool_t
+\e&. For pooled clients, set the read concern with the
+.B MongoDB URI
+instead.
+
+.SH "PARAMETERS"
+
+.TP
+.B
+client
+A
+.B mongoc_client_t
+\e&.
+.LP
+.TP
+.B
+read_concern
+A
+.B mongoc_read_concern_t
+\e&.
+.LP
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_database_get_read_prefs">
+
+  <info>
+    <link type="guide" xref="mongoc_database_t" group="function"/>
+  </info>
+  <title>mongoc_database_get_read_prefs()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[const mongoc_read_prefs_t *
+mongoc_database_get_read_prefs (const mongoc_database_t *database);
+]]></code></synopsis>
+    <p>Fetches the default read preferences to use with <code>database</code>.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>database</p></td><td><p>A <code xref="mongoc_database_t">mongoc_database_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code> that should not be modified or freed.</p>
+  </section>
+
+</page>

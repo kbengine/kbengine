@@ -1,0 +1,109 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Logging</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">Logging</span></h1>
+<h2 class="subtitle"><span class="subtitle">MongoDB C driver Logging Abstraction</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents">
+<div class="screen"><pre class="contents "><span class="code">typedef enum
+{
+   MONGOC_LOG_LEVEL_ERROR,
+   MONGOC_LOG_LEVEL_CRITICAL,
+   MONGOC_LOG_LEVEL_WARNING,
+   MONGOC_LOG_LEVEL_MESSAGE,
+   MONGOC_LOG_LEVEL_INFO,
+   MONGOC_LOG_LEVEL_DEBUG,
+   MONGOC_LOG_LEVEL_TRACE,
+} mongoc_log_level_t;
+
+#define MONGOC_ERROR(...)    
+#define MONGOC_CRITICAL(...) 
+#define MONGOC_WARNING(...)  
+#define MONGOC_MESSAGE(...)  
+#define MONGOC_INFO(...)     
+#define MONGOC_DEBUG(...)    
+
+typedef void (*mongoc_log_func_t) (mongoc_log_level_t  log_level,
+                                   const char         *log_domain,
+                                   const char         *message,
+                                   void               *user_data);
+
+void        mongoc_log_set_handler     (mongoc_log_func_t   log_func,
+                                        void               *user_data);
+void        mongoc_log                 (mongoc_log_level_t  log_level,
+                                        const char         *log_domain,
+                                        const char         *format,
+                                        ...) BSON_GNUC_PRINTF(3, 4);
+const char *mongoc_log_level_str       (mongoc_log_level_t log_level);
+void        mongoc_log_default_handler (mongoc_log_level_t  log_level,
+                                        const char         *log_domain,
+                                        const char         *message,
+                                        void               *user_data);</span></pre></div>
+<p class="p">The MongoDB C driver comes with an abstraction for logging that you can use in your application, or integrate with an existing logging system.</p>
+</div></div>
+</div></div>
+<div id="macros" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Macros</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To make logging a little less painful, various helper macros are provided. See the following example.</p>
+<div class="screen"><pre class="contents "><span class="code">#undef MONGOC_LOG_DOMAIN
+#define MONGOC_LOG_DOMAIN "my-custom-domain"
+
+MONGOC_WARNING ("An error occurred: %s", strerror (errno));</span></pre></div>
+</div></div>
+</div></div>
+<div id="tracing" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Tracing</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">If compiling your own copy of the MongoDB C driver, consider configuring with <span class="code">--enable-tracing</span> to enable function tracing and hex dumps of network packets to <span class="code">STDERR</span> and <span class="code">STDOUT</span> during development and debugging.</p>
+<p class="p">This is especially useful when debugging what may be going on internally in the driver.</p>
+<p class="p">Trace messages can be enabled and disabled by calling <span class="code">mongoc_log_trace_enable()</span> and <span class="code">mongoc_log_trace_disable()</span></p>
+<div class="note" title="Note"><div class="inner"><div class="region"><div class="contents"><p class="p">
+       Compiling the driver with <span class="code">--enable-tracing</span> will affect its performance. Disabling tracing with <span class="code">mongoc_log_trace_disable()</span> significantly reduces the overhead, but cannot remove it completely.
+    </p></div></div></div></div>
+</div></div>
+</div></div>
+<div id="handlers" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Custom Log Handlers</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">The default log handler prints a timestamp and the log message to <span class="code">stdout</span>, or to <span class="code">stderr</span> for warnings, critical messages, and errors.
+    You can override the handler with <span class="code">mongoc_log_set_handler()</span>.
+    Your handler function is called in a mutex for thread safety.</p>
+<p class="p">To restore the default handler:</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_log_set_handler (mongoc_log_default_handler, NULL);</span></pre></div>
+</div></div>
+</div></div>
+<div id="disable-logs" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Disable logging</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To disable all logging, including warnings, critical messages and errors, you need to provide an empty log handler</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_log_set_handler (NULL, NULL);</span></pre></div>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

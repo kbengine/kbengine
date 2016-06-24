@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_read_concern_new">
+  <info>
+    <link type="guide" xref="mongoc_read_concern_t" group="function"/>
+  </info>
+  <title>mongoc_read_concern_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_read_concern_t *
+mongoc_read_concern_new (void);
+]]></code></synopsis>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Creates a newly allocated read concern that can be configured based on user preference. This should be freed with <code xref="mongoc_read_concern_destroy">mongoc_read_concern_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

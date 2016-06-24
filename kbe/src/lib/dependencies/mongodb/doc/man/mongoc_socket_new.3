@@ -1,0 +1,62 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_SOCKET_NEW" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_socket_new() \- Creates a new mongoc_socket_t structure. This calls socket() underneath to create a network socket.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_socket_t *
+mongoc_socket_new (int domain,
+                   int type,
+                   int protocol);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+domain
+An int containing the address family such as AF_INET.
+.LP
+.TP
+.B
+type
+An int containing the socket type such as SOCK_STREAM.
+.LP
+.TP
+.B
+protocol
+A protocol subset, typically 0.
+.LP
+
+.SH "DESCRIPTION"
+
+Creates a new
+.B mongoc_socket_t
+structure. This calls
+.B socket(3)
+underneath to create a network socket.
+
+.SH "RETURNS"
+
+A new socket if successful, otherwise
+.B NULL
+and errno is set. The result should be freed with
+.B mongoc_socket_destroy(3)
+when no longer in use.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,75 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ITER_CODEWSCOPE" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_iter_codewscope() \- The bson_iter_codewscope() function acts similar to bson_iter_code() except for BSON_TYPE_CODEWSCOPE elements. It also will provide a pointer to the buffer for scope, which can be loaded into a bson_t using bson_init_static().
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#define BSON_ITER_HOLDS_CODEWSCOPE(iter) \e
+   (bson_iter_type ((iter)) == BSON_TYPE_CODEWSCOPE)
+
+const char *
+bson_iter_codewscope (const bson_iter_t *iter,
+                      uint32_t          *length,
+                      uint32_t          *scope_len,
+                      const uint8_t    **scope);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+iter
+A
+.B bson_iter_t
+\e&.
+.LP
+.TP
+.B
+length
+An optional location for the length of the resulting UTF\(hy8 encoded string.
+.LP
+.TP
+.B
+scope_len
+A optional location for the length of
+.B scope
+\e&.
+.LP
+.TP
+.B
+scope
+An optional location to store the immutable raw scope BSON document.
+.LP
+
+.SH "DESCRIPTION"
+
+The
+.B bson_iter_codewscope(3)
+function acts similar to
+.B bson_iter_code(3)
+except for BSON_TYPE_CODEWSCOPE elements. It also will provide a pointer to the buffer for scope, which can be loaded into a
+.B bson_t
+using
+.B bson_init_static(3)
+\e&.
+
+.SH "RETURNS"
+
+An UTF\(hy8 encoded string containing the JavaScript code which should not be modified or freed.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

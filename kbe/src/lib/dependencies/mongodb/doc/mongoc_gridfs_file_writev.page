@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_gridfs_file_writev">
+  <info>
+    <link type="guide" xref="mongoc_gridfs_file_t" group="function"/>
+  </info>
+  <title>mongoc_gridfs_file_writev()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[ssize_t
+mongoc_gridfs_file_writev (mongoc_gridfs_file_t *file,
+                           mongoc_iovec_t       *iov,
+                           size_t                iovcnt,
+                           uint32_t              timeout_msec);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>file</p></td><td><p>A <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code>.</p></td></tr>
+      <tr><td><p>iov</p></td><td><p>An array of <code xref="mongoc_iovec_t">mongoc_iovec_t</code>.</p></td></tr>
+      <tr><td><p>iovcnt</p></td><td><p>The number of elements in <code>iov</code>.</p></td></tr>
+      <tr><td><p>timeout_msec</p></td><td><p>A uint32_t with the timeout in milliseconds.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Performs a gathered write to the underlying gridfs file.</p>
+    <p>If timeout is reached, then -1 is returned and errno is set to ETIMEDOUT.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns the number of bytes written or -1 upon error and errno is set.</p>
+  </section>
+
+</page>

@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_insert">
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_insert()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_collection_insert (mongoc_collection_t          *collection,
+                          mongoc_insert_flags_t         flags,
+                          const bson_t                 *document,
+                          const mongoc_write_concern_t *write_concern,
+                          bson_error_t                 *error);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>A <code xref="mongoc_insert_flags_t">mongoc_insert_flags_t</code>.</p></td></tr>
+      <tr><td><p>document</p></td><td><p>A <code xref="bson:bson_t">bson_t</code>.</p></td></tr>
+      <tr><td><p>write_concern</p></td><td><p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall insert <code>document</code> into <code>collection</code>.</p>
+    <p>If no <code>_id</code> element is found in <code>document</code>, then a <code xref="bson:bson_oid_t">bson_oid_t</code> will be generated locally and added to the document.</p>
+    <p>You can retrieve a generated <code>_id</code> from <code xref="mongoc_collection_get_last_error">mongoc_collection_get_last_error()</code>.</p>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>true if the document was successfully inserted, otherwise false and <code>error</code> is set.</p>
+  </section>
+
+</page>

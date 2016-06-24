@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<page id="mongoc_gridfs_file_opt_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_gridfs_file_opt_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <screen><code mime="text/x-csrc"><![CDATA[typedef struct
+{
+   const char   *md5;
+   const char   *filename;
+   const char   *content_type;
+   const bson_t *aliases;
+   const bson_t *metadata;
+   uint32_t      chunk_size;
+} mongoc_gridfs_file_opt_t;
+]]></code></screen>
+  </section>
+  <section id="description">
+    <title>Description</title>
+    <p>This structure contains options that can be set on a <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code>. It can be used by various functions when creating a new gridfs file.</p>
+  </section>
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_gridfs_new">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_gridfs_t" group="function"/>
+  </info>
+  <title>mongoc_stream_gridfs_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_stream_t *
+mongoc_stream_gridfs_new (mongoc_gridfs_file_t *file);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>file</p></td><td><p>A <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function shall create a new <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code>. This function does not transfer ownership of <code>file</code>. Therefore, <code>file</code> must remain valid for the lifetime of this stream.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_stream_gridfs_t">mongoc_stream_gridfs_t</code> if successful, otherwise <code>NULL</code>.</p>
+  </section>
+
+</page>

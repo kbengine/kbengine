@@ -1,0 +1,260 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_uri_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_uri_t</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">typedef struct _mongoc_uri_t mongoc_uri_t;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p"><span class="code">mongoc_uri_t</span> provides an abstraction on top of the MongoDB connection URI format. It provides standardized parsing as well as convenience methods for extracting useful information such as replica hosts or authorization information.</p>
+<p class="p">See <span class="link"><a href="http://docs.mongodb.org/manual/reference/connection-string/" title="http://docs.mongodb.org/manual/reference/connection-string/">Connection String URI Reference</a></span> on the MongoDB website for more information.</p>
+</div></div>
+</div></div>
+<div id="format" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Format</span></h2></div>
+<div class="region"><div class="contents">
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">mongodb://                                   &lt;1&gt;
+   [username:password@]                      &lt;2&gt;
+   host1                                     &lt;3&gt;
+   [:port1]                                  &lt;4&gt;
+   [,host2[:port2],...[,hostN[:portN]]]      &lt;5&gt;
+   [/[database]                              &lt;6&gt;
+   [?options]]                               &lt;7&gt;</pre></div></div></div></div></div>
+<div class="list"><div class="inner"><div class="region"><ol class="list" style="list-style-type:numbered">
+<li class="list"><p class="p">mongodb is the specifier of the MongoDB protocol.</p></li>
+<li class="list"><p class="p">An optional username and password.</p></li>
+<li class="list"><p class="p">The only required part of the uri.  This specifies either a hostname, IP address or UNIX domain socket.</p></li>
+<li class="list"><p class="p">An optional port number.  Defaults to :27017.</p></li>
+<li class="list"><p class="p">Extra optional hosts and ports.  You would specify multiple hosts, for example, for connections to replica sets.</p></li>
+<li class="list"><p class="p">The name of the database to authenticate if the connection string includes authentication credentials.  If /database is not specified and the connection string includes credentials, defaults to the 'admin' database.</p></li>
+<li class="list"><p class="p">Connection specific options.</p></li>
+</ol></div></div></div>
+</div></div>
+</div></div>
+<div id="examples" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Replica Set Example</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To describe a connection to a replica set named 'test' with the following mongod hosts:</p>
+<div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p"><span class="code">db1.example.com</span> on port <span class="code">27017</span></p></li>
+<li class="list"><p class="p"><span class="code">db2.example.com</span> on port <span class="code">2500</span></p></li>
+</ul></div></div></div>
+<p class="p">You would use the connection string that resembles the following.</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">mongodb://db1.example.com,db2.example.com:2500/?replicaSet=test</pre></div></div></div></div></div>
+</div></div>
+</div></div>
+<div id="conn-options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Connection Options</span></h2></div>
+<div class="region"><div class="contents">
+<div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">ssl</p></td>
+<td><p class="p">{true|false}, indicating if SSL must be used. (See also <span class="code"><a href="mongoc_client_set_ssl_opts.html" title="mongoc_client_set_ssl_opts()">mongoc_client_set_ssl_opts</a></span> and <span class="code"><a href="mongoc_client_pool_set_ssl_opts.html" title="mongoc_client_pool_set_ssl_opts()">mongoc_client_pool_set_ssl_opts</a></span>.)</p></td>
+</tr>
+<tr>
+<td><p class="p">connectTimeoutMS</p></td>
+<td><p class="p">A timeout in milliseconds to attempt a connection before timing out. This setting applies to server discovery and monitoring connections as well as to connections for application operations. The default is 10 seconds.</p></td>
+</tr>
+<tr>
+<td><p class="p">socketTimeoutMS</p></td>
+<td><p class="p">The time in milliseconds to attempt to send or receive on a socket before the attempt times out. The default is 5 minutes.</p></td>
+</tr>
+</table></div></div></div>
+<div class="note note-important" title="Important"><div class="inner"><div class="region"><div class="contents"><p class="p">Setting any of the *TimeoutMS options above to <span class="code">0</span> will be interpreted as "use the default value"</p></div></div></div></div>
+</div></div>
+</div></div>
+<div id="sdam-ss-options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Server Discovery, Monitoring, and Selection Options</span></h2></div>
+<div class="region"><div class="contents">
+<div class="note note-important" title="Important"><div class="inner"><div class="region"><div class="contents">
+<p class="p">Clients in a <span class="code"><a href="mongoc_client_pool_t.html" title="mongoc_client_pool_t">mongoc_client_pool_t</a></span> share a topology scanner that runs on a background thread. The thread wakes every <span class="code">heartbeatFrequencyMS</span> (default 10 seconds) to scan all MongoDB servers in parallel. Whenever an application operation requires a server that is not known--for example, if there is no known primary and your application attempts an insert--the thread rescans all servers every half-second. In this situation the pooled client waits up to <span class="code">serverSelectionTimeoutMS</span> (default 30 seconds) for the thread to find a server suitable for the operation, then returns an error with domain <span class="code">MONGOC_ERROR_SERVER_SELECTION</span>.</p>
+<p class="p">Technically, the total time an operation may wait while a pooled client scans the topology is controlled both by <span class="code">serverSelectionTimeoutMS</span> and <span class="code">connectTimeoutMS</span>. The longest wait occurs if the last scan begins just at the end of the selection timeout, and a slow or down server requires the full connection timeout before the client gives up.</p>
+<p class="p">A non-pooled client is single-threaded. Every <span class="code">heartbeatFrequencyMS</span>, it blocks the next application operation while it does a parallel scan. This scan takes as long as needed to check the slowest server: roughly <span class="code">connectTimeoutMS</span>. Therefore the default <span class="code">heartbeatFrequencyMS</span> for single-threaded clients is greater than for pooled clients: 60 seconds.</p>
+<p class="p">By default, single-threaded (non-pooled) clients scan only once when an operation requires a server that is not known. If you attempt an insert and there is no known primary, the client checks all servers once trying to find it, then succeeds or returns an error with domain <span class="code">MONGOC_ERROR_SERVER_SELECTION</span>. But if you set <span class="code">serverSelectionTryOnce</span> to "false", the single-threaded client loops, checking all servers every half-second, until <span class="code">serverSelectionTimeoutMS</span>.</p>
+<p class="p">The total time an operation may wait for a single-threaded client to scan the topology is determined by <span class="code">connectTimeoutMS</span> in the try-once case, or <span class="code">serverSelectionTimeoutMS</span> and <span class="code">connectTimeoutMS</span> if <span class="code">serverSelectionTryOnce</span> is set "false".</p>
+</div></div></div></div>
+<div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">heartbeatFrequencyMS</p></td>
+<td><p class="p">The interval between server monitoring checks. Defaults to 10 seconds in pooled (multi-threaded) mode, 60 seconds in non-pooled mode (single-threaded).</p></td>
+</tr>
+<tr>
+<td><p class="p">serverSelectionTimeoutMS</p></td>
+<td><p class="p">A timeout in milliseconds to block for server selection before throwing an exception. The default is 30 seconds.</p></td>
+</tr>
+<tr>
+<td><p class="p">serverSelectionTryOnce</p></td>
+<td>
+<p class="p">If "true", the driver scans the topology exactly once after server selection fails, then either selects a server or returns an error. If it is false, then the driver repeatedly searches for a suitable server for up to <span class="code">serverSelectionTimeoutMS</span> milliseconds (pausing a half second between attempts). The default for <span class="code">serverSelectionTryOnce</span> is "false" for pooled clients, otherwise "true".</p>
+<p class="p">Pooled clients ignore serverSelectionTryOnce; they signal the thread to rescan the topology every half-second until serverSelectionTimeoutMS expires.</p>
+</td>
+</tr>
+<tr>
+<td><p class="p">socketCheckIntervalMS</p></td>
+<td><p class="p">Only applies to single threaded clients. If a socket has not been used within this time, its connection is checked with a quick "isMaster" call before it is used again. Defaults to 5 seconds.</p></td>
+</tr>
+</table></div></div></div>
+<div class="note note-important" title="Important"><div class="inner"><div class="region"><div class="contents"><p class="p">Setting any of the *TimeoutMS options above to <span class="code">0</span> will be interpreted as "use the default value"</p></div></div></div></div>
+</div></div>
+</div></div>
+<div id="pool-options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Connection Pool Options</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">maxPoolSize</p></td>
+<td><p class="p">The maximum number of connections in the pool. The default value is 100.</p></td>
+</tr>
+<tr>
+<td><p class="p">minPoolSize</p></td>
+<td><p class="p">The minimum number of connections in the connection pool. Default value is 0. These are lazily created.</p></td>
+</tr>
+<tr>
+<td><p class="p">maxIdleTimeMS</p></td>
+<td><p class="p">Not implemented.</p></td>
+</tr>
+<tr>
+<td><p class="p">waitQueueMultiple</p></td>
+<td><p class="p">Not implemented.</p></td>
+</tr>
+<tr>
+<td><p class="p">waitQueueTimeoutMS</p></td>
+<td><p class="p">Not implemented.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="write-concern-options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Write Concern Options</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">w</p></td>
+<td><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">0</p></td>
+<td><p class="p">The driver will not acknowledge write operations but will pass or handle any network and socket errors that it receives to the client. If you disable write concern but enable the getLastError command’s w option, w overrides the w option.</p></td>
+</tr>
+<tr>
+<td><p class="p">1</p></td>
+<td><p class="p">Provides basic acknowledgment of write operations. By specifying 1, you require that a standalone mongod instance, or the primary for replica sets, acknowledge all write operations. For drivers released after the default write concern change, this is the default write concern setting.</p></td>
+</tr>
+<tr>
+<td><p class="p"><span class="code">majority</span></p></td>
+<td><p class="p">For replica sets, if you specify the special majority value to w option, write operations will only return successfully after a majority of the configured replica set members have acknowledged the write operation.</p></td>
+</tr>
+<tr>
+<td><p class="p">n</p></td>
+<td><p class="p">For replica sets, if you specify a number n greater than 1, operations with this write concern return only after n members of the set have acknowledged the write. If you set n to a number that is greater than the number of available set members or members that hold data, MongoDB will wait, potentially indefinitely, for these members to become available.</p></td>
+</tr>
+<tr>
+<td><p class="p"><span class="code">tags</span></p></td>
+<td><p class="p">For replica sets, you can specify a tag set to require that all members of the set that have these tags configured return confirmation of the write operation.</p></td>
+</tr>
+</table></div></div></div></td>
+</tr>
+<tr>
+<td><p class="p">wtimeoutMS</p></td>
+<td><p class="p">The time in milliseconds to wait for replication to succeed, as specified in the w option, before timing out. When wtimeoutMS is 0, write operations will never time out.</p></td>
+</tr>
+<tr>
+<td><p class="p">journal</p></td>
+<td>
+<p class="p">Controls whether write operations will wait until the mongod acknowledges the write operations and commits the data to the on disk journal.</p>
+<div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">true</p></td>
+<td><p class="p">Enables journal commit acknowledgment write concern. Equivalent to specifying the getLastError command with the j option enabled.</p></td>
+</tr>
+<tr>
+<td><p class="p">false</p></td>
+<td><p class="p">Does not require that mongod commit write operations to the journal before acknowledging the write operation. This is the default option for the journal parameter.</p></td>
+</tr>
+</table></div></div></div>
+</td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="read-concern-options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Read Concern Options</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table"><tr>
+<td><p class="p">readConcernLevel</p></td>
+<td><p class="p">The level of isolation for read operations. If the level is left unspecified, the server default will be used. See the <span class="link">readConcern in the MongoDB Manual</span> for details.</p></td>
+</tr></table></div></div></div></div></div>
+</div></div>
+<div id="read-prefs-options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Read Preference Options</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">readPreference</p></td>
+<td>
+<p class="p">Specifies the replica set read preference for this connection. This setting overrides any slaveOk value. The read preference values are the following:</p>
+<div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">primary</p></li>
+<li class="list"><p class="p">primaryPreferred</p></li>
+<li class="list"><p class="p">secondary</p></li>
+<li class="list"><p class="p">secondaryPreferred</p></li>
+<li class="list"><p class="p">nearest</p></li>
+</ul></div></div></div>
+</td>
+</tr>
+<tr>
+<td><p class="p">readPreferenceTags</p></td>
+<td><p class="p">Specifies a tag set as a comma-seperated list of colon-separted key-value pairs.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_copy.html" title="mongoc_uri_copy()"><span class="title">mongoc_uri_copy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_destroy.html" title="mongoc_uri_destroy()"><span class="title">mongoc_uri_destroy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_auth_mechanism.html" title="mongoc_uri_get_auth_mechanism()"><span class="title">mongoc_uri_get_auth_mechanism()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_auth_source.html" title="mongoc_uri_get_auth_source()"><span class="title">mongoc_uri_get_auth_source()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_database.html" title="mongoc_uri_get_database()"><span class="title">mongoc_uri_get_database()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_hosts.html" title="mongoc_uri_get_hosts()"><span class="title">mongoc_uri_get_hosts()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_options.html" title="mongoc_uri_get_options()"><span class="title">mongoc_uri_get_options()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_password.html" title="mongoc_uri_get_password()"><span class="title">mongoc_uri_get_password()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_read_concern.html" title="mongoc_uri_get_read_concern()"><span class="title">mongoc_uri_get_read_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_read_prefs.html" title="mongoc_uri_get_read_prefs()"><span class="title">mongoc_uri_get_read_prefs()</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_read_prefs_t.html" title="mongoc_uri_get_read_prefs_t()"><span class="title">mongoc_uri_get_read_prefs_t()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_replica_set.html" title="mongoc_uri_get_replica_set()"><span class="title">mongoc_uri_get_replica_set()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_ssl.html" title="mongoc_uri_get_ssl()"><span class="title">mongoc_uri_get_ssl()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_string.html" title="mongoc_uri_get_string()"><span class="title">mongoc_uri_get_string()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_username.html" title="mongoc_uri_get_username()"><span class="title">mongoc_uri_get_username()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_get_write_concern.html" title="mongoc_uri_get_write_concern()"><span class="title">mongoc_uri_get_write_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_new.html" title="mongoc_uri_new()"><span class="title">mongoc_uri_new()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_new_for_host_port.html" title="mongoc_uri_new_for_host_port()"><span class="title">mongoc_uri_new_for_host_port()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_unescape.html" title="mongoc_uri_unescape()"><span class="title">mongoc_uri_unescape()</span></a></div>
+</div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

@@ -1,0 +1,45 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>UTF-8</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#intro" title="Getting Started">Getting Started</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">UTF-8</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">Libbson expects that you are always working with UTF-8 encoded text. Anything else is INVALID API USE.</p>
+<p class="p">If you should need to walk through UTF-8 sequences, you can use the various UTF-8 helper functions distributed with Libbson.</p>
+</div>
+<div id="validate" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Validating a UTF-8 Sequence</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To validate the string contained in <span class="code">my_string</span>, use the following. You may pass <span class="code">-1</span> for the string length if you know the string is NULL-terminated.</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">if (!bson_utf8_validate (my_string, -1, false)) {
+   printf ("Validation failed.\n");
+}</pre></div></div></div></div></div>
+<p class="p">If <span class="code">my_string</span> has NULL bytes within the string, you must provide the string length. Use the follwing format. Notice the <span class="code">true</span> at the end indicationg <span class="code">\0</span> is allowed.</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">if (!bson_utf8_validate (my_string, my_string_len, true)) {
+   printf ("Validation failed.\n");
+}</pre></div></div></div></div></div>
+<p class="p">For more information see the API reference for <span class="code"><a href="bson_utf8_validate.html" title="bson_utf8_validate()">bson_utf8_validate()</a></span>.</p>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#intro" title="Getting Started">Getting Started</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

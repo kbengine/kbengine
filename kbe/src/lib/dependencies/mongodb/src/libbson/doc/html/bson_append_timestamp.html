@@ -1,0 +1,74 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>bson_append_timestamp()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » <a class="trail" href="bson_t.html" title="bson_t">bson_t</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">bson_append_timestamp()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">bool
+bson_append_timestamp (bson_t     *bson,
+                       const char *key,
+                       int         key_length,
+                       uint32_t    timestamp,
+                       uint32_t    increment);</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">bson</p></td>
+<td><p class="p">A <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">key</p></td>
+<td><p class="p">An ASCII C string containing the name of the field.</p></td>
+</tr>
+<tr>
+<td><p class="p">key_length</p></td>
+<td><p class="p">The length of <span class="code">key</span> in bytes, or -1 to determine the length with <span class="code">strlen()</span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">timestamp</p></td>
+<td><p class="p">A uint32_t.</p></td>
+</tr>
+<tr>
+<td><p class="p">increment</p></td>
+<td><p class="p">A uint32_t.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">This function is not similar in functionality to <span class="code"><a href="bson_append_date_time.html" title="bson_append_date_time()">bson_append_date_time()</a></span>. Timestamp elements are different in that they include only second precision and an increment field.</p>
+<p class="p">They are primarily used for intra-MongoDB server communication.</p>
+<p class="p">The <span class="code"><a href="bson_append_timestamp.html" title="bson_append_timestamp()">bson_append_timestamp()</a></span> function shall append a new element of type BSON_TYPE_TIMESTAMP.</p>
+</div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents"><p class="p">true if the operation was applied successfully, otherwise false and <span class="code">bson</span> should be discarded.</p></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="bson_t.html" title="bson_t">bson_t</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

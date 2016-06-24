@@ -1,0 +1,309 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_URI_T" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+mongoc_uri_t \- mongoc_uri_t provides an abstraction on top of the MongoDB connection URI format. It provides standardized parsing as well as convenience methods for extracting useful information such as replica hosts or authorization information.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+typedef struct _mongoc_uri_t mongoc_uri_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+.B mongoc_uri_t
+provides an abstraction on top of the MongoDB connection URI format. It provides standardized parsing as well as convenience methods for extracting useful information such as replica hosts or authorization information.
+
+See
+.B Connection String URI Reference
+on the MongoDB website for more information.
+
+.SH "FORMAT"
+
+.nf
+.nf
+mongodb://                                   <1>
+   [username:password@]                      <2>
+   host1                                     <3>
+   [:port1]                                  <4>
+   [,host2[:port2],...[,hostN[:portN]]]      <5>
+   [/[database]                              <6>
+   [?options]]                               <7>
+.fi
+.fi
+
+.IP \e[bu] 2
+mongodb is the specifier of the MongoDB protocol.
+.IP \e[bu] 2
+An optional username and password.
+.IP \e[bu] 2
+The only required part of the uri.  This specifies either a hostname, IP address or UNIX domain socket.
+.IP \e[bu] 2
+An optional port number.  Defaults to :27017.
+.IP \e[bu] 2
+Extra optional hosts and ports.  You would specify multiple hosts, for example, for connections to replica sets.
+.IP \e[bu] 2
+The name of the database to authenticate if the connection string includes authentication credentials.  If /database is not specified and the connection string includes credentials, defaults to the 'admin' database.
+.IP \e[bu] 2
+Connection specific options.
+
+.SH "REPLICA SET EXAMPLE"
+
+To describe a connection to a replica set named 'test' with the following mongod hosts:
+
+.IP \e[bu] 2
+.B db1.example.com
+on port
+.B 27017
+.IP \e[bu] 2
+.B db2.example.com
+on port
+.B 2500
+
+You would use the connection string that resembles the following.
+
+.nf
+.nf
+mongodb://db1.example.com,db2.example.com:2500/?replicaSet=test
+.fi
+.fi
+
+.SH "CONNECTION OPTIONS"
+
+.TP
+.B
+ssl
+{true|false}, indicating if SSL must be used. (See also
+.B mongoc_client_set_ssl_opts
+and
+.B mongoc_client_pool_set_ssl_opts
+\e&.)
+.LP
+.TP
+.B
+connectTimeoutMS
+A timeout in milliseconds to attempt a connection before timing out. This setting applies to server discovery and monitoring connections as well as to connections for application operations. The default is 10 seconds.
+.LP
+.TP
+.B
+socketTimeoutMS
+The time in milliseconds to attempt to send or receive on a socket before the attempt times out. The default is 5 minutes.
+.LP
+
+.B NOTE
+.RS
+Setting any of the *TimeoutMS options above to
+.B 0
+will be interpreted as "use the default value"
+
+.RE
+
+.SH "SERVER DISCOVERY, MONITORING, AND SELECTION OPTIONS"
+
+.B NOTE
+.RS
+Clients in a
+.B mongoc_client_pool_t
+share a topology scanner that runs on a background thread. The thread wakes every
+.B heartbeatFrequencyMS
+(default 10 seconds) to scan all MongoDB servers in parallel. Whenever an application operation requires a server that is not known\(hy\(hyfor example, if there is no known primary and your application attempts an insert\(hy\(hythe thread rescans all servers every half\(hysecond. In this situation the pooled client waits up to
+.B serverSelectionTimeoutMS
+(default 30 seconds) for the thread to find a server suitable for the operation, then returns an error with domain
+.B MONGOC_ERROR_SERVER_SELECTION
+\e&.
+
+Technically, the total time an operation may wait while a pooled client scans the topology is controlled both by
+.B serverSelectionTimeoutMS
+and
+.B connectTimeoutMS
+\e&. The longest wait occurs if the last scan begins just at the end of the selection timeout, and a slow or down server requires the full connection timeout before the client gives up.
+
+A non\(hypooled client is single\(hythreaded. Every
+.B heartbeatFrequencyMS
+, it blocks the next application operation while it does a parallel scan. This scan takes as long as needed to check the slowest server: roughly
+.B connectTimeoutMS
+\e&. Therefore the default
+.B heartbeatFrequencyMS
+for single\(hythreaded clients is greater than for pooled clients: 60 seconds.
+
+By default, single\(hythreaded (non\(hypooled) clients scan only once when an operation requires a server that is not known. If you attempt an insert and there is no known primary, the client checks all servers once trying to find it, then succeeds or returns an error with domain
+.B MONGOC_ERROR_SERVER_SELECTION
+\e&. But if you set
+.B serverSelectionTryOnce
+to "false", the single\(hythreaded client loops, checking all servers every half\(hysecond, until
+.B serverSelectionTimeoutMS
+\e&.
+
+The total time an operation may wait for a single\(hythreaded client to scan the topology is determined by
+.B connectTimeoutMS
+in the try\(hyonce case, or
+.B serverSelectionTimeoutMS
+and
+.B connectTimeoutMS
+if
+.B serverSelectionTryOnce
+is set "false".
+
+.RE
+
+.TP
+.B
+heartbeatFrequencyMS
+The interval between server monitoring checks. Defaults to 10 seconds in pooled (multi\(hythreaded) mode, 60 seconds in non\(hypooled mode (single\(hythreaded).
+.LP
+.TP
+.B
+serverSelectionTimeoutMS
+A timeout in milliseconds to block for server selection before throwing an exception. The default is 30 seconds.
+.LP
+.TP
+.B
+serverSelectionTryOnce
+If "true", the driver scans the topology exactly once after server selection fails, then either selects a server or returns an error. If it is false, then the driver repeatedly searches for a suitable server for up to
+.B serverSelectionTimeoutMS
+milliseconds (pausing a half second between attempts). The default for
+.B serverSelectionTryOnce
+is "false" for pooled clients, otherwise "true".
+Pooled clients ignore serverSelectionTryOnce; they signal the thread to rescan the topology every half\(hysecond until serverSelectionTimeoutMS expires.
+.LP
+.TP
+.B
+socketCheckIntervalMS
+Only applies to single threaded clients. If a socket has not been used within this time, its connection is checked with a quick "isMaster" call before it is used again. Defaults to 5 seconds.
+.LP
+
+.B NOTE
+.RS
+Setting any of the *TimeoutMS options above to
+.B 0
+will be interpreted as "use the default value"
+
+.RE
+
+.SH "CONNECTION POOL OPTIONS"
+
+.TP
+.B
+maxPoolSize
+The maximum number of connections in the pool. The default value is 100.
+.LP
+.TP
+.B
+minPoolSize
+The minimum number of connections in the connection pool. Default value is 0. These are lazily created.
+.LP
+.TP
+.B
+maxIdleTimeMS
+Not implemented.
+.LP
+.TP
+.B
+waitQueueMultiple
+Not implemented.
+.LP
+.TP
+.B
+waitQueueTimeoutMS
+Not implemented.
+.LP
+
+.SH "WRITE CONCERN OPTIONS"
+
+.TP
+.B
+w
+.TP
+.B
+0
+The driver will not acknowledge write operations but will pass or handle any network and socket errors that it receives to the client. If you disable write concern but enable the getLastError command’s w option, w overrides the w option.
+.LP
+.TP
+.B
+1
+Provides basic acknowledgment of write operations. By specifying 1, you require that a standalone mongod instance, or the primary for replica sets, acknowledge all write operations. For drivers released after the default write concern change, this is the default write concern setting.
+.LP
+.TP
+.B
+.B majority
+For replica sets, if you specify the special majority value to w option, write operations will only return successfully after a majority of the configured replica set members have acknowledged the write operation.
+.LP
+.TP
+.B
+n
+For replica sets, if you specify a number n greater than 1, operations with this write concern return only after n members of the set have acknowledged the write. If you set n to a number that is greater than the number of available set members or members that hold data, MongoDB will wait, potentially indefinitely, for these members to become available.
+.LP
+.TP
+.B
+.B tags
+For replica sets, you can specify a tag set to require that all members of the set that have these tags configured return confirmation of the write operation.
+.LP
+.LP
+.TP
+.B
+wtimeoutMS
+The time in milliseconds to wait for replication to succeed, as specified in the w option, before timing out. When wtimeoutMS is 0, write operations will never time out.
+.LP
+.TP
+.B
+journal
+Controls whether write operations will wait until the mongod acknowledges the write operations and commits the data to the on disk journal.
+.TP
+.B
+true
+Enables journal commit acknowledgment write concern. Equivalent to specifying the getLastError command with the j option enabled.
+.LP
+.TP
+.B
+false
+Does not require that mongod commit write operations to the journal before acknowledging the write operation. This is the default option for the journal parameter.
+.LP
+.LP
+
+.SH "READ CONCERN OPTIONS"
+
+.TP
+.B
+readConcernLevel
+The level of isolation for read operations. If the level is left unspecified, the server default will be used. See the
+.B readConcern in the MongoDB Manual
+for details.
+.LP
+
+.SH "READ PREFERENCE OPTIONS"
+
+.TP
+.B
+readPreference
+Specifies the replica set read preference for this connection. This setting overrides any slaveOk value. The read preference values are the following:
+.IP \e[bu] 2
+primary
+.IP \e[bu] 2
+primaryPreferred
+.IP \e[bu] 2
+secondary
+.IP \e[bu] 2
+secondaryPreferred
+.IP \e[bu] 2
+nearest
+.LP
+.TP
+.B
+readPreferenceTags
+Specifies a tag set as a comma\(hyseperated list of colon\(hyseparted key\(hyvalue pairs.
+.LP
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

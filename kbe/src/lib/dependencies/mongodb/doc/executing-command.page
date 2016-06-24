@@ -1,0 +1,65 @@
+<page id="executing-command"
+      type="topic"
+      xmlns="http://projectmallard.org/1.0/">
+
+  <title>Executing Commands</title>
+  <p>The driver provides helper functions for executing MongoDB commands on client, database and collection structures. These functions return <link xref="mongoc_cursor_t">cursors</link>; the <code>_simple</code> variants return booleans indicating success or failure.</p>
+  <p>This example executes the <link href="http://docs.mongodb.org/manual/reference/command/collStats/">collStats</link> command against the collection "mycoll" in database "mydb".</p>
+
+  <listing>
+    <title><file>executing.c</file></title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <bcon.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_t *command;
+    bson_t reply;
+    char *str;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    command = BCON_NEW ("collStats", BCON_UTF8 ("mycoll"));
+    if (mongoc_collection_command_simple (collection, command, NULL, &reply, &error)) {
+        str = bson_as_json (&reply, NULL);
+        printf ("%s\n", str);
+        bson_free (str);
+    } else {
+        fprintf (stderr, "Failed to run command: %s\n", error.message);
+    }
+
+    bson_destroy (command);
+    bson_destroy (&reply);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code></synopsis>
+  </listing>
+
+  <p>Compile the code and run it:</p>
+  <screen><output style="prompt">$ gcc -o executing executing.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</output></screen>
+
+  <p>On Windows:</p>
+  <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 executing.c
+C:\> executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</output></screen>
+</page>

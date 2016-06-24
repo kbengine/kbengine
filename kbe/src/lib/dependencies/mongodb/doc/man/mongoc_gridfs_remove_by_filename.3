@@ -1,0 +1,70 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_GRIDFS_REMOVE_BY_FILENAME" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_gridfs_remove_by_filename() \- Removes all files matching filename and their data chunks from the MongoDB server.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_gridfs_remove_by_filename (mongoc_gridfs_t *gridfs,
+                                  const char      *filename,
+                                  bson_error_t    *error);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+gridfs
+A
+.B mongoc_gridfs_t
+\e&.
+.LP
+.TP
+.B
+filename
+A UTF\(hy8 encoded string containing the filename.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Removes all files matching
+.B filename
+and their data chunks from the MongoDB server.
+
+.SH "RETURNS"
+
+Returns true if successful (including when no files match), otherwise false and
+.B error
+is set.
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

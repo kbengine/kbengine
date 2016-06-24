@@ -1,0 +1,90 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_gridfs_file_seek()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » <a class="trail" href="mongoc_gridfs_file_t.html" title="mongoc_gridfs_file_t">mongoc_gridfs_file_t</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_gridfs_file_seek()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">int
+mongoc_gridfs_file_seek (mongoc_gridfs_file_t *file,
+                         int64_t               delta,
+                         int                   whence);</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">file</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_gridfs_file_t.html" title="mongoc_gridfs_file_t">mongoc_gridfs_file_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">delta</p></td>
+<td><p class="p">The amount to move the file position. May be positive or negative.</p></td>
+</tr>
+<tr>
+<td><p class="p">whence</p></td>
+<td><p class="p">One of SEEK_SET, SEEK_CUR or SEEK_END.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">Adjust the file position pointer in the given file by <span class="code">delta</span>, starting from the position <span class="code">whence</span>. The <span class="code">whence</span> argument is interpreted as in <span class="code">fseek(2)</span>:</p>
+<div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p"><span class="code">SEEK_SET</span></p></td>
+<td><p class="p">Set the position relative to the start of the file.</p></td>
+</tr>
+<tr>
+<td><p class="p"><span class="code">SEEK_CUR</span></p></td>
+<td><p class="p">Move <span class="code">delta</span> relative to the current file position.</p></td>
+</tr>
+<tr>
+<td><p class="p"><span class="code">SEEK_END</span></p></td>
+<td><p class="p">Move <span class="code">delta</span> relative to the end of the file.</p></td>
+</tr>
+</table></div></div></div>
+<p class="p">On success, the file's underlying position pointer is set appropriately. On failure, the file position is NOT changed and errno is set to indicate the error.</p>
+</div></div>
+</div></div>
+<div id="errors" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Errors</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p"><span class="code">EINVAL</span></p></td>
+<td><p class="p"><span class="code">whence</span> is not one of SEEK_SET, SEEK_CUR or SEEK_END.</p></td>
+</tr>
+<tr>
+<td><p class="p"><span class="code">EINVAL</span></p></td>
+<td><p class="p">The resulting file position would be negative.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents"><p class="p">Returns 0 if successful; otherwise -1 and errno is set.</p></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="mongoc_gridfs_file_t.html" title="mongoc_gridfs_file_t">mongoc_gridfs_file_t</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

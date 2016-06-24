@@ -1,0 +1,168 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_COLLECTION_AGGREGATE" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+mongoc_collection_aggregate() \- This function shall execute an aggregation query on the underlying 'collection'. The bson 'pipeline' is not validated, simply passed along as appropriate to the server.  As such, compatibility and errors should be validated in the appropriate server documentation.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_cursor_t *
+mongoc_collection_aggregate (mongoc_collection_t       *collection,
+                             mongoc_query_flags_t       flags,
+                             const bson_t              *pipeline,
+                             const bson_t              *options,
+                             const mongoc_read_prefs_t *read_prefs)
+   BSON_GNUC_WARN_UNUSED_RESULT;
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+collection
+A
+.B mongoc_collection_t
+\e&.
+.LP
+.TP
+.B
+flags
+A
+.B mongoc_query_flags_t
+\e&.
+.LP
+.TP
+.B
+pipeline
+A
+.B bson_t
+containing the pipeline array.
+.LP
+.TP
+.B
+options
+A
+.B bson_t
+containing options for the pipeline, or
+.B NULL
+\e&.
+.LP
+.TP
+.B
+read_prefs
+A
+.B mongoc_read_prefs_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function shall execute an aggregation query on the underlying 'collection'. The bson 'pipeline' is not validated, simply passed along as appropriate to the server.  As such, compatibility and errors should be validated in the appropriate server documentation.
+
+In the case of older server versions, < v2.5, the returned cursor is a synthetic iterator over the result set. This provides a limitation insofar as returned documents can be no larger than 16MB. When connecting to newer servers this limitation doesn't exist. The specific test is for wire_version > 0.
+
+For more information on building MongoDB pipelines, see
+.B MongoDB Aggregation Command
+on the MongoDB website.
+
+.B NOTE
+.RS
+The
+.B pipeline
+parameter should contain a field named
+.B pipeline
+containing a BSON array of pipeline stages.
+.RE
+
+.B NOTE
+.RS
+The
+.B mongoc_read_concern_t
+specified on the
+.B mongoc_collection_t
+will be used, if any.
+.RE
+
+.SH "RETURNS"
+
+This function returns a newly allocated
+.B mongoc_cursor_t
+that should be freed with
+.B mongoc_cursor_destroy(3)
+when no longer in use.
+.B NULL
+may be returned if parameters are invalid.
+
+.B NOTE
+.RS
+Failure to handle the result of this function is a programming error.
+.RE
+
+.SH "EXAMPLE"
+
+.nf
+#include <bcon.h>
+#include <mongoc.h>
+
+static mongoc_cursor_t *
+pipeline_query (mongoc_collection_t *collection)
+{
+   mongoc_cursor_t *cursor;
+   bson_t *pipeline;
+
+   pipeline = BCON_NEW ("pipeline", "[",
+                           "{", "$match", "{", "foo", BCON_UTF8 ("A"), "}", "}",
+                           "{", "$match", "{", "bar", BCON_BOOL (false), "}", "}",
+                        "]");
+
+   cursor = mongoc_collection_aggregate (collection,
+                                         MONGOC_QUERY_NONE,
+                                         pipeline,
+                                         NULL,
+                                         NULL);
+
+   bson_destroy (pipeline);
+
+   return cursor;
+}
+.fi
+
+.SH "OTHER PARAMETERS"
+
+Pass any parameters to the
+.B aggregate
+command, besides
+.B pipeline
+, as fields in
+.B options
+:
+
+.nf
+pipeline = BCON_NEW ("pipeline", "[",
+                        "{", "$out", BCON_UTF8 ("collection2"), "}",
+                     "]");
+
+options = BCON_NEW ("bypassDocumentValidation", BCON_BOOL (true));
+cursor = mongoc_collection_aggregate (collection1,
+                                      MONGOC_QUERY_NONE,
+                                      pipeline,
+                                      options,
+                                      NULL);
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

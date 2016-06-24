@@ -1,0 +1,175 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Aggregation Framework Examples</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#aggregation" title="Aggregation Framework">Aggregation Framework</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Aggregation Framework Examples</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">This document provides a number of practical examples that display the capabilities of the aggregation framework.</p>
+<p class="p">The <span class="link"><a href="https://docs.mongodb.org/manual/tutorial/aggregation-zip-code-data-set/" title="https://docs.mongodb.org/manual/tutorial/aggregation-zip-code-data-set/">Aggregations using the Zip Codes Data Set</a></span> examples uses a publicly available data set of all zipcodes and populations in the United States. These data are available at: <span class="link"><a href="http://media.mongodb.org/zips.json" title="http://media.mongodb.org/zips.json">zips.json</a></span>.</p>
+</div>
+<div id="requirements" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Requirements</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p"><span class="link"><a href="https://www.mongodb.org" title="https://www.mongodb.org">MongoDB</a></span>, version 2.2.0 or later. <span class="link"><a href="https://github.com/mongodb/mongo-c-driver" title="https://github.com/mongodb/mongo-c-driver">MongoDB C driver</a></span>, version 0.96.0 or later.</p>
+<p class="p">Let's check if everything is installed.</p>
+<p class="p">Use the following command to load zips.json data set into mongod instance:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ </span><span class="input">mongoimport --drop -d test -c zipcodes zips.json</span></pre></div>
+<p class="p">Let's use the MongoDB shell to verify that everything was imported successfully.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ </span><span class="input">mongo test</span>
+<span class="output">MongoDB shell version: 2.6.1
+connecting to: test</span>
+<span class="prompt output">&gt; </span><span class="input">db.zipcodes.count()</span>
+<span class="output">29467</span>
+<span class="prompt output">&gt; </span><span class="input">db.zipcodes.findOne()</span>
+<span class="output">{
+	"_id" : "35004",
+	"city" : "ACMAR",
+	"loc" : [
+		-86.51557,
+		33.584132
+	],
+	"pop" : 6055,
+	"state" : "AL"
+}</span></pre></div>
+</div></div>
+</div></div>
+<div id="" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Aggregations using the Zip Codes Data Set</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">Each document in this collection has the following form:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">{
+  "_id" : "35004",
+  "city" : "Acmar",
+  "state" : "AL",
+  "pop" : 6055,
+  "loc" : [-86.51557, 33.584132]
+}</pre></div></div></div></div></div>
+<p class="p">In these documents:</p>
+<div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">The <span class="code">_id</span> field holds the zipcode as a string.</p></li>
+<li class="list"><p class="p">The <span class="code">city</span> field holds the city name.</p></li>
+<li class="list"><p class="p">The <span class="code">state</span> field holds the two letter state abbreviation.</p></li>
+<li class="list"><p class="p">The <span class="code">pop</span> field holds the population.</p></li>
+<li class="list"><p class="p">The <span class="code">loc</span> field holds the location as a <span class="code">[latitude, longitude]</span> array.</p></li>
+</ul></div></div></div>
+</div></div>
+</div></div>
+<div id="" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">States with Populations Over 10 Million</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To get all states with a population greater than 10 million, use the following aggregation pipeline:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+static void
+print_pipeline (mongoc_collection_t *collection)
+{
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   bson_t *pipeline;
+   char *str;
+
+   pipeline = BCON_NEW ("pipeline", "[",
+      "{", "$group", "{", "_id", "$state", "total_pop", "{", "$sum", "$pop", "}", "}", "}",
+      "{", "$match", "{", "total_pop", "{", "$gte", BCON_INT32 (10000000), "}", "}", "}",
+   "]");
+
+   cursor = mongoc_collection_aggregate (collection, MONGOC_QUERY_NONE, pipeline, NULL, NULL);
+
+   while (mongoc_cursor_next (cursor, &amp;doc)) {
+      str = bson_as_json (doc, NULL);
+      printf ("%s\n", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &amp;error)) {
+      fprintf (stderr, "Cursor Failure: %s\n", error.message);
+   }
+
+   mongoc_cursor_destroy (cursor);
+   bson_destroy (pipeline);
+}
+
+int
+main (int argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+
+   mongoc_init ();
+
+   client = mongoc_client_new ("mongodb://localhost:27017");
+   collection = mongoc_client_get_collection (client, "test", "zipcodes");
+
+   print_pipeline (collection);
+
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return 0;
+}</pre></div></div></div></div></div>
+<p class="p">You should see a result like the following:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">{ "_id" : "PA", "total_pop" : 11881643 }
+{ "_id" : "OH", "total_pop" : 10847115 }
+{ "_id" : "NY", "total_pop" : 17990455 }
+{ "_id" : "FL", "total_pop" : 12937284 }
+{ "_id" : "TX", "total_pop" : 16986510 }
+{ "_id" : "IL", "total_pop" : 11430472 }
+{ "_id" : "CA", "total_pop" : 29760021 }</pre></div></div></div></div></div>
+<p class="p">The above aggregation pipeline is build from two pipeline operators: <span class="code">$group</span> and <span class="code">$match</span>.</p>
+<p class="p">The <span class="code">$group</span> pipeline operator requires _id field where we specify grouping; remaining fields specify how to generate composite value and must use one of the group aggregation functions: <span class="code">$addToSet</span>, <span class="code">$first</span>, <span class="code">$last</span>, <span class="code">$max</span>, <span class="code">$min</span>, <span class="code">$avg</span>, <span class="code">$push</span>, <span class="code">$sum</span>. The <span class="code">$match</span> pipeline operator syntax is the same as the read operation query syntax.</p>
+<p class="p">The <span class="code">$group</span> process reads all documents and for each state it creates a separate document, for example:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">{ "_id" : "WA", "total_pop" : 4866692 }</pre></div></div></div></div></div>
+<p class="p">The <span class="code">total_pop</span> field uses the $sum aggregation function to sum the values of all pop fields in the source documents.</p>
+<p class="p">Documents created by <span class="code">$group</span> are piped to the <span class="code">$match</span> pipeline operator. It returns the documents with the value of <span class="code">total_pop</span> field greater than or equal to 10 million.</p>
+</div></div>
+</div></div>
+<div id="" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Average City Population by State</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To get the first three states with the greatest average population per city, use the following aggregation:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">pipeline = BCON_NEW ("pipeline", "[",
+   "{", "$group", "{", "_id", "{", "state", "$state", "city", "$city", "}", "pop", "{", "$sum", "$pop", "}", "}", "}",
+   "{", "$group", "{", "_id", "$_id.state", "avg_city_pop", "{", "$avg", "$pop", "}", "}", "}",
+   "{", "$sort", "{", "avg_city_pop", BCON_INT32 (-1), "}", "}",
+   "{", "$limit", BCON_INT32 (3) "}",
+"]");</pre></div></div></div></div></div>
+<p class="p">This aggregate pipeline produces:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">{ "_id" : "DC", "avg_city_pop" : 303450.0 }
+{ "_id" : "FL", "avg_city_pop" : 27942.29805615551 }
+{ "_id" : "CA", "avg_city_pop" : 27735.341099720412 }</pre></div></div></div></div></div>
+<p class="p">The above aggregation pipeline is build from three pipeline operators: <span class="code">$group</span>, <span class="code">$sort</span> and <span class="code">$limit</span>.</p>
+<p class="p">The first <span class="code">$group</span> operator creates the following documents:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">{ "_id" : { "state" : "WY", "city" : "Smoot" }, "pop" : 414 }</pre></div></div></div></div></div>
+<p class="p">Note, that the <span class="code">$group</span> operator can't use nested documents except the <span class="code">_id</span> field.</p>
+<p class="p">The second <span class="code">$group</span> uses these documents to create the following documents:</p>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">{ "_id" : "FL", "avg_city_pop" : 27942.29805615551 }</pre></div></div></div></div></div>
+<p class="p">These documents are sorted by the <span class="code">avg_city_pop</span> field in descending order. Finally, the <span class="code">$limit</span> pipeline operator returns the first 3 documents from the sorted set.</p>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#aggregation" title="Aggregation Framework">Aggregation Framework</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

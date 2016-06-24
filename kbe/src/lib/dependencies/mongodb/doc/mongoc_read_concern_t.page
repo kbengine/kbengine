@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<page id="mongoc_read_concern_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_read_concern_t</title>
+  <subtitle>Read Concern abstraction</subtitle>
+  <section id="description">
+    <title>Synopsis</title>
+    <note style="tip"><p>New in MongoDB 3.2 and mongoc 1.3.0</p></note>
+    <p>The <code>mongoc_read_concern_t</code> allows clients to choose a level of isolation for their reads. The default, MONGOC_READ_CONCERN_LEVEL_LOCAL, is right for the great majority of applications.</p>
+    <p>You can specify a read concern on connection objects, database objects, or collection objects.</p>
+    <p>See <link href="https://docs.mongodb.org/master/reference/readConcern/">readConcern</link> on the MongoDB website for more information.</p>
+    <p>Read Concern is only sent to MongoDB when it has explicitly been set by <link xref="mongoc_read_concern_set_level">mongoc_read_concern_set_level</link> to anything other then empty string.</p>
+  </section>
+
+  <section id="levels">
+    <title>Read Concern Levels</title>
+    <table>
+      <tr>
+        <td><p>MONGOC_READ_CONCERN_LEVEL_LOCAL ("local")</p></td>
+        <td><p>Default. The query will return the node’s most recent copy of data. Provides no guarantee that the data has been written to a majority of the nodes.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_READ_CONCERN_LEVEL_MAJORITY ("majority")</p></td>
+        <td><p>The query will return the node’s most recent copy of the data confirmed as having been written to a majority of the nodes.</p></td>
+      </tr>
+    </table>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

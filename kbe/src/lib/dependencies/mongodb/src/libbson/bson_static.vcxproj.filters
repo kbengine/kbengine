@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bcon.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-atomic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-clock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-context.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-error.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-iso8601.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-iter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-json.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-keys.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-md5.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-memory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-oid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-reader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-string.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-timegm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-utf8.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-value.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-version-functions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-writer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_alloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_buf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_encode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_gen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_lex.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_parser.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_tree.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\yajl\yajl_version.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-stdint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bcon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-atomic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-compat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-endian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-iter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-json.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-keys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-oid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-stdint-win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-string.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-utf8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-value.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-version-functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\src\bson\bson-writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{7C98FB38-3743-3ED9-AE80-F12F285BD4AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{6CBB787F-9F87-370A-ABCC-6F57BB12EFFA}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_tls_check_cert">
+
+
+  <info>
+    <link type="guide" xref="" group="function"/>
+  </info>
+  <title>mongoc_stream_tls_check_cert()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_stream_tls_check_cert (mongoc_stream_t *stream,
+                              const char      *host);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_tls_t">mongoc_stream_tls_t</code>.</p></td></tr>
+      <tr><td><p>host</p></td><td><p>A UTF-8 string holding the hostname used in socket creation. This value is what will be matched against the server provided certificate.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>The <code>mongoc_stream_tls_check_cert()</code> function shall perform a RFC-6125 certificate verification.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>The <code>mongoc_stream_tls_check_cert()</code> function returns true if the certificate is valid was successful. If false, openssl errors may be set.</p>
+  </section>
+
+</page>

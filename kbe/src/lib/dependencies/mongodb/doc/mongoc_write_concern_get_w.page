@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_write_concern_get_w">
+  <info>
+    <link type="guide" xref="mongoc_write_concern_t" group="function"/>
+  </info>
+  <title>mongoc_write_concern_get_w()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int32_t
+mongoc_write_concern_get_w (const mongoc_write_concern_t *write_concern);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>write_concern</p></td><td><p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Fetches the <code>w</code> parameter of the write concern.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns an integer containing the w value. If wmajority is set, this would be MONGOC_WRITE_CONCERN_W_MAJORITY.</p>
+  </section>
+
+</page>

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_database_find_collections">
+
+
+  <info>
+    <link type="guide" xref="mongoc_database_t" group="function"/>
+  </info>
+  <title>mongoc_database_find_collections()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_cursor_t *
+mongoc_database_find_collections (mongoc_database_t * database,
+                                  const bson_t * filter,
+                                  bson_error_t * error);
+]]></code></synopsis>
+    <p>Fetches a cursor containing documents, each corresponding to a collection on this database.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>database</p></td><td><p>A <code xref="mongoc_database_t">mongoc_database_t</code>.</p></td></tr>
+      <tr><td><p>filter</p></td><td><p>A matcher used by the server to filter the returned collections. May be <code>NULL</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A cursor where each result corresponds to the server's representation of
+    a collection in this database.</p>
+  </section>
+
+</page>

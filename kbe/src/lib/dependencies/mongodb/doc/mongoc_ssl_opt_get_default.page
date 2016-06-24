@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_ssl_opt_get_default">
+
+
+  <info>
+    <link type="guide" xref="mongoc_ssl_opt_t" group="function"/>
+  </info>
+  <title>mongoc_ssl_opt_get_default()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[const mongoc_ssl_opt_t *
+mongoc_ssl_opt_get_default (void) BSON_GNUC_CONST;
+]]></code></synopsis>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns the default SSL options for the process. This should not be modified or freed.</p>
+  </section>
+
+
+</page>

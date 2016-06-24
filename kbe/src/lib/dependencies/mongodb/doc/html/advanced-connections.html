@@ -1,0 +1,151 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Advanced Connections</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Advanced Connections</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">The following guide contains information specific to certain types of MongoDB configurations.</p>
+<p class="p">For an example of connecting to a simple standalone server, see the <span class="link"><a href="tutorial.html#connecting" title="2. Making a Connection">Tutorial</a></span>. To establish a connection with authentication options enabled, see the <span class="link"><a href="authentication.html" title="Authentication">Authentication</a></span> page.</p>
+</div>
+<div id="replica-set" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Connecting to a Replica Set</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">Connecting to a <span class="link"><a href="http://docs.mongodb.org/manual/replication/" title="http://docs.mongodb.org/manual/replication/">replica set</a></span> is much like connecting to a standalone MongoDB server. Simply specify the replica set name using the <span class="code">?replicaSet=myreplset</span> URI option.</p>
+<div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+
+    mongoc_init ();
+
+    /* Create our MongoDB Client */
+    client = mongoc_client_new ("mongodb://host01:27017,host02:27017,host03:27017/?replicaSet=myreplset");
+
+    /* Do some work */
+    /* TODO */
+
+    /* Clean up */
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div>
+<div class="note note-advanced" title="Advanced"><div class="inner"><div class="region"><div class="contents">
+<p class="p">Multiple hostnames can be specified in the MongoDB connection string URI, with a comma separating hosts in the seed list.</p>
+<p class="p">It is recommended to use a seed list of members of the replica set to allow the driver to connect to any node.</p>
+</div></div></div></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#advanced-connections" title="Advanced Connections">Advanced Connections</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="sharded-cluster" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Connecting to a Sharded Cluster</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">To connect to a <span class="link"><a href="http://docs.mongodb.org/manual/sharding/" title="http://docs.mongodb.org/manual/sharding/">sharded cluster</a></span>, specify the <span class="code">mongos</span> nodes the client should connect to. The C Driver will automatically detect that it has connected to a <span class="code">mongos</span> sharding server.</p>
+<p class="p">If more than one hostname is specified, a seed list will be created to attempt failover between the <span class="code">mongos</span> instances.</p>
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">Specifying the <span class="code">replicaSet</span> parameter when connecting to a <span class="code">mongos</span> sharding server is invalid.</p></div></div></div></div>
+<div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+
+    mongoc_init ();
+
+    /* Create our MongoDB Client */
+    client = mongoc_client_new ("mongodb://myshard01:27017/");
+
+    /* Do something with client ... */
+
+    /* Free the client */
+    mongoc_client_destroy (client);
+
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#advanced-connections" title="Advanced Connections">Advanced Connections</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="ipv6" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Connecting to an IPv6 Address</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">The MongoDB C Driver will automatically resolve IPv6 addresses from host names. However, to specify an IPv6 address directly, wrap the address in <span class="code">[]</span>.</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_uri_t *uri = mongoc_uri_new ("mongodb://[::1]:27017");</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#advanced-connections" title="Advanced Connections">Advanced Connections</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="unix-socket" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Connecting to a UNIX Domain Socket</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">On UNIX-like systems, the C Driver can connect directly to a MongoDB server using a UNIX domain socket. Simply pass the path to the socket, which <span class="em">must</span> be suffixed with <span class="code">.sock</span>.</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_uri_t *uri = mongoc_uri_new ("mongodb:///tmp/mysocket.sock");</span></pre></div>
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">Connecting directly to a UNIX domain socket is not a common practice.</p></div></div></div></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#advanced-connections" title="Advanced Connections">Advanced Connections</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="additional-options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Additional Connection Options</span></h2></div>
+<div class="region">
+<div class="contents"><p class="p">A variety of connection options for the MongoDB URI can be found <span class="link"><a href="http://docs.mongodb.org/manual/reference/connection-string/" title="http://docs.mongodb.org/manual/reference/connection-string/">here</a></span>.</p></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#advanced-connections" title="Advanced Connections">Advanced Connections</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<page id="mongoc_uri_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_uri_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_uri_t mongoc_uri_t;]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p><code>mongoc_uri_t</code> provides an abstraction on top of the MongoDB connection URI format. It provides standardized parsing as well as convenience methods for extracting useful information such as replica hosts or authorization information.</p>
+    <p>See <link href="http://docs.mongodb.org/manual/reference/connection-string/">Connection String URI Reference</link> on the MongoDB website for more information.</p>
+  </section>
+
+  <section id="format">
+    <title>Format</title>
+    <synopsis><code><![CDATA[mongodb://                                   <1>
+   [username:password@]                      <2>
+   host1                                     <3>
+   [:port1]                                  <4>
+   [,host2[:port2],...[,hostN[:portN]]]      <5>
+   [/[database]                              <6>
+   [?options]]                               <7>
+]]></code></synopsis>
+    <list type="numbered">
+      <item><p>mongodb is the specifier of the MongoDB protocol.</p></item>
+      <item><p>An optional username and password.</p></item>
+      <item><p>The only required part of the uri.  This specifies either a hostname, IP address or UNIX domain socket.</p></item>
+      <item><p>An optional port number.  Defaults to :27017.</p></item>
+      <item><p>Extra optional hosts and ports.  You would specify multiple hosts, for example, for connections to replica sets.</p></item>
+      <item><p>The name of the database to authenticate if the connection string includes authentication credentials.  If /database is not specified and the connection string includes credentials, defaults to the 'admin' database.</p></item>
+      <item><p>Connection specific options.</p></item>
+    </list>
+  </section>
+
+  <section id="examples">
+    <title>Replica Set Example</title>
+    <p>To describe a connection to a replica set named 'test' with the following mongod hosts:</p>
+    <list>
+      <item><p><code>db1.example.com</code> on port <code>27017</code></p></item>
+      <item><p><code>db2.example.com</code> on port <code>2500</code></p></item>
+    </list>
+    <p>You would use the connection string that resembles the following.</p>
+    <synopsis><code>mongodb://db1.example.com,db2.example.com:2500/?replicaSet=test</code></synopsis>
+  </section>
+
+  <section id="conn-options">
+    <title>Connection Options</title>
+    <table>
+      <tr><td><p>ssl</p></td><td><p>{true|false}, indicating if SSL must be used. (See also <code xref="mongoc_client_set_ssl_opts">mongoc_client_set_ssl_opts</code> and <code xref="mongoc_client_pool_set_ssl_opts">mongoc_client_pool_set_ssl_opts</code>.)</p></td></tr>
+      <tr><td><p>connectTimeoutMS</p></td><td><p>A timeout in milliseconds to attempt a connection before timing out. This setting applies to server discovery and monitoring connections as well as to connections for application operations. The default is 10 seconds.</p></td></tr>
+      <tr><td><p>socketTimeoutMS</p></td><td><p>The time in milliseconds to attempt to send or receive on a socket before the attempt times out. The default is 5 minutes.</p></td></tr>
+    </table>
+    <note style="important">
+      <p>Setting any of the *TimeoutMS options above to <code>0</code> will be interpreted as "use the default value"</p>
+    </note>
+  </section>
+
+  <section id="sdam-ss-options">
+    <title>Server Discovery, Monitoring, and Selection Options</title>
+    <note style="important">
+      <p>Clients in a <code xref="mongoc_client_pool_t">mongoc_client_pool_t</code> share a topology scanner that runs on a background thread. The thread wakes every <code>heartbeatFrequencyMS</code> (default 10 seconds) to scan all MongoDB servers in parallel. Whenever an application operation requires a server that is not known--for example, if there is no known primary and your application attempts an insert--the thread rescans all servers every half-second. In this situation the pooled client waits up to <code>serverSelectionTimeoutMS</code> (default 30 seconds) for the thread to find a server suitable for the operation, then returns an error with domain <code>MONGOC_ERROR_SERVER_SELECTION</code>.</p>
+      <p>Technically, the total time an operation may wait while a pooled client scans the topology is controlled both by <code>serverSelectionTimeoutMS</code> and <code>connectTimeoutMS</code>. The longest wait occurs if the last scan begins just at the end of the selection timeout, and a slow or down server requires the full connection timeout before the client gives up.</p>
+      <p>A non-pooled client is single-threaded. Every <code>heartbeatFrequencyMS</code>, it blocks the next application operation while it does a parallel scan. This scan takes as long as needed to check the slowest server: roughly <code>connectTimeoutMS</code>. Therefore the default <code>heartbeatFrequencyMS</code> for single-threaded clients is greater than for pooled clients: 60 seconds.</p>
+      <p>By default, single-threaded (non-pooled) clients scan only once when an operation requires a server that is not known. If you attempt an insert and there is no known primary, the client checks all servers once trying to find it, then succeeds or returns an error with domain <code>MONGOC_ERROR_SERVER_SELECTION</code>. But if you set <code>serverSelectionTryOnce</code> to "false", the single-threaded client loops, checking all servers every half-second, until <code>serverSelectionTimeoutMS</code>.</p>
+      <p>The total time an operation may wait for a single-threaded client to scan the topology is determined by <code>connectTimeoutMS</code> in the try-once case, or <code>serverSelectionTimeoutMS</code> and <code>connectTimeoutMS</code> if <code>serverSelectionTryOnce</code> is set "false".</p>
+    </note>
+    <table>
+      <tr><td><p>heartbeatFrequencyMS</p></td><td><p>The interval between server monitoring checks. Defaults to 10 seconds in pooled (multi-threaded) mode, 60 seconds in non-pooled mode (single-threaded).</p></td></tr>
+      <tr><td><p>serverSelectionTimeoutMS</p></td><td><p>A timeout in milliseconds to block for server selection before throwing an exception. The default is 30 seconds.</p></td></tr>
+      <tr><td><p>serverSelectionTryOnce</p></td><td><p>If "true", the driver scans the topology exactly once after server selection fails, then either selects a server or returns an error. If it is false, then the driver repeatedly searches for a suitable server for up to <code>serverSelectionTimeoutMS</code> milliseconds (pausing a half second between attempts). The default for <code>serverSelectionTryOnce</code> is "false" for pooled clients, otherwise "true".</p>
+      <p>Pooled clients ignore serverSelectionTryOnce; they signal the thread to rescan the topology every half-second until serverSelectionTimeoutMS expires.</p></td></tr>
+      <tr><td><p>socketCheckIntervalMS</p></td><td><p>Only applies to single threaded clients. If a socket has not been used within this time, its connection is checked with a quick "isMaster" call before it is used again. Defaults to 5 seconds.</p></td></tr>
+    </table>
+    <note style="important">
+      <p>Setting any of the *TimeoutMS options above to <code>0</code> will be interpreted as "use the default value"</p>
+    </note>
+  </section>
+
+  <section id="pool-options">
+    <title>Connection Pool Options</title>
+    <table>
+      <tr><td><p>maxPoolSize</p></td><td><p>The maximum number of connections in the pool. The default value is 100.</p></td></tr>
+      <tr><td><p>minPoolSize</p></td><td><p>The minimum number of connections in the connection pool. Default value is 0. These are lazily created.</p></td></tr>
+      <tr><td><p>maxIdleTimeMS</p></td><td><p>Not implemented.</p></td></tr>
+      <tr><td><p>waitQueueMultiple</p></td><td><p>Not implemented.</p></td></tr>
+      <tr><td><p>waitQueueTimeoutMS</p></td><td><p>Not implemented.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="write-concern-options">
+    <title>Write Concern Options</title>
+    <table>
+      <tr><td><p>w</p></td><td>
+        <table>
+        <tr>
+          <td><p>0</p></td>
+          <td><p>The driver will not acknowledge write operations but will pass or handle any network and socket errors that it receives to the client. If you disable write concern but enable the getLastError command’s w option, w overrides the w option.</p></td>
+        </tr>
+        <tr>
+          <td><p>1</p></td>
+          <td><p>Provides basic acknowledgment of write operations. By specifying 1, you require that a standalone mongod instance, or the primary for replica sets, acknowledge all write operations. For drivers released after the default write concern change, this is the default write concern setting.</p></td>
+        </tr>
+        <tr>
+          <td><p><code>majority</code></p></td>
+          <td><p>For replica sets, if you specify the special majority value to w option, write operations will only return successfully after a majority of the configured replica set members have acknowledged the write operation.</p></td>
+        </tr>
+        <tr>
+          <td><p>n</p></td>
+          <td><p>For replica sets, if you specify a number n greater than 1, operations with this write concern return only after n members of the set have acknowledged the write. If you set n to a number that is greater than the number of available set members or members that hold data, MongoDB will wait, potentially indefinitely, for these members to become available.</p></td>
+        </tr>
+        <tr>
+          <td><p><code>tags</code></p></td>
+          <td><p>For replica sets, you can specify a tag set to require that all members of the set that have these tags configured return confirmation of the write operation.</p></td>
+        </tr>
+        </table>
+      </td></tr>
+      <tr><td><p>wtimeoutMS</p></td><td><p>The time in milliseconds to wait for replication to succeed, as specified in the w option, before timing out. When wtimeoutMS is 0, write operations will never time out.</p></td></tr>
+      <tr><td><p>journal</p></td><td><p>Controls whether write operations will wait until the mongod acknowledges the write operations and commits the data to the on disk journal.</p>
+        <table>
+          <tr><td><p>true</p></td><td><p>Enables journal commit acknowledgment write concern. Equivalent to specifying the getLastError command with the j option enabled.</p></td></tr>
+          <tr><td><p>false</p></td><td><p>Does not require that mongod commit write operations to the journal before acknowledging the write operation. This is the default option for the journal parameter.</p></td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </section>
+
+  <section id="read-concern-options">
+    <title>Read Concern Options</title>
+    <table>
+      <tr>
+        <td><p>readConcernLevel</p></td>
+        <td><p>The level of isolation for read operations. If the level is left unspecified, the server default will be used. See the <link xref="https://docs.mongodb.org/master/reference/readConcern/">readConcern in the MongoDB Manual</link> for details.</p></td>
+      </tr>
+    </table>
+  </section>
+
+  <section id="read-prefs-options">
+    <title>Read Preference Options</title>
+    <table>
+      <tr>
+        <td><p>readPreference</p></td>
+        <td>
+          <p>Specifies the replica set read preference for this connection. This setting overrides any slaveOk value. The read preference values are the following:</p>
+          <list>
+            <item><p>primary</p></item>
+            <item><p>primaryPreferred</p></item>
+            <item><p>secondary</p></item>
+            <item><p>secondaryPreferred</p></item>
+            <item><p>nearest</p></item>
+          </list>
+        </td>
+      </tr>
+      <tr>
+        <td><p>readPreferenceTags</p></td>
+        <td><p>Specifies a tag set as a comma-seperated list of colon-separted key-value pairs.</p></td>
+      </tr>
+    </table>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

@@ -1,0 +1,80 @@
+<page id="deleting-document"
+      type="topic"
+      xmlns="http://projectmallard.org/1.0/">
+
+  <info>
+    <link type="guide" xref="tutorial#crud-operations"/>
+  </info>
+
+  <title>Deleting a Document</title>
+  <p>This example illustrates the use of <link xref="mongoc_collection_remove">mongoc_collection_remove()</link> to delete documents.</p>
+  <p>The following code inserts a sample document into the database "mydb" and collection "mycoll". Then, it deletes all documents matching <code>{"hello" : "world"}</code>.</p>
+
+  <listing>
+    <title><file>delete.c</file></title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    mongoc_cursor_t *cursor;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "test", "test");
+
+    doc = bson_new ();
+    bson_oid_init (&oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+        printf ("Insert failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+
+    doc = bson_new ();
+    BSON_APPEND_OID (doc, "_id", &oid);
+
+    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &error)) {
+        printf ("Delete failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code></synopsis>
+  </listing>
+
+  <p>Compile the code and run it:</p>
+  <screen><output style="prompt">$ gcc -o delete delete.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./delete</output></screen>
+
+  <p>On Windows:</p>
+  <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 delete.c
+C:\> delete</output></screen>
+
+  <p>Use the MongoDB shell to prove that the documents have been removed successfully.</p>
+  <screen><output style="prompt">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+> use mydb
+switched to db mydb
+> db.mycoll.count({"hello" : "world"})
+0
+> </output></screen>
+</page>

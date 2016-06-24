@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_matcher_match">
+
+
+  <info>
+    <link type="guide" xref="mongoc_matcher_t" group="function"/>
+  </info>
+  <title>mongoc_matcher_match()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_matcher_match (const mongoc_matcher_t *matcher,
+                      const bson_t           *document);
+]]></code></synopsis>
+    <p>This function will check to see if the query compiled in <code>matcher</code> matches <code>document</code>.</p>
+  </section>
+
+  <section id="deprecated">
+    <title>Deprecated</title>
+    <note style="warning"><p><code>mongoc_matcher_t</code> is deprecated and will be removed in version 2.0.</p></note>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>matcher</p></td><td><p>A <code xref="mongoc_matcher_t">mongoc_matcher_t</code>.</p></td></tr>
+      <tr><td><p>query</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> that contains the query.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>true</code> if <code>document</code> matches the query specification provided to <code xref="mongoc_matcher_new">mongoc_matcher_new()</code>. Otherwise, <code>false</code>.</p>
+  </section>
+
+</page>

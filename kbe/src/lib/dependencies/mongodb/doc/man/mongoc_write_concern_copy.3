@@ -1,0 +1,50 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_WRITE_CONCERN_COPY" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_write_concern_copy() \- Performs a deep copy of write_concern.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_write_concern_t *
+mongoc_write_concern_copy (const mongoc_write_concern_t *write_concern);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+write_concern
+A
+.B mongoc_write_concern_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Performs a deep copy of
+.B write_concern
+\e&.
+
+.SH "RETURNS"
+
+Returns a newly allocated copy of
+.B write_concern
+that should be freed with
+.B mongoc_write_concern_destroy(3)
+when no longer in use.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

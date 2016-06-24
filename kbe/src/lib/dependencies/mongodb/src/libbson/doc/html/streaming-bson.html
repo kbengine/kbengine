@@ -1,0 +1,120 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Streaming BSON</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Streaming BSON</span></h1></div>
+<div class="region">
+<div class="contents"><p class="p"><span class="code"><a href="bson_reader_t.html" title="bson_reader_t">bson_reader_t</a></span> provides a streaming reader which can be initialized with a filedescriptor or memory region. <span class="code"><a href="bson_writer_t.html" title="bson_writer_t">bson_writer_t</a></span> provides a streaming writer which can be initialized with a memory region. (Streaming BSON to a file descriptor is not yet supported.)</p></div>
+<div id="reader" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Reading from a BSON Stream</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p"><span class="code"><a href="bson_reader_t.html" title="bson_reader_t">bson_reader_t</a></span> provides a convenient API to read sequential BSON documents from a file-descriptor or memory buffer. The <span class="code"><a href="bson_reader_read.html" title="bson_reader_read()">bson_reader_read()</a></span> function will read forward in the underlying stream and returna <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> that can be inspected and iterated upon.</p>
+<div class="example">
+<div class="title title-example"><h3><span class="title">reader.c</span></h3></div>
+<div class="code"><pre class="contents syntax brush-clang">#include &lt;stdio.h&gt;
+#include &lt;bson.h&gt;
+
+int main (int argc, char *argv[])
+{
+   bson_reader_t *reader;
+   const bson_t *doc;
+   bson_error_t error;
+   bool eof;
+
+   reader = bson_reader_new_from_file ("mycollection.bson", &amp;error);
+
+   if (!reader) {
+      fprintf (stderr, "Failed to open file.\n");
+      return 1;
+   }
+
+   while ((doc = bson_reader_read (reader, &amp;eof))) {
+      char *str = bson_as_json (doc, NULL);
+      printf ("%s\n", str);
+      bson_free (str);
+   }
+
+   if (!eof) {
+      fprintf (stderr, "corrupted bson document found at %u\n",
+               (unsigned)bson_reader_tell (reader));
+   }
+
+   bson_reader_destroy (reader);
+
+   return 0;
+}</pre></div>
+</div>
+<p class="p">See <span class="code"><a href="bson_reader_new_from_fd.html" title="bson_reader_new_from_fd()">bson_reader_new_from_fd()</a></span>, <span class="code"><a href="bson_reader_new_from_file.html" title="bson_reader_new_from_file()">bson_reader_new_from_file()</a></span>, and <span class="code"><a href="bson_reader_new_from_data.html" title="bson_reader_new_from_data()">bson_reader_new_from_data()</a></span> for more information.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#streaming" title="Streaming BSON">Streaming BSON</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="writer" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Writing a sequence of BSON Documents</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p"><span class="code"><a href="bson_writer_t.html" title="bson_writer_t">bson_writer_t</a></span> provides a convenient API to write a sequence of BSON documents to a <span class="code">realloc()</span>'able memory buffer. The <span class="code"><a href="bson_writer_begin.html" title="bson_writer_begin()">bson_writer_begin()</a></span> and <span class="code"><a href="bson_writer_end.html" title="bson_writer_end()">bson_writer_end()</a></span> functions will manage the underlying buffer while building the sequence of documents.</p>
+<p class="p">This could also be useful if you want to write to a network packet while serializing the documents from a higher level language, (but do so just after the packets header).</p>
+<div class="example">
+<div class="title title-example"><h3><span class="title">writer.c</span></h3></div>
+<div class="code"><pre class="contents syntax brush-clang">#include &lt;stdio.h&gt;
+#include &lt;bson.h&gt;
+#include &lt;assert.h&gt;
+
+int main (int argc, char *argv[])
+{
+   bson_writer_t *writer;
+   bson_t *doc;
+   uint8_t *buf = NULL;
+   size_t buflen = 0;
+   bool r;
+   int i;
+
+   writer = bson_writer_new (&amp;buf, &amp;buflen, 0, bson_realloc_ctx, NULL);
+
+   for (i = 0; i &lt; 10000; i++) {
+      r = bson_writer_begin (writer, &amp;doc);
+      assert (r);
+
+      r = BSON_APPEND_INT32 (doc, "i", i);
+      assert (r);
+
+      bson_writer_end (writer);
+   }
+
+   bson_free (buf);
+
+   return 0;
+}</pre></div>
+</div>
+<p class="p">See <span class="code"><a href="bson_writer_new.html" title="bson_writer_new()">bson_writer_new()</a></span> for more information.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#streaming" title="Streaming BSON">Streaming BSON</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Deleting a Document</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#tutorial" title="Tutorial">Tutorial</a> » <a class="trail" href="tutorial.html#crud-operations" title="4. Basic CRUD Operations">4. Basic CRUD Operations</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Deleting a Document</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">This example illustrates the use of <span class="link"><a href="mongoc_collection_remove.html" title="mongoc_collection_remove()">mongoc_collection_remove()</a></span> to delete documents.</p>
+<p class="p">The following code inserts a sample document into the database "mydb" and collection "mycoll". Then, it deletes all documents matching <span class="code">{"hello" : "world"}</span>.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h2><span class="title"><span class="file">delete.c</span></span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    mongoc_cursor_t *cursor;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "test", "test");
+
+    doc = bson_new ();
+    bson_oid_init (&amp;oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &amp;oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &amp;error)) {
+        printf ("Insert failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+
+    doc = bson_new ();
+    BSON_APPEND_OID (doc, "_id", &amp;oid);
+
+    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &amp;error)) {
+        printf ("Delete failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o delete delete.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./delete</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 delete.c
+C:\&gt; delete</span></pre></div>
+<p class="p">Use the MongoDB shell to prove that the documents have been removed successfully.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+&gt; use mydb
+switched to db mydb
+&gt; db.mycoll.count({"hello" : "world"})
+0
+&gt; </span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="tutorial.html#crud-operations" title="4. Basic CRUD Operations">4. Basic CRUD Operations</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

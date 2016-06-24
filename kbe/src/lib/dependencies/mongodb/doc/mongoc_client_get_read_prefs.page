@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_get_read_prefs">
+
+
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_get_read_prefs()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[const mongoc_read_prefs_t *
+mongoc_client_get_read_prefs (const mongoc_client_t *client);]]></code></synopsis>
+    <p>Retrieves the default read preferences configured for the client instance. The result should not be modified or freed.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code>.</p>
+  </section>
+
+</page>

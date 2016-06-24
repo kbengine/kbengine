@@ -1,0 +1,99 @@
+Determining if the snprintf exist failed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_339dd.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:39。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_339dd.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_339dd.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_339dd.dir\Debug\cmTC_339dd.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_339dd.dir\Debug\cmTC_339dd.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_339dd.dir\Debug\\" /Fd"cmTC_339dd.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckSymbolExists.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_339dd.dir\Debug\\" /Fd"cmTC_339dd.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckSymbolExists.c"
+  
+  CheckSymbolExists.c
+E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckSymbolExists.c(8): error C2065: “snprintf”: 未声明的标识符 [E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_339dd.vcxproj]
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_339dd.vcxproj”(默认目标)的操作 - 失败。
+
+生成失败。
+
+“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_339dd.vcxproj”(默认目标) (1) ->
+(ClCompile 目标) -> 
+  E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckSymbolExists.c(8): error C2065: “snprintf”: 未声明的标识符 [E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_339dd.vcxproj]
+
+    0 个警告
+    1 个错误
+
+已用时间 00:00:00.33
+
+File E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdio.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef snprintf
+  return ((int*)(&snprintf))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Performing C SOURCE FILE Test BSON_HAVE_TIMESPEC failed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_01cd0.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:40。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_01cd0.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_01cd0.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_01cd0.dir\Debug\cmTC_01cd0.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_01cd0.dir\Debug\cmTC_01cd0.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D BSON_HAVE_TIMESPEC /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_01cd0.dir\Debug\\" /Fd"cmTC_01cd0.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\src.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D BSON_HAVE_TIMESPEC /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_01cd0.dir\Debug\\" /Fd"cmTC_01cd0.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\src.c"
+  
+  src.c
+E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\src.c(6): error C2037: “tv_sec”的左侧部分指定未定义的结构/联合“timespec” [E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_01cd0.vcxproj]
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_01cd0.vcxproj”(默认目标)的操作 - 失败。
+
+生成失败。
+
+“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_01cd0.vcxproj”(默认目标) (1) ->
+(ClCompile 目标) -> 
+  E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\src.c(6): error C2037: “tv_sec”的左侧部分指定未定义的结构/联合“timespec” [E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_01cd0.vcxproj]
+
+    0 个警告
+    1 个错误
+
+已用时间 00:00:00.32
+
+Source file was:
+
+#include <time.h>
+
+int main()
+{
+   (void)sizeof(((struct timespec *)0)->tv_sec);
+   return 0;
+}
+

@@ -1,0 +1,47 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_UNICHAR_T" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_unichar_t \- Unicode Character Abstraction
+.SH "SYNOPSIS"
+
+.nf
+.nf
+typedef uint32_t bson_unichar_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+.B bson_unichar_t
+provides an abstraction on a single unicode character. It is the 32\(hybit representation of a character. As UTF\(hy8 can contain multi\(hybyte characters, this should be used when iterating through UTF\(hy8 text.
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+static void
+print_each_char (const char *str)
+{
+   bson_unichar_t c;
+
+   for (; *str; str = bson_utf8_next_char (str)) {
+      c = bson_utf8_get_char (str);
+      printf ("The numberic value is %u.\en", (unsigned)c);
+   }
+}
+.fi
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

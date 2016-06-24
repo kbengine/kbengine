@@ -1,0 +1,109 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ITER_INIT" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_iter_init() \- The bson_iter_init() function shall initialize iter to iterate upon the BSON document bson. Upon initialization, iter is placed before the first element. Callers must call bson_iter_next(), bson_iter_find(), or bson_iter_find_case() to advance to an element.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+bson_iter_init (bson_iter_t  *iter,
+                const bson_t *bson);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+iter
+A
+.B bson_iter_t
+\e&.
+.LP
+.TP
+.B
+bson
+A
+.B bson_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+The
+.B bson_iter_init(3)
+function shall initialize
+.B iter
+to iterate upon the BSON document
+.B bson
+\e&. Upon initialization,
+.B iter
+is placed before the first element. Callers must call
+.B bson_iter_next(3)
+,
+.B bson_iter_find(3)
+, or
+.B bson_iter_find_case(3)
+to advance to an element.
+
+.SH "RETURNS"
+
+Returns true if the iter was successfuly initialized.
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+static void
+print_doc_id (const bson_t *doc)
+{
+   bson_iter_t iter;
+   bson_oid_t oid;
+   char oidstr[25];
+
+   if (bson_iter_init (&iter, doc) &&
+       bson_iter_find (&iter, "_id") &&
+       BSON_ITER_HOLDS_OID (&iter)) {
+      bson_iter_oid (&iter, &oid);
+      bson_oid_to_string (&oid, oidstr);
+      printf ("%s\en", oidstr);
+   } else {
+      printf ("Document is missing _id.\en");
+   }
+}
+
+/* alternatively */
+
+static void
+print_doc_id (const bson_t *doc)
+{
+   bson_iter_t iter;
+   bson_oid_t oid;
+   char oidstr[25];
+
+   if (bson_iter_init_find (&iter, doc, "_id") &&
+       BSON_ITER_HOLDS_OID (&iter)) {
+      bson_iter_oid (&iter, &oid);
+      bson_oid_to_string (&oid, oidstr);
+      printf ("%s\en", oidstr);
+   } else {
+      printf ("Document is missing _id.\en");
+   }
+}
+.fi
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

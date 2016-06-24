@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_tls_new">
+
+
+  <info>
+    <link type="guide" xref="" group="function"/>
+  </info>
+  <title>mongoc_stream_tls_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_stream_t *
+mongoc_stream_tls_new (mongoc_stream_t  *base_stream,
+                       mongoc_ssl_opt_t *opt,
+                       int               client);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>base_stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code>.</p></td></tr>
+      <tr><td><p>opt</p></td><td><p>A <code xref="mongoc_ssl_opt_t">mongoc_ssl_opt_t</code>.</p></td></tr>
+      <tr><td><p>client</p></td><td><p>1 for client, 0 for server TLS.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>Creates a new <code xref="mongoc_stream_tls_t">mongoc_stream_tls_t</code> using the parameters supplied.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_stream_tls_t">mongoc_stream_tls_t</code>.</p>
+  </section>
+
+</page>

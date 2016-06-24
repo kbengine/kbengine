@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_gridfs_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_gridfs_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+
+typedef struct _mongoc_gridfs_t mongoc_gridfs_t;]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p><code>mongoc_gridfs_t</code> provides a MongoDB gridfs implementation. The system as a whole is made up of <code>gridfs</code> objects, which contain <code>gridfs_files</code> and <code>gridfs_file_lists</code>.  Essentially, a basic file system API.</p>
+    <p>There are extensive caveats about the kind of use cases gridfs is practical for. In particular, any writing after initial file creation is likely to both break any concurrent readers and be quite expensive. That said, this implementation does allow for arbitrary writes to existing gridfs object, just use them with caution.</p>
+    <p>mongoc_gridfs also integrates tightly with the <code xref="mongoc_stream_t">mongoc_stream_t</code> abstraction, which provides some convenient wrapping for file creation and reading/writing.  It can be used without, but its worth looking to see if your problem can fit that model.</p>
+    <note style="warning">
+      <p><code>mongoc_gridfs_t</code> does not support read preferences. In a replica set, GridFS queries are always routed to the primary.</p>
+    </note>
+  </section>
+
+  <section id="thread-safety">
+    <title>Thread Safety</title>
+    <p><code>mongoc_gridfs_t</code> is NOT thread-safe and should only be used in the same thread as the owning <code xref="mongoc_client_t">mongoc_client_t</code>.</p>
+  </section>
+
+  <section id="lifecycle">
+    <title>Lifecycle</title>
+    <p>It is an error to free a <code>mongoc_gridfs_t</code> before freeing all related instances of <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code> and <code xref="mongoc_gridfs_file_list_t">mongoc_gridfs_file_list_t</code>.</p>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <synopsis><title><file>example-gridfs.c</file></title><code mime="text/x-csrc"><include parse="text" href="../examples/example-gridfs.c" xmlns="http://www.w3.org/2001/XInclude" /></code></synopsis>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

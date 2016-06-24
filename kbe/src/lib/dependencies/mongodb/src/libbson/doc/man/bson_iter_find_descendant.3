@@ -1,0 +1,70 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ITER_FIND_DESCENDANT" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_iter_find_descendant() \- The bson_iter_find_descendant() function shall follow standard MongoDB dot notation to recurse into subdocuments. descendant will be initialized and advanced to the descendant. If false is returned, both iter and descendant should be considered invalid.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+bson_iter_find_descendant (bson_iter_t *iter,
+                           const char  *dotkey,
+                           bson_iter_t *descendant);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+iter
+A
+.B bson_iter_t
+\e&.
+.LP
+.TP
+.B
+dotkey
+A dot\(hynotation key like
+.B "a.b.c.d"
+\e&.
+.LP
+.TP
+.B
+descendant
+A
+.B bson_iter_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+The
+.B bson_iter_find_descendant(3)
+function shall follow standard MongoDB dot notation to recurse into subdocuments.
+.B descendant
+will be initialized and advanced to the descendant. If false is returned, both
+.B iter
+and
+.B descendant
+should be considered invalid.
+
+.SH "RETURNS"
+
+true is returned if the requested key was found. If not, false is returned and
+.B iter
+was exhausted and should now be considered invalid.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

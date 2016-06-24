@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_matcher_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_matcher_t</title>
+  <subtitle>Client-side document matching abstraction</subtitle>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_matcher_t mongoc_matcher_t;]]></code></synopsis>
+    <p><code>mongoc_matcher_t</code> provides a reduced-interface for client-side matching of BSON documents.</p>
+    <p>It can perform the basics such as $in, $nin, $eq, $neq, $gt, $gte, $lt, and $lte.</p>
+    <note style="warning"><p><code>mongoc_matcher_t</code> does not currently support the full spectrum of query operations that the MongoDB server supports.</p></note>
+  </section>
+
+  <section id="deprecated">
+    <title>Deprecated</title>
+    <note style="warning"><p><code>mongoc_matcher_t</code> is deprecated and will be removed in version 2.0.</p></note>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+
+  <section id="examples">
+    <title>Example</title>
+    <listing>
+      <title>Filter a sequence of BSON documents from STDIN based on a query.</title>
+      <screen><code mime="text/x-csrc"><![CDATA[#include <bcon.h>
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_matcher_t *matcher;
+   bson_reader_t *reader;
+   const bson_t *bson;
+   bson_t *spec;
+   char *str;
+   int fd;
+
+   mongoc_init ();
+
+#ifdef _WIN32
+   fd = fileno (stdin);
+#else
+   fd = STDIN_FILENO;
+#endif
+
+   reader = bson_reader_new_from_fd (fd, false);
+
+   spec = BCON_NEW ("hello", "world");
+   matcher = mongoc_matcher_new (spec, NULL);
+
+   while ((bson = bson_reader_read (reader, NULL))) {
+      if (mongoc_matcher_match (matcher, bson)) {
+         str = bson_as_json (bson, NULL);
+         printf ("%s\n", str);
+         bson_free (str);
+      }
+   }
+
+   bson_reader_destroy (reader);
+   bson_destroy (spec);
+
+   mongoc_cleanup ();
+
+   return 0;
+}]]></code></screen>
+    </listing>
+  </section>
+</page>

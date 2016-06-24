@@ -1,0 +1,60 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_COLLECTION_FIND_INDEXES" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_collection_find_indexes() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_cursor_t *
+mongoc_collection_find_indexes (mongoc_collection_t *collection,
+                                bson_error_t        *error);
+.fi
+.fi
+
+Fetches a cursor containing documents, each corresponding to an index on this collection.
+
+.SH "PARAMETERS"
+
+.TP
+.B
+collection
+A
+.B mongoc_collection_t
+\e&.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+A cursor where each result corresponds to the server's representation of
+    an index on this collection. If the collection does not exist on the
+    server, the cursor will be empty.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

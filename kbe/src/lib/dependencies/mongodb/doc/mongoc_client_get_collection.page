@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_get_collection">
+
+
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_get_collection()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_collection_t *
+mongoc_client_get_collection (mongoc_client_t *client,
+                              const char      *db,
+                              const char      *collection);
+]]></code></synopsis>
+    <p>Get a newly allocated <code xref="mongoc_collection_t">mongoc_collection_t</code> for the collection named <code>collection</code> in the database named <code>db</code>.</p>
+    <note style="tip"><p>Collections are automatically created on the MongoDB server upon insertion of the first document. There is no need to create a collection manually.</p></note>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+      <tr><td><p>db</p></td><td><p>The name of the database containing the collection.</p></td></tr>
+      <tr><td><p>collection</p></td><td><p>The name of the collection.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_collection_t">mongoc_collection_t</code> that should be freed with <code xref="mongoc_collection_destroy">mongoc_collection_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

@@ -1,0 +1,85 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_APPEND_DOCUMENT_BEGIN" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_append_document_begin() \- The bson_append_document_begin() function shall begin appending a sub-document to bson. Use child to add fields to the sub-document. When completed, call bson_append_document_end() to complete the element.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+bson_append_document_begin (bson_t     *bson,
+                            const char *key,
+                            int         key_length,
+                            bson_t     *child);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+bson
+A
+.B bson_t
+\e&.
+.LP
+.TP
+.B
+key
+An ASCII C string containing the name of the field.
+.LP
+.TP
+.B
+key_length
+The length of
+.B key
+in bytes, or \(hy1 to determine the length with
+.B strlen(3)
+\e&.
+.LP
+.TP
+.B
+child
+An uninitialized
+.B bson_t
+to be initialized as the sub\(hydocument.
+.LP
+
+.SH "DESCRIPTION"
+
+The
+.B bson_append_document_begin(3)
+function shall begin appending a sub\(hydocument to
+.B bson
+\e&. Use
+.B child
+to add fields to the sub\(hydocument. When completed, call
+.B bson_append_document_end(3)
+to complete the element.
+
+.B child
+
+.B MUST
+be an uninitialized
+.B bson_t
+to avoid leaking memory.
+
+.SH "RETURNS"
+
+true if the operation was applied successfully, otherwise false and
+.B bson
+should be discarded.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

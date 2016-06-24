@@ -1,0 +1,62 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_GRIDFS_FILE_ERROR" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_gridfs_file_error() \- This function checks to see if there has been an error associated with the last operation upon file.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_gridfs_file_error (mongoc_gridfs_file_t *file,
+                          bson_error_t         *error);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+file
+A
+.B mongoc_gridfs_file_t
+\e&.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function checks to see if there has been an error associated with the last operation upon
+.B file
+\e&.
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+Returns false if there has been no registered error, otherwise true and error is set.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

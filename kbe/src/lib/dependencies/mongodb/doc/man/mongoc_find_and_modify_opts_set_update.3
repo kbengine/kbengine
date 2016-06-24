@@ -1,0 +1,133 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_FIND_AND_MODIFY_OPTS_SET_UPDATE" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_find_and_modify_opts_set_update() \- Adds update argument to the builder.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_find_and_modify_opts_set_update (mongoc_find_and_modify_opts_t  *opts,
+                                        const bson_t                   *update);
+.fi
+.fi
+
+.B NOTE
+.RS
+New in mongoc 1.3.0
+.RE
+
+.SH "PARAMETERS"
+
+.TP
+.B
+opts
+A
+.B mongoc_find_and_modify_opts_t
+\e&.
+.LP
+.TP
+.B
+update
+The
+.B update
+document is the same format as the
+.B update
+document passed to
+.B mongoc_collection_update
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Adds update argument to the builder.
+
+.SH "RETURNS"
+
+Returns true if it successfully added the option to the builder.
+
+.SH "SETTING UPDATE"
+
+.nf
+
+void fam_update(mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t *update;
+   bson_t reply;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic */
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+
+   /* Make him a book author */
+   update = BCON_NEW ("$set", "{",
+      "author", BCON_BOOL (true),
+   "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+   /* Note that the document returned is the _previous_ version of the document
+    * To fetch the modified new version, use
+    * mongoc_find_and_modify_opts_set_flags (opts, MONGOC_FIND_AND_MODIFY_RETURN_NEW);
+    */
+   mongoc_find_and_modify_opts_set_update (opts, update);
+
+   success = mongoc_collection_find_and_modify_with_opts (collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf(stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+.fi
+
+Outputs:
+
+.nf
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 35,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

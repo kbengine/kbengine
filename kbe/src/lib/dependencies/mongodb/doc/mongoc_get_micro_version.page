@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_get_micro_version">
+  <info>
+    <link type="guide" xref="mongoc_version" group="function"/>
+  </info>
+  <title>mongoc_get_micro_version()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_get_micro_version (void);
+]]></code></synopsis>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>The value of <code>MONGOC_MICRO_VERSION</code> when libmongoc was compiled.</p>
+  </section>
+</page>

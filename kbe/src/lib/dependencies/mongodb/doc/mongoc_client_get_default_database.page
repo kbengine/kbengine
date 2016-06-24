@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_get_default_database">
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_get_default_database()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_database_t *
+mongoc_client_get_default_database (mongoc_client_t *client);
+]]></code></synopsis>
+    <p>Get the database named in the MongoDB connection URI, or <code>NULL</code> if the URI specifies none.</p>
+    <p>Useful when you want to choose which database to use based only on the URI in a configuration file.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_client_t">mongoc_database_t</code> that should be freed with <code xref="mongoc_database_destroy">mongoc_database_destroy()</code>.</p>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <listing>
+      <title>Default Database Example</title>
+      <code mime="text/x-csrc"><![CDATA[
+/* default database is "db_name" */
+mongoc_client_t *client = mongoc_client_new ("mongodb://host/db_name");
+mongoc_database_t *db = mongoc_client_get_default_database (client);
+
+assert (!strcmp ("db_name", mongoc_database_get_name (db)));
+
+mongoc_database_destroy (db);
+mongoc_client_destroy (client);
+
+/* no default database */
+client = mongoc_client_new ("mongodb://host/");
+db = mongoc_client_get_default_database (client);
+
+assert (!db);
+
+mongoc_client_destroy (client);
+]]></code>
+    </listing>
+  </section>
+
+</page>

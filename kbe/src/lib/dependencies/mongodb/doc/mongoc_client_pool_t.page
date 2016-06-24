@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_client_pool_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_client_pool_t</title>
+  <subtitle>Connection pooling abstraction</subtitle>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_client_pool_t mongoc_client_pool_t]]></code></synopsis>
+    <p><code>mongoc_client_pool_t</code> is the basis for multi-threading in the MongoDB C driver. Since <code xref="mongoc_client_t">mongoc_client_t</code> structures are not thread-safe, this structure is used to retrieve a new <code xref="mongoc_client_t">mongoc_client_t</code> for a given thread. This structure <em>is thread-safe</em>.</p>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <screen><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+
+static void *
+worker (void *data)
+{
+   mongoc_client_pool_t *pool = data;
+   mongoc_client_t *client;
+
+   do {
+      client = mongoc_client_pool_pop (pool);
+      /*
+       * Do something with client. If you are writing an HTTP server, you
+       * probably only want to hold onto the client for the portion of the
+       * request performing database queries.
+       */
+      mongoc_client_pool_push (pool, client);
+   } while (!inShutdown);
+
+   return NULL;
+}
+
+int main (int argc, char *argv[])
+{
+   mongoc_client_pool_t *pool;
+   mongoc_uri_t *uri;
+   pthread_t thread[10];
+   unsigned i;
+   void *ret;
+
+   mongoc_init ();
+
+   uri = mongoc_uri_new ("mongodb://mdb1.example.com/?minPoolSize=16");
+   pool = mongoc_client_pool_new (uri);
+
+   for (i = 0; i < 10; i++) {
+      pthread_create (&thread, NULL, worker, pool);
+   }
+
+   mongoc_uri_destroy (uri);
+
+   for (i = 0; i < 10; i++) {
+      pthread_join (threads [i], &ret);
+   }
+
+   mongoc_cleanup ();
+
+   return 0;
+}]]></code></screen>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

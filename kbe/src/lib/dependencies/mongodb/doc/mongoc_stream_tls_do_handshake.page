@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_tls_do_handshake">
+  <info>
+    <link type="guide" xref="" group="function"/>
+  </info>
+
+  <title>mongoc_stream_tls_do_handshake()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_stream_tls_do_handshake (mongoc_stream_t *stream,
+                                int32_t          timeout_msec);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_tls_t">mongoc_stream_tls_t</code>.</p></td></tr>
+      <tr><td><p>timeout_msec</p></td><td><p>A timeout, in milliseconds, for the handshake.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function shall perform an SSL handshake on the underlying stream.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>The <code>mongoc_stream_tls_do_handshake()</code> function returns true if the handshake was successful. If false, errno or openssl errors may be set.</p>
+  </section>
+
+</page>

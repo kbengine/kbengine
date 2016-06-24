@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_stream_gridfs_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_stream_gridfs_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_stream_gridfs_t mongoc_stream_gridfs_t]]></code></synopsis>
+    <p>The <code>mongoc_stream_gridfs_t</code> class is an implementation of <code xref="mongoc_stream_t">mongoc_stream_t</code> for files stored in GridFS. It allows for transparently streaming GridFS files from a MongoDB server.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

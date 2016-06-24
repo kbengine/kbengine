@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_writev">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_t" group="function"/>
+  </info>
+  <title>mongoc_stream_writev()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[ssize_t
+mongoc_stream_writev (mongoc_stream_t *stream,
+                      mongoc_iovec_t  *iov,
+                      size_t           iovcnt,
+                      int32_t          timeout_msec);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code>.</p></td></tr>
+      <tr><td><p>iov</p></td><td><p>A vector of <code xref="mongoc_iovec_t">mongoc_iovec_t</code>.</p></td></tr>
+      <tr><td><p>iovcnt</p></td><td><p>The number of items in <code>iov</code>.</p></td></tr>
+      <tr><td><p>timeout_msec</p></td><td><p>The number of milliseconds to block before indicating failure, or 0 for non-blocking. Negative values indicate the default timeout.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>The <code>mongoc_stream_writev()</code> function shall perform a write
+to a <code xref="mongoc_stream_t">mongoc_stream_t</code>. It's modeled on the
+API and semantics of <code>writev()</code>, though the parameters map only
+loosely.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>The number of bytes written on success, or <code>-1</code> upon failure and <code>errno</code> is set.</p>
+  </section>
+
+</page>

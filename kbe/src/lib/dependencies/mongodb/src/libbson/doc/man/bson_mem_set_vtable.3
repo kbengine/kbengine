@@ -1,0 +1,55 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_MEM_SET_TABLE" "3" "2016\(hy02\(hy04" "libbson"
+.SH NAME
+bson_mem_set_table() \- This function shall install a new memory allocator to be used by Libbson.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+typedef struct _bson_mem_vtable_t
+{
+   void *(*malloc)    (size_t  num_bytes);
+   void *(*calloc)    (size_t  n_members,
+                       size_t  num_bytes);
+   void *(*realloc)   (void   *mem,
+                       size_t  num_bytes);
+   void  (*free)      (void   *mem);
+   void *padding [4];
+} bson_mem_vtable_t;
+
+void bson_mem_set_vtable (const bson_mem_vtable_t *vtable);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B vtable
+A bson_mem_vtable_t with every non\(hypadding field set.
+.LP
+
+.SH "DESCRIPTION"
+
+This function shall install a new memory allocator to be used by Libbson.
+
+.B NOTE
+.RS
+This function
+.B MUST
+be called at the beginning of the process. Failure to do so will result in memory being freed by the wrong allocator.
+.RE
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

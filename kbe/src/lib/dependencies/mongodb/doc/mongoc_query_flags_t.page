@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_query_flags_t">
+  <info>
+    <link type="guide" xref="index#api-reference"/>
+  </info>
+  <title>mongoc_query_flags_t</title>
+  <subtitle>Flags for deletion operations</subtitle>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[
+typedef enum
+{
+   MONGOC_QUERY_NONE              = 0,
+   MONGOC_QUERY_TAILABLE_CURSOR   = 1 << 1,
+   MONGOC_QUERY_SLAVE_OK          = 1 << 2,
+   MONGOC_QUERY_OPLOG_REPLAY      = 1 << 3,
+   MONGOC_QUERY_NO_CURSOR_TIMEOUT = 1 << 4,
+   MONGOC_QUERY_AWAIT_DATA        = 1 << 5,
+   MONGOC_QUERY_EXHAUST           = 1 << 6,
+   MONGOC_QUERY_PARTIAL           = 1 << 7,
+} mongoc_query_flags_t;
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>These flags correspond to the MongoDB wire protocol. They may be bitwise or'd together. They may modify how a query is performed in the MongoDB server.</p>
+  </section>
+
+  <section id="values">
+    <title>Flag Values</title>
+    <table>
+      <tr>
+        <td><p>MONGOC_QUERY_NONE</p></td>
+        <td><p>Specify no query flags.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_QUERY_TAILABLE_CURSOR</p></td>
+        <td><p>Cursor will not be closed when the last data is retrieved. You can resume this cursor later.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_QUERY_SLAVE_OK</p></td>
+        <td><p>Allow query of replica set secondaries.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_QUERY_OPLOG_REPLAY</p></td>
+        <td><p>Used internally by MongoDB.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_QUERY_NO_CURSOR_TIMEOUT</p></td>
+        <td><p>The server normally times out an idle cursor after an inactivity period (10 minutes). This prevents that.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_QUERY_AWAIT_DATA</p></td>
+        <td><p>Use with MONGOC_QUERY_TAILABLE_CURSOR. Block rather than returning no data. After a period, time out.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_QUERY_EXHAUST</p></td>
+        <td><p>Stream the data down full blast in multiple "reply" packets. Faster when you are pulling down a lot of data and you know you want to retrieve it all.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_QUERY_PARTIAL</p></td>
+        <td><p>Get partial results from mongos if some shards are down (instead of throwing an error).</p></td>
+      </tr>
+    </table>
+  </section>
+
+</page>

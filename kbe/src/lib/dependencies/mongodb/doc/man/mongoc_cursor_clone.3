@@ -1,0 +1,58 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_CURSOR_CLONE" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_cursor_clone() \- This function shall create a copy of a mongoc_cursor_t. The cloned cursor will be reset to the beginning of the query, and therefore the query will be re-executed on the MongoDB server when mongoc_cursor_next() is called.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_cursor_t *
+mongoc_cursor_clone (const mongoc_cursor_t *cursor)
+   BSON_GNUC_WARN_UNUSED_RESULT;
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+cursor
+A
+.B mongoc_cursor_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function shall create a copy of a
+.B mongoc_cursor_t
+\e&. The cloned cursor will be reset to the beginning of the query, and therefore the query will be re\(hyexecuted on the MongoDB server when
+.B mongoc_cursor_next(3)
+is called.
+
+.SH "RETURNS"
+
+A newly allocated
+.B mongoc_cursor_t
+that should be freed with
+.B mongoc_cursor_destroy(3)
+when no longer in use.
+
+.B NOTE
+.RS
+Failure to handle the result of this function is a programming error.
+.RE
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

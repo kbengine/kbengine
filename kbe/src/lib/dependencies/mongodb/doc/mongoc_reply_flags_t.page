@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_reply_flags_t">
+  <info>
+    <link type="guide" xref="index#api-reference"/>
+  </info>
+  <title>mongoc_reply_flags_t</title>
+  <subtitle>Flags for deletion operations</subtitle>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[
+typedef enum
+{
+   MONGOC_REPLY_NONE               = 0,
+   MONGOC_REPLY_CURSOR_NOT_FOUND   = 1 << 0,
+   MONGOC_REPLY_QUERY_FAILURE      = 1 << 1,
+   MONGOC_REPLY_SHARD_CONFIG_STALE = 1 << 2,
+   MONGOC_REPLY_AWAIT_CAPABLE      = 1 << 3,
+} mongoc_reply_flags_t;
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>These flags correspond to the wire protocol. They may be bitwise or'd together.</p>
+  </section>
+
+  <section id="values">
+    <title>Flag Values</title>
+    <table>
+      <tr>
+        <td><p>MONGOC_REPLY_NONE</p></td>
+        <td><p>No flags set.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_REPLY_CURSOR_NOT_FOUND</p></td>
+        <td><p>No matching cursor was found on the server.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_REPLY_QUERY_FAILURE</p></td>
+        <td><p>The query failed or was invalid. Error document has been provided.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_REPLY_SHARD_CONFIG_STALE</p></td>
+        <td><p>Shard config is stale.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_REPLY_AWAIT_CAPABLE</p></td>
+        <td><p>If the returned cursor is capable of MONGOC_QUERY_AWAIT_DATA.</p></td>
+      </tr>
+    </table>
+  </section>
+
+</page>

@@ -1,0 +1,112 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_COLLECTION_COMMAND" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_collection_command() \- This function shall execute a command on a collection. This is performed lazily and therefore requires calling mongoc_cursor_next() on the resulting cursor structure. The cursor should be freed with mongoc_cursor_destroy() when no longer in use.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_cursor_t *
+mongoc_collection_command (mongoc_collection_t       *collection,
+                           mongoc_query_flags_t       flags,
+                           uint32_t                   skip,
+                           uint32_t                   limit,
+                           uint32_t                   batch_size,
+                           const bson_t              *command,
+                           const bson_t              *fields,
+                           const mongoc_read_prefs_t *read_prefs)
+BSON_GNUC_WARN_UNUSED_RESULT;
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+collection
+A
+.B mongoc_collection_t
+\e&.
+.LP
+.TP
+.B
+flags
+A
+.B mongoc_query_flags_t
+\e&.
+.LP
+.TP
+.B
+skip
+A uint32_t with the number of documents to skip or zero.
+.LP
+.TP
+.B
+limit
+A uint32_t with the max number of documents to return or zero.
+.LP
+.TP
+.B
+batch_size
+A uint32_t with the number of documents in each batch or zero. Default is 100.
+.LP
+.TP
+.B
+command
+A
+.B bson_t
+containing the command to execute.
+.LP
+.TP
+.B
+fields
+A
+.B bson_t
+containing the fields to return or
+.B NULL
+\e&. Not all commands support this option.
+.LP
+.TP
+.B
+read_prefs
+A
+.B mongoc_read_prefs_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function shall execute a command on a collection. This is performed lazily and therefore requires calling
+.B mongoc_cursor_next(3)
+on the resulting cursor structure. The cursor should be freed with
+.B mongoc_cursor_destroy(3)
+when no longer in use.
+
+.SH "RETURNS"
+
+A lazy
+.B mongoc_cursor_t
+that should be freed with
+.B mongoc_cursor_destroy(3)
+\e&.
+
+.B NOTE
+.RS
+Failure to handle the result of this function is a programming error.
+.RE
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

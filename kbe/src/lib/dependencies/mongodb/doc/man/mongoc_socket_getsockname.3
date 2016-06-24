@@ -1,0 +1,64 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_SOCKET_GETSOCKNAME" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_socket_getsockname() \- Retrieves the socket name for sock. The result is stored in addr. addrlen should be the size of the addr when calling this.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+int
+mongoc_socket_getsockname (mongoc_socket_t *sock,
+                           struct sockaddr *addr,
+                           socklen_t       *addrlen);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+sock
+A
+.B mongoc_socket_t
+\e&.
+.LP
+.TP
+.B
+addr
+A struct sockaddr.
+.LP
+.TP
+.B
+addrlen
+A socklen_t.
+.LP
+
+.SH "DESCRIPTION"
+
+Retrieves the socket name for
+.B sock
+\e&. The result is stored in
+.B addr
+\e&.
+.B addrlen
+should be the size of the
+.B addr
+when calling this.
+
+.SH "RETURNS"
+
+0 if successful, otherwise \(hy1 and errno is set.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

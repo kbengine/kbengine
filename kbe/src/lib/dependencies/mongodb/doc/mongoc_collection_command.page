@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_command">
+
+
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_command()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_cursor_t *
+mongoc_collection_command (mongoc_collection_t       *collection,
+                           mongoc_query_flags_t       flags,
+                           uint32_t                   skip,
+                           uint32_t                   limit,
+                           uint32_t                   batch_size,
+                           const bson_t              *command,
+                           const bson_t              *fields,
+                           const mongoc_read_prefs_t *read_prefs)
+BSON_GNUC_WARN_UNUSED_RESULT;
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>A <code xref="mongoc_query_flags_t">mongoc_query_flags_t</code>.</p></td></tr>
+      <tr><td><p>skip</p></td><td><p>A uint32_t with the number of documents to skip or zero.</p></td></tr>
+      <tr><td><p>limit</p></td><td><p>A uint32_t with the max number of documents to return or zero.</p></td></tr>
+      <tr><td><p>batch_size</p></td><td><p>A uint32_t with the number of documents in each batch or zero. Default is 100.</p></td></tr>
+      <tr><td><p>command</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the command to execute.</p></td></tr>
+      <tr><td><p>fields</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the fields to return or <code>NULL</code>. Not all commands support this option.</p></td></tr>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+<p>This function shall execute a command on a collection. This is performed lazily and therefore requires calling <code xref="mongoc_cursor_next">mongoc_cursor_next()</code> on the resulting cursor structure. The cursor should be freed with <code xref="mongoc_cursor_destroy">mongoc_cursor_destroy()</code> when no longer in use.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A lazy <code xref="mongoc_cursor_t">mongoc_cursor_t</code> that should be freed with <code xref="mongoc_cursor_destroy">mongoc_cursor_destroy()</code>.</p>
+    <note style="warning"><p>Failure to handle the result of this function is a programming error.</p></note>
+  </section>
+
+
+</page>

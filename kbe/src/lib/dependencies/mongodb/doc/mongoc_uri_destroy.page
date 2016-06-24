@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_uri_destroy">
+  <info>
+    <link type="guide" xref="mongoc_uri_t" group="function"/>
+  </info>
+  <title>mongoc_uri_destroy()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_uri_destroy (mongoc_uri_t *uri);]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>uri</p></td><td><p>A <code xref="mongoc_uri_t">mongoc_uri_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Frees all resources associated with a uri.</p>
+  </section>
+
+</page>

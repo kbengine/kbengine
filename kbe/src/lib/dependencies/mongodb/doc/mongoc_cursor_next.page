@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_cursor_next">
+  <info>
+    <link type="guide" xref="mongoc_cursor_t" group="function"/>
+  </info>
+  <title>mongoc_cursor_next()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_cursor_next (mongoc_cursor_t *cursor,
+                    const bson_t   **bson);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>cursor</p></td><td><p>A <code xref="mongoc_cursor_t">mongoc_cursor_t</code>.</p></td></tr>
+      <tr><td><p>bson</p></td><td><p>A location for a <code xref="bson:bson_t">const bson_t *</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall iterate the underlying cursor, setting <code>bson</code> to the next document.</p>
+    <p>This function is a blocking function.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>This function returns true if a valid bson document was read from the cursor. Otherwise, false if there was an error or the cursor was exhausted.</p>
+    <p>Errors can be determined with the <code xref="mongoc_cursor_error">mongoc_cursor_error()</code> function.</p>
+  </section>
+
+  <section id="lifecycle">
+    <title>Lifecycle</title>
+    <p>The bson objects set in this function are ephemeral and good until the next call. This means that you must copy the returned bson if you wish to retain it beyond the lifetime of a single call to <code xref="mongoc_cursor_next">mongoc_cursor_next()</code>.</p>
+  </section>
+
+</page>

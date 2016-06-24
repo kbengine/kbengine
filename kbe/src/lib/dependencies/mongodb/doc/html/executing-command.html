@@ -1,0 +1,74 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Executing Commands</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Executing Commands</span></h1></div>
+<div class="region"><div class="contents">
+<p class="p">The driver provides helper functions for executing MongoDB commands on client, database and collection structures. These functions return <span class="link"><a href="mongoc_cursor_t.html" title="mongoc_cursor_t">cursors</a></span>; the <span class="code">_simple</span> variants return booleans indicating success or failure.</p>
+<p class="p">This example executes the <span class="link"><a href="http://docs.mongodb.org/manual/reference/command/collStats/" title="http://docs.mongodb.org/manual/reference/command/collStats/">collStats</a></span> command against the collection "mycoll" in database "mydb".</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h2><span class="title"><span class="file">executing.c</span></span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;bcon.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_t *command;
+    bson_t reply;
+    char *str;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    command = BCON_NEW ("collStats", BCON_UTF8 ("mycoll"));
+    if (mongoc_collection_command_simple (collection, command, NULL, &amp;reply, &amp;error)) {
+        str = bson_as_json (&amp;reply, NULL);
+        printf ("%s\n", str);
+        bson_free (str);
+    } else {
+        fprintf (stderr, "Failed to run command: %s\n", error.message);
+    }
+
+    bson_destroy (command);
+    bson_destroy (&amp;reply);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o executing executing.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 executing.c
+C:\&gt; executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</span></pre></div>
+</div></div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

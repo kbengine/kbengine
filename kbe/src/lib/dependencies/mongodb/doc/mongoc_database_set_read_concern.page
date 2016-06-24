@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_database_set_read_concern">
+
+
+  <info>
+    <link type="guide" xref="mongoc_database_t" group="function"/>
+  </info>
+  <title>mongoc_database_set_read_concern()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_database_set_read_concern (mongoc_database_t            *database,
+                                  const mongoc_read_concern_t  *read_concern);
+]]></code></synopsis>
+    <p>This function sets the read concern to use on operations performed with <code>database</code>. Collections created with <code xref="mongoc_database_get_collection">mongoc_database_get_collection()</code> after this call will inherit this read concern.</p>
+    <p>The default read concern is empty: No readConcern is sent to the server unless explicitly configured.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>database</p></td><td><p>A <code xref="mongoc_database_t">mongoc_database_t</code>.</p></td></tr>
+      <tr><td><p>read_concern</p></td><td><p>A <code xref="mongoc_read_concern_t">mongoc_read_concern_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+</page>

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_rand"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_rand</title>
+  <subtitle>MongoDB Random Number Generator</subtitle>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_rand_add (const void *buf,
+                 int         num,
+                 doubel      entropy);
+
+void
+mongoc_rand_seed (const void *buf,
+                  int         num);
+
+int
+mongoc_rand_status (void);]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>The <code>mongoc_rand</code> family of functions provide access to the low level randomness primitives used by the MongoDB C Driver.  In particular, they control the creation of cryptographically strong pseudo-random bytes required by some security mechanisms.</p>
+
+    <p>While we can usually pull enough entropy from the environment, you may be required to seed the PRNG manually depending on your OS, hardware and other entropy consumers running on the same system.</p>
+  </section>
+
+  <section id="entropy">
+    <title>Entropy</title>
+
+    <p><code>mongoc_rand_add</code> and <code>mongoc_rand_seed</code> allow the user to directly provide entropy.  They differ insofar as <code>mongoc_rand_seed</code> requires that each bit provided is fully random.  <code>mongoc_rand_add</code> allows the user to specify the degree of randomness in the provided bytes as well.</p>
+  </section>
+
+  <section id="status">
+    <title>Status</title>
+
+    <p>The <code>mongoc_rand_status</code> function allows the user to check the status of the mongoc PRNG.  This can be used to guarantee sufficient entropy at program startup, rather than waiting for runtime errors to occur.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+
+</page>

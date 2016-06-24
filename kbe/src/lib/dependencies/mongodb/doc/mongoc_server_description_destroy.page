@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_server_description_destroy">
+  <info>
+    <link type="guide" xref="mongoc_server_description_t" group="function"/>
+  </info>
+  <title>mongoc_server_description_destroy()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_server_description_destroy(mongoc_server_description_t *description);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>description</p></td><td><p>A <link xref="mongoc_server_description_t">The description to destroy.</link>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function cleans up all memory associated with the given server description.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>None.</p>
+  </section>
+
+</page>

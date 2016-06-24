@@ -1,0 +1,956 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "TUTORIAL" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+Tutorial \- None
+.SH "0. INSTALLING"
+
+
+For detailed instructions on installing the MongoDB C Driver on a particular platform, please see the
+.B installation guide
+\e&.
+
+.SH "1. STARTING MONGODB"
+
+
+To run the examples in this tutorial, MongoDB must be installed and running on
+.B localhost
+on the default port, 27017. To check if it is up and running, connect to it with the MongoDB shell.
+
+.nf
+$ mongo \(hy\(hyhost localhost \(hy\(hyport 27017
+MongoDB shell version: 3.0.6
+connecting to: localhost:27017/test
+>
+.fi
+
+.SH "2. MAKING A CONNECTION"
+
+
+The C Driver provides a convenient way to access MongoDB \(hy\(hy regardless of cluster configuration \(hy\(hy via a
+.B mongoc_client_t
+\e&. It transparently connects to standalone servers, replica sets and sharded clusters on demand. Once a connection has been made, handles to databases and collections can be obtained via the structs
+.B mongoc_database_t
+and
+.B mongoc_collection_t
+, respectively. MongoDB operations can then be performed through these handles.
+
+At the start of an application, call
+.B mongoc_init(3)
+before any other libmongoc functions and call
+.B mongoc_cleanup(3)
+before exiting. When creating handles to clients, databases and servers, call the appropriate destroy functions when finished.
+
+The example below establishes a connection to a standalone server on
+.B localhost
+and performs a simple command. More information about database operations can be found in the
+.B CRUD Operations
+and
+.B Executing Commands
+sections. Examples of connecting to replica sets and sharded clusters can be found on the
+.B Advanced Connections
+page.
+
+.nf
+.nf
+#include <bson.h>
+#include <bcon.h>
+#include <mongoc.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t      *client;
+   mongoc_database_t    *database;
+   mongoc_collection_t  *collection;
+   bson_t               *command,
+                         reply,
+                        *insert;
+   bson_error_t          error;
+   char                 *str;
+   bool                  retval;
+
+   /*
+    * Required to initialize libmongoc's internals
+    */
+   mongoc_init ();
+
+   /*
+    * Create a new client instance
+    */
+   client = mongoc_client_new ("mongodb://localhost:27017");
+
+   /*
+    * Get a handle on the database "db_name" and collection "coll_name"
+    */
+   database = mongoc_client_get_database (client, "db_name");
+   collection = mongoc_client_get_collection (client, "db_name", "coll_name");
+
+   /*
+    * Do work. This example pings the database, prints the result as JSON and
+    * performs an insert
+    */
+   command = BCON_NEW ("ping", BCON_INT32 (1));
+
+   retval = mongoc_client_command_simple (client, "admin", command, NULL, &reply, &error);
+
+   if (!retval) {
+      fprintf (stderr, "%s\en", error.message);
+      return EXIT_FAILURE;
+   }
+
+   str = bson_as_json (&reply, NULL);
+   printf ("%s\en", str);
+
+   insert = BCON_NEW ("hello", BCON_UTF8 ("world"));
+
+   if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, insert, NULL, &error)) {
+      fprintf (stderr, "%s\en", error.message);
+   }
+
+   bson_destroy (insert);
+   bson_destroy (&reply);
+   bson_destroy (command);
+   bson_free (str);
+
+   /*
+    * Release our handles and clean up libmongoc
+    */
+   mongoc_collection_destroy (collection);
+   mongoc_database_destroy (database);
+   mongoc_client_destroy (client);
+   mongoc_cleanup ();
+
+   return 0;
+}
+.fi
+.fi
+
+On a UNIX\(hylike system, the code can be compiled and run like so:
+
+.nf
+$ gcc \(hyo connect connect.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./connect
+{ "ok" : 1.000000 }
+.fi
+
+Alternatively, if
+.B pkg\(hyconfig
+is not available, paths and libraries can be managed manually.
+
+.nf
+$ gcc \(hyo connect connect.c \(hyI/usr/local/include \(hylmongoc\(hy1.0 \(hylbson\(hy1.0
+$ ./connect
+{ "ok" : 1.000000 }
+.fi
+
+For Windows users, the code can be compiled and run with the following commands. (This assumes that the MongoDB C Driver has been installed to
+.B C:\emongo\(hyc\(hydriver
+; change the include directory as needed.)
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 connect.c
+C:\e> connect
+{ "ok" : 1.000000 }
+.fi
+
+.SH "3. CREATING BSON DOCUMENTS"
+
+
+Documents are stored in MongoDB's data format, BSON. The C driver uses
+.B libbson
+to create BSON documents. There are several ways to construct them: appending key\(hyvalue pairs, using BCON, or parsing JSON.
+
+.SH "APPENDING BSON"
+
+
+A BSON document, represented as a
+.B bson_t
+in code, can be constructed one field at a time using libbson's append functions.
+
+.nf
+#include <bson.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_t *document;
+   bson_t  child;
+   char   *str;
+
+   document = bson_new ();
+
+   /*
+    * Append {"hello" : "world"} to the document.
+    * Passing \(hy1 for the length argument tells libbson to calculate the string length.
+    */
+   bson_append_utf8 (document, "hello", \(hy1, "world", \(hy1);
+
+   /*
+    * For convenience, this macro is equivalent.
+    */
+   BSON_APPEND_UTF8 (document, "hello", "world");
+
+   /*
+    * Begin a subdocument.
+    */
+   BSON_APPEND_DOCUMENT_BEGIN (document, "subdoc", &child);
+   BSON_APPEND_UTF8 (&child, "subkey", "value");
+   bson_append_document_end (document, &child);
+
+   /*
+    * Print the document as a JSON string.
+    */
+   str = bson_as_json (document, NULL);
+   printf ("%s\en", str);
+   bson_free (str);
+
+   /*
+    * Clean up allocated bson documents.
+    */
+   bson_destroy (document);
+   return 0;
+}
+.fi
+
+See the
+.B libbson documentation
+for all of the types that can be appended to a
+.B bson_t
+\e&.
+
+
+.SH "USING BCON"
+
+.B BSON C Object Notation
+, BCON for short, is an alternative way of constructing BSON documents in a manner closer to the intended format. It has less type\(hysafety than BSON's append functions but results in less code.
+
+.nf
+#include <bcon.h>
+#include <bson.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_t *doc;
+   char *str;
+
+   doc = BCON_NEW ("name", BCON_UTF8 ("Babe Ruth"),
+                   "statistics", "{",
+                      "batting_average", BCON_DOUBLE (.342),
+                      "hits", BCON_INT32 (2873),
+                      "home_runs", BCON_INT32 (714),
+                      "rbi", BCON_INT32 (2213),
+                   "}",
+                   "nicknames", "[",
+                      BCON_UTF8 ("the Sultan of Swat"),
+                      BCON_UTF8 ("the Bambino"),
+                   "]");
+
+   str = bson_as_json (doc, NULL);
+   printf ("%s\en", str);
+   bson_free (str);
+
+   bson_destroy (doc);
+
+   return 0;
+}
+.fi
+
+Notice that BCON can create arrays, subdocuments and arbitrary fields.
+
+
+.SH "CREATING BSON FROM JSON"
+
+
+For
+.B single
+documents, BSON can be created from JSON strings via
+.B bson_new_from_json
+\e&.
+
+To initialize BSON from a sequence of JSON documents, use
+.B bson_json_reader_t
+\e&.
+
+.nf
+#include <bson.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_error_t error;
+   bson_t      *bson;
+   char        *string;
+
+   const char *json = "{\e"hello\e": \e"world\e"}";
+   bson = bson_new_from_json ((const uint8_t *)json, \(hy1, &error);
+
+   if (!bson) {
+      fprintf (stderr, "%s\en", error.message);
+      return EXIT_FAILURE;
+   }
+
+   string = bson_as_json (bson, NULL);
+   printf ("%s\en", string);
+   bson_free (string);
+
+   return 0;
+}
+.fi
+
+
+.SH "4. BASIC CRUD OPERATIONS"
+
+
+This section demonstrates the basics of using the C Driver to interact with MongoDB.
+
+
+.SH "INSERTING A DOCUMENT"
+
+
+To insert documents into a collection, first obtain a handle to a
+.B mongoc_collection_t
+via a
+.B mongoc_client_t
+\e&. Then, use
+.B mongoc_collection_insert(3)
+to add BSON documents to the collection. This example inserts into the database "mydb" and collection "mycoll".
+
+When finished, ensure that allocated structures are freed by using their respective destroy functions.
+
+.nf
+.nf
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    doc = bson_new ();
+    bson_oid_init (&oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+        fprintf (stderr, "%s\en", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+.fi
+.fi
+
+Compile the code and run it:
+
+.nf
+$ gcc \(hyo insert insert.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./insert
+.fi
+
+On Windows:
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 insert.c
+C:\e> insert
+.fi
+
+To verify that the insert succeeded, connect with the MongoDB shell.
+
+.nf
+$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+> use mydb
+switched to db mydb
+> db.mycoll.find()
+{ "_id" : ObjectId("55ef43766cb5f36a3bae6ee4"), "hello" : "world" }
+>
+.fi
+
+
+.SH "FINDING A DOCUMENT"
+
+
+To query a MongoDB collection with the C driver, use the function
+.B mongoc_collection_find(3)
+\e&. This returns a
+.B cursor
+to the matching documents. The following examples iterate through the result cursors and print the matches to
+.B stdout
+as JSON strings.
+
+Note that
+.B mongoc_collection_find
+uses a document as a query specifier; for example,
+
+.B { "color" : "red" }
+
+will match any document with a field named "color" with value "red". An empty document
+.B {}
+can be used to match all documents.
+
+This first example uses an empty query specifier to find all documents in the database "mydb" and collection "mycoll".
+
+.nf
+.nf
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+     char *argv[])
+{
+  mongoc_client_t *client;
+  mongoc_collection_t *collection;
+  mongoc_cursor_t *cursor;
+  const bson_t *doc;
+  bson_t *query;
+  char *str;
+
+  mongoc_init ();
+
+  client = mongoc_client_new ("mongodb://localhost:27017/");
+  collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+  query = bson_new ();
+  cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+  while (mongoc_cursor_next (cursor, &doc)) {
+     str = bson_as_json (doc, NULL);
+     printf ("%s\en", str);
+     bson_free (str);
+  }
+
+  bson_destroy (query);
+  mongoc_cursor_destroy (cursor);
+  mongoc_collection_destroy (collection);
+  mongoc_client_destroy (client);
+  mongoc_cleanup ();
+
+  return 0;
+}
+.fi
+.fi
+
+Compile the code and run it:
+
+.nf
+$ gcc \(hyo find find.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }
+.fi
+
+On Windows:
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 find.c
+C:\e> find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }
+.fi
+
+To look for a specific document, add a specifier to
+.B query
+\e&. This example adds a call to
+.B BSON_APPEND_UTF8(3)
+to look for all documents matching
+.B {"hello" : "world"}
+\e&.
+
+.nf
+.nf
+#include <bson.h>
+  #include <mongoc.h>
+  #include <stdio.h>
+
+  int
+  main (int   argc,
+        char *argv[])
+  {
+      mongoc_client_t *client;
+      mongoc_collection_t *collection;
+      mongoc_cursor_t *cursor;
+      const bson_t *doc;
+      bson_t *query;
+      char *str;
+
+      mongoc_init ();
+
+      client = mongoc_client_new ("mongodb://localhost:27017/");
+      collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+      query = bson_new ();
+      BSON_APPEND_UTF8 (query, "hello", "world");
+
+      cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+      while (mongoc_cursor_next (cursor, &doc)) {
+          str = bson_as_json (doc, NULL);
+          printf ("%s\en", str);
+          bson_free (str);
+      }
+
+      bson_destroy (query);
+      mongoc_cursor_destroy (cursor);
+      mongoc_collection_destroy (collection);
+      mongoc_client_destroy (client);
+      mongoc_cleanup ();
+
+      return 0;
+  }
+.fi
+.fi
+
+.nf
+$ gcc \(hyo find\(hyspecific find\(hyspecific.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./find\(hyspecific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }
+.fi
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 find\(hyspecific.c
+C:\e> find\(hyspecific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }
+.fi
+
+
+.SH "UPDATING A DOCUMENT"
+
+
+This code snippet gives an example of using
+.B mongoc_collection_update(3)
+to update the fields of a document.
+
+Using the "mydb" database, the following example inserts an example document into the "mycoll" collection. Then, using its
+.B _id
+field, the document is updated with different values and a new field.
+
+.nf
+.nf
+#include <bcon.h>
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_collection_t *collection;
+    mongoc_client_t *client;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc = NULL;
+    bson_t *update = NULL;
+    bson_t *query = NULL;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    bson_oid_init (&oid, NULL);
+    doc = BCON_NEW ("_id", BCON_OID (&oid),
+                    "key", BCON_UTF8 ("old_value"));
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+        fprintf (stderr, "%s\en", error.message);
+        goto fail;
+    }
+
+    query = BCON_NEW ("_id", BCON_OID (&oid));
+    update = BCON_NEW ("$set", "{",
+                           "key", BCON_UTF8 ("new_value"),
+                           "updated", BCON_BOOL (true),
+                       "}");
+
+    if (!mongoc_collection_update (collection, MONGOC_UPDATE_NONE, query, update, NULL, &error)) {
+        fprintf (stderr, "%s\en", error.message);
+        goto fail;
+    }
+
+fail:
+    if (doc)
+        bson_destroy (doc);
+    if (query)
+        bson_destroy (query);
+    if (update)
+        bson_destroy (update);
+
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+.fi
+.fi
+
+Compile the code and run it:
+
+.nf
+$ gcc \(hyo update update.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./update
+.fi
+
+On Windows:
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 update.c
+C:\e> update
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }
+.fi
+
+To verify that the update succeeded, connect with the MongoDB shell.
+
+.nf
+$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+> use mydb
+switched to db mydb
+> db.mycoll.find({"updated" : true})
+{ "_id" : ObjectId("55ef549236fe322f9490e17b"), "updated" : true, "key" : "new_value" }
+>
+.fi
+
+
+.SH "DELETING A DOCUMENT"
+
+
+This example illustrates the use of
+.B mongoc_collection_remove(3)
+to delete documents.
+
+The following code inserts a sample document into the database "mydb" and collection "mycoll". Then, it deletes all documents matching
+.B {"hello" : "world"}
+\e&.
+
+.nf
+.nf
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "test", "test");
+
+    doc = bson_new ();
+    bson_oid_init (&oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+        fprintf (stderr, "Insert failed: %s\en", error.message);
+    }
+
+    bson_destroy (doc);
+
+    doc = bson_new ();
+    BSON_APPEND_OID (doc, "_id", &oid);
+
+    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &error)) {
+        fprintf (stderr, "Delete failed: %s\en", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+.fi
+.fi
+
+Compile the code and run it:
+
+.nf
+$ gcc \(hyo delete delete.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./delete
+.fi
+
+On Windows:
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 delete.c
+C:\e> delete
+.fi
+
+Use the MongoDB shell to prove that the documents have been removed successfully.
+
+.nf
+$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+> use mydb
+switched to db mydb
+> db.mycoll.count({"hello" : "world"})
+0
+>
+.fi
+
+
+.SH "COUNTING DOCUMENTS"
+
+
+Counting the number of documents in a MongoDB collection is similar to performing a
+.B find operation
+\e&. This example counts the number of documents matching
+.B {"hello" : "world"}
+in the database "mydb" and collection "mycoll".
+
+.nf
+.nf
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   bson_error_t error;
+   bson_t *doc;
+   int64_t count;
+
+   mongoc_init ();
+
+   client = mongoc_client_new ("mongodb://localhost:27017/");
+   collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+   doc = bson_new_from_json ((const uint8_t *)"{\e"hello\e" : \e"world\e"}", \(hy1, &error);
+
+   count = mongoc_collection_count (collection, MONGOC_QUERY_NONE, doc, 0, 0, NULL, &error);
+
+   if (count < 0) {
+      fprintf (stderr, "%s\en", error.message);
+   } else {
+      printf ("%" PRId64 "\en", count);
+   }
+
+   bson_destroy (doc);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+   mongoc_cleanup ();
+
+   return 0;
+}
+.fi
+.fi
+
+Compile the code and run it:
+
+.nf
+$ gcc \(hyo count count.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./count
+1
+.fi
+
+On Windows:
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 count.c
+C:\e> count
+1
+.fi
+
+
+.SH "5. EXECUTING COMMANDS"
+
+
+The driver provides helper functions for executing MongoDB commands on client, database and collection structures. These functions return
+.B cursors
+; the
+.B _simple
+variants return booleans indicating success or failure.
+
+This example executes the
+.B collStats
+command against the collection "mycoll" in database "mydb".
+
+.nf
+.nf
+#include <bson.h>
+#include <bcon.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_t *command;
+    bson_t reply;
+    char *str;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    command = BCON_NEW ("collStats", BCON_UTF8 ("mycoll"));
+    if (mongoc_collection_command_simple (collection, command, NULL, &reply, &error)) {
+        str = bson_as_json (&reply, NULL);
+        printf ("%s\en", str);
+        bson_free (str);
+    } else {
+        fprintf (stderr, "Failed to run command: %s\en", error.message);
+    }
+
+    bson_destroy (command);
+    bson_destroy (&reply);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+.fi
+.fi
+
+Compile the code and run it:
+
+.nf
+$ gcc \(hyo executing executing.c $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0)
+$ ./executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }
+.fi
+
+On Windows:
+
+.nf
+C:\e> cl.exe /IC:\emongo\(hyc\(hydriver\einclude\elibbson\(hy1.0 /IC:\emongo\(hyc\(hydriver\einclude\elibmongoc\(hy1.0 executing.c
+C:\e> executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }
+.fi
+
+.SH "6. THREADING"
+
+
+The MongoDB C Driver is thread\(hyunaware in the vast majority of its operations. This means it is up to the programmer to guarantee thread\(hysafety.
+
+However,
+.B mongoc_client_pool_t
+is thread\(hysafe and is used to fetch a
+.B mongoc_client_t
+in a thread\(hysafe manner. After retrieving a client from the pool, the client structure should be considered owned by the calling thread. When the thread is finished, the client should be placed back into the pool.
+
+.nf
+#include <mongoc.h>
+#include <pthread.h>
+
+#define N_THREADS 10
+
+static void *
+worker (void *data) {
+   mongoc_client_pool_t *pool = data;
+   mongoc_client_t      *client;
+
+   client = mongoc_client_pool_pop (pool);
+
+   /* Do something... */
+
+   mongoc_client_pool_push (pool, client);
+
+   return NULL;
+}
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_pool_t *pool;
+   mongoc_uri_t         *uri;
+   pthread_t             threads[N_THREADS];
+
+   mongoc_init ();
+
+   uri = mongoc_uri_new ("mongodb://localhost/");
+   pool = mongoc_client_pool_new (uri);
+
+   for (i = 0; i < N_THREADS; i++) {
+      pthread_create (&threads[i], NULL, worker, pool);
+   }
+
+   for (i = 0; i < N_THREADS; i++) {
+      pthread_join (threads[i], NULL);
+   }
+
+   mongoc_client_pool_destroy (pool);
+   mongoc_uri_destroy (uri);
+   mongoc_cleanup ();
+
+   return 0;
+}
+.fi
+
+.SH "7. NEXT STEPS"
+
+
+To find information on advanced topics, browse the rest of the
+.B C driver guide
+or the
+.B official MongoDB documentation
+\e&.
+
+For help with common issues, consult the
+.B Troubleshooting
+page. To report a bug or request a new feature, follow
+.B these instructions
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

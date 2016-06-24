@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_read_prefs_new">
+  <info>
+    <link type="guide" xref="mongoc_read_prefs_t" group="function"/>
+  </info>
+  <title>mongoc_read_prefs_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_read_prefs_t *
+mongoc_read_prefs_new (mongoc_read_mode_t read_mode);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>read_mode</p></td><td><p>A <code xref="mongoc_read_mode_t">mongoc_read_mode_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Creates a new <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> using the mode specified.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns a newly allocated <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> that should be freed with <code xref="mongoc_read_prefs_destroy">mongoc_read_prefs_destroy()</code>.</p>
+  </section>
+
+</page>

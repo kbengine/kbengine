@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_find">
+
+
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_find()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_cursor_t *
+mongoc_collection_find (mongoc_collection_t       *collection,
+                        mongoc_query_flags_t       flags,
+                        uint32_t                   skip,
+                        uint32_t                   limit,
+                        uint32_t                   batch_size,
+                        const bson_t              *query,
+                        const bson_t              *fields,
+                        const mongoc_read_prefs_t *read_prefs)
+   BSON_GNUC_WARN_UNUSED_RESULT;
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>A <code xref="mongoc_query_flags_t">mongoc_query_flags_t</code>.</p></td></tr>
+      <tr><td><p>skip</p></td><td><p>A uint32_t of number of documents to skip or 0.</p></td></tr>
+      <tr><td><p>limit</p></td><td><p>A uint32_t of max number of documents to return or 0.</p></td></tr>
+      <tr><td><p>batch_size</p></td><td><p>A uint32_t containing batch size of document result sets or 0 for default. Default is 100.</p></td></tr>
+      <tr><td><p>query</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the query and options to execute.</p></td></tr>
+      <tr><td><p>fields</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing fields to return or <code>NULL</code>.</p></td></tr>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> or <code>NULL</code> for default read preferences.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall execute a query on the underlying <code>collection</code>.</p>
+    <p>If no options are necessary, <code>query</code> can simply contain a query such as <code>{a:1}</code>. If you would like to specify options such as a sort order, the query must be placed inside of <code>{"$query": {}}</code> as specified by the server documentation. See the example below for how to properly specify additional options to <code>query</code>.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_cursor_t">mongoc_cursor_t</code> that should be freed with <code xref="mongoc_cursor_destroy">mongoc_cursor_destroy()</code> when no longer in use. If invalid parameters are supplied, <code>NULL</code> may be returned.</p>
+    <note style="warning"><p>Failure to handle the result of this function is a programming error.</p></note>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <listing>
+      <title>Print All Documents in a Collection</title>
+      <code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+#include <stdio.h>
+
+static void
+print_all_documents (mongoc_collection_t *collection)
+{
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   char *str;
+   bson_t *query;
+
+   query = BCON_NEW ("$query", "{", "foo", BCON_INT32 (1), "}",
+                     "$orderby", "{", "bar", BCON_INT32 (-1), "}");
+   cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+   while (mongoc_cursor_more (cursor) && mongoc_cursor_next (cursor, &doc)) {
+      str = bson_as_json (doc, NULL);
+      printf ("%s\n", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &error)) {
+      fprintf (stderr, "An error occurred: %s\n", error.message);
+   }
+
+   mongoc_cursor_destroy (cursor);
+   bson_destroy (query);
+}
+]]></code>
+    </listing>
+  </section>
+
+  <section id="find-command">
+    <title>The "find" command</title>
+    <p>Queries have historically been sent as OP_QUERY wire protocol messages, but beginning in MongoDB 3.2 queries use <link href="https://docs.mongodb.org/master/reference/command/find/">the "find" command</link> instead.</p>
+    <p>The driver automatically converts queries to the new "find" command syntax if needed, so this change is typically invisible to C Driver users. However, an application written exclusively for MongoDB 3.2 and later can choose to use the new syntax directly instead of relying on the driver to convert from the old syntax:</p>
+    <code mime="text/x-csrc"><![CDATA[/* MongoDB 3.2+ "find" command syntax */
+query = BCON_NEW ("filter", "{", "foo", BCON_INT32 (1), "}",
+                  "sort": "{", "bar", BCON_INT32 (-1), "}");
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+]]></code>
+    <p>The "find" command takes different options from the traditional OP_QUERY message.</p>
+    <table shade="rows">
+      <thead>
+        <tr>
+          <td><p>Option</p></td> <td><p>OP_QUERY option</p></td> <td><p>"find" command option</p></td>
+        </tr>
+      </thead>
+      <tr>
+        <td><p>Query</p></td> <td><p><code>$query</code></p></td> <td><p><code>filter</code></p></td>
+      </tr>
+      <tr>
+        <td><p>Sort</p></td> <td><p><code>$orderby</code></p></td> <td><p><code>sort</code></p></td>
+      </tr>
+      <tr>
+        <td><p>Show record location</p></td> <td><p><code>$showDiskLoc</code></p></td> <td><p><code>showRecordId</code></p></td>
+      </tr>
+      <tr>
+        <td><p>Other $-options</p></td> <td><p><code>$&lt;option name&gt;</code></p></td> <td><p><code>&lt;option name&gt;</code></p></td>
+      </tr>
+    </table>
+    <p>Most applications should use the OP_QUERY syntax, with "$query", "$orderby", and so on, and rely on the driver to convert to the new syntax if needed. There are two caveats: querying documents by a key named "filter", and using new "find" command options that OP_QUERY does not support.</p>
+
+    <section id="seealso">
+      <title>See Also</title>
+      <p><link href="https://docs.mongodb.org/master/reference/command/find/">The "find" command</link> in the MongoDB Manual.</p>
+    </section>
+
+    <section id="key-named-filter">
+      <title>Finding a document by a key named "filter"</title>
+      <p>To find a document like <code mime="x-json">{ "_id": 1, "filter": "value" }</code>, this query works in MongoDB before 3.2:</p>
+      <code mime="text/x-csrc"><![CDATA[/* Fails with MongoDB 3.2+ */
+query = BCON_NEW ("filter", BCON_UTF8 ("value"));
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+]]></code>
+      <p>Beginning in MongoDB 3.2, the "filter" option has special meaning, and it is no longer assumed to be a field in a document you are querying for. To execute this query on any MongoDB version, wrap it in "$query":</p>
+      <code mime="text/x-csrc"><![CDATA[/* Works in all MongoDB versions */
+query = BCON_NEW ("$query", "{", "filter", BCON_UTF8 ("value"), "}");
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+]]></code>
+      <p>This code works for any MongoDB version. The driver sends it as-is to a MongoDB server older than 3.2, and before sending to MongoDB 3.2 or later converts it to the following:</p>
+    <code mime="text/x-json">{ "filter": { "filter": "value" } }</code>
+    </section>
+    <section id="find-command-options">
+      <title>Options specific to the "find" command</title>
+      <p>The "find" command has new options like "singleBatch" not supported by OP_QUERY. Applications should use the new "find" syntax directly to take advantage of them:</p>
+      <code mime="text/x-csrc"><![CDATA[/* MongoDB 3.2+ "find" command syntax */
+query = BCON_NEW ("filter", "{", "foo", BCON_INT32 (1), "}",
+                  "sort": "{", "bar", BCON_INT32 (-1), "}",
+                  "singleBatch", BCON_BOOL (true));
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+]]></code>
+    </section>
+  </section>
+
+  <section id="explain-command">
+    <title>The "explain" command</title>
+    <p>With MongoDB before 3.2, a query with option <code>$explain: true</code> returns information about the query plan, instead of the query results. Beginning in MongoDB 3.2, there is a separate "explain" command. The driver will not convert "$explain" queries to "explain" commands, you must call the "explain" command explicitly:</p>
+    <code mime="text/x-csrc"><![CDATA[/* MongoDB 3.2+, "explain" command syntax */
+command = BCON_NEW ("explain", "{",
+                    "find", BCON_UTF8 ("collection_name"),
+                    "filter", "{",
+                    "foo", BCON_INT32 (1), "}",
+                    "}", "}");
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+]]></code>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><link href="https://docs.mongodb.org/master/reference/command/explain/">The "explain" command</link> in the MongoDB Manual.</p>
+  </section>
+
+</page>

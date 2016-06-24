@@ -1,0 +1,97 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>bson_string_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">bson_string_t</span></h1>
+<h2 class="subtitle"><span class="subtitle">String Building Abstraction</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+
+typedef struct
+{
+   char     *str;
+   uint32_t  len;
+   uint32_t  alloc;
+} bson_string_t;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p"><span class="code"><a href="bson_string_t.html" title="bson_string_t">bson_string_t</a></span> is an abstraction for building strings. As chunks are added to the string, allocations are performed in powers of two.</p>
+<p class="p">This API is useful if you need to build UTF-8 encoded strings.</p>
+</div></div>
+</div></div>
+<div id="examples" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title"></span></h3></div>
+<div class="region"><div class="contents">
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">bson_string_t *str;
+
+str = bson_string_new (NULL);
+bson_string_append_printf (str, "%d %s %f\n", 0, "some string", 0.123);
+printf ("%s\n", str-&gt;str);
+
+bson_string_free (str, true);</pre></div></div></div></div></div>
+<div class="note note-tip" title="Tip"><div class="inner"><div class="region"><div class="contents"><p class="p">You can call <span class="code"><a href="bson_string_free.html" title="bson_string_free()">bson_string_free()</a></span> with <span class="code">false</span> if you would like to take ownership of <span class="code">str-&gt;str</span>. Some APIs that do this might call <span class="code">return bson_string_free (str, false);</span> after building the string.</p></div></div></div></div>
+</div></div>
+</div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="bson_snprintf.html" title="bson_snprintf()"><span class="title">bson_snprintf()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_strdup.html" title="bson_strdup()"><span class="title">bson_strdup()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_strdup_printf.html" title="bson_strdup_printf()"><span class="title">bson_strdup_printf()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_strdupv_printf.html" title="bson_strdupv_printf()"><span class="title">bson_strdupv_printf()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_strfreev.html" title="bson_strfreev()"><span class="title">bson_strfreev()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_string_append.html" title="bson_string_append()"><span class="title">bson_string_append()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_string_append_c.html" title="bson_string_append_c()"><span class="title">bson_string_append_c()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_string_append_printf.html" title="bson_string_append_printf()"><span class="title">bson_string_append_printf()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_string_append_unichar.html" title="bson_string_append_unichar()"><span class="title">bson_string_append_unichar()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_string_free.html" title="bson_string_free()"><span class="title">bson_string_free()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_string_new.html" title="bson_string_new()"><span class="title">bson_string_new()</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="bson_string_truncate.html" title="bson_string_truncate()"><span class="title">bson_string_truncate()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_strncpy.html" title="bson_strncpy()"><span class="title">bson_strncpy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_strndup.html" title="bson_strndup()"><span class="title">bson_strndup()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_strnlen.html" title="bson_strnlen()"><span class="title">bson_strnlen()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_utf8_escape_for_json.html" title="bson_utf8_escape_for_json()"><span class="title">bson_utf8_escape_for_json()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_utf8_from_unichar.html" title="bson_utf8_from_unichar()"><span class="title">bson_utf8_from_unichar()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_utf8_get_char.html" title="bson_utf8_get_char()"><span class="title">bson_utf8_get_char()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_utf8_next_char.html" title="bson_utf8_next_char()"><span class="title">bson_utf8_next_char()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_utf8_validate.html" title="bson_utf8_validate()"><span class="title">bson_utf8_validate()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_vsnprintf.html" title="bson_vsnprintf()"><span class="title">bson_vsnprintf()</span></a></div>
+</div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

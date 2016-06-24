@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_database_set_read_prefs">
+
+
+  <info>
+    <link type="guide" xref="mongoc_database_t" group="function"/>
+  </info>
+  <title>mongoc_database_set_read_prefs()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_database_set_read_prefs (mongoc_database_t         *database,
+                                const mongoc_read_prefs_t *read_prefs);
+]]></code></synopsis>
+    <p>This function sets the default read preferences to use on operations performed with <code>database</code>. Collections created with <code xref="mongoc_database_get_collection">mongoc_database_get_collection()</code> after this call will inherit these read preferences.</p>
+    <p>The global default is MONGOC_READ_PRIMARY: if the client is connected to a replica set it reads from the primary, otherwise it reads from the current MongoDB server.</p>
+	<p>Please see the MongoDB website for a description of <link href="http://docs.mongodb.org/manual/core/read-preference/">Read Preferences</link>.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>database</p></td><td><p>A <code xref="mongoc_database_t">mongoc_database_t</code>.</p></td></tr>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+</page>

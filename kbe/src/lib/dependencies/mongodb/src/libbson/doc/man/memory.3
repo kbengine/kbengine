@@ -1,0 +1,29 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MEMORY_MANAGEMENT" "3" "2016\(hy03\(hy30" "libbson"
+.SH NAME
+Memory_Management \- BSON Memory Abstraction
+.SH "DESCRIPTION"
+
+Libbson contains a lightweight memory abstraction to make portability to new platforms easier. Additionally, it helps us integrate with interesting higher\(hylevel languages. One caveat, however, is that Libbson is not designed to deal with Out of Memory (OOM) situations. Doing so requires extreme dilligence throughout the application stack that has rarely been implemented correctly. This may change in the future. As it stands now, Libbson will
+.B abort(3)
+under OOM situations.
+
+To aid in language binding integration, Libbson allows for setting a custom memory allocator via
+.B bson_mem_set_vtable(3)
+\e&.  This allocation may be reversed via
+.B bson_mem_restore_vtable(3)
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_uri_new_for_host_port">
+  <info>
+    <link type="guide" xref="mongoc_uri_t" group="function"/>
+  </info>
+  <title>mongoc_uri_new_for_host_port()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_uri_t *
+mongoc_uri_new_for_host_port (const char *hostname,
+                              uint16_t    port);]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>hostname</p></td><td><p>A string containing the hostname.</p></td></tr>
+      <tr><td><p>port</p></td><td><p>A uint16_t.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Creates a new <code xref="mongoc_uri_t">mongoc_uri_t</code> based on the hostname and port provided.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns a newly allocated <code xref="mongoc_uri_t">mongoc_uri_t</code> that should be freed with <code xref="mongoc_uri_destroy">mongoc_uri_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

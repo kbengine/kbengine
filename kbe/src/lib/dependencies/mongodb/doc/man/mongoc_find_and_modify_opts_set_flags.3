@@ -1,0 +1,154 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_FIND_AND_MODIFY_OPTS_SET_FLAGS" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_find_and_modify_opts_set_flags() \- Adds one or more flags to the builder.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_find_and_modify_opts_set_flags (mongoc_find_and_modify_opts_t         *opts,
+                                       const mongoc_find_and_modify_flags_t   flags);
+.fi
+.fi
+
+.B NOTE
+.RS
+New in mongoc 1.3.0
+.RE
+
+.SH "PARAMETERS"
+
+.TP
+.B
+opts
+A
+.B mongoc_find_and_modify_opts_t
+\e&.
+.LP
+.TP
+.B
+flags
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Adds one or more flags to the builder.
+
+.TP
+.B
+MONGOC_FIND_AND_MODIFY_NONE
+Default. Doesn't add anything to the builder.
+.LP
+.TP
+.B
+MONGOC_FIND_AND_MODIFY_REMOVE
+Will instruct find_and_modify to remove the matching document.
+.LP
+.TP
+.B
+MONGOC_FIND_AND_MODIFY_UPSERT
+Update the matching document or, if no document matches, insert the document.
+.LP
+.TP
+.B
+MONGOC_FIND_AND_MODIFY_RETURN_NEW
+Return the resulting document.
+.LP
+
+.SH "RETURNS"
+
+Returns true if it successfully added the option to the builder.
+
+.SH "SETTING FLAGS"
+
+.nf
+
+void fam_flags(mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t reply;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bson_t *update;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic, the striker */
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+   BSON_APPEND_UTF8 (&query, "profession", "Football player");
+   BSON_APPEND_INT32 (&query, "age", 34);
+   BSON_APPEND_INT32 (&query, "goals", (16+35+23+57+16+14+28+84)+(1+6+62));
+
+   /* Add his football position */
+   update = BCON_NEW ("$set", "{",
+      "position", BCON_UTF8 ("striker"),
+   "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+
+   mongoc_find_and_modify_opts_set_update (opts, update);
+
+   /* Create the document if it didn't exist, and return the updated document */
+   mongoc_find_and_modify_opts_set_flags (opts, MONGOC_FIND_AND_MODIFY_UPSERT|MONGOC_FIND_AND_MODIFY_RETURN_NEW);
+
+   success = mongoc_collection_find_and_modify_with_opts (collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf(stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+.fi
+
+Outputs:
+
+.nf
+{
+    "lastErrorObject": {
+        "updatedExisting": false,
+        "n": 1,
+        "upserted": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        }
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

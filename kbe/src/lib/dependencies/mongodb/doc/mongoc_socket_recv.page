@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_socket_recv">
+  <info>
+    <link type="guide" xref="mongoc_socket_t" group="function"/>
+  </info>
+  <title>mongoc_socket_recv()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[ssize_t
+mongoc_socket_recv (mongoc_socket_t *sock,
+                    void            *buf,
+                    size_t           buflen,
+                    int              flags,
+                    int64_t          expire_at);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>sock</p></td><td><p>A <code xref="mongoc_socket_t">mongoc_socket_t</code>.</p></td></tr>
+      <tr><td><p>buf</p></td><td><p>A buffer to read into.</p></td></tr>
+      <tr><td><p>buflen</p></td><td><p>A size_t with the number of bytes to receive.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>flags for <code>recv()</code>.</p></td></tr>
+      <tr><td><p>expire_at</p></td><td><p>A int64_t with the time to expire in monotonic time using <code xref="bson:clock">bson_get_monotonic_time()</code>, which is in microseconds.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function performs a <code>recv()</code> on the underlying socket.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>The number of bytes received on success, 0 on stream closed, and -1 if there was a failure and errno is set.</p>
+  </section>
+
+</page>

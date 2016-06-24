@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_server_description_id">
+  <info>
+    <link type="guide" xref="mongoc_server_description_t" group="function"/>
+  </info>
+  <title>mongoc_server_description_id()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[uint32_t
+
+mongoc_server_description_id (const mongoc_server_description_t *description);
+
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>description</p></td><td><p>A <link xref="mongoc_server_description_t">The server description whose id we want</link>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This functionr returns the server id for the given server description.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A uint32_t id for the given server description.</p>
+  </section>
+
+</page>

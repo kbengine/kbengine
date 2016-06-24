@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_uncork">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_t" group="function"/>
+  </info>
+  <title>mongoc_stream_uncork()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_stream_uncork (mongoc_stream_t *stream);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function shall allow a previously corked socket to pass bytes to the underlying socket.</p>
+    <note type="warning"><p>Not all streams implement this function. Buffering generally works better.</p></note>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>0</code> on success, <code>-1</code> on failure and <code>errno</code> is set.</p>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><link type="seealso" xref="mongoc_stream_buffered_new">mongoc_stream_buffered_new()</link>.</p>
+    <p><link type="seealso" xref="mongoc_stream_cork">mongoc_stream_cork()</link>.</p>
+  </section>
+
+</page>

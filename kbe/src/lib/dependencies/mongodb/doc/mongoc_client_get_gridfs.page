@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_get_gridfs">
+
+
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_get_gridfs()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_gridfs_t *
+mongoc_client_get_gridfs (mongoc_client_t *client,
+                          const char      *db,
+                          const char      *prefix,
+                          bson_error_t    *error);
+]]></code></synopsis>
+    <p>The <code>mongoc_client_get_gridfs()</code> function shall create a new <code xref="mongoc_gridfs_t">mongoc_gridfs_t</code>. The <code>db</code> parameter is the name of the database which the gridfs instance should exist in. The <code>prefix</code> parameter corresponds to the gridfs collection namespacing; its default is "fs", thus the default GridFS collection names are "fs.files" and "fs.chunks".</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+      <tr><td><p>db</p></td><td><p>The database name.</p></td></tr>
+      <tr><td><p>prefix</p></td><td><p>Optional prefix for gridfs collection names or <code>NULL</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A <code xref="mongoc_gridfs_t">mongoc_gridfs_t</code> on success, <code>NULL</code> upon failure and <code>error</code> is set.</p>
+  </section>
+
+</page>

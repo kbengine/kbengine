@@ -1,0 +1,66 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_T" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_t \- BSON Document Abstraction
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <bson.h>
+
+BSON_ALIGNED_BEGIN (128)
+typedef struct
+{
+   uint32_t flags;         /* Internal flags for the bson_t. */
+   uint32_t len;           /* Length of BSON data. */
+   uint8_t  padding[120];  /* Padding for stack allocation. */
+} bson_t
+BSON_ALIGNED_END (128);
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+The
+.B bson_t
+structure represents a BSON document. This structure manages the underlying BSON encoded buffer. For mutable documents, it can append new data to the document.
+
+.SH "PERFORMANCE NOTES"
+
+The
+.B bson_t
+structure attepts to use an inline allocation within the structure to speed up performance of small documents. When this internal buffer has been exhausted, a heap allocated buffer will be dynamically allocated. Therefore, it is essential to call
+.B bson_destroy(3)
+on allocated documents.
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+static void
+create_on_heap (void)
+{
+   bson_t *b = bson_new ();
+
+   BSON_APPEND_INT32 (b, "foo", 123);
+   BSON_APPEND_UTF8 (b, "bar", "foo");
+   BSON_APPEND_DOUBLE (b, "baz", 1.23f);
+
+   bson_destroy (b);
+}
+.fi
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

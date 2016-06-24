@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_get_read_prefs">
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_get_read_prefs()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[const mongoc_read_prefs_t *
+mongoc_collection_get_read_prefs (const mongoc_collection_t *collection);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Fetches the default read preferences to use for <code>collection</code>. Operations without specified read-preferences will default to this.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> that should not be modified or freed.</p>
+  </section>
+
+</page>

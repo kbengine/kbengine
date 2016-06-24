@@ -1,0 +1,69 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_BULK_OPERATION_DELETE_ONE" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_bulk_operation_delete_one() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+mongoc_bulk_operation_delete_one (mongoc_bulk_operation_t *bulk,
+                                  const bson_t            *selector);
+.fi
+.fi
+
+This function queues a delete operation as part of
+.B bulk
+that will delete a single document matching
+.B selector
+\e&. To delete a multiple documents, see
+.B mongoc_bulk_operation_delete(3)
+\e&.
+
+.SH "DEPRECATED"
+
+.B NOTE
+.RS
+This function is deprecated and should not be used in new code.
+.RE
+
+Please use
+.B mongoc_bulk_operation_remove_one(3)
+instead.
+
+.SH "PARAMETERS"
+
+.TP
+.B
+bulk
+A
+.B mongoc_bulk_operation_t
+\e&.
+.LP
+.TP
+.B
+selector
+A
+.B bson_t
+\e&.
+.LP
+
+.SH "ERRORS"
+
+Errors are propagated via
+.B mongoc_bulk_operation_execute(3)
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

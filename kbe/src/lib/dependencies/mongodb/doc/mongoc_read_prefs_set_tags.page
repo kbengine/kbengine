@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_read_prefs_set_tags">
+  <info>
+    <link type="guide" xref="mongoc_read_prefs_t" group="function"/>
+  </info>
+  <title>mongoc_read_prefs_set_tags()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_read_prefs_set_tags (mongoc_read_prefs_t *read_prefs,
+                            const bson_t        *tags);]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code>.</p></td></tr>
+      <tr><td><p>tags</p></td><td><p>A <code xref="bson:bson_t">bson_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Sets the tags to be used for the read preference. Only mongod instances matching these tags will be suitable for handling the request.</p>
+  </section>
+
+</page>

@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_find_and_modify_opts_set_flags">
+  <info><link type="guide" xref="mongoc_find_and_modify_opts_t" group="function"/></info>
+  <title>mongoc_find_and_modify_opts_set_flags()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_find_and_modify_opts_set_flags (mongoc_find_and_modify_opts_t         *opts,
+                                       const mongoc_find_and_modify_flags_t   flags);
+]]></code></synopsis>
+    <note style="tip"><p>New in mongoc 1.3.0</p></note>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>opts</p></td><td><p>A <code xref="mongoc_find_and_modify_opts_t">mongoc_find_and_modify_opts_t</code>.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Adds one or more flags to the builder.</p>
+    <table>
+      <tr><td><p>MONGOC_FIND_AND_MODIFY_NONE</p></td><td><p>Default. Doesn't add anything to the builder.</p></td></tr>
+      <tr><td><p>MONGOC_FIND_AND_MODIFY_REMOVE</p></td><td><p>Will instruct find_and_modify to remove the matching document.</p></td></tr>
+      <tr><td><p>MONGOC_FIND_AND_MODIFY_UPSERT</p></td><td><p>Update the matching document or, if no document matches, insert the document.</p></td></tr>
+      <tr><td><p>MONGOC_FIND_AND_MODIFY_RETURN_NEW</p></td><td><p>Return the resulting document.</p></td></tr>
+    </table>
+  </section>
+
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns true if it successfully added the option to the builder.</p>
+  </section>
+
+  <section id="example">
+    <title>Setting flags</title>
+    <screen><code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/flags.c" xmlns="http://www.w3.org/2001/XInclude" /></code></screen>
+    <p>Outputs:</p>
+    <screen><code mime="text/x-csrc"><![CDATA[{
+    "lastErrorObject": {
+        "updatedExisting": false,
+        "n": 1,
+        "upserted": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        }
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}]]></code></screen>
+  </section>
+
+
+</page>

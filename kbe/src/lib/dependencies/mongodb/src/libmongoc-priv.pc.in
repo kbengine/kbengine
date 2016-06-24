@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=${exec_prefix}/include
+
+Name: libmongoc-priv
+Description: The libmongoc MongoDB client library, with access to private structures.
+Version: @VERSION@
+Requires: libbson-1.0
+Libs: @SASL_LIBS@ @SSL_LIBS@ @SHM_LIB@ -L${libdir} -lmongoc-priv
+Cflags: -DMONGOC_I_AM_A_DRIVER -I${includedir}/libmongoc-@MONGOC_API_VERSION@

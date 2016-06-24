@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_write_concern_set_fsync">
+  <info>
+    <link type="guide" xref="mongoc_write_concern_t" group="function"/>
+  </info>
+  <title>mongoc_write_concern_set_fsync()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_write_concern_set_fsync (mongoc_write_concern_t *write_concern,
+                                bool                    fsync_);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>write_concern</p></td><td><p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code>.</p></td></tr>
+      <tr><td><p>fsync_</p></td><td><p>A boolean.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Sets if a fsync must be performed before indicating write success.</p>
+  </section>
+
+  <section id="Deprecated">
+    <title>Deprecated</title>
+    <note style="warning"><p>The <code>fsync</code> write concern is deprecated.</p></note>
+    <p>Please use <code xref="mongoc_write_concern_set_journal">mongoc_write_concern_set_journal()</code> instead.</p>
+  </section>
+</page>

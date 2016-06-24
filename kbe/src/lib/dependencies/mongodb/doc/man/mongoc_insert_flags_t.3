@@ -1,0 +1,53 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_INSERT_FLAGS_T" "3" "2016\(hy01\(hy14" "MongoDB C Driver"
+.SH NAME
+mongoc_insert_flags_t \- Flags for deletion operations
+.SH "SYNOPSIS"
+
+.nf
+.nf
+typedef enum
+{
+   MONGOC_INSERT_NONE              = 0,
+   MONGOC_INSERT_CONTINUE_ON_ERROR = 1 << 0,
+} mongoc_insert_flags_t;
+
+#define MONGOC_INSERT_NO_VALIDATE (1U << 31)
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+These flags correspond to the MongoDB wire protocol. They may be bitwise or'd together. They may modify how an insert happens on the MongoDB server.
+
+.SH "FLAG VALUES"
+
+.TP
+.B
+MONGOC_INSERT_NONE
+Specify no insert flags.
+.LP
+.TP
+.B
+MONGOC_INSERT_CONTINUE_ON_ERROR
+Continue inserting documents from the insertion set even if one insert fails.
+.LP
+.TP
+.B
+MONGOC_INSERT_NO_VALIDATE
+Do not validate insertion documents before performing an insert. Validation can be expensive, so this can save some time if you know your documents are already valid.
+.LP
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

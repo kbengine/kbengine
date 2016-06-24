@@ -1,0 +1,76 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>bson_type_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">bson_type_t</span></h1>
+<h2 class="subtitle"><span class="subtitle">BSON Type Enumeration</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+
+typedef enum
+{
+   BSON_TYPE_EOD        = 0x00,
+   BSON_TYPE_DOUBLE     = 0x01,
+   BSON_TYPE_UTF8       = 0x02,
+   BSON_TYPE_DOCUMENT   = 0x03,
+   BSON_TYPE_ARRAY      = 0x04,
+   BSON_TYPE_BINARY     = 0x05,
+   BSON_TYPE_UNDEFINED  = 0x06,
+   BSON_TYPE_OID        = 0x07,
+   BSON_TYPE_BOOL       = 0x08,
+   BSON_TYPE_DATE_TIME  = 0x09,
+   BSON_TYPE_NULL       = 0x0A,
+   BSON_TYPE_REGEX      = 0x0B,
+   BSON_TYPE_DBPOINTER  = 0x0C,
+   BSON_TYPE_CODE       = 0x0D,
+   BSON_TYPE_SYMBOL     = 0x0E,
+   BSON_TYPE_CODEWSCOPE = 0x0F,
+   BSON_TYPE_INT32      = 0x10,
+   BSON_TYPE_TIMESTAMP  = 0x11,
+   BSON_TYPE_INT64      = 0x12,
+   BSON_TYPE_MAXKEY     = 0x7F,
+   BSON_TYPE_MINKEY     = 0xFF,
+} bson_type_t;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents"><p class="p">The <span class="code"><a href="bson_type_t.html" title="bson_type_t">bson_type_t</a></span> enumeration contains all of the types from the <span class="link"><a href="http://bsonspec.org" title="http://bsonspec.org">BSON Specification</a></span>. It can be used to determine the type of a field at runtime.</p></div></div>
+</div></div>
+<div id="examples" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title">Check BSON Field Type</span></h3></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">bson_iter_t iter;
+
+if (bson_iter_init_find (&amp;iter, doc, "foo") &amp;&amp;
+    (BSON_TYPE_INT32 == bson_iter_type (&amp;iter))) {
+   printf ("'foo' is an int32.\n");
+}</pre></div></div></div></div></div></div></div>
+</div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

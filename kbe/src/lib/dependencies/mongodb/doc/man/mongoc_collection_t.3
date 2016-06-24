@@ -1,0 +1,46 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_COLLECTION_T" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_collection_t \- #include <mongoc.h>
+
+typedef struct _mongoc_collection_t mongoc_collection_t;
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <mongoc.h>
+
+typedef struct _mongoc_collection_t mongoc_collection_t;
+.fi
+.fi
+
+.B mongoc_collection_t
+provides access to a MongoDB collection.  This handle is useful for actions for most CRUD operations, I.e. insert, update, delete, find, etc.
+
+.SH "READ PREFERENCES AND WRITE CONCERNS"
+
+Read preferences and write concerns are inherited from the parent client. They can be overridden by set_* commands if so desired.
+
+.SH "LIFECYCLE"
+
+It is an error to call
+.B mongoc_collection_destroy(3)
+on a collection that has operations pending. It is required that you release
+.B mongoc_cursor_t
+structures before calling
+.B mongoc_collection_destroy(3)
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

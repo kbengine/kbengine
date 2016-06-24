@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_get_last_error">
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_get_last_error()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[const bson_t *
+mongoc_collection_get_last_error (const mongoc_collection_t *collection);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>The mongoc_collection_get_last_error() function shall return getLastError document, according to write_concern on last executed command for current collection instance.</p>
+    <p>A write_concern must be at least <code>MONGOC_WRITE_CONCERN_W_DEFAULT</code> in last command execution for this to be available.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A <code>bson_t</code> that should not be modified or <code>NULL</code>.</p>
+  </section>
+
+</page>

@@ -1,0 +1,53 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_SUBTYPE_T" "3" "2016\(hy02\(hy04" "libbson"
+.SH NAME
+bson_subtype_t \- Binary Field Subtype
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <bson.h>
+
+
+typedef enum
+{
+   BSON_SUBTYPE_BINARY            = 0x00,
+   BSON_SUBTYPE_FUNCTION          = 0x01,
+   BSON_SUBTYPE_BINARY_DEPRECATED = 0x02,
+   BSON_SUBTYPE_UUID_DEPRECATED   = 0x03,
+   BSON_SUBTYPE_UUID              = 0x04,
+   BSON_SUBTYPE_MD5               = 0x05,
+   BSON_SUBTYPE_USER              = 0x80,
+} bson_subtype_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+This enumeration contains the various subtypes that may be used in a binary field. See
+.B http://bsonspec.org
+for more information.
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+bson_t doc = BSON_INITIALIZER;
+
+BSON_APPEND_BINARY (&doc, "binary", BSON_SUBTYPE_BINARY, data, data_len);
+.fi
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

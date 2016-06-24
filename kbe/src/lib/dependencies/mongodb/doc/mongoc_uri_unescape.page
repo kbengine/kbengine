@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_uri_unescape">
+  <info>
+    <link type="guide" xref="mongoc_uri_t" group="function"/>
+  </info>
+  <title>mongoc_uri_unescape()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[char *
+mongoc_uri_unescape (const char *escaped_string);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>escaped_string</p></td><td><p>A utf8 encoded string.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Unescapes an URI encoded string. For example, "%40" would become "@".</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns a newly allocated string that should be freed with <code xref="bson:bson_free">bson_free()</code>.</p>
+  </section>
+
+</page>

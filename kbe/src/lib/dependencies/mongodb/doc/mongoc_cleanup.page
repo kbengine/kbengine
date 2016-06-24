@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_cleanup">
+
+
+  <info>
+    <link type="guide" xref="" group="function"/>
+  </info>
+  <title>mongoc_cleanup()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_cleanup (void);
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function is responsible for cleaning up after use of the MongoDB C driver. It will release any lingering allocated memory which can be useful when running under valgrind.</p>
+  </section>
+
+</page>

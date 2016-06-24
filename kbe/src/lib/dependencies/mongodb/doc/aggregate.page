@@ -1,0 +1,122 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      id="aggregate">
+  <info><link xref="index#aggregation" type="guide"/></info>
+  <title>Aggregation Framework Examples</title>
+
+  <p>This document provides a number of practical examples that display the capabilities of the aggregation framework.</p>
+
+  <p>The <link href="https://docs.mongodb.org/manual/tutorial/aggregation-zip-code-data-set/">Aggregations using the Zip Codes Data Set</link> examples uses a publicly available data set of all zipcodes and populations in the United States. These data are available at: <link href="http://media.mongodb.org/zips.json">zips.json</link>.</p>
+
+  <section id="requirements">
+    <title>Requirements</title>
+
+    <p><link href="https://www.mongodb.org">MongoDB</link>, version 2.2.0 or later. <link href="https://github.com/mongodb/mongo-c-driver">MongoDB C driver</link>, version 0.96.0 or later.</p>
+    <p>Let's check if everything is installed.</p>
+    <p>Use the following command to load zips.json data set into mongod instance:</p>
+
+    <screen><output style="prompt">$ </output><input>mongoimport --drop -d test -c zipcodes zips.json</input></screen>
+
+    <p>Let's use the MongoDB shell to verify that everything was imported successfully.</p>
+
+    <screen><output style="prompt">$ </output><input>mongo test</input>
+<output>MongoDB shell version: 2.6.1
+connecting to: test</output>
+<output style="prompt">&gt; </output><input>db.zipcodes.count()</input>
+<output>29467</output>
+<output style="prompt">&gt; </output><input>db.zipcodes.findOne()</input>
+<output><![CDATA[{
+	"_id" : "35004",
+	"city" : "ACMAR",
+	"loc" : [
+		-86.51557,
+		33.584132
+	],
+	"pop" : 6055,
+	"state" : "AL"
+}]]></output></screen>
+  </section>
+
+  <section>
+    <title>Aggregations using the Zip Codes Data Set</title>
+    <p>Each document in this collection has the following form:</p>
+    <synopsis><code mime="text/x-json"><![CDATA[{
+  "_id" : "35004",
+  "city" : "Acmar",
+  "state" : "AL",
+  "pop" : 6055,
+  "loc" : [-86.51557, 33.584132]
+}]]></code></synopsis>
+
+    <p>In these documents:</p>
+
+    <list>
+      <item><p>The <code>_id</code> field holds the zipcode as a string.</p></item>
+      <item><p>The <code>city</code> field holds the city name.</p></item>
+      <item><p>The <code>state</code> field holds the two letter state abbreviation.</p></item>
+      <item><p>The <code>pop</code> field holds the population.</p></item>
+      <item><p>The <code>loc</code> field holds the location as a <code>[latitude, longitude]</code> array.</p></item>
+    </list>
+  </section>
+
+  <section>
+    <title>States with Populations Over 10 Million</title>
+    <p>To get all states with a population greater than 10 million, use the following aggregation pipeline:</p>
+    <synopsis><code mime="text/x-csrc"><include parse="text" href="../examples/aggregation/aggregation1.c" xmlns="http://www.w3.org/2001/XInclude" /></code></synopsis>
+
+    <p>You should see a result like the following:</p>
+
+    <synopsis><code mime="text/x-json"><![CDATA[{ "_id" : "PA", "total_pop" : 11881643 }
+{ "_id" : "OH", "total_pop" : 10847115 }
+{ "_id" : "NY", "total_pop" : 17990455 }
+{ "_id" : "FL", "total_pop" : 12937284 }
+{ "_id" : "TX", "total_pop" : 16986510 }
+{ "_id" : "IL", "total_pop" : 11430472 }
+{ "_id" : "CA", "total_pop" : 29760021 }]]></code></synopsis>
+
+    <p>The above aggregation pipeline is build from two pipeline operators: <code>$group</code> and <code>$match</code>.</p>
+
+    <p>The <code>$group</code> pipeline operator requires _id field where we specify grouping; remaining fields specify how to generate composite value and must use one of the group aggregation functions: <code>$addToSet</code>, <code>$first</code>, <code>$last</code>, <code>$max</code>, <code>$min</code>, <code>$avg</code>, <code>$push</code>, <code>$sum</code>. The <code>$match</code> pipeline operator syntax is the same as the read operation query syntax.</p>
+
+    <p>The <code>$group</code> process reads all documents and for each state it creates a separate document, for example:</p>
+
+    <synopsis><code mime="text/x-json">{ "_id" : "WA", "total_pop" : 4866692 }</code></synopsis>
+
+    <p>The <code>total_pop</code> field uses the $sum aggregation function to sum the values of all pop fields in the source documents.</p>
+    <p>Documents created by <code>$group</code> are piped to the <code>$match</code> pipeline operator. It returns the documents with the value of <code>total_pop</code> field greater than or equal to 10 million.</p>
+
+  </section>
+
+  <section>
+    <title>Average City Population by State</title>
+    <p>To get the first three states with the greatest average population per city, use the following aggregation:</p>
+
+    <synopsis><code mime="text/x-csrc"><![CDATA[pipeline = BCON_NEW ("pipeline", "[",
+   "{", "$group", "{", "_id", "{", "state", "$state", "city", "$city", "}", "pop", "{", "$sum", "$pop", "}", "}", "}",
+   "{", "$group", "{", "_id", "$_id.state", "avg_city_pop", "{", "$avg", "$pop", "}", "}", "}",
+   "{", "$sort", "{", "avg_city_pop", BCON_INT32 (-1), "}", "}",
+   "{", "$limit", BCON_INT32 (3) "}",
+"]");]]></code></synopsis>
+
+    <p>This aggregate pipeline produces:</p>
+
+    <synopsis><code mime="text/x-json"><![CDATA[{ "_id" : "DC", "avg_city_pop" : 303450.0 }
+{ "_id" : "FL", "avg_city_pop" : 27942.29805615551 }
+{ "_id" : "CA", "avg_city_pop" : 27735.341099720412 }]]></code></synopsis>
+
+    <p>The above aggregation pipeline is build from three pipeline operators: <code>$group</code>, <code>$sort</code> and <code>$limit</code>.</p>
+
+    <p>The first <code>$group</code> operator creates the following documents:</p>
+
+    <synopsis><code mime="text/x-json"><![CDATA[{ "_id" : { "state" : "WY", "city" : "Smoot" }, "pop" : 414 }]]></code></synopsis>
+
+    <p>Note, that the <code>$group</code> operator can't use nested documents except the <code>_id</code> field.</p>
+
+    <p>The second <code>$group</code> uses these documents to create the following documents:</p>
+
+    <synopsis><code mime="text/x-json"><![CDATA[{ "_id" : "FL", "avg_city_pop" : 27942.29805615551 }]]></code></synopsis>
+
+    <p>These documents are sorted by the <code>avg_city_pop</code> field in descending order. Finally, the <code>$limit</code> pipeline operator returns the first 3 documents from the sorted set.</p>
+  </section>
+
+</page>

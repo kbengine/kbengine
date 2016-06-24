@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_gridfs_file_save">
+  <info>
+    <link type="guide" xref="mongoc_gridfs_file_t" group="function"/>
+  </info>
+  <title>mongoc_gridfs_file_save()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_gridfs_file_save (mongoc_gridfs_file_t *file);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>file</p></td><td><p>A <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Saves modifications to <code>file</code> to the MongoDB server.</p>
+    <p>If an error occurred, false is returned and the error can be retrieved with <code xref="mongoc_gridfs_file_error">mongoc_gridfs_file_error()</code>.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns true if successful, otherwise false.</p>
+  </section>
+
+</page>

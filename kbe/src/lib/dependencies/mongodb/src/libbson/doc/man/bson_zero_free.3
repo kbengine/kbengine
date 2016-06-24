@@ -1,0 +1,50 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ZERO_FREE" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_zero_free() \- This function behaves like bson_free() except that it zeroes the memory first. This can be useful if you are storing passwords or other similarly important data. Note that if it truly is important, you probably want a page protected with mlock() as well to prevent it swapping to disk.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+bson_zero_free (void  *mem,
+                size_t size);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B mem
+A memory region.
+.LP
+.TP
+.B
+.B size
+The size of
+.B mem
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function behaves like
+.B bson_free(3)
+except that it zeroes the memory first. This can be useful if you are storing passwords or other similarly important data. Note that if it truly is important, you probably want a page protected with
+.B mlock(3)
+as well to prevent it swapping to disk.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

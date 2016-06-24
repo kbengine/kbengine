@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_socket_new">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_socket_t" group="function"/>
+  </info>
+  <title>mongoc_stream_socket_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_stream_t *
+mongoc_stream_socket_new (mongoc_socket_t *socket);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>socket</p></td><td><p>A <code xref="mongoc_socket_t">mongoc_socket_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>Creates a new <code xref="mongoc_stream_socket_t">mongoc_stream_socket_t</code> using the <code xref="mongoc_socket_t">mongoc_socket_t</code> provided.</p>
+    <note style="warning"><p>This function transfers ownership of <code>socket</code> to the newly allocated stream.</p></note>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_stream_socket_t">mongoc_stream_socket_t</code> that should be freed with <code xref="mongoc_stream_destroy">mongoc_stream_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

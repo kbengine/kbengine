@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_create_bulk_operation">
+
+
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_create_bulk_operation()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_bulk_operation_t *
+mongoc_collection_create_bulk_operation (
+      mongoc_collection_t          *collection,
+      bool                          ordered,
+      const mongoc_write_concern_t *write_concern)
+   BSON_GNUC_WARN_UNUSED_RESULT;
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+      <tr><td><p>ordered</p></td><td><p>If the operations must be performed in order.</p></td></tr>
+      <tr><td><p>write_concern</p></td><td><p>An optional <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall begin a new bulk operation. After creating this you may call various functions such as <code xref="mongoc_bulk_operation_update">mongoc_bulk_operation_update()</code>, <code xref="mongoc_bulk_operation_insert">mongoc_bulk_operation_insert()</code> and others.</p>
+    <p>After calling <code xref="mongoc_bulk_operation_execute">mongoc_bulk_operation_execute()</code> the commands will be executed in as large as batches as reasonable by the client.</p>
+    <p>If <code>ordered</code> is true, then processing will stop at the first error.</p>
+    <p>If <code>ordered</code> is not true, then the bulk operation will attempt to continue processing even after the first failure.</p>
+    <p><code>write_concern</code> contains the write concern for all operations in the bulk operation. If <code>NULL</code>, the collection's write concern is used. The global default is acknowledged writes: MONGOC_WRITE_CONCERN_W_DEFAULT.</p>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated when executing the bulk operation.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_bulk_operation_t">mongoc_bulk_operation_t</code> that should be freed with <code xref="mongoc_bulk_operation_destroy">mongoc_bulk_operation_destroy()</code> when no longer in use.</p>
+    <note style="warning"><p>Failure to handle the result of this function is a programming error.</p></note>
+  </section>
+
+
+</page>

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_delete">
+
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_delete()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_collection_delete (mongoc_collection_t          *collection,
+                          mongoc_delete_flags_t         flags,
+                          const bson_t                 *selector,
+                          const mongoc_write_concern_t *write_concern,
+                          bson_error_t                 *error);
+]]></code></synopsis>
+  </section>
+
+  <section id="deprecated">
+    <title>Deprecated</title>
+    <note style="warning"><p>This function is deprecated and should not be used in new code.</p></note>
+    <p>Please use <code xref="mongoc_collection_remove">mongoc_collection_remove()</code> instead.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>A <code xref="mongoc_delete_flags_t">mongoc_delete_flags_t</code>.</p></td></tr>
+      <tr><td><p>selector</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the query to match documents.</p></td></tr>
+      <tr><td><p>write_concern</p></td><td><p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code> or <code>NULL</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall delete documents in the given <code>collection</code> that match <code>selector</code>. The bson <code>selector</code> is not validated, simply passed along as appropriate to the server.  As such, compatibility and errors should be validated in the appropriate server documentation.</p>
+
+    <p>If you want to limit deletes to a single document, provide <code>MONGOC_DELETE_SINGLE_REMOVE</code> in <code>flags</code>.</p>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>true if successful, otherwise false and error is set.</p>
+  </section>
+
+</page>

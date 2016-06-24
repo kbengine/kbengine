@@ -1,0 +1,126 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_collection_aggregate()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » <a class="trail" href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_collection_aggregate()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">mongoc_cursor_t *
+mongoc_collection_aggregate (mongoc_collection_t       *collection,
+                             mongoc_query_flags_t       flags,
+                             const bson_t              *pipeline,
+                             const bson_t              *options,
+                             const mongoc_read_prefs_t *read_prefs)
+   BSON_GNUC_WARN_UNUSED_RESULT;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">collection</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">flags</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_query_flags_t.html" title="mongoc_query_flags_t">mongoc_query_flags_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">pipeline</p></td>
+<td><p class="p">A <span class="code">bson_t</span> containing the pipeline array.</p></td>
+</tr>
+<tr>
+<td><p class="p">options</p></td>
+<td><p class="p">A <span class="code">bson_t</span> containing options for the pipeline, or <span class="code">NULL</span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">read_prefs</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_read_prefs_t.html" title="mongoc_read_prefs_t">mongoc_read_prefs_t</a></span> or <span class="code">NULL</span>.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">This function shall execute an aggregation query on the underlying 'collection'. The bson 'pipeline' is not validated, simply passed along as appropriate to the server.  As such, compatibility and errors should be validated in the appropriate server documentation.</p>
+<p class="p">In the case of older server versions, &lt; v2.5, the returned cursor is a synthetic iterator over the result set. This provides a limitation insofar as returned documents can be no larger than 16MB. When connecting to newer servers this limitation doesn't exist. The specific test is for wire_version &gt; 0.</p>
+<p class="p">For more information on building MongoDB pipelines, see <span class="link"><a href="http://docs.mongodb.org/manual/reference/command/aggregate/" title="http://docs.mongodb.org/manual/reference/command/aggregate/">MongoDB Aggregation Command</a></span> on the MongoDB website.</p>
+<div class="note" title="Note"><div class="inner"><div class="region"><div class="contents"><p class="p">The <span class="code">pipeline</span> parameter should contain a field named <span class="code">pipeline</span> containing a BSON array of pipeline stages.</p></div></div></div></div>
+<div class="note note-tip" title="Tip"><div class="inner"><div class="region"><div class="contents"><p class="p">The <span class="link"><a href="mongoc_read_concern_t.html" title="mongoc_read_concern_t">mongoc_read_concern_t</a></span> specified on the <span class="link"><a href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a></span> will be used, if any.</p></div></div></div></div>
+</div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">This function returns a newly allocated <span class="code"><a href="mongoc_cursor_t.html" title="mongoc_cursor_t">mongoc_cursor_t</a></span> that should be freed with <span class="code"><a href="mongoc_cursor_destroy.html" title="mongoc_cursor_destroy()">mongoc_cursor_destroy()</a></span> when no longer in use. <span class="code">NULL</span> may be returned if parameters are invalid.</p>
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">Failure to handle the result of this function is a programming error.</p></div></div></div></div>
+</div></div>
+</div></div>
+<div id="example" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title">Aggregation Example</span></h3></div>
+<div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bcon.h&gt;
+#include &lt;mongoc.h&gt;
+
+static mongoc_cursor_t *
+pipeline_query (mongoc_collection_t *collection)
+{
+   mongoc_cursor_t *cursor;
+   bson_t *pipeline;
+
+   pipeline = BCON_NEW ("pipeline", "[",
+                           "{", "$match", "{", "foo", BCON_UTF8 ("A"), "}", "}",
+                           "{", "$match", "{", "bar", BCON_BOOL (false), "}", "}",
+                        "]");
+
+   cursor = mongoc_collection_aggregate (collection,
+                                         MONGOC_QUERY_NONE,
+                                         pipeline,
+                                         NULL,
+                                         NULL);
+
+   bson_destroy (pipeline);
+
+   return cursor;
+}</pre></div></div></div>
+</div></div></div></div>
+</div></div>
+<div id="options" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Other Parameters</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">Pass any parameters to the <span class="code">aggregate</span> command, besides <span class="code">pipeline</span>, as fields in <span class="code">options</span>:</p>
+<div class="listing"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">pipeline = BCON_NEW ("pipeline", "[",
+                        "{", "$out", BCON_UTF8 ("collection2"), "}",
+                     "]");
+
+options = BCON_NEW ("bypassDocumentValidation", BCON_BOOL (true));
+cursor = mongoc_collection_aggregate (collection1,
+                                      MONGOC_QUERY_NONE,
+                                      pipeline,
+                                      options,
+                                      NULL);</pre></div></div></div></div></div>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

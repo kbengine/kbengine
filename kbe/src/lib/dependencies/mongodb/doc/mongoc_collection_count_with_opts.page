@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_count_with_opts">
+
+
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_count_with_opts()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int64_t
+mongoc_collection_count_with_opts (mongoc_collection_t       *collection,
+                                   mongoc_query_flags_t       flags,
+                                   const bson_t              *query,
+                                   int64_t                    skip,
+                                   int64_t                    limit,
+                                   const bson_t              *opts,
+                                   const mongoc_read_prefs_t *read_prefs,
+                                   bson_error_t              *error);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>A <code xref="mongoc_query_flags_t">mongoc_query_flags_t</code>.</p></td></tr>
+      <tr><td><p>query</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the query.</p></td></tr>
+      <tr><td><p>skip</p></td><td><p>A int64_t, zero to ignore.</p></td></tr>
+      <tr><td><p>limit</p></td><td><p>A int64_t, zero to ignore.</p></td></tr>
+      <tr><td><p>opts</p></td><td><p>A <code xref="bson:bson_t">bson_t</code>, <code>NULL</code> to ignore.</p></td></tr>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> or <code>NULL</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall execute a count query on the underlying 'collection'. The bson 'query' is not validated, simply passed along as appropriate to the server.  As such, compatibility and errors should be validated in the appropriate server documentation.</p>
+    <p>In addition to the standard functionality available from mongoc_collection_count, this function allows the user to add arbitrary extra keys to the count.  This pass through enables features such as hinting for counts.</p>
+    <p>For more information, see the <link href="http://docs.mongodb.org/manual/reference/operator/query/">query reference</link> at the MongoDB website.</p>
+    <note style="tip"><p>The <link xref="mongoc_read_concern_t">mongoc_read_concern_t</link> specified on the <link xref="mongoc_collection_t">mongoc_collection_t</link> will be used, if any.</p></note>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>-1 on failure, otherwise the number of documents counted.</p>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <listing>
+      <title>Count Example</title>
+      <code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+#include <bcon.h>
+#include <stdio.h>
+
+static void
+print_query_count (mongoc_collection_t *collection,
+                   bson_t              *query)
+{
+   bson_error_t error;
+   int64_t count;
+   bson_t opts;
+
+   bson_init(&opts);
+   BSON_APPEND_UTF8(&opts, "hint", "_id_");
+
+   count = mongoc_collection_count_with_opts (collection, MONGOC_QUERY_NONE, query, 0, 0, &opts, NULL, &error);
+
+   bson_destroy(&opts);
+
+   if (count < 0) {
+      fprintf (stderr, "Count failed: %s\n", error.message);
+   } else {
+      printf ("%"PRId64" documents counted.\n", count);
+   }
+}]]></code>
+    </listing>
+  </section>
+
+</page>

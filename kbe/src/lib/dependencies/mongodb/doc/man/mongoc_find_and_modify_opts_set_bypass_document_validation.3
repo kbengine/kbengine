@@ -1,0 +1,136 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_FIND_AND_MODIFY_OPTS_SET_BYPASS_DOCUMENT_VALIDATION" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_find_and_modify_opts_set_bypass_document_validation() \- Adds bypassDocumentValidation argument to the builder.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_find_and_modify_opts_set_bypass_document_validation (mongoc_find_and_modify_opts_t *opts,
+                                                            bool                           bypass);
+.fi
+.fi
+
+.B NOTE
+.RS
+New in MongoDB 3.2 and mongoc 1.3.0
+.RE
+
+.B NOTE
+.RS
+This option is only available when talking to MongoDB 3.2 and later.
+.RE
+
+.SH "PARAMETERS"
+
+.TP
+.B
+opts
+A
+.B mongoc_find_and_modify_opts_t
+\e&.
+.LP
+.TP
+.B
+bypass
+If the schema validation rules should be ignored.
+.LP
+
+.SH "DESCRIPTION"
+
+Adds bypassDocumentValidation argument to the builder.
+
+.B NOTE
+.RS
+When authentication is enabled, the authenticated user must have either the "dbadmin" or "restore" roles to bypass document validation.
+.RE
+
+.SH "RETURNS"
+
+Returns true if it successfully added the option to the builder.
+
+.SH "SETTING BYPASSDOCUMENTVALIDATION"
+
+.nf
+
+void fam_bypass(mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t reply;
+   bson_t *update;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic, the striker */
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+   BSON_APPEND_UTF8 (&query, "profession", "Football player");
+
+   /* Bump his age */
+   update = BCON_NEW ("$inc", "{",
+      "age", BCON_INT32 (1),
+   "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+   mongoc_find_and_modify_opts_set_update (opts, update);
+   /* He can still play, even though he is pretty old. */
+   mongoc_find_and_modify_opts_set_bypass_document_validation (opts, true);
+
+   success = mongoc_collection_find_and_modify_with_opts (collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf(stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+.fi
+
+Outputs:
+
+.nf
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

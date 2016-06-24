@@ -1,0 +1,48 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_READ_PREFS_ADD_TAG" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_read_prefs_add_tag() \- This function shall add a tag to a read preference.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+mongoc_read_prefs_add_tag (mongoc_read_prefs_t *read_prefs,
+                           const bson_t        *tag);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+read_prefs
+A
+.B mongoc_read_prefs_t
+\e&.
+.LP
+.TP
+.B
+tag
+A
+.B bson_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function shall add a tag to a read preference.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

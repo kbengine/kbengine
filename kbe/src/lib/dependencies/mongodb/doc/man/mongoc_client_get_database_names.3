@@ -1,0 +1,87 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_CLIENT_GET_DATABASE_NAMES" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+mongoc_client_get_database_names() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+char **
+mongoc_client_get_database_names (mongoc_client_t *client,
+                                  bson_error_t    *error);
+.fi
+.fi
+
+This function queries the MongoDB server for a list of known databases.
+
+.SH "PARAMETERS"
+
+.TP
+.B
+client
+A
+.B mongoc_client_t
+\e&.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+A
+.B NULL
+terminated vector of
+.B NULL\(hybyte
+terminated strings. The result should be freed with
+.B bson_strfreev(3)
+\e&.
+
+.B NULL
+is returned upon failure and
+.B error
+is set.
+
+.SH "EXAMPLES"
+
+.nf
+{
+   bson_error_t error;
+   char **strv;
+   unsigned i;
+
+   if ((strv = mongoc_client_get_collection_names (client, &error))) {
+      for (i = 0; strv [i]; i++)
+         printf ("%s\en", strv [i]);
+      bson_strfreev (strv);
+   } else {
+      fprintf (stderr, "Command failed: %s\en", error.message);
+   }
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_rand_add">
+
+
+  <info>
+    <link type="guide" xref="mongoc_rand" group="function"/>
+  </info>
+  <title>mongoc_rand_add()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_rand_add(const void *buf,
+                int         num,
+                double      entropy);
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Mixes num bytes of data into the mongoc random number generator.  Entropy specifies a lower bound estimate of the randomness contained in buf.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>buf</p></td><td><p>A buffer.</p></td></tr>
+      <tr><td><p>num</p></td><td><p>An int of number of bytes in buf.</p></td></tr>
+      <tr><td><p>entropy</p></td><td><p>A double of randomness estimate in buf.</p></td></tr>
+    </table>
+  </section>
+
+</page>

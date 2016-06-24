@@ -1,0 +1,142 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Authentication</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Authentication</span></h1></div>
+<div class="region">
+<div class="contents"><p class="p">This guide covers the use of authentication options with the MongoDB C Driver. Ensure that the MongoDB server is also properly configured for authentication before making a connection. For more information, see the <span class="link"><a href="https://docs.mongodb.org/manual/administration/security/" title="https://docs.mongodb.org/manual/administration/security/">MongoDB security documentation</a></span>.</p></div>
+<div id="basic-auth" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Basic Authentication</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">The MongoDB C driver supports challenge response authentication (sometimes known as <span class="code">MONGODB-CR</span>) through the use of MongoDB connection URIs.</p>
+<p class="p">Simply provide the username and password as one would with an <span class="code">HTTP URL</span>, as well as the database to authenticate against via <span class="code">authSource</span>.</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_client_t *client = mongoc_client_new ("mongodb://user:password@localhost/?authSource=mydb");</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#authentication" title="Authentication">Authentication</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="kerberos" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">GSSAPI (Kerberos) Authentication</span></h2></div>
+<div class="region">
+<div class="contents">
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">Kerberos support is only provided in environments supported by the <span class="code">cyrus-sasl</span> Kerberos implementation. This currently limits support to UNIX-like environments.</p></div></div></div></div>
+<p class="p"><span class="code">GSSAPI</span> (Kerberos) authentication is available in the Enterprise Edition of MongoDB, version 2.4 and newer. To authenticate using <span class="code">GSSAPI</span>, the MongoDB C driver must be installed with SASL support. Run the <span class="code">kinit</span> command before using the following authentication methods:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ </span><span class="input">kinit mongodbuser@EXAMPLE.COM</span>
+<span class="output">mongodbuser@EXAMPLE.COM's Password:</span>
+<span class="prompt output">$ </span><span class="input">klist</span>
+<span class="output">Credentials cache: FILE:/tmp/krb5cc_1000
+        Principal: mongodbuser@EXAMPLE.COM
+
+  Issued                Expires               Principal
+Feb  9 13:48:51 2013  Feb  9 23:48:51 2013  krbtgt/EXAMPLE.COM@EXAMPLE.COM</span></pre></div>
+<p class="p">Now authenticate using the MongoDB URI. <span class="code">GSSAPI</span> authenticates against the <span class="code">$external</span> virtual database, so a database does not need to be specified in the URI. Note that the Kerberos principal <span class="em">must</span> be URL-encoded:</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_client_t *client;
+
+client = mongoc_client_new ("mongodb://mongodbuser%40EXAMPLE.COM@example.com/?authMechanism=GSSAPI");
+</span></pre></div>
+<p class="p">The default service name used by MongoDB and the MongoDB C driver is <span class="code">mongodb</span>. A custom service name can be specified with the <span class="code">gssapiServiceName</span> option:</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_client_t *client;
+
+client = mongoc_client_new ("mongodb://mongodbuser%40EXAMPLE.COM@example.com/?authMechanism=GSSAPI&amp;gssapiServiceName=myservicename");
+</span></pre></div>
+<div class="note" title="Note"><div class="inner"><div class="region"><div class="contents">
+<p class="p">When encountering errors such as <span class="code">Invalid net address</span>, check if the application is behind a NAT (Network Address Translation) firewall. If so, create a ticket that uses <span class="code">forwardable</span> and <span class="code">addressless</span> Kerberos tickets. This can be done by passing <span class="code">-f -A</span> to <span class="code">kinit</span>.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ </span><span class="input">kinit -f -A mongodbuser@EXAMPLE.COM</span></pre></div>
+</div></div></div></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#authentication" title="Authentication">Authentication</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="ssl" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">SSL Authentication</span></h2></div>
+<div class="region">
+<div class="contents">
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">The MongoDB C Driver must be compiled with the <span class="code">--enable-ssl</span> option to use SSL authentication.</p></div></div></div></div>
+<p class="p">To connect to a MongoDB server enabled with SSL, add the <span class="code">?ssl=true</span> option in the MongoDB URI.</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_uri_t *uri = mongoc_uri_new ("mongodb://localhost/?ssl=true");</span></pre></div>
+<div class="note note-important" title="Important"><div class="inner"><div class="region"><div class="contents"><p class="p">Connecting to a server that does not support SSL will fail if the <span class="code">?ssl=true</span> parameter is provided in the URI. This is to prevent unintentional information leak.</p></div></div></div></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#authentication" title="Authentication">Authentication</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="sasl-plain" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">SASL Plain Authentication</span></h2></div>
+<div class="region">
+<div class="contents">
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">The MongoDB C Driver must be compiled with SASL support in order to use <span class="code">SASL PLAIN</span> authentication.</p></div></div></div></div>
+<p class="p">MongoDB Enterprise Edition versions 2.5.0 and newer support the <span class="code">SASL PLAIN</span> authentication mechanism, initially intended for delegating authentication to an LDAP server. Using the <span class="code">SASL PLAIN</span> mechanism is very similar to the challenge response mechanism with usernames and passwords. These examples use the <span class="code">$external</span> virtual database for <span class="code">LDAP</span> support:</p>
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p"><span class="code">SASL PLAIN</span> is a clear-text authentication mechanism. It is strongly recommended to connect to MongoDB using SSL with certificate validation when using the <span class="code">PLAIN</span> mechanism.</p></div></div></div></div>
+<div class="screen"><pre class="contents "><span class="code">mongoc_client_t *client;
+
+client = mongoc_client_new ("mongodb://user:password@example.com/?authMechanism=PLAIN&amp;authSource=$external");</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#authentication" title="Authentication">Authentication</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="x509" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">X.509 Certificate Authentication</span></h2></div>
+<div class="region">
+<div class="contents">
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">The MongoDB C Driver must be compiled with SSL support for X.509 authentication support.</p></div></div></div></div>
+<p class="p">The <span class="code">MONGODB-X509</span> mechanism authenticates a username derived from the distinguished subject name of the X.509 certificate presented by the driver during SSL negotiation. This authentication method requires the use of SSL connections with certificate validation and is available in MongoDB 2.5.1 and newer:</p>
+<div class="screen"><pre class="contents "><span class="code">mongoc_client_t *client;
+mongoc_ssl_opt_t ssl_opts = { 0 };
+
+ssl_opts.pem_file = "mycert.pem";
+ssl_opts.pem_pwd = "mycertpassword";
+ssl_opts.ca_file = "myca.pem";
+ssl_opts.ca_dir = "trust_dir";
+ssl_opts.weak_cert_validation = false;
+
+client = mongoc_client_new ("mongodb://x509_derived_username@localhost/?authMechanism=MONGODB-X509");
+mongoc_client_set_ssl_opts (client, &amp;ssl_opts);
+</span></pre></div>
+<p class="p"><span class="code">MONGODB-X509</span> authenticates against the <span class="code">$external</span> database, so specifying a database is not required.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#authentication" title="Authentication">Authentication</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

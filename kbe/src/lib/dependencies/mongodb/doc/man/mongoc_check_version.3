@@ -1,0 +1,50 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_CHECK_VERSION" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_check_version() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_check_version (int required_major,
+                      int required_minor,
+                      int required_micro);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+required_major
+The minimum major version required.
+.LP
+.TP
+.B
+required_minor
+The minimum minor version required.
+.LP
+.TP
+.B
+required_micro
+The minimum micro version required.
+.LP
+
+.SH "RETURNS"
+
+True if libmongoc's version is greater than or equal to the required version.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_database_create_collection">
+
+
+  <info>
+    <link type="guide" xref="mongoc_database_t" group="function"/>
+  </info>
+  <title>mongoc_database_create_collection()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_collection_t *
+mongoc_database_create_collection (mongoc_database_t *database,
+                                   const char        *name,
+                                   const bson_t      *options,
+                                   bson_error_t      *error);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>database</p></td><td><p>A <code xref="mongoc_database_t">mongoc_database_t</code>.</p></td></tr>
+      <tr><td><p>name</p></td><td><p>The name of the new collection.</p></td></tr>
+      <tr><td><p>options</p></td><td><p>An optional <code xref="bson:bson_t">bson_t</code> for options to the <code>createDatabase</code> command.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>A location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>This function returns a newly allocated <code xref="mongoc_collection_t">mongoc_collection_t</code> upon success, <code>NULL</code> upon failure and <code>error</code> is set.</p>
+  </section>
+
+</page>

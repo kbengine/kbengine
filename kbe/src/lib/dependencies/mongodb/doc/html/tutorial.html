@@ -1,0 +1,920 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Tutorial</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Tutorial</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">This guide offers a brief introduction to the MongoDB C Driver.</p>
+<p class="p">For more information on the C API, please refer to the <span class="link"><a href="index.html#api-reference" title="API Reference">API Documentation</a></span>.</p>
+<div role="navigation" class="links sectionlinks"><div class="inner"><div class="region"><ul>
+<li class="links "><a href="tutorial.html#installation" title="0. Installing">0. Installing</a></li>
+<li class="links "><a href="tutorial.html#starting-mongod" title="1. Starting MongoDB">1. Starting MongoDB</a></li>
+<li class="links "><a href="tutorial.html#connecting" title="2. Making a Connection">2. Making a Connection</a></li>
+<li class="links "><a href="tutorial.html#creating-bson-documents" title="3. Creating BSON Documents">3. Creating BSON Documents</a></li>
+<li class="links "><a href="tutorial.html#crud-operations" title="4. Basic CRUD Operations">4. Basic CRUD Operations</a></li>
+<li class="links "><a href="tutorial.html#executing-commands" title="5. Executing Commands">5. Executing Commands</a></li>
+<li class="links "><a href="tutorial.html#threading" title="6. Threading">6. Threading</a></li>
+<li class="links "><a href="tutorial.html#next-steps" title="7. Next Steps">7. Next Steps</a></li>
+</ul></div></div></div>
+</div>
+<div id="installation" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">0. Installing</span></h2></div>
+<div class="region">
+<div class="contents"><p class="p">For detailed instructions on installing the MongoDB C Driver on a particular platform, please see the <span class="link"><a href="installing.html" title="Installing the MongoDB C Driver">installation guide</a></span>.</p></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="installing.html" title="Installing the MongoDB C Driver">Installing the MongoDB C Driver</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="starting-mongod" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">1. Starting MongoDB</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">To run the examples in this tutorial, MongoDB must be installed and running on <span class="code">localhost</span> on the default port, 27017. To check if it is up and running, connect to it with the MongoDB shell.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ mongo --host localhost --port 27017
+MongoDB shell version: 3.0.6
+connecting to: localhost:27017/test
+&gt; </span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#tutorial" title="Tutorial">Tutorial</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="connecting" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">2. Making a Connection</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">The C Driver provides a convenient way to access MongoDB -- regardless of cluster configuration -- via a <span class="link"><a href="mongoc_client_t.html" title="mongoc_client_t">mongoc_client_t</a></span>. It transparently connects to standalone servers, replica sets and sharded clusters on demand. Once a connection has been made, handles to databases and collections can be obtained via the structs <span class="link"><a href="mongoc_database_t.html" title="mongoc_database_t">mongoc_database_t</a></span> and <span class="link"><a href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a></span>, respectively. MongoDB operations can then be performed through these handles.</p>
+<p class="p">At the start of an application, call <span class="link"><a href="mongoc_init.html" title="mongoc_init()">mongoc_init()</a></span> before any other libmongoc functions and call <span class="link"><a href="mongoc_cleanup.html" title="mongoc_cleanup()">mongoc_cleanup()</a></span> before exiting. When creating handles to clients, databases and servers, call the appropriate destroy functions when finished.</p>
+<p class="p">The example below establishes a connection to a standalone server on <span class="code">localhost</span> and performs a simple command. More information about database operations can be found in the <span class="link"><a href="tutorial.html#crud-operations" title="4. Basic CRUD Operations">CRUD Operations</a></span> and <span class="link"><a href="tutorial.html#executing-commands" title="5. Executing Commands">Executing Commands</a></span> sections. Examples of connecting to replica sets and sharded clusters can be found on the <span class="link"><a href="advanced-connections.html" title="Advanced Connections">Advanced Connections</a></span> page.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title"><span class="file">connect.c</span></span></h3></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents ">#include &lt;bson.h&gt;
+#include &lt;bcon.h&gt;
+#include &lt;mongoc.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t      *client;
+   mongoc_database_t    *database;
+   mongoc_collection_t  *collection;
+   bson_t               *command,
+                         reply,
+                        *insert;
+   bson_error_t          error;
+   char                 *str;
+   bool                  retval;
+
+   /*
+    * Required to initialize libmongoc's internals
+    */
+   mongoc_init ();
+
+   /*
+    * Create a new client instance
+    */
+   client = mongoc_client_new ("mongodb://localhost:27017");
+
+   /*
+    * Get a handle on the database "db_name" and collection "coll_name"
+    */
+   database = mongoc_client_get_database (client, "db_name");
+   collection = mongoc_client_get_collection (client, "db_name", "coll_name");
+
+   /*
+    * Do work. This example pings the database, prints the result as JSON and
+    * performs an insert
+    */
+   command = BCON_NEW ("ping", BCON_INT32 (1));
+
+   retval = mongoc_client_command_simple (client, "admin", command, NULL, &amp;reply, &amp;error);
+
+   if (!retval) {
+      fprintf (stderr, "%s\n", error.message);
+      return EXIT_FAILURE;
+   }
+
+   str = bson_as_json (&amp;reply, NULL);
+   printf ("%s\n", str);
+
+   insert = BCON_NEW ("hello", BCON_UTF8 ("world"));
+
+   if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, insert, NULL, &amp;error)) {
+      fprintf (stderr, "%s\n", error.message);
+   }
+
+   bson_destroy (insert);
+   bson_destroy (&amp;reply);
+   bson_destroy (command);
+   bson_free (str);
+
+   /*
+    * Release our handles and clean up libmongoc
+    */
+   mongoc_collection_destroy (collection);
+   mongoc_database_destroy (database);
+   mongoc_client_destroy (client);
+   mongoc_cleanup ();
+
+   return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">On a UNIX-like system, the code can be compiled and run like so:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o connect connect.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./connect
+{ "ok" : 1.000000 }</span></pre></div>
+<p class="p">Alternatively, if <span class="link"><a href="http://www.freedesktop.org/wiki/Software/pkg-config/" title="http://www.freedesktop.org/wiki/Software/pkg-config/">pkg-config</a></span> is not available, paths and libraries can be managed manually.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o connect connect.c -I/usr/local/include -lmongoc-1.0 -lbson-1.0
+$ ./connect
+{ "ok" : 1.000000 }</span></pre></div>
+<p class="p">For Windows users, the code can be compiled and run with the following commands. (This assumes that the MongoDB C Driver has been installed to <span class="code">C:\mongo-c-driver</span>; change the include directory as needed.)</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 connect.c
+C:\&gt; connect
+{ "ok" : 1.000000 }</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul>
+<li class="links "><a href="advanced-connections.html" title="Advanced Connections">Advanced Connections</a></li>
+<li class="links "><a href="index.html#tutorial" title="Tutorial">Tutorial</a></li>
+<li class="links "><a href="mongoc_client_get_collection.html" title="mongoc_client_get_collection()">mongoc_client_get_collection()</a></li>
+<li class="links "><a href="mongoc_client_get_database.html" title="mongoc_client_get_database()">mongoc_client_get_database()</a></li>
+<li class="links "><a href="mongoc_client_new.html" title="mongoc_client_new()">mongoc_client_new()</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="creating-bson-documents" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">3. Creating BSON Documents</span></h2></div>
+<div class="region">
+<div class="contents"><p class="p">Documents are stored in MongoDB's data format, BSON. The C driver uses <span class="link">libbson</span> to create BSON documents. There are several ways to construct them: appending key-value pairs, using BCON, or parsing JSON.</p></div>
+<div id="appending" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Appending BSON</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">A BSON document, represented as a <span class="link">bson_t</span> in code, can be constructed one field at a time using libbson's append functions.</p>
+<div class="screen"><pre class="contents "><span class="code">#include &lt;bson.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_t *document;
+   bson_t  child;
+   char   *str;
+
+   document = bson_new ();
+
+   /*
+    * Append {"hello" : "world"} to the document.
+    * Passing -1 for the length argument tells libbson to calculate the string length.
+    */
+   bson_append_utf8 (document, "hello", -1, "world", -1);
+
+   /*
+    * For convenience, this macro is equivalent.
+    */
+   BSON_APPEND_UTF8 (document, "hello", "world");
+
+   /*
+    * Begin a subdocument.
+    */
+   BSON_APPEND_DOCUMENT_BEGIN (document, "subdoc", &amp;child);
+   BSON_APPEND_UTF8 (&amp;child, "subkey", "value");
+   bson_append_document_end (document, &amp;child);
+
+   /*
+    * Print the document as a JSON string.
+    */
+   str = bson_as_json (document, NULL);
+   printf ("%s\n", str);
+   bson_free (str);
+
+   /*
+    * Clean up allocated bson documents.
+    */
+   bson_destroy (document);
+   return 0;
+}
+</span></pre></div>
+<p class="p">See the <span class="link">libbson documentation</span> for all of the types that can be appended to a <span class="code">bson_t</span>.</p>
+</div></div>
+</div></div>
+<div id="bcon" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Using BCON</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p"><span class="em">BSON C Object Notation</span>, BCON for short, is an alternative way of constructing BSON documents in a manner closer to the intended format. It has less type-safety than BSON's append functions but results in less code.</p>
+<div class="screen"><pre class="contents "><span class="code">#include &lt;bcon.h&gt;
+#include &lt;bson.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_t *doc;
+   char *str;
+
+   doc = BCON_NEW ("name", BCON_UTF8 ("Babe Ruth"),
+                   "statistics", "{",
+                      "batting_average", BCON_DOUBLE (.342),
+                      "hits", BCON_INT32 (2873),
+                      "home_runs", BCON_INT32 (714),
+                      "rbi", BCON_INT32 (2213),
+                   "}",
+                   "nicknames", "[",
+                      BCON_UTF8 ("the Sultan of Swat"),
+                      BCON_UTF8 ("the Bambino"),
+                   "]");
+
+   str = bson_as_json (doc, NULL);
+   printf ("%s\n", str);
+   bson_free (str);
+
+   bson_destroy (doc);
+
+   return 0;
+}
+</span></pre></div>
+<p class="p">Notice that BCON can create arrays, subdocuments and arbitrary fields.</p>
+</div></div>
+</div></div>
+<div id="bson-from-json" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Creating BSON from JSON</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">For <span class="em">single</span> documents, BSON can be created from JSON strings via <span class="link">bson_new_from_json</span>.</p>
+<p class="p">To initialize BSON from a sequence of JSON documents, use <span class="link">bson_json_reader_t</span>.</p>
+<div class="screen"><pre class="contents "><span class="code">#include &lt;bson.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_error_t error;
+   bson_t      *bson;
+   char        *string;
+
+   const char *json = "{\"hello\": \"world\"}";
+   bson = bson_new_from_json ((const uint8_t *)json, -1, &amp;error);
+
+   if (!bson) {
+      fprintf (stderr, "%s\n", error.message);
+      return EXIT_FAILURE;
+   }
+
+   string = bson_as_json (bson, NULL);
+   printf ("%s\n", string);
+   bson_free (string);
+
+   return 0;
+}
+</span></pre></div>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#tutorial" title="Tutorial">Tutorial</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="crud-operations" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">4. Basic CRUD Operations</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">This section demonstrates the basics of using the C Driver to interact with MongoDB.</p>
+<div role="navigation" class="links sectionlinks"><div class="inner"><div class="region"><ul>
+<li class="links "><a href="tutorial.html#insert" title="Inserting a Document">Inserting a Document</a></li>
+<li class="links "><a href="tutorial.html#find" title="Finding a Document">Finding a Document</a></li>
+<li class="links "><a href="tutorial.html#update" title="Updating a Document">Updating a Document</a></li>
+<li class="links "><a href="tutorial.html#remove" title="Deleting a Document">Deleting a Document</a></li>
+<li class="links "><a href="tutorial.html#count" title="Counting Documents">Counting Documents</a></li>
+</ul></div></div></div>
+</div>
+<div id="insert" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Inserting a Document</span></h3></div>
+<div class="region">
+<div class="contents">
+<p class="p">To insert documents into a collection, first obtain a handle to a <span class="code">mongoc_collection_t</span> via a <span class="code">mongoc_client_t</span>. Then, use <span class="link"><a href="mongoc_collection_insert.html" title="mongoc_collection_insert()">mongoc_collection_insert()</a></span> to add BSON documents to the collection. This example inserts into the database "mydb" and collection "mycoll".</p>
+<p class="p">When finished, ensure that allocated structures are freed by using their respective destroy functions.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h4><span class="title"><span class="file">insert.c</span></span></h4></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    doc = bson_new ();
+    bson_oid_init (&amp;oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &amp;oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &amp;error)) {
+        fprintf (stderr, "%s\n", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o insert insert.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./insert</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 insert.c
+C:\&gt; insert</span></pre></div>
+<p class="p">To verify that the insert succeeded, connect with the MongoDB shell.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+&gt; use mydb
+switched to db mydb
+&gt; db.mycoll.find()
+{ "_id" : ObjectId("55ef43766cb5f36a3bae6ee4"), "hello" : "world" }
+&gt; </span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h4><span class="title">More Information</span></h4></div>
+<div class="region"><ul>
+<li class="links "><a href="index.html#basic-operations" title="Basic Operations">Basic Operations</a></li>
+<li class="links "><a href="mongoc_collection_insert.html" title="mongoc_collection_insert()">mongoc_collection_insert()</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="find" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Finding a Document</span></h3></div>
+<div class="region">
+<div class="contents">
+<p class="p">To query a MongoDB collection with the C driver, use the function <span class="link"><a href="mongoc_collection_find.html" title="mongoc_collection_find()">mongoc_collection_find()</a></span>. This returns a <span class="link"><a href="mongoc_cursor_t.html" title="mongoc_cursor_t">cursor</a></span> to the matching documents. The following examples iterate through the result cursors and print the matches to <span class="code">stdout</span> as JSON strings.</p>
+<p class="p">Note that <span class="code">mongoc_collection_find</span> uses a document as a query specifier; for example,</p>
+<div class="screen"><pre class="contents "><span class="code">{ "color" : "red" }</span></pre></div>
+<p class="p">will match any document with a field named "color" with value "red". An empty document <span class="code">{}</span> can be used to match all documents.</p>
+<p class="p">This first example uses an empty query specifier to find all documents in the database "mydb" and collection "mycoll".</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h4><span class="title"><span class="file">find.c</span></span></h4></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+     char *argv[])
+{
+  mongoc_client_t *client;
+  mongoc_collection_t *collection;
+  mongoc_cursor_t *cursor;
+  const bson_t *doc;
+  bson_t *query;
+  char *str;
+
+  mongoc_init ();
+
+  client = mongoc_client_new ("mongodb://localhost:27017/");
+  collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+  query = bson_new ();
+  cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+  while (mongoc_cursor_next (cursor, &amp;doc)) {
+     str = bson_as_json (doc, NULL);
+     printf ("%s\n", str);
+     bson_free (str);
+  }
+
+  bson_destroy (query);
+  mongoc_cursor_destroy (cursor);
+  mongoc_collection_destroy (collection);
+  mongoc_client_destroy (client);
+  mongoc_cleanup ();
+
+  return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it: </p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o find find.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 find.c
+C:\&gt; find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+<p class="p">To look for a specific document, add a specifier to <span class="code">query</span>. This example adds a call to <span class="code">BSON_APPEND_UTF8()</span> to look for all documents matching <span class="code">{"hello" : "world"}</span>.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h4><span class="title"><span class="file">find-specific.c</span></span></h4></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+  #include &lt;mongoc.h&gt;
+  #include &lt;stdio.h&gt;
+
+  int
+  main (int   argc,
+        char *argv[])
+  {
+      mongoc_client_t *client;
+      mongoc_collection_t *collection;
+      mongoc_cursor_t *cursor;
+      const bson_t *doc;
+      bson_t *query;
+      char *str;
+
+      mongoc_init ();
+
+      client = mongoc_client_new ("mongodb://localhost:27017/");
+      collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+      query = bson_new ();
+      BSON_APPEND_UTF8 (query, "hello", "world");
+
+      cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+      while (mongoc_cursor_next (cursor, &amp;doc)) {
+          str = bson_as_json (doc, NULL);
+          printf ("%s\n", str);
+          bson_free (str);
+      }
+
+      bson_destroy (query);
+      mongoc_cursor_destroy (cursor);
+      mongoc_collection_destroy (collection);
+      mongoc_client_destroy (client);
+      mongoc_cleanup ();
+
+      return 0;
+  }
+  </pre></div></div></div></div></div></div></div>
+</div></div>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o find-specific find-specific.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./find-specific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 find-specific.c
+C:\&gt; find-specific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h4><span class="title">More Information</span></h4></div>
+<div class="region"><ul>
+<li class="links "><a href="index.html#basic-operations" title="Basic Operations">Basic Operations</a></li>
+<li class="links "><a href="mongoc_collection_find.html" title="mongoc_collection_find()">mongoc_collection_find()</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="update" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Updating a Document</span></h3></div>
+<div class="region">
+<div class="contents">
+<p class="p">This code snippet gives an example of using <span class="link"><a href="mongoc_collection_update.html" title="mongoc_collection_update()">mongoc_collection_update()</a></span> to update the fields of a document.</p>
+<p class="p">Using the "mydb" database, the following example inserts an example document into the "mycoll" collection. Then, using its <span class="code">_id</span> field, the document is updated with different values and a new field.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h4><span class="title"><span class="file">update.c</span></span></h4></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bcon.h&gt;
+#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_collection_t *collection;
+    mongoc_client_t *client;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc = NULL;
+    bson_t *update = NULL;
+    bson_t *query = NULL;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    bson_oid_init (&amp;oid, NULL);
+    doc = BCON_NEW ("_id", BCON_OID (&amp;oid),
+                    "key", BCON_UTF8 ("old_value"));
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &amp;error)) {
+        fprintf (stderr, "%s\n", error.message);
+        goto fail;
+    }
+
+    query = BCON_NEW ("_id", BCON_OID (&amp;oid));
+    update = BCON_NEW ("$set", "{",
+                           "key", BCON_UTF8 ("new_value"),
+                           "updated", BCON_BOOL (true),
+                       "}");
+
+    if (!mongoc_collection_update (collection, MONGOC_UPDATE_NONE, query, update, NULL, &amp;error)) {
+        fprintf (stderr, "%s\n", error.message);
+        goto fail;
+    }
+
+fail:
+    if (doc)
+        bson_destroy (doc);
+    if (query)
+        bson_destroy (query);
+    if (update)
+        bson_destroy (update);
+
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o update update.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./update</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 update.c
+C:\&gt; update
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+<p class="p">To verify that the update succeeded, connect with the MongoDB shell.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+&gt; use mydb
+switched to db mydb
+&gt; db.mycoll.find({"updated" : true})
+{ "_id" : ObjectId("55ef549236fe322f9490e17b"), "updated" : true, "key" : "new_value" }
+&gt; </span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h4><span class="title">More Information</span></h4></div>
+<div class="region"><ul>
+<li class="links "><a href="index.html#basic-operations" title="Basic Operations">Basic Operations</a></li>
+<li class="links "><a href="mongoc_collection_find_and_modify.html" title="mongoc_collection_find_and_modify()">mongoc_collection_find_and_modify()</a></li>
+<li class="links "><a href="mongoc_collection_update.html" title="mongoc_collection_update()">mongoc_collection_update()</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="remove" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Deleting a Document</span></h3></div>
+<div class="region">
+<div class="contents">
+<p class="p">This example illustrates the use of <span class="link"><a href="mongoc_collection_remove.html" title="mongoc_collection_remove()">mongoc_collection_remove()</a></span> to delete documents.</p>
+<p class="p">The following code inserts a sample document into the database "mydb" and collection "mycoll". Then, it deletes all documents matching <span class="code">{"hello" : "world"}</span>.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h4><span class="title"><span class="file">delete.c</span></span></h4></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "test", "test");
+
+    doc = bson_new ();
+    bson_oid_init (&amp;oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &amp;oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &amp;error)) {
+        fprintf (stderr, "Insert failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+
+    doc = bson_new ();
+    BSON_APPEND_OID (doc, "_id", &amp;oid);
+
+    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &amp;error)) {
+        fprintf (stderr, "Delete failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o delete delete.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./delete</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 delete.c
+C:\&gt; delete</span></pre></div>
+<p class="p">Use the MongoDB shell to prove that the documents have been removed successfully.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+&gt; use mydb
+switched to db mydb
+&gt; db.mycoll.count({"hello" : "world"})
+0
+&gt; </span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h4><span class="title">More Information</span></h4></div>
+<div class="region"><ul>
+<li class="links "><a href="index.html#basic-operations" title="Basic Operations">Basic Operations</a></li>
+<li class="links "><a href="mongoc_collection_remove.html" title="mongoc_collection_remove()">mongoc_collection_remove()</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="count" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Counting Documents</span></h3></div>
+<div class="region">
+<div class="contents">
+<p class="p">Counting the number of documents in a MongoDB collection is similar to performing a <span class="link"><a href="tutorial.html#find" title="Finding a Document">find operation</a></span>. This example counts the number of documents matching <span class="code">{"hello" : "world"}</span> in the database "mydb" and collection "mycoll".</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h4><span class="title"><span class="file">count.c</span></span></h4></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   bson_error_t error;
+   bson_t *doc;
+   int64_t count;
+
+   mongoc_init ();
+
+   client = mongoc_client_new ("mongodb://localhost:27017/");
+   collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+   doc = bson_new_from_json ((const uint8_t *)"{\"hello\" : \"world\"}", -1, &amp;error);
+
+   count = mongoc_collection_count (collection, MONGOC_QUERY_NONE, doc, 0, 0, NULL, &amp;error);
+
+   if (count &lt; 0) {
+      fprintf (stderr, "%s\n", error.message);
+   } else {
+      printf ("%" PRId64 "\n", count);
+   }
+
+   bson_destroy (doc);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+   mongoc_cleanup ();
+
+   return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it: </p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o count count.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./count
+1</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 count.c
+C:\&gt; count
+1</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h4><span class="title">More Information</span></h4></div>
+<div class="region"><ul>
+<li class="links "><a href="index.html#basic-operations" title="Basic Operations">Basic Operations</a></li>
+<li class="links "><a href="mongoc_collection_count.html" title="mongoc_collection_count()">mongoc_collection_count()</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#tutorial" title="Tutorial">Tutorial</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="executing-commands" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">5. Executing Commands</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">The driver provides helper functions for executing MongoDB commands on client, database and collection structures. These functions return <span class="link"><a href="mongoc_cursor_t.html" title="mongoc_cursor_t">cursors</a></span>; the <span class="code">_simple</span> variants return booleans indicating success or failure.</p>
+<p class="p">This example executes the <span class="link"><a href="http://docs.mongodb.org/manual/reference/command/collStats/" title="http://docs.mongodb.org/manual/reference/command/collStats/">collStats</a></span> command against the collection "mycoll" in database "mydb".</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title"><span class="file">executing.c</span></span></h3></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;bcon.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_t *command;
+    bson_t reply;
+    char *str;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    command = BCON_NEW ("collStats", BCON_UTF8 ("mycoll"));
+    if (mongoc_collection_command_simple (collection, command, NULL, &amp;reply, &amp;error)) {
+        str = bson_as_json (&amp;reply, NULL);
+        printf ("%s\n", str);
+        bson_free (str);
+    } else {
+        fprintf (stderr, "Failed to run command: %s\n", error.message);
+    }
+
+    bson_destroy (command);
+    bson_destroy (&amp;reply);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o executing executing.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 executing.c
+C:\&gt; executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul>
+<li class="links "><a href="index.html#tutorial" title="Tutorial">Tutorial</a></li>
+<li class="links "><a href="mongoc_client_command.html" title="mongoc_client_command()">mongoc_client_command()</a></li>
+<li class="links "><a href="mongoc_client_command_simple.html" title="mongoc_client_command_simple()">mongoc_client_command_simple()</a></li>
+<li class="links "><a href="mongoc_collection_command.html" title="mongoc_collection_command()">mongoc_collection_command()</a></li>
+<li class="links "><a href="mongoc_collection_command_simple.html" title="mongoc_collection_command_simple()">mongoc_collection_command_simple()</a></li>
+<li class="links "><a href="mongoc_database_command.html" title="mongoc_database_command()">mongoc_database_command()</a></li>
+<li class="links "><a href="mongoc_database_command_simple.html" title="mongoc_database_command_simple()">mongoc_database_command_simple()</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="threading" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">6. Threading</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">The MongoDB C Driver is thread-unaware in the vast majority of its operations. This means it is up to the programmer to guarantee thread-safety.</p>
+<p class="p">However, <span class="link"><a href="mongoc_client_pool_t.html" title="mongoc_client_pool_t">mongoc_client_pool_t</a></span> is thread-safe and is used to fetch a <span class="code">mongoc_client_t</span> in a thread-safe manner. After retrieving a client from the pool, the client structure should be considered owned by the calling thread. When the thread is finished, the client should be placed back into the pool.</p>
+<div class="screen"><pre class="contents "><span class="code">#include &lt;mongoc.h&gt;
+#include &lt;pthread.h&gt;
+
+#define N_THREADS 10
+
+static void *
+worker (void *data) {
+   mongoc_client_pool_t *pool = data;
+   mongoc_client_t      *client;
+
+   client = mongoc_client_pool_pop (pool);
+
+   /* Do something... */
+
+   mongoc_client_pool_push (pool, client);
+
+   return NULL;
+}
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_pool_t *pool;
+   mongoc_uri_t         *uri;
+   pthread_t             threads[N_THREADS];
+
+   mongoc_init ();
+
+   uri = mongoc_uri_new ("mongodb://localhost/");
+   pool = mongoc_client_pool_new (uri);
+
+   for (i = 0; i &lt; N_THREADS; i++) {
+      pthread_create (&amp;threads[i], NULL, worker, pool);
+   }
+
+   for (i = 0; i &lt; N_THREADS; i++) {
+      pthread_join (threads[i], NULL);
+   }
+
+   mongoc_client_pool_destroy (pool);
+   mongoc_uri_destroy (uri);
+   mongoc_cleanup ();
+
+   return 0;
+}
+</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#tutorial" title="Tutorial">Tutorial</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="next-steps" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">7. Next Steps</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">To find information on advanced topics, browse the rest of the <span class="link"><a href="index.html" title="MongoDB C Driver">C driver guide</a></span> or the <span class="link"><a href="https://docs.mongodb.org" title="https://docs.mongodb.org">official MongoDB documentation</a></span>.</p>
+<p class="p">For help with common issues, consult the <span class="link"><a href="basic-troubleshooting.html" title="Basic Troubleshooting">Troubleshooting</a></span> page. To report a bug or request a new feature, follow <span class="link"><a href="basic-troubleshooting.html#file-bug" title="Submitting a Bug Report">these instructions</a></span>.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul>
+<li class="links "><a href="basic-troubleshooting.html" title="Basic Troubleshooting">Basic Troubleshooting</a></li>
+<li class="links "><a href="index.html#tutorial" title="Tutorial">Tutorial</a></li>
+</ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

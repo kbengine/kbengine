@@ -1,0 +1,10 @@
+{
+    "name": "mongod",
+    "procParams": {
+        "ipv6": true,
+        "logappend": true,
+        "journal": true,
+        "storageEngine": "wiredTiger",
+        "port": 27017
+    }
+}

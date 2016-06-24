@@ -1,0 +1,97 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "OBJECTIDS" "3" "2016\(hy03\(hy30" "libbson"
+.SH NAME
+ObjectIDs \- None
+.SH "COMPOSITION"
+
+.IP \e[bu] 2
+4 bytes : The UNIX timestamp in big\(hyendian format.
+.IP \e[bu] 2
+3 bytes : The first 3 bytes of
+.B MD5(hostname)
+\e&.
+.IP \e[bu] 2
+2 bytes : The
+.B pid_t
+of the current process. Alternatively the task\(hyid if configured.
+.IP \e[bu] 2
+3 bytes : A 24\(hybit monotonic counter incrementing from
+.B rand(3)
+in big\(hyendian.
+
+.SH "SORTING OBJECTIDS"
+
+The typical way to sort in C is using
+.B qsort(3)
+\e&. Therefore, Libbson provides a
+.B qsort(3)
+compatible callback function named
+.B bson_oid_compare(3)
+\e&. It returns
+.B less than 1
+,
+.B greater than 1
+, or
+.B 0
+depending on the equality of two
+.B bson_oid_t
+structures.
+
+.SH "COMPARING OBJECT IDS"
+
+If you simply want to compare two
+.B bson_oid_t
+structures for equality, use
+.B bson_oid_equal(3)
+\e&.
+
+.SH "GENERATING"
+
+To generate a
+.B bson_oid_t
+, you may use the following.
+
+
+.SH "PARSING OBJECTID STRINGS"
+
+You can also parse a string contianing a
+.B bson_oid_t
+\e&. The input string
+.B MUST
+be 24 characters or more in length.
+
+
+If you need to parse may
+.B bson_oid_t
+in a tight loop and can guarantee the data is safe, you might consider using the inline variant. It will be inlined into your code and reduce the need for a foreign function call.
+
+
+.SH "HASHING OBJECTIDS"
+
+If you need to store items in a hashtable, you may want to use the
+.B bson_oid_t
+as the key. Libbson provides a hash function for just this purpose. It is based on DJB hash.
+
+
+.SH "FETCHING OBJECTID CREATION TIME"
+
+You can easily fetch the time that a
+.B bson_oid_t
+was generated using
+.B bson_oid_get_time_t(3)
+\e&.
+
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

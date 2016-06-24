@@ -1,0 +1,846 @@
+<?xml version="1.0"?>
+<page id="tutorial"
+      type="topic"
+      xmlns="http://projectmallard.org/1.0/">
+
+  <title>Tutorial</title>
+  <p>This guide offers a brief introduction to the MongoDB C Driver.</p>
+  <p>For more information on the C API, please refer to the <link xref="index#api-reference">API Documentation</link>.</p>
+
+  <links type="section"/>
+
+  <section id="installation">
+    <info><link type="guide" xref="installing"/></info>
+    <title>0. Installing</title>
+    <p>For detailed instructions on installing the MongoDB C Driver on a particular platform, please see the <link xref="installing">installation guide</link>.</p>
+  </section>
+
+  <section id="starting-mongod">
+    <info><link type="guide" xref="index#tutorial"/></info>
+    <title>1. Starting MongoDB</title>
+    <p>To run the examples in this tutorial, MongoDB must be installed and running on <code>localhost</code> on the default port, 27017. To check if it is up and running, connect to it with the MongoDB shell.</p>
+
+    <screen><output style="prompt">$ mongo --host localhost --port 27017
+MongoDB shell version: 3.0.6
+connecting to: localhost:27017/test
+> </output></screen>
+  </section>
+
+  <section id="connecting">
+    <info>
+      <link type="guide" xref="index#tutorial"/>
+      <link type="guide" xref="advanced-connections"/>
+      <link type="guide" xref="mongoc_client_new"/>
+      <link type="guide" xref="mongoc_client_get_database"/>
+      <link type="guide" xref="mongoc_client_get_collection"/>
+    </info>
+
+    <title>2. Making a Connection</title>
+    <p>The C Driver provides a convenient way to access MongoDB -- regardless of cluster configuration -- via a <link xref="mongoc_client_t">mongoc_client_t</link>. It transparently connects to standalone servers, replica sets and sharded clusters on demand. Once a connection has been made, handles to databases and collections can be obtained via the structs <link xref="mongoc_database_t">mongoc_database_t</link> and <link xref="mongoc_collection_t">mongoc_collection_t</link>, respectively. MongoDB operations can then be performed through these handles.</p>
+    <p>At the start of an application, call <link xref="mongoc_init">mongoc_init()</link> before any other libmongoc functions and call <link xref="mongoc_cleanup">mongoc_cleanup()</link> before exiting. When creating handles to clients, databases and servers, call the appropriate destroy functions when finished.</p>
+    <p>The example below establishes a connection to a standalone server on <code>localhost</code> and performs a simple command. More information about database operations can be found in the <link xref="tutorial#crud-operations">CRUD Operations</link> and <link xref="tutorial#executing-commands">Executing Commands</link> sections. Examples of connecting to replica sets and sharded clusters can be found on the <link xref="advanced-connections">Advanced Connections</link> page.</p>
+
+    <listing>
+      <title><file>connect.c</file></title>
+      <synopsis><code><![CDATA[#include <bson.h>
+#include <bcon.h>
+#include <mongoc.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t      *client;
+   mongoc_database_t    *database;
+   mongoc_collection_t  *collection;
+   bson_t               *command,
+                         reply,
+                        *insert;
+   bson_error_t          error;
+   char                 *str;
+   bool                  retval;
+
+   /*
+    * Required to initialize libmongoc's internals
+    */
+   mongoc_init ();
+
+   /*
+    * Create a new client instance
+    */
+   client = mongoc_client_new ("mongodb://localhost:27017");
+
+   /*
+    * Get a handle on the database "db_name" and collection "coll_name"
+    */
+   database = mongoc_client_get_database (client, "db_name");
+   collection = mongoc_client_get_collection (client, "db_name", "coll_name");
+
+   /*
+    * Do work. This example pings the database, prints the result as JSON and
+    * performs an insert
+    */
+   command = BCON_NEW ("ping", BCON_INT32 (1));
+
+   retval = mongoc_client_command_simple (client, "admin", command, NULL, &reply, &error);
+
+   if (!retval) {
+      fprintf (stderr, "%s\n", error.message);
+      return EXIT_FAILURE;
+   }
+
+   str = bson_as_json (&reply, NULL);
+   printf ("%s\n", str);
+
+   insert = BCON_NEW ("hello", BCON_UTF8 ("world"));
+
+   if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, insert, NULL, &error)) {
+      fprintf (stderr, "%s\n", error.message);
+   }
+
+   bson_destroy (insert);
+   bson_destroy (&reply);
+   bson_destroy (command);
+   bson_free (str);
+
+   /*
+    * Release our handles and clean up libmongoc
+    */
+   mongoc_collection_destroy (collection);
+   mongoc_database_destroy (database);
+   mongoc_client_destroy (client);
+   mongoc_cleanup ();
+
+   return 0;
+}
+]]></code></synopsis>
+    </listing>
+
+    <p>On a UNIX-like system, the code can be compiled and run like so:</p>
+    <screen><output style="prompt">$ gcc -o connect connect.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./connect
+{ "ok" : 1.000000 }</output></screen>
+
+    <p>Alternatively, if <link href="http://www.freedesktop.org/wiki/Software/pkg-config/">pkg-config</link> is not available, paths and libraries can be managed manually.</p>
+    <screen><output style="prompt">$ gcc -o connect connect.c -I/usr/local/include -lmongoc-1.0 -lbson-1.0
+$ ./connect
+{ "ok" : 1.000000 }</output></screen>
+
+    <p>For Windows users, the code can be compiled and run with the following commands. (This assumes that the MongoDB C Driver has been installed to <code>C:\mongo-c-driver</code>; change the include directory as needed.)</p>
+    <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 connect.c
+C:\> connect
+{ "ok" : 1.000000 }</output></screen>
+  </section>
+
+  <section id="creating-bson-documents">
+    <info>
+      <link type="guide" xref="index#tutorial"/>
+      <link type="guide" xref="bson:index"/>
+    </info>
+    <title>3. Creating BSON Documents</title>
+    <p>Documents are stored in MongoDB's data format, BSON. The C driver uses <link xref="bson:index">libbson</link> to create BSON documents. There are several ways to construct them: appending key-value pairs, using BCON, or parsing JSON.</p>
+
+    <section id="appending">
+      <info>
+        <link type="guide" xref="bson:index"/>
+        <link type="guide" xref="bson:bson_init"/>
+        <link type="guide" xref="bson:bson_new"/>
+      </info>
+
+      <title>Appending BSON</title>
+      <p>A BSON document, represented as a <link xref="bson:bson_t">bson_t</link> in code, can be constructed one field at a time using libbson's append functions.</p>
+
+      <screen><code><![CDATA[#include <bson.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_t *document;
+   bson_t  child;
+   char   *str;
+
+   document = bson_new ();
+
+   /*
+    * Append {"hello" : "world"} to the document.
+    * Passing -1 for the length argument tells libbson to calculate the string length.
+    */
+   bson_append_utf8 (document, "hello", -1, "world", -1);
+
+   /*
+    * For convenience, this macro is equivalent.
+    */
+   BSON_APPEND_UTF8 (document, "hello", "world");
+
+   /*
+    * Begin a subdocument.
+    */
+   BSON_APPEND_DOCUMENT_BEGIN (document, "subdoc", &child);
+   BSON_APPEND_UTF8 (&child, "subkey", "value");
+   bson_append_document_end (document, &child);
+
+   /*
+    * Print the document as a JSON string.
+    */
+   str = bson_as_json (document, NULL);
+   printf ("%s\n", str);
+   bson_free (str);
+
+   /*
+    * Clean up allocated bson documents.
+    */
+   bson_destroy (document);
+   return 0;
+}
+]]></code></screen>
+
+      <p>See the <link xref="bson:bson_t">libbson documentation</link> for all of the types that can be appended to a <code>bson_t</code>.</p>
+    </section>
+
+    <section id="bcon">
+      <title>Using BCON</title>
+      <p><em>BSON C Object Notation</em>, BCON for short, is an alternative way of constructing BSON documents in a manner closer to the intended format. It has less type-safety than BSON's append functions but results in less code.</p>
+
+      <screen><code><![CDATA[#include <bcon.h>
+#include <bson.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_t *doc;
+   char *str;
+
+   doc = BCON_NEW ("name", BCON_UTF8 ("Babe Ruth"),
+                   "statistics", "{",
+                      "batting_average", BCON_DOUBLE (.342),
+                      "hits", BCON_INT32 (2873),
+                      "home_runs", BCON_INT32 (714),
+                      "rbi", BCON_INT32 (2213),
+                   "}",
+                   "nicknames", "[",
+                      BCON_UTF8 ("the Sultan of Swat"),
+                      BCON_UTF8 ("the Bambino"),
+                   "]");
+
+   str = bson_as_json (doc, NULL);
+   printf ("%s\n", str);
+   bson_free (str);
+
+   bson_destroy (doc);
+
+   return 0;
+}
+]]></code></screen>
+
+      <p>Notice that BCON can create arrays, subdocuments and arbitrary fields.</p>
+    </section>
+
+    <section id="bson-from-json">
+      <info>
+        <link type="guide" xref="bson:bson_new_from_json"/>
+        <link type="guide" xref="bson:bson_init_from_json"/>
+        <link type="guide" xref="bson:bson_json_reader_t"/>
+      </info>
+
+      <title>Creating BSON from JSON</title>
+      <p>For <em>single</em> documents, BSON can be created from JSON strings via <link xref="bson:bson_new_from_json">bson_new_from_json</link>.</p>
+      <p>To initialize BSON from a sequence of JSON documents, use <link xref="bson:bson_json_reader_t">bson_json_reader_t</link>.</p>
+
+      <screen><code><![CDATA[#include <bson.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_error_t error;
+   bson_t      *bson;
+   char        *string;
+
+   const char *json = "{\"hello\": \"world\"}";
+   bson = bson_new_from_json ((const uint8_t *)json, -1, &error);
+
+   if (!bson) {
+      fprintf (stderr, "%s\n", error.message);
+      return EXIT_FAILURE;
+   }
+
+   string = bson_as_json (bson, NULL);
+   printf ("%s\n", string);
+   bson_free (string);
+
+   return 0;
+}
+]]></code></screen>
+    </section>
+  </section>
+
+  <section id="crud-operations">
+    <info><link type="guide" xref="index#tutorial"/></info>
+    <title>4. Basic CRUD Operations</title>
+    <p>This section demonstrates the basics of using the C Driver to interact with MongoDB.</p>
+
+    <!-- Table of contents -->
+    <links type="section"/>
+
+    <section id="insert" xmlns="http://projectmallard.org/1.0/">
+      <info>
+        <link type="guide" xref="index#basic-operations"/>
+        <link type="guide" xref="mongoc_collection_insert"/>
+      </info>
+
+      <title>Inserting a Document</title>
+      <p>To insert documents into a collection, first obtain a handle to a <code>mongoc_collection_t</code> via a <code>mongoc_client_t</code>. Then, use <link xref="mongoc_collection_insert">mongoc_collection_insert()</link> to add BSON documents to the collection. This example inserts into the database "mydb" and collection "mycoll".</p>
+      <p>When finished, ensure that allocated structures are freed by using their respective destroy functions.</p>
+
+      <listing>
+        <title><file>insert.c</file></title>
+        <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    doc = bson_new ();
+    bson_oid_init (&oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+        fprintf (stderr, "%s\n", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code></synopsis>
+      </listing>
+
+      <p>Compile the code and run it:</p>
+      <screen><output style="prompt">$ gcc -o insert insert.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./insert</output></screen>
+
+      <p>On Windows:</p>
+      <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 insert.c
+C:\> insert</output></screen>
+
+      <p>To verify that the insert succeeded, connect with the MongoDB shell.</p>
+      <screen><output style="prompt">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+> use mydb
+switched to db mydb
+> db.mycoll.find()
+{ "_id" : ObjectId("55ef43766cb5f36a3bae6ee4"), "hello" : "world" }
+> </output></screen>
+    </section>
+
+    <section id="find" xmlns="http://projectmallard.org/1.0/">
+      <info>
+        <link type="guide" xref="index#basic-operations"/>
+        <link type="guide" xref="mongoc_collection_find"/>
+      </info>
+
+      <title>Finding a Document</title>
+      <p>To query a MongoDB collection with the C driver, use the function <link xref="mongoc_collection_find">mongoc_collection_find()</link>. This returns a <link xref="mongoc_cursor_t">cursor</link> to the matching documents. The following examples iterate through the result cursors and print the matches to <code>stdout</code> as JSON strings.</p>
+      <p>Note that <code>mongoc_collection_find</code> uses a document as a query specifier; for example,</p>
+
+      <screen><code mime="x-js">{ "color" : "red" }</code></screen>
+
+      <p>will match any document with a field named "color" with value "red". An empty document <code>{}</code> can be used to match all documents.</p>
+      <p>This first example uses an empty query specifier to find all documents in the database "mydb" and collection "mycoll".</p>
+
+      <listing>
+        <title><file>find.c</file></title>
+        <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+     char *argv[])
+{
+  mongoc_client_t *client;
+  mongoc_collection_t *collection;
+  mongoc_cursor_t *cursor;
+  const bson_t *doc;
+  bson_t *query;
+  char *str;
+
+  mongoc_init ();
+
+  client = mongoc_client_new ("mongodb://localhost:27017/");
+  collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+  query = bson_new ();
+  cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+  while (mongoc_cursor_next (cursor, &doc)) {
+     str = bson_as_json (doc, NULL);
+     printf ("%s\n", str);
+     bson_free (str);
+  }
+
+  bson_destroy (query);
+  mongoc_cursor_destroy (cursor);
+  mongoc_collection_destroy (collection);
+  mongoc_client_destroy (client);
+  mongoc_cleanup ();
+
+  return 0;
+}
+]]></code></synopsis>
+      </listing>
+
+      <p>Compile the code and run it: </p>
+      <screen><output style="prompt">$ gcc -o find find.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</output></screen>
+
+      <p>On Windows:</p>
+      <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 find.c
+C:\> find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</output></screen>
+
+      <p>To look for a specific document, add a specifier to <code>query</code>. This example adds a call to <code>BSON_APPEND_UTF8()</code> to look for all documents matching <code mime="text/x-js">{"hello" : "world"}</code>.</p>
+
+      <listing>
+        <title><file>find-specific.c</file></title>
+        <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+  #include <mongoc.h>
+  #include <stdio.h>
+
+  int
+  main (int   argc,
+        char *argv[])
+  {
+      mongoc_client_t *client;
+      mongoc_collection_t *collection;
+      mongoc_cursor_t *cursor;
+      const bson_t *doc;
+      bson_t *query;
+      char *str;
+
+      mongoc_init ();
+
+      client = mongoc_client_new ("mongodb://localhost:27017/");
+      collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+      query = bson_new ();
+      BSON_APPEND_UTF8 (query, "hello", "world");
+
+      cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+      while (mongoc_cursor_next (cursor, &doc)) {
+          str = bson_as_json (doc, NULL);
+          printf ("%s\n", str);
+          bson_free (str);
+      }
+
+      bson_destroy (query);
+      mongoc_cursor_destroy (cursor);
+      mongoc_collection_destroy (collection);
+      mongoc_client_destroy (client);
+      mongoc_cleanup ();
+
+      return 0;
+  }
+  ]]></code></synopsis>
+      </listing>
+
+      <screen><output style="prompt">$ gcc -o find-specific find-specific.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./find-specific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</output></screen>
+
+      <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 find-specific.c
+C:\> find-specific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</output></screen>
+    </section>
+
+    <section id="update" xmlns="http://projectmallard.org/1.0/">
+      <info>
+        <link type="guide" xref="index#basic-operations"/>
+        <link type="guide" xref="mongoc_collection_update"/>
+        <link type="guide" xref="mongoc_collection_find_and_modify"/>
+      </info>
+
+      <title>Updating a Document</title>
+      <p>This code snippet gives an example of using <link xref="mongoc_collection_update">mongoc_collection_update()</link> to update the fields of a document.</p>
+      <p>Using the "mydb" database, the following example inserts an example document into the "mycoll" collection. Then, using its <code>_id</code> field, the document is updated with different values and a new field.</p>
+
+      <listing>
+        <title><file>update.c</file></title>
+        <synopsis><code mime="text/x-csrc"><![CDATA[#include <bcon.h>
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_collection_t *collection;
+    mongoc_client_t *client;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc = NULL;
+    bson_t *update = NULL;
+    bson_t *query = NULL;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    bson_oid_init (&oid, NULL);
+    doc = BCON_NEW ("_id", BCON_OID (&oid),
+                    "key", BCON_UTF8 ("old_value"));
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+        fprintf (stderr, "%s\n", error.message);
+        goto fail;
+    }
+
+    query = BCON_NEW ("_id", BCON_OID (&oid));
+    update = BCON_NEW ("$set", "{",
+                           "key", BCON_UTF8 ("new_value"),
+                           "updated", BCON_BOOL (true),
+                       "}");
+
+    if (!mongoc_collection_update (collection, MONGOC_UPDATE_NONE, query, update, NULL, &error)) {
+        fprintf (stderr, "%s\n", error.message);
+        goto fail;
+    }
+
+fail:
+    if (doc)
+        bson_destroy (doc);
+    if (query)
+        bson_destroy (query);
+    if (update)
+        bson_destroy (update);
+
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code></synopsis>
+      </listing>
+
+      <p>Compile the code and run it:</p>
+      <screen><output style="prompt">$ gcc -o update update.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./update</output></screen>
+
+      <p>On Windows:</p>
+      <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 update.c
+C:\> update
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</output></screen>
+
+      <p>To verify that the update succeeded, connect with the MongoDB shell.</p>
+      <screen><output style="prompt">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+> use mydb
+switched to db mydb
+> db.mycoll.find({"updated" : true})
+{ "_id" : ObjectId("55ef549236fe322f9490e17b"), "updated" : true, "key" : "new_value" }
+> </output></screen>
+    </section>
+
+    <section id="remove" xmlns="http://projectmallard.org/1.0/">
+      <info>
+        <link type="guide" xref="index#basic-operations"/>
+        <link type="guide" xref="mongoc_collection_remove"/>
+      </info>
+
+      <title>Deleting a Document</title>
+      <p>This example illustrates the use of <link xref="mongoc_collection_remove">mongoc_collection_remove()</link> to delete documents.</p>
+      <p>The following code inserts a sample document into the database "mydb" and collection "mycoll". Then, it deletes all documents matching <code>{"hello" : "world"}</code>.</p>
+
+      <listing>
+        <title><file>delete.c</file></title>
+        <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_oid_t oid;
+    bson_t *doc;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "test", "test");
+
+    doc = bson_new ();
+    bson_oid_init (&oid, NULL);
+    BSON_APPEND_OID (doc, "_id", &oid);
+    BSON_APPEND_UTF8 (doc, "hello", "world");
+
+    if (!mongoc_collection_insert (collection, MONGOC_INSERT_NONE, doc, NULL, &error)) {
+        fprintf (stderr, "Insert failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+
+    doc = bson_new ();
+    BSON_APPEND_OID (doc, "_id", &oid);
+
+    if (!mongoc_collection_remove (collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &error)) {
+        fprintf (stderr, "Delete failed: %s\n", error.message);
+    }
+
+    bson_destroy (doc);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code></synopsis>
+      </listing>
+
+      <p>Compile the code and run it:</p>
+      <screen><output style="prompt">$ gcc -o delete delete.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./delete</output></screen>
+
+      <p>On Windows:</p>
+      <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 delete.c
+C:\> delete</output></screen>
+
+      <p>Use the MongoDB shell to prove that the documents have been removed successfully.</p>
+      <screen><output style="prompt">$ mongo
+MongoDB shell version: 3.0.6
+connecting to: test
+> use mydb
+switched to db mydb
+> db.mycoll.count({"hello" : "world"})
+0
+> </output></screen>
+    </section>
+
+    <section id="count" xmlns="http://projectmallard.org/1.0/">
+      <info>
+        <link type="guide" xref="index#basic-operations"/>
+        <link type="guide" xref="mongoc_collection_count"/>
+      </info>
+
+      <title>Counting Documents</title>
+      <p>Counting the number of documents in a MongoDB collection is similar to performing a <link xref="tutorial#find">find operation</link>. This example counts the number of documents matching <code mime="text/x-json">{"hello" : "world"}</code> in the database "mydb" and collection "mycoll".</p>
+
+      <listing>
+        <title><file>count.c</file></title>
+        <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   bson_error_t error;
+   bson_t *doc;
+   int64_t count;
+
+   mongoc_init ();
+
+   client = mongoc_client_new ("mongodb://localhost:27017/");
+   collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+   doc = bson_new_from_json ((const uint8_t *)"{\"hello\" : \"world\"}", -1, &error);
+
+   count = mongoc_collection_count (collection, MONGOC_QUERY_NONE, doc, 0, 0, NULL, &error);
+
+   if (count < 0) {
+      fprintf (stderr, "%s\n", error.message);
+   } else {
+      printf ("%" PRId64 "\n", count);
+   }
+
+   bson_destroy (doc);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+   mongoc_cleanup ();
+
+   return 0;
+}
+]]></code></synopsis>
+      </listing>
+
+      <p>Compile the code and run it: </p>
+      <screen><output style="prompt">$ gcc -o count count.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./count
+1</output></screen>
+
+      <p>On Windows:</p>
+      <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 count.c
+C:\> count
+1</output></screen>
+    </section>
+  </section>
+
+  <section id="executing-commands" xmlns="http://projectmallard.org/1.0/">
+    <info>
+      <link type="guide" xref="index#tutorial"/>
+      <link type="guide" xref="mongoc_client_command"/>
+      <link type="guide" xref="mongoc_client_command_simple"/>
+      <link type="guide" xref="mongoc_database_command"/>
+      <link type="guide" xref="mongoc_database_command_simple"/>
+      <link type="guide" xref="mongoc_collection_command"/>
+      <link type="guide" xref="mongoc_collection_command_simple"/>
+    </info>
+
+    <title>5. Executing Commands</title>
+    <p>The driver provides helper functions for executing MongoDB commands on client, database and collection structures. These functions return <link xref="mongoc_cursor_t">cursors</link>; the <code>_simple</code> variants return booleans indicating success or failure.</p>
+    <p>This example executes the <link href="http://docs.mongodb.org/manual/reference/command/collStats/">collStats</link> command against the collection "mycoll" in database "mydb".</p>
+
+    <listing>
+      <title><file>executing.c</file></title>
+      <synopsis><code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <bcon.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+    mongoc_collection_t *collection;
+    bson_error_t error;
+    bson_t *command;
+    bson_t reply;
+    char *str;
+
+    mongoc_init ();
+
+    client = mongoc_client_new ("mongodb://localhost:27017/");
+    collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+
+    command = BCON_NEW ("collStats", BCON_UTF8 ("mycoll"));
+    if (mongoc_collection_command_simple (collection, command, NULL, &reply, &error)) {
+        str = bson_as_json (&reply, NULL);
+        printf ("%s\n", str);
+        bson_free (str);
+    } else {
+        fprintf (stderr, "Failed to run command: %s\n", error.message);
+    }
+
+    bson_destroy (command);
+    bson_destroy (&reply);
+    mongoc_collection_destroy (collection);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code></synopsis>
+    </listing>
+
+    <p>Compile the code and run it:</p>
+    <screen><output style="prompt">$ gcc -o executing executing.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</output></screen>
+
+    <p>On Windows:</p>
+    <screen><output style="prompt">C:\> cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 executing.c
+C:\> executing
+{ "ns" : "mydb.mycoll", "count" : 1, "size" : 48, "avgObjSize" : 48, "numExtents" : 1, "storageSize" : 8192,
+"lastExtentSize" : 8192.000000, "paddingFactor" : 1.000000, "userFlags" : 1, "capped" : false, "nindexes" : 1,
+"indexDetails" : {  }, "totalIndexSize" : 8176, "indexSizes" : { "_id_" : 8176 }, "ok" : 1.000000 }</output></screen>
+  </section>
+
+  <section id="threading">
+    <info><link type="guide" xref="index#tutorial"/></info>
+    <title>6. Threading</title>
+    <p>The MongoDB C Driver is thread-unaware in the vast majority of its operations. This means it is up to the programmer to guarantee thread-safety.</p>
+    <p>However, <link xref="mongoc_client_pool_t">mongoc_client_pool_t</link> is thread-safe and is used to fetch a <code>mongoc_client_t</code> in a thread-safe manner. After retrieving a client from the pool, the client structure should be considered owned by the calling thread. When the thread is finished, the client should be placed back into the pool.</p>
+
+    <screen><code><![CDATA[#include <mongoc.h>
+#include <pthread.h>
+
+#define N_THREADS 10
+
+static void *
+worker (void *data) {
+   mongoc_client_pool_t *pool = data;
+   mongoc_client_t      *client;
+
+   client = mongoc_client_pool_pop (pool);
+
+   /* Do something... */
+
+   mongoc_client_pool_push (pool, client);
+
+   return NULL;
+}
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_pool_t *pool;
+   mongoc_uri_t         *uri;
+   pthread_t             threads[N_THREADS];
+
+   mongoc_init ();
+
+   uri = mongoc_uri_new ("mongodb://localhost/");
+   pool = mongoc_client_pool_new (uri);
+
+   for (i = 0; i < N_THREADS; i++) {
+      pthread_create (&threads[i], NULL, worker, pool);
+   }
+
+   for (i = 0; i < N_THREADS; i++) {
+      pthread_join (threads[i], NULL);
+   }
+
+   mongoc_client_pool_destroy (pool);
+   mongoc_uri_destroy (uri);
+   mongoc_cleanup ();
+
+   return 0;
+}
+]]></code></screen>
+  </section>
+
+  <section id="next-steps">
+    <info>
+      <link type="guide" xref="index#tutorial"/>
+      <link type="guide" xref="basic-troubleshooting"/>
+    </info>
+
+    <title>7. Next Steps</title>
+    <p>To find information on advanced topics, browse the rest of the <link xref="index">C driver guide</link> or the <link href="https://docs.mongodb.org">official MongoDB documentation</link>.</p>
+    <p>For help with common issues, consult the <link xref="basic-troubleshooting">Troubleshooting</link> page. To report a bug or request a new feature, follow <link xref="basic-troubleshooting#file-bug">these instructions</link>.</p>
+  </section>
+</page>

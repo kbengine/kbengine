@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_bulk_operation_execute">
+
+
+  <info>
+    <link type="guide" xref="mongoc_bulk_operation_t" group="function"/>
+  </info>
+  <title>mongoc_bulk_operation_execute()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[uint32_t
+mongoc_bulk_operation_execute (mongoc_bulk_operation_t *bulk,
+                               bson_t                  *reply,
+                               bson_error_t            *error);
+]]></code></synopsis>
+    <p>This function executes all operations queued into the bulk operation. If <code>ordered</code> was specified to <code xref="mongoc_collection_create_bulk_operation">mongoc_collection_create_bulk_operation()</code>, then forward progress will be stopped upon the first error.</p>
+
+    <p>It is only valid to call <code xref="mongoc_bulk_operation_execute">mongoc_bulk_operation_execute()</code> once. The <code>mongoc_bulk_operation_t</code> must be destroyed afterwards.</p>
+
+    <note style="warning"><p><code>reply</code> is always initialized, even upon failure. Callers <em>must</em> call <code xref="bson:bson_destroy">bson_destroy()</code> to release this potential allocation.</p></note>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>bulk</p></td><td><p>A <code xref="mongoc_bulk_operation_t">mongoc_bulk_operation_t</code>.</p></td></tr>
+      <tr><td><p>reply</p></td><td><p>A <code xref="bson:bson_t">bson_t</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A non-zero <code>hint</code> of the peer node on success, otherwise <code>0</code> and <code>error</code> is set.</p>
+    <p>The <code>reply</code> document counts operations and collects error information. See <link xref="bulk">Bulk Write Operations</link> for examples.</p>
+
+ </section>
+</page>

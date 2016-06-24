@@ -1,0 +1,64 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_VSNPRINTF" "3" "2016\(hy02\(hy04" "libbson"
+.SH NAME
+bson_vsnprintf() \- Like bson_snprintf() but allows for variadic parameters.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+int
+bson_vsnprintf (char       *str,
+                size_t      size,
+                const char *format,
+                va_list     ap) BSON_GNUC_PRINTF (3, 0);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B str
+A location for the resulting string.
+.LP
+.TP
+.B
+.B size
+The size of str in bytes.
+.LP
+.TP
+.B
+.B format
+A printf style format string.
+.LP
+.TP
+.B
+.B ap
+A va_list of parameters for the format.
+.LP
+
+.SH "DESCRIPTION"
+
+Like bson_snprintf() but allows for variadic parameters.
+
+.SH "RETURNS"
+
+The number of bytes written to
+.B str
+excluding the
+.B \e0
+byte.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

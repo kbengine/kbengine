@@ -1,0 +1,104 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BASIC_TROUBLESHOOTING" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+Basic_Troubleshooting \- None
+.SH "TROUBLESHOOTING CHECKLIST"
+
+The following is a short list of things to check when you have a problem.
+
+.IP \e[bu] 2
+Did you call
+.B mongoc_init(3)
+in
+.B main(3)
+? If not, you will likely see a segfault.
+.IP \e[bu] 2
+Have you leaked any clients or cursors as can be found with
+?
+.IP \e[bu] 2
+Have packets been delivered to the server? See egress bytes from
+\e&.
+.IP \e[bu] 2
+Does
+.B valgrind
+show any leaks? Ensure you call
+.B mongoc_cleanup(3)
+at the end of your process to cleanup lingering allocations from the MongoDB C driver.
+.IP \e[bu] 2
+If compiling your own copy of MongoDB C driver, consider configuring with
+.B \(hy\(hyenable\(hytracing
+to enable function tracing and hex dumps of network packets to
+.B STDERR
+and
+.B STDOUT
+\e&.
+
+.SH "PERFORMANCE COUNTERS"
+
+
+The MongoDB C driver comes with a unique feature to help developers and sysadmins troubleshoot problems in production.
+        Performance counters are available for each process using the driver.
+        The counters can be accessed outside of the application process via a shared memory segment.
+        This means that you can graph statistics about your application process easily from tools like Munin or Nagios.
+        Your author often uses
+.B watch \(hy\(hyinterval=0.5 \(hyd mongoc\(hystat $PID
+to monitor an application.
+
+.B NOTE
+.RS
+Counters are currently available on UNIX\(hylike platforms that support shared memory segments.
+.RE
+
+.IP \e[bu] 2
+Active and Disposed Cursors
+.IP \e[bu] 2
+Active and Disposed Clients, Client Pools, and Socket Streams.
+.IP \e[bu] 2
+Number of operations sent and received, by type.
+.IP \e[bu] 2
+Bytes transferred and received.
+.IP \e[bu] 2
+Authentication successes and failures.
+.IP \e[bu] 2
+Number of wire protocol errors.
+
+To access counters for a given process, simply provide the process id to the
+.B mongoc\(hystat
+program installed with the MongoDB C Driver.
+
+.B $ 
+
+.SH "SUBMITTING A BUG REPORT"
+
+
+Think you’ve found a bug? Want to see a new feature in the MongoDB C driver? Please open a case in our issue management tool, JIRA:
+
+.IP \e[bu] 2
+.B Create an account and login
+\e&.
+.IP \e[bu] 2
+Navigate to
+.B the CDRIVER project
+\e&.
+.IP \e[bu] 2
+Click
+.B Create Issue
+\(hy Please provide as much information as possible about the issue type and how to reproduce it.
+
+Bug reports in JIRA for all driver projects (i.e. CDRIVER, CSHARP, JAVA) and the Core Server (i.e. SERVER) project are
+.B public
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

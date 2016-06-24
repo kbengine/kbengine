@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_matcher_new">
+
+  <info>
+    <link type="guide" xref="mongoc_matcher_t" group="function"/>
+  </info>
+
+  <title>mongoc_matcher_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_matcher_t *
+mongoc_matcher_new (const bson_t *query,
+                    bson_error_t *error);
+]]></code></synopsis>
+    <p>Create a new <code xref="mongoc_matcher_t">mongoc_matcher_t</code> using the query specification provided.</p>
+  </section>
+
+  <section id="deprecated">
+    <title>Deprecated</title>
+    <note style="warning"><p><code>mongoc_matcher_t</code> is deprecated and will be removed in version 2.0.</p></note>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>query</p></td><td><p>A <code xref="bson:bson_t">bson_t</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_matcher_t">mongoc_matcher_t</code> that should be freed with <code xref="mongoc_matcher_destroy">mongoc_matcher_destroy()</code> when no longer in use. Upon failure, <code>NULL</code> is returned and <code>error</code> is set. This could happen if <code>query</code> contains an invalid query specification.</p>
+  </section>
+
+</page>

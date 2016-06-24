@@ -1,0 +1,66 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_JSON_READER_NEW" "3" "2016\(hy02\(hy04" "libbson"
+.SH NAME
+bson_json_reader_new() \- Creates a new bson_json_reader_t that can read from an arbitrary data source in a streaming fashion.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bson_json_reader_t *
+bson_json_reader_new (void                *data,
+                      bson_json_reader_cb  cb,
+                      bson_json_destroy_cb dcb,
+                      bool                 allow_multiple,
+                      size_t               buf_size);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B data
+A user\(hydefined pointer.
+.LP
+.TP
+.B
+.B cb
+A bson_json_reader_cb.
+.LP
+.TP
+.B
+.B dcb
+A bson_json_destroy_cb.
+.LP
+.TP
+.B
+.B allow_multiple
+A bool indicating if more than one document is allowed in the stream.
+.LP
+.TP
+.B
+.B buf_size
+A size_t containing the requested internal buffer size.
+.LP
+
+.SH "DESCRIPTION"
+
+Creates a new bson_json_reader_t that can read from an arbitrary data source in a streaming fashion.
+
+.SH "RETURNS"
+
+A newly allocated bson_json_reader_t that should be freed with bson_json_reader_destroy().
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

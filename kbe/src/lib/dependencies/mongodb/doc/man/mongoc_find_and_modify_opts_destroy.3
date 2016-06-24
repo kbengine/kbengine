@@ -1,0 +1,45 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_FIND_AND_MODIFY_OPTS_DESTROY" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_find_and_modify_opts_destroy() \- Frees all resources associated with the find and modify builder structure.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+mongoc_find_and_modify_opts_destroy (mongoc_find_and_modify_opts_t *find_and_modify_opts);
+.fi
+.fi
+
+.B NOTE
+.RS
+New in mongoc 1.3.0
+.RE
+
+.SH "PARAMETERS"
+
+.TP
+.B
+find_and_modify_opts
+A
+.B mongoc_find_and_modify_opts_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Frees all resources associated with the find and modify builder structure.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

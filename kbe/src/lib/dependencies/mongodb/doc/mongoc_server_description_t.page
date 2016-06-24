@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_server_description_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_server_description_t</title>
+  <subtitle>Server description</subtitle>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+typedef struct _mongoc_server_description_t mongoc_server_description_t]]></code></synopsis>
+    <p><code>mongoc_server_description_t</code> holds information about a mongod server to which the driver has connected.</p>
+  </section>
+
+  <section>
+    <title>Lifecycle</title>
+    <p>It is required that this object be cleaned up with <link xref="mongoc_server_description_destroy">mongoc_server_description_destroy()</link>.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

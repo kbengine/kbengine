@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_remove_flags_t">
+  <info>
+    <link type="guide" xref="index#api-reference"/>
+  </info>
+  <title>mongoc_remove_flags_t</title>
+  <subtitle>Flags for deletion operations</subtitle>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[
+typedef enum
+{
+   MONGOC_REMOVE_NONE          = 0,
+   MONGOC_REMOVE_SINGLE_REMOVE = 1 << 0,
+} mongoc_remove_flags_t;
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>These flags correspond to the MongoDB wire protocol. They may be bitwise or'd together. They may change the number of documents that are removed during a remove command.</p>
+  </section>
+
+  <section id="values">
+    <title>Flag Values</title>
+    <table>
+      <tr>
+        <td><p>MONGOC_REMOVE_NONE</p></td>
+        <td><p>Specify no removal flags. All matching documents will be removed.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_REMOVE_SINGLE_REMOVE</p></td>
+        <td><p>Only remove the first matching document from the selector.</p></td>
+      </tr>
+    </table>
+  </section>
+
+</page>

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_collection_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_collection_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+
+typedef struct _mongoc_collection_t mongoc_collection_t;]]></code></synopsis>
+    <p><code>mongoc_collection_t</code> provides access to a MongoDB collection.  This handle is useful for actions for most CRUD operations, I.e. insert, update, delete, find, etc.</p>
+  </section>
+
+  <section>
+    <title>Read Preferences and Write Concerns</title>
+    <p>Read preferences and write concerns are inherited from the parent client. They can be overridden by set_* commands if so desired.</p>
+  </section>
+
+  <section>
+    <title>Lifecycle</title>
+    <p>It is an error to call <code xref="mongoc_collection_destroy">mongoc_collection_destroy()</code> on a collection that has operations pending. It is required that you release <code xref="mongoc_cursor_t">mongoc_cursor_t</code> structures before calling <code xref="mongoc_collection_destroy">mongoc_collection_destroy()</code>.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

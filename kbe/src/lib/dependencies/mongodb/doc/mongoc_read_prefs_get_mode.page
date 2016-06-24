@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_read_prefs_get_mode">
+  <info>
+    <link type="guide" xref="mongoc_read_prefs_t" group="function"/>
+  </info>
+  <title>mongoc_read_prefs_get_mode()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_read_mode_t
+mongoc_read_prefs_get_mode (const mongoc_read_prefs_t *read_prefs);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Fetches the <code xref="mongoc_read_mode_t">mongoc_read_mode_t</code> for the read preference.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns the read preference mode.</p>
+  </section>
+
+</page>

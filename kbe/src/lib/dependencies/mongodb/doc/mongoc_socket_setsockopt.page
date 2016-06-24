@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_socket_setsockopt">
+  <info>
+    <link type="guide" xref="mongoc_socket_t" group="function"/>
+  </info>
+  <title>mongoc_socket_setsockopt()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_socket_setsockopt (mongoc_socket_t *sock,
+                          int              level,
+                          int              optname,
+                          const void      *optval,
+                          socklen_t        optlen);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>sock</p></td><td><p>A <code xref="mongoc_socket_t">mongoc_socket_t</code>.</p></td></tr>
+      <tr><td><p>level</p></td><td><p>A sockopt level.</p></td></tr>
+      <tr><td><p>optname</p></td><td><p>A sockopt name.</p></td></tr>
+      <tr><td><p>optval</p></td><td><p>A the value for the sockopt.</p></td></tr>
+      <tr><td><p>optlen</p></td><td><p>A socklen_t that contains the length of optval.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This is a helper function for <code>setsockopt()</code>.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>0 on success, -1 on failure and errno is set.</p>
+  </section>
+
+</page>

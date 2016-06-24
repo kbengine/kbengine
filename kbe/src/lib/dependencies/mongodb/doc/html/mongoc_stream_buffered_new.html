@@ -1,0 +1,50 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_stream_buffered_new()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_stream_buffered_new()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">mongoc_stream_t *
+mongoc_stream_buffered_new (mongoc_stream_t *base_stream,
+                            size_t           buffer_size);</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">base_stream</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_stream_t.html" title="mongoc_stream_t">mongoc_stream_t</a></span> to buffer.</p></td>
+</tr>
+<tr>
+<td><p class="p">buffer_size</p></td>
+<td><p class="p">A size_t containing the desired buffer size.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"></div>
+<div class="region"><div class="contents">
+<p class="p">This function shall create a new <span class="code"><a href="mongoc_stream_t.html" title="mongoc_stream_t">mongoc_stream_t</a></span> that buffers bytes to and from the underlying <span class="code">base_stream</span>.</p>
+<p class="p"><span class="code">buffer_size</span> will be used as the initial buffer size. It may grow past this size.</p>
+</div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents"><p class="p">A newly allocated <span class="code"><a href="mongoc_stream_buffered_t.html" title="mongoc_stream_buffered_t">mongoc_stream_buffered_t</a></span> on success, otherwise <span class="code">NULL</span>. This should be freed with <span class="code"><a href="mongoc_stream_destroy.html" title="mongoc_stream_destroy()">mongoc_stream_destroy()</a></span> when no longer in use.</p></div></div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

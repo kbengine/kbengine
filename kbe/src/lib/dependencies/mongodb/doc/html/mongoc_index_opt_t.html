@@ -1,0 +1,108 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_index_opt_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_index_opt_t</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;mongoc.h&gt;
+
+typedef struct
+{
+   bool                        is_initialized;
+   bool                        background;
+   bool                        unique;
+   const char                 *name;
+   bool                        drop_dups;
+   bool                        sparse;
+   int32_t                     expire_after_seconds;
+   int32_t                     v;
+   const bson_t               *weights;
+   const char                 *default_language;
+   const char                 *language_override;
+   mongoc_index_opt_geo_t     *geo_options;
+   mongoc_index_opt_storage_t *storage_options;
+   const bson_t               *partial_filter_expression;
+   void                       *padding[5];
+} mongoc_index_opt_t;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="desc" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">This structure contains the options that may be used for tuning a specific index.</p>
+<p class="p">See the <span class="link"><a href="https://docs.mongodb.org/manual/reference/command/createIndexes/" title="https://docs.mongodb.org/manual/reference/command/createIndexes/">
+    createIndexes documentations</a></span> in the MongoDB manual for descriptions of individual
+    options.</p>
+<p class="p">NOTE: dropDups is deprecated as of MongoDB version 3.0.0.  This option is silently
+    ignored by the server and unique index builds using this option will fail if a duplicate
+    value is detected.</p>
+</div></div>
+</div></div>
+<div id="example" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="screen"><pre class="contents "><span class="code">
+{
+   bson_t keys;
+   bson_error_t error;
+   mongoc_index_opt_t opt;
+   mongoc_index_opt_geo_t geo_opt;
+
+   mongoc_index_opt_init(&amp;opt);
+   mongoc_index_opt_geo_init(&amp;geo_opt);
+
+   bson_init(&amp;keys);
+   BSON_APPEND_UTF8(&amp;keys, "location", "2d");
+
+   geo_opt.twod_location_min = -123;
+   geo_opt.twod_location_max = +123;
+   geo_opt.twod_bits_precision = 30;
+   opt.geo_options = &amp;geo_opt;
+
+   collection = mongoc_client_get_collection (client, "test", "geo_test");
+   if (mongoc_collection_create_index(collection, &amp;keys, &amp;opt, &amp;error)) {
+       /* Successfully created the geo index */
+   }
+   bson_destroy(&amp;keys);
+   mongoc_collection_destroy(&amp;collection);
+}
+</span></pre></div></div></div>
+</div></div>
+<div id="seealso" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">See Also</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p"><span class="link"><a href="mongoc_index_opt_geo_t.html" title="mongoc_index_opt_geo_t"><span class="code">mongoc_index_opt_geo_t</span></a></span></p>
+<p class="p"><span class="link"><a href="mongoc_index_opt_wt_t.html" title="mongoc_index_opt_wt_t"><span class="code">mongoc_index_opt_wt_t</span></a></span></p>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="mongoc_index_opt_get_default.html" title="mongoc_index_opt_get_default()"><span class="title">mongoc_index_opt_get_default()</span></a></div></div>
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="mongoc_index_opt_init.html" title="mongoc_index_opt_init()"><span class="title">mongoc_index_opt_init()</span></a></div></div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

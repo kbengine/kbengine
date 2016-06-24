@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_file_new_for_path">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_file_t" group="function"/>
+  </info>
+  <title>mongoc_stream_file_new_for_path()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_stream_t *
+mongoc_stream_file_new_for_path (const char *path,
+                                 int         flags,
+                                 int         mode);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>path</p></td><td><p>The path of the target file.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>Flags to be passed to <code>open()</code>.</p></td></tr>
+      <tr><td><p>mode</p></td><td><p>An optional mode to be passed to <code>open()</code> when creating a file.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function shall create a new <code xref="mongoc_stream_file_t">mongoc_stream_file_t</code> after opening the underlying file with <code>open()</code> or the platform equivalent.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>NULL</code> on failure, otherwise a newly allocated <code xref="mongoc_stream_file_t">mongoc_stream_file_t</code> that should be freed with <code xref="mongoc_stream_destroy">mongoc_stream_destroy()</code> when no longer in use.</p>
+    <p><code>errno</code> is set upon failure.</p>
+  </section>
+
+</page>

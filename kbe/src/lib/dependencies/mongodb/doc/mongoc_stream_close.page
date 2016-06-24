@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_close">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_t" group="function"/>
+  </info>
+  <title>mongoc_stream_close()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_stream_close (mongoc_stream_t *stream);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function shall close underlying file-descriptors of <code>stream</code>.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>0</code> on success, otherwise <code>-1</code> and <code>errno</code> is set.</p>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><link type="seealso" xref="mongoc_stream_destroy">mongoc_stream_destroy()</link></p>
+  </section>
+
+</page>

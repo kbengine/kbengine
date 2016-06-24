@@ -1,0 +1,79 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_UINT32_TO_STRING" "3" "2016\(hy03\(hy30" "libbson"
+.SH NAME
+bson_uint32_to_string() \- Converts value to a string.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+size_t
+bson_uint32_to_string (uint32_t     value,
+                       const char **strptr,
+                       char        *str,
+                       size_t       size);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B value
+A uint32_t.
+.LP
+.TP
+.B
+.B strptr
+A location for the resulting string pointer.
+.LP
+.TP
+.B
+.B str
+A location to buffer the string.
+.LP
+.TP
+.B
+.B size
+A size_t containing the size of
+.B str
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Converts
+.B value
+to a string.
+
+If
+.B value
+is from 0 to 999, it will use a constant string in the data section of the library.
+
+If not, a string will be formatted using
+.B str
+and
+.B snprintf(3)
+\e&.
+
+.B strptr
+will always be set. It will either point to
+.B str
+or a constant string. You will want to use this as your key.
+
+.SH "RETURNS"
+
+The number of bytes in the resulting string.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

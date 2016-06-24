@@ -1,0 +1,99 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_VALUE_T" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_value_t \- BSON Boxed Container Type
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <bson.h>
+
+typedef struct _bson_value_t
+{
+   bson_type_t           value_type;
+   union {
+      bson_oid_t         v_oid;
+      int64_t            v_int64;
+      int32_t            v_int32;
+      int8_t             v_int8;
+      double             v_double;
+      bool               v_bool;
+      int64_t            v_datetime;
+      struct {
+         uint32_t        timestamp;
+         uint32_t        increment;
+      } v_timestamp;
+      struct {
+         uint32_t        len;
+         char           *str;
+      } v_utf8;
+      struct {
+         uint32_t        data_len;
+         uint8_t        *data;
+      } v_doc;
+      struct {
+         uint32_t        data_len;
+         uint8_t        *data;
+         bson_subtype_t  subtype;
+      } v_binary;
+      struct {
+         char           *regex;
+         char           *options;
+      } v_regex;
+      struct {
+         char           *collection;
+         uint32_t        collection_len;
+         bson_oid_t      oid;
+      } v_dbpointer;
+      struct {
+         uint32_t        code_len;
+         char           *code;
+      } v_code;
+      struct {
+         uint32_t        code_len;
+         char           *code;
+         uint32_t        scope_len;
+         uint8_t        *scope_data;
+      } v_codewscope;
+      struct {
+         uint32_t        len;
+         char           *symbol;
+      } v_symbol;
+   } value;
+} bson_value_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+The
+.B bson_value_t
+structure is a boxed type for encapsulating a runtime determined type.
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+const bson_value_t *value;
+
+value = bson_iter_value (&iter);
+
+if (value.type == BSON_TYPE_INT32) {
+   printf ("%d\en", value.value.v_int32);
+}
+.fi
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

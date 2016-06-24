@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_buffered_new">
+
+
+  <info>
+    <link type="guide" xref="" group="function"/>
+  </info>
+  <title>mongoc_stream_buffered_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_stream_t *
+mongoc_stream_buffered_new (mongoc_stream_t *base_stream,
+                            size_t           buffer_size);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>base_stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code> to buffer.</p></td></tr>
+      <tr><td><p>buffer_size</p></td><td><p>A size_t containing the desired buffer size.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function shall create a new <code xref="mongoc_stream_t">mongoc_stream_t</code> that buffers bytes to and from the underlying <code>base_stream</code>.</p>
+    <p><code>buffer_size</code> will be used as the initial buffer size. It may grow past this size.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_stream_buffered_t">mongoc_stream_buffered_t</code> on success, otherwise <code>NULL</code>. This should be freed with <code xref="mongoc_stream_destroy">mongoc_stream_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

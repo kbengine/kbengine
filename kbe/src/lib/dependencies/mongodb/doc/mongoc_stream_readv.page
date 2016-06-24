@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_readv">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_t" group="function"/>
+  </info>
+  <title>mongoc_stream_readv()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[ssize_t
+mongoc_stream_readv (mongoc_stream_t *stream,
+                     mongoc_iovec_t  *iov,
+                     size_t           iovcnt,
+                     size_t           min_bytes,
+                     int32_t          timeout_msec);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code>.</p></td></tr>
+      <tr><td><p>iov</p></td><td><p>A vector of <code xref="mongoc_iovec_t">mongoc_iovec_t</code>.</p></td></tr>
+      <tr><td><p>iovcnt</p></td><td><p>The number of items in <code>iov</code>.</p></td></tr>
+      <tr><td><p>min_bytes</p></td><td><p>The minimum number of bytes to read or failure will be indicated.</p></td></tr>
+      <tr><td><p>timeout_msec</p></td><td><p>A timeout in milliseconds, or 0 to indicate non-blocking. A negative value with use the default timeout.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function is identical to <code xref="mongoc_stream_read">mongoc_stream_read()</code> except that it takes a <code xref="mongoc_iovec_t">mongoc_iovec_t</code> to perform gathered I/O.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>&gt;= 0</code> on success, <code>-1</code> on failure and <code>errno</code> is set.</p>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><code xref="mongoc_stream_read">mongoc_stream_read()</code></p>
+    <p><code xref="mongoc_stream_write">mongoc_stream_write()</code></p>
+    <p><code xref="mongoc_stream_writev">mongoc_stream_writev()</code></p>
+  </section>
+
+</page>

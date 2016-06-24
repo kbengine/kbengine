@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_pool_new">
+
+
+  <info>
+    <link type="guide" xref="mongoc_client_pool_t" group="function"/>
+  </info>
+  <title>mongoc_client_pool_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_client_pool_t *
+mongoc_client_pool_new (const mongoc_uri_t *uri);
+]]></code></synopsis>
+    <p>This function creates a new <code xref="mongoc_client_pool_t">mongoc_client_pool_t</code> using the <code xref="mongoc_uri_t">mongoc_uri_t</code> provided.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>uri</p></td><td><p>A <code xref="mongoc_uri_t">mongoc_uri_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_client_pool_t">mongoc_client_pool_t</code> that should be freed with <code xref="mongoc_client_pool_destroy">mongoc_client_pool_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>
