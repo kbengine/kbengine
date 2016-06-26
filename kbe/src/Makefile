@@ -16,6 +16,8 @@ all_configs:
 	$(MAKE) KBE_CONFIG=Hybrid$(ARCH) all
 	$(MAKE) KBE_CONFIG=Debug$(ARCH) all
 
+debug:
+	$(MAKE) KBE_CONFIG=Debug$(ARCH) all
 
 all_configs_clean:
 	$(MAKE) KBE_CONFIG=Hybrid$(ARCH) cleanall
@@ -32,4 +34,3 @@ coverage_clean:
 
 cleanall:
 	$(MAKE) clean
-
