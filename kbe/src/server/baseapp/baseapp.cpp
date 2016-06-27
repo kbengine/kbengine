@@ -3139,7 +3139,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	Network::Channel* pClientChannel = mailbox->getChannel();
 	Network::Bundle* pSendBundle = NULL;
 	
-	if (!pClientChannel || pBufferedSendToClientMessages)
+	if (true/*!pClientChannel || pBufferedSendToClientMessages*/)
 		pSendBundle = Network::Bundle::createPoolObject();
 	else
 		pSendBundle = pClientChannel->createSendBundle();
@@ -3327,7 +3327,8 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				Network::Channel* pChannel = mailbox->getChannel();
 				if (pChannel)
 				{
-					Network::Bundle* pBundle = pChannel->createSendBundle();
+					//Network::Bundle* pBundle = pChannel->createSendBundle();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					mailbox->newMail(*pBundle);
 					pBundle->append(s);
 

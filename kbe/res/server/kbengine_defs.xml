@@ -38,7 +38,7 @@
 		<debug_type> 0 </debug_type>
 		<use_logfile> false </use_logfile>
 		<disables>
-			<item>Encrypted::packet</item>
+			<item>Encrypted::packets</item>
 			<item>Baseappmgr::updateBaseapp</item>
 			<item>Baseappmgr::onBaseappInitProgress</item>
 			<item>Cellappmgr::updateCellapp</item>
