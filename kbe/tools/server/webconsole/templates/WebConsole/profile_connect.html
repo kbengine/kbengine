@@ -3,14 +3,18 @@
   {% block content %}</p>
 <div class="container-win row placeholders">
   <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
+  <input class="btn btn-default" type="button" name="exec" value="连接组件" id="exec" onClick="onProfile(this)">
+  <input class="btn btn-default" type="button" name="exec2" value="更新图表" id="exec" onClick="show_echars()">
   <div id="output_block_area">
   </div>
+  <div id="tottime" style="width: 100%;height: 600px;"></div>
+  
   <br>
   <div id="execute-block">
       <input name="component_ip" type="hidden" id="component_ip" value="{{ request.GET.ip }}">
     <input name="component_port" type="hidden" id="component_port" value="{{ request.GET.port }}">
     <input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url }}">
-<input class="btn btn-default" type="button" name="exec" value="开始" id="exec" onClick="onProfile(this)">
+
   </div>
 </div>
  {% endblock %}
@@ -18,6 +22,7 @@
 {% block tail_js %}
 <script src="/static/js/pytools.js"></script>
 <script src="/static/js/kbengine.js"></script>
+
 <script>$(".profile-comps").addClass("active");</script>
 <script>
   $(".kbe-list .dd").hide();
@@ -30,16 +35,17 @@ function onProfile(elm)
     var elmm = $(elm);
     if (!$.data.profile_started)
     {
-        elmm.val("结束");
+        elmm.val("断开连接");
         $.data.profile_started = true;
         KBEngine.resetPyTickProfileData();
         connect_to();
     }
     else
     {
-        elmm.val("开始");
+        elmm.val("连接组件");
         $.data.profile_started = false;
         window.kbe_socket.close();
+        
     }
 }
 
@@ -47,19 +53,21 @@ function connect_to()
 {
     var socket = new WebSocket($("#ws_url").val());
     socket.onopen = function(evt) { 
-        $('#output_block_area').append("<p> 连接成功！欢迎使用WebConsole。</p>");
+        $('#output_block_area').html("<p> 连接成功！欢迎使用WebConsole。</p>");
+        show_echars();
     }; 
     socket.onclose = function(evt) { 
-        $('#output_block_area').append("<p> 连接已关闭，请重新连接！！！ </p>");
+        $('#output_block_area').html("<p> 连接已关闭，请重新连接！！！ </p>");
         $.data.connect_closed = true;
     }; 
     socket.onmessage = function(evt) { 
         //$('#output_block_area').append('<span>' + evt.data + '</span> <br>');
+
         show_result( evt.data );
     }; 
     socket.onerror = function(evt) { 
         //alert("websocket onerror: " + evt);
-        $('#output_block_area').append("<p> 连接失败！！！请刷新重试。 </p>");
+        $('#output_block_area').html("<p> 连接失败！！！请刷新重试。 </p>");
     }; 
     window.kbe_socket = socket;
     $.data.connect_closed = false;
@@ -68,13 +76,91 @@ function connect_to()
 function show_result(data)
 {
     KBEngine.parsePyTickProfileData(data);
-    
+
     //$('#output_block_area').append( data );
     //$('#output_block_area').append( "<p>" + $.data.pyTickProfileDatas.length + "</p>" );
-    $('#output_block_area').append( $.data.pyTickProfileDatas.length + " - " );
+    // $('#output_block_area').append( $.data.pyTickProfileDatas.length+ " - " );
 }
 
+  function show_echars(){
+  data_length = $.data.pyTickProfileDatas.length-1;
+  arr_x = new Array();
+  arr_y = new Array();
+  for (var i = 0; i <= data_length; i++) {
+    arr_x[i] = i;
+    arr_y[i] = $.data.pyTickProfileDatas[i].tottime;
+  }
+  var myChart = echarts.init(document.getElementById('tottime'));
+  var option = {
+    title : {
+        text: '组件Object响应时间',
+        x: 'center',
+        align: 'right'
+    },
+    grid: {
+        bottom: 80
+    },
+    tooltip : {
+        trigger: 'axis',
+        axisPointer: {
+            animation: false
+        }
+    },
+    legend: {
+        data:['响应时间'],
+        x: 'left',
+        top:'20%',
+    },
+    dataZoom: [
+        {
+            show: true,
+            realtime: true,
+            start: 60,
+            end: 80
+        },
+        {
+            type: 'inside',
+            realtime: true,
+            start: 60,
+            end: 80,
+            zoomlock:true,
+        }
+    ],
+    xAxis : [
+        {
+            type : 'category',
+            boundaryGap: true,
+            axisLine: {onZero: false},
+            data : arr_x,
+        }
+    ],
+    yAxis: [
+        {
+            name: '响应时间',
+            type: 'value',
 
+        }
+    ],
+    series: [
+        {
+            name:'响应时间',
+            type:'bar',
+            hoverAnimation: false,
+            areaStyle: {
+                normal: {}
+            },
+            lineStyle: {
+                normal: {
+                    width: 1
+                }
+            },
+            data:arr_y,
+        }
+    ]
+};
+
+    myChart.setOption(option);
+}
 </script>
     
 {% endblock %}
