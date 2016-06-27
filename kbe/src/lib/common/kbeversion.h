@@ -27,7 +27,7 @@ namespace KBEngine{
 	
 #define KBE_VERSION_MAJOR 0
 #define KBE_VERSION_MINOR 8
-#define KBE_VERSION_PATCH 0
+#define KBE_VERSION_PATCH 10
 
 
 namespace KBEVersion
