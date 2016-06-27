@@ -493,6 +493,9 @@ void Entity::sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isCo
 		pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
 	}
 
+	if (!pChannel)
+		return;
+
 	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
 	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 
