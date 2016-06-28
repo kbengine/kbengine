@@ -22,6 +22,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "py_memorystream.h"
 #include "py_gc.h"
 
+#ifndef CODE_INLINE
+#include "py_memorystream.inl"
+#endif
+
 namespace KBEngine{ namespace script{
 
 PySequenceMethods PyMemoryStream::seqMethods =
