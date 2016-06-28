@@ -143,14 +143,17 @@ bool Logger::initializeEnd()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	// 所有脚本都加载完毕
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
-		const_cast<char*>("onLoggerAppReady"),
-		const_cast<char*>(""));
+	if (getEntryScript().get())
+	{
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+			const_cast<char*>("onLoggerAppReady"),
+			const_cast<char*>(""));
 
-	if (pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+		if (pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 
 	pTelnetServer_ = new TelnetServer(&this->dispatcher(), &this->networkInterface());
 	pTelnetServer_->pScript(&this->getScript());
@@ -189,7 +192,7 @@ bool Logger::canShutdown()
 		return false;
 	}
 
-	if (PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
+	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
 	{
 		// 所有脚本都加载完毕
 		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
@@ -222,8 +225,11 @@ void Logger::onShutdownBegin()
 	PythonApp::onShutdownBegin();
 
 	// 通知脚本
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoggerAppShutDown"));
+	if (getEntryScript().get())
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoggerAppShutDown"));
+	}
 }
 
 //-------------------------------------------------------------------------------------	
@@ -299,8 +305,8 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		iter->second.onMessage(pLogItem);
 	}
 
-	static bool notificationScript_ = PyObject_HasAttrString(getEntryScript().get(), "onLogWrote") > 0;
-	if(notificationScript_)
+	static bool notificationScript = getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onLogWrote") > 0;
+	if(notificationScript)
 	{
 		// 记录下完整的日志，以在脚本回调时使用
 		std::string sLog = pLogItem->logstream.str();
