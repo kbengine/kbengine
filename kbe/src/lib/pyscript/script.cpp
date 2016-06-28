@@ -221,6 +221,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	ScriptStdOut::installScript(NULL);
 	ScriptStdErr::installScript(NULL);
 
+	/*
 	static struct PyModuleDef moduleDesc =
 	{  
 			 PyModuleDef_HEAD_INIT,  
@@ -232,9 +233,11 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 
 	// 初始化基础模块
 	PyModule_Create(&moduleDesc);
+	*/
 
 	// 将模块对象加入main
 	PyObject_SetAttrString(m, moduleName, module_);	
+	PyObject_SetAttrString(module_, "__doc__", PyUnicode_FromString("This module is created by KBEngine!"));
 
 	// 重定向python输出
 	pyStdouterr_ = new ScriptStdOutErr();
@@ -307,8 +310,8 @@ bool Script::installExtraModule(const char* moduleName)
 		return false;
 	
 	// 初始化扩展模块
-	PyObject *module_ = PyImport_AddModule(moduleName);
-	if (module_ == NULL)
+	PyObject *module = PyImport_AddModule(moduleName);
+	if (module == NULL)
 		return false;
 
 	// 将扩展模块对象加入main
