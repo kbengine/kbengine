@@ -18,20 +18,6 @@ logs/
 *.exe
 *.pdb
 
-*.o
-*.a
-*.d
-*.d*
-*.pyc
-GPATH
-GRTAGS
-GTAGS
-kbe/src/lib/dependencies/
-kbe/src/lib/python/
-kbe/bin/
-kbe/res/scripts/
-kbengine_demos_assets/
-
 # -------------[ OS generated ]------------------------ #
 .DS_Store
 .DS_Store?
