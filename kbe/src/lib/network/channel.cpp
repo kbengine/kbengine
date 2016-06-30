@@ -815,7 +815,10 @@ Bundle* Channel::createSendBundle()
 	if(bundles_.size() > 0)
 	{
 		Bundle* pBundle = bundles_.back();
-		if(pBundle->packetHaveSpace())
+		Bundle::Packets& packets = pBundle->packets();
+
+		if (pBundle->packetHaveSpace() &&
+			!packets[0]->encrypted() /* 必须是未经过加密的包，如果已经加密了就不要再重复拿出来用了，否则外部容易向其中添加未加密数据 */)
 		{
 			// 先从队列删除
 			bundles_.pop_back();
