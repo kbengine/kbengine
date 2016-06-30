@@ -537,7 +537,7 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 	}
 	catch(MemoryStreamException &e)
 	{
-		PyErr_Format(PyExc_Exception, "PyMemoryStream::pop: get stream error!");
+		PyErr_Format(PyExc_Exception, "PyMemoryStream::pop: stream error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
