@@ -45,6 +45,8 @@ PySequenceMethods PyMemoryStream::seqMethods =
 SCRIPT_METHOD_DECLARE_BEGIN(PyMemoryStream)
 SCRIPT_METHOD_DECLARE("append",				append,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("bytes",				bytes,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("rpos",				rpos,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("wpos",				wpos,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",		reduce_ex__,	METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",		reduce_ex__,	METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
@@ -287,7 +289,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 
 	if(PyArg_ParseTuple(args, "s|O", &type, &pyVal) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: args is error!");
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -423,14 +425,14 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 	int argCount = PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::pop: args is error! arg1 is type[UINT8|STRING|...].");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::pop: args error! arg1 is type[UINT8|STRING|...].");
 		PyErr_PrintEx(0);
 	}
 	
 	char* type;
 	if(PyArg_ParseTuple(args, "s", &type) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: args is error!");
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -535,13 +537,83 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 	}
 	catch(MemoryStreamException &e)
 	{
-		PyErr_Format(PyExc_Exception, "PyMemoryStream::pop: get stream is error!");
+		PyErr_Format(PyExc_Exception, "PyMemoryStream::pop: get stream error!");
 		e.PrintPosError();
 		PyErr_PrintEx(0);
 		S_Return;
 	}
 
 	S_Return;	
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_rpos(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+
+	int argCount = PyTuple_Size(args);
+	if (argCount > 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::rpos: args error! arg1 is type[UINT32].");
+		PyErr_PrintEx(0);
+	}
+	else if (argCount == 1)
+	{
+		uint32 pos = 0;
+		if (PyArg_ParseTuple(args, "I", &pos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::rpos: args error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+
+		pyobj->stream().rpos(pos);
+	}
+	else
+	{
+		return PyLong_FromUnsignedLong(pyobj->stream().rpos());
+	}
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_wpos(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+
+	int argCount = PyTuple_Size(args);
+	if (argCount > 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::wpos: args error! arg1 is type[UINT32].");
+		PyErr_PrintEx(0);
+	}
+
+	if (argCount > 0 && pyobj->readonly())
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::wpos: read only!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if (argCount == 1)
+	{
+		uint32 pos = 0;
+		if (PyArg_ParseTuple(args, "I", &pos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::wpos: args error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+
+		pyobj->stream().wpos(pos);
+	}
+	else
+	{
+		return PyLong_FromUnsignedLong(pyobj->stream().wpos());
+	}
+
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
