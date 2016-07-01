@@ -3139,24 +3139,32 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	Network::Channel* pClientChannel = mailbox->getChannel();
 	Network::Bundle* pSendBundle = NULL;
 	
+	static Network::MessageHandler* pMessageHandler = NULL;
+
+	int rpos = s.rpos();
+	Network::MessageID fmsgid = 0;
+	s >> fmsgid;
+
+	if (!pMessageHandler || pMessageHandler->msgID != fmsgid)
+		pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
+
+	s.rpos(rpos);
+		
 	if (!pClientChannel || pBufferedSendToClientMessages)
 		pSendBundle = Network::Bundle::createPoolObject();
 	else
 		pSendBundle = pClientChannel->createSendBundle();
 
 	(*pSendBundle).append(s);
-	
-	if(!pBufferedSendToClientMessages)
+	pSendBundle->pCurrMsgHandler(pMessageHandler);
+
+	if (!pBufferedSendToClientMessages)
 		static_cast<Proxy*>(base)->sendToClient(pSendBundle);
 	else
 		pBufferedSendToClientMessages->pushMessages(pSendBundle);
 
 	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
-		Network::MessageID fmsgid = 0;
-		s >> fmsgid;
-
-		Network::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
 		bool isprint = true;
 
 		if(pMessageHandler)
