@@ -268,7 +268,7 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	if(aTm == NULL)
 	{
-		ERROR_MSG("Logger::writeLog: log is error!\n");
+		ERROR_MSG("Logger::writeLog: log error!\n");
 		delete pLogItem;
 		return;
 	}

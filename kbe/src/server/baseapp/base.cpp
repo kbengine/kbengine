@@ -222,7 +222,7 @@ bool Base::installCellDataAttr(PyObject* dictData, bool installpy)
 
 		if(PyObject_SetAttrString(this, "cellData", cellDataDict_) == -1)
 		{
-			ERROR_MSG("Base::installCellDataAttr: set property cellData is error!\n");
+			ERROR_MSG("Base::installCellDataAttr: set property cellData error!\n");
 			SCRIPT_ERROR_CHECK();
 			return false;
 		}
@@ -334,7 +334,7 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 			if (PyErr_Occurred())
  			{	
 				PyErr_PrintEx(0);
-				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} is error!\n", this->scriptName(),
+				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} error!\n", this->scriptName(),
 					propertyDescription->getName()));
 			}
 		}
@@ -377,7 +377,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -393,7 +393,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -474,7 +474,7 @@ void Base::destroyCellData(void)
 	// S_RELEASE(cellDataDict_);
 	if(PyObject_DelAttrString(this, "cellData") == -1)
 	{
-		ERROR_MSG(fmt::format("{}::destroyCellData: delete cellData is error!\n", this->scriptName()));
+		ERROR_MSG(fmt::format("{}::destroyCellData: delete cellData error!\n", this->scriptName()));
 		SCRIPT_ERROR_CHECK();
 	}
 }

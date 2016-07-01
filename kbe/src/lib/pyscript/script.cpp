@@ -378,7 +378,7 @@ void Script::setenv(const std::string& name, const std::string& value)
 
 		if (!py_environ)
 		{
-			ERROR_MSG("Script::setenv: get os.environ is error!\n");
+			ERROR_MSG("Script::setenv: get os.environ error!\n");
 			PyErr_PrintEx(0);
 			Py_DECREF(py_value);
 			Py_DECREF(py_name);
@@ -405,7 +405,7 @@ void Script::setenv(const std::string& name, const std::string& value)
 		
 		if(ret == -1)
 		{
-			ERROR_MSG("Script::setenv: get os.environ is error!\n");
+			ERROR_MSG("Script::setenv: get os.environ error!\n");
 			PyErr_PrintEx(0);
 			return;
 		}

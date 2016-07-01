@@ -483,7 +483,7 @@ void Channel::send(Bundle * pBundle)
 
 	if(isCondemn())
 	{
-		//WARNING_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
+		//WARNING_MSG(fmt::format("Channel::send: error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
 		//	c_str()));
 
 		this->clearBundle();

@@ -280,7 +280,7 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	int argCount = PyTuple_Size(args);
 	if(argCount != 2)
 	{
-		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::append: args is error! arg1 is type[UINT8|STRING|...], arg2 is val.");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::append: args error! arg1 is type[UINT8|STRING|...], arg2 is val.");
 		PyErr_PrintEx(0);
 	}
 	
