@@ -96,6 +96,8 @@ public:
 	static PyObject* __py_rpos(PyObject* self, PyObject* args, PyObject* kwargs);
 	static PyObject* __py_wpos(PyObject* self, PyObject* args, PyObject* kwargs);
 
+	static PyObject* __py_fill(PyObject* self, PyObject* args, PyObject* kwargs);
+
 protected:
 	MemoryStream stream_;
 	bool readonly_;

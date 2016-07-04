@@ -48,6 +48,7 @@ SCRIPT_METHOD_DECLARE("pop",				pop,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("bytes",				bytes,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("rpos",				rpos,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("wpos",				wpos,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("fill",				fill,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",		reduce_ex__,	METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
@@ -392,12 +393,12 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 				S_Return;
 			}
 
-			pyobj->stream().append(buffer, length);
+			pyobj->stream().appendBlob(buffer, length);
 		}
 		else
 		{
 			PyMemoryStream* obj = static_cast<PyMemoryStream*>(pyVal);
-			pyobj->stream().append(obj->stream());
+			pyobj->stream().appendBlob(&obj->stream());
 		}
 	}
 	else
@@ -510,6 +511,7 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 		{
 			std::string s;
 			pyobj->stream().readBlob(s);
+
 			PyObject* ret = PyUnicode_DecodeUTF8(s.data(), s.length(), NULL);
 			if(ret == NULL)
 			{
@@ -527,6 +529,22 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 			std::string s;
 			pyobj->stream().readBlob(s);
 			return Pickler::unpickle(s);
+		}
+		else if (strcmp(type, "BLOB") == 0)
+		{
+			std::string s;
+			pyobj->stream().readBlob(s);
+
+			PyObject* ret = PyBytes_FromStringAndSize((char*)s.data(), s.length());
+			if (ret == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+				PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: val is not BLOB!");
+				PyErr_PrintEx(0);
+				S_Return;
+			}
+
+			return ret;
 		}
 		else
 		{
@@ -610,6 +628,64 @@ PyObject* PyMemoryStream::__py_wpos(PyObject* self, PyObject* args, PyObject* kw
 	else
 	{
 		return PyLong_FromUnsignedLong(pyobj->stream().wpos());
+	}
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_fill(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+
+	if (pyobj->readonly())
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::fill: read only!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	int argCount = PyTuple_Size(args);
+	if (argCount != 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::fill: args error! arg1 is [bytes|PyMemoryStream].");
+		PyErr_PrintEx(0);
+	}
+
+	PyObject* pyVal = NULL;
+
+	if (PyArg_ParseTuple(args, "O", &pyVal) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::fill: args error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+
+	if (!PyObject_TypeCheck(pyVal, PyMemoryStream::getScriptType()) && !PyBytes_Check(pyVal))
+	{
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::fill: val is not [bytes|PyMemoryStream]!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if (PyBytes_Check(pyVal))
+	{
+		char *buffer;
+		Py_ssize_t length;
+
+		if (PyBytes_AsStringAndSize(pyVal, &buffer, &length) < 0)
+		{
+			SCRIPT_ERROR_CHECK();
+			S_Return;
+		}
+
+		pyobj->stream().append(buffer, length);
+	}
+	else
+	{
+		PyMemoryStream* obj = static_cast<PyMemoryStream*>(pyVal);
+		pyobj->stream().append(obj->stream());
 	}
 
 	S_Return;
