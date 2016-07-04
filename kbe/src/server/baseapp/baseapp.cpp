@@ -4295,7 +4295,7 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 	password = KBEngine::strutil::kbe_trim(password);
 	email = KBEngine::strutil::kbe_trim(email);
 
-	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) email={}!\n", accountName, entityID, email));
+	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName={}, entityID={}, email={}!\n", accountName, entityID, email));
 
 	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
