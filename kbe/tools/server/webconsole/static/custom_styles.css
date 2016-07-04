@@ -217,3 +217,19 @@ body {
 .disable a{
   
 }
+
+.tablesaw .tablesaw-sortable-head .tablesaw-sortable-btn{
+    width:100%;
+    min-width: 100%;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    text-transform: inherit;
+    position: relative;
+}
+.tablesaw-bar{
+  display: none;
+}
