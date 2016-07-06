@@ -101,7 +101,7 @@ INLINE void EndPoint::socket(int type)
 		EndPoint::initNetwork();
 		this->setFileDescriptor((int)::socket(AF_INET, type, 0));
 		KBE_ASSERT((socket_ != INVALID_SOCKET) && (WSAGetLastError() != WSANOTINITIALISED) && \
-				"EndPoint::socket: create socket is error!");
+				"EndPoint::socket: create socket error!");
 	}
 #endif
 }
