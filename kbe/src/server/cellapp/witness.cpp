@@ -309,8 +309,11 @@ void Witness::setAoiRadius(float radius, float hyst)
 
 	if(aoiRadius_ + aoiHysteresisArea_ > g_kbeSrvConfig.getCellApp().ghostDistance)
 	{
-		aoiRadius_ = g_kbeSrvConfig.getCellApp().ghostDistance - 5.0f;
-		aoiHysteresisArea_ = 5.0f;
+		//aoiRadius_ = g_kbeSrvConfig.getCellApp().ghostDistance - 5.0f;
+		//aoiHysteresisArea_ = 5.0f;
+		
+		WARNING_MSG(fmt::format("Witness::setAoiRadius({}): AOI the size({}) of more than ghostDistance({})!\n", 
+			pEntity_->id(), (aoiRadius_ + aoiHysteresisArea_), g_kbeSrvConfig.getCellApp().ghostDistance));
 	}
 
 	if (aoiRadius_ > 0.f)
