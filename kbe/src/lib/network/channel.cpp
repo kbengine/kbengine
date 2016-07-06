@@ -187,7 +187,6 @@ bool Channel::initialize(NetworkInterface & networkInterface,
 	KBE_ASSERT(pNetworkInterface_ != NULL);
 	KBE_ASSERT(pEndPoint_ != NULL);
 
-
 	if(protocoltype_ == PROTOCOL_TCP)
 	{
 		if(pPacketReceiver_)
