@@ -110,7 +110,7 @@ typedef G3D::Vector3							Vector3;
 typedef G3D::Vector4							Vector4;
 
 #define KBE_PI									3.1415926535898
-#define KBE_2PI									KBE_PI * 2
+#define KBE_2PI									6.2831853071796
 #define KBE_DegreeToRadian						G3D::toRadians
 #define KBE_RadianToDegree						G3D::toRadians
 	
