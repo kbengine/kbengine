@@ -26,12 +26,21 @@
 // Generally not needed, useful for very large worlds.
 // Note: tiles build using 32bit refs are not compatible with 64bit refs!
 //#define DT_POLYREF64 1
+#define DT_UE4
 
 #ifdef DT_POLYREF64
 // TODO: figure out a multiplatform version of uint64_t
 // - maybe: https://code.google.com/p/msinttypes/
 // - or: http://www.azillionmonkeys.com/qed/pstdint.h
 #include <stdint.h>
+#endif
+
+#ifdef DT_UE4
+static const unsigned int MAX_Bits = 64;
+typedef unsigned long long dtRefType;
+#else
+static const unsigned int MAX_Bits = 32;
+typedef unsigned int dtRefType;
 #endif
 
 // Note: If you want to use 64-bit refs, change the types of both dtPolyRef & dtTileRef.
@@ -45,7 +54,7 @@ static const unsigned int DT_TILE_BITS = 28;
 static const unsigned int DT_POLY_BITS = 20;
 typedef uint64_t dtPolyRef;
 #else
-typedef unsigned int dtPolyRef;
+typedef dtRefType dtPolyRef;
 #endif
 
 /// A handle to a tile within a navigation mesh.
@@ -53,7 +62,7 @@ typedef unsigned int dtPolyRef;
 #ifdef DT_POLYREF64
 typedef uint64_t dtTileRef;
 #else
-typedef unsigned int dtTileRef;
+typedef dtRefType dtTileRef;
 #endif
 
 /// The maximum number of vertices per navigation polygon.
@@ -217,13 +226,14 @@ struct dtBVNode
 
 /// Defines an navigation mesh off-mesh connection within a dtMeshTile object.
 /// An off-mesh connection is a user defined traversable connection made up to two vertices.
+#ifndef DT_UE4
 struct dtOffMeshConnection
 {
 	/// The endpoints of the connection. [(ax, ay, az, bx, by, bz)]
 	float pos[6];
 
 	/// The radius of the endpoints. [Limit: >= 0]
-	float rad;		
+	float rad;
 
 	/// The polygon reference of the connection within the tile.
 	unsigned short poly;
@@ -240,8 +250,41 @@ struct dtOffMeshConnection
 	unsigned int userId;
 };
 
+#else
+struct dtOffMeshConnection
+{
+	/// The endpoints of the connection. [(ax, ay, az, bx, by, bz)]
+	float pos[6];
+
+	/// The radius of the endpoints. [Limit: >= 0]
+	float rad;
+
+	/// The snap height of endpoints (less than 0 = use step height)
+	float height;
+
+	/// The id of the offmesh connection. (User assigned when the navigation mesh is built.)
+	unsigned int userId;
+
+	/// The polygon reference of the connection within the tile.
+	unsigned short poly;
+
+	/// End point side.
+	unsigned char side;
+
+	/// Link flags. 
+	unsigned char flags;
+
+	/// Gets the link direction
+	inline bool getBiDirectional() const { return (flags & 0x80) != 0; }
+
+	/// Gets the link snap mode
+	inline bool getSnapToCheapestArea() const { return (flags & 0x40) != 0; }
+};
+#endif
+
 /// Provides high level information related to a dtMeshTile object.
 /// @ingroup detour
+#ifndef DT_UE4
 struct dtMeshHeader
 {
 	int magic;				///< Tile magic number. (Used to identify the data format.)
@@ -254,10 +297,10 @@ struct dtMeshHeader
 	int vertCount;			///< The number of vertices in the tile.
 	int maxLinkCount;		///< The number of allocated links.
 	int detailMeshCount;	///< The number of sub-meshes in the detail mesh.
-	
+
 	/// The number of unique vertices in the detail mesh. (In addition to the polygon vertices.)
 	int detailVertCount;
-	
+
 	int detailTriCount;			///< The number of triangles in the detail mesh.
 	int bvNodeCount;			///< The number of bounding volume nodes. (Zero if bounding volumes are disabled.)
 	int offMeshConCount;		///< The number of off-mesh connections.
@@ -267,10 +310,46 @@ struct dtMeshHeader
 	float walkableClimb;		///< The maximum climb height of the agents using the tile.
 	float bmin[3];				///< The minimum bounds of the tile's AABB. [(x, y, z)]
 	float bmax[3];				///< The maximum bounds of the tile's AABB. [(x, y, z)]
-	
+
 	/// The bounding volume quantization factor. 
 	float bvQuantFactor;
 };
+#else
+struct dtMeshHeader
+{
+	int magic;				///< Tile magic number. (Used to identify the data format.)
+	int version;			///< Tile data format version number.
+	int x;					///< The x-position of the tile within the dtNavMesh tile grid. (x, y, layer)
+	int y;					///< The y-position of the tile within the dtNavMesh tile grid. (x, y, layer)
+	int layer;				///< The layer of the tile within the dtNavMesh tile grid. (x, y, layer)
+	unsigned int userId;	///< The user defined id of the tile.
+	int polyCount;			///< The number of polygons in the tile.
+	int vertCount;			///< The number of vertices in the tile.
+	int maxLinkCount;		///< The number of allocated links.
+	int detailMeshCount;	///< The number of sub-meshes in the detail mesh.
+
+	/// The number of unique vertices in the detail mesh. (In addition to the polygon vertices.)
+	int detailVertCount;
+
+	int detailTriCount;			///< The number of triangles in the detail mesh.
+	int bvNodeCount;			///< The number of bounding volume nodes. (Zero if bounding volumes are disabled.)
+	int offMeshConCount;		///< The number of point type off-mesh connections.
+	int offMeshSegConCount;		///< The number of segment type off-mesh connections.
+	int offMeshBase;			///< The index of the first polygon which is an point type off-mesh connection.
+	int offMeshSegPolyBase;		///< The index of the first polygon which is an segment type off-mesh connection
+	int offMeshSegVertBase;		///< The index of the first vertex used by segment type off-mesh connection
+	float walkableHeight;		///< The height of the agents using the tile.
+	float walkableRadius;		///< The radius of the agents using the tile.
+	float walkableClimb;		///< The maximum climb height of the agents using the tile.
+	float bmin[3];				///< The minimum bounds of the tile's AABB. [(x, y, z)]
+	float bmax[3];				///< The maximum bounds of the tile's AABB. [(x, y, z)]
+
+	/// The bounding volume quantization factor. 
+	float bvQuantFactor;
+
+	int clusterCount;			///< Number of clusters
+};
+#endif
 
 /// Defines a navigation mesh tile.
 /// @ingroup detour

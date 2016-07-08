@@ -30,12 +30,22 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
+#ifndef DT_UE4
 struct NavMeshSetHeader
 {
 	int version;
 	int tileCount;
 	dtNavMeshParams params;
 };
+#else
+struct NavMeshSetHeader
+{
+	int magic;
+	int version;
+	int tileCount;
+	dtNavMeshParams params;
+};
+#endif
 
 struct NavMeshTileHeader
 {
