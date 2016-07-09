@@ -155,9 +155,6 @@ bool MoveToPointHandler::update()
 		{
 			currpos = dstPos;
 		}
-		
-		if (!moveVertically_)
-			currpos.y = y;
 
 		ret = false;
 	}
@@ -172,8 +169,14 @@ bool MoveToPointHandler::update()
 	}
 	
 	// 是否需要改变面向
-	if (faceMovement_ && (movement.x != 0.f || movement.z != 0.f))
-		direction.yaw(movement.yaw());
+	if (faceMovement_)
+	{
+		if (movement.x != 0.f || movement.z != 0.f)
+			direction.yaw(movement.yaw());
+
+		if (movement.y != 0.f)
+			direction.pitch(movement.pitch());
+	}
 	
 	// 设置entity的新位置和面向
 	if(pController_)
