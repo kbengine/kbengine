@@ -174,8 +174,8 @@ bool MoveToPointHandler::update()
 		if (movement.x != 0.f || movement.z != 0.f)
 			direction.yaw(movement.yaw());
 
-		if (movement.y != 0.f)
-			direction.pitch(movement.pitch());
+		//if (movement.y != 0.f)
+		//	direction.pitch(movement.pitch());
 	}
 	
 	// 设置entity的新位置和面向
