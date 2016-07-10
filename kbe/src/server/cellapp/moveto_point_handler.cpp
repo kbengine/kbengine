@@ -156,6 +156,9 @@ bool MoveToPointHandler::update()
 			currpos = dstPos;
 		}
 
+		if (!moveVertically_)
+			currpos.y = y;
+
 		ret = false;
 	}
 	else
