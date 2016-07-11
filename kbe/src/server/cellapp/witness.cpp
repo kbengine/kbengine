@@ -307,13 +307,18 @@ void Witness::setAoiRadius(float radius, float hyst)
 	aoiRadius_ = radius;
 	aoiHysteresisArea_ = hyst;
 
-	if(aoiRadius_ + aoiHysteresisArea_ > g_kbeSrvConfig.getCellApp().ghostDistance)
+	// 由于位置同步使用了相对位置压缩传输，可用范围为-512~512之间，因此超过范围将出现同步错误
+	// 这里做一个限制，如果需要过大的数值客户端应该调整坐标单位比例，将其放大使用。
+	// 参考: MemoryStream::appendPackXZ
+	if(aoiRadius_ + aoiHysteresisArea_ > 512)
 	{
-		//aoiRadius_ = g_kbeSrvConfig.getCellApp().ghostDistance - 5.0f;
-		//aoiHysteresisArea_ = 5.0f;
+		aoiRadius_ = 512 - 5.0f;
+		aoiHysteresisArea_ = 5.0f;
 		
-		WARNING_MSG(fmt::format("Witness::setAoiRadius({}): AOI the size({}) of more than ghostDistance({})!\n", 
-			pEntity_->id(), (aoiRadius_ + aoiHysteresisArea_), g_kbeSrvConfig.getCellApp().ghostDistance));
+		ERROR_MSG(fmt::format("Witness::setAoiRadius({}): AOI the size({}) of more than 512!\n", 
+			pEntity_->id(), (aoiRadius_ + aoiHysteresisArea_)));
+		
+		return;
 	}
 
 	if (aoiRadius_ > 0.f)
