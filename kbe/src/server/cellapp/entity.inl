@@ -254,6 +254,12 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE bool Entity::isControlledNotSelfCleint() const
+{
+	return controlledBy_ == NULL || controlledBy_->id() != id();
+}
+
+//-------------------------------------------------------------------------------------
 INLINE EntityMailbox* Entity::controlledBy() const
 {
 	return controlledBy_; 

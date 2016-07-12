@@ -146,7 +146,8 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 		}
 	}
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 	Cellapp::getSingleton().addUpdatable(this);
 }
 
@@ -158,7 +159,8 @@ void Witness::attach(Entity* pEntity)
 
 	pEntity_ = pEntity;
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
@@ -175,7 +177,8 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::onAttach(Entity* pEntity)
 {
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	// 通知客户端enterworld
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
@@ -296,6 +299,12 @@ void Witness::onReclaimObject()
 const Position3D& Witness::basePos()
 {
 	return pEntity()->position();
+}
+
+//-------------------------------------------------------------------------------------
+const Direction3D& Witness::baseDir()
+{
+	return pEntity()->direction();
 }
 
 //-------------------------------------------------------------------------------------
@@ -505,7 +514,8 @@ void Witness::onLeaveSpace(Space* pSpace)
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
@@ -833,13 +843,27 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 {
+	if (pEntity_->isControlledNotSelfCleint())
+	{
+		const Direction3D& bdir = baseDir();
+		Vector3 changeDir = bdir.dir - lastBaseDir_.dir;
+
+		if (KBEVec3Length(&changeDir) > 0.0004f)
+		{
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+			(*pSendBundle) << bdir.yaw() << bdir.pitch() << bdir.roll();
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+			lastBaseDir_ = bdir;
+		}
+	}
+
 	const Position3D& bpos = basePos();
-	Vector3 movement = bpos - lastBasePos;
+	Vector3 movement = bpos - lastBasePos_;
 
 	if(KBEVec3Length(&movement) < 0.0004f)
 		return;
 
-	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
+	if (fabs(lastBasePos_.y - bpos.y) > 0.0004f)
 	{
 		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBasePos, basePos);
 		pSendBundle->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z, 0.f);
@@ -852,15 +876,7 @@ void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBasePosXZ, basePos);
 	}
 
-	if (pEntity_->controlledBy() == NULL || pEntity_->controlledBy()->id() != pEntity_->id())
-	{
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
-		Direction3D &dir = pEntity_->direction();
-		(*pSendBundle) << dir.yaw() << dir.pitch() << dir.roll();
-		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
-	}
-
-	lastBasePos = bpos;
+	lastBasePos_ = bpos;
 }
 
 //-------------------------------------------------------------------------------------
