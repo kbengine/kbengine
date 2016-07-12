@@ -707,7 +707,7 @@ bool Witness::update()
 			(pSendBundle->pCurrPacket() && pSendBundle->pCurrPacket()->length() > 0);
 		
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
-		addBasePosToStream(pSendBundle);
+		addBaseDataToStream(pSendBundle);
 
 		AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 		for(; iter != aoiEntities_.end(); )
@@ -831,7 +831,7 @@ bool Witness::update()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
+void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 {
 	const Position3D& bpos = basePos();
 	Vector3 movement = bpos - lastBasePos;

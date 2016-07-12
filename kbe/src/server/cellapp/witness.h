@@ -155,7 +155,7 @@ public:
 	/**
 		添加基础位置到更新包
 	*/
-	void addBasePosToStream(Network::Bundle* pSendBundle);
+	void addBaseDataToStream(Network::Bundle* pSendBundle);
 
 	/**
 		向witness客户端推送一条消息
