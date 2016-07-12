@@ -641,7 +641,8 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
+void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileName, 
+	int8 profileType, uint32 timelen)
 {
 	switch(profileType)
 	{
@@ -726,7 +727,9 @@ PyObject* PythonApp::__py_addTimer(PyObject* self, PyObject* args)
 
 	if (!PyCallable_Check(pyCallback))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::addTimer: '%.200s' object is not callable", (pyCallback ? pyCallback->ob_type->tp_name : "NULL"));
+		PyErr_Format(PyExc_TypeError, "KBEngine::addTimer: '%.200s' object is not callable", 
+			(pyCallback ? pyCallback->ob_type->tp_name : "NULL"));
+
 		PyErr_PrintEx(0);
 		S_Return;
 	}
