@@ -1738,8 +1738,13 @@ void Entity::onGetWitness(bool fromBase)
 		space->onEntityAttachWitness(this);
 	}
 
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+	// 最后，设置controlledBy为自己的base
+	controlledBy(baseMailbox());
+	
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+	}
 	
 	// 如果一个实体已经有cell的情况下giveToClient，那么需要将最新的客户端属性值更新到客户端
 	if(fromBase)
@@ -1776,9 +1781,6 @@ void Entity::onGetWitness(bool fromBase)
 		
 		clientMailbox()->postMail(pSendBundle);
 	}
-
-	// 最后，设置controlledBy为自己的base
-	controlledBy(baseMailbox());
 
 	Py_DECREF(this);
 }
