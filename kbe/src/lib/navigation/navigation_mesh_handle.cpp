@@ -53,6 +53,7 @@ NavMeshHandle::~NavMeshHandle()
 	DEBUG_MSG(fmt::format("NavMeshHandle::~NavMeshHandle(): ({}) is destroyed!\n", resPath));
 }
 
+#ifndef DT_UE4
 //-------------------------------------------------------------------------------------
 int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
@@ -111,10 +112,10 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 	{
 		float epos1[3];
 		dtVcopy(epos1, endNearestPt);
-				
+
 		if (polys[npolys-1] != endRef)
 			navmeshQuery->closestPointOnPoly(polys[npolys-1], endNearestPt, epos1, 0);
-				
+
 		navmeshQuery->findStraightPath(startNearestPt, endNearestPt, polys, npolys, straightPath, straightPathFlags, straightPathPolys, &nstraightPath, MAX_POLYS);
 
 		Position3D currpos;
@@ -125,7 +126,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 			currpos.z = straightPath[i++];
 			paths.push_back(currpos);
 			pos++; 
-			
+
 			//DEBUG_MSG(fmt::format("NavMeshHandle::findStraightPath: {}->{}, {}, {}\n", pos, currpos.x, currpos.y, currpos.z));
 		}
 	}
@@ -281,6 +282,239 @@ int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D&
 	hitPointVec.push_back(Position3D(hitPoint[0], hitPoint[1], hitPoint[2]));
 	return 1;
 }
+#else
+
+//-------------------------------------------------------------------------------------
+int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
+{
+	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
+	if (iter == navmeshLayer.end())
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath: not found layer({})\n", layer));
+		return NAV_ERROR;
+	}
+
+	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
+	
+	// dtNavMesh* 
+	float spos[3];
+	spos[0] = start.x * UNIT_CONVERSION;
+	spos[1] = start.y * UNIT_CONVERSION;
+	spos[2] = start.z * UNIT_CONVERSION;
+
+	float epos[3];
+	epos[0] = end.x * UNIT_CONVERSION;
+	epos[1] = end.y * UNIT_CONVERSION;
+	epos[2] = end.z * UNIT_CONVERSION;
+	
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff);
+	filter.setExcludeFlags(0);
+
+	const float extents[3] = { 200.f, 400.f, 200.f };
+	
+	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
+	dtPolyRef endRef = INVALID_NAVMESH_POLYREF;
+
+	float startNearestPt[3];
+	float endNearestPt[3];
+	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, startNearestPt);
+	navmeshQuery->findNearestPoly(epos, extents, &filter, &endRef, endNearestPt);
+
+	if (!startRef || !endRef)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::findStraightPath({2}): Could not find any nearby poly's ({0}, {1})\n", startRef, endRef, resPath));
+		return NAV_ERROR_NEARESTPOLY;
+	}
+
+	dtPolyRef polys[MAX_POLYS];
+	int npolys;
+	float straightPath[MAX_POLYS * 3];
+	unsigned char straightPathFlags[MAX_POLYS];
+	dtPolyRef straightPathPolys[MAX_POLYS];
+	int nstraightPath;
+	int pos = 0;
+
+	navmeshQuery->findPath(startRef, endRef, startNearestPt, endNearestPt, &filter, polys, &npolys, MAX_POLYS);
+	nstraightPath = 0;
+
+	if (npolys)
+	{
+		float epos1[3];
+		dtVcopy(epos1, endNearestPt);
+
+		if (polys[npolys - 1] != endRef)
+			navmeshQuery->closestPointOnPoly(polys[npolys - 1], endNearestPt, epos1, 0);
+
+		navmeshQuery->findStraightPath(startNearestPt, endNearestPt, polys, npolys, straightPath, straightPathFlags, straightPathPolys, &nstraightPath, MAX_POLYS);
+
+		Position3D currpos;
+		for (int i = 0; i < nstraightPath * 3;)
+		{
+			currpos.x = straightPath[i++] / UNIT_CONVERSION;
+			currpos.y = straightPath[i++] / UNIT_CONVERSION;
+			currpos.z = straightPath[i++] / UNIT_CONVERSION;
+
+			paths.push_back(currpos);
+			pos++;
+
+			//DEBUG_MSG(fmt::format("NavMeshHandle::findStraightPath: {}->{}, {}, {}\n", pos, currpos.x, currpos.y, currpos.z));
+		}
+	}
+
+	return pos;
+}
+
+int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
+	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
+{
+	maxRadius = maxRadius * UNIT_CONVERSION;
+
+	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
+	if (iter == navmeshLayer.end())
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle: not found layer({})\n", layer));
+		return NAV_ERROR;
+	}
+
+	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
+
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff);
+	filter.setExcludeFlags(0);
+
+	if (maxRadius <= 0.0001f)
+	{
+		Position3D currpos;
+
+		for (uint32 i = 0; i < max_points; i++)
+		{
+			float pt[3];
+			dtPolyRef ref;
+			dtStatus status = navmeshQuery->findRandomPoint(&filter, frand, &ref, pt);
+			if (dtStatusSucceed(status))
+			{
+				currpos.x = pt[0] / UNIT_CONVERSION;
+				currpos.y = pt[1] / UNIT_CONVERSION;
+				currpos.z = pt[2] / UNIT_CONVERSION;
+
+				points.push_back(currpos);
+			}
+		}
+
+		return (int)points.size();
+	}
+
+	const float extents[3] = { 200.f, 400.f, 200.f };
+
+	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
+
+	float spos[3];
+	spos[0] = centerPos.x * UNIT_CONVERSION;
+	spos[1] = centerPos.y * UNIT_CONVERSION;
+	spos[2] = centerPos.z * UNIT_CONVERSION;
+
+	float startNearestPt[3];
+	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, startNearestPt);
+
+	if (!startRef)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::findRandomPointAroundCircle({1}): Could not find any nearby poly's ({0})\n", startRef, resPath));
+		return NAV_ERROR_NEARESTPOLY;
+	}
+
+	Position3D currpos;
+
+	for (uint32 i = 0; i < max_points; i++)
+	{
+		float pt[3];
+		dtPolyRef ref;
+		dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxRadius, &filter, frand, &ref, pt);
+		if (dtStatusSucceed(status))
+		{
+			currpos.x = pt[0] / UNIT_CONVERSION;
+			currpos.y = pt[1] / UNIT_CONVERSION;
+			currpos.z = pt[2] / UNIT_CONVERSION;
+
+			points.push_back(currpos);
+		}
+	}
+
+	return (int)points.size();
+}
+
+//-------------------------------------------------------------------------------------
+int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
+{
+	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
+	if (iter == navmeshLayer.end())
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::raycast: not found layer({})\n", layer));
+		return NAV_ERROR;
+	}
+
+	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
+
+	float hitPoint[3];
+
+	float spos[3];
+	spos[0] = start.x * UNIT_CONVERSION;
+	spos[1] = start.y * UNIT_CONVERSION;
+	spos[2] = start.z * UNIT_CONVERSION;
+
+	float epos[3];
+	epos[0] = end.x * UNIT_CONVERSION;
+	epos[1] = end.y * UNIT_CONVERSION;
+	epos[2] = end.z * UNIT_CONVERSION;
+
+	dtQueryFilter filter;
+	filter.setIncludeFlags(0xffff);
+	filter.setExcludeFlags(0);
+
+	const float extents[3] = { 200.f, 400.f, 200.f };
+
+	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
+
+	float nearestPt[3];
+	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, nearestPt);
+
+	if (!startRef)
+	{
+		return NAV_ERROR_NEARESTPOLY;
+	}
+
+	float t = 0;
+	float hitNormal[3];
+	memset(hitNormal, 0, sizeof(hitNormal));
+
+	dtPolyRef polys[MAX_POLYS];
+	int npolys;
+
+	navmeshQuery->raycast(startRef, spos, epos, &filter, &t, hitNormal, polys, &npolys, MAX_POLYS);
+
+	if (t > 1)
+	{
+		// no hit
+		return NAV_ERROR;
+	}
+	else
+	{
+		// Hit
+		hitPoint[0] = spos[0] + (epos[0] - spos[0]) * t;
+		hitPoint[1] = spos[1] + (epos[1] - spos[1]) * t;
+		hitPoint[2] = spos[2] + (epos[2] - spos[2]) * t;
+		if (npolys)
+		{
+			float h = 0;
+			navmeshQuery->getPolyHeight(polys[npolys - 1], hitPoint, &h);
+			hitPoint[1] = h;
+		}
+	}
+
+	hitPointVec.push_back(Position3D(hitPoint[0] / UNIT_CONVERSION, hitPoint[1] / UNIT_CONVERSION, hitPoint[2] / UNIT_CONVERSION));
+	return 1;
+}
+#endif
 
 //-------------------------------------------------------------------------------------
 NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int, std::string >& params)

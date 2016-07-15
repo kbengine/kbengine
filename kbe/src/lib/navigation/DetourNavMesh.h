@@ -38,6 +38,7 @@
 #ifdef DT_UE4
 static const unsigned int MAX_Bits = 64;
 typedef unsigned long long dtRefType;
+static const unsigned int UNIT_CONVERSION = 100;
 #else
 static const unsigned int MAX_Bits = 32;
 typedef unsigned int dtRefType;
