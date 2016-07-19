@@ -26,6 +26,7 @@
 // Generally not needed, useful for very large worlds.
 // Note: tiles build using 32bit refs are not compatible with 64bit refs!
 //#define DT_POLYREF64 1
+
 #define DT_UE4
 
 #ifdef DT_POLYREF64
@@ -128,11 +129,10 @@ enum dtStraightPathOptions
 };
 
 
-/// Options for dtNavMeshQuery::findPath
+/// Options for dtNavMeshQuery::initSlicedFindPath and updateSlicedFindPath
 enum dtFindPathOptions
 {
-	DT_FINDPATH_LOW_QUALITY_FAR = 0x01,		///< [provisional] trade quality for performance far from the origin. The idea is that by then a new query will be issued
-	DT_FINDPATH_ANY_ANGLE	= 0x02,			///< use raycasts during pathfind to "shortcut" (raycast still consider costs)
+	DT_FINDPATH_ANY_ANGLE	= 0x02,		///< use raycasts during pathfind to "shortcut" (raycast still consider costs)
 };
 
 /// Options for dtNavMeshQuery::raycast
@@ -156,7 +156,7 @@ enum dtPolyTypes
 };
 
 
-/// Defines a polyogn within a dtMeshTile object.
+/// Defines a polygon within a dtMeshTile object.
 /// @ingroup detour
 struct dtPoly
 {
@@ -234,7 +234,7 @@ struct dtOffMeshConnection
 	float pos[6];
 
 	/// The radius of the endpoints. [Limit: >= 0]
-	float rad;
+	float rad;		
 
 	/// The polygon reference of the connection within the tile.
 	unsigned short poly;
@@ -250,7 +250,6 @@ struct dtOffMeshConnection
 	/// The id of the offmesh connection. (User assigned when the navigation mesh is built.)
 	unsigned int userId;
 };
-
 #else
 struct dtOffMeshConnection
 {
@@ -298,10 +297,10 @@ struct dtMeshHeader
 	int vertCount;			///< The number of vertices in the tile.
 	int maxLinkCount;		///< The number of allocated links.
 	int detailMeshCount;	///< The number of sub-meshes in the detail mesh.
-
+	
 	/// The number of unique vertices in the detail mesh. (In addition to the polygon vertices.)
 	int detailVertCount;
-
+	
 	int detailTriCount;			///< The number of triangles in the detail mesh.
 	int bvNodeCount;			///< The number of bounding volume nodes. (Zero if bounding volumes are disabled.)
 	int offMeshConCount;		///< The number of off-mesh connections.
@@ -311,7 +310,7 @@ struct dtMeshHeader
 	float walkableClimb;		///< The maximum climb height of the agents using the tile.
 	float bmin[3];				///< The minimum bounds of the tile's AABB. [(x, y, z)]
 	float bmax[3];				///< The maximum bounds of the tile's AABB. [(x, y, z)]
-
+	
 	/// The bounding volume quantization factor. 
 	float bvQuantFactor;
 };
@@ -381,6 +380,9 @@ struct dtMeshTile
 	int dataSize;							///< Size of the tile data.
 	int flags;								///< Tile flags. (See: #dtTileFlags)
 	dtMeshTile* next;						///< The next free tile, or the next tile in the spatial grid.
+private:
+	dtMeshTile(const dtMeshTile&);
+	dtMeshTile& operator=(const dtMeshTile&);
 };
 
 /// Configuration parameters used to define multi-tile navigation meshes.
@@ -672,6 +674,9 @@ public:
 	/// @}
 	
 private:
+	// Explicitly disabled copy constructor and copy assignment operator.
+	dtNavMesh(const dtNavMesh&);
+	dtNavMesh& operator=(const dtNavMesh&);
 
 	/// Returns pointer to tile in the tile array.
 	dtMeshTile* getTile(int i);
@@ -700,7 +705,7 @@ private:
 	void connectExtOffMeshLinks(dtMeshTile* tile, dtMeshTile* target, int side);
 	
 	/// Removes external links at specified side.
-	void unconnectExtLinks(dtMeshTile* tile, dtMeshTile* target);
+	void unconnectLinks(dtMeshTile* tile, dtMeshTile* target);
 	
 
 	// TODO: These methods are duplicates from dtNavMeshQuery, but are needed for off-mesh connection finding.
@@ -713,7 +718,8 @@ private:
 									const float* extents, float* nearestPt) const;
 	/// Returns closest point on polygon.
 	void closestPointOnPoly(dtPolyRef ref, const float* pos, float* closest, bool* posOverPoly) const;
-	
+
+public:
 	dtNavMeshParams m_params;			///< Current initialization params. TODO: do not store this info twice.
 	float m_orig[3];					///< Origin of the tile (0,0)
 	float m_tileWidth, m_tileHeight;	///< Dimensions of each tile.

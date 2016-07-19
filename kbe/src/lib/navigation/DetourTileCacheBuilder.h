@@ -78,13 +78,11 @@ struct dtTileCachePolyMesh
 
 struct dtTileCacheAlloc
 {
-	virtual ~dtTileCacheAlloc() { }
+	virtual ~dtTileCacheAlloc() {}
 
-	virtual void reset()
-	{
-	}
+	virtual void reset() {}
 	
-	virtual void* alloc(const int size)
+	virtual void* alloc(const size_t size)
 	{
 		return dtAlloc(size, DT_ALLOC_TEMP);
 	}
@@ -128,6 +126,9 @@ void dtFreeTileCachePolyMesh(dtTileCacheAlloc* alloc, dtTileCachePolyMesh* lmesh
 
 dtStatus dtMarkCylinderArea(dtTileCacheLayer& layer, const float* orig, const float cs, const float ch,
 							const float* pos, const float radius, const float height, const unsigned char areaId);
+
+dtStatus dtMarkBoxArea(dtTileCacheLayer& layer, const float* orig, const float cs, const float ch,
+					   const float* bmin, const float* bmax, const unsigned char areaId);
 
 dtStatus dtBuildTileCacheRegions(dtTileCacheAlloc* alloc,
 								 dtTileCacheLayer& layer,
