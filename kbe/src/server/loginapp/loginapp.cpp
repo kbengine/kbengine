@@ -237,6 +237,10 @@ void Loginapp::onClientActiveTick(Network::Channel* pChannel)
 		return;
 
 	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	pBundle->newMessage(ClientInterface::onAppActiveTickCB);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
