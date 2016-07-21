@@ -21,6 +21,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "script.h"
 #include "pywatcher.h"
 
+#ifndef CODE_INLINE
+#include "pywatcher.inl"
+#endif
+
 namespace KBEngine{ namespace script{
 
 template <class TYPE> 

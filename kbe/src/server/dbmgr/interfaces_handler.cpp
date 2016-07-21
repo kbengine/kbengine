@@ -617,34 +617,45 @@ void InterfacesHandler_Interfaces::eraseClientReq(Network::Channel* pChannel, st
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountActivate(Network::Channel* pChannel, std::string& scode)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountActivate(pChannel, scode);
 }
-
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountReqResetPassword(Network::Channel* pChannel, std::string& accountName)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountReqResetPassword(pChannel, accountName);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountResetPassword(Network::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountResetPassword(pChannel, accountName, newpassword, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 												   std::string& password, std::string& email)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountReqBindMail(pChannel, entityID, accountName, password, email);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountBindMail(pChannel, username, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 												   std::string& password, std::string& newpassword)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountNewPassword(pChannel, entityID, accountName, password, newpassword);
 }
 
 //-------------------------------------------------------------------------------------

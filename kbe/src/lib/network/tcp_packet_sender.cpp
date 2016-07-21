@@ -97,7 +97,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 {
 	bool noticed = pChannel == NULL;
 
-	// 如果是有poller通知的，我们需要通过地址找到channel
+	// 如果是由poller通知的，我们需要通过地址找到channel
 	if(noticed)
 		pChannel = getChannel();
 

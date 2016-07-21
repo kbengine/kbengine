@@ -105,6 +105,13 @@ struct DBInterfaceInfo
 		isPure = false;
 		db_numConnections = 5;
 		db_passwordEncrypt = true;
+
+		memset(name, 0, sizeof(name));
+		memset(db_type, 0, sizeof(db_type));
+		memset(db_ip, 0, sizeof(db_ip));
+		memset(db_username, 0, sizeof(db_username));
+		memset(db_password, 0, sizeof(db_password));
+		memset(db_name, 0, sizeof(db_name));
 	}
 
 	int index;

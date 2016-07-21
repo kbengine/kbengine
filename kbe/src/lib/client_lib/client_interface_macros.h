@@ -116,6 +116,51 @@ namespace KBEngine{
 				NAME##ClientMessagehandler0, MSG_LENGTH)						\
 																				\
 
+
+/**
+	Client消息宏，  只有一个参数的消息
+*/
+#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
+	#undef CLIENT_MESSAGE_HANDLER_ARGS1
+#endif
+
+#if defined(DEFINE_IN_INTERFACE)
+#if defined(CLIENT)
+#define CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	void NAME##ClientMessagehandler1::handle(Network::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+			ARG_TYPE1 ARG_NAME1;												\
+			s >> ARG_NAME1;														\
+			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel, ARG_NAME1);		\
+	}																			\
+
+#else
+#define CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	void NAME##ClientMessagehandler1::handle(Network::Channel* pChannel,		\
+												KBEngine::MemoryStream& s)		\
+	{																			\
+	}																			\
+		
+#endif
+#else
+#define CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	class NAME##ClientMessagehandler1 : public Network::MessageHandler			\
+	{																			\
+	public:																		\
+		virtual void handle(Network::Channel* pChannel,							\
+							KBEngine::MemoryStream& s);							\
+	};																			\
+
+#endif
+
+#define CLIENT_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+	CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
+	NETWORK_MESSAGE_DECLARE_ARGS1(Client, NAME,									\
+				NAME##ClientMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+																				\
+	
+
 /**
 	Client消息宏，  只有二个参数的消息
 */
@@ -168,48 +213,6 @@ namespace KBEngine{
 											ARG_TYPE2, ARG_NAME2)				\
 
 
-/**
-	Client消息宏，  只有一个参数的消息
-*/
-#if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef CLIENT_MESSAGE_HANDLER_ARGS1
-#endif
-
-#if defined(DEFINE_IN_INTERFACE)
-#if defined(CLIENT)
-#define CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##ClientMessagehandler1::handle(Network::Channel* pChannel,		\
-												KBEngine::MemoryStream& s)		\
-	{																			\
-			ARG_TYPE1 ARG_NAME1;												\
-			s >> ARG_NAME1;														\
-			KBEngine::CLIENTAPP::getSingleton().NAME(pChannel, ARG_NAME1);		\
-	}																			\
-
-#else
-#define CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	void NAME##ClientMessagehandler1::handle(Network::Channel* pChannel,		\
-												KBEngine::MemoryStream& s)		\
-	{																			\
-	}																			\
-		
-#endif
-#else
-#define CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
-	class NAME##ClientMessagehandler1 : public Network::MessageHandler			\
-	{																			\
-	public:																		\
-		virtual void handle(Network::Channel* pChannel,							\
-							KBEngine::MemoryStream& s);							\
-	};																			\
-
-#endif
-
-#define CLIENT_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
-	CLIENT_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	NETWORK_MESSAGE_DECLARE_ARGS1(Client, NAME,									\
-				NAME##ClientMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
-																				\
 
 /**
 	Client消息宏，  只有三个参数的消息

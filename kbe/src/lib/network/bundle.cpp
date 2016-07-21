@@ -413,9 +413,10 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 	if (!pCurrMsgHandler || currMsgID != pCurrMsgHandler->msgID || !pCurrMsgHandler->pMessageHandlers)
 		return;
 
-	currMsgLength += NETWORK_MESSAGE_ID_SIZE;
 	if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
+		// 因为Bundle::finiMessage等地方遇到可变参数消息时将长度去掉了消息头部，这里要还原消息就要加回来
+		currMsgLength += NETWORK_MESSAGE_ID_SIZE;
 		currMsgLength += NETWORK_MESSAGE_LENGTH_SIZE;
 		if (currMsgLength - NETWORK_MESSAGE_ID_SIZE - NETWORK_MESSAGE_LENGTH_SIZE >= NETWORK_MESSAGE_MAX_SIZE)
 			currMsgLength += NETWORK_MESSAGE_LENGTH1_SIZE;

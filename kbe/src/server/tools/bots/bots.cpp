@@ -1195,5 +1195,15 @@ void Bots::startProfile_(Network::Channel* pChannel, std::string profileName, in
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onAppActiveTickCB(Network::Channel* pChannel)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onAppActiveTickCB(pChannel);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 
 }

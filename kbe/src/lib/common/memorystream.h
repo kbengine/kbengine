@@ -541,6 +541,15 @@ public:
 			append(datas.data(), len);
     }
 
+	void appendBlob(const MemoryStream *stream)
+	{
+		ArraySize len = (ArraySize)stream->length();
+		(*this) << len;
+
+		if (len > 0)
+			append(*stream);
+	}
+
     void append(const std::string& str)
     {
         append((uint8 const*)str.c_str(), str.size() + 1);

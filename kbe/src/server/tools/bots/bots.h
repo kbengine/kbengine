@@ -336,6 +336,11 @@ public:
 	*/
 	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
 
+	/** 网络接口
+		服务器心跳返回
+	*/
+	void onAppActiveTickCB(Network::Channel* pChannel);
+
 protected:
 	PyBots*													pPyBots_;
 

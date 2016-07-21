@@ -31,6 +31,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
 
+#ifndef CODE_INLINE
+#include "entitymailboxabstract.inl"
+#endif
+
 namespace KBEngine{
 
 

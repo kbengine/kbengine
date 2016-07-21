@@ -2189,5 +2189,11 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 	S_Return;
 }
 
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onAppActiveTickCB(Network::Channel* pChannel)
+{
+	pChannel->updateLastReceivedTime();
+}
+
 //-------------------------------------------------------------------------------------		
 }

@@ -95,13 +95,14 @@ INLINE void EndPoint::setFileDescriptor(int fd)
 INLINE void EndPoint::socket(int type)
 {
 	this->setFileDescriptor((int)::socket(AF_INET, type, 0));
+
 #if KBE_PLATFORM == PLATFORM_WIN32
 	if ((socket_ == INVALID_SOCKET) && (WSAGetLastError() == WSANOTINITIALISED))
 	{
 		EndPoint::initNetwork();
 		this->setFileDescriptor((int)::socket(AF_INET, type, 0));
 		KBE_ASSERT((socket_ != INVALID_SOCKET) && (WSAGetLastError() != WSANOTINITIALISED) && \
-				"EndPoint::socket: create socket is error!");
+				"EndPoint::socket: create socket error!");
 	}
 #endif
 }
@@ -233,26 +234,30 @@ INLINE int EndPoint::getlocaladdress(
 {
 	sockaddr_in		sin;
 	socklen_t		sinLen = sizeof(sin);
+
 	int ret = ::getsockname(socket_, (struct sockaddr*)&sin, &sinLen);
 	if (ret == 0)
 	{
 		if (networkPort != NULL) *networkPort = sin.sin_port;
 		if (networkAddr != NULL) *networkAddr = sin.sin_addr.s_addr;
 	}
+
 	return ret;
 }
 
 INLINE int EndPoint::getremoteaddress(
 	u_int16_t * networkPort, u_int32_t * networkAddr) const
 {
-	sockaddr_in		sin;
-	socklen_t		sinLen = sizeof(sin);
+	sockaddr_in sin;
+	socklen_t sinLen = sizeof(sin);
+
 	int ret = ::getpeername(socket_, (struct sockaddr*)&sin, &sinLen);
 	if (ret == 0)
 	{
 		if (networkPort != NULL) *networkPort = sin.sin_port;
 		if (networkAddr != NULL) *networkAddr = sin.sin_addr.s_addr;
 	}
+
 	return ret;
 }
 
@@ -279,8 +284,9 @@ INLINE void EndPoint::addr(u_int16_t newNetworkPort, u_int32_t newNetworkAddress
 
 INLINE int EndPoint::getremotehostname(std::string * host) const
 {
-	sockaddr_in		sin;
-	socklen_t		sinLen = sizeof(sin);
+	sockaddr_in sin;
+	socklen_t sinLen = sizeof(sin);
+	
 	int ret = ::getpeername(socket_, (struct sockaddr*)&sin, &sinLen);
 	if (ret == 0)
 	{
@@ -408,7 +414,6 @@ INLINE int EndPoint::recv(void * gramData, int gramSize)
 {
 	return ::recv(socket_, (char*)gramData, gramSize, 0);
 }
-
 
 #ifdef unix
 INLINE int EndPoint::getInterfaceFlags(char * name, int & flags)
