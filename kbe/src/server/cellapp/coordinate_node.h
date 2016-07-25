@@ -89,6 +89,10 @@ public:
 	INLINE void pCoordinateSystem(CoordinateSystem* p);
 	INLINE CoordinateSystem* pCoordinateSystem() const;
 
+	INLINE bool isDestroyed() const {
+		return (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0;
+	}
+
 	/**
 		获取链表的前后端指针
 	*/

@@ -54,6 +54,9 @@ CoordinateSystem::~CoordinateSystem()
 		{
 			CoordinateNode* pNextNode = pNode->pNextX();
 
+			if (pNextNode)
+				pNextNode->pPrevX(NULL);
+
 			pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVEING);
 			pNode->onRemove();
 
@@ -65,7 +68,6 @@ CoordinateSystem::~CoordinateSystem()
 			pNode->pPrevZ(NULL);
 			pNode->pNextZ(NULL);
 
-			pNextNode->pPrevX(NULL);
 			delete pNode;
 
 			pNode = pNextNode;
