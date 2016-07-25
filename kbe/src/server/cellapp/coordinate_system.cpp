@@ -53,14 +53,11 @@ CoordinateSystem::~CoordinateSystem()
 		while(pNode != NULL)
 		{
 			CoordinateNode* pNextNode = pNode->pNextX();
-			pNode->pCoordinateSystem(NULL);
-			pNode->pPrevX(NULL);
-			pNode->pNextX(NULL);
-			pNode->pPrevY(NULL);
-			pNode->pNextY(NULL);
-			pNode->pPrevZ(NULL);
-			pNode->pNextZ(NULL);
-			
+
+			pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVEING);
+			pNode->onRemove();
+
+			pNextNode->pPrevX(NULL);
 			delete pNode;
 
 			pNode = pNextNode;
