@@ -534,6 +534,7 @@ NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int
 	{
 		std::vector<std::wstring> results;
 		Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
+		std::sort(results.begin(), results.end());
 
 		if(results.size() == 0)
 		{
@@ -546,7 +547,7 @@ NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int
 		pNavMeshHandle = new NavMeshHandle();
 		std::vector<std::wstring>::iterator iter = results.begin();
 		int layer = 0;
-		
+
 		for(; iter != results.end(); ++iter)
 		{
 			char* cpath = strutil::wchar2char((*iter).c_str());
