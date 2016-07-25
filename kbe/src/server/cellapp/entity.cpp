@@ -291,6 +291,7 @@ PyObject* Entity::pyDestroySpace()
 		return 0;
 	}
 
+	/* 允许销毁时被调用
 	if(this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",
@@ -298,7 +299,8 @@ PyObject* Entity::pyDestroySpace()
 		PyErr_PrintEx(0);
 		return 0;
 	}
-
+	*/
+	
 	if(spaceID() == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "%s::destroySpace: spaceID is 0.\n", scriptName());
