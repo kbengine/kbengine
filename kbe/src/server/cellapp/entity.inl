@@ -254,6 +254,12 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
+INLINE bool Entity::isControlledNotSelfCleint() const
+{
+	return controlledBy_ == NULL || controlledBy_->id() != id();
+}
+
+//-------------------------------------------------------------------------------------
 INLINE EntityMailbox* Entity::controlledBy() const
 {
 	return controlledBy_; 
@@ -271,6 +277,7 @@ INLINE void Entity::controlledBy(EntityMailbox* baseMailbox)
 		Py_INCREF(controlledBy_);
 }
 
+//-------------------------------------------------------------------------------------
 INLINE void Entity::setDirty(bool dirty)
 {
 	isDirty_ = dirty;

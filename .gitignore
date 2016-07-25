@@ -17,6 +17,7 @@ logs/
 *.ilk
 *.exe
 *.pdb
+*.chw
 
 # -------------[ OS generated ]------------------------ #
 .DS_Store

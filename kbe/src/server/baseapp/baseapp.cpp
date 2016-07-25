@@ -816,7 +816,7 @@ PyObject* Baseapp::__py_createBase(PyObject* self, PyObject* args)
 
 	if(entityType == NULL || ret == -1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBase: args is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBase: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -851,7 +851,7 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 
 	if(entityType == NULL || ret == -1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhere: args is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhere: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -904,7 +904,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 	if (ret == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::createBaseFromDBID: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::createBaseFromDBID: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -954,7 +954,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args is error, entityType=%s!", 
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: args error, entityType=%s!", 
 			(entityType ? entityType : "NULL"));
 
 		PyErr_PrintEx(0);
@@ -967,7 +967,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 	if(EntityDef::findScriptModule(entityType) == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: entityType is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: entityType error!");
 		PyErr_PrintEx(0);
 		free(entityType);
 		return NULL;
@@ -975,7 +975,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 
 	if(dbid <= 0)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: dbid is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: dbid error!");
 		PyErr_PrintEx(0);
 		free(entityType);
 		return NULL;
@@ -985,7 +985,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 	{
 		pyCallback = NULL;
 
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: callback is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: callback error!");
 		PyErr_PrintEx(0);
 		free(entityType);
 		return NULL;
@@ -1236,7 +1236,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 
 	if (ret == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::createBaseAnywhereFromDBID: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::createBaseAnywhereFromDBID: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -1286,7 +1286,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 
 	if(entityType == NULL || strlen(entityType) <= 0 || ret == -1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: args is error, entityType=%s!", 
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: args error, entityType=%s!", 
 			(entityType ? entityType : "NULL"));
 
 		PyErr_PrintEx(0);
@@ -1299,7 +1299,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 
 	if(EntityDef::findScriptModule(entityType) == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: entityType is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: entityType error!");
 		PyErr_PrintEx(0);
 		free(entityType);
 		return NULL;
@@ -1307,7 +1307,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 
 	if(dbid <= 0)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: dbid is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: dbid error!");
 		PyErr_PrintEx(0);
 		free(entityType);
 		return NULL;
@@ -1317,7 +1317,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 	{
 		pyCallback = NULL;
 
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: callback is error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: callback error!");
 		PyErr_PrintEx(0);
 		free(entityType);
 		return NULL;
@@ -1809,7 +1809,7 @@ void Baseapp::onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s)
 
 	if(base == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhere: create is error! entityType={}, componentID={}, callbackID={}\n", 
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhere: create error! entityType={}, componentID={}, callbackID={}\n", 
 			entityType, componentID, callbackID));
 
 		return;
@@ -1879,7 +1879,7 @@ void Baseapp::_onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK
 	if(callbackID == 0)
 	{
 		// 没有设定回调
-		//ERROR_MSG(fmt::format("Baseapp::_onCreateBaseAnywhereCallback: is error(callbackID == 0)! entityType={}, componentID={}\n", 
+		//ERROR_MSG(fmt::format("Baseapp::_onCreateBaseAnywhereCallback: error(callbackID == 0)! entityType={}, componentID={}\n", 
 		//	entityType, componentID));
 
 		return;
@@ -1999,7 +1999,7 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	if(createToCellMailbox->getChannel() == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:"
-			"componentID={}, entityID={}), create is error!\n",
+			"componentID={}, entityID={}), create error!\n",
 			createToCellMailbox->componentID(), createToCellMailbox->id()));
 
 		base->onCreateCellFailure();
@@ -2124,7 +2124,7 @@ PyObject* Baseapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 
 	if(ret == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -2157,7 +2157,7 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 {
 	if(datas == NULL)
 	{
-		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute is error!\n");
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute error!\n");
 		return;
 	}
 
@@ -2327,7 +2327,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::charge: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -2650,7 +2650,7 @@ void Baseapp::loginBaseappFailed(Network::Channel* pChannel, std::string& accoun
 	}
 	else if(failedcode == SERVER_ERR_PASSWORD)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::login: user[{}] password is error, login is failed!\n",
+		DEBUG_MSG(fmt::format("Baseapp::login: user[{}] password error, login is failed!\n",
 			accountName.c_str()));
 
 		failedcode = SERVER_ERR_NAME_PASSWORD;
@@ -3099,13 +3099,13 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 				if(isprint)
 				{
 					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"is error(not found clientMailbox)! entityID({}), {}(msgid={}).\n", 
+						"error(not found clientMailbox)! entityID({}), {}(msgid={}).\n", 
 						eid,(pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 				}
 				else
 				{
 					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"is error(not found clientMailbox)! entityID({}).\n",
+						"error(not found clientMailbox)! entityID({}).\n",
 						eid));
 				}
 			}
@@ -3113,7 +3113,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 			{
 				/*
 				ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
-					"is error(not found clientMailbox)! entityID({}).\n",
+					"error(not found clientMailbox)! entityID({}).\n",
 					eid));
 				*/
 			}
@@ -3139,24 +3139,32 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	Network::Channel* pClientChannel = mailbox->getChannel();
 	Network::Bundle* pSendBundle = NULL;
 	
-	if (true/*!pClientChannel || pBufferedSendToClientMessages*/)
+	static Network::MessageHandler* pMessageHandler = NULL;
+
+	int rpos = s.rpos();
+	Network::MessageID fmsgid = 0;
+	s >> fmsgid;
+
+	if (!pMessageHandler || pMessageHandler->msgID != fmsgid)
+		pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
+
+	s.rpos(rpos);
+		
+	if (!pClientChannel || pBufferedSendToClientMessages)
 		pSendBundle = Network::Bundle::createPoolObject();
 	else
 		pSendBundle = pClientChannel->createSendBundle();
 
 	(*pSendBundle).append(s);
-	
-	if(!pBufferedSendToClientMessages)
+	pSendBundle->pCurrMsgHandler(pMessageHandler);
+
+	if (!pBufferedSendToClientMessages)
 		static_cast<Proxy*>(base)->sendToClient(pSendBundle);
 	else
 		pBufferedSendToClientMessages->pushMessages(pSendBundle);
 
 	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
-		Network::MessageID fmsgid = 0;
-		s >> fmsgid;
-
-		Network::MessageHandler* pMessageHandler = ClientInterface::messageHandlers.find(fmsgid);
 		bool isprint = true;
 
 		if(pMessageHandler)
@@ -3203,7 +3211,7 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 	if(mailbox == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::forwardMessageToCellappFromCellapp: "
-			"is error(not found cellMailbox)! entityID={}.\n", 
+			"error(not found cellMailbox)! entityID={}.\n", 
 			eid));
 
 		s.done();
@@ -3327,8 +3335,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 				Network::Channel* pChannel = mailbox->getChannel();
 				if (pChannel)
 				{
-					//Network::Bundle* pBundle = pChannel->createSendBundle();
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = pChannel->createSendBundle();
 					mailbox->newMail(*pBundle);
 					pBundle->append(s);
 
@@ -3348,7 +3355,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 
 		default:
 			{
-				ERROR_MSG(fmt::format("Baseapp::onEntityMail: mailboxType {} is error! must a baseType. entityID={}.\n",
+				ERROR_MSG(fmt::format("Baseapp::onEntityMail: mailboxType {} error! must a baseType. entityID={}.\n",
 					mailtype, eid));
 			}
 	};
@@ -3555,6 +3562,10 @@ void Baseapp::onClientActiveTick(Network::Channel* pChannel)
 		return;
 
 	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	pBundle->newMessage(ClientInterface::onAppActiveTickCB);
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3856,7 +3867,7 @@ PyObject* Baseapp::__py_reloadScript(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -3922,7 +3933,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 	{
 		if (PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -3931,7 +3942,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 	{
 		if (PyArg_ParseTuple(args, "s|K|O|O", &entityType, &dbid, &pycallback, &pyDBInterfaceName) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::deleteBaseByDBID: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -4094,7 +4105,7 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 	{
 		if (PyArg_ParseTuple(args, "s|K|O", &entityType, &dbid, &pycallback) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -4105,7 +4116,7 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 
 		if (PyArg_ParseTuple(args, "s|K|O|O", &entityType, &dbid, &pycallback, &pyDBInterfaceName) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::lookUpBaseByDBID: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -4288,7 +4299,7 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 	password = KBEngine::strutil::kbe_trim(password);
 	email = KBEngine::strutil::kbe_trim(email);
 
-	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) email={}!\n", accountName, entityID, email));
+	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName={}, entityID={}, email={}!\n", accountName, entityID, email));
 
 	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
 	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
@@ -4473,7 +4484,7 @@ PyObject* Baseapp::__py_setFlags(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "I", &flags) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}

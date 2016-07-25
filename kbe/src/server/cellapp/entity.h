@@ -158,6 +158,7 @@ public:
 	/**
 		脚本获取controlledBy属性
 	*/
+	INLINE bool isControlledNotSelfCleint() const;
 	INLINE EntityMailbox* controlledBy() const;
 	INLINE void controlledBy(EntityMailbox* baseMailbox);
 	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);

@@ -445,7 +445,7 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 
 		if(!loadAllDefDescriptions(moduleName, interfaceXml.get(), interfaceRootNode, pScriptModule))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] is error!\n", 
+			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] error!\n", 
 				interfaceName.c_str()));
 
 			return false;

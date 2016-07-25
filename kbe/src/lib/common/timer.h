@@ -241,7 +241,6 @@ typedef TimersT<uint32> Timers;
 typedef TimersT<uint64> Timers64;
 }
 
-#ifdef CODE_INLINE
 #include "timer.inl"
-#endif
+
 #endif // KBE_TIMER_H

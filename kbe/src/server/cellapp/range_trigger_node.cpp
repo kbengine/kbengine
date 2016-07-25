@@ -23,6 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "range_trigger_node.h"
 #include "entity_coordinate_node.h"
 
+#ifndef CODE_INLINE
+#include "range_trigger_node.inl"
+#endif
+
 namespace KBEngine{	
 
 

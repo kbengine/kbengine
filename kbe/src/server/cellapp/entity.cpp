@@ -967,7 +967,7 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAl
 			if (PyErr_Occurred())
  			{	
 				PyErr_PrintEx(0);
-				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} is error!\n", this->scriptName(),
+				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} error!\n", this->scriptName(),
 					propertyDescription->getName()));
 			}
 		}
@@ -1321,14 +1321,14 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) error!", pobj->scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 	
 	if(pyargobj == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) error!", pobj->scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1359,7 +1359,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	{
 		if(!PyLong_Check(pyargobj))
 		{
-			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int) is error!", pobj->scriptName());
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int) error!", pobj->scriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -1770,8 +1770,13 @@ void Entity::onGetWitness(bool fromBase)
 		space->onEntityAttachWitness(this);
 	}
 
-	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+	// 最后，设置controlledBy为自己的base
+	controlledBy(baseMailbox());
+	
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+	}
 	
 	// 如果一个实体已经有cell的情况下giveToClient，那么需要将最新的客户端属性值更新到客户端
 	if(fromBase)
@@ -1808,9 +1813,6 @@ void Entity::onGetWitness(bool fromBase)
 		
 		clientMailbox()->postMail(pSendBundle);
 	}
-
-	// 最后，设置controlledBy为自己的base
-	controlledBy(baseMailbox());
 
 	Py_DECREF(this);
 }
@@ -2705,7 +2707,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "f", &radius) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -2714,14 +2716,14 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "fO", &radius, &pyEntityType) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
 
 		if(pyEntityType && pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -2731,28 +2733,28 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "fOO", &radius, &pyEntityType, &pyPosition) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
 		
 		if(pyEntityType && pyEntityType != Py_None && !PyUnicode_Check(pyEntityType))
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) is error!");
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(entityType) error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
 
 		if(!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3)
 		{
-			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(position) is error!");
+			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(position) error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args is error!");
+		PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -2840,7 +2842,7 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(cellAppID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, teleport is error, not found cellapp, targetEntityID, cellAppID={}.\n",
+			ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, teleport error, not found cellapp, targetEntityID, cellAppID={}.\n",
 				this->scriptName(), this->id(), targetEntityID, cellAppID));
 
 			_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
@@ -3040,7 +3042,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 {
 	if(nearbyMBRef->isBase())
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef is error, not is cellMailbox!\n", scriptName(), id());
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef error, not is cellMailbox!\n", scriptName(), id());
 		PyErr_PrintEx(0);
 
 		onTeleportFailure();
@@ -3076,7 +3078,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 		}
 		else
 		{
-			PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef is error, not found baseapp!\n", scriptName(), id());
+			PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef error, not found baseapp!\n", scriptName(), id());
 			PyErr_PrintEx(0);
 			onTeleportFailure();
 			return;
@@ -3240,7 +3242,7 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 			else
 			{
 				// 如果不是entity， 也不是mailbox同时也不是None? 那肯定是输入错误
-				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef is error!\n", scriptName(), id());
+				PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef error!\n", scriptName(), id());
 				PyErr_PrintEx(0);
 
 				onTeleportFailure();
@@ -3374,7 +3376,7 @@ void Entity::onUpdateGhostPropertys(KBEngine::MemoryStream& s)
 	PyObject* pyVal = pPropertyDescription->createFromStream(&s);
 	if(pyVal == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: entityID={}, create({}) is error!\n", 
+		ERROR_MSG(fmt::format("{}::onUpdateGhostPropertys: entityID={}, create({}) error!\n", 
 			scriptName(), id(), pPropertyDescription->getName()));
 
 		s.done();

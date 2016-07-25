@@ -721,7 +721,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "O", &pycallback) == -1)											\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -745,7 +745,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "i", &extra) == -1)												\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -758,7 +758,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "O|i", &pycallback, &extra) == -1)								\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -783,7 +783,7 @@ public:																										\
 				PyObject* pystr_extra = NULL;																\
 				if(PyArg_ParseTuple(args, "i|O", &extra, &pystr_extra) == -1)								\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -815,7 +815,7 @@ public:																										\
 				PyObject* pystr_extra = NULL;																\
 				if(PyArg_ParseTuple(args, "O|i|O", &pycallback, &extra, &pystr_extra) == -1)				\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -872,11 +872,11 @@ public:																										\
 																											\
 		if(!isDestroyed_)																					\
 		{																									\
+			isDestroyed_ = true;																			\
 			addFlags(ENTITY_FLAGS_DESTROYING);																\
 			onDestroy(callScript);																			\
 			scriptTimers_.cancelAll();																		\
 			removeFlags(ENTITY_FLAGS_DESTROYING);															\
-			isDestroyed_ = true;																			\
 			Py_DECREF(this);																				\
 		}																									\
 	}																										\

@@ -146,7 +146,8 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 		}
 	}
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 	Cellapp::getSingleton().addUpdatable(this);
 }
 
@@ -158,7 +159,8 @@ void Witness::attach(Entity* pEntity)
 
 	pEntity_ = pEntity;
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
@@ -175,7 +177,8 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::onAttach(Entity* pEntity)
 {
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	// 通知客户端enterworld
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
@@ -299,6 +302,12 @@ const Position3D& Witness::basePos()
 }
 
 //-------------------------------------------------------------------------------------
+const Direction3D& Witness::baseDir()
+{
+	return pEntity()->direction();
+}
+
+//-------------------------------------------------------------------------------------
 void Witness::setAoiRadius(float radius, float hyst)
 {
 	if(!g_kbeSrvConfig.getCellApp().use_coordinate_system)
@@ -307,10 +316,18 @@ void Witness::setAoiRadius(float radius, float hyst)
 	aoiRadius_ = radius;
 	aoiHysteresisArea_ = hyst;
 
-	if(aoiRadius_ + aoiHysteresisArea_ > g_kbeSrvConfig.getCellApp().ghostDistance)
+	// 由于位置同步使用了相对位置压缩传输，可用范围为-512~512之间，因此超过范围将出现同步错误
+	// 这里做一个限制，如果需要过大的数值客户端应该调整坐标单位比例，将其放大使用。
+	// 参考: MemoryStream::appendPackXZ
+	if(aoiRadius_ + aoiHysteresisArea_ > 512)
 	{
-		aoiRadius_ = g_kbeSrvConfig.getCellApp().ghostDistance - 5.0f;
+		aoiRadius_ = 512 - 5.0f;
 		aoiHysteresisArea_ = 5.0f;
+		
+		ERROR_MSG(fmt::format("Witness::setAoiRadius({}): AOI the size({}) of more than 512!\n", 
+			pEntity_->id(), (aoiRadius_ + aoiHysteresisArea_)));
+		
+		return;
 	}
 
 	if (aoiRadius_ > 0.f)
@@ -497,7 +514,8 @@ void Witness::onLeaveSpace(Space* pSpace)
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
@@ -699,7 +717,7 @@ bool Witness::update()
 			(pSendBundle->pCurrPacket() && pSendBundle->pCurrPacket()->length() > 0);
 		
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
-		addBasePosToStream(pSendBundle);
+		addBaseDataToStream(pSendBundle);
 
 		AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 		for(; iter != aoiEntities_.end(); )
@@ -823,15 +841,29 @@ bool Witness::update()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
+void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 {
+	if (pEntity_->isControlledNotSelfCleint())
+	{
+		const Direction3D& bdir = baseDir();
+		Vector3 changeDir = bdir.dir - lastBaseDir_.dir;
+
+		if (KBEVec3Length(&changeDir) > 0.0004f)
+		{
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+			(*pSendBundle) << bdir.yaw() << bdir.pitch() << bdir.roll();
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+			lastBaseDir_ = bdir;
+		}
+	}
+
 	const Position3D& bpos = basePos();
-	Vector3 movement = bpos - lastBasePos;
+	Vector3 movement = bpos - lastBasePos_;
 
 	if(KBEVec3Length(&movement) < 0.0004f)
 		return;
 
-	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
+	if (fabs(lastBasePos_.y - bpos.y) > 0.0004f)
 	{
 		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBasePos, basePos);
 		pSendBundle->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z, 0.f);
@@ -844,15 +876,7 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBasePosXZ, basePos);
 	}
 
-	if (pEntity_->controlledBy() == NULL || pEntity_->controlledBy()->id() != pEntity_->id())
-	{
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
-		Direction3D &dir = pEntity_->direction();
-		(*pSendBundle) << dir.yaw() << dir.pitch() << dir.roll();
-		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
-	}
-
-	lastBasePos = bpos;
+	lastBasePos_ = bpos;
 }
 
 //-------------------------------------------------------------------------------------

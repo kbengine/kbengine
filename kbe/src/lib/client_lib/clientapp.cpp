@@ -105,6 +105,7 @@ void ClientApp::reset(void)
 
 	pServerChannel_->pFilter(NULL);
 	pServerChannel_->pPacketSender(NULL);
+	pServerChannel_->stopInactivityDetection();
 
 	SAFE_RELEASE(pTCPPacketSender_);
 	SAFE_RELEASE(pTCPPacketReceiver_);
@@ -616,6 +617,8 @@ bool ClientApp::updateChannel(bool loginapp, std::string accountName, std::strin
 			pTCPPacketSender_ = new Network::TCPPacketSender(*pServerChannel_->pEndPoint(), networkInterface());
 
 		pServerChannel_->pPacketSender(pTCPPacketSender_);
+		pServerChannel_->startInactivityDetection(Network::g_channelExternalTimeout, Network::g_channelExternalTimeout / 2.f);
+
 		networkInterface().registerChannel(pServerChannel_);
 		networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->pEndPoint(), pTCPPacketReceiver_);
 	}

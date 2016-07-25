@@ -255,6 +255,38 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 
 			continue;
 		}
+
+		findcmd = "--hide=";
+		fi1 = cmd.find(findcmd);
+		if (fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if (cmd.size() > 0)
+			{
+				int32 hide = 0;
+				try
+				{
+					StringConv::str2value(hide, cmd.c_str());
+				}
+				catch (...)
+				{
+					ERROR_MSG("parseCommandArgs: --hide=? invalid, no set! type is int8\n");
+				}
+
+				if (hide > 0)
+				{
+#if KBE_PLATFORM == PLATFORM_WIN32
+					TCHAR strTitle[255];
+					GetConsoleTitle(strTitle, 255);
+					HWND hw = ::FindWindow(L"ConsoleWindowClass", strTitle);
+					ShowWindow(hw, SW_HIDE);
+#else
+#endif
+				}
+			}
+
+			continue;
+		}
 	}
 }
 
