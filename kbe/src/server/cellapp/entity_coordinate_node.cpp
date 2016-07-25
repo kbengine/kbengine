@@ -368,7 +368,9 @@ void EntityCoordinateNode::onRemove()
 		(*iter)->onParentRemove(this);
 	}
 
-	watcherNodes_.clear();
+	// 此处不能对watcherNodes_做修改，因为可能由EntityCoordinateNode::update()中导致该处调用
+	// 那么可能导致EntityCoordinateNode::update()在循环watcherNodes_中被修改而出错。
+	// watcherNodes_.clear();
 
 	CoordinateNode::onRemove();
 }
