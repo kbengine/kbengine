@@ -368,6 +368,8 @@ void EntityCoordinateNode::onRemove()
 		(*iter)->onParentRemove(this);
 	}
 
+	watcherNodes_.clear();
+
 	CoordinateNode::onRemove();
 }
 
