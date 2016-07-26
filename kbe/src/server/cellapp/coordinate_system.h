@@ -47,7 +47,8 @@ public:
 	bool remove(CoordinateNode* pNode);
 	bool removeReal(CoordinateNode* pNode);
 	void removeDelNodes();
-	
+	void releaseNodes();
+
 	/**
 		当某个节点有变动时，需要更新它在list中的
 		相关位置等信息
@@ -84,6 +85,8 @@ private:
 	size_t dels_count_;
 
 	int updating_;
+
+	std::list<CoordinateNode*> releases_;
 };
 
 }

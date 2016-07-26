@@ -37,7 +37,8 @@ first_y_coordinateNode_(NULL),
 first_z_coordinateNode_(NULL),
 dels_(),
 dels_count_(0),
-updating_(0)
+updating_(0),
+releases_()
 {
 }
 
@@ -75,6 +76,8 @@ CoordinateSystem::~CoordinateSystem()
 		first_y_coordinateNode_ = NULL;
 		first_z_coordinateNode_ = NULL;
 	}
+
+	releaseNodes();
 }
 
 //-------------------------------------------------------------------------------------
@@ -180,6 +183,20 @@ void CoordinateSystem::removeDelNodes()
 }
 
 //-------------------------------------------------------------------------------------
+void CoordinateSystem::releaseNodes()
+{
+	removeDelNodes();
+
+	std::list<CoordinateNode*>::iterator iter = releases_.begin();
+	for (; iter != releases_.end(); ++iter)
+	{
+		delete (*iter);
+	}
+
+	releases_.clear();
+}
+
+//-------------------------------------------------------------------------------------
 bool CoordinateSystem::removeReal(CoordinateNode* pNode)
 {
 	if(pNode->pCoordinateSystem() == NULL)
@@ -252,7 +269,7 @@ bool CoordinateSystem::removeReal(CoordinateNode* pNode)
 	pNode->pNextZ(NULL);
 	pNode->pCoordinateSystem(NULL);
 	
-	delete pNode;
+	releases_.push_back(pNode);
 
 	--size_;
 	return true;
@@ -722,8 +739,8 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 	pNode->flags(pNode->flags() & ~COORDINATE_NODE_FLAG_PENDING);
 	--updating_;
 
-	if(updating_ == 0)
-		removeDelNodes();
+	if (updating_ == 0)
+		releaseNodes();
 
 #ifdef DEBUG_COORDINATE_SYSTEM
 		DEBUG_MSG(fmt::format("CoordinateSystem::debugX[ x ]:[{:p}]\n", (void*)pNode));
