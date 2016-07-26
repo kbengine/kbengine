@@ -2134,7 +2134,7 @@ bool Entity::canNavigate()
 }
 
 //-------------------------------------------------------------------------------------
-bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer )
+bool Entity::navigatePathPoints(std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer, uint16 flags )
 {
 	Space* pSpace = Spaces::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
@@ -2155,7 +2155,7 @@ bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Positi
 		return false;
 	}
 
-	if (pNavHandle->findStraightPath(layer, position_, destination, outPaths) < 0)
+	if (pNavHandle->findStraightPath(layer, flags, position_, destination, outPaths) < 0)
 	{
 		return false;
 	}
@@ -2183,7 +2183,7 @@ bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Positi
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSearchDistance, int8 layer)
+PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSearchDistance, int8 layer, uint16 flags)
 {
 	Position3D destination;
 
@@ -2205,7 +2205,7 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 
 	std::vector<Position3D> outPaths;
-	navigatePathPoints(outPaths, destination, maxSearchDistance, layer);
+	navigatePathPoints(outPaths, destination, maxSearchDistance, layer, flags);
 	
 	PyObject* pyList = PyList_New(outPaths.size());
 
@@ -2223,10 +2223,10 @@ PyObject* Entity::pyNavigatePathPoints(PyObject_ptr pyDestination, float maxSear
 
 //-------------------------------------------------------------------------------------
 uint32 Entity::navigate(const Position3D& destination, float velocity, float distance, float maxMoveDistance, float maxSearchDistance,
-	bool faceMovement, int8 layer, PyObject* userData)
+	bool faceMovement, int8 layer, uint16 flags, PyObject* userData)
 {
 	VECTOR_POS3D_PTR paths_ptr( new std::vector<Position3D>() );
-	navigatePathPoints(*paths_ptr, destination, maxSearchDistance, layer);
+	navigatePathPoints(*paths_ptr, destination, maxSearchDistance, layer, flags);
 	if (paths_ptr->size() <= 0)
 	{
 		return 0;
@@ -2250,7 +2250,7 @@ uint32 Entity::navigate(const Position3D& destination, float velocity, float dis
 
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float distance, float maxMoveDistance, float maxDistance,
-								 int8 faceMovement, int8 layer, PyObject_ptr userData)
+	int8 faceMovement, int8 layer, uint16 flags, PyObject_ptr userData)
 {
 	if(!isReal())
 	{
@@ -2288,12 +2288,12 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float d
 	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
 
 	return PyLong_FromLong(navigate(destination, velocity, distance, maxMoveDistance, 
-		maxDistance, faceMovement > 0, layer, userData));
+		maxDistance, faceMovement > 0, layer, flags, userData));
 }
 
 //-------------------------------------------------------------------------------------
 bool Entity::getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos,
-	float maxRadius, uint32 maxPoints, int8 layer)
+	float maxRadius, uint32 maxPoints, int8 layer, uint16 flags)
 {
 	Space* pSpace = Spaces::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
@@ -2313,11 +2313,11 @@ bool Entity::getRandomPoints(std::vector<Position3D>& outPoints, const Position3
 		return false;
 	}
 
-	return pNavHandle->findRandomPointAroundCircle(layer, centerPos, outPoints, maxPoints, maxRadius) > 0;
+	return pNavHandle->findRandomPointAroundCircle(layer, flags, centerPos, outPoints, maxPoints, maxRadius) > 0;
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyCenterPos, float maxRadius, uint32 maxPoints, int8 layer)
+PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyCenterPos, float maxRadius, uint32 maxPoints, int8 layer, uint16 flags)
 {
 	Position3D centerPos;
 
@@ -2339,7 +2339,7 @@ PyObject* Entity::pyGetRandomPoints(PyObject_ptr pyCenterPos, float maxRadius, u
 	script::ScriptVector3::convertPyObjectToVector3(centerPos, pyCenterPos);
 
 	std::vector<Position3D> outPoints;
-	getRandomPoints(outPoints, centerPos, maxRadius, maxPoints, layer);
+	getRandomPoints(outPoints, centerPos, maxRadius, maxPoints, layer, flags);
 	
 	PyObject* pyList = PyList_New(outPoints.size());
 

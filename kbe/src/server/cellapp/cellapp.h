@@ -248,7 +248,7 @@ public:
 	/** 
 		…‰œﬂ 
 	*/
-	int raycast(SPACE_ID spaceID, int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
+	int raycast(SPACE_ID spaceID, int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos);
 	static PyObject* __py_raycast(PyObject* self, PyObject* args);
 
 	uint32 flags() const { return flags_; }

@@ -1936,7 +1936,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
-int Cellapp::raycast(SPACE_ID spaceID, int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
+int Cellapp::raycast(SPACE_ID spaceID, int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
 {
 	Space* pSpace = Spaces::findSpace(spaceID);
 	if(pSpace == NULL)
@@ -1955,7 +1955,7 @@ int Cellapp::raycast(SPACE_ID spaceID, int layer, const Position3D& start, const
 		return -1;
 	}
 
-	return pSpace->pNavHandle()->raycast(layer, start, end, hitPos);
+	return pSpace->pNavHandle()->raycast(layer, flags, start, end, hitPos);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1964,6 +1964,7 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 	uint16 currargsSize = (uint16)PyTuple_Size(args);
 
 	int layer = 0;
+	uint16 flags = 0xffff;
 	SPACE_ID spaceID = 0;
 
 	PyObject* pyStartPos = NULL;
@@ -1981,6 +1982,15 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 	else if(currargsSize == 4)
 	{
 		if(PyArg_ParseTuple(args, "IiOO", &spaceID, &layer, &pyStartPos, &pyEndPos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else if (currargsSize == 5)
+	{
+		if (PyArg_ParseTuple(args, "IiHOO", &spaceID, &layer, &flags, &pyStartPos, &pyEndPos) == -1)
 		{
 			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
 			PyErr_PrintEx(0);
@@ -2029,7 +2039,7 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 
 	script::ScriptVector3::convertPyObjectToVector3(startPos, pyStartPos);
 	script::ScriptVector3::convertPyObjectToVector3(endPos, pyEndPos);
-	if(Cellapp::getSingleton().raycast(spaceID, layer, startPos, endPos, hitPosVec) <= 0)
+	if (Cellapp::getSingleton().raycast(spaceID, layer, flags, startPos, endPos, hitPosVec) <= 0)
 	{
 		S_Return;
 	}
