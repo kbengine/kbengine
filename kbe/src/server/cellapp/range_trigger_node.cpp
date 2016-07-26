@@ -52,15 +52,33 @@ pRangeTrigger_(pRangeTrigger)
 //-------------------------------------------------------------------------------------
 RangeTriggerNode::~RangeTriggerNode()
 {
-	if(pRangeTrigger_ && pRangeTrigger_->origin())
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTriggerNode::onTriggerUninstall()
+{
+	if (pRangeTrigger_->origin())
 		static_cast<EntityCoordinateNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
+
+	pRangeTrigger(NULL);
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTriggerNode::onRemove()
+{
+	CoordinateNode::onRemove();
+
+	// 既然自己都要删除了，通知pRangeTrigger_卸载
+	if (pRangeTrigger_)
+		pRangeTrigger_->uninstall();
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onParentRemove(CoordinateNode* pParentNode)
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVEING) <= 0)
-		pParentNode->pCoordinateSystem()->remove(this);
+	// 既然自己都要删除了，通知pRangeTrigger_卸载
+	if (pRangeTrigger_)
+		pRangeTrigger_->uninstall();
 }
 
 //-------------------------------------------------------------------------------------

@@ -103,13 +103,13 @@ bool RangeTrigger::uninstall()
 {
 	if(positiveBoundary_ && positiveBoundary_->pCoordinateSystem())
 	{
-		positiveBoundary_->pRangeTrigger(NULL);
+		positiveBoundary_->onTriggerUninstall();
 		positiveBoundary_->pCoordinateSystem()->remove(positiveBoundary_);
 	}
 
 	if(negativeBoundary_ && negativeBoundary_->pCoordinateSystem())
 	{
-		negativeBoundary_->pRangeTrigger(NULL);
+		negativeBoundary_->onTriggerUninstall();
 		negativeBoundary_->pCoordinateSystem()->remove(negativeBoundary_);
 	}
 	

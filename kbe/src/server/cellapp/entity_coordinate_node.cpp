@@ -352,25 +352,67 @@ float EntityCoordinateNode::zz() const
 void EntityCoordinateNode::update()
 {
 	CoordinateNode::update();
-	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); ++iter)
+
+	flags(flags() | COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+
+	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
-		(*iter)->update();
+		CoordinateNode* pCoordinateNode = watcherNodes_[i];
+		if (!pCoordinateNode)
+			continue;
+
+		pCoordinateNode->update();
+	}
+
+	flags(flags() & ~COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+	clearDelWatcherNodes();
+}
+
+//-------------------------------------------------------------------------------------
+void EntityCoordinateNode::clearDelWatcherNodes()
+{
+	if ((flags() & (COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
+		return;
+
+	if (delWatcherNodeNum_ > 0)
+	{
+		std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
+		for (; iter != watcherNodes_.end();)
+		{
+			if (!(*iter))
+			{
+				iter = watcherNodes_.erase(iter);
+				--delWatcherNodeNum_;
+
+				if (delWatcherNodeNum_ <= 0)
+					return;
+			}
+			else
+			{
+				++iter;
+			}
+		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::onRemove()
 {
-	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); ++iter)
+	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
-		(*iter)->onParentRemove(this);
-	}
+		CoordinateNode* pCoordinateNode = watcherNodes_[i];
 
-	// 此处不能对watcherNodes_做修改，因为可能由EntityCoordinateNode::update()中导致该处调用
-	// 那么可能导致EntityCoordinateNode::update()在循环watcherNodes_中被修改而出错。
-	// watcherNodes_.clear();
+		if (!pCoordinateNode)
+			continue;
+
+		// 先设置为NULL， 在后面update时进行删除
+		// 此处不能对watcherNodes_做大小做修改，因为可能由EntityCoordinateNode::update()中导致该处调用
+		// 那么可能导致EntityCoordinateNode::update()在循环watcherNodes_中被修改而出错。
+		watcherNodes_[i] = NULL;
+		++delWatcherNodeNum_;
+
+		pCoordinateNode->onParentRemove(this);
+	}
 
 	CoordinateNode::onRemove();
 }
@@ -378,6 +420,8 @@ void EntityCoordinateNode::onRemove()
 //-------------------------------------------------------------------------------------
 bool EntityCoordinateNode::addWatcherNode(CoordinateNode* pNode)
 {
+	clearDelWatcherNodes();
+
 	std::vector<CoordinateNode*>::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
 	if(iter != watcherNodes_.end())
 		return false;
@@ -393,7 +437,16 @@ bool EntityCoordinateNode::delWatcherNode(CoordinateNode* pNode)
 	if(iter == watcherNodes_.end())
 		return false;
 
-	watcherNodes_.erase(iter);
+	if ((flags() & (COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
+	{
+		(*iter) = NULL;
+		++delWatcherNodeNum_;
+	}
+	else
+	{
+		watcherNodes_.erase(iter);
+	}
+
 	return true;
 }
 

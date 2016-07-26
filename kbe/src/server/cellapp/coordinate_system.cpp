@@ -57,9 +57,6 @@ CoordinateSystem::~CoordinateSystem()
 			if (pNextNode)
 				pNextNode->pPrevX(NULL);
 
-			pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVEING);
-			pNode->onRemove();
-
 			pNode->pCoordinateSystem(NULL);
 			pNode->pPrevX(NULL);
 			pNode->pNextX(NULL);
@@ -254,6 +251,8 @@ bool CoordinateSystem::removeReal(CoordinateNode* pNode)
 	pNode->pPrevZ(NULL);
 	pNode->pNextZ(NULL);
 	pNode->pCoordinateSystem(NULL);
+	
+	delete pNode;
 
 	--size_;
 	return true;
