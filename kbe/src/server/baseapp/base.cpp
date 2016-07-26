@@ -663,7 +663,7 @@ PyObject* Base::onScriptGetAttribute(PyObject* attr)
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetCellMailbox()
 { 
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -681,8 +681,8 @@ PyObject* Base::pyGetCellMailbox()
 
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetDBID()
-{ 
-	if(isDestroyed())	
+{
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -696,7 +696,7 @@ PyObject* Base::pyGetDBID()
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetClientMailbox()
 {
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
