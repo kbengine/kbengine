@@ -306,7 +306,8 @@ void entitiesInAxisRange(std::set<Entity*>& foundEntities, CoordinateNode* rootN
 EntityCoordinateNode::EntityCoordinateNode(Entity* pEntity):
 CoordinateNode(NULL),
 pEntity_(pEntity),
-watcherNodes_()
+watcherNodes_(),
+delWatcherNodeNum_(0)
 {
 	flags(COORDINATE_NODE_FLAG_ENTITY);
 
