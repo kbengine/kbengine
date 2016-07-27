@@ -46,6 +46,9 @@ public:
 	
 	INLINE void flags(uint32 v);
 	INLINE uint32 flags() const;
+	INLINE void addFlags(uint32 v);
+	INLINE void removeFlags(uint32 v);
+	INLINE bool hasFlags(uint32 v) const;
 
 	/**
 		(节点本身的坐标)
@@ -90,8 +93,12 @@ public:
 	INLINE void pCoordinateSystem(CoordinateSystem* p);
 	INLINE CoordinateSystem* pCoordinateSystem() const;
 
+	INLINE bool isDestroying() const {
+		return (flags() & (COORDINATE_NODE_FLAG_REMOVEING)) > 0;
+	}
+
 	INLINE bool isDestroyed() const {
-		return (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0;
+		return (flags() & (COORDINATE_NODE_FLAG_REMOVED)) > 0;
 	}
 
 	/**
