@@ -47,8 +47,16 @@ bool hasPID(int pid, sigar_proc_list_t* proclist)
 	for (size_t i = 0; i < proclist->number; i++)
 	{
 		sigar_pid_t cpid = proclist->data[i];
-		if(cpid == pid)
+		if (cpid == pid)
+		{
+			sigar_proc_state_t procstate;
+			if (sigar_proc_state_get(_g_sigarproclist, pid, &procstate) != SIGAR_OK)
+			{
+				return false;
+			}
+
 			return true;
+		}
 	}
 
 	return false;
