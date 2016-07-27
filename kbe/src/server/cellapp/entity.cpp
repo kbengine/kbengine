@@ -291,15 +291,13 @@ PyObject* Entity::pyDestroySpace()
 		return 0;
 	}
 
-	/* 允许销毁时被调用
-	if(this->isDestroyed())
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
 	}
-	*/
 	
 	if(spaceID() == 0)
 	{
@@ -1634,6 +1632,7 @@ void Entity::onPositionChanged()
 		return;
 
 	posChangedTime_ = g_kbetime;
+
 	if(this->pEntityCoordinateNode())
 		this->pEntityCoordinateNode()->update();
 
@@ -2592,7 +2591,7 @@ PyObject* Entity::pyDebugAOI()
 		return 0;
 	}
 
-	if(this->isDestroyed())
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: %d is destroyed!\n",		
 			scriptName(), id());		
