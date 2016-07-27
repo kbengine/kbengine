@@ -149,7 +149,10 @@ bool CoordinateSystem::remove(CoordinateNode* pNode)
 	update(pNode);
 	
 	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVED);
-	if((pNode->flags() & COORDINATE_NODE_FLAG_PENDING) > 0)
+
+	// 由于在update过程中可能会因为多级update的进行导致COORDINATE_NODE_FLAG_PENDING标志被取消，因此此处并不能很好的判断
+	// 除非实现了标记的计数器，这里强制所有的行为都放入dels_， 由releaseNodes在space中进行调用统一释放
+	if(true /*(pNode->flags() & COORDINATE_NODE_FLAG_PENDING) > 0*/)
 	{
 		std::list<CoordinateNode*>::iterator iter = std::find(dels_.begin(), dels_.end(), pNode);
 		if(iter == dels_.end())
@@ -739,8 +742,8 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 	pNode->flags(pNode->flags() & ~COORDINATE_NODE_FLAG_PENDING);
 	--updating_;
 
-	if (updating_ == 0)
-		releaseNodes();
+	//if (updating_ == 0)
+	//	releaseNodes();
 
 #ifdef DEBUG_COORDINATE_SYSTEM
 		DEBUG_MSG(fmt::format("CoordinateSystem::debugX[ x ]:[{:p}]\n", (void*)pNode));

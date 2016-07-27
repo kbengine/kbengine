@@ -73,6 +73,9 @@ public:
 
 	static bool hasY;
 
+	INLINE void incUpdating();
+	INLINE void decUpdating();
+
 private:
 	uint32 size_;
 
