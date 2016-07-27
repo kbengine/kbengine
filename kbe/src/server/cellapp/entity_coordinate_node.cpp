@@ -356,6 +356,7 @@ void EntityCoordinateNode::update()
 
 	flags(flags() | COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
 
+	// 此处必须使用watcherNodes_.size()而不能使用迭代器遍历，防止在update中导致增加了watcherNodes_数量而破坏迭代器
 	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
 		CoordinateNode* pCoordinateNode = watcherNodes_[i];
