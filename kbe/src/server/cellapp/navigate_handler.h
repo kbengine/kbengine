@@ -44,7 +44,7 @@ public:
 
 	virtual bool isOnGround(){ return true; }
 
-	virtual MoveType type() const{ return MOVE_TYPE_NAV; }
+	virtual MoveType type() const { return MOVE_TYPE_NAV; }
 
 protected:
 	int destPosIdx_;

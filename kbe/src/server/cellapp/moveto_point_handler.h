@@ -49,14 +49,14 @@ public:
 	
 	virtual bool update();
 
-	virtual const Position3D& destPos(){ return destPos_; }
+	virtual const Position3D& destPos() { return destPos_; }
 	virtual bool requestMoveOver(const Position3D& oldPos);
 
-	virtual bool isOnGround(){ return false; }
+	virtual bool isOnGround() { return false; }
 		
-	void pController(KBEShared_ptr<Controller> pController){ pController_ = pController; }
+	void pController(KBEShared_ptr<Controller> pController) { pController_ = pController; }
 
-	virtual MoveType type() const{ return MOVE_TYPE_POINT; }
+	virtual MoveType type() const { return MOVE_TYPE_POINT; }
 
 protected:
 	Position3D destPos_;
