@@ -118,33 +118,7 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 		pEntityRef->aliasID(i);
 	}
 
-	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
-	{
-		if(aoiRadius_ > 0.f)
-		{
-			if(pAOITrigger_ == NULL)
-			{
-				pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
-			}
-			else
-			{
-				pAOITrigger_->update(aoiRadius_, aoiRadius_);
-			}
-
-			if (pAOIHysteresisAreaTrigger_ == NULL)
-			{
-				if (aoiHysteresisArea_ > 0.01f)
-				{
-					pAOIHysteresisAreaTrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
-						aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
-				}
-			}
-			else
-			{
-				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
-			}
-		}
-	}
+	setAoiRadius(aoiRadius_, aoiHysteresisArea_);
 
 	lastBasePos_.z = -FLT_MAX;
 	lastBaseDir_.yaw(-FLT_MAX);
@@ -330,29 +304,55 @@ void Witness::setAoiRadius(float radius, float hyst)
 		return;
 	}
 
-	if (aoiRadius_ > 0.f)
+	if (aoiRadius_ > 0.f && pEntity_)
 	{
 		if (pAOITrigger_ == NULL)
 		{
 			pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
+
+			// 如果实体已经在场景中，那么需要安装
+			if (((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+				pAOITrigger_->install();
 		}
 		else
 		{
 			pAOITrigger_->update(aoiRadius_, aoiRadius_);
+
+			// 如果实体已经在场景中，那么需要安装
+			if (!pAOITrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+				pAOITrigger_->install();
 		}
 
-		if (aoiHysteresisArea_ > 0.01f)
+		if (aoiHysteresisArea_ > 0.01f && pEntity_/*上面update流程可能导致销毁 */)
 		{
 			if (pAOIHysteresisAreaTrigger_ == NULL)
 			{
 				pAOIHysteresisAreaTrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
 					aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+
+				if (((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+					pAOIHysteresisAreaTrigger_->install();
 			}
 			else
 			{
 				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+
+				// 如果实体已经在场景中，那么需要安装
+				if (!pAOIHysteresisAreaTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+					pAOIHysteresisAreaTrigger_->install();
 			}
 		}
+		else
+		{
+			// 注意：此处如果不销毁pAOIHysteresisAreaTrigger_则必须是update
+			// 因为离开AOI的判断如果pAOIHysteresisAreaTrigger_存在，那么必须出了pAOIHysteresisAreaTrigger_才算出AOI
+			if (pAOIHysteresisAreaTrigger_)
+				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+		}
+	}
+	else
+	{
+		uninstallAOITrigger();
 	}
 }
 
@@ -560,6 +560,13 @@ void Witness::uninstallAOITrigger()
 
 	if (pAOIHysteresisAreaTrigger_)
 		pAOIHysteresisAreaTrigger_->uninstall();
+
+	// 通知所有实体离开AOI
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	for (; iter != aoiEntities_.end(); ++iter)
+	{
+		_onLeaveAOI((*iter));
+	}
 }
 
 //-------------------------------------------------------------------------------------
