@@ -53,7 +53,7 @@ INLINE void CoordinateNode::addFlags(uint32 v) { flags_ |= v; }
 INLINE void CoordinateNode::removeFlags(uint32 v) { flags_ &= ~v; }
 
 //-------------------------------------------------------------------------------------
-INLINE bool CoordinateNode::hasFlags(uint32 v) const { return (flags_ & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) > 0; }
+INLINE bool CoordinateNode::hasFlags(uint32 v) const { return (flags_ & v) > 0; }
 
 //-------------------------------------------------------------------------------------
 INLINE CoordinateSystem* CoordinateNode::pCoordinateSystem() const{ return pCoordinateSystem_; }

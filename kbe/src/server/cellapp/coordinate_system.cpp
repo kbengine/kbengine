@@ -144,15 +144,15 @@ bool CoordinateSystem::insert(CoordinateNode* pNode)
 //-------------------------------------------------------------------------------------
 bool CoordinateSystem::remove(CoordinateNode* pNode)
 {
-	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVEING);
+	pNode->addFlags(COORDINATE_NODE_FLAG_REMOVEING);
 	pNode->onRemove();
 	update(pNode);
 	
-	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_REMOVED);
+	pNode->addFlags(COORDINATE_NODE_FLAG_REMOVED);
 
 	// 由于在update过程中可能会因为多级update的进行导致COORDINATE_NODE_FLAG_PENDING标志被取消，因此此处并不能很好的判断
 	// 除非实现了标记的计数器，这里强制所有的行为都放入dels_， 由releaseNodes在space中进行调用统一释放
-	if(true /*(pNode->flags() & COORDINATE_NODE_FLAG_PENDING) > 0*/)
+	if(true /*pNode->hasFlags(COORDINATE_NODE_FLAG_PENDING)*/)
 	{
 		std::list<CoordinateNode*>::iterator iter = std::find(dels_.begin(), dels_.end(), pNode);
 		if(iter == dels_.end())
@@ -456,7 +456,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 #endif
 
 	// 没有计数器支持，这个标记很可能中途被update子分支取消，因此没有意义
-	//pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_PENDING);
+	//pNode->addFlags(COORDINATE_NODE_FLAG_PENDING);
 
 	++updating_;
 
@@ -476,7 +476,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->xx(), pCurrNode);
 
-				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update1: [-X] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -485,7 +485,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					pCurrNode->onNodePassX(pNode, true);
 				}
 
-				if ((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pCurrNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update2: [-X] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -516,7 +516,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				// 先把节点移动过去
 				moveNodeX(pNode, pNode->xx(), pCurrNode);
 
-				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update1: [+X] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -525,7 +525,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					pCurrNode->onNodePassX(pNode, true);
 				}
 
-				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pCurrNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update2: [+X] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -569,7 +569,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				// 先把节点移动过去
 				moveNodeY(pNode, pNode->yy(), pCurrNode);
 
-				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update1: [-Y] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -578,7 +578,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					pCurrNode->onNodePassY(pNode, true);
 				}
 
-				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pCurrNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update2: [-Y] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -609,7 +609,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				// 先把节点移动过去
 				moveNodeY(pNode, pNode->yy(), pCurrNode);
 
-				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update1: [+Y] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -618,7 +618,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					pCurrNode->onNodePassY(pNode, true);
 				}
 
-				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pCurrNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update2: [+Y] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -662,7 +662,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				// 先把节点移动过去
 				moveNodeZ(pNode, pNode->zz(), pCurrNode);
 
-				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update1: [-Z] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -671,7 +671,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					pCurrNode->onNodePassZ(pNode, true);
 				}
 
-				if ((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pCurrNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update2: [-Z] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -702,7 +702,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 				// 先把节点移动过去
 				moveNodeZ(pNode, pNode->zz(), pCurrNode);
 
-				if((pNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update:1 [+Z] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -711,7 +711,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					pCurrNode->onNodePassZ(pNode, true);
 				}
 
-				if((pCurrNode->flags() & COORDINATE_NODE_FLAG_HIDE_OR_REMOVED) <= 0)
+				if (!pCurrNode->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED))
 				{
 					#ifdef DEBUG_COORDINATE_SYSTEM
 						DEBUG_MSG(fmt::format("CoordinateSystem::update:2 [+Z] ({}), passNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
@@ -741,7 +741,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 
 	pNode->resetOld();
-	//pNode->flags(pNode->flags() & ~COORDINATE_NODE_FLAG_PENDING);
+	//pNode->removeFlags(COORDINATE_NODE_FLAG_PENDING);
 	--updating_;
 
 	//if (updating_ == 0)

@@ -94,11 +94,11 @@ public:
 	INLINE CoordinateSystem* pCoordinateSystem() const;
 
 	INLINE bool isDestroying() const {
-		return (flags() & (COORDINATE_NODE_FLAG_REMOVEING)) > 0;
+		return hasFlags(COORDINATE_NODE_FLAG_REMOVEING);
 	}
 
 	INLINE bool isDestroyed() const {
-		return (flags() & (COORDINATE_NODE_FLAG_REMOVED)) > 0;
+		return hasFlags(COORDINATE_NODE_FLAG_REMOVED);
 	}
 
 	/**

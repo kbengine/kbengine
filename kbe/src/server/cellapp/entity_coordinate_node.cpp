@@ -36,9 +36,9 @@ public:
 		originPos_(originPos) {}
 
 	INLINE void reset() { pCurrentNode_ = pNode_; }
-	INLINE bool isEntityNode()const { return (pCurrentNode_->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0; }
-	INLINE CoordinateNode* currentNode()const { return pCurrentNode_; }
-	INLINE Entity* currentNodeEntity()const { return static_cast<EntityCoordinateNode*>(pCurrentNode_)->pEntity(); }
+	INLINE bool isEntityNode() const { return pCurrentNode_->hasFlags(COORDINATE_NODE_FLAG_ENTITY); }
+	INLINE CoordinateNode* currentNode() const { return pCurrentNode_; }
+	INLINE Entity* currentNodeEntity() const { return static_cast<EntityCoordinateNode*>(pCurrentNode_)->pEntity(); }
 	
 	INLINE CoordinateNode* prev() {
 		pCurrentNode_ = pCurrentNode_->pPrevX();
@@ -326,7 +326,7 @@ EntityCoordinateNode::~EntityCoordinateNode()
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::xx() const
 {
-	if(pEntity_ == NULL || (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
+	if (pEntity_ == NULL || hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
 		return -FLT_MAX;
 
 	return pEntity_->position().x;
@@ -335,7 +335,7 @@ float EntityCoordinateNode::xx() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::yy() const
 {
-	if(pEntity_ == NULL /*|| (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0*/)
+	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING))*/)
 		return -FLT_MAX;
 
 	return pEntity_->position().y;
@@ -344,7 +344,7 @@ float EntityCoordinateNode::yy() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::zz() const
 {
-	if(pEntity_ == NULL /*|| (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0*/)
+	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING))*/)
 		return -FLT_MAX;
 
 	return pEntity_->position().z;
@@ -355,7 +355,7 @@ void EntityCoordinateNode::update()
 {
 	CoordinateNode::update();
 
-	flags(flags() | COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+	addFlags(COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
 	++entityNodeUpdating_;
 
 	// 此处必须使用watcherNodes_.size()而不能使用迭代器遍历，防止在update中导致增加了watcherNodes_数量而破坏迭代器
@@ -370,7 +370,7 @@ void EntityCoordinateNode::update()
 
 	--entityNodeUpdating_;
 	if (entityNodeUpdating_ == 0)
-		flags(flags() & ~COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+		removeFlags(COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
 
 	clearDelWatcherNodes();
 }
@@ -378,7 +378,7 @@ void EntityCoordinateNode::update()
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::clearDelWatcherNodes()
 {
-	if ((flags() & (COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
+	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
 		return;
 
 	if (delWatcherNodeNum_ > 0)
@@ -444,7 +444,7 @@ bool EntityCoordinateNode::delWatcherNode(CoordinateNode* pNode)
 	if(iter == watcherNodes_.end())
 		return false;
 
-	if ((flags() & (COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
+	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
 	{
 		(*iter) = NULL;
 		++delWatcherNodeNum_;
