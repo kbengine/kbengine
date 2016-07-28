@@ -30,21 +30,21 @@ INLINE CoordinateNode* CoordinateNode::pPrevZ() const { return pPrevZ_; }
 INLINE CoordinateNode* CoordinateNode::pNextZ() const { return pNextZ_; }
 
 //-------------------------------------------------------------------------------------
-INLINE void CoordinateNode::pPrevX(CoordinateNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevX_ != pNode); pPrevX_ = pNode; }
-INLINE void CoordinateNode::pNextX(CoordinateNode* pNode){ if(pNode != NULL)KBE_ASSERT(pNextX_ != pNode); pNextX_ = pNode; }
-INLINE void CoordinateNode::pPrevY(CoordinateNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevY_ != pNode); pPrevY_ = pNode; }
-INLINE void CoordinateNode::pNextY(CoordinateNode* pNode){ if(pNode != NULL)KBE_ASSERT(pNextY_ != pNode); pNextY_ = pNode; }
-INLINE void CoordinateNode::pPrevZ(CoordinateNode* pNode){ if(pNode != NULL)KBE_ASSERT(pPrevZ_ != pNode); pPrevZ_ = pNode; }
-INLINE void CoordinateNode::pNextZ(CoordinateNode* pNode){ if(pNode != NULL)KBE_ASSERT(pNextZ_ != pNode); pNextZ_ = pNode; }
+INLINE void CoordinateNode::pPrevX(CoordinateNode* pNode) { pPrevX_ = pNode; }
+INLINE void CoordinateNode::pNextX(CoordinateNode* pNode) { pNextX_ = pNode; }
+INLINE void CoordinateNode::pPrevY(CoordinateNode* pNode) { pPrevY_ = pNode; }
+INLINE void CoordinateNode::pNextY(CoordinateNode* pNode) { pNextY_ = pNode; }
+INLINE void CoordinateNode::pPrevZ(CoordinateNode* pNode) { pPrevZ_ = pNode; }
+INLINE void CoordinateNode::pNextZ(CoordinateNode* pNode) { pNextZ_ = pNode; }
 
 //-------------------------------------------------------------------------------------
-INLINE void CoordinateNode::pCoordinateSystem(CoordinateSystem* p){ pCoordinateSystem_ = p; }
+INLINE void CoordinateNode::pCoordinateSystem(CoordinateSystem* v) { pCoordinateSystem_ = v; }
 
 //-------------------------------------------------------------------------------------
-INLINE void CoordinateNode::flags(uint32 v){ flags_ = v; }
+INLINE void CoordinateNode::flags(uint32 v) { flags_ = v; }
 	
 //-------------------------------------------------------------------------------------
-INLINE uint32 CoordinateNode::flags() const{ return flags_; }
+INLINE uint32 CoordinateNode::flags() const { return flags_; }
 
 //-------------------------------------------------------------------------------------
 INLINE void CoordinateNode::addFlags(uint32 v) { flags_ |= v; }
