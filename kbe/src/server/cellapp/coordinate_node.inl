@@ -30,12 +30,12 @@ INLINE CoordinateNode* CoordinateNode::pPrevZ() const { return pPrevZ_; }
 INLINE CoordinateNode* CoordinateNode::pNextZ() const { return pNextZ_; }
 
 //-------------------------------------------------------------------------------------
-INLINE void CoordinateNode::pPrevX(CoordinateNode* pNode) { pPrevX_ = pNode; }
-INLINE void CoordinateNode::pNextX(CoordinateNode* pNode) { pNextX_ = pNode; }
-INLINE void CoordinateNode::pPrevY(CoordinateNode* pNode) { pPrevY_ = pNode; }
-INLINE void CoordinateNode::pNextY(CoordinateNode* pNode) { pNextY_ = pNode; }
-INLINE void CoordinateNode::pPrevZ(CoordinateNode* pNode) { pPrevZ_ = pNode; }
-INLINE void CoordinateNode::pNextZ(CoordinateNode* pNode) { pNextZ_ = pNode; }
+INLINE void CoordinateNode::pPrevX(CoordinateNode* pNode) { if (pNode != this) pPrevX_ = pNode; }
+INLINE void CoordinateNode::pNextX(CoordinateNode* pNode) { if (pNode != this) pNextX_ = pNode; }
+INLINE void CoordinateNode::pPrevY(CoordinateNode* pNode) { if (pNode != this) pPrevY_ = pNode; }
+INLINE void CoordinateNode::pNextY(CoordinateNode* pNode) { if (pNode != this) pNextY_ = pNode; }
+INLINE void CoordinateNode::pPrevZ(CoordinateNode* pNode) { if (pNode != this) pPrevZ_ = pNode; }
+INLINE void CoordinateNode::pNextZ(CoordinateNode* pNode) { if (pNode != this) pNextZ_ = pNode; }
 
 //-------------------------------------------------------------------------------------
 INLINE void CoordinateNode::pCoordinateSystem(CoordinateSystem* v) { pCoordinateSystem_ = v; }
