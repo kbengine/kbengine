@@ -3148,7 +3148,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
-		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+		pEntity->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
 	}
 
 	onTeleportSuccess(nearbyMBRef, lastSpaceID);
