@@ -307,7 +307,8 @@ EntityCoordinateNode::EntityCoordinateNode(Entity* pEntity):
 CoordinateNode(NULL),
 pEntity_(pEntity),
 watcherNodes_(),
-delWatcherNodeNum_(0)
+delWatcherNodeNum_(0),
+entityNodeUpdating_(0)
 {
 	flags(COORDINATE_NODE_FLAG_ENTITY);
 
@@ -355,6 +356,7 @@ void EntityCoordinateNode::update()
 	CoordinateNode::update();
 
 	flags(flags() | COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+	++entityNodeUpdating_;
 
 	// 此处必须使用watcherNodes_.size()而不能使用迭代器遍历，防止在update中导致增加了watcherNodes_数量而破坏迭代器
 	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
@@ -366,7 +368,10 @@ void EntityCoordinateNode::update()
 		pCoordinateNode->update();
 	}
 
-	flags(flags() & ~COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+	--entityNodeUpdating_;
+	if (entityNodeUpdating_ == 0)
+		flags(flags() & ~COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+
 	clearDelWatcherNodes();
 }
 

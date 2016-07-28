@@ -455,7 +455,9 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 	DEBUG_MSG(fmt::format("CoordinateSystem::update enter:[{:p}]:  ({}  {}  {})\n", (void*)pNode, pNode->xx(), pNode->yy(), pNode->zz()));
 #endif
 
-	pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_PENDING);
+	// 没有计数器支持，这个标记很可能中途被update子分支取消，因此没有意义
+	//pNode->flags(pNode->flags() | COORDINATE_NODE_FLAG_PENDING);
+
 	++updating_;
 
 	if(pNode->xx() != pNode->old_xx())
@@ -739,7 +741,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 
 
 	pNode->resetOld();
-	pNode->flags(pNode->flags() & ~COORDINATE_NODE_FLAG_PENDING);
+	//pNode->flags(pNode->flags() & ~COORDINATE_NODE_FLAG_PENDING);
 	--updating_;
 
 	//if (updating_ == 0)

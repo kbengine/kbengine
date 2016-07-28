@@ -63,6 +63,8 @@ protected:
 
 	std::vector<CoordinateNode*> watcherNodes_;
 	int delWatcherNodeNum_;
+
+	int entityNodeUpdating_;
 };
 
 }
