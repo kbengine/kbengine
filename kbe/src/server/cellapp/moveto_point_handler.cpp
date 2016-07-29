@@ -71,7 +71,7 @@ MoveToPointHandler::~MoveToPointHandler()
 		Py_DECREF(pyuserarg_);
 	}
 
-	// DEBUG_MSG(fmt::format("MoveToPointHandler::~MoveToPointHandler(): {:p}\n"), (void*)this));
+	//DEBUG_MSG(fmt::format("MoveToPointHandler::~MoveToPointHandler(): {}\n", (void*)this));
 }
 
 //-------------------------------------------------------------------------------------
