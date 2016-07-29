@@ -498,10 +498,10 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					DEBUG_MSG(fmt::format("CoordinateSystem::update end: [-X] ({}), pCurrNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
 				#endif
 
-				if(pCurrNode->pPrevX() == NULL)
+				if (pNode->pPrevX() == NULL)
 					break;
 
-				pCurrNode = pCurrNode->pPrevX();
+				pCurrNode = pNode->pPrevX();
 			}
 
 			pCurrNode = pNode->pNextX();
@@ -538,10 +538,10 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					DEBUG_MSG(fmt::format("CoordinateSystem::update end: [+X] ({}), pCurrNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
 				#endif
 				
-				if(pCurrNode->pNextX() == NULL)
+				if (pNode->pNextX() == NULL)
 					break;
 
-				pCurrNode = pCurrNode->pNextX();
+				pCurrNode = pNode->pNextX();
 			}
 
 			if((pNode->pPrevX() == NULL || (pNode->xx() >= pNode->pPrevX()->x())) && 
@@ -591,10 +591,10 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					DEBUG_MSG(fmt::format("CoordinateSystem::update end: [-Y] ({}), pCurrNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
 				#endif
 				
-				if(pCurrNode->pPrevY() == NULL)
+				if (pNode->pPrevY() == NULL)
 					break;
 
-				pCurrNode = pCurrNode->pPrevY();
+				pCurrNode = pNode->pPrevY();
 			}
 
 			pCurrNode = pNode->pNextY();
@@ -631,10 +631,10 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					DEBUG_MSG(fmt::format("CoordinateSystem::update end: [+Y] ({}), pCurrNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
 				#endif
 				
-				if(pCurrNode->pNextY() == NULL)
+				if (pNode->pNextY() == NULL)
 					break;
 
-				pCurrNode = pCurrNode->pNextY();
+				pCurrNode = pNode->pNextY();
 			}
 
 			if((pNode->pPrevY() == NULL || (pNode->yy() >= pNode->pPrevY()->y())) && 
@@ -684,10 +684,10 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					DEBUG_MSG(fmt::format("CoordinateSystem::update end: [-Z] ({}), pCurrNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
 				#endif
 				
-				if(pCurrNode->pPrevZ() == NULL)
+				if (pNode->pPrevZ() == NULL)
 					break;
 
-				pCurrNode = pCurrNode->pPrevZ();
+				pCurrNode = pNode->pPrevZ();
 			}
 
 			pCurrNode = pNode->pNextZ();
@@ -724,10 +724,10 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 					DEBUG_MSG(fmt::format("CoordinateSystem::update end: [+Z] ({}), pCurrNode=>({})\n", pNode->c_str(), pCurrNode->c_str()));
 				#endif
 				
-				if(pCurrNode->pNextZ() == NULL)
+				if (pNode->pNextZ() == NULL)
 					break;
 
-				pCurrNode = pCurrNode->pNextZ();
+				pCurrNode = pNode->pNextZ();
 			}
 
 			if((pNode->pPrevZ() == NULL || (pNode->zz() >= pNode->pPrevZ()->z())) && 
