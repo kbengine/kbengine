@@ -180,7 +180,7 @@ SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: error: not found pid({})\n", pid));
+		//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: error: not found pid({})\n", pid));
 		
 		if(!tryed)
 		{
@@ -189,7 +189,7 @@ _TRYGET:
 			tryed = true;
 			infos.error = true;
 
-			DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: try to find the pid({})\n", pid));
+			//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: try to find the pid({})\n", pid));
 
 			if(_autocreate())
 				goto _TRYGET;
@@ -201,7 +201,7 @@ _TRYGET:
 	{
 		if (tryed)
 		{
-			DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: found pid({})\n", pid));
+			//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: found pid({})\n", pid));
 		}
 
 		infos.error = false;
