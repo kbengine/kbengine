@@ -69,7 +69,7 @@ NavTileHandle::~NavTileHandle()
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
+int NavTileHandle::findStraightPath(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
@@ -236,7 +236,7 @@ void NavTileHandle::bresenhamLine(int x0, int y0, int x1, int y1, std::vector<Ma
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
+int NavTileHandle::raycast(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
 	setMapLayer(layer);
 	pCurrNavTileHandle = this;
@@ -278,7 +278,7 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 }
 
 //-------------------------------------------------------------------------------------
-int NavTileHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
+int NavTileHandle::findRandomPointAroundCircle(int layer, uint16 flags, const Position3D& centerPos,
 	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
 	setMapLayer(layer);

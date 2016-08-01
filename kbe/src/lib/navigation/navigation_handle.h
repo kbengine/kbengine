@@ -59,12 +59,12 @@ public:
 
 	virtual NavigationHandle::NAV_TYPE type() const{ return NAV_UNKNOWN; }
 
-	virtual int findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
+	virtual int findStraightPath(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths) = 0;
 
-	virtual int findRandomPointAroundCircle(int layer, const Position3D& centerPos,
+	virtual int findRandomPointAroundCircle(int layer, uint16 flags, const Position3D& centerPos,
 		std::vector<Position3D>& points, uint32 max_points, float maxRadius) = 0;
 
-	virtual int raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
+	virtual int raycast(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec) = 0;
 
 	std::string resPath;
 };

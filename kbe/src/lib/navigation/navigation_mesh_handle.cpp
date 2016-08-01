@@ -55,7 +55,7 @@ NavMeshHandle::~NavMeshHandle()
 
 #ifndef DT_UE4
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
+int NavMeshHandle::findStraightPath(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
 	if(iter == navmeshLayer.end())
@@ -285,7 +285,7 @@ int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D&
 #else
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
+int NavMeshHandle::findStraightPath(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& paths)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
 	if (iter == navmeshLayer.end())
@@ -308,7 +308,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 	epos[2] = end.z * UNIT_CONVERSION;
 	
 	dtQueryFilter filter;
-	filter.setIncludeFlags(0xffff);
+	filter.setIncludeFlags(flags);
 	filter.setExcludeFlags(0);
 
 	const float extents[3] = { 200.f, 400.f, 200.f };
@@ -365,7 +365,7 @@ int NavMeshHandle::findStraightPath(int layer, const Position3D& start, const Po
 	return pos;
 }
 
-int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
+int NavMeshHandle::findRandomPointAroundCircle(int layer, uint16 flags, const Position3D& centerPos,
 	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
 	maxRadius = maxRadius * UNIT_CONVERSION;
@@ -380,7 +380,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
 
 	dtQueryFilter filter;
-	filter.setIncludeFlags(0xffff);
+	filter.setIncludeFlags(flags);
 	filter.setExcludeFlags(0);
 
 	if (maxRadius <= 0.0001f)
@@ -444,7 +444,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
+int NavMeshHandle::raycast(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
 	if (iter == navmeshLayer.end())
@@ -468,7 +468,7 @@ int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D&
 	epos[2] = end.z * UNIT_CONVERSION;
 
 	dtQueryFilter filter;
-	filter.setIncludeFlags(0xffff);
+	filter.setIncludeFlags(flags);
 	filter.setExcludeFlags(0);
 
 	const float extents[3] = { 200.f, 400.f, 200.f };
@@ -534,6 +534,7 @@ NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int
 	{
 		std::vector<std::wstring> results;
 		Resmgr::getSingleton().listPathRes(wspath, L"navmesh", results);
+		std::sort(results.begin(), results.end());
 
 		if(results.size() == 0)
 		{
@@ -546,7 +547,7 @@ NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int
 		pNavMeshHandle = new NavMeshHandle();
 		std::vector<std::wstring>::iterator iter = results.begin();
 		int layer = 0;
-		
+
 		for(; iter != results.end(); ++iter)
 		{
 			char* cpath = strutil::wchar2char((*iter).c_str());
