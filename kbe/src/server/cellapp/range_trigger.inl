@@ -53,4 +53,10 @@ INLINE void RangeTrigger::origin(CoordinateNode* pCoordinateNode)
 }
 
 //-------------------------------------------------------------------------------------
+INLINE bool RangeTrigger::isInstalled() const
+{
+	return positiveBoundary_ && negativeBoundary_;
+}
+
+//-------------------------------------------------------------------------------------
 }

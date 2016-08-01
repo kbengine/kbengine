@@ -48,7 +48,7 @@ public:
 	bool removeReal(CoordinateNode* pNode);
 	void removeDelNodes();
 	void releaseNodes();
-	
+
 	/**
 		当某个节点有变动时，需要更新它在list中的
 		相关位置等信息
@@ -72,6 +72,9 @@ public:
 	INLINE uint32 size() const;
 
 	static bool hasY;
+
+	INLINE void incUpdating();
+	INLINE void decUpdating();
 
 private:
 	uint32 size_;
