@@ -540,7 +540,7 @@ void Witness::installAOITrigger()
 	if (pAOITrigger_)
 	{
 		// 在设置AOI半径为0后掉线重登陆会出现这种情况
-		if (aoiRadius_ > 0.f)
+		if (aoiRadius_ <= 0.f)
 		{
 			return;
 		}
