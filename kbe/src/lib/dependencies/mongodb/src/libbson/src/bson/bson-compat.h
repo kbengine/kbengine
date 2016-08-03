@@ -91,19 +91,19 @@ BSON_BEGIN_DECLS
 #  pragma warning (disable :4142)
 #  ifndef _SSIZE_T_DEFINED
 #   define _SSIZE_T_DEFINED
-    typedef SSIZE_T ssize_t;
+    typedef SSIZE_T ssize_t_d;
 #  endif
     typedef SIZE_T size_t;
 #  pragma warning (default :4142)
 # else
     /*
-     * MSVC++ does not include ssize_t, just size_t.
+     * MSVC++ does not include ssize_t_d, just size_t.
      * So we need to synthesize that as well.
      */
 #  pragma warning (disable :4142)
 #  ifndef _SSIZE_T_DEFINED
 #   define _SSIZE_T_DEFINED
-    typedef SSIZE_T ssize_t;
+    typedef SSIZE_T ssize_t_d;
 #  endif
 #  pragma warning (default :4142)
 # endif

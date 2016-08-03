@@ -76,7 +76,7 @@
    }
 #define IOVEC_ARRAY_FIELD(_name) \
    do { \
-      ssize_t _i; \
+      ssize_t_d _i; \
       assert (rpc->n_##_name); \
       for (_i = 0; _i < rpc->n_##_name; _i++) { \
          assert (rpc->_name[_i].iov_len); \
@@ -150,7 +150,7 @@
 #define RAW_BUFFER_FIELD(_name)
 #define INT64_ARRAY_FIELD(_len, _name) \
    do { \
-      ssize_t i; \
+      ssize_t_d i; \
       for (i = 0; i < rpc->_len; i++) { \
          rpc->_name[i] = BSON_UINT64_FROM_LE(rpc->_name[i]); \
       } \
@@ -179,7 +179,7 @@
    }
 #define INT64_ARRAY_FIELD(_len, _name) \
    do { \
-      ssize_t i; \
+      ssize_t_d i; \
       rpc->_len = BSON_UINT32_FROM_LE(rpc->_len); \
       for (i = 0; i < rpc->_len; i++) { \
          rpc->_name[i] = BSON_UINT64_FROM_LE(rpc->_name[i]); \
@@ -255,7 +255,7 @@
    } while (0);
 #define IOVEC_ARRAY_FIELD(_name) \
    do { \
-      ssize_t _i; \
+      ssize_t_d _i; \
       size_t _j; \
       for (_i = 0; _i < rpc->n_##_name; _i++) { \
          printf("  "#_name" : "); \
@@ -271,7 +271,7 @@
    if (rpc->_check) { _code }
 #define RAW_BUFFER_FIELD(_name) \
    { \
-      ssize_t __i; \
+      ssize_t_d __i; \
       printf("  "#_name" :"); \
       for (__i = 0; __i < rpc->_name##_len; __i++) { \
          uint8_t u; \
@@ -282,7 +282,7 @@
    }
 #define INT64_ARRAY_FIELD(_len, _name) \
    do { \
-      ssize_t i; \
+      ssize_t_d i; \
       for (i = 0; i < rpc->_len; i++) { \
          printf("  "#_name" : %" PRIi64 "\n", (int64_t)rpc->_name[i]); \
       } \

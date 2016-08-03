@@ -1039,7 +1039,7 @@ bson_json_reader_read (bson_json_reader_t *reader, /* IN */
    bson_json_reader_producer_t *p;
    yajl_status ys;
    yajl_handle yh;
-   ssize_t r;
+   ssize_t_d r;
    bool read_something = false;
    int ret = 0;
 
@@ -1176,7 +1176,7 @@ typedef struct
 } bson_json_data_reader_t;
 
 
-static ssize_t
+static ssize_t_d
 _bson_json_data_reader_cb (void    *_ctx,
                            uint8_t *buf,
                            size_t   len)
@@ -1225,7 +1225,7 @@ bson_json_data_reader_ingest (bson_json_reader_t *reader, /* IN */
 
 bson_t *
 bson_new_from_json (const uint8_t *data,  /* IN */
-                    ssize_t        len,   /* IN */
+                    ssize_t_d        len,   /* IN */
                     bson_error_t  *error) /* OUT */
 {
    bson_json_reader_t *reader;
@@ -1235,7 +1235,7 @@ bson_new_from_json (const uint8_t *data,  /* IN */
    BSON_ASSERT (data);
 
    if (len < 0) {
-      len = (ssize_t)strlen ((const char *)data);
+      len = (ssize_t_d)strlen ((const char *)data);
    }
 
    bson = bson_new ();
@@ -1256,7 +1256,7 @@ bson_new_from_json (const uint8_t *data,  /* IN */
 bool
 bson_init_from_json (bson_t       *bson,  /* OUT */
                      const char   *data,  /* IN */
-                     ssize_t       len,   /* IN */
+                     ssize_t_d       len,   /* IN */
                      bson_error_t *error) /* OUT */
 {
    bson_json_reader_t *reader;
@@ -1303,13 +1303,13 @@ _bson_json_reader_handle_fd_destroy (void *handle) /* IN */
 }
 
 
-static ssize_t
+static ssize_t_d
 _bson_json_reader_handle_fd_read (void    *handle, /* IN */
                                   uint8_t *buf,    /* IN */
                                   size_t   len)   /* IN */
 {
    bson_json_reader_handle_fd_t *fd = handle;
-   ssize_t ret = -1;
+   ssize_t_d ret = -1;
 
    if (fd && (fd->fd != -1)) {
    again:

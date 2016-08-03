@@ -138,13 +138,13 @@ mongoc_stream_flush (mongoc_stream_t *stream)
  *
  * Returns: the number of bytes written, or -1 upon failure.
  */
-ssize_t
+ssize_t_d
 mongoc_stream_writev (mongoc_stream_t *stream,
                       mongoc_iovec_t  *iov,
                       size_t           iovcnt,
                       int32_t          timeout_msec)
 {
-   ssize_t ret;
+   ssize_t_d ret;
 
    ENTRY;
 
@@ -175,14 +175,14 @@ mongoc_stream_writev (mongoc_stream_t *stream,
  *
  * Returns: -1 on failure, otherwise the number of bytes write.
  */
-ssize_t
+ssize_t_d
 mongoc_stream_write (mongoc_stream_t *stream,
                      void            *buf,
                      size_t           count,
                      int32_t          timeout_msec)
 {
    mongoc_iovec_t iov;
-   ssize_t ret;
+   ssize_t_d ret;
 
    ENTRY;
 
@@ -214,14 +214,14 @@ mongoc_stream_write (mongoc_stream_t *stream,
  *
  * Returns: the number of bytes read or -1 on failure.
  */
-ssize_t
+ssize_t_d
 mongoc_stream_readv (mongoc_stream_t *stream,
                      mongoc_iovec_t  *iov,
                      size_t           iovcnt,
                      size_t           min_bytes,
                      int32_t          timeout_msec)
 {
-   ssize_t ret;
+   ssize_t_d ret;
 
    ENTRY;
 
@@ -255,7 +255,7 @@ mongoc_stream_readv (mongoc_stream_t *stream,
  *
  * Returns: -1 on failure, otherwise the number of bytes read.
  */
-ssize_t
+ssize_t_d
 mongoc_stream_read (mongoc_stream_t *stream,
                     void            *buf,
                     size_t           count,
@@ -263,7 +263,7 @@ mongoc_stream_read (mongoc_stream_t *stream,
                     int32_t          timeout_msec)
 {
    mongoc_iovec_t iov;
-   ssize_t ret;
+   ssize_t_d ret;
 
    ENTRY;
 
@@ -325,7 +325,7 @@ mongoc_stream_get_root_stream (mongoc_stream_t *stream)
 }
 
 
-ssize_t
+ssize_t_d
 mongoc_stream_poll (mongoc_stream_poll_t *streams,
                     size_t                nstreams,
                     int32_t               timeout)
@@ -334,7 +334,7 @@ mongoc_stream_poll (mongoc_stream_poll_t *streams,
 
    int i;
    int last_type = 0;
-   ssize_t rval = -1;
+   ssize_t_d rval = -1;
 
    errno = 0;
 
@@ -401,7 +401,7 @@ mongoc_stream_wait (mongoc_stream_t *stream,
    mongoc_stream_poll_t poller;
    int64_t now;
    int32_t timeout_msec;
-   ssize_t ret;
+   ssize_t_d ret;
 
    ENTRY;
 
@@ -476,7 +476,7 @@ _mongoc_stream_writev_full (mongoc_stream_t *stream,
 {
    size_t total_bytes = 0;
    int i;
-   ssize_t r;
+   ssize_t_d r;
    ENTRY;
 
    for (i = 0; i < iovcnt; i++) {

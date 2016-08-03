@@ -84,7 +84,7 @@ typedef struct _future_value_t
       int int_value;
       int64_t int64_t_value;
       size_t size_t_value;
-      ssize_t ssize_t_value;
+      ssize_t_d ssize_t_value;
       uint32_t uint32_t_value;
       const_char_ptr const_char_ptr_value;
       bson_error_ptr bson_error_ptr_value;
@@ -180,9 +180,9 @@ future_value_get_size_t (
 void
 future_value_set_ssize_t(
    future_value_t *future_value,
-   ssize_t value);
+   ssize_t_d value);
 
-ssize_t
+ssize_t_d
 future_value_get_ssize_t (
    future_value_t *future_value);
 

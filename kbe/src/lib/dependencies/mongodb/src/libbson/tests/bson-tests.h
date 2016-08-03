@@ -65,7 +65,7 @@ bson_open (const char *filename,
    return -1;
 }
 # define bson_close _close
-# define bson_read(f,b,c) ((ssize_t)_read((f), (b), (int)(c)))
+# define bson_read(f,b,c) ((ssize_t_d)_read((f), (b), (int)(c)))
 # define bson_write _write
 #else
 # define bson_open open

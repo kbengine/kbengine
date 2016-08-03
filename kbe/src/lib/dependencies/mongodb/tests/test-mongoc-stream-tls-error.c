@@ -29,7 +29,7 @@ ssl_error_server (void *ptr)
    mongoc_socket_t *conn_sock;
    socklen_t sock_len;
    char buf;
-   ssize_t r;
+   ssize_t_d;
    mongoc_iovec_t iov;
    struct sockaddr_in server_addr = { 0 };
 
@@ -119,7 +119,7 @@ ssl_hangup_client (void *ptr)
    mongoc_stream_t *ssl_stream;
    mongoc_socket_t *conn_sock;
    char buf = 'b';
-   ssize_t r;
+   ssize_t_d;
    mongoc_iovec_t riov;
    mongoc_iovec_t wiov;
    struct sockaddr_in server_addr = { 0 };

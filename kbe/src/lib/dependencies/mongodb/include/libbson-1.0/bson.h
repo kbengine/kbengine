@@ -189,14 +189,14 @@ bson_new (void);
 
 bson_t *
 bson_new_from_json (const uint8_t *data,
-                    ssize_t        len,
+                    ssize_t_d        len,
                     bson_error_t  *error);
 
 
 bool
 bson_init_from_json (bson_t        *bson,
                      const char    *data,
-                     ssize_t        len,
+                     ssize_t_d        len,
                      bson_error_t  *error);
 
 

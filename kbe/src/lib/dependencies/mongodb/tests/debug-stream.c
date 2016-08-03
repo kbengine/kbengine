@@ -86,7 +86,7 @@ _mongoc_stream_debug_flush (mongoc_stream_t *stream)
 }
 
 
-static ssize_t
+static ssize_t_d
 _mongoc_stream_debug_readv (mongoc_stream_t *stream,
                             mongoc_iovec_t  *iov,
                             size_t           iovcnt,
@@ -101,7 +101,7 @@ _mongoc_stream_debug_readv (mongoc_stream_t *stream,
 }
 
 
-static ssize_t
+static ssize_t_d
 _mongoc_stream_debug_writev (mongoc_stream_t *stream,
                              mongoc_iovec_t  *iov,
                              size_t           iovcnt,

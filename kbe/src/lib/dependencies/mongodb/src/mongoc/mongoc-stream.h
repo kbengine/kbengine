@@ -42,11 +42,11 @@ struct _mongoc_stream_t
    void             (*destroy)         (mongoc_stream_t *stream);
    int              (*close)           (mongoc_stream_t *stream);
    int              (*flush)           (mongoc_stream_t *stream);
-   ssize_t          (*writev)          (mongoc_stream_t *stream,
+   ssize_t_d          (*writev)          (mongoc_stream_t *stream,
                                         mongoc_iovec_t  *iov,
                                         size_t           iovcnt,
                                         int32_t          timeout_msec);
-   ssize_t          (*readv)           (mongoc_stream_t *stream,
+   ssize_t_d          (*readv)           (mongoc_stream_t *stream,
                                         mongoc_iovec_t  *iov,
                                         size_t           iovcnt,
                                         size_t           min_bytes,
@@ -58,7 +58,7 @@ struct _mongoc_stream_t
                                         socklen_t        optlen);
    mongoc_stream_t *(*get_base_stream) (mongoc_stream_t *stream);
    bool             (*check_closed)    (mongoc_stream_t *stream);
-   ssize_t          (*poll)            (mongoc_stream_poll_t *streams,
+   ssize_t_d          (*poll)            (mongoc_stream_poll_t *streams,
                                         size_t                nstreams,
                                         int32_t               timeout);
    void             (*failed)          (mongoc_stream_t *stream);
@@ -71,20 +71,20 @@ int              mongoc_stream_close           (mongoc_stream_t       *stream);
 void             mongoc_stream_destroy         (mongoc_stream_t       *stream);
 void             mongoc_stream_failed          (mongoc_stream_t       *stream);
 int              mongoc_stream_flush           (mongoc_stream_t       *stream);
-ssize_t          mongoc_stream_writev          (mongoc_stream_t       *stream,
+ssize_t_d          mongoc_stream_writev          (mongoc_stream_t       *stream,
                                                 mongoc_iovec_t        *iov,
                                                 size_t                 iovcnt,
                                                 int32_t                timeout_msec);
-ssize_t          mongoc_stream_write           (mongoc_stream_t       *stream,
+ssize_t_d          mongoc_stream_write           (mongoc_stream_t       *stream,
                                                 void                  *buf,
                                                 size_t                 count,
                                                 int32_t                timeout_msec);
-ssize_t          mongoc_stream_readv           (mongoc_stream_t       *stream,
+ssize_t_d          mongoc_stream_readv           (mongoc_stream_t       *stream,
                                                 mongoc_iovec_t        *iov,
                                                 size_t                 iovcnt,
                                                 size_t                 min_bytes,
                                                 int32_t                timeout_msec);
-ssize_t          mongoc_stream_read            (mongoc_stream_t       *stream,
+ssize_t_d          mongoc_stream_read            (mongoc_stream_t       *stream,
                                                 void                  *buf,
                                                 size_t                 count,
                                                 size_t                 min_bytes,
@@ -95,7 +95,7 @@ int              mongoc_stream_setsockopt      (mongoc_stream_t       *stream,
                                                 void                  *optval,
                                                 socklen_t              optlen);
 bool             mongoc_stream_check_closed    (mongoc_stream_t       *stream);
-ssize_t          mongoc_stream_poll            (mongoc_stream_poll_t  *streams,
+ssize_t_d          mongoc_stream_poll            (mongoc_stream_poll_t  *streams,
                                                 size_t                 nstreams,
                                                 int32_t                timeout);
 

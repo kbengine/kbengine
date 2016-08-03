@@ -14,7 +14,7 @@ test_buffered_basic (void)
    mongoc_stream_t *stream;
    mongoc_stream_t *buffered;
    mongoc_iovec_t iov;
-   ssize_t r;
+   ssize_t_d;
    char buf[16236];
 
    stream = mongoc_stream_file_new_for_path (BINARY_DIR"/reply2.dat", O_RDONLY, 0);
@@ -46,7 +46,7 @@ test_buffered_oversized (void)
    mongoc_stream_t *stream;
    mongoc_stream_t *buffered;
    mongoc_iovec_t iov;
-   ssize_t r;
+   ssize_t_d;
    char buf[16236];
 
    stream = mongoc_stream_file_new_for_path (BINARY_DIR"/reply2.dat", O_RDONLY, 0);
@@ -75,10 +75,10 @@ test_buffered_oversized (void)
 typedef struct
 {
    mongoc_stream_t vtable;
-   ssize_t         rval;
+   ssize_t_d         rval;
 } failing_stream_t;
 
-static ssize_t
+static ssize_t_d
 failing_stream_writev (mongoc_stream_t *stream,
                        mongoc_iovec_t  *iov,
                        size_t           iovcnt,
@@ -96,7 +96,7 @@ failing_stream_destroy (mongoc_stream_t *stream)
 }
 
 static mongoc_stream_t *
-failing_stream_new (ssize_t rval)
+failing_stream_new (ssize_t_d rval)
 {
    failing_stream_t *stream;
 

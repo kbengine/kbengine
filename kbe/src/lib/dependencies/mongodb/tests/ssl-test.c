@@ -34,7 +34,7 @@ ssl_test_server (void * ptr)
    mongoc_socket_t *conn_sock;
    socklen_t sock_len;
    char buf[4 * NUM_IOVECS];
-   ssize_t r;
+   ssize_t_d;
    mongoc_iovec_t iov;
    struct sockaddr_in server_addr = { 0 };
    int len;
@@ -151,7 +151,7 @@ ssl_test_client (void * ptr)
    int i;
    int errno_captured;
    char buf[1024];
-   ssize_t r;
+   ssize_t_d;
    mongoc_iovec_t riov;
    mongoc_iovec_t wiov;
    mongoc_iovec_t wiov_many[NUM_IOVECS];

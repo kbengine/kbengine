@@ -14,7 +14,7 @@ int main (int argc, char *argv[])
    bson_t query;
    bson_t child;
    bson_error_t error;
-   ssize_t r;
+   ssize_t_d;
    char buf[4096];
    mongoc_iovec_t iov;
    const char * filename;

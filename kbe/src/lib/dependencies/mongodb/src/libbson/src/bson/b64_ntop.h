@@ -112,7 +112,7 @@ static const char Pad64 = '=';
  *    characters followed by one "=" padding character.
  */
 
-static ssize_t
+static ssize_t_d
 b64_ntop (uint8_t const *src,
           size_t         srclength,
           char          *target,

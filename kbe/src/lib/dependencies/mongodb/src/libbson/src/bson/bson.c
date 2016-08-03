@@ -48,7 +48,7 @@ typedef enum {
 typedef struct
 {
    bson_validate_flags_t flags;
-   ssize_t               err_offset;
+   ssize_t_d               err_offset;
    bson_validate_phase_t phase;
 } bson_validate_state_t;
 

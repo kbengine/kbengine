@@ -111,7 +111,7 @@ _mongoc_stream_file_flush (mongoc_stream_t *stream) /* IN */
 }
 
 
-static ssize_t
+static ssize_t_d
 _mongoc_stream_file_readv (mongoc_stream_t *stream,       /* IN */
                            mongoc_iovec_t  *iov,          /* IN */
                            size_t           iovcnt,       /* IN */
@@ -119,10 +119,10 @@ _mongoc_stream_file_readv (mongoc_stream_t *stream,       /* IN */
                            int32_t          timeout_msec) /* IN */
 {
    mongoc_stream_file_t *file = (mongoc_stream_file_t *)stream;
-   ssize_t ret = 0;
+   ssize_t_d ret = 0;
 
 #ifdef _WIN32
-   ssize_t nread;
+   ssize_t_d nread;
    size_t i;
 
    ENTRY;
@@ -150,7 +150,7 @@ _mongoc_stream_file_readv (mongoc_stream_t *stream,       /* IN */
 }
 
 
-static ssize_t
+static ssize_t_d
 _mongoc_stream_file_writev (mongoc_stream_t *stream,       /* IN */
                             mongoc_iovec_t  *iov,          /* IN */
                             size_t           iovcnt,       /* IN */
@@ -159,8 +159,8 @@ _mongoc_stream_file_writev (mongoc_stream_t *stream,       /* IN */
    mongoc_stream_file_t *file = (mongoc_stream_file_t *)stream;
 
 #ifdef _WIN32
-   ssize_t ret = 0;
-   ssize_t nwrite;
+   ssize_t_d ret = 0;
+   ssize_t_d nwrite;
    size_t i;
 
    for (i = 0; i < iovcnt; i++) {

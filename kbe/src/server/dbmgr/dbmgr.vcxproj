@@ -94,10 +94,13 @@
     <OutDir>../../../bin/server/</OutDir>
     <IntDir>..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>dbmgr</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies/mysql/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies/mysql;../../lib/dependencies/mysql/mysql;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;../../lib/dependencies/mongodb/src/mongoc;../../lib/dependencies/mongodb/src/libbson/src/bson;../../lib/dependencies/mongodb/src/libbson/src/yajl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;_DEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_KBE_MYSQL;USE_KBE_REDIS;LOG4CXX_STATIC;KBE_SERVER;KBE_DBMGR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -114,9 +117,9 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>db_mysql_d.lib;db_redis_d.lib;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;python34_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;db_interface_d.lib;server_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>db_mysql_d.lib;db_redis_d.lib;db_mongodb_d.lib;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;python34_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;db_interface_d.lib;server_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;F:/kbe/kbengine/kbe/src/libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>

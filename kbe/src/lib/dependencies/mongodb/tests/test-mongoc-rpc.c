@@ -13,7 +13,7 @@ static uint8_t *
 get_test_file (const char *filename,
                size_t     *length)
 {
-   ssize_t len;
+   ssize_t_d len;
    uint8_t *buf;
    char real_filename[256];
    int fd;

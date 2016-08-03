@@ -312,11 +312,11 @@ test_read (void)
    mongoc_stream_t *stream;
    mongoc_client_t *client;
    bson_error_t error;
-   ssize_t r;
+   ssize_t_d;
    char buf[10], buf2[10];
    mongoc_iovec_t iov[2];
    int previous_errno;
-   ssize_t twenty = 20L;
+   ssize_t_d twenty = 20L;
 
    iov[0].iov_base = buf;
    iov[0].iov_len = 10;
@@ -381,14 +381,14 @@ test_write (void)
    mongoc_gridfs_file_t *file;
    mongoc_client_t *client;
    bson_error_t error;
-   ssize_t r;
+   ssize_t_d;
    char buf[] = "foo bar";
    char buf2[] = " baz";
    char buf3[1000];
    mongoc_gridfs_file_opt_t opt = { 0 };
    mongoc_iovec_t iov[2];
    mongoc_iovec_t riov;
-   ssize_t len = sizeof buf + sizeof buf2 - 2;
+   ssize_t_d len = sizeof buf + sizeof buf2 - 2;
 
    iov [0].iov_base = buf;
    iov [0].iov_len = sizeof (buf) - 1;
@@ -470,10 +470,10 @@ test_empty (void)
    mongoc_stream_t *stream;
    mongoc_client_t *client;
    bson_error_t error;
-   ssize_t r;
+   ssize_t_d;
    char buf[2] = {'h', 'i'};
    mongoc_iovec_t iov[1];
-   ssize_t two = 2L;
+   ssize_t_d two = 2L;
 
    iov[0].iov_base = buf;
    iov[0].iov_len = 2;
@@ -525,7 +525,7 @@ test_stream (void)
    mongoc_stream_t *stream;
    mongoc_stream_t *in_stream;
    bson_error_t error;
-   ssize_t r;
+   ssize_t_d;
    char buf[4096];
    mongoc_iovec_t iov;
 
@@ -574,12 +574,12 @@ test_long_seek (void)
    bson_error_t error;
    mongoc_gridfs_t *gridfs;
    mongoc_gridfs_file_t *file;
-   ssize_t r;
+   ssize_t_d;
    mongoc_gridfs_file_opt_t opt = { 0, "filename" };
    mongoc_iovec_t iov;
    char buf[16 * 1024]; /* nothing special about 16k, just a buffer */
-   const ssize_t buflen = sizeof (buf);
-   ssize_t written;
+   const ssize_t_d buflen = sizeof (buf);
+   ssize_t_d written;
    int64_t cursor_id;
    int i;
 
@@ -698,12 +698,12 @@ test_missing_chunk (void)
    mongoc_gridfs_t *gridfs;
    mongoc_gridfs_file_t *file;
    mongoc_collection_t *chunks;
-   ssize_t r;
+   ssize_t_d;
    mongoc_gridfs_file_opt_t opt = { 0, "filename" };
    mongoc_iovec_t iov;
    char buf[16 * 1024]; /* nothing special about 16k, just a buffer */
-   const ssize_t buflen = sizeof (buf);
-   ssize_t written;
+   const ssize_t_d buflen = sizeof (buf);
+   ssize_t_d written;
    bool ret;
 
    iov.iov_base = buf;

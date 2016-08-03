@@ -67,7 +67,7 @@ mongoc_async_run (mongoc_async_t *async,
    mongoc_async_cmd_t *acmd, *tmp;
    mongoc_stream_poll_t *poller = NULL;
    int i;
-   ssize_t nactive = 0;
+   ssize_t_d nactive = 0;
    int64_t now;
    int64_t expire_at = 0;
 

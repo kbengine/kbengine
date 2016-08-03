@@ -103,7 +103,7 @@ test_reader_from_data_overflow (void)
    bson_reader_destroy(reader);
 }
 
-static ssize_t
+static ssize_t_d
 test_reader_from_handle_read(void * handle, void * buf, size_t len)
 {
    return bson_read(*(int *)handle, buf, len);

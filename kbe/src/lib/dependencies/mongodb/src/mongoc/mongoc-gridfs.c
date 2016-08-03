@@ -244,7 +244,7 @@ mongoc_gridfs_create_file_from_stream (mongoc_gridfs_t          *gridfs,
                                        mongoc_gridfs_file_opt_t *opt)
 {
    mongoc_gridfs_file_t *file;
-   ssize_t r;
+   ssize_t_d r;
    uint8_t buf[MONGOC_GRIDFS_STREAM_CHUNK];
    mongoc_iovec_t iov;
    int timeout;

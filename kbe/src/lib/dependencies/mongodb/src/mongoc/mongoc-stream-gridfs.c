@@ -97,7 +97,7 @@ _mongoc_stream_gridfs_flush (mongoc_stream_t *stream)
 }
 
 
-static ssize_t
+static ssize_t_d
 _mongoc_stream_gridfs_readv (mongoc_stream_t *stream,
                              mongoc_iovec_t  *iov,
                              size_t           iovcnt,
@@ -105,7 +105,7 @@ _mongoc_stream_gridfs_readv (mongoc_stream_t *stream,
                              int32_t          timeout_msec)
 {
    mongoc_stream_gridfs_t *file = (mongoc_stream_gridfs_t *)stream;
-   ssize_t ret = 0;
+   ssize_t_d ret = 0;
 
    ENTRY;
 
@@ -123,14 +123,14 @@ _mongoc_stream_gridfs_readv (mongoc_stream_t *stream,
 }
 
 
-static ssize_t
+static ssize_t_d
 _mongoc_stream_gridfs_writev (mongoc_stream_t *stream,
                               mongoc_iovec_t  *iov,
                               size_t           iovcnt,
                               int32_t     timeout_msec)
 {
    mongoc_stream_gridfs_t *file = (mongoc_stream_gridfs_t *)stream;
-   ssize_t ret = 0;
+   ssize_t_d ret = 0;
 
    ENTRY;
 
