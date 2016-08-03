@@ -293,14 +293,14 @@ PyObject* Entity::pyDestroySpace()
 		return 0;
 	}
 
-	if(this->isDestroyed())
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::destroySpace: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
 	}
-
+	
 	if(spaceID() == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "%s::destroySpace: spaceID is 0.\n", scriptName());
@@ -1664,6 +1664,7 @@ void Entity::onPositionChanged()
 		return;
 
 	posChangedTime_ = g_kbetime;
+
 	if(this->pEntityCoordinateNode())
 		this->pEntityCoordinateNode()->update();
 
@@ -2622,7 +2623,7 @@ PyObject* Entity::pyDebugAOI()
 		return 0;
 	}
 
-	if(this->isDestroyed())
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && this->isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -3179,7 +3180,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
-		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+		pEntity->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
 	}
 
 	onTeleportSuccess(nearbyMBRef, lastSpaceID);
