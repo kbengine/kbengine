@@ -135,7 +135,7 @@ int NavMeshHandle::findStraightPath(int layer, uint16 flags, const Position3D& s
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos, 
+int NavMeshHandle::findRandomPointAroundCircle(int layer, uint16 flags, const Position3D& centerPos,
 	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
@@ -212,7 +212,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 }
 
 //-------------------------------------------------------------------------------------
-int NavMeshHandle::raycast(int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
+int NavMeshHandle::raycast(int layer, uint16 flags, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPointVec)
 {
 	std::map<int, NavmeshLayer>::iterator iter = navmeshLayer.find(layer);
 	if(iter == navmeshLayer.end())
