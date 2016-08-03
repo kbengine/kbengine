@@ -138,6 +138,7 @@ public:
 	*/
 	static PyObject* __py_createBase(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseRemotely(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args);
 	
@@ -163,6 +164,32 @@ public:
 	*/
 	void onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
+	/**
+	baseapp 的createBaseAnywhere的回调
+	*/
+	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+
+	/**
+	在一个负载较低的baseapp上创建一个baseEntity
+	*/
+	void createBaseRemotely(const char* entityType, COMPONENT_ID componentID, PyObject* params, PyObject* pyCallback);
+
+	/** 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行
+	@param entityType	: entity的类别， entities.xml中的定义的。
+	@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
+	@param componentID	: 请求创建entity的baseapp的组件ID
+	*/
+	void onCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s);
+
+	/**
+	baseapp 的createBaseAnywhere的回调
+	*/
+	void onCreateBaseRemotelyCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseRemotelyCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+
 	/** 
 		从db获取信息创建一个entity
 	*/
@@ -179,7 +206,7 @@ public:
 	void createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
 
 	/** 网络接口
-		createBaseFromDBID的回调。
+		createBaseAnywhereFromDBID的回调。
 	*/
 	// 从数据库来的回调
 	void onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
@@ -191,13 +218,6 @@ public:
 	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 	
-
-	/** 
-		baseapp 的createBaseAnywhere的回调 
-	*/
-	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
-	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID, 
-		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 

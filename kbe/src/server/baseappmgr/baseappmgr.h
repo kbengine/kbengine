@@ -76,6 +76,15 @@ public:
 	void reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+	收到baseapp::createBaseRemotely请求在某个空闲的baseapp上创建一个baseEntity
+	@param sp: 这个数据包中存储的是 entityType	: entity的类别， entities.xml中的定义的。
+	strInitData	: 这个entity被创建后应该给他初始化的一些数据，
+	需要使用pickle.loads解包.
+	componentID	: 请求创建entity的baseapp的组件ID
+	*/
+	void reqCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		收到baseapp::createBaseAnywhereFromDBID请求在某个空闲的baseapp上创建一个baseEntity
 	*/
 	void reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s);

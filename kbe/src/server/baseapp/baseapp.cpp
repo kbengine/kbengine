@@ -346,6 +346,7 @@ bool Baseapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBaseLocally,				__py_createBase,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createBase,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhere,				__py_createBaseAnywhere,									METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createBaseRemotely,				__py_createBaseRemotely,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseFromDBID,				__py_createBaseFromDBID,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		createBaseAnywhereFromDBID,		__py_createBaseAnywhereFromDBID,							METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,								METH_VARARGS,			0);
@@ -856,10 +857,78 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
+	if (EntityDef::findScriptModule(entityType) == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhere: entityType(%s) error!", entityType);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
 	if(!PyCallable_Check(pyCallback))
 		pyCallback = NULL;
 
 	Baseapp::getSingleton().createBaseAnywhere(entityType, params, pyCallback);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Baseapp::__py_createBaseRemotely(PyObject* self, PyObject* args)
+{
+	int argCount = (int)PyTuple_Size(args);
+	PyObject* params = NULL, *pyCallback = NULL, *pyMailbox = NULL;
+	char* entityType = NULL;
+	int ret = -1;
+
+	switch (argCount)
+	{
+	case 4:
+		ret = PyArg_ParseTuple(args, "s|O|O|O", &entityType, &params, &pyMailbox, &pyCallback);
+		break;
+	case 3:
+		ret = PyArg_ParseTuple(args, "s|O|O", &entityType, &pyMailbox, &params);
+		break;
+	default:
+		ret = PyArg_ParseTuple(args, "s|O", &entityType, &pyMailbox);
+	};
+
+
+	if (entityType == NULL || ret == -1)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseRemotely: args error!");
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if (EntityDef::findScriptModule(entityType) == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseRemotely: entityType(%s) error!", entityType);
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if (!PyCallable_Check(pyCallback))
+		pyCallback = NULL;
+
+	if (pyMailbox == NULL || !PyObject_TypeCheck(pyMailbox, EntityMailbox::getScriptType()))
+	{
+		PyErr_Format(PyExc_TypeError, "create %s arg2 is not baseMailbox!",
+			entityType);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	EntityMailboxAbstract* baseMailbox = static_cast<EntityMailboxAbstract*>(pyMailbox);
+	if (baseMailbox->type() != MAILBOX_TYPE_BASE)
+	{
+		PyErr_Format(PyExc_TypeError, "create %s args2 not is a direct baseMailbox!",
+			entityType);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Baseapp::getSingleton().createBaseRemotely(entityType, baseMailbox->componentID(), params, pyCallback);
 	S_Return;
 }
 
@@ -965,9 +1034,9 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	if(EntityDef::findScriptModule(entityType) == NULL)
+	if (EntityDef::findScriptModule(entityType) == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: entityType error!");
+		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseFromDBID: entityType(%s) error!", entityType);
 		PyErr_PrintEx(0);
 		free(entityType);
 		return NULL;
@@ -1093,7 +1162,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 					// 这种情况通常是异步的环境中从db查询到已经检出，但等回调时可能实体已经销毁了而造成的
 					if(wasActiveCID != g_componentID)
 					{
-						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
+							NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
 					}
 					else
 					{
@@ -1210,27 +1280,27 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 
 	switch(argCount)
 	{
-	case 4:
-	{
-		ret = PyArg_ParseTuple(args, "O|K|O|O", &pyEntityType, &dbid, &pyCallback, &pyDBInterfaceName);
-		break;
-	}
-	case 3:
+		case 4:
 		{
-			ret = PyArg_ParseTuple(args, "O|K|O", &pyEntityType, &dbid, &pyCallback);
+			ret = PyArg_ParseTuple(args, "O|K|O|O", &pyEntityType, &dbid, &pyCallback, &pyDBInterfaceName);
 			break;
 		}
-	case 2:
+		case 3:
 		{
-			ret = PyArg_ParseTuple(args, "O|K", &pyEntityType, &dbid);
-			break;
+				ret = PyArg_ParseTuple(args, "O|K|O", &pyEntityType, &dbid, &pyCallback);
+				break;
 		}
-	default:
+		case 2:
 		{
-			PyErr_Format(PyExc_AssertionError, "%s: args require 2 or 3 args, gived %d!\n",
-				__FUNCTION__, argCount);	
-			PyErr_PrintEx(0);
-			return NULL;
+				ret = PyArg_ParseTuple(args, "O|K", &pyEntityType, &dbid);
+				break;
+		}
+		default:
+		{
+				PyErr_Format(PyExc_AssertionError, "%s: args require 2 or 3 args, gived %d!\n",
+					__FUNCTION__, argCount);	
+				PyErr_PrintEx(0);
+				return NULL;
 		}
 	};
 
@@ -1427,7 +1497,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 					// 这种情况通常是异步的环境中从db查询到已经检出，但等回调时可能实体已经销毁了而造成的
 					if(wasActiveCID != g_componentID)
 					{
-						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
+							NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
 					}
 					else
 					{
@@ -1956,6 +2027,240 @@ void Baseapp::_onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK
 		else
 		{
 			ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhereCallback: can't found callback:{}.\n",
+				callbackID));
+		}
+	}
+
+	SCRIPT_ERROR_CHECK();
+	Py_DECREF(pyargs);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::createBaseRemotely(const char* entityType, COMPONENT_ID componentID, PyObject* params, PyObject* pyCallback)
+{
+	std::string strInitData = "";
+	uint32 initDataLength = 0;
+	if (params != NULL && PyDict_Check(params))
+	{
+		strInitData = script::Pickler::pickle(params);
+		initDataLength = (uint32)strInitData.length();
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappmgrInterface::reqCreateBaseRemotely);
+
+	// 创建到这个组件上
+	(*pBundle) << componentID;
+
+	(*pBundle) << entityType;
+	(*pBundle) << initDataLength;
+
+	if (initDataLength > 0)
+		(*pBundle).append(strInitData.data(), initDataLength);
+
+	(*pBundle) << componentID_;
+
+	CALLBACK_ID callbackID = 0;
+	if (pyCallback != NULL)
+	{
+		callbackID = callbackMgr().save(pyCallback);
+	}
+
+	(*pBundle) << callbackID;
+
+	Components::ComponentInfos* pComponents = Components::getSingleton().getBaseappmgr();
+	if (pComponents)
+	{
+		if (pComponents->pChannel != NULL)
+		{
+			pComponents->pChannel->send(pBundle);
+		}
+		else
+		{
+			ERROR_MSG("Baseapp::createBaseRemotely: baseappmgr channel is NULL.\n");
+			Network::Bundle::reclaimPoolObject(pBundle);
+		}
+
+		return;
+	}
+
+	Network::Bundle::reclaimPoolObject(pBundle);
+	ERROR_MSG("Baseapp::createBaseRemotely: not found baseappmgr.\n");
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s)
+{
+	if (pChannel->isExternal())
+		return;
+
+	std::string strInitData = "";
+	PyObject* params = NULL;
+	std::string entityType;
+	COMPONENT_ID reqComponentID;
+	CALLBACK_ID callbackID;
+
+	s >> entityType;
+	s.readBlob(strInitData);
+
+	s >> reqComponentID;
+	s >> callbackID;
+
+	if (strInitData.size() > 0)
+		params = script::Pickler::unpickle(strInitData);
+
+	Base* base = createEntity(entityType.c_str(), params);
+	Py_XDECREF(params);
+
+	if (base == NULL)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseRemotely: create error! entityType={}, reqComponentID={}, callbackID={}\n",
+			entityType, reqComponentID, callbackID));
+
+		return;
+	}
+
+	// 如果不是在发起创建entity的baseapp上创建则需要转发回调到发起方
+	if (reqComponentID != componentID_)
+	{
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqComponentID);
+		if (cinfos == NULL || cinfos->pChannel == NULL)
+		{
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			ForwardItem* pFI = new ForwardItem();
+			pFI->pHandler = NULL;
+			pFI->pBundle = pBundle;
+
+			(*pBundle).newMessage(BaseappInterface::onCreateBaseAnywhereCallback);
+			(*pBundle) << callbackID;
+			(*pBundle) << entityType;
+			(*pBundle) << base->id();
+			(*pBundle) << componentID_;
+			forward_messagebuffer_.push(reqComponentID, pFI);
+			WARNING_MSG("Baseapp::onCreateBaseRemotely: not found baseapp, message is buffered.\n");
+			return;
+		}
+
+		Network::Channel* lpChannel = cinfos->pChannel;
+
+		// 需要baseappmgr转发给目的baseapp
+		Network::Bundle* pForwardbundle = Network::Bundle::createPoolObject();
+		(*pForwardbundle).newMessage(BaseappInterface::onCreateBaseRemotelyCallback);
+		(*pForwardbundle) << callbackID;
+		(*pForwardbundle) << entityType;
+		(*pForwardbundle) << base->id();
+		(*pForwardbundle) << componentID_;
+		lpChannel->send(pForwardbundle);
+	}
+	else
+	{
+		ENTITY_ID eid = base->id();
+		_onCreateBaseAnywhereCallback(NULL, callbackID, entityType, eid, componentID_);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onCreateBaseRemotelyCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	if (pChannel->isExternal())
+		return;
+
+	CALLBACK_ID callbackID = 0;
+	std::string entityType;
+	ENTITY_ID eid = 0;
+	COMPONENT_ID componentID = 0;
+
+	s >> callbackID;
+	s >> entityType;
+	s >> eid;
+	s >> componentID;
+	_onCreateBaseRemotelyCallback(pChannel, callbackID, entityType, eid, componentID);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::_onCreateBaseRemotelyCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+	std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID)
+{
+	if (callbackID == 0)
+	{
+		// 没有设定回调
+		//ERROR_MSG(fmt::format("Baseapp::_onCreateBaseRemotelyCallback: error(callbackID == 0)! entityType={}, componentID={}\n", 
+		//	entityType, componentID));
+
+		return;
+	}
+
+	PyObjectPtr pyCallback = callbackMgr().take(callbackID);
+	PyObject* pyargs = PyTuple_New(1);
+
+	if (pChannel != NULL)
+	{
+		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
+		if (sm == NULL)
+		{
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseRemotelyCallback: can't found entityType:{}.\n",
+				entityType.c_str()));
+
+			Py_DECREF(pyargs);
+			return;
+		}
+
+		// 如果entity属于另一个baseapp创建则设置它的mailbox
+		Network::Channel* pOtherBaseappChannel = Components::getSingleton().findComponent(componentID)->pChannel;
+		KBE_ASSERT(pOtherBaseappChannel != NULL);
+		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
+		PyTuple_SET_ITEM(pyargs, 0, mb);
+
+		if (pyCallback != NULL)
+		{
+			PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+			if (pyRet == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				Py_DECREF(pyRet);
+			}
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseRemotelyCallback: can't found callback:{}.\n",
+				callbackID));
+		}
+
+		//Py_DECREF(mb);
+	}
+	else
+	{
+		Base* base = pEntities_->find(eid);
+		if (base == NULL)
+		{
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseRemotelyCallback: can't found entity:{}.\n", eid));
+			Py_DECREF(pyargs);
+			return;
+		}
+
+		Py_INCREF(base);
+		PyTuple_SET_ITEM(pyargs, 0, base);
+
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		if (pyCallback != NULL)
+		{
+			PyObject* pyRet = PyObject_CallObject(pyCallback.get(), pyargs);
+			if (pyRet == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				Py_DECREF(pyRet);
+			}
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Baseapp::onCreateBaseRemotelyCallback: can't found callback:{}.\n",
 				callbackID));
 		}
 	}
