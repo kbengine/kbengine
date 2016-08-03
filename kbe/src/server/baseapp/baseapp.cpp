@@ -891,7 +891,6 @@ PyObject* Baseapp::__py_createBaseRemotely(PyObject* self, PyObject* args)
 		ret = PyArg_ParseTuple(args, "s|O", &entityType, &pyMailbox);
 	};
 
-
 	if (entityType == NULL || ret == -1)
 	{
 		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseRemotely: args error!");
