@@ -216,6 +216,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseFromDBIDCallback,					NETWORK_FIXED_MESSAGE)
 
 	// createBaseAnywhereFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onGetCreateBaseAnywhereFromDBIDBestBaseappID,	NETWORK_FIXED_MESSAGE)
+
+	// createBaseAnywhereFromDBID的回调
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
 
 	// createBaseAnywhereFromDBID的回调

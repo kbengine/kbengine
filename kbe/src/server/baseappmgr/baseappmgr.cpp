@@ -431,6 +431,35 @@ void Baseappmgr::reqCreateBaseRemotely(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::reqCreateBaseAnywhereFromDBIDQueryBestBaseappID(Network::Channel* pChannel, MemoryStream& s)
+{
+	Components::ComponentInfos* cinfos =
+		Components::getSingleton().findComponent(pChannel);
+
+	// 此时肯定是在运行状态中，但有可能在等待创建space
+	// 所以初始化进度没有完成, 在只有一个baseapp的情况下如果这
+	// 里不进行设置将是一个相互等待的状态
+	if (cinfos)
+		cinfos->state = COMPONENT_STATE_RUN;
+
+	updateBestBaseapp();
+
+	if (bestBaseappID_ == 0 && numLoadBalancingApp() == 0)
+	{
+		ERROR_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBIDQueryBestBaseappID: Unable to allocate baseapp for load balancing! baseappSize={}.\n",
+			baseapps_.size()));
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappInterface::onGetCreateBaseAnywhereFromDBIDBestBaseappID);
+
+	(*pBundle) << bestBaseappID_;
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+	cinfos->pChannel->send(pBundle);
+	s.done();
+}
+
+//-------------------------------------------------------------------------------------
 void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s) 
 {
 	Components::ComponentInfos* cinfos = 

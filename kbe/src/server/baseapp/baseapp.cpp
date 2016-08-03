@@ -1401,11 +1401,12 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName)
 {
-	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
-	if(dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	Network::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
+	if (pBaseappmgrChannel == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "Baseapp::createBaseAnywhereFromDBID: not found dbmgr!\n");
-		PyErr_PrintEx(0);
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is error, not found baseappmgr!\n",
+			entityType, dbid));
+
 		return;
 	}
 
@@ -1429,10 +1430,54 @@ void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyOb
 		return;
 	}
 
+	uint16 udbInterfaceIndex = dbInterfaceIndex;
+
 	CALLBACK_ID callbackID = 0;
 	if(pyCallback != NULL)
 	{
 		callbackID = callbackMgr().save(pyCallback);
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	pBundle->newMessage(BaseappmgrInterface::reqCreateBaseAnywhereFromDBIDQueryBestBaseappID);
+	(*pBundle) << entityType << dbid << callbackID << udbInterfaceIndex;
+	pBaseappmgrChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	COMPONENT_ID targetComponentID;
+	s >> targetComponentID;
+
+	// 如果为0说明没有可用的，那么就用自己来创建好了
+	if (targetComponentID == 0)
+		targetComponentID = g_componentID;
+
+	std::string entityType;
+	DBID dbid;
+	CALLBACK_ID callbackID;
+	uint16 dbInterfaceIndex;
+
+	s >> entityType;
+	s >> dbid;
+	s >> callbackID;
+	s >> dbInterfaceIndex;
+
+	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
+	if (dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: not found dbmgr!\n"));
+
+		if (callbackID > 0)
+		{
+			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+			if (pyfunc != NULL)
+			{
+			}
+		}
+
+		return;
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -1441,9 +1486,9 @@ void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyOb
 	ENTITY_ID entityID = idClient_.alloc();
 	KBE_ASSERT(entityID > 0);
 
-	DbmgrInterface::queryEntityArgs7::staticAddToBundle((*pBundle), 
-		dbInterfaceIndex, g_componentID, 1, dbid, entityType, callbackID, entityID);
-	
+	DbmgrInterface::queryEntityArgs7::staticAddToBundle((*pBundle),
+		dbInterfaceIndex, targetComponentID, 1, dbid, entityType, callbackID, entityID);
+
 	dbmgrinfos->pChannel->send(pBundle);
 }
 
@@ -1550,8 +1595,17 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	Network::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
 	if(pBaseappmgrChannel == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is failed, not found baseappmgr.\n", 
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) error, not found baseappmgr!\n", 
 			entityType.c_str(), dbid));
+
+		if (callbackID > 0)
+		{
+			PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+			if (pyfunc != NULL)
+			{
+			}
+		}
+
 		return;
 	}
 
@@ -1657,6 +1711,14 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 		{
 			ERROR_MSG(fmt::format("Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback: not found entityType:{}.\n",
 				entityType.c_str()));
+
+			if (callbackID > 0)
+			{
+				PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+				if (pyfunc != NULL)
+				{
+				}
+			}
 
 			return;
 		}

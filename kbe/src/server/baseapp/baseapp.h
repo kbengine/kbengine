@@ -208,6 +208,12 @@ public:
 	/** 网络接口
 		createBaseAnywhereFromDBID的回调。
 	*/
+	// 从baseappmgr查询用于创建实体的组件id回调
+	void onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		createBaseAnywhereFromDBID的回调。
+	*/
 	// 从数据库来的回调
 	void onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
