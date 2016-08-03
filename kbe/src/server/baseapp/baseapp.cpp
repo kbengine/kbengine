@@ -1501,7 +1501,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 					}
 					else
 					{
-						ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: create {}({}) is failed! A local reference, But it has been destroyed!\n",
+						ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBID: create {}({}) is failed! A local reference, But it has been destroyed!\n",
 							entityType.c_str(), dbid));
 
 						baseRef = Py_None;
