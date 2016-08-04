@@ -63,6 +63,14 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 	PyObject* pyDict = PyDict_New();
 	ScriptDefModule* pScriptModule = EntityDef::findScriptModule(entityType);
 
+	if (!pScriptModule)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: not found script[{}]!\n",
+			entityType));
+
+		return pyDict;
+	}
+
 	// 先将celldata中的存储属性取出
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
@@ -1123,10 +1131,12 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 	bool success = false;
 	bool wasActive = false;
 	ENTITY_ID entityID;
-	COMPONENT_ID wasActiveCID;
-	ENTITY_ID wasActiveEntityID;
-	uint16 dbInterfaceIndex;
+	COMPONENT_ID wasActiveCID = 0;
+	ENTITY_ID wasActiveEntityID = 0;
+	uint16 dbInterfaceIndex = 0;
+	COMPONENT_ID createToComponentID = 0;
 
+	s >> createToComponentID;
 	s >> dbInterfaceIndex;
 	s >> entityType;
 	s >> dbid;
@@ -1140,6 +1150,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		s >> wasActiveCID;
 		s >> wasActiveEntityID;
 	}
+
+	KBE_ASSERT(createToComponentID == g_componentID);
 
 	if(!success)
 	{
@@ -1506,7 +1518,9 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	COMPONENT_ID wasActiveCID;
 	ENTITY_ID wasActiveEntityID;
 	uint16 dbInterfaceIndex;
+	COMPONENT_ID createToComponentID = 0;
 
+	s >> createToComponentID;
 	s >> dbInterfaceIndex;
 	s >> entityType;
 	s >> dbid;
@@ -1612,7 +1626,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 	s.rpos((int)currpos);
 
 	MemoryStream* stream = MemoryStream::createPoolObject();
-	(*stream) << g_componentID;
+	(*stream) << createToComponentID << g_componentID;
 	stream->append(s);
 	s.done();
 
@@ -1635,8 +1649,10 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	ENTITY_ID entityID;
 	COMPONENT_ID sourceBaseappID;
 	uint16 dbInterfaceIndex;
+	COMPONENT_ID createToComponentID = 0;
 
 	s >> sourceBaseappID;
+	s >> createToComponentID;
 	s >> dbInterfaceIndex;
 	s >> entityType;
 	s >> dbid;
@@ -1644,6 +1660,8 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	s >> success;
 	s >> entityID;
 	s >> wasActive;
+
+	KBE_ASSERT(createToComponentID == g_componentID);
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);

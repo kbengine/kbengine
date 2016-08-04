@@ -471,15 +471,10 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	if(cinfos)
 		cinfos->state = COMPONENT_STATE_RUN;
 
-	updateBestBaseapp();
+	COMPONENT_ID targetComponentID = 0;
+	s >> targetComponentID;
 
-	if (bestBaseappID_ == 0 && numLoadBalancingApp() == 0)
-	{
-		ERROR_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBID: Unable to allocate baseapp for load balancing! baseappSize={}.\n",
-			baseapps_.size()));
-	}
-
-	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, targetComponentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -506,7 +501,7 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	s.done();
 
 	// 预先将实体数量增加
-	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(targetComponentID);
 	if (baseapps_iter != baseapps_.end())
 	{
 		baseapps_iter->second.incNumEntities();
