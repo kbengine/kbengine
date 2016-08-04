@@ -1963,8 +1963,6 @@ void Baseapp::createBaseRemotelyFromDBID(const char* entityType, DBID dbid, COMP
 		return;
 	}
 
-	uint16 udbInterfaceIndex = dbInterfaceIndex;
-
 	CALLBACK_ID callbackID = 0;
 	if(pyCallback != NULL)
 	{
