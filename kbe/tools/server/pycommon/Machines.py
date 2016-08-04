@@ -225,7 +225,7 @@ class Machines:
 		"""
 		_udp_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		print(type(msg))
+
 		if ip == "<broadcast>":
 			_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 			_udp_broadcast_socket.sendto(msg, ('255.255.255.255', 20086))
