@@ -94,6 +94,7 @@ public:
 	static ObjectPool<Witness>& ObjPool();
 	static Witness* createPoolObject();
 	static void reclaimPoolObject(Witness* obj);
+	static void destroyObjPool();
 	void onReclaimObject();
 
 	virtual size_t getPoolObjectBytes()

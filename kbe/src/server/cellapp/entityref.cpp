@@ -68,6 +68,15 @@ void EntityRef::reclaimPoolObject(EntityRef* obj)
 }
 
 //-------------------------------------------------------------------------------------
+void EntityRef::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("EntityRef::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 EntityRef::SmartPoolObjectPtr EntityRef::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<EntityRef>(ObjPool().createObject(), _g_objPool));

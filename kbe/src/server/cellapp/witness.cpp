@@ -259,6 +259,15 @@ void Witness::reclaimPoolObject(Witness* obj)
 }
 
 //-------------------------------------------------------------------------------------
+void Witness::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("Witness::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 Witness::SmartPoolObjectPtr Witness::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<Witness>(ObjPool().createObject(), _g_objPool));

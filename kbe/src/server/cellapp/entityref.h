@@ -49,6 +49,7 @@ public:
 	static ObjectPool<EntityRef>& ObjPool();
 	static EntityRef* createPoolObject();
 	static void reclaimPoolObject(EntityRef* obj);
+	static void destroyObjPool();
 	void onReclaimObject();
 
 	virtual size_t getPoolObjectBytes()
