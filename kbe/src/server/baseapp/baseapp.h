@@ -141,6 +141,7 @@ public:
 	static PyObject* __py_createBaseRemotely(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseRemotelyFromDBID(PyObject* self, PyObject* args);
 	
 	/**
 		创建一个新的space 
@@ -224,6 +225,24 @@ public:
 	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 	
+	/**
+	从db获取信息创建一个entity
+	*/
+	void createBaseRemotelyFromDBID(const char* entityType, DBID dbid, COMPONENT_ID createToComponentID, 
+		PyObject* pyCallback, const std::string& dbInterfaceName);
+
+	/** 网络接口
+	createBaseRemotelyFromDBID的回调。
+	*/
+	// 从数据库来的回调
+	void onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	// 请求在这个进程上创建这个entity
+	void createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	// 创建完毕后的回调
+	void onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID,
+		std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 

@@ -1718,7 +1718,9 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 		pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
 	else if(queryMode_ == 1)
 		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDCallback);
-	
+	else if (queryMode_ == 2)
+		pBundle->newMessage(BaseappInterface::onCreateBaseRemotelyFromDBIDCallback);
+
 	(*pBundle) << componentID_;
 	(*pBundle) << pdbi_->dbIndex();
 	(*pBundle) << entityType_;

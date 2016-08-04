@@ -509,6 +509,55 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::reqCreateBaseRemotelyFromDBID(Network::Channel* pChannel, MemoryStream& s)
+{
+	Components::ComponentInfos* cinfos =
+		Components::getSingleton().findComponent(pChannel);
+
+	// 此时肯定是在运行状态中，但有可能在等待创建space
+	// 所以初始化进度没有完成, 在只有一个baseapp的情况下如果这
+	// 里不进行设置将是一个相互等待的状态
+	if (cinfos)
+		cinfos->state = COMPONENT_STATE_RUN;
+
+	COMPONENT_ID targetComponentID = 0;
+	s >> targetComponentID;
+
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, targetComponentID);
+	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		ForwardItem* pFI = new AppForwardItem();
+		pFI->pBundle = pBundle;
+		(*pBundle).newMessage(BaseappInterface::createBaseRemotelyFromDBIDOtherBaseapp);
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+		s.done();
+
+		WARNING_MSG("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp, message is buffered.\n");
+		pFI->pHandler = NULL;
+		forward_baseapp_messagebuffer_.push(pFI);
+		return;
+	}
+
+	//DEBUG_MSG("Baseappmgr::reqCreateBaseRemotelyFromDBID: %s opsize=%d, selBaseappIdx=%d.\n", 
+	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappInterface::createBaseRemotelyFromDBIDOtherBaseapp);
+
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+	cinfos->pChannel->send(pBundle);
+	s.done();
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(targetComponentID);
+	if (baseapps_iter != baseapps_.end())
+	{
+		baseapps_iter->second.incNumEntities();
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, MemoryStream& s)
 {
 	std::string loginName;

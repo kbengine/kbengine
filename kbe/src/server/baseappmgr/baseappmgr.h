@@ -95,6 +95,11 @@ public:
 	void reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
+		收到baseapp::createBaseRemotelyFromDBID请求在某个空闲的baseapp上创建一个baseEntity
+	*/
+	void reqCreateBaseRemotelyFromDBID(Network::Channel* pChannel, MemoryStream& s);
+	
+	/** 网络接口
 		消息转发， 由某个app想通过本app将消息转发给某个app。
 	*/
 	void forwardMessage(Network::Channel* pChannel, MemoryStream& s);

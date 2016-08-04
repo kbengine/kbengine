@@ -232,6 +232,20 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									CALLBACK_ID,									callbackID,
 									DBID,											dbid)
 
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotelyFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(createBaseRemotelyFromDBIDOtherBaseapp,			NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateBaseRemotelyFromDBIDOtherBaseappCallback,	NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_ID,									createByBaseappID,
+									std::string,									entityType,
+									ENTITY_ID,										createdEntityID,
+									CALLBACK_ID,									callbackID,
+									DBID,											dbid)
+
 	// 请求查询watcher数据
 	BASEAPP_MESSAGE_DECLARE_STREAM(queryWatcher,									NETWORK_VARIABLE_MESSAGE)
 

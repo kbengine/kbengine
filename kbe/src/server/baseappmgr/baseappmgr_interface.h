@@ -83,6 +83,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	// baseEntity请求创建在一个新的space中。
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhereFromDBID,					NETWORK_VARIABLE_MESSAGE)
 
+	// baseEntity请求创建在一个新的space中。
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseRemotelyFromDBID,					NETWORK_VARIABLE_MESSAGE)
+	
 	// 消息转发， 由某个app想通过本app将消息转发给某个app。	
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,									NETWORK_VARIABLE_MESSAGE)
 
