@@ -234,7 +234,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 				if showDebug:
 					print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 			
-			self.stopServer( COMPONENT_NAME2TYPE[ctype] )
+			self.stopServer( COMPONENT_NAME2TYPE[ctype], 3 )
 			
 			#print ("ClusterStopHandler::do: stop uid=%s, type=%s, send=%s" % (self.uid, ctype, \
 			#	len(self.recvDatas) > 0 and self.recvDatas[0] == b'\x01'))
