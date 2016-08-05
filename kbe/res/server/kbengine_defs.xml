@@ -454,7 +454,7 @@
 				the engine continued to update client information(position/direction) ticks
 				If 0, then always update)
 			-->
-			<entity_posdir_additional_updates> 5 </entity_posdir_additional_updates>
+			<entity_posdir_additional_updates> 2 </entity_posdir_additional_updates>
 		</coordinate_system>
 
 		<!-- Telnet服务, 如果端口被占用则向后尝试50001.. 
