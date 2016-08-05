@@ -1,4 +1,5 @@
 #include "db_interface_mongodb.h"
+#include "entity_table_mongodb.h"
 #include "kbe_table_mongodb.h"
 #include "db_exception.h"
 #include "thread/threadguard.h"
@@ -121,12 +122,9 @@ namespace KBEngine {
 		_pMongoClient = mongoc_client_new("mongodb://localhost:27017");
 
 		if (!_pMongoClient) {
-			ERROR_MSG(fmt::format("ccccccccccccccccc {} is exist!\n", databaseName));
 			fprintf(stderr, "Invalid hostname or port: %s\n", db_port_);
 			return false;
 		}
-		ERROR_MSG(fmt::format("aaaaaaaaaaaaaaa {} is exist!\n", databaseName));
-
 
 		database = mongoc_client_get_database(_pMongoClient, db_name_);
 		//collection = mongoc_client_get_collection(_pMongoClient, db_name_, "coll_name");
@@ -227,7 +225,7 @@ namespace KBEngine {
 
 	EntityTable* DBInterfaceMongodb::createEntityTable(EntityTables* pEntityTables)
 	{
-		return NULL;
+		return new EntityTableMongodb(pEntityTables);
 	}
 
 	bool DBInterfaceMongodb::dropEntityTableFromDB(const char* tableName)
@@ -425,5 +423,19 @@ namespace KBEngine {
 
 		return retry;
 	}	
+
+	bool DBInterfaceMongodb::createCollection(const char *tableName)
+	{
+		mongoc_collection_t  *collection = mongoc_client_get_collection(_pMongoClient, db_name_, tableName);
+		
+		insert = BCON_NEW("hello", BCON_UTF8("world"));
+
+		bson_error_t  error;
+		if (!mongoc_collection_insert(collection, MONGOC_INSERT_NONE, insert, NULL, &error)) {
+			static char strdescr[MAX_BUF];
+			kbe_snprintf(strdescr, MAX_BUF, "%s\n", error.message);
+		}
+		return true;
+	}
 
 }

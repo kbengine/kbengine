@@ -130,6 +130,11 @@ namespace KBEngine
 		*/
 		bool processException(std::exception & e);
 
+		/**
+		执行与数据库相关的操作
+		*/
+		bool createCollection(const char *tableName);
+
 	protected:
 		mongoc_client_t *_pMongoClient;
 		mongoc_collection_t  *collection;

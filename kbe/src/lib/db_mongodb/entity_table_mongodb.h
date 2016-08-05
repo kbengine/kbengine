@@ -33,7 +33,10 @@ namespace KBEngine {
 		初始化
 		*/
 		virtual bool initialize(const PropertyDescription* pPropertyDescription,
-			const DataType* pDataType, std::string name);
+			const DataType* pDataType, std::string name)
+		{
+			return true;
+		}
 
 		/**
 		同步entity表到数据库中
@@ -87,18 +90,18 @@ namespace KBEngine {
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	protected:
 		std::string dataSType_;
 	};
@@ -119,18 +122,18 @@ namespace KBEngine {
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
 	class EntityTableItemMongodb_UNICODE : public EntityTableItemMongodbBase
@@ -149,48 +152,48 @@ namespace KBEngine {
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
-	class EntityTableItemMOngodb_PYTHON : public EntityTableItemMongodbBase
+	class EntityTableItemMongodb_PYTHON : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMOngodb_PYTHON(std::string itemDBType,
+		EntityTableItemMongodb_PYTHON(std::string itemDBType,
 			uint32 datalength, uint32 flags) :
 			EntityTableItemMongodbBase(itemDBType, datalength, flags)
 		{
 		}
 
-		virtual ~EntityTableItemMOngodb_PYTHON(){};
+		virtual ~EntityTableItemMongodb_PYTHON(){};
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_PYTHON; }
 
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
 	class EntityTableItemMongodb_BLOB : public EntityTableItemMongodbBase
@@ -209,18 +212,18 @@ namespace KBEngine {
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
 	class EntityTableItemMongodb_VECTOR2 : public EntityTableItemMongodbBase
@@ -236,23 +239,23 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR2; }
 
-		virtual bool isSameKey(std::string key);
+		virtual bool isSameKey(std::string key){ return true; }
 
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
 		{
@@ -277,23 +280,23 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR3; }
 
-		virtual bool isSameKey(std::string key);
+		virtual bool isSameKey(std::string key){ return true; }
 
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
 		{
@@ -318,23 +321,23 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR4; }
 
-		virtual bool isSameKey(std::string key);
+		virtual bool isSameKey(std::string key){ return true; }
 
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
 		{
@@ -362,18 +365,18 @@ namespace KBEngine {
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
 	class EntityTableItemMongodb_ARRAY : public EntityTableItemMongodbBase
@@ -388,33 +391,36 @@ namespace KBEngine {
 
 		virtual ~EntityTableItemMongodb_ARRAY(){};
 
-		virtual bool isSameKey(std::string key);
+		virtual bool isSameKey(std::string key){ return true; }
 
 		/**
 		初始化
 		*/
 		virtual bool initialize(const PropertyDescription* pPropertyDescription,
-			const DataType* pDataType, std::string name);
+			const DataType* pDataType, std::string name)
+		{
+			return true;
+		}
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_FIXEDARRAY; }
 
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
-		virtual void init_db_item_name(const char* exstrFlag = "");
+		virtual void init_db_item_name(const char* exstrFlag = ""){}
 
 	protected:
 		EntityTable* pChildTable_;
@@ -435,31 +441,34 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_FIXEDDICT; }
 
-		virtual bool isSameKey(std::string key);
+		virtual bool isSameKey(std::string key){ return true; }
 
 		/**
 		初始化
 		*/
 		virtual bool initialize(const PropertyDescription* pPropertyDescription,
-			const DataType* pDataType, std::string name);
+			const DataType* pDataType, std::string name)
+		{
+			return true;
+		}
 
 		/**
 		同步entity表到数据库中
 		*/
-		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+		virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL){ return true; }
 
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
-		virtual void init_db_item_name(const char* exstrFlag = "");
+		virtual void init_db_item_name(const char* exstrFlag = ""){}
 
 	protected:
 		EntityTableItemMongodb_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
@@ -488,35 +497,35 @@ namespace KBEngine {
 		/**
 		同步表索引
 		*/
-		virtual bool syncIndexToDB(DBInterface* pdbi);
+		virtual bool syncIndexToDB(DBInterface* pdbi){ return true; }
 
 		/**
 		创建一个表item
 		*/
 		virtual EntityTableItem* createItem(std::string type, std::string defaultVal);
 
-		DBID writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
+		DBID writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule){ return NULL; }
 
 		/**
 		从数据库删除entity
 		*/
-		bool removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule);
+		bool removeEntity(DBInterface* pdbi, DBID dbid, ScriptDefModule* pModule){ return true; }
 
 		/**
 		获取所有的数据放到流中
 		*/
-		virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
+		virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
 
 		/**
 		设置是否自动加载
 		*/
-		virtual void entityShouldAutoLoad(DBInterface* pdbi, DBID dbid, bool shouldAutoLoad);
+		virtual void entityShouldAutoLoad(DBInterface* pdbi, DBID dbid, bool shouldAutoLoad){  }
 
 		/**
 		查询自动加载的实体
 		*/
 		virtual void queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule,
-			ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs);
+			ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs){}
 
 		/**
 		获取某个表所有的数据放到流中
@@ -526,8 +535,8 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context);
-		virtual void getReadSqlItem(mongodb::DBContext& context);
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		void init_db_item_name();
 
