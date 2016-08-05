@@ -426,15 +426,11 @@ namespace KBEngine {
 
 	bool DBInterfaceMongodb::createCollection(const char *tableName)
 	{
-		mongoc_collection_t  *collection = mongoc_client_get_collection(_pMongoClient, db_name_, tableName);
-		
-		insert = BCON_NEW("hello", BCON_UTF8("world"));
-
+		bson_t options;
 		bson_error_t  error;
-		if (!mongoc_collection_insert(collection, MONGOC_INSERT_NONE, insert, NULL, &error)) {
-			static char strdescr[MAX_BUF];
-			kbe_snprintf(strdescr, MAX_BUF, "%s\n", error.message);
-		}
+		bson_init(&options);
+		mongoc_database_create_collection(database, tableName, &options, &error);
+
 		return true;
 	}
 
