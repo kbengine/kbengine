@@ -196,7 +196,7 @@
 		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
-		<entryScriptFile> kbengine </entryScriptFile>
+		<entryScriptFile> kbemain </entryScriptFile>
 		
 		<!-- interfaces的地址，多组游戏服务端可以共用一个interfaces
 			(interfaces address, multiple gameserver can share a interfaces)
@@ -232,7 +232,7 @@
 		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
-		<entryScriptFile> kbengine </entryScriptFile>
+		<entryScriptFile> kbemain </entryScriptFile>
 			
 		<!-- debug模式下可输出读写操作信息
 		    (Debug mode can output the read and write informations)
@@ -373,7 +373,7 @@
 		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
-		<entryScriptFile> kbengine </entryScriptFile>
+		<entryScriptFile> kbemain </entryScriptFile>
 		
 		<!-- 默认AOI半径, 脚本中可以改变它 
 			(Default AOI radius, the script can change it)
@@ -499,7 +499,7 @@
 		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
-		<entryScriptFile> kbengine </entryScriptFile>
+		<entryScriptFile> kbemain </entryScriptFile>
 
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 
@@ -641,7 +641,7 @@
 		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
-		<entryScriptFile> kbengine </entryScriptFile>
+		<entryScriptFile> kbemain </entryScriptFile>
 		
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 
@@ -728,7 +728,7 @@
 		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
-		<entryScriptFile> kbengine </entryScriptFile>
+		<entryScriptFile> kbemain </entryScriptFile>
 			
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 
@@ -789,7 +789,7 @@
 		<!-- 脚本入口模块， 相当于main函数 
 			(Entry module, like the main-function)
 		-->
-		<entryScriptFile> kbengine </entryScriptFile>
+		<entryScriptFile> kbemain </entryScriptFile>
 			
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 
