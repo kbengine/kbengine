@@ -149,6 +149,29 @@ body {
 	margin-top: .3em;
 	overflow: auto;
 }
+#output_block_info {
+  display: block;
+  overflow: auto;
+}
+.info-fitler .form-group .filter-check{
+  display: block;
+  border: 1px solid #999999;
+  height: 20em;
+  overflow: auto;
+  margin-top: 1em;
+  background-color: white;
+}
+.log-context{
+  width: 95%;
+  margin-right: 10%;
+  z-index: 20;
+  background-color: white;
+  display: block;
+  position: absolute;
+  border: 1px solid #999999;
+  top:-0.6em;
+}
+
 .kbe-list ul li{
   list-style: none;
 }
@@ -232,4 +255,10 @@ body {
 }
 .tablesaw-bar{
   display: none;
+}
+.placeholders #ct-load-data{
+  text-align: center;
+}
+.placeholders #ct-load-data th{
+  text-align: center;
 }

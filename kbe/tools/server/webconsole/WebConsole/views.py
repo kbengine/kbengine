@@ -287,6 +287,7 @@ def components_load_layout( request ):
 			Define.BASEAPP_TYPE,
 			Define.INTERFACES_TYPE,
 			Define.LOGGER_TYPE,
+			
 		] )
 	
 	try:
@@ -305,25 +306,35 @@ def components_load_layout( request ):
 			return render( request, "WebConsole/components_load_layout.html", { "error" : "服务器正在运行，不允许加载" } )
 
 	# 计数器
-	t2c = [0,] * len(Define.COMPONENT_NAME)
+	t2c            = [0,] * len(Define.COMPONENT_NAME)
+	components_ct  = [0,] * len(Define.COMPONENT_NAME)
+	components_cid = [0,] * len(Define.COMPONENT_NAME)
+	components_gus = [0,] * len(Define.COMPONENT_NAME)
 
 	ly = ServerLayout.objects.get(pk = id)
 	layoutData = json.loads( ly.config )
 	for ct in VALID_CT:
 		compnentName = Define.COMPONENT_NAME[ct]
+		components_ct[ct] = ct
 		for comp in layoutData.get( compnentName, [] ):
 			cid = comp["cid"]
 			if cid <= 0:
 				cid = components.makeCID(ct)
+			components_cid[ct] = cid
 			
 			gus = comp["gus"]
 			if gus <= 0:
 				gus = components.makeGUS(ct)
+			components_gus[ct] = gus
 			t2c[ct] += 1
 			components.startServer( ct, cid, gus, comp["ip"], 0 )
-	
+
 	context = {
-		"run_counter" : str(t2c)
+		"run_counter"    : str(t2c),
+		"components_ct"  : str(components_ct),
+		"components_cid" : str(components_cid),
+		"components_gus" : str(components_gus),
+		"components_ip"  : comp["ip"]
 	}
 	return render( request, "WebConsole/components_load_layout.html", context )
 

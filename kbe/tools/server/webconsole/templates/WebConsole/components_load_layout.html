@@ -4,14 +4,30 @@
 <div class="row placeholders">
     <div class="form-group">
       <label for="textarea">启动服务器</label>
-      <textarea name="textarea" rows="30" readonly class="form-control" id="textarea">
-      </textarea>
+    <!--   <textarea name="textarea" rows="30" readonly class="form-control" id="textarea">
+      </textarea> -->
     </div>
     {% if error %}
     <div>
       <p class="text-danger">{{ error }}</p>
     </div>
     {% endif %}
+    <table id="ct-load-data" class="data-table table table-striped table-condensed">
+        <thead>
+          <tr>
+            <th>组件名称</th>
+            <th>已运行</th>
+            <th>需运行</th>
+            <th>Component Type</th>
+            <th>cid</th>
+            <th>gus</th>
+            <th>ip</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+  </table>
     <div class="shutdown-finish form-group sr-only">
       <input type="button" class="form-control btn btn-default" name="button" id="button" value="完成" onClick="window.location.href='/wc/components/manage'">
         
@@ -36,7 +52,11 @@
     //{% if not error %}
     $("document").ready(queryComponents);
     // 这一行在编辑器上会出现语法错误，实际运行的时候不会有问题
-    g_run_counter = {{ run_counter }};
+    g_run_counter  = {{ run_counter }};
+    components_ct  = {{ components_ct }};
+    components_cid = {{ components_cid }};
+    components_gus = {{ components_gus }};
+    components_ip  = "{{ components_ip }}";
     //{% endif %}
     g_queryCount = 0;
     g_queryMsg = ""
@@ -58,8 +78,8 @@
         
         var currentCount = pytools.array( KBEngine.COMPONENT_TYPE.COMPONENT_END_TYPE, 0 );
         
-        var str = "";
-        str += "Query count: " + g_queryCount + "\n\n";
+        // var str = "";
+        // str += "Query count: " + g_queryCount + "\n\n";
         var counter = 0;
         for (var i = 0; i < components.length; i++)
         {
@@ -72,16 +92,31 @@
                 currentCount[comp.componentType] += 1;
             }
         }
-        
+        var res = "";
+        var res1 = '<tr style="text-align: left;"><td>'+"第 "+g_queryCount+" 次启动进程"+'</td></tr>';
         for (var gi = 0; gi < currentCount.length; gi++)
         {
+            
             if (g_run_counter[gi] > 0)
-                str += KBEngine.COMPONENT_NAME[gi] + ": " + currentCount[gi] + "/" + g_run_counter[gi] + "\n";
+            {
+                status = '<p style="color:red">'+"未启动"+'</p>';
+                if(currentCount[gi] == g_run_counter[gi])
+                    status = "已启动";
+                res += '<tr>'+'<td>'+KBEngine.COMPONENT_NAME[gi] + '</td>' + '<td>'+currentCount[gi] + '</td>' + '<td>'+ g_run_counter[gi] + '</td>' + '<td>'+components_ct[gi]+ '</td>' + '<td>'+components_cid[gi]+ '</td>' + '<td>'+components_gus[gi]+ '</td>' + '<td>'+components_ip+ '</td>' + '<td>'+status+'</td></tr>';
+            }
         }
+
+        $('#ct-load-data tbody').append(res1+res);
+ 
+        // for (var gi = 0; gi < currentCount.length; gi++)
+        // {
+        //     if (g_run_counter[gi] > 0)
+        //         str += KBEngine.COMPONENT_NAME[gi] + ": " + currentCount[gi] + "/" + g_run_counter[gi] + "  ct :"+components_ct[gi]+"  cid :"+components_cid[gi]+"  gus :"+components_gus[gi]+"  ip :"+components_ip+"\n";
+        // }
         
-        g_queryMsg += str + "\n\n";
-        $("#textarea").text( g_queryMsg );
-        $("#textarea").scrollTop($("#textarea")[0].scrollHeight);
+        // g_queryMsg += str + "\n\n";
+        // $("#textarea").text( g_queryMsg );
+        // $("#textarea").scrollTop($("#textarea")[0].scrollHeight);
         
         var isSame = true;
         for (var i = 0; i < currentCount.length; i++)
@@ -97,12 +132,13 @@
         {
             if (g_queryCount >= 20)
             {
-                g_queryMsg += "\n服务器启动异常！！！" + "\n\n";
-                $("#textarea").text( g_queryMsg );
-                $("#textarea").scrollTop($("#textarea")[0].scrollHeight);
+                res1 = '<tr style="text-align: left;color:red"><td>'+"服务器启动异常！"+'</td></tr>';
+                 $('#ct-load-data tbody').append(res1);
+                // $("#textarea").text( g_queryMsg );
+                // $("#textarea").scrollTop($("#textarea")[0].scrollHeight);
             }
             g_queryCount = 0;
-            g_queryMsg = "";
+            // g_queryMsg = "";
             $(".shutdown-finish").removeClass("sr-only");
         }
         else
