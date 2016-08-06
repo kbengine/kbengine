@@ -265,9 +265,11 @@ class xlsx2py(object):
 				self.dctData = self.dctDatas[dataName]
 
 				for row in range(3,  rows + 1):
+					rowval = self.xbook.getRowValues(sheet, row - 1)
 					childDict = {}
 					for col in range(1, cols + 1):
-						val = (self.xbook.getText(sheet, row, col),)
+						val = (str(rowval[col - 1]),)
+						#val = (self.xbook.getText(sheet, row, col),)
 						if self.headerDict[index][col-1] is None:
 							continue
 
