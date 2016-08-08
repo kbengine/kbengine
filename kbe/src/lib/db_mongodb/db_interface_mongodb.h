@@ -139,6 +139,10 @@ namespace KBEngine
 
 		mongoc_cursor_t *  collectionFind(const char *tableName, bson_t *query);
 
+		bool updateCollection(const char *tableName, bson_t *query, bson_t *doc);
+
+		bool collectionRemove(const char *tableName, bson_t *doc);
+
 	protected:
 		mongoc_client_t *_pMongoClient;
 		mongoc_collection_t  *collection;

@@ -275,7 +275,8 @@ namespace KBEngine {
 			DEBUG_MSG(fmt::format("DBInterfaceMongodb::query({:p}): {}\n", (void*)this, lastquery_));
 		}
 
-
+		//<todo:yelei>临时直接调用
+		write_query_result(result);
 
 		return true;
 	}
@@ -286,6 +287,13 @@ namespace KBEngine {
 		{
 			return true;
 		}
+
+		//<todo:yelei>临时写,模拟一下
+		uint32 nrows = 0;
+		uint32 nfields = 7;
+
+		(*result) << nfields << nrows;
+
 		return true;
 	}
 
@@ -466,5 +474,37 @@ namespace KBEngine {
 
 		return cursor;
 
+	}
+
+	bool DBInterfaceMongodb::updateCollection(const char *tableName, bson_t *query, bson_t *doc)
+	{
+		bson_error_t  error;
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+
+		bool r = mongoc_collection_update(collection, MONGOC_UPDATE_NONE, query, doc, NULL, &error);
+
+		if (!r)
+		{
+			ERROR_MSG("%s\n", error.message);
+		}
+
+		mongoc_collection_destroy(collection);
+		return r;
+	}
+
+	bool DBInterfaceMongodb::collectionRemove(const char *tableName, bson_t *doc)
+	{
+		bson_error_t  error;
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+
+		bool r = mongoc_collection_remove(collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &error);
+
+		if (!r)
+		{
+			ERROR_MSG("%s\n", error.message);
+		}
+
+		mongoc_collection_destroy(collection);
+		return r;
 	}
 }

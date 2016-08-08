@@ -104,11 +104,17 @@ namespace KBEngine {
 
 	bool KBEEntityLogTableMongodb::eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType)
 	{
-		std::string sqlstr = fmt::format("HDEL kbe_entitylog:{}:{}",
-			dbid, entityType);
+		bool r = true;
+		bson_t doc;
+		bson_init(&doc);
+		BSON_APPEND_INT64(&doc, "entityDBID", dbid);
+		
 
-		pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
-		return true;
+		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+		if (pdbiMongodb->collectionRemove("kbe_entitylog", &doc))
+			r = false;
+
+		return r;
 	}
 
 	KBEEntityLogTableMongodb::KBEEntityLogTableMongodb(EntityTables* pEntityTables) :
@@ -203,6 +209,23 @@ namespace KBEngine {
 
 	bool KBEAccountTableMongodb::updateCount(DBInterface * pdbi, const std::string& name, DBID dbid)
 	{
+		bson_error_t error;
+		bson_t *doc = bson_new();
+		bson_t child;
+		bson_append_document_begin(doc, "$set", -1, &child);
+		BSON_APPEND_INT32(&child, "numlogin", 1);
+		bson_append_document_end(doc, &child);
+		
+		bson_t query;
+		bson_init(&query);
+		BSON_APPEND_INT64(&query, "entityDBID", dbid);
+
+		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+		pdbiMongodb->updateCollection("kbe_accountinfos", &query, doc);
+
+		bson_destroy(&query);
+		bson_destroy(doc);
+
 		return true;
 	}
 
@@ -226,6 +249,7 @@ namespace KBEngine {
 		BSON_APPEND_INT64(&options, "deadline", info.deadline);
 		BSON_APPEND_INT64(&options, "regtime", time(NULL));
 		BSON_APPEND_INT64(&options, "lasttime", time(NULL));
+		BSON_APPEND_INT32(&options, "numlogin", 0);
 
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
 		pdbiMongodb->insertCollection("kbe_accountinfos", &options);
