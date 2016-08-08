@@ -504,7 +504,7 @@ namespace KBEngine {
 		*/
 		virtual EntityTableItem* createItem(std::string type, std::string defaultVal);
 
-		DBID writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule){ return NULL; }
+		DBID writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 
 		/**
 		´ÓÊý¾Ý¿âÉ¾³ýentity

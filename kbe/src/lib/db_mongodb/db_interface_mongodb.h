@@ -135,6 +135,10 @@ namespace KBEngine
 		*/
 		bool createCollection(const char *tableName);
 
+		bool insertCollection(const char *tableName, bson_t *data);
+
+		mongoc_cursor_t *  collectionFind(const char *tableName, bson_t *query);
+
 	protected:
 		mongoc_client_t *_pMongoClient;
 		mongoc_collection_t  *collection;

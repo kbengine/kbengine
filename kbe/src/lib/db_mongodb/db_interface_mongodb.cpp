@@ -428,10 +428,43 @@ namespace KBEngine {
 	{
 		bson_t options;
 		bson_error_t  error;
+
+		//如果存在则离开返回
+		if (mongoc_database_has_collection(database, tableName, &error))
+			return true;
+
+		//不存在则创建
 		bson_init(&options);
-		mongoc_database_create_collection(database, tableName, &options, &error);
+		mongoc_collection_t * collection = mongoc_database_create_collection(database, tableName, &options, &error);
+		
+		bson_destroy(&options);
+		mongoc_collection_destroy(collection);
 
 		return true;
 	}
 
+	bool DBInterfaceMongodb::insertCollection(const char *tableName, bson_t *data)
+	{
+		bson_error_t  error;
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+		bool r = mongoc_collection_insert(collection, MONGOC_INSERT_NONE, data, NULL, &error);
+		if (!r) {
+			ERROR_MSG("%s\n", error.message);
+		}
+
+		mongoc_collection_destroy(collection);
+
+		return r;
+	}
+
+	mongoc_cursor_t *  DBInterfaceMongodb::collectionFind(const char *tableName, bson_t *query)
+	{
+		bson_error_t  error;
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+		
+		mongoc_cursor_t * cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+		return cursor;
+
+	}
 }

@@ -249,6 +249,12 @@ namespace KBEngine {
 		return new EntityTableItemMongodb_STRING("", 0, 0);
 	}
 
+	DBID EntityTableMongodb::writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule)
+	{
+		//这里需要修改
+		return time(NULL);
+	}
+
 	//-------------------------------------------------------------------------------------
 	void EntityTableItemMongodbBase::init_db_item_name(const char* exstrFlag)
 	{
@@ -256,5 +262,4 @@ namespace KBEngine {
 	}
 
 	//-------------------------------------------------------------------------------------
-
 }
