@@ -212,7 +212,7 @@ namespace KBEngine {
 		bson_error_t error;
 		bson_t *doc = bson_new();
 		bson_t child;
-		bson_append_document_begin(doc, "$set", -1, &child);
+		bson_append_document_begin(doc, "$inc", -1, &child);
 		BSON_APPEND_INT32(&child, "numlogin", 1);
 		bson_append_document_end(doc, &child);
 		

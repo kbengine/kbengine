@@ -33,10 +33,7 @@ namespace KBEngine {
 		初始化
 		*/
 		virtual bool initialize(const PropertyDescription* pPropertyDescription,
-			const DataType* pDataType, std::string name)
-		{
-			return true;
-		}
+			const DataType* pDataType, std::string name);
 
 		/**
 		同步entity表到数据库中
@@ -61,7 +58,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context) = 0;
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc) = 0;
 		virtual void getReadSqlItem(mongodb::DBContext& context) = 0;
 
 		virtual void init_db_item_name(const char* exstrFlag = "");
@@ -100,7 +97,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	protected:
 		std::string dataSType_;
@@ -132,7 +129,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
@@ -162,7 +159,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
@@ -192,7 +189,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
@@ -222,7 +219,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
@@ -239,7 +236,7 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR2; }
 
-		virtual bool isSameKey(std::string key){ return true; }
+		virtual bool isSameKey(std::string key);
 
 		/**
 		同步entity表到数据库中
@@ -254,7 +251,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
@@ -295,7 +292,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
@@ -336,7 +333,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
@@ -375,7 +372,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 	};
 
@@ -391,16 +388,13 @@ namespace KBEngine {
 
 		virtual ~EntityTableItemMongodb_ARRAY(){};
 
-		virtual bool isSameKey(std::string key){ return true; }
+		virtual bool isSameKey(std::string key){ return false; }
 
 		/**
 		初始化
 		*/
 		virtual bool initialize(const PropertyDescription* pPropertyDescription,
-			const DataType* pDataType, std::string name)
-		{
-			return true;
-		}
+			const DataType* pDataType, std::string name);
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_FIXEDARRAY; }
 
@@ -417,7 +411,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = ""){}
@@ -447,10 +441,7 @@ namespace KBEngine {
 		初始化
 		*/
 		virtual bool initialize(const PropertyDescription* pPropertyDescription,
-			const DataType* pDataType, std::string name)
-		{
-			return true;
-		}
+			const DataType* pDataType, std::string name);
 
 		/**
 		同步entity表到数据库中
@@ -465,7 +456,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		virtual void init_db_item_name(const char* exstrFlag = ""){}
@@ -535,7 +526,7 @@ namespace KBEngine {
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
-		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context){}
+		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context){}
 
 		void init_db_item_name();
