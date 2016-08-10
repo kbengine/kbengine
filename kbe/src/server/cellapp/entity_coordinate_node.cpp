@@ -36,9 +36,9 @@ public:
 		originPos_(originPos) {}
 
 	INLINE void reset() { pCurrentNode_ = pNode_; }
-	INLINE bool isEntityNode()const { return (pCurrentNode_->flags() & COORDINATE_NODE_FLAG_ENTITY) > 0; }
-	INLINE CoordinateNode* currentNode()const { return pCurrentNode_; }
-	INLINE Entity* currentNodeEntity()const { return static_cast<EntityCoordinateNode*>(pCurrentNode_)->pEntity(); }
+	INLINE bool isEntityNode() const { return pCurrentNode_->hasFlags(COORDINATE_NODE_FLAG_ENTITY); }
+	INLINE CoordinateNode* currentNode() const { return pCurrentNode_; }
+	INLINE Entity* currentNodeEntity() const { return static_cast<EntityCoordinateNode*>(pCurrentNode_)->pEntity(); }
 	
 	INLINE CoordinateNode* prev() {
 		pCurrentNode_ = pCurrentNode_->pPrevX();
@@ -306,7 +306,9 @@ void entitiesInAxisRange(std::set<Entity*>& foundEntities, CoordinateNode* rootN
 EntityCoordinateNode::EntityCoordinateNode(Entity* pEntity):
 CoordinateNode(NULL),
 pEntity_(pEntity),
-watcherNodes_()
+watcherNodes_(),
+delWatcherNodeNum_(0),
+entityNodeUpdating_(0)
 {
 	flags(COORDINATE_NODE_FLAG_ENTITY);
 
@@ -324,7 +326,7 @@ EntityCoordinateNode::~EntityCoordinateNode()
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::xx() const
 {
-	if(pEntity_ == NULL || (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0)
+	if (pEntity_ == NULL || hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
 		return -FLT_MAX;
 
 	return pEntity_->position().x;
@@ -333,7 +335,7 @@ float EntityCoordinateNode::xx() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::yy() const
 {
-	if(pEntity_ == NULL /*|| (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0*/)
+	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING))*/)
 		return -FLT_MAX;
 
 	return pEntity_->position().y;
@@ -342,7 +344,7 @@ float EntityCoordinateNode::yy() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::zz() const
 {
-	if(pEntity_ == NULL /*|| (flags() & (COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)) > 0*/)
+	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING))*/)
 		return -FLT_MAX;
 
 	return pEntity_->position().z;
@@ -352,20 +354,71 @@ float EntityCoordinateNode::zz() const
 void EntityCoordinateNode::update()
 {
 	CoordinateNode::update();
-	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); ++iter)
+
+	addFlags(COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+	++entityNodeUpdating_;
+
+	// 此处必须使用watcherNodes_.size()而不能使用迭代器遍历，防止在update中导致增加了watcherNodes_数量而破坏迭代器
+	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
-		(*iter)->update();
+		CoordinateNode* pCoordinateNode = watcherNodes_[i];
+		if (!pCoordinateNode)
+			continue;
+
+		pCoordinateNode->update();
+	}
+
+	--entityNodeUpdating_;
+	if (entityNodeUpdating_ == 0)
+		removeFlags(COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);
+
+	clearDelWatcherNodes();
+}
+
+//-------------------------------------------------------------------------------------
+void EntityCoordinateNode::clearDelWatcherNodes()
+{
+	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
+		return;
+
+	if (delWatcherNodeNum_ > 0)
+	{
+		std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
+		for (; iter != watcherNodes_.end();)
+		{
+			if (!(*iter))
+			{
+				iter = watcherNodes_.erase(iter);
+				--delWatcherNodeNum_;
+
+				if (delWatcherNodeNum_ <= 0)
+					return;
+			}
+			else
+			{
+				++iter;
+			}
+		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::onRemove()
 {
-	std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
-	for(; iter != watcherNodes_.end(); ++iter)
+	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
-		(*iter)->onParentRemove(this);
+		CoordinateNode* pCoordinateNode = watcherNodes_[i];
+
+		if (!pCoordinateNode)
+			continue;
+
+		// 先设置为NULL， 在后面update时进行删除
+		// 此处不能对watcherNodes_做大小做修改，因为可能由EntityCoordinateNode::update()中导致该处调用
+		// 那么可能导致EntityCoordinateNode::update()在循环watcherNodes_中被修改而出错。
+		watcherNodes_[i] = NULL;
+		++delWatcherNodeNum_;
+
+		pCoordinateNode->onParentRemove(this);
 	}
 
 	CoordinateNode::onRemove();
@@ -374,6 +427,8 @@ void EntityCoordinateNode::onRemove()
 //-------------------------------------------------------------------------------------
 bool EntityCoordinateNode::addWatcherNode(CoordinateNode* pNode)
 {
+	clearDelWatcherNodes();
+
 	std::vector<CoordinateNode*>::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
 	if(iter != watcherNodes_.end())
 		return false;
@@ -389,7 +444,16 @@ bool EntityCoordinateNode::delWatcherNode(CoordinateNode* pNode)
 	if(iter == watcherNodes_.end())
 		return false;
 
-	watcherNodes_.erase(iter);
+	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
+	{
+		(*iter) = NULL;
+		++delWatcherNodeNum_;
+	}
+	else
+	{
+		watcherNodes_.erase(iter);
+	}
+
 	return true;
 }
 

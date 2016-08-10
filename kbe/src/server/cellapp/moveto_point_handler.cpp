@@ -27,7 +27,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveToPointHandler::MoveToPointHandler(KBEShared_ptr<Controller> pController, int layer, const Position3D& destPos, 
+MoveToPointHandler::MoveToPointHandler(KBEShared_ptr<Controller>& pController, int layer, const Position3D& destPos, 
 											 float velocity, float distance, bool faceMovement, 
 											bool moveVertically, PyObject* userarg):
 destPos_(destPos),
@@ -37,7 +37,8 @@ moveVertically_(moveVertically),
 pyuserarg_(userarg),
 distance_(distance),
 pController_(pController),
-layer_(layer)
+layer_(layer),
+isDestroyed_(false)
 {
 	updatableName = "MoveToPointHandler";
 
@@ -56,7 +57,8 @@ faceMovement_(false),
 moveVertically_(false),
 pyuserarg_(NULL),
 distance_(0.f),
-layer_(0)
+layer_(0),
+isDestroyed_(false)
 {
 	updatableName = "MoveToPointHandler";
 
@@ -71,7 +73,7 @@ MoveToPointHandler::~MoveToPointHandler()
 		Py_DECREF(pyuserarg_);
 	}
 
-	// DEBUG_MSG(fmt::format("MoveToPointHandler::~MoveToPointHandler(): {:p}\n"), (void*)this));
+	//DEBUG_MSG(fmt::format("MoveToPointHandler::~MoveToPointHandler(): {}\n", (void*)this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -106,8 +108,7 @@ bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 			pController_->pEntity()->onMoveOver(pController_->id(), layer_, oldPos, pyuserarg_);
 
 		// 如果在onMoveOver中调用cancelController（id）会导致MoveController析构导致pController_为NULL
-		if(pController_)
-			pController_->destroy();
+		pController_->destroy();
 	}
 
 	return true;
@@ -116,7 +117,7 @@ bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 //-------------------------------------------------------------------------------------
 bool MoveToPointHandler::update()
 {
-	if(pController_ == NULL)
+	if (isDestroyed_)
 	{
 		delete this;
 		return false;
@@ -182,15 +183,15 @@ bool MoveToPointHandler::update()
 	}
 	
 	// 设置entity的新位置和面向
-	if(pController_)
+	if(!isDestroyed_)
 		pEntity->setPositionAndDirection(currpos, direction);
 
 	// 非navigate都不能确定其在地面上
-	if(pController_)
+	if(!isDestroyed_)
 		pEntity->isOnGround(isOnGround());
 
 	// 通知脚本
-	if(pController_)
+	if(!isDestroyed_)
 		pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
 
 	// 如果达到目的地则返回true

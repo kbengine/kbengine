@@ -205,6 +205,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 									ENTITY_ID,								eid,
 									int8,									isControlled)
 
+	// 服务器心跳回调
+	CLIENT_MESSAGE_DECLARE_ARGS0(onAppActiveTickCB,							NETWORK_FIXED_MESSAGE)
+
 	NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

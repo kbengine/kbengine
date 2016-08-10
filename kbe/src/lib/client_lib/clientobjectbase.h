@@ -402,6 +402,11 @@ public:
 
 	Network::NetworkInterface* pNetworkInterface()const { return &networkInterface_; }
 
+	/** 网络接口
+		服务器心跳返回
+	*/
+	void onAppActiveTickCB(Network::Channel* pChannel);
+
 protected:				
 	int32													appID_;
 

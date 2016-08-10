@@ -52,20 +52,39 @@ pRangeTrigger_(pRangeTrigger)
 //-------------------------------------------------------------------------------------
 RangeTriggerNode::~RangeTriggerNode()
 {
-	static_cast<EntityCoordinateNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTriggerNode::onTriggerUninstall()
+{
+	if (pRangeTrigger_->origin())
+		static_cast<EntityCoordinateNode*>(pRangeTrigger_->origin())->delWatcherNode(this);
+
+	pRangeTrigger(NULL);
+}
+
+//-------------------------------------------------------------------------------------
+void RangeTriggerNode::onRemove()
+{
+	CoordinateNode::onRemove();
+
+	// 既然自己都要删除了，通知pRangeTrigger_卸载
+	if (pRangeTrigger_)
+		pRangeTrigger_->uninstall();
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onParentRemove(CoordinateNode* pParentNode)
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVEING) <= 0)
-		pParentNode->pCoordinateSystem()->remove(this);
+	// 既然自己都要删除了，通知pRangeTrigger_卸载
+	if (pRangeTrigger_)
+		pRangeTrigger_->uninstall();
 }
 
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::xx() const 
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
+	if (hasFlags(COORDINATE_NODE_FLAG_REMOVED) || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
 
 	return pRangeTrigger_->origin()->xx() + range_xz_; 
@@ -74,7 +93,7 @@ float RangeTriggerNode::xx() const
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::yy() const 
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
+	if (hasFlags(COORDINATE_NODE_FLAG_REMOVED) || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
 
 	return pRangeTrigger_->origin()->yy() + range_y_; 
@@ -83,7 +102,7 @@ float RangeTriggerNode::yy() const
 //-------------------------------------------------------------------------------------
 float RangeTriggerNode::zz() const 
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVED) > 0 || pRangeTrigger_ == NULL)
+	if (hasFlags(COORDINATE_NODE_FLAG_REMOVED) || pRangeTrigger_ == NULL)
 		return -FLT_MAX;
 
 	return pRangeTrigger_->origin()->zz() + range_xz_; 
@@ -92,21 +111,21 @@ float RangeTriggerNode::zz() const
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassX(CoordinateNode* pNode, bool isfront)
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
+	if (!hasFlags(COORDINATE_NODE_FLAG_REMOVED) && pRangeTrigger_)
 		pRangeTrigger_->onNodePassX(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassY(CoordinateNode* pNode, bool isfront)
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
+	if (!hasFlags(COORDINATE_NODE_FLAG_REMOVED) && pRangeTrigger_)
 		pRangeTrigger_->onNodePassY(this, pNode, isfront);
 }
 
 //-------------------------------------------------------------------------------------
 void RangeTriggerNode::onNodePassZ(CoordinateNode* pNode, bool isfront)
 {
-	if((flags() & COORDINATE_NODE_FLAG_REMOVED) <= 0 && pRangeTrigger_)
+	if (!hasFlags(COORDINATE_NODE_FLAG_REMOVED) && pRangeTrigger_)
 		pRangeTrigger_->onNodePassZ(this, pNode, isfront);
 }
 

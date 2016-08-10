@@ -75,6 +75,8 @@ public:
 	virtual bool canShutdown();
 	virtual void onShutdown(bool first);
 
+	void destroyObjPool();
+
 	float _getLoad() const { return getLoad(); }
 	virtual void onUpdateLoad();
 

@@ -409,7 +409,7 @@ double Proxy::getRoundTripTime() const
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyGetRoundTripTime()
 { 
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -433,7 +433,7 @@ double Proxy::getTimeSinceHeardFromClient() const
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 { 
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -457,7 +457,7 @@ bool Proxy::hasClient() const
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyHasClient()
 { 
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -476,7 +476,7 @@ PyObject* Proxy::pyHasClient()
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyClientAddr()
 { 
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -505,7 +505,7 @@ PyObject* Proxy::pyClientAddr()
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyGetEntitiesEnabled()
 { 
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		

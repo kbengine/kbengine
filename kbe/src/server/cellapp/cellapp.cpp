@@ -305,8 +305,17 @@ void Cellapp::finalise()
 	Spaces::finalise();
 	Navigation::getSingleton().finalise();
 	forward_messagebuffer_.clear();
+	updatables_.clear();
 
+	destroyObjPool();
 	EntityApp<Entity>::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::destroyObjPool()
+{
+	EntityRef::destroyObjPool();
+	Witness::destroyObjPool();
 }
 
 //-------------------------------------------------------------------------------------

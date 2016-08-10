@@ -41,7 +41,7 @@ public:
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 
-	MoveToPointHandler(KBEShared_ptr<Controller> pController, int layer, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
+	MoveToPointHandler(KBEShared_ptr<Controller>& pController, int layer, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
 		bool moveVertically, PyObject* userarg);
 
 	MoveToPointHandler();
@@ -49,14 +49,14 @@ public:
 	
 	virtual bool update();
 
-	virtual const Position3D& destPos(){ return destPos_; }
+	virtual const Position3D& destPos() { return destPos_; }
 	virtual bool requestMoveOver(const Position3D& oldPos);
 
-	virtual bool isOnGround(){ return false; }
-		
-	void pController(KBEShared_ptr<Controller> pController){ pController_ = pController; }
+	virtual bool isOnGround() { return false; }
 
-	virtual MoveType type() const{ return MOVE_TYPE_POINT; }
+	virtual MoveType type() const { return MOVE_TYPE_POINT; }
+
+	void destroy() { isDestroyed_ = true; }
 
 protected:
 	Position3D destPos_;
@@ -67,6 +67,7 @@ protected:
 	float distance_;
 	KBEShared_ptr<Controller> pController_;
 	int layer_;
+	bool isDestroyed_;
 };
  
 }
