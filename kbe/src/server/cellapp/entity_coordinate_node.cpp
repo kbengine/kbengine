@@ -37,6 +37,7 @@ public:
 
 	INLINE void reset() { pCurrentNode_ = pNode_; }
 	INLINE bool isEntityNode() const { return pCurrentNode_->hasFlags(COORDINATE_NODE_FLAG_ENTITY); }
+	INLINE bool valid() const { return !pCurrentNode_->hasFlags(COORDINATE_NODE_FLAG_HIDE_OR_REMOVED); }
 	INLINE CoordinateNode* currentNode() const { return pCurrentNode_; }
 	INLINE Entity* currentNodeEntity() const { return static_cast<EntityCoordinateNode*>(pCurrentNode_)->pEntity(); }
 	
@@ -152,7 +153,7 @@ CoordinateNode* findNearestNode(CoordinateNode* rootNode, const Position3D& orig
 		NODEWRAP wrap(rootNode, originPos);
 		do
 		{
-			if (wrap.isEntityNode())
+			if (wrap.isEntityNode() && wrap.valid())
 			{
 				pRN = wrap.currentNode();
 				break;
@@ -165,7 +166,7 @@ CoordinateNode* findNearestNode(CoordinateNode* rootNode, const Position3D& orig
 			wrap.reset();
 			while (wrap.next())
 			{
-				if (wrap.isEntityNode())
+				if (wrap.isEntityNode() && wrap.valid())
 				{
 					pRN = wrap.currentNode();
 					break;
@@ -191,7 +192,7 @@ CoordinateNode* findNearestNode(CoordinateNode* rootNode, const Position3D& orig
 		pCoordinateNode = wrap.currentNode();
 		while (wrap.prev())
 		{
-			if (wrap.isEntityNode())
+			if (wrap.isEntityNode() && wrap.valid())
 			{
 				// 由于是从中心点的右边往左边遍历，
 				// 因此第一个position小于中心点的entity就一定是离中心点最近的
@@ -210,7 +211,7 @@ CoordinateNode* findNearestNode(CoordinateNode* rootNode, const Position3D& orig
 		pCoordinateNode = wrap.currentNode();
 		while (wrap.next())
 		{
-			if (wrap.isEntityNode())
+			if (wrap.isEntityNode() && wrap.valid())
 			{
 				// 由于是从中心点的左边往右边遍历，
 				// 因此第一个position大于中心点的entity就一定是离中心点最近的
@@ -246,7 +247,7 @@ void entitiesInAxisRange(std::set<Entity*>& foundEntities, CoordinateNode* rootN
 	NODEWRAP wrap(pCoordinateNode, originPos);
 
 	// 如果节点自己也符合条件，则把自己加进去
-	if (wrap.isEntityNode())
+	if (wrap.isEntityNode() && wrap.valid())
 	{
 		Entity* pEntity = wrap.currentNodeEntity();
 
@@ -261,7 +262,7 @@ void entitiesInAxisRange(std::set<Entity*>& foundEntities, CoordinateNode* rootN
 
 	while (wrap.prev())
 	{
-		if (wrap.isEntityNode())
+		if (wrap.isEntityNode() && wrap.valid())
 		{
 			Entity* pEntity = wrap.currentNodeEntity();
 
@@ -283,7 +284,7 @@ void entitiesInAxisRange(std::set<Entity*>& foundEntities, CoordinateNode* rootN
 
 	while (wrap.next())
 	{
-		if (wrap.isEntityNode())
+		if (wrap.isEntityNode() && wrap.valid())
 		{
 			Entity* pEntity = wrap.currentNodeEntity();
 
