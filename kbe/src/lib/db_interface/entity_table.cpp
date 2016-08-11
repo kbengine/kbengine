@@ -27,9 +27,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadguard.h"
 
 namespace KBEngine { 
-KBE_SINGLETON_INIT(EntityTables);
-
-EntityTables g_EntityTables;
 
 //-------------------------------------------------------------------------------------
 void EntityTable::addItem(EntityTableItem* pItem)
@@ -102,11 +99,28 @@ bool EntityTable::queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, Scri
 }
 
 //-------------------------------------------------------------------------------------
+EntityTables::ENTITY_TABLES_MAP EntityTables::sEntityTables;
+
+EntityTables& EntityTables::findByInterfaceName(const std::string& dbInterfaceName)
+{
+	ENTITY_TABLES_MAP::iterator iter = EntityTables::sEntityTables.find(dbInterfaceName);
+	if (iter != EntityTables::sEntityTables.end())
+	{
+		return iter->second;
+	}
+
+	EntityTables& entityTables = EntityTables::sEntityTables[dbInterfaceName];
+	entityTables.dbInterfaceName(dbInterfaceName);
+	return entityTables;
+}
+
+//-------------------------------------------------------------------------------------
 EntityTables::EntityTables():
 tables_(),
 kbe_tables_(),
 numSyncTables_(0),
-syncTablesError_(false)
+syncTablesError_(false),
+dbInterfaceName_()
 {
 }
 
@@ -125,7 +139,7 @@ bool EntityTables::load(DBInterface* pdbi)
 	for(; iter != smodules.end(); ++iter)
 	{
 		ScriptDefModule* pSM = (*iter).get();
-		EntityTable* pEtable = pdbi->createEntityTable();
+		EntityTable* pEtable = pdbi->createEntityTable(this);
 
 		if(!pEtable)
 			continue;
@@ -167,7 +181,7 @@ void EntityTables::queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pMo
 //-------------------------------------------------------------------------------------
 bool EntityTables::syncToDB(DBInterface* pdbi)
 {
-	DBThreadPool* pDBThreadPool = static_cast<DBThreadPool*>(DBUtil::pThreadPool());
+	DBThreadPool* pDBThreadPool = static_cast<DBThreadPool*>(DBUtil::pThreadPool(pdbi->name()));
 	KBE_ASSERT(pDBThreadPool != NULL);
 	
 	int num = 0;
@@ -178,7 +192,7 @@ bool EntityTables::syncToDB(DBInterface* pdbi)
 		for(; kiter != kbe_tables_.end(); ++kiter)
 		{
 			num++;
-			pDBThreadPool->addTask(new DBTaskSyncTable(kiter->second));
+			pDBThreadPool->addTask(new DBTaskSyncTable(this, kiter->second));
 		}
 
 		EntityTables::TABLES_MAP::iterator iter = tables_.begin();
@@ -187,7 +201,7 @@ bool EntityTables::syncToDB(DBInterface* pdbi)
 			if(!iter->second->hasSync())
 			{
 				num++;
-				pDBThreadPool->addTask(new DBTaskSyncTable(iter->second));
+				pDBThreadPool->addTask(new DBTaskSyncTable(this, iter->second));
 			}
 		}
 

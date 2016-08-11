@@ -33,7 +33,7 @@ KBE_SINGLETON_INIT(DBUtil);
 
 DBUtil g_DBUtil;
 
-thread::ThreadPool* DBUtil::pThreadPool_ = new DBThreadPool();
+DBUtil::DBThreadPoolMap DBUtil::pThreadPoolMaps_;
 
 //-------------------------------------------------------------------------------------
 DBUtil::DBUtil()
@@ -46,10 +46,22 @@ DBUtil::~DBUtil()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBUtil::initThread()
+bool DBUtil::initializeWatcher()
 {
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	if(strcmp(dbcfg.db_type, "mysql") == 0)
+	DBUtil::DBThreadPoolMap::iterator iter = pThreadPoolMaps_.begin();
+	for (; iter != pThreadPoolMaps_.end(); ++iter)
+	{
+		iter->second->initializeWatcher();
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool DBUtil::initThread(const std::string& dbinterfaceName)
+{
+	DBInterfaceInfo* pDBInfo = g_kbeSrvConfig.dbInterface(dbinterfaceName);
+	if (strcmp(pDBInfo->db_type, "mysql") == 0)
 	{
 		if (!mysql_thread_safe()) 
 		{
@@ -65,10 +77,10 @@ bool DBUtil::initThread()
 }
 
 //-------------------------------------------------------------------------------------
-bool DBUtil::finiThread()
+bool DBUtil::finiThread(const std::string& dbinterfaceName)
 {
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	if(strcmp(dbcfg.db_type, "mysql") == 0)
+	DBInterfaceInfo* pDBInfo = g_kbeSrvConfig.dbInterface(dbinterfaceName);
+	if (strcmp(pDBInfo->db_type, "mysql") == 0)
 	{
 		mysql_thread_end();
 	}
@@ -80,23 +92,34 @@ bool DBUtil::finiThread()
 bool DBUtil::initialize()
 {
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-
-	if(dbcfg.db_passwordEncrypt)
+	if (dbcfg.dbInterfaceInfos.size() == 0)
 	{
-		// 如果小于64则表明当前是明文密码配置
-		if(strlen(dbcfg.db_password) < 64)
-		{
-			WARNING_MSG(fmt::format("DBUtil::createInterface: db password is not encrypted!\nplease use password(rsa):\n{}\n",
-				KBEKey::getSingleton().encrypt(dbcfg.db_password)));
-		}
-		else
-		{
-			std::string out = KBEKey::getSingleton().decrypt(dbcfg.db_password);
+		ERROR_MSG(fmt::format("DBUtil::initialize: not found database interface! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n"));
+		return false;
+	}
 
-			if(out.size() == 0)
-				return false;
+	std::vector<DBInterfaceInfo>::iterator dbinfo_iter = dbcfg.dbInterfaceInfos.begin();
+	for (; dbinfo_iter != dbcfg.dbInterfaceInfos.end(); ++dbinfo_iter)
+	{
+		pThreadPoolMaps_[(*dbinfo_iter).name] = new DBThreadPool((*dbinfo_iter).name);
 
-			kbe_snprintf(dbcfg.db_password, MAX_BUF, "%s", out.c_str());
+		if ((*dbinfo_iter).db_passwordEncrypt)
+		{
+			// 如果小于64则表明当前是明文密码配置
+			if (strlen((*dbinfo_iter).db_password) < 64)
+			{
+				WARNING_MSG(fmt::format("DBUtil::initialize: db({}) password is not encrypted!\nplease use password(rsa):\n{}\n",
+					(*dbinfo_iter).name, KBEKey::getSingleton().encrypt((*dbinfo_iter).db_password)));
+			}
+			else
+			{
+				std::string out = KBEKey::getSingleton().decrypt((*dbinfo_iter).db_password);
+
+				if (out.size() == 0)
+					return false;
+
+				kbe_snprintf((*dbinfo_iter).db_password, MAX_BUF, "%s", out.c_str());
+			}
 		}
 	}
 
@@ -106,41 +129,63 @@ bool DBUtil::initialize()
 //-------------------------------------------------------------------------------------
 void DBUtil::finalise()
 {
-	pThreadPool()->finalise();
-	SAFE_RELEASE(pThreadPool_);
+	DBUtil::DBThreadPoolMap::iterator iter = pThreadPoolMaps_.begin();
+	for (; iter != pThreadPoolMaps_.end(); ++iter)
+	{
+		iter->second->finalise();
+		SAFE_RELEASE(iter->second);
+	}
+
+	pThreadPoolMaps_.clear();
 }
 
 //-------------------------------------------------------------------------------------
-DBInterface* DBUtil::createInterface(bool showinfo)
+void DBUtil::handleMainTick()
 {
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+	DBUtil::DBThreadPoolMap::iterator iter = pThreadPoolMaps_.begin();
+	for (; iter != pThreadPoolMaps_.end(); ++iter)
+		iter->second->onMainThreadTick();
+}
+
+//-------------------------------------------------------------------------------------
+DBInterface* DBUtil::createInterface(const std::string& name, bool showinfo)
+{
+	DBInterfaceInfo* pDBInfo = g_kbeSrvConfig.dbInterface(name);
+	if (!pDBInfo)
+	{
+		ERROR_MSG(fmt::format("DBUtil::createInterface: not found dbInterface({})\n",
+			name));
+
+		return NULL;
+	}
+
 	DBInterface* dbinterface = NULL;
 
-	if(strcmp(dbcfg.db_type, "mysql") == 0)
+	if (strcmp(pDBInfo->db_type, "mysql") == 0)
 	{
-		dbinterface = new DBInterfaceMysql(dbcfg.db_unicodeString_characterSet, dbcfg.db_unicodeString_collation);
+		dbinterface = new DBInterfaceMysql(name.c_str(), pDBInfo->db_unicodeString_characterSet, pDBInfo->db_unicodeString_collation);
 	}
-	else if(strcmp(dbcfg.db_type, "redis") == 0)
+	else if (strcmp(pDBInfo->db_type, "redis") == 0)
 	{
-		dbinterface = new DBInterfaceRedis();
+		dbinterface = new DBInterfaceRedis(name.c_str());
 	}
 
 	if(dbinterface == NULL)
 	{
 		ERROR_MSG(fmt::format("DBUtil::createInterface: create db_interface error! type={}\n",
-			dbcfg.db_type));
+			pDBInfo->db_type));
 
 		return NULL;
 	}
 	
-	kbe_snprintf(dbinterface->db_type_, MAX_BUF, "%s", dbcfg.db_type);
-	dbinterface->db_port_ = dbcfg.db_port;	
-	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", dbcfg.db_ip);
-	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", dbcfg.db_username);
-	dbinterface->db_numConnections_ = dbcfg.db_numConnections;
-	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", dbcfg.db_password);
+	kbe_snprintf(dbinterface->db_type_, MAX_BUF, "%s", pDBInfo->db_type);
+	dbinterface->db_port_ = pDBInfo->db_port;
+	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", pDBInfo->db_ip);
+	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", pDBInfo->db_username);
+	dbinterface->db_numConnections_ = pDBInfo->db_numConnections;
+	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", pDBInfo->db_password);
 
-	if(!dbinterface->attach(DBUtil::dbname()))
+	if (!dbinterface->attach(pDBInfo->db_name))
 	{
 		ERROR_MSG(fmt::format("DBUtil::createInterface: attach to database failed!\n\tdbinterface={0:p}\n\targs={1}\n",
 			(void*)&dbinterface, dbinterface->c_str()));
@@ -161,20 +206,6 @@ DBInterface* DBUtil::createInterface(bool showinfo)
 }
 
 //-------------------------------------------------------------------------------------
-const char* DBUtil::dbname()
-{
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	return dbcfg.db_name;
-}
-
-//-------------------------------------------------------------------------------------
-const char* DBUtil::dbtype()
-{
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	return dbcfg.db_type;
-}
-
-//-------------------------------------------------------------------------------------
 const char* DBUtil::accountScriptName()
 {
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
@@ -184,24 +215,36 @@ const char* DBUtil::accountScriptName()
 //-------------------------------------------------------------------------------------
 bool DBUtil::initInterface(DBInterface* pdbi)
 {
-	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
-	if(strcmp(dbcfg.db_type, "mysql") == 0)
+	DBInterfaceInfo* pDBInfo = g_kbeSrvConfig.dbInterface(pdbi->name());
+	if (!pDBInfo)
+	{
+		ERROR_MSG(fmt::format("DBUtil::initInterface: not found dbInterface({})\n",
+			pdbi->name()));
+
+		return false;
+	}
+
+	if (strcmp(pDBInfo->db_type, "mysql") == 0)
 	{
 		DBInterfaceMysql::initInterface(pdbi);
 	}
-	else if(strcmp(dbcfg.db_type, "redis") == 0)
+	else if (strcmp(pDBInfo->db_type, "redis") == 0)
 	{
 		DBInterfaceRedis::initInterface(pdbi);
 	}
 	
-	if(!pThreadPool_->isInitialize())
+	thread::ThreadPool* pThreadPool = pThreadPoolMaps_[pdbi->name()];
+	KBE_ASSERT(pThreadPool);
+
+	if (!pThreadPool->isInitialize())
 	{
-		if(!pThreadPool_->createThreadPool(dbcfg.db_numConnections, 
-			dbcfg.db_numConnections, dbcfg.db_numConnections))
+		if (!pThreadPool->createThreadPool(pDBInfo->db_numConnections,
+			pDBInfo->db_numConnections, pDBInfo->db_numConnections))
 			return false;
 	}
 
-	bool ret = EntityTables::getSingleton().load(pdbi);
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
+	bool ret = entityTables.load(pdbi);
 
 	if(ret)
 	{
@@ -213,7 +256,13 @@ bool DBUtil::initInterface(DBInterface* pdbi)
 		ret = pdbi->checkErrors();
 	}
 
-	return ret && EntityTables::getSingleton().syncToDB(pdbi);
+	if (ret)
+	{
+		if (!pDBInfo->isPure)
+			ret = entityTables.syncToDB(pdbi);
+	}
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------

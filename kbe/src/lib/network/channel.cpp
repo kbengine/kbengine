@@ -50,6 +50,18 @@ ObjectPool<Channel>& Channel::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Channel* Channel::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::reclaimPoolObject(Channel* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void Channel::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("Channel::destroyObjPool(): size {}.\n", 
@@ -175,7 +187,6 @@ bool Channel::initialize(NetworkInterface & networkInterface,
 	KBE_ASSERT(pNetworkInterface_ != NULL);
 	KBE_ASSERT(pEndPoint_ != NULL);
 
-
 	if(protocoltype_ == PROTOCOL_TCP)
 	{
 		if(pPacketReceiver_)
@@ -239,7 +250,7 @@ bool Channel::finalise()
 	SAFE_RELEASE(pPacketReader_);
 	SAFE_RELEASE(pPacketSender_);
 
-	Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
+	Network::EndPoint::reclaimPoolObject(pEndPoint_);
 	pEndPoint_ = NULL;
 
 	return true;
@@ -288,7 +299,7 @@ void Channel::pEndPoint(const EndPoint* pEndPoint)
 {
 	if (pEndPoint_ != pEndPoint)
 	{
-		Network::EndPoint::ObjPool().reclaimObject(pEndPoint_);
+		Network::EndPoint::reclaimPoolObject(pEndPoint_);
 		pEndPoint_ = const_cast<EndPoint*>(pEndPoint);
 	}
 	
@@ -429,7 +440,7 @@ void Channel::clearBundle()
 	Bundles::iterator iter = bundles_.begin();
 	for(; iter != bundles_.end(); ++iter)
 	{
-		Bundle::ObjPool().reclaimObject((*iter));
+		Bundle::reclaimPoolObject((*iter));
 	}
 
 	bundles_.clear();
@@ -464,26 +475,27 @@ void Channel::send(Bundle * pBundle)
 		this->clearBundle();
 
 		if(pBundle)
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::reclaimPoolObject(pBundle);
 
 		return;
 	}
 
 	if(isCondemn())
 	{
-		//WARNING_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
+		//WARNING_MSG(fmt::format("Channel::send: error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
 		//	c_str()));
 
 		this->clearBundle();
 
 		if(pBundle)
-			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			Network::Bundle::reclaimPoolObject(pBundle);
 
 		return;
 	}
 
 	if(pBundle)
 	{
+		pBundle->pChannel(this);
 		pBundle->finiMessage(true);
 		bundles_.push_back(pBundle);
 	}
@@ -511,13 +523,13 @@ void Channel::send(Bundle * pBundle)
 	{
 		if(this->isExternal())
 		{
-			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}).\n", 
+			WARNING_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send-window bufferedMessages has overflowed({} > {}).\n", 
 				(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
 
 			if(Network::g_extSendWindowMessagesOverflow > 0 && 
 				bundleSize >  Network::g_extSendWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->send.\n", 
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send-window bufferedMessages has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->send.\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_extSendWindowMessagesOverflow));
 
 				this->condemn();
@@ -528,14 +540,14 @@ void Channel::send(Bundle * pBundle)
 			if(Network::g_intSendWindowMessagesOverflow > 0 && 
 				bundleSize > Network::g_intSendWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send-window bufferedMessages has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_intSendWindowMessagesOverflow));
 
 				this->condemn();
 			}
 			else
 			{
-				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send window has overflowed({} > {}).\n", 
+				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send-window bufferedMessages has overflowed({} > {}).\n", 
 					(void*)this, this->c_str(), bundleSize, Network::g_sendWindowMessagesOverflowCritical));
 			}
 		}
@@ -578,7 +590,7 @@ void Channel::onPacketSent(int bytes, bool sentCompleted)
 		if(g_extSendWindowBytesOverflow > 0 && 
 			lastTickBytesSent_ >= g_extSendWindowBytesOverflow)
 		{
-			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
+			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->receive.\n", 
 				(void*)this, this->c_str(), lastTickBytesSent_, g_extSendWindowBytesOverflow));
 
 			this->condemn();
@@ -611,7 +623,7 @@ void Channel::onPacketReceived(int bytes)
 		if(g_extReceiveWindowBytesOverflow > 0 && 
 			lastTickBytesReceived_ >= g_extReceiveWindowBytesOverflow)
 		{
-			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive.\n", 
+			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->receive.\n", 
 				(void*)this, this->c_str(), lastTickBytesReceived_, g_extReceiveWindowBytesOverflow));
 
 			this->condemn();
@@ -641,7 +653,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 			if(Network::g_extReceiveWindowMessagesOverflow > 0 && 
 				size > Network::g_extReceiveWindowMessagesOverflow)
 			{
-				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}), Try adjusting the kbengine_defs.xml->windowOverflow->receive->messages->external.\n", 
+				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->receive->messages->external.\n", 
 					(void*)this, this->c_str(), size, Network::g_extReceiveWindowMessagesOverflow));
 
 				this->condemn();
@@ -769,7 +781,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 	}catch(MemoryStreamException &)
 	{
 		Network::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
-		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=(name={}, id={}, len={}), currMsgLen={}\n",
+		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=({}, id={}, len={}), currMsgLen={}\n",
 			this->c_str()
 			, (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
 			, pPacketReader_->currMsgID() 
@@ -794,6 +806,33 @@ bool Channel::waitSend()
 EventDispatcher & Channel::dispatcher()
 {
 	return pNetworkInterface_->dispatcher();
+}
+
+//-------------------------------------------------------------------------------------
+Bundle* Channel::createSendBundle()
+{
+	if(bundles_.size() > 0)
+	{
+		Bundle* pBundle = bundles_.back();
+		Bundle::Packets& packets = pBundle->packets();
+
+		if (pBundle->packetHaveSpace() &&
+			!packets[0]->encrypted() /* 必须是未经过加密的包，如果已经加密了就不要再重复拿出来用了，否则外部容易向其中添加未加密数据 */)
+		{
+			// 先从队列删除
+			bundles_.pop_back();
+			pBundle->pChannel(this);
+			pBundle->pCurrMsgHandler(NULL);
+			pBundle->currMsgPacketCount(0);
+			pBundle->currMsgLength(0);
+			pBundle->currMsgLengthPos(0);
+			return pBundle;
+		}
+	}
+	
+	Bundle* pBundle = Bundle::createPoolObject();
+	pBundle->pChannel(this);
+	return pBundle;
 }
 
 //-------------------------------------------------------------------------------------

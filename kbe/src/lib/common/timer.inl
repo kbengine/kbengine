@@ -61,7 +61,7 @@ void TimersT< TIME_STAMP >::onCancel()
 template <class TIME_STAMP>
 void TimersT< TIME_STAMP >::clear(bool shouldCallCancel)
 {
-	int maxLoopCount = timeQueue_.size();
+	int maxLoopCount = (int)timeQueue_.size();
 
 	while (!timeQueue_.empty())
 	{
@@ -113,7 +113,7 @@ void TimersT< TIME_STAMP >::purgeCancelledTimes()
 		delete *iter;
 	}
 
-	const int numPurged = (container.end() - newEnd);
+	const int numPurged = (int)(container.end() - newEnd);
 	numCancelled_ -= numPurged;
 	KBE_ASSERT( (numCancelled_ == 0) || (numCancelled_ == 1) );
 	

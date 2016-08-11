@@ -46,9 +46,16 @@ public:
 
 	ENTITY_ID numEntities() const { return numEntities_; }
 	void numEntities(ENTITY_ID num) { numEntities_ = num; }
+	void incNumEntities() { ++numEntities_; }
 
 	uint32 flags() const { return flags_; }
 	void flags(uint32 v) { flags_ = v; }
+
+	void globalOrderID(COMPONENT_ORDER v) { globalOrderID_ = v; }
+	COMPONENT_ORDER globalOrderID() const { return globalOrderID_; }
+
+	void groupOrderID(COMPONENT_ORDER v) { groupOrderID_ = v; }
+	COMPONENT_ORDER groupOrderID() const { return groupOrderID_; }
 	
 protected:
 	ENTITY_ID numEntities_;
@@ -64,6 +71,10 @@ protected:
 	float initProgress_;
 
 	uint32 flags_;
+
+	COMPONENT_ORDER globalOrderID_;
+
+	COMPONENT_ORDER groupOrderID_;
 };
 
 }

@@ -41,9 +41,9 @@ public:
 	{
 	}
 
-	static bool expireKey(DBInterfaceRedis* pdbi, const std::string& key, int secs, bool showExecInfo = true)
+	static bool expireKey(DBInterfaceRedis* pdbi, const std::string& key, int secs, bool printlog = true)
 	{
-		if (!pdbi->query(showExecInfo, "EXPIRE %s %d", key.c_str(), secs))
+		if (!pdbi->query(printlog, "EXPIRE %s %d", key.c_str(), secs))
 			return false;
 	}
 	
@@ -61,11 +61,11 @@ public:
 		return true;
 	}
 	
-	static bool hasTable(DBInterfaceRedis* pdbi, const std::string& name, bool showExecInfo = true)
+	static bool hasTable(DBInterfaceRedis* pdbi, const std::string& name, bool printlog = true)
 	{
 		redisReply* pRedisReply = NULL;
 		
-		if (!pdbi->query(fmt::format("scan 0 MATCH {}", name), &pRedisReply, showExecInfo))
+		if (!pdbi->query(fmt::format("scan 0 MATCH {}", name), &pRedisReply, printlog))
 			return false;
 		
 		size_t size = 0;
@@ -83,7 +83,7 @@ public:
 		return size > 0;
 	}
 	
-	static bool dropTable(DBInterfaceRedis* pdbi, const std::string& tableName, bool showExecInfo = true)
+	static bool dropTable(DBInterfaceRedis* pdbi, const std::string& tableName, bool printlog = true)
 	{
 		uint64 index = 0;
 		
@@ -91,7 +91,7 @@ public:
 		{
 			redisReply* pRedisReply = NULL;
 			
-			pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
+			pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, printlog);
 			
 			if(pRedisReply)
 			{
@@ -110,7 +110,7 @@ public:
 						redisReply* r1 = r0->element[j];
 						KBE_ASSERT(r1->type == REDIS_REPLY_STRING);
 							
-						pdbi->query(fmt::format("del {}", r1->str), &pRedisReply, showExecInfo);
+						pdbi->query(fmt::format("del {}", r1->str), &pRedisReply, printlog);
 					}
 				}
 				
@@ -129,7 +129,7 @@ public:
 	}
 	
 	static bool dropTableItem(DBInterfaceRedis* pdbi, const std::string& tableName, 
-		const std::string& itemName, bool showExecInfo = true)
+		const std::string& itemName, bool printlog = true)
 	{
 		uint64 index = 0;
 		
@@ -137,7 +137,7 @@ public:
 		{
 			redisReply* pRedisReply = NULL;
 			
-			pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, showExecInfo);
+			pdbi->query(fmt::format("scan {} MATCH {}", index, tableName), &pRedisReply, printlog);
 			
 			if(pRedisReply)
 			{
@@ -156,7 +156,7 @@ public:
 						redisReply* r1 = r0->element[j];
 						KBE_ASSERT(r1->type == REDIS_REPLY_STRING);
 
-						pdbi->query(fmt::format("hdel {} {}", r1->str, itemName), &pRedisReply, showExecInfo);
+						pdbi->query(fmt::format("hdel {} {}", r1->str, itemName), &pRedisReply, printlog);
 					}
 				}
 				

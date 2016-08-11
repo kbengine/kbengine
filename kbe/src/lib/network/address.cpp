@@ -40,6 +40,18 @@ ObjectPool<Address>& Address::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+Address* Address::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void Address::reclaimPoolObject(Address* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void Address::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("Address::destroyObjPool(): size {}.\n",
@@ -64,7 +76,7 @@ void Address::onReclaimObject()
 //-------------------------------------------------------------------------------------
 Address::Address(std::string ipArg, uint16 portArg):
 ip(0),
-	port(htons(portArg))
+port(htons(portArg))
 {
 	u_int32_t addr;
 	Network::Address::string2ip(ipArg.c_str(), addr);

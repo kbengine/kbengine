@@ -29,7 +29,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.h"
 #include "server/pendingLoginmgr.h"
 #include "server/python_app.h"
-#include "server/script_timers.h"
 #include "common/timer.h"
 #include "network/endpoint.h"
 	
@@ -44,7 +43,7 @@ class Loginapp :	public PythonApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1
+		TIMEOUT_TICK = TIMEOUT_PYTHONAPP_MAX + 1
 	};
 
 	Loginapp(Network::EventDispatcher& dispatcher, 
@@ -67,13 +66,6 @@ public:
 	bool initializeEnd();
 	void finalise();
 	void onInstallPyModules();
-	
-	/** Timer²Ù×÷
-	*/
-	static PyObject* __py_addTimer(PyObject* self, PyObject* args);
-	static PyObject* __py_delTimer(PyObject* self, PyObject* args);
-
-	ScriptTimers &scriptTimers() { return scriptTimers_; }
 	
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
@@ -204,8 +196,6 @@ protected:
 
 	float								initProgress_;
 	
-	ScriptTimers						scriptTimers_;
-
 	TelnetServer*						pTelnetServer_;
 };
 

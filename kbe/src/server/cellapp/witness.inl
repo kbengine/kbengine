@@ -48,12 +48,10 @@ INLINE float Witness::aoiHysteresisArea() const
 //-------------------------------------------------------------------------------------
 INLINE EntityRef* Witness::getAOIEntityRef(ENTITY_ID entityID)
 {
-	EntityRef::AOI_ENTITIES::iterator iter = std::find_if(aoiEntities_.begin(), aoiEntities_.end(), 
-		findif_vector_entityref_exist_by_entityid_handler(entityID));
-
-	if(iter != aoiEntities_.end())
+	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(entityID);
+	if(iter != aoiEntities_map_.end())
 	{
-		return (*iter);
+		return iter->second;
 	}
 	
 	return NULL;
@@ -78,9 +76,21 @@ INLINE AOITrigger* Witness::pAOITrigger()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityRef::AOI_ENTITIES& Witness::aoiEntities()
+INLINE AOITrigger* Witness::pAOIHysteresisAreaTrigger()
+{
+	return pAOIHysteresisAreaTrigger_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Witness::AOI_ENTITIES_MAP& Witness::aoiEntitiesMap()
 { 
-	return aoiEntities_; 
+	return aoiEntities_map_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Witness::AOI_ENTITIES& Witness::aoiEntities()
+{
+	return aoiEntities_;
 }
 
 //-------------------------------------------------------------------------------------

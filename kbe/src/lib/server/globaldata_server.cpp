@@ -94,7 +94,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 			if(dataType_ == CELLAPP_DATA && iter1->componentType != CELLAPP_TYPE)
 				continue;
 
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 			switch(dataType_)
 			{
@@ -149,7 +149,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 	DATA_MAP_KEY iter = dict_.begin();
 	for(; iter != dict_.end(); ++iter)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		
 		switch(dataType_)
 		{
@@ -170,7 +170,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 		case BASEAPP_DATA:
 			if(componentType != BASEAPP_TYPE)
 			{
-				Network::Bundle::ObjPool().reclaimObject(pBundle);
+				Network::Bundle::reclaimPoolObject(pBundle);
 				continue;
 			}
 
@@ -179,7 +179,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 		case CELLAPP_DATA:
 			if(componentType != CELLAPP_TYPE)
 			{
-				Network::Bundle::ObjPool().reclaimObject(pBundle);
+				Network::Bundle::reclaimPoolObject(pBundle);
 				continue;
 			}
 

@@ -84,6 +84,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>hiredis</TargetName>
+    <OutDir>../../../../../../libs\</OutDir>
+    <IntDir>..\..\..\..\..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>hiredis</TargetName>
@@ -91,7 +93,9 @@
     <IntDir>..\..\..\..\..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>hiredis</TargetName>
+    <TargetName>hiredis_d</TargetName>
+    <OutDir>../../../../../../libs\</OutDir>
+    <IntDir>..\..\..\..\..\..\_objs\$(ProjectName)_d\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>hiredis_d</TargetName>
@@ -120,6 +124,7 @@
       <PreprocessorDefinitions>_OFF_T_DEFINED;WIN32_IOCP;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

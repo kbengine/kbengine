@@ -30,12 +30,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <queue> 
 
+#include "common/timestamp.h"
 #include "thread/threadmutex.h"
 
 namespace KBEngine{
 
-#define OBJECT_POOL_INIT_SIZE	16
-#define OBJECT_POOL_INIT_MAX_SIZE	OBJECT_POOL_INIT_SIZE * 16
+#define OBJECT_POOL_INIT_SIZE			16
+#define OBJECT_POOL_INIT_MAX_SIZE		OBJECT_POOL_INIT_SIZE * 1024
+
+// 每5分钟检查一次瘦身
+#define OBJECT_POOL_REDUCING_TIME_OUT	300 * stampsPerSecondD()
 
 template< typename T >
 class SmartPoolObject;
@@ -45,7 +49,7 @@ class SmartPoolObject;
 	这个对象池对通过服务端峰值有效的预估提前创建出一些对象缓存起来，在用到的时候直接从对象池中
 	获取一个未被使用的对象即可。
 */
-template< typename T >
+template< typename T, typename THREADMUTEX = KBEngine::thread::ThreadMutexNull >
 class ObjectPool
 {
 public:
@@ -55,10 +59,11 @@ public:
 		objects_(),
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
 		isDestroyed_(false),
-		mutex_(),
+		pMutex_(new THREADMUTEX()),
 		name_(name),
 		total_allocs_(0),
-		obj_count_(0)
+		obj_count_(0),
+		lastReducingCheckTime_(timestamp())
 	{
 	}
 
@@ -66,21 +71,23 @@ public:
 		objects_(),
 		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false),
-		mutex_(),
+		pMutex_(new THREADMUTEX()),
 		name_(name),
 		total_allocs_(0),
-		obj_count_(0)
+		obj_count_(0),
+		lastReducingCheckTime_(timestamp())
 	{
 	}
 
 	~ObjectPool()
 	{
 		destroy();
+		SAFE_RELEASE(pMutex_);
 	}	
 	
 	void destroy()
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		isDestroyed_ = true;
 
@@ -95,10 +102,24 @@ public:
 				
 		objects_.clear();	
 		obj_count_ = 0;
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
-	const OBJECTS& objects(void) const { return objects_; }
+	const OBJECTS& objects(void) const 
+	{ 
+		return objects_; 
+	}
+
+	void pMutex(KBEngine::thread::ThreadMutexNull* pMutex)
+	{
+		SAFE_RELEASE(pMutex_);
+		pMutex_ = pMutex;
+	}
+
+	KBEngine::thread::ThreadMutexNull* pMutex()
+	{
+		return pMutex_;
+	}
 
 	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
 	{
@@ -116,7 +137,7 @@ public:
 	template<typename T1>
 	T* createObject(void)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		while(true)
 		{
@@ -126,14 +147,14 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
-				mutex_.unlockMutex();
+				pMutex_->unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 
 		return NULL;
 	}
@@ -144,7 +165,7 @@ public:
 	*/
 	T* createObject(void)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		while(true)
 		{
@@ -154,14 +175,14 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
-				mutex_.unlockMutex();
+				pMutex_->unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 
 		return NULL;
 	}
@@ -171,9 +192,9 @@ public:
 	*/
 	void reclaimObject(T* obj)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 		reclaimObject_(obj);
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
 	/**
@@ -181,7 +202,7 @@ public:
 	*/
 	void reclaimObject(std::list<T*>& objs)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		typename std::list< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); ++iter)
@@ -191,7 +212,7 @@ public:
 		
 		objs.clear();
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
 	/**
@@ -199,7 +220,7 @@ public:
 	*/
 	void reclaimObject(std::vector< T* >& objs)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		typename std::vector< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); ++iter)
@@ -209,7 +230,7 @@ public:
 		
 		objs.clear();
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
 	/**
@@ -217,7 +238,7 @@ public:
 	*/
 	void reclaimObject(std::queue<T*>& objs)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		while(!objs.empty())
 		{
@@ -226,29 +247,29 @@ public:
 			reclaimObject_(t);
 		}
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
-	size_t size(void) const{ return obj_count_; }
+	size_t size(void) const { return obj_count_; }
 	
 	std::string c_str()
 	{
 		char buf[1024];
 
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
 			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed ? "true" : "false"));
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 
 		return buf;
 	}
 
-	size_t max() const{ return max_; }
-	size_t totalAllocs() const{ return total_allocs_; }
+	size_t max() const { return max_; }
+	size_t totalAllocs() const { return total_allocs_; }
 
-	bool isDestroyed() const{ return isDestroyed_; }
+	bool isDestroyed() const { return isDestroyed_; }
 
 protected:
 	/**
@@ -272,6 +293,30 @@ protected:
 				++obj_count_;
 			}
 		}
+
+		uint64 now_timestamp = timestamp();
+
+		if (obj_count_ <= OBJECT_POOL_INIT_SIZE)
+		{
+			// 小于等于则刷新检查时间
+			lastReducingCheckTime_ = now_timestamp;
+		}
+		else if (lastReducingCheckTime_ - now_timestamp > OBJECT_POOL_REDUCING_TIME_OUT)
+		{
+			// 长时间大于OBJECT_POOL_INIT_SIZE未使用的对象则开始做清理工作
+			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(obj_count_ - OBJECT_POOL_INIT_SIZE)));
+			
+			while (reducing-- > 0)
+			{
+				T* t = static_cast<T*>(*objects_.begin());
+				objects_.pop_front();
+				delete t;
+
+				--obj_count_;
+			}
+
+			lastReducingCheckTime_ = now_timestamp;
+		}
 	}
 
 protected:
@@ -283,7 +328,7 @@ protected:
 
 	// 一些原因导致锁还是有必要的
 	// 例如：dbmgr任务线程中输出log，cellapp中加载navmesh后的线程回调导致的log输出
-	KBEngine::thread::ThreadMutex mutex_;
+	THREADMUTEX* pMutex_;
 
 	std::string name_;
 
@@ -292,6 +337,10 @@ protected:
 	// Linux环境中，list.size()使用的是std::distance(begin(), end())方式来获得
 	// 会对性能有影响，这里我们自己对size做一个记录
 	size_t obj_count_;
+
+	// 最后一次瘦身检查时间
+	// 如果长达OBJECT_POOL_REDUCING_TIME_OUT大于OBJECT_POOL_INIT_SIZE，则最多瘦身OBJECT_POOL_INIT_SIZE个
+	uint64 lastReducingCheckTime_;
 };
 
 /*
@@ -367,7 +416,7 @@ private:
 };
 
 
-#define NEW_POOL_OBJECT(TYPE) TYPE::ObjPool().createObject();
+#define NEW_POOL_OBJECT(TYPE) TYPE::createPoolObject();
 
 
 }

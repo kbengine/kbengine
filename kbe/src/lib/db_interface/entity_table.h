@@ -35,6 +35,7 @@ class ScriptDefModule;
 class DataType;
 class PropertyDescription;
 class EntityTable;
+class EntityTables;
 class MemoryStream;
 
 #define TABLE_ITEM_TYPE_UNKONWN		0
@@ -109,37 +110,37 @@ public:
 	{
 	};
 
-	virtual ~EntityTableItem(){};
+	virtual ~EntityTableItem() {};
 
-	virtual bool isSameKey(std::string key){ return itemName() == key; }
+	virtual bool isSameKey(std::string key) { return itemName() == key; }
 
-	virtual uint8 type() const{ return TABLE_ITEM_TYPE_UNKONWN; }
+	virtual uint8 type() const { return TABLE_ITEM_TYPE_UNKONWN; }
 
-	void itemName(std::string name){ itemName_ = name; }
-	const char* itemName(){ return itemName_.c_str(); }
+	void itemName(std::string name) { itemName_ = name; }
+	const char* itemName() { return itemName_.c_str(); }
 
-	void indexType(std::string index){ indexType_ = index; }
-	const char* indexType(){ return indexType_.c_str(); }
+	void indexType(std::string index) { indexType_ = index; }
+	const char* indexType() { return indexType_.c_str(); }
 	
-	const char* itemDBType(){ return itemDBType_.c_str(); }
+	const char* itemDBType() { return itemDBType_.c_str(); }
 
-	void utype(int32/*ENTITY_PROPERTY_UID*/ utype){ utype_ = utype; }
-	int32 utype(){ return utype_; }
+	void utype(int32/*ENTITY_PROPERTY_UID*/ utype) { utype_ = utype; }
+	int32 utype() const { return utype_; }
 
-	void flags(uint32 f){ flags_ = f; }
-	uint32 flags(){ return flags_; }
+	void flags(uint32 f) { flags_ = f; }
+	uint32 flags() const { return flags_; }
 
-	void pParentTable(EntityTable* v){ pParentTable_ = v; }
-	EntityTable* pParentTable(){ return pParentTable_; }
+	void pParentTable(EntityTable* v) { pParentTable_ = v; }
+	EntityTable* pParentTable() { return pParentTable_; }
 
-	void pParentTableItem(EntityTableItem* v){ pParentTableItem_ = v; }
-	EntityTableItem* pParentTableItem(){ return pParentTableItem_; }
+	void pParentTableItem(EntityTableItem* v) { pParentTableItem_ = v; }
+	EntityTableItem* pParentTableItem() { return pParentTableItem_; }
 
-	const DataType* pDataType(){ return pDataType_; }
+	const DataType* pDataType() { return pDataType_; }
 
-	uint32 datalength() const{ return datalength_; }
+	uint32 datalength() const { return datalength_; }
 
-	const PropertyDescription* pPropertyDescription() const{ return pPropertyDescription_; }
+	const PropertyDescription* pPropertyDescription() const { return pPropertyDescription_; }
 
 	/**
 		初始化
@@ -147,8 +148,8 @@ public:
 	virtual bool initialize(const PropertyDescription* pPropertyDescription, 
 		const DataType* pDataType, std::string itemName) = 0;
 
-	void tableName(std::string name){ tableName_ = name; }
-	const char* tableName(){ return tableName_.c_str(); }
+	void tableName(std::string name) { tableName_ = name; }
+	const char* tableName() { return tableName_.c_str(); }
 
 	/**
 		同步entity表到数据库中
@@ -192,12 +193,13 @@ class EntityTable
 public:
 	typedef std::map<int32/*ENTITY_PROPERTY_UID*/, KBEShared_ptr<EntityTableItem> > TABLEITEM_MAP;
 
-	EntityTable():
+	EntityTable(EntityTables* pEntityTables) :
 	tableName_(),
 	tableItems_(),
 	tableFixedOrderItems_(),
 	isChild_(false),
-	sync_(false)
+	sync_(false),
+	pEntityTables_(pEntityTables)
 	{
 	};
 
@@ -224,7 +226,7 @@ public:
 	/** 
 		创建一个表item
 	*/
-	virtual EntityTableItem* createItem(std::string type) = 0;
+	virtual EntityTableItem* createItem(std::string type, std::string defaultVal) = 0;
 
 	/** 
 		获得所有表字段
@@ -267,6 +269,9 @@ public:
 	virtual void queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule* pModule, 
 		ENTITY_ID start, ENTITY_ID end, std::vector<DBID>& outs){}
 
+	EntityTables* pEntityTables() const { return pEntityTables_; }
+	void pEntityTables(EntityTables* v){ pEntityTables_ = v; }
+
 protected:
 
 	// 表名称
@@ -282,18 +287,27 @@ protected:
 	bool isChild_; 
 
 	bool sync_;
+
+	EntityTables* pEntityTables_;
 };
 
-class EntityTables : public Singleton<EntityTables>
+class EntityTables
 {
 public:
+	typedef KBEUnordered_map<std::string, EntityTables> ENTITY_TABLES_MAP;
+	static ENTITY_TABLES_MAP sEntityTables;
+	static EntityTables& findByInterfaceName(const std::string& dbInterfaceName);
+
 	typedef KBEUnordered_map<std::string, KBEShared_ptr<EntityTable> > TABLES_MAP;
 	EntityTables();
 	virtual ~EntityTables();
 	
 	bool load(DBInterface* pdbi);
-
 	bool syncToDB(DBInterface* pdbi);
+
+	void dbInterfaceName(const std::string& dbInterfaceName){
+		dbInterfaceName_ = dbInterfaceName;
+	}
 
 	/** 
 		获得所有表
@@ -338,6 +352,8 @@ protected:
 
 	int numSyncTables_;
 	bool syncTablesError_;
+
+	std::string dbInterfaceName_;
 };
 
 }

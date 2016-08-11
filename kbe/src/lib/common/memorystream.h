@@ -72,6 +72,7 @@ class MemoryStreamException
 */
 class MemoryStream : public PoolObject
 {
+public:
 	union PackFloatXType
 	{
 		float	fv;
@@ -81,6 +82,8 @@ class MemoryStream : public PoolObject
 
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
+	static MemoryStream* createPoolObject();
+	static void reclaimPoolObject(MemoryStream* obj);
 	static void destroyObjPool();
 
 	typedef KBEShared_ptr< SmartPoolObject< MemoryStream > > SmartPoolObjectPtr;
@@ -133,8 +136,8 @@ public:
 	{
 		size_t rpos = s.rpos(), wpos = s.wpos();
 		std::swap(data_, s.data_);
-		s.rpos(rpos_);
-		s.wpos(wpos_);
+		s.rpos((int)rpos_);
+		s.wpos((int)wpos_);
 		rpos_ = rpos;
 		wpos_ = wpos;
 	}
@@ -501,6 +504,7 @@ public:
 
     void resize(size_t newsize)
     {
+    	KBE_ASSERT(newsize <= 1310700);
         data_.resize(newsize);
         rpos_ = 0;
         wpos_ = size();
@@ -508,11 +512,14 @@ public:
 
     void data_resize(size_t newsize)
     {
+    	KBE_ASSERT(newsize <= 1310700);
         data_.resize(newsize);
     }
 
     void reserve(size_t ressize)
     {
+    	KBE_ASSERT(ressize <= 1310700);
+
         if (ressize > size())
             data_.reserve(ressize);
     }
@@ -527,12 +534,21 @@ public:
 
 	void appendBlob(const std::string& datas)
     {
-		ArraySize len = datas.size();
+		ArraySize len = (ArraySize)datas.size();
 		(*this) << len;
 
 		if(len > 0)
 			append(datas.data(), len);
     }
+
+	void appendBlob(const MemoryStream *stream)
+	{
+		ArraySize len = (ArraySize)stream->length();
+		(*this) << len;
+
+		if (len > 0)
+			append(*stream);
+	}
 
     void append(const std::string& str)
     {
@@ -701,7 +717,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = rpos(); i < wpos(); ++i)
+        for(size_t i = rpos(); i < wpos(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%u ", read<uint8>(i));
 			fbuffer += buf;
@@ -723,7 +739,7 @@ public:
 		kbe_snprintf(buf, 1024, "STORAGE_SIZE: %lu, rpos=%lu.\n", (unsigned long)wpos(), (unsigned long)rpos());
 		fbuffer += buf;
 
-        for(uint32 i = rpos(); i < wpos(); ++i)
+		for (size_t i = rpos(); i < wpos(); ++i)
 		{
 			kbe_snprintf(buf, 1024, "%c", read<uint8>(i));
 			fbuffer += buf;
@@ -746,7 +762,7 @@ public:
 		fbuffer += buf;
 		
 		uint32 i = 0;
-        for(uint32 idx = rpos(); idx < wpos(); ++idx)
+		for (size_t idx = rpos(); idx < wpos(); ++idx)
         {
 			++i;
             if ((i == (j * 8)) && ((i != (k * 16))))
@@ -909,8 +925,8 @@ inline void MemoryStream::read_skip<std::string>()
 }
 
 // 从对象池中创建与回收 
-#define NEW_MEMORY_STREAM() MemoryStream::ObjPool().createObject()
-#define DELETE_MEMORY_STREAM(obj) { MemoryStream::ObjPool().reclaimObject(obj); obj = NULL; }
+#define NEW_MEMORY_STREAM() MemoryStream::createPoolObject()
+#define DELETE_MEMORY_STREAM(obj) { MemoryStream::reclaimPoolObject(obj); obj = NULL; }
 
 }
 #endif

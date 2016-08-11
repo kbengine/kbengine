@@ -31,13 +31,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
 
+#ifndef CODE_INLINE
+#include "entitymailboxabstract.inl"
+#endif
+
 namespace KBEngine{
 
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityMailboxAbstract)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",				reduce_ex__,			METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
-
 
 SCRIPT_MEMBER_DECLARE_BEGIN(EntityMailboxAbstract)
 SCRIPT_MEMBER_DECLARE_END()
@@ -145,7 +148,7 @@ bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 			addr_.c_str(), id_));
 	}
 
-	Network::Bundle::ObjPool().reclaimObject(pBundle);
+	Network::Bundle::reclaimPoolObject(pBundle);
 	return false;
 }
 

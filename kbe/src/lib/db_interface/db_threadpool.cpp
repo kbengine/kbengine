@@ -29,16 +29,17 @@ namespace KBEngine{
 class DBThread : public thread::TPThread
 {
 public:
-	DBThread(thread::ThreadPool* threadPool, int threadWaitSecond = 0):
+	DBThread(const std::string& dbinterfaceName, thread::ThreadPool* threadPool, int threadWaitSecond = 0) :
 	thread::TPThread(threadPool, threadWaitSecond),
-	_pDBInterface(NULL)
+	_pDBInterface(NULL),
+	dbinterfaceName_(dbinterfaceName)
 	{
 	}
 
 	virtual void onStart()
 	{
-		DBUtil::initThread();
-		_pDBInterface = DBUtil::createInterface(false);
+		DBUtil::initThread(dbinterfaceName_);
+		_pDBInterface = DBUtil::createInterface(dbinterfaceName_.c_str(), false);
 		if(_pDBInterface == NULL)
 		{
 			ERROR_MSG("DBThread:: can't create dbinterface!\n");
@@ -53,7 +54,7 @@ public:
 		{
 			_pDBInterface->detach();
 			SAFE_RELEASE(_pDBInterface);
-			DBUtil::finiThread();
+			DBUtil::finiThread(dbinterfaceName_);
 		}
 
 		DEBUG_MSG(fmt::format("DBThread::onEnd(): {0:p}!\n", (void*)this));
@@ -108,11 +109,13 @@ public:
 
 private:
 	DBInterface* _pDBInterface;
+	std::string dbinterfaceName_;
 };
 
 //-------------------------------------------------------------------------------------
-DBThreadPool::DBThreadPool():
-thread::ThreadPool()
+DBThreadPool::DBThreadPool(const std::string& dbinterfaceName) :
+thread::ThreadPool(),
+dbinterfaceName_(dbinterfaceName)
 {
 }
 
@@ -124,7 +127,7 @@ DBThreadPool::~DBThreadPool()
 //-------------------------------------------------------------------------------------
 thread::TPThread* DBThreadPool::createThread(int threadWaitSecond)
 {
-	DBThread* tptd = new DBThread(this, threadWaitSecond);
+	DBThread* tptd = new DBThread(dbinterfaceName_, this, threadWaitSecond);
 	tptd->createThread();
 	return tptd;
 }	

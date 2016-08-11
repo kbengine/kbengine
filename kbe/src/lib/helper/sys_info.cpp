@@ -47,8 +47,16 @@ bool hasPID(int pid, sigar_proc_list_t* proclist)
 	for (size_t i = 0; i < proclist->number; i++)
 	{
 		sigar_pid_t cpid = proclist->data[i];
-		if(cpid == pid)
+		if (cpid == pid)
+		{
+			sigar_proc_state_t procstate;
+			if (sigar_proc_state_get(_g_sigarproclist, pid, &procstate) != SIGAR_OK)
+			{
+				return false;
+			}
+
 			return true;
+		}
 	}
 
 	return false;
@@ -111,8 +119,6 @@ bool SystemInfo::_autocreate()
 //-------------------------------------------------------------------------------------
 bool SystemInfo::hasProcess(uint32 pid)
 {
-	clear();
-
     if(!_autocreate())
 		return false;
 
@@ -161,8 +167,6 @@ uint32 SystemInfo::countCPU()
 //-------------------------------------------------------------------------------------
 SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
 {
-	clear();
-
 	PROCESS_INFOS infos;
 	infos.cpu = 0.f;
 	infos.memused = 0;
@@ -176,7 +180,7 @@ SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: error: not found pid({})\n", pid));
+		//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: error: not found pid({})\n", pid));
 		
 		if(!tryed)
 		{
@@ -185,11 +189,22 @@ _TRYGET:
 			tryed = true;
 			infos.error = true;
 
+			//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: try to find the pid({})\n", pid));
+
 			if(_autocreate())
 				goto _TRYGET;
 		}
 
 		goto _END;
+	}
+	else
+	{
+		if (tryed)
+		{
+			//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: found pid({})\n", pid));
+		}
+
+		infos.error = false;
 	}
 
 	infos.cpu = getCPUPerByPID(pid);
@@ -375,7 +390,7 @@ _TRYGET:
         status = sigar_proc_state_get(_g_sigarproclist, pid, &pstate);
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(fmt::format("error: {} ({}) proc_state({})\n",
+			DEBUG_MSG(fmt::format("error: {} ({}) proc_state({})\n",
                    status, sigar_strerror(_g_sigarproclist, status), pid));
 			
 			goto _END;
@@ -384,7 +399,7 @@ _TRYGET:
         status = sigar_proc_time_get(_g_sigarproclist, pid, &ptime);
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(fmt::format("error: {} ({}) proc_time({})\n",
+			DEBUG_MSG(fmt::format("error: {} ({}) proc_time({})\n",
                    status, sigar_strerror(_g_sigarproclist, status), pid));
 
            goto _END;
@@ -395,7 +410,7 @@ _TRYGET:
 
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(fmt::format("error: {} ({}) sigar_proc_mem_get({})\n",
+			DEBUG_MSG(fmt::format("error: {} ({}) sigar_proc_mem_get({})\n",
                    status, sigar_strerror(_g_sigarproclist, status), pid));
             
 			goto _END;

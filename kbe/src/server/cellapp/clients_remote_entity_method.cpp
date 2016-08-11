@@ -92,16 +92,23 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	// 先发给自己
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
 		if((!otherClients_ && (pEntity->pWitness() || (pEntity->clientMailbox()))))
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-			pEntity->clientMailbox()->newMail((*pBundle));
+			Network::Bundle* pSendBundle = NULL;
+			Network::Channel* pChannel = pEntity->clientMailbox()->getChannel();
+
+			if (!pChannel)
+				pSendBundle = Network::Bundle::createPoolObject();
+			else
+				pSendBundle = pChannel->createSendBundle();
+
+			pEntity->clientMailbox()->newMail((*pSendBundle));
 
 			if(mstream->wpos() > 0)
-				(*pBundle).append(mstream->data(), mstream->wpos());
+				(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
 
 			if(Network::g_trace_packet > 0)
 			{
@@ -110,34 +117,34 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteMethodCall({}::{})\n", 
 					pEntity->scriptName(), methodDescription->getName()));
-																									
-				switch(Network::g_trace_packet)																	
-				{																								
-				case 1:																							
-					mstream->hexlike();																			
-					break;																						
-				case 2:																							
-					mstream->textlike();																			
-					break;																						
-				default:																						
-					mstream->print_storage();																	
-					break;																						
-				};																								
+
+				switch(Network::g_trace_packet)
+				{
+				case 1:
+					mstream->hexlike();
+					break;
+				case 2:
+					mstream->textlike();
+					break;
+				default:
+					mstream->print_storage();
+					break;
+				};
 
 				if(Network::g_trace_packet_use_logfile)	
-					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
+					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
 			}
 
-			//mailbox->postMail((*pBundle));
-			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
-
 			// 记录这个事件产生的数据量大小
-			g_publicClientEventHistoryStats.trackEvent(pEntity->scriptName(), 
-				methodDescription->getName(), 
-				pBundle->currMsgLength(), 
+			g_publicClientEventHistoryStats.trackEvent(pEntity->scriptName(),
+				methodDescription->getName(),
+				pSendBundle->currMsgLength(),
 				"::");
+
+			//mailbox->postMail((*pBundle));
+			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pSendBundle);
 		}
-		
+
 		// 广播给其他人
 		std::list<ENTITY_ID>::const_iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
@@ -158,15 +165,30 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			// 又如自己的entity还未在目标客户端上创建
 			if (!pAoiEntity->pWitness()->entityInAOI(pEntity->id()))
 				continue;
-
-			Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-			Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
 			
-			pAoiEntity->pWitness()->addSmartAOIEntityMessageToBundle(pForwardBundle, ClientInterface::onRemoteMethodCall, 
-					ClientInterface::onRemoteMethodCallOptimized, pEntity->id());
+			Network::Bundle* pSendBundle = pChannel->createSendBundle();
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pAoiEntity->id(), (*pSendBundle));
+			
+			int ialiasID = -1;
+			const Network::MessageHandler& msgHandler = 
+			pAoiEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onRemoteMethodCall, 
+					ClientInterface::onRemoteMethodCallOptimized, pEntity->id(), ialiasID);
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
+
+			if(ialiasID != -1)
+			{
+				KBE_ASSERT(msgHandler.msgID == ClientInterface::onRemoteMethodCallOptimized.msgID);
+				(*pSendBundle)  << (uint8)ialiasID;
+			}
+			else
+			{
+				KBE_ASSERT(msgHandler.msgID == ClientInterface::onRemoteMethodCall.msgID);
+				(*pSendBundle)  << pEntity->id();
+			}
 
 			if(mstream->wpos() > 0)
-				(*pForwardBundle).append(mstream->data(), mstream->wpos());
+				(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
 
 			if(Network::g_trace_packet > 0)
 			{
@@ -175,39 +197,36 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 				DEBUG_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: pushUpdateData: ClientInterface::onRemoteOtherEntityMethodCall({}::{})\n", 
 					pAoiEntity->scriptName(), methodDescription->getName()));
-																									
-				switch(Network::g_trace_packet)																	
-				{																								
-				case 1:																							
-					mstream->hexlike();																			
-					break;																						
-				case 2:																							
-					mstream->textlike();																			
-					break;																						
-				default:																						
-					mstream->print_storage();																	
-					break;																						
-				};																								
 
-				if(Network::g_trace_packet_use_logfile)	
-					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
+				switch(Network::g_trace_packet)	
+				{
+				case 1:
+					mstream->hexlike();
+					break;
+				case 2:
+					mstream->textlike();
+					break;
+				default:
+					mstream->print_storage();
+					break;
+				};
+
+				if(Network::g_trace_packet_use_logfile)
+					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
 			}
 
-			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pAoiEntity->id(), (*pSendBundle), (*pForwardBundle));
-
-			//mailbox->postMail((*pBundle));
-			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, aOIEntityMessage);
 
 			// 记录这个事件产生的数据量大小
 			g_publicClientEventHistoryStats.trackEvent(pAoiEntity->scriptName(), 
 				methodDescription->getName(), 
-				pForwardBundle->currMsgLength(), 
+				pSendBundle->currMsgLength(), 
 				"::");
 
-			Network::Bundle::ObjPool().reclaimObject(pForwardBundle);
+			pAoiEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCallOptimized, pSendBundle);
 		}
 
-		MemoryStream::ObjPool().reclaimObject(mstream);
+		MemoryStream::reclaimPoolObject(mstream);
 	}
 
 	S_Return;

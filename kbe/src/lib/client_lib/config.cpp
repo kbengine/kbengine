@@ -44,7 +44,8 @@ fileName_(),
 useLastAccountName_(false),
 telnet_port(0),
 telnet_passwd(),
-telnet_deflayer()
+telnet_deflayer(),
+isOnInitCallPropertysSetMethods_(true)
 {
 }
 
@@ -105,6 +106,10 @@ bool Config::loadConfig(std::string fileName)
 					if(c.size() > 0)
 					{
 						Network::g_trace_packet_disables.push_back(c);
+
+						// ²»debug¼ÓÃÜ°ü
+						if(c == "Encrypted::packets")
+							Network::g_trace_encrypted_packet = false;
 					}
 				}
 			}while((childnode = childnode->NextSibling()));
@@ -337,6 +342,10 @@ bool Config::loadConfig(std::string fileName)
 	if(rootNode != NULL){
 		EntityDef::entitydefAliasID((xml->getValStr(rootNode) == "true"));
 	}
+
+	rootNode = xml->getRootNode("isOnInitCallPropertysSetMethods");
+	if (rootNode != NULL)
+		isOnInitCallPropertysSetMethods_ = (xml->getValStr(rootNode) == "true");
 
 	return true;
 }

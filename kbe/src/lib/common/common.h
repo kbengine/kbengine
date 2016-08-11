@@ -364,7 +364,7 @@ inline bool validName(const char* name, int size)
 
 inline bool validName(const std::string& name)
 {
-	return validName(name.c_str(), name.size());
+	return validName(name.c_str(), (int)name.size());
 }
 
 /** 检查email地址合法性 
@@ -381,7 +381,7 @@ inline bool email_isvalid(const char *address)
 	std::tr1::regex _mail_pattern("([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)");
 	return std::tr1::regex_match(accountName, _mail_pattern);
 #endif
-	int len = strlen(address);
+	int len = (int)strlen(address);
 	if(len <= 3)
 		return false;
 

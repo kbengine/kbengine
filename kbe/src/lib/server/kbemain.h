@@ -49,14 +49,14 @@ inline void START_MSG(const char * name, uint64 appuid)
 			"Version: {}. "
 			"ScriptVersion: {}. "
 			"Protocol: {}. "
-			"Config: {}. "
+			"Config: {} {}. "
 			"Built: {} {}. "
 			"AppID: {}. "
 			"UID: {}. "
 			"PID: {} ----\n",
 		name, KBEVersion::versionString(), KBEVersion::scriptVersionString(),
 		Network::MessageHandlers::getDigestStr(),
-		KBE_CONFIG, __TIME__, __DATE__,
+		KBE_CONFIG, KBE_ARCH, __TIME__, __DATE__,
 		appuid, getUserUID(), getProcessPID()));
 
 	INFO_MSG(s);
@@ -166,7 +166,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	if(!app.initialize())
 	{
-		ERROR_MSG("app::initialize() is error!\n");
+		ERROR_MSG("app::initialize(): initialization failed!\n");
 
 		Components::getSingleton().finalise();
 		app.finalise();
@@ -250,6 +250,38 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				catch(...)
 				{
 					ERROR_MSG("parseCommandArgs: --gus=? invalid, no set! type is uint16\n");
+				}
+			}
+
+			continue;
+		}
+
+		findcmd = "--hide=";
+		fi1 = cmd.find(findcmd);
+		if (fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if (cmd.size() > 0)
+			{
+				int32 hide = 0;
+				try
+				{
+					StringConv::str2value(hide, cmd.c_str());
+				}
+				catch (...)
+				{
+					ERROR_MSG("parseCommandArgs: --hide=? invalid, no set! type is int8\n");
+				}
+
+				if (hide > 0)
+				{
+#if KBE_PLATFORM == PLATFORM_WIN32
+					TCHAR strTitle[255];
+					GetConsoleTitle(strTitle, 255);
+					HWND hw = ::FindWindow(L"ConsoleWindowClass", strTitle);
+					ShowWindow(hw, SW_HIDE);
+#else
+#endif
 				}
 			}
 

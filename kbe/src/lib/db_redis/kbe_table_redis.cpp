@@ -103,8 +103,8 @@ bool KBEEntityLogTableRedis::eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTIT
 }
 
 //-------------------------------------------------------------------------------------
-KBEEntityLogTableRedis::KBEEntityLogTableRedis():
-	KBEEntityLogTable()
+KBEEntityLogTableRedis::KBEEntityLogTableRedis(EntityTables* pEntityTables) :
+KBEEntityLogTable(pEntityTables)
 {
 }
 
@@ -115,8 +115,8 @@ bool KBEAccountTableRedis::syncToDB(DBInterface* pdbi)
 }
 
 //-------------------------------------------------------------------------------------
-KBEAccountTableRedis::KBEAccountTableRedis():
-	KBEAccountTable()
+KBEAccountTableRedis::KBEAccountTableRedis(EntityTables* pEntityTables) :
+KBEAccountTable(pEntityTables)
 {
 }
 
@@ -263,8 +263,8 @@ bool KBEAccountTableRedis::logAccount(DBInterface * pdbi, ACCOUNT_INFOS& info)
 }
 
 //-------------------------------------------------------------------------------------
-KBEEmailVerificationTableRedis::KBEEmailVerificationTableRedis():
-KBEEmailVerificationTable()
+KBEEmailVerificationTableRedis::KBEEmailVerificationTableRedis(EntityTables* pEntityTables) :
+KBEEmailVerificationTable(pEntityTables)
 {
 }
 	
@@ -467,7 +467,7 @@ bool KBEEmailVerificationTableRedis::activateAccount(DBInterface * pdbi, const s
 	std::string password = info.password;
 
 	// 寻找dblog是否有此账号
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::findByInterfaceName(pdbi->name()).findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 	
 	info.flags = 0;
@@ -508,7 +508,7 @@ bool KBEEmailVerificationTableRedis::activateAccount(DBInterface * pdbi, const s
 	// 防止多线程问题， 这里做一个拷贝。
 	MemoryStream copyAccountDefMemoryStream(pTable->accountDefMemoryStream());
 
-	info.dbid = EntityTables::getSingleton().writeEntity(pdbi, 0, -1,
+	info.dbid = EntityTables::findByInterfaceName(pdbi->name()).writeEntity(pdbi, 0, -1,
 			&copyAccountDefMemoryStream, pModule);
 
 	KBE_ASSERT(info.dbid > 0);
@@ -685,7 +685,7 @@ bool KBEEmailVerificationTableRedis::resetpassword(DBInterface * pdbi, const std
 	}
 	
 	// 寻找dblog是否有此账号
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::getSingleton().findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(EntityTables::findByInterfaceName(pdbi->name()).findKBETable("kbe_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	if(!pTable->updatePassword(pdbi, qname, KBE_MD5::getDigest(password.data(), password.length())))

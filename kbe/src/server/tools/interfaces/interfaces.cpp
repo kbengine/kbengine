@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadpool.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
-#include "server/py_file_descriptor.h"
 
 #include "baseapp/baseapp_interface.h"
 #include "cellapp/cellapp_interface.h"
@@ -44,47 +43,6 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Interfaces);
 
-/**
-	内部定时器处理类
-*/
-class ScriptTimerHandler : public TimerHandler
-{
-public:
-	ScriptTimerHandler(ScriptTimers* scriptTimers, PyObject * callback) :
-		pyCallback_(callback),
-		scriptTimers_(scriptTimers)
-	{
-	}
-
-	~ScriptTimerHandler()
-	{
-		Py_DECREF(pyCallback_);
-	}
-
-private:
-	virtual void handleTimeout(TimerHandle handle, void * pUser)
-	{
-		int id = ScriptTimersUtil::getIDForHandle(scriptTimers_, handle);
-
-		PyObject *pyRet = PyObject_CallFunction(pyCallback_, "i", id);
-		if (pyRet == NULL)
-		{
-			SCRIPT_ERROR_CHECK();
-			return;
-		}
-		return;
-	}
-
-	virtual void onRelease(TimerHandle handle, void * /*pUser*/)
-	{
-		scriptTimers_->releaseTimer(handle);
-		delete this;
-	}
-
-	PyObject* pyCallback_;
-	ScriptTimers* scriptTimers_;
-};
-
 
 //-------------------------------------------------------------------------------------
 Interfaces::Interfaces(Network::EventDispatcher& dispatcher, 
@@ -95,10 +53,8 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 	mainProcessTimer_(),
 	reqCreateAccount_requests_(),
 	reqAccountLogin_requests_(),
-	scriptTimers_(),
 	pTelnetServer_(NULL)
 {
-	ScriptTimers::initialize(*this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -137,8 +93,6 @@ void Interfaces::onShutdownBegin()
 	// 通知脚本
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onInterfaceAppShutDown"));
-	
-	scriptTimers_.cancelAll();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -156,6 +110,8 @@ bool Interfaces::run()
 //-------------------------------------------------------------------------------------
 void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 {
+	PythonApp::handleTimeout(handle, arg);
+
 	switch (reinterpret_cast<uintptr>(arg))
 	{
 		case TIMEOUT_TICK:
@@ -164,8 +120,6 @@ void Interfaces::handleTimeout(TimerHandle handle, void * arg)
 		default:
 			break;
 	}
-
-	PythonApp::handleTimeout(handle, arg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -174,9 +128,7 @@ void Interfaces::handleMainTick()
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Interfaces::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
-	g_kbetime++;
 	threadPool_.onMainThreadTick();
-	handleTimers();
 	networkInterface().processChannels(&InterfacesInterface::messageHandlers);
 }
 
@@ -198,6 +150,8 @@ bool Interfaces::inInitialize()
 //-------------------------------------------------------------------------------------
 bool Interfaces::initializeEnd()
 {
+	PythonApp::initializeEnd();
+
 	mainProcessTimer_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							reinterpret_cast<void *>(TIMEOUT_TICK));
 
@@ -246,12 +200,6 @@ void Interfaces::onInstallPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,									METH_VARARGS,	0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,								METH_VARARGS,	0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,								METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,											METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS,	0);
-	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS,	0);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -263,8 +211,6 @@ bool Interfaces::initDB()
 //-------------------------------------------------------------------------------------
 void Interfaces::finalise()
 {
-	scriptTimers_.cancelAll();
-	ScriptTimers::finalise(*this);
 	PythonApp::finalise();
 }
 
@@ -328,7 +274,7 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("requestCreateAccount"), 
+										const_cast<char*>("onRequestCreateAccount"), 
 										const_cast<char*>("ssy#"), 
 										registerName.c_str(), 
 										password.c_str(),
@@ -349,17 +295,18 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 	{
 		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
 		ERROR_MSG(fmt::format("Interfaces::createAccountResponse: accountName '{}' not found!" \
-			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'\n", 
 			commitName, 
 			realAccountName, 
 			extraDatas, 
 			errorCode));
+
 		return;
 	}
 
 	CreateAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -376,7 +323,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 	else
 	{
 		ERROR_MSG(fmt::format("Interfaces::createAccountResponse: not found channel. commitName={}\n", commitName));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	// 清理
@@ -437,7 +384,7 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("requestAccountLogin"), 
+										const_cast<char*>("onRequestAccountLogin"), 
 										const_cast<char*>("ssy#"), 
 										loginName.c_str(), 
 										password.c_str(), 
@@ -458,17 +405,18 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 	{
 		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
 		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: commitName '{}' not found!" \
-			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'\n", 
 			commitName, 
 			realAccountName, 
 			extraDatas, 
 			errorCode));
+
 		return;
 	}
 
 	LoginAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	
 	(*pBundle).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -485,7 +433,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 	else
 	{
 		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: not found channel. commitName={}\n", commitName));
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	// 清理
@@ -549,7 +497,7 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("requestCharge"), 
+										const_cast<char*>("onRequestCharge"), 
 										const_cast<char*>("sKy#"), 
 										pOrdersCharge->ordersID.c_str(),
 										pOrdersCharge->dbid, 
@@ -567,16 +515,51 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 	ORDERS::iterator iter = orders_.find(orderID);
 	if (iter == orders_.end())
 	{
-		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
-		ERROR_MSG(fmt::format("Interfaces::chargeResponse: order id '{}' not found! extra datas = '{}', error code = '{}'", 
+		ERROR_MSG(fmt::format("Interfaces::chargeResponse: order id '{}' not found! extra datas = '{}', error code = '{}'\n", 
 			orderID, 
 			extraDatas, 
 			errorCode));
+		
+		// 这种情况也需要baseapp处理onLoseChargeCB
+		// 例如某些时候客户端出问题未向服务器注册这个订单号，但是计费平台有返回的情况
+		// 将订单发送给注册的所有的dbmgr
+		const Network::NetworkInterface::ChannelMap& channels = Interfaces::getSingleton().networkInterface().channels();
+		if(channels.size() > 0)
+		{
+			Network::NetworkInterface::ChannelMap::const_iterator channeliter = channels.begin();
+			for(; channeliter != channels.end(); ++channeliter)
+			{
+				Network::Channel* pChannel = channeliter->second;
+				if(pChannel)
+				{
+					COMPONENT_ID baseappID = 0;
+					DBID dbid = 0;
+					CALLBACK_ID cbid = 0;
+
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+
+					(*pBundle).newMessage(DbmgrInterface::onChargeCB);
+					(*pBundle) << baseappID << orderID << dbid;
+					(*pBundle).appendBlob(extraDatas);
+					(*pBundle) << cbid;
+					(*pBundle) << errorCode;
+					pChannel->send(pBundle);
+				}
+			}
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channels. orders={}, datas={}\n", 
+				orderID, extraDatas));
+		}
+
 		return;
 	}
 
 	KBEShared_ptr<Orders> orders = iter->second;
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	orders->getDatas = extraDatas;
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
 	(*pBundle) << orders->baseappID << orders->ordersID << orders->dbid;
@@ -588,17 +571,14 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 
 	if(pChannel)
 	{
-		WARNING_MSG(fmt::format("Interfaces::chargeResponse: orders={} commit is failed!\n", 
-			orders->ordersID));
-
 		pChannel->send(pBundle);
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channel. orders={}\n", 
-			orders->ordersID));
+		ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channels. orders={}, datas={}\n", 
+			orderID, extraDatas));
 
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 	}
 
 	orders_.erase(iter);
@@ -646,55 +626,6 @@ void Interfaces::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 		liter->second->enable = false;
 		DEBUG_MSG(fmt::format("Interfaces::eraseClientReq: reqAccountLogin_logkey={} set disabled!\n", logkey));
 	}
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Interfaces::__py_addTimer(PyObject* self, PyObject* args)
-{
-	float interval, repeat;
-	PyObject *callback;
-
-	if (!PyArg_ParseTuple(args, "ffO", &interval, &repeat, &callback))
-		S_Return;
-
-	if (!PyCallable_Check(callback))
-	{
-		PyErr_Format(PyExc_TypeError, "Interfaces::addTimer: '%.200s' object is not callable", callback->ob_type->tp_name);
-		PyErr_PrintEx(0);
-		S_Return;
-	}
-
-	ScriptTimers * pTimers = &Interfaces::getSingleton().scriptTimers();
-	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, callback);
-
-	int id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, 0, handler);
-
-	if (id == 0)
-	{
-		delete handler;
-		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
-		PyErr_PrintEx(0);
-		S_Return;
-	}
-
-	Py_INCREF(callback);
-	return PyLong_FromLong(id);
-}
-
-//-------------------------------------------------------------------------------------
-PyObject* Interfaces::__py_delTimer(PyObject* self, PyObject* args)
-{
-	ScriptID timerID;
-
-	if (!PyArg_ParseTuple(args, "i", &timerID))
-		return NULL;
-
-	if (!ScriptTimersUtil::delTimer(&Interfaces::getSingleton().scriptTimers(), timerID))
-	{
-		return PyLong_FromLong(-1);
-	}
-
-	return PyLong_FromLong(timerID);
 }
 
 //-------------------------------------------------------------------------------------

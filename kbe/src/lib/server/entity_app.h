@@ -125,7 +125,7 @@ public:
 	virtual void onSignalled(int sigNum);
 	
 	Entities<E>* pEntities() const{ return pEntities_; }
-	ArraySize entitiesSize() const { return pEntities_->size(); }
+	ArraySize entitiesSize() const { return (ArraySize)pEntities_->size(); }
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
@@ -237,12 +237,12 @@ protected:
 	EntityIDClient											idClient_;
 
 	// 存储所有的entity的容器
-	Entities<E>*											pEntities_;										
+	Entities<E>*											pEntities_;
 
 	TimerHandle												gameTimer_;
 
 	// globalData
-	GlobalDataClient*										pGlobalData_;									
+	GlobalDataClient*										pGlobalData_;
 
 	PY_CALLBACKMGR											pyCallbackMgr_;
 
@@ -357,7 +357,7 @@ bool EntityApp<E>::installEntityDef()
 	ScriptDefModule* pModule = EntityDef::findScriptModule(dbcfg.dbAccountEntityScriptType);
 	if(pModule == NULL)
 	{
-		ERROR_MSG(fmt::format("EntityApp::installEntityDef(): not found account script[{}], defined(kbengine_defs.xml->dbmgr->account_system->accountEntityScriptType and entities.xml)!\n", 
+		ERROR_MSG(fmt::format("EntityApp::installEntityDef(): not found account script[{}], defined(kbengine[_defs].xml->dbmgr->account_system->accountEntityScriptType and entities.xml)!\n", 
 			dbcfg.dbAccountEntityScriptType));
 
 		return false;
@@ -726,10 +726,14 @@ void EntityApp<E>::handleGameTick()
 	// time_t t = ::time(NULL);
 	// DEBUG_MSG("EntityApp::handleGameTick[%"PRTime"]:%u\n", t, time_);
 
-	g_kbetime++;
+	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	
+	{
+		AUTO_SCOPED_PROFILE("processRecvMessages");
+		networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	}
 }
 
 template<class E>
@@ -769,7 +773,7 @@ PyObject* EntityApp<E>::__py_getAppPublish(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
@@ -798,7 +802,7 @@ PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 
 	WATCHER_VALUE_TYPE wtype = pWobj->getType();
 	PyObject* pyval = NULL;
-	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	MemoryStream* stream = MemoryStream::createPoolObject();
 	pWobj->addToStream(stream);
 	WATCHER_ID id;
 	(*stream) >> id;
@@ -901,14 +905,14 @@ PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 		KBE_ASSERT(false && "no support!\n");
 	};
 
-	MemoryStream::ObjPool().reclaimObject(stream);
+	MemoryStream::reclaimPoolObject(stream);
 	return pyval;
 }
 
 template<class E>
 PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
@@ -942,7 +946,7 @@ PyObject* EntityApp<E>::__py_getWatcherDir(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
@@ -966,7 +970,7 @@ PyObject* EntityApp<E>::__py_setScriptLogType(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
@@ -993,7 +997,7 @@ PyObject* EntityApp<E>::__py_getResFullPath(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
@@ -1016,7 +1020,7 @@ PyObject* EntityApp<E>::__py_hasRes(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 2)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
@@ -1045,13 +1049,19 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	return openedFile;
 }
 
 template<class E>
 PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
@@ -1075,7 +1085,7 @@ PyObject* EntityApp<E>::__py_matchPath(PyObject* self, PyObject* args)
 template<class E>
 PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 {
-	int argCount = PyTuple_Size(args);
+	int argCount = (int)PyTuple_Size(args);
 	if(argCount < 1 || argCount > 2)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
@@ -1326,7 +1336,7 @@ void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Mem
 	}
 
 	// 将结果返回给客户端
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle((*pBundle), retbuf);

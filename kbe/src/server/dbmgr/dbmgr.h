@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/python_app.h"
 #include "server/idallocate.h"
 #include "server/serverconfig.h"
-#include "server/script_timers.h"
 #include "server/globaldata_client.h"
 #include "server/globaldata_server.h"
 #include "common/timer.h"
@@ -52,7 +51,7 @@ class Dbmgr :	public PythonApp,
 public:
 	enum TimeOutType
 	{
-		TIMEOUT_TICK = TIMEOUT_SERVERAPP_MAX + 1,
+		TIMEOUT_TICK = TIMEOUT_PYTHONAPP_MAX + 1,
 		TIMEOUT_CHECK_STATUS
 	};
 	
@@ -147,7 +146,7 @@ public:
 	/** 网络接口
 		entity-baseapp下线了
 	*/
-	void onEntityOffline(Network::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid);
+	void onEntityOffline(Network::Channel* pChannel, DBID dbid, ENTITY_SCRIPT_UID sid, uint16 dbInterfaceIndex);
 
 	/** 网络接口
 		执行数据库查询
@@ -177,7 +176,7 @@ public:
 	/** 网络接口
 		请求从db获取entity的所有数据
 	*/
-	void queryEntity(Network::Channel* pChannel, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
+	void queryEntity(Network::Channel* pChannel, uint16 dbInterfaceIndex, COMPONENT_ID componentID, int8	queryMode, DBID dbid, 
 		std::string& entityType, CALLBACK_ID callbackID, ENTITY_ID entityID);
 
 	/** 网络接口
@@ -226,12 +225,16 @@ public:
 	SyncAppDatasHandler* pSyncAppDatasHandler() const { return pSyncAppDatasHandler_; }
 	void pSyncAppDatasHandler(SyncAppDatasHandler* p){ pSyncAppDatasHandler_ = p; }
 
-	/** Timer操作
-	*/
-	static PyObject* __py_addTimer(PyObject* self, PyObject* args);
-	static PyObject* __py_delTimer(PyObject* self, PyObject* args);
-	
-	ScriptTimers &scriptTimers() { return scriptTimers_; }
+	std::string selectAccountDBInterfaceName(const std::string& name);
+
+	Buffered_DBTasks* findBufferedDBTask(const std::string& dbInterfaceName)
+	{
+		BUFFERED_DBTASKS_MAP::iterator dbin_iter = bufferedDBTasksMaps_.find(dbInterfaceName);
+		if (dbin_iter == bufferedDBTasksMaps_.end())
+			return NULL;
+
+		return &dbin_iter->second;
+	}
 
 protected:
 	TimerHandle											loopCheckTimerHandle_;
@@ -249,7 +252,8 @@ protected:
 	// cellAppData
 	GlobalDataServer*									pCellAppData_;
 
-	Buffered_DBTasks									bufferedDBTasks_;
+	typedef KBEUnordered_map<std::string, Buffered_DBTasks> BUFFERED_DBTASKS_MAP;
+	BUFFERED_DBTASKS_MAP								bufferedDBTasksMaps_;
 
 	// Statistics
 	uint32												numWrittenEntity_;
@@ -262,8 +266,6 @@ protected:
 	InterfacesHandler*									pInterfacesChargeHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
-
-	ScriptTimers										scriptTimers_;
 
 	TelnetServer*										pTelnetServer_;
 };

@@ -138,13 +138,15 @@ public:
 	*/
 	static PyObject* __py_createBase(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseRemotely(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseRemotelyFromDBID(PyObject* self, PyObject* args);
 	
 	/**
 		创建一个新的space 
 	*/
-	void createInNewSpace(Base* base, PyObject* cell);
+	void createInNewSpace(Base* base, PyObject* pyCellappIndex);
 
 	/**
 		恢复一个space 
@@ -163,10 +165,36 @@ public:
 	*/
 	void onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
+	/**
+	baseapp 的createBaseAnywhere的回调
+	*/
+	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+
+	/**
+	在一个负载较低的baseapp上创建一个baseEntity
+	*/
+	void createBaseRemotely(const char* entityType, COMPONENT_ID componentID, PyObject* params, PyObject* pyCallback);
+
+	/** 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行
+	@param entityType	: entity的类别， entities.xml中的定义的。
+	@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
+	@param componentID	: 请求创建entity的baseapp的组件ID
+	*/
+	void onCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s);
+
+	/**
+	baseapp 的createBaseAnywhere的回调
+	*/
+	void onCreateBaseRemotelyCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseRemotelyCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+
 	/** 
 		从db获取信息创建一个entity
 	*/
-	void createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback);
+	void createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
 
 	/** 网络接口
 		createBaseFromDBID的回调。
@@ -176,10 +204,16 @@ public:
 	/** 
 		从db获取信息创建一个entity
 	*/
-	void createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback);
+	void createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
 
 	/** 网络接口
-		createBaseFromDBID的回调。
+		createBaseAnywhereFromDBID的回调。
+	*/
+	// 从baseappmgr查询用于创建实体的组件id回调
+	void onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		createBaseAnywhereFromDBID的回调。
 	*/
 	// 从数据库来的回调
 	void onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
@@ -191,13 +225,24 @@ public:
 	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 	
-
-	/** 
-		baseapp 的createBaseAnywhere的回调 
+	/**
+	从db获取信息创建一个entity
 	*/
-	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
-	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID, 
-		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+	void createBaseRemotelyFromDBID(const char* entityType, DBID dbid, COMPONENT_ID createToComponentID, 
+		PyObject* pyCallback, const std::string& dbInterfaceName);
+
+	/** 网络接口
+	createBaseRemotelyFromDBID的回调。
+	*/
+	// 从数据库来的回调
+	void onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	// 请求在这个进程上创建这个entity
+	void createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	// 创建完毕后的回调
+	void onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID,
+		std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 
@@ -223,7 +268,7 @@ public:
 		向dbmgr请求执行一个数据库命令
 	*/
 	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
-	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid);
+	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid, const std::string& dbInterfaceName);
 	void onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
@@ -299,6 +344,7 @@ public:
 		client更新数据
 	*/
 	void onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
 	/** 网络接口
@@ -329,27 +375,28 @@ public:
 	/** 网络接口
 		写entity到db回调
 	*/
-	void onWriteToDBCallback(Network::Channel* pChannel, ENTITY_ID eid, DBID entityDBID, CALLBACK_ID callbackID, bool success);
+	void onWriteToDBCallback(Network::Channel* pChannel, ENTITY_ID eid, DBID entityDBID, 
+		uint16 dbInterfaceIndex, CALLBACK_ID callbackID, bool success);
 
 	/**
 		增加proxices计数
 	*/
-	void incProxicesCount(){ ++numProxices_; }
+	void incProxicesCount() { ++numProxices_; }
 
 	/**
 		减少proxices计数
 	*/
-	void decProxicesCount(){ --numProxices_; }
+	void decProxicesCount() { --numProxices_; }
 
 	/**
 		获得proxices计数
 	*/
-	int32 numProxices() const{ return numProxices_; }
+	int32 numProxices() const { return numProxices_; }
 
 	/**
 		获得numClients计数
 	*/
-	int32 numClients(){ return this->networkInterface().numExtChannels(); }
+	int32 numClients() { return this->networkInterface().numExtChannels(); }
 	
 	/** 
 		请求充值

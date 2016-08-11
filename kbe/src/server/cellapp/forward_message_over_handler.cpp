@@ -30,18 +30,18 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::
-FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params):
+FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params) :
 _e(e),
 _spaceID(spaceID),
-params_(params)
+_params(params)
 {
 }
 
 //-------------------------------------------------------------------------------------
 FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::~FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp()
 {
-	if(params_)
-		Py_XDECREF(params_);
+	if (_params)
+		Py_XDECREF(_params);
 }
 
 //-------------------------------------------------------------------------------------
@@ -60,12 +60,21 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	}
 
 	_e->spaceID(space->id());
-	_e->initializeEntity(params_);
-	Py_XDECREF(params_);
-	params_ = NULL;
+	_e->initializeEntity(_params);
+	Py_XDECREF(_params);
+	_params = NULL;
 
 	// Ìí¼Óµ½space
-	space->addEntityAndEnterWorld(_e);
+	space->addEntityToNode(_e);
+
+	if (_e->clientMailbox())
+	{
+		_e->onGetWitness();
+	}
+	else
+	{
+		space->onEnterWorld(_e);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -96,7 +105,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::process()
 	Cellapp::getSingleton()._onCreateCellEntityFromBaseapp(_entityType, _createToEntityID, _entityID, 
 		_pCellData, _hasClient, _inRescore, _componentID, _spaceID);
 
-	MemoryStream::ObjPool().reclaimObject(_pCellData);
+	MemoryStream::reclaimPoolObject(_pCellData);
 	_pCellData = NULL;
 }
 

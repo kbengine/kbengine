@@ -33,6 +33,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< UDPPacket > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<UDPPacket>& ObjPool();
+	static UDPPacket* createPoolObject();
+	static void reclaimPoolObject(UDPPacket* obj);
 	static void destroyObjPool();
 	static size_t maxBufferSize();
 

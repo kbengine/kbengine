@@ -132,6 +132,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 
 	// client更新数据
 	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClient,					NETWORK_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClientForControlledEntity, NETWORK_VARIABLE_MESSAGE)
 
 	// executeRawDatabaseCommand从dbmgr的回调
 	CELLAPP_MESSAGE_DECLARE_STREAM(onExecuteRawDatabaseCommandCB,			NETWORK_VARIABLE_MESSAGE)

@@ -49,19 +49,29 @@ public:
 	bool broadcast(uint16 port = 0);
 	bool receive(MessageArgs* recvArgs, sockaddr_in* psin = NULL, int32 timeout = 100000, bool showerr = true);
 
-	Network::EndPoint& epListen() { return epListen_; }
+	Network::EndPoint& epListen() { 
+		return epListen_; 
+	}
 
 	void close();
 
-	bool good() const { return epListen_.good() && good_; }
+	bool good() const { 
+		return epListen_.good() && good_; 
+	}
 
-	void itry(int8 i){ itry_ = i; }
+	void itry(int8 i){ 
+		itry_ = i; 
+	}
+
+	void addBroadCastAddress(std::string addr);
+
 protected:
 	Network::EndPoint epListen_, epBroadcast_;
 	NetworkInterface & networkInterface_;
 	uint32 recvWindowSize_;
 	bool good_;
 	int8 itry_;
+	std::vector< std::string > machine_addresses_;
 };
 
 }

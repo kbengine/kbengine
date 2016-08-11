@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "blob.h"
 #include "datatype.h"
 #include "datatypes.h"
 #include "entitydef.h"
@@ -30,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector3.h"
 #include "pyscript/vector4.h"
 #include "pyscript/copy.h"
+#include "pyscript/py_memorystream.h"
 
 #ifndef CODE_INLINE
 #include "datatype.inl"
@@ -48,7 +48,7 @@ aliasName_()
 
 	DataTypes::addDataType(id_, this);
 
-	EntityDef::md5().append((void*)this->aliasName(), strlen(this->aliasName()));
+	EntityDef::md5().append((void*)this->aliasName(), (int)strlen(this->aliasName()));
 	EntityDef::md5().append((void*)&id_, sizeof(DATATYPE_UID));
 }
 
@@ -913,7 +913,7 @@ void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 		return;
 	}	
 
-	mstream->appendBlob(PyBytes_AS_STRING(pyobj), PyBytes_GET_SIZE(pyobj));
+	mstream->appendBlob(PyBytes_AS_STRING(pyobj), (ArraySize)PyBytes_GET_SIZE(pyobj));
 	Py_DECREF(pyobj);
 }
 
@@ -1157,7 +1157,8 @@ bool BlobType::isSameType(PyObject* pyValue)
 		return false;
 	}
 
-	if(!PyBytes_Check(pyValue))
+	if (!PyBytes_Check(pyValue) && 
+		!PyObject_TypeCheck(pyValue, script::PyMemoryStream::getScriptType()))
 	{
 		OUT_TYPE_ERROR("BLOB");
 		return false;
@@ -1175,9 +1176,18 @@ PyObject* BlobType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void BlobType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	Py_ssize_t datasize = PyBytes_GET_SIZE(pyValue);
-	char* datas = PyBytes_AsString(pyValue);
-	mstream->appendBlob(datas, datasize);
+	if (!PyBytes_Check(pyValue))
+	{
+		script::PyMemoryStream* pPyMemoryStream = static_cast<script::PyMemoryStream*>(pyValue);
+		MemoryStream& m = pPyMemoryStream->stream();
+		mstream->appendBlob((const char*)m.data() + m.rpos(), (ArraySize)m.length());
+	}
+	else
+	{
+		Py_ssize_t datasize = PyBytes_GET_SIZE(pyValue);
+		char* datas = PyBytes_AsString(pyValue);
+		mstream->appendBlob(datas, (ArraySize)datasize);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -1262,8 +1272,20 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 				if(PyObject_IsInstance(pyValue, (PyObject *)stype))
 				{
 					PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
-					id = PyLong_AsLong(pyid);
-					Py_DECREF(pyid);
+
+					if (pyid)
+					{
+						id = PyLong_AsLong(pyid);
+						Py_DECREF(pyid);
+					}
+					else
+					{
+						// 某些情况下会为NULL， 例如：使用了weakproxy，而mailbox已经变为NULL了
+						SCRIPT_ERROR_CHECK();
+						id = 0;
+						cid = 0;
+						break;
+					}
 
 					cid = g_componentID;
 
@@ -1391,7 +1413,6 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 	}
 
 	std::string strType = xml->getValStr(arrayNode);
-	//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 	if(strType == "ARRAY")
 	{
@@ -1419,8 +1440,8 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedArrayType::initialize: can't found type[{}] by key[{}].\n", 
-				strType.c_str(), "ARRAY"));
+			ERROR_MSG(fmt::format("FixedArrayType::initialize: key[{}] did not find type[{}]!\n", 
+				"ARRAY", strType.c_str()));
 			
 			return false;
 		}			
@@ -1434,7 +1455,7 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 
 	DATATYPE_UID uid = dataType_->id();
 	EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
-	EntityDef::md5().append((void*)strType.c_str(), strType.size());
+	EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
 	return true;
 }
 
@@ -1488,7 +1509,7 @@ void FixedArrayType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 void FixedArrayType::addToStreamEx(MemoryStream* mstream, PyObject* pyValue, bool onlyPersistents)
 {
-	ArraySize size = PySequence_Size(pyValue);
+	ArraySize size = (ArraySize)PySequence_Size(pyValue);
 	(*mstream) << size;
 
 	for(ArraySize i=0; i<size; ++i)
@@ -1685,7 +1706,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 
 		TiXmlNode* typeNode = xml->enterNode(propertiesNode->FirstChild(), "Type");
 		TiXmlNode* PersistentNode = xml->enterNode(propertiesNode->FirstChild(), "Persistent");
-		
+		TiXmlNode* DatabaseLengthNode = xml->enterNode(propertiesNode->FirstChild(), "DatabaseLength");
+
 		bool persistent = true;
 		if(PersistentNode)
 		{
@@ -1696,10 +1718,15 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 			}
 		}
 
+		uint32 databaseLength = 0;
+		if (DatabaseLengthNode)
+		{
+			databaseLength = xml->getValInt(DatabaseLengthNode);
+		}
+
 		if(typeNode)
 		{
 			strType = xml->getValStr(typeNode);
-			//std::transform(strType.begin(), strType.end(), strType.begin(), toupper);										// 转换为大写
 
 			if(strType == "ARRAY")
 			{
@@ -1711,8 +1738,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 				{
 					DATATYPE_UID uid = dataType->id();
 					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
-					EntityDef::md5().append((void*)strType.c_str(), strType.size());
-					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
+					EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+					EntityDef::md5().append((void*)typeName.c_str(), (int)typeName.size());
 
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
@@ -1720,16 +1747,18 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 					if(dataType->getDataType()->type() == DATA_TYPE_MAILBOX)
 					{
 						persistent = false;
-						EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					}
 
 					pDictItemDataType->persistent = persistent;
+					pDictItemDataType->databaseLength = databaseLength;
+					EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
 					DataTypes::addDataType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + typeName, dataType);
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found array type[{}] by key[{}].\n", 
-						strType.c_str(), typeName.c_str()));
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n", 
+						typeName.c_str(), strType.c_str()));
 
 					return false;
 				}
@@ -1744,8 +1773,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 				{
 					DATATYPE_UID uid = dataType->id();
 					EntityDef::md5().append((void*)&uid, sizeof(DATATYPE_UID));
-					EntityDef::md5().append((void*)strType.c_str(), strType.size());
-					EntityDef::md5().append((void*)typeName.c_str(), typeName.size());
+					EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+					EntityDef::md5().append((void*)typeName.c_str(), (int)typeName.size());
 
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
@@ -1753,19 +1782,26 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 					if(dataType->type() == DATA_TYPE_MAILBOX)
 					{
 						persistent = false;
-						EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					}
 
 					pDictItemDataType->persistent = persistent;
+					pDictItemDataType->databaseLength = databaseLength;
+					EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found type[{}] by key[{}].\n", 
-						strType.c_str(), typeName.c_str()));
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find type[{}]!\n", 
+						typeName.c_str(), strType.c_str()));
 					
 					return false;
 				}
 			}
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] no label[\"Type\"], key[{}] will be ignored!\n",
+				typeName, typeName));
 		}
 	}
 	XML_FOR_END(propertiesNode);
@@ -1785,7 +1821,15 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 		}
 
 		if(strType.size() > 0)
-			EntityDef::md5().append((void*)strType.c_str(), strType.size());
+			EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+	}
+
+	if (keyTypes_.size() == 0)
+	{
+		ERROR_MSG(fmt::format("FixedDictType::initialize(): FIXED_DICT({}) no keys! \n",
+			this->aliasName()));
+
+		return false;
 	}
 
 	return true;
@@ -1865,6 +1909,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 	if(pyRet == NULL || !impl_isSameType(pyRet))
 	{
 		SCRIPT_ERROR_CHECK();
+
 		ERROR_MSG(fmt::format("FixedDictType::impl_createObjFromDict: {}.isSameType() is failed!\n",
 			moduleName_.c_str()));
 		
@@ -1971,8 +2016,8 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
 		PyErr_Format(PyExc_TypeError, 
-			"FIXED_DICT(%s) key no match. size:%d-%d, keyNames=[%s].", 
-			this->aliasName(),dictSize, keyTypes_.size(), 
+			"FIXED_DICT(%s) key does not match! giveKeySize=%d, dictKeySize=%d, dictKeyNames=[%s].", 
+			this->aliasName(), dictSize, keyTypes_.size(), 
 			debugInfos().c_str());
 		
 		PyErr_PrintEx(0);

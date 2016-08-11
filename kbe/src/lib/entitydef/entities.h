@@ -92,6 +92,7 @@ public:
 
 	EntityGarbages<T>* pGetbages(){ return _pGarbages; }
 	DECLARE_PY_GET_MOTHOD(pyGarbages);
+
 private:
 	ENTITYS_MAP _entities;
 
@@ -149,7 +150,7 @@ TEMPLATE_SCRIPT_INIT(template<typename T>, Entities<T>, Entities, 0, &Entities<T
 template<typename T>
 int Entities<T>::mp_length(PyObject * self)
 {
-	return static_cast<Entities*>(self)->getEntities().size();
+	return (int)static_cast<Entities*>(self)->getEntities().size();
 }
 	
 //-------------------------------------------------------------------------------------

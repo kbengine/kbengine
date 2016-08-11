@@ -125,4 +125,60 @@
 		<id>24</id>
 		<descr>	数据库错误(请检查dbmgr日志和DB)。</descr>
 	</SERVER_ERR_DB>
+	
+	<SERVER_ERR_USER1>
+		<id>25</id>
+		<descr>	用户自定义错误码1。</descr>
+	</SERVER_ERR_USER1>
+	
+	<SERVER_ERR_USER2>
+		<id>26</id>
+		<descr>	用户自定义错误码2。</descr>
+	</SERVER_ERR_USER2>
+	
+	<SERVER_ERR_USER3>
+		<id>27</id>
+		<descr>	用户自定义错误码3。</descr>
+	</SERVER_ERR_USER3>
+	
+	<SERVER_ERR_USER4>
+		<id>28</id>
+		<descr>	用户自定义错误码4。</descr>
+	</SERVER_ERR_USER4>
+	
+	<SERVER_ERR_USER5>
+		<id>29</id>
+		<descr>	用户自定义错误码5。</descr>
+	</SERVER_ERR_USER5>
+	
+	<SERVER_ERR_USER6>
+		<id>30</id>
+		<descr>	用户自定义错误码6。</descr>
+	</SERVER_ERR_USER6>
+	
+	<SERVER_ERR_USER7>
+		<id>31</id>
+		<descr>	用户自定义错误码7。</descr>
+	</SERVER_ERR_USER7>
+	
+	<SERVER_ERR_USER8>
+		<id>32</id>
+		<descr>	用户自定义错误码8。</descr>
+	</SERVER_ERR_USER8>
+	
+	<SERVER_ERR_USER9>
+		<id>33</id>
+		<descr>	用户自定义错误码9。</descr>
+	</SERVER_ERR_USER9>
+	
+	<SERVER_ERR_USER10>
+		<id>34</id>
+		<descr>	用户自定义错误码10。</descr>
+	</SERVER_ERR_USER10>
+	
+	<SERVER_ERR_NEED_CHECK_PASSWORD>
+		<id>35</id>
+		<descr>	需要检查密码。</descr>
+	</SERVER_ERR_NEED_CHECK_PASSWORD>
+	
 </root>

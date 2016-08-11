@@ -23,9 +23,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "scriptdef_module.h"
 #include "datatypes.h"
 #include "common.h"
-#include "blob.h"
+#include "pyscript/py_memorystream.h"
 #include "resmgr/resmgr.h"
 #include "common/smartpointer.h"
+#include "entitydef/volatileinfo.h"
 #include "entitydef/entity_mailbox.h"
 
 #ifndef CODE_INLINE
@@ -54,8 +55,8 @@ bool EntityDef::__entitydefAliasID = false;
 ENTITY_METHOD_UID g_methodUtypeAuto = 1;
 std::vector<ENTITY_METHOD_UID> g_methodCusUtypes;																									
 
-ENTITY_PROPERTY_UID auto_puid = 1;
-std::vector<ENTITY_PROPERTY_UID> puids;
+ENTITY_PROPERTY_UID g_propertyUtypeAuto = 1;
+std::vector<ENTITY_PROPERTY_UID> g_propertyUtypes;
 
 //-------------------------------------------------------------------------------------
 EntityDef::EntityDef()
@@ -78,8 +79,8 @@ bool EntityDef::finalise(bool isReload)
 	g_methodUtypeAuto = 1;
 	EntityDef::_isInit = false;
 
-	auto_puid = 1;
-	puids.clear();
+	g_propertyUtypeAuto = 1;
+	g_propertyUtypes.clear();
 
 	if(!isReload)
 	{
@@ -198,7 +199,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		// 加载def文件中的定义
 		if(!loadDefInfo(defFilePath, moduleName, defxml.get(), defNode, pScriptModule))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} parentClass.\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity({}) module!\n",
 				moduleName.c_str()));
 
 			return false;
@@ -207,7 +208,7 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 		// 尝试在主entity文件中加载detailLevel数据
 		if(!loadDetailLevelInfo(defFilePath, moduleName, defxml.get(), defNode, pScriptModule))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity:{} DetailLevelInfo.\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: failed to load entity({}) DetailLevelInfo!\n",
 				moduleName.c_str()));
 
 			return false;
@@ -358,58 +359,58 @@ bool EntityDef::loadVolatileInfo(const std::string& defFilePath,
 	if(pNode == NULL)
 		return true;
 
-	VolatileInfo& vInfo = pScriptModule->getVolatileInfo();
+	VolatileInfo* pVolatileInfo = pScriptModule->getPVolatileInfo();
 	
 	TiXmlNode* node = defxml->enterNode(pNode, "position");
 	if(node) 
 	{
-		vInfo.position((float)defxml->getValFloat(node));
+		pVolatileInfo->position((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "position"))
-			vInfo.position(VolatileInfo::ALWAYS);
+			pVolatileInfo->position(VolatileInfo::ALWAYS);
 		else
-			vInfo.position(-1.f);
+			pVolatileInfo->position(-1.f);
 	}
 
 	node = defxml->enterNode(pNode, "yaw");
 	if(node) 
 	{
-		vInfo.yaw((float)defxml->getValFloat(node));
+		pVolatileInfo->yaw((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "yaw"))
-			vInfo.yaw(VolatileInfo::ALWAYS);
+			pVolatileInfo->yaw(VolatileInfo::ALWAYS);
 		else
-			vInfo.yaw(-1.f);
+			pVolatileInfo->yaw(-1.f);
 	}
 
 	node = defxml->enterNode(pNode, "pitch");
 	if(node) 
 	{
-		vInfo.pitch((float)defxml->getValFloat(node));
+		pVolatileInfo->pitch((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "pitch"))
-			vInfo.pitch(VolatileInfo::ALWAYS);
+			pVolatileInfo->pitch(VolatileInfo::ALWAYS);
 		else
-			vInfo.pitch(-1.f);
+			pVolatileInfo->pitch(-1.f);
 	}
 
 	node = defxml->enterNode(pNode, "roll");
 	if(node) 
 	{
-		vInfo.roll((float)defxml->getValFloat(node));
+		pVolatileInfo->roll((float)defxml->getValFloat(node));
 	}
 	else
 	{
 		if(defxml->hasNode(pNode, "roll"))
-			vInfo.roll(VolatileInfo::ALWAYS);
+			pVolatileInfo->roll(VolatileInfo::ALWAYS);
 		else
-			vInfo.roll(-1.f);
+			pVolatileInfo->roll(-1.f);
 	}
 
 	return true;
@@ -444,7 +445,7 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 
 		if(!loadAllDefDescriptions(moduleName, interfaceXml.get(), interfaceRootNode, pScriptModule))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] is error!\n", 
+			ERROR_MSG(fmt::format("EntityDef::initialize: interface[{}] error!\n", 
 				interfaceName.c_str()));
 
 			return false;
@@ -645,7 +646,13 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					return false;
 				}
 			}
+			else
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount flagsNode, is {}.{}!\n",
+					moduleName, name.c_str()));
 
+				return false;
+			}
 
 			TiXmlNode* persistentNode = xml->enterNode(defPropertyNode->FirstChild(), "Persistent");
 			if(persistentNode)
@@ -681,6 +688,13 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				{
 					return false;
 				}
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: not fount TypeNode, is {}.{}!\n",
+					moduleName, name.c_str()));
+
+				return false;
 			}
 
 			TiXmlNode* indexTypeNode = xml->enterNode(defPropertyNode->FirstChild(), "Index");
@@ -750,19 +764,57 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					return false;
 				}
 
-				puids.push_back(futype);
+				// 检查是否有重复的Utype
+				std::vector<ENTITY_PROPERTY_UID>::iterator iter =
+					std::find(g_propertyUtypes.begin(), g_propertyUtypes.end(), futype);
+
+				if (iter != g_propertyUtypes.end())
+				{
+					bool foundConflict = false;
+
+					PropertyDescription* pConflictPropertyDescription = pScriptModule->findPropertyDescription(futype, BASEAPP_TYPE);
+					if (pConflictPropertyDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+						foundConflict = true;
+					}
+
+					pConflictPropertyDescription = pScriptModule->findPropertyDescription(futype, CELLAPP_TYPE);
+					if (pConflictPropertyDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+						foundConflict = true;
+					}
+
+					pConflictPropertyDescription = pScriptModule->findPropertyDescription(futype, CLIENT_TYPE);
+					if (pConflictPropertyDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
+
+				g_propertyUtypes.push_back(futype);
 			}
 			else
 			{
 				while(true)
 				{
-					futype = auto_puid++;
+					futype = g_propertyUtypeAuto++;
 					std::vector<ENTITY_PROPERTY_UID>::iterator iter = 
-								std::find(puids.begin(), puids.end(), futype);
+						std::find(g_propertyUtypes.begin(), g_propertyUtypes.end(), futype);
 
-					if(iter == puids.end())
+					if (iter == g_propertyUtypes.end())
 						break;
 				}
+
+				g_propertyUtypes.push_back(futype);
 			}
 
 			// 产生一个属性描述实例
@@ -867,6 +919,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 						}
 
 						methodDescription->setUType(muid);
+						g_methodCusUtypes.push_back(muid);
 					}
 				}
 				XML_FOR_END(argNode);		
@@ -889,6 +942,46 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				}
 
 				methodDescription->setUType(muid);
+				g_methodCusUtypes.push_back(muid);
+			}
+			else
+			{
+				// 检查是否有重复的Utype
+				ENTITY_METHOD_UID muid = methodDescription->getUType();
+				std::vector<ENTITY_METHOD_UID>::iterator iter =
+					std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+				if (iter != g_methodCusUtypes.end())
+				{
+					bool foundConflict = false;
+
+					MethodDescription* pConflictMethodDescription = pScriptModule->findBaseMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findCellMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findClientMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
 			}
 
 			pScriptModule->addCellMethodDescription(name.c_str(), methodDescription);
@@ -965,6 +1058,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 						}
 
 						methodDescription->setUType(muid);
+						g_methodCusUtypes.push_back(muid);
 					}
 				}
 				XML_FOR_END(argNode);		
@@ -987,6 +1081,46 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 				}
 
 				methodDescription->setUType(muid);
+				g_methodCusUtypes.push_back(muid);
+			}
+			else
+			{
+				// 检查是否有重复的Utype
+				ENTITY_METHOD_UID muid = methodDescription->getUType();
+				std::vector<ENTITY_METHOD_UID>::iterator iter =
+					std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+				if (iter != g_methodCusUtypes.end())
+				{
+					bool foundConflict = false;
+
+					MethodDescription* pConflictMethodDescription = pScriptModule->findBaseMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findCellMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findClientMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
 			}
 
 			pScriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
@@ -1059,6 +1193,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 						}
 
 						methodDescription->setUType(muid);
+						g_methodCusUtypes.push_back(muid);
 					}
 				}
 				XML_FOR_END(argNode);		
@@ -1081,6 +1216,46 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 				}
 
 				methodDescription->setUType(muid);
+				g_methodCusUtypes.push_back(muid);
+			}
+			else
+			{
+				// 检查是否有重复的Utype
+				ENTITY_METHOD_UID muid = methodDescription->getUType();
+				std::vector<ENTITY_METHOD_UID>::iterator iter =
+					std::find(g_methodCusUtypes.begin(), g_methodCusUtypes.end(), muid);
+
+				if (iter != g_methodCusUtypes.end())
+				{
+					bool foundConflict = false;
+
+					MethodDescription* pConflictMethodDescription = pScriptModule->findBaseMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findCellMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					pConflictMethodDescription = pScriptModule->findClientMethodDescription(muid);
+					if (pConflictMethodDescription)
+					{
+						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
+							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+						foundConflict = true;
+					}
+
+					if (foundConflict)
+						return false;
+				}
 			}
 
 			pScriptModule->addClientMethodDescription(name.c_str(), methodDescription);
@@ -1169,7 +1344,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("EntityDef::checkDefMethod:class {} does not have method[{}].\n",
+			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: class {} does not have method[{}].\n",
 					moduleName.c_str(), iter->first.c_str()));
 
 			return false;
@@ -1226,12 +1401,32 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		if(g_isReload)
 			pyModule = PyImport_ReloadModule(pyModule);
 
+		// 检查该模块路径是否是KBE脚本目录下的，防止因用户取名与python模块名称冲突而误导入了系统模块
+		if (pyModule)
+		{
+			std::string userScriptsPath = Resmgr::getSingleton().getPyUserScriptsPath();
+			std::string pyModulePath = PyModule_GetFilename(pyModule);
+
+			strutil::kbe_replace(userScriptsPath, "/", "");
+			strutil::kbe_replace(userScriptsPath, "\\", "");
+			strutil::kbe_replace(pyModulePath, "/", "");
+			strutil::kbe_replace(pyModulePath, "\\", "");
+
+			if (pyModulePath.find(userScriptsPath) == std::string::npos)
+			{
+				WARNING_MSG(fmt::format("EntityDef::initialize: The script module name[{}] and system module name conflict!\n",
+					moduleName.c_str()));
+
+				pyModule = NULL;
+			}
+		}
+
 		if (pyModule == NULL)
 		{
 			// 是否加载这个模块 （取决于是否在def文件中定义了与当前组件相关的方法或者属性）
 			if(isLoadScriptModule(pScriptModule))
 			{
-				ERROR_MSG(fmt::format("EntityDef::initialize:Could not load module[{}]\n", 
+				ERROR_MSG(fmt::format("EntityDef::initialize: Could not load module[{}]\n", 
 					moduleName.c_str()));
 
 				PyErr_Print();
@@ -1252,7 +1447,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 
 		if (pyClass == NULL)
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize:Could not find class[{}]\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: Could not find class[{}]\n",
 				moduleName.c_str()));
 
 			return false;
@@ -1279,7 +1474,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 			
 			if(!valid)
 			{
-				ERROR_MSG(fmt::format("EntityDef::initialize:Class {} is not derived from KBEngine.[{}]\n",
+				ERROR_MSG(fmt::format("EntityDef::initialize: Class {} is not derived from KBEngine.[{}]\n",
 					moduleName.c_str(), typeNames.c_str()));
 
 				return false;
@@ -1288,7 +1483,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 
 		if(!PyType_Check(pyClass))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] is valid!\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: class[{}] is valid!\n",
 				moduleName.c_str()));
 
 			return false;
@@ -1296,7 +1491,7 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		
 		if(!checkDefMethod(pScriptModule, pyClass, moduleName))
 		{
-			ERROR_MSG(fmt::format("EntityDef::initialize:class[{}] checkDefMethod is failed!\n",
+			ERROR_MSG(fmt::format("EntityDef::initialize: class[{}] checkDefMethod is failed!\n",
 				moduleName.c_str()));
 
 			return false;
@@ -1316,7 +1511,8 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 //-------------------------------------------------------------------------------------
 ScriptDefModule* EntityDef::findScriptModule(ENTITY_SCRIPT_UID utype)
 {
-	if (utype >= __scriptModules.size() + 1)
+	// utype 最小为1
+	if (utype == 0 || utype >= __scriptModules.size() + 1)
 	{
 		ERROR_MSG(fmt::format("EntityDef::findScriptModule: is not exist(utype:{})!\n", utype));
 		return NULL;
@@ -1368,12 +1564,13 @@ bool EntityDef::installScript(PyObject* mod)
 	if(_isInit)
 		return true;
 
-	Blob::installScript(NULL);
-	APPEND_SCRIPT_MODULE_METHOD(mod, Blob, Blob::py_new, METH_VARARGS, 0);
+	script::PyMemoryStream::installScript(NULL);
+	APPEND_SCRIPT_MODULE_METHOD(mod, MemoryStream, script::PyMemoryStream::py_new, METH_VARARGS, 0);
 
 	EntityMailbox::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
+	VolatileInfo::installScript(NULL);
 
 	_isInit = true;
 	return true;
@@ -1384,10 +1581,11 @@ bool EntityDef::uninstallScript()
 {
 	if(_isInit)
 	{
-		Blob::uninstallScript();
+		script::PyMemoryStream::uninstallScript();
 		EntityMailbox::uninstallScript();
 		FixedArray::uninstallScript();
 		FixedDict::uninstallScript();
+		VolatileInfo::uninstallScript();
 	}
 
 	return EntityDef::finalise();

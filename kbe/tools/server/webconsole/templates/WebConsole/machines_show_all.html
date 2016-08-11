@@ -1,0 +1,92 @@
+<p>{% extends "WebConsole/base.html" %}
+  
+  {% block content %}</p>
+<div class="row placeholders machines-all-block">
+  <table class="table table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Machine</th>
+        <th>%CPU</th>
+        <th>%MEM</th>
+        <th>%pCPU</th>
+        <th>%pMem</th>
+        <th>totalMem</th>
+        <!--th>操作</th-->
+      </tr>
+    </thead>
+    <tbody>
+    
+    {% for machine in KBEMachines %}
+    <tr>
+      <td><a href="/wc/machines/show_all?target={{ machine.intaddr }}">{{ machine.intaddr }}</a></td>
+      <td>{{ machine.cpu|floatformat:2 }}</td>
+      <td>{{ machine.mem|floatformat:2 }}%</td>
+      <td>{% widthratio machine.extradata2 100.0 1.0 %}</td>
+      <td>{% widthratio machine.usedmem 1048576 1.0 %}m</td>
+      <td>{% widthratio machine.extradata1 1048576 1.0 %}m/{% widthratio machine.extradata 1048576 1.0 %}m</td>
+      <!--td>&nbsp;</td-->
+    </tr>
+    {% endfor %}
+      </tbody>
+    
+  </table>
+  <div></div>
+</div>
+<p>&nbsp;</p>
+<div class="row placeholders">
+    <table class="table table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>Machine</th>
+          <th>组件名称</th>
+          <th>uid</th>
+          <th>pid</th>
+          <th>cid</th>
+          <th>gid</th>
+          <th>gus</th>
+          <th>CPU负载</th>
+          <th>内存消耗比</th>
+          <th>内存消耗数</th>
+          <th>实体数量</th>
+          <th>Proxy实体数量</th>
+          <th>客户端数量</th>
+          <!--th>操作</th-->
+        </tr>
+      </thead>
+      <tbody>
+        {% for comp in KBEComps %}
+        <tr>
+          <td>{{ comp.intaddr }}</td>
+          <td>{{ comp.fullname }}</td>
+          <td>{{ comp.uid }}</td>
+          <td>{{ comp.pid }}</td>
+          <td>{{ comp.componentID }}</td>
+          <td>{{ comp.globalOrderID }}</td>
+          <td>{{ comp.genuuid_sections }}</td>
+          <td>{{ comp.cpu|floatformat:2 }}%</td>
+          <td>{{ comp.mem|floatformat:2 }}%</td>
+          <td>{% widthratio comp.usedmem 1048576 1.0 %}m</td>
+          <td>{{ comp.entities }}</td>
+          <td>{{ comp.proxies }}</td>
+          <td>{{ comp.clients }}</td>
+          <!--td>&nbsp;</td-->
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div></div>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+
+<script>$(".daemon").addClass("active");</script>
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
+
+
+</script>
+{% endblock %}

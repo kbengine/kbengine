@@ -20,6 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pickler.h"
 #include "py_memorystream.h"
+#include "py_gc.h"
+
+#ifndef CODE_INLINE
+#include "py_memorystream.inl"
+#endif
 
 namespace KBEngine{ namespace script{
 
@@ -40,6 +45,11 @@ PySequenceMethods PyMemoryStream::seqMethods =
 SCRIPT_METHOD_DECLARE_BEGIN(PyMemoryStream)
 SCRIPT_METHOD_DECLARE("append",				append,			METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("pop",				pop,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("bytes",				bytes,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("rpos",				rpos,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("wpos",				wpos,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("fill",				fill,			METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("__reduce_ex__",		reduce_ex__,	METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(PyMemoryStream)
@@ -57,8 +67,140 @@ readonly_(readonly)
 }
 
 //-------------------------------------------------------------------------------------
+PyMemoryStream::PyMemoryStream(std::string& strDictInitData, bool readonly) :
+ScriptObject(getScriptType(), false),
+readonly_(readonly)
+{
+	initialize(strDictInitData);
+	script::PyGC::incTracing("MemoryStream");
+}
+
+//-------------------------------------------------------------------------------------
+PyMemoryStream::PyMemoryStream(PyObject* pyDictInitData, bool readonly) :
+ScriptObject(getScriptType(), false),
+readonly_(readonly)
+{
+	initialize(pyDictInitData);
+	script::PyGC::incTracing("MemoryStream");
+}
+
+//-------------------------------------------------------------------------------------
+PyMemoryStream::PyMemoryStream(MemoryStream* streamInitData, bool readonly) :
+ScriptObject(getScriptType(), false),
+readonly_(readonly)
+{
+	initialize(streamInitData);
+	script::PyGC::incTracing("MemoryStream");
+}
+
+//-------------------------------------------------------------------------------------
+PyMemoryStream::PyMemoryStream(bool readonly) :
+ScriptObject(getScriptType(), false),
+readonly_(readonly)
+{
+	initialize("");
+	script::PyGC::incTracing("MemoryStream");
+}
+
+//-------------------------------------------------------------------------------------
 PyMemoryStream::~PyMemoryStream()
 {
+}
+
+//-------------------------------------------------------------------------------------
+void PyMemoryStream::initialize(std::string strDictInitData)
+{
+	if (strDictInitData.size() > 0)
+		stream_.append(strDictInitData.data(), strDictInitData.size());
+}
+
+//-------------------------------------------------------------------------------------
+void PyMemoryStream::initialize(PyObject* pyBytesInitData)
+{
+	char *buffer;
+	Py_ssize_t length;
+
+	if (PyBytes_AsStringAndSize(pyBytesInitData, &buffer, &length) < 0)
+	{
+		SCRIPT_ERROR_CHECK();
+		return;
+	}
+
+	if (length > 0)
+		stream_.append(buffer, length);
+}
+
+//-------------------------------------------------------------------------------------
+void PyMemoryStream::initialize(MemoryStream* streamInitData)
+{
+	if (streamInitData)
+		stream_ = *streamInitData;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_reduce_ex__(PyObject* self, PyObject* protocol)
+{
+	PyMemoryStream* pPyMemoryStream = static_cast<PyMemoryStream*>(self);
+	PyObject* args = PyTuple_New(2);
+	PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("MemoryStream");
+	PyTuple_SET_ITEM(args, 0, unpickleMethod);
+	PyObject* args1 = PyTuple_New(3);
+
+	PyTuple_SET_ITEM(args1, 0, PyLong_FromUnsignedLong(pPyMemoryStream->stream().rpos()));
+	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLong(pPyMemoryStream->stream().wpos()));
+	PyTuple_SET_ITEM(args1, 2, pPyMemoryStream->pyBytes());
+
+	PyTuple_SET_ITEM(args, 1, args1);
+
+	if (unpickleMethod == NULL){
+		Py_DECREF(args);
+		return NULL;
+	}
+
+	return args;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__unpickle__(PyObject* self, PyObject* args)
+{
+	Py_ssize_t size = PyTuple_Size(args);
+	if (size != 3)
+	{
+		ERROR_MSG("PyMemoryStream::__unpickle__: args is wrong! (size != 3)");
+		S_Return;
+	}
+
+	PyObject* pyRpos = PyTuple_GET_ITEM(args, 0);
+	PyObject* pyWpos = PyTuple_GET_ITEM(args, 1);
+
+	PyObject* pybytes = PyTuple_GET_ITEM(args, 2);
+	if (pybytes == NULL)
+	{
+		ERROR_MSG("PyMemoryStream::__unpickle__: args is wrong!");
+		S_Return;
+	}
+
+	PyMemoryStream* pPyMemoryStream = new PyMemoryStream(pybytes);
+	pPyMemoryStream->stream().rpos(PyLong_AsUnsignedLong(pyRpos));
+	pPyMemoryStream->stream().wpos(PyLong_AsUnsignedLong(pyWpos));
+	return pPyMemoryStream;
+}
+
+//-------------------------------------------------------------------------------------
+void PyMemoryStream::onInstallScript(PyObject* mod)
+{
+	static PyMethodDef __unpickle__Method =
+	{ "MemoryStream", (PyCFunction)&PyMemoryStream::__unpickle__, METH_VARARGS, 0 };
+
+	PyObject* pyFunc = PyCFunction_New(&__unpickle__Method, NULL);
+	script::Pickler::registerUnpickleFunc(pyFunc, "MemoryStream");
+	Py_DECREF(pyFunc);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::py_new()
+{
+	return new PyMemoryStream();
 }
 
 //-------------------------------------------------------------------------------------
@@ -119,20 +261,27 @@ Py_ssize_t PyMemoryStream::seq_length(PyObject* self)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_bytes(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+	return pyobj->pyBytes();
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* kwargs)
 {
 	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
 	if(pyobj->readonly())
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::append: read only!");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::append: read only!");
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	int argCount = PyTuple_Size(args);
 	if(argCount != 2)
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::append: args is error! arg1 is type[UINT8|STRING|...], arg2 is val.");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::append: args error! arg1 is type[UINT8|STRING|...], arg2 is val.");
 		PyErr_PrintEx(0);
 	}
 	
@@ -141,9 +290,9 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 
 	if(PyArg_ParseTuple(args, "s|O", &type, &pyVal) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "Blob::append: args is error!");
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: args error!");
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	if(strcmp(type, "UINT8") == 0)
@@ -198,8 +347,8 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	}
 	else if(strcmp(type, "STRING") == 0)
 	{
-		wchar_t* ws = PyUnicode_AsWideCharString(pyVal, NULL);					
-		char* s = strutil::wchar2char(ws);									
+		wchar_t* ws = PyUnicode_AsWideCharString(pyVal, NULL);
+		char* s = strutil::wchar2char(ws);
 		PyMem_Free(ws);
 
 		pyobj->stream() << s;
@@ -210,9 +359,9 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 		PyObject* obj = PyUnicode_AsUTF8String(pyVal);
 		if(obj == NULL)
 		{
-			PyErr_Format(PyExc_TypeError, "Blob::append: val is not UNICODE!");
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: val is not UNICODE!");
 			PyErr_PrintEx(0);
-			return NULL;
+			S_Return;
 		}	
 
 		pyobj->stream().appendBlob(PyBytes_AS_STRING(obj), PyBytes_GET_SIZE(obj));
@@ -228,9 +377,9 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	{
 		if(!PyObject_TypeCheck(pyVal, PyMemoryStream::getScriptType()) && !PyBytes_Check(pyVal))
 		{
-			PyErr_Format(PyExc_TypeError, "Blob::append: val is not BLOB!");
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: val is not BLOB!");
 			PyErr_PrintEx(0);
-			return NULL;
+			S_Return;
 		}
 
 		if(PyBytes_Check(pyVal))
@@ -241,22 +390,22 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 			if(PyBytes_AsStringAndSize(pyVal, &buffer, &length) < 0)
 			{
 				SCRIPT_ERROR_CHECK();
-				return NULL;
+				S_Return;
 			}
 
-			pyobj->stream().append(buffer, length);
+			pyobj->stream().appendBlob(buffer, length);
 		}
 		else
 		{
 			PyMemoryStream* obj = static_cast<PyMemoryStream*>(pyVal);
-			pyobj->stream().append(obj->stream());
+			pyobj->stream().appendBlob(&obj->stream());
 		}
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "Blob::append: type %s no support!", type);
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: type %s no support!", type);
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	S_Return;	
@@ -269,24 +418,24 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 
 	if(pyobj->readonly())
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::pop: read only!");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::pop: read only!");
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	int argCount = PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_AssertionError, "Blob::pop: args is error! arg1 is type[UINT8|STRING|...].");
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::pop: args error! arg1 is type[UINT8|STRING|...].");
 		PyErr_PrintEx(0);
 	}
 	
 	char* type;
 	if(PyArg_ParseTuple(args, "s", &type) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "Blob::pop: args is error!");
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: args error!");
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	try
@@ -362,13 +511,14 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 		{
 			std::string s;
 			pyobj->stream().readBlob(s);
+
 			PyObject* ret = PyUnicode_DecodeUTF8(s.data(), s.length(), NULL);
 			if(ret == NULL)
 			{
 				SCRIPT_ERROR_CHECK();
-				PyErr_Format(PyExc_TypeError, "Blob::pop: val is not UNICODE!");
+				PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: val is not UNICODE!");
 				PyErr_PrintEx(0);
-				return NULL;
+				S_Return;
 			}
 
 			return ret;
@@ -380,22 +530,165 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 			pyobj->stream().readBlob(s);
 			return Pickler::unpickle(s);
 		}
+		else if (strcmp(type, "BLOB") == 0)
+		{
+			std::string s;
+			pyobj->stream().readBlob(s);
+
+			PyObject* ret = PyBytes_FromStringAndSize((char*)s.data(), s.length());
+			if (ret == NULL)
+			{
+				SCRIPT_ERROR_CHECK();
+				PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: val is not BLOB!");
+				PyErr_PrintEx(0);
+				S_Return;
+			}
+
+			return ret;
+		}
 		else
 		{
-			PyErr_Format(PyExc_TypeError, "Blob::pop: type %s no support!", type);
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::pop: type %s no support!", type);
 			PyErr_PrintEx(0);
-			return NULL;
+			S_Return;
 		}
 	}
 	catch(MemoryStreamException &e)
 	{
-		PyErr_Format(PyExc_Exception, "Blob::pop: get stream is error!");
-		e.PrintPosError();
+		PyErr_Format(PyExc_Exception, "PyMemoryStream::pop: stream error!");
 		PyErr_PrintEx(0);
-		return NULL;
+		S_Return;
 	}
 
 	S_Return;	
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_rpos(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+
+	int argCount = PyTuple_Size(args);
+	if (argCount > 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::rpos: args error! arg1 is type[UINT32].");
+		PyErr_PrintEx(0);
+	}
+	else if (argCount == 1)
+	{
+		uint32 pos = 0;
+		if (PyArg_ParseTuple(args, "I", &pos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::rpos: args error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+
+		pyobj->stream().rpos(pos);
+	}
+	else
+	{
+		return PyLong_FromUnsignedLong(pyobj->stream().rpos());
+	}
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_wpos(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+
+	int argCount = PyTuple_Size(args);
+	if (argCount > 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::wpos: args error! arg1 is type[UINT32].");
+		PyErr_PrintEx(0);
+	}
+
+	if (argCount > 0 && pyobj->readonly())
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::wpos: read only!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if (argCount == 1)
+	{
+		uint32 pos = 0;
+		if (PyArg_ParseTuple(args, "I", &pos) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "PyMemoryStream::wpos: args error!");
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+
+		pyobj->stream().wpos(pos);
+	}
+	else
+	{
+		return PyLong_FromUnsignedLong(pyobj->stream().wpos());
+	}
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyMemoryStream::__py_fill(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	PyMemoryStream* pyobj = static_cast<PyMemoryStream*>(self);
+
+	if (pyobj->readonly())
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::fill: read only!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	int argCount = PyTuple_Size(args);
+	if (argCount != 1)
+	{
+		PyErr_Format(PyExc_AssertionError, "PyMemoryStream::fill: args error! arg1 is [bytes|PyMemoryStream].");
+		PyErr_PrintEx(0);
+	}
+
+	PyObject* pyVal = NULL;
+
+	if (PyArg_ParseTuple(args, "O", &pyVal) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::fill: args error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+
+	if (!PyObject_TypeCheck(pyVal, PyMemoryStream::getScriptType()) && !PyBytes_Check(pyVal))
+	{
+		PyErr_Format(PyExc_TypeError, "PyMemoryStream::fill: val is not [bytes|PyMemoryStream]!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if (PyBytes_Check(pyVal))
+	{
+		char *buffer;
+		Py_ssize_t length;
+
+		if (PyBytes_AsStringAndSize(pyVal, &buffer, &length) < 0)
+		{
+			SCRIPT_ERROR_CHECK();
+			S_Return;
+		}
+
+		pyobj->stream().append(buffer, length);
+	}
+	else
+	{
+		PyMemoryStream* obj = static_cast<PyMemoryStream*>(pyVal);
+		pyobj->stream().append(obj->stream());
+	}
+
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

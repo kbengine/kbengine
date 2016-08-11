@@ -95,7 +95,7 @@ typedef uint16								PacketLength;				// 最大65535
 
 /** kbe machine端口 */
 #define KBE_PORT_START						20000
-#define KBE_MACHINE_BRAODCAST_SEND_PORT		KBE_PORT_START + 86			// machine接收广播的端口
+#define KBE_MACHINE_BROADCAST_SEND_PORT		KBE_PORT_START + 86			// machine接收广播的端口
 #define KBE_PORT_BROADCAST_DISCOVERY		KBE_PORT_START + 87
 #define KBE_MACHINE_TCP_PORT				KBE_PORT_START + 88
 
@@ -191,7 +191,7 @@ const char * reasonToString(Reason reason)
 		if(slen != (int)pPacket->totalSize())																\
 		{																									\
 			reason = Network::PacketSender::checkSocketErrors(ep, slen, pPacket->totalSize());				\
-			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/									\
+			/* 如果发送出现错误那么我们可以继续尝试一次， 超过3次退出	*/										\
 			if (reason == Network::REASON_NO_SUCH_PORT && retries <= 3)										\
 			{																								\
 				continue;																					\
@@ -247,7 +247,7 @@ const char * reasonToString(Reason reason)
 			if(pPacket->sentSize != pPacket->length())														\
 			{																								\
 				reason = PacketSender::checkSocketErrors(&ep);												\
-				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/								\
+				/* 如果发送出现错误那么我们可以继续尝试一次， 超过60次退出	*/									\
 				if (reason == REASON_NO_SUCH_PORT && retries <= 3)											\
 				{																							\
 					continue;																				\
@@ -302,27 +302,39 @@ const char * reasonToString(Reason reason)
 #define MALLOC_PACKET(outputPacket, isTCPPacket)															\
 {																											\
 	if(isTCPPacket)																							\
-		outputPacket = TCPPacket::ObjPool().createObject();													\
+		outputPacket = TCPPacket::createPoolObject();														\
 	else																									\
-		outputPacket = UDPPacket::ObjPool().createObject();													\
+		outputPacket = UDPPacket::createPoolObject();														\
 }																											\
 
 
 #define RECLAIM_PACKET(isTCPPacket, pPacket)																\
 {																											\
 	if(isTCPPacket)																							\
-		TCPPacket::ObjPool().reclaimObject(static_cast<TCPPacket*>(pPacket));								\
+		TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));										\
 	else																									\
-		UDPPacket::ObjPool().reclaimObject(static_cast<UDPPacket*>(pPacket));								\
+		UDPPacket::reclaimPoolObject(static_cast<UDPPacket*>(pPacket));										\
 }																											\
 
 
 // 配合服务端配置选项trace_packet使用，用来跟踪一条即将输出的消息包
-#define TRACE_MESSAGE_PACKET(isrecv, pPacket, pCurrMsgHandler, length, addr)								\
+#define TRACE_MESSAGE_PACKET(isrecv, pPacket, pCurrMsgHandler, length, addr, readPacketHead)				\
 	if(Network::g_trace_packet > 0)																			\
 	{																										\
 		if(Network::g_trace_packet_use_logfile)																\
 			DebugHelper::getSingleton().changeLogger("packetlogs");											\
+																											\
+		size_t headsize = 0;																				\
+		if(pCurrMsgHandler && readPacketHead)																\
+		{																									\
+			headsize = NETWORK_MESSAGE_ID_SIZE;																\
+			if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)										\
+			{																								\
+				headsize += NETWORK_MESSAGE_LENGTH_SIZE;													\
+				if (length >= NETWORK_MESSAGE_MAX_SIZE)														\
+					headsize += NETWORK_MESSAGE_LENGTH1_SIZE;												\
+			}																								\
+		}																									\
 																											\
 		bool isprint = true;																				\
 		if(pCurrMsgHandler)																					\
@@ -341,13 +353,18 @@ const char * reasonToString(Reason reason)
 						((isrecv == true) ? "====>" : "<===="),												\
 						pCurrMsgHandler->name.c_str(),														\
 						pCurrMsgHandler->msgID,																\
-						length,																				\
+						(length + headsize),																\
 						addr));																				\
 			}																								\
 		}																									\
 																											\
 		if(isprint)																							\
 		{																									\
+																											\
+			size_t rpos = pPacket->rpos();																	\
+			if(headsize > 0)																				\
+				pPacket->rpos(pPacket->rpos() - headsize);													\
+																											\
 			switch(Network::g_trace_packet)																	\
 			{																								\
 			case 1:																							\
@@ -360,6 +377,8 @@ const char * reasonToString(Reason reason)
 				pPacket->print_storage();																	\
 				break;																						\
 			};																								\
+																											\
+			pPacket->rpos(rpos);																			\
 		}																									\
 																											\
 		if(Network::g_trace_packet_use_logfile)																\

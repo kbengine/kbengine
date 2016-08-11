@@ -174,7 +174,9 @@ void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStrea
 		{
 			PyObject* val1 = iter->second->dataType->parseDefaultStr("");
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
-			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+			
+			// 由于PyDict_SetItem会增加引用因此需要减
+			Py_DECREF(val1);
 		}
 		else
 		{
@@ -187,7 +189,9 @@ void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStrea
 				val1 = iter->second->dataType->createFromStream(streamInitData);
 
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
-			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+			
+			// 由于PyDict_SetItem会增加引用因此需要减
+			Py_DECREF(val1);
 		}
 	}
 }
@@ -210,6 +214,7 @@ PyObject* FixedDict::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 		Py_DECREF(args);
 		return NULL;
 	}
+
 	return args;
 }
 
@@ -256,9 +261,18 @@ int FixedDict::mp_length(PyObject* self)
 //-------------------------------------------------------------------------------------
 int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);					
-	char* dictKeyName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);											
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);															
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);
+	if (PyUnicode_AsWideCharStringRet0 == NULL)
+	{
+		char err[255];
+		kbe_snprintf(err, 255, "FixedDict::mp_ass_subscript: key not is string!\n");
+		PyErr_SetString(PyExc_TypeError, err);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	char* dictKeyName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
 	FixedDict* fixedDict = static_cast<FixedDict*>(self);
 	if (value == NULL)
@@ -282,8 +296,9 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 		static_cast<FixedDictType*>(fixedDict->getDataType())->createNewItemFromObj(dictKeyName, value);
 
 	int ret = PyDict_SetItem(fixedDict->pyDict_, key, val1);
-
-	Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+	
+	// 由于PyDict_SetItem会增加引用因此需要减
+	Py_DECREF(val1);
 
 	free(dictKeyName);
 	return ret;
@@ -336,6 +351,7 @@ PyObject* FixedDict::mp_subscript(PyObject* self, PyObject* key)
 		PyErr_SetObject(PyExc_KeyError, key);
 	else
 		Py_INCREF(pyObj);
+
 	return pyObj;
 }
 
@@ -354,7 +370,9 @@ PyObject* FixedDict::update(PyObject* args)
 				static_cast<FixedDictType*>(getDataType())->createNewItemFromObj(iter->first.c_str(), val);
 
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
-			Py_DECREF(val1); // 由于PyDict_SetItem会增加引用因此需要减
+			
+			// 由于PyDict_SetItem会增加引用因此需要减
+			Py_DECREF(val1);
 		}
 	}
 

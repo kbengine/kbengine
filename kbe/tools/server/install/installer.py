@@ -21,7 +21,7 @@ if sys.hexversion >= 0x03000000:
 	if platform.system() == 'Windows':
 		import winreg
 else:
-	import ConfigParser
+	import ConfigParser as configparser
 	import urlparse
 	import httplib
 	
@@ -726,8 +726,8 @@ def findMysqlService():
 					continue
 					
 			if len(mysql_sercive_name) == 0:
-				if "mysqld" in s:
-					mysql_sercive_name = "mysqld"
+				if "mysql" in s.lower().strip():
+					mysql_sercive_name = s.strip()
 				else:
 					mysql_sercive_name = "mysql"
 					
@@ -816,7 +816,7 @@ def modifyKBEConfig():
 	state = 0
 
 	f = None
-	
+
 	try:
 		f = open(kbengine_defs, encoding='UTF-8')
 	except:
@@ -824,28 +824,34 @@ def modifyKBEConfig():
 		
 	newxml = []
 	for x in f.readlines():
-		if "</dbmgr>" in x:
+		if "</databaseInterfaces>" in x:
 			state = -1
 
 		if state == 0:
-			if "<dbmgr>" in x:
+			if "<databaseInterfaces>" in x:
 				state += 1
 				
 		if state == 1:
-			if "<host>" in x and "localhost" in x:
-				x = x.replace("localhost", mysql_ip)
+			xx = x.replace(" ", "").replace("	", "")
+			if "<host>" in xx:
+				xx = xx.split("</")[0].replace("<host>", "")
+				x = x.replace(xx, mysql_ip)
 
-			if "<port>" in x and "0" in x:
-				x = x.replace("0", mysql_port)
+			if "<port>" in xx:
+				xx = xx.split("</")[0].replace("<port>", "")
+				x = x.replace(xx, mysql_port)
 
-			if "<username>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_name)
+			if "<username>" in xx:
+				xx = xx.split("</")[0].replace("<username>", "")
+				x = x.replace(xx, mysql_kbe_name)
 
-			if "<password>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_password)
+			if "<password>" in xx:
+				xx = xx.split("</")[0].replace("<password>", "")
+				x = x.replace(xx, mysql_kbe_password)
 
-			if "<databaseName>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_db_name)
+			if "<databaseName>" in xx:
+				xx = xx.split("</")[0].replace("<databaseName>", "")
+				x = x.replace(xx, mysql_kbe_db_name)
 	                
 		newxml.append(x)
 
@@ -938,11 +944,11 @@ def createDatabase():
 
 				mysql_root = ret[7].strip()
 
-				if lower_case_table_names != '0':
-					ERROR_MSG('mysql lower_case_table_names not is 0')
+				if lower_case_table_names != '2':
+					ERROR_MSG('mysql lower_case_table_names not is 2')
 					config, cnf = getMysqlConfig()
 					INFO_MSG('Attempt to modify the [%s]...' % cnf)
-					config.set('mysqld', 'lower_case_table_names', '0')
+					config.set('mysqld', 'lower_case_table_names', '2')
 					config.write(open(cnf, "w"))
 					restartMsql()
 					continue
@@ -1131,8 +1137,8 @@ def get_sources_infos():
 	ziplist = re.compile("""=\"[a-zA-Z0-9//\/\.?]+.zip""").findall(html)
 	tgzlist = re.compile("""=\"[a-zA-Z0-9//\/\.?]+.gz""").findall(html)
 
-	src_master_zip_url = ziplist[0].replace("=\"", "https://github.com")
-	src_zip_url = ziplist[1].replace("=\"", "https://github.com")
+	src_master_zip_url = """https://github.com/kbengine/kbengine/archive/master.zip"""
+	src_zip_url = ziplist[0].replace("=\"", "https://github.com")
 	src_tgz_url = tgzlist[0].replace("=\"", "https://github.com")
 
 	# title

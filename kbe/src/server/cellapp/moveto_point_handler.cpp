@@ -27,7 +27,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveToPointHandler::MoveToPointHandler(KBEShared_ptr<Controller> pController, int layer, const Position3D& destPos, 
+MoveToPointHandler::MoveToPointHandler(KBEShared_ptr<Controller>& pController, int layer, const Position3D& destPos, 
 											 float velocity, float distance, bool faceMovement, 
 											bool moveVertically, PyObject* userarg):
 destPos_(destPos),
@@ -37,8 +37,13 @@ moveVertically_(moveVertically),
 pyuserarg_(userarg),
 distance_(distance),
 pController_(pController),
-layer_(layer)
+layer_(layer),
+isDestroyed_(false)
 {
+	updatableName = "MoveToPointHandler";
+
+	Py_INCREF(userarg);
+
 	//std::static_pointer_cast<MoveController>(pController)->pMoveToPointHandler(this);
 	static_cast<MoveController*>(pController.get())->pMoveToPointHandler(this);
 	Cellapp::getSingleton().addUpdatable(this);
@@ -52,8 +57,11 @@ faceMovement_(false),
 moveVertically_(false),
 pyuserarg_(NULL),
 distance_(0.f),
-layer_(0)
+layer_(0),
+isDestroyed_(false)
 {
+	updatableName = "MoveToPointHandler";
+
 	Cellapp::getSingleton().addUpdatable(this);
 }
 
@@ -65,7 +73,7 @@ MoveToPointHandler::~MoveToPointHandler()
 		Py_DECREF(pyuserarg_);
 	}
 
-	// DEBUG_MSG(fmt::format("MoveToPointHandler::~MoveToPointHandler(): {:p}\n"), (void*)this));
+	//DEBUG_MSG(fmt::format("MoveToPointHandler::~MoveToPointHandler(): {}\n", (void*)this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -100,8 +108,7 @@ bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 			pController_->pEntity()->onMoveOver(pController_->id(), layer_, oldPos, pyuserarg_);
 
 		// 如果在onMoveOver中调用cancelController（id）会导致MoveController析构导致pController_为NULL
-		if(pController_)
-			pController_->destroy();
+		pController_->destroy();
 	}
 
 	return true;
@@ -110,13 +117,15 @@ bool MoveToPointHandler::requestMoveOver(const Position3D& oldPos)
 //-------------------------------------------------------------------------------------
 bool MoveToPointHandler::update()
 {
-	if(pController_ == NULL)
+	if (isDestroyed_)
 	{
 		delete this;
 		return false;
 	}
 	
 	Entity* pEntity = pController_->pEntity();
+	Py_INCREF(pEntity);
+
 	const Position3D& dstPos = destPos();
 	Position3D currpos = pEntity->position();
 	Position3D currpos_backup = currpos;
@@ -147,7 +156,7 @@ bool MoveToPointHandler::update()
 		{
 			currpos = dstPos;
 		}
-		
+
 		if (!moveVertically_)
 			currpos.y = y;
 
@@ -164,27 +173,36 @@ bool MoveToPointHandler::update()
 	}
 	
 	// 是否需要改变面向
-	if (faceMovement_ && (movement.x != 0.f || movement.z != 0.f))
-		direction.yaw(movement.yaw());
+	if (faceMovement_)
+	{
+		if (movement.x != 0.f || movement.z != 0.f)
+			direction.yaw(movement.yaw());
+
+		//if (movement.y != 0.f)
+		//	direction.pitch(movement.pitch());
+	}
 	
 	// 设置entity的新位置和面向
-	if(pController_)
+	if(!isDestroyed_)
 		pEntity->setPositionAndDirection(currpos, direction);
 
 	// 非navigate都不能确定其在地面上
-	if(pController_)
+	if(!isDestroyed_)
 		pEntity->isOnGround(isOnGround());
 
 	// 通知脚本
-	if(pController_)
+	if(!isDestroyed_)
 		pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
 
 	// 如果达到目的地则返回true
-	if(!ret)
+	if (!ret && requestMoveOver(currpos_backup))
 	{
-		return !requestMoveOver(currpos_backup);
+		Py_DECREF(pEntity);
+		delete this;
+		return false;
 	}
 
+	Py_DECREF(pEntity);
 	return true;
 }
 

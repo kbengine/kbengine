@@ -45,6 +45,18 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+TCPPacketReceiver* TCPPacketReceiver::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void TCPPacketReceiver::reclaimPoolObject(TCPPacketReceiver* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void TCPPacketReceiver::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("TCPPacketReceiver::destroyObjPool(): size {}.\n", 
@@ -83,12 +95,12 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 		return false;
 	}
 
-	TCPPacket* pReceiveWindow = TCPPacket::ObjPool().createObject();
+	TCPPacket* pReceiveWindow = TCPPacket::createPoolObject();
 	int len = pReceiveWindow->recvFromEndPoint(*pEndpoint_);
 
 	if (len < 0)
 	{
-		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
+		TCPPacket::reclaimPoolObject(pReceiveWindow);
 
 		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
 
@@ -102,7 +114,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 	}
 	else if(len == 0) // 客户端正常退出
 	{
-		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
+		TCPPacket::reclaimPoolObject(pReceiveWindow);
 		onGetError(pChannel);
 		return false;
 	}

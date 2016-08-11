@@ -1,5 +1,4 @@
-/* Copyright (c) 2000-2007 MySQL AB, 2008 Sun Microsystems, Inc.
-   Use is subject to license terms.
+/* Copyright (c) 2000, 2015, Oracle and/or its affiliates. All rights reserved.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,13 +15,12 @@
 
 /*
   A better inplementation of the UNIX ctype(3) library.
-  Notes:   my_global.h should be included before ctype.h
 */
 
 #ifndef _m_ctype_h
 #define _m_ctype_h
 
-#include <my_attribute.h>
+#include "my_global.h"                          /* uint16, uchar */
 
 #ifdef	__cplusplus
 extern "C" {
@@ -39,17 +37,113 @@ extern "C" {
 
 #define my_wc_t ulong
 
+#define MY_CS_REPLACEMENT_CHARACTER 0xFFFD
+
+/*
+  On i386 we store Unicode->CS conversion tables for
+  some character sets using Big-endian order,
+  to copy two bytes at onces.
+  This gives some performance improvement.
+*/
+#ifdef __i386__
+#define MB2(x)                (((x) >> 8) + (((x) & 0xFF) << 8))
+#define MY_PUT_MB2(s, code)   { *((uint16*)(s))= (code); }
+#else
+#define MB2(x)                (x)
+#define MY_PUT_MB2(s, code)   { (s)[0]= code >> 8; (s)[1]= code & 0xFF; }
+#endif
+
+
+
+typedef struct unicase_info_char_st
+{
+  uint32 toupper;
+  uint32 tolower;
+  uint32 sort;
+} MY_UNICASE_CHARACTER;
+
+
 typedef struct unicase_info_st
 {
-  uint16 toupper;
-  uint16 tolower;
-  uint16 sort;
+  my_wc_t maxchar;
+  const MY_UNICASE_CHARACTER **page;
 } MY_UNICASE_INFO;
 
 
-extern MY_UNICASE_INFO *my_unicase_default[256];
-extern MY_UNICASE_INFO *my_unicase_turkish[256];
+extern MY_UNICASE_INFO my_unicase_default;
+extern MY_UNICASE_INFO my_unicase_turkish;
+extern MY_UNICASE_INFO my_unicase_mysql500;
+extern MY_UNICASE_INFO my_unicase_unicode520;
 
+#define MY_UCA_MAX_CONTRACTION 6
+#define MY_UCA_MAX_WEIGHT_SIZE 8
+#define MY_UCA_WEIGHT_LEVELS   1
+
+typedef struct my_contraction_t
+{
+  my_wc_t ch[MY_UCA_MAX_CONTRACTION];   /* Character sequence              */
+  uint16 weight[MY_UCA_MAX_WEIGHT_SIZE];/* Its weight string, 0-terminated */
+  my_bool with_context;
+} MY_CONTRACTION;
+
+
+
+typedef struct my_contraction_list_t
+{
+  size_t nitems;         /* Number of items in the list                  */
+  MY_CONTRACTION *item;  /* List of contractions                         */
+  char *flags;           /* Character flags, e.g. "is contraction head") */
+} MY_CONTRACTIONS;
+
+
+my_bool my_uca_can_be_contraction_head(const MY_CONTRACTIONS *c, my_wc_t wc);
+my_bool my_uca_can_be_contraction_tail(const MY_CONTRACTIONS *c, my_wc_t wc);
+uint16 *my_uca_contraction2_weight(const MY_CONTRACTIONS *c,
+                                   my_wc_t wc1, my_wc_t wc2);
+
+
+/* Collation weights on a single level (e.g. primary, secondary, tertiarty) */
+typedef struct my_uca_level_info_st
+{
+  my_wc_t maxchar;
+  uchar   *lengths;
+  uint16  **weights;
+  MY_CONTRACTIONS contractions;
+} MY_UCA_WEIGHT_LEVEL;
+
+
+typedef struct uca_info_st
+{
+  MY_UCA_WEIGHT_LEVEL level[MY_UCA_WEIGHT_LEVELS];
+
+  /* Logical positions */
+  my_wc_t first_non_ignorable;
+  my_wc_t last_non_ignorable;
+  my_wc_t first_primary_ignorable;
+  my_wc_t last_primary_ignorable;
+  my_wc_t first_secondary_ignorable;
+  my_wc_t last_secondary_ignorable;
+  my_wc_t first_tertiary_ignorable;
+  my_wc_t last_tertiary_ignorable;
+  my_wc_t first_trailing;
+  my_wc_t last_trailing;
+  my_wc_t first_variable;
+  my_wc_t last_variable;
+
+} MY_UCA_INFO;
+
+
+
+extern MY_UCA_INFO my_uca_v400;
+
+
+typedef struct uni_ctype_st
+{
+  uchar  pctype;
+  uchar  *ctype;
+} MY_UNI_CTYPE;
+
+extern MY_UNI_CTYPE my_uni_ctype[256];
 
 /* wm_wc and wc_mb return codes */
 #define MY_CS_ILSEQ	0     /* Wrong by sequence: wb_wc                   */
@@ -75,11 +169,15 @@ extern MY_UNICASE_INFO *my_unicase_turkish[256];
 #define MY_CS_BINSORT	16     /* if binary sort order           */
 #define MY_CS_PRIMARY	32     /* if primary collation           */
 #define MY_CS_STRNXFRM	64     /* if strnxfrm is used for sort   */
-#define MY_CS_UNICODE	128    /* is a charset is full unicode   */
+#define MY_CS_UNICODE	128    /* is a charset is BMP Unicode    */
 #define MY_CS_READY	256    /* if a charset is initialized    */
 #define MY_CS_AVAILABLE	512    /* If either compiled-in or loaded*/
 #define MY_CS_CSSORT	1024   /* if case sensitive sort order   */	
-#define MY_CS_PUREASCII 2048   /* if a charset is pure ascii     */
+#define MY_CS_HIDDEN	2048   /* don't display in SHOW          */	
+#define MY_CS_PUREASCII 4096   /* if a charset is pure ascii     */
+#define MY_CS_NONASCII  8192   /* if not ASCII-compatible        */
+#define MY_CS_UNICODE_SUPPLEMENT 16384 /* Non-BMP Unicode characters */
+#define MY_CS_LOWER_SORT 32768 /* If use lower case as weight   */
 #define MY_CHARSET_UNDEFINED 0
 
 /* Character repertoire flags */
@@ -87,12 +185,44 @@ extern MY_UNICASE_INFO *my_unicase_turkish[256];
 #define MY_REPERTOIRE_EXTENDED   2 /* Extended characters:  U+0080..U+FFFF */
 #define MY_REPERTOIRE_UNICODE30  3 /* ASCII | EXTENDED:     U+0000..U+FFFF */
 
+/* Flags for strxfrm */
+#define MY_STRXFRM_LEVEL1          0x00000001 /* for primary weights   */
+#define MY_STRXFRM_LEVEL2          0x00000002 /* for secondary weights */
+#define MY_STRXFRM_LEVEL3          0x00000004 /* for tertiary weights  */
+#define MY_STRXFRM_LEVEL4          0x00000008 /* fourth level weights  */
+#define MY_STRXFRM_LEVEL5          0x00000010 /* fifth level weights   */
+#define MY_STRXFRM_LEVEL6          0x00000020 /* sixth level weights   */
+#define MY_STRXFRM_LEVEL_ALL       0x0000003F /* Bit OR for the above six */
+#define MY_STRXFRM_NLEVELS         6          /* Number of possible levels*/
+
+#define MY_STRXFRM_PAD_WITH_SPACE  0x00000040 /* if pad result with spaces */
+#define MY_STRXFRM_PAD_TO_MAXLEN   0x00000080 /* if pad tail(for filesort) */
+
+#define MY_STRXFRM_DESC_LEVEL1     0x00000100 /* if desc order for level1 */
+#define MY_STRXFRM_DESC_LEVEL2     0x00000200 /* if desc order for level2 */
+#define MY_STRXFRM_DESC_LEVEL3     0x00000300 /* if desc order for level3 */
+#define MY_STRXFRM_DESC_LEVEL4     0x00000800 /* if desc order for level4 */
+#define MY_STRXFRM_DESC_LEVEL5     0x00001000 /* if desc order for level5 */
+#define MY_STRXFRM_DESC_LEVEL6     0x00002000 /* if desc order for level6 */
+#define MY_STRXFRM_DESC_SHIFT      8
+
+#define MY_STRXFRM_UNUSED_00004000 0x00004000 /* for future extensions     */
+#define MY_STRXFRM_UNUSED_00008000 0x00008000 /* for future extensions     */
+
+#define MY_STRXFRM_REVERSE_LEVEL1  0x00010000 /* if reverse order for level1 */
+#define MY_STRXFRM_REVERSE_LEVEL2  0x00020000 /* if reverse order for level2 */
+#define MY_STRXFRM_REVERSE_LEVEL3  0x00040000 /* if reverse order for level3 */
+#define MY_STRXFRM_REVERSE_LEVEL4  0x00080000 /* if reverse order for level4 */
+#define MY_STRXFRM_REVERSE_LEVEL5  0x00100000 /* if reverse order for level5 */
+#define MY_STRXFRM_REVERSE_LEVEL6  0x00200000 /* if reverse order for level6 */
+#define MY_STRXFRM_REVERSE_SHIFT   16
+
 
 typedef struct my_uni_idx_st
 {
-  uint16 from;
-  uint16 to;
-  uchar  *tab;
+  uint16      from;
+  uint16      to;
+  const uchar *tab;
 } MY_UNI_IDX;
 
 typedef struct
@@ -102,60 +232,60 @@ typedef struct
   uint mb_len;
 } my_match_t;
 
-enum my_lex_states
-{
-  MY_LEX_START, MY_LEX_CHAR, MY_LEX_IDENT, 
-  MY_LEX_IDENT_SEP, MY_LEX_IDENT_START,
-  MY_LEX_REAL, MY_LEX_HEX_NUMBER, MY_LEX_BIN_NUMBER,
-  MY_LEX_CMP_OP, MY_LEX_LONG_CMP_OP, MY_LEX_STRING, MY_LEX_COMMENT, MY_LEX_END,
-  MY_LEX_OPERATOR_OR_IDENT, MY_LEX_NUMBER_IDENT, MY_LEX_INT_OR_REAL,
-  MY_LEX_REAL_OR_POINT, MY_LEX_BOOL, MY_LEX_EOL, MY_LEX_ESCAPE, 
-  MY_LEX_LONG_COMMENT, MY_LEX_END_LONG_COMMENT, MY_LEX_SEMICOLON, 
-  MY_LEX_SET_VAR, MY_LEX_USER_END, MY_LEX_HOSTNAME, MY_LEX_SKIP, 
-  MY_LEX_USER_VARIABLE_DELIMITER, MY_LEX_SYSTEM_VAR,
-  MY_LEX_IDENT_OR_KEYWORD,
-  MY_LEX_IDENT_OR_HEX, MY_LEX_IDENT_OR_BIN, MY_LEX_IDENT_OR_NCHAR,
-  MY_LEX_STRING_OR_DELIMITER
-};
-
 struct charset_info_st;
 
+typedef struct my_charset_loader_st
+{
+  char error[128];
+  void *(*once_alloc)(size_t);
+  void *(*mem_malloc)(size_t);
+  void *(*mem_realloc)(void *, size_t);
+  void (*mem_free)(void *);
+  void (*reporter)(enum loglevel, const char *format, ...);
+  int  (*add_collation)(struct charset_info_st *cs);
+} MY_CHARSET_LOADER;
+
+
+extern int (*my_string_stack_guard)(int);
 
 /* See strings/CHARSET_INFO.txt for information about this structure  */
 typedef struct my_collation_handler_st
 {
-  my_bool (*init)(struct charset_info_st *, void *(*alloc)(uint));
+  my_bool (*init)(struct charset_info_st *, MY_CHARSET_LOADER *);
   /* Collation routines */
-  int     (*strnncoll)(struct charset_info_st *,
-		       const uchar *, uint, const uchar *, uint, my_bool);
-  int     (*strnncollsp)(struct charset_info_st *,
-                         const uchar *, uint, const uchar *, uint,
+  int     (*strnncoll)(const struct charset_info_st *,
+		       const uchar *, size_t, const uchar *, size_t, my_bool);
+  int     (*strnncollsp)(const struct charset_info_st *,
+                         const uchar *, size_t, const uchar *, size_t,
                          my_bool diff_if_only_endspace_difference);
-  int     (*strnxfrm)(struct charset_info_st *,
-		      uchar *, uint, const uchar *, uint);
-  uint    (*strnxfrmlen)(struct charset_info_st *, uint); 
-  my_bool (*like_range)(struct charset_info_st *,
-			const char *s, uint s_length,
+  size_t  (*strnxfrm)(const struct charset_info_st *,
+                      uchar *dst, size_t dstlen, uint nweights,
+                      const uchar *src, size_t srclen, uint flags);
+  size_t    (*strnxfrmlen)(const struct charset_info_st *, size_t);
+  my_bool (*like_range)(const struct charset_info_st *,
+			const char *s, size_t s_length,
 			pchar w_prefix, pchar w_one, pchar w_many, 
-			uint res_length,
+			size_t res_length,
 			char *min_str, char *max_str,
-			uint *min_len, uint *max_len);
-  int     (*wildcmp)(struct charset_info_st *,
+			size_t *min_len, size_t *max_len);
+  int     (*wildcmp)(const struct charset_info_st *,
   		     const char *str,const char *str_end,
                      const char *wildstr,const char *wildend,
                      int escape,int w_one, int w_many);
 
-  int  (*strcasecmp)(struct charset_info_st *, const char *, const char *);
+  int  (*strcasecmp)(const struct charset_info_st *, const char *,
+                     const char *);
   
-  uint (*instr)(struct charset_info_st *,
-                const char *b, uint b_length,
-                const char *s, uint s_length,
+  uint (*instr)(const struct charset_info_st *,
+                const char *b, size_t b_length,
+                const char *s, size_t s_length,
                 my_match_t *match, uint nmatch);
   
   /* Hash calculation */
-  void (*hash_sort)(struct charset_info_st *cs, const uchar *key, uint len,
-		    ulong *nr1, ulong *nr2); 
-  my_bool (*propagate)(struct charset_info_st *cs, const uchar *str, uint len);
+  void (*hash_sort)(const struct charset_info_st *cs, const uchar *key,
+                    size_t len, ulong *nr1, ulong *nr2);
+  my_bool (*propagate)(const struct charset_info_st *cs, const uchar *str,
+                       size_t len);
 } MY_COLLATION_HANDLER;
 
 extern MY_COLLATION_HANDLER my_collation_mb_bin_handler;
@@ -163,69 +293,93 @@ extern MY_COLLATION_HANDLER my_collation_8bit_bin_handler;
 extern MY_COLLATION_HANDLER my_collation_8bit_simple_ci_handler;
 extern MY_COLLATION_HANDLER my_collation_ucs2_uca_handler;
 
+/* Some typedef to make it easy for C++ to make function pointers */
+typedef int (*my_charset_conv_mb_wc)(const struct charset_info_st *,
+                                     my_wc_t *, const uchar *, const uchar *);
+typedef int (*my_charset_conv_wc_mb)(const struct charset_info_st *, my_wc_t,
+                                     uchar *, uchar *);
+typedef size_t (*my_charset_conv_case)(const struct charset_info_st *,
+                                       char *, size_t, char *, size_t);
+
 
 /* See strings/CHARSET_INFO.txt about information on this structure  */
 typedef struct my_charset_handler_st
 {
-  my_bool (*init)(struct charset_info_st *, void *(*alloc)(uint));
+  my_bool (*init)(struct charset_info_st *, MY_CHARSET_LOADER *loader);
   /* Multibyte routines */
-  int     (*ismbchar)(struct charset_info_st *, const char *, const char *);
-  int     (*mbcharlen)(struct charset_info_st *, uint);
-  uint    (*numchars)(struct charset_info_st *, const char *b, const char *e);
-  uint    (*charpos)(struct charset_info_st *, const char *b, const char *e, uint pos);
-  uint    (*well_formed_len)(struct charset_info_st *,
+  uint    (*ismbchar)(const struct charset_info_st *, const char *,
+                      const char *);
+  uint    (*mbcharlen)(const struct charset_info_st *, uint c);
+  size_t  (*numchars)(const struct charset_info_st *, const char *b,
+                      const char *e);
+  size_t  (*charpos)(const struct charset_info_st *, const char *b,
+                     const char *e, size_t pos);
+  size_t  (*well_formed_len)(const struct charset_info_st *,
                              const char *b,const char *e,
-                             uint nchars, int *error);
-  uint    (*lengthsp)(struct charset_info_st *, const char *ptr, uint length);
-  uint    (*numcells)(struct charset_info_st *, const char *b, const char *e);
+                             size_t nchars, int *error);
+  size_t  (*lengthsp)(const struct charset_info_st *, const char *ptr,
+                      size_t length);
+  size_t  (*numcells)(const struct charset_info_st *, const char *b,
+                      const char *e);
   
-  /* Unicode convertion */
-  int (*mb_wc)(struct charset_info_st *cs,my_wc_t *wc,
-	       const unsigned char *s,const unsigned char *e);
-  int (*wc_mb)(struct charset_info_st *cs,my_wc_t wc,
-	       unsigned char *s,unsigned char *e);
+  /* Unicode conversion */
+  my_charset_conv_mb_wc mb_wc;
+  my_charset_conv_wc_mb wc_mb;
+
+  /* CTYPE scanner */
+  int (*ctype)(const struct charset_info_st *cs, int *ctype,
+               const uchar *s, const uchar *e);
   
-  /* Functions for case and sort convertion */
-  uint    (*caseup_str)(struct charset_info_st *, char *);
-  uint    (*casedn_str)(struct charset_info_st *, char *);
-  uint    (*caseup)(struct charset_info_st *, char *src, uint srclen,
-                                              char *dst, uint dstlen);
-  uint    (*casedn)(struct charset_info_st *, char *src, uint srclen,
-                                              char *dst, uint dstlen);
-  
+  /* Functions for case and sort conversion */
+  size_t  (*caseup_str)(const struct charset_info_st *, char *);
+  size_t  (*casedn_str)(const struct charset_info_st *, char *);
+
+  my_charset_conv_case caseup;
+  my_charset_conv_case casedn;
+
   /* Charset dependant snprintf() */
-  int  (*snprintf)(struct charset_info_st *, char *to, uint n, const char *fmt,
-		   ...) ATTRIBUTE_FORMAT_FPTR(printf, 4, 5);
-  int  (*long10_to_str)(struct charset_info_st *, char *to, uint n, int radix,
-			long int val);
-  int (*longlong10_to_str)(struct charset_info_st *, char *to, uint n,
-			   int radix, longlong val);
+  size_t (*snprintf)(const struct charset_info_st *, char *to, size_t n,
+                     const char *fmt,
+                     ...) __attribute__((format(printf, 4, 5)));
+  size_t (*long10_to_str)(const struct charset_info_st *, char *to, size_t n,
+                          int radix, long int val);
+  size_t (*longlong10_to_str)(const struct charset_info_st *, char *to,
+                              size_t n, int radix, longlong val);
   
-  void (*fill)(struct charset_info_st *, char *to, uint len, int fill);
+  void (*fill)(const struct charset_info_st *, char *to, size_t len,
+               int fill);
   
-  /* String-to-number convertion routines */
-  long        (*strntol)(struct charset_info_st *, const char *s, uint l,
-			 int base, char **e, int *err);
-  ulong      (*strntoul)(struct charset_info_st *, const char *s, uint l,
-			 int base, char **e, int *err);
-  longlong   (*strntoll)(struct charset_info_st *, const char *s, uint l,
-			 int base, char **e, int *err);
-  ulonglong (*strntoull)(struct charset_info_st *, const char *s, uint l,
-			 int base, char **e, int *err);
-  double      (*strntod)(struct charset_info_st *, char *s, uint l, char **e,
-			 int *err);
-  longlong    (*strtoll10)(struct charset_info_st *cs,
+  /* String-to-number conversion routines */
+  long        (*strntol)(const struct charset_info_st *, const char *s,
+                         size_t l, int base, char **e, int *err);
+  ulong      (*strntoul)(const struct charset_info_st *, const char *s,
+                         size_t l, int base, char **e, int *err);
+  longlong   (*strntoll)(const struct charset_info_st *, const char *s,
+                         size_t l, int base, char **e, int *err);
+  ulonglong (*strntoull)(const struct charset_info_st *, const char *s,
+                         size_t l, int base, char **e, int *err);
+  double      (*strntod)(const struct charset_info_st *, char *s,
+                         size_t l, char **e, int *err);
+  longlong    (*strtoll10)(const struct charset_info_st *cs,
                            const char *nptr, char **endptr, int *error);
-  ulonglong   (*strntoull10rnd)(struct charset_info_st *cs,
-                                const char *str, uint length, int unsigned_fl,
+  ulonglong   (*strntoull10rnd)(const struct charset_info_st *cs,
+                                const char *str, size_t length,
+                                int unsigned_fl,
                                 char **endptr, int *error);
-  ulong        (*scan)(struct charset_info_st *, const char *b, const char *e,
-		       int sq);
+  size_t        (*scan)(const struct charset_info_st *, const char *b,
+                        const char *e, int sq);
 } MY_CHARSET_HANDLER;
 
 extern MY_CHARSET_HANDLER my_charset_8bit_handler;
+extern MY_CHARSET_HANDLER my_charset_ascii_handler;
 extern MY_CHARSET_HANDLER my_charset_ucs2_handler;
 
+
+/*
+  We define this CHARSET_INFO_DEFINED here to prevent a repeat of the
+  typedef in hash.c, which will cause a compiler error.
+*/
+#define CHARSET_INFO_DEFINED
 
 /* See strings/CHARSET_INFO.txt about information on this structure  */
 typedef struct charset_info_st
@@ -238,38 +392,45 @@ typedef struct charset_info_st
   const char *name;
   const char *comment;
   const char *tailoring;
-  uchar    *ctype;
-  uchar    *to_lower;
-  uchar    *to_upper;
-  uchar    *sort_order;
-  uint16   *contractions;
-  uint16   **sort_order_big;
-  uint16      *tab_to_uni;
-  MY_UNI_IDX  *tab_from_uni;
-  MY_UNICASE_INFO **caseinfo;
-  uchar     *state_map;
-  uchar     *ident_map;
+  const uchar *ctype;
+  const uchar *to_lower;
+  const uchar *to_upper;
+  const uchar *sort_order;
+  MY_UCA_INFO *uca; /* This can be changed in apply_one_rule() */
+  const uint16     *tab_to_uni;
+  const MY_UNI_IDX *tab_from_uni;
+  const MY_UNICASE_INFO *caseinfo;
+  const struct lex_state_maps_st *state_maps; /* parser internal data */
+  const uchar *ident_map; /* parser internal data */
   uint      strxfrm_multiply;
   uchar     caseup_multiply;
   uchar     casedn_multiply;
   uint      mbminlen;
   uint      mbmaxlen;
-  uint16    min_sort_char;
-  uint16    max_sort_char; /* For LIKE optimization */
+  uint      mbmaxlenlen;
+  my_wc_t   min_sort_char;
+  my_wc_t   max_sort_char; /* For LIKE optimization */
   uchar     pad_char;
   my_bool   escape_with_backslash_is_dangerous;
+  uchar     levels_for_compare;
+  uchar     levels_for_order;
   
   MY_CHARSET_HANDLER *cset;
   MY_COLLATION_HANDLER *coll;
   
 } CHARSET_INFO;
+#define ILLEGAL_CHARSET_INFO_NUMBER (~0U)
 
 
-extern CHARSET_INFO my_charset_bin;
+extern MYSQL_PLUGIN_IMPORT CHARSET_INFO my_charset_bin;
+extern MYSQL_PLUGIN_IMPORT CHARSET_INFO my_charset_latin1;
+extern MYSQL_PLUGIN_IMPORT CHARSET_INFO my_charset_filename;
+
 extern CHARSET_INFO my_charset_big5_chinese_ci;
 extern CHARSET_INFO my_charset_big5_bin;
 extern CHARSET_INFO my_charset_cp932_japanese_ci;
 extern CHARSET_INFO my_charset_cp932_bin;
+extern CHARSET_INFO my_charset_cp1250_czech_ci;
 extern CHARSET_INFO my_charset_eucjpms_japanese_ci;
 extern CHARSET_INFO my_charset_eucjpms_bin;
 extern CHARSET_INFO my_charset_euckr_korean_ci;
@@ -278,7 +439,8 @@ extern CHARSET_INFO my_charset_gb2312_chinese_ci;
 extern CHARSET_INFO my_charset_gb2312_bin;
 extern CHARSET_INFO my_charset_gbk_chinese_ci;
 extern CHARSET_INFO my_charset_gbk_bin;
-extern CHARSET_INFO my_charset_latin1;
+extern CHARSET_INFO my_charset_gb18030_chinese_ci;
+extern CHARSET_INFO my_charset_gb18030_bin;
 extern CHARSET_INFO my_charset_latin1_german2_ci;
 extern CHARSET_INFO my_charset_latin1_bin;
 extern CHARSET_INFO my_charset_latin2_czech_ci;
@@ -289,165 +451,265 @@ extern CHARSET_INFO my_charset_tis620_bin;
 extern CHARSET_INFO my_charset_ucs2_general_ci;
 extern CHARSET_INFO my_charset_ucs2_bin;
 extern CHARSET_INFO my_charset_ucs2_unicode_ci;
+extern CHARSET_INFO my_charset_ucs2_general_mysql500_ci;
 extern CHARSET_INFO my_charset_ujis_japanese_ci;
 extern CHARSET_INFO my_charset_ujis_bin;
-extern CHARSET_INFO my_charset_utf8_general_ci;
+extern CHARSET_INFO my_charset_utf16_bin;
+extern CHARSET_INFO my_charset_utf16_general_ci;
+extern CHARSET_INFO my_charset_utf16_unicode_ci;
+extern CHARSET_INFO my_charset_utf16le_bin;
+extern CHARSET_INFO my_charset_utf16le_general_ci;
+extern CHARSET_INFO my_charset_utf32_bin;
+extern CHARSET_INFO my_charset_utf32_general_ci;
+extern CHARSET_INFO my_charset_utf32_unicode_ci;
+
+extern MYSQL_PLUGIN_IMPORT CHARSET_INFO my_charset_utf8_general_ci;
+extern CHARSET_INFO my_charset_utf8_tolower_ci;
 extern CHARSET_INFO my_charset_utf8_unicode_ci;
 extern CHARSET_INFO my_charset_utf8_bin;
-extern CHARSET_INFO my_charset_cp1250_czech_ci;
+extern CHARSET_INFO my_charset_utf8_general_mysql500_ci;
+extern CHARSET_INFO my_charset_utf8mb4_bin;
+extern CHARSET_INFO my_charset_utf8mb4_general_ci;
+extern CHARSET_INFO my_charset_utf8mb4_unicode_ci;
+#define MY_UTF8MB3                 "utf8"
+#define MY_UTF8MB4                 "utf8mb4"
+
 
 /* declarations for simple charsets */
-extern int  my_strnxfrm_simple(CHARSET_INFO *, uchar *, uint, const uchar *,
-                               uint); 
-uint  my_strnxfrmlen_simple(CHARSET_INFO *, uint); 
-extern int  my_strnncoll_simple(CHARSET_INFO *, const uchar *, uint,
-				const uchar *, uint, my_bool);
+extern size_t my_strnxfrm_simple(const CHARSET_INFO *,
+                                 uchar *dst, size_t dstlen, uint nweights,
+                                 const uchar *src, size_t srclen, uint flags);
+size_t  my_strnxfrmlen_simple(const CHARSET_INFO *, size_t); 
+extern int  my_strnncoll_simple(const CHARSET_INFO *, const uchar *, size_t,
+				const uchar *, size_t, my_bool);
 
-extern int  my_strnncollsp_simple(CHARSET_INFO *, const uchar *, uint,
-                                  const uchar *, uint,
+extern int  my_strnncollsp_simple(const CHARSET_INFO *, const uchar *, size_t,
+                                  const uchar *, size_t,
                                   my_bool diff_if_only_endspace_difference);
 
-extern void my_hash_sort_simple(CHARSET_INFO *cs,
-				const uchar *key, uint len,
+extern void my_hash_sort_simple(const CHARSET_INFO *cs,
+				const uchar *key, size_t len,
 				ulong *nr1, ulong *nr2); 
 
-extern uint my_lengthsp_8bit(CHARSET_INFO *cs, const char *ptr, uint length);
+extern size_t my_lengthsp_8bit(const CHARSET_INFO *cs, const char *ptr,
+                               size_t length);
 
-extern uint my_instr_simple(struct charset_info_st *,
-                            const char *b, uint b_length,
-                            const char *s, uint s_length,
+extern uint my_instr_simple(const struct charset_info_st *,
+                            const char *b, size_t b_length,
+                            const char *s, size_t s_length,
                             my_match_t *match, uint nmatch);
 
 
 /* Functions for 8bit */
-extern uint my_caseup_str_8bit(CHARSET_INFO *, char *);
-extern uint my_casedn_str_8bit(CHARSET_INFO *, char *);
-extern uint my_caseup_8bit(CHARSET_INFO *, char *src, uint srclen,
-                                           char *dst, uint dstlen);
-extern uint my_casedn_8bit(CHARSET_INFO *, char *src, uint srclen,
-                                           char *dst, uint dstlen);
+extern size_t my_caseup_str_8bit(const CHARSET_INFO *, char *);
+extern size_t my_casedn_str_8bit(const CHARSET_INFO *, char *);
+extern size_t my_caseup_8bit(const CHARSET_INFO *, char *src, size_t srclen,
+                             char *dst, size_t dstlen);
+extern size_t my_casedn_8bit(const CHARSET_INFO *, char *src, size_t srclen,
+                             char *dst, size_t dstlen);
 
-extern int my_strcasecmp_8bit(CHARSET_INFO * cs, const char *, const char *);
+extern int my_strcasecmp_8bit(const CHARSET_INFO * cs, const char *,
+                              const char *);
 
-int my_mb_wc_8bit(CHARSET_INFO *cs,my_wc_t *wc, const uchar *s,const uchar *e);
-int my_wc_mb_8bit(CHARSET_INFO *cs,my_wc_t wc, uchar *s, uchar *e);
+int my_mb_wc_8bit(const CHARSET_INFO *cs,my_wc_t *wc, const uchar *s,
+                  const uchar *e);
+int my_wc_mb_8bit(const CHARSET_INFO *cs,my_wc_t wc, uchar *s, uchar *e);
 
-ulong my_scan_8bit(CHARSET_INFO *cs, const char *b, const char *e, int sq);
+int my_mb_ctype_8bit(const CHARSET_INFO *,int *, const uchar *,const uchar *);
+int my_mb_ctype_mb(const CHARSET_INFO *,int *, const uchar *,const uchar *);
 
-int my_snprintf_8bit(struct charset_info_st *, char *to, uint n,
-		     const char *fmt, ...)
-  ATTRIBUTE_FORMAT(printf, 4, 5);
+size_t my_scan_8bit(const CHARSET_INFO *cs, const char *b, const char *e,
+                    int sq);
 
-long        my_strntol_8bit(CHARSET_INFO *, const char *s, uint l, int base,
-			    char **e, int *err);
-ulong      my_strntoul_8bit(CHARSET_INFO *, const char *s, uint l, int base,
-			    char **e, int *err);
-longlong   my_strntoll_8bit(CHARSET_INFO *, const char *s, uint l, int base,
-			    char **e, int *err);
-ulonglong my_strntoull_8bit(CHARSET_INFO *, const char *s, uint l, int base,
-			    char **e, int *err);
-double      my_strntod_8bit(CHARSET_INFO *, char *s, uint l,char **e,
+size_t my_snprintf_8bit(const struct charset_info_st *, char *to, size_t n,
+                        const char *fmt, ...)
+  __attribute__((format(printf, 4, 5)));
+
+long       my_strntol_8bit(const CHARSET_INFO *, const char *s, size_t l,
+                           int base, char **e, int *err);
+ulong      my_strntoul_8bit(const CHARSET_INFO *, const char *s, size_t l,
+                            int base, char **e, int *err);
+longlong   my_strntoll_8bit(const CHARSET_INFO *, const char *s, size_t l,
+                            int base, char **e, int *err);
+ulonglong my_strntoull_8bit(const CHARSET_INFO *, const char *s, size_t l,
+                            int base, char **e, int *err);
+double      my_strntod_8bit(const CHARSET_INFO *, char *s, size_t l, char **e,
 			    int *err);
-int  my_long10_to_str_8bit(CHARSET_INFO *, char *to, uint l, int radix,
-			   long int val);
-int my_longlong10_to_str_8bit(CHARSET_INFO *, char *to, uint l, int radix,
-			      longlong val);
+size_t my_long10_to_str_8bit(const CHARSET_INFO *, char *to, size_t l,
+                             int radix, long int val);
+size_t my_longlong10_to_str_8bit(const CHARSET_INFO *, char *to, size_t l,
+                                 int radix, longlong val);
 
-longlong my_strtoll10_8bit(CHARSET_INFO *cs,
+longlong my_strtoll10_8bit(const CHARSET_INFO *cs,
                            const char *nptr, char **endptr, int *error);
-longlong my_strtoll10_ucs2(CHARSET_INFO *cs, 
+longlong my_strtoll10_ucs2(const CHARSET_INFO *cs, 
                            const char *nptr, char **endptr, int *error);
 
-ulonglong my_strntoull10rnd_8bit(CHARSET_INFO *cs,
-                                 const char *str, uint length, int unsigned_fl,
-                                 char **endptr, int *error);
-ulonglong my_strntoull10rnd_ucs2(CHARSET_INFO *cs, 
-                                 const char *str, uint length, int unsigned_fl,
-                                 char **endptr, int *error);
+ulonglong my_strntoull10rnd_8bit(const CHARSET_INFO *cs,
+                                 const char *str, size_t length, int
+                                 unsigned_fl, char **endptr, int *error);
+ulonglong my_strntoull10rnd_ucs2(const CHARSET_INFO *cs, 
+                                 const char *str, size_t length,
+                                 int unsigned_fl, char **endptr, int *error);
 
-void my_fill_8bit(CHARSET_INFO *cs, char* to, uint l, int fill);
+void my_fill_8bit(const CHARSET_INFO *cs, char* to, size_t l, int fill);
 
-my_bool  my_like_range_simple(CHARSET_INFO *cs,
-			      const char *ptr, uint ptr_length,
+/* For 8-bit character set */
+my_bool  my_like_range_simple(const CHARSET_INFO *cs,
+			      const char *ptr, size_t ptr_length,
 			      pbool escape, pbool w_one, pbool w_many,
-			      uint res_length,
+			      size_t res_length,
 			      char *min_str, char *max_str,
-			      uint *min_length, uint *max_length);
+			      size_t *min_length, size_t *max_length);
 
-my_bool  my_like_range_mb(CHARSET_INFO *cs,
-			  const char *ptr, uint ptr_length,
+/* For ASCII-based multi-byte character sets with mbminlen=1 */
+my_bool  my_like_range_mb(const CHARSET_INFO *cs,
+			  const char *ptr, size_t ptr_length,
 			  pbool escape, pbool w_one, pbool w_many,
-			  uint res_length,
+			  size_t res_length,
 			  char *min_str, char *max_str,
-			  uint *min_length, uint *max_length);
+			  size_t *min_length, size_t *max_length);
 
-my_bool  my_like_range_ucs2(CHARSET_INFO *cs,
-			    const char *ptr, uint ptr_length,
-			    pbool escape, pbool w_one, pbool w_many,
-			    uint res_length,
-			    char *min_str, char *max_str,
-			    uint *min_length, uint *max_length);
+/* For other character sets, with arbitrary mbminlen and mbmaxlen numbers */
+my_bool  my_like_range_generic(const CHARSET_INFO *cs,
+                               const char *ptr, size_t ptr_length,
+                               pbool escape, pbool w_one, pbool w_many,
+                               size_t res_length,
+                               char *min_str, char *max_str,
+                               size_t *min_length, size_t *max_length);
 
-
-int my_wildcmp_8bit(CHARSET_INFO *,
+int my_wildcmp_8bit(const CHARSET_INFO *,
 		    const char *str,const char *str_end,
 		    const char *wildstr,const char *wildend,
 		    int escape, int w_one, int w_many);
 
-int my_wildcmp_bin(CHARSET_INFO *,
+int my_wildcmp_bin(const CHARSET_INFO *,
 		   const char *str,const char *str_end,
 		   const char *wildstr,const char *wildend,
 		   int escape, int w_one, int w_many);
 
-uint my_numchars_8bit(CHARSET_INFO *, const char *b, const char *e);
-uint my_numcells_8bit(CHARSET_INFO *, const char *b, const char *e);
-uint my_charpos_8bit(CHARSET_INFO *, const char *b, const char *e, uint pos);
-uint my_well_formed_len_8bit(CHARSET_INFO *, const char *b, const char *e,
-                             uint pos, int *error);
-int my_mbcharlen_8bit(CHARSET_INFO *, uint c);
+size_t my_numchars_8bit(const CHARSET_INFO *, const char *b, const char *e);
+size_t my_numcells_8bit(const CHARSET_INFO *, const char *b, const char *e);
+size_t my_charpos_8bit(const CHARSET_INFO *, const char *b, const char *e,
+                       size_t pos);
+size_t my_well_formed_len_8bit(const CHARSET_INFO *, const char *b,
+                               const char *e, size_t pos, int *error);
+uint my_mbcharlen_8bit(const CHARSET_INFO *, uint c);
 
 
 /* Functions for multibyte charsets */
-extern uint my_caseup_str_mb(CHARSET_INFO *, char *);
-extern uint my_casedn_str_mb(CHARSET_INFO *, char *);
-extern uint my_caseup_mb(CHARSET_INFO *, char *src, uint srclen,
-                                         char *dst, uint dstlen);
-extern uint my_casedn_mb(CHARSET_INFO *, char *src, uint srclen,
-                                         char *dst, uint dstlen);
-extern int my_strcasecmp_mb(CHARSET_INFO * cs,const char *, const char *);
+extern size_t my_caseup_str_mb(const CHARSET_INFO *, char *);
+extern size_t my_casedn_str_mb(const CHARSET_INFO *, char *);
+extern size_t my_caseup_mb(const CHARSET_INFO *, char *src, size_t srclen,
+                                         char *dst, size_t dstlen);
+extern size_t my_casedn_mb(const CHARSET_INFO *, char *src, size_t srclen,
+                                         char *dst, size_t dstlen);
+extern size_t my_caseup_mb_varlen(const CHARSET_INFO *, char *src,
+                                  size_t srclen, char *dst, size_t dstlen);
+extern size_t my_casedn_mb_varlen(const CHARSET_INFO *, char *src,
+                                  size_t srclen, char *dst, size_t dstlen);
+extern size_t my_caseup_ujis(const CHARSET_INFO *, char *src, size_t srclen,
+                             char *dst, size_t dstlen);
+extern size_t my_casedn_ujis(const CHARSET_INFO *, char *src, size_t srclen,
+                             char *dst, size_t dstlen);
+extern int my_strcasecmp_mb(const CHARSET_INFO * cs,const char *,
+                            const char *);
 
-int my_wildcmp_mb(CHARSET_INFO *,
+int my_wildcmp_mb(const CHARSET_INFO *,
 		  const char *str,const char *str_end,
 		  const char *wildstr,const char *wildend,
 		  int escape, int w_one, int w_many);
-uint my_numchars_mb(CHARSET_INFO *, const char *b, const char *e);
-uint my_numcells_mb(CHARSET_INFO *, const char *b, const char *e);
-uint my_charpos_mb(CHARSET_INFO *, const char *b, const char *e, uint pos);
-uint my_well_formed_len_mb(CHARSET_INFO *, const char *b, const char *e,
-                           uint pos, int *error);
-uint my_instr_mb(struct charset_info_st *,
-                 const char *b, uint b_length,
-                 const char *s, uint s_length,
+size_t my_numchars_mb(const CHARSET_INFO *, const char *b, const char *e);
+size_t my_numcells_mb(const CHARSET_INFO *, const char *b, const char *e);
+size_t my_charpos_mb(const CHARSET_INFO *, const char *b, const char *e,
+                     size_t pos);
+size_t my_well_formed_len_mb(const CHARSET_INFO *, const char *b,
+                             const char *e, size_t pos, int *error);
+uint my_instr_mb(const struct charset_info_st *,
+                 const char *b, size_t b_length,
+                 const char *s, size_t s_length,
                  my_match_t *match, uint nmatch);
 
-int my_wildcmp_unicode(CHARSET_INFO *cs,
+int my_strnncoll_mb_bin(const CHARSET_INFO * cs,
+                        const uchar *s, size_t slen,
+                        const uchar *t, size_t tlen,
+                        my_bool t_is_prefix);
+
+int my_strnncollsp_mb_bin(const CHARSET_INFO *cs,
+                          const uchar *a, size_t a_length,
+                          const uchar *b, size_t b_length,
+                          my_bool diff_if_only_endspace_difference);
+
+int my_wildcmp_mb_bin(const CHARSET_INFO *cs,
+                      const char *str,const char *str_end,
+                      const char *wildstr,const char *wildend,
+                      int escape, int w_one, int w_many);
+
+int my_strcasecmp_mb_bin(const CHARSET_INFO * cs __attribute__((unused)),
+                         const char *s, const char *t);
+
+void my_hash_sort_mb_bin(const CHARSET_INFO *cs __attribute__((unused)),
+                         const uchar *key, size_t len,ulong *nr1, ulong *nr2);
+
+size_t my_strnxfrm_mb(const CHARSET_INFO *,
+                      uchar *dst, size_t dstlen, uint nweights,
+                      const uchar *src, size_t srclen, uint flags);
+
+size_t my_strnxfrm_unicode(const CHARSET_INFO *,
+                           uchar *dst, size_t dstlen, uint nweights,
+                           const uchar *src, size_t srclen, uint flags);
+
+size_t my_strnxfrm_unicode_full_bin(const CHARSET_INFO *,
+                                    uchar *dst, size_t dstlen, uint nweights,
+                                    const uchar *src, size_t srclen, uint flags);
+size_t  my_strnxfrmlen_unicode_full_bin(const CHARSET_INFO *, size_t); 
+
+int my_wildcmp_unicode(const CHARSET_INFO *cs,
                        const char *str, const char *str_end,
                        const char *wildstr, const char *wildend,
                        int escape, int w_one, int w_many,
-                       MY_UNICASE_INFO **weights);
+                       const MY_UNICASE_INFO *weights);
 
-extern my_bool my_parse_charset_xml(const char *bug, uint len,
-				    int (*add)(CHARSET_INFO *cs));
+extern my_bool my_parse_charset_xml(MY_CHARSET_LOADER *loader,
+                                    const char *buf, size_t buflen);
+extern char *my_strchr(const CHARSET_INFO *cs, const char *str,
+                       const char *end, pchar c);
+extern size_t my_strcspn(const CHARSET_INFO *cs, const char *str,
+                         const char *end, const char *reject,
+                         size_t reject_length);
 
-my_bool my_propagate_simple(CHARSET_INFO *cs, const uchar *str, uint len);
-my_bool my_propagate_complex(CHARSET_INFO *cs, const uchar *str, uint len);
+my_bool my_propagate_simple(const CHARSET_INFO *cs, const uchar *str,
+                            size_t len);
+my_bool my_propagate_complex(const CHARSET_INFO *cs, const uchar *str,
+                             size_t len);
 
 
-uint my_string_repertoire(CHARSET_INFO *cs, const char *str, ulong len);
-my_bool my_charset_is_ascii_based(CHARSET_INFO *cs);
-my_bool my_charset_is_8bit_pure_ascii(CHARSET_INFO *cs);
-uint my_charset_repertoire(CHARSET_INFO *cs);
+uint my_string_repertoire(const CHARSET_INFO *cs, const char *str, size_t len);
+my_bool my_charset_is_ascii_based(const CHARSET_INFO *cs);
+my_bool my_charset_is_8bit_pure_ascii(const CHARSET_INFO *cs);
+uint my_charset_repertoire(const CHARSET_INFO *cs);
 
+
+uint my_strxfrm_flag_normalize(uint flags, uint nlevels);
+void my_strxfrm_desc_and_reverse(uchar *str, uchar *strend,
+                                 uint flags, uint level);
+size_t my_strxfrm_pad_desc_and_reverse(const CHARSET_INFO *cs,
+                                       uchar *str, uchar *frmend, uchar *strend,
+                                       uint nweights, uint flags, uint level);
+
+my_bool my_charset_is_ascii_compatible(const CHARSET_INFO *cs);
+
+const MY_CONTRACTIONS *my_charset_get_contractions(const CHARSET_INFO *cs,
+                                                   int level);
+
+extern size_t my_vsnprintf_ex(const CHARSET_INFO *cs, char *to, size_t n,
+                              const char* fmt, va_list ap);
+
+size_t my_convert(char *to, size_t to_length, const CHARSET_INFO *to_cs,
+                  const char *from, size_t from_length,
+                  const CHARSET_INFO *from_cs, uint *errors);
+
+uint my_mbcharlen_ptr(const CHARSET_INFO *cs, const char *s, const char *e);
 
 #define	_MY_U	01	/* Upper case */
 #define	_MY_L	02	/* Lower case */
@@ -483,7 +745,8 @@ uint my_charset_repertoire(CHARSET_INFO *cs);
 
 #define my_binary_compare(s)	      ((s)->state  & MY_CS_BINSORT)
 #define use_strnxfrm(s)               ((s)->state  & MY_CS_STRNXFRM)
-#define my_strnxfrm(s, a, b, c, d)    ((s)->coll->strnxfrm((s), (a), (b), (c), (d)))
+#define my_strnxfrm(cs, d, dl, s, sl) \
+   ((cs)->coll->strnxfrm((cs), (d), (dl), (dl), (s), (sl), MY_STRXFRM_PAD_WITH_SPACE))
 #define my_strnncoll(s, a, b, c, d) ((s)->coll->strnncoll((s), (a), (b), (c), (d), 0))
 #define my_like_range(s, a, b, c, d, e, f, g, h, i, j) \
    ((s)->coll->like_range((s), (a), (b), (c), (d), (e), (f), (g), (h), (i), (j)))
@@ -494,11 +757,39 @@ uint my_charset_repertoire(CHARSET_INFO *cs);
 
 #define use_mb(s)                     ((s)->cset->ismbchar != NULL)
 #define my_ismbchar(s, a, b)          ((s)->cset->ismbchar((s), (a), (b)))
-#ifdef USE_MB
 #define my_mbcharlen(s, a)            ((s)->cset->mbcharlen((s),(a)))
-#else
-#define my_mbcharlen(s, a)            1
-#endif
+/**
+  Get the length of gb18030 code by the given two leading bytes
+
+  @param[in] s charset_info
+  @param[in] a first byte of gb18030 code
+  @param[in] b second byte of gb18030 code
+  @return    the length of gb18030 code starting with given two bytes,
+             the length would be 2 or 4 for valid gb18030 code,
+             or 0 for invalid gb18030 code
+*/
+#define my_mbcharlen_2(s, a, b)       ((s)->cset->mbcharlen((s),((((a) & 0xFF) << 8) + ((b) & 0xFF))))
+/**
+  Get the maximum length of leading bytes needed to determine the length of a
+  multi-byte gb18030 code
+
+  @param[in] s charset_info
+  @return    number of leading bytes we need, would be 2 for gb18030
+             and 1 for all other charsets
+*/
+#define my_mbmaxlenlen(s)             ((s)->mbmaxlenlen)
+/**
+  Judge if the given byte is a possible leading byte for a charset.
+  For gb18030 whose mbmaxlenlen is 2, we can't determine the length of
+  a multi-byte character by looking at the first byte only
+
+  @param[in] s charset_info
+  @param[in] i possible leading byte
+  @return    true if it is, otherwise false
+*/
+#define my_ismb1st(s, i)                                           \
+   (my_mbcharlen((s), (i)) > 1 ||                                  \
+    (my_mbmaxlenlen((s)) == 2 && my_mbcharlen((s), (i)) == 0))
 
 #define my_caseup_str(s, a)           ((s)->cset->caseup_str((s), (a)))
 #define my_casedn_str(s, a)           ((s)->cset->casedn_str((s), (a)))
@@ -507,14 +798,6 @@ uint my_charset_repertoire(CHARSET_INFO *cs);
 #define my_strntoll(s, a, b, c, d, e) ((s)->cset->strntoll((s),(a),(b),(c),(d),(e)))
 #define my_strntoull(s, a, b, c,d, e) ((s)->cset->strntoull((s),(a),(b),(c),(d),(e)))
 #define my_strntod(s, a, b, c, d)     ((s)->cset->strntod((s),(a),(b),(c),(d)))
-
-
-/* XXX: still need to take care of this one */
-#ifdef MY_CHARSET_TIS620
-#error The TIS620 charset is broken at the moment.  Tell tim to fix it.
-#define USE_TIS620
-#include "t_ctype.h"
-#endif
 
 #ifdef	__cplusplus
 }

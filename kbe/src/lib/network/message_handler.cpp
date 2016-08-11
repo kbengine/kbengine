@@ -106,29 +106,29 @@ bool MessageHandlers::initializeWatcher()
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); ++iter)
 	{
-		char buf[MAX_BUF];
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/id", iter->second->name.c_str());
+		char buf[MAX_BUF * 2];
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/id", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second->msgID);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/len", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/len", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second->msgLen);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentCount", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendcount);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendavgsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvCount", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvavgsize);
 	}
 
@@ -170,6 +170,9 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		msgHandler->msgID = msgInfo->msgid;
 	}
 	
+	if (g_packetAlwaysContainLength)
+		msgLen = NETWORK_VARIABLE_MESSAGE;
+
 	msgHandler->name = ihName;					
 	msgHandler->pArgs = args;
 	msgHandler->msgLen = msgLen;	
@@ -189,6 +192,26 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		if(msgLen == 0)
 		{
 			msgHandler->msgLen = args->dataSize();
+
+			if (msgHandler->pArgs)
+			{ 
+				std::vector<std::string>::iterator args_iter = msgHandler->pArgs->strArgsTypes.begin();
+				for (; args_iter != msgHandler->pArgs->strArgsTypes.end(); ++args_iter)
+				{
+					if ((*args_iter) == "std::string")
+					{
+						DebugHelper::getSingleton().set_warningcolor();
+
+						printf("%s::%s::dataSize: "	
+							"Not NETWORK_FIXED_MESSAGE, "	
+							"has changed to NETWORK_VARIABLE_MESSAGE!\n", COMPONENT_NAME_EX(g_componentType), ihName.c_str());
+
+						DebugHelper::getSingleton().set_normalcolor();
+						msgHandler->msgLen = NETWORK_VARIABLE_MESSAGE;
+						break;
+					}
+				}
+			}
 
 			if(msgHandler->type() == NETWORK_MESSAGE_TYPE_ENTITY)
 			{
@@ -253,8 +276,6 @@ std::string MessageHandlers::getDigestStr()
 		XML_FOR_END(rootNode);
 
 		md5.append((void*)&isize, sizeof(int32));
-
-		
 
 		std::vector<MessageHandlers*>& msgHandlers = messageHandlers();
 		isize += msgHandlers.size();

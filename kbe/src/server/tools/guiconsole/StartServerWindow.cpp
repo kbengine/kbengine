@@ -115,7 +115,7 @@ void CStartServerWindow::OnBnClickedButton2()
 			continue;
 		}
 
-		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
 		
 		KBEngine::u_int32_t address;
 		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
@@ -124,7 +124,7 @@ void CStartServerWindow::OnBnClickedButton2()
 		if(addr.ip == 0)
 		{
 			::AfxMessageBox(L"address is error!");
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 
@@ -132,7 +132,7 @@ void CStartServerWindow::OnBnClickedButton2()
 		if (!endpoint->good())
 		{
 			AfxMessageBox(L"couldn't create a socket\n");
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 
@@ -142,11 +142,14 @@ void CStartServerWindow::OnBnClickedButton2()
 			CString err;
 			err.Format(L"connect server is error! %d", ::WSAGetLastError());
 			AfxMessageBox(err);
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 		
 		endpoint->setnonblocking(true);
+
+		KBEngine::uint64 cid = KBEngine::genUUID64();
+		KBEngine::int16 gus = -1;
 
 		KBEngine::Network::Bundle bundle;
 		bundle.newMessage(KBEngine::MachineInterface::startserver);
@@ -165,12 +168,12 @@ void CStartServerWindow::OnBnClickedButton2()
 		int selgot = select((*endpoint)+1, &fds, NULL, NULL, &tv);
 		if(selgot == 0)
 		{
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;	// 超时可能对方繁忙
 		}
 		else if(selgot == -1)
 		{
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 		else
@@ -205,7 +208,7 @@ void CStartServerWindow::OnBnClickedButton2()
 			}
 		}
 
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 	}
 }
 
@@ -247,7 +250,7 @@ void CStartServerWindow::OnBnClickedButton3()
 			continue;
 		}
 
-		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
 		
 		KBEngine::u_int32_t address;
 		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
@@ -256,7 +259,7 @@ void CStartServerWindow::OnBnClickedButton3()
 		if(addr.ip == 0)
 		{
 			::AfxMessageBox(L"address is error!");
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 
@@ -264,7 +267,7 @@ void CStartServerWindow::OnBnClickedButton3()
 		if (!endpoint->good())
 		{
 			AfxMessageBox(L"couldn't create a socket\n");
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 
@@ -274,7 +277,7 @@ void CStartServerWindow::OnBnClickedButton3()
 			CString err;
 			err.Format(L"connect server is error! %d", ::WSAGetLastError());
 			AfxMessageBox(err);
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 		
@@ -297,12 +300,12 @@ void CStartServerWindow::OnBnClickedButton3()
 		int selgot = select((*endpoint)+1, &fds, NULL, NULL, &tv);
 		if(selgot == 0)
 		{
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;	// 超时可能对方繁忙
 		}
 		else if(selgot == -1)
 		{
-			KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+			KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 			continue;
 		}
 		else
@@ -337,7 +340,7 @@ void CStartServerWindow::OnBnClickedButton3()
 			}
 		}
 
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 	}
 }
 

@@ -89,18 +89,17 @@ private:
 	void checkAfterStr();
 
 	int	handleInputNotification(int fd);
-	void onRecvInput();
+	void onRecvInput(const char *buffer, int size);
 	bool processCommand();
 	void processPythonCommand(std::string command);
 
-	bool checkUDLR();
+	bool checkUDLR(const std::string &cmd);
 
 	std::string getInputStartString();
 
 	void historyCommandCheck();
 	std::string getHistoryCommand(bool isNextCommand);
 
-	std::deque<unsigned char> buffer_;
 	std::deque<std::string> historyCommand_;
 	int8 historyCommandIndex_;
 
@@ -133,6 +132,22 @@ public:
 	virtual ~TelnetPyProfileHandler(){}
 
 	void sendStream(MemoryStream* s);
+};
+
+class TelnetPyTickProfileHandler : public TelnetProfileHandler, public PyTickProfileHandler
+{
+public:
+	TelnetPyTickProfileHandler(TelnetHandler* pTelnetHandler, Network::NetworkInterface & networkInterface, uint32 timinglen,
+		std::string name, const Network::Address& addr) :
+		TelnetProfileHandler(pTelnetHandler),
+		PyTickProfileHandler(networkInterface, timinglen, name, addr)
+	{
+	}
+
+	virtual ~TelnetPyTickProfileHandler(){}
+
+	void sendStream(MemoryStream* s);
+	virtual void timeout();
 };
 
 class TelnetCProfileHandler : public TelnetProfileHandler, public CProfileHandler

@@ -44,10 +44,37 @@ GhostManager::~GhostManager()
 	{
 		std::vector< Network::Bundle* >::iterator iter1 = iter->second.begin();
 		for(; iter1 != iter->second.end(); ++iter1)
-			Network::Bundle::ObjPool().reclaimObject((*iter1));
+			Network::Bundle::reclaimPoolObject((*iter1));
 	}
 
 	cancel();
+}
+
+//-------------------------------------------------------------------------------------
+Network::Bundle* GhostManager::createSendBundle(COMPONENT_ID componentID)
+{
+	std::map<COMPONENT_ID, std::vector< Network::Bundle* > >::iterator iter = messages_.find(componentID);
+
+	if (iter != messages_.end())
+	{
+		if (iter->second.size() > 0)
+		{
+			Network::Bundle* pBundle = iter->second.back();
+			if (pBundle->packetHaveSpace())
+			{
+				// 先从队列删除
+				iter->second.pop_back();
+				pBundle->pChannel(NULL);
+				pBundle->pCurrMsgHandler(NULL);
+				pBundle->currMsgPacketCount(0);
+				pBundle->currMsgLength(0);
+				pBundle->currMsgLengthPos(0);
+				return pBundle;
+			}
+		}
+	}
+
+	return Network::Bundle::createPoolObject();
 }
 
 //-------------------------------------------------------------------------------------
@@ -140,7 +167,7 @@ void GhostManager::syncMessages()
 			ERROR_MSG(fmt::format("GhostManager::syncMessages: not found cellapp({})!\n", iter->first));
 			
 			for(; iter1 != iter->second.end(); ++iter1)
-				Network::Bundle::ObjPool().reclaimObject((*iter1));
+				Network::Bundle::reclaimPoolObject((*iter1));
 
 			iter->second.clear();
 			continue;

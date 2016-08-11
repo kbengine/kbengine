@@ -53,17 +53,11 @@ inline std::string val2str(const TYPE& value)
 
 inline void str2value(float& value, const char * pstr)
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
-	std::stringstream ss;
-	ss << pstr;
-	ss >> value;
-#else
 	char* endptr;
 	value = strtof(pstr, &endptr);
-	
+
 	if (*endptr)
 		throw std::runtime_error("not a number");
-#endif
 }
 
 inline void str2value(double& value, const char * pstr)

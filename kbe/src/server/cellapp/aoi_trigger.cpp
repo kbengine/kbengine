@@ -22,6 +22,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "aoi_trigger.h"
 #include "entity_coordinate_node.h"
 
+#ifndef CODE_INLINE
+#include "aoi_trigger.inl"
+#endif
+
 namespace KBEngine{	
 
 
@@ -48,7 +52,7 @@ void AOITrigger::onEnter(CoordinateNode * pNode)
 	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onEnterAOI(pEntity);
+	pWitness_->onEnterAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,7 +66,7 @@ void AOITrigger::onLeave(CoordinateNode * pNode)
 	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onLeaveAOI(pEntity);
+	pWitness_->onLeaveAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------

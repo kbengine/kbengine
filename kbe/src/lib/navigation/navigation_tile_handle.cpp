@@ -297,8 +297,8 @@ int NavTileHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 		float rnd = frand();
 		float a = maxRadius * rnd;						// 半径在maxRadius米内
 		float b = 360.0f * rnd;							// 随机一个角度
-		currpos.x = a * cos(b); 						// 半径 * 正余玄
-		currpos.z = a * sin(b);
+		currpos.x = centerPos.x + (a * cos(b)); 		// 半径 * 正余玄
+		currpos.z = centerPos.z + (a * sin(b));
 		points.push_back(currpos);
 	}
 

@@ -48,6 +48,7 @@ extern bool g_packetAlwaysContainLength;
 			关闭某些包的输出
 */
 extern uint8 g_trace_packet;
+extern bool g_trace_encrypted_packet;
 extern std::vector<std::string> g_trace_packet_disables;
 extern bool g_trace_packet_use_logfile;
 

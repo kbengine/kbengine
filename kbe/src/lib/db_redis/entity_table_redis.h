@@ -492,7 +492,7 @@ protected:
 class EntityTableRedis : public EntityTable
 {
 public:
-	EntityTableRedis();
+	EntityTableRedis(EntityTables* pEntityTables);
 	virtual ~EntityTableRedis();
 	
 	/**
@@ -513,7 +513,7 @@ public:
 	/** 
 		创建一个表item
 	*/
-	virtual EntityTableItem* createItem(std::string type);
+	virtual EntityTableItem* createItem(std::string type, std::string defaultVal);
 
 	DBID writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoLoad, MemoryStream* s, ScriptDefModule* pModule);
 

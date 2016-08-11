@@ -69,12 +69,15 @@ baseMailbox_(base),
 position_(),
 serverPosition_(),
 direction_(),
+clientPos_(FLT_MAX, FLT_MAX, FLT_MAX),
+clientDir_(FLT_MAX, FLT_MAX, FLT_MAX),
 pClientApp_(NULL),
 aspect_(id),
 velocity_(3.0f),
 enterworld_(false),
 isOnGround_(true),
-pMoveHandlerID_(0)
+pMoveHandlerID_(0),
+inited_(false)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 	script::PyGC::incTracing("Entity");
@@ -327,11 +330,15 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		PyObject* pyOld = PyObject_GetAttrString(this, pPropertyDescription->getName());
 		PyObject_SetAttrString(this, pPropertyDescription->getName(), pyobj);
 
-		std::string setname = "set_";
-		setname += pPropertyDescription->getName();
+		bool willCallScript = pPropertyDescription->hasBase() ? inited_ : enterworld_;
+		if (willCallScript)
+		{
+			std::string setname = "set_";
+			setname += pPropertyDescription->getName();
 
-		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()), 
-		const_cast<char*>("O"), pyOld);
+			SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()),
+				const_cast<char*>("O"), pyOld);
+		}
 
 		Py_DECREF(pyobj);
 		Py_DECREF(pyOld);
@@ -340,7 +347,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::writeToDB(void* data, void* extra)
+void Entity::writeToDB(void* data, void* extra1, void* extra2)
 {
 }
 
@@ -669,7 +676,7 @@ void Entity::cancelController(uint32 id)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 {
-	uint16 currargsSize = PyTuple_Size(args);
+	uint16 currargsSize = (uint16)PyTuple_Size(args);
 	Entity* pobj = static_cast<Entity*>(self);
 
 	uint32 id = 0;
@@ -734,6 +741,45 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	pobj->cancelController(id);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::callPropertysSetMethods()
+{
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP &clientProperties = pScriptModule_->getClientPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::iterator iter = clientProperties.begin();
+	for (; iter != clientProperties.end(); ++iter)
+	{
+		bool willCallScript = false;
+		PyObject* pyOld = PyObject_GetAttrString(this, iter->first.c_str());
+
+		if (iter->second->hasBase())
+		{
+			if (inited_ && !enterworld_)
+			{
+				willCallScript = true;
+			}
+		}
+		else
+		{
+			if (enterworld_)
+			{
+				willCallScript = true;
+			}
+		}
+
+		if (willCallScript)
+		{
+			std::string setname = "set_";
+			setname += iter->second->getName();
+
+			SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()),
+				const_cast<char*>("O"), pyOld);
+		}
+
+		Py_DECREF(pyOld);
+		SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------

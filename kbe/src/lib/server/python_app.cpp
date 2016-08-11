@@ -20,8 +20,53 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "python_app.h"
+#include "pyscript/py_memorystream.h"
+#include "server/py_file_descriptor.h"
 
 namespace KBEngine{
+
+KBEngine::ScriptTimers KBEngine::PythonApp::scriptTimers_;
+
+/**
+内部定时器处理类
+*/
+class ScriptTimerHandler : public TimerHandler
+{
+public:
+	ScriptTimerHandler(ScriptTimers* scriptTimers, PyObject * callback) :
+		pyCallback_(callback),
+		scriptTimers_(scriptTimers)
+	{
+	}
+
+	~ScriptTimerHandler()
+	{
+		Py_DECREF(pyCallback_);
+	}
+
+private:
+	virtual void handleTimeout(TimerHandle handle, void * pUser)
+	{
+		int id = ScriptTimersUtil::getIDForHandle(scriptTimers_, handle);
+
+		PyObject *pyRet = PyObject_CallFunction(pyCallback_, "i", id);
+		if (pyRet == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			return;
+		}
+		return;
+	}
+
+	virtual void onRelease(TimerHandle handle, void * /*pUser*/)
+	{
+		scriptTimers_->releaseTimer(handle);
+		delete this;
+	}
+
+	PyObject* pyCallback_;
+	ScriptTimers* scriptTimers_;
+};
 
 //-------------------------------------------------------------------------------------
 PythonApp::PythonApp(Network::EventDispatcher& dispatcher, 
@@ -32,6 +77,7 @@ ServerApp(dispatcher, ninterface, componentType, componentID),
 script_(),
 entryScript_()
 {
+	ScriptTimers::initialize(*this);
 }
 
 //-------------------------------------------------------------------------------------
@@ -51,12 +97,52 @@ bool PythonApp::inInitialize()
 	return true;
 }
 
+//-------------------------------------------------------------------------------------	
+bool PythonApp::initializeEnd()
+{
+	gameTickTimerHandle_ = this->dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+		reinterpret_cast<void *>(TIMEOUT_GAME_TICK));
+	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------	
+void PythonApp::onShutdownBegin()
+{
+	ServerApp::onShutdownBegin();
+}
+
+//-------------------------------------------------------------------------------------	
+void PythonApp::onShutdownEnd()
+{
+	ServerApp::onShutdownEnd();
+}
+
 //-------------------------------------------------------------------------------------
 void PythonApp::finalise(void)
 {
-	uninstallPyScript();
+	gameTickTimerHandle_.cancel();
+	scriptTimers_.cancelAll();
+	ScriptTimers::finalise(*this);
 
+	uninstallPyScript();
 	ServerApp::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void PythonApp::handleTimeout(TimerHandle handle, void * arg)
+{
+	ServerApp::handleTimeout(handle, arg);
+
+	switch (reinterpret_cast<uintptr>(arg))
+	{
+	case TIMEOUT_GAME_TICK:
+		++g_kbetime;
+		handleTimers();
+		break;
+	default:
+		break;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -79,7 +165,7 @@ bool PythonApp::installPyScript()
 		Resmgr::getSingleton().getPySysResPath().size() == 0 ||
 		Resmgr::getSingleton().getPyUserScriptsPath().size() == 0)
 	{
-		KBE_ASSERT(false && "PythonApp::installPyScript: KBE_RES_PATH is error!\n");
+		KBE_ASSERT(false && "PythonApp::installPyScript: KBE_RES_PATH error!\n");
 		return false;
 	}
 
@@ -122,6 +208,10 @@ bool PythonApp::installPyScript()
 		pyPaths += user_scripts_path + L"server_common;";
 		pyPaths += user_scripts_path + L"login;";
 		break;
+	case LOGGER_TYPE:
+		pyPaths += user_scripts_path + L"server_common;";
+		pyPaths += user_scripts_path + L"logger;";
+		break;
 	default:
 		pyPaths += user_scripts_path + L"client;";
 		break;
@@ -133,12 +223,17 @@ bool PythonApp::installPyScript()
 	tbuf = KBEngine::strutil::char2wchar(const_cast<char*>(kbe_res_path.c_str()));
 	bool ret = getScript().install(tbuf, pyPaths, "KBEngine", componentType_);
 	free(tbuf);
+
+	if (ret)
+		script::PyMemoryStream::installScript(NULL);
+
 	return ret;
 }
 
 //-------------------------------------------------------------------------------------
 bool PythonApp::uninstallPyScript()
 {
+	script::PyMemoryStream::uninstallScript();
 	return uninstallPyModules() && getScript().uninstall();
 }
 
@@ -172,66 +267,83 @@ bool PythonApp::installPyModules()
 		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getDBMgr();
 		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
 	}
+	else if (componentType() == LOGGER_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getLogger();
+		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
+	}
 	else
 	{
-		ERROR_MSG("PythonApp::installPyModules: entryScriptFileName is NULL!\n");
+		ERROR_MSG("PythonApp::installPyModules: Unsupported script!\n");
 	}
+
+	PyObject * module = getScript().getModule();
+
+	APPEND_SCRIPT_MODULE_METHOD(module, MemoryStream, script::PyMemoryStream::py_new, METH_VARARGS, 0);
 
 	// 注册创建entity的方法到py
 	// 向脚本注册app发布状态
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,			__py_getAppPublish,						METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, publish, __py_getAppPublish, METH_VARARGS, 0);
 
 	// 注册设置脚本输出类型
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	scriptLogType,		__py_setScriptLogType,					METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, scriptLogType, __py_setScriptLogType, METH_VARARGS, 0);
 	
 	// 获得资源全路径
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	getResFullPath,		__py_getResFullPath,					METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, getResFullPath, __py_getResFullPath, METH_VARARGS, 0);
 
 	// 是否存在某个资源
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	hasRes,				__py_hasRes,							METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, hasRes, __py_hasRes, METH_VARARGS, 0);
 
 	// 打开一个文件
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	open,				__py_kbeOpen,							METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, open, __py_kbeOpen, METH_VARARGS, 0);
 
 	// 列出目录下所有文件
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	listPathRes,		__py_listPathRes,						METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, listPathRes, __py_listPathRes, METH_VARARGS, 0);
 
 	// 匹配相对路径获得全路径
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	matchPath,			__py_matchPath,							METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, matchPath, __py_matchPath, METH_VARARGS, 0);
 
 	// debug追踪kbe封装的py对象计数
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	debugTracing,		script::PyGC::__py_debugTracing,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module, debugTracing, script::PyGC::__py_debugTracing, METH_VARARGS, 0);
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_NORMAL", log4cxx::ScriptLevel::SCRIPT_INT))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_NORMAL.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_INFO", log4cxx::ScriptLevel::SCRIPT_INFO))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_INFO", log4cxx::ScriptLevel::SCRIPT_INFO))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_INFO.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_ERR", log4cxx::ScriptLevel::SCRIPT_ERR))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_ERR", log4cxx::ScriptLevel::SCRIPT_ERR))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_ERR.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_DBG", log4cxx::ScriptLevel::SCRIPT_DBG))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_DBG", log4cxx::ScriptLevel::SCRIPT_DBG))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_DBG.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "LOG_TYPE_WAR", log4cxx::ScriptLevel::SCRIPT_WAR))
+	if (PyModule_AddIntConstant(module, "LOG_TYPE_WAR", log4cxx::ScriptLevel::SCRIPT_WAR))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.LOG_TYPE_WAR.\n");
 	}
 
-	if(PyModule_AddIntConstant(this->getScript().getModule(), "NEXT_ONLY", KBE_NEXT_ONLY))
+	if (PyModule_AddIntConstant(module, "NEXT_ONLY", KBE_NEXT_ONLY))
 	{
 		ERROR_MSG( "PythonApp::installPyModules: Unable to set KBEngine.NEXT_ONLY.\n");
 	}
 	
+	// 注册所有pythonApp都要用到的通用接口
+	APPEND_SCRIPT_MODULE_METHOD(module,		addTimer,						__py_addTimer,											METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		delTimer,						__py_delTimer,											METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS,	0);
+
 	onInstallPyModules();
 
 	if (entryScriptFileName != NULL)
@@ -271,18 +383,18 @@ PyObject* PythonApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	int type = -1;
 
 	if(PyArg_ParseTuple(args, "i", &type) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	DebugHelper::getSingleton().setScriptMsgType(type);
@@ -295,18 +407,18 @@ PyObject* PythonApp::__py_getResFullPath(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
 
 	if(PyArg_ParseTuple(args, "s", &respath) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(!Resmgr::getSingleton().hasRes(respath))
@@ -322,18 +434,18 @@ PyObject* PythonApp::__py_hasRes(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
 
 	if(PyArg_ParseTuple(args, "s", &respath) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	return PyBool_FromLong(Resmgr::getSingleton().hasRes(respath));
@@ -345,9 +457,9 @@ PyObject* PythonApp::__py_kbeOpen(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount != 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
@@ -355,9 +467,9 @@ PyObject* PythonApp::__py_kbeOpen(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "s|s", &respath, &fargs) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	std::string sfullpath = Resmgr::getSingleton().matchRes(respath);
@@ -371,6 +483,12 @@ PyObject* PythonApp::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	return openedFile;
 }
 
@@ -380,18 +498,18 @@ PyObject* PythonApp::__py_matchPath(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* respath = NULL;
 
 	if(PyArg_ParseTuple(args, "s", &respath) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	std::string path = Resmgr::getSingleton().matchPath(respath);
@@ -404,9 +522,9 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if(argCount < 1 || argCount > 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	std::wstring wExtendName = L"*";
@@ -417,18 +535,18 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "O", &pathobj) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] error!");
 			PyErr_PrintEx(0);
-			return 0;
+			S_Return;
 		}
 	}
 	else
 	{
 		if(PyArg_ParseTuple(args, "O|O", &pathobj, &path_argsobj) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] error!");
 			PyErr_PrintEx(0);
-			return 0;
+			S_Return;
 		}
 		
 		if(PyUnicode_Check(path_argsobj))
@@ -449,9 +567,9 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 					PyObject* pyobj = PySequence_GetItem(path_argsobj, i);
 					if(!PyUnicode_Check(pyobj))
 					{
-						PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+						PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] error!");
 						PyErr_PrintEx(0);
-						return 0;
+						S_Return;
 					}
 					
 					wchar_t* wtemp = NULL;
@@ -463,32 +581,32 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 			}
 			else
 			{
-				PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is error!");
+				PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] error!");
 				PyErr_PrintEx(0);
-				return 0;
+				S_Return;
 			}
 		}
 	}
 
 	if(!PyUnicode_Check(pathobj))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(PyUnicode_GET_LENGTH(pathobj) == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is NULL!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(wExtendName.size() == 0)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is NULL!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(wExtendName[0] == '.')
@@ -502,7 +620,7 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is NULL!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	char* cpath = strutil::wchar2char(respath);
@@ -529,7 +647,8 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
+void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileName, 
+	int8 profileType, uint32 timelen)
 {
 	switch(profileType)
 	{
@@ -569,7 +688,7 @@ void PythonApp::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Memory
 	}
 
 	// 将结果返回给客户端
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle((*pBundle), retbuf);
@@ -592,8 +711,8 @@ void PythonApp::reloadScript(bool fullReload)
 	// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	// 所有脚本都加载完毕
-	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onInit"), 
+	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+										const_cast<char*>("onInit"),
 										const_cast<char*>("i"), 
 										1);
 
@@ -601,6 +720,63 @@ void PythonApp::reloadScript(bool fullReload)
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PythonApp::__py_addTimer(PyObject* self, PyObject* args)
+{
+	float interval, repeat;
+	PyObject *pyCallback;
+
+	if (!PyArg_ParseTuple(args, "ffO", &interval, &repeat, &pyCallback))
+		S_Return;
+
+	if (!PyCallable_Check(pyCallback))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::addTimer: '%.200s' object is not callable", 
+			(pyCallback ? pyCallback->ob_type->tp_name : "NULL"));
+
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	ScriptTimers * pTimers = &scriptTimers();
+	ScriptTimerHandler *handler = new ScriptTimerHandler(pTimers, pyCallback);
+
+	ScriptID id = ScriptTimersUtil::addTimer(&pTimers, interval, repeat, 0, handler);
+
+	if (id == 0)
+	{
+		delete handler;
+		PyErr_SetString(PyExc_ValueError, "Unable to add timer");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	Py_INCREF(pyCallback);
+	return PyLong_FromLong(id);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PythonApp::__py_delTimer(PyObject* self, PyObject* args)
+{
+	ScriptID timerID;
+
+	if (!PyArg_ParseTuple(args, "i", &timerID))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::delTimer: args error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if (!ScriptTimersUtil::delTimer(&scriptTimers(), timerID))
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::delTimer: error!");
+		PyErr_PrintEx(0);
+		return PyLong_FromLong(-1);
+	}
+
+	return PyLong_FromLong(timerID);
 }
 
 //-------------------------------------------------------------------------------------

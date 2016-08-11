@@ -1,0 +1,112 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+<div class="row placeholders">
+    <div class="form-group">
+      <label for="textarea">启动服务器</label>
+      <textarea name="textarea" rows="30" readonly class="form-control" id="textarea">
+      </textarea>
+    </div>
+    {% if error %}
+    <div>
+      <p class="text-danger">{{ error }}</p>
+    </div>
+    {% endif %}
+    <div class="shutdown-finish form-group sr-only">
+      <input type="button" class="form-control btn btn-default" name="button" id="button" value="完成" onClick="window.location.href='/wc/components/manage'">
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script src="/static/js/pytools.js"></script>
+<script src="/static/js/kbengine.js"></script>
+<script>$(".config").addClass("active");</script>
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
+    
+    //{% comment %}
+    // 下面的注释并非真的注释，仅仅是为了让下面的代码在javascript下解释不出错而已，
+    // 实际上下面的代码在django中会被执行，所以不能删除
+    //{% endcomment %}
+    //{% if not error %}
+    $("document").ready(queryComponents);
+    // 这一行在编辑器上会出现语法错误，实际运行的时候不会有问题
+    g_run_counter = {{ run_counter }};
+    //{% endif %}
+    g_queryCount = 0;
+    g_queryMsg = ""
+
+    function queryComponents()
+    {
+        $.ajax({
+                url : "/wc/components/query",
+                dataType : "json",
+                data : { timestap : (new Date()).valueOf() }
+            }).done(function(data, textStatus, jqXHR){
+                    onReceiveComponents( data );
+                });
+    }
+    
+    function onReceiveComponents( components )
+    {
+        g_queryCount++;
+        
+        var currentCount = pytools.array( KBEngine.COMPONENT_TYPE.COMPONENT_END_TYPE, 0 );
+        
+        var str = "";
+        str += "Query count: " + g_queryCount + "\n\n";
+        var counter = 0;
+        for (var i = 0; i < components.length; i++)
+        {
+            var comps = components[i];
+            // 从1开始，忽略machine
+            for (var ii = 1; ii < comps.length; ii++)
+            {
+                counter++;
+                var comp = comps[ii];
+                currentCount[comp.componentType] += 1;
+            }
+        }
+        
+        for (var gi = 0; gi < currentCount.length; gi++)
+        {
+            if (g_run_counter[gi] > 0)
+                str += KBEngine.COMPONENT_NAME[gi] + ": " + currentCount[gi] + "/" + g_run_counter[gi] + "\n";
+        }
+        
+        g_queryMsg += str + "\n\n";
+        $("#textarea").text( g_queryMsg );
+        $("#textarea").scrollTop($("#textarea")[0].scrollHeight);
+        
+        var isSame = true;
+        for (var i = 0; i < currentCount.length; i++)
+        {
+            if (currentCount[i] != g_run_counter[i])
+            {
+                isSame = false;
+                break;
+            }
+        }
+        
+        if (isSame || g_queryCount >= 20)
+        {
+            if (g_queryCount >= 20)
+            {
+                g_queryMsg += "\n服务器启动异常！！！" + "\n\n";
+                $("#textarea").text( g_queryMsg );
+                $("#textarea").scrollTop($("#textarea")[0].scrollHeight);
+            }
+            g_queryCount = 0;
+            g_queryMsg = "";
+            $(".shutdown-finish").removeClass("sr-only");
+        }
+        else
+            setTimeout(queryComponents, 1000);
+    }
+</script>
+{% endblock %}

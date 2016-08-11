@@ -105,7 +105,7 @@ void CProfileHandler::timeout()
 	
 	s << timinglen_;
 
-	ArraySize size = profileVals_.size();
+	ArraySize size = (ArraySize)profileVals_.size();
 	s << size - 1;
 
 	CProfileHandler::PROFILEVALS::iterator iter = profileVals_.begin();
@@ -152,7 +152,7 @@ void CProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
@@ -215,7 +215,7 @@ profileMaps_(),
 removeHandle_(-1)
 {
 	eventProfileHandlers_.push_back(this);
-	removeHandle_ = eventProfileHandlers_.size() - 1;
+	removeHandle_ = (int)(eventProfileHandlers_.size() - 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ void EventProfileHandler::timeout()
 
 	s << timinglen_;
 
-	ArraySize size = profileMaps_.size();
+	ArraySize size = (ArraySize)profileMaps_.size();
 	s << size;
 
 	EventProfileHandler::PROFILEVALMAP::iterator iter = profileMaps_.begin();
@@ -245,7 +245,7 @@ void EventProfileHandler::timeout()
 		
 		s << type_name;
 
-		size = vals.size();
+		size = (ArraySize)vals.size();
 		s << size;
 
 		EventProfileHandler::PROFILEVALS::iterator iter1 = vals.begin();
@@ -273,7 +273,7 @@ void EventProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
@@ -350,7 +350,7 @@ void NetworkProfileHandler::timeout()
 
 	s << timinglen_;
 
-	ArraySize size = profileVals_.size();
+	ArraySize size = (ArraySize)profileVals_.size();
 	s << size;
 
 	NetworkProfileHandler::PROFILEVALS::iterator iter = profileVals_.begin();
@@ -381,7 +381,7 @@ void NetworkProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);

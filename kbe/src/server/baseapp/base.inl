@@ -76,9 +76,11 @@ INLINE DBID Base::dbid() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::dbid(DBID id)
+INLINE void Base::dbid(uint16 dbInterfaceIndex, DBID id)
 {
 	DBID_ = id;
+	dbInterfaceIndex_ = dbInterfaceIndex;
+
 	if(DBID_ > 0)
 		hasDB_ = true;
 }
@@ -129,6 +131,19 @@ INLINE void Base::setDirty(bool dirty)
 INLINE bool Base::isDirty() const
 {
 	return isDirty_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE uint16 Base::dbInterfaceIndex() const
+{
+	
+	return dbInterfaceIndex_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE BaseMessagesForwardClientHandler* Base::pBufferedSendToClientMessages()
+{
+	return pBufferedSendToClientMessages_;
 }
 
 //-------------------------------------------------------------------------------------

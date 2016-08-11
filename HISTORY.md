@@ -1,3 +1,58 @@
+###v0.8.0
+
+	2016/6/27
+
+	新增与改善：
+		大幅提升cellapp性能，以及整体性能(#333)
+		API文档更新
+		防止def中属性没有写Flags、Type标签，对此情况返回错误并给出错误警告。
+		防止def中utype设置重复的值(#355)
+		防止脚本模块名字与Python原生模块名冲突(#358)
+		controllerBy机制实现，该机制允许不同的权限控制其他或者自己的实体(#224)
+		KBEngine.charge系列函数不再使用KBEngine.MemoryStream，统一使用Bytes 
+		结构中字段支持DatabaseLength(#354)
+		增加加密包的调试功能，将trace_packet打开，并将其中屏蔽的Encrypted::packets消息去掉即可输出。
+		packetAlwaysContainLength支持(#351)
+		防止在各种脚本回调中销毁自己导致crash (#348)
+		telnet控制台増加“:pytickprofile”命令。以tick为单位输出每一帧的脚本执行消耗数据。 
+		新增针对具体地址池进行组网，解决跨网段不能广播导致无法启动服务器问题(#343)
+		所有ghost状态下，不允许其调用allClients、otherClients、clientEntity 
+		新增webconsole第一版
+		addSpaceGeometryMapping指向的目录如果不存在应该给出错误提示(#350)
+
+
+	BUG修正：
+		修正一定概率下，实体销毁后witnesses列表不为空的问题 
+		修正固定字典key写成非字符串导致crash，例如：self.characters[1] = x 
+		修正 实体新增入库属性不会按照配置设置默认值(#337) 
+		修正对NPC调用entitiesInAOI()崩溃的问题
+
+
+
+	2016/1/30
+
+	新增与改善：
+		多数据库横向扩展支持（#264）
+		VS2015编译支持（#292）
+		Windows X64位编译支持（#282）
+		OPENSSL 升级到1.0.2e
+		API文档更新
+		Recastnavigation 更新至最新版本
+		cluster_controller.py支持远程启动进程
+		错误信息在linux上也打印到控制台， 有助于启动时及时发现错误（#280）
+		KBEngine.Blob改名为KBEngine.MemoryStream
+		规范化API命名，所有脚本主动调用的称为引擎API函数，所有由引擎通知脚本被动接受调用的称为引擎回调（requestCreateAccount、requestAccountLogin、requestCharge分别改名为onRequestCreateAccount、onReques、onRequestCharge）
+		logger脚本支持
+		entitiesInRange优化（#298）
+		base上实体调用createInNewSpace之后， 在cell上也应该走一次enterspace等流程。
+		Entity.volatileInfo脚本可改支持
+
+	BUG修正：
+		修正邮件绑定后不能使用邮件登录问题
+		其他修正：#289、#290
+
+
+
 ###v0.7.0
 
 	2015/11/25

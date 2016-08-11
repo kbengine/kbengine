@@ -67,9 +67,8 @@ public:
 	*/
 	void onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username, 
 							COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ID componentIDEx, 
-							COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
-							uint32 intaddr, uint16 intport,
-							uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
+							COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid, COMPONENT_GUS gus,
+							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 							float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
 							uint64 extradata1, uint64 extradata2, uint64 extradata3, uint32 backRecvAddr, uint16 backRecvPort);
 	
@@ -83,6 +82,12 @@ public:
 		查询所有接口信息
 	*/
 	void onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, 
+		uint16 finderRecvPort);
+
+	/** 网络接口
+	查询所有machine进程
+	*/
+	void onQueryMachines(Network::Channel* pChannel, int32 uid, std::string& username,
 		uint16 finderRecvPort);
 
 	void handleTimeout(TimerHandle handle, void * arg);
@@ -101,6 +106,23 @@ public:
 	*/
 	void startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 信号处理
+	*/
+	virtual bool installSignals();
+	virtual void onSignalled(int sigNum);
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	/**
+	* 在linux下启动一个新进程
+	*/
+	uint16 startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus);
+#else
+	/**
+	* 在windows下启动一个新进程
+	*/
+	DWORD startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus);
+#endif
+
 	/** 网络接口
 		关闭服务器
 		@uid: 提供启动的uid参数
@@ -111,13 +133,14 @@ public:
 		对本机运行的组件进行检查是否可用
 	*/
 	bool checkComponentUsable(const Components::ComponentInfos* info, bool getdatas, bool autoerase);
+
 protected:
 	// udp广播地址
-	u_int32_t broadcastAddr_;
-	Network::EndPoint ep_;
-	Network::EndPoint epBroadcast_;
+	u_int32_t					broadcastAddr_;
+	Network::EndPoint			ep_;
+	Network::EndPoint			epBroadcast_;
 
-	Network::EndPoint epLocal_;
+	Network::EndPoint			epLocal_;
 
 	Network::UDPPacketReceiver* pEPPacketReceiver_;
 	Network::UDPPacketReceiver* pEBPacketReceiver_;

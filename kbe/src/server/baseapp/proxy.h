@@ -177,6 +177,11 @@ public:
 	*/
 	void kick();
 
+	/**
+		获得这个proxy的客户端连接对象
+	*/
+	Network::Channel* pChannel();
+
 protected:
 	uint64 rndUUID_;
 	Network::Address addr_;

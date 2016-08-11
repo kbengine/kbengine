@@ -97,6 +97,38 @@ struct EmailSendInfo
 	uint32 deadline;
 };
 
+struct DBInterfaceInfo
+{
+	DBInterfaceInfo()
+	{
+		index = 0;
+		isPure = false;
+		db_numConnections = 5;
+		db_passwordEncrypt = true;
+
+		memset(name, 0, sizeof(name));
+		memset(db_type, 0, sizeof(db_type));
+		memset(db_ip, 0, sizeof(db_ip));
+		memset(db_username, 0, sizeof(db_username));
+		memset(db_password, 0, sizeof(db_password));
+		memset(db_name, 0, sizeof(db_name));
+	}
+
+	int index;
+	bool isPure;											// 是否为纯净库（没有引擎创建的实体表）
+	char name[MAX_BUF];										// 数据库的接口名称
+	char db_type[MAX_BUF];									// 数据库的类别
+	uint32 db_port;											// 数据库的端口
+	char db_ip[MAX_BUF];									// 数据库的ip地址
+	char db_username[MAX_NAME];								// 数据库的用户名
+	char db_password[MAX_BUF * 10];							// 数据库的密码
+	bool db_passwordEncrypt;								// db密码是否是加密的
+	char db_name[MAX_NAME];									// 数据库名
+	uint16 db_numConnections;								// 数据库最大连接
+	std::string db_unicodeString_characterSet;				// 设置数据库字符集
+	std::string db_unicodeString_collation;
+};
+
 // 引擎组件信息结构体
 typedef struct EngineComponentInfo
 {
@@ -110,6 +142,8 @@ typedef struct EngineComponentInfo
 		debugDBMgr = false;
 
 		externalAddress[0] = '\0';
+
+		isOnInitCallPropertysSetMethods = true;
 	}
 
 	~EngineComponentInfo()
@@ -119,6 +153,8 @@ typedef struct EngineComponentInfo
 	uint32 port;											// 组件的运行后监听的端口
 	char ip[MAX_BUF];										// 组件的运行期ip地址
 
+	std::vector< std::string > machine_addresses;			// 配置中给出的所有的machine的地址
+	
 	char entryScriptFile[MAX_NAME];							// 组件的入口脚本文件
 	char dbAccountEntityScriptType[MAX_NAME];				// 数据库帐号脚本类别
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
@@ -145,17 +181,8 @@ typedef struct EngineComponentInfo
 	int32 externalPorts_min;								// 对外socket端口使用指定范围
 	int32 externalPorts_max;
 
-	char db_type[MAX_BUF];									// 数据库的类别
-	uint32 db_port;											// 数据库的端口
-	char db_ip[MAX_BUF];									// 数据库的ip地址
-	char db_username[MAX_NAME];								// 数据库的用户名
-	char db_password[MAX_BUF * 10];							// 数据库的密码
-	char db_name[MAX_NAME];									// 数据库名
-	uint16 db_numConnections;								// 数据库最大连接
-	std::string db_unicodeString_characterSet;				// 设置数据库字符集
-	std::string db_unicodeString_collation;
+	std::vector<DBInterfaceInfo> dbInterfaceInfos;			// 数据库接口
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
-	bool db_passwordEncrypt;								// db密码是否是加密的
 	bool allowEmptyDigest;									// 是否检查defs-MD5
 	bool account_registration_enable;						// 是否开放注册
 
@@ -203,7 +230,9 @@ typedef struct EngineComponentInfo
 	uint16 http_cbport;										// 用户http回调接口，处理认证、密码重置等
 
 	bool debugDBMgr;										// debug模式下可输出读写操作信息
-}ENGINE_COMPONENT_INFO;
+
+	bool isOnInitCallPropertysSetMethods;					// 机器人(bots)专用：在Entity初始化时是否触发属性的set_*事件
+} ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>
 {
@@ -235,17 +264,6 @@ public:
 
 	INLINE int16 gameUpdateHertz(void) const;
 	INLINE Network::Address interfacesAddr(void) const;
-	
-	INLINE const char* interfacesAccountType() const;
-	INLINE const char* interfacesChargeType() const;
-
-	INLINE const char* interfacesThirdpartyAccountServiceAddr() const;
-	INLINE uint16 interfacesThirdpartyAccountServicePort() const;
-
-	INLINE const char* interfacesThirdpartyChargeServiceAddr() const;
-	INLINE uint16 interfacesThirdpartyChargeServicePort() const;
-
-	INLINE uint16 interfacesThirdpartyServiceCBPort() const;
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -256,6 +274,12 @@ public:
 
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
+
+	INLINE bool IsPureDBInterfaceName(const std::string& dbInterfaceName);
+	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
+	INLINE int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName);
+	INLINE const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex);
+
 private:
 	void _updateEmailInfos();
 
@@ -282,13 +306,6 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Network::Address interfacesAddr_;
-	std::string interfaces_accountType_;							// 账号系统类别
-	std::string interfaces_chargeType_;								// 计费系统类别
-	std::string interfaces_thirdpartyAccountServiceAddr_;			// 第三方运营账号服务地址(当type是thirdparty时有效)
-	uint16 interfaces_thirdpartyAccountServicePort_;			
-	std::string interfaces_thirdpartyChargeServiceAddr_;			// 第三方运营充值服务地址(当type是thirdparty时有效)
-	uint16 interfaces_thirdpartyChargeServicePort_;	
-	uint16 interfaces_thirdpartyServiceCBPort_;	
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

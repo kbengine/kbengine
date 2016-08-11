@@ -30,7 +30,8 @@ namespace KBEngine{
 Buffered_DBTasks::Buffered_DBTasks():
 dbid_tasks_(),
 entityid_tasks_(),
-mutex_()
+mutex_(),
+dbInterfaceName_()
 {
 }
 
@@ -99,7 +100,7 @@ void Buffered_DBTasks::addTask(EntityDBTask* pTask)
 	}
 
 	mutex_.unlockMutex();
-	DBUtil::pThreadPool()->addTask(pTask);
+	DBUtil::pThreadPool(dbInterfaceName_)->addTask(pTask);
 }
 
 //-------------------------------------------------------------------------------------

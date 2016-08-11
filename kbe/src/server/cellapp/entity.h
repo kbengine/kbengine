@@ -57,6 +57,7 @@ class EntityCoordinateNode;
 class Controller;
 class Controllers;
 class Space;
+class VolatileInfo;
 
 namespace Network
 {
@@ -153,6 +154,16 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetOtherClients);
 	INLINE void otherClients(AllClients* clients);
 
+	/**
+		脚本获取controlledBy属性
+	*/
+	INLINE bool isControlledNotSelfCleint() const;
+	INLINE EntityMailbox* controlledBy() const;
+	INLINE void controlledBy(EntityMailbox* baseMailbox);
+	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
+	bool setControlledBy(EntityMailbox* baseMailbox);
+	void sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
+
 	/** 
 		脚本获取和设置entity的position 
 	*/
@@ -166,7 +177,6 @@ public:
 	INLINE Direction3D& direction();
 	INLINE void direction(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
-	
 
 	/**
 		是否在地面上
@@ -300,7 +310,7 @@ public:
 	*/
 	bool canNavigate();
 	uint32 navigate(const Position3D& destination, float velocity, float distance,
-					float maxMoveDistance, float maxDistance, 
+					float maxMoveDistance, float maxSearchDistance,
 					bool faceMovement, int8 layer, PyObject* userData);
 	bool navigatePathPoints(std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer);
 
@@ -396,6 +406,11 @@ public:
 	*/
 	void delWitnessed(Entity* entity);
 	void onDelWitnessed();
+
+	/**
+		 指定的entity是否是观察自己的人之一
+	*/
+	bool entityInWitnessed(ENTITY_ID entityID);
 
 	INLINE const std::list<ENTITY_ID>&	witnesses();
 	INLINE size_t witnessesSize() const;
@@ -574,6 +589,12 @@ public:
 	INLINE void setDirty(bool dirty = true);
 	INLINE bool isDirty() const;
 	
+	/**
+	VolatileInfo section
+	*/
+	INLINE VolatileInfo* pCustomVolatileinfo(void);
+	DECLARE_PY_GETSET_MOTHOD(pyGetVolatileinfo, pySetVolatileinfo);
+
 private:
 	/** 
 		发送teleport结果到base端
@@ -587,6 +608,13 @@ protected:
 
 	// 这个entity的baseapp部分的mailbox
 	EntityMailbox*											baseMailbox_;
+
+	/** 这个entity的坐标和朝向当前受谁的客户端控制
+	    null表示没有客户端在控制（即系统控制），
+	    否则指向控制这个entity的对象的baseMailbox_，
+		玩家自己控制自己则Entity.controlledBy = self.base
+	*/
+	EntityMailbox *											controlledBy_;
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
 	COMPONENT_ID											realCell_;
@@ -647,6 +675,9 @@ protected:
 	
 	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
 	bool													isDirty_;
+
+	// 如果用户有设置过Volatileinfo，则此处创建Volatileinfo，否则为NULL使用ScriptDefModule的Volatileinfo
+	VolatileInfo*											pCustomVolatileinfo_;
 };
 
 }

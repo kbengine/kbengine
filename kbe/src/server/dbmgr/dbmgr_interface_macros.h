@@ -34,7 +34,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #else
 // linux include
 #endif
-	
+
 namespace KBEngine{
 
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)

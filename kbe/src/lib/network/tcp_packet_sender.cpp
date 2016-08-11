@@ -47,6 +47,18 @@ ObjectPool<TCPPacketSender>& TCPPacketSender::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+TCPPacketSender* TCPPacketSender::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void TCPPacketSender::reclaimPoolObject(TCPPacketSender* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void TCPPacketSender::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("TCPPacketSender::destroyObjPool(): size {}.\n", 
@@ -85,7 +97,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 {
 	bool noticed = pChannel == NULL;
 
-	// 如果是有poller通知的，我们需要通过地址找到channel
+	// 如果是由poller通知的，我们需要通过地址找到channel
 	if(noticed)
 		pChannel = getChannel();
 
@@ -116,7 +128,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 		if(reason == REASON_SUCCESS)
 		{
 			pakcets.clear();
-			Network::Bundle::ObjPool().reclaimObject((*iter));
+			Network::Bundle::reclaimPoolObject((*iter));
 		}
 		else
 		{
@@ -131,11 +143,17 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 						(pChannel->isInternal() ? "internal" : "external")));
 				*/
 
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()");
 			}
 			else
 			{
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr());
+#ifdef unix
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()", 
+					fmt::format(", errno: {}", errno).c_str());
+#else
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()", 
+					fmt::format(", errno: {}", WSAGetLastError()).c_str());
+#endif
 				onGetError(pChannel);
 			}
 

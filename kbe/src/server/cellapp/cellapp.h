@@ -75,6 +75,8 @@ public:
 	virtual bool canShutdown();
 	virtual void onShutdown(bool first);
 
+	void destroyObjPool();
+
 	float _getLoad() const { return getLoad(); }
 	virtual void onUpdateLoad();
 
@@ -97,7 +99,7 @@ public:
 		想dbmgr请求执行一个数据库命令
 	*/
 	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
-	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid);
+	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid, const std::string& dbInterfaceName);
 	void onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
@@ -158,6 +160,7 @@ public:
 		client更新数据
 	*/
 	void onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		real请求更新属性到ghost
