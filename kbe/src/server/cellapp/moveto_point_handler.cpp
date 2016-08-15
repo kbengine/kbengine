@@ -183,13 +183,16 @@ bool MoveToPointHandler::update()
 	}
 	
 	// 设置entity的新位置和面向
-	pEntity->setPositionAndDirection(currpos, direction);
+	if(!isDestroyed_)
+		pEntity->setPositionAndDirection(currpos, direction);
 
 	// 非navigate都不能确定其在地面上
-	pEntity->isOnGround(isOnGround());
+	if(!isDestroyed_)
+		pEntity->isOnGround(isOnGround());
 
 	// 通知脚本
-	pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
+	if(!isDestroyed_)
+		pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
 
 	// 如果达到目的地则返回true
 	if (!ret && requestMoveOver(currpos_backup))

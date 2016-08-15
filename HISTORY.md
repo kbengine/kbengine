@@ -1,4 +1,29 @@
-###v0.8.0
+###v0.9.0
+
+	2016/8/12
+
+	新增与改善：
+		Windows下支持启动参数以后台方式启动服务器（增加--hide=参数，--hide=1隐藏窗口，#359）。
+		onDestroy中isDestroyed_ = true应该在脚本回调之前设置，否则可能在期间导致脚本再调用某些死亡后不可用功能造成问题。 
+		PyMemoryStream增加rpos和wpos与fill脚本方法。 
+		addYawRotator使用后客户端表现混乱旋转问题 (#366)
+		客户端心跳回调实现 (#369)
+		增加新的API支持（createBaseRemotely 、createBaseRemotelyFromDBID）#372。
+		脚本入口模块名称统一调整为kbemain，避免因名字重合混淆一些概念，具体见kbengine_defs.xml。
+		优化了坐标管理系统。
+		API文档更新
+
+
+	BUG修正：
+		修正某些情况销毁space时造成crash的问题。 
+		修正CoordinateSystem::removeReal没有释放内存（#373）。
+		修正setAoiRadius不能动态的改变AOI看到的内容问题（#375）
+		修正使用VC启动cellapp就会crash的问题（#376）
+		其他一些修正（#360、#370、#374、#378、#381、#377）
+
+
+
+###v0.8.10
 
 	2016/6/27
 
@@ -28,6 +53,8 @@
 		修正对NPC调用entitiesInAOI()崩溃的问题
 
 
+
+###v0.8.0
 
 	2016/1/30
 

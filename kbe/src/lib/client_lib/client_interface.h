@@ -178,7 +178,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS3(setSpaceData,								NETWORK_VARIABLE_MESSAGE,
 								SPACE_ID,									spaceID,
 								std::string,								key,
-								std::string,								valye)
+								std::string,								val)
 
 	// ·þÎñ¶ËÉ¾³ýÁËspacedata
 	CLIENT_MESSAGE_DECLARE_ARGS2(delSpaceData,								NETWORK_VARIABLE_MESSAGE,

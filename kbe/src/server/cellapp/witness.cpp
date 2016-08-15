@@ -259,6 +259,15 @@ void Witness::reclaimPoolObject(Witness* obj)
 }
 
 //-------------------------------------------------------------------------------------
+void Witness::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("Witness::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 Witness::SmartPoolObjectPtr Witness::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<Witness>(ObjPool().createObject(), _g_objPool));
@@ -539,6 +548,12 @@ void Witness::installAOITrigger()
 {
 	if (pAOITrigger_)
 	{
+		// 在设置AOI半径为0后掉线重登陆会出现这种情况
+		if (aoiRadius_ <= 0.f)
+		{
+			return;
+		}
+
 		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 
 		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)

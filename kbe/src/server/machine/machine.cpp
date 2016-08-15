@@ -741,7 +741,6 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -889,6 +888,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 	}
 
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle) << success;
 
 	if(finderRecvPort != 0)
@@ -899,6 +899,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		if (!ep.good())
 		{
 			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+			Network::Bundle::reclaimPoolObject(pBundle);
 			return;
 		}
 	

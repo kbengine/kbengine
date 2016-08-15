@@ -1309,8 +1309,9 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* pdbi, void* pData)
 {
-	if(pChildTable_)
-		return pChildTable_->syncToDB(pdbi);
+	// 所有的表都会在bool EntityTables::syncToDB(DBInterface* pdbi)中被同步（包括子表），因此无需再做一次同步
+	//if(pChildTable_)
+	//	return pChildTable_->syncToDB(pdbi);
 
 	return true;
 }

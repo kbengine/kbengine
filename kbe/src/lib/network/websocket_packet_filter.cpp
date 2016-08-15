@@ -226,7 +226,17 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 		}
 		else
 		{
-			KBE_ASSERT(pFragmentDatasRemain_ > 0);
+			if (pFragmentDatasRemain_ <= 0)
+			{
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: pFragmentDatasRemain_ <= 0! addr={}!\n",
+					pChannel_->c_str()));
+
+				this->pChannel_->condemn();
+				reset();
+
+				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
+				return REASON_WEBSOCKET_ERROR;
+			}
 
 			if(pTCPPacket_ == NULL)
 				pTCPPacket_ = TCPPacket::createPoolObject();
