@@ -734,7 +734,9 @@ bool Proxy::pushBundle(Network::Bundle* pBundle)
 	if(!pChannel)
 		return false;
 
-	pChannel->send(pBundle);
+	pBundle->pChannel(pChannel);
+	pBundle->finiMessage(true);
+	pChannel->pushBundle(pBundle);
 	return true;
 }
 

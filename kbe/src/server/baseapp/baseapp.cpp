@@ -486,6 +486,7 @@ void Baseapp::handleGameTick()
 
 	handleBackup();
 	handleArchive();
+	handleUpdateClientMessages();
 }
 
 //-------------------------------------------------------------------------------------
@@ -500,6 +501,22 @@ void Baseapp::handleArchive()
 {
 	AUTO_SCOPED_PROFILE("archive");
 	pArchiver_->tick();
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::handleUpdateClientMessages()
+{
+	AUTO_SCOPED_PROFILE("handleUpdateClientMessages");
+	const Network::NetworkInterface::ChannelMap& channels = this->networkInterface().channels();
+	Network::NetworkInterface::ChannelMap::const_iterator iter = channels.begin();
+	for (; iter != channels.end(); ++iter)
+	{
+		Network::Channel* pChannel = (*iter).second;
+		if (pChannel->isExternal())
+		{
+			pChannel->send();
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
