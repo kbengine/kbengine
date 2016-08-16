@@ -82,7 +82,6 @@ public:
 	void handleCheckStatusTick();
 	void handleBackup();
 	void handleArchive();
-	void handleUpdateClientMessages();
 
 	/** 
 		初始化相关接口 
