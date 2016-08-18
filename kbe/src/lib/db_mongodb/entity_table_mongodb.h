@@ -53,7 +53,7 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		virtual void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){};
+		virtual void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID,const bson_t * doc){};
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
@@ -92,13 +92,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 	protected:
 		std::string dataSType_;
 	};
@@ -124,13 +124,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 	};
 
 	class EntityTableItemMongodb_UNICODE : public EntityTableItemMongodbBase
@@ -154,13 +154,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 	};
 
 	class EntityTableItemMongodb_PYTHON : public EntityTableItemMongodbBase
@@ -184,13 +184,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 	};
 
 	class EntityTableItemMongodb_BLOB : public EntityTableItemMongodbBase
@@ -214,13 +214,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 	};
 
 	class EntityTableItemMongodb_VECTOR2 : public EntityTableItemMongodbBase
@@ -246,13 +246,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
 		{
@@ -287,13 +287,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
 		{
@@ -328,13 +328,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 
 		virtual void init_db_item_name(const char* exstrFlag = "")
 		{
@@ -367,13 +367,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 	};
 
 	class EntityTableItemMongodb_ARRAY : public EntityTableItemMongodbBase
@@ -406,15 +406,15 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 
-		virtual void init_db_item_name(const char* exstrFlag = ""){}
+		virtual void init_db_item_name(const char* exstrFlag = "");
 
 	protected:
 		EntityTable* pChildTable_;
@@ -451,15 +451,15 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID){}
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 
-		virtual void init_db_item_name(const char* exstrFlag = ""){}
+		virtual void init_db_item_name(const char* exstrFlag = "");
 
 	protected:
 		EntityTableItemMongodb_FIXED_DICT::FIXEDDICT_KEYTYPES			keyTypes_;		// 这个固定字典里的各个key的类型
@@ -505,7 +505,7 @@ namespace KBEngine {
 		/**
 		获取所有的数据放到流中
 		*/
-		virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule){ return true; }
+		virtual bool queryTable(DBInterface* pdbi, DBID dbid, MemoryStream* s, ScriptDefModule* pModule);
 
 		/**
 		设置是否自动加载
@@ -521,13 +521,13 @@ namespace KBEngine {
 		/**
 		获取某个表所有的数据放到流中
 		*/
-		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID);
+		void addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc);
 
 		/**
 		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
-		virtual void getReadSqlItem(mongodb::DBContext& context){}
+		virtual void getReadSqlItem(mongodb::DBContext& context);
 
 		void init_db_item_name();
 
