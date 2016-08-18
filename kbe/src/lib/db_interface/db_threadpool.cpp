@@ -66,10 +66,13 @@ public:
 	
 	virtual thread::TPTask* tryGetTask(void)
 	{
-		DBTaskBase* pDBTask = static_cast<DBTaskBase*>(task())->tryGetNextTask();
-		if(pDBTask != NULL)
+		if (task())
 		{
-			return pDBTask;
+			DBTaskBase* pDBTask = static_cast<DBTaskBase*>(task())->tryGetNextTask();
+			if (pDBTask != NULL)
+			{
+				return pDBTask;
+			}
 		}
 
 		return thread::TPThread::tryGetTask();
