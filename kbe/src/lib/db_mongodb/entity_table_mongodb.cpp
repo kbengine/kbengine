@@ -305,7 +305,7 @@ namespace KBEngine {
 			char name[MAX_BUF];
 			kbe_snprintf(name, MAX_BUF, ENTITY_TABLE_PERFIX "_%s", context.tableName.c_str());
 
-			context.dbid = time(NULL); //<todo:yelei>这里以后要修改
+			context.dbid = genUUID64();
 			BSON_APPEND_INT64(&doc, TABLE_ID_CONST_STR, context.dbid);
 			BSON_APPEND_INT32(&doc, TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, shouldAutoLoad);
 			pdbiMongodb->insertCollection(name, &doc);
