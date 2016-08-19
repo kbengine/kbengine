@@ -73,12 +73,12 @@ namespace KBEngine {
 		WATCH_OBJECT("db_querys/select", &KBEngine::watcher_select);
 	}
 
-	DBInterfaceMongodb::DBInterfaceMongodb(const char* name):
-	DBInterface(name),
-	_pMongoClient(NULL),
-	hasLostConnection_(false),
-	inTransaction_(false),
-	lock_(this, false)
+	DBInterfaceMongodb::DBInterfaceMongodb(const char* name) :
+		DBInterface(name),
+		_pMongoClient(NULL),
+		hasLostConnection_(false),
+		inTransaction_(false),
+		lock_(this, false)
 	{
 	}
 
@@ -104,9 +104,6 @@ namespace KBEngine {
 			initializeWatcher();
 		}
 
-		/*if (db_port_ == 0)
-			db_port_ = 27017;*/
-
 		db_port_ = 27017;
 		if (databaseName != NULL)
 			kbe_snprintf(db_name_, MAX_BUF, "%s", databaseName);
@@ -117,8 +114,6 @@ namespace KBEngine {
 
 		mongoc_init();
 
-		//_pMongoClient = mongoc_client_new("mongodb://localhost:" + db_port_);
-
 		_pMongoClient = mongoc_client_new("mongodb://localhost:27017");
 
 		if (!_pMongoClient) {
@@ -127,19 +122,20 @@ namespace KBEngine {
 		}
 
 		database = mongoc_client_get_database(_pMongoClient, db_name_);
-		//collection = mongoc_client_get_collection(_pMongoClient, db_name_, "coll_name");
-		
+
 		command = BCON_NEW("ping", BCON_INT32(1));
 
 		retval = mongoc_client_command_simple(_pMongoClient, "admin", command, NULL, &reply, &error);
 
 		if (!retval) {
 			fprintf(stderr, "%s\n", error.message);
-			return EXIT_FAILURE;
+			return false;
 		}
 
-		str = bson_as_json(&reply, NULL);
-		printf("%s\n", str);
+		//str = bson_as_json(&reply, NULL);
+		//printf("%s\n", str);
+
+		return retval;
 	}
 
 	bool DBInterfaceMongodb::checkEnvironment()
@@ -161,29 +157,29 @@ namespace KBEngine {
 
 	/*bool DBInterfaceMongodb::ping(mongoc_client_t* pMongoClient)
 	{
-		if (!pMongoClient)
-			pMongoClient = _pMongoClient;
+	if (!pMongoClient)
+	pMongoClient = _pMongoClient;
 
-		if (!pMongoClient)
-			return false;
+	if (!pMongoClient)
+	return false;
 
-		bson_init(&b);
-		bson_append_int32(&b, "ping", 4, 1);
-		database = mongoc_client_get_database(pMongoClient, db_name_);
-		cursor = mongoc_database_command(database, (mongoc_query_flags_t)0, 0, 1, 0, &b, NULL, NULL);
-		if (mongoc_cursor_next(cursor, &reply)) {
-			str = bson_as_json(reply, NULL);
-			fprintf(stdout, "%s\n", str);
-			bson_free(str);
-		}
-		else if (mongoc_cursor_error(cursor, &error)) {
-			fprintf(stderr, "Ping failure: %s\n", error.message);
-			return false;
-		}
+	bson_init(&b);
+	bson_append_int32(&b, "ping", 4, 1);
+	database = mongoc_client_get_database(pMongoClient, db_name_);
+	cursor = mongoc_database_command(database, (mongoc_query_flags_t)0, 0, 1, 0, &b, NULL, NULL);
+	if (mongoc_cursor_next(cursor, &reply)) {
+	str = bson_as_json(reply, NULL);
+	fprintf(stdout, "%s\n", str);
+	bson_free(str);
+	}
+	else if (mongoc_cursor_error(cursor, &error)) {
+	fprintf(stderr, "Ping failure: %s\n", error.message);
+	return false;
+	}
 
-		mongoc_cursor_destroy(cursor);
+	mongoc_cursor_destroy(cursor);
 
-		return true;
+	return true;
 	}*/
 
 	bool DBInterfaceMongodb::reattach()
@@ -207,7 +203,7 @@ namespace KBEngine {
 	bool DBInterfaceMongodb::detach()
 	{
 		if (mongo())
-		{	
+		{
 			/*bson_destroy(insert);
 			bson_destroy(&reply);
 			bson_destroy(command);
@@ -266,33 +262,124 @@ namespace KBEngine {
 			return false;
 		}
 
-		querystatistics(cmd, size);
+		/*querystatistics(cmd, size);
 
-		lastquery_.assign(cmd, size);
+		lastquery_.assign(cmd, size);*/
 
 		if (_g_debug)
 		{
 			DEBUG_MSG(fmt::format("DBInterfaceMongodb::query({:p}): {}\n", (void*)this, lastquery_));
 		}
 
-		//<todo:yelei>临时直接调用
-		write_query_result(result);
+		std::string strCommand = cmd;
+		std::string *str_command = &strCommand;
 
-		return true;
+		int index = str_command->find_first_of(".");
+		str_tableName = str_command->substr(0, index);
+
+		std::string *_tableName = &str_tableName;
+		tableName = _tableName->c_str();
+
+		std::string strQuerCommand = str_command->substr(index + 1, str_command->length());
+		std::string *queryCommand = &strQuerCommand;
+
+		int k = queryCommand->find_first_of(".");
+		str_queryType = queryCommand->substr(0, k);
+
+		std::string t_command = queryCommand->substr(k + 1, queryCommand->length());
+		std::string *quert_cmd = &t_command;
+
+		const char* _command = quert_cmd->c_str();
+
+		bson_t * bsons = bson_new_from_json((const uint8_t *)_command, strlen(_command), &error);
+
+		return result == NULL || write_query_result(result, bsons, tableName);
 	}
 
-	bool DBInterfaceMongodb::write_query_result(MemoryStream * result)
+	bool DBInterfaceMongodb::write_query_result(MemoryStream * result, bson_t * bsons, const char *tableName)
 	{
 		if (result == NULL)
 		{
 			return true;
 		}
 
-		//<todo:yelei>临时写,模拟一下
-		uint32 nrows = 0;
-		uint32 nfields = 7;
+		if (bsons == NULL)
+		{
+			uint32 nfields = 0;
+			uint64 affectedRows = 0;
 
-		(*result) << nfields << nrows;
+			(*result) << nfields;
+			(*result) << affectedRows;
+
+			return true;
+		}
+
+		resultFlag = true;
+		if (str_queryType == "find")
+		{
+			bson_error_t  error;
+			const bson_t *doc;
+			mongoc_cursor_t * cursor = collectionFind(tableName, bsons);
+
+			uint32 nrows = 0;
+			uint32 nfields = 1;
+
+			std::list<const bson_t *> value;
+			while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc))
+			{
+				nrows++;
+				value.push_back(doc);
+			}
+
+			(*result) << nfields << nrows;
+
+			std::list<const bson_t *>::iterator it;
+			for (it = value.begin(); it != value.end(); it++)
+			{
+				const bson_t *tem = *it;
+				str = bson_as_json(tem, NULL);
+				result->appendBlob(str, strlen(str));
+			}
+
+			if (mongoc_cursor_error(cursor, &error))
+			{
+				ERROR_MSG("An error occurred: %s\n", error.message);
+				resultFlag = false;
+			}
+
+			mongoc_cursor_destroy(cursor);
+		}
+		else if (str_queryType == "delete")
+		{
+			resultFlag = false;
+			collectionRemove(tableName, bsons);
+		}
+		else if (str_queryType == "insert")
+		{
+			resultFlag = false;
+			insertCollection(tableName, bsons);
+		}
+		else if (str_queryType == "update")
+		{
+			resultFlag = false;
+			bson_t *doc = bson_new();
+			updateCollection(tableName, bsons, doc);
+			bson_destroy(doc);
+		}
+
+		if (!resultFlag)
+		{
+			uint32 nfields = 0;
+			uint64 affectedRows = 0;
+
+			(*result) << nfields;
+			(*result) << affectedRows;
+		}	
+
+		if (bsons != NULL)
+		{
+			bson_destroy(bsons);
+		}
 
 		return true;
 	}
@@ -306,22 +393,6 @@ namespace KBEngine {
 		}
 
 		tableNames.clear();
-
-		/*MYSQL_RES * pResult = mysql_list_tables(pMysql_, pattern);
-
-		if (pResult)
-		{
-			tableNames.reserve((unsigned int)mysql_num_rows(pResult));
-
-			MYSQL_ROW row;
-			while ((row = mysql_fetch_row(pResult)) != NULL)
-			{
-				unsigned long *lengths = mysql_fetch_lengths(pResult);
-				tableNames.push_back(std::string(row[0], lengths[0]));
-			}
-
-			mysql_free_result(pResult);
-		}*/
 
 		return true;
 	}
@@ -430,7 +501,7 @@ namespace KBEngine {
 		}
 
 		return retry;
-	}	
+	}
 
 	bool DBInterfaceMongodb::createCollection(const char *tableName)
 	{
@@ -444,7 +515,7 @@ namespace KBEngine {
 		//不存在则创建
 		bson_init(&options);
 		mongoc_collection_t * collection = mongoc_database_create_collection(database, tableName, &options, &error);
-		
+
 		bson_destroy(&options);
 		mongoc_collection_destroy(collection);
 
@@ -456,7 +527,8 @@ namespace KBEngine {
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
 		bool r = mongoc_collection_insert(collection, MONGOC_INSERT_NONE, data, NULL, &error);
-		if (!r) {
+		if (!r) 
+		{
 			ERROR_MSG("%s\n", error.message);
 		}
 
@@ -469,20 +541,17 @@ namespace KBEngine {
 	{
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
-		
 		mongoc_cursor_t * cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
 
+		mongoc_collection_destroy(collection);
 		return cursor;
-
 	}
 
 	bool DBInterfaceMongodb::updateCollection(const char *tableName, bson_t *query, bson_t *doc)
 	{
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
-
 		bool r = mongoc_collection_update(collection, MONGOC_UPDATE_NONE, query, doc, NULL, &error);
-
 		if (!r)
 		{
 			ERROR_MSG("%s\n", error.message);
@@ -496,9 +565,7 @@ namespace KBEngine {
 	{
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
-
 		bool r = mongoc_collection_remove(collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &error);
-
 		if (!r)
 		{
 			ERROR_MSG("%s\n", error.message);
