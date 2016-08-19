@@ -741,6 +741,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
+	COMPONENT_ID componentID;
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -748,13 +749,16 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> uid;
 	s >> componentType;
 	
+	// 如果组件ID大于0则仅停止指定ID的组件
+	s >> componentID;
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, [{}], addr={}\n", 
-		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, componentType={}, componentID={},  addr={}\n", 
+		uid,  COMPONENT_NAME_EX(componentType), componentID, pChannel->c_str()));
 
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 	{
@@ -774,6 +778,9 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		for(; iter != components.end(); )
 		{
 			Components::ComponentInfos* cinfos = &(*iter);
+
+			if(componentID > 0 && componentID != cinfos->cid)
+				continue;
 
 			if(cinfos->uid != uid)
 			{
