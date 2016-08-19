@@ -271,32 +271,24 @@ namespace KBEngine {
 			DEBUG_MSG(fmt::format("DBInterfaceMongodb::query({:p}): {}\n", (void*)this, lastquery_));
 		}
 
-		std::string strCommand = cmd;
-		std::string *str_command = &strCommand;
+		std::string strCommand(cmd);
 
-		int index = str_command->find_first_of(".");
-		str_tableName = str_command->substr(0, index);
+		int index = strCommand.find_first_of(".");
+		std::string str_tableName = strCommand.substr(0, index);
 
-		std::string *_tableName = &str_tableName;
-		tableName = _tableName->c_str();
+		std::string strQuerCommand = strCommand.substr(index + 1, strCommand.length());
 
-		std::string strQuerCommand = str_command->substr(index + 1, str_command->length());
-		std::string *queryCommand = &strQuerCommand;
+		int k = strQuerCommand.find_first_of(".");
+		std::string str_queryType = strQuerCommand.substr(0, k);
 
-		int k = queryCommand->find_first_of(".");
-		str_queryType = queryCommand->substr(0, k);
+		std::string t_command = strQuerCommand.substr(k + 1, strQuerCommand.length());
 
-		std::string t_command = queryCommand->substr(k + 1, queryCommand->length());
-		std::string *quert_cmd = &t_command;
+		bson_t * bsons = bson_new_from_json((const uint8_t *)t_command.c_str(), t_command.length(), &error);
 
-		const char* _command = quert_cmd->c_str();
-
-		bson_t * bsons = bson_new_from_json((const uint8_t *)_command, strlen(_command), &error);
-
-		return result == NULL || write_query_result(result, bsons, tableName);
+		return result == NULL || write_query_result(result, bsons, str_tableName.c_str(), str_queryType);
 	}
 
-	bool DBInterfaceMongodb::write_query_result(MemoryStream * result, bson_t * bsons, const char *tableName)
+	bool DBInterfaceMongodb::write_query_result(MemoryStream * result, bson_t * bsons, const char *tableName, std::string str_queryType)
 	{
 		if (result == NULL)
 		{
@@ -314,7 +306,7 @@ namespace KBEngine {
 			return true;
 		}
 
-		resultFlag = true;
+		bool resultFlag = true;
 		if (str_queryType == "find")
 		{
 			bson_error_t  error;

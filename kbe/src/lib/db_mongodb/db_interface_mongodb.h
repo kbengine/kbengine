@@ -60,7 +60,7 @@ namespace KBEngine
 
 		virtual bool query(const char* strCommand, uint32 size, bool printlog = true, MemoryStream * result = NULL);
 
-		bool write_query_result(MemoryStream * result, bson_t * bsons = NULL, const char *tableName = NULL);
+		bool write_query_result(MemoryStream * result, bson_t * bsons = NULL, const char *tableName = NULL, std::string str_queryType = "");
 
 		/**
 		获取数据库所有的表名
@@ -165,10 +165,5 @@ namespace KBEngine
 		bool hasLostConnection_;
 
 		bool inTransaction_;
-
-		std::string str_queryType;
-		std::string str_tableName;
-		const char* tableName;
-		bool resultFlag;
 	};
 }
