@@ -328,14 +328,15 @@ class Machines:
 		else:
 			self.sendAndReceive( msg.getvalue(), targetIP, trycount, timeout )
 
-	def stopServer(self, componentType, targetIP = "<broadcast>", trycount = 1, timeout = 1):
+	def stopServer(self, componentType, componentID = 0, targetIP = "<broadcast>", trycount = 1, timeout = 1):
 		"""
 		"""
 		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", MachineInterface_stopserver ) ) # command
-		msg.write( struct.pack("=H", struct.calcsize("=iiH") ) ) # command length
+		msg.write( struct.pack("=H", struct.calcsize("=iiQH") ) ) # command length
 		msg.write( struct.pack("=i", self.uid) )
 		msg.write( struct.pack("=i", componentType) )
+		msg.write( struct.pack("=Q", componentID) )
 		msg.write( struct.pack("=H", socket.htons(self.replyPort)) ) # reply port
 
 		if trycount <= 0:

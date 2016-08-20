@@ -628,17 +628,18 @@ void* TPThread::threadFunc(void* arg)
 	pthread_detach(pthread_self());
 #endif
 
-	tptd->onStart();
-
-	// 尝试继续从任务队列里取出一个繁忙的未处理的任务
-	if(tptd->task() == NULL)
+	// 在addTask时可能没有可用的线程资源而新创建一些线程，这些线程需要立即进入工作状态
+	if (!tptd->task()) 
 	{
 		TPTask * pTask = tptd->tryGetTask();
-		if(pTask)
+		if (pTask) 
 		{
 			tptd->task(pTask);
+			pThreadPool->addBusyThread(tptd);
 		}
 	}
+
+	tptd->onStart();
 
 	while(isRun)
 	{
