@@ -92,20 +92,34 @@ public:
 		startGlobalOrder: 全局启动顺序 包括各种不同组件
 		startGroupOrder: 组内启动顺序， 比如在所有baseapp中第几个启动。
 	*/
-	void onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress);
+	void onCellappInitProgress(Network::Channel* pChannel, COMPONENT_ID cid, float progress, 
+		COMPONENT_ORDER componentGlobalOrder, COMPONENT_ORDER componentGroupOrder);
 
 	bool componentsReady();
 	bool componentReady(COMPONENT_ID cid);
 
+	void removeCellapp(COMPONENT_ID cid);
+	Cellapp& getCellapp(COMPONENT_ID cid);
+	std::map< COMPONENT_ID, Cellapp >& cellapps();
+
+	uint32 numLoadBalancingApp();
+
+	/* 以groupOrderID为排序基准，
+	   増加一个cellapp component id到cellapp_cids_列表中
+	*/
+	void addCellappComponentID(COMPONENT_ID cid);
+
 protected:
 	TimerHandle							gameTimer_;
-	ForwardAnywhere_MessageBuffer		forward_cellapp_messagebuffer_;
+	ForwardAnywhere_MessageBuffer		forward_anywhere_cellapp_messagebuffer_;
+	ForwardComponent_MessageBuffer		forward_cellapp_messagebuffer_;
 
 	COMPONENT_ID						bestCellappID_;
 
 	std::map< COMPONENT_ID, Cellapp >	cellapps_;
+	std::vector<COMPONENT_ID>			cellapp_cids_;
 };
 
-}
+} 
 
 #endif // KBE_CELLAPPMGR_H

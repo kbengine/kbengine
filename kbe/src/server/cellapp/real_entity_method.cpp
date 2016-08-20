@@ -59,23 +59,29 @@ PyObject* RealEntityMethod::tp_call(PyObject* self, PyObject* args,
 	PyObject* kwds)	
 {
 	RealEntityMethod* rmethod = static_cast<RealEntityMethod*>(self);
-	return rmethod->callmethod(args, kwds);	
-}		
+	return rmethod->callmethod(args, kwds);
+}
 
 //-------------------------------------------------------------------------------------
 PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 {
+	GhostManager* gm = Cellapp::getSingleton().pGhostManager();
+	if (!gm)
+	{
+		S_Return;
+	}
+
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-		
+		Network::Bundle* pForwardBundle = gm->createSendBundle(realCell_);
+
 		(*pForwardBundle).newMessage(CellappInterface::onRemoteRealMethodCall);
 		(*pForwardBundle) << ghostEntityID_;
-		
+
 		if(mstream->wpos() > 0)
 			(*pForwardBundle).append(mstream->data(), mstream->wpos());
 
@@ -90,7 +96,7 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			switch(Network::g_trace_packet)
 			{
 			case 1:	
-				mstream->hexlike();	
+				mstream->hexlike();
 				break;
 			case 2:	
 				mstream->textlike();
@@ -100,7 +106,7 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				break;
 			};
 
-			if(Network::g_trace_packet_use_logfile)	
+			if(Network::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
 		}
 
@@ -111,16 +117,7 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			"::");
 
 		MemoryStream::reclaimPoolObject(mstream);
-		
-		GhostManager* gm = Cellapp::getSingleton().pGhostManager();
-		if(gm)
-		{
-			gm->pushMessage(realCell_, pForwardBundle);
-		}
-		else
-		{
-			Network::Bundle::reclaimPoolObject(pForwardBundle);
-		}
+		gm->pushMessage(realCell_, pForwardBundle);
 	}
 
 	S_Return;

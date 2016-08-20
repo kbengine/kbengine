@@ -45,7 +45,7 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentGlobalOrder = 1;
 COMPONENT_ORDER g_componentGroupOrder = 1;
-int32 g_genuuid_sections = -1;
+COMPONENT_GUS g_genuuid_sections = -1;
 
 GAME_TIME g_kbetime = 0;
 
@@ -105,6 +105,7 @@ void ClientApp::reset(void)
 
 	pServerChannel_->pFilter(NULL);
 	pServerChannel_->pPacketSender(NULL);
+	pServerChannel_->stopInactivityDetection();
 
 	SAFE_RELEASE(pTCPPacketSender_);
 	SAFE_RELEASE(pTCPPacketReceiver_);
@@ -616,6 +617,8 @@ bool ClientApp::updateChannel(bool loginapp, std::string accountName, std::strin
 			pTCPPacketSender_ = new Network::TCPPacketSender(*pServerChannel_->pEndPoint(), networkInterface());
 
 		pServerChannel_->pPacketSender(pTCPPacketSender_);
+		pServerChannel_->startInactivityDetection(Network::g_channelExternalTimeout, Network::g_channelExternalTimeout / 2.f);
+
 		networkInterface().registerChannel(pServerChannel_);
 		networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->pEndPoint(), pTCPPacketReceiver_);
 	}
@@ -838,6 +841,12 @@ PyObject* ClientApp::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	
 	return openedFile;
 }
 

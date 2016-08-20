@@ -775,22 +775,32 @@ void Bots::onUpdatePropertysOptimized(Network::Channel* pChannel, MemoryStream& 
 }
 
 //-------------------------------------------------------------------------------------
-void Bots::onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s)
+void Bots::onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onUpdateBasePos(pChannel, s);
+		pClient->onUpdateBasePos(pChannel, x, y, z);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Bots::onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s)
+void Bots::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onUpdateBasePosXZ(pChannel, s);
+		pClient->onUpdateBasePosXZ(pChannel, x, z);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onUpdateBaseDir(pChannel, s);
 	}
 }
 
@@ -1045,6 +1055,16 @@ void Bots::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onControlEntity(pChannel, entityID, isControlled);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onStreamDataStarted(Network::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
 {
 	ClientObject* pClient = findClient(pChannel);
@@ -1172,6 +1192,16 @@ void Bots::startProfile_(Network::Channel* pChannel, std::string profileName, in
 
 		break;
 	};
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onAppActiveTickCB(Network::Channel* pChannel)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onAppActiveTickCB(pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------

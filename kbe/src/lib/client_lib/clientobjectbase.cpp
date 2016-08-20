@@ -396,8 +396,18 @@ ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 {
 	ENTITY_ID id = 0;
-	if(EntityDef::entityAliasID() && 
-		pEntityIDAliasIDList_.size() > 0 && pEntityIDAliasIDList_.size() <= 255)
+
+	if (!EntityDef::entityAliasID())
+	{
+		s >> id;
+		return id;
+	}
+
+	if(pEntityIDAliasIDList_.size() > 255)
+	{
+		s >> id;
+	}
+	else
 	{
 		uint8 aliasID = 0;
 		s >> aliasID;
@@ -405,20 +415,10 @@ ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
 		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
 		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
-		if(pEntityIDAliasIDList_.size() == 0)
+		if (pEntityIDAliasIDList_.size() <= aliasID)
 			return 0;
 
 		id = pEntityIDAliasIDList_[aliasID];
-	}
-	else
-	{
-		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
-		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
-		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
-		if(pEntityIDAliasIDList_.size() == 0)
-			return 0;
-
-		s >> id;
 	}
 
 	return id;
@@ -784,7 +784,7 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 			Config::getSingleton().isOnInitCallPropertysSetMethods();
 	
 		if (isOnInitCallPropertysSetMethods)
-			entity->callPropertysSetMethods();
+			pEntity->callPropertysSetMethods();
 	}
 }
 
@@ -1191,11 +1191,8 @@ void ClientObjectBase::updatePlayerToServer()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z)
 {
-	float x, y, z;
-	s >> x >> y >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
@@ -1204,15 +1201,25 @@ void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 {
-	float x, z;
-	s >> x >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
 		pEntity->serverPosition(Position3D(x, pEntity->serverPosition().y, z));
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	float yaw, pitch, roll;
+	s >> yaw >> pitch >> roll;
+
+	client::Entity* pEntity = pPlayer();
+	if (pEntity)
+	{
+		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
 	}
 }
 
@@ -1778,6 +1785,11 @@ void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 i
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+{
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath)
 {
 	INFO_MSG(fmt::format("ClientObjectBase::addSpaceGeometryMapping: spaceID={}, respath={}!\n",
@@ -2175,6 +2187,12 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 	}
 
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onAppActiveTickCB(Network::Channel* pChannel)
+{
+	pChannel->updateLastReceivedTime();
 }
 
 //-------------------------------------------------------------------------------------		

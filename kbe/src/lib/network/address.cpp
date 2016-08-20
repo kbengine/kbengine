@@ -76,7 +76,7 @@ void Address::onReclaimObject()
 //-------------------------------------------------------------------------------------
 Address::Address(std::string ipArg, uint16 portArg):
 ip(0),
-	port(htons(portArg))
+port(htons(portArg))
 {
 	u_int32_t addr;
 	Network::Address::string2ip(ipArg.c_str(), addr);

@@ -729,7 +729,11 @@ void EntityApp<E>::handleGameTick()
 	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	
+	{
+		AUTO_SCOPED_PROFILE("processRecvMessages");
+		networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	}
 }
 
 template<class E>
@@ -1045,6 +1049,12 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	return openedFile;
 }
 

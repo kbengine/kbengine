@@ -295,11 +295,12 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 	{
 		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
 		ERROR_MSG(fmt::format("Interfaces::createAccountResponse: accountName '{}' not found!" \
-			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'\n", 
 			commitName, 
 			realAccountName, 
 			extraDatas, 
 			errorCode));
+
 		return;
 	}
 
@@ -404,11 +405,12 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 	{
 		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
 		ERROR_MSG(fmt::format("Interfaces::accountLoginResponse: commitName '{}' not found!" \
-			"realAccountName = '{}', extra datas = '{}', error code = '{}'", 
+			"realAccountName = '{}', extra datas = '{}', error code = '{}'\n", 
 			commitName, 
 			realAccountName, 
 			extraDatas, 
 			errorCode));
+
 		return;
 	}
 
@@ -513,15 +515,50 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 	ORDERS::iterator iter = orders_.find(orderID);
 	if (iter == orders_.end())
 	{
-		// 理论上不可能找不到，但如果真找不到，这是个很恐怖的事情，必须写日志记录下来
-		ERROR_MSG(fmt::format("Interfaces::chargeResponse: order id '{}' not found! extra datas = '{}', error code = '{}'", 
+		ERROR_MSG(fmt::format("Interfaces::chargeResponse: order id '{}' not found! extra datas = '{}', error code = '{}'\n", 
 			orderID, 
 			extraDatas, 
 			errorCode));
+		
+		// 这种情况也需要baseapp处理onLoseChargeCB
+		// 例如某些时候客户端出问题未向服务器注册这个订单号，但是计费平台有返回的情况
+		// 将订单发送给注册的所有的dbmgr
+		const Network::NetworkInterface::ChannelMap& channels = Interfaces::getSingleton().networkInterface().channels();
+		if(channels.size() > 0)
+		{
+			Network::NetworkInterface::ChannelMap::const_iterator channeliter = channels.begin();
+			for(; channeliter != channels.end(); ++channeliter)
+			{
+				Network::Channel* pChannel = channeliter->second;
+				if(pChannel)
+				{
+					COMPONENT_ID baseappID = 0;
+					DBID dbid = 0;
+					CALLBACK_ID cbid = 0;
+
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+
+					(*pBundle).newMessage(DbmgrInterface::onChargeCB);
+					(*pBundle) << baseappID << orderID << dbid;
+					(*pBundle).appendBlob(extraDatas);
+					(*pBundle) << cbid;
+					(*pBundle) << errorCode;
+					pChannel->send(pBundle);
+				}
+			}
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channels. orders={}, datas={}\n", 
+				orderID, extraDatas));
+		}
+
 		return;
 	}
 
 	KBEShared_ptr<Orders> orders = iter->second;
+	orders->getDatas = extraDatas;
+
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
@@ -534,15 +571,12 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 
 	if(pChannel)
 	{
-		WARNING_MSG(fmt::format("Interfaces::chargeResponse: orders={} commit is failed!\n", 
-			orders->ordersID));
-
 		pChannel->send(pBundle);
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channel. orders={}\n", 
-			orders->ordersID));
+		ERROR_MSG(fmt::format("Interfaces::chargeResponse: not found channels. orders={}, datas={}\n", 
+			orderID, extraDatas));
 
 		Network::Bundle::reclaimPoolObject(pBundle);
 	}

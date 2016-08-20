@@ -37,7 +37,7 @@ public:
 	
 	void clear();
 
-	uint32 freeID(){ return ++lastid_; }
+	uint32 freeID() { return ++lastid_; }
 
 	typedef std::map<uint32, KBEShared_ptr< Controller > > CONTROLLERS_MAP;
 	CONTROLLERS_MAP& objects() { return objects_; }

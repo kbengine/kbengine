@@ -59,7 +59,7 @@ public:
 		objects_(),
 		max_(OBJECT_POOL_INIT_MAX_SIZE),
 		isDestroyed_(false),
-		mutex_(),
+		pMutex_(new THREADMUTEX()),
 		name_(name),
 		total_allocs_(0),
 		obj_count_(0),
@@ -71,7 +71,7 @@ public:
 		objects_(),
 		max_((max == 0 ? 1 : max)),
 		isDestroyed_(false),
-		mutex_(),
+		pMutex_(new THREADMUTEX()),
 		name_(name),
 		total_allocs_(0),
 		obj_count_(0),
@@ -82,11 +82,12 @@ public:
 	~ObjectPool()
 	{
 		destroy();
+		SAFE_RELEASE(pMutex_);
 	}	
 	
 	void destroy()
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		isDestroyed_ = true;
 
@@ -101,10 +102,24 @@ public:
 				
 		objects_.clear();	
 		obj_count_ = 0;
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
-	const OBJECTS& objects(void) const { return objects_; }
+	const OBJECTS& objects(void) const 
+	{ 
+		return objects_; 
+	}
+
+	void pMutex(KBEngine::thread::ThreadMutexNull* pMutex)
+	{
+		SAFE_RELEASE(pMutex_);
+		pMutex_ = pMutex;
+	}
+
+	KBEngine::thread::ThreadMutexNull* pMutex()
+	{
+		return pMutex_;
+	}
 
 	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
 	{
@@ -122,7 +137,7 @@ public:
 	template<typename T1>
 	T* createObject(void)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		while(true)
 		{
@@ -132,14 +147,14 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
-				mutex_.unlockMutex();
+				pMutex_->unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 
 		return NULL;
 	}
@@ -150,7 +165,7 @@ public:
 	*/
 	T* createObject(void)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		while(true)
 		{
@@ -160,14 +175,14 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
-				mutex_.unlockMutex();
+				pMutex_->unlockMutex();
 				return t;
 			}
 
 			assignObjs();
 		}
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 
 		return NULL;
 	}
@@ -177,9 +192,9 @@ public:
 	*/
 	void reclaimObject(T* obj)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 		reclaimObject_(obj);
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
 	/**
@@ -187,7 +202,7 @@ public:
 	*/
 	void reclaimObject(std::list<T*>& objs)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		typename std::list< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); ++iter)
@@ -197,7 +212,7 @@ public:
 		
 		objs.clear();
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
 	/**
@@ -205,7 +220,7 @@ public:
 	*/
 	void reclaimObject(std::vector< T* >& objs)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		typename std::vector< T* >::iterator iter = objs.begin();
 		for(; iter != objs.end(); ++iter)
@@ -215,7 +230,7 @@ public:
 		
 		objs.clear();
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
 	/**
@@ -223,7 +238,7 @@ public:
 	*/
 	void reclaimObject(std::queue<T*>& objs)
 	{
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		while(!objs.empty())
 		{
@@ -232,7 +247,7 @@ public:
 			reclaimObject_(t);
 		}
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 	}
 
 	size_t size(void) const { return obj_count_; }
@@ -241,12 +256,12 @@ public:
 	{
 		char buf[1024];
 
-		mutex_.lockMutex();
+		pMutex_->lockMutex();
 
 		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
 			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed ? "true" : "false"));
 
-		mutex_.unlockMutex();
+		pMutex_->unlockMutex();
 
 		return buf;
 	}
@@ -313,7 +328,7 @@ protected:
 
 	// 一些原因导致锁还是有必要的
 	// 例如：dbmgr任务线程中输出log，cellapp中加载navmesh后的线程回调导致的log输出
-	THREADMUTEX mutex_;
+	THREADMUTEX* pMutex_;
 
 	std::string name_;
 

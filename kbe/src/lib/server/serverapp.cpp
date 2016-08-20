@@ -47,7 +47,7 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentGlobalOrder = -1;
 COMPONENT_ORDER g_componentGroupOrder = -1;
-int32 g_genuuid_sections = -1;
+COMPONENT_GUS g_genuuid_sections = -1;
 
 GAME_TIME g_kbetime = 0;
 
@@ -375,12 +375,21 @@ void ServerApp::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Components::getSingleton().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, extaddrEx, 0,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, 0, intaddr, intport, extaddr, extport, extaddrEx, 0,
 			0.f, 0.f, 0, 0, 0, 0, 0, pChannel);
 	}
 	else
 	{
-		KBE_ASSERT(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport);
+		if (!(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport))
+		{
+			ERROR_MSG(fmt::format("ServerApp::onRegisterNewApp: error component(uid:{}, username:{}, componentType:{}, componentID:{}, from {})!\n",
+				uid,
+				username.c_str(),
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, pChannel->c_str()));
+
+			return;
+		}
+
 		cinfos->pChannel = pChannel;
 	}
 }
@@ -418,7 +427,6 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 		if(pChannel->isExternal())
 			return;
 	
-	Network::Channel* pTargetChannel = NULL;
 	if(componentType != CONSOLE_TYPE && componentType != CLIENT_TYPE)
 	{
 		Components::ComponentInfos* cinfos = 
@@ -432,13 +440,11 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 			return;
 		}
 
-		pTargetChannel = cinfos->pChannel;
-		pTargetChannel->updateLastReceivedTime();
+		cinfos->pChannel->updateLastReceivedTime();
 	}
 	else
 	{
 		pChannel->updateLastReceivedTime();
-		pTargetChannel = pChannel;
 	}
 
 	//DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 

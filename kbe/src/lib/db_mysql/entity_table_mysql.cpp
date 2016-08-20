@@ -43,8 +43,7 @@ bool sync_item_to_db(DBInterface* pdbi,
 					 const char* tableName, 
 					 const char* itemName, 
 					 uint32 length, 
-					 enum_field_types 
-					 sqlitemtype, 
+					 enum_field_types sqlitemtype, 
 					 unsigned int itemflags, 
 					 void* pData, onSyncItemToDBSuccessPtr callback = NULL)	
 {
@@ -57,7 +56,8 @@ bool sync_item_to_db(DBInterface* pdbi,
 			MYSQL_TABLE_FIELD& tf = iter->second;
 			if (tf.type == sqlitemtype && ((tf.flags & ALL_MYSQL_SET_FLAGS) == itemflags))
 			{
-				if((length == 0) || (int32)length == tf.length)
+				if ((length == 0) || (sqlitemtype == FIELD_TYPE_VAR_STRING ? (int32)length == tf.length / SYSTEM_CHARSET_MBMAXLEN/*Mysql将length放大了N倍*/ : 
+					(int32)length == tf.length))
 					return true;
 			}
 		}
@@ -78,7 +78,8 @@ bool sync_item_to_db(DBInterface* pdbi,
 	{
 	}	
 
-	if(pdbi->getlasterror() == 1060)	
+	unsigned int mysql_errorno = pdbi->getlasterror();
+	if (mysql_errorno == 1060/* Duplicate column name */)
 	{
 		kbe_snprintf(__sql_str__, MAX_BUF, "ALTER TABLE `" ENTITY_TABLE_PERFIX "_%s` MODIFY COLUMN `%s` %s;",	
 			tableName, itemName, datatype);
@@ -95,11 +96,19 @@ bool sync_item_to_db(DBInterface* pdbi,
 		}
 		catch(...)
 		{
-			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}) is error({}: {})\n lastQuery: {}.\n", 
+			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}), error({}: {})\n lastQuery: {}.\n", 
 				tableName, itemName, datatype, pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
 
 			return false;
 		}
+	}
+	else if (mysql_errorno == 1064/* You have an error in your SQL syntax */ || 
+		mysql_errorno == 1101/* 1101: BLOB/TEXT column 'sm_s11s11' can't have a default value */)
+	{
+		ERROR_MSG(fmt::format("syncToDB(): {}->{}({}), error({}: {})\n lastQuery: {}.\n",
+			tableName, itemName, datatype, pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
+
+		return false;
 	}
 
 	if(callback)
@@ -148,7 +157,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 	{
 		PropertyDescription* pdescrs = iter->second;
 
-		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName());
+		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
 
 		pETItem->pParentTable(this);
 		pETItem->utype(pdescrs->getUType());
@@ -188,7 +197,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 			msgInfo = NULL;	
 		}
 
-		EntityTableItem* pETItem = this->createItem("VECTOR3");
+		EntityTableItem* pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(posuid);
 		pETItem->tableName(this->tableName());
@@ -196,7 +205,7 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 		tableItems_[pETItem->utype()].reset(pETItem);
 		tableFixedOrderItems_.push_back(pETItem);
 
-		pETItem = this->createItem("VECTOR3");
+		pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(diruid);
 		pETItem->tableName(this->tableName());
@@ -492,83 +501,225 @@ void EntityTableMysql::queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule*
 }
 
 //-------------------------------------------------------------------------------------
-EntityTableItem* EntityTableMysql::createItem(std::string type)
+EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defaultVal)
 {
 	if(type == "INT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint not null DEFAULT 0", 4, NOT_NULL_FLAG, FIELD_TYPE_TINY);
+		try
+		{
+			int8 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+		
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint not null DEFAULT {}", defaultVal),
+			4, NOT_NULL_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "INT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint not null DEFAULT 0", 6, NOT_NULL_FLAG, FIELD_TYPE_SHORT);
+		try
+		{
+			int16 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint not null DEFAULT {}", defaultVal), 
+			6, NOT_NULL_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "INT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int not null DEFAULT 0", 11, NOT_NULL_FLAG, FIELD_TYPE_LONG);
+		try
+		{
+			int32 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int not null DEFAULT {}", defaultVal), 
+			11, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "INT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint not null DEFAULT 0", 20, NOT_NULL_FLAG, FIELD_TYPE_LONGLONG);
+		try
+		{
+			int64 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint not null DEFAULT {}", defaultVal), 
+			20, NOT_NULL_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "UINT8")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "tinyint unsigned not null DEFAULT 0", 3, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_TINY);
+		try
+		{
+			uint8 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint unsigned not null DEFAULT {}", defaultVal), 
+			3, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "UINT16")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "smallint unsigned not null DEFAULT 0", 5, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_SHORT);
+		try
+		{
+			uint16 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint unsigned not null DEFAULT {}", defaultVal), 
+			5, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "UINT32")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "int unsigned not null DEFAULT 0", 10, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_LONG);
+		try
+		{
+			uint32 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int unsigned not null DEFAULT {}", defaultVal),
+			10, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "UINT64")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "bigint unsigned not null DEFAULT 0", 20, NOT_NULL_FLAG|UNSIGNED_FLAG, FIELD_TYPE_LONGLONG);
+		try
+		{
+			uint64 v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint unsigned not null DEFAULT {}", defaultVal), 
+			20, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "FLOAT")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
+		try
+		{
+			float v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("float not null DEFAULT {}", defaultVal), 
+			0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 	else if(type == "DOUBLE")
 	{
-		return new EntityTableItemMysql_DIGIT(type, "double not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_DOUBLE);
+		try
+		{
+			double v;
+			StringConv::str2value(v, defaultVal.c_str());
+		}
+		catch (...)
+		{
+			defaultVal = "";
+		}
+
+		if(defaultVal.size() == 0)
+			defaultVal = "0";
+
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("double not null DEFAULT {}", defaultVal), 
+			0, NOT_NULL_FLAG, FIELD_TYPE_DOUBLE);
 	}
 	else if(type == "STRING")
 	{
-		return new EntityTableItemMysql_STRING("text", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_STRING(fmt::format("varchar(@DATALEN@) not null DEFAULT '{}'", defaultVal), 
+			0, NOT_NULL_FLAG | BINARY_FLAG, FIELD_TYPE_VAR_STRING);
 	}
 	else if(type == "UNICODE")
 	{
-		return new EntityTableItemMysql_UNICODE("text", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_UNICODE(fmt::format("varchar(@DATALEN@) not null DEFAULT '{}'", defaultVal), 
+			0, NOT_NULL_FLAG | BINARY_FLAG, FIELD_TYPE_VAR_STRING);
 	}
 	else if(type == "PYTHON")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PY_DICT")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PY_TUPLE")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "PY_LIST")
 	{
-		return new EntityTableItemMysql_PYTHON("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_PYTHON("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "BLOB")
 	{
-		return new EntityTableItemMysql_BLOB("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_BLOB("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "ARRAY")
 	{
-		return new EntityTableItemMysql_ARRAY("", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_ARRAY("", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 	else if(type == "FIXED_DICT")
 	{
-		return new EntityTableItemMysql_FIXED_DICT("", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_FIXED_DICT("", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 #ifdef CLIENT_NO_FLOAT
 	else if(type == "VECTOR2")
@@ -599,7 +750,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type)
 #endif
 	else if(type == "MAILBOX")
 	{
-		return new EntityTableItemMysql_MAILBOX("blob", 0, 0, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_MAILBOX("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 
 	KBE_ASSERT(false && "not found type.\n");
@@ -1133,7 +1284,7 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 	pTable->isChild(true);
 
 	EntityTableItem* pArrayTableItem;
-	pArrayTableItem = pParentTable_->createItem(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->getName());
+	pArrayTableItem = pParentTable_->createItem(static_cast<FixedArrayType*>(const_cast<DataType*>(pDataType))->getDataType()->getName(), pPropertyDescription->getDefaultValStr());
 	pArrayTableItem->utype(-pPropertyDescription->getUType());
 	pArrayTableItem->pParentTable(this->pParentTable());
 	pArrayTableItem->pParentTableItem(this);
@@ -1158,8 +1309,9 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* pdbi, void* pData)
 {
-	if(pChildTable_)
-		return pChildTable_->syncToDB(pdbi);
+	// 所有的表都会在bool EntityTables::syncToDB(DBInterface* pdbi)中被同步（包括子表），因此无需再做一次同步
+	//if(pChildTable_)
+	//	return pChildTable_->syncToDB(pdbi);
 
 	return true;
 }
@@ -1264,7 +1416,7 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 		if(!iter->second->persistent)
 			continue;
 
-		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->dataType->getName());
+		EntityTableItem* tableItem = pParentTable_->createItem(iter->second->dataType->getName(), pPropertyDescription->getDefaultValStr());
 
 		tableItem->pParentTable(this->pParentTable());
 		tableItem->pParentTableItem(this);
@@ -1281,6 +1433,25 @@ bool EntityTableItemMysql_FIXED_DICT::initialize(const PropertyDescription* pPro
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+uint32 EntityTableItemMysql_FIXED_DICT::getItemDatabaseLength(const std::string& name)
+{
+	KBEngine::FixedDictType* fdatatype = static_cast<KBEngine::FixedDictType*>(const_cast<DataType*>(pDataType()));
+
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = fdatatype->getKeyTypes();
+	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
+
+	for (; iter != keyTypes.end(); ++iter)
+	{
+		if (iter->first != name)
+			continue;
+
+		return iter->second->databaseLength;
+	}
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1534,14 +1705,20 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length > 0)
+	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
+	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
+		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
 	}
-	else
+
+	if (length <= 0)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
+		// 默认长度255
+		length = 255;
 	}
+
+	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
+	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
 		this->mysqlItemtype_, this->flags(), pData);
@@ -1599,14 +1776,20 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length > 0)
+	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
+	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
+		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
 	}
-	else
+
+	if (length <= 0)
 	{
-		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
+		// 默认长度255
+		length = 255;
 	}
+
+	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
+	kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, 
 		this->mysqlItemtype_, this->flags(), pData);

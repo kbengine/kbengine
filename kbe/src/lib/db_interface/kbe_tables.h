@@ -48,9 +48,9 @@ public:
 	/**
 		≥ı ºªØ
 	*/
-	virtual bool initialize(ScriptDefModule* sm, std::string name){ return true; };
+	virtual bool initialize(ScriptDefModule* sm, std::string name) { return true; };
 	
-	virtual EntityTableItem* createItem(std::string type) {return NULL;}
+	virtual EntityTableItem* createItem(std::string type, std::string defaultVal) { return NULL; }
 	
 protected:
 

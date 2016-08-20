@@ -27,7 +27,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-NavigateHandler::NavigateHandler(KBEShared_ptr<Controller> pController, const Position3D& destPos, 
+NavigateHandler::NavigateHandler(KBEShared_ptr<Controller>& pController, const Position3D& destPos, 
 											 float velocity, float distance, bool faceMovement, 
 											 float maxMoveDistance, VECTOR_POS3D_PTR paths_ptr,
 											PyObject* userarg):
@@ -37,6 +37,8 @@ paths_(paths_ptr),
 maxMoveDistance_(maxMoveDistance)
 {
 	destPos_ = (*paths_)[destPosIdx_++];
+	
+	updatableName = "NavigateHandler";
 }
 
 //-------------------------------------------------------------------------------------
@@ -46,6 +48,7 @@ destPosIdx_(0),
 paths_(),
 maxMoveDistance_(0.f)
 {
+	updatableName = "NavigateHandler";
 }
 
 //-------------------------------------------------------------------------------------

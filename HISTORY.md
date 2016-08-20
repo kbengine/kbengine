@@ -1,3 +1,59 @@
+###v0.9.0
+
+	2016/8/12
+
+	新增与改善：
+		Windows下支持启动参数以后台方式启动服务器（增加--hide=参数，--hide=1隐藏窗口，#359）。
+		onDestroy中isDestroyed_ = true应该在脚本回调之前设置，否则可能在期间导致脚本再调用某些死亡后不可用功能造成问题。 
+		PyMemoryStream增加rpos和wpos与fill脚本方法。 
+		addYawRotator使用后客户端表现混乱旋转问题 (#366)
+		客户端心跳回调实现 (#369)
+		增加新的API支持（createBaseRemotely 、createBaseRemotelyFromDBID）#372。
+		脚本入口模块名称统一调整为kbemain，避免因名字重合混淆一些概念，具体见kbengine_defs.xml。
+		优化了坐标管理系统。
+		API文档更新
+
+
+	BUG修正：
+		修正某些情况销毁space时造成crash的问题。 
+		修正CoordinateSystem::removeReal没有释放内存（#373）。
+		修正setAoiRadius不能动态的改变AOI看到的内容问题（#375）
+		修正使用VC启动cellapp就会crash的问题（#376）
+		其他一些修正（#360、#370、#374、#378、#381、#377）
+
+
+
+###v0.8.10
+
+	2016/6/27
+
+	新增与改善：
+		大幅提升cellapp性能，以及整体性能(#333)
+		API文档更新
+		防止def中属性没有写Flags、Type标签，对此情况返回错误并给出错误警告。
+		防止def中utype设置重复的值(#355)
+		防止脚本模块名字与Python原生模块名冲突(#358)
+		controllerBy机制实现，该机制允许不同的权限控制其他或者自己的实体(#224)
+		KBEngine.charge系列函数不再使用KBEngine.MemoryStream，统一使用Bytes 
+		结构中字段支持DatabaseLength(#354)
+		增加加密包的调试功能，将trace_packet打开，并将其中屏蔽的Encrypted::packets消息去掉即可输出。
+		packetAlwaysContainLength支持(#351)
+		防止在各种脚本回调中销毁自己导致crash (#348)
+		telnet控制台増加“:pytickprofile”命令。以tick为单位输出每一帧的脚本执行消耗数据。 
+		新增针对具体地址池进行组网，解决跨网段不能广播导致无法启动服务器问题(#343)
+		所有ghost状态下，不允许其调用allClients、otherClients、clientEntity 
+		新增webconsole第一版
+		addSpaceGeometryMapping指向的目录如果不存在应该给出错误提示(#350)
+
+
+	BUG修正：
+		修正一定概率下，实体销毁后witnesses列表不为空的问题 
+		修正固定字典key写成非字符串导致crash，例如：self.characters[1] = x 
+		修正 实体新增入库属性不会按照配置设置默认值(#337) 
+		修正对NPC调用entitiesInAOI()崩溃的问题
+
+
+
 ###v0.8.0
 
 	2016/1/30

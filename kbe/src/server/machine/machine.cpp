@@ -79,9 +79,8 @@ Machine::~Machine()
 //-------------------------------------------------------------------------------------
 void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::string& username,
 								   COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ID componentIDEx, 
-								   COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
-									uint32 intaddr, uint16 intport,
-									uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
+								   COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid, COMPONENT_GUS gus,
+									uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 									float cpu, float mem, uint32 usedmem, int8 state, uint32 machineID, uint64 extradata,
 									uint64 extradata1, uint64 extradata2, uint64 extradata3, uint32 backRecvAddr, uint16 backRecvPort)
 {
@@ -94,8 +93,8 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		{
 			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
-			MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid,
-				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, 
+			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid,
+				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
 				pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 				pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
 				(int8)pinfos->state, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
@@ -132,7 +131,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		{
 			if(checkComponentUsable(pinfos, false, true))
 			{
-				WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} has running, pid={}, uid={}!\n", 
+				WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} is already running, pid={}, uid={}!\n", 
 					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
 
 				return;
@@ -142,7 +141,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		// 一台硬件上只能存在一个machine
 		if(componentType == MACHINE_TYPE)
 		{
-			WARNING_MSG("Machine::onBroadcastInterface: machine has running!\n");
+			WARNING_MSG("Machine::onBroadcastInterface: machine is already running!\n");
 			return;
 		}
 	
@@ -169,7 +168,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 				pid));
 
 		Components::getSingleton().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, intaddr, intport, extaddr, extport, extaddrEx,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderid, grouporderid, gus, intaddr, intport, extaddr, extport, extaddrEx,
 			pid, cpu, mem, usedmem, extradata, extradata1, extradata2, extradata3);
 	}
 }
@@ -234,8 +233,8 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 			{
 				found = true;
 
-				MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid, 
-					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, 
+				MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid, 
+					pinfos->username, findComponentType, pinfos->cid, componentID, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
 					pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 					pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, pinfos->cpu, pinfos->mem, pinfos->usedmem, 
 					(int8)pinfos->state, KBEngine::getProcessPID(), pinfos->extradata, pinfos->extradata1, pinfos->extradata2, pinfos->extradata3, 0, 0);
@@ -269,8 +268,8 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 			COMPONENT_NAME_EX(tComponentType),
 			COMPONENT_NAME_EX(tfindComponentType)));
 
-		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), KBEngine::getUserUID(), 
-			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+		MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), KBEngine::getUserUID(),
+			"", UNKNOWN_COMPONENT_TYPE, 0, componentID, -1, -1, -1, 0, 0, 0, 0, "", 0, 0.f, 0.f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	}
 
 	if(finderAddr != 0 && finderRecvPort != 0)
@@ -301,6 +300,7 @@ bool Machine::checkComponentUsable(const Components::ComponentInfos* info, bool 
 	return ret;
 }
 
+//-------------------------------------------------------------------------------------
 void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string& username,
 	uint16 finderRecvPort)
 {
@@ -325,8 +325,8 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 	uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
 	uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
 
-	MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), getUserUID(), getUsername(),
-		g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+	MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), getUserUID(), getUsername(),
+		g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
 		networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 		networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
 		cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0,
@@ -347,14 +347,6 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, std::string& username, 
 	uint16 finderRecvPort)
 {
-	// uid不等于当前服务器的uid则不理会。
-	if(uid > 0)
-	{
-		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
-		if(iter == localuids_.end())
-			return;
-	}
-
 	INFO_MSG(fmt::format("Machine::onQueryAllInterfaceInfos[{}]: uid:{}, username:{}, "
 			"finderRecvPort:{}.\n",
 		pChannel->c_str(), uid, username.c_str(),
@@ -377,8 +369,8 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 		uint64 totalmem = SystemInfo::getSingleton().getMemInfos().total;
 		uint64 totalusedmem = SystemInfo::getSingleton().getMemInfos().used;
 
-		MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
-			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+		MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
+			g_componentType, g_componentID, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
 			networkInterface_.intaddr().ip, networkInterface_.intaddr().port,
 			networkInterface_.extaddr().ip, networkInterface_.extaddr().port, "", getProcessPID(),
 			cpu, float((totalusedmem * 1.0 / totalmem) * 100.0), (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 
@@ -393,6 +385,14 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 		{
 			pChannel->send(pBundle);
 		}
+	}
+
+	// uid不等于当前服务器的uid则不理会。
+	if (uid > 0)
+	{
+		std::vector<int32>::iterator iter = std::find(localuids_.begin(), localuids_.end(), uid);
+		if (iter == localuids_.end())
+			return;
 	}
 
 	int i = 0;
@@ -424,8 +424,8 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 				{
 					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					
-					MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle((*pBundle), pinfos->uid, 
-						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, 
+					MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid, 
+						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
 						pinfos->pIntAddr->ip, pinfos->pIntAddr->port,
 						pinfos->pExtAddr->ip, pinfos->pExtAddr->port, pinfos->externalAddressEx, pinfos->pid, 
 						pinfos->cpu, pinfos->mem, pinfos->usedmem, 
@@ -741,7 +741,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	COMPONENT_ID componentID;
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -749,13 +749,16 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> uid;
 	s >> componentType;
 	
+	// 如果组件ID大于0则仅停止指定ID的组件
+	s >> componentID;
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, [{}], addr={}\n", 
-		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, componentType={}, componentID={},  addr={}\n", 
+		uid,  COMPONENT_NAME_EX(componentType), componentID, pChannel->c_str()));
 
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 	{
@@ -775,6 +778,9 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		for(; iter != components.end(); )
 		{
 			Components::ComponentInfos* cinfos = &(*iter);
+
+			if(componentID > 0 && componentID != cinfos->cid)
+				continue;
 
 			if(cinfos->uid != uid)
 			{
@@ -889,6 +895,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 	}
 
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle) << success;
 
 	if(finderRecvPort != 0)
@@ -899,6 +906,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		if (!ep.good())
 		{
 			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+			Network::Bundle::reclaimPoolObject(pBundle);
 			return;
 		}
 	

@@ -99,9 +99,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	CELLAPPMGR_MESSAGE_DECLARE_STREAM(reqKillServer,			NETWORK_VARIABLE_MESSAGE)
 
 	// cellapp同步自己的初始化信息
-	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(onCellappInitProgress,		NETWORK_FIXED_MESSAGE,
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS4(onCellappInitProgress,		NETWORK_FIXED_MESSAGE,
 									COMPONENT_ID,				cid,
-									float,						progress)
+									float,						progress,
+									COMPONENT_ORDER,			componentGlobalOrder,
+									COMPONENT_ORDER,			componentGroupOrder)
 
 NETWORK_INTERFACE_DECLARE_END()
 

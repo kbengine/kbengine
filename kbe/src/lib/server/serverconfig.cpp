@@ -103,8 +103,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
 		{
-			do																				
-			{	
+			do
+			{
 				if(childnode->FirstChild() != NULL)
 				{
 					std::string c = childnode->FirstChild()->Value();
@@ -112,9 +112,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 					if(c.size() > 0)
 					{
 						Network::g_trace_packet_disables.push_back(c);
+						
+						// ²»debug¼ÓÃÜ°ü
+						if(c == "Encrypted::packets")
+							Network::g_trace_encrypted_packet = false;
 					}
 				}
-			}while((childnode = childnode->NextSibling()));												
+			}while((childnode = childnode->NextSibling()));
 		}
 	}
 
@@ -1107,6 +1111,23 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_kbMachineInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+		
+		node = xml->enterNode(rootNode, "addresses");
+		if(node)
+		{
+			do
+			{
+				if(node->FirstChild() != NULL)
+				{
+					std::string c = node->FirstChild()->Value();
+					c = strutil::kbe_trim(c);
+					if(c.size() > 0)
+					{
+						_kbMachineInfo.machine_addresses.push_back(c);
+					}
+				}
+			} while((node = node->NextSibling()));
 		}
 	}
 	

@@ -179,9 +179,8 @@ bool Components::checkComponents(int32 uid, COMPONENT_ID componentID, uint32 pid
 
 //-------------------------------------------------------------------------------------		
 void Components::addComponent(int32 uid, const char* username, 
-			COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
-			uint32 intaddr, uint16 intport, 
-			uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
+			COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid, COMPONENT_GUS gus,
+			uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 			float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
 			Network::Channel* pChannel)
 {
@@ -199,6 +198,18 @@ void Components::addComponent(int32 uid, const char* username,
 		return;
 	}
 	
+	// 如果该uid下没有已经运行的任何相关组件，那么重置计数器
+	if (getGameSrvComponentsSize(uid) == 0)
+	{
+		_globalOrderLog[uid] = 0;
+		_baseappGrouplOrderLog[uid] = 0;
+		_cellappGrouplOrderLog[uid] = 0;
+		_loginappGrouplOrderLog[uid] = 0;
+
+		INFO_MSG(fmt::format("Components::addComponent: reset orderLog, uid={}!\n",
+			uid));
+	}
+
 	ComponentInfos componentInfos;
 
 	componentInfos.pIntAddr.reset(new Network::Address(intaddr, intport));
@@ -255,6 +266,8 @@ void Components::addComponent(int32 uid, const char* username,
 		componentInfos.globalOrderid = globalorderid;
 	else
 		componentInfos.globalOrderid = _globalOrderLog[uid];
+
+	componentInfos.gus = gus;
 
 	if(cinfos == NULL)
 		components.push_back(componentInfos);
@@ -712,6 +725,9 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 		return true;
 	}
 
+	if (!lookupLocalComponentRunning(info->pid))
+		return false;
+
 	Network::EndPoint epListen;
 	epListen.socket(SOCK_STREAM);
 	if (!epListen.good())
@@ -932,15 +948,58 @@ Network::Channel* Components::getLoggerChannel()
 }
 
 //-------------------------------------------------------------------------------------	
+size_t Components::getGameSrvComponentsSize(int32 uid)
+{
+	size_t size = 0;
+
+	COMPONENTS::iterator iter = _baseapps.begin();
+	for (; iter != _baseapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _baseappmgrs.begin();
+	for (; iter != _baseappmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _cellapps.begin();
+	for (; iter != _cellapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _cellappmgrs.begin();
+	for (; iter != _cellappmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _dbmgrs.begin();
+	for (; iter != _dbmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _loginapps.begin();
+	for (; iter != _loginapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	return size;
+}
+
+//-------------------------------------------------------------------------------------	
 size_t Components::getGameSrvComponentsSize()
 {
-	COMPONENTS	_baseapps;
-	COMPONENTS	_cellapps;
-	COMPONENTS	_dbmgrs;
-	COMPONENTS	_loginapps;
-	COMPONENTS	_cellappmgrs;
-	COMPONENTS	_baseappmgrs;
-
 	return _baseapps.size() + _cellapps.size() + _dbmgrs.size() + 
 		_loginapps.size() + _cellappmgrs.size() + _baseappmgrs.size();
 }
@@ -991,6 +1050,11 @@ bool Components::findLogger()
 		MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 			g_componentType, g_componentID, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 
+		ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+		std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+		for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+			bhandler.addBroadCastAddress((*machine_addresses_iter));
+			
 		if(!bhandler.broadcast())
 		{
 			//ERROR_MSG("Components::findLogger: broadcast error!\n");
@@ -998,7 +1062,7 @@ bool Components::findLogger()
 		}
 
 		int32 timeout = 1500000;
-		MachineInterface::onBroadcastInterfaceArgs24 args;
+		MachineInterface::onBroadcastInterfaceArgs25 args;
 
 RESTART_RECV:
 
@@ -1042,7 +1106,7 @@ RESTART_RECV:
 					ntohs(args.intport)));
 
 				Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+					(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, args.gus,
 					args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, 
 					args.usedmem, args.extradata, args.extradata1, args.extradata2, 123);
 
@@ -1124,6 +1188,7 @@ bool Components::findComponents()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 			if(!bhandler.good())
 			{
+				//ERROR_MSG("Components::findComponents: bhandler error!\n");
 				return false;
 			}
 
@@ -1137,6 +1202,11 @@ bool Components::findComponents()
 			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 				componentType_, componentID_, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 
+			ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+			std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+			for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+				bhandler.addBroadCastAddress((*machine_addresses_iter));
+			
 			if(!bhandler.broadcast())
 			{
 				ERROR_MSG("Components::findComponents: broadcast error!\n");
@@ -1145,7 +1215,7 @@ bool Components::findComponents()
 		
 			int32 timeout = 1500000;
 			bool showerr = true;
-			MachineInterface::onBroadcastInterfaceArgs24 args;
+			MachineInterface::onBroadcastInterfaceArgs25 args;
 
 RESTART_RECV:
 
@@ -1190,7 +1260,7 @@ RESTART_RECV:
 						ntohs(args.intport)));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, args.gus,
 						args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, 
 						args.usedmem, args.extradata, args.extradata1, args.extradata2, args.extradata3);
 
@@ -1342,24 +1412,27 @@ bool Components::process()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 
 			if(!bhandler.good())
-			{
 				continue;
-			}
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
-			MachineInterface::onBroadcastInterfaceArgs24::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder,
+			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
+				componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
 				pNetworkInterface()->intaddr().ip, pNetworkInterface()->intaddr().port,
 				pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
 				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, extraData1_, extraData2_, extraData3_, extraData4_, 
 				pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+			
+			ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+			std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+			for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+				bhandler.addBroadCastAddress((*machine_addresses_iter));
 			
 			bhandler.broadcast();
 
 			// 等待返回信息，如果存在返回说明身份已经被使用，该进程不合法，程序接下来会退出
 			// 如果没有返回说明没有machine对此进程有意见，可以成功启动
 			int32 timeout = 500000;
-			MachineInterface::onBroadcastInterfaceArgs24 args;
+			MachineInterface::onBroadcastInterfaceArgs25 args;
 
 			if(bhandler.receive(&args, 0, timeout, false))
 			{
@@ -1398,7 +1471,7 @@ bool Components::process()
 
 					return false;
 
-				}while(bhandler.pCurrPacket()->length() > 0);
+				} while(bhandler.pCurrPacket()->length() > 0);
 			}
 
 			bhandler.close();

@@ -48,9 +48,14 @@ INLINE PacketSender* Channel::pPacketSender() const
 	return pPacketSender_;
 }
 
-void Channel::pPacketSender(PacketSender* pPacketSender)
+INLINE void Channel::pPacketSender(PacketSender* pPacketSender)
 {
 	pPacketSender_ = pPacketSender;
+}
+
+INLINE void Channel::pushBundle(Bundle* pBundle)
+{
+	bundles_.push_back(pBundle);
 }
 
 }

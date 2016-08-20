@@ -75,6 +75,7 @@ creatingCell_(false),
 createdSpace_(false),
 inRestore_(false),
 pBufferedSendToCellappMessages_(NULL),
+pBufferedSendToClientMessages_(NULL),
 isDirty_(true),
 dbInterfaceIndex_(0)
 {
@@ -93,6 +94,7 @@ Base::~Base()
 	S_RELEASE(cellMailbox_);
 	S_RELEASE(cellDataDict_);
 	SAFE_RELEASE(pBufferedSendToCellappMessages_);
+	SAFE_RELEASE(pBufferedSendToClientMessages_);
 
 	if(Baseapp::getSingleton().pEntities())
 		Baseapp::getSingleton().pEntities()->pGetbages()->erase(id());
@@ -220,7 +222,7 @@ bool Base::installCellDataAttr(PyObject* dictData, bool installpy)
 
 		if(PyObject_SetAttrString(this, "cellData", cellDataDict_) == -1)
 		{
-			ERROR_MSG("Base::installCellDataAttr: set property cellData is error!\n");
+			ERROR_MSG("Base::installCellDataAttr: set property cellData error!\n");
 			SCRIPT_ERROR_CHECK();
 			return false;
 		}
@@ -293,6 +295,9 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 {
 	addPositionAndDirectionToStream(*s, useAliasID);
 
+	if (!cellDataDict_)
+		return;
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 
@@ -329,7 +334,7 @@ void Base::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 			if (PyErr_Occurred())
  			{	
 				PyErr_PrintEx(0);
-				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} is error!\n", this->scriptName(),
+				DEBUG_MSG(fmt::format("{}::addCellDataToStream: {} error!\n", this->scriptName(),
 					propertyDescription->getName()));
 			}
 		}
@@ -372,7 +377,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -388,7 +393,7 @@ void Base::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
 				if(!propertyDescription->getDataType()->isSameType(pyVal))
 				{
-					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) is error.\n",
+					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
@@ -469,7 +474,7 @@ void Base::destroyCellData(void)
 	// S_RELEASE(cellDataDict_);
 	if(PyObject_DelAttrString(this, "cellData") == -1)
 	{
-		ERROR_MSG(fmt::format("{}::destroyCellData: delete cellData is error!\n", this->scriptName()));
+		ERROR_MSG(fmt::format("{}::destroyCellData: delete cellData error!\n", this->scriptName()));
 		SCRIPT_ERROR_CHECK();
 	}
 }
@@ -520,8 +525,8 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 	if(pobj->initing())
 	{
 		PyErr_Format(PyExc_AssertionError,
-			"%s::destroy(): is initing, reject the request!\n",	
-			pobj->scriptName());
+			"%s::destroy(): %d initing, reject the request!\n",	
+			pobj->scriptName(), pobj->id());
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -658,7 +663,7 @@ PyObject* Base::onScriptGetAttribute(PyObject* attr)
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetCellMailbox()
 { 
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -676,8 +681,8 @@ PyObject* Base::pyGetCellMailbox()
 
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetDBID()
-{ 
-	if(isDestroyed())	
+{
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -691,7 +696,7 @@ PyObject* Base::pyGetDBID()
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyGetClientMailbox()
 {
-	if(isDestroyed())	
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -909,8 +914,10 @@ void Base::onRestore()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));
+
 	inRestore_ = false;
 	isArchiveing_ = false;
+	removeFlags(ENTITY_FLAGS_INITING);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1263,7 +1270,7 @@ void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Base::createInNewSpace(PyObject* params)
+PyObject* Base::createInNewSpace(PyObject* args)
 {
 	if(isDestroyed())
 	{
@@ -1283,7 +1290,7 @@ PyObject* Base::createInNewSpace(PyObject* params)
 	}
 
 	createdSpace_ = true;
-	Baseapp::getSingleton().createInNewSpace(this, params);
+	Baseapp::getSingleton().createInNewSpace(this, args);
 	S_Return;
 }
 
@@ -1314,12 +1321,12 @@ void Base::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel, M
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 {
-	if(isDestroyed())																				
-	{																										
-		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d is destroyed!\n",											
-			scriptName(), id());												
-		PyErr_PrintEx(0);																					
-		return 0;																					
+	if(isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
 	}	
 
 	if(this->cellMailbox() == NULL)
@@ -1443,7 +1450,7 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 
 	if(this->cellMailbox() == NULL || this->cellMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, cellMailbox is NULL, "
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, cellMailbox is NULL, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
 			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
@@ -1453,16 +1460,16 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqTeleportEntityCellAppID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, not found cellapp, "
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, not found cellapp, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
 			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
 		return;
 	}
 
-	if(pBufferedSendToCellappMessages_)
+	if(pBufferedSendToCellappMessages_ || pBufferedSendToClientMessages_)
 	{
-		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport is error, is transfer, "
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, is transfer, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
 			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
@@ -1482,35 +1489,101 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",											
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",
 		scriptName(), id(), cellappID));
 
 	// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
 	// 当onTeleportCellappEnd被调用时将缓存的包发往cell
 
 	if(pBufferedSendToCellappMessages_ == NULL)
-		pBufferedSendToCellappMessages_ = new BaseMessagesForwardHandler(this);
+		pBufferedSendToCellappMessages_ = new BaseMessagesForwardCellappHandler(this);
 
 	pBufferedSendToCellappMessages_->stopForward();
+
+	addFlags(ENTITY_FLAGS_TELEPORT_START);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID cellappID)
+{
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappArrived: {}, targetCellappID={}\n",
+		scriptName(), id(), cellappID));
+	
+	// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORT_START,  说明onMigrationCellappArrived包优先于
+	// onMigrationCellappStart到达(某些压力所致的情况下会导致实体跨进程跳转时（由cell1跳转到cell2），
+	// 跳转前所产生的包会比cell2的enterSpace包慢到达)，因此发生这种情况时需要将cell2的包先缓存
+	// 等cell1的包到达后执行完毕再执行cell2的包
+	if (!hasFlags(ENTITY_FLAGS_TELEPORT_START))
+	{
+		if(pBufferedSendToClientMessages_ == NULL)
+			pBufferedSendToClientMessages_ = new BaseMessagesForwardClientHandler(this, cellappID);
+		
+		pBufferedSendToClientMessages_->stopForward();
+	}
+
+	// 必须onMigrationCellappEnd没有执行过才有设置的价值
+	// 某些极端情况下可能onMigrationCellappArrived会慢于它触发
+	if (!hasFlags(ENTITY_FLAGS_TELEPORT_END))
+	{
+		addFlags(ENTITY_FLAGS_TELEPORT_ARRIVED);
+	}
+	else
+	{
+		DEBUG_MSG(fmt::format("{}::onTeleportCellappArrived: reset flags! {}, targetCellappID={}\n",
+			scriptName(), id(), cellappID));
+
+		// 这种状态下，pBufferedSendToClientMessages_一定为NULL
+		KBE_ASSERT(pBufferedSendToClientMessages_ == NULL);
+
+		removeFlags(ENTITY_FLAGS_TELEPORT_START);
+		removeFlags(ENTITY_FLAGS_TELEPORT_END);
+	}
+
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",											
+	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",
 		scriptName(), id(), cellappID));
 
 	// 改变cell的指向到新的cellapp
 	this->cellMailbox()->componentID(cellappID);
 
+	// 某些极端情况下可能onMigrationCellappArrived会慢于onMigrationCellappEnd触发，此时必须设置标记
+	// 等待onMigrationCellappEnd触发后做清理
+	if (!hasFlags(ENTITY_FLAGS_TELEPORT_ARRIVED))
+	{
+		// 这种状态下，pBufferedSendToClientMessages_一定为NULL
+		KBE_ASSERT(pBufferedSendToClientMessages_ == NULL);
+		addFlags(ENTITY_FLAGS_TELEPORT_END);
+	}
+	else
+	{
+		removeFlags(ENTITY_FLAGS_TELEPORT_START);
+		removeFlags(ENTITY_FLAGS_TELEPORT_ARRIVED);
+
+		DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: reset flags! {}, targetCellappID={}\n",
+			scriptName(), id(), cellappID));
+	}
+
 	KBE_ASSERT(pBufferedSendToCellappMessages_);
 	pBufferedSendToCellappMessages_->startForward();
+	
+	if(pBufferedSendToClientMessages_)
+		pBufferedSendToClientMessages_->startForward();
 }
 
 //-------------------------------------------------------------------------------------
 void Base::onBufferedForwardToCellappMessagesOver()
 {
 	SAFE_RELEASE(pBufferedSendToCellappMessages_);
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onBufferedForwardToClientMessagesOver()
+{
+	SAFE_RELEASE(pBufferedSendToClientMessages_);
 }
 
 //-------------------------------------------------------------------------------------

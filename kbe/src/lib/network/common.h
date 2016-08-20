@@ -318,11 +318,23 @@ const char * reasonToString(Reason reason)
 
 
 // 配合服务端配置选项trace_packet使用，用来跟踪一条即将输出的消息包
-#define TRACE_MESSAGE_PACKET(isrecv, pPacket, pCurrMsgHandler, length, addr)								\
+#define TRACE_MESSAGE_PACKET(isrecv, pPacket, pCurrMsgHandler, length, addr, readPacketHead)				\
 	if(Network::g_trace_packet > 0)																			\
 	{																										\
 		if(Network::g_trace_packet_use_logfile)																\
 			DebugHelper::getSingleton().changeLogger("packetlogs");											\
+																											\
+		size_t headsize = 0;																				\
+		if(pCurrMsgHandler && readPacketHead)																\
+		{																									\
+			headsize = NETWORK_MESSAGE_ID_SIZE;																\
+			if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)										\
+			{																								\
+				headsize += NETWORK_MESSAGE_LENGTH_SIZE;													\
+				if (length >= NETWORK_MESSAGE_MAX_SIZE)														\
+					headsize += NETWORK_MESSAGE_LENGTH1_SIZE;												\
+			}																								\
+		}																									\
 																											\
 		bool isprint = true;																				\
 		if(pCurrMsgHandler)																					\
@@ -341,13 +353,18 @@ const char * reasonToString(Reason reason)
 						((isrecv == true) ? "====>" : "<===="),												\
 						pCurrMsgHandler->name.c_str(),														\
 						pCurrMsgHandler->msgID,																\
-						length,																				\
+						(length + headsize),																\
 						addr));																				\
 			}																								\
 		}																									\
 																											\
 		if(isprint)																							\
 		{																									\
+																											\
+			size_t rpos = pPacket->rpos();																	\
+			if(headsize > 0)																				\
+				pPacket->rpos(pPacket->rpos() - headsize);													\
+																											\
 			switch(Network::g_trace_packet)																	\
 			{																								\
 			case 1:																							\
@@ -360,6 +377,8 @@ const char * reasonToString(Reason reason)
 				pPacket->print_storage();																	\
 				break;																						\
 			};																								\
+																											\
+			pPacket->rpos(rpos);																			\
 		}																									\
 																											\
 		if(Network::g_trace_packet_use_logfile)																\

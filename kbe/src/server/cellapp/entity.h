@@ -154,6 +154,16 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetOtherClients);
 	INLINE void otherClients(AllClients* clients);
 
+	/**
+		脚本获取controlledBy属性
+	*/
+	INLINE bool isControlledNotSelfCleint() const;
+	INLINE EntityMailbox* controlledBy() const;
+	INLINE void controlledBy(EntityMailbox* baseMailbox);
+	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
+	bool setControlledBy(EntityMailbox* baseMailbox);
+	void sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
+
 	/** 
 		脚本获取和设置entity的position 
 	*/
@@ -397,6 +407,11 @@ public:
 	void delWitnessed(Entity* entity);
 	void onDelWitnessed();
 
+	/**
+		 指定的entity是否是观察自己的人之一
+	*/
+	bool entityInWitnessed(ENTITY_ID entityID);
+
 	INLINE const std::list<ENTITY_ID>&	witnesses();
 	INLINE size_t witnessesSize() const;
 
@@ -593,6 +608,13 @@ protected:
 
 	// 这个entity的baseapp部分的mailbox
 	EntityMailbox*											baseMailbox_;
+
+	/** 这个entity的坐标和朝向当前受谁的客户端控制
+	    null表示没有客户端在控制（即系统控制），
+	    否则指向控制这个entity的对象的baseMailbox_，
+		玩家自己控制自己则Entity.controlledBy = self.base
+	*/
+	EntityMailbox *											controlledBy_;
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
 	COMPONENT_ID											realCell_;

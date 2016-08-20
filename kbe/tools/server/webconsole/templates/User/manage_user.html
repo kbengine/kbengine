@@ -1,0 +1,63 @@
+{% extends "User/base.html" %}
+
+{% block content %}
+<div class="row placeholders">
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>账号名</th>
+          <th>显示名</th>
+          <th>操作系统用户</th>
+          <th>操作系统用户uid</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in Users %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.name }}</td>
+          <td>{{ u.show_name }}</td>
+          <td>{{ u.sys_user }}</td>
+          <td>{{ u.sys_uid }}</td>
+          <td><a href="#" onClick="requestChangePwd({{u.id}}, '{{u.name}}')">修改密码</a> | <a href="/wc/user/delete?id={{u.id}}">删除</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+
+<script>
+    function requestChangePwd( uid, uname )
+    {
+        var href = "/wc/user/change_pwd";
+        var form = document.createElement("form");   
+
+        // 只有加入到body中才能生效
+        document.body.appendChild(form);
+        form.method = 'post';
+        form.action = '/wc/user/change_pwd';
+        
+        // 创建隐藏表单
+        var euid = document.createElement("input");
+        euid.setAttribute("name", "id");
+        euid.setAttribute("type", "hidden");
+        euid.setAttribute("value", uid);
+        form.appendChild(euid);
+
+        var euname = document.createElement("input");
+        euname.setAttribute("name", "username");
+        euname.setAttribute("type", "hidden");
+        euname.setAttribute("value", uname);
+        form.appendChild(euname);
+        
+        form.submit();
+        
+    }
+</script>
+
+{% endblock %}
+{% block tail_js %}
+<script>$(".user-manager").addClass("active");</script>
+{% endblock %}

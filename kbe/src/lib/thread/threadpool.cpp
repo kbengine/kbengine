@@ -515,7 +515,7 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 		return false;
 	}
 	
-	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
+	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 	return true;		
 }
 
@@ -627,6 +627,17 @@ void* TPThread::threadFunc(void* arg)
 #else			
 	pthread_detach(pthread_self());
 #endif
+
+	// 在addTask时可能没有可用的线程资源而新创建一些线程，这些线程需要立即进入工作状态
+	if (!tptd->task()) 
+	{
+		TPTask * pTask = tptd->tryGetTask();
+		if (pTask) 
+		{
+			tptd->task(pTask);
+			pThreadPool->addBusyThread(tptd);
+		}
+	}
 
 	tptd->onStart();
 

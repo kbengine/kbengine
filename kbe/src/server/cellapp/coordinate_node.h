@@ -33,6 +33,7 @@ namespace KBEngine{
 #define COORDINATE_NODE_FLAG_REMOVEING				0x00000008		// 删除中的节点
 #define COORDINATE_NODE_FLAG_REMOVED				0x00000010		// 删除节点
 #define COORDINATE_NODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
+#define COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING	0x00000040		// entity节点正在执行update操作
 
 #define COORDINATE_NODE_FLAG_HIDE_OR_REMOVED		(COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_HIDE)
 
@@ -45,6 +46,9 @@ public:
 	
 	INLINE void flags(uint32 v);
 	INLINE uint32 flags() const;
+	INLINE void addFlags(uint32 v);
+	INLINE void removeFlags(uint32 v);
+	INLINE bool hasFlags(uint32 v) const;
 
 	/**
 		(节点本身的坐标)
@@ -80,7 +84,7 @@ public:
 		old_zz_ = zz();
 	}
 
-	void c_str();
+	std::string c_str();
 
 	void debugX();
 	void debugY();
@@ -88,6 +92,14 @@ public:
 
 	INLINE void pCoordinateSystem(CoordinateSystem* p);
 	INLINE CoordinateSystem* pCoordinateSystem() const;
+
+	INLINE bool isDestroying() const {
+		return hasFlags(COORDINATE_NODE_FLAG_REMOVEING);
+	}
+
+	INLINE bool isDestroyed() const {
+		return hasFlags(COORDINATE_NODE_FLAG_REMOVED);
+	}
 
 	/**
 		获取链表的前后端指针

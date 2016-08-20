@@ -187,7 +187,6 @@ bool Channel::initialize(NetworkInterface & networkInterface,
 	KBE_ASSERT(pNetworkInterface_ != NULL);
 	KBE_ASSERT(pEndPoint_ != NULL);
 
-
 	if(protocoltype_ == PROTOCOL_TCP)
 	{
 		if(pPacketReceiver_)
@@ -483,7 +482,7 @@ void Channel::send(Bundle * pBundle)
 
 	if(isCondemn())
 	{
-		//WARNING_MSG(fmt::format("Channel::send: is error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
+		//WARNING_MSG(fmt::format("Channel::send: error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
 		//	c_str()));
 
 		this->clearBundle();
@@ -496,6 +495,7 @@ void Channel::send(Bundle * pBundle)
 
 	if(pBundle)
 	{
+		pBundle->pChannel(this);
 		pBundle->finiMessage(true);
 		bundles_.push_back(pBundle);
 	}
@@ -778,10 +778,11 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 			pPacketReader_->processMessages(pMsgHandlers, pPacket);
 			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 		}
-	}catch(MemoryStreamException &)
+	}
+	catch(MemoryStreamException &)
 	{
 		Network::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
-		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=(name={}, id={}, len={}), currMsgLen={}\n",
+		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=({}, id={}, len={}), currMsgLen={}\n",
 			this->c_str()
 			, (pMsgHandler == NULL ? "unknown" : pMsgHandler->name) 
 			, pPacketReader_->currMsgID() 
@@ -806,6 +807,40 @@ bool Channel::waitSend()
 EventDispatcher & Channel::dispatcher()
 {
 	return pNetworkInterface_->dispatcher();
+}
+
+//-------------------------------------------------------------------------------------
+Bundle* Channel::createSendBundle()
+{
+	if(bundles_.size() > 0)
+	{
+		Bundle* pBundle = bundles_.back();
+		Bundle::Packets& packets = pBundle->packets();
+
+		if (pBundle->packetHaveSpace() &&
+			!packets[0]->encrypted() /* 必须是未经过加密的包，如果已经加密了就不要再重复拿出来用了，否则外部容易向其中添加未加密数据 */)
+		{
+			// 先从队列删除
+			bundles_.pop_back();
+			pBundle->pChannel(this);
+			pBundle->pCurrMsgHandler(NULL);
+			pBundle->currMsgPacketCount(0);
+			pBundle->currMsgLength(0);
+			pBundle->currMsgLengthPos(0);
+			if (!pBundle->pCurrPacket())
+			{
+				Packet* pPacket = pBundle->packets().back();
+				pBundle->packets().pop_back();
+				pBundle->pCurrPacket(pPacket);
+			}
+
+			return pBundle;
+		}
+	}
+	
+	Bundle* pBundle = Bundle::createPoolObject();
+	pBundle->pChannel(this);
+	return pBundle;
 }
 
 //-------------------------------------------------------------------------------------

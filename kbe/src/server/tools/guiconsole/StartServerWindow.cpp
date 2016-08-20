@@ -287,6 +287,8 @@ void CStartServerWindow::OnBnClickedButton3()
 		bundle.newMessage(KBEngine::MachineInterface::stopserver);
 		bundle << KBEngine::getUserUID();
 		bundle << ctype;
+		KBEngine::COMPONENT_ID cid = 0;
+		bundle << cid;
 		endpoint->send(&bundle);
 		KBEngine::Network::TCPPacket packet;
 		packet.resize(1024);

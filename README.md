@@ -48,7 +48,7 @@ acatadog, colin
 
 ##中文
 
-[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：16535321（满）、461368412
+[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412
 
 
 ##什么是KBEngine?
@@ -61,9 +61,4 @@ acatadog, colin
 (经常被问到承载上限，KBEngine底层架构被设计为多进程分布式动态负载均衡方案，
 理论上只需要不断扩展硬件就能够不断增加承载上限，单台机器的承载上限取决于游戏逻辑本身的复杂度。)
 
-
-
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/kbengine/kbengine/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 

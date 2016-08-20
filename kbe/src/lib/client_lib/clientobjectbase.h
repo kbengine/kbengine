@@ -257,10 +257,11 @@ public:
 	virtual void onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-		服务器更新avatar基础位置
+		服务器更新avatar基础位置和朝向
 	*/
-	virtual void onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s);
-	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z);
+	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z);
+	virtual void onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器更新VolatileData
@@ -315,6 +316,11 @@ public:
 		download stream完成了 
 	*/
 	virtual void onStreamDataCompleted(Network::Channel* pChannel, int16 id);
+
+	/** 网络接口
+		服务器告诉客户端：你当前（取消）控制谁的位移同步
+	*/
+	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
 
 	/** 网络接口
 		接收到ClientMessages(通常是web等才会应用到)
@@ -395,6 +401,11 @@ public:
 	uint64 rndUUID() const{ return rndUUID_; }
 
 	Network::NetworkInterface* pNetworkInterface()const { return &networkInterface_; }
+
+	/** 网络接口
+		服务器心跳返回
+	*/
+	void onAppActiveTickCB(Network::Channel* pChannel);
 
 protected:				
 	int32													appID_;

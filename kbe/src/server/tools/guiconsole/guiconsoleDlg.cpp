@@ -200,7 +200,7 @@ public:
 				return false;
 			}
 
-			MachineInterface::onBroadcastInterfaceArgs24 args;
+			MachineInterface::onBroadcastInterfaceArgs25 args;
 			int32 timeout = 1000000;
 
 RESTART_RECV:
@@ -237,7 +237,7 @@ RESTART_RECV:
 						COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intport)));
 
 					Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+						(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, args.gus,
 						args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, args.usedmem, 
 						args.extradata, args.extradata1, args.extradata2, args.extradata3);
 					
@@ -464,6 +464,10 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveProfileData", new KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream, NETWORK_VARIABLE_MESSAGE, 
 		new ConsoleProfileHandlerEx);
 
+	KBEngine::Network::Bundle::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
+	KBEngine::Network::TCPPacket::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
+	KBEngine::Network::UDPPacket::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
+	KBEngine::MemoryStream::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
 	threadPool_.createThreadPool(1, 1, 16);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -1698,7 +1702,9 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 		bhandler.newMessage(MachineInterface::stopserver);
 		bhandler << KBEngine::getUserUID();
 		bhandler << componentType;
-
+		KBEngine::COMPONENT_ID cid = 0;
+		bhandler << cid;
+		
 		uint32 ip = _networkInterface.intaddr().ip;
 		uint16 port = bhandler.epListen().addr().port;
 		bhandler << ip << port;

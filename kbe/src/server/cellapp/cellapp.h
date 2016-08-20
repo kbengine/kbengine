@@ -75,6 +75,8 @@ public:
 	virtual bool canShutdown();
 	virtual void onShutdown(bool first);
 
+	void destroyObjPool();
+
 	float _getLoad() const { return getLoad(); }
 	virtual void onUpdateLoad();
 
@@ -158,6 +160,7 @@ public:
 		client更新数据
 	*/
 	void onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		real请求更新属性到ghost

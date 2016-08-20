@@ -644,6 +644,9 @@ public:
 
 		// 作为一个数据类别在alias中可对dict中的某个项指定是否持久化
 		bool persistent;
+
+		// 这个属性在数据库中的长度
+		uint32 databaseLength;
 	};
 
 	typedef KBEShared_ptr< DictItemDataType > DictItemDataTypePtr;
@@ -729,6 +732,118 @@ template class IntType<int8>;
 template class IntType<int16>;
 template class IntType<int32>;
 
+//-------------------------------------------------------------------------------------
+template <typename SPECIFY_TYPE>
+IntType<SPECIFY_TYPE>::IntType(DATATYPE_UID did):
+DataType(did)
+{
+}
+
+//-------------------------------------------------------------------------------------
+template <typename SPECIFY_TYPE>
+IntType<SPECIFY_TYPE>::~IntType()
+{
+}
+
+//-------------------------------------------------------------------------------------
+template <typename SPECIFY_TYPE>
+bool IntType<SPECIFY_TYPE>::isSameType(PyObject* pyValue)
+{
+	if(pyValue == NULL)
+	{
+		OUT_TYPE_ERROR("INT");
+		return false;
+	}
+
+	int ival = 0;
+	if(PyLong_Check(pyValue))
+	{
+		ival = (int)PyLong_AsLong(pyValue);
+		if(PyErr_Occurred())
+		{
+			PyErr_Clear();
+			ival = (int)PyLong_AsUnsignedLong(pyValue);
+			if (PyErr_Occurred())
+			{
+				OUT_TYPE_ERROR("INT");
+				return false;
+			}
+		}
+	}
+	else
+	{
+		OUT_TYPE_ERROR("INT");
+		return false;
+	}
+
+	SPECIFY_TYPE val = (SPECIFY_TYPE)ival;
+	if(ival != int(val))
+	{
+		ERROR_MSG(fmt::format("IntType::isSameType:{} is out of range (currVal = {}).\n",
+			ival, int(val)));
+		
+		return false;
+	}
+	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+template <typename SPECIFY_TYPE>
+void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream, 
+	PyObject* pyValue)
+{
+	SPECIFY_TYPE v = (SPECIFY_TYPE)PyLong_AsLong(pyValue);
+	
+	if(PyErr_Occurred())
+	{
+		PyErr_Clear();
+		
+		v = (SPECIFY_TYPE)PyLong_AsUnsignedLong(pyValue);
+		
+		if(PyErr_Occurred())
+		{
+			PyErr_Clear();
+			PyErr_Format(PyExc_TypeError, "IntType::addToStream: pyValue(%s) is error!", 
+				(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
+
+			PyErr_PrintEx(0);
+
+			v = 0;
+		}
+	}
+			
+	(*mstream) << v;
+}
+
+//-------------------------------------------------------------------------------------
+template <typename SPECIFY_TYPE>
+PyObject* IntType<SPECIFY_TYPE>::createFromStream(MemoryStream* mstream)
+{
+	SPECIFY_TYPE val = 0;
+	if(mstream)
+		(*mstream) >> val;
+
+	PyObject* pyval = PyLong_FromLong(val);
+
+	if (PyErr_Occurred()) 
+	{
+		PyErr_Clear();
+		S_RELEASE(pyval);
+		
+		pyval = PyLong_FromUnsignedLong(val);
+		
+		if (PyErr_Occurred()) 
+		{
+			PyErr_Format(PyExc_TypeError, "IntType::createFromStream: errval=%d, default return is 0", val);
+			PyErr_PrintEx(0);
+			S_RELEASE(pyval);
+			return PyLong_FromLong(0);
+		}
+	}
+
+	return pyval;
+}
 
 }
 

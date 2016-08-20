@@ -102,6 +102,8 @@ char _g_state_str[][256] = {
 #define TELNET_CMD_RIGHT						"\033[C"			// 右
 #define TELNET_CMD_UP							"\033[A"			// 上
 #define TELNET_CMD_DOWN							"\033[B"			// 下
+#define TELNET_CMD_HOME							"\033[1~"			// 移到行首
+#define TELNET_CMD_END							"\033[4~"			// 移到行尾
 
 #define TELNET_CMD_DEL							"\033[K"			// 删除字符
 #define TELNET_CMD_NEWLINE						"\r\n"				// 新行
@@ -110,7 +112,6 @@ char _g_state_str[][256] = {
 
 //-------------------------------------------------------------------------------------
 TelnetHandler::TelnetHandler(Network::EndPoint* pEndPoint, TelnetServer* pTelnetServer, Network::NetworkInterface* pNetworkInterface, TELNET_STATE defstate):
-buffer_(),
 historyCommand_(),
 historyCommandIndex_(0),
 command_(),
@@ -222,7 +223,6 @@ int	TelnetHandler::handleInputNotification(int fd)
 	}
 	else if(recvsize == 0)
 	{
-		onRecvInput();
 		pTelnetServer_->onTelnetHandlerClosed(fd, this);
 		return 0;
 	}
@@ -230,54 +230,114 @@ int	TelnetHandler::handleInputNotification(int fd)
 	if(state_ == TELNET_STATE_READONLY)
 		return 0;
 
-	for(int i = 0; i < recvsize; ++i)
-	{
-		buffer_.push_back(data[i]);
-	}
-
-	onRecvInput();
+	onRecvInput(data, recvsize);
 	return 0;
 }
 
 //-------------------------------------------------------------------------------------
-void TelnetHandler::onRecvInput()
+void TelnetHandler::onRecvInput(const char *buffer, int size)
 {
-	while (buffer_.size() > 0)
+	int idx = 0;
+	while (idx < size)
 	{
-		int c = (unsigned char)buffer_.front();
-		buffer_.pop_front();
+		char c = buffer[idx++];
 
 		switch(c)
 		{
 		case '\r':
 			getingHistroyCmd_ = false;
-			if(buffer_.size() > 0)
+			if (idx < size)
 			{
-				int cc = (unsigned char)buffer_.front();
+				int cc = buffer[idx++];
 				if(cc == '\n')
 				{
-					buffer_.pop_front();
 					if(!processCommand())
 						return;
 				}
 			}
 			break;
 		case 8:		// 退格
-			sendDelChar();
-			checkAfterStr();
+			if (currPos_ == 0)
+			{
+				resetStartPosition();
+			}
+			else
+			{
+				sendDelChar();
+				checkAfterStr();
+			}
 			break;
-		case ' ':	// 空格
+		case 27:	// vt100命令码: 0x1b
+		{
+			std::string s = "";
+			std::string vt100cmd(s + c);
+			bool shouldBeContinue = true;
+
+			while (shouldBeContinue && idx < size)
+			{
+				if (buffer[idx] == '\r')
+					break;
+
+				c = buffer[idx++];
+				vt100cmd.append(s + c);
+				switch (c)
+				{
+				case 'A': // 光标上移n行
+				case 'B': // 光标下移n行
+				case 'C': // 光标右移n列
+				case 'D': // 光标左移n列
+				case '~': // home、end等
+					shouldBeContinue = false;
+					break;
+
+				case 'm': // 颜色等属性或命令
+				case 'J': // 清屏
+				case 'K': // 清除从光标到行尾的内容
+				case 's': // 保存光标位置
+				case 'u': // 恢复光标位置
+				case 'l': // 隐藏光标
+				case 'h': // 显示光标
+				case 'H': // 设置光标位置
+				default:
+					break;
+				}
+			}
+
+			if (!checkUDLR(vt100cmd))
+			{
+				// 把不认识的命令原样输出,但会把命令符改成“^”
+				// 以避免客户端触发命令操作
+				vt100cmd[0] = '^';
+				command_.insert(currPos_, vt100cmd);
+				currPos_ += vt100cmd.length();
+				if (currPos_ == (int32)command_.length())
+				{
+					pEndPoint_->send(vt100cmd.c_str(), vt100cmd.size());
+				}
+				else
+				{
+					std::string s = command_.substr(currPos_ - vt100cmd.length(), command_.size() - currPos_ + vt100cmd.length());
+					s += fmt::format("\33[{}D", command_.size() - currPos_);
+					pEndPoint_->send(s.c_str(), s.size());
+				}
+			}
+			break;
+		}
+		case 0x7f: // delete
+			if (currPos_ < (int32)command_.length())
+			{
+				command_.erase(currPos_, 1);
+				pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
+				checkAfterStr();
+			}
+			break;
 		default:
 			{
 				std::string s = "";
 				s += c;
 				command_.insert(currPos_, s);
 				currPos_++;
-				
-				if(!checkUDLR())
-				{
-					checkAfterStr();
-				}
+				checkAfterStr();
 				break;
 			}
 		};
@@ -297,9 +357,9 @@ void TelnetHandler::checkAfterStr()
 }
 
 //-------------------------------------------------------------------------------------
-bool TelnetHandler::checkUDLR()
+bool TelnetHandler::checkUDLR(const std::string &cmd)
 {
-	if(command_.find(TELNET_CMD_UP) != std::string::npos)		// 上 
+	if (cmd.find(TELNET_CMD_UP) != std::string::npos)		// 上 
 	{
 		pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 		sendDelChar();
@@ -316,11 +376,10 @@ bool TelnetHandler::checkUDLR()
 		std::string s = getHistoryCommand(false);
 		pEndPoint_->send(s.c_str(), s.size());
 		command_ = s;
-		buffer_.clear();
 		currPos_ = s.size();
 		return true;
 	}
-	else if(command_.find(TELNET_CMD_DOWN) != std::string::npos)	// 下
+	else if (cmd.find(TELNET_CMD_DOWN) != std::string::npos)	// 下
 	{
 		pEndPoint_->send(TELNET_CMD_MOVE_FOCUS_LEFT_MAX, strlen(TELNET_CMD_MOVE_FOCUS_LEFT_MAX));
 		sendDelChar();
@@ -337,16 +396,12 @@ bool TelnetHandler::checkUDLR()
 		std::string s = getHistoryCommand(true);
 		pEndPoint_->send(s.c_str(), s.size());
 		command_ = s;
-		buffer_.clear();
 		currPos_ = s.size();
 		return true;
 	}
-	else if(command_.find(TELNET_CMD_RIGHT) != std::string::npos)	// 右
+	else if (cmd.find(TELNET_CMD_RIGHT) != std::string::npos)	// 右
 	{
 		int cmdlen = strlen(TELNET_CMD_RIGHT);
-		currPos_-= cmdlen;
-		command_.erase(command_.find(TELNET_CMD_RIGHT), cmdlen);
-
 		if(currPos_ < (int)command_.size())
 		{
 			currPos_++;
@@ -354,20 +409,34 @@ bool TelnetHandler::checkUDLR()
 		}
 		return true;
 	}
-	else if(command_.find(TELNET_CMD_LEFT) != std::string::npos)	// 左 
+	else if (cmd.find(TELNET_CMD_LEFT) != std::string::npos)	// 左 
 	{
 		int cmdlen = strlen(TELNET_CMD_LEFT);
-		currPos_-= (int)(cmdlen + 1);
-		if(currPos_ < 0)
+		if(currPos_ > 0)
 		{
-			currPos_ = 0;
-		}
-		else
-		{
+			currPos_--;
 			pEndPoint_->send(TELNET_CMD_LEFT, cmdlen);
 		}
-
-		command_.erase(command_.find(TELNET_CMD_LEFT), cmdlen);
+		return true;
+	}
+	else if (cmd.find(TELNET_CMD_HOME) != std::string::npos)	// 移动到行首
+	{
+		if (currPos_ > 0)
+		{
+			std::string cmdstr = fmt::format("\033[{}D", currPos_);
+			pEndPoint_->send(cmdstr.c_str(), cmdstr.length());
+			currPos_ = 0;
+		}
+		return true;
+	}
+	else if (cmd.find(TELNET_CMD_END) != std::string::npos)	    // 移动到行尾
+	{
+		if (currPos_ != (int32)command_.length())
+		{
+			std::string cmdstr = fmt::format("\033[{}C", command_.length() - currPos_);
+			pEndPoint_->send(cmdstr.c_str(), cmdstr.length());
+			currPos_ = command_.length();
+		}
 		return true;
 	}
 
@@ -517,7 +586,36 @@ bool TelnetHandler::processCommand()
 		readonly();
 		return false;
 	}
-	else if(cmd.find(":eventprofile") == 0)
+	else if (cmd.find(":pytickprofile") == 0)
+	{
+		uint32 timelen = 10;
+
+		cmd.erase(cmd.find(":pytickprofile"), strlen(":pytickprofile"));
+		if (cmd.size() > 0)
+		{
+			try
+			{
+				KBEngine::StringConv::str2value(timelen, cmd.c_str());
+			}
+			catch (...)
+			{
+				timelen = 10;
+			}
+
+			if (timelen < 1 || timelen > 999999999)
+				timelen = 10;
+		}
+
+		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+		if (pProfileHandler_) pProfileHandler_->destroy();
+		pProfileHandler_ = new TelnetPyTickProfileHandler(this, *pTelnetServer_->pNetworkInterface(),
+			timelen, profileName, pEndPoint_->addr());
+
+		readonly();
+		return false;
+	}
+	else if (cmd.find(":eventprofile") == 0)
 	{
 		uint32 timelen = 10;
 
@@ -613,6 +711,18 @@ void TelnetHandler::processPythonCommand(std::string command)
 
 	pTelnetServer_->pScript()->run_simpleString(PyBytes_AsString(pycmd1), &retbuf);
 
+	// 把返回值中的'\n'替換成'\r\n'，以解决在vt100终端中显示不正确的问题
+	std::string::size_type pos = 0;
+	while ((pos = retbuf.find('\n', pos)) != std::string::npos)
+	{
+		if (retbuf[pos - 1] != '\r')
+		{
+			retbuf.insert(pos, "\r");
+			pos++;
+		}
+		pos++;
+	}
+
 	if(retbuf.size() > 0)
 	{
 		// 将结果返回给客户端
@@ -644,10 +754,6 @@ void TelnetHandler::sendDelChar()
 			currPos_--;
 			pEndPoint_->send(TELNET_CMD_DEL, strlen(TELNET_CMD_DEL));
 		}
-	}
-	else
-	{
-		resetStartPosition();
 	}
 }
 
@@ -684,8 +790,11 @@ void TelnetHandler::readonly()
 //-------------------------------------------------------------------------------------
 void TelnetHandler::onProfileEnd(const std::string& datas)
 {
-	sendEnter();
-	pEndPoint()->send(datas.c_str(), datas.size());
+	if (datas.size() > 0)
+	{
+		sendEnter();
+		pEndPoint()->send(datas.c_str(), datas.size());
+	}
 	setReadWrite();
 	sendEnter();
 	sendNewLine();
@@ -700,7 +809,51 @@ void TelnetPyProfileHandler::sendStream(MemoryStream* s)
 	std::string datas;
 	(*s) >> datas;
 
+	// 把返回值中的'\n'替換成'\r\n'，以解决在vt100终端中显示不正确的问题
+	std::string::size_type pos = 0;
+	while ((pos = datas.find('\n', pos)) != std::string::npos)
+	{
+		if (datas[pos - 1] != '\r')
+		{
+			datas.insert(pos, "\r");
+			pos++;
+		}
+		pos++;
+	}
+
 	pTelnetHandler_->onProfileEnd(datas);
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetPyTickProfileHandler::sendStream(MemoryStream* s)
+{
+	if (isDestroyed_) return;
+
+	std::string datas;
+	(*s) >> datas;
+
+	// 把返回值中的'\n'替換成'\r\n'，以解决在vt100终端中显示不正确的问题
+	std::string::size_type pos = 0;
+	while ((pos = datas.find('\n', pos)) != std::string::npos)
+	{
+		if (datas[pos - 1] != '\r')
+		{
+			datas.insert(pos, "\r");
+			pos++;
+		}
+		pos++;
+	}
+
+	pTelnetHandler_->sendEnter();
+	pTelnetHandler_->pEndPoint()->send(datas.c_str(), datas.size());
+	//pTelnetHandler_->onProfileEnd(datas);
+}
+
+void TelnetPyTickProfileHandler::timeout()
+{
+	PyTickProfileHandler::timeout();
+
+	pTelnetHandler_->onProfileEnd("");
 }
 
 //-------------------------------------------------------------------------------------

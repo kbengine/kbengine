@@ -20,6 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "map.h"
+
+#ifndef CODE_INLINE
+#include "map.inl"
+#endif
+
 namespace KBEngine{ namespace script{
 
 /** python map操作所需要的方法表 */

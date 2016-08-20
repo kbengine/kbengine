@@ -256,7 +256,9 @@ uint64 runningTime(){
 
 }
 
+#ifdef CODE_INLINE
 #include "profile.inl"
+#endif
 
 #endif // KBENGINE_PROFILE_H
 

@@ -1442,7 +1442,8 @@ DBTaskAccountLogin::DBTaskAccountLogin(const Network::Address& addr,
 									   std::string& password, 
 									   SERVER_ERROR_CODE retcode,
 									   std::string& postdatas, 
-									   std::string& getdatas) :
+									   std::string& getdatas,
+									   bool needCheckPassword) :
 DBTask(addr),
 loginName_(loginName),
 accountName_(accountName),
@@ -1454,7 +1455,8 @@ componentID_(0),
 entityID_(0),
 dbid_(0),
 flags_(0),
-deadline_(0)
+deadline_(0),
+needCheckPassword_(needCheckPassword)
 {
 }
 
@@ -1522,7 +1524,8 @@ bool DBTaskAccountLogin::db_thread_process()
 			}
 		}
 
-		if(g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate)
+		if (g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate || 
+			(Network::Address::NONE != g_kbeSrvConfig.interfacesAddr() && !needCheckPassword_/*第三方处理成功则自动创建账号*/))
 		{
 			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			{
@@ -1536,10 +1539,7 @@ bool DBTaskAccountLogin::db_thread_process()
 			INFO_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): not found account[{}], autocreate successfully!\n", 
 				accountName_));
 
-			if (Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
-			{
-				info.password = KBE_MD5::getDigest(password_.data(), (int)password_.length());
-			}
+			info.password = KBE_MD5::getDigest(password_.data(), (int)password_.length());
 		}
 		else
 		{
@@ -1554,7 +1554,7 @@ bool DBTaskAccountLogin::db_thread_process()
 	if(info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 		return false;
 
-	if (Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
+	if (needCheckPassword_ || Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
 	{
 		if (kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), (int)password_.length()).c_str()) != 0)
 		{
@@ -1718,7 +1718,10 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 		pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
 	else if(queryMode_ == 1)
 		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDCallback);
+	else if (queryMode_ == 2)
+		pBundle->newMessage(BaseappInterface::onCreateBaseRemotelyFromDBIDCallback);
 
+	(*pBundle) << componentID_;
 	(*pBundle) << pdbi_->dbIndex();
 	(*pBundle) << entityType_;
 	(*pBundle) << dbid_;

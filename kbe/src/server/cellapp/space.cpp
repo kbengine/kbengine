@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "loadnavmesh_threadtasks.h"
 #include "entitydef/entities.h"
 #include "client_lib/client_interface.h"
+#include "network/network_stats.h"
 
 #include "../../server/baseappmgr/baseappmgr_interface.h"
 #include "../../server/cellappmgr/cellappmgr_interface.h"
@@ -213,6 +214,16 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	}
 
 	SCRIPT_ERROR_CHECK();
+
+	if (Resmgr::getSingleton().matchPath(path).size() == 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) path error!",
+			spaceID, path);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer, params))
 	{
 		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) error!", 
@@ -292,6 +303,8 @@ bool Space::update()
 {
 	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
 		return false;
+
+	this->coordinateSystem_.releaseNodes();
 
 	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
 		_clearGhosts();
@@ -562,31 +575,29 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 		if(pEntity == NULL || pEntity->isDestroyed() || !pEntity->hasWitness())
 			continue;
 
-		Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
-
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+		
 		if(!isdel)
 		{
-			pForwardBundle->newMessage(ClientInterface::setSpaceData);
-			(*pForwardBundle) << this->id();
-			(*pForwardBundle) << key;
-			(*pForwardBundle) << value;
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::setSpaceData, set);
+			(*pSendBundle) << this->id();
+			(*pSendBundle) << key;
+			(*pSendBundle) << value;
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::setSpaceData, set);
 		}
 		else
 		{
-			pForwardBundle->newMessage(ClientInterface::delSpaceData);
-			(*pForwardBundle) << this->id();
-			(*pForwardBundle) << key;
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::delSpaceData, del);
+			(*pSendBundle) << this->id();
+			(*pSendBundle) << key;
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::delSpaceData, del);
 		}
-
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
 
 		if(!isdel)
 			pEntity->pWitness()->sendToClient(ClientInterface::setSpaceData, pSendBundle);
 		else
 			pEntity->pWitness()->sendToClient(ClientInterface::delSpaceData, pSendBundle);
-
-		Network::Bundle::reclaimPoolObject(pForwardBundle);
 	}
 }
 
@@ -611,23 +622,22 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 		return;
 	}
 
-	Network::Bundle* pForwardBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
 
-	pForwardBundle->newMessage(ClientInterface::initSpaceData);
-	(*pForwardBundle) << this->id();
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::initSpaceData, init);
+	(*pSendBundle) << this->id();
 
 	SPACE_DATA::iterator iter = datas_.begin();
 	for(; iter != datas_.end(); ++iter)
 	{
-		(*pForwardBundle) << iter->first;
-		(*pForwardBundle) << iter->second;
+		(*pSendBundle) << iter->first;
+		(*pSendBundle) << iter->second;
 	}
 
-	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->id(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::initSpaceData, init);
 
 	pEntity->pWitness()->sendToClient(ClientInterface::initSpaceData, pSendBundle);
-	Network::Bundle::reclaimPoolObject(pForwardBundle);
 }
 
 //-------------------------------------------------------------------------------------

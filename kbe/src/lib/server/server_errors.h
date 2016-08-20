@@ -67,7 +67,8 @@ typedef uint16 SERVER_ERROR_CODE;								// 错误码类别
 #define SERVER_ERR_USER8							32			// 用户自定义错误码8
 #define SERVER_ERR_USER9							33			// 用户自定义错误码9
 #define SERVER_ERR_USER10							34			// 用户自定义错误码10
-#define SERVER_ERR_MAX                              35          // 请把这条放在所有错误的最后面，这本身不是一个错误标识，仅表示一共有多少条错误定义
+#define SERVER_ERR_NEED_CHECK_PASSWORD				35			// 需要检查密码
+#define SERVER_ERR_MAX                              36          // 请把这条放在所有错误的最后面，这本身不是一个错误标识，仅表示一共有多少条错误定义
 
 const char SERVER_ERR_STR[][256] = {
 	"SERVER_SUCCESS",
@@ -104,7 +105,8 @@ const char SERVER_ERR_STR[][256] = {
 	"SERVER_ERR_USER7",
 	"SERVER_ERR_USER8",
 	"SERVER_ERR_USER9",
-	"SERVER_ERR_USER10"
+	"SERVER_ERR_USER10",
+	"SERVER_ERR_NEED_CHECK_PASSWORD"
 };
 
 }
