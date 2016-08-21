@@ -741,7 +741,7 @@ bool Proxy::pushBundle(Network::Bundle* pBundle)
 	{
 		// 如果数据大量阻塞发不出去将会报警
 		AUTO_SCOPED_PROFILE("pushBundleAndSendToClient");
-		pChannel->send();
+		pChannel->send(pBundle);
 	}
 
 	return true;
