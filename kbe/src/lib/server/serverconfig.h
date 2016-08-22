@@ -137,6 +137,7 @@ typedef struct EngineComponentInfo
 		tcp_SOMAXCONN = 5;
 		notFoundAccountAutoCreate = false;
 		account_registration_enable = false;
+		account_reset_password_enable = false;
 		use_coordinate_system = true;
 		account_type = 3;
 		debugDBMgr = false;
@@ -185,6 +186,7 @@ typedef struct EngineComponentInfo
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
 	bool allowEmptyDigest;									// 是否检查defs-MD5
 	bool account_registration_enable;						// 是否开放注册
+	bool account_reset_password_enable;						// 是否开放重设密码功能
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期
