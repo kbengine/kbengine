@@ -420,10 +420,13 @@ void ThreadPool::bufferTask(TPTask* tptask)
 }
 
 //-------------------------------------------------------------------------------------
-TPThread* ThreadPool::createThread(int threadWaitSecond)
+TPThread* ThreadPool::createThread(int threadWaitSecond, bool threadStartsImmediately)
 {
 	TPThread* tptd = new TPThread(this, threadWaitSecond);
-	tptd->createThread();
+
+	if (threadStartsImmediately)
+		tptd->createThread();
+
 	return tptd;
 }	
 
@@ -571,8 +574,10 @@ bool ThreadPool::addTask(TPTask* tptask)
 
 	for(uint32 i=0; i<extraNewAddThreadCount_; ++i)
 	{
+		bool threadStartsImmediately = i > 0;
+
 		// 设定5分钟未使用则退出的线程
-		TPThread* tptd = createThread(ThreadPool::timeout);
+		TPThread* tptd = createThread(ThreadPool::timeout, threadStartsImmediately);
 		if(!tptd)
 		{
 #if KBE_PLATFORM == PLATFORM_WIN32		
@@ -586,11 +591,31 @@ bool ThreadPool::addTask(TPTask* tptask)
 		// 所有的线程列表
 		allThreadList_.push_back(tptd);	
 		
-		// 闲置的线程列表
-		freeThreadList_.push_back(tptd);
-		
+		if (threadStartsImmediately)
+		{
+			// 闲置的线程列表
+			freeThreadList_.push_back(tptd);
+			++currentFreeThreadCount_;
+		}
+		else
+		{
+			TPTask * pTask = tptd->tryGetTask();
+			if (pTask)
+			{
+				busyThreadList_.push_back(tptd);
+				tptd->task(pTask);
+			}
+			else
+			{
+				freeThreadList_.push_back(tptd);
+				++currentFreeThreadCount_;
+			}
+
+			tptd->createThread();
+		}
+
 		++currentThreadCount_;
-		++currentFreeThreadCount_;	
+		
 		
 	}
 	
