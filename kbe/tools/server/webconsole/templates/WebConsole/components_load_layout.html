@@ -1,43 +1,61 @@
-{% extends "WebConsole/base.html" %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="/favicon.ico">
 
-{% block content %}
-<div class="row placeholders">
-    <div class="form-group">
-      <label for="textarea">启动服务器</label>
-    <!--   <textarea name="textarea" rows="30" readonly class="form-control" id="textarea">
-      </textarea> -->
-    </div>
-    {% if error %}
-    <div>
-      <p class="text-danger">{{ error }}</p>
-    </div>
-    {% endif %}
-    <table id="ct-load-data" class="data-table table table-striped table-condensed">
-        <thead>
-          <tr>
-            <th>组件名称</th>
-            <th>已运行</th>
-            <th>需运行</th>
-            <th>Component Type</th>
-            <th>cid</th>
-            <th>gus</th>
-            <th>ip</th>
-            <th>状态</th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
-  </table>
-    <div class="shutdown-finish form-group sr-only">
-      <input type="button" class="form-control btn btn-default" name="button" id="button" value="完成" onClick="window.location.href='/wc/components/manage'">
-        
-    </div>
-</div>
-{% endblock %}
+        <title>{% block title %}KBEngine Web Console{% endblock %}</title>
 
-{% block tail_js %}
+        <!-- Bootstrap core CSS -->
+        <link href="/static/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Custom styles for this template -->
+        <link href="/static/custom_styles.css" rel="stylesheet">
+    </head>
+<body>
+    <div class="placeholders">
+        <div class="form-group">
+          {# <label for="textarea">启动服务器</label> #}
+        <!--   <textarea name="textarea" rows="30" readonly class="form-control" id="textarea">
+          </textarea> -->
+        </div>
+        {% if error %}
+        <div>
+          <p class="text-danger">{{ error }}</p>
+        </div>
+        {% endif %}
+        <table id="ct-load-data" class="data-table table table-striped table-condensed">
+            <thead>
+              <tr>
+                <th>组件名称</th>
+                <th>已运行</th>
+                <th>需运行</th>
+                <th>Component Type</th>
+                <th>cid</th>
+                <th>gus</th>
+                <th>ip</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+      </table>
+        <div class="shutdown-finish form-group sr-only">
+          <input type="button" class="form-control btn btn-default" name="button" id="button" value="完成" onClick="close_layer()">
+            
+        </div>
+    </div>
+</body>
+
 <script src="/static/js/pytools.js"></script>
 <script src="/static/js/kbengine.js"></script>
+<script src="/static/js/jquery-1.11.3.min.js"></script>
+<script src="/static/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script>$(".config").addClass("active");</script>
 <script>
   $(".kbe-list .dd").hide();
@@ -144,5 +162,11 @@
         else
             setTimeout(queryComponents, 1000);
     }
+
+    function close_layer(){
+        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        parent.layer.close(index);
+        
+    }
 </script>
-{% endblock %}
+</html>

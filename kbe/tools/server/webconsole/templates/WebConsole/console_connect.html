@@ -136,6 +136,7 @@ function show_result(data, ignoreBlankLine)
     ds = KBEngine.filterConsoleCmd(ds);
     ds = ds.split("\n");
     var em = $.data.lastEM;
+
     for (var i = 0; i < ds.length; i++)
     {
         var d = ds[i];
@@ -148,13 +149,17 @@ function show_result(data, ignoreBlankLine)
         }
         else
         {
-            em = $('<span>' + KBEngine.filterConsoleCmd(d) + '</span>');
+        	if( KBEngine.filterConsoleCmd(d).indexOf("~] >>>")>0 || KBEngine.filterConsoleCmd(d).indexOf("~]#")>0 )
+	        	em = $('<span style="color:red">' + KBEngine.filterConsoleCmd(d) + '</span>');
+        	else
+	            em = $('<span>' + KBEngine.filterConsoleCmd(d) + '</span>');
             $('#output_block_area').append(em);
             $('#output_block_area').append('<br>');
         }
     }
     if (data[data.length - 1] != "\n")
         $.data.lastEM = em;
+
      $('#output_block_area').scrollTop( $('#output_block_area').height());
 }
 

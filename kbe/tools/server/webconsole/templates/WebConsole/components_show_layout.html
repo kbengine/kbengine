@@ -51,10 +51,29 @@
   $(".kbe-list .components .dd").show();
   $(".kbe-list .components ").css({"background-color":"#317eb4"});
   $(".kbe-list .components").find('li').addClass("menu_chioce");
+    // function load_layout(layoutID)
+    // {
+    //     window.location.href='/wc/components/load_layout?id=' + layoutID;
+    //     layer.msg('服务器正在加载……', {icon: 16, time: 10000});
+    // }
     function load_layout(layoutID)
     {
-        window.location.href='/wc/components/load_layout?id=' + layoutID;
-        layer.msg('服务器正在加载……', {icon: 16, time: 10000});
+        
+        href = "/wc/components/load_layout?id="+ layoutID;
+        layer.open({
+            type: 2,
+            title: "加载服务器配置",
+            closeBtn: 1,
+            shade: 0,
+            //shadeClose: true,
+            area: ['80%', '70%'],
+            scrollbar: false,
+            // skin: 'layui-layer-rim', //加上边框
+            content: href,
+            end: function (){
+                 location.href='/wc/components/manage';
+            }
+        });
     }
 
 </script>

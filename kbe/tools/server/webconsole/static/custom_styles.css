@@ -6,7 +6,10 @@
 body {
   padding-top: 50px;
 }
-
+a:hover{
+  text-decoration:none;
+  padding-bottom:0.05em; border-bottom:1px solid rgb(35,82,124)
+}
 .navbar-brand-custom {
   float: left;
   height: 50px;
@@ -118,6 +121,7 @@ body {
     padding-left: 40px;
   }
 }
+
 .main .page-header {
   margin-top: 0;
 }
@@ -153,10 +157,10 @@ body {
   display: block;
   overflow: auto;
 }
-.info-fitler .form-group .filter-check{
+.info-filter .form-group .filter-check{
   display: block;
   border: 1px solid #999999;
-  height: 20em;
+  height: 21.5em;
   overflow: auto;
   margin-top: 1em;
   background-color: white;
@@ -165,10 +169,9 @@ body {
   width: 95%;
   margin-right: 10%;
   z-index: 20;
-  background-color: white;
+  background: rgba(255, 255, 255, 0);
   display: block;
   position: absolute;
-  border: 1px solid #999999;
   top:-0.6em;
 }
 
@@ -203,6 +206,12 @@ body {
   line-height:20px;
   text-decoration:none;
 }
+
+.kbe-list .dd a:hover{
+  text-decoration:none;
+  padding-bottom:none; border-bottom:none;
+}
+
 .kbe-list .dt img{
   position:absolute;
   right:10px;
@@ -237,9 +246,6 @@ body {
   background-image:url(images/left/statistics.png);
 }
 
-.disable a{
-  
-}
 
 .tablesaw .tablesaw-sortable-head .tablesaw-sortable-btn{
     width:100%;
@@ -262,3 +268,62 @@ body {
 .placeholders #ct-load-data th{
   text-align: center;
 }
+.placeholders #ct-stop{
+  text-align: center;
+}
+.placeholders #ct-stop th{
+  text-align: center;
+}
+.new-btn{
+  border: 0px; /*去边框*/
+  width: 7em; 
+  height: 2em;
+  background: rgba(255, 255, 255, 0);
+  background-image: url("/static/images/jiantou.png");
+  background-repeat:no-repeat;
+/*  position: fixed;
+  top:5em;
+  left: 50%;*/
+  z-index: 19;
+}
+
+.cmd-click{
+  margin-bottom: 1em;
+  padding-left: 3em;
+  padding-right: 3em;
+}
+.cmd-click .click-slide{
+  width: auto;
+  z-index: 20;
+  float: right;
+}
+.filter-btn .click-slide{
+  width:auto;
+}
+@media (max-width: 768px) {
+  .click-slide{
+      float:none;
+    }
+/*  .info-filter .custom-filter label,
+  .info-filter .custom-filter input{
+    float: left;
+    width: 50%;
+  }*/
+  }
+
+@media (max-width: 1105px){
+  .custom-filter label,
+  .custom-filter input{
+    float: none;
+    width:100%;
+  }
+}
+
+.ct-stop-btn{
+  color: rgb(51,122,183);
+  padding: 3px 5px 3px 5px;
+  border: 1px solid rgb(51,122,183);
+  background-color: white;
+}
+
+
