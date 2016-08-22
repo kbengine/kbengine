@@ -520,34 +520,41 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 }
 
 //-------------------------------------------------------------------------------------
+bool ThreadPool::_addTask(TPTask* tptask)
+{
+	std::list<TPThread*>::iterator itr = freeThreadList_.begin();
+	TPThread* tptd = (TPThread*)(*itr);
+	freeThreadList_.erase(itr);
+	busyThreadList_.push_back(tptd);
+	--currentFreeThreadCount_;
+
+	//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
+	//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_count_);
+
+	tptd->task(tptask);
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if (tptd->sendCondSignal() == 0) {
+#else
+	if (tptd->sendCondSignal() != 0) {
+#endif
+		ERROR_MSG("ThreadPool::addTask: pthread_cond_signal error!\n");
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool ThreadPool::addTask(TPTask* tptask)
 {
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 	if(currentFreeThreadCount_ > 0)
 	{
-		std::list<TPThread*>::iterator itr = freeThreadList_.begin();
-		TPThread* tptd = (TPThread*)(*itr);
-		freeThreadList_.erase(itr);
-		busyThreadList_.push_back(tptd);
-		--currentFreeThreadCount_;
-		
-		//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
-		//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_count_);
-		
-		tptd->task(tptask);	
-		
-#if KBE_PLATFORM == PLATFORM_WIN32
-		if(tptd->sendCondSignal()== 0){
-#else
-		if(tptd->sendCondSignal()!= 0){
-#endif
-			ERROR_MSG("ThreadPool::addTask: pthread_cond_signal error!\n");
-			THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-			return false;
-		}
-		
+		bool ret = _addTask(tptask);
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		return true;
+
+		return ret;
 	}
 	
 	bufferTask(tptask);
@@ -627,17 +634,6 @@ void* TPThread::threadFunc(void* arg)
 #else			
 	pthread_detach(pthread_self());
 #endif
-
-	// 在addTask时可能没有可用的线程资源而新创建一些线程，这些线程需要立即进入工作状态
-	if (!tptd->task()) 
-	{
-		TPTask * pTask = tptd->tryGetTask();
-		if (pTask) 
-		{
-			tptd->task(pTask);
-			pThreadPool->addBusyThread(tptd);
-		}
-	}
 
 	tptd->onStart();
 

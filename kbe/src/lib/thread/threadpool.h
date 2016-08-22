@@ -254,6 +254,7 @@ public:
 		向线程池添加一个任务
 	*/		
 	bool addTask(TPTask* tptask);
+	bool _addTask(TPTask* tptask);
 	INLINE bool addBackgroundTask(TPTask* tptask){ return addTask(tptask); }
 	INLINE bool pushTask(TPTask* tptask){ return addTask(tptask); }
 
