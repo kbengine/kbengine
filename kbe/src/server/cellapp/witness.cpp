@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "aoi_trigger.h"
 #include "network/channel.h"	
 #include "network/bundle.h"
+#include "network/network_stats.h"
 #include "math/math.h"
 #include "client_lib/client_interface.h"
 
@@ -256,6 +257,15 @@ Witness* Witness::createPoolObject()
 void Witness::reclaimPoolObject(Witness* obj)
 {
 	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("Witness::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
 }
 
 //-------------------------------------------------------------------------------------
@@ -539,6 +549,12 @@ void Witness::installAOITrigger()
 {
 	if (pAOITrigger_)
 	{
+		// 在设置AOI半径为0后掉线重登陆会出现这种情况
+		if (aoiRadius_ <= 0.f)
+		{
+			return;
+		}
+
 		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 
 		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)

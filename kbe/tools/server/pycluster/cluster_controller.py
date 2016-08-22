@@ -234,7 +234,8 @@ class ClusterStopHandler(ClusterControllerHandler):
 				if showDebug:
 					print("\t\t%s : %i\t%s" % (ctype, len(clist), clist))
 			
-			self.stopServer( COMPONENT_NAME2TYPE[ctype] )
+			# 最好是尽量多的尝试次数，否则可能包未及时恢复造成后续查询错乱
+			self.stopServer( COMPONENT_NAME2TYPE[ctype], "<broadcast>", 3 )
 			
 			#print ("ClusterStopHandler::do: stop uid=%s, type=%s, send=%s" % (self.uid, ctype, \
 			#	len(self.recvDatas) > 0 and self.recvDatas[0] == b'\x01'))

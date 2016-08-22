@@ -841,6 +841,12 @@ PyObject* ClientApp::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	
 	return openedFile;
 }
 

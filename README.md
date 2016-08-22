@@ -62,8 +62,3 @@ acatadog, colin
 理论上只需要不断扩展硬件就能够不断增加承载上限，单台机器的承载上限取决于游戏逻辑本身的复杂度。)
 
 
-
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/kbengine/kbengine/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-

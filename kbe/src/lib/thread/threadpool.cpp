@@ -515,7 +515,7 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 		return false;
 	}
 	
-	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);		
+	THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
 	return true;		
 }
 
@@ -629,6 +629,16 @@ void* TPThread::threadFunc(void* arg)
 #endif
 
 	tptd->onStart();
+
+	// 尝试继续从任务队列里取出一个繁忙的未处理的任务
+	if(tptd->task() == NULL)
+	{
+		TPTask * pTask = tptd->tryGetTask();
+		if(pTask)
+		{
+			tptd->task(pTask);
+		}
+	}
 
 	while(isRun)
 	{

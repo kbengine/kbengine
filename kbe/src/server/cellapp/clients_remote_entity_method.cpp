@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/method.h"
 #include "clients_remote_entity_method.h"
 #include "network/bundle.h"
+#include "network/network_stats.h"
 #include "helper/eventhistory_stats.h"
 
 #include "client_lib/client_interface.h"

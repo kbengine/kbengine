@@ -826,6 +826,13 @@ Bundle* Channel::createSendBundle()
 			pBundle->currMsgPacketCount(0);
 			pBundle->currMsgLength(0);
 			pBundle->currMsgLengthPos(0);
+			if (!pBundle->pCurrPacket())
+			{
+				Packet* pPacket = pBundle->packets().back();
+				pBundle->packets().pop_back();
+				pBundle->pCurrPacket(pPacket);
+			}
+
 			return pBundle;
 		}
 	}
