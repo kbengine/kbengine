@@ -128,10 +128,13 @@ DBThreadPool::~DBThreadPool()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPThread* DBThreadPool::createThread(int threadWaitSecond)
+thread::TPThread* DBThreadPool::createThread(int threadWaitSecond, bool threadStartsImmediately)
 {
 	DBThread* tptd = new DBThread(dbinterfaceName_, this, threadWaitSecond);
-	tptd->createThread();
+
+	if (threadStartsImmediately)
+		tptd->createThread();
+
 	return tptd;
 }	
 

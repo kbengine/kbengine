@@ -420,10 +420,13 @@ void ThreadPool::bufferTask(TPTask* tptask)
 }
 
 //-------------------------------------------------------------------------------------
-TPThread* ThreadPool::createThread(int threadWaitSecond)
+TPThread* ThreadPool::createThread(int threadWaitSecond, bool threadStartsImmediately)
 {
 	TPThread* tptd = new TPThread(this, threadWaitSecond);
-	tptd->createThread();
+
+	if (threadStartsImmediately)
+		tptd->createThread();
+
 	return tptd;
 }	
 
@@ -520,34 +523,41 @@ bool ThreadPool::removeHangThread(TPThread* tptd)
 }
 
 //-------------------------------------------------------------------------------------
+bool ThreadPool::_addTask(TPTask* tptask)
+{
+	std::list<TPThread*>::iterator itr = freeThreadList_.begin();
+	TPThread* tptd = (TPThread*)(*itr);
+	freeThreadList_.erase(itr);
+	busyThreadList_.push_back(tptd);
+	--currentFreeThreadCount_;
+
+	//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
+	//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_count_);
+
+	tptd->task(tptask);
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if (tptd->sendCondSignal() == 0) {
+#else
+	if (tptd->sendCondSignal() != 0) {
+#endif
+		ERROR_MSG("ThreadPool::addTask: pthread_cond_signal error!\n");
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool ThreadPool::addTask(TPTask* tptask)
 {
 	THREAD_MUTEX_LOCK(threadStateList_mutex_);
 	if(currentFreeThreadCount_ > 0)
 	{
-		std::list<TPThread*>::iterator itr = freeThreadList_.begin();
-		TPThread* tptd = (TPThread*)(*itr);
-		freeThreadList_.erase(itr);
-		busyThreadList_.push_back(tptd);
-		--currentFreeThreadCount_;
-		
-		//INFO_MSG("ThreadPool::currFree:%d, currThreadCount:%d, busy:[%d]\n",
-		//		 currentFreeThreadCount_, currentThreadCount_, busyThreadList_count_);
-		
-		tptd->task(tptask);	
-		
-#if KBE_PLATFORM == PLATFORM_WIN32
-		if(tptd->sendCondSignal()== 0){
-#else
-		if(tptd->sendCondSignal()!= 0){
-#endif
-			ERROR_MSG("ThreadPool::addTask: pthread_cond_signal error!\n");
-			THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-			return false;
-		}
-		
+		bool ret = _addTask(tptask);
 		THREAD_MUTEX_UNLOCK(threadStateList_mutex_);
-		return true;
+
+		return ret;
 	}
 	
 	bufferTask(tptask);
@@ -564,8 +574,10 @@ bool ThreadPool::addTask(TPTask* tptask)
 
 	for(uint32 i=0; i<extraNewAddThreadCount_; ++i)
 	{
+		bool threadStartsImmediately = i > 0;
+
 		// 设定5分钟未使用则退出的线程
-		TPThread* tptd = createThread(ThreadPool::timeout);
+		TPThread* tptd = createThread(ThreadPool::timeout, threadStartsImmediately);
 		if(!tptd)
 		{
 #if KBE_PLATFORM == PLATFORM_WIN32		
@@ -579,11 +591,31 @@ bool ThreadPool::addTask(TPTask* tptask)
 		// 所有的线程列表
 		allThreadList_.push_back(tptd);	
 		
-		// 闲置的线程列表
-		freeThreadList_.push_back(tptd);
-		
+		if (threadStartsImmediately)
+		{
+			// 闲置的线程列表
+			freeThreadList_.push_back(tptd);
+			++currentFreeThreadCount_;
+		}
+		else
+		{
+			TPTask * pTask = tptd->tryGetTask();
+			if (pTask)
+			{
+				busyThreadList_.push_back(tptd);
+				tptd->task(pTask);
+			}
+			else
+			{
+				freeThreadList_.push_back(tptd);
+				++currentFreeThreadCount_;
+			}
+
+			tptd->createThread();
+		}
+
 		++currentThreadCount_;
-		++currentFreeThreadCount_;	
+		
 		
 	}
 	
@@ -629,16 +661,6 @@ void* TPThread::threadFunc(void* arg)
 #endif
 
 	tptd->onStart();
-
-	// 尝试继续从任务队列里取出一个繁忙的未处理的任务
-	if(tptd->task() == NULL)
-	{
-		TPTask * pTask = tptd->tryGetTask();
-		if(pTask)
-		{
-			tptd->task(pTask);
-		}
-	}
 
 	while(isRun)
 	{

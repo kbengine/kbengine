@@ -340,6 +340,16 @@
 			-->
 			<accountDefaultDeadline> 0 </accountDefaultDeadline>						<!-- Type: Integer -->
 
+			<!-- 账号找回密码相关
+				(Account reset password)
+			-->
+			<account_resetPassword>
+				<!-- 是否开放重设密码
+					(Whether open reset password)
+				-->
+				<enable>	false	</enable>
+			</account_resetPassword>
+			
 			<!-- 账号注册相关
 				(Account registration)
 			-->
@@ -347,12 +357,12 @@
 				<!-- 是否开放注册 
 					(Whether open registration)
 				-->
-				<enable>	true	</enable>
+				<enable>	false	</enable>
 				
 				<!-- 登录合法时游戏数据库找不到游戏账号则自动创建 
 					(When logged in, the game database can not find the game account is automatically created)
 				-->
-				<loginAutoCreate> true </loginAutoCreate>
+				<loginAutoCreate> false </loginAutoCreate>
 			</account_registration>
 		</account_system>
 
