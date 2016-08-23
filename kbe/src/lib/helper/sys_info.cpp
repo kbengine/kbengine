@@ -67,8 +67,8 @@ SystemInfo::SystemInfo()
 {
 	totalmem_ = 0;
 	_autocreate();
-	// getCPUPer();
-	// getProcessInfo();
+	getCPUPer();
+	getProcessInfo();
 }
 
 //-------------------------------------------------------------------------------------
