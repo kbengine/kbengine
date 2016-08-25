@@ -134,12 +134,14 @@ function onProfile()
 }
 
 window.onload = function(){
+  if ($("#ws_url").val()=="")
+    alert("logger进程未运行");
   if($("#get-pull-state").val("1"))
-    {
-      $("#pull-state").val("0");
-      $("#close-log").removeClass("hide");
-      $("#updata-log").addClass("hide");
-    }
+  {
+    $("#pull-state").val("0");
+    $("#close-log").removeClass("hide");
+    $("#updata-log").addClass("hide");
+  }
     onProfile();
 }
 
