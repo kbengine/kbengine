@@ -190,7 +190,6 @@ class LoggerWatcher:
 		接收信息
 		"""
 		rl = [ self.socket.fileno() ]
-		msg = ""
 		while True:
 			rlist, wlist, xlist = select.select( rl, [], [], 1.0 )
 			if rlist:
@@ -199,11 +198,10 @@ class LoggerWatcher:
 					print( "Receive 0 bytes, over! fileno '%s'" % self.socket.fileno() )
 					return
 			
-			if msg != "":
 				ms = self.parseLog( msg )
 				if ms:
 					callbackFunc( ms )
-			continue
+				continue
 			
 			if not loop:
 				break
