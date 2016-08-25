@@ -18,18 +18,32 @@ Logger_writeLog                = 704
 
 CONSOLE_LOG_MSGID = 65501 # log 消息
 
-KBELOG_SCRIPT_INFO    = 0x00000040
-KBELOG_SCRIPT_ERROR   = 0x00000080
-KBELOG_SCRIPT_DEBUG   = 0x00000100
-KBELOG_SCRIPT_WARNING = 0x00000200
-KBELOG_SCRIPT_NORMAL  = 0x00000400
+
+KBELOG_UNKNOWN			= 0x00000000
+KBELOG_PRINT			= 0x00000001
+KBELOG_ERROR 			= 0x00000002
+KBELOG_WARNING 			= 0x00000004
+KBELOG_DEBUG 			= 0x00000008
+KBELOG_INFO				= 0x00000010
+KBELOG_CRITICAL			= 0x00000020
+KBELOG_SCRIPT_INFO		= 0x00000040
+KBELOG_SCRIPT_ERROR		= 0x00000080
+KBELOG_SCRIPT_DEBUG 	= 0x00000100
+KBELOG_SCRIPT_WARNING	= 0x00000200
+KBELOG_SCRIPT_NORMAL	= 0x00000400
 
 logName2type = {
-	"NORMAL"  : KBELOG_SCRIPT_NORMAL,
-	"INFO"    : KBELOG_SCRIPT_INFO,
-	"ERROR"   : KBELOG_SCRIPT_ERROR,
-	"DEBUG"   : KBELOG_SCRIPT_DEBUG,
-	"WARNING" : KBELOG_SCRIPT_WARNING,
+	"PRINT"		:	KBELOG_PRINT,
+	"ERROR"		:	KBELOG_ERROR,
+	"WARNING"	:	KBELOG_WARNING,
+	"DEBUG"		:	KBELOG_DEBUG,
+	"INFO"		:	KBELOG_INFO,	
+	"CRITICAL"	:	KBELOG_CRITICAL,
+	"S_NORM"  	:	KBELOG_SCRIPT_NORMAL,
+	"S_INFO"  	: 	KBELOG_SCRIPT_INFO,
+	"S_ERR"   	: 	KBELOG_SCRIPT_ERROR,
+	"S_DBG"   	: 	KBELOG_SCRIPT_DEBUG,
+	"S_WARN" 	: 	KBELOG_SCRIPT_WARNING,
 }
 
 class LoggerWatcher:
@@ -40,7 +54,6 @@ class LoggerWatcher:
 		"""
 		"""
 		self.socket = None
-		
 		self.msgBuffer = "".encode()
 
 	def connect( self, ip, port ):
@@ -61,18 +74,39 @@ class LoggerWatcher:
 			self.socket.close()
 			self.socket = None
 
-	def registerToLogger( self, uid ):
+	def registerToLogger( self, uid):
 		"""
 		向logger注册
 		"""
+
 		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", Logger_registerLogWatcher ) ) # command
-		msg.write( struct.pack("=H", struct.calcsize("=iIiiccB" + "i" * Define.COMPONENT_END_TYPE + "BB") ) ) # package len
+		msg.write( struct.pack("=H", struct.calcsize("=iIiiccB" + "i" * Define.COMPONENT_END_TYPE + "BB") ) ) # package len	
 		msg.write( struct.pack("=i", uid ) )
-		msg.write( struct.pack("=I", 0xffffffff) ) # logtypes filter
-		msg.write( struct.pack("=iicc", 0, 0, "\0".encode(), "\0".encode() ) ) # globalOrder, groupOrder, date, keyStr
-		msg.write( struct.pack("=B", Define.COMPONENT_END_TYPE ) ) # component type filter count
-		msg.write( struct.pack("=" + "i" * Define.COMPONENT_END_TYPE, *list( range( Define.COMPONENT_END_TYPE ) ))) # component type filter
+		msg.write( struct.pack("=I",0xffffffff) ) # logtypes filter
+		# msg.write( struct.pack("=I",KBELOG_WARNING ) ) # logtypes filter
+		msg.write( struct.pack("=iicc", 0, 0, '\0'.encode(), '\0'.encode())) # globalOrder, groupOrder, date, keyStr
+		msg.write( struct.pack("=B" ,Define.COMPONENT_END_TYPE) ) # component type filter count 
+		msg.write( struct.pack("="+"i" * Define.COMPONENT_END_TYPE, *list(range(Define.COMPONENT_END_TYPE)))) # component type filter
+		msg.write( struct.pack("=BB", 0, 1 ) ) # isfind, first
+		self.socket.sendall( msg.getvalue() )
+
+	def registerToLoggerForWeb( self, uid, components_check, logtype, globalOrder, groupOrder, searchDate, keystr ):
+		"""
+		向logger注册
+		"""
+
+		msg = Define.BytesIO()
+		d1 = str(len(searchDate.encode()))
+		d2 = str(len(keystr.encode()))
+		msg.write( struct.pack("=H", Logger_registerLogWatcher ) ) # command
+		msg.write( struct.pack("=H", struct.calcsize("=iIiiccB" + "i" * Define.COMPONENT_END_TYPE + "BB") + len(searchDate.encode()) + len(keystr.encode())) ) # package len
+		msg.write( struct.pack("=i", uid ) )
+		msg.write( struct.pack("=I",logtype) ) # logtypes filter
+		# msg.write( struct.pack("=I",KBELOG_WARNING ) ) # logtypes filter
+		msg.write( struct.pack("=ii" + d1 + "sc" + d2 + "sc", globalOrder, groupOrder, searchDate.encode() ,'\0'.encode() , keystr.encode(), '\0'.encode() )) # globalOrder, groupOrder, date, keyStr
+		msg.write( struct.pack("=B" ,Define.COMPONENT_END_TYPE) ) # component type filter count 
+		msg.write( struct.pack("="+"i" * Define.COMPONENT_END_TYPE, *list(list(components_check)))) # component type filter
 		msg.write( struct.pack("=BB", 0, 1 ) ) # isfind, first
 		self.socket.sendall( msg.getvalue() )
 
@@ -139,7 +173,7 @@ class LoggerWatcher:
 			pos += 4
 			if buffLen < pos + dataLen:
 				self.msgBuffer = self.msgBuffer[pos - 4:]
-				return result
+				return result 
 			
 			if cmdID != CONSOLE_LOG_MSGID:
 				print( "Unknown command.(id = %s)" % cmdID )
@@ -163,11 +197,10 @@ class LoggerWatcher:
 				if len( msg ) == 0:
 					print( "Receive 0 bytes, over! fileno '%s'" % self.socket.fileno() )
 					return
-				
+			
 				ms = self.parseLog( msg )
 				if ms:
 					callbackFunc( ms )
-				
 				continue
 			
 			if not loop:
@@ -177,3 +210,68 @@ class LoggerWatcher:
 			self.sendActiveTick()
 
 
+class LogWatch(object):
+	"""
+	日志输出
+	"""
+	def __init__(self,wsInst, extaddr, extport, uid, components_check, logtype, globalOrder, groupOrder, searchDate, keystr):
+		self.wsInst = wsInst
+		self.extaddr = extaddr
+		self.extport = extport
+		self.uid = uid
+		self.components_check = components_check
+		self.logtype = logtype
+		self.globalOrder = globalOrder
+		self.groupOrder = groupOrder
+		self.searchDate = searchDate
+		self.keystr = keystr
+		self.logger = LoggerWatcher()
+
+		self.pops = ""
+		self.pops_end = ""
+		self.again = 0
+		self.first = 0
+		self.sendinfo = False
+
+	def do(self):
+		"""
+		"""
+
+		self.logger.close()
+		self.logger.connect( self.extaddr, self.extport)
+		self.logger.registerToLoggerForWeb( self.uid,self.components_check, self.logtype, self.globalOrder, self.groupOrder,self.searchDate, self.keystr )
+		def onReceivedLog(logs):
+			if self.first < 2 :
+				for e in logs:
+					self.wsInst.send(e)
+				self.first = self.first + 1
+			self.pops = list.pop(logs)
+			if self.again > 0:
+				if self.pops != self.pops_end:
+					self.again = self.again - 1
+					if self.again < 0:
+						self.again = 0
+			if self.again < 6:
+				if self.pops == self.pops_end:
+					self.again = self.again + 1
+				self.wsInst.send(self.pops)
+				self.pops_end = self.pops
+			self.logger.deregisterFromLogger()
+		self.logger.receiveLog(onReceivedLog, True)
+		
+		if self.wsInst:
+			self.wsInst.close()
+		self.logger.close()
+
+	def close(self):
+		"""
+		"""
+		self.logger.close()	
+		self.logger.deregisterFromLogger()
+
+		if self.wsInst:
+			self.wsInst.close()
+		self.wsInst = None
+		
+		self.extaddr = ""
+		self.extport = 0

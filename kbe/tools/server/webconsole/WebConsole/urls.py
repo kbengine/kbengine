@@ -13,7 +13,7 @@ Including another URLconf
     1. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import include, url
-from . import views, auth
+from . import views, auth, views_console, views_profile, views_log
 
 urlpatterns = [
     url(r'^login$', auth.login, name = "login"),
@@ -30,6 +30,8 @@ urlpatterns = [
     url(r'^components/manage$', views.components_manage, name = "components_manage"),
     url(r'^components/run$', views.components_run, name = "components_run"),
     url(r'^components/shutdown$', views.components_shutdown, name = "components_shutdown"),
+    url(r'^components/(?P<ct>[0-9]+)/shutdown$', views.components_group_shutdown, name = "components_group_shutdown"),
+    url(r'^components/(?P<ct>[0-9]+)/query$', views.components_group_query, name = "components_group_query" ),
     url(r'^components/query$', views.components_query, name = "components_query" ),
     url(r'^components/query_machines$', views.components_query_machines, name = "components_query_machines" ),
     url(r'^components/save_layout$', views.components_save_layout, name = "components_save_layout" ),
@@ -39,8 +41,15 @@ urlpatterns = [
    
     url(r'^machines/show_all$', views.machines_show_all, name = "machines_show_all" ),
 
-    url(r'^console/show_components$', views.console_show_components, name = "console_show_components" ),
-    url(r'^console/connect$', views.console_connect, name = "console_connect" ),
-    url(r'^console/process_cmd$', views.console_process_cmd, name = "console_process_cmd" ),
+    url(r'^console/show_components$', views_console.show_components, name = "console_show_components" ),
+    url(r'^console/connect$', views_console.connect, name = "console_connect" ),
+    url(r'^console/process_cmd$', views_console.process_cmd, name = "console_process_cmd" ),
    
+    url(r'^profile/show_components$', views_profile.show_components, name = "console_show_components" ),
+    url(r'^profile/connect$', views_profile.connect, name = "console_connect" ),
+    url(r'^profile/process_cmd$', views_profile.process_cmd, name = "console_process_cmd" ),
+   
+    url(r'^log/connect',views_log.connect, name = "real_time_log" ),
+    url(r'^log/process_cmd$', views_log.process_cmd, name = "log_process_cmd" ),
+    url(r'^log/connect/pull',views_log.pull_log,name = "pull_log"),
 ]

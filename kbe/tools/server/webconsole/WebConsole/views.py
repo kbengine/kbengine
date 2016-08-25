@@ -54,6 +54,45 @@ def components_query( request ):
 	
 	return HttpResponse( json.dumps( kbeComps ), content_type="application/json" )
 
+def components_group_query( request , ct):
+	"""
+	请求获取一组组件数据
+	"""
+	ct = int(ct)
+	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
+	components.queryAllInterfaces(timeout = 0.5)
+
+	# [ [machine, other-components, ...], ...]
+	kbeComps = []
+	for mID, comps in components.interfaces_groups.items():
+		if len( comps ) <= 1:
+			continue
+
+		dl = []
+		kbeComps.append( dl )
+		for comp in comps:
+			if comp.componentType == ct or comp.componentType == 8:
+				d = {
+					"ip"            : comp.intaddr,
+					"componentType" : comp.componentType,
+					"componentName" : comp.componentName,
+					"fullname"      : comp.fullname,
+					"uid"           : comp.uid,
+					"pid"           : comp.pid,
+					"componentID"   : comp.componentID,
+					"globalOrderID" : comp.globalOrderID,
+					"cpu"           : comp.cpu,
+					"mem"           : comp.mem,
+					"usedmem"       : comp.usedmem,
+					"entities"      : comp.entities,
+					"proxies"       : comp.proxies,
+					"clients"       : comp.clients,
+					"consolePort"   : comp.consolePort,
+				}
+				dl.append( d )
+		
+	return HttpResponse( json.dumps( kbeComps ), content_type="application/json" )
+
 @login_check
 def components_query_machines( request ):
 	"""
@@ -145,6 +184,22 @@ def components_stop( request ):
 	# 当前Machine不支持停止单个组件
 
 @login_check
+def components_group_shutdown( request ,ct ):
+	"""
+	停止一组服务器组件
+	"""
+	ct = int(ct)
+	
+	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
+	
+	components.stopServer( ct, trycount = 0 )
+	context = {
+		"shutType": "group_ct",
+		"ct":ct
+ 	}
+	return render( request, "WebConsole/components_shutdown.html", context )
+
+@login_check
 def components_shutdown( request ):
 	"""
 	停止服务器
@@ -165,8 +220,10 @@ def components_shutdown( request ):
 	
 	for ctid in COMPS_FOR_SHUTDOWN:
 		components.stopServer( ctid, trycount = 0 )
-	
-	return render( request, "WebConsole/components_shutdown.html", {} )
+	context = {
+		"shutType": "all_ct"
+ 	}
+	return render( request, "WebConsole/components_shutdown.html", context )
 
 @login_check
 def components_save_layout( request ):
@@ -287,6 +344,7 @@ def components_load_layout( request ):
 			Define.BASEAPP_TYPE,
 			Define.INTERFACES_TYPE,
 			Define.LOGGER_TYPE,
+			
 		] )
 	
 	try:
@@ -305,25 +363,35 @@ def components_load_layout( request ):
 			return render( request, "WebConsole/components_load_layout.html", { "error" : "服务器正在运行，不允许加载" } )
 
 	# 计数器
-	t2c = [0,] * len(Define.COMPONENT_NAME)
+	t2c            = [0,] * len(Define.COMPONENT_NAME)
+	components_ct  = [0,] * len(Define.COMPONENT_NAME)
+	components_cid = [0,] * len(Define.COMPONENT_NAME)
+	components_gus = [0,] * len(Define.COMPONENT_NAME)
 
 	ly = ServerLayout.objects.get(pk = id)
 	layoutData = json.loads( ly.config )
 	for ct in VALID_CT:
 		compnentName = Define.COMPONENT_NAME[ct]
+		components_ct[ct] = ct
 		for comp in layoutData.get( compnentName, [] ):
 			cid = comp["cid"]
 			if cid <= 0:
 				cid = components.makeCID(ct)
+			components_cid[ct] = cid
 			
 			gus = comp["gus"]
 			if gus <= 0:
 				gus = components.makeGUS(ct)
+			components_gus[ct] = gus
 			t2c[ct] += 1
 			components.startServer( ct, cid, gus, comp["ip"], 0 )
-	
+
 	context = {
-		"run_counter" : str(t2c)
+		"run_counter"    : str(t2c),
+		"components_ct"  : str(components_ct),
+		"components_cid" : str(components_cid),
+		"components_gus" : str(components_gus),
+		"components_ip"  : comp["ip"]
 	}
 	return render( request, "WebConsole/components_load_layout.html", context )
 
@@ -349,114 +417,4 @@ def machines_show_all( request ):
 		"KBEComps" : kbeComps,
 	}
 	return render( request, "WebConsole/machines_show_all.html", context )
-
-@login_check
-def console_show_components( request ):
-	"""
-	控制台可连接的组件显示页面
-	"""
-	VALID_CT = set( [
-			Define.DBMGR_TYPE,
-			Define.LOGINAPP_TYPE,
-			Define.CELLAPP_TYPE,
-			Define.BASEAPP_TYPE,
-			Define.INTERFACES_TYPE,
-			Define.LOGGER_TYPE,
-		] )
-
-	html_template = "WebConsole/console_show_components.html"
-	
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
-
-	# [(machine, [components, ...]), ...]
-	kbeComps = []
-	for mID, comps in components.interfaces_groups.items():
-		for comp in comps:
-			if comp.componentType in VALID_CT:
-				kbeComps.append( comp)
-
-	context = {
-		"KBEComps" : kbeComps,
-	}
-	return render( request, html_template, context )
-
-@login_check
-def console_connect( request ):
-	"""
-	控制台页面
-	"""
-	# 通过获取参数的方式校验参数是否存在
-	GET = request.GET
-	port = int( GET["port"] )
-	ip = GET["ip"]
-	title = GET["title"]
-
-	ws_url = "ws://%s/wc/console/process_cmd?host=%s&port=%s" % ( request.META["HTTP_HOST"], ip, port )
-
-	context = { "ws_url" : ws_url }
-	return render( request, "WebConsole/console_connect.html", context )
-
-
-from dwebsocket.decorators import accept_websocket
-
-#@login_check
-@accept_websocket
-def console_process_cmd( request ):
-	"""
-	"""
-	GET = request.GET
-	port = int( GET["port"] )
-	host = GET["host"]
-
-	def pre_process_cmd(cmd):
-		if cmd.endswith( b"\r\n" ):
-			return cmd
-		elif cmd[-1] == b"\r":
-			cmd += b"\n"
-		elif cmd[-1] == b"\n":
-			cmd = cmd[:-1] + b"\r\n"
-		else:
-			cmd += b"\r\n"
-		return cmd
-
-	try:
-		telnet = telnetlib.Telnet( host, port )
-	except Exception:
-		request.websocket.send("服务器连接失败！\n")
-		return
-
-	try:
-		tlfd = telnet.fileno()
-		wsfd = request.websocket.protocol.sock.fileno()
-		rlist = [ tlfd, wsfd]
-		
-		while True:
-			rl, wl, xl = select.select(rlist, [], [], 0.1)
-			if tlfd in rl:
-				data = telnet.read_some()
-				if not data:
-					break # socket closed
-				request.websocket.send( data )
-
-			if wsfd in rl:
-				data = request.websocket.read()
-				if data is None:
-					break # socket closed
-				if len(data) == 0:
-					continue
-				if data == ":quit":
-					return HttpResponse("")
-				telnet.write( pre_process_cmd( data ) )
-	except:
-		sys.excepthook( *sys.exc_info() )
-	return
-
-	# test code
-	try:
-		for message in request.websocket:
-			request.websocket.send(message)
-	except:
-		sys.excepthook( *sys.exc_info() )
-	return
 
