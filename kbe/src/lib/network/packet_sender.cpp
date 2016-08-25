@@ -38,6 +38,7 @@ namespace Network
 //-------------------------------------------------------------------------------------
 PacketSender::PacketSender() :
 	pEndpoint_(NULL),
+	pChannel_(NULL),
 	pNetworkInterface_(NULL)
 {
 }
@@ -46,6 +47,7 @@ PacketSender::PacketSender() :
 PacketSender::PacketSender(EndPoint & endpoint,
 	   NetworkInterface & networkInterface):
 	pEndpoint_(&endpoint),
+	pChannel_(NULL),
 	pNetworkInterface_(&networkInterface)
 {
 }
@@ -58,7 +60,16 @@ PacketSender::~PacketSender()
 //-------------------------------------------------------------------------------------
 Channel* PacketSender::getChannel()
 {
-	return pNetworkInterface_->findChannel(pEndpoint_->addr());
+	if (pChannel_)
+	{
+		if (pChannel_->isDestroyed())
+			return NULL;
+
+		return pChannel_;
+	}
+
+	pChannel_ = pNetworkInterface_->findChannel(pEndpoint_->addr());
+	return pChannel_;
 }
 
 //-------------------------------------------------------------------------------------
