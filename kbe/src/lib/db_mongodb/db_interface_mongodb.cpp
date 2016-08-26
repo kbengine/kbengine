@@ -311,7 +311,7 @@ namespace KBEngine {
 		{
 			bson_error_t  error;
 			const bson_t *doc;
-			mongoc_cursor_t * cursor = collectionFind(tableName, bsons);
+			mongoc_cursor_t * cursor = collectionFind(tableName, MONGOC_QUERY_NONE,0,0,0, bsons, NULL, NULL);
 
 			uint32 nrows = 0;
 			uint32 nfields = 1;
@@ -344,18 +344,18 @@ namespace KBEngine {
 		else if (str_queryType == "delete")
 		{
 			resultFlag = false;
-			collectionRemove(tableName, bsons);
+			collectionRemove(tableName, MONGOC_REMOVE_SINGLE_REMOVE, bsons, NULL);
 		}
 		else if (str_queryType == "insert")
 		{
 			resultFlag = false;
-			insertCollection(tableName, bsons);
+			insertCollection(tableName, MONGOC_INSERT_NONE, bsons, NULL);
 		}
 		else if (str_queryType == "update")
 		{
 			resultFlag = false;
 			bson_t *doc = bson_new();
-			updateCollection(tableName, bsons, doc);
+			updateCollection(tableName, MONGOC_UPDATE_NONE, bsons, doc, NULL);
 			bson_destroy(doc);
 		}
 
@@ -514,11 +514,11 @@ namespace KBEngine {
 		return true;
 	}
 
-	bool DBInterfaceMongodb::insertCollection(const char *tableName, bson_t *data)
+	bool DBInterfaceMongodb::insertCollection(const char *tableName, mongoc_insert_flags_t flags, const bson_t *document, const mongoc_write_concern_t *write_concern)
 	{
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
-		bool r = mongoc_collection_insert(collection, MONGOC_INSERT_NONE, data, NULL, &error);
+		bool r = mongoc_collection_insert(collection, flags, document, write_concern, &error);
 		if (!r) 
 		{
 			ERROR_MSG("%s\n", error.message);
@@ -529,21 +529,21 @@ namespace KBEngine {
 		return r;
 	}
 
-	mongoc_cursor_t *  DBInterfaceMongodb::collectionFind(const char *tableName, bson_t *query)
+	mongoc_cursor_t *  DBInterfaceMongodb::collectionFind(const char *tableName, mongoc_query_flags_t flags, uint32_t skip, uint32_t limit, uint32_t  batch_size, const bson_t *query, const bson_t *fields, const mongoc_read_prefs_t *read_prefs)
 	{
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
-		mongoc_cursor_t * cursor = mongoc_collection_find(collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+		mongoc_cursor_t * cursor = mongoc_collection_find(collection, flags, skip, limit, batch_size, query, fields, read_prefs);
 
 		mongoc_collection_destroy(collection);
 		return cursor;
 	}
 
-	bool DBInterfaceMongodb::updateCollection(const char *tableName, bson_t *query, bson_t *doc)
+	bool DBInterfaceMongodb::updateCollection(const char *tableName, mongoc_update_flags_t uflags, const bson_t *selector, const bson_t *update, const mongoc_write_concern_t *write_concern)
 	{
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
-		bool r = mongoc_collection_update(collection, MONGOC_UPDATE_NONE, query, doc, NULL, &error);
+		bool r = mongoc_collection_update(collection, uflags, selector, update, write_concern, &error);
 		if (!r)
 		{
 			ERROR_MSG("%s\n", error.message);
@@ -553,11 +553,11 @@ namespace KBEngine {
 		return r;
 	}
 
-	bool DBInterfaceMongodb::collectionRemove(const char *tableName, bson_t *doc)
+	bool DBInterfaceMongodb::collectionRemove(const char *tableName, mongoc_remove_flags_t flags, const bson_t *selector, const mongoc_write_concern_t *write_concern)
 	{
 		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
-		bool r = mongoc_collection_remove(collection, MONGOC_REMOVE_SINGLE_REMOVE, doc, NULL, &error);
+		bool r = mongoc_collection_remove(collection, flags, selector, write_concern, &error);
 		if (!r)
 		{
 			ERROR_MSG("%s\n", error.message);

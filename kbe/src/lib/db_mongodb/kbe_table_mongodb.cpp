@@ -31,7 +31,7 @@ namespace KBEngine {
 		BSON_APPEND_INT64(&options, "componentID", componentID);
 
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-		pdbiMongodb->insertCollection("kbe_entitylog", &options);
+		pdbiMongodb->insertCollection("kbe_entitylog", MONGOC_INSERT_NONE, &options, NULL);
 
 		bson_destroy(&options);
 
@@ -47,7 +47,7 @@ namespace KBEngine {
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
 		//const std::list<const bson_t *> value = pdbiMongodb->collectionFind("kbe_entitylog", &query);
 
-		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_entitylog", &query);
+		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_entitylog", MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
 
 		entitylog.dbid = dbid;
 		entitylog.componentID = 0;
@@ -111,7 +111,7 @@ namespace KBEngine {
 		
 
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-		if (pdbiMongodb->collectionRemove("kbe_entitylog", &doc))
+		if (pdbiMongodb->collectionRemove("kbe_entitylog", MONGOC_REMOVE_SINGLE_REMOVE, &doc, NULL))
 			r = false;
 
 		return r;
@@ -152,7 +152,7 @@ namespace KBEngine {
 		BSON_APPEND_UTF8(&query, "accountName", name.c_str(), name.size());
 
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_accountinfos", &query);
+		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_accountinfos", MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
 
 		std::list<const bson_t *> value;
 		const bson_t *doc;
@@ -221,7 +221,7 @@ namespace KBEngine {
 		BSON_APPEND_INT64(&query, "entityDBID", dbid);
 
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-		pdbiMongodb->updateCollection("kbe_accountinfos", &query, doc);
+		pdbiMongodb->updateCollection("kbe_accountinfos", MONGOC_UPDATE_NONE, &query, doc, NULL);
 
 		bson_destroy(&query);
 		bson_destroy(doc);
@@ -252,7 +252,7 @@ namespace KBEngine {
 		BSON_APPEND_INT32(&options, "numlogin", 0);
 
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-		pdbiMongodb->insertCollection("kbe_accountinfos", &options);
+		pdbiMongodb->insertCollection("kbe_accountinfos", MONGOC_INSERT_NONE, &options, NULL);
 
 		bson_destroy(&options);
 

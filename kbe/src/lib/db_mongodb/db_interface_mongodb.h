@@ -135,13 +135,13 @@ namespace KBEngine
 		*/
 		bool createCollection(const char *tableName);
 
-		bool insertCollection(const char *tableName, bson_t *data);
+		bool insertCollection(const char *tableName, mongoc_insert_flags_t flags, const bson_t *document, const mongoc_write_concern_t *write_concern);
 
-		mongoc_cursor_t *  collectionFind(const char *tableName, bson_t *query);
+		mongoc_cursor_t *  collectionFind(const char *tableName, mongoc_query_flags_t flags, uint32_t skip, uint32_t limit, uint32_t  batch_size, const bson_t *query, const bson_t *fields, const mongoc_read_prefs_t *read_prefs);
 
-		bool updateCollection(const char *tableName, bson_t *query, bson_t *doc);
+		bool updateCollection(const char *tableName, mongoc_update_flags_t uflags, const bson_t *selector, const bson_t *update, const mongoc_write_concern_t *write_concern);
 
-		bool collectionRemove(const char *tableName, bson_t *doc);
+		bool collectionRemove(const char *tableName, mongoc_remove_flags_t flags, const bson_t *selector, const mongoc_write_concern_t *write_concern);
 
 	protected:
 		mongoc_client_t *_pMongoClient;

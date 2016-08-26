@@ -277,7 +277,7 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR3; }
 
-		virtual bool isSameKey(std::string key){ return true; }
+		virtual bool isSameKey(std::string key);
 
 		/**
 		同步entity表到数据库中
@@ -318,7 +318,7 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_VECTOR4; }
 
-		virtual bool isSameKey(std::string key){ return true; }
+		virtual bool isSameKey(std::string key);
 
 		/**
 		同步entity表到数据库中
@@ -388,7 +388,7 @@ namespace KBEngine {
 
 		virtual ~EntityTableItemMongodb_ARRAY(){};
 
-		virtual bool isSameKey(std::string key){ return false; }
+		virtual bool isSameKey(std::string key);
 
 		/**
 		初始化
@@ -435,7 +435,7 @@ namespace KBEngine {
 
 		uint8 type() const{ return TABLE_ITEM_TYPE_FIXEDDICT; }
 
-		virtual bool isSameKey(std::string key){ return true; }
+		virtual bool isSameKey(std::string key);
 
 		/**
 		初始化

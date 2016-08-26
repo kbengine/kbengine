@@ -133,6 +133,78 @@ namespace KBEngine {
 			//在这里写执行命令，初始化数据库的表结构
 			DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
 			pdbiMongodb->createCollection(name);
+
+			//bson_t query;
+			//bson_init(&query);
+			//mongoc_cursor_t * cursor = pdbiMongodb->collectionFind(name, MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
+
+			//const bson_t *doc = NULL;
+			//if (mongoc_cursor_more(cursor))
+			//{
+			//	mongoc_cursor_next(cursor, &doc);
+			//}
+
+			//if (doc == NULL)
+			//{
+			//	mongoc_cursor_destroy(cursor);
+			//	bson_destroy(&query);
+			//	return true;
+			//}
+
+			//如果存在数据，我们通过遍历数据，就可以知道目前列的值,删除多余的列
+			//bson_iter_t iter;
+			//bson_iter_init(&iter, doc);
+			//
+			//while (bson_iter_next(&iter))
+			//{
+			//	const char *ikey = bson_iter_key(&iter);
+			//	std::string tname(ikey);
+
+			//	if (tname == "_id" || tname == TABLE_ID_CONST_STR ||
+			//		tname == TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR ||
+			//		tname == TABLE_PARENTID_CONST_STR)
+			//	{
+			//		continue;
+			//	}
+
+			//	EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+			//	bool found = false;
+
+			//	for (; iter != tableItems_.end(); ++iter)
+			//	{
+			//		if (iter->second->isSameKey(tname))
+			//		{
+			//			found = true;
+			//			break;
+			//		}
+			//	}
+
+			//	
+			//	if (!found)
+			//	{
+			//		//在新的def中没有发现，所以要执行删除命令
+			//		bson_t query;
+			//		bson_init(&query);
+
+			//		bson_error_t  error;					
+			//		char command[MAX_BUF];
+			//		kbe_snprintf(command, MAX_BUF, "{\"$set\":{\"%s\":10}}", tname.c_str());
+			//		std::string t_command(command);
+			//		bson_t * bsons = bson_new_from_json((const uint8_t *)t_command.c_str(), t_command.length(), &error);
+			//		
+
+			//		if (bsons == NULL)
+			//		{
+			//			ERROR_MSG("%s\n", error.message);
+			//		}
+
+			//		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+			//		pdbiMongodb->updateCollection(name, MONGOC_UPDATE_MULTI_UPDATE, &query, bsons, NULL);
+			//	}
+			//}
+
+			//mongoc_cursor_destroy(cursor);
+			//bson_destroy(&query);
 		}
 		return true;
 	}
@@ -294,7 +366,7 @@ namespace KBEngine {
 
 			BSON_APPEND_INT64(&doc, "id", context.dbid);
 			BSON_APPEND_INT32(&doc, TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, shouldAutoLoad);
-			pdbiMongodb->updateCollection(name, &query, &doc);
+			pdbiMongodb->updateCollection(name, MONGOC_UPDATE_NONE, &query, &doc, NULL);
 
 			bson_destroy(&query);
 
@@ -308,7 +380,7 @@ namespace KBEngine {
 			context.dbid = genUUID64();
 			BSON_APPEND_INT64(&doc, TABLE_ID_CONST_STR, context.dbid);
 			BSON_APPEND_INT32(&doc, TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, shouldAutoLoad);
-			pdbiMongodb->insertCollection(name, &doc);
+			pdbiMongodb->insertCollection(name, MONGOC_INSERT_NONE, &doc, NULL);
 		}
 
 		bson_destroy(&doc);
@@ -353,7 +425,7 @@ namespace KBEngine {
 		char name[MAX_BUF];
 		kbe_snprintf(name, MAX_BUF, ENTITY_TABLE_PERFIX "_%s", context.tableName.c_str());
 
-		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind(name, &query);
+		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind(name, MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
 		
 		std::list<const bson_t *> value;
 		const bson_t *doc;
@@ -545,6 +617,17 @@ namespace KBEngine {
 	}
 
 	//-------------------------------------------------------------------------------------
+	bool EntityTableItemMongodb_VECTOR3::isSameKey(std::string key)
+	{
+		for (int i = 0; i<3; ++i)
+		{
+			if (key == db_item_names_[i])
+				return true;
+		}
+
+		return false;
+	}
+
 	void EntityTableItemMongodb_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc)
 	{
 		if (s == NULL)
@@ -613,6 +696,17 @@ namespace KBEngine {
 	}
 
 	//-------------------------------------------------------------------------------------
+	bool EntityTableItemMongodb_VECTOR4::isSameKey(std::string key)
+	{
+		for (int i = 0; i<4; ++i)
+		{
+			if (key == db_item_names_[i])
+				return true;
+		}
+
+		return false;
+	}
+
 	void EntityTableItemMongodb_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc)
 	{
 		if (s == NULL)
@@ -767,6 +861,12 @@ namespace KBEngine {
 		return true;
 	}
 
+	bool EntityTableItemMongodb_ARRAY::isSameKey(std::string key)
+	{
+		//这里和mysql做法不一样，因为mongodb的array不是单独分配一张表
+		return pChildTable_->tableName() == key;
+	}
+
 	void EntityTableItemMongodb_ARRAY::init_db_item_name(const char* exstrFlag)
 	{
 		if (pChildTable_)
@@ -880,6 +980,24 @@ namespace KBEngine {
 	}
 
 	//-------------------------------------------------------------------------------------
+	
+	bool EntityTableItemMongodb_FIXED_DICT::isSameKey(std::string key)
+	{
+		FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
+		bool tmpfound = false;
+
+		for (; fditer != keyTypes_.end(); ++fditer)
+		{
+			if (fditer->second->isSameKey(key))
+			{
+				tmpfound = true;
+				break;
+			}
+		}
+
+		return tmpfound;
+	}
+	
 	void EntityTableItemMongodb_FIXED_DICT::init_db_item_name(const char* exstrFlag)
 	{
 		FIXEDDICT_KEYTYPES::iterator fditer = keyTypes_.begin();
