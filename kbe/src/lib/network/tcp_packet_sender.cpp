@@ -90,6 +90,8 @@ TCPPacketSender::~TCPPacketSender()
 void TCPPacketSender::onGetError(Channel* pChannel)
 {
 	pChannel->condemn();
+	pChannel->networkInterface().deregisterChannel(pChannel);
+	pChannel->destroy();
 }
 
 //-------------------------------------------------------------------------------------

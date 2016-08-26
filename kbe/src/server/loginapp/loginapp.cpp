@@ -253,7 +253,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 
 	if(!g_kbeSrvConfig.getDBMgr().account_registration_enable)
 	{
-		WARNING_MSG(fmt::format("Loginapp::_createAccount({}): not available! modify kbengine[_defs].xml->dbmgr->account_registration.\n",
+		ERROR_MSG(fmt::format("Loginapp::_createAccount({}): not available! modify kbengine[_defs].xml->dbmgr->account_registration.\n",
 			accountName));
 
 		std::string retdatas = "";
@@ -699,7 +699,7 @@ void Loginapp::reqAccountResetPassword(Network::Channel* pChannel, std::string& 
 
 	if (!g_kbeSrvConfig.getDBMgr().account_registration_enable)
 	{
-		WARNING_MSG(fmt::format("Loginapp::reqAccountResetPassword({}): not available! modify kbengine[_defs].xml->dbmgr->account_resetPassword.\n", 
+		ERROR_MSG(fmt::format("Loginapp::reqAccountResetPassword({}): not available! modify kbengine[_defs].xml->dbmgr->account_resetPassword.\n",
 			accountName));
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
