@@ -1152,7 +1152,14 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		s >> wasActiveEntityID;
 	}
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: createToComponentID({}) != currComponentID({}), "
+			"dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}, wasActiveCID={}, wasActiveEntityID={}!\n",
+			createToComponentID, g_componentID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive, wasActiveCID, wasActiveEntityID));
+
+		KBE_ASSERT(false);
+	}
 
 	if(!success)
 	{
@@ -1662,7 +1669,14 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	s >> entityID;
 	s >> wasActive;
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBIDOtherBaseapp: createToComponentID({}) != currComponentID({}), "
+			"sourceBaseappID={}, dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}!\n",
+			createToComponentID, g_componentID, sourceBaseappID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive));
+
+		KBE_ASSERT(false);
+	}
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
@@ -2138,7 +2152,14 @@ void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	s >> entityID;
 	s >> wasActive;
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseRemotelyFromDBIDOtherBaseapp: createToComponentID({}) != currComponentID({}), "
+			"sourceBaseappID={}, dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}!\n",
+			createToComponentID, g_componentID, sourceBaseappID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive));
+
+		KBE_ASSERT(false);
+	}
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
