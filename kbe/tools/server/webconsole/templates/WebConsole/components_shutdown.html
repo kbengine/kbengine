@@ -78,8 +78,9 @@
     function queryComponents()
     {
         $.ajax({
-            {% if shutType == "group_ct" %}
-                url : "/wc/components/{{ ct }}/query",
+            {% if shutType == "stop_cid" %}
+                // cid ={{cid}};
+                url : "/wc/components/{{ ct }}/{{cid}}/query",
             {% else %}
                 url : "/wc/components/query",
             {% endif %}
