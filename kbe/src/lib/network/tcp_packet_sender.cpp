@@ -90,6 +90,11 @@ TCPPacketSender::~TCPPacketSender()
 void TCPPacketSender::onGetError(Channel* pChannel)
 {
 	pChannel->condemn();
+	
+	// 此处不必立即销毁，可能导致bufferedReceives_内部遍历迭代器破坏
+	// 交给TCPPacketReceiver处理即可
+	//pChannel->networkInterface().deregisterChannel(pChannel);
+	//pChannel->destroy();
 }
 
 //-------------------------------------------------------------------------------------
