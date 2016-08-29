@@ -54,7 +54,7 @@ def components_query( request ):
 	
 	return HttpResponse( json.dumps( kbeComps ), content_type="application/json" )
 
-def components_group_query( request , ct):
+def components_group_query( request , ct ):
 	"""
 	请求获取一组组件数据
 	"""
@@ -91,6 +91,108 @@ def components_group_query( request , ct):
 				}
 				dl.append( d )
 		
+	return HttpResponse( json.dumps( kbeComps ), content_type="application/json" )
+
+def components_one_query( request , ct, cid ):
+	"""
+	请求获取一个组件数据
+	"""
+	ct = int(ct)
+	cid = int(cid)
+	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
+	components.queryAllInterfaces(timeout = 0.5)
+
+	# [ [machine, other-components, ...], ...]
+	kbeComps = []
+	for mID, comps in components.interfaces_groups.items():
+		if len( comps ) <= 1:
+			continue
+
+		dl = []
+		kbeComps.append( dl )
+		for comp in comps:
+			if comp.componentType == 8:
+				d = {
+					"ip"            : comp.intaddr,
+					"componentType" : comp.componentType,
+					"componentName" : comp.componentName,
+					"fullname"      : comp.fullname,
+					"uid"           : comp.uid,
+					"pid"           : comp.pid,
+					"componentID"   : comp.componentID,
+					"globalOrderID" : comp.globalOrderID,
+					"cpu"           : comp.cpu,
+					"mem"           : comp.mem,
+					"usedmem"       : comp.usedmem,
+					"entities"      : comp.entities,
+					"proxies"       : comp.proxies,
+					"clients"       : comp.clients,
+					"consolePort"   : comp.consolePort,
+				}
+				dl.append( d )
+
+			if comp.componentID == cid:
+				d = {
+					"ip"            : comp.intaddr,
+					"componentType" : comp.componentType,
+					"componentName" : comp.componentName,
+					"fullname"      : comp.fullname,
+					"uid"           : comp.uid,
+					"pid"           : comp.pid,
+					"componentID"   : comp.componentID,
+					"globalOrderID" : comp.globalOrderID,
+					"cpu"           : comp.cpu,
+					"mem"           : comp.mem,
+					"usedmem"       : comp.usedmem,
+					"entities"      : comp.entities,
+					"proxies"       : comp.proxies,
+					"clients"       : comp.clients,
+					"consolePort"   : comp.consolePort,
+				}
+				dl.append( d )
+			
+			if ct == 3:
+				if comp.componentType == 6 or comp.componentType == 3:
+					d = {
+						"ip"            : comp.intaddr,
+						"componentType" : comp.componentType,
+						"componentName" : comp.componentName,
+						"fullname"      : comp.fullname,
+						"uid"           : comp.uid,
+						"pid"           : comp.pid,
+						"componentID"   : comp.componentID,
+						"globalOrderID" : comp.globalOrderID,
+						"cpu"           : comp.cpu,
+						"mem"           : comp.mem,
+						"usedmem"       : comp.usedmem,
+						"entities"      : comp.entities,
+						"proxies"       : comp.proxies,
+						"clients"       : comp.clients,
+						"consolePort"   : comp.consolePort,
+					}
+					dl.append( d )
+					
+			if ct == 4:
+				if comp.componentType == 5 or comp.componentType == 4:
+					d = {
+						"ip"            : comp.intaddr,
+						"componentType" : comp.componentType,
+						"componentName" : comp.componentName,
+						"fullname"      : comp.fullname,
+						"uid"           : comp.uid,
+						"pid"           : comp.pid,
+						"componentID"   : comp.componentID,
+						"globalOrderID" : comp.globalOrderID,
+						"cpu"           : comp.cpu,
+						"mem"           : comp.mem,
+						"usedmem"       : comp.usedmem,
+						"entities"      : comp.entities,
+						"proxies"       : comp.proxies,
+						"clients"       : comp.clients,
+						"consolePort"   : comp.consolePort,
+					}
+					dl.append( d )
+				
 	return HttpResponse( json.dumps( kbeComps ), content_type="application/json" )
 
 @login_check
@@ -171,34 +273,24 @@ def components_run( request ):
 	return render( request, "WebConsole/components_run.html", context )
 
 @login_check
-def components_stop( request ):
+def components_stop( request, ct, cid ):
 	"""
 	停止一个组件
 	"""
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
-	context = {}
-	
-	POST = request.POST
-	
-	# 当前Machine不支持停止单个组件
-
-@login_check
-def components_group_shutdown( request ,ct ):
-	"""
-	停止一组服务器组件
-	"""
 	ct = int(ct)
+	cid = int(cid)
 	
 	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	
-	components.stopServer( ct, trycount = 0 )
+	# components.queryAllInterfaces(timeout = 0.5)
+
+	components.stopServer( ct, componentID = cid, trycount = 0 )
 	context = {
-		"shutType": "group_ct",
-		"ct":ct
+		"shutType": "stop_cid",
+		"ct" : ct,
+		"cid": cid
  	}
 	return render( request, "WebConsole/components_shutdown.html", context )
-
+	
 @login_check
 def components_shutdown( request ):
 	"""

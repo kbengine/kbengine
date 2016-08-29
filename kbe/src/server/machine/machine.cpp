@@ -780,7 +780,10 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			Components::ComponentInfos* cinfos = &(*iter);
 
 			if(componentID > 0 && componentID != cinfos->cid)
+			{
+				iter++;
 				continue;
+			}
 
 			if(cinfos->uid != uid)
 			{
