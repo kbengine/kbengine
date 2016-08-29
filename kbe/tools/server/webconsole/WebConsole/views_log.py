@@ -362,8 +362,52 @@ def pull_log(request):
 
 	return HttpResponse( json.dumps( message ) ,content_type='application/json' )
 
-from pycommon.LoggerWatcher import LogWatch, logName2type
+from pycommon.LoggerWatcher import LoggerWatcher, logName2type
 from dwebsocket.decorators import accept_websocket
+
+class LogWatch(object):
+	"""
+	日志输出
+	"""
+	def __init__(self,wsInst, extaddr, extport, uid, components_check, logtype, globalOrder, groupOrder, searchDate, keystr):
+		self.wsInst = wsInst
+		self.extaddr = extaddr
+		self.extport = extport
+		self.uid = uid
+		self.components_check = components_check
+		self.logtype = logtype
+		self.globalOrder = globalOrder
+		self.groupOrder = groupOrder
+		self.searchDate = searchDate
+		self.keystr = keystr
+		self.logger = LoggerWatcher()
+		self.previous_log = []
+
+	def do(self):
+		"""
+		"""
+		self.logger.close()
+		self.logger.connect( self.extaddr, self.extport)
+		self.logger.registerToLoggerForWeb( self.uid,self.components_check, self.logtype, self.globalOrder, self.groupOrder,self.searchDate, self.keystr )
+		def onReceivedLog(logs):
+			new_logs = list(set(logs)^set(self.previous_log))
+			for e in new_logs:
+				self.wsInst.send(e)
+			self.previous_log = logs
+		self.logger.receiveLog(onReceivedLog, True)
+		
+	def close(self):
+		"""
+		"""
+		self.logger.close()	
+		self.logger.deregisterFromLogger()
+
+		if self.wsInst:
+			self.wsInst.close()
+		self.wsInst = None
+		
+		self.extaddr = ""
+		self.extport = 0
 
 #@login_check
 @accept_websocket
