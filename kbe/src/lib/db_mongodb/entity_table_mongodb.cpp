@@ -134,6 +134,8 @@ namespace KBEngine {
 			DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
 			pdbiMongodb->createCollection(name);
 
+			//因为mongodb缺少对数组的批量修改，导致无法像mysql那样做def字段的增加和删改。为了解决这个问题，要发挥mongodb的文件型数据库的的特点
+			//将对数据表结构不进行更新，通过兼容性达到表的正确使用。
 			//bson_t query;
 			//bson_init(&query);
 			//mongoc_cursor_t * cursor = pdbiMongodb->collectionFind(name, MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
@@ -604,8 +606,15 @@ namespace KBEngine {
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
+			{
+				//如果没有找到数据，需要做兼容性处理
+#ifdef CLIENT_NO_FLOAT
+				(*s) << (int32)0;
+#else
+				(*s) << (float)0;
+#endif
 				continue;
-
+			}
 #ifdef CLIENT_NO_FLOAT
 			int32 v = bson_iter_int32(&iter);
 #else
@@ -683,7 +692,15 @@ namespace KBEngine {
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
+			{
+				//如果没有找到数据，需要做兼容性处理
+#ifdef CLIENT_NO_FLOAT
+				(*s) << (int32)0;
+#else
+				(*s) << (float)0;
+#endif
 				continue;
+			}
 
 #ifdef CLIENT_NO_FLOAT
 			int32 v = bson_iter_int32(&iter);
@@ -763,7 +780,15 @@ namespace KBEngine {
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
+			{
+				//如果没有找到数据，需要做兼容性处理
+#ifdef CLIENT_NO_FLOAT
+				(*s) << (int32)0;
+#else
+				(*s) << (float)0;
+#endif
 				continue;
+			}
 
 #ifdef CLIENT_NO_FLOAT
 			int32 v = bson_iter_int32(&iter);
@@ -926,8 +951,13 @@ namespace KBEngine {
 		{
 			bson_iter_t biter;
 			bson_iter_t array_iter;
-			if (!bson_iter_init_find(&biter, doc, pChildTable_->tableName()))
+			if (!bson_iter_init_find(&biter, doc, pChildTable_->tableName()) || !BSON_ITER_HOLDS_ARRAY(&biter))
+			{
+				//如果没有找到数据，需要做兼容性处理
+				(*s) << (ArraySize)0;
 				return;
+			}
+
 			bson_iter_recurse(&biter, &array_iter);
 			
 			mongodb::DBContext::DB_RW_CONTEXTS::iterator iter = context.optable.begin();
@@ -936,7 +966,7 @@ namespace KBEngine {
 				if (pChildTable_->tableName() == iter->first)
 				{
 					ArraySize size = 0;
-					std::list<bson_t> bsonlist;
+					std::list<bson_t *> bsonlist;
 
 					//先取数据
 					while (true)
@@ -952,8 +982,8 @@ namespace KBEngine {
 						uint32_t len;
 						bson_iter_document(&array_iter, &len, &buf);
 
-						bson_t rec;
-						bson_init_static(&rec, buf, len);
+						bson_t * rec = new bson_t();
+						bson_init_static(rec, buf, len);
 						bsonlist.push_back(rec);
 
 						size++;
@@ -964,9 +994,9 @@ namespace KBEngine {
 
 					while (!bsonlist.empty())
 					{
-						static_cast<EntityTableMongodb*>(pChildTable_)->addToStream(s, *iter->second.get(), 0, &bsonlist.front());
+						static_cast<EntityTableMongodb*>(pChildTable_)->addToStream(s, *iter->second.get(), 0, bsonlist.front());
 
-						bson_destroy(&bsonlist.front());
+						bson_destroy(bsonlist.front());
 						bsonlist.pop_front();
 					}
 
@@ -1186,61 +1216,124 @@ namespace KBEngine {
 	{
 
 		bson_iter_t iter;
+		bool isdefault = false;
 		if (!bson_iter_init_find(&iter, doc, db_item_name()))
-			return;	
+		{
+			isdefault = true;
+		}
 
 		if (dataSType_ == "INT8")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (int8)0;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			int8 vv = static_cast<int8>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "INT16")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (int16)0;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			int16 vv = static_cast<int16>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "INT32")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (int32)0;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "INT64")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT64(&iter))
+			{
+				(*s) << (int64)0;
+				return;
+			}
+
 			int64 v = bson_iter_int64(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "UINT8")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (uint8)0;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			uint8 vv = static_cast<uint8>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "UINT16")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (uint16)0;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			uint16 vv = static_cast<uint16>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "UINT32")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (uint32)0;
+				return;
+			}
+
 			uint32 v = bson_iter_int32(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "UINT64")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT64(&iter))
+			{
+				(*s) << (uint64)0;
+				return;
+			}
+
 			uint64 v = bson_iter_int64(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "FLOAT")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_DOUBLE(&iter))
+			{
+				(*s) << (float)0;
+				return;
+			}
+
 			double v = bson_iter_double(&iter);
 			float vv = static_cast<float>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "DOUBLE")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_DOUBLE(&iter))
+			{
+				(*s) << (double)0;
+				return;
+			}
+
 			double v = bson_iter_double(&iter);
 			(*s) << v;
 		}
@@ -1291,13 +1384,17 @@ namespace KBEngine {
 		mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc, db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
-			uint32_t len = 0;
-			const char * value = bson_iter_utf8(&iter, &len);
-			std::string datas(value, len);
-			(*s) << datas;
+			//如果没有找到数据，需要做兼容性处理
+			(*s) << "";
+			return;
 		}
+
+		uint32_t len = 0;
+		const char * value = bson_iter_utf8(&iter, &len);
+		std::string datas(value, len);
+		(*s) << datas;
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -1342,13 +1439,17 @@ namespace KBEngine {
 		mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc, db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
-			uint32_t len = 0;
-			const char * value = bson_iter_utf8(&iter, &len);
-			std::string datas(value, len);
-			(*s).appendBlob(datas);
+			//如果没有找到数据，需要做兼容性处理
+			(*s).appendBlob("");
+			return;
 		}
+
+		uint32_t len = 0;
+		const char * value = bson_iter_utf8(&iter, &len);
+		std::string datas(value, len);
+		(*s).appendBlob(datas.data(), datas.size());
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -1391,13 +1492,17 @@ namespace KBEngine {
 	void EntityTableItemMongodb_BLOB::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc, db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
-			uint32_t len = 0;
-			const char * value = bson_iter_utf8(&iter, &len);
-			std::string datas(value, len);
-			(*s).appendBlob(datas.data(), datas.size());
+			//如果没有找到数据，需要做兼容性处理
+			(*s).appendBlob("");
+			return;
 		}
+
+		uint32_t len = 0;
+		const char * value = bson_iter_utf8(&iter, &len);
+		std::string datas(value, len);
+		(*s).appendBlob(datas.data(), datas.size());
 
 	}
 
@@ -1441,14 +1546,18 @@ namespace KBEngine {
 	void EntityTableItemMongodb_PYTHON::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc ,db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_BINARY(&iter))
 		{
-			bson_subtype_t btype;
-			uint32_t len = 0;
-			const char * value;
-			bson_iter_binary(&iter, &btype, &len, (const uint8_t**)&value);
-			std::string datas(value, len);
-			(*s).appendBlob(datas);
+			//如果没有找到数据，需要做兼容性处理
+			(*s).appendBlob("");
+			return;
 		}
+
+		bson_subtype_t btype;
+		uint32_t len = 0;
+		const char * value;
+		bson_iter_binary(&iter, &btype, &len, (const uint8_t**)&value);
+		std::string datas(value, len);
+		(*s).appendBlob(datas);
 	}
 }
