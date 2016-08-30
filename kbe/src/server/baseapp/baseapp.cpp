@@ -4473,8 +4473,11 @@ void Baseapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << EntityDef::md5().getDigestStr();
 	(*pBundle) << g_componentType;
-	pChannel->send(pBundle);
 
+	// 此消息不允许加密，所以设定已加密忽略再次加密
+	pBundle->pCurrPacket()->encrypted(true);
+	pChannel->send(pBundle);
+	
 	if(Network::g_channelExternalEncryptType > 0)
 	{
 		if(encryptedKey.size() > 3)
