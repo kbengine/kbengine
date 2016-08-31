@@ -101,7 +101,6 @@ class TelnetConsole(object):
 		template method.
 		当从telenet控制台收到了新数据以后回调
 		"""
-		print( data )
 		self.wsInst.send( data )
 		return True
 		

@@ -1016,8 +1016,19 @@ DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint
 	str += COMPONENT_NAME_EX(componentType);
 	str += ".exe";
 
+	// 用双引号把命令行括起来，以避免路径中存在空格，从而执行错误
+	str = "\"" + str + "\"";
+
+	// 増加参数
+	str += fmt::format(" --cid={}", cid);
+	str += fmt::format(" --gus={}", gus);
+
 	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
+
+	// 使用machine当前的工作目录作为新进程的工作目录，
+	// 为一些与相对目录的文件操作操作一致的工作目录（如日志）
+	wchar_t currdir[1024];
+	GetCurrentDirectory(sizeof(currdir), currdir);
 
 	ZeroMemory( &si, sizeof(si));
 	si.cb = sizeof(si);
@@ -1042,7 +1053,6 @@ DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint
 	}
 
 	free(szCmdline);
-	free(currdir);
 
 	return pi.dwProcessId;
 }

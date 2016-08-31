@@ -192,7 +192,7 @@ class Machines:
 		self.reset()
 		
 	def __del__(self):
-		#print( "Machines destroy now" )
+		#print( "Machines::__del__(), Machines destroy now" )
 		self.stopListen()
 		
 	def startListen(self):
@@ -201,6 +201,7 @@ class Machines:
 		assert self.udp_socket is None
 		self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 5 * 1024 * 1024)
 		self.udp_socket.bind((host, self.listenPort))
 		self.replyPort = self.udp_socket.getsockname()[1]
 		#print( "udp receive addr: %s" % (self.udp_socket.getsockname(), ) )
@@ -208,8 +209,9 @@ class Machines:
 	def stopListen(self):
 		"""
 		"""
-		self.udp_socket.close()
-		self.udp_socket = None
+		if self.udp_socket is not None:
+			self.udp_socket.close()
+			self.udp_socket = None
 		
 	def reset(self):
 		"""
@@ -232,7 +234,7 @@ class Machines:
 		else:
 			_udp_broadcast_socket.sendto(msg, (ip, 20086))
 		
-	def sendAndReceive(self, msg, ip = "<broadcast>", trycount = 1, timeout = 1, callback = None):
+	def sendAndReceive(self, msg, ip = "<broadcast>", trycount = 0, timeout = 1, callback = None):
 		"""
 		发送消息，并等待消息返回
 		"""
@@ -246,7 +248,7 @@ class Machines:
 			try:
 				datas, address = self.udp_socket.recvfrom(10240)
 				recvDatas.append(datas)
-				#print ("%s received %s data from %r" % (len(recvDatas), len(datas), address))
+				#print ("Machine::sendAndReceive(), %s received %s data from %r" % (len(recvDatas), len(datas), address))
 				if callable( callback ):
 					try:
 						if callback( datas, address ):
@@ -254,11 +256,10 @@ class Machines:
 					except:
 						traceback.print_exc()
 			except socket.timeout: 
-				dectrycount -= 1
-				
 				if dectrycount <= 0:
-					#print ("recvfrom timeout!")
 					break
+				dectrycount -= 1
+				#print("Machine::sendAndReceive(), try count %s" % (trycount - dectrycount))
 			except (KeyboardInterrupt, SystemExit):
 				raise
 			except:
@@ -406,7 +407,7 @@ class Machines:
 		if not hasattr( self, "cidRand" ):
 			self.cidRand = random.randint(1, 99999)
 
-		if not hasattr( self, "ct2gus" ):
+		if not hasattr( self, "ct2cid" ):
 			self.ct2cid = [0] * Define.COMPONENT_END_TYPE
 
 		self.ct2cid[componentType] += 1

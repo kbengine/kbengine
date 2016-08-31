@@ -136,3 +136,27 @@ if django.VERSION < (1, 7):
 	    'django.core.context_processors.request',
 	)
 
+# BOOL
+# 是否使用Machines的缓冲机制；
+# 使用些机制可以减缓页面打开时的卡顿现象，
+# 但对于实时性来说，会有些偏差
+# 注意：此机制只能在独立运行时设置成true，
+#       如果部署到apache等http服务器上以后此参数仍然为True，
+#       有可能会造成大量的udp广播包
+USE_MACHINES_BUFFER = True
+
+# FLOAT；单位：秒
+# 当多长时间没有查询Machines相关数据时停止缓冲机制，
+# 以避免长时间没有人操作还不停的广播查询包
+STOP_BUFFER_TIME = 300
+
+# FLOAT；单位：秒
+# Machines缓冲机制的刷新间隔
+# 间隔时间越短，越精确，发送的数据也越频繁
+# 此参数仅在 USE_MACHINES_BUFFER = True 时起作用
+MACHINES_BUFFER_FLUSH_TIME = 1.0
+
+# FLOAT；单位：秒
+# 每次查询Machine时等待响应的最长时间
+MACHINES_QUERY_WAIT_TIME = 1.0
+
