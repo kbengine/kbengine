@@ -94,6 +94,7 @@ public:
 		typename OBJECTS::iterator iter = objects_.begin();
 		for(; iter!=objects_.end(); ++iter)
 		{
+			(*iter)->isEnabledPoolObject(false);
 			if(!(*iter)->destructorPoolObject())
 			{
 				delete (*iter);
@@ -123,8 +124,11 @@ public:
 
 	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
 	{
-		for(unsigned int i=0; i<preAssignVal; ++i){
-			objects_.push_back(new T);
+		for(unsigned int i=0; i<preAssignVal; ++i)
+		{
+			T* t = new T();
+			t->isEnabledPoolObject(false);
+			objects_.push_back(t);
 			++total_allocs_;
 			++obj_count_;
 		}
@@ -147,6 +151,7 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
+				t->isEnabledPoolObject(true);
 				pMutex_->unlockMutex();
 				return t;
 			}
@@ -175,6 +180,7 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
+				t->isEnabledPoolObject(true);
 				pMutex_->unlockMutex();
 				return t;
 			}
@@ -281,6 +287,7 @@ protected:
 		{
 			// 先重置状态
 			obj->onReclaimObject();
+			obj->isEnabledPoolObject(false);
 
 			if(size() >= max_ || isDestroyed_)
 			{
@@ -349,11 +356,21 @@ protected:
 class PoolObject
 {
 public:
+	PoolObject() : 
+		isEnabledPoolObject_(false)
+	{
+
+	}
+
 	virtual ~PoolObject(){}
 	virtual void onReclaimObject() = 0;
-	virtual void onEabledPoolObject(){}
+	virtual void onEabledPoolObject() {
+	}
 
-	virtual size_t getPoolObjectBytes(){ return 0; }
+	virtual size_t getPoolObjectBytes()
+	{ 
+		return 0; 
+	}
 
 	/**
 		池对象被析构前的通知
@@ -363,6 +380,21 @@ public:
 	{
 		return false;
 	}
+
+	bool isEnabledPoolObject() const
+	{
+		return isEnabledPoolObject_;
+	}
+
+	void isEnabledPoolObject(bool v)
+	{
+		isEnabledPoolObject_ = v;
+	}
+
+protected:
+
+	// 池对象是否处于激活（从池中已经取出）状态
+	bool isEnabledPoolObject_;
 };
 
 template< typename T >
