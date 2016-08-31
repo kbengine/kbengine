@@ -378,7 +378,16 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID, bool printlog)
 {
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
-	KBE_ASSERT(pComponentInfos != NULL);
+	if (pComponentInfos == NULL);
+	{
+		if (printlog)
+		{
+			ERROR_MSG(fmt::format("Components::connectComponent: not found componentType={}, uid={}, componentID={}!\n",
+				COMPONENT_NAME_EX(componentType), uid, componentID));
+		}
+
+		return -1;
+	}
 
 	Network::EndPoint * pEndpoint = Network::EndPoint::createPoolObject();
 	pEndpoint->socket(SOCK_STREAM);
