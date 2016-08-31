@@ -378,7 +378,7 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID, bool printlog)
 {
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
-	if (pComponentInfos == NULL);
+	if (pComponentInfos == NULL)
 	{
 		if (printlog)
 		{
