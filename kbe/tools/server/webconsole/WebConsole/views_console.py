@@ -5,7 +5,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 from .models import ServerLayout
-from pycommon import Machines, Define
+from pycommon import Define
+from .machines_mgr import machinesmgr
 
 from .auth import login_check
 
@@ -27,12 +28,11 @@ def show_components( request ):
 
 	html_template = "WebConsole/console_show_components.html"
 	
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
 
 	# [(machine, [components, ...]), ...]
 	kbeComps = []
-	for mID, comps in components.interfaces_groups.items():
+	for mID, comps in interfaces_groups.items():
 		for comp in comps:
 			if comp.componentType in VALID_CT:
 				kbeComps.append( comp)

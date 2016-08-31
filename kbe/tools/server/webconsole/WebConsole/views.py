@@ -7,6 +7,7 @@ from django.conf import settings
 
 from .models import ServerLayout
 from pycommon import Machines, Define
+from .machines_mgr import machinesmgr
 
 from .auth import login_check
 
@@ -21,12 +22,11 @@ def components_query( request ):
 	"""
 	请求获取组件数据
 	"""
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
 
 	# [ [machine, other-components, ...], ...]
 	kbeComps = []
-	for mID, comps in components.interfaces_groups.items():
+	for mID, comps in interfaces_groups.items():
 		if len( comps ) <= 1:
 			continue
 
@@ -59,12 +59,11 @@ def components_group_query( request , ct ):
 	请求获取一组组件数据
 	"""
 	ct = int(ct)
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
 
 	# [ [machine, other-components, ...], ...]
 	kbeComps = []
-	for mID, comps in components.interfaces_groups.items():
+	for mID, comps in interfaces_groups.items():
 		if len( comps ) <= 1:
 			continue
 
@@ -99,12 +98,11 @@ def components_one_query( request , ct, cid ):
 	"""
 	ct = int(ct)
 	cid = int(cid)
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
 
 	# [ [machine, other-components, ...], ...]
 	kbeComps = []
-	for mID, comps in components.interfaces_groups.items():
+	for mID, comps in interfaces_groups.items():
 		if len( comps ) <= 1:
 			continue
 
@@ -200,8 +198,7 @@ def components_query_machines( request ):
 	"""
 	请求获取所有的machines
 	"""
-	components = Machines.Machines( 0, "WebConsole" )
-	components.queryMachines()
+	machines = machinesmgr.queryMachines()
 
 	# [ machine, ...]
 	kbeComps = []
@@ -224,19 +221,18 @@ def components_manage( request ):
 	"""
 	html_template = "WebConsole/components_manage.html"
 	
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
 
 	# [(machine, [components, ...]), ...]
 	kbeComps = []
-	for mID, comps in components.interfaces_groups.items():
+	for mID, comps in interfaces_groups.items():
 		if len( comps ) > 1:
 			kbeComps.extend( comps[1:] )
 
 	context = {
 		"KBEComps" : kbeComps,
 		"hasComponents" : len( kbeComps ) > 0,
-		"hasMachines" : len( components.interfaces_groups ) > 0,
+		"hasMachines" : len( interfaces_groups ) > 0,
 	}
 	return render( request, html_template, context )
 
@@ -246,7 +242,6 @@ def components_run( request ):
 	运行组件
 	"""
 	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
 	context = {}
 	
 	POST = request.POST
@@ -256,19 +251,20 @@ def components_run( request ):
 		runNumber = int( POST.get("runNumber", "0") )
 		
 		if componentType not in Define.VALID_COMPONENT_TYPE_FOR_RUN or \
-			not components.hasMachine( targetMachine ) or \
+			not machinesmgr.hasMachine( targetMachine ) or \
 			runNumber <= 0:
 				context = { "error" : "invalid data!" }
 		else:
 			for e in range( runNumber ):
-				cid = components.makeCID( componentType )
-				gus = components.makeGUS( componentType )
+				cid = machinesmgr.makeCID( componentType )
+				gus = machinesmgr.makeGUS( componentType )
+				print("cid: %s, gus: %s" % (cid,gus))
 				components.startServer( componentType, cid, gus, targetMachine )
 
 			time.sleep( 2 )
 			return HttpResponseRedirect( "/wc/components/manage" )
 	
-	context["machines"] = components.machines
+	context["machines"] = machinesmgr.machines
 
 	return render( request, "WebConsole/components_run.html", context )
 
@@ -281,7 +277,6 @@ def components_stop( request, ct, cid ):
 	cid = int(cid)
 	
 	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	# components.queryAllInterfaces(timeout = 0.5)
 
 	components.stopServer( ct, componentID = cid, trycount = 0 )
 	context = {
@@ -338,12 +333,11 @@ def components_save_layout( request ):
 			Define.LOGGER_TYPE,
 		] )
 
-	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
 	
 	conf = {}
 	
-	for machineID, infos in components.interfaces_groups.items():
+	for machineID, infos in interfaces_groups.items():
 		for info in infos:
 			if info.componentType not in VALID_CT:
 				continue
@@ -351,7 +345,7 @@ def components_save_layout( request ):
 			compnentName = Define.COMPONENT_NAME[info.componentType]
 			if compnentName not in conf:
 				conf[compnentName] = []
-			d = { "ip" : info.intaddr, "cid" : info.componentID, "gus" : 0 } # 当前取不到gus参数，所以只是先写0
+			d = { "ip" : info.intaddr, "cid" : info.componentID, "gus" : info.genuuid_sections }
 			conf[compnentName].append( d )
 	
 	if len( conf ) == 0:
@@ -448,9 +442,9 @@ def components_load_layout( request ):
 		return render( request, "WebConsole/components_load_layout.html", { "error" : "无效的参数" } )
 	
 	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
 	
-	for mID, comps in components.interfaces_groups.items():
+	for mID, comps in interfaces_groups.items():
 		if len( comps ) > 1:
 			return render( request, "WebConsole/components_load_layout.html", { "error" : "服务器正在运行，不允许加载" } )
 
@@ -466,23 +460,24 @@ def components_load_layout( request ):
 		compnentName = Define.COMPONENT_NAME[ct]
 		components_ct[ct] = ct
 		for comp in layoutData.get( compnentName, [] ):
+			print("components_load_layout(), component data: %s" % comp)
 			cid = comp["cid"]
 			if cid <= 0:
-				cid = components.makeCID(ct)
+				cid = machinesmgr.makeCID(ct)
 			components_cid[ct] = cid
 			
 			gus = comp["gus"]
 			if gus <= 0:
-				gus = components.makeGUS(ct)
+				gus = machinesmgr.makeGUS(ct)
 			components_gus[ct] = gus
 			t2c[ct] += 1
 			components.startServer( ct, cid, gus, comp["ip"], 0 )
 
 	context = {
 		"run_counter"    : str(t2c),
-		"components_ct"  : str(components_ct),
-		"components_cid" : str(components_cid),
-		"components_gus" : str(components_gus),
+		"components_ct"  : json.dumps(components_ct),
+		"components_cid" : json.dumps(components_cid),
+		"components_gus" : json.dumps(components_gus),
 		"components_ip"  : comp["ip"]
 	}
 	return render( request, "WebConsole/components_load_layout.html", context )
@@ -492,20 +487,21 @@ def machines_show_all( request ):
 	"""
 	忽略用户，显示所有的machine
 	"""
-	components = Machines.Machines( 0, "WebConsole" )
-	components.queryAllInterfaces(timeout = 0.5)
+	interfaces_groups = machinesmgr.queryAllInterfaces(0, "WebConsole")
 
 	targetIP = request.GET.get( "target", None )
 	
 	kbeComps = []
-	for mID, comps in components.interfaces_groups.items():
+	for mID, comps in interfaces_groups.items():
 		if len( comps ) > 1 and comps[0].intaddr == targetIP:
 			kbeComps = comps[1:]
 			break
 
+	kbeMachines = machinesmgr.queryMachines()
+	kbeMachines.sort(key = lambda info: info.intaddr)
 
 	context = {
-		"KBEMachines" : components.machines,
+		"KBEMachines" : kbeMachines,
 		"KBEComps" : kbeComps,
 	}
 	return render( request, "WebConsole/machines_show_all.html", context )
