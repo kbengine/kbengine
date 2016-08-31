@@ -126,8 +126,8 @@
 			<send>
 				<messages>
 					<critical>	1024		</critical>
-					<internal>	65535		</internal>
-					<external>	512			</external>
+					<internal>	0			</internal>
+					<external>	512		</external>
 				</messages>
 				<bytes>
 					<internal>	0			</internal>
