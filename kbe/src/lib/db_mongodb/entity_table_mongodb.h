@@ -17,8 +17,8 @@ namespace KBEngine {
 	class EntityTableItemMongodbBase : public EntityTableItem
 	{
 	public:
-		EntityTableItemMongodbBase(std::string itemDBType, uint32 datalength, uint32 flags) :
-			EntityTableItem(itemDBType, datalength, flags)
+		EntityTableItemMongodbBase( uint32 datalength, uint32 flags) :	
+			EntityTableItem("", datalength, flags)
 		{
 			memset(db_item_name_, 0, MAX_BUF);
 		};
@@ -68,15 +68,18 @@ namespace KBEngine {
 
 	protected:
 		char db_item_name_[MAX_BUF];
+
 	};
 
+	template<class T>
 	class EntityTableItemMongodb_DIGIT : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_DIGIT(std::string dataSType, std::string itemDBType,
+		EntityTableItemMongodb_DIGIT(std::string dataSType, T defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags),
-			dataSType_(dataSType)
+			EntityTableItemMongodbBase(datalength, flags),
+			dataSType_(dataSType),
+			defaultValue_(defaultValue)
 		{
 		};
 
@@ -101,14 +104,16 @@ namespace KBEngine {
 		virtual void getReadSqlItem(mongodb::DBContext& context);
 	protected:
 		std::string dataSType_;
+		T defaultValue_;
 	};
 
 	class EntityTableItemMongodb_STRING : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_STRING(std::string itemDBType,
+		EntityTableItemMongodb_STRING(std::string defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags),
+			defaultValue_(defaultValue)
 		{
 		}
 
@@ -131,14 +136,17 @@ namespace KBEngine {
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context);
+	protected:
+		std::string defaultValue_;
 	};
 
 	class EntityTableItemMongodb_UNICODE : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_UNICODE(std::string itemDBType,
+		EntityTableItemMongodb_UNICODE(std::string defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags),
+			defaultValue_(defaultValue)
 		{
 		}
 
@@ -161,14 +169,17 @@ namespace KBEngine {
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context);
+	protected:
+		std::string defaultValue_;
 	};
 
 	class EntityTableItemMongodb_PYTHON : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_PYTHON(std::string itemDBType,
+		EntityTableItemMongodb_PYTHON(std::string defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags),
+			defaultValue_(defaultValue)
 		{
 		}
 
@@ -191,14 +202,17 @@ namespace KBEngine {
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context);
+	protected:
+		std::string defaultValue_;
 	};
 
 	class EntityTableItemMongodb_BLOB : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_BLOB(std::string itemDBType,
+		EntityTableItemMongodb_BLOB(std::string defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags),
+			defaultValue_(defaultValue)
 		{
 		}
 
@@ -221,14 +235,17 @@ namespace KBEngine {
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context);
+	protected:
+		std::string defaultValue_;
 	};
 
 	class EntityTableItemMongodb_VECTOR2 : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_VECTOR2(std::string itemDBType,
+		EntityTableItemMongodb_VECTOR2(float defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags),
+			defaultValue_(defaultValue)
 		{
 		}
 
@@ -262,14 +279,16 @@ namespace KBEngine {
 
 	protected:
 		char db_item_names_[2][MAX_BUF];
+		float defaultValue_;
 	};
 
 	class EntityTableItemMongodb_VECTOR3 : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_VECTOR3(std::string itemDBType,
+		EntityTableItemMongodb_VECTOR3(float defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags),
+			defaultValue_(defaultValue)
 		{
 		}
 
@@ -303,14 +322,16 @@ namespace KBEngine {
 
 	protected:
 		char db_item_names_[3][MAX_BUF];
+		float defaultValue_;
 	};
 
 	class EntityTableItemMongodb_VECTOR4 : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_VECTOR4(std::string itemDBType,
+		EntityTableItemMongodb_VECTOR4(float defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags),
+			defaultValue_(defaultValue)
 		{
 		}
 
@@ -344,14 +365,15 @@ namespace KBEngine {
 
 	protected:
 		char db_item_names_[4][MAX_BUF];
+		float defaultValue_;
 	};
 
 	class EntityTableItemMongodb_MAILBOX : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_MAILBOX(std::string itemDBType,
+		EntityTableItemMongodb_MAILBOX(std::string defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags)
 		{
 		}
 
@@ -374,14 +396,16 @@ namespace KBEngine {
 		*/
 		virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc);
 		virtual void getReadSqlItem(mongodb::DBContext& context);
+	protected:
+		std::string defaultValue_;
 	};
 
 	class EntityTableItemMongodb_ARRAY : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_ARRAY(std::string itemDBType,
+		EntityTableItemMongodb_ARRAY(std::string defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags),
+			EntityTableItemMongodbBase( datalength, flags),
 			pChildTable_(NULL)
 		{
 		}
@@ -423,9 +447,9 @@ namespace KBEngine {
 	class EntityTableItemMongodb_FIXED_DICT : public EntityTableItemMongodbBase
 	{
 	public:
-		EntityTableItemMongodb_FIXED_DICT(std::string itemDBType,
+		EntityTableItemMongodb_FIXED_DICT(std::string defaultValue,
 			uint32 datalength, uint32 flags) :
-			EntityTableItemMongodbBase(itemDBType, datalength, flags)
+			EntityTableItemMongodbBase( datalength, flags)
 		{
 		}
 

@@ -215,71 +215,170 @@ namespace KBEngine {
 	{
 		if (type == "INT8")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "tinyint not null DEFAULT 0", 4, 0);
+			int8 v = 0;
+			
+			try
+			{				
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<int8>(type, v, 1, 0);
 		}
 		else if (type == "INT16")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "smallint not null DEFAULT 0", 6, 0);
+			int16 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<int16>(type, v, 2, 0);
 		}
 		else if (type == "INT32")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "int not null DEFAULT 0", 11, 0);
+			int32 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<int32>(type, v, 4, 0);
 		}
 		else if (type == "INT64")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "bigint not null DEFAULT 0", 20, 0);
+			int64 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+			return new EntityTableItemMongodb_DIGIT<int64>(type, v, 8, 0);
 		}
 		else if (type == "UINT8")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "tinyint unsigned not null DEFAULT 0", 3, 0);
+			uint8 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<uint8>(type, v, 1, 0);
 		}
 		else if (type == "UINT16")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "smallint unsigned not null DEFAULT 0", 5, 0);
+			uint16 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<uint16>(type, v, 2, 0);
 		}
 		else if (type == "UINT32")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "int unsigned not null DEFAULT 0", 10, 0);
+			uint32 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+			return new EntityTableItemMongodb_DIGIT<uint32>(type, v, 4, 0);
 		}
 		else if (type == "UINT64")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "bigint unsigned not null DEFAULT 0", 20, 0);
+			uint64 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<uint64>(type, v, 8, 0);
 		}
 		else if (type == "FLOAT")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "float not null DEFAULT 0", 0, 0);
+			float v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<float>(type, v, 0, 0);
 		}
 		else if (type == "DOUBLE")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "double not null DEFAULT 0", 0, 0);
+			double v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<double>(type, v, 0, 0);
 		}
 		else if (type == "STRING")
 		{
-			return new EntityTableItemMongodb_STRING("text", 0, 0);
+			return new EntityTableItemMongodb_STRING(defaultVal, 0, 0);
 		}
 		else if (type == "UNICODE")
 		{
-			return new EntityTableItemMongodb_UNICODE("text", 0, 0);
+			return new EntityTableItemMongodb_UNICODE(defaultVal, 0, 0);
 		}
 		else if (type == "PYTHON")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "PY_DICT")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "PY_TUPLE")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "PY_LIST")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "BLOB")
 		{
-			return new EntityTableItemMongodb_BLOB("blob", 0, 0);
+			return new EntityTableItemMongodb_BLOB(defaultVal, 0, 0);
 		}
 		else if (type == "ARRAY")
 		{
@@ -289,36 +388,21 @@ namespace KBEngine {
 		{
 			return new EntityTableItemMongodb_FIXED_DICT("", 0, 0);
 		}
-#ifdef CLIENT_NO_FLOAT
 		else if (type == "VECTOR2")
 		{
-			return new EntityTableItemMongodb_VECTOR2("int not null DEFAULT 0", 0, 0);
+			return new EntityTableItemMongodb_VECTOR2(0, 0, 0);
 		}
 		else if (type == "VECTOR3")
 		{
-			return new EntityTableItemMongodb_VECTOR3("int not null DEFAULT 0", 0, 0);
+			return new EntityTableItemMongodb_VECTOR3(0, 0, 0);
 		}
 		else if (type == "VECTOR4")
 		{
-			return new EntityTableItemMongodb_VECTOR4("int not null DEFAULT 0", 0, 0);
+			return new EntityTableItemMongodb_VECTOR4(0, 0, 0);
 		}
-#else
-		else if (type == "VECTOR2")
-		{
-			return new EntityTableItemMongodb_VECTOR2("float not null DEFAULT 0", 0, 0);
-		}
-		else if (type == "VECTOR3")
-		{
-			return new EntityTableItemMongodb_VECTOR3("float not null DEFAULT 0", 0, 0);
-		}
-		else if (type == "VECTOR4")
-		{
-			return new EntityTableItemMongodb_VECTOR4("float not null DEFAULT 0", 0, 0);
-		}
-#endif
 		else if (type == "MAILBOX")
 		{
-			return new EntityTableItemMongodb_MAILBOX("blob", 0, 0);
+			return new EntityTableItemMongodb_MAILBOX("", 0, 0);
 		}
 
 		KBE_ASSERT(false && "not found type.\n");
@@ -1111,7 +1195,8 @@ namespace KBEngine {
 	}
 
 	//-------------------------------------------------------------------------------------
-	void EntityTableItemMongodb_DIGIT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc)
+	template<class T>
+	void EntityTableItemMongodb_DIGIT<T>::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc)
 	{
 		if (s == NULL)
 			return;
@@ -1204,7 +1289,8 @@ namespace KBEngine {
 		context.items.push_back(KBEShared_ptr<mongodb::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 
-	void EntityTableItemMongodb_DIGIT::getReadSqlItem(mongodb::DBContext& context)
+	template<class T>
+	void EntityTableItemMongodb_DIGIT<T>::getReadSqlItem(mongodb::DBContext& context)
 	{
 		mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_name();
@@ -1212,7 +1298,8 @@ namespace KBEngine {
 		context.items.push_back(KBEShared_ptr<mongodb::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 
-	void EntityTableItemMongodb_DIGIT::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
+	template<class T>
+	void EntityTableItemMongodb_DIGIT<T>::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 
 		bson_iter_t iter;
@@ -1226,7 +1313,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
 			{
-				(*s) << (int8)0;
+				(*s) << (int8)defaultValue_;
 				return;
 			}
 
@@ -1238,7 +1325,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
 			{
-				(*s) << (int16)0;
+				(*s) << (int16)defaultValue_;
 				return;
 			}
 
@@ -1250,7 +1337,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
 			{
-				(*s) << (int32)0;
+				(*s) << (int32)defaultValue_;
 				return;
 			}
 
@@ -1261,7 +1348,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT64(&iter))
 			{
-				(*s) << (int64)0;
+				(*s) << (int64)defaultValue_;
 				return;
 			}
 
@@ -1272,7 +1359,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
 			{
-				(*s) << (uint8)0;
+				(*s) << (uint8)defaultValue_;
 				return;
 			}
 
@@ -1284,7 +1371,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
 			{
-				(*s) << (uint16)0;
+				(*s) << (uint16)defaultValue_;
 				return;
 			}
 
@@ -1296,7 +1383,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
 			{
-				(*s) << (uint32)0;
+				(*s) << (uint32)defaultValue_;
 				return;
 			}
 
@@ -1307,7 +1394,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_INT64(&iter))
 			{
-				(*s) << (uint64)0;
+				(*s) << (uint64)defaultValue_;
 				return;
 			}
 
@@ -1318,7 +1405,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_DOUBLE(&iter))
 			{
-				(*s) << (float)0;
+				(*s) << (float)defaultValue_;
 				return;
 			}
 
@@ -1330,7 +1417,7 @@ namespace KBEngine {
 		{
 			if (isdefault || !BSON_ITER_HOLDS_DOUBLE(&iter))
 			{
-				(*s) << (double)0;
+				(*s) << (double)defaultValue_;
 				return;
 			}
 
@@ -1387,7 +1474,7 @@ namespace KBEngine {
 		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
 			//如果没有找到数据，需要做兼容性处理
-			(*s) << "";
+			(*s) << defaultValue_;
 			return;
 		}
 
@@ -1442,7 +1529,7 @@ namespace KBEngine {
 		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
 			//如果没有找到数据，需要做兼容性处理
-			(*s).appendBlob("");
+			(*s).appendBlob(defaultValue_.data(), defaultValue_.size());
 			return;
 		}
 
@@ -1495,7 +1582,7 @@ namespace KBEngine {
 		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
 			//如果没有找到数据，需要做兼容性处理
-			(*s).appendBlob("");
+			(*s).appendBlob(defaultValue_.data(), defaultValue_.size());
 			return;
 		}
 
@@ -1549,7 +1636,7 @@ namespace KBEngine {
 		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_BINARY(&iter))
 		{
 			//如果没有找到数据，需要做兼容性处理
-			(*s).appendBlob("");
+			(*s).appendBlob(defaultValue_.data(), defaultValue_.size());
 			return;
 		}
 
