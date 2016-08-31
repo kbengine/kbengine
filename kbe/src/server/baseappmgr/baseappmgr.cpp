@@ -348,7 +348,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	}
 
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
-	if (bestBaseappID_ == 0 || cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		ForwardItem* pFI = new AppForwardItem();
@@ -592,7 +592,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	ENTITY_ID eid = 0;
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
-	if (bestBaseappID_ == 0 || cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		ForwardItem* pFI = new AppForwardItem();
@@ -611,7 +611,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
 
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp:{}. allocBaseapp={}, numEntities={}.\n",
-		accountName, bestBaseappID_, baseapps_iter->second.numEntities()));
+		accountName, bestBaseappID_, (bestBaseappID_ > 0 ? baseapps_iter->second.numEntities() : 0)));
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
