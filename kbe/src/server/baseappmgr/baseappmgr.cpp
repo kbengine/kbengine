@@ -348,7 +348,7 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 	}
 
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
-	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	if (bestBaseappID_ == 0 || cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		ForwardItem* pFI = new AppForwardItem();
@@ -592,7 +592,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	ENTITY_ID eid = 0;
 	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
 
-	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	if (bestBaseappID_ == 0 || cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		ForwardItem* pFI = new AppForwardItem();
