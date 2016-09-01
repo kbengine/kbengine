@@ -117,11 +117,120 @@ namespace KBEngine {
 		}
 	}
 
+	bool EntityTableMongodb::syncIndexToDB(DBInterface* pdbi)
+	{
+		//先确定需要索引的字段
+		std::vector<EntityTableItem*> indexs;
+
+		EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+		for (; iter != tableItems_.end(); ++iter)
+		{
+			if (strlen(iter->second->indexType()) == 0)
+				continue;
+
+			indexs.push_back(iter->second.get());
+		}
+
+		//获取目前的索引
+		char name[MAX_BUF];
+		kbe_snprintf(name, MAX_BUF, ENTITY_TABLE_PERFIX "_%s", tableName());
+
+		KBEUnordered_map<std::string, std::string> currDBKeys;
+		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+		mongoc_cursor_t * cursor = pdbiMongodb->collectionFindIndexes(name);
+
+		const bson_t *indexinfo;
+		bson_iter_t idx_spec_iter;
+		while (mongoc_cursor_next(cursor, &indexinfo)) 
+		{
+			if (bson_iter_init_find(&idx_spec_iter, indexinfo, "name") &&
+				BSON_ITER_HOLDS_UTF8(&idx_spec_iter))
+			{
+				std::string keyname = bson_iter_utf8(&idx_spec_iter, NULL);
+				if (bson_iter_init_find(&idx_spec_iter, indexinfo, "unique")) //是否具有唯一性标识
+				{
+
+					currDBKeys[keyname] = "UNIQUE";
+				}
+				else
+				{
+					currDBKeys[keyname] = "INDEX";
+				}
+			}
+		}
+
+		mongoc_cursor_destroy(cursor);
+
+		//开始删除多余的索引，增加新的索引
+		bson_t keys;
+		bson_init(&keys);
+		mongoc_index_opt_t opt;
+
+		std::vector<EntityTableItem*>::iterator iiter = indexs.begin();
+		for (; iiter != indexs.end();)
+		{
+			std::string itemName = fmt::format("{}_1", (*iiter)->itemName()); //默认查找升序索引
+			KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemName);
+			if (fiter != currDBKeys.end())
+			{
+				bool deleteIndex = fiter->second != (*iiter)->indexType();
+
+				// 删除已经处理的，剩下的就是要从数据库删除的index
+				currDBKeys.erase(fiter);
+
+				if (deleteIndex)
+				{
+					//先删除索引，后面在创建需要的索引
+					pdbiMongodb->collectionDropIndex(name, itemName.c_str());
+				}
+				else
+				{
+					++iiter;
+					continue;
+				}
+			}
+
+			if ( std::string("UNIQUE") == (*iiter)->indexType())
+			{
+				//需要增加唯一索引
+				bson_init(&keys);
+				mongoc_index_opt_init(&opt);
+				opt.unique = true;
+				bson_append_int32(&keys, (*iiter)->itemName(), -1, 1);
+				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
+			}
+			else
+			{
+				bson_init(&keys);
+				mongoc_index_opt_init(&opt);
+				bson_append_int32(&keys, (*iiter)->itemName(), -1, 1);
+				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
+			}
+
+			++iiter;
+		}
+		bson_destroy(&keys);
+
+		// 剩下的就是要从数据库删除的index
+		KBEUnordered_map<std::string, std::string>::iterator dbkey_iter = currDBKeys.begin();
+		for (; dbkey_iter != currDBKeys.end(); ++dbkey_iter)
+		{
+			if (dbkey_iter->first == "_id_" || dbkey_iter->first == "id_1")
+				continue;
+
+			pdbiMongodb->collectionDropIndex(name, dbkey_iter->first.c_str());
+		}
+
+		return true;
+	}
+
 	bool EntityTableMongodb::syncToDB(DBInterface* pdbi)
 	{
 		//ERROR_MSG(fmt::format("EntityTableMysql::syncToDB(): {}.\n", tableName()));
 		if (hasSync())
 			return true;
+		
+		sync_ = true;
 
 		// DEBUG_MSG(fmt::format("EntityTableMysql::syncToDB(): {}.\n", tableName()));
 
@@ -132,7 +241,19 @@ namespace KBEngine {
 		{
 			//在这里写执行命令，初始化数据库的表结构
 			DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-			pdbiMongodb->createCollection(name);
+			if (pdbiMongodb->createCollection(name))
+			{
+				//第一次创建表，需要对主表ID加索引
+				//需要增加唯一索引
+				bson_t keys;
+				mongoc_index_opt_t opt;
+				bson_init(&keys);
+				mongoc_index_opt_init(&opt);
+				opt.unique = true;
+				bson_append_int32(&keys, "id", -1, 1);
+				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
+				bson_destroy(&keys);
+			}
 
 			//因为mongodb缺少对数组的批量修改，导致无法像mysql那样做def字段的增加和删改。为了解决这个问题，要发挥mongodb的文件型数据库的的特点
 			//将对数据表结构不进行更新，通过兼容性达到表的正确使用。
@@ -207,7 +328,12 @@ namespace KBEngine {
 
 			//mongoc_cursor_destroy(cursor);
 			//bson_destroy(&query);
+			
+			//只对表的第一层进行索引，第二层mongodb无法进行索引，也没有必要制作
+			if (!syncIndexToDB(pdbi))
+				return false;
 		}
+
 		return true;
 	}
 

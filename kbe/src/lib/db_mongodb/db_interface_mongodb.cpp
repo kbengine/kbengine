@@ -502,7 +502,7 @@ namespace KBEngine {
 
 		//如果存在则离开返回
 		if (mongoc_database_has_collection(database, tableName, &error))
-			return true;
+			return false;
 
 		//不存在则创建
 		bson_init(&options);
@@ -564,6 +564,48 @@ namespace KBEngine {
 		}
 
 		mongoc_collection_destroy(collection);
+		return r;
+	}
+
+	mongoc_cursor_t * DBInterfaceMongodb::collectionFindIndexes(const char *tableName)
+	{
+		bson_error_t error = { 0 };
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+		mongoc_cursor_t *cursor = mongoc_collection_find_indexes(collection, &error);
+
+		mongoc_collection_destroy(collection);
+		return cursor;
+	}
+
+	bool DBInterfaceMongodb::collectionCreateIndex(const char *tableName, const bson_t *keys, const mongoc_index_opt_t *opt)
+	{
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+
+		bson_error_t error;
+		bool r = mongoc_collection_create_index(collection, keys, opt, &error);
+		if (!r)
+		{
+			ERROR_MSG("%s\n", error.message);
+		}
+
+		mongoc_collection_destroy(collection);
+
+		return r;
+	}
+
+	bool DBInterfaceMongodb::collectionDropIndex(const char *tableName, const char *index_name)
+	{
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+
+		bson_error_t  error;
+		bool r = mongoc_collection_drop_index(collection, index_name, &error);
+		if (!r)
+		{
+			ERROR_MSG("%s\n", error.message);
+		}
+
+		mongoc_collection_destroy(collection);
+
 		return r;
 	}
 }

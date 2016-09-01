@@ -512,7 +512,7 @@ namespace KBEngine {
 		/**
 		同步表索引
 		*/
-		virtual bool syncIndexToDB(DBInterface* pdbi){ return true; }
+		virtual bool syncIndexToDB(DBInterface* pdbi);
 
 		/**
 		创建一个表item

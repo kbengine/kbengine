@@ -143,6 +143,12 @@ namespace KBEngine
 
 		bool collectionRemove(const char *tableName, mongoc_remove_flags_t flags, const bson_t *selector, const mongoc_write_concern_t *write_concern);
 
+		mongoc_cursor_t * collectionFindIndexes(const char *tableName);
+
+		bool collectionCreateIndex(const char *tableName, const bson_t *keys, const mongoc_index_opt_t *opt);
+
+		bool collectionDropIndex(const char *tableName, const char *index_name);
+
 	protected:
 		mongoc_client_t *_pMongoClient;
 		mongoc_database_t *database;
