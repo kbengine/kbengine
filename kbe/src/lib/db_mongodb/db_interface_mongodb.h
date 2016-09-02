@@ -152,12 +152,6 @@ namespace KBEngine
 	protected:
 		mongoc_client_t *_pMongoClient;
 		mongoc_database_t *database;
-		bson_t               *command,
-			reply,
-			*insert;
-		bson_error_t          error;
-		char                 *str;
-		bool                  retval;
 		/*mongoc_cursor_t *cursor;
 		const bson_t *reply;
 		uint16_t port;
