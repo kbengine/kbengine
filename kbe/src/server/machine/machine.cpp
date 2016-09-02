@@ -993,7 +993,7 @@ void Machine::killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			{
 				// É±ËÀ½ø³Ì
 #if KBE_PLATFORM == PLATFORM_WIN32
-				system(fmt::format("taskkill /f /t /im {}", cinfos->pid).c_str());
+				system(fmt::format("taskkill /f /t /pid {}", cinfos->pid).c_str());
 #else
 				system(fmt::format("kill -s 9 {}", cinfos->pid).c_str());
 #endif
