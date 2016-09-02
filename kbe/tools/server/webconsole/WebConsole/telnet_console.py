@@ -122,13 +122,23 @@ class ProfileConsole(TelnetConsole):
 	"""
 	用于性能分析的控制台类
 	"""
+	def __init__( self, wsInst, host, port, command, sec ):
+		"""
+		"""
+		self.wsInst = wsInst
+		self.host = host
+		self.port = port
+		self.consoleInst = None
+		self.cmd = command.encode('utf-8')
+		self.sec = sec.encode('utf-8')
+
 	def onConnectedToConsole( self ):
 		"""
 		template method.
-		当成功连接上telnet控制台时回调
+		当成功连接上telnet控制台时回调pytickprofile
 		"""
 		self.consoleInst.write( b"kbe\r\n" )
-		self.consoleInst.write( b":pytickprofile 10\r\n" )
+		self.consoleInst.write( b":"+self.cmd+b" "+self.sec+b"\r\n")
 
 	def onReceivedConsoleData( self, data ):
 		"""

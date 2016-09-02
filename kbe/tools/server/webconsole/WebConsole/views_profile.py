@@ -5,8 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 from .models import ServerLayout
-from pycommon import Define
-from .machines_mgr import machinesmgr
+from pycommon import Machines, Define
 
 from .auth import login_check
 
@@ -28,11 +27,12 @@ def show_components( request ):
 
 	html_template = "WebConsole/profile_show_components.html"
 	
-	interfaces_groups = machinesmgr.queryAllInterfaces(request.session["sys_uid"], request.session["sys_user"])
+	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
+	components.queryAllInterfaces(timeout = 0.5)
 
 	# [(machine, [components, ...]), ...]
 	kbeComps = []
-	for mID, comps in interfaces_groups.items():
+	for mID, comps in components.interfaces_groups.items():
 		for comp in comps:
 			if comp.componentType in VALID_CT:
 				kbeComps.append( comp)
@@ -52,8 +52,9 @@ def connect( request ):
 	port = int( GET["port"] )
 	ip = GET["ip"]
 	title = GET["title"]
+	cmd = GET["cmd"]
 
-	ws_url = "ws://%s/wc/profile/process_cmd?host=%s&port=%s" % ( request.META["HTTP_HOST"], ip, port )
+	ws_url = "ws://%s/wc/profile/process_cmd?host=%s&port=%s&cmd=%s" % ( request.META["HTTP_HOST"], ip, port, cmd )
 
 	context = { "ws_url" : ws_url }
 	return render( request, "WebConsole/profile_connect.html", context )
@@ -70,6 +71,8 @@ def process_cmd( request ):
 	GET = request.GET
 	port = int( GET["port"] )
 	host = GET["host"]
+	cmd = GET["cmd"]
+	sec = GET["sec"]
 
-	console = ProfileConsole(request.websocket, host, port)
+	console = ProfileConsole(request.websocket, host, port, cmd, sec)
 	return console.run()
