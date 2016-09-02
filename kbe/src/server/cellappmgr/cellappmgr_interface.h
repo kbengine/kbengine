@@ -105,6 +105,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 									COMPONENT_ORDER,			componentGlobalOrder,
 									COMPONENT_ORDER,			componentGroupOrder)
 
+	// 查询所有相关进程负载信息
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(queryAppsLoads,			NETWORK_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

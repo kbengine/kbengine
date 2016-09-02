@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.h"
 #include "thread/threadpool.h"
 #include "server/components.h"
+#include "helper/console_helper.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
@@ -536,6 +537,28 @@ void Cellappmgr::addCellappComponentID(COMPONENT_ID cid)
 		DEBUG_MSG(fmt::format("Cellappmgr::addCellappComponentID: group order id list [{}]\n", sGOID));
 	}
 	*/
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
+{
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	ConsoleInterface::ConsoleQueryAppsLoadsHandler msgHandler;
+	(*pBundle).newMessage(msgHandler);
+
+	//(*pBundle) << g_componentType;
+
+	std::map< COMPONENT_ID, Cellapp >::iterator iter1 = cellapps_.begin();
+	for (; iter1 != cellapps_.end(); ++iter1)
+	{
+		Cellapp& cellappref = iter1->second;
+		(*pBundle) << iter1->first;
+		(*pBundle) << cellappref.load();
+		(*pBundle) << cellappref.numEntities();
+		(*pBundle) << cellappref.flags();
+	}
+
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

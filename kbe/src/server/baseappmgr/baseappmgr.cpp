@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.h"
 #include "thread/threadpool.h"
 #include "server/components.h"
+#include "helper/console_helper.h"
 
 #include "../../server/cellappmgr/cellappmgr_interface.h"
 #include "../../server/baseapp/baseapp_interface.h"
@@ -757,6 +758,30 @@ void Baseappmgr::onBaseappInitProgress(Network::Channel* pChannel, COMPONENT_ID 
 		(*pBundle) << baseappsInitProgress_;
 		(*iter).pChannel->send(pBundle);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
+{
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	ConsoleInterface::ConsoleQueryAppsLoadsHandler msgHandler;
+	(*pBundle).newMessage(msgHandler);
+
+	//(*pBundle) << g_componentType;
+
+	std::map< COMPONENT_ID, Baseapp >::iterator iter1 = baseapps_.begin();
+	for (; iter1 != baseapps_.end(); ++iter1)
+	{
+		Baseapp& baseappref = iter1->second;
+		(*pBundle) << iter1->first;
+		(*pBundle) << baseappref.load();
+		(*pBundle) << baseappref.numBases();
+		(*pBundle) << baseappref.numEntities();
+		(*pBundle) << baseappref.numProxices();
+		(*pBundle) << baseappref.flags();
+	}
+
+	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
