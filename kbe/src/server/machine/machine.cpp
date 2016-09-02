@@ -762,9 +762,8 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 	{
-		ERROR_MSG(fmt::format("Machine::stopserver: component({}) is error!", 
-			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)), 
-			pChannel->c_str()));
+		ERROR_MSG(fmt::format("Machine::stopserver: component({}) error!", 
+			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType))));
 
 		return;
 	}
@@ -837,7 +836,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		
 			if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
 			{
-				ERROR_MSG(fmt::format("Machine::stopserver: connect server is error({})!\n", kbe_strerror()));
+				ERROR_MSG(fmt::format("Machine::stopserver: connect server error({})!\n", kbe_strerror()));
 				success = false;
 				break;
 			}
@@ -948,9 +947,8 @@ void Machine::killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 	if (ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 	{
-		ERROR_MSG(fmt::format("Machine::killserver: component({}) is error!",
-			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)),
-			pChannel->c_str()));
+		ERROR_MSG(fmt::format("Machine::killserver: component({}) error!",
+			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType))));
 
 		return;
 	}
@@ -992,11 +990,20 @@ void Machine::killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			while (killtry++ < 10)
 			{
 				// É±ËÀ½ø³Ì
+				std::string killcmd;
+
 #if KBE_PLATFORM == PLATFORM_WIN32
-				system(fmt::format("taskkill /f /t /pid {}", cinfos->pid).c_str());
+				killcmd = fmt::format("taskkill /f /t /pid {}", cinfos->pid);
+				
 #else
-				system(fmt::format("kill -s 9 {}", cinfos->pid).c_str());
+				killcmd = fmt::format("kill -s 9 {}", cinfos->pid);
 #endif
+
+				if (-1 == system(killcmd.c_str()))
+				{
+					ERROR_MSG(fmt::format("Machine::killserver: system({}) error!",
+						killcmd));
+				}
 
 				bool usable = checkComponentUsable(&(*iter), false, false);
 
