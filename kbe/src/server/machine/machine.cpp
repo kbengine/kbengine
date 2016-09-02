@@ -995,7 +995,7 @@ void Machine::killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 #if KBE_PLATFORM == PLATFORM_WIN32
 				system(fmt::format("taskkill /f /t /im {}", cinfos->pid).c_str());
 #else
-				system(fmt::format("kill /s 9 {}", cinfos->pid).c_str());
+				system(fmt::format("kill -s 9 {}", cinfos->pid).c_str());
 #endif
 
 				bool usable = checkComponentUsable(&(*iter), false, false);
