@@ -129,6 +129,12 @@ public:
 	*/
 	void stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
+	/** 网络接口
+	杀死服务器
+	@uid: 提供启动的uid参数
+	*/
+	void killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
 	/**
 		对本机运行的组件进行检查是否可用
 	*/
