@@ -1257,8 +1257,11 @@ void Loginapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << digest_;
 	(*pBundle) << g_componentType;
 
-	// 此消息不允许加密，所以设定已加密忽略再次加密
-	pBundle->pCurrPacket()->encrypted(true);
+	// 此消息不允许加密，所以设定已加密忽略再次加密，当第一次send消息不是立即发生而是交由epoll通知时会出现这种情况（一般用于测试，正规环境不会出现）
+	// web协议必须要加密，所以不能设置为true
+	if (pChannel->type() != KBEngine::Network::Channel::CHANNEL_WEB)
+		pBundle->pCurrPacket()->encrypted(true);
+
 	pChannel->send(pBundle);
 
 	if(Network::g_channelExternalEncryptType > 0)

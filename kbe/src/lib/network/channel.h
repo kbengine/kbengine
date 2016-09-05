@@ -197,6 +197,10 @@ public:
 
 	bool finalise();
 
+	ChannelTypes type() const {
+		return channelType_;;
+	}
+
 private:
 
 	enum Flags
