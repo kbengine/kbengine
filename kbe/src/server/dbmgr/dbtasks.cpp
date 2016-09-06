@@ -1709,8 +1709,8 @@ bool DBTaskQueryEntity::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 {
-	DEBUG_MSG(fmt::format("Dbmgr::DBTaskQueryEntity: {}, dbid={}, entityID={}, wasActive={}, queryMode={}, success={}.\n", 
-		entityType_, dbid_, entityID_, wasActive_, ((int)queryMode_), success_));
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskQueryEntity: {}, dbid={}, entityID={}, wasActive={}, queryMode={}, componentID={}, success={}.\n", 
+		entityType_, dbid_, entityID_, wasActive_, ((int)queryMode_), componentID_, success_));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
@@ -1718,7 +1718,10 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 		pBundle->newMessage(BaseappInterface::onCreateBaseFromDBIDCallback);
 	else if(queryMode_ == 1)
 		pBundle->newMessage(BaseappInterface::onCreateBaseAnywhereFromDBIDCallback);
+	else if (queryMode_ == 2)
+		pBundle->newMessage(BaseappInterface::onCreateBaseRemotelyFromDBIDCallback);
 
+	(*pBundle) << componentID_;
 	(*pBundle) << pdbi_->dbIndex();
 	(*pBundle) << entityType_;
 	(*pBundle) << dbid_;

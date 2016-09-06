@@ -741,7 +741,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	COMPONENT_ID componentID;
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -749,13 +749,16 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> uid;
 	s >> componentType;
 	
+	// 如果组件ID大于0则仅停止指定ID的组件
+	s >> componentID;
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, [{}], addr={}\n", 
-		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, componentType={}, componentID={},  addr={}\n", 
+		uid,  COMPONENT_NAME_EX(componentType), componentID, pChannel->c_str()));
 
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 	{
@@ -775,6 +778,12 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		for(; iter != components.end(); )
 		{
 			Components::ComponentInfos* cinfos = &(*iter);
+
+			if(componentID > 0 && componentID != cinfos->cid)
+			{
+				iter++;
+				continue;
+			}
 
 			if(cinfos->uid != uid)
 			{
@@ -889,6 +898,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 	}
 
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle) << success;
 
 	if(finderRecvPort != 0)
@@ -899,6 +909,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		if (!ep.good())
 		{
 			ERROR_MSG("Machine::stopserver: Failed to create socket.\n");
+			Network::Bundle::reclaimPoolObject(pBundle);
 			return;
 		}
 	
@@ -1005,8 +1016,19 @@ DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint
 	str += COMPONENT_NAME_EX(componentType);
 	str += ".exe";
 
+	// 用双引号把命令行括起来，以避免路径中存在空格，从而执行错误
+	str = "\"" + str + "\"";
+
+	// 増加参数
+	str += fmt::format(" --cid={}", cid);
+	str += fmt::format(" --gus={}", gus);
+
 	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
+
+	// 使用machine当前的工作目录作为新进程的工作目录，
+	// 为一些与相对目录的文件操作操作一致的工作目录（如日志）
+	wchar_t currdir[1024];
+	GetCurrentDirectory(sizeof(currdir), currdir);
 
 	ZeroMemory( &si, sizeof(si));
 	si.cb = sizeof(si);
@@ -1031,7 +1053,6 @@ DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint
 	}
 
 	free(szCmdline);
-	free(currdir);
 
 	return pi.dwProcessId;
 }

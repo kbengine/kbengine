@@ -1,0 +1,221 @@
+{% extends "WebConsole/base.html" %}
+  
+  {% block content %}</p>
+
+<div class="container-win row placeholders">
+  <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
+
+  <div id="execute-block">
+    <input name="component_ip" type="hidden" id="component_ip" value="{{ request.GET.ip }}">
+    <input name="component_port" type="hidden" id="component_port" value="{{ request.GET.port }}">
+    <input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url }}">
+    <input name="get-pull-state" type="hidden" id="get-pull-state" value="{{ pull_state }}">
+  </div>
+<div class="log-context" >
+  <div class="col-sm-12" style="border: 1px solid #999999;background-color: white;">
+    <form id="info-filter" class="info-filter form-group" name="form-filter" method="post" action="" style="display: none;">
+      <div class="row form-group col-sm-12" style="padding: 1em 1em 1em 3em">
+          <div class="col-sm-4 form-group checkbox filter-check" style="float:left">
+              <div><p>进程选择：</p></div>
+              <p><label class="baseapp_check"><input type="checkbox" name="baseapp_check" value="1" {% if baseapp_check == 6 %}checked{% endif %} /> baseapp</label></p>
+              <p><label class="baseappmgr_check"><input type="checkbox" name="baseappmgr_check" value="1" {% if baseappmgr_check == 3 %}checked{% endif %}/> baseappmgr</label></p>
+              <p><label class="cellapp_check"><input type="checkbox" name="cellapp_check" value="1" {% if cellapp_check == 5 %}checked{% endif %}/> cellapp</label></p>
+              <p><label class="dbmgr_check"><input type="checkbox" name="dbmgr_check" value="1" {% if dbmgr_check == 1 %}checked{% endif %}/> dbmgr</label></p>
+              <p><label class="loginapp_check"><input type="checkbox" name="loginapp_check" value="1" {% if loginapp_check == 2 %}checked{% endif %}/> loginapp</label></p>
+          </div>
+          
+          <div class="col-sm-4 form-group checkbox filter-check"style="float:left">
+              <div><p>提示类型：</p></div>
+              <div class="col-sm-6">
+              <p><label class="CRITICAL"><input type="checkbox" name="CRITICAL" value="1" {% if CRITICAL_check == 1 %}checked{% endif %} /> CRITICAL</label></p>
+              <p><label class="DEBUG"><input type="checkbox" name="DEBUG" value="1" {% if DEBUG_check != 0 %}checked{% endif %} /> DEBUG</label></p>
+              <p><label class="ERROR"><input type="checkbox" name="ERROR" value="1" {% if ERROR_check != 0 %}checked{% endif %} /> ERROR</label></p>
+              <p><label class="INFO"><input type="checkbox" name="INFO" value="1" {% if INFO_check != 0 %}checked{% endif %} /> INFO</label></p>
+              <p><label class="PRINT"><input type="checkbox" name="PRINT" value="1" {% if PRINT_check != 0 %}checked{% endif %} /> PRINT</label></p>
+              <p><label class="WARNING"><input type="checkbox" name="WARNING" value="1" {% if WARNING_check != 0 %}checked{% endif %} /> WARNING</label></p>
+              </div>
+              <div class="col-sm-6">
+              <p><label class="S_DBG"><input type="checkbox" name="S_DBG" value="1" {% if S_DBG_check != 0 %}checked{% endif %} /> S_DBG</label></p>
+              <p><label class="S_ERR"><input type="checkbox" name="S_ERR" value="1" {% if S_ERR_check != 0 %}checked{% endif %} /> S_ERR</label></p>
+              <p><label class="S_INFO"><input type="checkbox" name="S_INFO" value="1" {% if S_INFO_check != 0 %}checked{% endif %} /> S_INFO</label></p>
+              <p><label class="S_NORM"><input type="checkbox" name="S_NORM" value="1" {% if S_NORM_check != 0 %}checked{% endif %} /> S_NORM</label></p>
+              <p><label class="S_WARN"><input type="checkbox" name="S_WARN" value="1" {% if S_WARN_check != 0 %}checked{% endif %} /> S_WARN</label></p>
+              
+              </div>
+          </div>
+          <div class="col-sm-4 form-group filter-check custom-filter" style="margin-bottom: 1em;float: left;">
+            <div><p>自定义搜索：</p></div>
+            <div class="col-sm-12 form-group">
+              <label class="col-sm-6">globalOrder:</label>
+              <input class="col-sm-6" type="text" name="globalOrder" value="{{ globalOrder|escape }}">
+            </div>
+            <div class="col-sm-12 form-group">
+              <label class="col-sm-6">groupOrder:</label>
+              <input class="col-sm-6" type="text" name="groupOrder" value="{{ groupOrder|escape }}">
+            </div>
+            <div class="col-sm-12 form-group">
+              <label class="col-sm-4">date:</label>
+              <input class="col-sm-8" type="text" name="searchDate" value="{{ searchDate|escape }}">
+            </div>
+            <div class="col-sm-12 form-group">
+              <label class="col-sm-4">keystr:</label>
+              <input class="col-sm-8" type="text" name="keystr" value="{{ keystr|escape }}">
+            </div>
+          </div>
+        </div>
+        <div class="row cmd-click col-sm-12" style="">
+          <input name="pull_state" type="hidden" id="pull-state" value="0">
+          {# <input id="pull-log" type="button" value="pull" onClick="submit_form()"> #}
+          <input class="btn btn-default show-result" style="float: right;" type="submit" name="updata-log" value="开&nbsp&nbsp&nbsp&nbsp始" id="updata-log" onClick="">
+          <input class="btn btn-default show-result hide" style="float: right;" type="button" name="updata-log" value="停&nbsp&nbsp&nbsp&nbsp止" id="close-log" onClick="stop_log()">
+        </div>
+      </form>
+      </div>
+      <div style="text-align: center;"><button class="new-btn click-slide"></button></div>
+      
+      </div>
+    
+      
+  </div>
+  <div class="filter-menu form-group col-sm-12">
+    
+    <div class="filter-btn col-sm-12">
+      <div id="output_block_info" class="col-sm-6">{{ unlogger }}</div>
+      </div>
+    </div>
+      <!-- <div id="output_block_info"></div> -->
+     <div class="col-sm-12" style="position: initial">
+      <div id="output_block_area" class="col-sm-12"></div>
+    </div>
+  </div>
+</div>
+
+ {% endblock %}
+
+{% block tail_js %}
+<script src="/static/js/pytools.js"></script> 
+<script src="/static/js/kbengine.js"></script> 
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .log .dd").show();
+  $(".kbe-list .log").css({"background-color":"#317eb4"});
+  $(".kbe-list .log").find('li').addClass("menu_chioce");
+  $(".show-log").addClass("active");
+</script>
+<script>
+$(document).ready(function() {
+    console_input_toggle();
+ });
+
+function stop_log(){
+  window.kbe_socket.close();
+  $("#updata-log").removeClass("hide");
+  $("#close-log").addClass("hide");
+}
+
+$(".click-slide").click(function(){
+    $(".info-filter").slideToggle();
+  })
+
+function onProfile()
+{   
+
+    if (!$.data.profile_started)
+    {
+        $('#output_block_area').html(" ");
+        $.data.profile_started = true;
+        connect_to();
+    }
+    else
+    {
+        window.kbe_socket.close(); 
+        $.data.profile_started = false;
+    }
+}
+
+window.onload = function(){
+  if ($("#ws_url").val()=="")
+    alert("logger进程未运行");
+  if($("#get-pull-state").val("1"))
+  {
+    $("#pull-state").val("0");
+    $("#close-log").removeClass("hide");
+    $("#updata-log").addClass("hide");
+  }
+    onProfile();
+}
+
+window.onbeforeunload = function(){
+  window.kbe_socket.close();
+}
+// window.onunload = closePage;
+
+function console_input_toggle()
+{
+  var ismutiline = $("#mutiline").is(':checked');
+
+  var elem1 = $("#input_cmd_line");
+  var elem2 = $("#input_cmd_area");
+
+  if (!ismutiline) {
+        elem1.removeClass("sr-only");
+        elem2.addClass("sr-only");
+  } else {
+        elem1.addClass("sr-only");
+        elem2.removeClass("sr-only");
+  }
+
+    calcConsoleHeight();
+}
+
+function calcConsoleHeight()
+{
+    var cnt = $("#output_block_area");
+    var h = $("body nav").outerHeight() + 165 + $("#execute-block").outerHeight() + $("#server-title").outerHeight();
+    if ($("#mutiline").is(':checked'))
+        h += $("#input_cmd_area").height();
+    else
+        h += $("#input_cmd_line").height();
+    var wh = $(window).height();
+
+    cnt.height( wh - h );
+}
+
+function connect_to()
+{
+    var socket = new WebSocket($("#ws_url").val());
+    socket.onopen = function(evt) { 
+      
+      // $('#output_block_info').html("<p> 连接状态：已连接</p>");
+      // alert("连接成功");
+      // show_result( evt.data );
+    }; 
+    socket.onclose = function(evt) { 
+        // $('#output_block_info').html("<p> 连接状态：已断开</p>");
+        // alert("连接已断开");
+        $.data.profile_started = false;
+        $.data.connect_closed = true;
+        stop_log();
+    }; 
+    socket.onmessage = function(evt) {
+        show_result( evt.data );
+    }; 
+    socket.onerror = function(evt) { 
+        //alert("websocket onerror: " + evt);
+        // alert("连接错误");
+        // $('#output_block_info').html("<p> 连接状态：连接错误</p>");
+    }; 
+    window.kbe_socket = socket;
+    $.data.connect_closed = false;
+}
+
+function show_result( data )
+{
+     $('#output_block_area').append( "<p>" + data + "</p>" );
+     $('#output_block_area').scrollTop( $('#output_block_area')[0].scrollHeight);
+}
+
+</script>
+
+
+{% endblock %}

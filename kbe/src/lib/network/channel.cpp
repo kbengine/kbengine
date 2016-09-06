@@ -778,7 +778,8 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 			pPacketReader_->processMessages(pMsgHandlers, pPacket);
 			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 		}
-	}catch(MemoryStreamException &)
+	}
+	catch(MemoryStreamException &)
 	{
 		Network::MessageHandler* pMsgHandler = pMsgHandlers->find(pPacketReader_->currMsgID());
 		WARNING_MSG(fmt::format("Channel::processPackets({}): packet invalid. currMsg=({}, id={}, len={}), currMsgLen={}\n",
@@ -826,6 +827,13 @@ Bundle* Channel::createSendBundle()
 			pBundle->currMsgPacketCount(0);
 			pBundle->currMsgLength(0);
 			pBundle->currMsgLengthPos(0);
+			if (!pBundle->pCurrPacket())
+			{
+				Packet* pPacket = pBundle->packets().back();
+				pBundle->packets().pop_back();
+				pBundle->pCurrPacket(pPacket);
+			}
+
 			return pBundle;
 		}
 	}

@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "forward_message_over_handler.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
+#include "network/network_stats.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
 #include "dbmgr/dbmgr_interface.h"
@@ -305,8 +306,17 @@ void Cellapp::finalise()
 	Spaces::finalise();
 	Navigation::getSingleton().finalise();
 	forward_messagebuffer_.clear();
+	updatables_.clear();
 
+	destroyObjPool();
 	EntityApp<Entity>::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::destroyObjPool()
+{
+	EntityRef::destroyObjPool();
+	Witness::destroyObjPool();
 }
 
 //-------------------------------------------------------------------------------------

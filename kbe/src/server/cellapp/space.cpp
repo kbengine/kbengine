@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "loadnavmesh_threadtasks.h"
 #include "entitydef/entities.h"
 #include "client_lib/client_interface.h"
+#include "network/network_stats.h"
 
 #include "../../server/baseappmgr/baseappmgr_interface.h"
 #include "../../server/cellappmgr/cellappmgr_interface.h"
