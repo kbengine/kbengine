@@ -14,7 +14,17 @@ namespace KBEngine {
 	{
 		//创建表
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-		pdbiMongodb->createCollection("kbe_entitylog");
+		if (!pdbiMongodb->createCollection("kbe_entitylog"))
+		{
+			//存在表格，要清除里面的所有数据
+			bson_t options;
+			bson_init(&options);
+
+			DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+			pdbiMongodb->collectionRemove("kbe_entitylog", MONGOC_REMOVE_NONE, &options, NULL);
+
+			bson_destroy(&options);
+		}
 		return true;
 	}
 
@@ -137,12 +147,22 @@ namespace KBEngine {
 
 	bool KBEAccountTableMongodb::setFlagsDeadline(DBInterface * pdbi, const std::string& name, uint32 flags, uint64 deadline)
 	{
-		// 如果查询失败则返回存在， 避免可能产生的错误
-		if (pdbi->query(fmt::format("HSET kbe_accountinfos:{} flags {} deadline {}",
-			name, flags, deadline), false))
-			return true;
+		bson_t doc;
+		bson_init(&doc);
+		BSON_APPEND_INT32(&doc, "flags", flags);
+		BSON_APPEND_INT64(&doc, "deadline", deadline);
 
-		return false;
+		bson_t query;
+		bson_init(&query);
+		BSON_APPEND_UTF8(&query, "accountName", name.c_str(), name.size());
+
+		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+		pdbiMongodb->updateCollection("kbe_accountinfos", MONGOC_UPDATE_NONE, &query, &doc, NULL);
+
+		bson_destroy(&query);
+		bson_destroy(&doc);
+
+		return true;
 	}
 
 	bool KBEAccountTableMongodb::queryAccount(DBInterface * pdbi, const std::string& name, ACCOUNT_INFOS& info)
@@ -204,12 +224,70 @@ namespace KBEngine {
 
 	bool KBEAccountTableMongodb::queryAccountAllInfos(DBInterface * pdbi, const std::string& name, ACCOUNT_INFOS& info)
 	{
+		bson_t query;
+		bson_init(&query);
+		BSON_APPEND_UTF8(&query, "accountName", name.c_str(), name.size());
+
+		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_accountinfos", MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
+
+		std::list<const bson_t *> value;
+		const bson_t *doc;
+		bson_error_t  error;
+		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
+			value.push_back(doc);
+		}
+
+		if (mongoc_cursor_error(cursor, &error)) {
+			ERROR_MSG("An error occurred: %s\n", error.message);
+		}
+
+		if (value.size() == 0)
+		{
+			mongoc_cursor_destroy(cursor);
+			return false;
+		}
+
+		bson_iter_t iter;
+		bson_iter_init(&iter, value.front());
+
+		info.name = name;
+
+		if (bson_iter_find(&iter, "password"))
+		{
+			uint32_t len = 0;
+			const char * password = bson_iter_utf8(&iter, &len);
+			info.password = std::string(password, len);
+		}
+
+		if (bson_iter_find(&iter, "email"))
+		{
+			uint32_t len = 0;
+			const char * email = bson_iter_utf8(&iter, &len);
+			info.email = std::string(email, len);
+		}
+
+		if (bson_iter_find(&iter, "entityDBID"))
+		{
+			info.dbid = bson_iter_int64(&iter);
+		}
+
+		if (bson_iter_find(&iter, "flags"))
+		{
+			info.flags = bson_iter_int32(&iter);
+		}
+
+		if (bson_iter_find(&iter, "deadline"))
+		{
+			info.deadline = bson_iter_int64(&iter);
+		}
+
+		mongoc_cursor_destroy(cursor);
 		return info.dbid > 0;
 	}
 
 	bool KBEAccountTableMongodb::updateCount(DBInterface * pdbi, const std::string& name, DBID dbid)
 	{
-		bson_error_t error;
 		bson_t *doc = bson_new();
 		bson_t child;
 		bson_append_document_begin(doc, "$inc", -1, &child);
@@ -231,6 +309,23 @@ namespace KBEngine {
 
 	bool KBEAccountTableMongodb::updatePassword(DBInterface * pdbi, const std::string& name, const std::string& password)
 	{
+		bson_t doc;
+		bson_init(&doc);
+		bson_t child;
+		bson_append_document_begin(&doc, "$set", -1, &child);
+		BSON_APPEND_UTF8(&child, "password", password.c_str(), password.size());
+		bson_append_document_end(&doc, &child);
+
+		bson_t query;
+		bson_init(&query);
+		BSON_APPEND_UTF8(&query, "entityDBID", name.c_str(), name.size());
+
+		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+		pdbiMongodb->updateCollection("kbe_accountinfos", MONGOC_UPDATE_NONE, &query, &doc, NULL);
+
+		bson_destroy(&query);
+		bson_destroy(&doc);
+
 		return true;
 	}
 
