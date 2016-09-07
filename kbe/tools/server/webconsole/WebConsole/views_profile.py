@@ -52,8 +52,9 @@ def connect( request ):
 	port = int( GET["port"] )
 	ip = GET["ip"]
 	title = GET["title"]
+	cmd = GET["cmd"]
 
-	ws_url = "ws://%s/wc/profile/process_cmd?host=%s&port=%s" % ( request.META["HTTP_HOST"], ip, port )
+	ws_url = "ws://%s/wc/profile/process_cmd?host=%s&port=%s&cmd=%s" % ( request.META["HTTP_HOST"], ip, port, cmd )
 
 	context = { "ws_url" : ws_url }
 	return render( request, "WebConsole/profile_connect.html", context )
@@ -70,6 +71,8 @@ def process_cmd( request ):
 	GET = request.GET
 	port = int( GET["port"] )
 	host = GET["host"]
+	cmd = GET["cmd"]
+	sec = GET["sec"]
 
-	console = ProfileConsole(request.websocket, host, port)
+	console = ProfileConsole(request.websocket, host, port, cmd, sec)
 	return console.run()

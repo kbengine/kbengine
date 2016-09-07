@@ -73,3 +73,4 @@ def process_cmd( request ):
 
 	console = TelnetConsole(request.websocket, host, port)
 	return console.run()
+
