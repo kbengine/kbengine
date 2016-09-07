@@ -109,6 +109,11 @@ public:
 	*/
 	void addCellappComponentID(COMPONENT_ID cid);
 
+	/** 网络接口
+	查询所有相关进程负载信息
+	*/
+	void queryAppsLoads(Network::Channel* pChannel, MemoryStream& s);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_anywhere_cellapp_messagebuffer_;

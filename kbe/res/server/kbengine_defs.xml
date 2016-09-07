@@ -127,11 +127,11 @@
 				<messages>
 					<critical>	1024		</critical>
 					<internal>	65535		</internal>
-					<external>	512			</external>
+					<external>	512		</external>
 				</messages>
 				<bytes>
 					<internal>	0			</internal>
-					<external>	0			</external>
+					<external>	1048576	</external>
 				</bytes>
 			</send>
 			

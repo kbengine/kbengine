@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSOLE_PROFILECB_MSGID 65503
 
 namespace KBEngine{
-namespace ConsoleInterface{
+namespace ConsoleInterface {
 	
 	class ConsoleExecCommandCBMessageHandlerArgs1 : public Network::MessageArgs	
 	{	
@@ -252,6 +252,27 @@ namespace ConsoleInterface{
 		};
 	};
 
+	class ConsoleQueryAppsLoadsHandler : public Network::MessageHandler
+	{
+	public:
+		ConsoleQueryAppsLoadsHandler() :
+			Network::MessageHandler()
+		{
+			onInstall();
+		}
+
+		virtual void onInstall()
+		{
+			// 强制这条协议ID
+			msgID = CONSOLE_PROFILECB_MSGID;
+			msgLen = NETWORK_VARIABLE_MESSAGE;
+			name = "console::queryAppsLoads";
+		}
+
+		virtual void handle(Network::Channel* pChannel, MemoryStream& s)
+		{
+		};
+	};
 }
 }
 

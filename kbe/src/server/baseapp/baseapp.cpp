@@ -3635,6 +3635,8 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 			return;
 		}
 		
+		pendingLoginMgr_.removeNextTick(accountName);
+
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
 		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
@@ -4473,8 +4475,14 @@ void Baseapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << EntityDef::md5().getDigestStr();
 	(*pBundle) << g_componentType;
-	pChannel->send(pBundle);
 
+	// 此消息不允许加密，所以设定已加密忽略再次加密，当第一次send消息不是立即发生而是交由epoll通知时会出现这种情况（一般用于测试，正规环境不会出现）
+	// web协议必须要加密，所以不能设置为true
+	if (pChannel->type() != KBEngine::Network::Channel::CHANNEL_WEB)
+		pBundle->pCurrPacket()->encrypted(true);
+
+	pChannel->send(pBundle);
+	
 	if(Network::g_channelExternalEncryptType > 0)
 	{
 		if(encryptedKey.size() > 3)

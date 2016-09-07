@@ -94,15 +94,21 @@ INLINE int32 Bundle::packetMaxSize() const
 
 INLINE int32 Bundle::lastPacketSpace()
 {
-	if(packets_.size() > 0)
-		return packetMaxSize() - packets_.back()->wpos();
-	
+	if (packets_.size() > 0)
+	{
+		Packet* pPacket = packets_.back();
+		if (!pPacket->isEnabledPoolObject())
+			return 0;
+
+		return packetMaxSize() - pPacket->wpos();
+	}
+
 	return 0;
 }
 
 INLINE bool Bundle::packetHaveSpace()
 {
-	return lastPacketSpace() > 8;
+	return isEnabledPoolObject() && lastPacketSpace() > 8;
 }
 
 INLINE int32 Bundle::numMessages() const
