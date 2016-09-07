@@ -10,10 +10,6 @@
 #include "mongoc.h"
 #include <bson.h>
 #include <bcon.h>
-#if KBE_PLATFORM == PLATFORM_WIN32
-#pragma comment (lib, "bson-static_d.lib")
-#pragma comment (lib, "mongoc_static_d.lib")
-#endif
 
 namespace KBEngine 
 {
