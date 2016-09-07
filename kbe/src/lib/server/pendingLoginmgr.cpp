@@ -112,6 +112,20 @@ PendingLoginMgr::PLInfos* PendingLoginMgr::find(std::string& accountName)
 }
 
 //-------------------------------------------------------------------------------------
+void PendingLoginMgr::removeNextTick(std::string& accountName)
+{
+	PTINFO_MAP::iterator iter = pPLMap_.find(accountName);
+	if (iter != pPLMap_.end())
+	{
+		PLInfos* infos = iter->second;
+
+		// 下一tick处理时就超时了
+		TimeStamp curr = timestamp();
+		infos->lastProcessTime = curr - OP_TIME_OUT_MAX - 1;
+	}
+}
+
+//-------------------------------------------------------------------------------------
 bool PendingLoginMgr::process()
 {
 	AUTO_SCOPED_PROFILE("PendingMgr_process");

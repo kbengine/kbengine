@@ -3635,6 +3635,8 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 			return;
 		}
 		
+		pendingLoginMgr_.removeNextTick(accountName);
+
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
 		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
