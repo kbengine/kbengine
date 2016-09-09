@@ -312,7 +312,7 @@ test_read (void)
    mongoc_stream_t *stream;
    mongoc_client_t *client;
    bson_error_t error;
-   ssize_t_d;
+   ssize_t_d r;
    char buf[10], buf2[10];
    mongoc_iovec_t iov[2];
    int previous_errno;
@@ -381,7 +381,7 @@ test_write (void)
    mongoc_gridfs_file_t *file;
    mongoc_client_t *client;
    bson_error_t error;
-   ssize_t_d;
+   ssize_t_d r;
    char buf[] = "foo bar";
    char buf2[] = " baz";
    char buf3[1000];
@@ -470,7 +470,7 @@ test_empty (void)
    mongoc_stream_t *stream;
    mongoc_client_t *client;
    bson_error_t error;
-   ssize_t_d;
+   ssize_t_d r;
    char buf[2] = {'h', 'i'};
    mongoc_iovec_t iov[1];
    ssize_t_d two = 2L;
@@ -525,7 +525,7 @@ test_stream (void)
    mongoc_stream_t *stream;
    mongoc_stream_t *in_stream;
    bson_error_t error;
-   ssize_t_d;
+   ssize_t_d r;
    char buf[4096];
    mongoc_iovec_t iov;
 
@@ -574,7 +574,7 @@ test_long_seek (void)
    bson_error_t error;
    mongoc_gridfs_t *gridfs;
    mongoc_gridfs_file_t *file;
-   ssize_t_d;
+   ssize_t_d r;
    mongoc_gridfs_file_opt_t opt = { 0, "filename" };
    mongoc_iovec_t iov;
    char buf[16 * 1024]; /* nothing special about 16k, just a buffer */
@@ -698,7 +698,7 @@ test_missing_chunk (void)
    mongoc_gridfs_t *gridfs;
    mongoc_gridfs_file_t *file;
    mongoc_collection_t *chunks;
-   ssize_t_d;
+   ssize_t_d r;
    mongoc_gridfs_file_opt_t opt = { 0, "filename" };
    mongoc_iovec_t iov;
    char buf[16 * 1024]; /* nothing special about 16k, just a buffer */

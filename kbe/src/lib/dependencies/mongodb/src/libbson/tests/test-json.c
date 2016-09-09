@@ -171,7 +171,7 @@ test_bson_as_json_stack_overflow (void)
    size_t buflen = 1024 * 1024 * 17;
    char *str;
    int fd;
-   ssize_t_d;
+   ssize_t_d r;
 
    buf = bson_malloc0(buflen);
 
@@ -204,7 +204,7 @@ test_bson_corrupt (void)
    size_t buflen = 1024;
    char *str;
    int fd;
-   ssize_t_d;
+   ssize_t_d r;
 
    buf = bson_malloc0(buflen);
 
@@ -232,7 +232,7 @@ test_bson_corrupt_utf8 (void)
    size_t buflen = 1024;
    char *str;
    int fd;
-   ssize_t_d;
+   ssize_t_d r;
 
    buf = bson_malloc0(buflen);
 
@@ -261,7 +261,7 @@ test_bson_corrupt_binary (void)
    size_t buflen = 1024;
    char *str;
    int fd;
-   ssize_t_d;
+   ssize_t_d r;
 
    buf = bson_malloc0(buflen);
 

@@ -14,7 +14,7 @@ test_buffered_basic (void)
    mongoc_stream_t *stream;
    mongoc_stream_t *buffered;
    mongoc_iovec_t iov;
-   ssize_t_d;
+   ssize_t_d r;
    char buf[16236];
 
    stream = mongoc_stream_file_new_for_path (BINARY_DIR"/reply2.dat", O_RDONLY, 0);
@@ -46,7 +46,7 @@ test_buffered_oversized (void)
    mongoc_stream_t *stream;
    mongoc_stream_t *buffered;
    mongoc_iovec_t iov;
-   ssize_t_d;
+   ssize_t_d r;
    char buf[16236];
 
    stream = mongoc_stream_file_new_for_path (BINARY_DIR"/reply2.dat", O_RDONLY, 0);
