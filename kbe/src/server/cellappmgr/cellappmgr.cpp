@@ -562,5 +562,24 @@ void Cellappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
+{
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	ConsoleInterface::ConsoleQuerySpacesHandler msgHandler;
+	(*pBundle).newMessage(msgHandler);
+
+	(*pBundle) << g_componentType;
+
+	std::map< COMPONENT_ID, Cellapp >::iterator iter1 = cellapps_.begin();
+	for (; iter1 != cellapps_.end(); ++iter1)
+	{
+		Cellapp& cellappref = iter1->second;
+		(*pBundle) << iter1->first;
+	}
+
+	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

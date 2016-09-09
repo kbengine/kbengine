@@ -273,6 +273,28 @@ namespace ConsoleInterface {
 		{
 		};
 	};
+
+	class ConsoleQuerySpacesHandler : public Network::MessageHandler
+	{
+	public:
+		ConsoleQuerySpacesHandler() :
+			Network::MessageHandler()
+		{
+			onInstall();
+		}
+
+		virtual void onInstall()
+		{
+			// 强制这条协议ID
+			msgID = CONSOLE_PROFILECB_MSGID;
+			msgLen = NETWORK_VARIABLE_MESSAGE;
+			name = "console::querySpaces";
+		}
+
+		virtual void handle(Network::Channel* pChannel, MemoryStream& s)
+		{
+		};
+	};
 }
 }
 
