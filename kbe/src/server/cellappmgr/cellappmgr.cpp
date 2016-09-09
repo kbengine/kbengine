@@ -573,7 +573,7 @@ void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 	std::map< COMPONENT_ID, Cellapp >::iterator iter1 = cellapps_.begin();
 	for (; iter1 != cellapps_.end(); ++iter1)
 	{
-		Cellapp& cellappref = iter1->second;
+		//Cellapp& cellappref = iter1->second;
 		(*pBundle) << iter1->first;
 	}
 
