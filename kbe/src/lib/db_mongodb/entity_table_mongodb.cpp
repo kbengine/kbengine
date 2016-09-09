@@ -117,11 +117,120 @@ namespace KBEngine {
 		}
 	}
 
+	bool EntityTableMongodb::syncIndexToDB(DBInterface* pdbi)
+	{
+		//先确定需要索引的字段
+		std::vector<EntityTableItem*> indexs;
+
+		EntityTable::TABLEITEM_MAP::iterator iter = tableItems_.begin();
+		for (; iter != tableItems_.end(); ++iter)
+		{
+			if (strlen(iter->second->indexType()) == 0)
+				continue;
+
+			indexs.push_back(iter->second.get());
+		}
+
+		//获取目前的索引
+		char name[MAX_BUF];
+		kbe_snprintf(name, MAX_BUF, ENTITY_TABLE_PERFIX "_%s", tableName());
+
+		KBEUnordered_map<std::string, std::string> currDBKeys;
+		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
+		mongoc_cursor_t * cursor = pdbiMongodb->collectionFindIndexes(name);
+
+		const bson_t *indexinfo;
+		bson_iter_t idx_spec_iter;
+		while (mongoc_cursor_next(cursor, &indexinfo)) 
+		{
+			if (bson_iter_init_find(&idx_spec_iter, indexinfo, "name") &&
+				BSON_ITER_HOLDS_UTF8(&idx_spec_iter))
+			{
+				std::string keyname = bson_iter_utf8(&idx_spec_iter, NULL);
+				if (bson_iter_init_find(&idx_spec_iter, indexinfo, "unique")) //是否具有唯一性标识
+				{
+
+					currDBKeys[keyname] = "UNIQUE";
+				}
+				else
+				{
+					currDBKeys[keyname] = "INDEX";
+				}
+			}
+		}
+
+		mongoc_cursor_destroy(cursor);
+
+		//开始删除多余的索引，增加新的索引
+		bson_t keys;
+		bson_init(&keys);
+		mongoc_index_opt_t opt;
+
+		std::vector<EntityTableItem*>::iterator iiter = indexs.begin();
+		for (; iiter != indexs.end();)
+		{
+			std::string itemName = fmt::format("{}_1", (*iiter)->itemName()); //默认查找升序索引
+			KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemName);
+			if (fiter != currDBKeys.end())
+			{
+				bool deleteIndex = fiter->second != (*iiter)->indexType();
+
+				// 删除已经处理的，剩下的就是要从数据库删除的index
+				currDBKeys.erase(fiter);
+
+				if (deleteIndex)
+				{
+					//先删除索引，后面在创建需要的索引
+					pdbiMongodb->collectionDropIndex(name, itemName.c_str());
+				}
+				else
+				{
+					++iiter;
+					continue;
+				}
+			}
+
+			if ( std::string("UNIQUE") == (*iiter)->indexType())
+			{
+				//需要增加唯一索引
+				bson_init(&keys);
+				mongoc_index_opt_init(&opt);
+				opt.unique = true;
+				bson_append_int32(&keys, (*iiter)->itemName(), -1, 1);
+				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
+			}
+			else
+			{
+				bson_init(&keys);
+				mongoc_index_opt_init(&opt);
+				bson_append_int32(&keys, (*iiter)->itemName(), -1, 1);
+				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
+			}
+
+			++iiter;
+		}
+		bson_destroy(&keys);
+
+		// 剩下的就是要从数据库删除的index
+		KBEUnordered_map<std::string, std::string>::iterator dbkey_iter = currDBKeys.begin();
+		for (; dbkey_iter != currDBKeys.end(); ++dbkey_iter)
+		{
+			if (dbkey_iter->first == "_id_" || dbkey_iter->first == "id_1")
+				continue;
+
+			pdbiMongodb->collectionDropIndex(name, dbkey_iter->first.c_str());
+		}
+
+		return true;
+	}
+
 	bool EntityTableMongodb::syncToDB(DBInterface* pdbi)
 	{
 		//ERROR_MSG(fmt::format("EntityTableMysql::syncToDB(): {}.\n", tableName()));
 		if (hasSync())
 			return true;
+		
+		sync_ = true;
 
 		// DEBUG_MSG(fmt::format("EntityTableMysql::syncToDB(): {}.\n", tableName()));
 
@@ -132,8 +241,22 @@ namespace KBEngine {
 		{
 			//在这里写执行命令，初始化数据库的表结构
 			DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
-			pdbiMongodb->createCollection(name);
+			if (pdbiMongodb->createCollection(name))
+			{
+				//第一次创建表，需要对主表ID加索引
+				//需要增加唯一索引
+				bson_t keys;
+				mongoc_index_opt_t opt;
+				bson_init(&keys);
+				mongoc_index_opt_init(&opt);
+				opt.unique = true;
+				bson_append_int32(&keys, "id", -1, 1);
+				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
+				bson_destroy(&keys);
+			}
 
+			//因为mongodb缺少对数组的批量修改，导致无法像mysql那样做def字段的增加和删改。为了解决这个问题，要发挥mongodb的文件型数据库的的特点
+			//将对数据表结构不进行更新，通过兼容性达到表的正确使用。
 			//bson_t query;
 			//bson_init(&query);
 			//mongoc_cursor_t * cursor = pdbiMongodb->collectionFind(name, MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
@@ -205,7 +328,12 @@ namespace KBEngine {
 
 			//mongoc_cursor_destroy(cursor);
 			//bson_destroy(&query);
+			
+			//只对表的第一层进行索引，第二层mongodb无法进行索引，也没有必要制作
+			if (!syncIndexToDB(pdbi))
+				return false;
 		}
+
 		return true;
 	}
 
@@ -213,71 +341,170 @@ namespace KBEngine {
 	{
 		if (type == "INT8")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "tinyint not null DEFAULT 0", 4, 0);
+			int8 v = 0;
+			
+			try
+			{				
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<int8>(type, v, 1, 0);
 		}
 		else if (type == "INT16")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "smallint not null DEFAULT 0", 6, 0);
+			int16 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<int16>(type, v, 2, 0);
 		}
 		else if (type == "INT32")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "int not null DEFAULT 0", 11, 0);
+			int32 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<int32>(type, v, 4, 0);
 		}
 		else if (type == "INT64")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "bigint not null DEFAULT 0", 20, 0);
+			int64 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+			return new EntityTableItemMongodb_DIGIT<int64>(type, v, 8, 0);
 		}
 		else if (type == "UINT8")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "tinyint unsigned not null DEFAULT 0", 3, 0);
+			uint8 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<uint8>(type, v, 1, 0);
 		}
 		else if (type == "UINT16")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "smallint unsigned not null DEFAULT 0", 5, 0);
+			uint16 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<uint16>(type, v, 2, 0);
 		}
 		else if (type == "UINT32")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "int unsigned not null DEFAULT 0", 10, 0);
+			uint32 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+			return new EntityTableItemMongodb_DIGIT<uint32>(type, v, 4, 0);
 		}
 		else if (type == "UINT64")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "bigint unsigned not null DEFAULT 0", 20, 0);
+			uint64 v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<uint64>(type, v, 8, 0);
 		}
 		else if (type == "FLOAT")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "float not null DEFAULT 0", 0, 0);
+			float v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<float>(type, v, 0, 0);
 		}
 		else if (type == "DOUBLE")
 		{
-			return new EntityTableItemMongodb_DIGIT(type, "double not null DEFAULT 0", 0, 0);
+			double v = 0;
+			try
+			{
+				StringConv::str2value(v, defaultVal.c_str());
+			}
+			catch (...)
+			{
+				v = 0;
+			}
+
+			return new EntityTableItemMongodb_DIGIT<double>(type, v, 0, 0);
 		}
 		else if (type == "STRING")
 		{
-			return new EntityTableItemMongodb_STRING("text", 0, 0);
+			return new EntityTableItemMongodb_STRING(defaultVal, 0, 0);
 		}
 		else if (type == "UNICODE")
 		{
-			return new EntityTableItemMongodb_UNICODE("text", 0, 0);
+			return new EntityTableItemMongodb_UNICODE(defaultVal, 0, 0);
 		}
 		else if (type == "PYTHON")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "PY_DICT")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "PY_TUPLE")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "PY_LIST")
 		{
-			return new EntityTableItemMongodb_PYTHON("blob", 0, 0);
+			return new EntityTableItemMongodb_PYTHON(defaultVal, 0, 0);
 		}
 		else if (type == "BLOB")
 		{
-			return new EntityTableItemMongodb_BLOB("blob", 0, 0);
+			return new EntityTableItemMongodb_BLOB(defaultVal, 0, 0);
 		}
 		else if (type == "ARRAY")
 		{
@@ -287,36 +514,21 @@ namespace KBEngine {
 		{
 			return new EntityTableItemMongodb_FIXED_DICT("", 0, 0);
 		}
-#ifdef CLIENT_NO_FLOAT
 		else if (type == "VECTOR2")
 		{
-			return new EntityTableItemMongodb_VECTOR2("int not null DEFAULT 0", 0, 0);
+			return new EntityTableItemMongodb_VECTOR2(0, 0, 0);
 		}
 		else if (type == "VECTOR3")
 		{
-			return new EntityTableItemMongodb_VECTOR3("int not null DEFAULT 0", 0, 0);
+			return new EntityTableItemMongodb_VECTOR3(0, 0, 0);
 		}
 		else if (type == "VECTOR4")
 		{
-			return new EntityTableItemMongodb_VECTOR4("int not null DEFAULT 0", 0, 0);
+			return new EntityTableItemMongodb_VECTOR4(0, 0, 0);
 		}
-#else
-		else if (type == "VECTOR2")
-		{
-			return new EntityTableItemMongodb_VECTOR2("float not null DEFAULT 0", 0, 0);
-		}
-		else if (type == "VECTOR3")
-		{
-			return new EntityTableItemMongodb_VECTOR3("float not null DEFAULT 0", 0, 0);
-		}
-		else if (type == "VECTOR4")
-		{
-			return new EntityTableItemMongodb_VECTOR4("float not null DEFAULT 0", 0, 0);
-		}
-#endif
 		else if (type == "MAILBOX")
 		{
-			return new EntityTableItemMongodb_MAILBOX("blob", 0, 0);
+			return new EntityTableItemMongodb_MAILBOX("", 0, 0);
 		}
 
 		KBE_ASSERT(false && "not found type.\n");
@@ -604,8 +816,15 @@ namespace KBEngine {
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
+			{
+				//如果没有找到数据，需要做兼容性处理
+#ifdef CLIENT_NO_FLOAT
+				(*s) << (int32)0;
+#else
+				(*s) << (float)0;
+#endif
 				continue;
-
+			}
 #ifdef CLIENT_NO_FLOAT
 			int32 v = bson_iter_int32(&iter);
 #else
@@ -683,7 +902,15 @@ namespace KBEngine {
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
+			{
+				//如果没有找到数据，需要做兼容性处理
+#ifdef CLIENT_NO_FLOAT
+				(*s) << (int32)0;
+#else
+				(*s) << (float)0;
+#endif
 				continue;
+			}
 
 #ifdef CLIENT_NO_FLOAT
 			int32 v = bson_iter_int32(&iter);
@@ -763,7 +990,15 @@ namespace KBEngine {
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
+			{
+				//如果没有找到数据，需要做兼容性处理
+#ifdef CLIENT_NO_FLOAT
+				(*s) << (int32)0;
+#else
+				(*s) << (float)0;
+#endif
 				continue;
+			}
 
 #ifdef CLIENT_NO_FLOAT
 			int32 v = bson_iter_int32(&iter);
@@ -926,8 +1161,13 @@ namespace KBEngine {
 		{
 			bson_iter_t biter;
 			bson_iter_t array_iter;
-			if (!bson_iter_init_find(&biter, doc, pChildTable_->tableName()))
+			if (!bson_iter_init_find(&biter, doc, pChildTable_->tableName()) || !BSON_ITER_HOLDS_ARRAY(&biter))
+			{
+				//如果没有找到数据，需要做兼容性处理
+				(*s) << (ArraySize)0;
 				return;
+			}
+
 			bson_iter_recurse(&biter, &array_iter);
 			
 			mongodb::DBContext::DB_RW_CONTEXTS::iterator iter = context.optable.begin();
@@ -936,7 +1176,7 @@ namespace KBEngine {
 				if (pChildTable_->tableName() == iter->first)
 				{
 					ArraySize size = 0;
-					std::list<bson_t> bsonlist;
+					std::list<bson_t *> bsonlist;
 
 					//先取数据
 					while (true)
@@ -952,8 +1192,8 @@ namespace KBEngine {
 						uint32_t len;
 						bson_iter_document(&array_iter, &len, &buf);
 
-						bson_t rec;
-						bson_init_static(&rec, buf, len);
+						bson_t * rec = new bson_t();
+						bson_init_static(rec, buf, len);
 						bsonlist.push_back(rec);
 
 						size++;
@@ -964,9 +1204,9 @@ namespace KBEngine {
 
 					while (!bsonlist.empty())
 					{
-						static_cast<EntityTableMongodb*>(pChildTable_)->addToStream(s, *iter->second.get(), 0, &bsonlist.front());
+						static_cast<EntityTableMongodb*>(pChildTable_)->addToStream(s, *iter->second.get(), 0, bsonlist.front());
 
-						bson_destroy(&bsonlist.front());
+						bson_destroy(bsonlist.front());
 						bsonlist.pop_front();
 					}
 
@@ -1081,7 +1321,8 @@ namespace KBEngine {
 	}
 
 	//-------------------------------------------------------------------------------------
-	void EntityTableItemMongodb_DIGIT::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc)
+	template<class T>
+	void EntityTableItemMongodb_DIGIT<T>::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mongodb::DBContext& context, bson_t * doc)
 	{
 		if (s == NULL)
 			return;
@@ -1174,7 +1415,8 @@ namespace KBEngine {
 		context.items.push_back(KBEShared_ptr<mongodb::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 
-	void EntityTableItemMongodb_DIGIT::getReadSqlItem(mongodb::DBContext& context)
+	template<class T>
+	void EntityTableItemMongodb_DIGIT<T>::getReadSqlItem(mongodb::DBContext& context)
 	{
 		mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_name();
@@ -1182,65 +1424,129 @@ namespace KBEngine {
 		context.items.push_back(KBEShared_ptr<mongodb::DBContext::DB_ITEM_DATA>(pSotvs));
 	}
 
-	void EntityTableItemMongodb_DIGIT::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
+	template<class T>
+	void EntityTableItemMongodb_DIGIT<T>::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 
 		bson_iter_t iter;
+		bool isdefault = false;
 		if (!bson_iter_init_find(&iter, doc, db_item_name()))
-			return;	
+		{
+			isdefault = true;
+		}
 
 		if (dataSType_ == "INT8")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (int8)defaultValue_;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			int8 vv = static_cast<int8>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "INT16")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (int16)defaultValue_;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			int16 vv = static_cast<int16>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "INT32")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (int32)defaultValue_;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "INT64")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT64(&iter))
+			{
+				(*s) << (int64)defaultValue_;
+				return;
+			}
+
 			int64 v = bson_iter_int64(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "UINT8")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (uint8)defaultValue_;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			uint8 vv = static_cast<uint8>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "UINT16")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (uint16)defaultValue_;
+				return;
+			}
+
 			int32 v = bson_iter_int32(&iter);
 			uint16 vv = static_cast<uint16>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "UINT32")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT32(&iter))
+			{
+				(*s) << (uint32)defaultValue_;
+				return;
+			}
+
 			uint32 v = bson_iter_int32(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "UINT64")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_INT64(&iter))
+			{
+				(*s) << (uint64)defaultValue_;
+				return;
+			}
+
 			uint64 v = bson_iter_int64(&iter);
 			(*s) << v;
 		}
 		else if (dataSType_ == "FLOAT")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_DOUBLE(&iter))
+			{
+				(*s) << (float)defaultValue_;
+				return;
+			}
+
 			double v = bson_iter_double(&iter);
 			float vv = static_cast<float>(v);
 			(*s) << vv;
 		}
 		else if (dataSType_ == "DOUBLE")
 		{
+			if (isdefault || !BSON_ITER_HOLDS_DOUBLE(&iter))
+			{
+				(*s) << (double)defaultValue_;
+				return;
+			}
+
 			double v = bson_iter_double(&iter);
 			(*s) << v;
 		}
@@ -1291,13 +1597,17 @@ namespace KBEngine {
 		mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc, db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
-			uint32_t len = 0;
-			const char * value = bson_iter_utf8(&iter, &len);
-			std::string datas(value, len);
-			(*s) << datas;
+			//如果没有找到数据，需要做兼容性处理
+			(*s) << defaultValue_;
+			return;
 		}
+
+		uint32_t len = 0;
+		const char * value = bson_iter_utf8(&iter, &len);
+		std::string datas(value, len);
+		(*s) << datas;
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -1342,13 +1652,17 @@ namespace KBEngine {
 		mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc, db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
-			uint32_t len = 0;
-			const char * value = bson_iter_utf8(&iter, &len);
-			std::string datas(value, len);
-			(*s).appendBlob(datas);
+			//如果没有找到数据，需要做兼容性处理
+			(*s).appendBlob(defaultValue_.data(), defaultValue_.size());
+			return;
 		}
+
+		uint32_t len = 0;
+		const char * value = bson_iter_utf8(&iter, &len);
+		std::string datas(value, len);
+		(*s).appendBlob(datas.data(), datas.size());
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -1391,13 +1705,17 @@ namespace KBEngine {
 	void EntityTableItemMongodb_BLOB::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc, db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_UTF8(&iter))
 		{
-			uint32_t len = 0;
-			const char * value = bson_iter_utf8(&iter, &len);
-			std::string datas(value, len);
-			(*s).appendBlob(datas.data(), datas.size());
+			//如果没有找到数据，需要做兼容性处理
+			(*s).appendBlob(defaultValue_.data(), defaultValue_.size());
+			return;
 		}
+
+		uint32_t len = 0;
+		const char * value = bson_iter_utf8(&iter, &len);
+		std::string datas(value, len);
+		(*s).appendBlob(datas.data(), datas.size());
 
 	}
 
@@ -1441,14 +1759,18 @@ namespace KBEngine {
 	void EntityTableItemMongodb_PYTHON::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
 		bson_iter_t iter;
-		if (bson_iter_init_find(&iter, doc ,db_item_name()))
+		if (!bson_iter_init_find(&iter, doc, db_item_name()) || !BSON_ITER_HOLDS_BINARY(&iter))
 		{
-			bson_subtype_t btype;
-			uint32_t len = 0;
-			const char * value;
-			bson_iter_binary(&iter, &btype, &len, (const uint8_t**)&value);
-			std::string datas(value, len);
-			(*s).appendBlob(datas);
+			//如果没有找到数据，需要做兼容性处理
+			(*s).appendBlob(defaultValue_.data(), defaultValue_.size());
+			return;
 		}
+
+		bson_subtype_t btype;
+		uint32_t len = 0;
+		const char * value;
+		bson_iter_binary(&iter, &btype, &len, (const uint8_t**)&value);
+		std::string datas(value, len);
+		(*s).appendBlob(datas);
 	}
 }

@@ -14,16 +14,15 @@
 
     <!-- Bootstrap core CSS -->
     <link href="/static/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- Custom styles for this template -->
     <link href="/static/custom_styles.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-1.11.3.min.js"></script> 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="/static/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="/static/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
-    
     {% block head_js %}{% endblock %}
   </head>
 
@@ -59,12 +58,12 @@
 	            <li class="dd disable"><a>所有用户情况</a></li>
 	            <li class="dd daemon"><a href="/wc/machines/show_all">所有守护进程状态</a></li>
 	            <li class="dd config"><a href="/wc/components/show_layout">服务器运行配置</a></li>
-			</ul>
-			<ul class="dt statistics"><ll class="checkbox">性能分析<img src="/static/images/left/select_xl01.png"></ll>
+			      </ul>
+			       <ul class="dt statistics"><ll class="checkbox">性能分析<img src="/static/images/left/select_xl01.png"></ll>
                 <li class="dd profile-comps"><a href="/wc/profile/show_components">连接到组件</a></li>
             </ul>
             <ul class="dt log"><ll class="checkbox">日志查看<img src="/static/images/left/select_xl01.png"></ll>
-                <li class="dd disable"><a>实时日志</a></li>
+                <li class="dd show-log"><a href="/wc/log/connect">实时日志</a></li>
             </ul>
             <ul class="dt condition"><ll class="checkbox">状态图<img src="/static/images/left/select_xl01.png"></ll>
                 <li class="dd disable"><a>我的组件</a></li>
@@ -111,6 +110,8 @@
 		$(".disable a").click(function disable(){
 			alert("此功能暂未开放");
 		})
+
+
     </script>
     {% block tail_js %}{% endblock %}
     </body>

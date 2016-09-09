@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>..\..\..\..\..\libs\</OutDir>
     <IntDir>..\..\..\..\..\_objs\$(ProjectName)_d\</IntDir>
-    <TargetName>bson-static_d</TargetName>
+    <TargetName>bson_static_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>..\..\..\..\..\libs\</OutDir>

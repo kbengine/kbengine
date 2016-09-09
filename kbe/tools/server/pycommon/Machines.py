@@ -23,146 +23,7 @@ class ComponentInfo( object ):
 		"""
 		"""
 		if streamStr:
-			try:
-				self.initFromStream( streamStr )
-				return
-			except:
-				pass
-			
-			self.init_with_version_before_20160504( streamStr )
-	
-	def init_with_version_before_20160504( self, streamStr ):
-		"""
-		旧版本初始化方案
-		从20160504开始的代码已经不再适合使用些方案更新
-		存在些方案是为了过渡，以避免混用两个版本的服务器时导致工具出错
-		"""
-		self.entities = 0    # KBEngine.Entity或KBEngine.Base数量
-		self.clients = 0     # 客户端数量
-		self.proxies = 0     # KBEngine.Proxy实例数量
-		self.consolePort = 0 # 控制台端口
-		self.genuuid_sections = 0 # --gus
-		
-		i = 4
-		self.uid = struct.unpack("i", streamStr[0:i])[0]
-		
-		ii = i
-		for x in streamStr[i:]:
-			if type(x) == str:
-				if ord(x) == 0:
-					break
-			else:
-				if x == 0:
-					break
-
-			ii += 1
-
-		self.username = streamStr[i: ii];
-		if type(self.username) == 'bytes':
-			self.username = self.username.decode()
-                            
-		ii += 1
-
-		self.componentType = struct.unpack("i", streamStr[ii : ii + 4])[0]
-		self.componentName = Define.COMPONENT_NAME[self.componentType]
-		ii += 4
-		
-		# cid
-		self.componentID = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-
-		self.componentIDEx = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-
-		self.globalOrderID = struct.unpack("i", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.groupOrderID = struct.unpack("i", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		if self.componentType in [Define.BASEAPP_TYPE, Define.CELLAPP_TYPE]:
-			self.fullname = "%s%s" % (self.componentName, self.groupOrderID)
-		else:
-			self.fullname = self.componentName
-
-		#self.intaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		self.intaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
-		ii += 4
-
-		self.intport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
-		ii += 2
-
-		#self.extaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		self.extaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
-		ii += 4
-
-		self.extport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
-		ii += 2
-		
-		# get extaddrEx
-		i1 = ii
-		for x in streamStr[ii:]:
-			if type(x) == str:
-				if ord(x) == 0:
-					break
-			else:
-				if x == 0:
-					break
-
-			ii += 1
-
-		self.extaddrEx = streamStr[i1: ii];
-		if type(self.extaddrEx) == 'bytes':
-			self.extaddrEx = extaddrEx.decode()
-                            
-		ii += 1
-
-		self.pid = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-		
-		self.cpu = struct.unpack("f", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.mem = struct.unpack("f", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.usedmem = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.state = struct.unpack("b", streamStr[ii : ii + 1])[0]
-		ii += 1
-		
-		self.machineID = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-		
-		self.extradata = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
-		if self.componentType in [Define.BASEAPP_TYPE, Define.CELLAPP_TYPE]:
-			self.entities = self.extradata
-
-		self.extradata1 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
-		if self.componentType == Define.BASEAPP_TYPE:
-			self.clients = self.extradata1
-		
-		self.extradata2 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
-		if self.componentType == Define.BASEAPP_TYPE:
-			self.proxies = self.extradata2
-
-		self.extradata3 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
-		self.consolePort = self.extradata3
-		
-		self.backaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.backport = struct.unpack("H", streamStr[ii : ii + 2])[0]
-		ii += 2
+			self.initFromStream( streamStr )
 	
 	def initFromStream( self, streamStr ):
 		"""
@@ -331,7 +192,7 @@ class Machines:
 		self.reset()
 		
 	def __del__(self):
-		#print( "Machines destroy now" )
+		#print( "Machines::__del__(), Machines destroy now" )
 		self.stopListen()
 		
 	def startListen(self):
@@ -340,6 +201,7 @@ class Machines:
 		assert self.udp_socket is None
 		self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 5 * 1024 * 1024)
 		self.udp_socket.bind((host, self.listenPort))
 		self.replyPort = self.udp_socket.getsockname()[1]
 		#print( "udp receive addr: %s" % (self.udp_socket.getsockname(), ) )
@@ -347,8 +209,9 @@ class Machines:
 	def stopListen(self):
 		"""
 		"""
-		self.udp_socket.close()
-		self.udp_socket = None
+		if self.udp_socket is not None:
+			self.udp_socket.close()
+			self.udp_socket = None
 		
 	def reset(self):
 		"""
@@ -364,14 +227,14 @@ class Machines:
 		"""
 		_udp_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		
+
 		if ip == "<broadcast>":
 			_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 			_udp_broadcast_socket.sendto(msg, ('255.255.255.255', 20086))
 		else:
 			_udp_broadcast_socket.sendto(msg, (ip, 20086))
 		
-	def sendAndReceive(self, msg, ip = "<broadcast>", trycount = 1, timeout = 1, callback = None):
+	def sendAndReceive(self, msg, ip = "<broadcast>", trycount = 0, timeout = 1, callback = None):
 		"""
 		发送消息，并等待消息返回
 		"""
@@ -385,7 +248,7 @@ class Machines:
 			try:
 				datas, address = self.udp_socket.recvfrom(10240)
 				recvDatas.append(datas)
-				#print ("%s received %s data from %r" % (len(recvDatas), len(datas), address))
+				#print ("Machine::sendAndReceive(), %s received %s data from %r" % (len(recvDatas), len(datas), address))
 				if callable( callback ):
 					try:
 						if callback( datas, address ):
@@ -393,11 +256,10 @@ class Machines:
 					except:
 						traceback.print_exc()
 			except socket.timeout: 
-				dectrycount -= 1
-				
 				if dectrycount <= 0:
-					#print ("recvfrom timeout!")
 					break
+				dectrycount -= 1
+				#print("Machine::sendAndReceive(), try count %s" % (trycount - dectrycount))
 			except (KeyboardInterrupt, SystemExit):
 				raise
 			except:
@@ -467,14 +329,15 @@ class Machines:
 		else:
 			self.sendAndReceive( msg.getvalue(), targetIP, trycount, timeout )
 
-	def stopServer(self, componentType, targetIP = "<broadcast>", trycount = 1, timeout = 1):
+	def stopServer(self, componentType, componentID = 0, targetIP = "<broadcast>", trycount = 1, timeout = 1):
 		"""
 		"""
 		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", MachineInterface_stopserver ) ) # command
-		msg.write( struct.pack("=H", struct.calcsize("=iiH") ) ) # command length
+		msg.write( struct.pack("=H", struct.calcsize("=iiQH") ) ) # command length
 		msg.write( struct.pack("=i", self.uid) )
 		msg.write( struct.pack("=i", componentType) )
+		msg.write( struct.pack("=Q", componentID) )
 		msg.write( struct.pack("=H", socket.htons(self.replyPort)) ) # reply port
 
 		if trycount <= 0:
@@ -544,7 +407,7 @@ class Machines:
 		if not hasattr( self, "cidRand" ):
 			self.cidRand = random.randint(1, 99999)
 
-		if not hasattr( self, "ct2gus" ):
+		if not hasattr( self, "ct2cid" ):
 			self.ct2cid = [0] * Define.COMPONENT_END_TYPE
 
 		self.ct2cid[componentType] += 1

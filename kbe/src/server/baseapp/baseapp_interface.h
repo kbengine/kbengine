@@ -134,6 +134,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// createBaseAnywhere成功之后回调消息到发起层createBaseAnywhere的baseapp的entity。
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereCallback,					NETWORK_FIXED_MESSAGE)
 
+	// createBaseRemotely成功之后回调消息到发起层createBaseRemotely的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotely,							NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotely成功之后回调消息到发起层createBaseRemotely的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotelyCallback,					 NETWORK_FIXED_MESSAGE)
+
 	// createCellEntity的cell实体创建成功回调。
 	BASEAPP_MESSAGE_DECLARE_ARGS3(onEntityGetCell,									NETWORK_FIXED_MESSAGE,
 									ENTITY_ID,										id,
@@ -210,6 +216,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseFromDBIDCallback,					NETWORK_FIXED_MESSAGE)
 
 	// createBaseAnywhereFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onGetCreateBaseAnywhereFromDBIDBestBaseappID,	NETWORK_FIXED_MESSAGE)
+
+	// createBaseAnywhereFromDBID的回调
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
 
 	// createBaseAnywhereFromDBID的回调
@@ -217,6 +226,20 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 
 	// createBaseAnywhereFromDBID的回调
 	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateBaseAnywhereFromDBIDOtherBaseappCallback,	NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_ID,									createByBaseappID,
+									std::string,									entityType,
+									ENTITY_ID,										createdEntityID,
+									CALLBACK_ID,									callbackID,
+									DBID,											dbid)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotelyFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(createBaseRemotelyFromDBIDOtherBaseapp,			NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateBaseRemotelyFromDBIDOtherBaseappCallback,	NETWORK_VARIABLE_MESSAGE,
 									COMPONENT_ID,									createByBaseappID,
 									std::string,									entityType,
 									ENTITY_ID,										createdEntityID,

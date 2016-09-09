@@ -49,10 +49,12 @@ public:
 	void onReclaimObject()
 	{
 		pEndpoint_ = NULL;
+		pChannel_ = NULL;
 		pNetworkInterface_ = NULL;
 	}
 
-	void pEndPoint(EndPoint* pEndpoint){ 
+	void pEndPoint(EndPoint* pEndpoint) {
+		pChannel_ = NULL;
 		pEndpoint_ = pEndpoint; 
 	}
 
@@ -73,6 +75,7 @@ public:
 
 protected:
 	EndPoint* pEndpoint_;
+	Channel* pChannel_;
 	NetworkInterface* pNetworkInterface_;
 };
 

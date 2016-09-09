@@ -382,6 +382,84 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
+void Baseappmgr::reqCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s)
+{
+	Components::ComponentInfos* cinfos =
+		Components::getSingleton().findComponent(pChannel);
+
+	// 此时肯定是在运行状态中，但有可能在等待创建space
+	// 所以初始化进度没有完成, 在只有一个baseapp的情况下如果这
+	// 里不进行设置将是一个相互等待的状态
+	if (cinfos)
+		cinfos->state = COMPONENT_STATE_RUN;
+
+	COMPONENT_ID createToComponentID = 0;
+	s >> createToComponentID;
+
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, createToComponentID);
+	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		ForwardItem* pFI = new AppForwardItem();
+		pFI->pBundle = pBundle;
+		(*pBundle).newMessage(BaseappInterface::onCreateBaseRemotely);
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+		s.done();
+
+		WARNING_MSG("Baseappmgr::reqCreateBaseRemotely: not found baseapp, message is buffered.\n");
+		pFI->pHandler = NULL;
+		forward_baseapp_messagebuffer_.push(pFI);
+		return;
+	}
+
+	//DEBUG_MSG("Baseappmgr::reqCreateBaseRemotely: %s opsize=%d, selBaseappIdx=%d.\n", 
+	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappInterface::onCreateBaseRemotely);
+
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+	cinfos->pChannel->send(pBundle);
+	s.done();
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(createToComponentID);
+	if (baseapps_iter != baseapps_.end())
+	{
+		baseapps_iter->second.incNumEntities();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::reqCreateBaseAnywhereFromDBIDQueryBestBaseappID(Network::Channel* pChannel, MemoryStream& s)
+{
+	Components::ComponentInfos* cinfos =
+		Components::getSingleton().findComponent(pChannel);
+
+	// 此时肯定是在运行状态中，但有可能在等待创建space
+	// 所以初始化进度没有完成, 在只有一个baseapp的情况下如果这
+	// 里不进行设置将是一个相互等待的状态
+	if (cinfos)
+		cinfos->state = COMPONENT_STATE_RUN;
+
+	updateBestBaseapp();
+
+	if (bestBaseappID_ == 0 && numLoadBalancingApp() == 0)
+	{
+		ERROR_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBIDQueryBestBaseappID: Unable to allocate baseapp for load balancing! baseappSize={}.\n",
+			baseapps_.size()));
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappInterface::onGetCreateBaseAnywhereFromDBIDBestBaseappID);
+
+	(*pBundle) << bestBaseappID_;
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+	cinfos->pChannel->send(pBundle);
+	s.done();
+}
+
+//-------------------------------------------------------------------------------------
 void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s) 
 {
 	Components::ComponentInfos* cinfos = 
@@ -393,15 +471,10 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	if(cinfos)
 		cinfos->state = COMPONENT_STATE_RUN;
 
-	updateBestBaseapp();
+	COMPONENT_ID targetComponentID = 0;
+	s >> targetComponentID;
 
-	if (bestBaseappID_ == 0 && numLoadBalancingApp() == 0)
-	{
-		ERROR_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBID: Unable to allocate baseapp for load balancing! baseappSize={}.\n",
-			baseapps_.size()));
-	}
-
-	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, bestBaseappID_);
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, targetComponentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -428,7 +501,56 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 	s.done();
 
 	// 预先将实体数量增加
-	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(bestBaseappID_);
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(targetComponentID);
+	if (baseapps_iter != baseapps_.end())
+	{
+		baseapps_iter->second.incNumEntities();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::reqCreateBaseRemotelyFromDBID(Network::Channel* pChannel, MemoryStream& s)
+{
+	Components::ComponentInfos* cinfos =
+		Components::getSingleton().findComponent(pChannel);
+
+	// 此时肯定是在运行状态中，但有可能在等待创建space
+	// 所以初始化进度没有完成, 在只有一个baseapp的情况下如果这
+	// 里不进行设置将是一个相互等待的状态
+	if (cinfos)
+		cinfos->state = COMPONENT_STATE_RUN;
+
+	COMPONENT_ID targetComponentID = 0;
+	s >> targetComponentID;
+
+	cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, targetComponentID);
+	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		ForwardItem* pFI = new AppForwardItem();
+		pFI->pBundle = pBundle;
+		(*pBundle).newMessage(BaseappInterface::createBaseRemotelyFromDBIDOtherBaseapp);
+		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+		s.done();
+
+		WARNING_MSG("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp, message is buffered.\n");
+		pFI->pHandler = NULL;
+		forward_baseapp_messagebuffer_.push(pFI);
+		return;
+	}
+
+	//DEBUG_MSG("Baseappmgr::reqCreateBaseRemotelyFromDBID: %s opsize=%d, selBaseappIdx=%d.\n", 
+	//	pChannel->c_str(), s.opsize(), currentBaseappIndex);
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappInterface::createBaseRemotelyFromDBIDOtherBaseapp);
+
+	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
+	cinfos->pChannel->send(pBundle);
+	s.done();
+
+	// 预先将实体数量增加
+	std::map< COMPONENT_ID, Baseapp >::iterator baseapps_iter = baseapps_.find(targetComponentID);
 	if (baseapps_iter != baseapps_.end())
 	{
 		baseapps_iter->second.incNumEntities();

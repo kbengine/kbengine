@@ -123,17 +123,19 @@ namespace KBEngine {
 
 		database = mongoc_client_get_database(_pMongoClient, db_name_);
 
-		command = BCON_NEW("ping", BCON_INT32(1));
+		bson_t *command = BCON_NEW("ping", BCON_INT32(1));
 
-		retval = mongoc_client_command_simple(_pMongoClient, "admin", command, NULL, &reply, &error);
+		bson_t reply;
+		bson_error_t error;
+		bool retval = mongoc_client_command_simple(_pMongoClient, "admin", command, NULL, &reply, &error);
 
 		if (!retval) {
 			fprintf(stderr, "%s\n", error.message);
 			return false;
 		}
 
-		//str = bson_as_json(&reply, NULL);
-		//printf("%s\n", str);
+		bson_destroy(command);
+		bson_destroy(&reply);
 
 		return retval;
 	}
@@ -283,6 +285,7 @@ namespace KBEngine {
 
 		std::string t_command = strQuerCommand.substr(k + 1, strQuerCommand.length());
 
+		bson_error_t error;
 		bson_t * bsons = bson_new_from_json((const uint8_t *)t_command.c_str(), t_command.length(), &error);
 
 		return result == NULL || write_query_result(result, bsons, str_tableName.c_str(), str_queryType);
@@ -323,14 +326,17 @@ namespace KBEngine {
 				value.push_back(doc);
 			}
 
+			
+
 			(*result) << nfields << nrows;
 
 			std::list<const bson_t *>::iterator it;
 			for (it = value.begin(); it != value.end(); it++)
 			{
 				const bson_t *tem = *it;
-				str = bson_as_json(tem, NULL);
+				char *str = bson_as_json(tem, NULL);
 				result->appendBlob(str, strlen(str));
+				bson_free(str);
 			}
 
 			if (mongoc_cursor_error(cursor, &error))
@@ -502,7 +508,7 @@ namespace KBEngine {
 
 		//如果存在则离开返回
 		if (mongoc_database_has_collection(database, tableName, &error))
-			return true;
+			return false;
 
 		//不存在则创建
 		bson_init(&options);
@@ -564,6 +570,48 @@ namespace KBEngine {
 		}
 
 		mongoc_collection_destroy(collection);
+		return r;
+	}
+
+	mongoc_cursor_t * DBInterfaceMongodb::collectionFindIndexes(const char *tableName)
+	{
+		bson_error_t error = { 0 };
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+		mongoc_cursor_t *cursor = mongoc_collection_find_indexes(collection, &error);
+
+		mongoc_collection_destroy(collection);
+		return cursor;
+	}
+
+	bool DBInterfaceMongodb::collectionCreateIndex(const char *tableName, const bson_t *keys, const mongoc_index_opt_t *opt)
+	{
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+
+		bson_error_t error;
+		bool r = mongoc_collection_create_index(collection, keys, opt, &error);
+		if (!r)
+		{
+			ERROR_MSG("%s\n", error.message);
+		}
+
+		mongoc_collection_destroy(collection);
+
+		return r;
+	}
+
+	bool DBInterfaceMongodb::collectionDropIndex(const char *tableName, const char *index_name)
+	{
+		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
+
+		bson_error_t  error;
+		bool r = mongoc_collection_drop_index(collection, index_name, &error);
+		if (!r)
+		{
+			ERROR_MSG("%s\n", error.message);
+		}
+
+		mongoc_collection_destroy(collection);
+
 		return r;
 	}
 }

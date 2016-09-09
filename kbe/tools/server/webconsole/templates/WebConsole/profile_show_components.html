@@ -17,7 +17,28 @@
           <td>{{ comp.intaddr }}</td>
           <td>{{ comp.fullname }}</td>
           <td>{{ comp.componentID }}</td>
-          <td><a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', '{{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}')">TickProfile</a></td>
+          <td>
+            <ul class="list-inline">
+            <li><a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'TickProfile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','pytickprofile')">TickProfile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'cprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','cprofile')">cprofile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'pyprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','pyprofile')">pyprofile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'eventprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','eventprofile')">eventprofile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'networkprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','networkprofile')">networkprofile</a>
+            </li>
+            </ul>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -32,9 +53,9 @@
   $(".kbe-list .statistics .dd").show();
   $(".kbe-list .statistics").css({"background-color":"#317eb4"});
   $(".kbe-list .statistics").find('li').addClass("menu_chioce");
-    function connect_to(ip, port, title)
+    function connect_to(ip, port, title, cmd)
     {
-        window.location.href='/wc/profile/connect?ip=' + ip + "&port=" + port + "&title=" + escape(title);
+        window.location.href='/wc/profile/connect?ip=' + ip + "&port=" + port + "&title=" + escape(title)+"&cmd="+cmd;
         layer.load(2);
     }
    

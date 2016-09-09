@@ -4,11 +4,17 @@
 
 <div class="container-win row placeholders">
   <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
-  <input class="btn btn-default" type="button" name="exec" value="连接组件" id="exec" onClick="onProfile(this)">
-  <input class="btn btn-default" type="button" name="exec2" value="更新图表" id="exec" onClick="show_echars()">
-  <div id="output_block_area"></div>
-  <div id="tottime" style="width: 100%;height: 280px;"></div>
-  <div class="object-info" style="height: 80px"></div>
+  <form class="form-inline" onkeypress="if(event.keyCode==13||event.which==13){return false;}">
+    <div class="form-group">
+      <input class="form-control" type="text" name="second" id="second" placeholder="输入查询时间(单位：秒)" style="padding-left: 0.3em;padding-top: 0.2em;padding-bottom: 0.3em " />
+      <input class="btn btn-default form-control" type="button" name="exec" value="连接组件" id="exec" onClick="onProfile(this)"/>
+      <input id="show-echars" class="btn btn-default form-control hide" type="button" name="show-echars" value="更新图表" onClick="show_echars()"/>
+      <div id="output_block_area2" class="form-control" style="  border: none;background-color: none;box-shadow:none;"></div>
+    </div>
+  </form>
+  
+  <div id="tottime" class="hide" style="width: 100%;height: 280px;"></div>
+  <div class="object-info hide" style="height: 80px"></div>
   <table id="object-data" class="tablesaw data-table table table-striped table-condensed" data-tablesaw-sortable data-tablesaw-sortable-switch >
     <thead>
       <tr>
@@ -18,6 +24,36 @@
         <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="3">cumtime</th>
         <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="4">percall</th>
         <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="5">filename:lineno(function)</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <table id="network-data" class="hide tablesaw data-table table table-striped table-condensed" data-tablesaw-sortable data-tablesaw-sortable-switch >
+    <thead>
+      <tr>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="persist">name</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="1">sent#</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="2">size</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="3">avg</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="4">total#</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="5">totalsize</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="6">recv#</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="7">size</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="8">avg</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="9">total#</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="10">totalsize</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <table id="event-data" class="hide tablesaw data-table table table-striped table-condensed" data-tablesaw-sortable data-tablesaw-sortable-switch >
+    <thead>
+      <tr>
+        <th>name</th>
+        <th>count</th>
+        <th>size</th>
       </tr>
     </thead>
     <tbody>
@@ -46,22 +82,39 @@
   $(".kbe-list .statistics").css({"background-color":"#317eb4"});
   $(".kbe-list .statistics").find('li').addClass("menu_chioce");
 
+var cmd = getUrlParam("cmd");
+
 function onProfile(elm)
 {
     var elmm = $(elm);
     if (!$.data.profile_started)
     {
-        elmm.val("断开连接");
-        $.data.profile_started = true;
-        KBEngine.resetPyTickProfileData();
-        connect_to();
+        ws_url = "";
+        var sec = $("#second").val();
+        if(sec == null || sec == "" || sec == 0){
+          sec = "10";
+        }
+        if (sec > 0 )
+        {
+          // sec = $("#second").val();
+          
+          ws_url = "{{ws_url}}"+"&sec="+sec;
+          $("#ws_url").val(ws_url);
+          elmm.val("断开连接");
+          $.data.profile_started = true;
+          KBEngine.resetPyTickProfileData();
+          connect_to();
+          if (cmd != "pytickprofile")
+            show_data(sec);
+        }
+        else
+          alert("查询时间需大于等于0");
     }
     else
     {
         elmm.val("连接组件");
         $.data.profile_started = false;
-        window.kbe_socket.close();
-        
+        window.kbe_socket.close(); 
     }
 }
 
@@ -69,36 +122,102 @@ function connect_to()
 {
     var socket = new WebSocket($("#ws_url").val());
     socket.onopen = function(evt) { 
-        $('#output_block_area').html("<p> 连接成功！欢迎使用WebConsole。</p>");
-        show_echars();
+        $('#output_block_area2').html("<p> 连接成功！欢迎使用WebConsole。</p>");
+        if (cmd == 'pytickprofile')
+          show_echars();
     }; 
     socket.onclose = function(evt) { 
-        $('#output_block_area').html("<p> 连接已关闭，请重新连接！！！ </p>");
+        $('#output_block_area2').html("<p> 连接已关闭，请重新连接！！！ </p>");
         $.data.connect_closed = true;
     }; 
     socket.onmessage = function(evt) { 
-        //$('#output_block_area').append('<span>' + evt.data + '</span> <br>');
-
+        //$('#output_block_area2').append('<span>' + evt.data + '</span> <br>');
         show_result( evt.data );
     }; 
     socket.onerror = function(evt) { 
         //alert("websocket onerror: " + evt);
-        $('#output_block_area').html("<p> 连接失败！！！请刷新重试。 </p>");
+        $('#output_block_area2').html("<p> 连接失败！！！请刷新重试。 </p>");
     }; 
     window.kbe_socket = socket;
     $.data.connect_closed = false;
 }
 
 function show_result(data)
-{
-    KBEngine.parsePyTickProfileData(data);
+{ 
+    KBEngine.parsePyTickProfileData(data,cmd);
 
     //$('#output_block_area').append( data );
     //$('#output_block_area').append( "<p>" + $.data.pyTickProfileDatas.length + "</p>" );
     // $('#output_block_area').append( $.data.pyTickProfileDatas.length+ " - " );
 }
+window.onload = function()
+{
+  if (cmd =="pytickprofile")
+  {
+    $("#show-echars").removeClass("hide");
+    $("#tottime").removeClass("hide");
+    $(".object-info").removeClass("hide");
+    
+  }
 
-  function show_echars(){
+  if (cmd =="eventprofile")
+  {
+    $("#event-data").removeClass("hide");
+    $("#object-data").addClass("hide");
+  }
+  if (cmd =="networkprofile")
+  {
+    $("#object-data").addClass("hide");
+    $("#network-data").removeClass("hide");
+  }
+}
+
+function show_data(sec)
+{
+  var pytick_data = "";
+  var layer_time = sec*1000+1000;
+  layer.msg(
+    '运行中……', 
+  {
+    icon: 16, 
+    time: layer_time,
+    shade: [0.3,'#000']
+  });
+  setTimeout(data2tbody,layer_time);
+
+  function data2tbody()
+  {
+      
+      for (var arr = 0; arr < $.data.pyTickProfileDatas.length; arr++) 
+      {
+        if (arr>0)
+          if ($.data.pyTickProfileDatas[arr] == $.data.pyTickProfileDatas[arr-1])
+            continue;
+        if (cmd=="eventprofile")
+        {
+          if (arr>0)
+            pytick_data += '<tr><td>　</td><td></td><td></td></tr><tr><td style="color:red">'+$.data.pyTickProfileDatas[arr].title+'</td><td></td><td></td></tr>';
+          else
+            pytick_data += '<tr><td style="color:red">'+$.data.pyTickProfileDatas[arr].title+'</td><td></td><td></td></tr>';
+        }
+        for (var i = 0; i < $.data.pyTickProfileDatas[arr].lines.length; i++) 
+        {
+          pytick_data += '<tr>';
+          for (var j = 0; j < $.data.pyTickProfileDatas[arr].lines[i].length; j++)
+            pytick_data +='<td>'+$.data.pyTickProfileDatas[arr].lines[i][j]+'</td>';
+          pytick_data += '</tr>';
+        }
+      }
+      if (cmd == "networkprofile")
+        $('#network-data tbody').html(pytick_data);
+      else if(cmd == "eventprofile")
+        $('#event-data tbody').html(pytick_data);
+      else
+        $('#object-data tbody').html(pytick_data);
+  }
+}
+
+function show_echars(){
   data_length = $.data.pyTickProfileDatas.length-1;
   arr_x = new Array();
   arr_y = new Array();
@@ -156,7 +275,6 @@ function show_result(data)
         {
             name: '响应时间',
             type: 'value',
-
         }
     ],
     series: [
@@ -196,6 +314,14 @@ function show_object_data(Array_num){
   $('#object-data tbody').html(res);
 
 }
+
+function getUrlParam(name) 
+{ 
+    var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)"); //构造一个含有目标参数的 正则表达式 对象 
+    var r = window.location.search. substr (1).match(reg);  //匹配目标参数 
+    if (r!=null) return unescape(r[2]); return null; //返回参数值 
+}
+
 </script>
 
    

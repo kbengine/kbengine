@@ -43,6 +43,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.h"	
 #include "network/bundle.h"	
 #include "network/fixed_messages.h"
+#include "network/network_stats.h"
 #include "client_lib/client_interface.h"
 #include "helper/eventhistory_stats.h"
 #include "navigation/navigation.h"
@@ -384,19 +385,10 @@ int Entity::pySetControlledBy(PyObject *value)
 			return 0;
 		}
 
-		PyObject* clientMB = PyObject_GetAttrString(mailbox, "client");
-		if (clientMB == Py_None)
+		Entity *ent = Cellapp::getSingleton().findEntity(mailbox->id());
+		if (!ent || !ent->clientMailbox())
 		{
-			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox has no 'client' mailbox!\n",
-				scriptName());
-			PyErr_PrintEx(0);
-			return 0;
-		}
-
-		Network::Channel* pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
-		if (!pChannel)
-		{
-			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox.client has no channel!\n",
+			PyErr_Format(PyExc_AssertionError, "%s: entity(%d) mailbox has no 'client' mailbox!\n",
 				scriptName());
 			PyErr_PrintEx(0);
 			return 0;

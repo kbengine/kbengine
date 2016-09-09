@@ -10,10 +10,6 @@
 #include "mongoc.h"
 #include <bson.h>
 #include <bcon.h>
-#if KBE_PLATFORM == PLATFORM_WIN32
-#pragma comment (lib, "bson-static_d.lib")
-#pragma comment (lib, "mongoc_static_d.lib")
-#endif
 
 namespace KBEngine 
 {
@@ -143,15 +139,15 @@ namespace KBEngine
 
 		bool collectionRemove(const char *tableName, mongoc_remove_flags_t flags, const bson_t *selector, const mongoc_write_concern_t *write_concern);
 
+		mongoc_cursor_t * collectionFindIndexes(const char *tableName);
+
+		bool collectionCreateIndex(const char *tableName, const bson_t *keys, const mongoc_index_opt_t *opt);
+
+		bool collectionDropIndex(const char *tableName, const char *index_name);
+
 	protected:
 		mongoc_client_t *_pMongoClient;
 		mongoc_database_t *database;
-		bson_t               *command,
-			reply,
-			*insert;
-		bson_error_t          error;
-		char                 *str;
-		bool                  retval;
 		/*mongoc_cursor_t *cursor;
 		const bson_t *reply;
 		uint16_t port;

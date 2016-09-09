@@ -1,5 +1,5 @@
-/*!
- * Ò»Ğ©ÀàËÆÓÚË¼Â·À´×ÔÓÚpythonµÄ¹¤¾ßº¯Êı
+ /*
+ * ä¸€äº›ç±»ä¼¼äºæ€è·¯æ¥è‡ªäºpythonçš„å·¥å…·å‡½æ•°
  * write by penghuawei
  */
 
@@ -58,7 +58,7 @@ KBEngine = {
     
     vt100reg : new RegExp("\33\\[.*?D|\33\\[.*?C|\33\\[.*?m"),
     
-    // ¶Ô½ÓÊÕµ½µÄÊı¾İ½øĞĞ¹ıÂË£¬°Ñvt100ÖÕ¶ËÃüÁî¹ıÂËµô
+    // å¯¹æ¥æ”¶åˆ°çš„æ•°æ®è¿›è¡Œè¿‡æ»¤ï¼ŒæŠŠvt100ç»ˆç«¯å‘½ä»¤è¿‡æ»¤æ‰
     filterConsoleCmd : function(data) {
         var d = data.replace(this.vt100reg, "");
         return d;
@@ -88,8 +88,8 @@ KBEngine = {
             $.data.lastReceivedTickData = data;
     },
     
-    parsePyTickProfileData : function (data) {
-        // °ÑÉÏ´ÎÎ´½áÊøµÄÊı¾İÈ¡³öÀ´¼ÌĞø´¦Àí
+    parsePyTickProfileData : function (data,cmd) {
+       // æŠŠä¸Šæ¬¡æœªç»“æŸçš„æ•°æ®å–å‡ºæ¥ç»§ç»­å¤„ç†
         if ($.data.lastReceivedTickData)
         {
             data = $.data.lastReceivedTickData + data;
@@ -111,7 +111,7 @@ KBEngine = {
             
         var tickData = $.data.lastPyTickProfileData;
         
-        // ¿ªÊ¼´¦Àí
+        // å¼€å§‹å¤„ç†
         for (var i = 0; i < ds.length; i++)
         {
             line = pytools.strip(ds[i]);
@@ -127,49 +127,205 @@ KBEngine = {
                 continue;
             }
 
-            if (line.match(/^\d+ function calls.* in [0-9.]+ seconds/)) // tick profile start or end
+            //è·å–pytickprofileçš„æ•°æ®
+            if ( cmd == 'pytickprofile') 
             {
-                if (tickData)
+                if (line.match(/^\d+ function calls.* in [0-9.]+ seconds/)) // tick profile start or end
                 {
-                    //$.data.pyTickProfileDatas.push(tickData);
+                    if (tickData)
+                    {
+                        //$.data.pyTickProfileDatas.push(tickData);
+                    }
+                    tickData = this.newLastPyTickProfileData();
+                    
+                    //ls = line.split(/^(\d+) function calls.* in ([0-9.]+) seconds/g);
+                    tickData.title = line;
+                    var vs = line.split(/^(\d+) function calls.* in ([0-9.]+) seconds/);
+                    tickData.totcall = parseInt(vs[1]);
+                    tickData.tottime = parseFloat(vs[2]);
+                    continue;
                 }
-                tickData = this.newLastPyTickProfileData();
                 
-                //ls = line.split(/^(\d+) function calls.* in ([0-9.]+) seconds/g);
-                tickData.title = line;
-                var vs = line.split(/^(\d+) function calls.* in ([0-9.]+) seconds/);
-                tickData.totcall = parseInt(vs[1]);
-                tickData.tottime = parseFloat(vs[2]);
-                continue;
+                if (!tickData)
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown title data: %s", line);
+                    continue;
+                }
+                
+                if (line.match(/^Ordered by:.*/))
+                {
+                    continue;
+                }
+                else if (line.match(/^ncalls[ \t]+tottime[ \t]+percall[ \t]+cumtime[ \t]+percall.*/))
+                {
+                    continue;
+                }
+                else if (line.match(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/))
+                {
+                    // "1    0.001    0.001    0.001    0.001 {built-in method print}"  ->
+                    // [ "", "1", "0.001", "0.001", "0.001", "0.001", "{built-in method print}", ""]
+                    var l = line.split(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/g)
+                    tickData.lines.push( l.slice(1, 7) );
+                }
+                else
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown data: %s", line);
+                }
             }
-            
-            if (!tickData)
+
+            //è·å–cprofileçš„æ•°æ®
+            if (cmd == 'cprofile') 
             {
-                console.error("KBEngine::parsePyTickProfileData(), unknown title data: %s", line);
-                continue;
+                if (line.match(/^ncalls[ \t]+tottime[ \t]+percall[ \t]+cumtime[ \t]+percall.*/)) // tick profile start or end
+                {
+                    if (tickData)
+                    {
+                        //$.data.pyTickProfileDatas.push(tickData);
+                    }
+                    tickData = this.newLastPyTickProfileData();
+                    tickData.title = line;
+                    continue;
+                }
+                
+                if (!tickData)
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown title data: %s", line);
+                    continue;
+                }
+                else if (line.match(/^ncalls[ \t]+tottime[ \t]+percall[ \t]+cumtime[ \t]+percall.*/))
+                {
+                    continue;
+                }
+                else if (line.match(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/))
+                {
+                    var l = line.split(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/g)
+                    tickData.lines.push( l.slice(1, 7) );
+                }
+                else
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown data: %s", line);
+                }
+                console.log("lines");
             }
-            
-            if (line.match(/^Ordered by:.*/))
+
+            //è·å–pyprofileçš„æ•°æ®
+            if (cmd == 'pyprofile') 
             {
-                continue;
+                if (line.match(/^\d+ function calls.* in [0-9.]+ seconds/)) // tick profile start or end
+                {
+                    if (tickData)
+                    {
+                        //$.data.pyTickProfileDatas.push(tickData);
+                    }
+                    tickData = this.newLastPyTickProfileData();
+                    
+                    //ls = line.split(/^(\d+) function calls.* in ([0-9.]+) seconds/g);
+                    tickData.title = line;
+                    var vs = line.split(/^(\d+) function calls.* in ([0-9.]+) seconds/);
+                    tickData.totcall = parseInt(vs[1]);
+                    tickData.tottime = parseFloat(vs[2]);
+                    continue;
+                }
+                
+                if (!tickData)
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown title data: %s", line);
+                    continue;
+                }
+                
+                if (line.match(/^Ordered by:.*/))
+                {
+                    continue;
+                }
+                else if (line.match(/^ncalls[ \t]+tottime[ \t]+percall[ \t]+cumtime[ \t]+percall.*/))
+                {
+                    var h = line.split(/^ncalls[ \t]+tottime[ \t]+percall[ \t]+cumtime[ \t]+percall.*/g)
+                    tickData.head.push( h.slice(1, 7) );
+                    continue;
+                }
+                else if (line.match(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/))
+                {
+                    var l = line.split(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/g)
+                    tickData.lines.push( l.slice(1, 7) );
+                }
+                else
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown data: %s", line);
+                }
             }
-            else if (line.match(/^ncalls[ \t]+tottime[ \t]+percall[ \t]+cumtime[ \t]+percall.*/))
+            if (cmd == 'eventprofile')
             {
-                continue;
+
+                if (line.match(/Event Type:./)) // tick profile start or end
+                {
+                    if (tickData)
+                    {
+                        //$.data.pyTickProfileDatas.push(tickData);
+                    }
+                    tickData = this.newLastPyTickProfileData();
+                    
+                    tickData.title = line;
+                    tickData.head = ["name", "count", "size"];
+                    continue;
+                }
+                
+                if (!tickData)
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown title data: %s", line);
+                    continue;
+                }
+                
+                else if (line.match(/^name[ \W]+count[ \W]+size/))
+                {
+                    
+                    continue;
+                }
+                else if (line.match(/(.+)[ \W]+([0-9.]+)[ \W]+([0-9.])/))
+                {
+                    var l = line.split(/(.+)[ \W]+([0-9.]+)[ \W]+([0-9.])/g);
+                    tickData.lines.push( l.slice(1, 4) );
+                }
+                else
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown data: %s", line);
+                }
             }
-            else if (line.match(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/))
+            //è·å–networkprofileçš„æ•°æ®
+            if (cmd == 'networkprofile') 
             {
-                // "1    0.001    0.001    0.001    0.001 {built-in method print}"  ->
-                // [ "", "1", "0.001", "0.001", "0.001", "0.001", "{built-in method print}", ""]
-                var l = line.split(/([0-9\/]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+(.*)/g)
-                tickData.lines.push( l.slice(1, 7) );
+                if (line.match(/^name[ \t]+sent#[ \t]+size[ \t]+avg[ \t]+total#[ \t]+totalsize[ \t]+recv#[ \t]+size[ \t]+avg[ \t]+total#[ \t]+totalsize.*/)) // tick profile start or end
+                {
+                    if (tickData)
+                    {
+                        //$.data.pyTickProfileDatas.push(tickData);
+                    }
+                    tickData = this.newLastPyTickProfileData();
+                    
+                    tickData.title = line;
+                    tickData.head = ["ncalls", "sent#", "size", "avg", "total#", "totalsize","recv#","size","avg","total#","totalsize"];
+                    continue;
+                }
+                
+                if (!tickData)
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown title data: %s", line);
+                    continue;
+                }
+
+                if (line.match(/(.+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.])/))
+                {
+                    var l = line.split(/(.+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.]+)[ \t]+([0-9.])/g)
+                    tickData.lines.push( l.slice(1, 12) );
+                }
+                else
+                {
+                    console.error("KBEngine::parsePyTickProfileData(), unknown data: %s", line);
+                }
             }
-            else
-            {
-                console.error("KBEngine::parsePyTickProfileData(), unknown data: %s", line);
-            }
+
         }
     },
     
+
 };
 

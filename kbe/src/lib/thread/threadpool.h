@@ -94,9 +94,9 @@ public:
 	virtual void onStart(){}
 	virtual void onEnd(){}
 
-	virtual void onProcessTaskStart(TPTask* pTask){}
+	virtual void onProcessTaskStart(TPTask* pTask) {}
 	virtual void processTask(TPTask* pTask){ pTask->process(); }
-	virtual void onProcessTaskEnd(TPTask* pTask){}
+	virtual void onProcessTaskEnd(TPTask* pTask) {}
 
 	INLINE THREAD_ID id(void) const;
 	
@@ -254,6 +254,7 @@ public:
 		向线程池添加一个任务
 	*/		
 	bool addTask(TPTask* tptask);
+	bool _addTask(TPTask* tptask);
 	INLINE bool addBackgroundTask(TPTask* tptask){ return addTask(tptask); }
 	INLINE bool pushTask(TPTask* tptask){ return addTask(tptask); }
 
@@ -312,7 +313,7 @@ public:
 	/**
 		创建一个线程池线程
 	*/
-	virtual TPThread* createThread(int threadWaitSecond = ThreadPool::timeout);
+	virtual TPThread* createThread(int threadWaitSecond = ThreadPool::timeout, bool threadStartsImmediately = true);
 
 	/**
 		将某个任务保存到未处理列表

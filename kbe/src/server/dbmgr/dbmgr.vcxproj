@@ -117,7 +117,7 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
  %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>db_mysql_d.lib;db_redis_d.lib;db_mongodb_d.lib;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;python34_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;db_interface_d.lib;server_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bson_static_d.lib;mongoc_static_d.lib;db_mysql_d.lib;db_redis_d.lib;db_mongodb_d.lib;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;python34_d.lib;Version.lib;netapi32.lib;resmgr_d.lib;db_interface_d.lib;server_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;F:/kbe/kbengine/kbe/src/libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>

@@ -374,9 +374,9 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	bool needCheckPassword = (success == SERVER_ERR_NEED_CHECK_PASSWORD);
+	bool needCheckPassword = (success == SERVER_ERR_LOCAL_PROCESSING);
 
-	if (success != SERVER_SUCCESS && success != SERVER_ERR_NEED_CHECK_PASSWORD)
+	if (success != SERVER_SUCCESS && success != SERVER_ERR_LOCAL_PROCESSING)
 		accountName = "";
 	else
 		success = SERVER_SUCCESS;
