@@ -413,6 +413,7 @@ bool EntityTableMysql::syncToDB(DBInterface* pdbi)
 	DBInterfaceMysql::TABLE_FIELDS outs;
 	static_cast<DBInterfaceMysql*>(pdbi)->getFields(outs, this->tableName());
 
+	ALL_MYSQL_SET_FLAGS |= NOT_NULL_FLAG;
 	sync_item_to_db(pdbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, 0, 
 			FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs, &sync_autoload_item_index);
 
