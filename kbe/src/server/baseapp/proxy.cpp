@@ -251,6 +251,16 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
+
+		return 0;
+	}
+
+	if (pyOterProxy == NULL || !PyObject_TypeCheck(pyOterProxy, Proxy::getScriptType()))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s[%d]::giveClientTo: arg1 not is Proxy!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
