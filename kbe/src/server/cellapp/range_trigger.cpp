@@ -75,7 +75,7 @@ bool RangeTrigger::install()
 
 	原因如下：
 	由于总是优先安装在positiveBoundary_，而边界在安装过程中导致另一个实体进入AOI了， 然后他在这个过程中可能销毁了， 而另一个边界negativeBoundary_还没有安装， 
-	而节点删除时会设置节点的xx为-FLT_MAX，让其向negativeBoundary_方向离开，所以positiveBoundary_不能检查到这个边界也就不会触发AOI离开事件。
+	而节点删除时会设置节点的old_xx为-FLT_MAX，让其向negativeBoundary_方向离开，所以positiveBoundary_不能检查到这个边界也就不会触发AOI离开事件。
 	*/
 	negativeBoundary_->old_xx(-FLT_MAX);
 	negativeBoundary_->old_yy(-FLT_MAX);
