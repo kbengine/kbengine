@@ -35,7 +35,7 @@
 static bson_t *
 get_bson (const char *filename)
 {
-   ssize_t_d len;
+   ssize_t len;
    uint8_t buf[4096];
    bson_t *b;
    char real_filename[256];

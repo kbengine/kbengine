@@ -98,7 +98,7 @@ future_get_size_t (future_t *future)
    abort ();
 }
 
-ssize_t_d
+ssize_t
 future_get_ssize_t (future_t *future)
 {
    if (future_wait (future)) {

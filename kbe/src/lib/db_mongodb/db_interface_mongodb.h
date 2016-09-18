@@ -7,6 +7,10 @@
 #include "helper/debug_helper.h"
 #include "db_interface/db_interface.h"
 
+#include "entitydef/entitydef.h"
+#ifdef _MSC_VER //解决mongodb和python中ssize_t冲突定义的问题
+#define _SSIZE_T_DEFINED
+#endif
 #include "mongoc.h"
 #include <bson.h>
 #include <bcon.h>

@@ -123,7 +123,7 @@ _mongoc_stream_socket_flush (mongoc_stream_t *stream)
 }
 
 
-static ssize_t_d
+static ssize_t
 _mongoc_stream_socket_readv (mongoc_stream_t *stream,
                              mongoc_iovec_t  *iov,
                              size_t           iovcnt,
@@ -132,8 +132,8 @@ _mongoc_stream_socket_readv (mongoc_stream_t *stream,
 {
    mongoc_stream_socket_t *ss = (mongoc_stream_socket_t *)stream;
    int64_t expire_at;
-   ssize_t_d ret = 0;
-   ssize_t_d nread;
+   ssize_t ret = 0;
+   ssize_t nread;
    size_t cur = 0;
 
    ENTRY;
@@ -157,7 +157,7 @@ _mongoc_stream_socket_readv (mongoc_stream_t *stream,
                                   expire_at);
 
       if (nread <= 0) {
-         if (ret >= (ssize_t_d)min_bytes) {
+         if (ret >= (ssize_t)min_bytes) {
             RETURN (ret);
          }
          errno = mongoc_socket_errno (ss->sock);
@@ -166,7 +166,7 @@ _mongoc_stream_socket_readv (mongoc_stream_t *stream,
 
       ret += nread;
 
-      while ((cur < iovcnt) && (nread >= (ssize_t_d)iov [cur].iov_len)) {
+      while ((cur < iovcnt) && (nread >= (ssize_t)iov [cur].iov_len)) {
          nread -= iov [cur++].iov_len;
       }
 
@@ -174,7 +174,7 @@ _mongoc_stream_socket_readv (mongoc_stream_t *stream,
          break;
       }
 
-      if (ret >= (ssize_t_d)min_bytes) {
+      if (ret >= (ssize_t)min_bytes) {
          RETURN (ret);
       }
 
@@ -189,7 +189,7 @@ _mongoc_stream_socket_readv (mongoc_stream_t *stream,
 }
 
 
-static ssize_t_d
+static ssize_t
 _mongoc_stream_socket_writev (mongoc_stream_t *stream,
                               mongoc_iovec_t  *iov,
                               size_t           iovcnt,
@@ -197,7 +197,7 @@ _mongoc_stream_socket_writev (mongoc_stream_t *stream,
 {
    mongoc_stream_socket_t *ss = (mongoc_stream_socket_t *)stream;
    int64_t expire_at;
-   ssize_t_d ret;
+   ssize_t ret;
 
    ENTRY;
 
@@ -212,14 +212,14 @@ _mongoc_stream_socket_writev (mongoc_stream_t *stream,
 }
 
 
-static ssize_t_d
+static ssize_t
 _mongoc_stream_socket_poll (mongoc_stream_poll_t *streams,
                             size_t                nstreams,
                             int32_t               timeout_msec)
 
 {
    int i;
-   ssize_t_d ret = -1;
+   ssize_t ret = -1;
    mongoc_socket_poll_t *sds;
    mongoc_stream_socket_t *ss;
 

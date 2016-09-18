@@ -492,12 +492,12 @@ _mongoc_stream_tls_flush (mongoc_stream_t *stream)
 }
 
 
-static ssize_t_d
+static ssize_t
 _mongoc_stream_tls_write (mongoc_stream_tls_t *tls,
                           char                *buf,
                           size_t               buf_len)
 {
-   ssize_t_d ret;
+   ssize_t ret;
 
    int64_t now;
    int64_t expire = 0;
@@ -555,7 +555,7 @@ _mongoc_stream_tls_write (mongoc_stream_tls_t *tls,
  *--------------------------------------------------------------------------
  */
 
-static ssize_t_d
+static ssize_t
 _mongoc_stream_tls_writev (mongoc_stream_t *stream,
                            mongoc_iovec_t  *iov,
                            size_t           iovcnt,
@@ -564,8 +564,8 @@ _mongoc_stream_tls_writev (mongoc_stream_t *stream,
    mongoc_stream_tls_t *tls = (mongoc_stream_tls_t *)stream;
    char buf[MONGOC_STREAM_TLS_BUFFER_SIZE];
 
-   ssize_t_d ret = 0;
-   ssize_t_d child_ret;
+   ssize_t ret = 0;
+   ssize_t child_ret;
    size_t i;
    size_t iov_pos = 0;
 
@@ -697,7 +697,7 @@ _mongoc_stream_tls_writev (mongoc_stream_t *stream,
  *--------------------------------------------------------------------------
  */
 
-static ssize_t_d
+static ssize_t
 _mongoc_stream_tls_readv (mongoc_stream_t *stream,
                           mongoc_iovec_t  *iov,
                           size_t           iovcnt,
@@ -705,7 +705,7 @@ _mongoc_stream_tls_readv (mongoc_stream_t *stream,
                           int32_t          timeout_msec)
 {
    mongoc_stream_tls_t *tls = (mongoc_stream_tls_t *)stream;
-   ssize_t_d ret = 0;
+   ssize_t ret = 0;
    size_t i;
    int read_ret;
    size_t iov_pos = 0;

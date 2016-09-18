@@ -38,7 +38,7 @@ socket_test_server (void *data_)
    mongoc_stream_t *stream;
    mongoc_iovec_t iov;
    socklen_t sock_len;
-   ssize_t_d r;
+   ssize_t r;
    char buf[5];
 
    iov.iov_base = buf;
@@ -102,7 +102,7 @@ socket_test_client (void *data_)
    socket_test_data_t *data = (socket_test_data_t *)data_;
    mongoc_socket_t *conn_sock;
    char buf[5];
-   ssize_t_d r;
+   ssize_t r;
    bool closed;
    struct sockaddr_in server_addr = { 0 };
    mongoc_stream_t *stream;
@@ -170,7 +170,7 @@ sendv_test_server (void *data_)
    mongoc_iovec_t iov;
    socklen_t sock_len;
    int amount = 0;
-   ssize_t_d r;
+   ssize_t r;
    char *buf = (char *)bson_malloc (gFourMB);
 
    iov.iov_base = buf;
@@ -266,7 +266,7 @@ sendv_test_client (void *data_)
 {
    socket_test_data_t *data = (socket_test_data_t *)data_;
    mongoc_socket_t *conn_sock;
-   ssize_t_d r;
+   ssize_t r;
    int i;
    int amount = 0;
    struct sockaddr_in server_addr = { 0 };

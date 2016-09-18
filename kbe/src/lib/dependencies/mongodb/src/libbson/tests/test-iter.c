@@ -35,7 +35,7 @@ get_bson (const char *filename)
 {
    uint8_t buf[4096];
    bson_t *b;
-   ssize_t_d len;
+   ssize_t len;
    int fd;
 
    if (-1 == (fd = bson_open(filename, O_RDONLY))) {

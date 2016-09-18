@@ -74,7 +74,7 @@ int              mongoc_socket_listen     (mongoc_socket_t       *sock,
 mongoc_socket_t *mongoc_socket_new        (int                    domain,
                                            int                    type,
                                            int                    protocol);
-ssize_t_d          mongoc_socket_recv       (mongoc_socket_t       *sock,
+ssize_t          mongoc_socket_recv       (mongoc_socket_t       *sock,
                                            void                  *buf,
                                            size_t                 buflen,
                                            int                    flags,
@@ -84,11 +84,11 @@ int              mongoc_socket_setsockopt (mongoc_socket_t       *sock,
                                            int                    optname,
                                            const void            *optval,
                                            socklen_t              optlen);
-ssize_t_d          mongoc_socket_send       (mongoc_socket_t       *sock,
+ssize_t          mongoc_socket_send       (mongoc_socket_t       *sock,
                                            const void            *buf,
                                            size_t                 buflen,
                                            int64_t                expire_at);
-ssize_t_d          mongoc_socket_sendv      (mongoc_socket_t       *sock,
+ssize_t          mongoc_socket_sendv      (mongoc_socket_t       *sock,
                                            mongoc_iovec_t        *iov,
                                            size_t                 iovcnt,
                                            int64_t                expire_at);
@@ -96,7 +96,7 @@ bool             mongoc_socket_check_closed (mongoc_socket_t       *sock);
 void             mongoc_socket_inet_ntop  (struct addrinfo         *rp,
                                            char                    *buf,
                                            size_t                   buflen);
-ssize_t_d          mongoc_socket_poll       (mongoc_socket_poll_t  *sds,
+ssize_t          mongoc_socket_poll       (mongoc_socket_poll_t  *sds,
                                            size_t                 nsds,
                                            int32_t                timeout);
 

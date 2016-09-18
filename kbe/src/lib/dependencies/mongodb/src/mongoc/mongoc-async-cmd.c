@@ -267,7 +267,7 @@ _mongoc_async_cmd_phase_setup (mongoc_async_cmd_t *acmd)
 mongoc_async_cmd_result_t
 _mongoc_async_cmd_phase_send (mongoc_async_cmd_t *acmd)
 {
-   ssize_t_d bytes;
+   ssize_t bytes;
 
    bytes = mongoc_stream_writev (acmd->stream, acmd->iovec, acmd->niovec, 0);
 
@@ -302,7 +302,7 @@ _mongoc_async_cmd_phase_send (mongoc_async_cmd_t *acmd)
 mongoc_async_cmd_result_t
 _mongoc_async_cmd_phase_recv_len (mongoc_async_cmd_t *acmd)
 {
-   ssize_t_d bytes = _mongoc_buffer_try_append_from_stream (&acmd->buffer,
+   ssize_t bytes = _mongoc_buffer_try_append_from_stream (&acmd->buffer,
                                                           acmd->stream,
                                                           acmd->bytes_to_read,
                                                           0, &acmd->error);
@@ -347,7 +347,7 @@ _mongoc_async_cmd_phase_recv_len (mongoc_async_cmd_t *acmd)
 mongoc_async_cmd_result_t
 _mongoc_async_cmd_phase_recv_rpc (mongoc_async_cmd_t *acmd)
 {
-   ssize_t_d bytes = _mongoc_buffer_try_append_from_stream (&acmd->buffer,
+   ssize_t bytes = _mongoc_buffer_try_append_from_stream (&acmd->buffer,
                                                           acmd->stream,
                                                           acmd->bytes_to_read,
                                                           0, &acmd->error);

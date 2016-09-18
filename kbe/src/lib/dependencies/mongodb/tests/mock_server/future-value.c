@@ -112,13 +112,13 @@ future_value_get_size_t (future_value_t *future_value)
 }
 
 void
-future_value_set_ssize_t(future_value_t *future_value, ssize_t_d value)
+future_value_set_ssize_t(future_value_t *future_value, ssize_t value)
 {
   future_value->type = future_value_ssize_t_type;
   future_value->ssize_t_value = value;
 }
 
-ssize_t_d
+ssize_t
 future_value_get_ssize_t (future_value_t *future_value)
 {
   assert (future_value->type == future_value_ssize_t_type);

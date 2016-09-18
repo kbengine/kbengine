@@ -201,7 +201,7 @@ _mongoc_socket_wait (int      sd,           /* IN */
  *--------------------------------------------------------------------------
  */
 
-ssize_t_d
+ssize_t
 mongoc_socket_poll (mongoc_socket_poll_t *sds,          /* IN */
                     size_t                nsds,         /* IN */
                     int32_t               timeout)      /* IN */
@@ -784,14 +784,14 @@ fail:
  *--------------------------------------------------------------------------
  */
 
-ssize_t_d
+ssize_t
 mongoc_socket_recv (mongoc_socket_t *sock,      /* IN */
                     void            *buf,       /* OUT */
                     size_t           buflen,    /* IN */
                     int              flags,     /* IN */
                     int64_t          expire_at) /* IN */
 {
-   ssize_t_d ret = 0;
+   ssize_t ret = 0;
    bool failed = false;
 
    ENTRY;
@@ -884,7 +884,7 @@ mongoc_socket_setsockopt (mongoc_socket_t *sock,    /* IN */
  *--------------------------------------------------------------------------
  */
 
-ssize_t_d
+ssize_t
 mongoc_socket_send (mongoc_socket_t *sock,      /* IN */
                     const void      *buf,       /* IN */
                     size_t           buflen,    /* IN */
@@ -922,14 +922,14 @@ mongoc_socket_send (mongoc_socket_t *sock,      /* IN */
  *--------------------------------------------------------------------------
  */
 
-static ssize_t_d
+static ssize_t
 _mongoc_socket_try_sendv_slow (mongoc_socket_t *sock,   /* IN */
                                mongoc_iovec_t  *iov,    /* IN */
                                size_t           iovcnt) /* IN */
 {
-   ssize_t_d ret = 0;
+   ssize_t ret = 0;
    size_t i;
-   ssize_t_d wrote;
+   ssize_t wrote;
 
    ENTRY;
 
@@ -982,7 +982,7 @@ _mongoc_socket_try_sendv_slow (mongoc_socket_t *sock,   /* IN */
  *--------------------------------------------------------------------------
  */
 
-static ssize_t_d
+static ssize_t
 _mongoc_socket_try_sendv (mongoc_socket_t *sock,   /* IN */
                           mongoc_iovec_t  *iov,    /* IN */
                           size_t           iovcnt) /* IN */
@@ -992,7 +992,7 @@ _mongoc_socket_try_sendv (mongoc_socket_t *sock,   /* IN */
    int ret;
 #else
    struct msghdr msg;
-   ssize_t_d ret;
+   ssize_t ret;
 #endif
 
    ENTRY;
@@ -1075,14 +1075,14 @@ _mongoc_socket_try_sendv (mongoc_socket_t *sock,   /* IN */
  *--------------------------------------------------------------------------
  */
 
-ssize_t_d
+ssize_t
 mongoc_socket_sendv (mongoc_socket_t  *sock,      /* IN */
                      mongoc_iovec_t   *in_iov,    /* IN */
                      size_t            iovcnt,    /* IN */
                      int64_t           expire_at) /* IN */
 {
-   ssize_t_d ret = 0;
-   ssize_t_d sent;
+   ssize_t ret = 0;
+   ssize_t sent;
    size_t cur = 0;
    mongoc_iovec_t *iov;
 
@@ -1121,7 +1121,7 @@ mongoc_socket_sendv (mongoc_socket_t  *sock,      /* IN */
          /*
           * Subtract the sent amount from what we still need to send.
           */
-         while ((cur < iovcnt) && (sent >= (ssize_t_d)iov [cur].iov_len)) {
+         while ((cur < iovcnt) && (sent >= (ssize_t)iov [cur].iov_len)) {
             TRACE("still got bytes left: sent -= iov_len: %ld -= %ld", sent, iov[cur+1].iov_len);
             sent -= iov [cur++].iov_len;
          }
@@ -1212,7 +1212,7 @@ mongoc_socket_check_closed (mongoc_socket_t *sock) /* IN */
 {
    bool closed = false;
    char buf [1];
-   ssize_t_d r;
+   ssize_t r;
 
    if (_mongoc_socket_wait (sock->sd, POLLIN, 0)) {
       sock->errno_ = 0;

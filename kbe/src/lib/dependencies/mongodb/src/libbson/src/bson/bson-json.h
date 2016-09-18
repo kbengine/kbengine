@@ -41,7 +41,7 @@ typedef enum
 } bson_json_error_code_t;
 
 
-typedef ssize_t_d (*bson_json_reader_cb) (void    *handle,
+typedef ssize_t (*bson_json_reader_cb) (void    *handle,
                                         uint8_t *buf,
                                         size_t   count);
 typedef void    (*bson_json_destroy_cb)(void    *handle);

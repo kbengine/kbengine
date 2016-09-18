@@ -93,7 +93,7 @@ typedef struct
 static void
 _bson_reader_handle_fill_buffer (bson_reader_handle_t *reader) /* IN */
 {
-   ssize_t_d ret;
+   ssize_t ret;
 
    /*
     * Handle first read specially.
@@ -249,13 +249,13 @@ _bson_reader_handle_fd_destroy (void *handle) /* IN */
  *--------------------------------------------------------------------------
  */
 
-static ssize_t_d
+static ssize_t
 _bson_reader_handle_fd_read (void   *handle, /* IN */
                              void   *buf,    /* IN */
                              size_t  len)    /* IN */
 {
    bson_reader_handle_fd_t *fd = handle;
-   ssize_t_d ret = -1;
+   ssize_t ret = -1;
 
    if (fd && (fd->fd != -1)) {
    again:

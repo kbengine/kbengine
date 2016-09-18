@@ -41,7 +41,7 @@ _mongoc_gridfs_file_refresh_page (mongoc_gridfs_file_t *file);
 static bool
 _mongoc_gridfs_file_flush_page (mongoc_gridfs_file_t *file);
 
-static ssize_t_d
+static ssize_t
 _mongoc_gridfs_file_extend (mongoc_gridfs_file_t *file);
 
 
@@ -398,7 +398,7 @@ mongoc_gridfs_file_destroy (mongoc_gridfs_file_t *file)
 
 
 /** readv against a gridfs file */
-ssize_t_d
+ssize_t
 mongoc_gridfs_file_readv (mongoc_gridfs_file_t *file,
                           mongoc_iovec_t       *iov,
                           size_t                iovcnt,
@@ -463,7 +463,7 @@ mongoc_gridfs_file_readv (mongoc_gridfs_file_t *file,
 
 
 /** writev against a gridfs file */
-ssize_t_d
+ssize_t
 mongoc_gridfs_file_writev (mongoc_gridfs_file_t *file,
                            mongoc_iovec_t       *iov,
                            size_t                iovcnt,
@@ -544,11 +544,11 @@ mongoc_gridfs_file_writev (mongoc_gridfs_file_t *file,
  * Returns:
  *      The number of zero bytes written, or -1 on failure.
  */
-static ssize_t_d
+static ssize_t
 _mongoc_gridfs_file_extend (mongoc_gridfs_file_t *file)
 {
    int64_t target_length;
-   ssize_t_d diff;
+   ssize_t diff;
 
    ENTRY;
 
@@ -558,7 +558,7 @@ _mongoc_gridfs_file_extend (mongoc_gridfs_file_t *file)
       RETURN (0);
    }
 
-   diff = (ssize_t_d)(file->pos - file->length);
+   diff = (ssize_t)(file->pos - file->length);
    target_length = file->pos;
    mongoc_gridfs_file_seek (file, 0, SEEK_END);
 

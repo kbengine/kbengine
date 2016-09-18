@@ -31,7 +31,7 @@
 #endif
 
 
-#define SPACE_FOR(_b, _sz) (((ssize_t_d)(_b)->datalen - (ssize_t_d)(_b)->off - (ssize_t_d)(_b)->len) >= (ssize_t_d)(_sz))
+#define SPACE_FOR(_b, _sz) (((ssize_t)(_b)->datalen - (ssize_t)(_b)->off - (ssize_t)(_b)->len) >= (ssize_t)(_sz))
 
 
 /**
@@ -145,7 +145,7 @@ _mongoc_buffer_append_from_stream (mongoc_buffer_t *buffer,
                                    bson_error_t    *error)
 {
    uint8_t *buf;
-   ssize_t_d ret;
+   ssize_t ret;
 
    ENTRY;
 
@@ -198,14 +198,14 @@ _mongoc_buffer_append_from_stream (mongoc_buffer_t *buffer,
  *
  * Returns: The number of buffered bytes, or -1 on failure.
  */
-ssize_t_d
+ssize_t
 _mongoc_buffer_fill (mongoc_buffer_t *buffer,
                      mongoc_stream_t *stream,
                      size_t           min_bytes,
                      int32_t          timeout_msec,
                      bson_error_t    *error)
 {
-   ssize_t_d ret;
+   ssize_t ret;
    size_t avail_bytes;
 
    ENTRY;
@@ -280,7 +280,7 @@ _mongoc_buffer_fill (mongoc_buffer_t *buffer,
  *
  * Returns: bytes read if successful; otherwise -1 and @error is set.
  */
-ssize_t_d
+ssize_t
 _mongoc_buffer_try_append_from_stream (mongoc_buffer_t *buffer,
                                    mongoc_stream_t *stream,
                                    size_t           size,
@@ -288,7 +288,7 @@ _mongoc_buffer_try_append_from_stream (mongoc_buffer_t *buffer,
                                    bson_error_t    *error)
 {
    uint8_t *buf;
-   ssize_t_d ret;
+   ssize_t ret;
 
    ENTRY;
 

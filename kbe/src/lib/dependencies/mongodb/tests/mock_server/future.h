@@ -58,7 +58,7 @@ future_get_int64_t (future_t *future);
 size_t
 future_get_size_t (future_t *future);
 
-ssize_t_d
+ssize_t
 future_get_ssize_t (future_t *future);
 
 uint32_t

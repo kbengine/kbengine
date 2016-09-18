@@ -170,14 +170,14 @@ mongoc_stream_buffered_flush (mongoc_stream_t *stream) /* IN */
  *--------------------------------------------------------------------------
  */
 
-static ssize_t_d
+static ssize_t
 mongoc_stream_buffered_writev (mongoc_stream_t *stream,       /* IN */
                                mongoc_iovec_t  *iov,          /* IN */
                                size_t           iovcnt,       /* IN */
                                int32_t          timeout_msec) /* IN */
 {
    mongoc_stream_buffered_t *buffered = (mongoc_stream_buffered_t *)stream;
-   ssize_t_d ret;
+   ssize_t ret;
 
    ENTRY;
 
@@ -217,7 +217,7 @@ mongoc_stream_buffered_writev (mongoc_stream_t *stream,       /* IN */
  *--------------------------------------------------------------------------
  */
 
-static ssize_t_d
+static ssize_t
 mongoc_stream_buffered_readv (mongoc_stream_t *stream,       /* IN */
                               mongoc_iovec_t  *iov,          /* INOUT */
                               size_t           iovcnt,       /* IN */

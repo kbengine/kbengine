@@ -171,7 +171,7 @@ test_bson_as_json_stack_overflow (void)
    size_t buflen = 1024 * 1024 * 17;
    char *str;
    int fd;
-   ssize_t_d r;
+   ssize_t r;
 
    buf = bson_malloc0(buflen);
 
@@ -204,7 +204,7 @@ test_bson_corrupt (void)
    size_t buflen = 1024;
    char *str;
    int fd;
-   ssize_t_d r;
+   ssize_t r;
 
    buf = bson_malloc0(buflen);
 
@@ -232,7 +232,7 @@ test_bson_corrupt_utf8 (void)
    size_t buflen = 1024;
    char *str;
    int fd;
-   ssize_t_d r;
+   ssize_t r;
 
    buf = bson_malloc0(buflen);
 
@@ -261,7 +261,7 @@ test_bson_corrupt_binary (void)
    size_t buflen = 1024;
    char *str;
    int fd;
-   ssize_t_d r;
+   ssize_t r;
 
    buf = bson_malloc0(buflen);
 
@@ -500,7 +500,7 @@ test_bson_json_read_invalid_json(void)
    assert (!b);
 }
 
-static ssize_t_d
+static ssize_t
 test_bson_json_read_bad_cb_helper(void *_ctx, uint8_t * buf, size_t len)
 {
    return -1;
@@ -526,7 +526,7 @@ test_bson_json_read_bad_cb(void)
    bson_destroy (&bson);
 }
 
-static ssize_t_d
+static ssize_t
 test_bson_json_read_invalid_helper (void *ctx, uint8_t *buf, size_t len)
 {
    assert (len);

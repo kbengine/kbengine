@@ -1521,7 +1521,7 @@ worker_thread (void *data)
    sync_queue_t *q;
    request_t *request;
    mongoc_array_t autoresponders;
-   ssize_t_d i;
+   ssize_t i;
    autoresponder_handle_t handle;
 
 #ifdef MONGOC_ENABLE_SSL
@@ -1650,7 +1650,7 @@ mock_server_reply_multi (request_t           *request,
    mongoc_array_t ar;
    mongoc_rpc_t r = {{ 0 }};
    size_t expected = 0;
-   ssize_t_d n_written;
+   ssize_t n_written;
    int iovcnt;
    int i;
    uint8_t *buf;
