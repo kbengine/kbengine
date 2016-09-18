@@ -17,3 +17,6 @@ endif
 
 include $(KBE_ROOT)/kbe/src/build/common.mak
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/hiredis
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/mongoc
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/libbson/src/bson
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/libbson/src/yajl

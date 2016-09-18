@@ -160,10 +160,10 @@ namespace KBEngine
 		char *host_and_port;
 		char *str;*/
 
-		mongodb::DBTransaction lock_;
-
 		bool hasLostConnection_;
 
 		bool inTransaction_;
+
+		mongodb::DBTransaction lock_;
 	};
 }

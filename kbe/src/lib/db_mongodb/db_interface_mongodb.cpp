@@ -117,7 +117,7 @@ namespace KBEngine {
 		_pMongoClient = mongoc_client_new("mongodb://localhost:27017");
 
 		if (!_pMongoClient) {
-			fprintf(stderr, "Invalid hostname or port: %s\n", db_port_);
+			fprintf(stderr, "Invalid hostname or port: %u\n", db_port_);
 			return false;
 		}
 
@@ -341,7 +341,7 @@ namespace KBEngine {
 
 			if (mongoc_cursor_error(cursor, &error))
 			{
-				ERROR_MSG("An error occurred: %s\n", error.message);
+				ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 				resultFlag = false;
 			}
 
@@ -527,7 +527,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_insert(collection, flags, document, write_concern, &error);
 		if (!r) 
 		{
-			ERROR_MSG("%s\n", error.message);
+			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
 		mongoc_collection_destroy(collection);
@@ -537,7 +537,6 @@ namespace KBEngine {
 
 	mongoc_cursor_t *  DBInterfaceMongodb::collectionFind(const char *tableName, mongoc_query_flags_t flags, uint32_t skip, uint32_t limit, uint32_t  batch_size, const bson_t *query, const bson_t *fields, const mongoc_read_prefs_t *read_prefs)
 	{
-		bson_error_t  error;
 		mongoc_collection_t * collection = mongoc_database_get_collection(database, tableName);
 		mongoc_cursor_t * cursor = mongoc_collection_find(collection, flags, skip, limit, batch_size, query, fields, read_prefs);
 
@@ -552,7 +551,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_update(collection, uflags, selector, update, write_concern, &error);
 		if (!r)
 		{
-			ERROR_MSG("%s\n", error.message);
+			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
 		mongoc_collection_destroy(collection);
@@ -591,7 +590,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_create_index(collection, keys, opt, &error);
 		if (!r)
 		{
-			ERROR_MSG("%s\n", error.message);
+			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
 		mongoc_collection_destroy(collection);
@@ -607,7 +606,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_drop_index(collection, index_name, &error);
 		if (!r)
 		{
-			ERROR_MSG("%s\n", error.message);
+			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
 		mongoc_collection_destroy(collection);

@@ -318,7 +318,7 @@ namespace KBEngine {
 
 			//		if (bsons == NULL)
 			//		{
-			//			ERROR_MSG("%s\n", error.message);
+			//			ERROR_MSG(fmt::format("{}\n", error.message));
 			//		}
 
 			//		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
@@ -647,7 +647,7 @@ namespace KBEngine {
 		}
 
 		if (mongoc_cursor_error(cursor, &error)) {
-			ERROR_MSG("An error occurred: %s\n", error.message);
+			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
 		if (value.size() == 0)
