@@ -6,10 +6,10 @@
   <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
   <form class="form-inline" onkeypress="if(event.keyCode==13||event.which==13){return false;}">
     <div class="form-group">
-      <input class="form-control" type="text" name="second" id="second" placeholder="输入查询时间(单位：秒)" style="padding-left: 0.3em;padding-top: 0.2em;padding-bottom: 0.3em " />
+      <input class="form-control" type="text" name="second" id="second" placeholder="输入查询时长(单位：秒)" style="padding-left: 0.3em;padding-top: 0.2em;padding-bottom: 0.3em " />
       <input class="btn btn-default form-control" type="button" name="exec" value="连接组件" id="exec" onClick="onProfile(this)"/>
-      <input id="show-echars" class="btn btn-default form-control hide" type="button" name="show-echars" value="更新图表" onClick="show_echars()"/>
       <div id="output_block_area2" class="form-control" style="  border: none;background-color: none;box-shadow:none;"></div>
+      <div>注：默认查询时长为10秒</div>
     </div>
   </form>
   
@@ -106,6 +106,8 @@ function onProfile(elm)
           connect_to();
           if (cmd != "pytickprofile")
             show_data(sec);
+          else
+            show_echars();
         }
         else
           alert("查询时间需大于等于0");
@@ -154,7 +156,6 @@ window.onload = function()
 {
   if (cmd =="pytickprofile")
   {
-    $("#show-echars").removeClass("hide");
     $("#tottime").removeClass("hide");
     $(".object-info").removeClass("hide");
     
@@ -218,13 +219,10 @@ function show_data(sec)
 }
 
 function show_echars(){
-  data_length = $.data.pyTickProfileDatas.length-1;
   arr_x = new Array();
   arr_y = new Array();
-  for (var i = 0; i <= data_length; i++) {
-    arr_x[i] = i;
-    arr_y[i] = $.data.pyTickProfileDatas[i].tottime;
-  }
+  var start_num = 0;
+  var end_num = 100;
   var myChart = echarts.init(document.getElementById('tottime'));
   var option = {
     title : {
@@ -241,6 +239,7 @@ function show_echars(){
         width:0,
         formatter: function(params,ticket,callback) {
           show_object_data(params[0].name);
+          return params[0].name+" : "+$.data.pyTickProfileDatas[params[0].name].tottime;
          }  
     },
     legend: {
@@ -250,17 +249,12 @@ function show_echars(){
     },
     dataZoom: [
         {
-            show: true,
-            realtime: true,
-            start: 0,
-            end: 100
-        },
-        {
-            type: 'inside',
-            realtime: true,
-            start: 60,
-            end: 80,
-            zoomlock:true,
+          show: true,
+          realtime: true,
+          start: 0,
+          end: 100,
+          zoomLock:true,
+          realtime:true
         }
     ],
     xAxis : [
@@ -295,8 +289,46 @@ function show_echars(){
     ]
 };
 
-    myChart.setOption(option);
+  myChart.setOption(option);
+
+  //实时获取dataZoom的状态
+  myChart.on("dataZoom",function(params){
+      start_num = params.start;
+      end_num = params.end;
+    })
+
+  //实时更新时间轴
+  timeTicket = setInterval(function () {
+    data_length = $.data.pyTickProfileDatas.length-1;
+
+    if (arr_x.length > 200)
+      start_num = end_num - (200/arr_x.length)*100;
+
+    for (var ii = 0; ii < data_length; ii++) {
+      arr_x[ii] = ii;
+      arr_y[ii] = $.data.pyTickProfileDatas[ii].tottime;
+      if ($.data.profile_started == false){
+        clearInterval(timeTicket);
+        break;
+      }
+    }
+
+    //实时更新重写数据
+    myChart.setOption({
+        dataZoom : [{
+         start:start_num,
+         end:end_num,
+        }],
+        xAxis : [{
+          data : arr_x
+        }],
+        series: [{
+          data: arr_y
+        }]
+      });
+    }, 1000);
 }
+
 function show_object_data(Array_num){
 
   var res = "";
