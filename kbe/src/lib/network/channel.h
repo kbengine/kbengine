@@ -55,7 +55,7 @@ public:
 	static Channel* createPoolObject();
 	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
-	void onReclaimObject();
+	virtual void onReclaimObject();
 	virtual size_t getPoolObjectBytes();
 
 	enum Traits

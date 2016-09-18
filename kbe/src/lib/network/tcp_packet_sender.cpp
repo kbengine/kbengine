@@ -59,6 +59,12 @@ void TCPPacketSender::reclaimPoolObject(TCPPacketSender* obj)
 }
 
 //-------------------------------------------------------------------------------------
+void TCPPacketSender::onReclaimObject()
+{
+	sendfailCount_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
 void TCPPacketSender::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("TCPPacketSender::destroyObjPool(): size {}.\n", 
@@ -76,7 +82,8 @@ TCPPacketSender::SmartPoolObjectPtr TCPPacketSender::createSmartPoolObj()
 //-------------------------------------------------------------------------------------
 TCPPacketSender::TCPPacketSender(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
-	PacketSender(endpoint, networkInterface)
+	PacketSender(endpoint, networkInterface),
+	sendfailCount_(0)
 {
 }
 
@@ -134,6 +141,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 		{
 			pakcets.clear();
 			Network::Bundle::reclaimPoolObject((*iter));
+			sendfailCount_ = 0;
 		}
 		else
 		{
@@ -148,7 +156,17 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 						(pChannel->isInternal() ? "internal" : "external")));
 				*/
 
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()");
+				// 连续超过10次则通知出错
+				if (++sendfailCount_ >= 10)
+				{
+					onGetError(pChannel);
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend(sendfailCount_ >= 10)");
+				}
+				else
+				{
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()");
+				}
+
 			}
 			else
 			{

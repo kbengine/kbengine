@@ -114,6 +114,11 @@ public:
 	*/
 	void queryAppsLoads(Network::Channel* pChannel, MemoryStream& s);
 
+	/** 网络接口
+	查询所有相关进程space信息
+	*/
+	void querySpaces(Network::Channel* pChannel, MemoryStream& s);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_anywhere_cellapp_messagebuffer_;

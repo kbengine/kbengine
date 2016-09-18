@@ -58,7 +58,8 @@ public:
 	bool wasInYRange(CoordinateNode * pNode);
 	INLINE bool wasInZRange(CoordinateNode * pNode);
 
-	virtual void resetOld(){ 
+	virtual void resetOld()
+	{ 
 		CoordinateNode::resetOld();
 		old_range_xz_ = range_xz_;
 		old_range_y_ = range_y_;

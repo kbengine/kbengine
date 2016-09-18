@@ -590,7 +590,7 @@ void Channel::onPacketSent(int bytes, bool sentCompleted)
 		if(g_extSendWindowBytesOverflow > 0 && 
 			lastTickBytesSent_ >= g_extSendWindowBytesOverflow)
 		{
-			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->receive.\n", 
+			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->send.\n", 
 				(void*)this, this->c_str(), lastTickBytesSent_, g_extSendWindowBytesOverflow));
 
 			this->condemn();

@@ -551,16 +551,17 @@ void Witness::installAOITrigger()
 	{
 		// 在设置AOI半径为0后掉线重登陆会出现这种情况
 		if (aoiRadius_ <= 0.f)
-		{
 			return;
-		}
 
-		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
-
+		// 必须先安装pAOIHysteresisAreaTrigger_，否则一些极端情况会出现错误的结果
+		// 例如：一个Avatar正好进入到世界此时正在安装AOI触发器，而安装过程中这个实体onWitnessed触发导致自身被销毁了
+		// 由于AOI触发器并未完全安装完毕导致触发器的节点old_xx等都为-FLT_MAX，所以该实体在离开坐标管理器时Avatar的AOI触发器判断错误
+		// 如果先安装pAOIHysteresisAreaTrigger_则不会触发实体进入AOI事件，这样在安装pAOITrigger_时触发事件导致上面出现的问题时也能之前捕获离开事件了
 		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)
-		{
 			pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
-		}
+
+		if (pEntity_/*上面流程可能导致销毁 */)
+			pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 	}
 	else
 	{
