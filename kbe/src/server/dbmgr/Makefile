@@ -28,7 +28,7 @@ USE_G3DMATH = 1
 USE_MYSQL = 1
 USE_REDIS = 1
 USE_OPENSSL = 1
-
+USE_MONGODB = 1
 
 ifndef NO_USE_LOG4CXX
 	NO_USE_LOG4CXX = 0
@@ -45,4 +45,3 @@ endif
 #KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mysql/include
 
 include $(KBE_ROOT)/kbe/src/build/common.mak
-

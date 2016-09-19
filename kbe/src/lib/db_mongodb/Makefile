@@ -7,10 +7,6 @@ SRCS =					\
 	db_interface_mongodb	\
 	entity_table_mongodb	\
 	kbe_table_mongodb
-
-MY_LIBS =		\
-	libbson-1.0		\
-	libmongoc-1.0
 	
 USE_PYTHON = 1
 USE_G3DMATH = 1

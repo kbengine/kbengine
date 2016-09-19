@@ -176,6 +176,15 @@ CPPFLAGS += -DUSE_REDIS
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/hiredis
 endif # USE_REDIS
 
+ifdef USE_MONGODB
+LDLIBS += -lbson-1.0
+LDLIBS += -lmongoc-1.0
+CPPFLAGS += -DUSE_MONGODB
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/mongoc
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/libbson/src/bson
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/libbson/src/yajl
+endif # USE_MONGODB
+
 # everyone needs pthread if LDLINUX_TLS_IS_BROKEN
 ifdef LDLINUX_TLS_IS_BROKEN
 CPPFLAGS += -DLDLINUX_TLS_IS_BROKEN

@@ -33,6 +33,7 @@ all install clean full:
 	cd dependencies/expat && $(MAKE) $@
 	cd dependencies/apr-util && $(MAKE) $@
 	cd dependencies/log4cxx && $(MAKE) $@
+	cd dependencies/mongodb && $(MAKE) $@
 	cd python && $(MAKE) $@
 	cd client_lib && $(MAKE) $@
 	cd common && $(MAKE) $@
