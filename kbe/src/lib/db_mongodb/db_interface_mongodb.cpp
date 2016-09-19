@@ -13,37 +13,6 @@ namespace KBEngine {
 	static bool _g_installedWatcher = false;
 	static bool _g_debug = false;
 
-	static void querystatistics(const char* strCommand, uint32 size)
-	{
-		std::string op;
-		for (uint32 i = 0; i < size; ++i)
-		{
-			if (strCommand[i] == ' ')
-				break;
-
-			op += strCommand[i];
-		}
-
-		if (op.size() == 0)
-			return;
-
-		std::transform(op.begin(), op.end(), op.begin(), toupper);
-
-		_g_logMutex.lockMutex();
-
-		KBEUnordered_map< std::string, uint32 >::iterator iter = g_querystatistics.find(op);
-		if (iter == g_querystatistics.end())
-		{
-			g_querystatistics[op] = 1;
-		}
-		else
-		{
-			iter->second += 1;
-		}
-
-		_g_logMutex.unlockMutex();
-	}
-
 	static uint32 watcher_query(std::string cmd)
 	{
 		KBEngine::thread::ThreadGuard tg(&_g_logMutex);
@@ -565,7 +534,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_remove(collection, flags, selector, write_concern, &error);
 		if (!r)
 		{
-			ERROR_MSG("%s\n", error.message);
+			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
 		mongoc_collection_destroy(collection);

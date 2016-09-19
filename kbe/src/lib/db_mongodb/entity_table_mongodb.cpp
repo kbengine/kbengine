@@ -1582,7 +1582,7 @@ namespace KBEngine {
 		pSotvs->sqlkey = db_item_name();
 		context.items.push_back(KBEShared_ptr<mongodb::DBContext::DB_ITEM_DATA>(pSotvs));
 
-		BSON_APPEND_UTF8(doc, pSotvs->sqlkey, val.c_str(), val.length());
+		bson_append_utf8(doc, pSotvs->sqlkey, (int)strlen(pSotvs->sqlkey), val.c_str(), val.length());
 	}
 
 	void EntityTableItemMongodb_STRING::getReadSqlItem(mongodb::DBContext& context)
@@ -1637,7 +1637,7 @@ namespace KBEngine {
 		pSotvs->sqlkey = db_item_name();
 		context.items.push_back(KBEShared_ptr<mongodb::DBContext::DB_ITEM_DATA>(pSotvs));
 
-		BSON_APPEND_UTF8(doc, pSotvs->sqlkey, val.c_str(), val.length());
+		bson_append_utf8(doc, pSotvs->sqlkey, (int)strlen(pSotvs->sqlkey), val.c_str(), val.length());
 	}
 
 	void EntityTableItemMongodb_UNICODE::getReadSqlItem(mongodb::DBContext& context)
@@ -1691,7 +1691,7 @@ namespace KBEngine {
 		pSotvs->sqlkey = db_item_name();
 		context.items.push_back(KBEShared_ptr<mongodb::DBContext::DB_ITEM_DATA>(pSotvs));
 
-		BSON_APPEND_UTF8(doc, pSotvs->sqlkey, val.c_str(), val.length());
+		bson_append_utf8(doc, pSotvs->sqlkey, (int)strlen(pSotvs->sqlkey), val.c_str(), val.length());
 	}
 
 	void EntityTableItemMongodb_BLOB::getReadSqlItem(mongodb::DBContext& context)
