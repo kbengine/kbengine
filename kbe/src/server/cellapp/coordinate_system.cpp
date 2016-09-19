@@ -547,6 +547,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 			if((pNode->pPrevX() == NULL || (pNode->xx() >= pNode->pPrevX()->x())) && 
 				(pNode->pNextX() == NULL || (pNode->xx() <= pNode->pNextX()->x())))
 			{
+				// 设置为最终位置
 				pNode->x(pNode->xx());
 				break;
 			}
@@ -640,6 +641,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 			if((pNode->pPrevY() == NULL || (pNode->yy() >= pNode->pPrevY()->y())) && 
 				(pNode->pNextY() == NULL || (pNode->yy() <= pNode->pNextY()->y())))
 			{
+				// 设置为最终位置
 				pNode->y(pNode->yy());
 				break;
 			}
@@ -733,6 +735,7 @@ void CoordinateSystem::update(CoordinateNode* pNode)
 			if((pNode->pPrevZ() == NULL || (pNode->zz() >= pNode->pPrevZ()->z())) && 
 				(pNode->pNextZ() == NULL || (pNode->zz() <= pNode->pNextZ()->z())))
 			{
+				// 设置为最终位置
 				pNode->z(pNode->zz());
 				break;
 			}
