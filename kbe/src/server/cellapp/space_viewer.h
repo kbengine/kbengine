@@ -66,6 +66,10 @@ public:
 
 	void updateViewer(const Network::Address& addr, SPACE_ID spaceID, CELL_ID cellID);
 
+	const Network::Address& addr() const {
+		return addr_;
+	}
+
 protected:
 	// 改变了查看space的cell
 	void onChangedSpaceOrCell();

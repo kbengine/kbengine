@@ -95,8 +95,20 @@ void SpaceViewers::handleTimeout(TimerHandle handle, void * arg)
 	}
 
 	std::map< Network::Address, SpaceViewer>::iterator iter = spaceViews_.begin();
-	for (; iter != spaceViews_.end(); ++iter)
-		iter->second.timeout();
+	for (; iter != spaceViews_.end(); )
+	{
+		// 如果该viewer地址找不到了则将其擦除
+		Network::Channel* pChannel = Cellapp::getSingleton().networkInterface().findChannel(iter->second.addr());
+		if (pChannel == NULL)
+		{
+			spaceViews_.erase(iter++);
+		}
+		else
+		{
+			iter->second.timeout();
+			++iter;
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
