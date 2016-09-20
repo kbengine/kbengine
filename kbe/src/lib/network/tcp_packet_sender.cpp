@@ -212,7 +212,15 @@ Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket)
 	pChannel->onPacketSent(len, sentCompleted);
 
 	if (sentCompleted)
+	{
 		return REASON_SUCCESS;
+	}
+	else
+	{
+		// 如果只发送了一部分数据，则认为是REASON_RESOURCE_UNAVAILABLE
+		if (len > 0)
+			return REASON_RESOURCE_UNAVAILABLE;
+	}
 
 	return checkSocketErrors(pEndpoint);
 }
