@@ -842,7 +842,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID);
+	Space* space = Spaces::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity
@@ -949,7 +949,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 	// DEBUG_MSG("Cellapp::onRestoreSpaceInCellFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID);
+	Space* space = Spaces::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity

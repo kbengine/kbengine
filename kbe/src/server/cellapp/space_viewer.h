@@ -43,9 +43,18 @@ class SpaceViewer
 public:
 	struct ViewEntity
 	{
+		ViewEntity()
+		{
+			entityID = 0;
+			updateVersion = 0;
+		}
+
 		ENTITY_ID entityID;
 		Position3D position;
 		Direction3D direction;
+
+		// 更新序列号， 所有实体都更新完毕则序列号+1， 在某些时候量比较大的情况每次迭代一部分实体更新
+		int updateVersion;
 	};
 
 public:
@@ -53,7 +62,7 @@ public:
 	virtual ~SpaceViewer();
 	
 	virtual void timeout();
-	virtual void sendStream(MemoryStream* s);
+	virtual void sendStream(MemoryStream* s, int type);
 
 	void updateViewer(const Network::Address& addr, SPACE_ID spaceID, CELL_ID cellID);
 
@@ -62,7 +71,8 @@ protected:
 	void onChangedSpaceOrCell();
 	void resetViewer();
 
-	void update();
+	void updateClient();
+	void initClient();
 
 	Network::Address addr_;
 
@@ -71,6 +81,11 @@ protected:
 	CELL_ID cellID_;
 
 	std::map< ENTITY_ID, ViewEntity > viewedEntities;
+
+	int updateType_;
+
+	// 更新序列号， 所有实体都更新完毕则序列号+1， 在某些时候量比较大的情况每次迭代一部分实体更新
+	int lastUpdateVersion_;
 };
 
 class SpaceViewers : public TimerHandler

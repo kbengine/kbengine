@@ -38,7 +38,7 @@ typedef std::vector<EntityPtr> SPACE_ENTITIES;
 class Space
 {
 public:
-	Space(SPACE_ID spaceID);
+	Space(SPACE_ID spaceID, const std::string& scriptModuleName);
 	~Space();
 
 	void unLoadSpaceGeometry();
@@ -125,6 +125,9 @@ protected:
 protected:
 	// 这个space的ID
 	SPACE_ID					id_;														
+
+	// 创建这个space时用的实体脚本模块名称
+	std::string					scriptModuleName_;
 
 	// 这个space上的entity
 	SPACE_ENTITIES				entities_;							

@@ -37,8 +37,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-Space::Space(SPACE_ID spaceID):
+Space::Space(SPACE_ID spaceID, const std::string& scriptModuleName) :
 id_(spaceID),
+scriptModuleName_(scriptModuleName),
 entities_(),
 hasGeometry_(false),
 pCell_(NULL),
@@ -55,6 +56,7 @@ destroyTime_(0)
 		
 		(*pBundle) << g_componentID;
 		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
 		(*pBundle) << false;
 		(*pBundle) << "";
 
@@ -78,6 +80,7 @@ Space::~Space()
 
 		(*pBundle) << g_componentID;
 		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
 		(*pBundle) << true;
 		(*pBundle) << "";
 
@@ -304,6 +307,7 @@ void Space::unLoadSpaceGeometry()
 
 		(*pBundle) << g_componentID;
 		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
 		(*pBundle) << false;
 		(*pBundle) << "";
 
@@ -335,6 +339,7 @@ void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 
 		(*pBundle) << g_componentID;
 		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
 		(*pBundle) << false;
 		(*pBundle) << getGeometryPath();
 

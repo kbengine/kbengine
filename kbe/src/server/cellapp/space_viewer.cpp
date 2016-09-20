@@ -104,7 +104,9 @@ SpaceViewer::SpaceViewer():
 addr_(),
 spaceID_(0),
 cellID_(0),
-viewedEntities()
+viewedEntities(),
+updateType_(0),
+lastUpdateVersion_(0)
 {
 }
 
@@ -117,6 +119,7 @@ SpaceViewer::~SpaceViewer()
 void SpaceViewer::resetViewer()
 {
 	viewedEntities.clear();
+	lastUpdateVersion_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -150,11 +153,18 @@ void SpaceViewer::onChangedSpaceOrCell()
 //-------------------------------------------------------------------------------------
 void SpaceViewer::timeout()
 {
-	update();
+	switch (updateType_)
+	{
+	case 0: // 初始化
+		initClient();
+		break;
+	default: // 更新实体
+		updateClient();
+	};
 }
 
 //-------------------------------------------------------------------------------------
-void SpaceViewer::sendStream(MemoryStream* s)
+void SpaceViewer::sendStream(MemoryStream* s, int type)
 {
 	Network::Channel* pChannel = Cellapp::getSingleton().networkInterface().findChannel(addr_);
 	if(pChannel == NULL)
@@ -172,12 +182,37 @@ void SpaceViewer::sendStream(MemoryStream* s)
 
 	(*pBundle) << g_componentType;
 	(*pBundle) << g_componentID;
+	(*pBundle) << type;
 	(*pBundle).append(s);
 	pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void SpaceViewer::update()
+void SpaceViewer::initClient()
+{
+	MemoryStream s;
+
+	// 先下发脚本ID对应脚本模块的名称，便于降低后面实体同步量，实体只同步id过去
+	const EntityDef::SCRIPT_MODULES& scriptModules = EntityDef::getScriptModules();
+	s << scriptModules.size();
+
+	EntityDef::SCRIPT_MODULES::const_iterator moduleIter = scriptModules.begin();
+	for (; moduleIter != scriptModules.end(); ++moduleIter)
+	{
+		s << moduleIter->get()->getUType();
+		s << moduleIter->get()->getName();
+	}
+
+	sendStream(&s, updateType_);
+
+	// 改变为更新实体
+	updateType_ = 1;
+
+	lastUpdateVersion_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
+void SpaceViewer::updateClient()
 {
 	if (spaceID_ == 0)
 		return;
@@ -188,11 +223,132 @@ void SpaceViewer::update()
 		return;
 	}
 
+	// 最多每次更新500个实体
+	const int MAX_UPDATE_COUNT = 500;
+	int updateCount = 0;
+
 	// 获取本次与上次结果的差值，将差值放入stream中更新到客户端
 	// 差值包括新增的实体，以及已经有的实体的位置变化
 	MemoryStream s;
 
-	sendStream(&s);
+	Entities<Entity>* pEntities = Cellapp::getSingleton().pEntities();
+	Entities<Entity>::ENTITYS_MAP& entitiesMap = pEntities->getEntities();
+
+	// 先检查已经监视的实体，对于版本号较低的优先更新
+	if (updateCount < MAX_UPDATE_COUNT)
+	{
+		std::map< ENTITY_ID, ViewEntity >::iterator viewerIter = viewedEntities.begin();
+		for (; viewerIter != viewedEntities.end(); )
+		{
+			if (updateCount >= MAX_UPDATE_COUNT)
+				break;
+
+			ViewEntity& viewEntity = viewerIter->second;
+			if (viewEntity.updateVersion > lastUpdateVersion_)
+				continue;
+
+			Entities<Entity>::ENTITYS_MAP::iterator iter = entitiesMap.find(viewerIter->first);
+
+			// 找不到实体， 说明已经销毁或者跑到其他进程了
+			// 如果在其他进程， 其他进程会将其更新到客户端
+			if (iter == entitiesMap.end())
+			{
+				s << viewerIter->first;
+				s << false; // true为更新， false为销毁
+
+				// 将其从viewedEntities删除
+				viewedEntities.erase(viewerIter++);
+			}
+			else
+			{
+				Entity* pEntity = static_cast<Entity*>(iter->second.get());
+				if (pEntity->spaceID() != spaceID_)
+				{
+					// 将其从viewedEntities删除
+					viewedEntities.erase(viewerIter++);
+					continue;
+				}
+
+				/*
+				if (pEntity->cellID() != cellID_)
+				{
+					// 将其从viewedEntities删除
+					viewedEntities.erase(viewerIter++);
+					continue;
+				}
+				*/
+
+				// 有新增的实体或者已经观察到的实体，检查位置变化
+				// 如果没有变化则pass
+				if ((viewEntity.position - pEntity->position()).length() <= 0.0004f &&
+					(viewEntity.direction.dir - pEntity->direction().dir).length() <= 0.0004f)
+				{
+					++viewerIter;
+					continue;
+				}
+
+				viewEntity.entityID = pEntity->id();
+				viewEntity.position = pEntity->position();
+				viewEntity.direction = pEntity->direction();
+				++viewEntity.updateVersion;
+
+				s << viewEntity.entityID;
+				s << true; // true为更新， false为销毁
+				s << pEntity->pScriptModule()->getUType();
+				s << viewEntity.position.x << viewEntity.position.y << viewEntity.position.z;
+				s << viewEntity.direction.roll() << viewEntity.direction.pitch() << viewEntity.direction.yaw();
+
+				++updateCount;
+				++viewerIter;
+			}
+		}
+	}
+
+	// 再检查是否有新增的实体
+	if (updateCount < MAX_UPDATE_COUNT)
+	{
+		Entities<Entity>::ENTITYS_MAP::iterator iter = entitiesMap.begin();
+
+		for (; iter != entitiesMap.end(); ++iter)
+		{
+			if (updateCount >= MAX_UPDATE_COUNT)
+				break;
+
+			Entity* pEntity = static_cast<Entity*>(iter->second.get());
+			if (pEntity->spaceID() != spaceID_)
+				continue;
+
+			/*
+			if (pEntity->cellID() != cellID_)
+				continue;
+			*/
+
+			std::map< ENTITY_ID, ViewEntity >::iterator findIter = viewedEntities.find(pEntity->id());
+			ViewEntity& viewEntity = viewedEntities[pEntity->id()];
+
+			if (findIter != viewedEntities.end())
+				continue;
+
+			viewEntity.entityID = pEntity->id();
+			viewEntity.position = pEntity->position();
+			viewEntity.direction = pEntity->direction();
+			viewEntity.updateVersion = lastUpdateVersion_ + 1;
+
+			++updateCount;
+
+			s << viewEntity.entityID;
+			s << true; // true为更新， false为销毁
+			s << pEntity->pScriptModule()->getUType();
+			s << viewEntity.position.x << viewEntity.position.y << viewEntity.position.z;
+			s << viewEntity.direction.roll() << viewEntity.direction.pitch() << viewEntity.direction.yaw();
+		}
+	}
+
+	sendStream(&s, updateType_);
+
+	// 如果全部更新完毕，更换版本号
+	if (updateCount < MAX_UPDATE_COUNT)
+		++lastUpdateVersion_;
 }
 
 //-------------------------------------------------------------------------------------
