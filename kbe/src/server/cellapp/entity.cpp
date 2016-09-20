@@ -1367,6 +1367,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	{
 		pobj->cancelController(id);
 	}
+
 	S_Return;
 }
 
