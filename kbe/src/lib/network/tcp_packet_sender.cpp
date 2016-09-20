@@ -157,16 +157,18 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 				*/
 
 				// 连续超过10次则通知出错
-				if (++sendfailCount_ >= 10)
+				if (++sendfailCount_ >= 10 && pChannel->isExternal())
 				{
 					onGetError(pChannel);
-					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend(sendfailCount_ >= 10)");
+
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
+						fmt::format("TCPPacketSender::processSend(sendfailCount({}) >= 10)", sendfailCount_).c_str());
 				}
 				else
 				{
-					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()");
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
+						fmt::format("TCPPacketSender::processSend({})", sendfailCount_).c_str());
 				}
-
 			}
 			else
 			{
@@ -213,7 +215,15 @@ Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket)
 	pChannel->onPacketSent(len, sentCompleted);
 
 	if (sentCompleted)
+	{
 		return REASON_SUCCESS;
+	}
+	else
+	{
+		// 如果只发送了一部分数据，则认为是REASON_RESOURCE_UNAVAILABLE
+		if (len > 0)
+			return REASON_RESOURCE_UNAVAILABLE;
+	}
 
 	return checkSocketErrors(pEndpoint);
 }

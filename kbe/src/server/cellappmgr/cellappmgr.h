@@ -119,6 +119,12 @@ public:
 	*/
 	void querySpaces(Network::Channel* pChannel, MemoryStream& s);
 
+	/** 网络接口
+	更新相关进程space信息，注意：此spaceData并非API文档中描述的spaceData
+	是指space的一些信息
+	*/
+	void updateSpaceData(Network::Channel* pChannel, MemoryStream& s);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_anywhere_cellapp_messagebuffer_;

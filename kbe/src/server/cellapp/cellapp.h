@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.h"
 #include "spaces.h"
 #include "cells.h"
+#include "space_viewer.h"
 #include "updatables.h"
 #include "ghost_manager.h"
 #include "witnessed_timeout_handler.h"
@@ -129,6 +130,12 @@ public:
 	*/
 	void onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
+	/** 网络接口
+	工具请求改变space查看器（含添加和删除功能）
+	如果是请求更新并且服务器上不存在该地址的查看器则自动创建，如果是删除则明确给出删除要求
+	*/
+	void updateSpaceViewer(Network::Channel* pChannel, MemoryStream& s);
+
 	/** 网络接口
 		其他APP请求在此灾难恢复
 	*/
@@ -277,6 +284,9 @@ protected:
 	
 	// APP的标志
 	uint32								flags_;
+
+	// 通过工具查看space
+	SpaceViewers						spaceViewers_;
 };
 
 }

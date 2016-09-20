@@ -294,6 +294,8 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
+	spaceViewers_.finalise();
+
 	SAFE_RELEASE(pGhostManager_);
 	SAFE_RELEASE(pWitnessedTimeoutHandler_);
 
@@ -2096,6 +2098,22 @@ PyObject* Cellapp::__py_setFlags(PyObject* self, PyObject* args)
 
 	Cellapp::getSingleton().flags(flags);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::updateSpaceViewer(Network::Channel* pChannel, MemoryStream& s)
+{
+	bool del = false;
+	s >> del;
+
+	SPACE_ID spaceID;
+	s >> spaceID;
+
+	// 如果为0，则查看所有cell
+	CELL_ID cellID;
+	s >> cellID;
+
+	spaceViewers_.updateSpaceViewer(pChannel->addr(), spaceID, cellID, del);
 }
 
 //-------------------------------------------------------------------------------------
