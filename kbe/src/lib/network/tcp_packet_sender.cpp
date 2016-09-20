@@ -166,7 +166,6 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 				{
 					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()");
 				}
-
 			}
 			else
 			{
