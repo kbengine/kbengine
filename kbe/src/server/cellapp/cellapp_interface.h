@@ -173,6 +173,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// 请求强制杀死当前app
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqKillServer,							NETWORK_VARIABLE_MESSAGE)
 
+	// 工具请求改变space查看器（含添加和删除功能）
+	CELLAPP_MESSAGE_DECLARE_STREAM(updateSpaceViewer,						NETWORK_VARIABLE_MESSAGE)
+
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法
 	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,						NETWORK_VARIABLE_MESSAGE)
