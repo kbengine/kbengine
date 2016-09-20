@@ -581,9 +581,12 @@ void Channel::onPacketSent(int bytes, bool sentCompleted)
 		++g_numPacketsSent;
 	}
 
-	numBytesSent_ += bytes;
-	g_numBytesSent += bytes;
-	lastTickBytesSent_ += bytes;
+	if (bytes > 0)
+	{
+		numBytesSent_ += bytes;
+		g_numBytesSent += bytes;
+		lastTickBytesSent_ += bytes;
+	}
 
 	if(this->isExternal())
 	{
@@ -614,9 +617,12 @@ void Channel::onPacketReceived(int bytes)
 	++numPacketsReceived_;
 	++g_numPacketsReceived;
 
-	numBytesReceived_ += bytes;
-	lastTickBytesReceived_ += bytes;
-	g_numBytesReceived += bytes;
+	if (bytes > 0)
+	{
+		numBytesReceived_ += bytes;
+		lastTickBytesReceived_ += bytes;
+		g_numBytesReceived += bytes;
+	}
 
 	if(this->isExternal())
 	{
