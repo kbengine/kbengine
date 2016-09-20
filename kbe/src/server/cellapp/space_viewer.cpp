@@ -111,6 +111,7 @@ void SpaceViewer::sendStream(MemoryStream* s)
 	(*pBundle).newMessage(msgHandler);
 
 	(*pBundle) << g_componentType;
+	(*pBundle) << g_componentID;
 	(*pBundle).append(s);
 	pChannel->send(pBundle);
 }

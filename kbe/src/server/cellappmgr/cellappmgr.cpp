@@ -569,6 +569,7 @@ void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 	(*pBundle).newMessage(msgHandler);
 
 	(*pBundle) << g_componentType;
+	(*pBundle) << g_componentID;
 
 	std::map< COMPONENT_ID, Cellapp >::iterator iter1 = cellapps_.begin();
 	for (; iter1 != cellapps_.end(); ++iter1)
