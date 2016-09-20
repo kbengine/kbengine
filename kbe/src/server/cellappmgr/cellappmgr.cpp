@@ -574,8 +574,33 @@ void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 	std::map< COMPONENT_ID, Cellapp >::iterator iter1 = cellapps_.begin();
 	for (; iter1 != cellapps_.end(); ++iter1)
 	{
-		//Cellapp& cellappref = iter1->second;
+		Cellapp& cellappref = iter1->second;
+		Spaces& spaces = cellappref.spaces();
+
 		(*pBundle) << iter1->first;
+		(*pBundle) << spaces.size();
+
+		std::map<SPACE_ID, Space>& allSpaces = spaces.spaces();
+		std::map<SPACE_ID, Space>::iterator iter2 = allSpaces.begin();
+		for (; iter2 != allSpaces.end(); ++iter2)
+		{
+			Space& space = iter2->second;
+			(*pBundle) << space.id();
+			(*pBundle) << space.getGeomappingPath();
+
+			Cells& cells = space.cells();
+			std::map<CELL_ID, Cell>& allCells = cells.cells();
+			(*pBundle) << allCells.size();
+
+			std::map<CELL_ID, Cell>::iterator iter3 = allCells.begin();
+			for (; iter3 != allCells.end(); ++iter3)
+			{
+				(*pBundle) << iter3->first;
+
+				// 其他信息待分割功能实现后完成
+				// 例如cell大小形状等信息
+			}
+		}
 	}
 
 	pChannel->send(pBundle);

@@ -38,6 +38,11 @@ public:
 	void updateGeomappingPath(const std::string& geomappingPath);
 	void setSpaceID(SPACE_ID spaceID) { spaceID_ = spaceID; }
 
+	SPACE_ID id() const { return spaceID_; }
+	std::string& getGeomappingPath() { return geomappingPath_; }
+
+	Cells& cells() { return cells_; }
+
 private:
 	SPACE_ID spaceID_;
 	Cells cells_;

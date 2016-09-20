@@ -294,7 +294,7 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
-	spaceViewers_.clear();
+	spaceViewers_.finalise();
 
 	SAFE_RELEASE(pGhostManager_);
 	SAFE_RELEASE(pWitnessedTimeoutHandler_);

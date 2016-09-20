@@ -41,6 +41,14 @@ class MemoryStream;
 class SpaceViewer
 {
 public:
+	struct ViewEntity
+	{
+		ENTITY_ID entityID;
+		Position3D position;
+		Direction3D direction;
+	};
+
+public:
 	SpaceViewer();
 	virtual ~SpaceViewer();
 	
@@ -50,9 +58,19 @@ public:
 	void updateViewer(const Network::Address& addr, SPACE_ID spaceID, CELL_ID cellID);
 
 protected:
+	// 改变了查看space的cell
+	void onChangedSpaceOrCell();
+	void resetViewer();
+
 	void update();
 
 	Network::Address addr_;
+
+	// 当前所查看的space和cell
+	SPACE_ID spaceID_;
+	CELL_ID cellID_;
+
+	std::map< ENTITY_ID, ViewEntity > viewedEntities;
 };
 
 class SpaceViewers : public TimerHandler
@@ -65,10 +83,14 @@ public:
 		spaceViews_.clear();
 	}
 
+	bool addTimer();
+	void finalise();
+
 	void updateSpaceViewer(const Network::Address& addr, SPACE_ID spaceID, CELL_ID cellID, bool del);
 
 protected:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
+	TimerHandle reportLimitTimerHandle_;
 
 	std::map< Network::Address, SpaceViewer> spaceViews_;
 };

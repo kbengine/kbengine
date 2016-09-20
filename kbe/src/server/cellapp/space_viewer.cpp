@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "cellapp.h"
+#include "space.h"	
+#include "entity.h"
 #include "space_viewer.h"
 #include "network/network_interface.h"
 #include "network/event_dispatcher.h"
@@ -36,6 +38,7 @@ namespace KBEngine {
 
 //-------------------------------------------------------------------------------------
 SpaceViewers::SpaceViewers():
+reportLimitTimerHandle_(),
 spaceViews_()
 {
 }
@@ -43,7 +46,28 @@ spaceViews_()
 //-------------------------------------------------------------------------------------
 SpaceViewers::~SpaceViewers()
 {
+	finalise();
+}
+
+//-------------------------------------------------------------------------------------
+bool SpaceViewers::addTimer()
+{
+	if (!reportLimitTimerHandle_.isSet())
+	{
+		reportLimitTimerHandle_ = Cellapp::getSingleton().networkInterface().dispatcher().addTimer(
+			1000000 / 10, this);
+
+		return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void SpaceViewers::finalise()
+{
 	clear();
+	reportLimitTimerHandle_.cancel();
 }
 
 //-------------------------------------------------------------------------------------
@@ -57,11 +81,19 @@ void SpaceViewers::updateSpaceViewer(const Network::Address& addr, SPACE_ID spac
 
 	SpaceViewer& viewer = spaceViews_[addr];
 	viewer.updateViewer(addr, spaceID, cellID);
+
+	addTimer();
 }
 
 //-------------------------------------------------------------------------------------
 void SpaceViewers::handleTimeout(TimerHandle handle, void * arg)
 {
+	if (spaceViews_.size() == 0)
+	{
+		reportLimitTimerHandle_.cancel();
+		return;
+	}
+
 	std::map< Network::Address, SpaceViewer>::iterator iter = spaceViews_.begin();
 	for (; iter != spaceViews_.end(); ++iter)
 		iter->second.timeout();
@@ -69,7 +101,10 @@ void SpaceViewers::handleTimeout(TimerHandle handle, void * arg)
 
 //-------------------------------------------------------------------------------------
 SpaceViewer::SpaceViewer():
-addr_()
+addr_(),
+spaceID_(0),
+cellID_(0),
+viewedEntities()
 {
 }
 
@@ -79,18 +114,43 @@ SpaceViewer::~SpaceViewer()
 }
 
 //-------------------------------------------------------------------------------------
+void SpaceViewer::resetViewer()
+{
+	viewedEntities.clear();
+}
+
+//-------------------------------------------------------------------------------------
 void SpaceViewer::updateViewer(const Network::Address& addr, SPACE_ID spaceID, CELL_ID cellID)
 {
 	addr_ = addr;
+
+	bool chagnedSpace = spaceID_ != spaceID;
+
+	if (chagnedSpace)
+	{
+		onChangedSpaceOrCell();
+		spaceID_ = spaceID;
+	}
+
+	if (cellID_ != cellID)
+	{
+		if (!chagnedSpace)
+			onChangedSpaceOrCell();
+
+		cellID_ = cellID;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void SpaceViewer::onChangedSpaceOrCell()
+{
+	resetViewer();
 }
 
 //-------------------------------------------------------------------------------------
 void SpaceViewer::timeout()
 {
 	update();
-
-	MemoryStream s;
-	sendStream(&s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -119,7 +179,20 @@ void SpaceViewer::sendStream(MemoryStream* s)
 //-------------------------------------------------------------------------------------
 void SpaceViewer::update()
 {
+	if (spaceID_ == 0)
+		return;
 
+	Space* space = Spaces::findSpace(spaceID_);
+	if (space == NULL || !space->isGood())
+	{
+		return;
+	}
+
+	// 获取本次与上次结果的差值，将差值放入stream中更新到客户端
+	// 差值包括新增的实体，以及已经有的实体的位置变化
+	MemoryStream s;
+
+	sendStream(&s);
 }
 
 //-------------------------------------------------------------------------------------

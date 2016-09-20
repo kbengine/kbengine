@@ -35,6 +35,10 @@ public:
 	Cells();
 	~Cells();
 
+	std::map<CELL_ID, Cell>& cells() {
+		return cells_;
+	}
+
 private:
 	std::map<CELL_ID, Cell> cells_;
 };
