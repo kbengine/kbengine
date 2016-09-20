@@ -21,14 +21,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_MGR_SPACES_H
 #define KBE_MGR_SPACES_H
 
-// common include
+#include "space.h"
 #include "helper/debug_helper.h"
 #include "common/common.h"
 
-
 namespace KBEngine{
 
-class Space;
 
 class Spaces
 {
