@@ -49,6 +49,7 @@ public:
 	virtual void sendStream(MemoryStream* s) = 0;
 
 	static KBEUnordered_map<std::string, KBEShared_ptr< ProfileHandler > > profiles;
+
 protected:
 	virtual void handleTimeout(TimerHandle handle, void * arg);
 
@@ -74,6 +75,7 @@ public:
 	void timeout();
 	void sendStream(MemoryStream* s);
 	bool process();
+
 private:
 	struct ProfileVal
 	{
@@ -118,8 +120,10 @@ public:
 
 	void onTriggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
 		uint32 size);
+
 	static void triggerEvent(const EventHistoryStats& eventHistory, const EventHistoryStats::Stats& stats, 
 		uint32 size);
+
 private:
 	struct ProfileVal
 	{
@@ -160,6 +164,7 @@ public:
 
 	virtual void onSendMessage(const Network::MessageHandler& msgHandler, int size);
 	virtual void onRecvMessage(const Network::MessageHandler& msgHandler, int size);
+
 private:
 	struct ProfileVal
 	{
