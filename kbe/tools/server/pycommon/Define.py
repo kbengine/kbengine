@@ -69,12 +69,12 @@ COMPONENT_NAME = (
 
 if sys.hexversion >= 0x02060000:
 	import io
-	def BytesIO():
-		return io.BytesIO()
+	def BytesIO(bytesData = "".encode("utf-8")):
+		return io.BytesIO(bytesData)
 else:
 	import StringIO
-	def BytesIO():
-		return StringIO.StringIO()
+	def BytesIO(bytesData = ""):
+		return StringIO.StringIO(bytesData)
 
 if sys.hexversion >= 0x03000000:
 	import configparser
