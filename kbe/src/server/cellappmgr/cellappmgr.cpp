@@ -581,5 +581,27 @@ void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Cellappmgr::updateSpaceData(Network::Channel* pChannel, MemoryStream& s)
+{
+	COMPONENT_ID componentID;
+	SPACE_ID spaceID;
+	bool delspace = false;
+	std::string geomappingPath;
+
+	s >> componentID;
+	s >> spaceID;
+	s >> delspace;
+	s >> geomappingPath;
+
+	std::map< COMPONENT_ID, Cellapp >::iterator iter = cellapps_.find(componentID);
+	if (iter == cellapps_.end())
+		return;
+
+	Cellapp& cellappref = iter->second;
+
+	cellappref.spaces().updateSpaceData(spaceID, geomappingPath, delspace);
+}
+
+//-------------------------------------------------------------------------------------
 
 }

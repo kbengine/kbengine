@@ -36,8 +36,14 @@ public:
 	Spaces();
 	~Spaces();
 
+	size_t size() const {
+		return spaces_.size();
+	}
+
+	void updateSpaceData(SPACE_ID spaceID, const std::string& geomappingPath, bool deleted);
+
 private:
-	std::map<SPACE_ID, Space*> spaces_;
+	std::map<SPACE_ID, Space> spaces_;
 };
 
 }

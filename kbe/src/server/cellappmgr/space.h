@@ -35,8 +35,14 @@ public:
 	Space();
 	~Space();
 
+	void updateGeomappingPath(const std::string& geomappingPath);
+	void setSpaceID(SPACE_ID spaceID) { spaceID_ = spaceID; }
+
 private:
+	SPACE_ID spaceID_;
 	Cells cells_;
+
+	std::string geomappingPath_;
 };
 
 }

@@ -38,4 +38,19 @@ Spaces::~Spaces()
 }
 
 //-------------------------------------------------------------------------------------
+void Spaces::updateSpaceData(SPACE_ID spaceID, const std::string& geomappingPath, bool deleted)
+{
+	if (deleted)
+	{
+		spaces_.erase(spaceID);
+		return;
+	}
+
+	Space& space = spaces_[spaceID];
+
+	space.setSpaceID(spaceID);
+	space.updateGeomappingPath(geomappingPath);
+}
+
+//-------------------------------------------------------------------------------------
 }

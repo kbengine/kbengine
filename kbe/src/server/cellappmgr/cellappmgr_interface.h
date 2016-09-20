@@ -111,6 +111,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	// 查询所有相关进程space信息
 	CELLAPPMGR_MESSAGE_DECLARE_STREAM(querySpaces,				NETWORK_VARIABLE_MESSAGE)
 
+	// 更新相关进程space信息，注意：此spaceData并非API文档中描述的spaceData
+	// 是指space的一些信息
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(updateSpaceData,			NETWORK_VARIABLE_MESSAGE)
+
 NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE
