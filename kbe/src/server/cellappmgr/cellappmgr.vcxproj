@@ -211,6 +211,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="space.cpp" />
     <ClCompile Include="spaces.cpp" />
+    <ClCompile Include="space_viewer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cell.h" />
@@ -221,6 +222,7 @@
     <ClInclude Include="cells.h" />
     <ClInclude Include="space.h" />
     <ClInclude Include="spaces.h" />
+    <ClInclude Include="space_viewer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

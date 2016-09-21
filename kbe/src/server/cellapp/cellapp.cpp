@@ -65,7 +65,8 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 	pTelnetServer_(NULL),
 	pWitnessedTimeoutHandler_(NULL),
 	pGhostManager_(NULL),
-	flags_(APP_FLAGS_NONE)
+	flags_(APP_FLAGS_NONE),
+	spaceViewers_()
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -2091,7 +2092,7 @@ PyObject* Cellapp::__py_setFlags(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::updateSpaceViewer(Network::Channel* pChannel, MemoryStream& s)
+void Cellapp::setSpaceViewer(Network::Channel* pChannel, MemoryStream& s)
 {
 	bool del = false;
 	s >> del;
