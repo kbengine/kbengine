@@ -680,6 +680,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	COMPONENT_TYPE componentType;
 	uint64 cid = 0;
 	int16 gus = 0;
+	std::string KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH;
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	bool success = true;
@@ -690,25 +691,28 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> componentType;
 	s >> cid;
 	s >> gus;
+	s >> KBE_ROOT;
+	s >> KBE_RES_PATH;
+	s >> KBE_BIN_PATH;
 
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}\n", 
-		uid, COMPONENT_NAME_EX(componentType), pChannel->c_str(), cid, gus));
+	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}, KBE_ROOT={}, KBE_RES_PATH={}, KBE_BIN_PATH={}\n", 
+		uid, COMPONENT_NAME_EX(componentType), pChannel->c_str(), cid, gus, KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH));
 	
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	if (startWindowsProcess(uid, componentType, cid, gus) <= 0)
+	if (startWindowsProcess(uid, componentType, cid, gus, KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) <= 0)
 	{
 		success = false;
 	}
 #else
-	if (startLinuxProcess(uid, componentType, cid, gus) <= 0)
+	if (startLinuxProcess(uid, componentType, cid, gus, KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) <= 0)
 	{
 		success = false;
 	}
@@ -1083,7 +1087,8 @@ void Machine::onSignalled(int sigNum)
 
 //-------------------------------------------------------------------------------------
 #if KBE_PLATFORM != PLATFORM_WIN32
-uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
+	const std::string& KBE_ROOT, const std::string& KBE_RES_PATH, const std::string& KBE_BIN_PATH)
 {
 	uint16 childpid;
 
@@ -1097,7 +1102,27 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 			exit(1);
 		}
 
-		std::string bin_path = Resmgr::getSingleton().getEnv().bin_path;
+		if (KBE_ROOT == "")
+		{
+			KBE_ROOT = Resmgr::getSingleton().getEnv().root_path;
+		}
+
+		if (KBE_RES_PATH == "")
+		{
+			KBE_RES_PATH = Resmgr::getSingleton().getEnv().res_path;
+		}
+
+		if (KBE_BIN_PATH == "")
+		{
+			KBE_BIN_PATH = Resmgr::getSingleton().getEnv().bin_path;
+		}
+
+		std::string bin_path = KBE_BIN_PATH;
+		
+		setenv("KBE_ROOT", KBE_ROOT.c_str(), 1);
+		setenv("KBE_RES_PATH", KBE_RES_PATH.c_str(), 1);
+		setenv("KBE_BIN_PATH", bin_path.c_str(), 1);
+
 		std::string cmdLine = bin_path + COMPONENT_NAME_EX(componentType);
 
 		// 改变当前目录，以让出问题的时候core能在此处生成
@@ -1139,7 +1164,8 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 
 #else
 
-DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus,
+	const std::string& KBE_ROOT, const std::string& KBE_RES_PATH, const std::string& KBE_BIN_PATH)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
