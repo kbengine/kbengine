@@ -236,7 +236,7 @@ void SpaceViewer::updateClient()
 	}
 
 	// 最多每次更新500个实体
-	const int MAX_UPDATE_COUNT = 500;
+	const int MAX_UPDATE_COUNT = 100;
 	int updateCount = 0;
 
 	// 获取本次与上次结果的差值，将差值放入stream中更新到客户端
