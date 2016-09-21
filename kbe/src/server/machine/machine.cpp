@@ -1088,7 +1088,7 @@ void Machine::onSignalled(int sigNum)
 //-------------------------------------------------------------------------------------
 #if KBE_PLATFORM != PLATFORM_WIN32
 uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
-	const std::string& KBE_ROOT, const std::string& KBE_RES_PATH, const std::string& KBE_BIN_PATH)
+	std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH)
 {
 	uint16 childpid;
 
@@ -1165,7 +1165,7 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 #else
 
 DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus,
-	const std::string& KBE_ROOT, const std::string& KBE_RES_PATH, const std::string& KBE_BIN_PATH)
+	std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
