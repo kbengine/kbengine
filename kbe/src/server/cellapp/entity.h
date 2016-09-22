@@ -344,8 +344,7 @@ public:
 	entity移动加速
 	*/
 	float accelerate(const char* type, float acceleration);
-
-	DECLARE_PY_MOTHOD_ARG2(pyAcceleration, const_charptr, float);
+	DECLARE_PY_MOTHOD_ARG2(pyAccelerate, const_charptr, float);
 
 	/** 
 		脚本获取和设置entity的最高xz移动速度 

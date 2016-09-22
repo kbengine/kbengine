@@ -73,7 +73,7 @@ SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("getRandomPoints",			pyGetRandomPoints,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("acceleration",				pyAcceleration,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("accelerate",					pyAccelerate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
@@ -2503,7 +2503,7 @@ float Entity::accelerate(const char* type, float acceleration)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyAcceleration(const_charptr type, float acceleration)
+PyObject* Entity::pyAccelerate(const_charptr type, float acceleration)
 {
 	if (!isReal())
 	{
