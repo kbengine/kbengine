@@ -177,8 +177,9 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/hiredis
 endif # USE_REDIS
 
 ifdef USE_MONGODB
-LDLIBS += -lbson-1.0
 LDLIBS += -lmongoc-1.0
+LDLIBS += -lbson-1.0
+LDLIBS += -lrt
 CPPFLAGS += -DUSE_MONGODB
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/mongoc
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/mongodb/src/libbson/src/bson
