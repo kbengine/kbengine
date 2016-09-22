@@ -46,6 +46,14 @@ public:
 	virtual bool requestTurnOver();
 	void pController(KBEShared_ptr<Controller> pController){ pController_ = pController; }
 
+	float velocity() const {
+		return velocity_;
+	}
+
+	void velocity(float v) {
+		velocity_ = v;
+	}
+
 protected:
 	Direction3D destDir_;
 	float velocity_;

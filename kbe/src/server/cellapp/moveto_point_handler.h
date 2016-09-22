@@ -58,6 +58,14 @@ public:
 
 	void destroy() { isDestroyed_ = true; }
 
+	float velocity() const {
+		return velocity_;
+	}
+
+	void velocity(float v) {
+		velocity_ = v;
+	}
+
 protected:
 	Position3D destPos_;
 	float velocity_;			// ËÙ¶È
