@@ -169,7 +169,8 @@ namespace KBEngine {
 		std::vector<EntityTableItem*>::iterator iiter = indexs.begin();
 		for (; iiter != indexs.end();)
 		{
-			std::string itemName = fmt::format("{}_1", (*iiter)->itemName()); //Ä¬ÈÏ²éÕÒÉýÐòË÷Òý
+			std::string itemName = fmt::format(TABLE_ITEM_PERFIX"_{}_1", (*iiter)->itemName()); //Ä¬ÈÏ²éÕÒÉýÐòË÷Òý
+			std::string itemIndexsName = fmt::format(TABLE_ITEM_PERFIX"_{}", (*iiter)->itemName());
 			KBEUnordered_map<std::string, std::string>::iterator fiter = currDBKeys.find(itemName);
 			if (fiter != currDBKeys.end())
 			{
@@ -196,14 +197,14 @@ namespace KBEngine {
 				bson_init(&keys);
 				mongoc_index_opt_init(&opt);
 				opt.unique = true;
-				bson_append_int32(&keys, (*iiter)->itemName(), -1, 1);
+				bson_append_int32(&keys, itemIndexsName.c_str(), -1, 1);
 				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
 			}
 			else
 			{
 				bson_init(&keys);
 				mongoc_index_opt_init(&opt);
-				bson_append_int32(&keys, (*iiter)->itemName(), -1, 1);
+				bson_append_int32(&keys, itemIndexsName.c_str(), -1, 1);
 				pdbiMongodb->collectionCreateIndex(name, &keys, &opt);
 			}
 
