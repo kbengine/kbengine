@@ -58,6 +58,8 @@ uint32						g_intSendWindowMessagesOverflow = 65535;
 uint32						g_extSendWindowMessagesOverflow = 256;
 uint32						g_intSendWindowBytesOverflow = 0;
 uint32						g_extSendWindowBytesOverflow = 65535;
+uint32						g_intSentWindowBytesOverflow = 0;
+uint32						g_extSentWindowBytesOverflow = 0;
 
 // 通道发送超时重试
 uint32						g_intReSendInterval = 10;

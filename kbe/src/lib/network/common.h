@@ -406,6 +406,8 @@ extern uint32						g_intSendWindowMessagesOverflow;
 extern uint32						g_extSendWindowMessagesOverflow;
 extern uint32						g_intSendWindowBytesOverflow;
 extern uint32						g_extSendWindowBytesOverflow;
+extern uint32						g_intSentWindowBytesOverflow;
+extern uint32						g_extSentWindowBytesOverflow;
 
 bool initializeWatcher();
 void finalise(void);
