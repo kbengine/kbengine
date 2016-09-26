@@ -356,6 +356,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	numBytesSent_ = 0;
 	numBytesReceived_ = 0;
 	lastTickBytesReceived_ = 0;
+	lastTickBytesSent_ = 0;
 	proxyID_ = 0;
 	strextra_ = "";
 	channelType_ = CHANNEL_NORMAL;
