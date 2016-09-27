@@ -692,16 +692,13 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> cid;
 	s >> gus;
 
+	s >> KBE_ROOT;
+	s >> KBE_RES_PATH;
+	s >> KBE_BIN_PATH;
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
-	}
-
-	if (s.length() > 0)
-	{
-		s >> KBE_ROOT;
-		s >> KBE_RES_PATH;
-		s >> KBE_BIN_PATH;
 	}
 
 	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}, KBE_ROOT={}, KBE_RES_PATH={}, KBE_BIN_PATH={}\n", 
