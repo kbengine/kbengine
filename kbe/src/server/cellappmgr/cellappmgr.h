@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_CELLAPPMGR_H
 	
 #include "cellapp.h"
+#include "space_viewer.h"
 #include "server/kbemain.h"
 #include "server/serverapp.h"
 #include "server/idallocate.h"
@@ -125,6 +126,12 @@ public:
 	*/
 	void updateSpaceData(Network::Channel* pChannel, MemoryStream& s);
 
+	/** 网络接口
+	工具请求改变space查看器（含添加和删除功能）
+	如果是请求更新并且服务器上不存在该地址的查看器则自动创建，如果是删除则明确给出删除要求
+	*/
+	void setSpaceViewer(Network::Channel* pChannel, MemoryStream& s);
+
 protected:
 	TimerHandle							gameTimer_;
 	ForwardAnywhere_MessageBuffer		forward_anywhere_cellapp_messagebuffer_;
@@ -134,6 +141,9 @@ protected:
 
 	std::map< COMPONENT_ID, Cellapp >	cellapps_;
 	std::vector<COMPONENT_ID>			cellapp_cids_;
+
+	// 通过工具查看space
+	SpaceViewers						spaceViewers_;
 };
 
 } 

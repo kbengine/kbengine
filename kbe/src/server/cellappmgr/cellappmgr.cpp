@@ -220,6 +220,7 @@ bool Cellappmgr::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellappmgr::finalise()
 {
+	spaceViewers_.finalise();
 	gameTimer_.cancel();
 	forward_anywhere_cellapp_messagebuffer_.clear();
 	forward_cellapp_messagebuffer_.clear();
@@ -626,6 +627,18 @@ void Cellappmgr::updateSpaceData(Network::Channel* pChannel, MemoryStream& s)
 	Cellapp& cellappref = iter->second;
 
 	cellappref.spaces().updateSpaceData(spaceID, geomappingPath, delspace);
+}
+
+//-------------------------------------------------------------------------------------
+void Cellappmgr::setSpaceViewer(Network::Channel* pChannel, MemoryStream& s)
+{
+	bool del = false;
+	s >> del;
+
+	SPACE_ID spaceID;
+	s >> spaceID;
+
+	spaceViewers_.updateSpaceViewer(pChannel->addr(), spaceID, del);
 }
 
 //-------------------------------------------------------------------------------------
