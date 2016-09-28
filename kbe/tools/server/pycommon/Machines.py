@@ -314,6 +314,14 @@ class Machines:
 	def startServer(self, componentType, cid, gus, targetIP, trycount = 1, timeout = 1):
 		"""
 		"""
+		# 此处等待完善
+		KBE_ROOT = ""
+		KBE_RES_PATH = ""
+		KBE_BIN_PATH = ""
+		KBE_ROOT_Len = len( KBE_ROOT ) + 1 # 加1是为了产生空终结符
+		KBE_RES_PATH_Len = len( KBE_RES_PATH ) + 1 # 加1是为了产生空终结符
+		KBE_BIN_PATH_Len = len( KBE_BIN_PATH ) + 1 # 加1是为了产生空终结符
+		
 		msg = Define.BytesIO()
 		msg.write( struct.pack("=H", MachineInterface_startserver ) ) # command
 		msg.write( struct.pack("=H", struct.calcsize("=iiQhH") ) ) # command length
@@ -321,6 +329,9 @@ class Machines:
 		msg.write( struct.pack("=i", componentType) )
 		msg.write( struct.pack("=Q", cid) )
 		msg.write( struct.pack("=h", gus) )
+		msg.write( struct.pack("=%ss" % KBE_ROOT_Len, KBE_ROOT) )
+		msg.write( struct.pack("=%ss" % KBE_RES_PATH_Len, KBE_RES_PATH) )
+		msg.write( struct.pack("=%ss" % KBE_BIN_PATH_Len, KBE_BIN_PATH) )
 		msg.write( struct.pack("=H", socket.htons(self.replyPort)) ) # reply port
 
 		if trycount <= 0:
