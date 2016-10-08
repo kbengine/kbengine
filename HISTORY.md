@@ -1,3 +1,30 @@
+###v0.9.3
+
+	2016/10/8
+
+	新增与改善：
+		增加对转发消息的具体消息追踪支持。
+		降低向客户端send次数。(#389) 
+		cluster_controller.py工具对单个进程关闭支持。 (#390)
+		KBEngine.SERVER_ERR_NEED_CHECK_PASSWORD改名为KBEngine.SERVER_ERR_LOCAL_PROCESSING
+		WebConsole改进，増加Machine及相关组件自动更新缓存功能，以让减少查询页卡顿现象。
+		machine支持杀死某个进程，例如某些时候进程卡死webconsole无法关闭。
+		提供给外部服务查询服务器负载值内存实体数量等功能。(#403)
+		对于实体运动可能需要加减速的支持, 增加API接口accelerate(#371)。
+		增加新配置选项tickSentBytes，一个tick内发送的字节数溢出限制，具体见kbengine_defs.xml。(#411)
+		给base增加获取数据库接口名的办法, Base.databaseInterfaceName。(#412)
+		API文档更新
+
+
+	BUG修正：
+		修正pytickprofile命令未结束时关闭控制台有可能导致服务器崩溃的问题 
+		修正机器人偶尔登陆出现digest not match.（#395）。
+		修正启动不同项目后，数据库相同时数据库表其中字段被同步成sm_autoLoad_2(#406)
+		修正一处范围触发器极端情况下漏掉实体进出事件问题
+		其他一些修正（#391、#392、#388、#410）
+
+
+
 ###v0.9.0
 
 	2016/8/12
