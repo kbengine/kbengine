@@ -36,7 +36,7 @@ bool KBEEntityLogTableRedis::syncToDB(DBInterface* pdbi)
 {
 	/*
 	有数据时才产生表数据
-	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID)
+	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID, logger)
 	*/
 
 	return RedisHelper::dropTable(static_cast<DBInterfaceRedis*>(pdbi), fmt::format("kbe_entitylog:*:*"), false);
@@ -47,7 +47,7 @@ bool KBEEntityLogTableRedis::logEntity(DBInterface * pdbi, const char* ip, uint3
 					COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType)
 {
 	/*
-	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID)
+	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID, logger)
 	*/
 	std::string sqlstr = fmt::format("HSET kbe_entitylog:{}:{} entityID {} ip {} port {} componentID {} logger {}", 
 		dbid, entityType, entityID, ip, port, componentID, g_componentID);
@@ -60,7 +60,7 @@ bool KBEEntityLogTableRedis::logEntity(DBInterface * pdbi, const char* ip, uint3
 bool KBEEntityLogTableRedis::queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
 	/*
-	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID)
+	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID, logger)
 	*/
 	redisReply* pRedisReply = NULL;
 
