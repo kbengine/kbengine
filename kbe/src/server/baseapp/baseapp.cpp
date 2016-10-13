@@ -3812,8 +3812,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 
 	s >> dbInterfaceIndex >> accountName >> password >> dbid >> success >> entityID >> flags >> deadline;
 
-	Network::Channel* pClientChannel = this->networkInterface().findChannel(ptinfos->addr);
-	
 	PendingLoginMgr::PLInfos* ptinfos = pendingLoginMgr_.remove(accountName);
 	if(ptinfos == NULL)
 	{
@@ -3821,13 +3819,13 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 			accountName.c_str()));
 
 		s.done();
-		
-		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_OVERLOAD);
 		return;
 	}
 
 	Proxy* base = static_cast<Proxy*>(createEntity(g_serverConfig.getDBMgr().dbAccountEntityScriptType, 
 		NULL, false, entityID));
+
+	Network::Channel* pClientChannel = this->networkInterface().findChannel(ptinfos->addr);
 
 	if(!base)
 	{
