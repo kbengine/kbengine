@@ -245,6 +245,9 @@ a:hover{
 .statistics ll{
   background-image:url(images/left/statistics.png);
 }
+.watcher ll{
+  background-image:url(images/left/watcher.png);
+}
 
 
 .tablesaw .tablesaw-sortable-head .tablesaw-sortable-btn{
