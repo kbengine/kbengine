@@ -47,7 +47,7 @@ class ComponentInfo( object ):
 		self.intaddr = socket.inet_ntoa(reader.read(4))
 		self.intport = socket.ntohs(reader.readUint16())
 		self.extaddr = socket.inet_ntoa(reader.read(4))
-		self.intport = socket.ntohs(reader.readUint16())
+		self.extport = socket.ntohs(reader.readUint16())
 		self.extaddrEx = reader.readString()
 		self.pid = reader.readUint32()
 		self.cpu = reader.readFloat()
