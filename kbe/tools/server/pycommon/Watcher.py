@@ -47,7 +47,7 @@ class Watcher(ServerApp.ServerApp):
 	sys.path.append(r"x:\kbengine\kbe\tools\server")
 	import pycommon.Watcher
 	import pycommon.Define
-	w = Watcher.Watcher(Define.CELLAPP_TYPE)
+	w = pycommon.Watcher.Watcher(pycommon.Define.CELLAPP_TYPE)
 	w.connect("127.0.0.1", 12345) # host, port -> got from Machines.ComponentInfo.{intaddr,intport}
 	w.requireQueryWatcher("root")
 	w.processOne()

@@ -58,7 +58,7 @@ Resmgr::~Resmgr()
 //-------------------------------------------------------------------------------------
 bool Resmgr::initializeWatcher()
 {
-	WATCH_OBJECT("syspaths/KBE_ROOT", kb_env_.root);
+	WATCH_OBJECT("syspaths/KBE_ROOT", kb_env_.root_path);
 	WATCH_OBJECT("syspaths/KBE_RES_PATH", kb_env_.res_path);
 	WATCH_OBJECT("syspaths/KBE_BIN_PATH", kb_env_.bin_path);
 	return true;
@@ -83,8 +83,8 @@ void Resmgr::autoSetPaths()
 		return;
 
 	s = s.substr(0, pos1 + 1);
-	kb_env_.root = s;
-	kb_env_.res_path = kb_env_.root + "kbe/res/;" + kb_env_.root + "/assets/;" + kb_env_.root + "/assets/scripts/;" + kb_env_.root + "/assets/res/";
+	kb_env_.root_path = s;
+	kb_env_.res_path = kb_env_.root_path + "kbe/res/;" + kb_env_.root_path + "/assets/;" + kb_env_.root_path + "/assets/scripts/;" + kb_env_.root_path + "/assets/res/";
 }
 
 //-------------------------------------------------------------------------------------
@@ -92,14 +92,14 @@ void Resmgr::updatePaths()
 {
 	char ch;
 	
-	if(kb_env_.root.size() > 0)
+	if (kb_env_.root_path.size() > 0)
 	{
-		ch =  kb_env_.root.at(kb_env_.root.size() - 1);
+		ch = kb_env_.root_path.at(kb_env_.root_path.size() - 1);
 		if(ch != '/' && ch != '\\')
-			kb_env_.root += "/";
+			kb_env_.root_path += "/";
 
-		strutil::kbe_replace(kb_env_.root, "\\", "/");
-		strutil::kbe_replace(kb_env_.root, "//", "/");
+		strutil::kbe_replace(kb_env_.root_path, "\\", "/");
+		strutil::kbe_replace(kb_env_.root_path, "//", "/");
 	}
 
 	if(kb_env_.bin_path.size() > 0)
@@ -155,7 +155,7 @@ bool Resmgr::initialize()
 	//	return true;
 
 	// 获取引擎环境配置
-	kb_env_.root			= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
+	kb_env_.root_path		= getenv("KBE_ROOT") == NULL ? "" : getenv("KBE_ROOT");
 	kb_env_.res_path		= getenv("KBE_RES_PATH") == NULL ? "" : getenv("KBE_RES_PATH"); 
 	kb_env_.bin_path		= getenv("KBE_BIN_PATH") == NULL ? "" : getenv("KBE_BIN_PATH"); 
 
@@ -164,14 +164,14 @@ bool Resmgr::initialize()
 	//kb_env_.bin_path		= "/home/kbengine/kbe/bin/server/"; 
 	updatePaths();
 
-	if(kb_env_.root == "" || kb_env_.res_path == "")
+	if (kb_env_.root_path == "" || kb_env_.res_path == "")
 		autoSetPaths();
 
 	updatePaths();
 	if(getPySysResPath() == "" || getPyUserResPath() == "" || getPyUserScriptsPath() == "")
 	{
 		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT=%s, KBE_RES_PATH=%s, KBE_BIN_PATH=%s) invalid!\n", 
-			kb_env_.root.c_str(), kb_env_.res_path.c_str(), kb_env_.bin_path.c_str());
+			kb_env_.root_path.c_str(), kb_env_.res_path.c_str(), kb_env_.bin_path.c_str());
 #if KBE_PLATFORM == PLATFORM_WIN32
 		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
 #endif
@@ -186,12 +186,12 @@ bool Resmgr::initialize()
 //-------------------------------------------------------------------------------------
 void Resmgr::print(void)
 {
-	INFO_MSG(fmt::format("Resmgr::initialize: KBE_ROOT={0}\n", kb_env_.root));
+	INFO_MSG(fmt::format("Resmgr::initialize: KBE_ROOT={0}\n", kb_env_.root_path));
 	INFO_MSG(fmt::format("Resmgr::initialize: KBE_RES_PATH={0}\n", kb_env_.res_path));
 	INFO_MSG(fmt::format("Resmgr::initialize: KBE_BIN_PATH={0}\n", kb_env_.bin_path));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	printf("%s", fmt::format("KBE_ROOT = {0}\n", kb_env_.root).c_str());
+	printf("%s", fmt::format("KBE_ROOT = {0}\n", kb_env_.root_path).c_str());
 	printf("%s", fmt::format("KBE_RES_PATH = {0}\n", kb_env_.res_path).c_str());
 	printf("%s", fmt::format("KBE_BIN_PATH = {0}\n", kb_env_.bin_path).c_str());
 	printf("\n");

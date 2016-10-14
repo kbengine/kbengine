@@ -24,7 +24,7 @@ class ServerApp:
 		self.socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.socket_.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 5 * 1024 * 1024)
-		self.socket_.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 5 * 1024 * 1024)
+		self.socket_.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 		#self.socket_.setblocking(False)
 		self.socket_.connect((host, port))
 	

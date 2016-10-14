@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="space_viewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cell.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="spaces.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="space_viewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

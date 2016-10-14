@@ -73,6 +73,7 @@ SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("getRandomPoints",			pyGetRandomPoints,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("accelerate",					pyAccelerate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
@@ -2495,6 +2496,64 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 		const_cast<char*>("IO"), controllerId, userarg);
 	
 	setDirty();
+}
+
+//-------------------------------------------------------------------------------------
+float Entity::accelerate(const char* type, float acceleration)
+{
+	acceleration = acceleration / g_kbeSrvConfig.gameUpdateHertz();
+
+	if (strcmp(type, "Movement") == 0)
+	{
+		MoveController* pMoveController = static_cast<MoveController*>(pMoveController_.get());
+		if (pMoveController != NULL)
+		{
+			float velocity = pMoveController->velocity() + acceleration;
+			pMoveController->velocity(velocity);
+			return velocity * g_kbeSrvConfig.gameUpdateHertz();
+		}
+	}
+	else if (strcmp(type, "Turn") == 0)
+	{
+		TurnController* pTurnController = static_cast<TurnController*>(pTurnController_.get());
+		if (pTurnController != NULL)
+		{
+			float velocity = pTurnController->velocity() + acceleration;
+			pTurnController->velocity(velocity);
+			return velocity * g_kbeSrvConfig.gameUpdateHertz();
+		}
+	}
+	else
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::accelerate: %d type error! only support[\"Movement\",\"Turn\"]\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0.f;
+	}
+
+	return 0.f;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyAccelerate(const_charptr type, float acceleration)
+{
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::accelerate: not is real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::accelerate: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	return PyFloat_FromDouble(accelerate(type, acceleration));
 }
 
 //-------------------------------------------------------------------------------------

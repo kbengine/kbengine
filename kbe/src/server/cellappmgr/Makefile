@@ -7,13 +7,14 @@ SRCS =						\
 	cellappmgr_interface			\
 	main					\
 	space					\
-	spaces
+	spaces					\
+	space_viewer
 
 ASMS =
 
 MY_LIBS =		\
 	server		\
-	network		\
+	network	\
 	thread
 	
 

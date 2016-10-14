@@ -3590,6 +3590,11 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
 	}
+	else if (!ptinfos->addr.isNone() && ptinfos->addr != pChannel->addr())
+	{
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
+		return;
+	}
 
 	if(ptinfos->password != password)
 	{
