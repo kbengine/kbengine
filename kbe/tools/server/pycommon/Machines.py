@@ -13,6 +13,7 @@ MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
 MachineInterface_onQueryAllInterfaceInfos = 4
 MachineInterface_onQueryMachines = 5
+MachineInterface_killserver = 6
 
 from . import Define, MessageStream
 
@@ -250,6 +251,21 @@ class Machines:
 		"""
 		"""
 		msg = MessageStream.MessageStreamWriter(MachineInterface_stopserver)
+		msg.writeInt32(self.uid)
+		msg.writeInt32(componentType)
+		msg.writeUint64(componentID)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
+
+		if trycount <= 0:
+			self.send( msg.build(), targetIP )
+			self.receiveReply()
+		else:
+			self.sendAndReceive( msg.build(), targetIP, trycount, timeout )
+
+	def killServer(self, componentType, componentID = 0, targetIP = "<broadcast>", trycount = 1, timeout = 1):
+		"""
+		"""
+		msg = MessageStream.MessageStreamWriter(MachineInterface_killserver)
 		msg.writeInt32(self.uid)
 		msg.writeInt32(componentType)
 		msg.writeUint64(componentID)

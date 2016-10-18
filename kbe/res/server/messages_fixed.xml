@@ -31,7 +31,12 @@
 		<id>5</id>
 		<descr>查询所有machine进程。</descr>
 	</Machine::onQueryMachines>
-	
+
+	<Machine::killserver>
+		<id>6</id>
+		<descr>杀死服务器进程。</descr>
+	</Machine::killserver>
+
 	<Loginapp::reqClose>
 		<id>1</id>
 		<descr>客户端请求断线。</descr>

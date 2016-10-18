@@ -313,6 +313,24 @@ def components_shutdown( request ):
 	return render( request, "WebConsole/components_shutdown.html", context )
 
 @login_check
+def components_kill( request, ct, cid ):
+	"""
+	杀死一个组件进程
+	"""
+	ct = int(ct)
+	cid = int(cid)
+	
+	components = Machines.Machines( request.session["sys_uid"], request.session["sys_user"] )
+
+	components.killServer( ct, componentID = cid, trycount = 0 )
+	context = {
+		"shutType": "kill_cid",
+		"ct" : ct,
+		"cid": cid
+ 	}
+	return render( request, "WebConsole/components_kill.html", context )
+
+@login_check
 def components_save_layout( request ):
 	"""
 	保存当前服务器运行状态

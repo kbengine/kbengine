@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^components/run$', views.components_run, name = "components_run"),
     url(r'^components/shutdown$', views.components_shutdown, name = "components_shutdown"),
     url(r'^components/(?P<ct>[0-9]+)/(?P<cid>[0-9]+)/shutdown$', views.components_stop, name = "components_stop"),
+    url(r'^components/(?P<ct>[0-9]+)/(?P<cid>[0-9]+)/kill$', views.components_kill, name = "components_kill"),
     url(r'^components/(?P<ct>[0-9]+)/(?P<cid>[0-9]+)/query$', views.components_one_query, name = "components_one_query" ),
     # url(r'^components/(?P<ct>[0-9]+)$', views.components_group_query, name = "components_group_query" ),
     url(r'^components/query$', views.components_query, name = "components_query" ),
