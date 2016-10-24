@@ -639,19 +639,18 @@ namespace KBEngine {
 		kbe_snprintf(name, MAX_BUF, ENTITY_TABLE_PERFIX "_%s", context.tableName.c_str());
 
 		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind(name, MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
-		
-		std::list<const bson_t *> value;
-		const bson_t *doc;
+				
+		const bson_t *doc = nullptr;
 		bson_error_t  error;
 		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
-			value.push_back(doc);
+			break;
 		}
 
 		if (mongoc_cursor_error(cursor, &error)) {
 			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
-		if (value.size() == 0)
+		if (doc == nullptr)
 		{
 			mongoc_cursor_destroy(cursor);
 			return false;
@@ -661,7 +660,7 @@ namespace KBEngine {
 		iter = tableFixedOrderItems_.begin();
 		for (; iter != tableFixedOrderItems_.end(); ++iter)
 		{
-			static_cast<EntityTableItemMongodbBase*>((*iter))->addToStream(s, context, dbid, value.front());
+			static_cast<EntityTableItemMongodbBase*>((*iter))->addToStream(s, context, dbid, doc);
 		}
 
 		mongoc_cursor_destroy(cursor);

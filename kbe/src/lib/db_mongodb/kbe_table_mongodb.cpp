@@ -65,25 +65,25 @@ namespace KBEngine {
 		entitylog.ip[0] = '\0';
 		entitylog.port = 0;
 
-		std::list<const bson_t *> value;
-		const bson_t *doc;
+
+		const bson_t *doc = nullptr;
 		bson_error_t  error;
 		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
-			value.push_back(doc);
+			break;
 		}
 
 		if (mongoc_cursor_error(cursor, &error)) {
 			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
-		if (value.size() == 0)
+		if (doc == nullptr)
 		{
 			mongoc_cursor_destroy(cursor);
 			return false;
 		}
 
 		bson_iter_t iter;
-		bson_iter_init(&iter, value.front());
+		bson_iter_init(&iter, doc);
 
 		if (bson_iter_find(&iter, "entityID"))
 		{
@@ -176,25 +176,25 @@ namespace KBEngine {
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
 		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_accountinfos", MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
 
-		std::list<const bson_t *> value;
-		const bson_t *doc;
+
+		const bson_t *doc = nullptr;
 		bson_error_t  error;
 		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
-			value.push_back(doc);
+			break;
 		}
 
 		if (mongoc_cursor_error(cursor, &error)) {
 			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
-		if (value.size() == 0)
+		if (doc == nullptr)
 		{
 			mongoc_cursor_destroy(cursor);
 			return false;
 		}
 
 		bson_iter_t iter;
-		bson_iter_init(&iter, value.front());
+		bson_iter_init(&iter, doc);
 
 		info.name = name;
 
@@ -234,25 +234,25 @@ namespace KBEngine {
 		DBInterfaceMongodb *pdbiMongodb = static_cast<DBInterfaceMongodb *>(pdbi);
 		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_accountinfos", MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
 
-		std::list<const bson_t *> value;
-		const bson_t *doc;
+
+		const bson_t *doc = nullptr;
 		bson_error_t  error;
 		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
-			value.push_back(doc);
+			break;
 		}
 
 		if (mongoc_cursor_error(cursor, &error)) {
 			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
-		if (value.size() == 0)
+		if (doc == nullptr)
 		{
 			mongoc_cursor_destroy(cursor);
 			return false;
 		}
 
 		bson_iter_t iter;
-		bson_iter_init(&iter, value.front());
+		bson_iter_init(&iter, doc);
 
 		info.name = name;
 
