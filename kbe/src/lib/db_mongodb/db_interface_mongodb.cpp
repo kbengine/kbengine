@@ -45,9 +45,11 @@ namespace KBEngine {
 	DBInterfaceMongodb::DBInterfaceMongodb(const char* name) :
 		DBInterface(name),
 		_pMongoClient(NULL),
+		database(NULL),
 		hasLostConnection_(false),
 		inTransaction_(false),
-		lock_(this, false)
+		lock_(this, false),
+		strError(NULL)
 	{
 	}
 
@@ -99,6 +101,7 @@ namespace KBEngine {
 		bool retval = mongoc_client_command_simple(_pMongoClient, "admin", command, NULL, &reply, &error);
 
 		if (!retval) {
+			strError = error.message;
 			fprintf(stderr, "%s\n", error.message);
 			return false;
 		}
@@ -175,12 +178,6 @@ namespace KBEngine {
 	{
 		if (mongo())
 		{
-			/*bson_destroy(insert);
-			bson_destroy(&reply);
-			bson_destroy(command);
-			bson_free(str);*/
-
-			//mongoc_collection_destroy(collection);
 			mongoc_database_destroy(database);
 			mongoc_client_destroy(_pMongoClient);
 			mongoc_cleanup();
@@ -242,6 +239,18 @@ namespace KBEngine {
 			DEBUG_MSG(fmt::format("DBInterfaceMongodb::query({:p}): {}\n", (void*)this, lastquery_));
 		}
 
+		//ERROR_MSG(fmt::format("{}\n", cmd));
+
+		return result == NULL || write_query_result(result, cmd);
+	}
+
+	bool DBInterfaceMongodb::write_query_result(MemoryStream * result, const char* cmd)
+	{
+		if (result == NULL)
+		{
+			return true;
+		}
+
 		std::string strCommand(cmd);
 
 		int index = strCommand.find_first_of(".");
@@ -249,89 +258,36 @@ namespace KBEngine {
 
 		std::string strQuerCommand = strCommand.substr(index + 1, strCommand.length());
 
-		int k = strQuerCommand.find_first_of(".");
-		std::string str_queryType = strQuerCommand.substr(0, k);
+		int k = strQuerCommand.find_first_of("(");
+		std::string str_operationType = strQuerCommand.substr(0, k);
 
-		std::string t_command = strQuerCommand.substr(k + 1, strQuerCommand.length());
+		int h = strQuerCommand.length();
 
-		bson_error_t error;
-		bson_t * bsons = bson_new_from_json((const uint8_t *)t_command.c_str(), t_command.length(), &error);
+		std::string t_command = strQuerCommand.substr(k + 1, h - k - 2);
 
-		return result == NULL || write_query_result(result, bsons, str_tableName.c_str(), str_queryType);
-	}
+		std::vector<std::string> strArrayCmd = splitParameter(t_command);
 
-	bool DBInterfaceMongodb::write_query_result(MemoryStream * result, bson_t * bsons, const char *tableName, std::string str_queryType)
-	{
-		if (result == NULL)
+		bool resultFlag = false;
+		if (str_operationType == "find")
 		{
-			return true;
+			resultFlag = ExecuteFindCommand(result, strArrayCmd, str_tableName.c_str());
 		}
-
-		if (bsons == NULL)
+		else if (str_operationType == "update")
 		{
-			uint32 nfields = 0;
-			uint64 affectedRows = 0;
-
-			(*result) << nfields;
-			(*result) << affectedRows;
-
-			return true;
+			ExecuteUpdateCommand(strArrayCmd, str_tableName.c_str());
 		}
-
-		bool resultFlag = true;
-		if (str_queryType == "find")
+		else if (str_operationType == "remove")
 		{
-			bson_error_t  error;
-			const bson_t *doc;
-			mongoc_cursor_t * cursor = collectionFind(tableName, MONGOC_QUERY_NONE,0,0,0, bsons, NULL, NULL);
-
-			uint32 nrows = 0;
-			uint32 nfields = 1;
-
-			std::list<const bson_t *> value;
-			while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc))
-			{
-				nrows++;
-				value.push_back(doc);
-			}
-
-			
-
-			(*result) << nfields << nrows;
-
-			std::list<const bson_t *>::iterator it;
-			for (it = value.begin(); it != value.end(); it++)
-			{
-				const bson_t *tem = *it;
-				char *str = bson_as_json(tem, NULL);
-				result->appendBlob(str, strlen(str));
-				bson_free(str);
-			}
-
-			if (mongoc_cursor_error(cursor, &error))
-			{
-				ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
-				resultFlag = false;
-			}
-
-			mongoc_cursor_destroy(cursor);
+			ExecuteRemoveCommand(strArrayCmd, str_tableName.c_str());
 		}
-		else if (str_queryType == "delete")
+		else if (str_operationType == "insert")
 		{
-			resultFlag = false;
-			collectionRemove(tableName, MONGOC_REMOVE_SINGLE_REMOVE, bsons, NULL);
+			ExecuteInsertCommand(strArrayCmd, str_tableName.c_str());
 		}
-		else if (str_queryType == "insert")
+		else
 		{
-			resultFlag = false;
-			insertCollection(tableName, MONGOC_INSERT_NONE, bsons, NULL);
-		}
-		else if (str_queryType == "update")
-		{
-			resultFlag = false;
-			bson_t *doc = bson_new();
-			updateCollection(tableName, MONGOC_UPDATE_NONE, bsons, doc, NULL);
-			bson_destroy(doc);
+			strArrayCmd.clear();
+			resultFlag = ExecuteFunctionCommand(result, strCommand);
 		}
 
 		if (!resultFlag)
@@ -341,11 +297,6 @@ namespace KBEngine {
 
 			(*result) << nfields;
 			(*result) << affectedRows;
-		}	
-
-		if (bsons != NULL)
-		{
-			bson_destroy(bsons);
 		}
 
 		return true;
@@ -383,7 +334,7 @@ namespace KBEngine {
 		if (_pMongoClient == NULL)
 			return "_pMongoClient is NULL";
 
-		return NULL;
+		return strError;
 	}
 
 	int DBInterfaceMongodb::getlasterror()
@@ -496,6 +447,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_insert(collection, flags, document, write_concern, &error);
 		if (!r) 
 		{
+			strError = error.message;
 			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
@@ -520,6 +472,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_update(collection, uflags, selector, update, write_concern, &error);
 		if (!r)
 		{
+			strError = error.message;
 			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
@@ -534,6 +487,7 @@ namespace KBEngine {
 		bool r = mongoc_collection_remove(collection, flags, selector, write_concern, &error);
 		if (!r)
 		{
+			strError = error.message;
 			ERROR_MSG(fmt::format("{}\n", error.message));
 		}
 
@@ -582,4 +536,362 @@ namespace KBEngine {
 
 		return r;
 	}
+
+	bool DBInterfaceMongodb::extuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply)
+	{
+		bson_error_t  error;
+		bool r = mongoc_database_command_simple(database, command, read_prefs, reply, &error);
+		if (!r)
+		{
+			strError = error.message;
+			ERROR_MSG(fmt::format("{}\n", error.message));
+		}
+
+		return r;
+	}
+
+	bool DBInterfaceMongodb::ExecuteFindCommand(MemoryStream * result, std::vector<std::string> strcmd, const char *tableName)
+	{
+		bool flag = true;
+		std::string query = "";
+		std::string field = "";
+		int limit = 0;
+		int skip = 0;
+		int batchSize = 0;
+		int options = 0;
+		int size = strcmd.size();
+		query = strcmd[0];
+
+		if (size >= 2)
+		{
+			field = strcmd[1];
+		}
+
+		if (size >= 3)
+		{
+			limit = atoi(strcmd[2].c_str());
+		}
+
+		if (size >= 4)
+		{
+			skip = atoi(strcmd[3].c_str());
+		}
+
+		if (size >= 5)
+		{
+			batchSize = atoi(strcmd[4].c_str());
+		}
+
+		if (size >= 6)
+		{
+			options = atoi(strcmd[5].c_str());
+		}
+
+		bson_error_t  error;
+		bson_t *q = bson_new_from_json((const uint8_t *)query.c_str(), query.length(), &error);
+		if (!q)
+		{
+			strError = error.message;
+			flag = false;
+			ERROR_MSG(fmt::format("{}\n", error.message));
+		}
+
+		bson_t *f = NULL;
+		if (field != "")
+		{
+			f = bson_new_from_json((const uint8_t *)field.c_str(), field.length(), &error);
+			if (!f)
+			{
+				strError = error.message;
+				flag = false;
+				ERROR_MSG(fmt::format("{}\n", error.message));
+			}
+		}		
+
+		mongoc_query_flags_t queryOptions = (mongoc_query_flags_t)options;
+		const bson_t *doc;
+		mongoc_cursor_t * cursor = collectionFind(tableName, queryOptions, skip, limit, batchSize, q, f, NULL);
+		uint32 nrows = 0;
+		uint32 nfields = 1;
+
+		std::vector<char *> value;
+		while (mongoc_cursor_next(cursor, &doc))
+		{
+			nrows++;
+			char *str = bson_as_json(doc, NULL);
+			value.push_back(str);			
+		}
+
+		(*result) << nfields << nrows;
+
+		std::vector<char *>::iterator it;
+		for (it = value.begin(); it != value.end(); it++)
+		{
+			result->appendBlob(*it, strlen(*it));
+			bson_free(*it);
+		}
+
+
+		if (mongoc_cursor_error(cursor, &error))
+		{
+			strError = error.message;
+			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
+			flag = false;
+		}
+		
+		bson_destroy(q);
+		bson_destroy(f);
+		mongoc_cursor_destroy(cursor);
+		return flag;
+	}
+
+	void DBInterfaceMongodb::ExecuteUpdateCommand(std::vector<std::string> strcmd, const char *tableName)
+	{
+		std::string query = "";
+		std::string update = "";
+		int size = strcmd.size();
+		query = strcmd[0];
+
+		bool upsert = false;
+		bool multi = false;
+
+		if (size >= 2)
+		{
+			update = strcmd[1];
+		}
+
+		if (size >= 3)
+		{
+			std::istringstream(strcmd[2]) >> std::boolalpha >> upsert;
+		}
+
+		if (size >= 4)
+		{
+			std::istringstream(strcmd[3]) >> std::boolalpha >> multi;
+		}
+
+		bson_error_t  error;
+		bson_t *q = bson_new_from_json((const uint8_t *)query.c_str(), query.length(), &error);
+		if (!q)
+		{
+			strError = error.message;
+			ERROR_MSG(fmt::format("{}\n", error.message));
+		}
+
+		bson_t *u = bson_new_from_json((const uint8_t *)update.c_str(), update.length(), &error);
+		if (!u)
+		{
+			strError = error.message;
+			ERROR_MSG(fmt::format("{}\n", error.message));
+		}
+
+
+		mongoc_update_flags_t uflags;
+		if (!upsert && !multi)
+		{
+			uflags = MONGOC_UPDATE_NONE;
+		}
+		else if (upsert && !multi)
+		{
+			uflags = MONGOC_UPDATE_UPSERT;
+		}
+		else if (!upsert && multi)
+		{
+			uflags = MONGOC_UPDATE_MULTI_UPDATE;
+		}
+
+		updateCollection(tableName, uflags, q, u, NULL);
+
+		bson_destroy(q);
+		bson_destroy(u);
+	}
+
+	void DBInterfaceMongodb::ExecuteRemoveCommand(std::vector<std::string> strcmd, const char *tableName)
+	{
+		std::string query = "";
+		bool justOne = false;
+		int size = strcmd.size();
+		query = strcmd[0];
+
+		if (size >= 2)
+		{
+			std::istringstream(strcmd[1]) >> std::boolalpha >> justOne;
+		}
+
+		bson_error_t  error;
+		bson_t *q = bson_new_from_json((const uint8_t *)query.c_str(), query.length(), &error);
+		if (!q)
+		{
+			strError = error.message;
+			ERROR_MSG(fmt::format("{}\n", error.message));
+		}
+
+		mongoc_remove_flags_t flags;
+		if (justOne)
+		{
+			flags = MONGOC_REMOVE_SINGLE_REMOVE;
+		}
+		else
+		{
+			flags = MONGOC_REMOVE_NONE;
+		}
+
+		collectionRemove(tableName, flags, q, NULL);
+
+		bson_destroy(q);
+	}
+
+	void DBInterfaceMongodb::ExecuteInsertCommand(std::vector<std::string> strcmd, const char *tableName)
+	{
+		std::string query = "";
+		bool ordered = true;
+		int size = strcmd.size();
+		query = strcmd[0];
+
+		if (size >= 2)
+		{
+			if (strcmd[1].find("false") != std::string::npos)
+			{
+				ordered = false;
+			}
+		}
+
+		bson_error_t  error;
+		bson_t *q = bson_new_from_json((const uint8_t *)query.c_str(), query.length(), &error);
+		if (!q)
+		{
+			strError = error.message;
+			ERROR_MSG(fmt::format("{}\n", error.message));
+		}
+
+		mongoc_insert_flags_t flags;
+		if (ordered)
+		{
+			flags = MONGOC_INSERT_NONE;
+		}
+		else
+		{
+			flags = MONGOC_INSERT_CONTINUE_ON_ERROR;
+		}
+
+		insertCollection(tableName, flags, q, NULL);
+
+		bson_destroy(q);
+	}
+
+	//用于mongodb执行js函数
+	bool DBInterfaceMongodb::ExecuteFunctionCommand(MemoryStream * result, std::string strcmd)
+	{
+		bson_error_t  error;
+		bson_t reply;
+		bson_init(&reply);
+		bson_t *q = bson_new_from_json((const uint8_t *)strcmd.c_str(), strcmd.length(), &error);
+		if (!q)
+		{
+			strError = error.message;
+			ERROR_MSG(fmt::format("{}\n", error.message));
+		}
+
+		uint32 nrows = 1;
+		uint32 nfields = 1;
+
+		(*result) << nfields << nrows;
+
+		bool r = extuteFunction(q, NULL, &reply);
+		if (r)
+		{
+			char *str = bson_as_json(&reply, NULL);
+			result->appendBlob(str, strlen(str));
+			bson_free(str);
+		}
+
+		bson_free(q);
+		bson_destroy(&reply);
+
+		return r;
+	}
+
+	//字符串分割
+	std::vector<std::string> DBInterfaceMongodb::splitParameter(std::string value)
+	{
+		std::vector<std::string> result;
+		char * queue = new char[512];
+
+		int index = value.length();
+		int whole = 0; //为0就等待下一个'，'号
+		int wpos = 0; //写入的位置
+		for (int i = 0; i < index; i++)
+		{
+			switch (value[i])
+			{
+			case '{':
+			{
+				queue[wpos] = value[i];
+				wpos++;
+				whole++;
+				break;
+			}
+			case '}':
+			{
+				queue[wpos] = value[i];
+				wpos++;
+				whole--;
+				break;
+			}
+			case '[':
+			{
+				queue[wpos] = value[i];
+				wpos++;
+				whole++;
+				break;
+			}
+			case ']':
+			{
+				queue[wpos] = value[i];
+				wpos++;
+				whole--;
+				break;
+			}
+			case ',':
+			{
+				if (whole == 0)
+				{
+					std::string part(queue, wpos);
+					wpos = 0; //重置
+
+					result.push_back(part);
+				}
+				else
+				{
+					queue[wpos] = value[i];
+					wpos++;
+				}
+				break;
+			}
+			case ' ':
+				break;
+			default:
+			{
+				queue[wpos] = value[i];
+				wpos++;
+				break;
+			}
+			}
+
+		}
+
+		//最后一个存储
+		if (whole == 0)
+		{
+			std::string part(queue, wpos);
+			wpos = 0; //重置
+
+			result.push_back(part);
+		}
+
+		delete[] queue;
+
+		return result;
+	}
+
 }

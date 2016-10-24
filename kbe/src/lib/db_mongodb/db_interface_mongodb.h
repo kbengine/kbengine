@@ -6,8 +6,8 @@
 #include "common/memorystream.h"
 #include "helper/debug_helper.h"
 #include "db_interface/db_interface.h"
-
 #include "entitydef/entitydef.h"
+
 #ifdef _MSC_VER //解决mongodb和python中ssize_t冲突定义的问题
 #define _SSIZE_T_DEFINED
 #endif
@@ -59,8 +59,14 @@ namespace KBEngine
 		virtual bool checkErrors();
 
 		virtual bool query(const char* strCommand, uint32 size, bool printlog = true, MemoryStream * result = NULL);
+		bool ExecuteFindCommand(MemoryStream * result, std::vector<std::string> strcmd, const char *tableName);
+		void ExecuteUpdateCommand(std::vector<std::string> strcmd, const char *tableName);
+		void ExecuteRemoveCommand(std::vector<std::string> strcmd, const char *tableName);
+		void ExecuteInsertCommand(std::vector<std::string> strcmd, const char *tableName);
+		bool ExecuteFunctionCommand(MemoryStream * result,std::string strcmd);
+		std::vector<std::string> splitParameter(std::string value);
 
-		bool write_query_result(MemoryStream * result, bson_t * bsons = NULL, const char *tableName = NULL, std::string str_queryType = "");
+		bool write_query_result(MemoryStream * result, const char* strcmd = NULL);
 
 		/**
 		获取数据库所有的表名
@@ -148,22 +154,14 @@ namespace KBEngine
 		bool collectionCreateIndex(const char *tableName, const bson_t *keys, const mongoc_index_opt_t *opt);
 
 		bool collectionDropIndex(const char *tableName, const char *index_name);
+		bool extuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply);
 
 	protected:
 		mongoc_client_t *_pMongoClient;
 		mongoc_database_t *database;
-		/*mongoc_cursor_t *cursor;
-		const bson_t *reply;
-		uint16_t port;
-		bson_error_t error;
-		bson_t b;
-		char *host_and_port;
-		char *str;*/
-
 		bool hasLostConnection_;
-
 		bool inTransaction_;
-
 		mongodb::DBTransaction lock_;
+		const char *strError;
 	};
 }
