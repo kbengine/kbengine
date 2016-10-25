@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^user/add$', auth.user_add, name = "user_add"),
     url(r'^user/delete$', auth.user_delete, name = "user_delete"),
     url(r'^user/change_pwd$', auth.change_pwd, name = "change_user_pwd"),
+    url(r'^user/change_user/(?P<userID>[0-9]+)$', auth.change_user, name = "change_user_user"),
 
     url(r'^$', views.index, name = "index"),
     url(r'^index$', views.index, name = "index"),
