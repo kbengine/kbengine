@@ -249,6 +249,9 @@ def components_run( request ):
 		componentType = int( POST.get("componentType", "0") )
 		targetMachine = POST.get("targetMachine", "").strip()
 		runNumber = int( POST.get("runNumber", "0") )
+		kbe_root = request.session["kbe_root"]
+		kbe_res_path = request.session["kbe_res_path"]
+		kbe_bin_path = request.session["kbe_bin_path"]
 		
 		if componentType not in Define.VALID_COMPONENT_TYPE_FOR_RUN or \
 			not machinesmgr.hasMachine( targetMachine ) or \
@@ -259,7 +262,7 @@ def components_run( request ):
 				cid = machinesmgr.makeCID( componentType )
 				gus = machinesmgr.makeGUS( componentType )
 				print("cid: %s, gus: %s" % (cid,gus))
-				components.startServer( componentType, cid, gus, targetMachine )
+				components.startServer( componentType, cid, gus, targetMachine, kbe_root, kbe_res_path, kbe_bin_path )
 
 			time.sleep( 2 )
 			return HttpResponseRedirect( "/wc/components/manage" )
@@ -471,7 +474,6 @@ def components_load_layout( request ):
 	components_ct  = [0,] * len(Define.COMPONENT_NAME)
 	components_cid = [0,] * len(Define.COMPONENT_NAME)
 	components_gus = [0,] * len(Define.COMPONENT_NAME)
-
 	ly = ServerLayout.objects.get(pk = id)
 	layoutData = json.loads( ly.config )
 	for ct in VALID_CT:

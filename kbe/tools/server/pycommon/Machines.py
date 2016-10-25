@@ -231,7 +231,7 @@ class Machines:
 		datas = self.sendAndReceive( msg.build(), ip, trycount, timeout )
 		self.parseQueryDatas( datas )
 
-	def startServer(self, componentType, cid, gus, targetIP, trycount = 1, timeout = 1):
+	def startServer(self, componentType, cid, gus, targetIP, kbe_root, kbe_res_path, kbe_bin_path, trycount = 1, timeout = 1):
 		"""
 		"""
 		msg = MessageStream.MessageStreamWriter(MachineInterface_startserver)
@@ -240,6 +240,9 @@ class Machines:
 		msg.writeUint64(cid)
 		msg.writeInt16(gus)
 		msg.writeUint16(socket.htons(self.replyPort)) # reply port
+		msg.writeString(kbe_root)
+		msg.writeString(kbe_res_path)
+		msg.writeString(kbe_bin_path)
 
 		if trycount <= 0:
 			self.send( msg.build(), targetIP )

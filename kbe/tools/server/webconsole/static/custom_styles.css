@@ -328,5 +328,11 @@ a:hover{
   border: 1px solid rgb(51,122,183);
   background-color: white;
 }
-
+.user-manger table{
+  min-width: 100%;
+}
+.user-manger td{
+  max-width: 400px;
+  word-break:break-all;
+}
 
