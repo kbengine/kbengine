@@ -2474,6 +2474,7 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	if(this->isDestroyed())
 		return;
 
+	pMoveController_->destroy();
 	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -2489,6 +2490,7 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	if(this->isDestroyed())
 		return;
 
+	pMoveController_->destroy();
 	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);

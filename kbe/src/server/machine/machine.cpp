@@ -692,6 +692,10 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> cid;
 	s >> gus;
 
+	s >> KBE_ROOT;
+	s >> KBE_RES_PATH;
+	s >> KBE_BIN_PATH;
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
