@@ -13,8 +13,9 @@ MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
 MachineInterface_onQueryAllInterfaceInfos = 4
 MachineInterface_onQueryMachines = 5
+MachineInterface_killserver = 6
 
-from . import Define
+from . import Define, MessageStream
 
 class ComponentInfo( object ):
 	"""
@@ -34,131 +35,51 @@ class ComponentInfo( object ):
 		self.consolePort = 0 # 控制台端口
 		self.genuuid_sections = 0 # --gus
 		
-		i = 4
-		self.uid = struct.unpack("i", streamStr[0:i])[0]
+		reader = MessageStream.MessageStreamReader(streamStr)
 		
-		ii = i
-		for x in streamStr[i:]:
-			if type(x) == str:
-				if ord(x) == 0:
-					break
-			else:
-				if x == 0:
-					break
-
-			ii += 1
-
-		self.username = streamStr[i: ii];
-		if type(self.username) == 'bytes':
-			self.username = self.username.decode()
-                            
-		ii += 1
-
-		self.componentType = struct.unpack("i", streamStr[ii : ii + 4])[0]
+		self.uid = reader.readInt32()
+		self.username = reader.readString()
+		self.componentType = reader.readInt32()
+		self.componentID = reader.readUint64()
+		self.componentIDEx = reader.readUint64()
+		self.globalOrderID = reader.readInt32()
+		self.groupOrderID = reader.readInt32()
+		self.genuuid_sections = reader.readInt32()
+		self.intaddr = socket.inet_ntoa(reader.read(4))
+		self.intport = socket.ntohs(reader.readUint16())
+		self.extaddr = socket.inet_ntoa(reader.read(4))
+		self.extport = socket.ntohs(reader.readUint16())
+		self.extaddrEx = reader.readString()
+		self.pid = reader.readUint32()
+		self.cpu = reader.readFloat()
+		self.mem = reader.readFloat()
+		self.usedmem = reader.readUint32()
+		self.state = reader.readInt8()
+		self.machineID = reader.readUint32()
+		self.extradata = reader.readUint64()
+		self.extradata1 = reader.readUint64()
+		self.extradata2 = reader.readUint64()
+		self.extradata3 = reader.readUint64()
+		self.backaddr = reader.readUint32()
+		self.backport = reader.readUint16()
+		
 		self.componentName = Define.COMPONENT_NAME[self.componentType]
-		ii += 4
-		
-		# cid
-		self.componentID = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-
-		self.componentIDEx = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-
-		self.globalOrderID = struct.unpack("i", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.groupOrderID = struct.unpack("i", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		# gus, add in 20160504 version
-		self.genuuid_sections = struct.unpack("i", streamStr[ii : ii + 4])[0]
-		ii += 4
+		self.consolePort = self.extradata3
 
 		if self.componentType in [Define.BASEAPP_TYPE, Define.CELLAPP_TYPE]:
 			self.fullname = "%s%s" % (self.componentName, self.groupOrderID)
 		else:
 			self.fullname = self.componentName
 
-		#self.intaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		self.intaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
-		ii += 4
-
-		self.intport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
-		ii += 2
-
-		#self.extaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		self.extaddr = socket.inet_ntoa(streamStr[ii : ii + 4])
-		ii += 4
-
-		self.extport = struct.unpack(">H", streamStr[ii : ii + 2])[0]
-		ii += 2
-		
-		# get extaddrEx
-		i1 = ii
-		for x in streamStr[ii:]:
-			if type(x) == str:
-				if ord(x) == 0:
-					break
-			else:
-				if x == 0:
-					break
-
-			ii += 1
-
-		self.extaddrEx = streamStr[i1: ii];
-		if type(self.extaddrEx) == 'bytes':
-			self.extaddrEx = extaddrEx.decode()
-                            
-		ii += 1
-
-		self.pid = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-		
-		self.cpu = struct.unpack("f", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.mem = struct.unpack("f", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.usedmem = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.state = struct.unpack("b", streamStr[ii : ii + 1])[0]
-		ii += 1
-		
-		self.machineID = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-		
-		self.extradata = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
 		if self.componentType in [Define.BASEAPP_TYPE, Define.CELLAPP_TYPE]:
 			self.entities = self.extradata
 
-		self.extradata1 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
 		if self.componentType == Define.BASEAPP_TYPE:
 			self.clients = self.extradata1
-		
-		self.extradata2 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
+
 		if self.componentType == Define.BASEAPP_TYPE:
 			self.proxies = self.extradata2
 
-		self.extradata3 = struct.unpack("Q", streamStr[ii : ii + 8])[0]
-		ii += 8
-		
-		self.consolePort = self.extradata3
-		
-		self.backaddr = struct.unpack("I", streamStr[ii : ii + 4])[0]
-		ii += 4
-
-		self.backport = struct.unpack("H", streamStr[ii : ii + 2])[0]
-		ii += 2
-		
 		#print("%s, uid=%i, cID=%i, gid=%i, groupid=%i, uname=%s" % (Define.COMPONENT_NAME[self.componentType], \
 		#	self.uid, self.componentID, self.globalOrderID, self.groupOrderID, self.username))
 		
@@ -228,7 +149,10 @@ class Machines:
 		_udp_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-		if ip == "<broadcast>":
+		if isinstance(ip, (tuple, list)):
+			for addr in ip:
+				_udp_broadcast_socket.sendto(msg, (addr, 20086))
+		elif ip == "<broadcast>":
 			_udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 			_udp_broadcast_socket.sendto(msg, ('255.255.255.255', 20086))
 		else:
@@ -285,14 +209,12 @@ class Machines:
 		self.reset()
 		nameLen = len( self.username ) + 1 # 加1是为了存放空终结符
 		
-		msg = Define.BytesIO()
-		msg.write( struct.pack("=H", MachineInterface_onQueryAllInterfaceInfos ) ) # command
-		msg.write( struct.pack("=H", struct.calcsize("=iH") + nameLen ) ) # command length
-		msg.write( struct.pack("=i", self.uid) )
-		msg.write( struct.pack("=%ss" % nameLen, self.username) )
-		msg.write( struct.pack("=H", socket.htons(self.replyPort)) ) # reply port
+		msg = MessageStream.MessageStreamWriter(MachineInterface_onQueryAllInterfaceInfos)
+		msg.writeInt32(self.uid)
+		msg.writeString(self.username)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
 
-		datas = self.sendAndReceive( msg.getvalue(), ip, trycount, timeout )
+		datas = self.sendAndReceive( msg.build(), ip, trycount, timeout )
 		self.parseQueryDatas( datas )
 
 	def queryMachines(self, ip = "<broadcast>", trycount = 1, timeout = 1):
@@ -301,61 +223,62 @@ class Machines:
 		self.reset()
 		nameLen = len( self.username ) + 1 # 加1是为了产生空终结符
 		
-		msg = Define.BytesIO()
-		msg.write( struct.pack("=H", MachineInterface_onQueryMachines ) ) # command
-		msg.write( struct.pack("=H", struct.calcsize("=iH") + nameLen ) ) # command length
-		msg.write( struct.pack("=i", self.uid) )
-		msg.write( struct.pack("=%ss" % nameLen, self.username) )
-		msg.write( struct.pack("=H", socket.htons(self.replyPort)) ) # reply port
+		msg = MessageStream.MessageStreamWriter(MachineInterface_onQueryMachines)
+		msg.writeInt32(self.uid)
+		msg.writeString(self.username)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
 
-		datas = self.sendAndReceive( msg.getvalue(), ip, trycount, timeout )
+		datas = self.sendAndReceive( msg.build(), ip, trycount, timeout )
 		self.parseQueryDatas( datas )
 
-	def startServer(self, componentType, cid, gus, targetIP, trycount = 1, timeout = 1):
+	def startServer(self, componentType, cid, gus, targetIP, kbe_root, kbe_res_path, kbe_bin_path, trycount = 1, timeout = 1):
 		"""
 		"""
-		# 此处等待完善
-		KBE_ROOT = ""
-		KBE_RES_PATH = ""
-		KBE_BIN_PATH = ""
-		KBE_ROOT_Len = len( KBE_ROOT ) + 1 # 加1是为了产生空终结符
-		KBE_RES_PATH_Len = len( KBE_RES_PATH ) + 1 # 加1是为了产生空终结符
-		KBE_BIN_PATH_Len = len( KBE_BIN_PATH ) + 1 # 加1是为了产生空终结符
-		
-		msg = Define.BytesIO()
-		msg.write( struct.pack("=H", MachineInterface_startserver ) ) # command
-		msg.write( struct.pack("=H", struct.calcsize("=iiQhH") ) ) # command length
-		msg.write( struct.pack("=i", self.uid) )
-		msg.write( struct.pack("=i", componentType) )
-		msg.write( struct.pack("=Q", cid) )
-		msg.write( struct.pack("=h", gus) )
-		msg.write( struct.pack("=%ss" % KBE_ROOT_Len, KBE_ROOT) )
-		msg.write( struct.pack("=%ss" % KBE_RES_PATH_Len, KBE_RES_PATH) )
-		msg.write( struct.pack("=%ss" % KBE_BIN_PATH_Len, KBE_BIN_PATH) )
-		msg.write( struct.pack("=H", socket.htons(self.replyPort)) ) # reply port
+		msg = MessageStream.MessageStreamWriter(MachineInterface_startserver)
+		msg.writeInt32(self.uid)
+		msg.writeInt32(componentType)
+		msg.writeUint64(cid)
+		msg.writeInt16(gus)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
+		msg.writeString(kbe_root)
+		msg.writeString(kbe_res_path)
+		msg.writeString(kbe_bin_path)
 
 		if trycount <= 0:
-			self.send( msg.getvalue(), targetIP )
+			self.send( msg.build(), targetIP )
 			self.receiveReply()
 		else:
-			self.sendAndReceive( msg.getvalue(), targetIP, trycount, timeout )
+			self.sendAndReceive( msg.build(), targetIP, trycount, timeout )
 
 	def stopServer(self, componentType, componentID = 0, targetIP = "<broadcast>", trycount = 1, timeout = 1):
 		"""
 		"""
-		msg = Define.BytesIO()
-		msg.write( struct.pack("=H", MachineInterface_stopserver ) ) # command
-		msg.write( struct.pack("=H", struct.calcsize("=iiQH") ) ) # command length
-		msg.write( struct.pack("=i", self.uid) )
-		msg.write( struct.pack("=i", componentType) )
-		msg.write( struct.pack("=Q", componentID) )
-		msg.write( struct.pack("=H", socket.htons(self.replyPort)) ) # reply port
+		msg = MessageStream.MessageStreamWriter(MachineInterface_stopserver)
+		msg.writeInt32(self.uid)
+		msg.writeInt32(componentType)
+		msg.writeUint64(componentID)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
 
 		if trycount <= 0:
-			self.send( msg.getvalue(), targetIP )
+			self.send( msg.build(), targetIP )
 			self.receiveReply()
 		else:
-			self.sendAndReceive( msg.getvalue(), targetIP, trycount, timeout )
+			self.sendAndReceive( msg.build(), targetIP, trycount, timeout )
+
+	def killServer(self, componentType, componentID = 0, targetIP = "<broadcast>", trycount = 1, timeout = 1):
+		"""
+		"""
+		msg = MessageStream.MessageStreamWriter(MachineInterface_killserver)
+		msg.writeInt32(self.uid)
+		msg.writeInt32(componentType)
+		msg.writeUint64(componentID)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
+
+		if trycount <= 0:
+			self.send( msg.build(), targetIP )
+			self.receiveReply()
+		else:
+			self.sendAndReceive( msg.build(), targetIP, trycount, timeout )
 
 	def parseQueryDatas( self, recvDatas ):
 		"""

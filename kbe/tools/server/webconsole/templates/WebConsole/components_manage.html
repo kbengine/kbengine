@@ -52,7 +52,8 @@
             <td>{{ comp.entities }}</td>
             <td>{{ comp.proxies }}</td>
             <td>{{ comp.clients }}</td>
-            <td nowrap="nowrap"><button class="ct-stop-btn btn" onclick="group_shutdown({{comp.componentType}},'{{comp.componentID}}')">停止</button></td>
+            <td nowrap="nowrap"><button class="ct-stop-btn btn" onclick="group_shutdown({{comp.componentType}},'{{comp.componentID}}')">STOP</button></td>
+            <td nowrap="nowrap"><button class="ct-stop-btn btn" onclick="group_kill({{comp.componentType}},'{{comp.componentID}}')">KILL</button></td>
           </tr>
          {% endfor %}
           </tbody>
@@ -134,6 +135,23 @@
       layer.open({
             type: 2,
             title: "停止组件",
+            closeBtn: 1,
+            shade: [0.3,'#000'],
+            //shadeClose: true,
+            area: ['30%', '60%'],
+            scrollbar: false,
+            // skin: 'layui-layer-rim', //加上边框
+            content: href,
+            end: function (){
+                location.reload();
+            }
+        });
+    }
+    function group_kill(ct,cid){
+      href = "/wc/components/"+ct+"/"+cid+"/kill";
+      layer.open({
+            type: 2,
+            title: "杀死进程",
             closeBtn: 1,
             shade: [0.3,'#000'],
             //shadeClose: true,

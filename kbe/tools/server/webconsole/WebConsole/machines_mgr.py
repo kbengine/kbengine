@@ -36,6 +36,21 @@ class MachinesMgr(object):
 	def __delete__(self):
 		print("MachinesMgr::__delete__()")
 	
+	def queryAllDatas(self):
+		"""
+		"""
+		hosts = "<broadcast>"
+		if isinstance(settings.MACHINES_ADDRESS, (tuple, list)) and settings.MACHINES_ADDRESS:
+			hosts = settings.MACHINES_ADDRESS
+		
+		self.machineInst.queryAllInterfaces(hosts, 0, settings.MACHINES_QUERY_WAIT_TIME)
+		
+		# 虽然处于多线程中，但由于是类似于指针直接赋值
+		# 所以即使异步了，主线程取的值也不会存在错乱的问题
+		self.interfaces_groups = self.machineInst.interfaces_groups
+		self.machines = self.machineInst.machines
+		self.machineInst.reset()
+	
 	def startThread(self):
 		"""
 		开启线程
@@ -49,13 +64,7 @@ class MachinesMgr(object):
 		"""
 		use_buffer = settings.USE_MACHINES_BUFFER
 		while use_buffer and settings.USE_MACHINES_BUFFER and time.time() - self.lastQueryTime < settings.STOP_BUFFER_TIME:  # 动态更新需要
-			self.machineInst.queryAllInterfaces(trycount = 0, timeout = settings.MACHINES_QUERY_WAIT_TIME)
-			
-			# 虽然处理多线程中，但由于是类似于指针直接赋值
-			# 所以即使异步了，主线程取的值也不会存在错乱的问题
-			self.interfaces_groups = self.machineInst.interfaces_groups
-			self.machines = self.machineInst.machines
-			self.machineInst.reset()
+			self.queryAllDatas()
 			self.inited = True
 			
 			# 每更新一次后休眠一段时间
@@ -78,10 +87,7 @@ class MachinesMgr(object):
 					time.sleep(0.5)
 		else:
 			if time.time() - self.lastQueryTime >= 1.0:
-				self.machineInst.queryAllInterfaces(trycount = 0, timeout = settings.MACHINES_QUERY_WAIT_TIME)
-				self.interfaces_groups = self.machineInst.interfaces_groups
-				self.machines = self.machineInst.machines
-				self.machineInst.reset()
+				self.queryAllDatas()
 				self.lastQueryTime = time.time()
 
 	def filterComponentsForUID(self, uid, interfaces_groups):
