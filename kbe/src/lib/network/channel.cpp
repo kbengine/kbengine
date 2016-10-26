@@ -505,10 +505,6 @@ void Channel::send(Bundle * pBundle)
 	if(bundleSize == 0)
 		return;
 
-	uint32 bundleBytes = bundlesLength();
-	if(bundleBytes == 0)
-		return;
-	
 	if(!sending())
 	{
 		if(pPacketSender_ == NULL)
@@ -541,13 +537,16 @@ void Channel::send(Bundle * pBundle)
 			}
 		}
 
-		if(g_extSendWindowBytesOverflow > 0 && 
-			bundleBytes >= g_extSendWindowBytesOverflow)
+		if (g_extSendWindowBytesOverflow > 0)
 		{
-			ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->send->bytes.\n", 
-				(void*)this, this->c_str(), bundleBytes, g_extSendWindowBytesOverflow));
+			uint32 bundleBytes = bundlesLength();
+			if(bundleBytes >= g_extSendWindowBytesOverflow)
+			{
+				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->send->bytes.\n",
+					(void*)this, this->c_str(), bundleBytes, g_extSendWindowBytesOverflow));
 
-			this->condemn();
+				this->condemn();
+			}
 		}
 	}
 	else
@@ -569,11 +568,14 @@ void Channel::send(Bundle * pBundle)
 			}
 		}
 
-		if(g_intSendWindowBytesOverflow > 0 && 
-			bundleBytes >= g_intSendWindowBytesOverflow)
+		if (g_intSendWindowBytesOverflow > 0)
 		{
-			WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), bufferedBytes has overflowed({} > {}).\n", 
-				(void*)this, this->c_str(), bundleBytes, g_intSendWindowBytesOverflow));
+			uint32 bundleBytes = bundlesLength();
+			if (bundleBytes >= g_intSendWindowBytesOverflow)
+			{
+				WARNING_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), bufferedBytes has overflowed({} > {}).\n",
+					(void*)this, this->c_str(), bundleBytes, g_intSendWindowBytesOverflow));
+			}
 		}
 	}
 }
