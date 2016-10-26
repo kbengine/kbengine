@@ -73,9 +73,9 @@ void Channel::destroyObjPool()
 //-------------------------------------------------------------------------------------
 size_t Channel::getPoolObjectBytes()
 {
-	size_t bytes = sizeof(pNetworkInterface_) + sizeof(traits_) + 
+	size_t bytes = sizeof(pNetworkInterface_) + sizeof(traits_) + sizeof(protocoltype_) +
 		sizeof(id_) + sizeof(inactivityTimerHandle_) + sizeof(inactivityExceptionPeriod_) + 
-		sizeof(lastReceivedTime_) + (bufferedReceives_.size() * sizeof(Packet*)) + sizeof(pPacketReader_)
+		sizeof(lastReceivedTime_) + (bufferedReceives_.size() * sizeof(Packet*)) + sizeof(pPacketReader_) + (bundles_.size() * sizeof(Bundle*)) +
 		+ sizeof(flags_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
 		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
 		+ sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
