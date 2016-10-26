@@ -107,6 +107,8 @@ public:
 	*/
 	virtual void onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
+	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+
 protected:
 	C_ERROR error_;
 	C_STATE state_;

@@ -310,7 +310,11 @@ void ClientObject::gameTick()
 
 			break;
 		case C_STATE_PLAY:
-			break;
+		
+			break;	
+		case C_STATE_DESTROYED:
+
+			return;
 		default:
 			KBE_ASSERT(false);
 			break;
@@ -396,6 +400,13 @@ void ClientObject::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 
 	// ¼ÌÐø³¢ÊÔµÇÂ¼
 	state_ = C_STATE_LOGIN;
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObject::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+{
+	ClientObjectBase::onLoginBaseappFailed(pChannel, failedcode);
+	destroy();
 }
 
 //-------------------------------------------------------------------------------------
