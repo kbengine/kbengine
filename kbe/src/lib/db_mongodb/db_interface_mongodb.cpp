@@ -797,7 +797,7 @@ namespace KBEngine {
 
 		(*result) << nfields << nrows;
 
-		bool r = extuteFunction(q, NULL, &reply);
+		bool r = ExtuteFunction(q, NULL, &reply);
 		if (r)
 		{
 			char *str = bson_as_json(&reply, NULL);
