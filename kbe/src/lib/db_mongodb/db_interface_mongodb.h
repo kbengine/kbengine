@@ -64,6 +64,7 @@ namespace KBEngine
 		void ExecuteRemoveCommand(std::vector<std::string> strcmd, const char *tableName);
 		void ExecuteInsertCommand(std::vector<std::string> strcmd, const char *tableName);
 		bool ExecuteFunctionCommand(MemoryStream * result,std::string strcmd);
+		bool ExtuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply);
 		std::vector<std::string> splitParameter(std::string value);
 
 		bool write_query_result(MemoryStream * result, const char* strcmd = NULL);
@@ -153,8 +154,7 @@ namespace KBEngine
 
 		bool collectionCreateIndex(const char *tableName, const bson_t *keys, const mongoc_index_opt_t *opt);
 
-		bool collectionDropIndex(const char *tableName, const char *index_name);
-		bool extuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply);
+		bool collectionDropIndex(const char *tableName, const char *index_name);		
 
 	protected:
 		mongoc_client_t *_pMongoClient;

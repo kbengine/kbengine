@@ -344,15 +344,15 @@ namespace KBEngine {
 
 	bool DBInterfaceMongodb::lock()
 	{
-		lock_.start();
+		//lock_.start();
 		return true;
 	}
 
 	//-------------------------------------------------------------------------------------
 	bool DBInterfaceMongodb::unlock()
 	{
-		lock_.commit();
-		lock_.end();
+		//lock_.commit();
+		//lock_.end();
 		return true;
 	}
 
@@ -537,7 +537,7 @@ namespace KBEngine {
 		return r;
 	}
 
-	bool DBInterfaceMongodb::extuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply)
+	bool DBInterfaceMongodb::ExtuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply)
 	{
 		bson_error_t  error;
 		bool r = mongoc_database_command_simple(database, command, read_prefs, reply, &error);
