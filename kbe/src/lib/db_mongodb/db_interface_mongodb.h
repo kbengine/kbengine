@@ -59,12 +59,12 @@ namespace KBEngine
 		virtual bool checkErrors();
 
 		virtual bool query(const char* strCommand, uint32 size, bool printlog = true, MemoryStream * result = NULL);
-		bool ExecuteFindCommand(MemoryStream * result, std::vector<std::string> strcmd, const char *tableName);
-		void ExecuteUpdateCommand(std::vector<std::string> strcmd, const char *tableName);
-		void ExecuteRemoveCommand(std::vector<std::string> strcmd, const char *tableName);
-		void ExecuteInsertCommand(std::vector<std::string> strcmd, const char *tableName);
-		bool ExecuteFunctionCommand(MemoryStream * result,std::string strcmd);
-		bool ExtuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply);
+		bool executeFindCommand(MemoryStream * result, std::vector<std::string> strcmd, const char *tableName);
+		bool executeUpdateCommand(std::vector<std::string> strcmd, const char *tableName);
+		bool executeRemoveCommand(std::vector<std::string> strcmd, const char *tableName);
+		bool executeInsertCommand(std::vector<std::string> strcmd, const char *tableName);
+		bool executeFunctionCommand(MemoryStream * result,std::string strcmd);
+		bool extuteFunction(const bson_t *command, const mongoc_read_prefs_t *read_prefs, bson_t *reply);
 		std::vector<std::string> splitParameter(std::string value);
 
 		bool write_query_result(MemoryStream * result, const char* strcmd = NULL);
