@@ -37,8 +37,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-Space::Space(SPACE_ID spaceID):
+Space::Space(SPACE_ID spaceID, const std::string& scriptModuleName) :
 id_(spaceID),
+scriptModuleName_(scriptModuleName),
 entities_(),
 hasGeometry_(false),
 pCell_(NULL),
@@ -47,6 +48,20 @@ pNavHandle_(),
 state_(STATE_NORMAL),
 destroyTime_(0)
 {
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+		
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -56,6 +71,21 @@ Space::~Space()
 	pNavHandle_.clear();
 
 	SAFE_RELEASE(pCell_);	
+
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << true;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -269,6 +299,20 @@ void Space::loadSpaceGeometry(const std::map< int, std::string >& params)
 //-------------------------------------------------------------------------------------
 void Space::unLoadSpaceGeometry()
 {
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -286,6 +330,21 @@ void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 	}
 
 	onAllSpaceGeometryLoaded();
+
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << getGeometryPath();
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -160,3 +160,11 @@ MACHINES_BUFFER_FLUSH_TIME = 1.0
 # 每次查询Machine时等待响应的最长时间
 MACHINES_QUERY_WAIT_TIME = 1.0
 
+# MACHINES地址配置
+# 当此参数不为空时，则由原来的广播探测改为固定地址探测，
+# WebConsole仅会以此配置的地址进行探测，
+# 当服务器存在跨网段的情况时，此方案犹为有用。
+# 例子：
+# MACHINES_ADDRESS = ["192.168.0.1", "10.0.0.1", "172.16.0.1"]
+MACHINES_ADDRESS = []
+

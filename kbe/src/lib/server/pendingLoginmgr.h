@@ -82,6 +82,8 @@ public:
 	PendingLoginMgr::PLInfos* remove(std::string& accountName);
 	PendingLoginMgr::PLInfos* find(std::string& accountName);
 
+	void removeNextTick(std::string& accountName);
+
 private:
 	Network::NetworkInterface & networkInterface_;
 

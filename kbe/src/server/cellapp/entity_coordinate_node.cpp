@@ -354,6 +354,14 @@ float EntityCoordinateNode::zz() const
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::update()
 {
+	// 在这里做一下更新的原因是，很可能在CoordinateNode::update()的过程中导致实体位置被移动
+	// 而导致次数update被调用，在某种情况下会出现问题
+	// 例如：// A->B, B-A（此时old_*是B）, A->B（此时old_*是B，而xx等目的地就是B）,此时update中会误判为没有移动。
+	// https://github.com/kbengine/kbengine/issues/407
+	old_xx(x());
+	old_yy(y());
+	old_zz(z());
+
 	CoordinateNode::update();
 
 	addFlags(COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING);

@@ -76,7 +76,7 @@ bool InterfacesHandler_Dbmgr::createAccount(Network::Channel* pChannel, std::str
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(registerName);
 
-	thread::ThreadPool* pThreadPool =DBUtil::pThreadPool(dbInterfaceName);
+	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::createAccount: not found dbInterface({})!\n",

@@ -119,19 +119,26 @@
 			<external>	0			</external>				<!-- 系统默认(system default) -->
 		</writeBufferSize>
 		
-		<!-- 一个tick内发送与接收窗口溢出值，0无限制
-			(A tick, the value of the send/receive window overflow, 0 is unlimited)
+		<!-- 发送与接收窗口溢出值，0无限制
+			(the value of the send/receive window overflow, 0 is unlimited)
 		-->
 		<windowOverflow>
 			<send>
+				<!-- 一个tick内发送的字节数溢出限制 
+					(A tick, the value of the sent window overflow, 0 is unlimited)
+				-->
+				<tickSentBytes>
+					<internal>	0			</internal>
+					<external>	0			</external>
+				</tickSentBytes>
 				<messages>
 					<critical>	1024		</critical>
 					<internal>	65535		</internal>
-					<external>	512			</external>
+					<external>	512		</external>
 				</messages>
 				<bytes>
 					<internal>	0			</internal>
-					<external>	0			</external>
+					<external>	1048576	</external>
 				</bytes>
 			</send>
 			

@@ -529,9 +529,12 @@ bool Bundle::revokeMessage(int32 size)
 		}
 	}
 	
-	if(pCurrPacket_)
-		packets_.push_back(pCurrPacket_); 
-	
+	if (pCurrPacket_)
+	{
+		packets_.push_back(pCurrPacket_);
+		pCurrPacket_ = NULL;
+	}
+
 	--numMessages_;
 	currMsgHandlerLength_ = 0;
 		

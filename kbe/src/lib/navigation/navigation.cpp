@@ -56,8 +56,8 @@ bool Navigation::removeNavigation(std::string resPath)
 	KBEUnordered_map<std::string, NavigationHandlePtr>::iterator iter = navhandles_.find(resPath);
 	if(navhandles_.find(resPath) != navhandles_.end())
 	{
-		navhandles_.erase(iter);
 		iter->second->decRef();
+		navhandles_.erase(iter);
 
 		DEBUG_MSG(fmt::format("Navigation::removeNavigation: ({}) is destroyed!\n", resPath));
 		return true;

@@ -66,9 +66,11 @@ bool hasPID(int pid, sigar_proc_list_t* proclist)
 SystemInfo::SystemInfo()
 {
 	totalmem_ = 0;
-	_autocreate();
-	getCPUPer();
-	getProcessInfo();
+
+	// 不要在初始化中做这件事情，因为全局静态变量这里可能在main之前被调用一次
+	//_autocreate();
+	//getCPUPer();
+	//getProcessInfo();
 }
 
 //-------------------------------------------------------------------------------------
