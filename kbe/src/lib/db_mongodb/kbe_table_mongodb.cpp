@@ -68,7 +68,7 @@ namespace KBEngine {
 		entitylog.port = 0;
 
 
-		const bson_t *doc = nullptr;
+		const bson_t *doc = NULL;
 		bson_error_t  error;
 		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
 			break;
@@ -78,7 +78,7 @@ namespace KBEngine {
 			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
-		if (doc == nullptr)
+		if (doc == NULL)
 		{
 			mongoc_cursor_destroy(cursor);
 			return false;
@@ -184,7 +184,7 @@ namespace KBEngine {
 		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_accountinfos", MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
 
 
-		const bson_t *doc = nullptr;
+		const bson_t *doc = NULL;
 		bson_error_t  error;
 		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
 			break;
@@ -194,7 +194,7 @@ namespace KBEngine {
 			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
-		if (doc == nullptr)
+		if (doc == NULL)
 		{
 			mongoc_cursor_destroy(cursor);
 			return false;
@@ -242,7 +242,7 @@ namespace KBEngine {
 		mongoc_cursor_t * cursor = pdbiMongodb->collectionFind("kbe_accountinfos", MONGOC_QUERY_NONE, 0, 0, 0, &query, NULL, NULL);
 
 
-		const bson_t *doc = nullptr;
+		const bson_t *doc = NULL;
 		bson_error_t  error;
 		while (mongoc_cursor_more(cursor) && mongoc_cursor_next(cursor, &doc)) {
 			break;
@@ -252,7 +252,7 @@ namespace KBEngine {
 			ERROR_MSG(fmt::format("An error occurred: {}\n", error.message));
 		}
 
-		if (doc == nullptr)
+		if (doc == NULL)
 		{
 			mongoc_cursor_destroy(cursor);
 			return false;
