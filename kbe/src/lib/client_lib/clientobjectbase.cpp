@@ -1790,6 +1790,11 @@ void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityI
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObjectBase::onParentChanged(Network::Channel* pChannel, ENTITY_ID entityID, ENTITY_ID parentID)
+{
+}
+
+//-------------------------------------------------------------------------------------
 void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath)
 {
 	INFO_MSG(fmt::format("ClientObjectBase::addSpaceGeometryMapping: spaceID={}, respath={}!\n",

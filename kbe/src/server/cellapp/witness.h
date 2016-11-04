@@ -189,6 +189,9 @@ public:
 	*/
 	void resetAOIEntities();
 
+	/** 取得相对位置 */
+	void relativePosition(Position3D& out, Entity* otherEntity);
+
 private:
 	/**
 		如果aoi中entity数量小于256则只发送索引位置

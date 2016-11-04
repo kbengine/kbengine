@@ -63,10 +63,12 @@ namespace Network
 {
 class Channel;
 class Bundle;
+class MessageHandler;
 }
 
 typedef SmartPointer<Entity> EntityPtr;
 typedef std::vector<EntityPtr> SPACE_ENTITIES;
+typedef std::map<ENTITY_ID, Entity*> CHILD_ENTITIES;
 
 class Entity : public script::ScriptObject
 {
@@ -158,7 +160,7 @@ public:
 	/**
 		脚本获取controlledBy属性
 	*/
-	INLINE bool isControlledNotSelfCleint() const;
+	INLINE bool isControlledNotSelfClient() const;
 	INLINE EntityMailbox* controlledBy() const;
 	INLINE void controlledBy(EntityMailbox* baseMailbox);
 	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
@@ -172,12 +174,34 @@ public:
 	INLINE void position(const Position3D& pos);
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 
+	/**
+	脚本获取和设置entity的local position
+	*/
+	INLINE Position3D& localPosition();
+	INLINE void localPosition(const Position3D& pos);
+	DECLARE_PY_GETSET_MOTHOD(pyGetLocalPosition, pySetLocalPosition);
+
 	/** 
 		脚本获取和设置entity的方向 
 	*/
 	INLINE Direction3D& direction();
 	INLINE void direction(const Direction3D& dir);
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
+
+	/**
+	脚本获取和设置entity的local direction
+	*/
+	INLINE Direction3D& localDirection();
+	INLINE void localDirection(const Direction3D& dir);
+	DECLARE_PY_GETSET_MOTHOD(pyGetLocalDirection, pySetLocalDirection);
+
+	/** 同步世界坐标到本地坐标，或相反 */
+	INLINE void syncPositionWorldToLocal();
+	INLINE void syncDirectionWorldToLocal();
+	INLINE void syncPositionLocalToWorld();
+	INLINE void syncDirectionLocalToWorld();
+
+
 
 	/**
 	一个特殊的方法：强制设置自己的position，但不通知自己的客户端，
@@ -214,7 +238,9 @@ public:
 	
 	void onPyPositionChanged();
 	void onPyDirectionChanged();
-	
+	void onPyLocalPositionChanged();
+	void onPyLocalDirectionChanged();
+
 	void updateLastPos();
 
 	bool checkMoveForTopSpeed(const Position3D& position);
@@ -344,6 +370,9 @@ public:
 
 	/** 
 		entity移动到某个点 
+		当parent为null时，destination应为基于世界坐标系的坐标，
+		当parent不为null时，destination应为基于父对象坐标的偏移坐标。
+		当移动中parent对象值被改变，移动自动中断。
 	*/
 	uint32 moveToPoint(const Position3D& destination, float velocity, float distance,
 			PyObject* userData, bool faceMovement, bool moveVertically);
@@ -619,6 +648,38 @@ public:
 	INLINE VolatileInfo* pCustomVolatileinfo(void);
 	DECLARE_PY_GETSET_MOTHOD(pyGetVolatileinfo, pySetVolatileinfo);
 
+	/**
+	脚本获取和设置父entity对象
+	*/
+	INLINE Entity* parent();
+	void parent(Entity* ent, bool callScript = true);
+	DECLARE_PY_GETSET_MOTHOD(pyGetParent, pySetParent);
+	void onParentChanged(Entity* old);
+
+	void sendParentChangedMessage(bool includeOtherClients);
+	void removeAllChild();
+	INLINE void removeChild(Entity* ent);
+	INLINE void removeChild(ENTITY_ID eid);
+	INLINE void addChild(Entity* ent);
+	INLINE void updateChildrenPosition();
+	INLINE void updateChildrenPositionAndDirection();
+
+	/** 本地坐标与世界坐标互转 */
+	void positionLocalToWorld(const Position3D& localPos, Position3D &out);
+	void positionWorldToLocal(const Position3D& worldPos, Position3D &out);
+	void directionLocalToWorld(const Direction3D& localDir, Direction3D &out);
+	void directionWorldToLocal(const Direction3D& worldDir, Direction3D &out);
+	DECLARE_PY_MOTHOD_ARG1(pyPositionLocalToWorld, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG1(pyPositionWorldToLocal, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG1(pyDirectionLocalToWorld, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG1(pyDirectionWorldToLocal, PyObject_ptr);
+
+
+	/** (广播)发送一条消息 */
+	void callSelfClientMethod(const Network::MessageHandler& msgHandler, const MemoryStream* mstream);
+	void callOtherClientsMethod(const Network::MessageHandler& msgHandler, const MemoryStream* mstream);
+	INLINE void callAllClientsMethod(const Network::MessageHandler& msgHandler, const MemoryStream* mstream);
+
 private:
 	/** 
 		发送teleport结果到base端
@@ -651,9 +712,17 @@ protected:
 	Position3D												position_;
 	script::ScriptVector3*									pPyPosition_;
 
+	// entity的当前本地位置
+	Position3D												localPosition_;
+	script::ScriptVector3*									pPyLocalPosition_;
+
 	// entity的当前方向
 	Direction3D												direction_;	
 	script::ScriptVector3*									pPyDirection_;
+
+	// entity的当前本地方向
+	Direction3D												localDirection_;
+	script::ScriptVector3*									pPyLocalDirection_;
 
 	// entity位置朝向在某时间是否改变过
 	// 此属性可用于如:决定在某期间是否要高度同步该entity
@@ -692,7 +761,9 @@ protected:
 	
 	script::ScriptVector3::PYVector3ChangedCallback			pyPositionChangedCallback_;
 	script::ScriptVector3::PYVector3ChangedCallback			pyDirectionChangedCallback_;
-	
+	script::ScriptVector3::PYVector3ChangedCallback			pyLocalPositionChangedCallback_;
+	script::ScriptVector3::PYVector3ChangedCallback			pyLocalDirectionChangedCallback_;
+
 	// entity层，可以做任意表示，基于tile的游戏可以表示为海陆空等层，纯3d也可以表示各种层
 	// 在脚本层做搜索的时候可以按层搜索.
 	int8													layer_;
@@ -702,6 +773,10 @@ protected:
 
 	// 如果用户有设置过Volatileinfo，则此处创建Volatileinfo，否则为NULL使用ScriptDefModule的Volatileinfo
 	VolatileInfo*											pCustomVolatileinfo_;
+
+	// 父Entity
+	Entity*													pParent_;
+	CHILD_ENTITIES											children_;
 };
 
 }

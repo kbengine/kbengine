@@ -254,7 +254,7 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::isControlledNotSelfCleint() const
+INLINE bool Entity::isControlledNotSelfClient() const
 {
 	return controlledBy_ == NULL || controlledBy_->id() != id();
 }
@@ -293,6 +293,172 @@ INLINE bool Entity::isDirty() const
 INLINE VolatileInfo* Entity::pCustomVolatileinfo(void)
 {
 	return pCustomVolatileinfo_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::localPosition(const Position3D& pos)
+{
+	Vector3 movement = pos - localPosition_;
+
+	if (KBEVec3Length(&movement) < 0.0004f)
+		return;
+
+	localPosition_ = pos;
+
+	posChangedTime_ = g_kbetime;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::localDirection(const Direction3D& dir)
+{
+	if (almostEqual(localDirection_.yaw(), dir.yaw()) && almostEqual(localDirection_.roll(), dir.roll()) && almostEqual(localDirection_.pitch(), dir.pitch()))
+		return;
+
+	localDirection_ = dir;
+
+	dirChangedTime_ = g_kbetime;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Direction3D& Entity::localDirection()
+{
+	return localDirection_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Position3D& Entity::localPosition()
+{
+	return localPosition_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::syncPositionWorldToLocal()
+{
+	if (parent())
+	{
+		Position3D posOut;
+		parent()->positionWorldToLocal(position(), posOut);
+		localPosition(posOut);
+	}
+	else
+	{
+		localPosition(position());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::syncDirectionWorldToLocal()
+{
+	if (parent())
+	{
+		Direction3D localDir;
+		parent()->directionWorldToLocal(direction(), localDir);
+		localDirection(localDir);
+	}
+	else
+	{
+		localDirection(direction());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::syncPositionLocalToWorld()
+{
+	if (parent())
+	{
+		Position3D worldPos;
+		parent()->positionLocalToWorld(localPosition(), worldPos);
+		position(worldPos);
+	}
+	else
+	{
+		position(localPosition());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::syncDirectionLocalToWorld()
+{
+	if (parent())
+	{
+		Direction3D worldDir;
+		parent()->directionLocalToWorld(localDirection(), worldDir);
+		direction(worldDir);
+	}
+	else
+	{
+		direction(localDirection());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+INLINE Entity* Entity::parent(void)
+{
+	return pParent_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::removeChild(Entity* ent)
+{
+	removeChild(ent->id());
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::removeChild(ENTITY_ID eid)
+{
+	children_.erase(eid);
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::addChild(Entity* ent)
+{
+	KBE_ASSERT(ent);
+	KBE_ASSERT(children_.find(ent->id()) == children_.end());
+
+	children_[ent->id()] = ent;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::updateChildrenPosition()
+{
+	CHILD_ENTITIES::iterator iter = children_.begin();
+	for (; iter != children_.end(); ++iter)
+	{
+		Entity* child = iter->second;
+		Position3D newPos;
+		positionLocalToWorld(child->localPosition(), newPos);
+		child->position(newPos);
+
+		// 嵌套父子关系处理
+		//child->updateChildrenPosition();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::updateChildrenPositionAndDirection()
+{
+	CHILD_ENTITIES::iterator iter = children_.begin();
+	for (; iter != children_.end(); ++iter)
+	{
+		Entity* child = iter->second;
+		Position3D newPos;
+		positionLocalToWorld(child->localPosition(), newPos);
+		child->position(newPos);
+
+		Direction3D newDir;
+		directionLocalToWorld(child->localDirection(), newDir);
+		child->direction(newDir);
+
+		// 嵌套父子关系处理
+		//child->updateChildrenPositionAndDirection();
+	}
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::callAllClientsMethod(const Network::MessageHandler& msgHandler, const MemoryStream* mstream)
+{
+	callSelfClientMethod(msgHandler, mstream);
+	callOtherClientsMethod(msgHandler, mstream);
 }
 
 //-------------------------------------------------------------------------------------

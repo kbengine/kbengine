@@ -47,6 +47,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "client_lib/client_interface.h"
 #include "helper/eventhistory_stats.h"
 #include "navigation/navigation.h"
+#include "math/math.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
@@ -79,6 +80,10 @@ SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("debugAOI",					pyDebugAOI,						METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("positionLocalToWorld",		pyPositionLocalToWorld,			METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("positionWorldToLocal",		pyPositionWorldToLocal,			METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("directionLocalToWorld",		pyDirectionLocalToWorld,		METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("directionWorldToLocal",		pyDirectionWorldToLocal,		METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("setPositionForOthers",		pySetPositionForOthers,			METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("setDirectionForOthers",		pySetDirectionForOthers,		METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
@@ -96,8 +101,11 @@ SCRIPT_GET_DECLARE("hasWitness",					pyHasWitness,					0,							0)
 SCRIPT_GET_DECLARE("isOnGround",					pyGetIsOnGround,				0,							0)
 SCRIPT_GET_DECLARE("spaceID",						pyGetSpaceID,					0,							0)
 SCRIPT_GETSET_DECLARE("layer",						pyGetLayer,						pySetLayer,					0,		0)
+SCRIPT_GETSET_DECLARE("parent",						pyGetParent,					pySetParent,				0,		0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,				0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,				0,		0)
+SCRIPT_GETSET_DECLARE("localDirection",				pyGetLocalDirection,			pySetLocalDirection,		0,		0)
+SCRIPT_GETSET_DECLARE("localPosition",				pyGetLocalPosition,				pySetLocalPosition,			0,		0)
 SCRIPT_GETSET_DECLARE("topSpeed",					pyGetTopSpeed,					pySetTopSpeed,				0,		0)
 SCRIPT_GETSET_DECLARE("topSpeedY",					pyGetTopSpeedY,					pySetTopSpeedY,				0,		0)
 SCRIPT_GETSET_DECLARE("controlledBy",				pyGetControlledBy,				pySetControlledBy,			0,		0)
@@ -116,8 +124,12 @@ ghostCell_(0),
 lastpos_(),
 position_(),
 pPyPosition_(NULL),
+localPosition_(),
+pPyLocalPosition_(NULL),
 direction_(),
 pPyDirection_(NULL),
+localDirection_(),
+pPyLocalDirection_(NULL),
 posChangedTime_(0),
 dirChangedTime_(0),
 isOnGround_(false),
@@ -132,14 +144,23 @@ pEntityCoordinateNode_(NULL),
 pControllers_(new Controllers(id)),
 pyPositionChangedCallback_(),
 pyDirectionChangedCallback_(),
+pyLocalPositionChangedCallback_(),
+pyLocalDirectionChangedCallback_(),
 layer_(0),
 isDirty_(true),
-pCustomVolatileinfo_(NULL)
+pCustomVolatileinfo_(NULL),
+pParent_(NULL),
+children_()
 {
 	pyPositionChangedCallback_ = std::tr1::bind(&Entity::onPyPositionChanged, this);
 	pyDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyDirectionChanged, this);
 	pPyPosition_ = new script::ScriptVector3(&position(), &pyPositionChangedCallback_);
 	pPyDirection_ = new script::ScriptVector3(&direction().dir, &pyDirectionChangedCallback_);
+
+	pyLocalPositionChangedCallback_ = std::tr1::bind(&Entity::onPyLocalPositionChanged, this);
+	pyLocalDirectionChangedCallback_ = std::tr1::bind(&Entity::onPyLocalDirectionChanged, this);
+	pPyLocalPosition_ = new script::ScriptVector3(&localPosition(), &pyLocalPositionChangedCallback_);
+	pPyLocalDirection_ = new script::ScriptVector3(&localDirection().dir, &pyLocalDirectionChangedCallback_);
 
 	ENTITY_INIT_PROPERTYS(Entity);
 
@@ -156,7 +177,6 @@ Entity::~Entity()
 {
 	ENTITY_DECONSTRUCTION(Entity);
 
-	S_RELEASE(controlledBy_);
 	S_RELEASE(pCustomVolatileinfo_);
 
 	S_RELEASE(clientMailbox_);
@@ -174,6 +194,12 @@ Entity::~Entity()
 	
 	Py_DECREF(pPyDirection_);
 	pPyDirection_ = NULL;
+
+	Py_DECREF(pPyLocalPosition_);
+	pPyLocalPosition_ = NULL;
+	
+	Py_DECREF(pPyLocalDirection_);
+	pPyLocalDirection_ = NULL;
 
 	if(Cellapp::getSingleton().pEntities())
 		Cellapp::getSingleton().pEntities()->pGetbages()->erase(id());
@@ -224,6 +250,14 @@ void Entity::onDestroy(bool callScript)
 
 	// 解除控制者的引用
 	S_RELEASE(controlledBy_);
+
+	// 解除父子关系
+	if (pParent_)
+	{
+		pParent_->removeChild(this);
+		pParent_ = NULL;
+	}
+	removeAllChild();
 
 	if(pWitness_)
 	{
@@ -355,7 +389,15 @@ PyObject* Entity::pyGetControlledBy( )
 //-------------------------------------------------------------------------------------
 int Entity::pySetControlledBy(PyObject *value)
 { 
-	if(isDestroyed())	
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -367,9 +409,9 @@ int Entity::pySetControlledBy(PyObject *value)
 
 	if (value != Py_None )
 	{
-		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()) || !((EntityMailbox *)value)->isBase())
+		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()))
 		{
-			PyErr_Format(PyExc_AssertionError, "%s: param must be base entity mailbox!\n",
+			PyErr_Format(PyExc_AssertionError, "%s: param must be instance of Entity!\n",
 				scriptName());
 			PyErr_PrintEx(0);
 			return 0;
@@ -1413,7 +1455,13 @@ void Entity::onEnteredAoI(Entity* entity)
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pySetPositionForOthers(PyObject *value)
 {
-	setPositionFromPyObject(value, true);
+	if (!setPositionFromPyObject(value, false))
+	{
+		Py_RETURN_NONE;
+	}
+
+	syncPositionWorldToLocal();
+
 	Py_RETURN_NONE;
 }
 
@@ -1422,6 +1470,9 @@ int Entity::pySetPosition(PyObject *value)
 {
 	if (!setPositionFromPyObject(value, false))
 		return -1;
+
+	syncPositionWorldToLocal();
+
 	return 0;
 }
 
@@ -1459,6 +1510,8 @@ bool Entity::setPositionFromPyObject(PyObject *value, bool dontNotifySelfClient)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
 	onDefDataChanged(&positionDescription, value, dontNotifySelfClient);
+
+	updateChildrenPosition();
 	return true;
 }
 
@@ -1509,7 +1562,13 @@ void Entity::setPosition_XYZ_float(Network::Channel* pChannel, float x, float y,
 //-------------------------------------------------------------------------------------
 PyObject* Entity::pySetDirectionForOthers(PyObject *value)
 {
-	setDirectionFromPyObject(value, true);
+	if (!setDirectionFromPyObject(value, true))
+	{
+		Py_RETURN_NONE;
+	}
+
+	syncDirectionWorldToLocal();
+
 	Py_RETURN_NONE;
 }
 
@@ -1518,6 +1577,9 @@ int Entity::pySetDirection(PyObject *value)
 {
 	if (!setDirectionFromPyObject(value, false))
 		return -1;
+
+	syncDirectionWorldToLocal();
+
 	return 0;
 }
 
@@ -1547,7 +1609,7 @@ bool Entity::setDirectionFromPyObject(PyObject *value, bool dontNotifySelfClient
 		return false;
 	}
 
-	Direction3D& dir = direction();
+	Direction3D dir;
 	PyObject* pyItem = PySequence_GetItem(value, 0);
 
 	if(!PyFloat_Check(pyItem))
@@ -1587,6 +1649,8 @@ bool Entity::setDirectionFromPyObject(PyObject *value, bool dontNotifySelfClient
 	dir.yaw(float(PyFloat_AsDouble(pyItem)));
 	Py_DECREF(pyItem);
 
+	direction(dir);
+
 	static ENTITY_PROPERTY_UID diruid = 0;
 	if(diruid == 0)
 	{
@@ -1601,7 +1665,7 @@ bool Entity::setDirectionFromPyObject(PyObject *value, bool dontNotifySelfClient
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
 	onDefDataChanged(&directionDescription, value, dontNotifySelfClient);
-
+	updateChildrenPositionAndDirection();
 	return true;
 }
 
@@ -1628,6 +1692,8 @@ void Entity::onPyPositionChanged()
 	if(this->isDestroyed())
 		return;
 
+	syncPositionWorldToLocal();
+
 	static ENTITY_PROPERTY_UID posuid = 0;
 	if(posuid == 0)
 	{
@@ -1645,10 +1711,8 @@ void Entity::onPyPositionChanged()
 
 	onDefDataChanged(&positionDescription, pPyPosition_);
 
-	if(this->pEntityCoordinateNode())
-		this->pEntityCoordinateNode()->update();
-
-	updateLastPos();
+	onPositionChanged();
+	updateChildrenPosition();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1656,8 +1720,6 @@ void Entity::onPositionChanged()
 {
 	if(this->isDestroyed())
 		return;
-
-	posChangedTime_ = g_kbetime;
 
 	if(this->pEntityCoordinateNode())
 		this->pEntityCoordinateNode()->update();
@@ -1677,7 +1739,8 @@ void Entity::onPyDirectionChanged()
 	if(this->isDestroyed())
 		return;
 
-	// onDirectionChanged();
+	syncDirectionWorldToLocal();
+
 	static ENTITY_PROPERTY_UID diruid = 0;
 	if(diruid == 0)
 	{
@@ -1692,6 +1755,9 @@ void Entity::onPyDirectionChanged()
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
 	onDefDataChanged(&directionDescription, pPyDirection_);
+
+	onDirectionChanged();
+	updateChildrenPositionAndDirection();
 }
 
 //-------------------------------------------------------------------------------------
@@ -1699,8 +1765,6 @@ void Entity::onDirectionChanged()
 {
 	if(this->isDestroyed())
 		return;
-
-	dirChangedTime_ = g_kbetime;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1972,10 +2036,12 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 	dir.pitch(pitch);
 	dir.roll(roll);
 	this->direction(dir);
+	syncDirectionWorldToLocal();
 
 	if(checkMoveForTopSpeed(pos))
 	{
 		this->position(pos);
+		syncPositionWorldToLocal();
 	}
 	else
 	{
@@ -2017,6 +2083,8 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
 	}
+
+	updateChildrenPositionAndDirection();
 }
 
 //-------------------------------------------------------------------------------------
@@ -3257,6 +3325,14 @@ void Entity::teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& di
 			4.2: 当前entity有base部分， 那么我们需要改变base所映射的cell部分(并且在未正式切换关系时baseapp上所有送达cell的消息都应该不被丢失)， 为了安全我们需要做一些工作
 	*/
 
+	//@todo(penghuawei): 对于有父子关系的传送，当前是直接切断父子关系
+	//                   如果有需要子随父传送，需要后续专门处理
+	{
+		if (this->parent())
+			this->parent(NULL);
+		removeAllChild();
+	}
+
 	Py_INCREF(this);
 
 	// 如果为None则是entity自己想在本space上跳转到某位置
@@ -3337,6 +3413,22 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 
 	// 如果身上有trap等触发器还得重新添加进去
 	restoreProximitys();
+
+	// 根据父子关系重置本地坐标和朝向
+	// 注：在跨cellapp传送中，些处理可能会有点多余，
+	//     因为在createFromStream()中已做过类似的处理，
+	//     但如果是非跨cellapp传送，此处理就很有必要，
+	//     等以后要支持父子同传时再考虑是否有优化的价值或方案。
+	if (parent())
+	{
+		parent()->positionWorldToLocal(position(), localPosition_);
+		parent()->directionWorldToLocal(direction(), localDirection_);
+	}
+	else
+	{
+		localPosition_ = position();
+		localDirection_ = direction();
+	}
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onTeleportSuccess"), 
@@ -3543,10 +3635,11 @@ void Entity::addToStream(KBEngine::MemoryStream& s)
 
 	bool hasCustomVolatileinfo = (pCustomVolatileinfo_ != NULL);
 	ENTITY_ID controlledByID = (controlledBy_ != NULL ? controlledBy_->id() : 0);
+	ENTITY_ID parentID = (pParent_ != NULL ? pParent_->id() : 0);
 		
 	s << pScriptModule_->getUType() << spaceID_ << isDestroyed_ << 
 		isOnGround_ << topSpeed_ << topSpeedY_ << 
-		layer_ << baseMailboxComponentID << hasCustomVolatileinfo << controlledByID;
+		layer_ << baseMailboxComponentID << hasCustomVolatileinfo << controlledByID << parentID;
 
 	if (pCustomVolatileinfo_)
 		pCustomVolatileinfo_->addToStream(s);
@@ -3567,10 +3660,10 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	ENTITY_SCRIPT_UID scriptUType;
 	COMPONENT_ID baseMailboxComponentID;
 	bool hasCustomVolatileinfo;
-	ENTITY_ID controlledByID;
+	ENTITY_ID controlledByID, parentID;
 
 	s >> scriptUType >> spaceID_ >> isDestroyed_ >> isOnGround_ >> topSpeed_ >> 
-		topSpeedY_ >> layer_ >> baseMailboxComponentID >> hasCustomVolatileinfo >> controlledByID;
+		topSpeedY_ >> layer_ >> baseMailboxComponentID >> hasCustomVolatileinfo >> controlledByID >> parentID;
 
 	if (hasCustomVolatileinfo)
 	{
@@ -3618,6 +3711,31 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 	createTimersFromStream(s);
 
 	pyCallbackMgr_.createFromStream(s);
+
+	// 恢复父子关系
+	if (parentID != 0)
+	{
+		KBE_ASSERT(parentID != id());
+		Entity* parentEntity = Cellapp::getSingleton().findEntity(parentID);
+		if (parentEntity && spaceID() == parentEntity->spaceID())
+		{
+			parent(parentEntity, false);
+		}
+		else
+		{
+			localPosition_ = position();
+			localDirection_ = direction();
+
+			// 无法恢复关系则通知自己的客户端移除父子关系
+			sendParentChangedMessage(false);
+		}
+	}
+	else
+	{
+		localPosition_ = position();
+		localDirection_ = direction();
+	}
+
 	setDirty();
 }
 
@@ -3817,6 +3935,652 @@ void Entity::createTimersFromStream(KBEngine::MemoryStream& s)
 		
 		scriptTimers_.directAddTimer(tid, timerHandle);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::parent(Entity* ent, bool callScript)
+{
+	if (ent == pParent_)
+		return;
+
+	Entity* old = pParent_;
+	if (pParent_)
+	{
+		pParent_->removeChild(this);
+		localPosition_ = position();
+		localDirection_ = direction();
+		pParent_ = NULL; // 先重置一遍，以免脚本层获取到过期的父对象
+
+		if (callScript)
+		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+			SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onLoseParent"),
+				const_cast<char*>("O"), old);
+		}
+	}
+
+	pParent_ = ent;
+
+	if (pParent_)
+	{
+		pParent_->addChild(this);
+		pParent_->positionWorldToLocal(position(), localPosition_);
+		pParent_->directionWorldToLocal(direction(), localDirection_);
+	
+		if (callScript)
+		{
+			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+			SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGotParent"));
+		}
+	}
+
+	onParentChanged(old);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onParentChanged(Entity* old)
+{
+	stopMove();
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetParent(PyObject *value)
+{
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::parent: is not real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	// 我不能是已经销毁的
+	if (isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "entity (%s: %d) is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	// 自己不能是父对象，即不能嵌套，从效率的角度来说，这个也许是有意义的
+	if (children_.size() > 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "entity (%s: %d) can't be the parent!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	Entity* entity = NULL;
+	if (value != Py_None)
+	{
+		// 必须是Entity对象
+		if (!PyObject_TypeCheck(value, Entity::getScriptType()))
+		{
+			PyErr_Format(PyExc_AssertionError, "%s: param must be cell entity!\n",
+				scriptName());
+			PyErr_PrintEx(0);
+			return -1;
+		}
+
+		entity = static_cast<Entity*>(value);
+
+		// 父对象不能是已经销毁的
+		if (entity->isDestroyed())
+		{
+			PyErr_Format(PyExc_AssertionError, "parent entity (%s: %d) is destroyed!\n",
+				entity->scriptName(), entity->id());
+			PyErr_PrintEx(0);
+			return -1;
+		}
+
+		// 父对象不能有父对象，即不能嵌套，从效率的角度来说，这个也许是有意义的
+		if (entity->parent())
+		{
+			PyErr_Format(PyExc_AssertionError, "parent entity (%s: %d) can't has parent!\n",
+				entity->scriptName(), entity->id());
+			PyErr_PrintEx(0);
+			return -1;
+		}
+
+		// 父对象与自己必须在同一space下
+		if (spaceID() != entity->spaceID())
+		{
+			PyErr_Format(PyExc_AssertionError, "parent entity and child entity must be in the same space!\n");
+			PyErr_PrintEx(0);
+			return -1;
+		}
+	}
+
+	if (parent() == entity)
+		return 0;
+
+	parent(entity);
+	sendParentChangedMessage(true);
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetParent()
+{
+	if (pParent_)
+	{
+		Py_INCREF(pParent_);
+		return pParent_;
+	}
+	
+	Py_RETURN_NONE;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onPyLocalPositionChanged()
+{
+	if (this->isDestroyed())
+		return;
+
+	syncPositionLocalToWorld();
+
+	// 再走一次世界坐标改变的流程，以通知客户端和更新子对象的坐标
+	onPyPositionChanged();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onPyLocalDirectionChanged()
+{
+	syncDirectionLocalToWorld();
+
+	// 再走一次世界朝向改变的流程，以通知客户端和更新子对象的朝向
+	onPyDirectionChanged();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetLocalPosition()
+{
+	Py_INCREF(pPyLocalPosition_);
+	return pPyLocalPosition_;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyGetLocalDirection()
+{
+	Py_INCREF(pPyLocalDirection_);
+	return pPyLocalDirection_;
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetLocalPosition(PyObject *value)
+{
+	if (isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	if (!script::ScriptVector3::check(value))
+		return -1;
+
+	Position3D pos;
+	script::ScriptVector3::convertPyObjectToVector3(pos, value);
+	localPosition(pos);
+	syncPositionLocalToWorld();
+
+	// 走一次世界坐标设置流程，以通知客户端及更新子对象坐标
+	script::ScriptVector3 *pyVal = new script::ScriptVector3(position());
+	setPositionFromPyObject(pyVal, false);
+	Py_DECREF(pyVal);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+int Entity::pySetLocalDirection(PyObject *value)
+{
+	if (isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	if (PySequence_Check(value) <= 0)
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a sequence.");
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	Py_ssize_t size = PySequence_Size(value);
+	if (size != 3)
+	{
+		PyErr_Format(PyExc_TypeError, "len(direction) != 3. can't set.");
+		PyErr_PrintEx(0);
+		return -1;
+	}
+
+	Direction3D dir;
+	PyObject* pyItem = PySequence_GetItem(value, 0);
+
+	if (!PyFloat_Check(pyItem))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		Py_DECREF(pyItem);
+		return -1;
+	}
+
+	dir.roll(float(PyFloat_AsDouble(pyItem)));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(value, 1);
+
+	if (!PyFloat_Check(pyItem))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		Py_DECREF(pyItem);
+		return -1;
+	}
+
+	dir.pitch(float(PyFloat_AsDouble(pyItem)));
+	Py_DECREF(pyItem);
+
+	pyItem = PySequence_GetItem(value, 2);
+
+	if (!PyFloat_Check(pyItem))
+	{
+		PyErr_Format(PyExc_TypeError, "args of direction is must a float(curr=%s).", pyItem->ob_type->tp_name);
+		PyErr_PrintEx(0);
+		Py_DECREF(pyItem);
+		return -1;
+	}
+
+	dir.yaw(float(PyFloat_AsDouble(pyItem)));
+	Py_DECREF(pyItem);
+
+	localDirection(dir);
+	syncDirectionLocalToWorld();
+
+	// 走一次世界朝向设置流程，以通知客户端及更新子对象朝向
+	script::ScriptVector3 *pyVal = new script::ScriptVector3(position());
+	setDirectionFromPyObject(pyVal, false);
+	Py_DECREF(pyVal);
+
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::removeAllChild()
+{
+	CHILD_ENTITIES::iterator iter = children_.begin();
+	for (; iter != children_.end(); ++iter)
+	{
+		Entity* p = iter->second;
+		p->pParent_ = NULL;
+		p->localDirection_ = p->direction();
+		p->localPosition_ = p->position();
+		p->sendParentChangedMessage(true);
+
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onLoseParent"),
+			const_cast<char*>("O"), this);
+	}
+	children_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::sendParentChangedMessage(bool includeOtherClients)
+{
+	MemoryStream* mstream = MemoryStream::createPoolObject();
+	
+	ENTITY_ID parentID = (pParent_ ? pParent_->id() : 0);
+	(*mstream) << id() << parentID;
+	if (includeOtherClients)
+		callAllClientsMethod(ClientInterface::onParentChanged, mstream);
+	else
+		callSelfClientMethod(ClientInterface::onParentChanged, mstream);
+
+	MemoryStream::reclaimPoolObject(mstream);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::callSelfClientMethod(const Network::MessageHandler& msgHandler, const MemoryStream* mstream)
+{
+	if (isDestroyed())
+	{
+		//WARNING_MSG(fmt::format("Entity::callSelfClientMethod: entity ({}) is destroyed.\n", id()));
+		return;
+	}
+
+	// 发给自己
+	if (clientMailbox())
+	{
+		Network::Bundle* pSendBundle = NULL;
+		Network::Channel* pChannel = clientMailbox()->getChannel();
+
+		if (pChannel)
+		{
+			pSendBundle = pChannel->createSendBundle();
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, callSelfClientMethod);
+
+			if (mstream->wpos() > 0)
+				(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
+
+			if (Network::g_trace_packet > 0)
+			{
+				if (Network::g_trace_packet_use_logfile)
+					DebugHelper::getSingleton().changeLogger("packetlogs");
+
+				DEBUG_MSG(fmt::format("Entity::callSelfClientMethod: {}::{}\n", scriptName(), msgHandler.name));
+
+				switch (Network::g_trace_packet)
+				{
+				case 1:
+					mstream->hexlike();
+					break;
+				case 2:
+					mstream->textlike();
+					break;
+				default:
+					mstream->print_storage();
+					break;
+				};
+
+				if (Network::g_trace_packet_use_logfile)
+					DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
+			}
+
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, callSelfClientMethod);
+
+			// 记录这个事件产生的数据量大小
+			g_publicClientEventHistoryStats.trackEvent(scriptName(),
+				msgHandler.name,
+				pSendBundle->currMsgLength(),
+				"::");
+
+			clientMailbox()->postMail(pSendBundle);
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::callOtherClientsMethod(const Network::MessageHandler& msgHandler, const MemoryStream* mstream)
+{
+	// 获取entityAOI范围内其他entity
+	// 向这些entity的client推送这个方法的调用
+
+	if (isDestroyed())
+	{
+		//WARNING_MSG(fmt::format("Entity::callOtherClientsMethod: entity ({}) is destroyed.\n", id()));
+		return;
+	}
+
+	if (witnessesSize() == 0)
+		return;
+
+	// 广播给其他人
+	const std::list<ENTITY_ID>& entities = witnesses();
+	std::list<ENTITY_ID>::const_iterator iter = entities.begin();
+	for (; iter != entities.end(); ++iter)
+	{
+		Entity* pAoiEntity = Cellapp::getSingleton().findEntity((*iter));
+		if (pAoiEntity == NULL || pAoiEntity->pWitness() == NULL || pAoiEntity->isDestroyed())
+			continue;
+
+		EntityMailbox* mailbox = pAoiEntity->clientMailbox();
+		if (mailbox == NULL)
+			continue;
+
+		Network::Channel* pChannel = mailbox->getChannel();
+		if (pChannel == NULL)
+			continue;
+
+		// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
+		// 又如自己的entity还未在目标客户端上创建
+		if (!pAoiEntity->pWitness()->entityInAOI(id()))
+			continue;
+
+		Network::Bundle* pSendBundle = pChannel->createSendBundle();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pAoiEntity->id(), (*pSendBundle));
+
+		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, callOtherClientsMethod);
+
+		if (mstream->wpos() > 0)
+			(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
+
+		if (Network::g_trace_packet > 0)
+		{
+			if (Network::g_trace_packet_use_logfile)
+				DebugHelper::getSingleton().changeLogger("packetlogs");
+
+			DEBUG_MSG(fmt::format("Entity::callOtherClientsMethod: {}::{}, from {} to {}\n", pAoiEntity->scriptName(), msgHandler.name, id(), pAoiEntity->id()));
+
+			switch (Network::g_trace_packet)
+			{
+			case 1:
+				mstream->hexlike();
+				break;
+			case 2:
+				mstream->textlike();
+				break;
+			default:
+				mstream->print_storage();
+				break;
+			};
+
+			if (Network::g_trace_packet_use_logfile)
+				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));
+		}
+
+		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, callOtherClientsMethod);
+
+		// 记录这个事件产生的数据量大小
+		g_publicClientEventHistoryStats.trackEvent(pAoiEntity->scriptName(),
+			msgHandler.name,
+			pSendBundle->currMsgLength(),
+			"::");
+
+		mailbox->postMail(pSendBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+/**
+*@brief entitiy子物体的本地坐标转换成世界坐标
+*@param localPos  子物体的本地坐标
+*@param out 子物体的世界坐标
+**/
+void Entity::positionLocalToWorld(const Position3D& localPos, Position3D &out)
+{
+	Quaternion p_local = Quaternion(localPos);
+	Vector3 dir = Vector3(direction_.pitch(), direction_.yaw(), direction_.roll());
+	Quaternion qx_r = Quaternion::rotateQuaternion(1, 0, 0, dir.x);
+	Quaternion qy_r = Quaternion::rotateQuaternion(0, 1, 0, dir.y);
+	Quaternion qz_r = Quaternion::rotateQuaternion(0, 0, 1, dir.z);
+
+	Quaternion q_r = qy_r * qx_r * qz_r; //欧拉旋转的旋转顺序是Z、X、Y，不同的旋转顺序方向，需要在这里修改，Z是最上层,qy*qx*qz，从右向左
+	Quaternion q_rr = q_r.inverse(); //逆运算
+	Quaternion p = q_r * p_local * q_rr; //p经过q_r四元数旋转得到p0，所以p=q*p0*q^-1
+
+	out.x = p.x + position_.x;
+	out.y = p.y + position_.y;
+	out.z = p.z + position_.z;
+}
+
+//-------------------------------------------------------------------------------------
+/**
+*@brief entitiy子物体的世界坐标转换成本地坐标
+*@param worldPos  子物体的世界坐标
+*@param out 子物体的本地坐标
+**/
+void Entity::positionWorldToLocal(const Position3D& worldPos, Position3D &out)
+{
+	Vector3 dir = Vector3(direction_.pitch(), direction_.yaw(), direction_.roll());
+	Quaternion qx_r = Quaternion::rotateQuaternion(1, 0, 0, dir.x);
+	Quaternion qy_r = Quaternion::rotateQuaternion(0, 1, 0, dir.y);
+	Quaternion qz_r = Quaternion::rotateQuaternion(0, 0, 1, dir.z);
+
+	Quaternion q_r = qy_r * qx_r * qz_r; //欧拉旋转的旋转顺序是Z、X、Y，不同的旋转顺序方向，需要在这里修改，Z是最上层,qy*qx*qz，从右向左
+	Quaternion q_rr = q_r.inverse(); //逆运算
+
+	Position3D g_pos = Position3D(worldPos.x - position_.x, worldPos.y - position_.y, worldPos.z - position_.z);
+	Quaternion g_q = Quaternion(g_pos);
+	Quaternion p_local = q_rr * g_q * q_r;
+
+	out.x = p_local.x;
+	out.y = p_local.y;
+	out.z = p_local.z;
+}
+
+//-------------------------------------------------------------------------------------
+/**
+*@brief entitiy子物体的本地方向转换成世界方向
+*@param localDir  子物体的本地方向
+*@param out 子物体的世界方向
+**/
+void Entity::directionLocalToWorld(const Direction3D& localDir, Direction3D &out)
+{
+	Vector3 parentdir = Vector3(direction_.pitch(), direction_.yaw(), direction_.roll());
+	Vector3 childdir = Vector3(localDir.pitch(), localDir.yaw(), localDir.roll());
+
+	Quaternion q_parentdir = Quaternion::eulerToQuat(parentdir);
+	Quaternion q_childdir = Quaternion::eulerToQuat(childdir);
+
+	Quaternion wr = q_parentdir * q_childdir;
+	Vector3 result = Quaternion::quatToEuler(wr);
+
+	out.pitch(result.x);
+	out.yaw(result.y);
+	out.roll(result.z);
+}
+
+//-------------------------------------------------------------------------------------
+/**
+*@brief entitiy子物体的世界方向转换成本地方向
+*@param worldPos  子物体的世界方向
+*@param out 子物体的本地方向
+**/
+void Entity::directionWorldToLocal(const Direction3D& worldDir, Direction3D &out)
+{
+	Vector3 parentdir = Vector3(direction_.pitch(), direction_.yaw(), direction_.roll());
+	Vector3 childworlddir = Vector3(worldDir.pitch(), worldDir.yaw(), worldDir.roll());
+	Quaternion q_parentdir = Quaternion::eulerToQuat(parentdir); //父层世界四元数
+	Quaternion q_childworlddir = Quaternion::eulerToQuat(childworlddir); //子层世界四元数
+
+	Quaternion pr_r = q_parentdir.inverse(); //逆运算
+	Quaternion lr = pr_r * q_childworlddir;
+
+	Vector3 result = Quaternion::quatToEuler(lr);
+
+	out.pitch(result.x);
+	out.yaw(result.y);
+	out.roll(result.z);
+}
+
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyPositionLocalToWorld(PyObject_ptr pyDestination)
+{
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::positionLocalToWorld: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		Py_RETURN_NONE;
+	}
+
+	// 将坐标信息提取出来
+	Position3D destination, out;
+	if (!script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination))
+	{
+		Py_RETURN_NONE;
+	}
+
+	positionLocalToWorld(destination, out);
+
+	script::ScriptVector3 *result = new script::ScriptVector3(out);
+	Py_INCREF(result);
+	return result;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyPositionWorldToLocal(PyObject_ptr pyDestination)
+{
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::positionWorldToLocal: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		Py_RETURN_NONE;
+	}
+
+	// 将坐标信息提取出来
+	Position3D destination, out;
+	if (!script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination))
+	{
+		Py_RETURN_NONE;
+	}
+
+	positionWorldToLocal(destination, out);
+
+	script::ScriptVector3 *result = new script::ScriptVector3(out);
+	Py_INCREF(result);
+	return result;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyDirectionLocalToWorld(PyObject_ptr pyDestination)
+{
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::directionLocalToWorld: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		Py_RETURN_NONE;
+	}
+
+	// 将朝向信息提取出来
+	Direction3D destination, out;
+	if (!script::ScriptVector3::convertPyObjectToVector3(destination.dir, pyDestination))
+	{
+		Py_RETURN_NONE;
+	}
+
+	directionLocalToWorld(destination, out);
+
+	script::ScriptVector3 *result = new script::ScriptVector3(out.dir);
+	Py_INCREF(result);
+	return result;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyDirectionWorldToLocal(PyObject_ptr pyDestination)
+{
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::directionWorldToLocal: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		Py_RETURN_NONE;
+	}
+
+	// 将朝向信息提取出来
+	Direction3D destination, out;
+	if (!script::ScriptVector3::convertPyObjectToVector3(destination.dir, pyDestination))
+	{
+		Py_RETURN_NONE;
+	}
+
+	directionWorldToLocal(destination, out);
+
+	script::ScriptVector3 *result = new script::ScriptVector3(out.dir);
+	Py_INCREF(result);
+	return result;
 }
 
 //-------------------------------------------------------------------------------------

@@ -127,9 +127,20 @@ bool MoveToPointHandler::update()
 	Py_INCREF(pEntity);
 
 	const Position3D& dstPos = destPos();
-	Position3D currpos = pEntity->position();
+	Position3D currpos;
 	Position3D currpos_backup = currpos;
-	Direction3D direction = pEntity->direction();
+	Direction3D direction;
+
+	if (pEntity->parent())
+	{
+		currpos = pEntity->localPosition();
+		direction = pEntity->localDirection();
+	}
+	else
+	{
+		currpos = pEntity->position();
+		direction = pEntity->direction();
+	}
 
 	Vector3 movement = dstPos - currpos;
 	if (!moveVertically_) movement.y = 0.f;
@@ -183,8 +194,14 @@ bool MoveToPointHandler::update()
 	}
 	
 	// 设置entity的新位置和面向
-	if(!isDestroyed_)
-		pEntity->setPositionAndDirection(currpos, direction);
+	if (!isDestroyed_)
+	{
+		pEntity->localPosition(currpos);
+		pEntity->localDirection(direction);
+		pEntity->syncPositionLocalToWorld();
+		pEntity->syncDirectionLocalToWorld();
+		pEntity->updateChildrenPositionAndDirection();
+	}
 
 	// 非navigate都不能确定其在地面上
 	if(!isDestroyed_)
