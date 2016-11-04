@@ -20,7 +20,7 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
-	cd dependencies/openssl && $(MAKE) $@
+	cd dependencies/openssl && $(MAKE) $@ && if ! test -e ../../../libs/libssl.a; then \cp -f "libssl.a" "../../../libs"; fi && if ! test -e ../../../libs/libcrypto.a; then \cp -f "libcrypto.a" "../../../libs"; fi
 	cd dependencies/hiredis && $(MAKE) $@
 	cd dependencies/zip && $(MAKE) $@
 	cd dependencies/g3dlite && $(MAKE) $@
@@ -29,10 +29,10 @@ all install clean full:
 	cd dependencies/tmxparser && $(MAKE) $@
 	cd dependencies/jwsmtp/jwsmtp/jwsmtp && $(MAKE) $@
 	cd dependencies/jemalloc && $(MAKE) $@
-	cd dependencies/apr && $(MAKE) $@
-	cd dependencies/expat && $(MAKE) $@
-	cd dependencies/apr-util && $(MAKE) $@
-	cd dependencies/log4cxx && $(MAKE) $@
+	cd dependencies/apr && $(MAKE) $@ && if ! test -e ../../../libs/libapr-1.a; then \cp -f ".libs/libapr-1.a" "../../../libs"; fi
+	cd dependencies/expat && $(MAKE) $@ && if ! test -e ../../../libs/libexpat.a; then \cp -f "./.libs/libexpat.a" "../../../libs"; fi
+	cd dependencies/apr-util && $(MAKE) $@ && if ! test -e ../../../libs/libaprutil-1.a; then \cp -f ".libs/libaprutil-1.a" "../../../libs"; fi
+	cd dependencies/log4cxx && $(MAKE) $@ && if ! test -e ../../../libs/liblog4cxx.a; then \cp -f "src/main/cpp/.libs/liblog4cxx.a" "../../../libs"; fi
 	cd python && $(MAKE) $@
 	cd client_lib && $(MAKE) $@
 	cd common && $(MAKE) $@
