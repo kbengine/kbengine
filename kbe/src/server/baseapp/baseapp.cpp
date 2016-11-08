@@ -3642,9 +3642,20 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		
 		pendingLoginMgr_.removeNextTick(accountName);
 
+		// 防止在onLogOnAttempt中销毁了
+		Py_INCREF(base);
+
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
 		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
+
+		if (base->isDestroyed())
+		{
+			Py_DECREF(base);
+
+			loginBaseappFailed(pChannel, accountName, SERVER_ERR_OP_FAILED);
+			return;
+		}
 
 		switch(ret)
 		{
@@ -3691,6 +3702,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		default:
 			INFO_MSG("Baseapp::loginBaseapp: script LOG_ON_REJECT.\n");
 			loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
+			Py_DECREF(base);
 			return;
 		};
 	}
@@ -3710,6 +3722,8 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 
 	// 记录客户端地址
 	ptinfos->addr = pChannel->addr();
+
+	Py_DECREF(base);
 }
 
 //-------------------------------------------------------------------------------------
