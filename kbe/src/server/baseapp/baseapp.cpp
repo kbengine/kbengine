@@ -3705,6 +3705,8 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 			Py_DECREF(base);
 			return;
 		};
+
+		Py_DECREF(base);
 	}
 	else
 	{
@@ -3722,8 +3724,6 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 
 	// 记录客户端地址
 	ptinfos->addr = pChannel->addr();
-
-	Py_DECREF(base);
 }
 
 //-------------------------------------------------------------------------------------
