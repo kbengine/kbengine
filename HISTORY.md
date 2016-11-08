@@ -2,16 +2,16 @@
 
 	2016/11/8
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		ÍøÂç²ãÒ»µãÐ¡ÓÅ»¯(#420)¡£ 
-		WebConsoleÔö¼ÓWatcher²é¿´¹¦ÄÜ¡£
-		Ö§³ÖÊ¹ÓÃGCC 6.2.1¼°ÒÔÉÏ±àÒëÆ÷°æ±¾±àÒëÒýÇæ(#425)¡£
-		¸üÐÂAPIÎÄµµ¡£
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		ç½‘ç»œå±‚ä¸€ç‚¹å°ä¼˜åŒ–(#420)ã€‚ 
+		WebConsoleå¢žåŠ WatcheræŸ¥çœ‹åŠŸèƒ½ã€‚
+		æ”¯æŒä½¿ç”¨GCC 6.2.1åŠä»¥ä¸Šç¼–è¯‘å™¨ç‰ˆæœ¬ç¼–è¯‘å¼•æ“Ž(#425)ã€‚
+		æ›´æ–°APIæ–‡æ¡£ã€‚
 
 
-	BUGÐÞÕý£º
-		ÐÞÕý¶àÏß³ÌÏÂDebugHelper::onMessageÖÐ¼ì²éÈÕÖ¾³¬Á¿×öÇåÀíclearBufferedLogÊ±¿ÉÄÜÓÐÏß³Ì¾ºÕù(#426)
-		ÐÞÕýLinuxÉÏµÚÒ»´Î°²×°±àÒëÔ´ÂëµÚÈý·½¿â³ö´íºó¾ÍÎÞ·¨ÔÙ´Î±àÒëÍ¨¹ýÎÊÌâ(#427)
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£å¤šçº¿ç¨‹ä¸‹DebugHelper::onMessageä¸­æ£€æŸ¥æ—¥å¿—è¶…é‡åšæ¸…ç†clearBufferedLogæ—¶å¯èƒ½æœ‰çº¿ç¨‹ç«žäº‰(#426)
+		ä¿®æ­£Linuxä¸Šç¬¬ä¸€æ¬¡å®‰è£…ç¼–è¯‘æºç ç¬¬ä¸‰æ–¹åº“å‡ºé”™åŽå°±æ— æ³•å†æ¬¡ç¼–è¯‘é€šè¿‡é—®é¢˜(#427)
 
 
 
@@ -19,13 +19,13 @@
 
 	2016/10/19
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		Êý¾Ý¿âkbe_entitylog±íÐÂÔö¼Ólogger×Ö¶Î£¬ ±íÊ¾ÓÉÄÄ¸ödbmgr¼ÇÂ¼¡£ 
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		æ•°æ®åº“kbe_entitylogè¡¨æ–°å¢žåŠ loggerå­—æ®µï¼Œ è¡¨ç¤ºç”±å“ªä¸ªdbmgrè®°å½•ã€‚ 
 
 
-	BUGÐÞÕý£º
-		onMoveÖÐÒÆ¶¯×Ô¼ººóÏú»Ù×Ô¼ºÓÐ¸ÅÂÊcrash£¨#414£©¡£
-		controlledByÉèÖÃÎªNone£¬Íæ¼ÒÖÜÎ§Ã»ÓÐ¹Ö·þÎñÆ÷ÎÞ·¨ÒÆ¶¯Íæ¼Ò£¨#416£©
+	BUGä¿®æ­£ï¼š
+		onMoveä¸­ç§»åŠ¨è‡ªå·±åŽé”€æ¯è‡ªå·±æœ‰æ¦‚çŽ‡crashï¼ˆ#414ï¼‰ã€‚
+		controlledByè®¾ç½®ä¸ºNoneï¼ŒçŽ©å®¶å‘¨å›´æ²¡æœ‰æ€ªæœåŠ¡å™¨æ— æ³•ç§»åŠ¨çŽ©å®¶ï¼ˆ#416ï¼‰
 
 
 
@@ -33,26 +33,26 @@
 
 	2016/10/8
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		Ôö¼Ó¶Ô×ª·¢ÏûÏ¢µÄ¾ßÌåÏûÏ¢×·×ÙÖ§³Ö¡£
-		½µµÍÏò¿Í»§¶Ësend´ÎÊý¡£(#389) 
-		cluster_controller.py¹¤¾ß¶Ôµ¥¸ö½ø³Ì¹Ø±ÕÖ§³Ö¡£ (#390)
-		KBEngine.SERVER_ERR_NEED_CHECK_PASSWORD¸ÄÃûÎªKBEngine.SERVER_ERR_LOCAL_PROCESSING
-		WebConsole¸Ä½ø£¬‰ˆ¼ÓMachine¼°Ïà¹Ø×é¼þ×Ô¶¯¸üÐÂ»º´æ¹¦ÄÜ£¬ÒÔÈÃ¼õÉÙ²éÑ¯Ò³¿¨¶ÙÏÖÏó¡£
-		machineÖ§³ÖÉ±ËÀÄ³¸ö½ø³Ì£¬ÀýÈçÄ³Ð©Ê±ºò½ø³Ì¿¨ËÀwebconsoleÎÞ·¨¹Ø±Õ¡£
-		Ìá¹©¸øÍâ²¿·þÎñ²éÑ¯·þÎñÆ÷¸ºÔØÖµÄÚ´æÊµÌåÊýÁ¿µÈ¹¦ÄÜ¡£(#403)
-		¶ÔÓÚÊµÌåÔË¶¯¿ÉÄÜÐèÒª¼Ó¼õËÙµÄÖ§³Ö, Ôö¼ÓAPI½Ó¿Úaccelerate(#371)¡£
-		Ôö¼ÓÐÂÅäÖÃÑ¡ÏîtickSentBytes£¬Ò»¸ötickÄÚ·¢ËÍµÄ×Ö½ÚÊýÒç³öÏÞÖÆ£¬¾ßÌå¼ûkbengine_defs.xml¡£(#411)
-		¸øbaseÔö¼Ó»ñÈ¡Êý¾Ý¿â½Ó¿ÚÃûµÄ°ì·¨, Base.databaseInterfaceName¡£(#412)
-		APIÎÄµµ¸üÐÂ
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		å¢žåŠ å¯¹è½¬å‘æ¶ˆæ¯çš„å…·ä½“æ¶ˆæ¯è¿½è¸ªæ”¯æŒã€‚
+		é™ä½Žå‘å®¢æˆ·ç«¯sendæ¬¡æ•°ã€‚(#389) 
+		cluster_controller.pyå·¥å…·å¯¹å•ä¸ªè¿›ç¨‹å…³é—­æ”¯æŒã€‚ (#390)
+		KBEngine.SERVER_ERR_NEED_CHECK_PASSWORDæ”¹åä¸ºKBEngine.SERVER_ERR_LOCAL_PROCESSING
+		WebConsoleæ”¹è¿›ï¼Œå¢—åŠ MachineåŠç›¸å…³ç»„ä»¶è‡ªåŠ¨æ›´æ–°ç¼“å­˜åŠŸèƒ½ï¼Œä»¥è®©å‡å°‘æŸ¥è¯¢é¡µå¡é¡¿çŽ°è±¡ã€‚
+		machineæ”¯æŒæ€æ­»æŸä¸ªè¿›ç¨‹ï¼Œä¾‹å¦‚æŸäº›æ—¶å€™è¿›ç¨‹å¡æ­»webconsoleæ— æ³•å…³é—­ã€‚
+		æä¾›ç»™å¤–éƒ¨æœåŠ¡æŸ¥è¯¢æœåŠ¡å™¨è´Ÿè½½å€¼å†…å­˜å®žä½“æ•°é‡ç­‰åŠŸèƒ½ã€‚(#403)
+		å¯¹äºŽå®žä½“è¿åŠ¨å¯èƒ½éœ€è¦åŠ å‡é€Ÿçš„æ”¯æŒ, å¢žåŠ APIæŽ¥å£accelerate(#371)ã€‚
+		å¢žåŠ æ–°é…ç½®é€‰é¡¹tickSentBytesï¼Œä¸€ä¸ªtickå†…å‘é€çš„å­—èŠ‚æ•°æº¢å‡ºé™åˆ¶ï¼Œå…·ä½“è§kbengine_defs.xmlã€‚(#411)
+		ç»™baseå¢žåŠ èŽ·å–æ•°æ®åº“æŽ¥å£åçš„åŠžæ³•, Base.databaseInterfaceNameã€‚(#412)
+		APIæ–‡æ¡£æ›´æ–°
 
 
-	BUGÐÞÕý£º
-		ÐÞÕýpytickprofileÃüÁîÎ´½áÊøÊ±¹Ø±Õ¿ØÖÆÌ¨ÓÐ¿ÉÄÜµ¼ÖÂ·þÎñÆ÷±ÀÀ£µÄÎÊÌâ 
-		ÐÞÕý»úÆ÷ÈËÅ¼¶ûµÇÂ½³öÏÖdigest not match.£¨#395£©¡£
-		ÐÞÕýÆô¶¯²»Í¬ÏîÄ¿ºó£¬Êý¾Ý¿âÏàÍ¬Ê±Êý¾Ý¿â±íÆäÖÐ×Ö¶Î±»Í¬²½³Ésm_autoLoad_2(#406)
-		ÐÞÕýÒ»´¦·¶Î§´¥·¢Æ÷¼«¶ËÇé¿öÏÂÂ©µôÊµÌå½ø³öÊÂ¼þÎÊÌâ
-		ÆäËûÒ»Ð©ÐÞÕý£¨#391¡¢#392¡¢#388¡¢#410£©
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£pytickprofileå‘½ä»¤æœªç»“æŸæ—¶å…³é—­æŽ§åˆ¶å°æœ‰å¯èƒ½å¯¼è‡´æœåŠ¡å™¨å´©æºƒçš„é—®é¢˜ 
+		ä¿®æ­£æœºå™¨äººå¶å°”ç™»é™†å‡ºçŽ°digest not match.ï¼ˆ#395ï¼‰ã€‚
+		ä¿®æ­£å¯åŠ¨ä¸åŒé¡¹ç›®åŽï¼Œæ•°æ®åº“ç›¸åŒæ—¶æ•°æ®åº“è¡¨å…¶ä¸­å­—æ®µè¢«åŒæ­¥æˆsm_autoLoad_2(#406)
+		ä¿®æ­£ä¸€å¤„èŒƒå›´è§¦å‘å™¨æžç«¯æƒ…å†µä¸‹æ¼æŽ‰å®žä½“è¿›å‡ºäº‹ä»¶é—®é¢˜
+		å…¶ä»–ä¸€äº›ä¿®æ­£ï¼ˆ#391ã€#392ã€#388ã€#410ï¼‰
 
 
 
@@ -60,24 +60,24 @@
 
 	2016/8/12
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		WindowsÏÂÖ§³ÖÆô¶¯²ÎÊýÒÔºóÌ¨·½Ê½Æô¶¯·þÎñÆ÷£¨Ôö¼Ó--hide=²ÎÊý£¬--hide=1Òþ²Ø´°¿Ú£¬#359£©¡£
-		onDestroyÖÐisDestroyed_ = trueÓ¦¸ÃÔÚ½Å±¾»Øµ÷Ö®Ç°ÉèÖÃ£¬·ñÔò¿ÉÄÜÔÚÆÚ¼äµ¼ÖÂ½Å±¾ÔÙµ÷ÓÃÄ³Ð©ËÀÍöºó²»¿ÉÓÃ¹¦ÄÜÔì³ÉÎÊÌâ¡£ 
-		PyMemoryStreamÔö¼ÓrposºÍwposÓëfill½Å±¾·½·¨¡£ 
-		addYawRotatorÊ¹ÓÃºó¿Í»§¶Ë±íÏÖ»ìÂÒÐý×ªÎÊÌâ (#366)
-		¿Í»§¶ËÐÄÌø»Øµ÷ÊµÏÖ (#369)
-		Ôö¼ÓÐÂµÄAPIÖ§³Ö£¨createBaseRemotely ¡¢createBaseRemotelyFromDBID£©#372¡£
-		½Å±¾Èë¿ÚÄ£¿éÃû³ÆÍ³Ò»µ÷ÕûÎªkbemain£¬±ÜÃâÒòÃû×ÖÖØºÏ»ìÏýÒ»Ð©¸ÅÄî£¬¾ßÌå¼ûkbengine_defs.xml¡£
-		ÓÅ»¯ÁË×ø±ê¹ÜÀíÏµÍ³¡£
-		APIÎÄµµ¸üÐÂ
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		Windowsä¸‹æ”¯æŒå¯åŠ¨å‚æ•°ä»¥åŽå°æ–¹å¼å¯åŠ¨æœåŠ¡å™¨ï¼ˆå¢žåŠ --hide=å‚æ•°ï¼Œ--hide=1éšè—çª—å£ï¼Œ#359ï¼‰ã€‚
+		onDestroyä¸­isDestroyed_ = trueåº”è¯¥åœ¨è„šæœ¬å›žè°ƒä¹‹å‰è®¾ç½®ï¼Œå¦åˆ™å¯èƒ½åœ¨æœŸé—´å¯¼è‡´è„šæœ¬å†è°ƒç”¨æŸäº›æ­»äº¡åŽä¸å¯ç”¨åŠŸèƒ½é€ æˆé—®é¢˜ã€‚ 
+		PyMemoryStreamå¢žåŠ rposå’Œwposä¸Žfillè„šæœ¬æ–¹æ³•ã€‚ 
+		addYawRotatorä½¿ç”¨åŽå®¢æˆ·ç«¯è¡¨çŽ°æ··ä¹±æ—‹è½¬é—®é¢˜ (#366)
+		å®¢æˆ·ç«¯å¿ƒè·³å›žè°ƒå®žçŽ° (#369)
+		å¢žåŠ æ–°çš„APIæ”¯æŒï¼ˆcreateBaseRemotely ã€createBaseRemotelyFromDBIDï¼‰#372ã€‚
+		è„šæœ¬å…¥å£æ¨¡å—åç§°ç»Ÿä¸€è°ƒæ•´ä¸ºkbemainï¼Œé¿å…å› åå­—é‡åˆæ··æ·†ä¸€äº›æ¦‚å¿µï¼Œå…·ä½“è§kbengine_defs.xmlã€‚
+		ä¼˜åŒ–äº†åæ ‡ç®¡ç†ç³»ç»Ÿã€‚
+		APIæ–‡æ¡£æ›´æ–°
 
 
-	BUGÐÞÕý£º
-		ÐÞÕýÄ³Ð©Çé¿öÏú»ÙspaceÊ±Ôì³ÉcrashµÄÎÊÌâ¡£ 
-		ÐÞÕýCoordinateSystem::removeRealÃ»ÓÐÊÍ·ÅÄÚ´æ£¨#373£©¡£
-		ÐÞÕýsetAoiRadius²»ÄÜ¶¯Ì¬µÄ¸Ä±äAOI¿´µ½µÄÄÚÈÝÎÊÌâ£¨#375£©
-		ÐÞÕýÊ¹ÓÃVCÆô¶¯cellapp¾Í»ácrashµÄÎÊÌâ£¨#376£©
-		ÆäËûÒ»Ð©ÐÞÕý£¨#360¡¢#370¡¢#374¡¢#378¡¢#381¡¢#377£©
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£æŸäº›æƒ…å†µé”€æ¯spaceæ—¶é€ æˆcrashçš„é—®é¢˜ã€‚ 
+		ä¿®æ­£CoordinateSystem::removeRealæ²¡æœ‰é‡Šæ”¾å†…å­˜ï¼ˆ#373ï¼‰ã€‚
+		ä¿®æ­£setAoiRadiusä¸èƒ½åŠ¨æ€çš„æ”¹å˜AOIçœ‹åˆ°çš„å†…å®¹é—®é¢˜ï¼ˆ#375ï¼‰
+		ä¿®æ­£ä½¿ç”¨VCå¯åŠ¨cellappå°±ä¼šcrashçš„é—®é¢˜ï¼ˆ#376ï¼‰
+		å…¶ä»–ä¸€äº›ä¿®æ­£ï¼ˆ#360ã€#370ã€#374ã€#378ã€#381ã€#377ï¼‰
 
 
 
@@ -85,30 +85,30 @@
 
 	2016/6/27
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		´ó·ùÌáÉýcellappÐÔÄÜ£¬ÒÔ¼°ÕûÌåÐÔÄÜ(#333)
-		APIÎÄµµ¸üÐÂ
-		·ÀÖ¹defÖÐÊôÐÔÃ»ÓÐÐ´Flags¡¢Type±êÇ©£¬¶Ô´ËÇé¿ö·µ»Ø´íÎó²¢¸ø³ö´íÎó¾¯¸æ¡£
-		·ÀÖ¹defÖÐutypeÉèÖÃÖØ¸´µÄÖµ(#355)
-		·ÀÖ¹½Å±¾Ä£¿éÃû×ÖÓëPythonÔ­ÉúÄ£¿éÃû³åÍ»(#358)
-		controllerBy»úÖÆÊµÏÖ£¬¸Ã»úÖÆÔÊÐí²»Í¬µÄÈ¨ÏÞ¿ØÖÆÆäËû»òÕß×Ô¼ºµÄÊµÌå(#224)
-		KBEngine.chargeÏµÁÐº¯Êý²»ÔÙÊ¹ÓÃKBEngine.MemoryStream£¬Í³Ò»Ê¹ÓÃBytes 
-		½á¹¹ÖÐ×Ö¶ÎÖ§³ÖDatabaseLength(#354)
-		Ôö¼Ó¼ÓÃÜ°üµÄµ÷ÊÔ¹¦ÄÜ£¬½«trace_packet´ò¿ª£¬²¢½«ÆäÖÐÆÁ±ÎµÄEncrypted::packetsÏûÏ¢È¥µô¼´¿ÉÊä³ö¡£
-		packetAlwaysContainLengthÖ§³Ö(#351)
-		·ÀÖ¹ÔÚ¸÷ÖÖ½Å±¾»Øµ÷ÖÐÏú»Ù×Ô¼ºµ¼ÖÂcrash (#348)
-		telnet¿ØÖÆÌ¨‰ˆ¼Ó¡°:pytickprofile¡±ÃüÁî¡£ÒÔtickÎªµ¥Î»Êä³öÃ¿Ò»Ö¡µÄ½Å±¾Ö´ÐÐÏûºÄÊý¾Ý¡£ 
-		ÐÂÔöÕë¶Ô¾ßÌåµØÖ·³Ø½øÐÐ×éÍø£¬½â¾ö¿çÍø¶Î²»ÄÜ¹ã²¥µ¼ÖÂÎÞ·¨Æô¶¯·þÎñÆ÷ÎÊÌâ(#343)
-		ËùÓÐghost×´Ì¬ÏÂ£¬²»ÔÊÐíÆäµ÷ÓÃallClients¡¢otherClients¡¢clientEntity 
-		ÐÂÔöwebconsoleµÚÒ»°æ
-		addSpaceGeometryMappingÖ¸ÏòµÄÄ¿Â¼Èç¹û²»´æÔÚÓ¦¸Ã¸ø³ö´íÎóÌáÊ¾(#350)
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		å¤§å¹…æå‡cellappæ€§èƒ½ï¼Œä»¥åŠæ•´ä½“æ€§èƒ½(#333)
+		APIæ–‡æ¡£æ›´æ–°
+		é˜²æ­¢defä¸­å±žæ€§æ²¡æœ‰å†™Flagsã€Typeæ ‡ç­¾ï¼Œå¯¹æ­¤æƒ…å†µè¿”å›žé”™è¯¯å¹¶ç»™å‡ºé”™è¯¯è­¦å‘Šã€‚
+		é˜²æ­¢defä¸­utypeè®¾ç½®é‡å¤çš„å€¼(#355)
+		é˜²æ­¢è„šæœ¬æ¨¡å—åå­—ä¸ŽPythonåŽŸç”Ÿæ¨¡å—åå†²çª(#358)
+		controllerByæœºåˆ¶å®žçŽ°ï¼Œè¯¥æœºåˆ¶å…è®¸ä¸åŒçš„æƒé™æŽ§åˆ¶å…¶ä»–æˆ–è€…è‡ªå·±çš„å®žä½“(#224)
+		KBEngine.chargeç³»åˆ—å‡½æ•°ä¸å†ä½¿ç”¨KBEngine.MemoryStreamï¼Œç»Ÿä¸€ä½¿ç”¨Bytes 
+		ç»“æž„ä¸­å­—æ®µæ”¯æŒDatabaseLength(#354)
+		å¢žåŠ åŠ å¯†åŒ…çš„è°ƒè¯•åŠŸèƒ½ï¼Œå°†trace_packetæ‰“å¼€ï¼Œå¹¶å°†å…¶ä¸­å±è”½çš„Encrypted::packetsæ¶ˆæ¯åŽ»æŽ‰å³å¯è¾“å‡ºã€‚
+		packetAlwaysContainLengthæ”¯æŒ(#351)
+		é˜²æ­¢åœ¨å„ç§è„šæœ¬å›žè°ƒä¸­é”€æ¯è‡ªå·±å¯¼è‡´crash (#348)
+		telnetæŽ§åˆ¶å°å¢—åŠ â€œ:pytickprofileâ€å‘½ä»¤ã€‚ä»¥tickä¸ºå•ä½è¾“å‡ºæ¯ä¸€å¸§çš„è„šæœ¬æ‰§è¡Œæ¶ˆè€—æ•°æ®ã€‚ 
+		æ–°å¢žé’ˆå¯¹å…·ä½“åœ°å€æ± è¿›è¡Œç»„ç½‘ï¼Œè§£å†³è·¨ç½‘æ®µä¸èƒ½å¹¿æ’­å¯¼è‡´æ— æ³•å¯åŠ¨æœåŠ¡å™¨é—®é¢˜(#343)
+		æ‰€æœ‰ghostçŠ¶æ€ä¸‹ï¼Œä¸å…è®¸å…¶è°ƒç”¨allClientsã€otherClientsã€clientEntity 
+		æ–°å¢žwebconsoleç¬¬ä¸€ç‰ˆ
+		addSpaceGeometryMappingæŒ‡å‘çš„ç›®å½•å¦‚æžœä¸å­˜åœ¨åº”è¯¥ç»™å‡ºé”™è¯¯æç¤º(#350)
 
 
-	BUGÐÞÕý£º
-		ÐÞÕýÒ»¶¨¸ÅÂÊÏÂ£¬ÊµÌåÏú»ÙºówitnessesÁÐ±í²»Îª¿ÕµÄÎÊÌâ 
-		ÐÞÕý¹Ì¶¨×ÖµäkeyÐ´³É·Ç×Ö·û´®µ¼ÖÂcrash£¬ÀýÈç£ºself.characters[1] = x 
-		ÐÞÕý ÊµÌåÐÂÔöÈë¿âÊôÐÔ²»»á°´ÕÕÅäÖÃÉèÖÃÄ¬ÈÏÖµ(#337) 
-		ÐÞÕý¶ÔNPCµ÷ÓÃentitiesInAOI()±ÀÀ£µÄÎÊÌâ
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£ä¸€å®šæ¦‚çŽ‡ä¸‹ï¼Œå®žä½“é”€æ¯åŽwitnessesåˆ—è¡¨ä¸ä¸ºç©ºçš„é—®é¢˜ 
+		ä¿®æ­£å›ºå®šå­—å…¸keyå†™æˆéžå­—ç¬¦ä¸²å¯¼è‡´crashï¼Œä¾‹å¦‚ï¼šself.characters[1] = x 
+		ä¿®æ­£ å®žä½“æ–°å¢žå…¥åº“å±žæ€§ä¸ä¼šæŒ‰ç…§é…ç½®è®¾ç½®é»˜è®¤å€¼(#337) 
+		ä¿®æ­£å¯¹NPCè°ƒç”¨entitiesInAOI()å´©æºƒçš„é—®é¢˜
 
 
 
@@ -116,25 +116,25 @@
 
 	2016/1/30
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		¶àÊý¾Ý¿âºáÏòÀ©Õ¹Ö§³Ö£¨#264£©
-		VS2015±àÒëÖ§³Ö£¨#292£©
-		Windows X64Î»±àÒëÖ§³Ö£¨#282£©
-		OPENSSL Éý¼¶µ½1.0.2e
-		APIÎÄµµ¸üÐÂ
-		Recastnavigation ¸üÐÂÖÁ×îÐÂ°æ±¾
-		cluster_controller.pyÖ§³ÖÔ¶³ÌÆô¶¯½ø³Ì
-		´íÎóÐÅÏ¢ÔÚlinuxÉÏÒ²´òÓ¡µ½¿ØÖÆÌ¨£¬ ÓÐÖúÓÚÆô¶¯Ê±¼°Ê±·¢ÏÖ´íÎó£¨#280£©
-		KBEngine.Blob¸ÄÃûÎªKBEngine.MemoryStream
-		¹æ·¶»¯APIÃüÃû£¬ËùÓÐ½Å±¾Ö÷¶¯µ÷ÓÃµÄ³ÆÎªÒýÇæAPIº¯Êý£¬ËùÓÐÓÉÒýÇæÍ¨Öª½Å±¾±»¶¯½ÓÊÜµ÷ÓÃµÄ³ÆÎªÒýÇæ»Øµ÷£¨requestCreateAccount¡¢requestAccountLogin¡¢requestCharge·Ö±ð¸ÄÃûÎªonRequestCreateAccount¡¢onReques¡¢onRequestCharge£©
-		logger½Å±¾Ö§³Ö
-		entitiesInRangeÓÅ»¯£¨#298£©
-		baseÉÏÊµÌåµ÷ÓÃcreateInNewSpaceÖ®ºó£¬ ÔÚcellÉÏÒ²Ó¦¸Ã×ßÒ»´ÎenterspaceµÈÁ÷³Ì¡£
-		Entity.volatileInfo½Å±¾¿É¸ÄÖ§³Ö
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		å¤šæ•°æ®åº“æ¨ªå‘æ‰©å±•æ”¯æŒï¼ˆ#264ï¼‰
+		VS2015ç¼–è¯‘æ”¯æŒï¼ˆ#292ï¼‰
+		Windows X64ä½ç¼–è¯‘æ”¯æŒï¼ˆ#282ï¼‰
+		OPENSSL å‡çº§åˆ°1.0.2e
+		APIæ–‡æ¡£æ›´æ–°
+		Recastnavigation æ›´æ–°è‡³æœ€æ–°ç‰ˆæœ¬
+		cluster_controller.pyæ”¯æŒè¿œç¨‹å¯åŠ¨è¿›ç¨‹
+		é”™è¯¯ä¿¡æ¯åœ¨linuxä¸Šä¹Ÿæ‰“å°åˆ°æŽ§åˆ¶å°ï¼Œ æœ‰åŠ©äºŽå¯åŠ¨æ—¶åŠæ—¶å‘çŽ°é”™è¯¯ï¼ˆ#280ï¼‰
+		KBEngine.Blobæ”¹åä¸ºKBEngine.MemoryStream
+		è§„èŒƒåŒ–APIå‘½åï¼Œæ‰€æœ‰è„šæœ¬ä¸»åŠ¨è°ƒç”¨çš„ç§°ä¸ºå¼•æ“ŽAPIå‡½æ•°ï¼Œæ‰€æœ‰ç”±å¼•æ“Žé€šçŸ¥è„šæœ¬è¢«åŠ¨æŽ¥å—è°ƒç”¨çš„ç§°ä¸ºå¼•æ“Žå›žè°ƒï¼ˆrequestCreateAccountã€requestAccountLoginã€requestChargeåˆ†åˆ«æ”¹åä¸ºonRequestCreateAccountã€onRequesã€onRequestChargeï¼‰
+		loggerè„šæœ¬æ”¯æŒ
+		entitiesInRangeä¼˜åŒ–ï¼ˆ#298ï¼‰
+		baseä¸Šå®žä½“è°ƒç”¨createInNewSpaceä¹‹åŽï¼Œ åœ¨cellä¸Šä¹Ÿåº”è¯¥èµ°ä¸€æ¬¡enterspaceç­‰æµç¨‹ã€‚
+		Entity.volatileInfoè„šæœ¬å¯æ”¹æ”¯æŒ
 
-	BUGÐÞÕý£º
-		ÐÞÕýÓÊ¼þ°ó¶¨ºó²»ÄÜÊ¹ÓÃÓÊ¼þµÇÂ¼ÎÊÌâ
-		ÆäËûÐÞÕý£º#289¡¢#290
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£é‚®ä»¶ç»‘å®šåŽä¸èƒ½ä½¿ç”¨é‚®ä»¶ç™»å½•é—®é¢˜
+		å…¶ä»–ä¿®æ­£ï¼š#289ã€#290
 
 
 
@@ -142,21 +142,21 @@
 
 	2015/11/25
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		ÓÊ¼þÖØÖÃÃÜÂëÍêÉÆ
-		¸üÐÂAPIÎÄµµ
-		³éÏó»¯interfaces£¬interfacesÊ¹ÓÃpython½øÐÐÀ©Õ¹
-		loginappÖ§³Ö½Å±¾ÁË,¿ÉÀ©Õ¹½Å±¾×öÀàËÆµÇÂ½ÅÅ¶Ó¹¦ÄÜºÍ¿ØÖÆÕËºÅµÄµÇÂ½µÈÐÐÎª
-		deregisterFileDescriptor¸ÄÃûÎªderegisterReadFileDescriptor
-		proxyÔÚdestroyºó¼°Ê±Í¨Öª¿Í»§¶Ë±»·þÎñÆ÷Ìß³ö
-		Ö§³ÖÈÃÄ³¸öbaseapp¡¢cellapp²»²ÎÓë¸ºÔØ¾ùºâ£¨KBEngine.setAppFlags¡¢KBEngine.getAppFlags£©
-		Ôö¼ÓÐÂµÄAPI£ºEntity.getRandomPointsÓÃÓÚËæ»ú»ñÈ¡Ä¿µÄ×ø±êµãÖÜÎ§navigate¿Éµ½´ïµÄÖ¸¶¨ÊýÁ¿µÄ×ø±êµã£¨¿ÉÓÃÓÚNPCËæ»úÒÆ¶¯£¬µôÂäÎïÆ·×ø±ê¼ÆËãµÈ£©¡£
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		é‚®ä»¶é‡ç½®å¯†ç å®Œå–„
+		æ›´æ–°APIæ–‡æ¡£
+		æŠ½è±¡åŒ–interfacesï¼Œinterfacesä½¿ç”¨pythonè¿›è¡Œæ‰©å±•
+		loginappæ”¯æŒè„šæœ¬äº†,å¯æ‰©å±•è„šæœ¬åšç±»ä¼¼ç™»é™†æŽ’é˜ŸåŠŸèƒ½å’ŒæŽ§åˆ¶è´¦å·çš„ç™»é™†ç­‰è¡Œä¸º
+		deregisterFileDescriptoræ”¹åä¸ºderegisterReadFileDescriptor
+		proxyåœ¨destroyåŽåŠæ—¶é€šçŸ¥å®¢æˆ·ç«¯è¢«æœåŠ¡å™¨è¸¢å‡º
+		æ”¯æŒè®©æŸä¸ªbaseappã€cellappä¸å‚ä¸Žè´Ÿè½½å‡è¡¡ï¼ˆKBEngine.setAppFlagsã€KBEngine.getAppFlagsï¼‰
+		å¢žåŠ æ–°çš„APIï¼šEntity.getRandomPointsç”¨äºŽéšæœºèŽ·å–ç›®çš„åæ ‡ç‚¹å‘¨å›´navigateå¯åˆ°è¾¾çš„æŒ‡å®šæ•°é‡çš„åæ ‡ç‚¹ï¼ˆå¯ç”¨äºŽNPCéšæœºç§»åŠ¨ï¼ŒæŽ‰è½ç‰©å“åæ ‡è®¡ç®—ç­‰ï¼‰ã€‚
 		
-	BUGÐÞÕý£º
-		ÐÞÕýloginappµÄhttp»Øµ÷¶Ë¿Ú·µ»ØÒ³ÃæÊ±ÂÒÂëÏÖÏó
-		ÐÞÕý:Ò»¸öentityÊôÐÔÉè³ÉBOOL£¨Ò²¾ÍÊÇUINT8£©£¬È»ºóÍË³ö·þÎñÆ÷£¬¸Ä³ÉÁËINT8£¬ÖØÆð·þÎñÆ÷ÒÔºó£¬Êý¾Ý±í²»»á±äbug(#263)
-		ÐÞÕýÔÚ·þÎñÆ÷ÉÏ²»´æÔÚÄ³ÊµÌåµÄÊ±ºò£¬¿Í»§¶ËÇëÇóÊµÌå·½·¨¿ÉÄÜÔì³Écrash
-		·ÀÖ¹APPÔÚÍË³öÊ±ÓÐÈÕÖ¾Ã»ÓÐÍ¬²½Íê£¨Í¬²½µ½logger£©¡£
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£loginappçš„httpå›žè°ƒç«¯å£è¿”å›žé¡µé¢æ—¶ä¹±ç çŽ°è±¡
+		ä¿®æ­£:ä¸€ä¸ªentityå±žæ€§è®¾æˆBOOLï¼ˆä¹Ÿå°±æ˜¯UINT8ï¼‰ï¼Œç„¶åŽé€€å‡ºæœåŠ¡å™¨ï¼Œæ”¹æˆäº†INT8ï¼Œé‡èµ·æœåŠ¡å™¨ä»¥åŽï¼Œæ•°æ®è¡¨ä¸ä¼šå˜bug(#263)
+		ä¿®æ­£åœ¨æœåŠ¡å™¨ä¸Šä¸å­˜åœ¨æŸå®žä½“çš„æ—¶å€™ï¼Œå®¢æˆ·ç«¯è¯·æ±‚å®žä½“æ–¹æ³•å¯èƒ½é€ æˆcrash
+		é˜²æ­¢APPåœ¨é€€å‡ºæ—¶æœ‰æ—¥å¿—æ²¡æœ‰åŒæ­¥å®Œï¼ˆåŒæ­¥åˆ°loggerï¼‰ã€‚
 
 
 
@@ -164,10 +164,10 @@
 
 	2015/10/26
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		½«Ô­ÓÐµÄCLIENYT_TYPE_PC²ð·Ö³ÉCLIENYT_TYPE_WIN¡¢CLIENYT_TYPE_LlINUX¡¢CLIENYT_TYPE_MAC
-		EntitydefµÄÕªÒª¼ì²é²»ÔÙÓë¿Í»§¶ËÀàÐÍ°ó¶¨ÔÚÒ»Æð£¬Èç¹û¿Í»§¶ËÌá½»ÁËÕªÒªÔò¼ì²é£¬Ã»ÓÐÌá½»Ôò¿Í»§¶Ë¶Ô×Ô¼ºµÄÐ­ÒéÕýÈ·ÐÔ¸ºÔð£¨Èç¹û¿Í»§¶ËÑÏ¸ñ´Ó·þÎñÆ÷Ô¶³Ìµ¼ÈëÐ­Òé£¬ÀíÂÛÉÏ²»»áÓÐÎÊÌâ£©
-		±ê×¼»¯Ò»Ð©Ð­ÒéÃû³Æ
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		å°†åŽŸæœ‰çš„CLIENYT_TYPE_PCæ‹†åˆ†æˆCLIENYT_TYPE_WINã€CLIENYT_TYPE_LlINUXã€CLIENYT_TYPE_MAC
+		Entitydefçš„æ‘˜è¦æ£€æŸ¥ä¸å†ä¸Žå®¢æˆ·ç«¯ç±»åž‹ç»‘å®šåœ¨ä¸€èµ·ï¼Œå¦‚æžœå®¢æˆ·ç«¯æäº¤äº†æ‘˜è¦åˆ™æ£€æŸ¥ï¼Œæ²¡æœ‰æäº¤åˆ™å®¢æˆ·ç«¯å¯¹è‡ªå·±çš„åè®®æ­£ç¡®æ€§è´Ÿè´£ï¼ˆå¦‚æžœå®¢æˆ·ç«¯ä¸¥æ ¼ä»ŽæœåŠ¡å™¨è¿œç¨‹å¯¼å…¥åè®®ï¼Œç†è®ºä¸Šä¸ä¼šæœ‰é—®é¢˜ï¼‰
+		æ ‡å‡†åŒ–ä¸€äº›åè®®åç§°
 
 
 
@@ -175,19 +175,19 @@
 
 	2015/10/23
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		Ôö¼ÓÐÂµÄAPI£ºEntity.addYawRotator
-		¸üÐÂAPIÎÄµµ
-		vs2010ÏîÄ¿Éý¼¶µ½vs2013
-		ÊµÌåÈÝÆ÷ÀàÊôÐÔ±êÔà»úÖÆ(#259)
-		addSpaceGeometryMapping²ÎÊýµ÷Õû¿ÉÖ¸¶¨²ÎÊý¼ÓÔØnavmeshµ½Ä³¸ölayerÏÂ(#240)
-		µ÷ÕûÊý¾Ý¿â²éÑ¯½Ó¿Ú£¬¸üºÃµÄÖ§³Ö²»Í¬ÐÎÊ½µÄÊý¾Ý¿âÀ©Õ¹
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		å¢žåŠ æ–°çš„APIï¼šEntity.addYawRotator
+		æ›´æ–°APIæ–‡æ¡£
+		vs2010é¡¹ç›®å‡çº§åˆ°vs2013
+		å®žä½“å®¹å™¨ç±»å±žæ€§æ ‡è„æœºåˆ¶(#259)
+		addSpaceGeometryMappingå‚æ•°è°ƒæ•´å¯æŒ‡å®šå‚æ•°åŠ è½½navmeshåˆ°æŸä¸ªlayerä¸‹(#240)
+		è°ƒæ•´æ•°æ®åº“æŸ¥è¯¢æŽ¥å£ï¼Œæ›´å¥½çš„æ”¯æŒä¸åŒå½¢å¼çš„æ•°æ®åº“æ‰©å±•
 
-	BUGÐÞÕý£º
-		ÐÞÕýemail¼¤»îÓÊ¼þÂÒÂëÎÊÌâ
-		ÐÞÕýÖ¸¶¨FIXED_DICTÀàÐÍ´æµµ×Ö¶Î²»¶ÔµÄÎÊÌâ(#255)
-		ÐÞÕýdbmgr¶à´ÎÓëinterfacesÁ¬½ÓµÄÎÊÌâ
-		ÐÞÕýmoveToPointµÄ²ÎÊýdistance´óÓÚ0Ê±µ±ÊµÌå¾àÀëÄ¿µÄµØÐ¡ÓÚdistanceÊ±ÊµÌå»áÍüÏà·´µÄµØ·½ÐÐ×ß
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£emailæ¿€æ´»é‚®ä»¶ä¹±ç é—®é¢˜
+		ä¿®æ­£æŒ‡å®šFIXED_DICTç±»åž‹å­˜æ¡£å­—æ®µä¸å¯¹çš„é—®é¢˜(#255)
+		ä¿®æ­£dbmgrå¤šæ¬¡ä¸Žinterfacesè¿žæŽ¥çš„é—®é¢˜
+		ä¿®æ­£moveToPointçš„å‚æ•°distanceå¤§äºŽ0æ—¶å½“å®žä½“è·ç¦»ç›®çš„åœ°å°äºŽdistanceæ—¶å®žä½“ä¼šå¿˜ç›¸åçš„åœ°æ–¹è¡Œèµ°
 
 
 
@@ -195,15 +195,15 @@
 
 	2015/6/1
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		Êý¾Ý¿âËùÓÐÏµÍ³Ö÷¼üID¸ÄÎªuint64ÀàÐÍ
-		Ôö¼Ó·þÎñ¶ËÇÐ»»µØÍ¼Ê±»Øµ÷onEnterSpace/onLeaveSpace
-		µ±¿Í»§¶ËÇëÇó»ñµÃ·þÎñ¶ËÐ­ÒéÊ±£¬½«ÊôÐÔflagsÒ²ÏÂ·¢µ½¿Í»§¶Ë£¬ÓÃÓÚÊôÐÔÀàÐÍµÄÅÐ¶Ï
-		Ò»Ð©½á¹¹µ÷Õû
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		æ•°æ®åº“æ‰€æœ‰ç³»ç»Ÿä¸»é”®IDæ”¹ä¸ºuint64ç±»åž‹
+		å¢žåŠ æœåŠ¡ç«¯åˆ‡æ¢åœ°å›¾æ—¶å›žè°ƒonEnterSpace/onLeaveSpace
+		å½“å®¢æˆ·ç«¯è¯·æ±‚èŽ·å¾—æœåŠ¡ç«¯åè®®æ—¶ï¼Œå°†å±žæ€§flagsä¹Ÿä¸‹å‘åˆ°å®¢æˆ·ç«¯ï¼Œç”¨äºŽå±žæ€§ç±»åž‹çš„åˆ¤æ–­
+		ä¸€äº›ç»“æž„è°ƒæ•´
 
-	BUGÐÞÕý£º
-		ÐÞÕýÄ³ÖÖÇé¿öÏÂÊµÌåÏú»Ù²¢Î´Í¨Öª¿Í»§¶ËÏú»ÙµÄÎÊÌâ
-		ÐÞÕýÄ³Ð©Çé¿öÏÂteleportºó£¬¿Í»§¶ËÃ»ÓÐ¸Ä±äÊµÌåÎ»ÖÃ
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£æŸç§æƒ…å†µä¸‹å®žä½“é”€æ¯å¹¶æœªé€šçŸ¥å®¢æˆ·ç«¯é”€æ¯çš„é—®é¢˜
+		ä¿®æ­£æŸäº›æƒ…å†µä¸‹teleportåŽï¼Œå®¢æˆ·ç«¯æ²¡æœ‰æ”¹å˜å®žä½“ä½ç½®
 
 
 
@@ -211,17 +211,17 @@
 
 	2015/5/3
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		Websocket FRC6544Ð­ÒéÍ¨Ñ¶ÍêÉÆ
-		cluster_controller.py£¨¼¯Èº¿ØÖÆ£©¡¢installer.py£¨°²×°ÖúÊÖ£©¹¤¾ßÍêÉÆ
-		assetsÄ¬ÈÏ²»°üº¬scripts/clientÄ¿Â¼£¬±ÜÃâ²»±ØÒªµÄÎó»á(ÒÆ¶¯µ½OGREÀý×Ó½Å±¾Ä¿Â¼ÖÐ)
-		¸üÐÂAPIÎÄµµ
-		Ò»Ð©½á¹¹µ÷Õû
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		Websocket FRC6544åè®®é€šè®¯å®Œå–„
+		cluster_controller.pyï¼ˆé›†ç¾¤æŽ§åˆ¶ï¼‰ã€installer.pyï¼ˆå®‰è£…åŠ©æ‰‹ï¼‰å·¥å…·å®Œå–„
+		assetsé»˜è®¤ä¸åŒ…å«scripts/clientç›®å½•ï¼Œé¿å…ä¸å¿…è¦çš„è¯¯ä¼š(ç§»åŠ¨åˆ°OGREä¾‹å­è„šæœ¬ç›®å½•ä¸­)
+		æ›´æ–°APIæ–‡æ¡£
+		ä¸€äº›ç»“æž„è°ƒæ•´
 
-	BUGÐÞÕý£º
-		ÐÞÕýbots³ÌÐòÍË³öÊ±crashÎÊÌâ
-		ÐÞÕýÔÚ½ø³Ì·±Ã¦×´Ì¬ÏÂÓÐÊ±²»ÄÜºÜºÃµÄ°²È«¹Ø·þ
-		ÐÞÕýFixedDictÒýÓÃÎ´ÊÍ·ÅÎÊÌâ
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£botsç¨‹åºé€€å‡ºæ—¶crashé—®é¢˜
+		ä¿®æ­£åœ¨è¿›ç¨‹ç¹å¿™çŠ¶æ€ä¸‹æœ‰æ—¶ä¸èƒ½å¾ˆå¥½çš„å®‰å…¨å…³æœ
+		ä¿®æ­£FixedDictå¼•ç”¨æœªé‡Šæ”¾é—®é¢˜
 
 
 
@@ -229,17 +229,17 @@
 
 	2015/4/18
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		ÓÅ»¯²¿·Ö´úÂë½á¹¹
-		Ôö¼ÓÐÂµÄAPI£¨getClientDatas£©£¬ÓÃÓÚÔÚ½Å±¾ÖÐ¶ÁÈ¡¿Í»§¶ËµÇÂ½Ê±Ëù¸½´øµÄÊý¾Ý
-		Ôö¼ÓAPI£¬getAoiRadius¡¢getAoiHystArea
-		Í³Ò»Ïò·þÎñ¶ËÍ¬²½·½ÏòµÄË³ÐòÊÇroll¡¢pitch¡¢yaw
-		botsÔö¼ÓentryScriptFileÅäÖÃ 
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		ä¼˜åŒ–éƒ¨åˆ†ä»£ç ç»“æž„
+		å¢žåŠ æ–°çš„APIï¼ˆgetClientDatasï¼‰ï¼Œç”¨äºŽåœ¨è„šæœ¬ä¸­è¯»å–å®¢æˆ·ç«¯ç™»é™†æ—¶æ‰€é™„å¸¦çš„æ•°æ®
+		å¢žåŠ APIï¼ŒgetAoiRadiusã€getAoiHystArea
+		ç»Ÿä¸€å‘æœåŠ¡ç«¯åŒæ­¥æ–¹å‘çš„é¡ºåºæ˜¯rollã€pitchã€yaw
+		botså¢žåŠ entryScriptFileé…ç½® 
 
-	BUGÐÞÕý£º
-		CellappÉÏµÄExposed·½·¨£¬µÚÒ»¸ö²ÎÊýµÃµ½µÄ²¢·ÇÊÇµ÷ÓÃÕßµÄID
-		ÐÞÕýBASE_AND_CLIENTÀàÊôÐÔÔÚ¿Í»§¶ËÊµÌå´´½¨Ö®ºó²ÅÍ¬²½¹ýÀ´
-		ÐÞ¸´¿Í»§¶Ë×¢²áÕËºÅÊ±ÉÏ±¨µÄÊý¾Ý¹ý³¤µ¼ÖÂdbmgr³ö´íµÄÎÊÌâ
+	BUGä¿®æ­£ï¼š
+		Cellappä¸Šçš„Exposedæ–¹æ³•ï¼Œç¬¬ä¸€ä¸ªå‚æ•°å¾—åˆ°çš„å¹¶éžæ˜¯è°ƒç”¨è€…çš„ID
+		ä¿®æ­£BASE_AND_CLIENTç±»å±žæ€§åœ¨å®¢æˆ·ç«¯å®žä½“åˆ›å»ºä¹‹åŽæ‰åŒæ­¥è¿‡æ¥
+		ä¿®å¤å®¢æˆ·ç«¯æ³¨å†Œè´¦å·æ—¶ä¸ŠæŠ¥çš„æ•°æ®è¿‡é•¿å¯¼è‡´dbmgrå‡ºé”™çš„é—®é¢˜
 
 
 
@@ -247,14 +247,14 @@
 
 	2015/3/13
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-		ÓÅ»¯²¿·Ö´úÂë½á¹¹
-		Ôö¼Ólogger´¦ÀíËÙ¶È
-		APIÎÄµµ¸üÐÂ
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+		ä¼˜åŒ–éƒ¨åˆ†ä»£ç ç»“æž„
+		å¢žåŠ loggerå¤„ç†é€Ÿåº¦
+		APIæ–‡æ¡£æ›´æ–°
 
-	BUGÐÞÕý£º
-		ÐÞÕýwindowsÏÂgenUUID64¿ÉÄÜ²»ÕýÈ·µÄÎÊÌâ
-		ÐÞÕýbotsÔÚÄ³Ð©Ìõ¼þÏÂµ¼ÖÂÈÕÖ¾»º´æÃ»ÓÐÊÍ·ÅµÄÎÊÌâ
+	BUGä¿®æ­£ï¼š
+		ä¿®æ­£windowsä¸‹genUUID64å¯èƒ½ä¸æ­£ç¡®çš„é—®é¢˜
+		ä¿®æ­£botsåœ¨æŸäº›æ¡ä»¶ä¸‹å¯¼è‡´æ—¥å¿—ç¼“å­˜æ²¡æœ‰é‡Šæ”¾çš„é—®é¢˜
 
 
 
@@ -262,18 +262,18 @@
 
 	2015/2/10
 
-	ÐÂÔöÓë¸ÄÉÆ£º
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
 
-	    ÊµÌå×Ô¶¯¼ÓÔØ¹¦ÄÜ£¨ÓÃ·¨¼ûAPIÊÖ²á£¬baseappÖÐwriteToDB²¿·Ö£©
-	    onBaseAppReady¡¢onReadyForLogin»Øµ÷º¯Êý²ÎÊýµ÷Õû£¬¸ÄÎªbool£¨ÊÇ·ñÎªµÚÒ»¸öÆô¶¯µÄbaseapp£©
-	    Ôö¼Ó½ø³ÌÆô¶¯²ÎÊý --gus£¬Ïê¼û£ºhttp://www.kbengine.org/cn/docs/startup_shutdown.html
-	    É¾³ý½ø³ÌÆô¶¯²ÎÊý--grouporderÓë--globalorder£¬¸ÃÖµÓÉ³ÌÐòÄÚ²¿×Ô¶¯²úÉú£¬Í¨¹ý»·¾³±äÁ¿ÔÚ½Å±¾ÖÐ¿ÉÒÔ»ñµÃKBE_COMPONENTID¡¢KBE_BOOTIDX_GLOBAL¡¢KBE_BOOTIDX_GROUP
-	    APIÎÄµµÍêÉÆ
+	    å®žä½“è‡ªåŠ¨åŠ è½½åŠŸèƒ½ï¼ˆç”¨æ³•è§APIæ‰‹å†Œï¼Œbaseappä¸­writeToDBéƒ¨åˆ†ï¼‰
+	    onBaseAppReadyã€onReadyForLoginå›žè°ƒå‡½æ•°å‚æ•°è°ƒæ•´ï¼Œæ”¹ä¸ºboolï¼ˆæ˜¯å¦ä¸ºç¬¬ä¸€ä¸ªå¯åŠ¨çš„baseappï¼‰
+	    å¢žåŠ è¿›ç¨‹å¯åŠ¨å‚æ•° --gusï¼Œè¯¦è§ï¼šhttp://www.kbengine.org/cn/docs/startup_shutdown.html
+	    åˆ é™¤è¿›ç¨‹å¯åŠ¨å‚æ•°--grouporderä¸Ž--globalorderï¼Œè¯¥å€¼ç”±ç¨‹åºå†…éƒ¨è‡ªåŠ¨äº§ç”Ÿï¼Œé€šè¿‡çŽ¯å¢ƒå˜é‡åœ¨è„šæœ¬ä¸­å¯ä»¥èŽ·å¾—KBE_COMPONENTIDã€KBE_BOOTIDX_GLOBALã€KBE_BOOTIDX_GROUP
+	    APIæ–‡æ¡£å®Œå–„
 
-	BUGÐÞÕý£º
+	BUGä¿®æ­£ï¼š
 
-	    ÐÞÕýteleportºóghostÏûÏ¢´íÂÒÎÊÌâ
-	    ÐÞÕýteleportºópitch´íÎóµÄÎÊÌâ
+	    ä¿®æ­£teleportåŽghostæ¶ˆæ¯é”™ä¹±é—®é¢˜
+	    ä¿®æ­£teleportåŽpitché”™è¯¯çš„é—®é¢˜
 
 
 
@@ -281,18 +281,18 @@
 
 	2015/1/23
 
-        ÐÂÔöÓëÍêÉÆ£º
+        æ–°å¢žä¸Žå®Œå–„ï¼š
 
-		ÍøÂçÄ£¿éÓÅ»¯£¨Ö÷ÒªÕë¶ÔsendÒÔ¼°Ò»Ð©½á¹¹·½Ãæ£©
-		Ôö¼Ó¶ÔTCP·¢ËÍ´°¿ÚµÄÅäÖÃ£¬ÒÔ±ã¶ÔÒ»Ð©Çé¿ö½øÐÐ¿ØÖÆ
-		¸ºÔØ¾ùºâÄ£¿éµ÷Õû£¨CellappÔÚ´óÁ¿¶¯Ì¬¸±±¾´´½¨Ê±ÄÜ¸üºÃµÄ¾ùºâ¸ºÔØ£©
-		ÏûÏ¢¸ú×ÙÄ£¿éµ÷Õû
+		ç½‘ç»œæ¨¡å—ä¼˜åŒ–ï¼ˆä¸»è¦é’ˆå¯¹sendä»¥åŠä¸€äº›ç»“æž„æ–¹é¢ï¼‰
+		å¢žåŠ å¯¹TCPå‘é€çª—å£çš„é…ç½®ï¼Œä»¥ä¾¿å¯¹ä¸€äº›æƒ…å†µè¿›è¡ŒæŽ§åˆ¶
+		è´Ÿè½½å‡è¡¡æ¨¡å—è°ƒæ•´ï¼ˆCellappåœ¨å¤§é‡åŠ¨æ€å‰¯æœ¬åˆ›å»ºæ—¶èƒ½æ›´å¥½çš„å‡è¡¡è´Ÿè½½ï¼‰
+		æ¶ˆæ¯è·Ÿè¸ªæ¨¡å—è°ƒæ•´
 		
-	BUGÐÞÕý£º
+	BUGä¿®æ­£ï¼š
 		
-		ÐÞÕýEntityDef£¬¿ÉÄÜÔÚÒ»Ð©Çé¿öÏÂdef¸Ä±äºóMD5²¢Î´±ä»¯µÄÎÊÌâ
-		ÐÞÕýCellapp³õÊ¼»¯Ê±Ö´ÐÐÆäËû½ø³ÌÒªÇóµÄÈÎÎñ²úÉúµÄ´íÎó
-		ÐÞÕýDBMgrÈç¹ûå´ÁË£¬interfacesÓëlogger½ø³ÌµÈ×Ô¶¯¹Ø±Õ
+		ä¿®æ­£EntityDefï¼Œå¯èƒ½åœ¨ä¸€äº›æƒ…å†µä¸‹defæ”¹å˜åŽMD5å¹¶æœªå˜åŒ–çš„é—®é¢˜
+		ä¿®æ­£Cellappåˆå§‹åŒ–æ—¶æ‰§è¡Œå…¶ä»–è¿›ç¨‹è¦æ±‚çš„ä»»åŠ¡äº§ç”Ÿçš„é”™è¯¯
+		ä¿®æ­£DBMgrå¦‚æžœå®•äº†ï¼Œinterfacesä¸Žloggerè¿›ç¨‹ç­‰è‡ªåŠ¨å…³é—­
 
 
 
@@ -300,22 +300,22 @@
 	
 	2014/12/30
 
-	ÐÂÔöÓëÍêÉÆ£º
+	æ–°å¢žä¸Žå®Œå–„ï¼š
 
-	    ÍêÉÆAPIÎÄµµ
-	    GUIConsoleÔö¼ÓlogËÑË÷Óë¹ýÂËµÈ¹¦ÄÜ
-	    ÍêÉÆcluster_controllerÁË
-	    ÍêÉÆÁËinstaller¹¦ÄÜ
-	    billingsystem¸ÄÃûinterfaces¡¢kbmachine¸ÄÃûÎªmachine¡¢messagelog¸ÄÃûÎªlogger
-	    Ôö¼ÓÄ¬ÈÏµÄÏîÄ¿×Ê²úÄ¿Â¼"assets"£¬Èç¹ûÃ»ÓÐÅäÖÃ»·¾³±äÁ¿ÒýÇæ½«×Ô¶¯´Ó¸ùÄ¿Â¼Ñ°ÕÒ¸Ã×Ê²úÄ¿Â¼
-	    Ô­±¾µÄdemo×Ê²úÄ¿Â¼±»Ç¨ÒÆµ½¶ÀÁ¢µÄÏîÄ¿ÖÐ£¬ÔÚ¾ßÌåµÄdemoÖÐÊ¹ÓÃgit submodule»ñµÃ
-	    ÆäËûÈô¸ÉÐ¡ÍêÉÆ
+	    å®Œå–„APIæ–‡æ¡£
+	    GUIConsoleå¢žåŠ logæœç´¢ä¸Žè¿‡æ»¤ç­‰åŠŸèƒ½
+	    å®Œå–„cluster_controlleräº†
+	    å®Œå–„äº†installeråŠŸèƒ½
+	    billingsystemæ”¹åinterfacesã€kbmachineæ”¹åä¸ºmachineã€messagelogæ”¹åä¸ºlogger
+	    å¢žåŠ é»˜è®¤çš„é¡¹ç›®èµ„äº§ç›®å½•"assets"ï¼Œå¦‚æžœæ²¡æœ‰é…ç½®çŽ¯å¢ƒå˜é‡å¼•æ“Žå°†è‡ªåŠ¨ä»Žæ ¹ç›®å½•å¯»æ‰¾è¯¥èµ„äº§ç›®å½•
+	    åŽŸæœ¬çš„demoèµ„äº§ç›®å½•è¢«è¿ç§»åˆ°ç‹¬ç«‹çš„é¡¹ç›®ä¸­ï¼Œåœ¨å…·ä½“çš„demoä¸­ä½¿ç”¨git submoduleèŽ·å¾—
+	    å…¶ä»–è‹¥å¹²å°å®Œå–„
 
-	BUGÐÞÕý£º
+	BUGä¿®æ­£ï¼š
 
-	    ÐÞÕýBASE_AND_CLIENTµÈÀàÐÍ±»ÐÞ¸ÄºóÃ»ÓÐÍ¬²½µ½¿Í»§¶ËµÄÎÊÌâ
-	    ÐÞÕýCLIENT_TYPE_MOBILEÀàÐÍÒªÇóÅÐ¶ÏentitydefµÄ´íÎó
-	    ÐÞÕýÊµÌåÌø×ª³¡¾°ºóghost»úÖÆ´øÀ´µÄÏûÏ¢´íÂÒÎÊÌâ
+	    ä¿®æ­£BASE_AND_CLIENTç­‰ç±»åž‹è¢«ä¿®æ”¹åŽæ²¡æœ‰åŒæ­¥åˆ°å®¢æˆ·ç«¯çš„é—®é¢˜
+	    ä¿®æ­£CLIENT_TYPE_MOBILEç±»åž‹è¦æ±‚åˆ¤æ–­entitydefçš„é”™è¯¯
+	    ä¿®æ­£å®žä½“è·³è½¬åœºæ™¯åŽghostæœºåˆ¶å¸¦æ¥çš„æ¶ˆæ¯é”™ä¹±é—®é¢˜
 
 
 
@@ -323,13 +323,13 @@
 
 	2014/12/6
 
-	ÐÂÔöÓë¸ÄÉÆ£º
-	    ½Å±¾²ã×Ö·û´®ÊôÐÔÐòÁÐ»¯µ½Á÷ÓÅ»¯£¬ ¿ÉÒÔ¼õÉÙÒ»´ÎÄÚ´æ¿½±´
-	    ÔöÇ¿GUIConsoleµÄÌ½²â¹¦ÄÜ
-	    ¶Ô²¿·Ö´úÂë½á¹¹½øÐÐµ÷Õû
+	æ–°å¢žä¸Žæ”¹å–„ï¼š
+	    è„šæœ¬å±‚å­—ç¬¦ä¸²å±žæ€§åºåˆ—åŒ–åˆ°æµä¼˜åŒ–ï¼Œ å¯ä»¥å‡å°‘ä¸€æ¬¡å†…å­˜æ‹·è´
+	    å¢žå¼ºGUIConsoleçš„æŽ¢æµ‹åŠŸèƒ½
+	    å¯¹éƒ¨åˆ†ä»£ç ç»“æž„è¿›è¡Œè°ƒæ•´
 
-	BUGÐÞÕý£º
-	    ÐÞÕýAOI¼«¶ËÇé¿öÏÂÒ»Ð©×´Ì¬´íÂÒµÄÎÊÌâ
-	    globalorderidµÈÓ¦¸ÃÊ¹ÓÃint32ÀàÐÍÄ¿Ç°int8£¬ ÕâÑù»áÏÞÖÆÀíÂÛµÄ½ø³ÌÊýÁ¿
-	    ±ÜÃâÔÚÄ¿Â¼ÏÂÃ»ÓÐlog4j.logÊ±ÌáÊ¾´íÎóÐÅÏ¢
+	BUGä¿®æ­£ï¼š
+	    ä¿®æ­£AOIæžç«¯æƒ…å†µä¸‹ä¸€äº›çŠ¶æ€é”™ä¹±çš„é—®é¢˜
+	    globalorderidç­‰åº”è¯¥ä½¿ç”¨int32ç±»åž‹ç›®å‰int8ï¼Œ è¿™æ ·ä¼šé™åˆ¶ç†è®ºçš„è¿›ç¨‹æ•°é‡
+	    é¿å…åœ¨ç›®å½•ä¸‹æ²¡æœ‰log4j.logæ—¶æç¤ºé”™è¯¯ä¿¡æ¯
 
