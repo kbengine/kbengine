@@ -534,7 +534,7 @@ void Baseappmgr::reqCreateBaseRemotelyFromDBID(Network::Channel* pChannel, Memor
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
-		WARNING_MSG("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp, message is buffered.\n");
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp({}), message is buffered.\n", targetComponentID));
 		pFI->pHandler = NULL;
 		forward_baseapp_messagebuffer_.push(pFI);
 		return;
