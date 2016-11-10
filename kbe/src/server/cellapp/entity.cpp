@@ -4044,6 +4044,14 @@ int Entity::pySetParent(PyObject *value)
 			return -1;
 		}
 
+		// 不能自己与自己结为父子关系
+		if (id() == entity->id())
+		{
+			PyErr_Format(PyExc_AssertionError, "you can't set yourself to your parent!\n");
+			PyErr_PrintEx(0);
+			return -1;
+		}
+
 		// 父对象与自己必须在同一space下
 		if (spaceID() != entity->spaceID())
 		{
