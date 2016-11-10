@@ -175,6 +175,7 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addGeometryMapping,				Space::__py_AddGeometryMapping,		METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		Space::__py_GetSpaceGeometryMapping,METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		setSpaceData,					Space::__py_SetSpaceData,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceData,					Space::__py_GetSpaceData,			METH_VARARGS,			0);
@@ -182,6 +183,7 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,				METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,						METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		raycast,						__py_raycast,						METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		navigatePathPoints,				__py_navigatePathPoints,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		setAppFlags,					__py_setFlags,						METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		getAppFlags,					__py_getFlags,						METH_VARARGS,			0);
 	
@@ -1971,6 +1973,45 @@ int Cellapp::raycast(SPACE_ID spaceID, int layer, uint16 flags, const Position3D
 	return pSpace->pNavHandle()->raycast(layer, flags, start, end, hitPos);
 }
 
+bool Cellapp::navigatePathPoints(std::vector<Position3D>& outPaths, std::string path, Position3D& position, Position3D& destination, float maxSearchDistance, int8 layer, uint16 flags)
+{
+	NavigationHandlePtr pNavHandle = Navigation::getSingleton().findNavigation(path);
+
+	if (!pNavHandle)
+	{
+		WARNING_MSG(fmt::format("Cellapp::navigatePathPoints():  path({}), not found navhandle!\n",
+			path));
+
+		return false;
+	}
+
+	if (pNavHandle->findStraightPath(layer, flags, position, destination, outPaths) < 0)
+	{
+		return false;
+	}
+
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	while (iter != outPaths.end())
+	{
+		Vector3 movement = (*iter) - position;
+		if (KBEVec3Length(&movement) <= 0.00001f)
+		{
+			iter++;
+			continue;
+		}
+
+		break;
+	}
+
+	// 第一个坐标点是当前位置，因此可以过滤掉
+	if (iter != outPaths.begin())
+	{
+		outPaths.erase(outPaths.begin(), iter);
+	}
+
+	return true;
+}
+
 //-------------------------------------------------------------------------------------
 PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 {
@@ -2070,6 +2111,55 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 	}
 
 	return pyHitpos;
+}
+
+PyObject* Cellapp::__py_navigatePathPoints(PyObject* self, PyObject* args)
+{
+	PyObject_ptr pyPosition = NULL;
+	PyObject_ptr pyDestination = NULL;
+	char* path = NULL;
+	float maxSearchDistance = 0;
+	int8 layer = 0;
+	uint16 flags = 0;
+
+	int argCount = PyTuple_Size(args);
+
+	if (argCount != 6)
+	{
+		PyErr_Format(PyExc_AssertionError, "KBEngine::__py_pyNavigatePathLocalPoints: (argssize[pyPosition, pyDestination, path, maxSearchDistance, layer, flags] != 6) is error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	if (PyArg_ParseTuple(args, "s|O|O|f|b|H", &path, &pyPosition, &pyDestination,  &maxSearchDistance, &layer, &flags) == -1)
+	{
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	Position3D destination;
+	// 将坐标信息提取出来
+	script::ScriptVector3::convertPyObjectToVector3(destination, pyDestination);
+
+	Position3D position;
+	script::ScriptVector3::convertPyObjectToVector3(position, pyPosition);
+
+	std::vector<Position3D> outPaths;
+	Cellapp::getSingleton().navigatePathPoints(outPaths, path, position, destination, maxSearchDistance, layer, flags);
+
+	PyObject* pyList = PyList_New(outPaths.size());
+
+	int i = 0;
+	std::vector<Position3D>::iterator iter = outPaths.begin();
+	for (; iter != outPaths.end(); ++iter)
+	{
+		script::ScriptVector3 *pos = new script::ScriptVector3(*iter);
+		Py_INCREF(pos);
+		PyList_SET_ITEM(pyList, i++, pos);
+	}
+
+	return pyList;
 }
 
 //-------------------------------------------------------------------------------------
