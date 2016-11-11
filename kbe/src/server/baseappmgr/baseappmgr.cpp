@@ -362,8 +362,8 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 		if (cinfos)
 			runstate = (int)cinfos->state;
 
-		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhere: not found baseapp({}, runstate={}), message is buffered.\n",
-			bestBaseappID_, runstate));
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhere: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			bestBaseappID_, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
 
 		pFI->pHandler = NULL;
 		forward_baseapp_messagebuffer_.push(pFI);
@@ -417,8 +417,8 @@ void Baseappmgr::reqCreateBaseRemotely(Network::Channel* pChannel, MemoryStream&
 		if (cinfos)
 			runstate = (int)cinfos->state;
 
-		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseRemotely: not found baseapp({}, runstate={}), message is buffered.\n",
-			createToComponentID, runstate));
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseRemotely: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			createToComponentID, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
 
 		pFI->pHandler = NULL;
 		forward_baseapp_messagebuffer_.push(pFI);
@@ -501,8 +501,8 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 		if (cinfos)
 			runstate = (int)cinfos->state;
 
-		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp({}, runstate={}), message is buffered.\n",
-			targetComponentID, runstate));
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			targetComponentID, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
 
 		pFI->pHandler = NULL;
 		forward_baseapp_messagebuffer_.push(pFI);
@@ -556,8 +556,8 @@ void Baseappmgr::reqCreateBaseRemotelyFromDBID(Network::Channel* pChannel, Memor
 		if (cinfos)
 			runstate = (int)cinfos->state;
 
-		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp({}, runstate={}), message is buffered.\n", 
-			targetComponentID, runstate));
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n", 
+			targetComponentID, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
 
 		pFI->pHandler = NULL;
 		forward_baseapp_messagebuffer_.push(pFI);
@@ -627,7 +627,13 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 		(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
 		pBundle->appendBlob(datas);
 
-		WARNING_MSG("Baseappmgr::registerPendingAccountToBaseapp: not found baseapp, message is buffered.\n");
+		int runstate = -1;
+		if (cinfos)
+			runstate = (int)cinfos->state;
+
+		WARNING_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			bestBaseappID_, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
+
 		pFI->pHandler = NULL;
 		forward_baseapp_messagebuffer_.push(pFI);
 		return;
