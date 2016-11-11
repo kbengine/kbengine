@@ -86,7 +86,7 @@ namespace KBEngine {
 		mongoc_init();
 
 		char uri_string[1024];
-		sprintf_s(uri_string, sizeof(uri_string), "mongodb://%s:%i", db_ip_, db_port_);
+		kbe_snprintf(uri_string, sizeof(uri_string), "mongodb://%s:%i", db_ip_, db_port_);
 		_pMongoClient = mongoc_client_new(uri_string);
 		if (!_pMongoClient) {
 			fprintf(stderr, "Invalid hostname or port: %u\n", db_port_);
