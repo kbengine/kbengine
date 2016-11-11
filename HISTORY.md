@@ -1,3 +1,17 @@
+###v0.9.6
+
+	2016/11/11
+
+	新增与改善：
+		防止createBaseRemotelyFromDBID、createBaseRemotely接口请求创建时baseapp还未注册到baseappmgr而丢失请求(#429)
+		更新API文档。
+
+
+	BUG修正：
+		防止登陆顶号onLogOnAttempt中销毁实体造成底层后续流程访问对象出错的问题 。 
+
+
+
 ###v0.9.5
 
 	2016/11/8
