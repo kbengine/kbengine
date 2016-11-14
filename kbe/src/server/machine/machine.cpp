@@ -691,7 +691,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> componentType;
 	s >> cid;
 	s >> gus;
-
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;

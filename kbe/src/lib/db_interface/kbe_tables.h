@@ -69,6 +69,9 @@ public:
 		char ip[MAX_IP];
 		uint16 port;
 		COMPONENT_ID componentID;
+
+		// ÓÉË­¼ÇÂ¼
+		COMPONENT_ID logger;
 	};
 
 	KBEEntityLogTable(EntityTables* pEntityTables) :

@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/kbekey.h"
 #include "db_mysql/db_interface_mysql.h"
 #include "db_redis/db_interface_redis.h"
+#include "db_mongodb/db_interface_mongodb.h"
 #include "server/serverconfig.h"
 #include "thread/threadpool.h"
 
@@ -159,6 +160,7 @@ DBInterface* DBUtil::createInterface(const std::string& name, bool showinfo)
 		return NULL;
 	}
 
+
 	DBInterface* dbinterface = NULL;
 
 	if (strcmp(pDBInfo->db_type, "mysql") == 0)
@@ -168,6 +170,10 @@ DBInterface* DBUtil::createInterface(const std::string& name, bool showinfo)
 	else if (strcmp(pDBInfo->db_type, "redis") == 0)
 	{
 		dbinterface = new DBInterfaceRedis(name.c_str());
+	}
+	else if (strcmp(pDBInfo->db_type, "mongodb") == 0)
+	{
+		dbinterface = new DBInterfaceMongodb(name.c_str());
 	}
 
 	if(dbinterface == NULL)
@@ -187,6 +193,7 @@ DBInterface* DBUtil::createInterface(const std::string& name, bool showinfo)
 
 	if (!dbinterface->attach(pDBInfo->db_name))
 	{
+
 		ERROR_MSG(fmt::format("DBUtil::createInterface: attach to database failed!\n\tdbinterface={0:p}\n\targs={1}\n",
 			(void*)&dbinterface, dbinterface->c_str()));
 
@@ -224,6 +231,7 @@ bool DBUtil::initInterface(DBInterface* pdbi)
 		return false;
 	}
 
+
 	if (strcmp(pDBInfo->db_type, "mysql") == 0)
 	{
 		DBInterfaceMysql::initInterface(pdbi);
@@ -231,6 +239,10 @@ bool DBUtil::initInterface(DBInterface* pdbi)
 	else if (strcmp(pDBInfo->db_type, "redis") == 0)
 	{
 		DBInterfaceRedis::initInterface(pdbi);
+	}
+	else if (strcmp(pDBInfo->db_type, "mongodb") == 0)
+	{
+		DBInterfaceMongodb::initInterface(pdbi);
 	}
 	
 	thread::ThreadPool* pThreadPool = pThreadPoolMaps_[pdbi->name()];

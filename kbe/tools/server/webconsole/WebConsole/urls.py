@@ -13,7 +13,7 @@ Including another URLconf
     1. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import include, url
-from . import views, auth, views_console, views_profile, views_log
+from . import views, auth, views_console, views_profile, views_log, views_watcher
 
 urlpatterns = [
     url(r'^login$', auth.login, name = "login"),
@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^user/add$', auth.user_add, name = "user_add"),
     url(r'^user/delete$', auth.user_delete, name = "user_delete"),
     url(r'^user/change_pwd$', auth.change_pwd, name = "change_user_pwd"),
+    url(r'^user/change_user/(?P<userID>[0-9]+)$', auth.change_user, name = "change_user_user"),
 
     url(r'^$', views.index, name = "index"),
     url(r'^index$', views.index, name = "index"),
@@ -31,6 +32,7 @@ urlpatterns = [
     url(r'^components/run$', views.components_run, name = "components_run"),
     url(r'^components/shutdown$', views.components_shutdown, name = "components_shutdown"),
     url(r'^components/(?P<ct>[0-9]+)/(?P<cid>[0-9]+)/shutdown$', views.components_stop, name = "components_stop"),
+    url(r'^components/(?P<ct>[0-9]+)/(?P<cid>[0-9]+)/kill$', views.components_kill, name = "components_kill"),
     url(r'^components/(?P<ct>[0-9]+)/(?P<cid>[0-9]+)/query$', views.components_one_query, name = "components_one_query" ),
     # url(r'^components/(?P<ct>[0-9]+)$', views.components_group_query, name = "components_group_query" ),
     url(r'^components/query$', views.components_query, name = "components_query" ),
@@ -53,4 +55,8 @@ urlpatterns = [
     url(r'^log/connect',views_log.connect, name = "real_time_log" ),
     url(r'^log/process_cmd$', views_log.process_cmd, name = "log_process_cmd" ),
     url(r'^log/connect/pull',views_log.pull_log,name = "pull_log"),
+
+    url(r'^watcher/show_components',views_watcher.show_components, name = "watcher_show_components" ),
+    url(r'^watcher/connect',views_watcher.connect, name = "watcher_connect" ),
+    url(r'^watcher/process_cmd$', views_watcher.process_cmd, name = "watcher_process_cmd" ),
 ]

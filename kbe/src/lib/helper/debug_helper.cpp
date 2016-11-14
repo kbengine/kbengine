@@ -525,26 +525,6 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		g_componentType == CLIENT_TYPE)
 		return;
 
-	if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0 && hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
-	{
-		int8 v = Network::g_trace_packet;
-		Network::g_trace_packet = 0;
-
-#ifdef NO_USE_LOG4CXX
-#else
-		LOG4CXX_WARN(g_logger, fmt::format("DebugHelper::onMessage: bufferedLogPackets is full({} > kbengine[_defs].xml->logger->tick_max_buffered_logs->{}), discard logs!\n", 
-			hasBufferedLogPackets_, g_kbeSrvConfig.tickMaxBufferedLogs()));
-#endif
-
-		Network::g_trace_packet = v;
-
-		clearBufferedLog();
-		return;
-	}
-
-	int8 v = Network::g_trace_packet;
-	Network::g_trace_packet = 0;
-
 	if (!isMainThread)
 	{
 		MemoryStream* pMemoryStream = memoryStreamPool_.createObject();
@@ -569,6 +549,25 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 	}
 	else
 	{
+		if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0 && hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+		{
+			int8 v = Network::g_trace_packet;
+			Network::g_trace_packet = 0;
+
+#ifdef NO_USE_LOG4CXX
+#else
+			LOG4CXX_WARN(g_logger, fmt::format("DebugHelper::onMessage: bufferedLogPackets is full({} > kbengine[_defs].xml->logger->tick_max_buffered_logs->{}), discard logs!\n", 
+				hasBufferedLogPackets_, g_kbeSrvConfig.tickMaxBufferedLogs()));
+#endif
+
+			Network::g_trace_packet = v;
+
+			clearBufferedLog();
+			return;
+		}
+
+		int8 trace_packet = Network::g_trace_packet;
+		Network::g_trace_packet = 0;
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 		pBundle->newMessage(LoggerInterface::writeLog);
@@ -590,12 +589,11 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		pBundle->appendBlob(str, length);
 
 		bufferedLogPackets_.push(pBundle);
+		Network::g_trace_packet = trace_packet;
+		g_pDebugHelperSyncHandler->startActiveTick();
 	}
 
 	++hasBufferedLogPackets_;
-
-	Network::g_trace_packet = v;
-	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------

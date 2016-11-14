@@ -8,14 +8,11 @@
         <tr>
           <th colspan="2" align="left">KBEngine组件将使用以下用户启动</th>
         </tr>
-        <tr>
-          <th>用户名</th>
-          <th>用户ID</th>
-        </tr>
-        <tr>
-          <td>{{ request.session.sys_user }}</td>
-          <td>{{ request.session.sys_uid  }}</td>
-        </tr>
+        <tr><td>用户名</td><td>{{ request.session.sys_user }}</td></tr>
+        <tr><td>用户ID</td><td>{{ request.session.sys_uid  }}</td></tr>
+        <tr><td>kbe_root</td><td>{{ request.session.kbe_root  }}</td></tr>
+        <tr><td>kbe_res_path</td><td>{{ request.session.kbe_res_path  }}</td></tr>
+        <tr><td>kbe_bin_path</td><td>{{ request.session.kbe_bin_path  }}</td></tr>
       </tbody>
     </table>
     <br/>

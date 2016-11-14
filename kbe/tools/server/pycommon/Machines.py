@@ -13,6 +13,7 @@ MachineInterface_startserver = 2
 MachineInterface_stopserver = 3
 MachineInterface_onQueryAllInterfaceInfos = 4
 MachineInterface_onQueryMachines = 5
+MachineInterface_killserver = 6
 
 from . import Define, MessageStream
 
@@ -47,7 +48,7 @@ class ComponentInfo( object ):
 		self.intaddr = socket.inet_ntoa(reader.read(4))
 		self.intport = socket.ntohs(reader.readUint16())
 		self.extaddr = socket.inet_ntoa(reader.read(4))
-		self.intport = socket.ntohs(reader.readUint16())
+		self.extport = socket.ntohs(reader.readUint16())
 		self.extaddrEx = reader.readString()
 		self.pid = reader.readUint32()
 		self.cpu = reader.readFloat()
@@ -230,7 +231,7 @@ class Machines:
 		datas = self.sendAndReceive( msg.build(), ip, trycount, timeout )
 		self.parseQueryDatas( datas )
 
-	def startServer(self, componentType, cid, gus, targetIP, trycount = 1, timeout = 1):
+	def startServer(self, componentType, cid, gus, targetIP, kbe_root, kbe_res_path, kbe_bin_path, trycount = 1, timeout = 1):
 		"""
 		"""
 		msg = MessageStream.MessageStreamWriter(MachineInterface_startserver)
@@ -239,6 +240,9 @@ class Machines:
 		msg.writeUint64(cid)
 		msg.writeInt16(gus)
 		msg.writeUint16(socket.htons(self.replyPort)) # reply port
+		msg.writeString(kbe_root)
+		msg.writeString(kbe_res_path)
+		msg.writeString(kbe_bin_path)
 
 		if trycount <= 0:
 			self.send( msg.build(), targetIP )
@@ -250,6 +254,21 @@ class Machines:
 		"""
 		"""
 		msg = MessageStream.MessageStreamWriter(MachineInterface_stopserver)
+		msg.writeInt32(self.uid)
+		msg.writeInt32(componentType)
+		msg.writeUint64(componentID)
+		msg.writeUint16(socket.htons(self.replyPort)) # reply port
+
+		if trycount <= 0:
+			self.send( msg.build(), targetIP )
+			self.receiveReply()
+		else:
+			self.sendAndReceive( msg.build(), targetIP, trycount, timeout )
+
+	def killServer(self, componentType, componentID = 0, targetIP = "<broadcast>", trycount = 1, timeout = 1):
+		"""
+		"""
+		msg = MessageStream.MessageStreamWriter(MachineInterface_killserver)
 		msg.writeInt32(self.uid)
 		msg.writeInt32(componentType)
 		msg.writeUint64(componentID)
