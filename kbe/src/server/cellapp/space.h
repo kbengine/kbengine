@@ -85,6 +85,10 @@ public:
 	*/
 	static PyObject* __py_AddSpaceGeometryMapping(PyObject* self, PyObject* args);
 	bool addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params);
+
+	static PyObject* __py_AddGeometryMapping(PyObject* self, PyObject* args);
+	static bool addGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params);
+
 	static PyObject* __py_GetSpaceGeometryMapping(PyObject* self, PyObject* args);
 	const std::string& getGeometryPath();
 	void setGeometryPath(const std::string& path);
