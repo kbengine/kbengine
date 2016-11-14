@@ -1,10 +1,10 @@
 <root>
 	<!--
-		·şÎñ¶ËÅäÖÃ({assets}/res/server/kbengine.xml)
+		æœåŠ¡ç«¯é…ç½®({assets}/res/server/kbengine.xml)
 
-		Èç¹ûÄãĞèÒª¸Ä±äÒıÇæÉèÖÃ, ÇëÔÚ({assets}/res/server/kbengine.xml)ÖĞ¸²¸Çkbe/res/server/kbengine_defs.xmlµÄ¶ÔÓ¦²ÎÊıÀ´ĞŞ¸Ä, 
-		ÕâÑùµÄºÃ´¦ÊÇ²»»áÆÆ»µÒıÇæµÄÄ¬ÈÏÉèÖÃ£¬ÔÚÄã¸üĞÂÒıÇæÊ±Ò²²»»á²úÉú³åÍ»£¬ÒÔ¼°ÔÚ¶à¸öÂß¼­ÏîÄ¿Ê±²»»áÓ°Ïìµ½ÆäËûµÄÏîÄ¿ÉèÖÃ¡£
-		ÏêÏ¸ËµÃ÷Çë²Î¿¼£ºhttp://kbengine.org/cn/docs/configuration/kbengine.html
+		å¦‚æœä½ éœ€è¦æ”¹å˜å¼•æ“è®¾ç½®, è¯·åœ¨({assets}/res/server/kbengine.xml)ä¸­è¦†ç›–kbe/res/server/kbengine_defs.xmlçš„å¯¹åº”å‚æ•°æ¥ä¿®æ”¹, 
+		è¿™æ ·çš„å¥½å¤„æ˜¯ä¸ä¼šç ´åå¼•æ“çš„é»˜è®¤è®¾ç½®ï¼Œåœ¨ä½ æ›´æ–°å¼•æ“æ—¶ä¹Ÿä¸ä¼šäº§ç”Ÿå†²çªï¼Œä»¥åŠåœ¨å¤šä¸ªé€»è¾‘é¡¹ç›®æ—¶ä¸ä¼šå½±å“åˆ°å…¶ä»–çš„é¡¹ç›®è®¾ç½®ã€‚
+		è¯¦ç»†è¯´æ˜è¯·å‚è€ƒï¼šhttp://kbengine.org/cn/docs/configuration/kbengine.html
 	-->
 	
 	<trace_packet>
@@ -16,26 +16,26 @@
 	<!-- defined => kbe/res/server/kbengine_defs.xml -->
 	<dbmgr>
 		<account_system>
-			<!-- ÕËºÅÕÒ»ØÃÜÂëÏà¹Ø
+			<!-- è´¦å·æ‰¾å›å¯†ç ç›¸å…³
 				(Account reset password)
 			-->
 			<account_resetPassword>
-				<!-- ÊÇ·ñ¿ª·ÅÖØÉèÃÜÂë
+				<!-- æ˜¯å¦å¼€æ”¾é‡è®¾å¯†ç 
 					(Whether open reset password)
 				-->
 				<enable>	true	</enable>
 			</account_resetPassword>
 			
-			<!-- ÕËºÅ×¢²áÏà¹Ø
+			<!-- è´¦å·æ³¨å†Œç›¸å…³
 				(Account registration)
 			-->
 			<account_registration> 
-				<!-- ÊÇ·ñ¿ª·Å×¢²á 
+				<!-- æ˜¯å¦å¼€æ”¾æ³¨å†Œ 
 					(Whether open registration)
 				-->
 				<enable>	true	</enable>
 				
-				<!-- µÇÂ¼ºÏ·¨Ê±ÓÎÏ·Êı¾İ¿âÕÒ²»µ½ÓÎÏ·ÕËºÅÔò×Ô¶¯´´½¨ 
+				<!-- ç™»å½•åˆæ³•æ—¶æ¸¸æˆæ•°æ®åº“æ‰¾ä¸åˆ°æ¸¸æˆè´¦å·åˆ™è‡ªåŠ¨åˆ›å»º 
 					(When logged in, the game database can not find the game account is automatically created)
 				-->
 				<loginAutoCreate> true </loginAutoCreate>

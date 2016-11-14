@@ -82,7 +82,8 @@ Baseappmgr::Baseappmgr(Network::EventDispatcher& dispatcher,
 			 COMPONENT_ID componentID):
 	ServerApp(dispatcher, ninterface, componentType, componentID),
 	gameTimer_(),
-	forward_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE),
+	forward_anywhere_baseapp_messagebuffer_(ninterface, BASEAPP_TYPE),
+	forward_baseapp_messagebuffer_(ninterface),
 	bestBaseappID_(0),
 	baseapps_(),
 	pending_logins_(),
@@ -200,6 +201,7 @@ bool Baseappmgr::initializeEnd()
 void Baseappmgr::finalise()
 {
 	gameTimer_.cancel();
+	forward_anywhere_baseapp_messagebuffer_.clear();
 	forward_baseapp_messagebuffer_.clear();
 
 	ServerApp::finalise();
@@ -358,9 +360,15 @@ void Baseappmgr::reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream&
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
-		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhere: not found baseapp, message is buffered.\n");
+		int runstate = -1;
+		if (cinfos)
+			runstate = (int)cinfos->state;
+
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhere: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			bestBaseappID_, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
+
 		pFI->pHandler = NULL;
-		forward_baseapp_messagebuffer_.push(pFI);
+		forward_anywhere_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
 	
@@ -407,9 +415,15 @@ void Baseappmgr::reqCreateBaseRemotely(Network::Channel* pChannel, MemoryStream&
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
-		WARNING_MSG("Baseappmgr::reqCreateBaseRemotely: not found baseapp, message is buffered.\n");
+		int runstate = -1;
+		if (cinfos)
+			runstate = (int)cinfos->state;
+
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseRemotely: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			createToComponentID, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
+
 		pFI->pHandler = NULL;
-		forward_baseapp_messagebuffer_.push(pFI);
+		forward_baseapp_messagebuffer_.push(createToComponentID, pFI);
 		return;
 	}
 
@@ -485,9 +499,15 @@ void Baseappmgr::reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, Memor
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
-		WARNING_MSG("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp, message is buffered.\n");
+		int runstate = -1;
+		if (cinfos)
+			runstate = (int)cinfos->state;
+
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseAnywhereFromDBID: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			targetComponentID, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
+
 		pFI->pHandler = NULL;
-		forward_baseapp_messagebuffer_.push(pFI);
+		forward_anywhere_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
 	
@@ -534,9 +554,15 @@ void Baseappmgr::reqCreateBaseRemotelyFromDBID(Network::Channel* pChannel, Memor
 		(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 		s.done();
 
-		WARNING_MSG("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp, message is buffered.\n");
+		int runstate = -1;
+		if (cinfos)
+			runstate = (int)cinfos->state;
+
+		WARNING_MSG(fmt::format("Baseappmgr::reqCreateBaseRemotelyFromDBID: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n", 
+			targetComponentID, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
+
 		pFI->pHandler = NULL;
-		forward_baseapp_messagebuffer_.push(pFI);
+		forward_baseapp_messagebuffer_.push(targetComponentID, pFI);
 		return;
 	}
 
@@ -603,9 +629,15 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 		(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
 		pBundle->appendBlob(datas);
 
-		WARNING_MSG("Baseappmgr::registerPendingAccountToBaseapp: not found baseapp, message is buffered.\n");
+		int runstate = -1;
+		if (cinfos)
+			runstate = (int)cinfos->state;
+
+		WARNING_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp: not found baseapp({}, runstate={}, pChannel={}), message is buffered.\n",
+			bestBaseappID_, runstate, (cinfos->pChannel ? cinfos->pChannel->c_str() : "NULL")));
+
 		pFI->pHandler = NULL;
-		forward_baseapp_messagebuffer_.push(pFI);
+		forward_anywhere_baseapp_messagebuffer_.push(pFI);
 		return;
 	}
 
