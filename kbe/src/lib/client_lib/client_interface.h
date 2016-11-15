@@ -208,6 +208,11 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	// 服务器心跳回调
 	CLIENT_MESSAGE_DECLARE_ARGS0(onAppActiveTickCB,							NETWORK_FIXED_MESSAGE)
 
+	// 父对象更新通知
+	CLIENT_MESSAGE_DECLARE_ARGS2(onParentChanged,							NETWORK_FIXED_MESSAGE,
+									ENTITY_ID,								eid,
+									ENTITY_ID,								parentID)
+
 	NETWORK_INTERFACE_DECLARE_END()
 
 #ifdef DEFINE_IN_INTERFACE

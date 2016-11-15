@@ -3642,9 +3642,20 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		
 		pendingLoginMgr_.removeNextTick(accountName);
 
+		// 防止在onLogOnAttempt中销毁了
+		Py_INCREF(base);
+
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
 		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
+
+		if (base->isDestroyed())
+		{
+			Py_DECREF(base);
+
+			loginBaseappFailed(pChannel, accountName, SERVER_ERR_OP_FAILED);
+			return;
+		}
 
 		switch(ret)
 		{
@@ -3691,8 +3702,11 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		default:
 			INFO_MSG("Baseapp::loginBaseapp: script LOG_ON_REJECT.\n");
 			loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
+			Py_DECREF(base);
 			return;
 		};
+
+		Py_DECREF(base);
 	}
 	else
 	{
@@ -4270,7 +4284,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
+		WARNING_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();

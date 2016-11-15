@@ -407,6 +407,12 @@ public:
 	*/
 	void onAppActiveTickCB(Network::Channel* pChannel);
 
+	/** 网络接口
+	服务器告诉客户端：你的父对象改变了
+	*/
+	virtual void onParentChanged(Network::Channel* pChannel, ENTITY_ID entityID, ENTITY_ID parentID);
+	
+
 protected:				
 	int32													appID_;
 

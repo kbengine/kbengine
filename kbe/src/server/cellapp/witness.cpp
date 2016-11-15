@@ -171,8 +171,12 @@ void Witness::onAttach(Entity* pEntity)
 
 	(*pSendBundle) << pEntity_->id();
 	pEntity_->pScriptModule()->addSmartUTypeToBundle(pSendBundle);
-	if(!pEntity_->isOnGround())
+	if (!pEntity_->isOnGround() || pEntity_->parent())
+	{
 		(*pSendBundle) << pEntity_->isOnGround();
+		if (pEntity_->parent())
+			(*pSendBundle) << pEntity_->parent()->id();
+	}
 
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
@@ -732,7 +736,7 @@ bool Witness::update()
 	if(!pChannel)
 		return true;
 
-	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfCleint())
+	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		
@@ -778,8 +782,12 @@ bool Witness::update()
 				ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 				(*pSendBundle) << otherEntity->id();
 				otherEntity->pScriptModule()->addSmartUTypeToBundle(pSendBundle);
-				if(!otherEntity->isOnGround())
+				if (!otherEntity->isOnGround() || otherEntity->parent())
+				{
 					(*pSendBundle) << otherEntity->isOnGround();
+					if (otherEntity->parent())
+						(*pSendBundle) << otherEntity->parent()->id();
+				}
 
 				ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
 
@@ -867,7 +875,7 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 {
-	if (pEntity_->isControlledNotSelfCleint())
+	if (pEntity_->isControlledNotSelfClient())
 	{
 		const Direction3D& bdir = baseDir();
 		Vector3 changeDir = bdir.dir - lastBaseDir_.dir;
@@ -917,7 +925,8 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_XZ:
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -927,8 +936,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_XYZ:
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
@@ -938,7 +948,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_YAW:
 		{
-			const Direction3D& dir = otherEntity->direction();
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_y, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -948,7 +958,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_ROLL:
 		{
-			const Direction3D& dir = otherEntity->direction();
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_r, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -958,7 +968,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_PITCH:
 		{
-			const Direction3D& dir = otherEntity->direction();
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_p, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -968,7 +978,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_YAW_PITCH_ROLL:
 		{
-			const Direction3D& dir = otherEntity->direction();
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_ypr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -980,7 +990,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_YAW_PITCH:
 		{
-			const Direction3D& dir = otherEntity->direction();
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_yp, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -991,7 +1001,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_YAW_ROLL:
 		{
-			const Direction3D& dir = otherEntity->direction();
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_yr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1002,7 +1012,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case UPDATE_FLAG_PITCH_ROLL:
 		{
-			const Direction3D& dir = otherEntity->direction();
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_pr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1013,8 +1023,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_y, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1025,8 +1036,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_p, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1037,8 +1049,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_r, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1049,8 +1062,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_yr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1062,8 +1076,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_yp, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1075,8 +1090,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_PITCH_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_pr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1088,8 +1104,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xz_ypr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1102,8 +1119,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_y, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1115,8 +1133,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_p, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1128,8 +1147,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_r, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1141,8 +1161,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_yr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1155,8 +1176,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_yp, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1169,8 +1191,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_PITCH_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_pr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1183,8 +1206,9 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 		break;
 	case (UPDATE_FLAG_XYZ | UPDATE_FLAG_YAW_PITCH_ROLL):
 		{
-			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
-			const Direction3D& dir = otherEntity->direction();
+			Position3D relativePos;
+			relativePosition(relativePos, otherEntity);
+			const Direction3D& dir = otherEntity->localDirection();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_START(pForwardBundle, ClientInterface::onUpdateData_xyz_ypr, update);
 			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
@@ -1285,6 +1309,21 @@ bool Witness::sendToClient(const Network::MessageHandler& msgHandler, Network::B
 	ERROR_MSG(fmt::format("Witness::sendToClient: {} pBundles is NULL, not found channel.\n", pEntity_->id()));
 	Network::Bundle::reclaimPoolObject(pBundle);
 	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void Witness::relativePosition(Position3D& out, Entity* otherEntity)
+{
+	// 当有父类时，以父类为中心点，直接使用本地坐标；否则以玩家为中心点
+	if (otherEntity->parent())
+	{
+		out = otherEntity->localPosition();
+	}
+	else
+	{
+		// 作为中心点的玩家必须取世界坐标为中心，而不是本地坐标
+		out = otherEntity->position() - this->pEntity()->position();
+	}
 }
 
 //-------------------------------------------------------------------------------------

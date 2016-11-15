@@ -65,6 +65,15 @@ void MoveToEntityHandler::createFromStream(KBEngine::MemoryStream& s)
 const Position3D& MoveToEntityHandler::destPos()
 {
 	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
+	
+	// 如果我自己是子对象，则把目标entity的世界坐标转換成本地坐标
+	Entity* self = this->pController_->pEntity();
+	if (self && self->parent())
+	{
+		self->parent()->positionWorldToLocal(pEntity->position(), destPos_);
+		return destPos_;
+	}
+
 	return pEntity->position();
 }
 

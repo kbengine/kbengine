@@ -158,7 +158,8 @@ public:
 protected:
 	TimerHandle													gameTimer_;
 
-	ForwardAnywhere_MessageBuffer								forward_baseapp_messagebuffer_;
+	ForwardAnywhere_MessageBuffer								forward_anywhere_baseapp_messagebuffer_;
+	ForwardComponent_MessageBuffer								forward_baseapp_messagebuffer_;
 
 	COMPONENT_ID												bestBaseappID_;
 

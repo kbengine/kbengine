@@ -75,9 +75,9 @@ void Resmgr::autoSetPaths()
 	std::string s = path;
 	size_t pos1;
 
-	pos1 = s.find("\\kbe\\bin\\");
-	if(pos1 == std::string::npos)
-		pos1 = s.find("/kbe/bin/");
+	strutil::kbe_replace(s, "\\", "/");
+	strutil::kbe_replace(s, "//", "/");
+	pos1 = s.find("/kbe/bin/");
 
 	if(pos1 == std::string::npos)
 		return;

@@ -36,7 +36,16 @@ destPosIdx_(0),
 paths_(paths_ptr),
 maxMoveDistance_(maxMoveDistance)
 {
-	destPos_ = (*paths_)[destPosIdx_++];
+	// 如果我自己是子对象，则把导航数据从世界坐标转換成本地坐标
+	Entity* self = this->pController_->pEntity();
+	if (self && self->parent())
+	{
+		self->parent()->positionWorldToLocal((*paths_)[destPosIdx_++], destPos_);
+	}
+	else
+	{
+		destPos_ = (*paths_)[destPosIdx_++];
+	}
 	
 	updatableName = "NavigateHandler";
 }
@@ -73,10 +82,23 @@ void NavigateHandler::createFromStream(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 bool NavigateHandler::requestMoveOver(const Position3D& oldPos)
 {
-	if(destPosIdx_ == ((int)paths_->size()))
+	if (destPosIdx_ == ((int)paths_->size()))
+	{
 		return MoveToPointHandler::requestMoveOver(oldPos);
+	}
 	else
-		destPos_ = (*paths_)[destPosIdx_++];
+	{
+		// 如果我自己是子对象，则把导航数据从世界坐标转換成本地坐标
+		Entity* self = this->pController_->pEntity();
+		if (self && self->parent())
+		{
+			self->parent()->positionWorldToLocal((*paths_)[destPosIdx_++], destPos_);
+		}
+		else
+		{
+			destPos_ = (*paths_)[destPosIdx_++];
+		}
+	}
 
 	return false;
 }

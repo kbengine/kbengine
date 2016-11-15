@@ -60,8 +60,8 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+				WARNING_MSG(fmt::format(										\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -125,8 +125,8 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+				WARNING_MSG(fmt::format(										\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -193,8 +193,8 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+				WARNING_MSG(fmt::format(										\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -262,8 +262,8 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+				WARNING_MSG(fmt::format(										\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -334,8 +334,8 @@ namespace KBEngine{
 			}																	\
 			else																\
 			{																	\
-				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+				WARNING_MSG(fmt::format(										\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
