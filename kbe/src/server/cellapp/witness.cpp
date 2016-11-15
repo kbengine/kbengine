@@ -736,7 +736,7 @@ bool Witness::update()
 	if(!pChannel)
 		return true;
 
-	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfCleint())
+	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		
