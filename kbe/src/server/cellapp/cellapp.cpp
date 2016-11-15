@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/telnet_server.h"
 #include "dbmgr/dbmgr_interface.h"
 #include "navigation/navigation.h"
+#include "loadnavmesh_threadtasks.h"
 #include "client_lib/client_interface.h"
 
 #include "../../server/baseappmgr/baseappmgr_interface.h"
@@ -174,8 +175,7 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createEntity,					METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,					METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addGeometryMapping,				Space::__py_AddGeometryMapping,		METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,METH_VARARGS,			0);	
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		Space::__py_GetSpaceGeometryMapping,METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		setSpaceData,					Space::__py_SetSpaceData,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceData,					Space::__py_GetSpaceData,			METH_VARARGS,			0);
@@ -183,6 +183,7 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,				METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,						METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		raycast,						__py_raycast,						METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		loadGeometryMapping,			__py_LoadGeometryMapping,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		navigatePathPoints,				__py_navigatePathPoints,			METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		setAppFlags,					__py_setFlags,						METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		getAppFlags,					__py_getFlags,						METH_VARARGS,			0);
@@ -2161,6 +2162,118 @@ PyObject* Cellapp::__py_navigatePathPoints(PyObject* self, PyObject* args)
 
 	return pyList;
 }
+
+PyObject* Cellapp::__py_LoadGeometryMapping(PyObject* self, PyObject* args)
+{
+	char* path = NULL;
+	bool shouldLoadOnServer = true;
+	PyObject* mapper = NULL;
+	PyObject* py_params = NULL;
+	std::map< int, std::string > params;
+
+	int argCount = PyTuple_Size(args);
+	if (argCount < 2 || argCount > 4)
+	{
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 2 || > 4) is error!");
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (argCount == 3)
+	{
+		if (PyArg_ParseTuple(args, "O|s|b", &mapper, &path, &shouldLoadOnServer) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else if (argCount == 4)
+	{
+		if (PyArg_ParseTuple(args, "O|s|b|O", &mapper, &path, &shouldLoadOnServer, &py_params) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+
+		if (py_params)
+		{
+			PyObject *key, *value;
+			Py_ssize_t pos = 0;
+
+			if (!PyDict_Check(py_params))
+			{
+				PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) not is PyDict!");
+				PyErr_PrintEx(0);
+				return 0;
+			}
+
+			while (PyDict_Next(py_params, &pos, &key, &value))
+			{
+				if (!PyLong_Check(key) || !PyUnicode_Check(value))
+				{
+					PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) is error!");
+					PyErr_PrintEx(0);
+					return 0;
+				}
+
+				long i = PyLong_AsLong(key);
+
+				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(value, NULL);
+				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+				PyMem_Free(PyUnicode_AsWideCharStringRet0);
+				params[i] = ccattr;
+				free(ccattr);
+			}
+
+			SCRIPT_ERROR_CHECK();
+		}
+	}
+	else
+	{
+		if (PyArg_ParseTuple(args, "O|s", &mapper, &path) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args wrong!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
+	SCRIPT_ERROR_CHECK();
+
+	if (Resmgr::getSingleton().matchPath(path).size() == 0)
+	{
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addGeometryMapping: ( respath=%s) path error!",
+			path);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (!Cellapp::loadGeometryMapping(path, shouldLoadOnServer, params))
+	{
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addGeometryMapping: (spaceID=%u respath=%s) error!",
+			path);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	S_Return;
+}
+
+bool Cellapp::loadGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params)
+{
+	INFO_MSG(fmt::format("KBEngine::addSpaceGeometryMapping:  respath={}, shouldLoadOnServer={}!\n",
+		respath, shouldLoadOnServer));
+
+	if (shouldLoadOnServer)
+		Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(respath, 0, params));
+
+	return true;
+}
+
 
 //-------------------------------------------------------------------------------------
 PyObject* Cellapp::__py_getFlags(PyObject* self, PyObject* args)
