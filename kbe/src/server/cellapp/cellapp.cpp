@@ -826,6 +826,7 @@ void Cellapp::onBroadcastCellAppDataChanged(Network::Channel* pChannel, KBEngine
 	}
 
 	Py_DECREF(pyKey);
+
 }
 
 //-------------------------------------------------------------------------------------
@@ -2274,6 +2275,14 @@ bool Cellapp::loadGeometryMapping(std::string respath, bool shouldLoadOnServer, 
 	return true;
 }
 
+void Cellapp::onLoadedGeometryMapping(std::string path_)
+{
+
+	// Í¨Öª½Å±¾
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCRIPT_OBJECT_CALL_ARGS1(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onGeometryLoaded"),
+		const_cast<char*>("s"), path_.c_str());
+}
 
 //-------------------------------------------------------------------------------------
 PyObject* Cellapp::__py_getFlags(PyObject* self, PyObject* args)

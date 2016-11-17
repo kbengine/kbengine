@@ -315,14 +315,14 @@ int NavMeshHandle::findStraightPath(int layer, uint16 flags, const Position3D& s
 	
 	// dtNavMesh* 
 	float spos[3];
-	spos[0] = start.x * UNIT_CONVERSION;
+	spos[0] = start.z * UNIT_CONVERSION * -1;
 	spos[1] = start.y * UNIT_CONVERSION;
-	spos[2] = start.z * UNIT_CONVERSION;
+	spos[2] = start.x * UNIT_CONVERSION * -1;
 
 	float epos[3];
-	epos[0] = end.x * UNIT_CONVERSION;
+	epos[0] = end.z * UNIT_CONVERSION * -1;
 	epos[1] = end.y * UNIT_CONVERSION;
-	epos[2] = end.z * UNIT_CONVERSION;
+	epos[2] = end.x * UNIT_CONVERSION * -1;
 	
 	dtQueryFilter filter;
 	filter.setIncludeFlags(flags);
@@ -368,9 +368,10 @@ int NavMeshHandle::findStraightPath(int layer, uint16 flags, const Position3D& s
 		Position3D currpos;
 		for (int i = 0; i < nstraightPath * 3;)
 		{
-			currpos.x = straightPath[i++] / UNIT_CONVERSION;
-			currpos.y = straightPath[i++] / UNIT_CONVERSION;
-			currpos.z = straightPath[i++] / UNIT_CONVERSION;
+			float point[3] = { straightPath[i++] / UNIT_CONVERSION, straightPath[i++] / UNIT_CONVERSION, straightPath[i++] / UNIT_CONVERSION };
+			currpos.x = point[2] * -1;
+			currpos.y = point[1];
+			currpos.z = point[0] * -1;
 
 			paths.push_back(currpos);
 			pos++;
@@ -411,9 +412,9 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, uint16 flags, const Po
 			dtStatus status = navmeshQuery->findRandomPoint(&filter, frand, &ref, pt);
 			if (dtStatusSucceed(status))
 			{
-				currpos.x = pt[0] / UNIT_CONVERSION;
+				currpos.x = pt[2] / UNIT_CONVERSION * -1;
 				currpos.y = pt[1] / UNIT_CONVERSION;
-				currpos.z = pt[2] / UNIT_CONVERSION;
+				currpos.z = pt[0] / UNIT_CONVERSION * -1;
 
 				points.push_back(currpos);
 			}
@@ -427,9 +428,9 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, uint16 flags, const Po
 	dtPolyRef startRef = INVALID_NAVMESH_POLYREF;
 
 	float spos[3];
-	spos[0] = centerPos.x * UNIT_CONVERSION;
+	spos[0] = centerPos.z * UNIT_CONVERSION * -1;
 	spos[1] = centerPos.y * UNIT_CONVERSION;
-	spos[2] = centerPos.z * UNIT_CONVERSION;
+	spos[2] = centerPos.x * UNIT_CONVERSION * -1;
 
 	float startNearestPt[3];
 	navmeshQuery->findNearestPoly(spos, extents, &filter, &startRef, startNearestPt);
@@ -449,9 +450,9 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, uint16 flags, const Po
 		dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxRadius, &filter, frand, &ref, pt);
 		if (dtStatusSucceed(status))
 		{
-			currpos.x = pt[0] / UNIT_CONVERSION;
+			currpos.x = pt[2] / UNIT_CONVERSION * -1;
 			currpos.y = pt[1] / UNIT_CONVERSION;
-			currpos.z = pt[2] / UNIT_CONVERSION;
+			currpos.z = pt[0] / UNIT_CONVERSION * -1;
 
 			points.push_back(currpos);
 		}
@@ -475,14 +476,14 @@ int NavMeshHandle::raycast(int layer, uint16 flags, const Position3D& start, con
 	float hitPoint[3];
 
 	float spos[3];
-	spos[0] = start.x * UNIT_CONVERSION;
+	spos[0] = start.z * UNIT_CONVERSION * -1;
 	spos[1] = start.y * UNIT_CONVERSION;
-	spos[2] = start.z * UNIT_CONVERSION;
+	spos[2] = start.x * UNIT_CONVERSION * -1;
 
 	float epos[3];
-	epos[0] = end.x * UNIT_CONVERSION;
+	epos[0] = end.z * UNIT_CONVERSION * -1;
 	epos[1] = end.y * UNIT_CONVERSION;
-	epos[2] = end.z * UNIT_CONVERSION;
+	epos[2] = end.x * UNIT_CONVERSION * -1;
 
 	dtQueryFilter filter;
 	filter.setIncludeFlags(flags);
@@ -528,7 +529,7 @@ int NavMeshHandle::raycast(int layer, uint16 flags, const Position3D& start, con
 		}
 	}
 
-	hitPointVec.push_back(Position3D(hitPoint[0] / UNIT_CONVERSION, hitPoint[1] / UNIT_CONVERSION, hitPoint[2] / UNIT_CONVERSION));
+	hitPointVec.push_back(Position3D(hitPoint[2] / UNIT_CONVERSION * -1, hitPoint[1] / UNIT_CONVERSION, hitPoint[0] / UNIT_CONVERSION * -1));
 	return 1;
 }
 #endif

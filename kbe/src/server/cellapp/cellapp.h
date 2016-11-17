@@ -266,6 +266,8 @@ public:
 	static PyObject* __py_LoadGeometryMapping(PyObject* self, PyObject* args);
 	static bool loadGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params);
 
+	static void onLoadedGeometryMapping(std::string path_);
+
 	uint32 flags() const { return flags_; }
 	void flags(uint32 v) { flags_ = v; }
 	static PyObject* __py_setFlags(PyObject* self, PyObject* args);

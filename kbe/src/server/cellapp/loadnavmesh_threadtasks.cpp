@@ -17,7 +17,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include "cellapp.h"
 #include "space.h"	
 #include "spaces.h"	
 #include "loadnavmesh_threadtasks.h"
@@ -51,6 +51,12 @@ thread::TPTask::TPTaskState LoadNavmeshTask::presentMainThread()
 		{
 			pSpace->onLoadedSpaceGeometryMapping(pNavigationHandle);
 		}
+	}
+	else
+	{
+		// Í¨Öª½Å±¾
+		Cellapp::onLoadedGeometryMapping(resPath_);
+		
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED; 
