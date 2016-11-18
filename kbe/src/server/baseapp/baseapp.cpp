@@ -948,7 +948,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -1292,7 +1292,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -1802,7 +1802,7 @@ PyObject* Baseapp::__py_createBaseRemotelyFromDBID(PyObject* self, PyObject* arg
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -3205,7 +3205,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	PyObject* pyDatas = NULL, *pycallback = NULL;
 	char* pChargeID = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 
 	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
 	{
@@ -4835,7 +4835,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 	char* entityType = NULL;
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 	std::string dbInterfaceName = "default";
 
 	if (currargsSize == 3)
@@ -5007,7 +5007,7 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 	
 	char* entityType = NULL;
 	PyObject* pycallback = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 	std::string dbInterfaceName = "default";
 
 	if (currargsSize == 3)
