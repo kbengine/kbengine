@@ -23,10 +23,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "range_trigger.h"
 
-#ifndef CODE_INLINE
-#include "aoi_trigger.inl"
-#endif
-
 namespace KBEngine{
 
 class Witness;

@@ -166,7 +166,6 @@ public:
 				pActiveTimerHandle_ = new TimerHandle();
 				(*pActiveTimerHandle_) = DebugHelper::getSingleton().pDispatcher()->addTimer(1000000 / 10,
 												this, (void *)TIMEOUT_ACTIVE_TICK);
-
 			}
 		}
 	}
@@ -178,7 +177,7 @@ private:
 DebugHelperSyncHandler* g_pDebugHelperSyncHandler = NULL;
 
 //-------------------------------------------------------------------------------------
-DebugHelper::DebugHelper():
+DebugHelper::DebugHelper() :
 _logfile(NULL),
 _currFile(),
 _currFuncName(),
@@ -191,7 +190,14 @@ pNetworkInterface_(NULL),
 pDispatcher_(NULL),
 scriptMsgType_(log4cxx::ScriptLevel::SCRIPT_INT),
 noSyncLog_(false),
-canLogFile_(true)
+canLogFile_(true),
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+mainThreadID_(GetCurrentThreadId()),
+#else
+mainThreadID_(pthread_self()),
+#endif
+memoryStreamPool_("DebugHelperMemoryStream")
 {
 	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
 }
@@ -326,10 +332,18 @@ void DebugHelper::clearBufferedLog(bool destroy)
 			bufferedLogPackets_.pop();
 			delete pBundle;
 		}
+
+		while (!childThreadBufferedLogPackets_.empty())
+		{
+			MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
+			childThreadBufferedLogPackets_.pop();
+			delete pMemoryStream;
+		}
 	}
 	else
 	{
 		Network::Bundle::ObjPool().reclaimObject(bufferedLogPackets_);
+		memoryStreamPool_.reclaimObject(childThreadBufferedLogPackets_);
 	}
 
 	Network::g_trace_packet = v;
@@ -351,6 +365,28 @@ void DebugHelper::sync()
 	{
 		unlockthread();
 		return;
+	}
+
+	// 将子线程日志放入bufferedLogPackets_
+	while (childThreadBufferedLogPackets_.size() > 0)
+	{
+		// 从主对象池取出一个对象，将子线程中对象vector内存交换进去
+		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
+		childThreadBufferedLogPackets_.pop();
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		bufferedLogPackets_.push(pBundle);
+
+		pBundle->newMessage(LoggerInterface::writeLog);
+		pBundle->finiCurrPacket();
+		pBundle->newPacket();
+
+		// 将他们的内存交换进去
+		pBundle->pCurrPacket()->swap(*pMemoryStream);
+		pBundle->currMsgLength(pBundle->currMsgLength() + pBundle->pCurrPacket()->length());
+
+		// 将所有对象交还给对象池
+		memoryStreamPool_.reclaimObject(pMemoryStream);
 	}
 
 	if(Network::Address::NONE == loggerAddr_)
@@ -474,6 +510,10 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		if(lid == KBELOG_ERROR || lid == KBELOG_CRITICAL)
 			syslog( LOG_CRIT, "%s", str );
 	}
+
+	bool isMainThread = (mainThreadID_ == pthread_self());
+#else
+	bool isMainThread = (mainThreadID_ == GetCurrentThreadId());
 #endif
 
 	if(length <= 0 || noSyncLog_)
@@ -485,50 +525,75 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 		g_componentType == CLIENT_TYPE)
 		return;
 
-	if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0 && hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+	if (!isMainThread)
 	{
-		int8 v = Network::g_trace_packet;
-		Network::g_trace_packet = 0;
+		MemoryStream* pMemoryStream = memoryStreamPool_.createObject();
+
+		(*pMemoryStream) << getUserUID();
+		(*pMemoryStream) << logType;
+		(*pMemoryStream) << g_componentType;
+		(*pMemoryStream) << g_componentID;
+		(*pMemoryStream) << g_componentGlobalOrder;
+		(*pMemoryStream) << g_componentGroupOrder;
+
+		struct timeb tp;
+		ftime(&tp);
+
+		int64 t = tp.time;
+		(*pMemoryStream) << t;
+		uint32 millitm = tp.millitm;
+		(*pMemoryStream) << millitm;
+		pMemoryStream->appendBlob(str, length);
+
+		childThreadBufferedLogPackets_.push(pMemoryStream);
+	}
+	else
+	{
+		if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0 && hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+		{
+			int8 v = Network::g_trace_packet;
+			Network::g_trace_packet = 0;
 
 #ifdef NO_USE_LOG4CXX
 #else
-		LOG4CXX_WARN(g_logger, fmt::format("DebugHelper::onMessage: bufferedLogPackets is full({} > kbengine_defs.xml->logger->tick_max_buffered_logs->{}), discard logs!\n", 
-			hasBufferedLogPackets_, g_kbeSrvConfig.tickMaxBufferedLogs()));
+			LOG4CXX_WARN(g_logger, fmt::format("DebugHelper::onMessage: bufferedLogPackets is full({} > kbengine[_defs].xml->logger->tick_max_buffered_logs->{}), discard logs!\n", 
+				hasBufferedLogPackets_, g_kbeSrvConfig.tickMaxBufferedLogs()));
 #endif
 
-		Network::g_trace_packet = v;
+			Network::g_trace_packet = v;
 
-		clearBufferedLog();
-		return;
+			clearBufferedLog();
+			return;
+		}
+
+		int8 trace_packet = Network::g_trace_packet;
+		Network::g_trace_packet = 0;
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+
+		pBundle->newMessage(LoggerInterface::writeLog);
+
+		(*pBundle) << getUserUID();
+		(*pBundle) << logType;
+		(*pBundle) << g_componentType;
+		(*pBundle) << g_componentID;
+		(*pBundle) << g_componentGlobalOrder;
+		(*pBundle) << g_componentGroupOrder;
+
+		struct timeb tp;
+		ftime(&tp);
+
+		int64 t = tp.time;
+		(*pBundle) << t;
+		uint32 millitm = tp.millitm;
+		(*pBundle) << millitm;
+		pBundle->appendBlob(str, length);
+
+		bufferedLogPackets_.push(pBundle);
+		Network::g_trace_packet = trace_packet;
+		g_pDebugHelperSyncHandler->startActiveTick();
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-
-	int8 v = Network::g_trace_packet;
-	Network::g_trace_packet = 0;
-	pBundle->newMessage(LoggerInterface::writeLog);
-
-	(*pBundle) << getUserUID();
-	(*pBundle) << logType;
-	(*pBundle) << g_componentType;
-	(*pBundle) << g_componentID;
-	(*pBundle) << g_componentGlobalOrder;
-	(*pBundle) << g_componentGroupOrder;
-
-	struct timeb tp;
-	ftime(&tp);
-
-	int64 t = tp.time;
-	(*pBundle) << t;
-	uint32 millitm = tp.millitm;
-	(*pBundle) << millitm;
-	pBundle->appendBlob(str, length);
-	
 	++hasBufferedLogPackets_;
-	bufferedLogPackets_.push(pBundle);
-
-	Network::g_trace_packet = v;
-	g_pDebugHelperSyncHandler->startActiveTick();
 }
 
 //-------------------------------------------------------------------------------------

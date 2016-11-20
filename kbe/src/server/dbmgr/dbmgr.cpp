@@ -328,7 +328,7 @@ bool Dbmgr::initDB()
 	ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
 	if (dbcfg.dbInterfaceInfos.size() == 0)
 	{
-		ERROR_MSG(fmt::format("DBUtil::initialize: not found dbInterface! (kbengine_defs.xml->dbmgr->databaseInterfaces)\n"));
+		ERROR_MSG(fmt::format("DBUtil::initialize: not found dbInterface! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n"));
 		return false;
 	}
 
@@ -371,7 +371,7 @@ bool Dbmgr::initDB()
 
 	if (!hasDefaultInterface)
 	{
-		ERROR_MSG("Dbmgr::initDB(): \"default\" dbInterface was not found! (kbengine_defs.xml->dbmgr->databaseInterfaces)\n");
+		ERROR_MSG("Dbmgr::initDB(): \"default\" dbInterface was not found! (kbengine[_defs].xml->dbmgr->databaseInterfaces)\n");
 		return false;
 	}
 
@@ -396,7 +396,7 @@ void Dbmgr::onReqAllocEntityID(Network::Channel* pChannel, COMPONENT_ORDER compo
 
 	// 获取一个id段 并传输给IDClient
 	std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	if(ct == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onReqAllocEntityID);
@@ -480,7 +480,7 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 				if((*fiter).cid == componentID)
 					continue;
 
-				Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 				ENTITTAPP_COMMON_NETWORK_MESSAGE(broadcastCpTypes[idx], (*pBundle), onGetEntityAppFromDbmgr);
 				
 				if(tcomponentType == BASEAPP_TYPE)

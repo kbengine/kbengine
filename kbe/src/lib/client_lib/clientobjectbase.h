@@ -257,10 +257,11 @@ public:
 	virtual void onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-		服务器更新avatar基础位置
+		服务器更新avatar基础位置和朝向
 	*/
-	virtual void onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s);
-	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s);
+	virtual void onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z);
+	virtual void onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z);
+	virtual void onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器更新VolatileData
@@ -317,6 +318,11 @@ public:
 	virtual void onStreamDataCompleted(Network::Channel* pChannel, int16 id);
 
 	/** 网络接口
+		服务器告诉客户端：你当前（取消）控制谁的位移同步
+	*/
+	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
+
+	/** 网络接口
 		接收到ClientMessages(通常是web等才会应用到)
 	*/
 	virtual void onImportClientMessages(Network::Channel* pChannel, MemoryStream& s){}
@@ -350,8 +356,6 @@ public:
 		获得player实例
 	*/
 	client::Entity* pPlayer();
-	void setPlayerPosition(float x, float y, float z){ entityPos_ = Position3D(x, y, z); }
-	void setPlayerDirection(float roll, float pitch, float yaw){ entityDir_ = Direction3D(roll, pitch, yaw); }
 
 	void setTargetID(ENTITY_ID id){ 
 		targetID_ = id; 
@@ -368,7 +372,7 @@ public:
 		space相关操作接口
 		服务端添加了某个space的几何映射
 	*/
-	void addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath);
+	virtual void addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath);
 	virtual void onAddSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath){}
 	virtual void onLoadedSpaceGeometryMapping(SPACE_ID spaceID){
 		isLoadedGeometry_ = true;
@@ -376,9 +380,9 @@ public:
 
 	const std::string& getGeometryPath();
 	
-	void initSpaceData(Network::Channel* pChannel, MemoryStream& s);
-	void setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
-	void delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
+	virtual void initSpaceData(Network::Channel* pChannel, MemoryStream& s);
+	virtual void setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value);
+	virtual void delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key);
 	bool hasSpaceData(const std::string& key);
 	const std::string& getSpaceData(const std::string& key);
 	static PyObject* __py_GetSpaceData(PyObject* self, PyObject* args);
@@ -398,6 +402,11 @@ public:
 
 	Network::NetworkInterface* pNetworkInterface()const { return &networkInterface_; }
 
+	/** 网络接口
+		服务器心跳返回
+	*/
+	void onAppActiveTickCB(Network::Channel* pChannel);
+
 protected:				
 	int32													appID_;
 
@@ -412,9 +421,6 @@ protected:
 
 	ENTITY_ID												entityID_;
 	SPACE_ID												spaceID_;
-
-	Position3D												entityPos_;
-	Direction3D												entityDir_;
 
 	DBID													dbid_;
 

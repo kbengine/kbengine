@@ -43,7 +43,7 @@ public:
 	DBThreadPool(const std::string& dbinterfaceName);
 	~DBThreadPool();
 
-	virtual thread::TPThread* createThread(int threadWaitSecond = 0);
+	virtual thread::TPThread* createThread(int threadWaitSecond = 0, bool threadStartsImmediately = true);
 
 	virtual std::string name() const{ return std::string("DBThreadPool/") + dbinterfaceName_; }
 

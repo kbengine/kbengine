@@ -110,7 +110,7 @@ typedef G3D::Vector3							Vector3;
 typedef G3D::Vector4							Vector4;
 
 #define KBE_PI									3.1415926535898
-#define KBE_2PI									KBE_PI * 2
+#define KBE_2PI									6.2831853071796
 #define KBE_DegreeToRadian						G3D::toRadians
 #define KBE_RadianToDegree						G3D::toRadians
 	
@@ -194,6 +194,13 @@ struct Direction3D																										// 表示方向位置变量类型
 	Direction3D():dir(0.f, 0.f, 0.f) {};
 	Direction3D(const Vector3 & v):dir(v){}
 	Direction3D(float r, float p, float y):dir(r, p, y){}
+	Direction3D(const Direction3D & v) :dir(v.dir){}
+
+	Direction3D& operator=(const Direction3D& v)
+	{
+		dir = v.dir;
+		return *this;
+	}
 
 	float roll() const{ return dir.x; }		
 	float pitch() const{ return dir.y; }		

@@ -52,8 +52,10 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<Channel>& ObjPool();
+	static Channel* createPoolObject();
+	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
-	void onReclaimObject();
+	virtual void onReclaimObject();
 	virtual size_t getPoolObjectBytes();
 
 	enum Traits
@@ -116,10 +118,16 @@ public:
 	typedef std::vector<Bundle*> Bundles;
 	Bundles & bundles();
 	
+	/**
+		创建发送bundle，该bundle可能是从send放入发送队列中获取的，如果队列为空
+		则创建一个新的
+	*/
+	Bundle* createSendBundle();
+	
 	int32 bundlesLength();
 
 	const Bundles & bundles() const;
-
+	INLINE void pushBundle(Bundle* pBundle);
 	void clearBundle();
 
 	bool sending() const { return (flags_ & FLAG_SENDING) > 0;}
@@ -188,6 +196,10 @@ public:
 		ChannelID id = CHANNEL_ID_NULL);
 
 	bool finalise();
+
+	ChannelTypes type() const {
+		return channelType_;;
+	}
 
 private:
 

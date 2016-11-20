@@ -1,0 +1,90 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+<div class="row placeholders">
+  <div class="components-run-block">
+    <table class="table table-bordered table-condensed">
+      <tbody>
+        <tr>
+          <th colspan="2" align="left">KBEngine组件将使用以下用户启动</th>
+        </tr>
+        <tr><td>用户名</td><td>{{ request.session.sys_user }}</td></tr>
+        <tr><td>用户ID</td><td>{{ request.session.sys_uid  }}</td></tr>
+        <tr><td>kbe_root</td><td>{{ request.session.kbe_root  }}</td></tr>
+        <tr><td>kbe_res_path</td><td>{{ request.session.kbe_res_path  }}</td></tr>
+        <tr><td>kbe_bin_path</td><td>{{ request.session.kbe_bin_path  }}</td></tr>
+      </tbody>
+    </table>
+    <br/>
+    <form action="" method="post" name="form1" id="form1">
+      <table class="table table-bordered table-condensed">
+          <tbody>
+            <tr>
+                <th colspan="2" align="left"> 启动 </th>
+            </tr>
+            <tr>
+              <td>组件名</td>
+              <td>
+                  <select name="componentType" class="form-control" id="componentType">
+                      <option value="1" class="c_userid">dbmgr</option>
+                      <option value="2" class="c_userid">loginapp</option>
+                      <option value="3" class="c_userid">baseappmgr</option>
+                      <option value="4" class="c_userid">cellappmgr</option>
+                      <option value="5" selected class="c_userid">cellapp</option>
+                      <option value="6" class="c_userid">baseapp</option>
+                      <option value="10" class="c_userid">logger</option>
+                      <option value="11" class="c_userid">bots</option>
+                      <option value="13" class="c_userid">interfaces</option>
+                  </select>
+              </td>
+            </tr>
+            <tr>
+              <td>运行机器</td>
+              <td>
+                  <select name="targetMachine" class="form-control" id="targetMachine">
+                    {% for machine in machines %}
+                      <option value="{{ machine.intaddr }}">{{ machine.intaddr }}</option>
+                    {% endfor %}
+                  </select>
+              </td>
+              </td>
+            </tr>
+            <tr>
+              <td>启动数量</td>
+              <td>
+                <input name="runNumber" type="number" id="runNumber" class="btn btn-default" value="1">
+              </td>
+            </tr>
+            {% if error %}
+            <tr>
+              <td colspan="2"><p class="text-danger">{{ error }}</p></td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td></td>
+              <td><input type="button" name="button" id="button" class="btn btn-default" value="启动" onClick="run_components()">
+              <input name="run" type="hidden" id="run" value="1"></td>
+            </tr>
+          </tbody>
+      </table>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script>
+  $(".components-manage").addClass("active");
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .components .dd").show();
+  $(".kbe-list .components ").css({"background-color":"#317eb4"});
+  $(".kbe-list .components").find('li').addClass("menu_chioce");
+    function run_components()
+    {
+        $("#form1").submit();
+        layer.msg('运行中……', {icon: 16, time: 10000});
+    }
+
+</script>
+    
+{% endblock %}

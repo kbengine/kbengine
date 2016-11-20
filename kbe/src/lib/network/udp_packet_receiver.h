@@ -45,6 +45,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< UDPPacketReceiver > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<UDPPacketReceiver>& ObjPool();
+	static UDPPacketReceiver* createPoolObject();
+	static void reclaimPoolObject(UDPPacketReceiver* obj);
 	static void destroyObjPool();
 
 	UDPPacketReceiver():PacketReceiver(){}

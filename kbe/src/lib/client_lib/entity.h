@@ -93,6 +93,17 @@ public:
 	DECLARE_PY_GETSET_MOTHOD(pyGetDirection, pySetDirection);
 	
 	/**
+		实体客户端的位置和朝向
+	*/
+	INLINE Position3D& clientPos();
+	INLINE void clientPos(const Position3D& pos);
+	INLINE void clientPos(float x, float y, float z);
+
+	INLINE Direction3D& clientDir();
+	INLINE void clientDir(const Direction3D& dir);
+	INLINE void clientDir(float roll, float pitch, float yaw);
+
+	/**
 		移动速度
 	*/
 	INLINE void moveSpeed(float speed);
@@ -163,6 +174,11 @@ public:
 		服务器更新entity属性
 	*/
 	void onUpdatePropertys(MemoryStream& s);
+	
+	/**
+	    用于Entity的数据第一次设置时，决定是否要回调脚本层的set_*方法
+	*/
+	void callPropertysSetMethods();
 
 	bool inWorld() const{ return enterworld_; }
 
@@ -172,12 +188,18 @@ public:
 	bool isOnGround() const { return isOnGround_;}
 	void isOnGround(bool v) { isOnGround_ = v;}
 
+	INLINE bool isInited();
+	INLINE void isInited(bool status);
+
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox
 	EntityMailbox*							baseMailbox_;						// 这个entity的base-mailbox
 
 	Position3D								position_, serverPosition_;			// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向
+
+	Position3D								clientPos_;							// 客户端位置，如果实体被客户端控制用于向服务器同步位置
+	Direction3D								clientDir_;							// 客户端朝向，如果实体被客户端控制用于向服务器同步朝向
 
 	ClientObjectBase*						pClientApp_;
 
@@ -190,6 +212,8 @@ protected:
 	bool									isOnGround_;
 
 	ScriptID								pMoveHandlerID_;
+	
+	bool									inited_;							// __init__调用之后设置为true
 };																										
 
 }

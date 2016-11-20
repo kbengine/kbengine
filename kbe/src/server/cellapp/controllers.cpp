@@ -42,6 +42,7 @@ entityID_(entityID)
 //-------------------------------------------------------------------------------------
 Controllers::~Controllers()
 {
+	clear();
 }
 
 //-------------------------------------------------------------------------------------
@@ -94,7 +95,7 @@ bool Controllers::remove(uint32 id)
 //-------------------------------------------------------------------------------------
 void Controllers::addToStream(KBEngine::MemoryStream& s)
 {
-	uint32 size = objects_.size();
+	uint32 size = (uint32)objects_.size();
 	s << lastid_ << size;
 
 	CONTROLLERS_MAP::iterator iter = objects_.begin();

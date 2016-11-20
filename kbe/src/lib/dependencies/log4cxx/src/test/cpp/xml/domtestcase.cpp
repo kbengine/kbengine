@@ -190,9 +190,9 @@ public:
                 DOMConfigurator::configure(LOG4CXX_TEST_STR("input/xml/DOMTestCase3.xml"));
                 LOG4CXX_INFO(logger, "File name is expected to end with a superscript 3");
 #if LOG4CXX_LOGCHAR_IS_UTF8
-                const logchar fname[] = { 0x6F, 0x75, 0x74, 0x70, 0x75, 0x74, 0x2F, 0x64, 0x6F, 0x6D, 0xC2, 0xB3, 0 };
+                const logchar fname[] = { (logchar)0x6F, (logchar)0x75, (logchar)0x74, (logchar)0x70, (logchar)0x75, (logchar)0x74, (logchar)0x2F, (logchar)0x64, (logchar)0x6F, (logchar)0x6D, (logchar)0xC2, (logchar)0xB3, 0 };
 #else
-                const logchar fname[] = { 0x6F, 0x75, 0x74, 0x70, 0x75, 0x74, 0x2F, 0x64, 0x6F, 0x6D, 0xB3, 0 };
+                const logchar fname[] = { (logchar)0x6F, (logchar)0x75, (logchar)0x74, (logchar)0x70, (logchar)0x75, (logchar)0x74, (logchar)0x2F, (logchar)0x64, (logchar)0x6F, (logchar)0x6D, (logchar)0xB3, 0 };
 #endif
                 File file;
                 file.setPath(fname);
@@ -209,9 +209,9 @@ public:
                 DOMConfigurator::configure(LOG4CXX_TEST_STR("input/xml/DOMTestCase4.xml"));
                 LOG4CXX_INFO(logger, "File name is expected to end with an ideographic 4");
 #if LOG4CXX_LOGCHAR_IS_UTF8
-                const logchar fname[] = { 0x6F, 0x75, 0x74, 0x70, 0x75, 0x74, 0x2F, 0x64, 0x6F, 0x6D, 0xE3, 0x86, 0x95, 0 };
+                const logchar fname[] = { (logchar)0x6F, (logchar)0x75, (logchar)0x74, (logchar)0x70, (logchar)0x75, (logchar)0x74, (logchar)0x2F, (logchar)0x64, (logchar)0x6F, (logchar)0x6D, (logchar)0xE3, (logchar)0x86, (logchar)0x95, 0 };
 #else
-                const logchar fname[] = { 0x6F, 0x75, 0x74, 0x70, 0x75, 0x74, 0x2F, 0x64, 0x6F, 0x6D, 0x3195, 0 };
+                const logchar fname[] = { (logchar)0x6F, (logchar)0x75, (logchar)0x74, (logchar)0x70, (logchar)0x75, (logchar)0x74, (logchar)0x2F, (logchar)0x64, (logchar)0x6F, (logchar)0x6D, (logchar)0x3195, 0 };
 #endif
                 File file;
                 file.setPath(fname);

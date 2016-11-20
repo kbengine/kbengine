@@ -40,10 +40,12 @@ namespace KBEngine{
 #define ENTITY_METHOD_DECLARE_END()																			\
 	SCRIPT_METHOD_DECLARE_END()																				\
 
+
 #define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
 	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
+	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
 
 
 #define ENTITY_GETSET_DECLARE_END()																			\
@@ -64,6 +66,8 @@ namespace KBEngine{
 	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
 	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
 	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
+	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
 
 
 #define CLIENT_ENTITY_GETSET_DECLARE_END()																	\
@@ -277,9 +281,12 @@ namespace KBEngine{
 
 
 // 实体的标志
-#define ENTITY_FLAGS_UNKNOWN		0x00000000
-#define ENTITY_FLAGS_DESTROYING		0x00000001
-#define ENTITY_FLAGS_INITING		0x00000002
+#define ENTITY_FLAGS_UNKNOWN			0x00000000
+#define ENTITY_FLAGS_DESTROYING			0x00000001
+#define ENTITY_FLAGS_INITING			0x00000002
+#define ENTITY_FLAGS_TELEPORT_START		0x00000004
+#define ENTITY_FLAGS_TELEPORT_ARRIVED	0x00000008
+#define ENTITY_FLAGS_TELEPORT_END		0x00000010
 
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
@@ -627,7 +634,7 @@ public:																										\
 				PropertyDescription* propertyDescription = iter->second;									\
 				DataType* dataType = propertyDescription->getDataType();									\
 																											\
-				if(isDestroyed_)																			\
+				if(!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed_)										\
 				{																							\
 					PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",		\
 													scriptName(), ccattr, value->ob_type->tp_name);			\
@@ -714,7 +721,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "O", &pycallback) == -1)											\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -738,7 +745,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "i", &extra) == -1)												\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -751,7 +758,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "O|i", &pycallback, &extra) == -1)								\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -776,7 +783,7 @@ public:																										\
 				PyObject* pystr_extra = NULL;																\
 				if(PyArg_ParseTuple(args, "i|O", &extra, &pystr_extra) == -1)								\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -808,7 +815,7 @@ public:																										\
 				PyObject* pystr_extra = NULL;																\
 				if(PyArg_ParseTuple(args, "O|i|O", &pycallback, &extra, &pystr_extra) == -1)				\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args is error!");				\
+					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -865,11 +872,11 @@ public:																										\
 																											\
 		if(!isDestroyed_)																					\
 		{																									\
+			isDestroyed_ = true;																			\
 			addFlags(ENTITY_FLAGS_DESTROYING);																\
 			onDestroy(callScript);																			\
 			scriptTimers_.cancelAll();																		\
 			removeFlags(ENTITY_FLAGS_DESTROYING);															\
-			isDestroyed_ = true;																			\
 			Py_DECREF(this);																				\
 		}																									\
 	}																										\
@@ -881,6 +888,8 @@ public:																										\
 																											\
 	void destroyEntity();																					\
 	static PyObject* __py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * kwargs);				\
+																											\
+	DECLARE_PY_GET_MOTHOD(pyGetClassName);																	\
 																											\
 	void initProperty(bool isReload = false);																\
 
@@ -949,6 +958,11 @@ public:																										\
 	PyObject* CLASS::pyGetIsDestroyed()																		\
 	{																										\
 		return PyBool_FromLong(isDestroyed());																\
+	}																										\
+																											\
+	PyObject* CLASS::pyGetClassName()																		\
+	{																										\
+		return PyUnicode_FromString(scriptName());															\
 	}																										\
 																											\
 	void CLASS::addPositionAndDirectionToStream(MemoryStream& s, bool useAliasID)							\
@@ -1095,7 +1109,7 @@ public:																										\
 
 
 #define ENTITY_DECONSTRUCTION(CLASS)																		\
-	INFO_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
+	DEBUG_MSG(fmt::format("{}::~{}(): {}\n", scriptName(), scriptName(), id_));								\
 	pScriptModule_ = NULL;																					\
 	isDestroyed_ = true;																					\
 	removeFlags(ENTITY_FLAGS_INITING);																		\

@@ -131,7 +131,7 @@ bool RestoreEntityHandler::process()
 	{
 		if(timestamp() - tickReport_ > uint64( 3 * stampsPerSecond() ))
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			(*pBundle).newMessage(CellappInterface::requestRestore);
 			(*pBundle) << cellappID();
 			pChannel->send(pBundle);
@@ -240,7 +240,7 @@ bool RestoreEntityHandler::process()
 						INFO_MSG(fmt::format("RestoreEntityHandler::process({4}): broadcast baseapp[{0}, {1}], spaceID[{2}], utype[{3}]...\n", 
 							(*comsiter).cid, pChannel->c_str(), spaceID, utype, cellappID_));
 
-						Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+						Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 						(*pBundle).newMessage(BaseappInterface::onRestoreSpaceCellFromOtherBaseapp);
 						(*pBundle) << baseappID << cellappID << spaceID << spaceEntityID << utype << destroyed;
 						pChannel->send(pBundle);

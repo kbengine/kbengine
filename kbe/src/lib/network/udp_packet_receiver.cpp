@@ -45,6 +45,18 @@ ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+UDPPacketReceiver* UDPPacketReceiver::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacketReceiver::reclaimPoolObject(UDPPacketReceiver* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void UDPPacketReceiver::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("UDPPacketReceiver::destroyObjPool(): size {}.\n", 
@@ -76,12 +88,12 @@ UDPPacketReceiver::~UDPPacketReceiver()
 bool UDPPacketReceiver::processRecv(bool expectingPacket)
 {	
 	Address	srcAddr;
-	UDPPacket* pChannelReceiveWindow = UDPPacket::ObjPool().createObject();
+	UDPPacket* pChannelReceiveWindow = UDPPacket::createPoolObject();
 	int len = pChannelReceiveWindow->recvFromEndPoint(*pEndpoint_, &srcAddr);
 
 	if (len <= 0)
 	{
-		UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
+		UDPPacket::reclaimPoolObject(pChannelReceiveWindow);
 		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
 		return rstate == PacketReceiver::RECV_STATE_CONTINUE;
 	}
@@ -90,10 +102,10 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 
 	if(pSrcChannel == NULL) 
 	{
-		EndPoint* pNewEndPoint = EndPoint::ObjPool().createObject();
+		EndPoint* pNewEndPoint = EndPoint::createPoolObject();
 		pNewEndPoint->addr(srcAddr.port, srcAddr.ip);
 
-		pSrcChannel = Network::Channel::ObjPool().createObject();
+		pSrcChannel = Network::Channel::createPoolObject();
 		bool ret = pSrcChannel->initialize(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
 		if(!ret)
 		{
@@ -101,8 +113,8 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 				pSrcChannel->c_str()));
 
 			pSrcChannel->destroy();
-			Network::Channel::ObjPool().reclaimObject(pSrcChannel);
-			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
+			Network::Channel::reclaimPoolObject(pSrcChannel);
+			UDPPacket::reclaimPoolObject(pChannelReceiveWindow);
 			return false;
 		}
 
@@ -111,9 +123,9 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 			ERROR_MSG(fmt::format("UDPPacketReceiver::processRecv: registerChannel({}) is failed!\n",
 				pSrcChannel->c_str()));
 
-			UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
+			UDPPacket::reclaimPoolObject(pChannelReceiveWindow);
 			pSrcChannel->destroy();
-			Network::Channel::ObjPool().reclaimObject(pSrcChannel);
+			Network::Channel::reclaimPoolObject(pSrcChannel);
 			return false;
 		}
 	}
@@ -122,10 +134,10 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 
 	if(pSrcChannel->isCondemn())
 	{
-		UDPPacket::ObjPool().reclaimObject(pChannelReceiveWindow);
+		UDPPacket::reclaimPoolObject(pChannelReceiveWindow);
 		pNetworkInterface_->deregisterChannel(pSrcChannel);
 		pSrcChannel->destroy();
-		Network::Channel::ObjPool().reclaimObject(pSrcChannel);
+		Network::Channel::reclaimPoolObject(pSrcChannel);
 		return false;
 	}
 

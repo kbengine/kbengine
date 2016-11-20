@@ -53,11 +53,11 @@ public:
 	~ErrorReporter();
 
 	void reportException(Reason reason, const Address & addr = Address::NONE,
-			const char * prefix = NULL);
+		const char * prefix = NULL, const char* suffix = NULL);
 	void reportPendingExceptions(bool reportBelowThreshold = false);
 
 private:
-	void reportException(const NetworkException & ne, const char * prefix = NULL);
+	void reportException(const NetworkException & ne, const char * prefix = NULL, const char* suffix = NULL);
 
 	void reportError(const Address & address, const char* format, ...);
 

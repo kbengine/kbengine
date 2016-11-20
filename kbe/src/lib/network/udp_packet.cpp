@@ -39,6 +39,18 @@ ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+UDPPacket* UDPPacket::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacket::reclaimPoolObject(UDPPacket* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void UDPPacket::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("UDPPacket::destroyObjPool(): size {}.\n", 

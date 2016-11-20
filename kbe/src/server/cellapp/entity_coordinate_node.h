@@ -56,9 +56,15 @@ public:
 	virtual void onRemove();
 
 protected:
+	void clearDelWatcherNodes();
+
+protected:
 	Entity* pEntity_;
 
 	std::vector<CoordinateNode*> watcherNodes_;
+	int delWatcherNodeNum_;
+
+	int entityNodeUpdating_;
 };
 
 }

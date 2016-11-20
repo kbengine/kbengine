@@ -87,8 +87,16 @@ public:
 
 	static PyObject* __py_append(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static PyObject* __py_pop(PyObject* self, PyObject* args, PyObject* kwargs);	
+	
 	static Py_ssize_t seq_length(PyObject* self);
 	INLINE int length(void) const;
+
+	static PyObject* __py_bytes(PyObject* self, PyObject* args, PyObject* kwargs);	
+	
+	static PyObject* __py_rpos(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_wpos(PyObject* self, PyObject* args, PyObject* kwargs);
+
+	static PyObject* __py_fill(PyObject* self, PyObject* args, PyObject* kwargs);
 
 protected:
 	MemoryStream stream_;

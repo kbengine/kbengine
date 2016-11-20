@@ -71,9 +71,8 @@ atIdx_(MAILBOXS::size_type(-1))
 //-------------------------------------------------------------------------------------
 EntityMailbox::~EntityMailbox()
 {
-	char s[1024];
-	c_str(s, 1024);
-
+	//char s[1024];
+	//c_str(s, 1024);
 	//DEBUG_MSG(fmt::format("EntityMailbox::~EntityMailbox(): {}.\n", s));
 
 	KBE_ASSERT(atIdx_ < EntityMailbox::mailboxs.size());

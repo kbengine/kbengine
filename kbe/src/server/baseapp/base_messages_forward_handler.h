@@ -27,11 +27,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class Base;
-class BaseMessagesForwardHandler : public Task
+class BaseMessagesForwardCellappHandler : public Task
 {
 public:
-	BaseMessagesForwardHandler(Base* pBase);
-	~BaseMessagesForwardHandler();
+	BaseMessagesForwardCellappHandler(Base* pBase);
+	~BaseMessagesForwardCellappHandler();
 	
 	bool process();
 
@@ -41,6 +41,7 @@ public:
 	void stopForward(){ startForward_ = false; }
 
 	bool isStop() const{ return !startForward_; }
+
 private:
 	Base* pBase_;
 	bool completed_;
@@ -48,6 +49,32 @@ private:
 	bool startForward_;
 };
 
+class BaseMessagesForwardClientHandler : public Task
+{
+public:
+	BaseMessagesForwardClientHandler(Base* pBase, COMPONENT_ID cellappID);
+	~BaseMessagesForwardClientHandler();
+	
+	bool process();
+
+	void pushMessages(Network::Bundle* pBundle);
+
+	void startForward();
+	void stopForward(){ startForward_ = false; }
+
+	bool isStop() const{ return !startForward_; }
+	
+	COMPONENT_ID cellappID() const {
+		return cellappID_;
+	}
+
+private:
+	Base* pBase_;
+	bool completed_;
+	std::vector<Network::Bundle*> bufferedSendToClientMessages_;
+	bool startForward_;
+	COMPONENT_ID cellappID_;
+};
 
 }
 

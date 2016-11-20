@@ -47,7 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 	// 其他组件向app广播自己的接口地址
-	MACHINE_MESSAGE_DECLARE_ARGS24(onBroadcastInterface,			NETWORK_VARIABLE_MESSAGE,
+	MACHINE_MESSAGE_DECLARE_ARGS25(onBroadcastInterface,			NETWORK_VARIABLE_MESSAGE,
 									int32,							uid, 
 									std::string,					username,
 									COMPONENT_TYPE,					componentType, 
@@ -55,6 +55,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 									COMPONENT_ID,					componentIDEx, 
 									COMPONENT_ORDER,				globalorderid, 
 									COMPONENT_ORDER,				grouporderid, 
+									COMPONENT_GUS,					gus,
 									uint32,							intaddr, 
 									uint16,							intport,
 									uint32,							extaddr, 
@@ -105,6 +106,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 
 	// 关闭服务器
 	MACHINE_MESSAGE_DECLARE_STREAM(stopserver,						NETWORK_VARIABLE_MESSAGE)
+
+	// 关闭服务器
+	MACHINE_MESSAGE_DECLARE_STREAM(killserver,						NETWORK_VARIABLE_MESSAGE)
 
 	// 请求强制杀死当前app
 	MACHINE_MESSAGE_DECLARE_STREAM(reqKillServer,					NETWORK_VARIABLE_MESSAGE)

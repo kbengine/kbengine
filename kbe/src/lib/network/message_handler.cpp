@@ -170,6 +170,9 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 		msgHandler->msgID = msgInfo->msgid;
 	}
 	
+	if (g_packetAlwaysContainLength)
+		msgLen = NETWORK_VARIABLE_MESSAGE;
+
 	msgHandler->name = ihName;					
 	msgHandler->pArgs = args;
 	msgHandler->msgLen = msgLen;	

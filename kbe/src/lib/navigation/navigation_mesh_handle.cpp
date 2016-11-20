@@ -191,20 +191,37 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, const Position3D& cent
 	}
 	
 	Position3D currpos;
-	
-	for (uint32 i = 0; i < max_points; i++)
-	{
-		float pt[3];
-		dtPolyRef ref;
-		dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxRadius, &filter, frand, &ref, pt);
-		if (dtStatusSucceed(status))
-		{
-			currpos.x = pt[0];
-			currpos.y = pt[1];
-			currpos.z = pt[2];
+	bool done = false;
+	int itry = 0;
 
-			points.push_back(currpos);
+	while (itry++ < 3 && points.size() == 0)
+	{
+		max_points -= points.size();
+
+		for (uint32 i = 0; i < max_points; i++)
+		{
+			float pt[3];
+			dtPolyRef ref;
+			dtStatus status = navmeshQuery->findRandomPointAroundCircle(startRef, spos, maxRadius, &filter, frand, &ref, pt);
+
+			if (dtStatusSucceed(status))
+			{
+				done = true;
+				currpos.x = pt[0];
+				currpos.y = pt[1];
+				currpos.z = pt[2];
+
+				Position3D v = centerPos - currpos;
+				float dist_len = KBEVec3Length(&v);
+				if (dist_len > maxRadius)
+					continue;
+
+				points.push_back(currpos);
+			}
 		}
+
+		if (!done)
+			break;
 	}
 
 	return (int)points.size();

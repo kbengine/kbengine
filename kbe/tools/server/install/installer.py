@@ -21,7 +21,7 @@ if sys.hexversion >= 0x03000000:
 	if platform.system() == 'Windows':
 		import winreg
 else:
-	import ConfigParser
+	import ConfigParser as configparser
 	import urlparse
 	import httplib
 	
@@ -824,28 +824,34 @@ def modifyKBEConfig():
 		
 	newxml = []
 	for x in f.readlines():
-		if "</dbmgr>" in x:
+		if "</databaseInterfaces>" in x:
 			state = -1
 
 		if state == 0:
-			if "<dbmgr>" in x:
+			if "<databaseInterfaces>" in x:
 				state += 1
 				
 		if state == 1:
-			if "<host>" in x and "localhost" in x:
-				x = x.replace("localhost", mysql_ip)
+			xx = x.replace(" ", "").replace("	", "")
+			if "<host>" in xx:
+				xx = xx.split("</")[0].replace("<host>", "")
+				x = x.replace(xx, mysql_ip)
 
-			if "<port>" in x and "0" in x:
-				x = x.replace("0", mysql_port)
+			if "<port>" in xx:
+				xx = xx.split("</")[0].replace("<port>", "")
+				x = x.replace(xx, mysql_port)
 
-			if "<username>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_name)
+			if "<username>" in xx:
+				xx = xx.split("</")[0].replace("<username>", "")
+				x = x.replace(xx, mysql_kbe_name)
 
-			if "<password>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_password)
+			if "<password>" in xx:
+				xx = xx.split("</")[0].replace("<password>", "")
+				x = x.replace(xx, mysql_kbe_password)
 
-			if "<databaseName>" in x and "kbe" in x:
-				x = x.replace("kbe", mysql_kbe_db_name)
+			if "<databaseName>" in xx:
+				xx = xx.split("</")[0].replace("<databaseName>", "")
+				x = x.replace(xx, mysql_kbe_db_name)
 	                
 		newxml.append(x)
 
@@ -934,18 +940,19 @@ def createDatabase():
 				mysql_port = ret[3].replace('port', '').strip()
 				INFO_MSG("MySQL_Port:" + mysql_port)
 
-				lower_case_table_names = ret[5].replace('lower_case_table_names', '').strip()
+				if platform.system() == 'Windows':
+					lower_case_table_names = ret[5].replace('lower_case_table_names', '').strip()
 
-				mysql_root = ret[7].strip()
+					mysql_root = ret[7].strip()
 
-				if lower_case_table_names != '2':
-					ERROR_MSG('mysql lower_case_table_names not is 2')
-					config, cnf = getMysqlConfig()
-					INFO_MSG('Attempt to modify the [%s]...' % cnf)
-					config.set('mysqld', 'lower_case_table_names', '2')
-					config.write(open(cnf, "w"))
-					restartMsql()
-					continue
+					if lower_case_table_names != '2':
+						ERROR_MSG('mysql lower_case_table_names not is 2')
+						config, cnf = getMysqlConfig()
+						INFO_MSG('Attempt to modify the [%s]...' % cnf)
+						config.set('mysqld', 'lower_case_table_names', '2')
+						config.write(open(cnf, "w"))
+						restartMsql()
+						continue
                 
 				sql = "\"delete from user where user=\'\';FLUSH PRIVILEGES\""
 				cmd = "\"" + mysql_home + ("mysql\" %s%s -hlocalhost -e" % (getRootOpt(mysql_root_password), rootusePortArgs)) + sql + " mysql"

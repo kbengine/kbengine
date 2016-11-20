@@ -32,25 +32,26 @@ namespace KBEngine
 class Deadline
 {
 public:
-	Deadline(uint32 secs):
+	Deadline(uint32 usecs):
 	days(0),
 	hours(0),
 	minutes(0),
 	seconds(0),
-	secs_(secs)
+	secs(usecs)
 	{
-		if(secs > 0)
+		if(usecs > 0)
 		{
-            days = secs / (3600 * 24);
-            int m = secs % (3600 * 24);
-            hours = m / 3600;
-            m = m % 3600;
-            minutes = m / 60;
-            seconds = m % 60;
+	            days = usecs / (3600 * 24);
+	            int m = usecs % (3600 * 24);
+	            hours = m / 3600;
+	            m = m % 3600;
+	            minutes = m / 60;
+	            seconds = m % 60;
 		}
 	}
 	
-	virtual ~Deadline() {}
+	virtual ~Deadline() {
+	}
 
 	std::string print()
 	{
@@ -58,7 +59,7 @@ public:
 	}
 	
 	uint32 days, hours, minutes, seconds;
-	uint32 secs_;
+	uint32 secs;
 };
 
 

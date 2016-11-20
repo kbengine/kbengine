@@ -48,9 +48,9 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(ScriptDefModule* sm, std::string name){ return true; };
+	virtual bool initialize(ScriptDefModule* sm, std::string name) { return true; };
 	
-	virtual EntityTableItem* createItem(std::string type) {return NULL;}
+	virtual EntityTableItem* createItem(std::string type, std::string defaultVal) { return NULL; }
 	
 protected:
 
@@ -69,6 +69,9 @@ public:
 		char ip[MAX_IP];
 		uint16 port;
 		COMPONENT_ID componentID;
+
+		// 由谁记录
+		COMPONENT_ID logger;
 	};
 
 	KBEEntityLogTable(EntityTables* pEntityTables) :

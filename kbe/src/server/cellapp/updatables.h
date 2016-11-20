@@ -40,6 +40,8 @@ public:
 	Updatables();
 	~Updatables();
 
+	void clear();
+
 	bool add(Updatable* updatable);
 	bool remove(Updatable* updatable);
 

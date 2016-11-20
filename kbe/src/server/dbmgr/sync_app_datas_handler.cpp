@@ -95,7 +95,8 @@ bool SyncAppDatasHandler::process()
 
 		COMPONENT_TYPE tcomponentType = cinfos->componentType;
 		if(tcomponentType == BASEAPP_TYPE || 
-			tcomponentType == CELLAPP_TYPE)
+			tcomponentType == CELLAPP_TYPE ||
+			tcomponentType == LOGINAPP_TYPE)
 		{
 			hasApp = true;
 			break;
@@ -130,7 +131,7 @@ bool SyncAppDatasHandler::process()
 			tcomponentType == CELLAPP_TYPE || 
 			tcomponentType == LOGINAPP_TYPE)
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			
 			switch(tcomponentType)
 			{

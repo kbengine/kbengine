@@ -51,7 +51,6 @@ protected:
 	uint32 cbport_;
 };
 
-
 /*
 	账号激活邮件发送线程任务
 */
@@ -69,10 +68,10 @@ public:
 	virtual const char* getopkey(){ return "accountactivate"; }
 	virtual const char* subject();
 	virtual const char* message();
+
 protected:
 
 };
-
 
 /*
 	忘记密码邮件发送线程任务
@@ -91,6 +90,7 @@ public:
 	virtual const char* getopkey(){ return "resetpassword"; }
 	virtual const char* subject();
 	virtual const char* message();
+
 protected:
 
 };
@@ -112,6 +112,7 @@ public:
 	virtual const char* getopkey(){ return "bindmail"; }
 	virtual const char* subject();
 	virtual const char* message();
+
 protected:
 
 };

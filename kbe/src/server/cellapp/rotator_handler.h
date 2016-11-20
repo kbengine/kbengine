@@ -37,8 +37,6 @@ public:
 	RotatorHandler();
 	virtual ~RotatorHandler();
 
-	virtual std::string c_str(){ return "Rotator_Handler"; }
-	
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 
@@ -47,6 +45,14 @@ public:
 	virtual const Direction3D& destDir();
 	virtual bool requestTurnOver();
 	void pController(KBEShared_ptr<Controller> pController){ pController_ = pController; }
+
+	float velocity() const {
+		return velocity_;
+	}
+
+	void velocity(float v) {
+		velocity_ = v;
+	}
 
 protected:
 	Direction3D destDir_;

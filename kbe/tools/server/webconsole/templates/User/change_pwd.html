@@ -1,0 +1,47 @@
+{% extends "User/base.html" %}
+
+{% block content %}
+<div class="row placeholders">
+  <div class="components-run-block">
+    <form action="" method="post" name="form1" id="form1">
+      <table class="table table-condensed">
+          <tbody>
+            <tr>
+                <th colspan="2" align="left">密码修改</th>
+            </tr>
+            <tr>
+              <td>账号名</td>
+              <td>
+                <input name="username" type="text" class="btn btn-default" id="username" value="{{ request.POST.username }}" readonly >
+              </td>
+            </tr>
+            <tr>
+              <td>密码第一次</td>
+              <td><input name="password1" type="password" class="btn btn-default" id="password1"></td>
+            </tr>
+            <tr>
+              <td>密码第二次</td>
+              <td><input name="password2" type="password" class="btn btn-default" id="password2"></td>
+            </tr>
+            {% if error %}
+            <tr>
+                <td colspan="2">
+                    <p class="text-danger">{{ error }}</p>
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td></td>
+              <td><input type="submit" name="submit" id="submit" class="btn btn-default" value="修改">
+              <input name="id" type="hidden" id="submit" value="{{ request.POST.id }}">
+              <input name="commit" type="hidden" id="commit" value="1"></td>
+            </tr>
+          </tbody>
+      </table>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block tail_js %}
+<script>$(".user-manager").addClass("active");</script>
+{% endblock %}

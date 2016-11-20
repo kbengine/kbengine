@@ -83,7 +83,7 @@ void ComponentActiveReportHandler::handleTimeout(TimerHandle handle, void * arg)
 				Components::COMPONENTS::iterator iter = components.begin();
 				for(; iter != components.end(); ++iter)
 				{
-					Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 					COMMON_NETWORK_MESSAGE(componentType, (*pBundle), onAppActiveTick);
 					
 					(*pBundle) << g_componentType;
@@ -92,7 +92,7 @@ void ComponentActiveReportHandler::handleTimeout(TimerHandle handle, void * arg)
 					if((*iter).pChannel != NULL)
 						(*iter).pChannel->send(pBundle);
 					else
-						Network::Bundle::ObjPool().reclaimObject(pBundle);
+						Network::Bundle::reclaimPoolObject(pBundle);
 				}
 
 				ifind++;

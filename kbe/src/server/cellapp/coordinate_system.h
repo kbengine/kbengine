@@ -24,6 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.h"
 #include "common/common.h"	
 
+//#define DEBUG_COORDINATE_SYSTEM
+
 namespace KBEngine{
 
 class CoordinateNode;
@@ -45,7 +47,8 @@ public:
 	bool remove(CoordinateNode* pNode);
 	bool removeReal(CoordinateNode* pNode);
 	void removeDelNodes();
-	
+	void releaseNodes();
+
 	/**
 		当某个节点有变动时，需要更新它在list中的
 		相关位置等信息
@@ -70,6 +73,9 @@ public:
 
 	static bool hasY;
 
+	INLINE void incUpdating();
+	INLINE void decUpdating();
+
 private:
 	uint32 size_;
 
@@ -82,6 +88,8 @@ private:
 	size_t dels_count_;
 
 	int updating_;
+
+	std::list<CoordinateNode*> releases_;
 };
 
 }

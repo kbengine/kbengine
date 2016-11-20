@@ -46,6 +46,8 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< TCPPacketReceiver > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<TCPPacketReceiver>& ObjPool();
+	static TCPPacketReceiver* createPoolObject();
+	static void reclaimPoolObject(TCPPacketReceiver* obj);
 	static void destroyObjPool();
 	
 	TCPPacketReceiver():PacketReceiver(){}

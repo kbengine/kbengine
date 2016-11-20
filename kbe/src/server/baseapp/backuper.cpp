@@ -61,19 +61,22 @@ void Backuper::tick()
 		this->createBackupTable();
 	}
 
+	MemoryStream* s = MemoryStream::createPoolObject();
+	
 	while((numToBackUp > 0) && !backupEntityIDs_.empty())
 	{
 		Base * pBase = Baseapp::getSingleton().findEntity(backupEntityIDs_.back());
 		backupEntityIDs_.pop_back();
 		
-		MemoryStream* s = MemoryStream::ObjPool().createObject();
 		if (pBase && backup(*pBase, *s))
 		{
 			--numToBackUp;
 		}
-
-		MemoryStream::ObjPool().reclaimObject(s);
+		
+		s->clear(false);
 	}
+	
+	MemoryStream::reclaimPoolObject(s);
 }
 
 //-------------------------------------------------------------------------------------

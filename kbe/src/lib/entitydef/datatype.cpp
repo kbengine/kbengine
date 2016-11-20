@@ -1272,8 +1272,20 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 				if(PyObject_IsInstance(pyValue, (PyObject *)stype))
 				{
 					PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
-					id = PyLong_AsLong(pyid);
-					Py_DECREF(pyid);
+
+					if (pyid)
+					{
+						id = PyLong_AsLong(pyid);
+						Py_DECREF(pyid);
+					}
+					else
+					{
+						// 某些情况下会为NULL， 例如：使用了weakproxy，而mailbox已经变为NULL了
+						SCRIPT_ERROR_CHECK();
+						id = 0;
+						cid = 0;
+						break;
+					}
 
 					cid = g_componentID;
 
@@ -1428,8 +1440,8 @@ bool FixedArrayType::initialize(XML* xml, TiXmlNode* node)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedArrayType::initialize: can't found type[{}] by key[{}].\n", 
-				strType.c_str(), "ARRAY"));
+			ERROR_MSG(fmt::format("FixedArrayType::initialize: key[{}] did not find type[{}]!\n", 
+				"ARRAY", strType.c_str()));
 			
 			return false;
 		}			
@@ -1694,7 +1706,8 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 
 		TiXmlNode* typeNode = xml->enterNode(propertiesNode->FirstChild(), "Type");
 		TiXmlNode* PersistentNode = xml->enterNode(propertiesNode->FirstChild(), "Persistent");
-		
+		TiXmlNode* DatabaseLengthNode = xml->enterNode(propertiesNode->FirstChild(), "DatabaseLength");
+
 		bool persistent = true;
 		if(PersistentNode)
 		{
@@ -1703,6 +1716,12 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 			{
 				persistent = false;
 			}
+		}
+
+		uint32 databaseLength = 0;
+		if (DatabaseLengthNode)
+		{
+			databaseLength = xml->getValInt(DatabaseLengthNode);
 		}
 
 		if(typeNode)
@@ -1728,16 +1747,18 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 					if(dataType->getDataType()->type() == DATA_TYPE_MAILBOX)
 					{
 						persistent = false;
-						EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					}
 
 					pDictItemDataType->persistent = persistent;
+					pDictItemDataType->databaseLength = databaseLength;
+					EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
 					DataTypes::addDataType(std::string("_") + KBEngine::StringConv::val2str(KBEngine::genUUID64()) + typeName, dataType);
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found array type[{}] by key[{}].\n", 
-						strType.c_str(), typeName.c_str()));
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find array-type[{}]!\n", 
+						typeName.c_str(), strType.c_str()));
 
 					return false;
 				}
@@ -1761,19 +1782,26 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 					if(dataType->type() == DATA_TYPE_MAILBOX)
 					{
 						persistent = false;
-						EntityDef::md5().append((void*)&persistent, sizeof(bool));
 					}
 
 					pDictItemDataType->persistent = persistent;
+					pDictItemDataType->databaseLength = databaseLength;
+					EntityDef::md5().append((void*)&persistent, sizeof(bool));
+					EntityDef::md5().append((void*)&databaseLength, sizeof(uint32));
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("FixedDictType::initialize: can't found type[{}] by key[{}].\n", 
-						strType.c_str(), typeName.c_str()));
+					ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] did not find type[{}]!\n", 
+						typeName.c_str(), strType.c_str()));
 					
 					return false;
 				}
 			}
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("FixedDictType::initialize: key[{}] no label[\"Type\"], key[{}] will be ignored!\n",
+				typeName, typeName));
 		}
 	}
 	XML_FOR_END(propertiesNode);
@@ -1794,6 +1822,14 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node)
 
 		if(strType.size() > 0)
 			EntityDef::md5().append((void*)strType.c_str(), (int)strType.size());
+	}
+
+	if (keyTypes_.size() == 0)
+	{
+		ERROR_MSG(fmt::format("FixedDictType::initialize(): FIXED_DICT({}) no keys! \n",
+			this->aliasName()));
+
+		return false;
 	}
 
 	return true;
@@ -1873,6 +1909,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 	if(pyRet == NULL || !impl_isSameType(pyRet))
 	{
 		SCRIPT_ERROR_CHECK();
+
 		ERROR_MSG(fmt::format("FixedDictType::impl_createObjFromDict: {}.isSameType() is failed!\n",
 			moduleName_.c_str()));
 		
@@ -1979,8 +2016,8 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
 		PyErr_Format(PyExc_TypeError, 
-			"FIXED_DICT(%s) key no match. size:%d-%d, keyNames=[%s].", 
-			this->aliasName(),dictSize, keyTypes_.size(), 
+			"FIXED_DICT(%s) key does not match! giveKeySize=%d, dictKeySize=%d, dictKeyNames=[%s].", 
+			this->aliasName(), dictSize, keyTypes_.size(), 
 			debugInfos().c_str());
 		
 		PyErr_PrintEx(0);

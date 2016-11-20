@@ -48,6 +48,7 @@ type_(CONTROLLER_TYPE_NORMAL)
 Controller::~Controller()
 {
 	id_ = 0;
+	pControllers_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------

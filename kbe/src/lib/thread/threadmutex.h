@@ -45,7 +45,27 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ namespace thread{
 
-class ThreadMutex 
+class ThreadMutexNull
+{
+public:
+	ThreadMutexNull(void)
+	{
+	}
+
+	virtual ~ThreadMutexNull(void)
+	{
+	}
+
+	virtual void lockMutex(void)
+	{
+	}
+
+	virtual void unlockMutex(void)
+	{
+	}
+};
+
+class ThreadMutex : public ThreadMutexNull
 {
 public:
 	ThreadMutex(void)
@@ -60,17 +80,17 @@ public:
 		THREAD_MUTEX_INIT(mutex_);
 	}
 
-	virtual ~ThreadMutex(void) 
+	virtual ~ThreadMutex(void)
 	{ 
 		THREAD_MUTEX_DELETE(mutex_);
 	}	
 	
-	void lockMutex(void)
+	virtual void lockMutex(void)
 	{
 		THREAD_MUTEX_LOCK(mutex_);
 	}
 
-	void unlockMutex(void)
+	virtual void unlockMutex(void)
 	{
 		THREAD_MUTEX_UNLOCK(mutex_);
 	}

@@ -30,7 +30,7 @@ namespace KBEngine{
 class NavigateHandler : public MoveToPointHandler
 {
 public:
-	NavigateHandler(KBEShared_ptr<Controller> pController, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
+	NavigateHandler(KBEShared_ptr<Controller>& pController, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
 		float maxMoveDistance, VECTOR_POS3D_PTR paths_ptr,
 		PyObject* userarg);
 
@@ -44,7 +44,7 @@ public:
 
 	virtual bool isOnGround(){ return true; }
 
-	virtual MoveType type() const{ return MOVE_TYPE_NAV; }
+	virtual MoveType type() const { return MOVE_TYPE_NAV; }
 
 protected:
 	int destPosIdx_;

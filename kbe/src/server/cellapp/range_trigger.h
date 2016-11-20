@@ -37,6 +37,7 @@ public:
 	bool install();
 	bool uninstall();
 	bool reinstall(CoordinateNode* pCoordinateNode);
+	INLINE bool isInstalled() const;
 
 	INLINE void range(float xz, float y);
 	INLINE float range_xz() const;

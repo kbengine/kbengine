@@ -117,10 +117,10 @@ bool InitProgressHandler::process()
 		completed = true;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	(*pBundle).newMessage(CellappmgrInterface::onCellappInitProgress);
-	(*pBundle) << g_componentID << v;
+	(*pBundle) << g_componentID << v << g_componentGlobalOrder << g_componentGroupOrder;
 	pChannel->send(pBundle);
 
 	if(completed)

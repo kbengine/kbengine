@@ -69,16 +69,23 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 
 	if(methodDescription->checkArgs(args))
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
-		mailbox->newMail((*pBundle));
+		Network::Channel* pChannel = mailbox->getChannel();
+		Network::Bundle* pSendBundle = NULL;
+
+		if (!pChannel)
+			pSendBundle = Network::Bundle::createPoolObject();
+		else
+			pSendBundle = pChannel->createSendBundle();
+
+		mailbox->newMail((*pSendBundle));
 
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
 
 		if(mstream.wpos() > 0)
-			(*pBundle).append(mstream.data(), mstream.wpos());
+			(*pSendBundle).append(mstream.data(), mstream.wpos());
 
-		mailbox->postMail(pBundle);
+		mailbox->postMail(pSendBundle);
 	}
 	else
 	{

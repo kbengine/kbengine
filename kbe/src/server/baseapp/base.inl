@@ -133,10 +133,17 @@ INLINE bool Base::isDirty() const
 	return isDirty_;
 }
 
+//-------------------------------------------------------------------------------------
 INLINE uint16 Base::dbInterfaceIndex() const
 {
 	
 	return dbInterfaceIndex_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE BaseMessagesForwardClientHandler* Base::pBufferedSendToClientMessages()
+{
+	return pBufferedSendToClientMessages_;
 }
 
 //-------------------------------------------------------------------------------------

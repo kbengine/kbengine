@@ -136,7 +136,7 @@ bool EntityAutoLoader::process()
 	{
 		if ((*entityTypes_.begin()).size() > 0)
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 			if (start_ == 0 && end_ == 0)
 				end_ = LOAD_ENTITY_SIZE;

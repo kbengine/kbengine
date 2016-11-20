@@ -99,9 +99,24 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappmgrInterface)
 	CELLAPPMGR_MESSAGE_DECLARE_STREAM(reqKillServer,			NETWORK_VARIABLE_MESSAGE)
 
 	// cellapp同步自己的初始化信息
-	CELLAPPMGR_MESSAGE_DECLARE_ARGS2(onCellappInitProgress,		NETWORK_FIXED_MESSAGE,
+	CELLAPPMGR_MESSAGE_DECLARE_ARGS4(onCellappInitProgress,		NETWORK_FIXED_MESSAGE,
 									COMPONENT_ID,				cid,
-									float,						progress)
+									float,						progress,
+									COMPONENT_ORDER,			componentGlobalOrder,
+									COMPONENT_ORDER,			componentGroupOrder)
+
+	// 查询所有相关进程负载信息
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(queryAppsLoads,			NETWORK_VARIABLE_MESSAGE)
+
+	// 查询所有相关进程space信息
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(querySpaces,				NETWORK_VARIABLE_MESSAGE)
+
+	// 更新相关进程space信息，注意：此spaceData并非API文档中描述的spaceData
+	// 是指space的一些信息
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(updateSpaceData,			NETWORK_VARIABLE_MESSAGE)
+
+	// 工具请求改变space查看器（含添加和删除功能）
+	CELLAPPMGR_MESSAGE_DECLARE_STREAM(setSpaceViewer,			NETWORK_VARIABLE_MESSAGE)
 
 NETWORK_INTERFACE_DECLARE_END()
 

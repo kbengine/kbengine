@@ -29,10 +29,12 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 RotatorHandler::RotatorHandler(KBEShared_ptr<Controller> pController, const Direction3D& destDir, float velocity, PyObject* userarg):
 destDir_(destDir),
-velocity_(velocity),
+velocity_(fabs(velocity)),
 pyuserarg_(userarg),
 pController_(pController)
 {
+	updatableName = "RotatorHandler";
+
 	Py_INCREF(userarg);
 
 	static_cast<TurnController*>(pController.get())->pRotatorHandler(this);
@@ -46,6 +48,7 @@ velocity_(0.f),
 pyuserarg_(NULL),
 pController_(KBEShared_ptr<Controller>())
 {
+	updatableName = "RotatorHandler";
 }
 
 //-------------------------------------------------------------------------------------
@@ -106,6 +109,8 @@ bool RotatorHandler::update()
 	}
 		
 	Entity* pEntity = pController_->pEntity();
+	Py_INCREF(pEntity);
+
 	const Direction3D& dstDir = destDir();
 	Direction3D currDir = pEntity->direction();
 
@@ -117,13 +122,17 @@ bool RotatorHandler::update()
 	else if (deltaYaw < -KBE_PI)
 		deltaYaw = (float)((double)deltaYaw + KBE_2PI);
 
-	if (fabs(deltaYaw) < 0.01f)
+	if (fabs(deltaYaw) < velocity_)
+	{
 		deltaYaw = 0.f;
+		currDir.yaw(dstDir.yaw());
+	}
 	else if (fabs(deltaYaw) > velocity_)
-		deltaYaw = KBEClamp(-velocity_, deltaYaw, velocity_);
+	{
+		deltaYaw = KBEClamp(deltaYaw, -velocity_, velocity_);
+		currDir.yaw(currDir.yaw() + deltaYaw);
+	}
 
-	currDir.yaw(currDir.yaw() + deltaYaw);
-	
 	if (currDir.yaw() > KBE_PI)
 		currDir.yaw((float((double)currDir.yaw() - KBE_2PI)));
 	else if (currDir.yaw() < -KBE_PI)
@@ -134,12 +143,14 @@ bool RotatorHandler::update()
 		pEntity->setPositionAndDirection(pEntity->position(), currDir);
 
 	// 如果达到目的地则返回true
-	if (fabs(deltaYaw) < 0.01f && requestTurnOver())
+	if (fabs(deltaYaw) < 0.0001f && requestTurnOver())
 	{
+		Py_DECREF(pEntity);
 		delete this;
 		return false;
 	}
 
+	Py_DECREF(pEntity);
 	return true;
 }
 

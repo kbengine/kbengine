@@ -46,6 +46,9 @@ public:
 	typedef KBEShared_ptr< SmartPoolObject< TCPPacketSender > > SmartPoolObjectPtr;
 	static SmartPoolObjectPtr createSmartPoolObj();
 	static ObjectPool<TCPPacketSender>& ObjPool();
+	static TCPPacketSender* createPoolObject();
+	static void reclaimPoolObject(TCPPacketSender* obj);
+	virtual void onReclaimObject();
 	static void destroyObjPool();
 	
 	TCPPacketSender():PacketSender(){}
@@ -57,6 +60,8 @@ public:
 
 protected:
 	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket);
+
+	uint8 sendfailCount_;
 };
 }
 }

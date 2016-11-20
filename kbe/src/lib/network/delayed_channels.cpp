@@ -60,21 +60,25 @@ void DelayedChannels::sendIfDelayed(Channel & channel)
 //-------------------------------------------------------------------------------------
 bool DelayedChannels::process()
 {
-	ChannelAddrs::iterator iter = channeladdrs_.begin();
-
-	while (iter != channeladdrs_.end())
+	if (channeladdrs_.size() > 0)
 	{
-		Channel * pChannel = pNetworkInterface_->findChannel((*iter));
+		ChannelAddrs::iterator iter = channeladdrs_.begin();
 
-		if (pChannel && (!pChannel->isCondemn() && !pChannel->isDestroyed()))
+		while (iter != channeladdrs_.end())
 		{
-			pChannel->send();
+			Channel * pChannel = pNetworkInterface_->findChannel((*iter));
+
+			if (pChannel && (!pChannel->isCondemn() && !pChannel->isDestroyed()))
+			{
+				pChannel->send();
+			}
+
+			++iter;
 		}
 
-		++iter;
+		channeladdrs_.clear();
 	}
 
-	channeladdrs_.clear();
 	return true;
 }
 
