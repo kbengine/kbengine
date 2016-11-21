@@ -93,7 +93,7 @@ const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] =
 };
 
 /** mailbox的类别对换为字符串名称 严格和ENTITY_MAILBOX_TYPE索引匹配 */
-const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE_EX[][8] =
+const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE_EX[][14] =
 {
 	"cell",
 	"base",
