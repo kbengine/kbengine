@@ -106,7 +106,7 @@ bool SystemInfo::_autocreate()
 		int status = sigar_proc_list_get(_g_sigarproclist, &_g_proclist);
 		if (status != SIGAR_OK) 
 		{
-			DEBUG_MSG(fmt::format("SystemInfo::autocreate:error: {} ({}) sigar_proc_list_get\n",
+			DEBUG_MSG(fmt::format("SystemInfo::autocreate: error: {} ({}) sigar_proc_list_get\n",
 					   status, sigar_strerror(_g_sigarproclist, status)));
 
 			sigar_close(_g_sigarproclist);
@@ -259,7 +259,7 @@ float SystemInfo::getCPUPerByPID(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(fmt::format("SystemInfo::getCPUPerByPID: error: not found pid({})\n", pid));
+		//DEBUG_MSG(fmt::format("SystemInfo::getCPUPerByPID: error: not found pid({})\n", pid));
 
 		if(!tryed)
 		{
@@ -370,7 +370,7 @@ uint64 SystemInfo::getMemUsedByPID(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(fmt::format("SystemInfo::getMemUsedByPID: error: not found pid({})\n", pid));
+		//DEBUG_MSG(fmt::format("SystemInfo::getMemUsedByPID: error: not found pid({})\n", pid));
 
 		if(!tryed)
 		{
