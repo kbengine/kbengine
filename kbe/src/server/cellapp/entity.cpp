@@ -3063,9 +3063,11 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 //-------------------------------------------------------------------------------------
 void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
-	if(nearbyMBRef->isBase())
+	if (!nearbyMBRef->isCellReal())
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef error, not is cellMailbox!\n", scriptName(), id());
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef error, not is cellMailbox! curr=%s\n", 
+			scriptName(), id(), nearbyMBRef->c_str());
+
 		PyErr_PrintEx(0);
 
 		onTeleportFailure();

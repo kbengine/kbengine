@@ -92,6 +92,18 @@ const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] =
 	"client",
 };
 
+/** mailbox的类别对换为字符串名称 严格和ENTITY_MAILBOX_TYPE索引匹配 */
+const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE_EX[][8] =
+{
+	"cell",
+	"base",
+	"client",
+	"cellViaBase",
+	"baseViaCell",
+	"clientViaCell",
+	"clientViaBase",
+};
+
 /** 定义服务器各组件状态 */
 enum COMPONENT_STATE
 {
