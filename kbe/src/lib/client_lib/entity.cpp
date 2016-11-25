@@ -177,16 +177,16 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 
 	if(pMethodDescription == NULL)
 	{
-		ERROR_MSG(fmt::format("Entity::onRemoteMethodCall: can't found method. utype={}, callerID:{}.\n", 
-			utype, id_));
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n", 
+			utype, id_, this->scriptName()));
 
 		return;
 	}
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: entityID {}, methodType {}.\n", 
-				id_, utype));
+		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n", 
+			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName()));
 	}
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
