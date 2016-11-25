@@ -598,13 +598,19 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entityType [%s] not found! Please register in entities.xml and implement a %s.def and %s.py\n", 
+			entityType, entityType, entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	else if(componentType_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: cannot create %s(%s=false)! Please check the setting of the entities.xml and the implementation of %s.py\n", 
+			entityType, 
+			(componentType_ == CELLAPP_TYPE ? "hasCell()" : "hasBase()"), 
+			entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
