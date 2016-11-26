@@ -43,6 +43,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.h"	
 #include "network/bundle.h"	
 #include "network/fixed_messages.h"
+#include "network/network_stats.h"
 #include "client_lib/client_interface.h"
 #include "helper/eventhistory_stats.h"
 #include "navigation/navigation.h"
@@ -72,6 +73,7 @@ SCRIPT_METHOD_DECLARE("navigate",					pyNavigate,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("getRandomPoints",			pyGetRandomPoints,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("accelerate",					pyAccelerate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
@@ -382,19 +384,10 @@ int Entity::pySetControlledBy(PyObject *value)
 			return 0;
 		}
 
-		PyObject* clientMB = PyObject_GetAttrString(mailbox, "client");
-		if (clientMB == Py_None)
+		Entity *ent = Cellapp::getSingleton().findEntity(mailbox->id());
+		if (!ent || !ent->clientMailbox())
 		{
-			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox has no 'client' mailbox!\n",
-				scriptName());
-			PyErr_PrintEx(0);
-			return 0;
-		}
-
-		Network::Channel* pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
-		if (!pChannel)
-		{
-			PyErr_Format(PyExc_AssertionError, "%s: entity mailbox.client has no channel!\n",
+			PyErr_Format(PyExc_AssertionError, "%s: entity(%d) mailbox has no 'client' mailbox!\n",
 				scriptName());
 			PyErr_PrintEx(0);
 			return 0;
@@ -819,7 +812,7 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 
 	if(pMethodDescription == NULL)
 	{
-		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n"
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, methodName=unknown, callerID:{1}.\n"
 			, utype, id_, this->scriptName()));
 
 		return;
@@ -848,7 +841,7 @@ void Entity::onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID 
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n",
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, methodName=unknown, callerID:{1}.\n",
 			utype, id_, this->scriptName()));
 
 		return;
@@ -1375,6 +1368,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	{
 		pobj->cancelController(id);
 	}
+
 	S_Return;
 }
 
@@ -2448,6 +2442,7 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	if(this->isDestroyed())
 		return;
 
+	pMoveController_->destroy();
 	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -2463,6 +2458,7 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	if(this->isDestroyed())
 		return;
 
+	pMoveController_->destroy();
 	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -2470,6 +2466,64 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 		const_cast<char*>("IO"), controllerId, userarg);
 	
 	setDirty();
+}
+
+//-------------------------------------------------------------------------------------
+float Entity::accelerate(const char* type, float acceleration)
+{
+	acceleration = acceleration / g_kbeSrvConfig.gameUpdateHertz();
+
+	if (strcmp(type, "Movement") == 0)
+	{
+		MoveController* pMoveController = static_cast<MoveController*>(pMoveController_.get());
+		if (pMoveController != NULL)
+		{
+			float velocity = pMoveController->velocity() + acceleration;
+			pMoveController->velocity(velocity);
+			return velocity * g_kbeSrvConfig.gameUpdateHertz();
+		}
+	}
+	else if (strcmp(type, "Turn") == 0)
+	{
+		TurnController* pTurnController = static_cast<TurnController*>(pTurnController_.get());
+		if (pTurnController != NULL)
+		{
+			float velocity = pTurnController->velocity() + acceleration;
+			pTurnController->velocity(velocity);
+			return velocity * g_kbeSrvConfig.gameUpdateHertz();
+		}
+	}
+	else
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::accelerate: %d type error! only support[\"Movement\",\"Turn\"]\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0.f;
+	}
+
+	return 0.f;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Entity::pyAccelerate(const_charptr type, float acceleration)
+{
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::accelerate: not is real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (this->isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::accelerate: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	return PyFloat_FromDouble(accelerate(type, acceleration));
 }
 
 //-------------------------------------------------------------------------------------
@@ -3009,9 +3063,14 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 //-------------------------------------------------------------------------------------
 void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
-	if(nearbyMBRef->isBase())
+	if (!nearbyMBRef->isCellReal())
 	{
-		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef error, not is cellMailbox!\n", scriptName(), id());
+		char buf[1024];
+		nearbyMBRef->c_str(buf, 1024);
+
+		PyErr_Format(PyExc_Exception, "%s::teleport: %d, nearbyRef error, not is cellMailbox! curr=%s\n", 
+			scriptName(), id(), buf);
+
 		PyErr_PrintEx(0);
 
 		onTeleportFailure();

@@ -340,6 +340,12 @@ public:
 	
 	DECLARE_PY_MOTHOD_ARG6(pyMoveToEntity, int32, float, float, PyObject_ptr, int32, int32);
 
+	/**
+	entity移动加速
+	*/
+	float accelerate(const char* type, float acceleration);
+	DECLARE_PY_MOTHOD_ARG2(pyAccelerate, const_charptr, float);
+
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
 	*/

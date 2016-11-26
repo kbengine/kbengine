@@ -680,6 +680,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	COMPONENT_TYPE componentType;
 	uint64 cid = 0;
 	int16 gus = 0;
+	std::string KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH;
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	bool success = true;
@@ -690,25 +691,32 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> componentType;
 	s >> cid;
 	s >> gus;
-
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}\n", 
-		uid, COMPONENT_NAME_EX(componentType), pChannel->c_str(), cid, gus));
+	if (s.length() > 0)
+	{
+		s >> KBE_ROOT;
+		s >> KBE_RES_PATH;
+		s >> KBE_BIN_PATH;
+	}
+
+	INFO_MSG(fmt::format("Machine::startserver: uid={}, [{}], addr={}, cid={}, gus={}, KBE_ROOT={}, KBE_RES_PATH={}, KBE_BIN_PATH={}\n", 
+		uid, COMPONENT_NAME_EX(componentType), pChannel->c_str(), cid, gus, KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH));
 	
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 		return;
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	if (startWindowsProcess(uid, componentType, cid, gus) <= 0)
+	if (startWindowsProcess(uid, componentType, cid, gus, KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) <= 0)
 	{
 		success = false;
 	}
 #else
-	if (startLinuxProcess(uid, componentType, cid, gus) <= 0)
+	if (startLinuxProcess(uid, componentType, cid, gus, KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) <= 0)
 	{
 		success = false;
 	}
@@ -741,6 +749,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	int32 uid = 0;
 	COMPONENT_TYPE componentType;
+	COMPONENT_ID componentID;
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -748,19 +757,21 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	s >> uid;
 	s >> componentType;
 	
+	// 如果组件ID大于0则仅停止指定ID的组件
+	s >> componentID;
+	
 	if(s.length() > 0)
 	{
 		s >> finderRecvPort;
 	}
 
-	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, [{}], addr={}\n", 
-		uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	INFO_MSG(fmt::format("Machine::stopserver: request uid={}, componentType={}, componentID={},  addr={}\n", 
+		uid,  COMPONENT_NAME_EX(componentType), componentID, pChannel->c_str()));
 
 	if(ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
 	{
-		ERROR_MSG(fmt::format("Machine::stopserver: component({}) is error!", 
-			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)), 
-			pChannel->c_str()));
+		ERROR_MSG(fmt::format("Machine::stopserver: component({}) error!", 
+			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType))));
 
 		return;
 	}
@@ -774,6 +785,12 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		for(; iter != components.end(); )
 		{
 			Components::ComponentInfos* cinfos = &(*iter);
+
+			if(componentID > 0 && componentID != cinfos->cid)
+			{
+				iter++;
+				continue;
+			}
 
 			if(cinfos->uid != uid)
 			{
@@ -827,7 +844,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 		
 			if(ep1.connect((*iter).pIntAddr.get()->port, (*iter).pIntAddr.get()->ip) == -1)
 			{
-				ERROR_MSG(fmt::format("Machine::stopserver: connect server is error({})!\n", kbe_strerror()));
+				ERROR_MSG(fmt::format("Machine::stopserver: connect server error({})!\n", kbe_strerror()));
 				success = false;
 				break;
 			}
@@ -913,6 +930,139 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------		
+void Machine::killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	int32 uid = 0;
+	COMPONENT_TYPE componentType;
+	COMPONENT_ID componentID;
+	bool success = true;
+
+	uint16 finderRecvPort = 0;
+
+	s >> uid;
+	s >> componentType;
+
+	// 如果组件ID大于0则仅停止指定ID的组件
+	s >> componentID;
+
+	if (s.length() > 0)
+	{
+		s >> finderRecvPort;
+	}
+
+	INFO_MSG(fmt::format("Machine::killserver: request uid={}, componentType={}, componentID={},  addr={}\n",
+		uid, COMPONENT_NAME_EX(componentType), componentID, pChannel->c_str()));
+
+	if (ComponentName2ComponentType(COMPONENT_NAME_EX(componentType)) == UNKNOWN_COMPONENT_TYPE)
+	{
+		ERROR_MSG(fmt::format("Machine::killserver: component({}) error!",
+			(int)ComponentName2ComponentType(COMPONENT_NAME_EX(componentType))));
+
+		return;
+	}
+
+	Components::COMPONENTS& components = Components::getSingleton().getComponents(componentType);
+
+	if (components.size() > 0)
+	{
+		Components::COMPONENTS::iterator iter = components.begin();
+
+		for (; iter != components.end();)
+		{
+			Components::ComponentInfos* cinfos = &(*iter);
+
+			if (componentID > 0 && componentID != cinfos->cid)
+			{
+				iter++;
+				continue;
+			}
+
+			if (cinfos->uid != uid)
+			{
+				iter++;
+				continue;
+			}
+
+			if (componentType != cinfos->componentType)
+			{
+				iter++;
+				continue;
+			}
+
+			INFO_MSG(fmt::format("--> kill {}({}), addr={}\n",
+				(*iter).cid, COMPONENT_NAME[componentType], (cinfos->pIntAddr != NULL ? cinfos->pIntAddr->c_str() : "unknown")));
+
+			int killtry = 0;
+			bool killed = false;
+
+			while (killtry++ < 10)
+			{
+				// 杀死进程
+				std::string killcmd;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+				killcmd = fmt::format("taskkill /f /t /pid {}", cinfos->pid);
+				
+#else
+				killcmd = fmt::format("kill -s 9 {}", cinfos->pid);
+#endif
+
+				if (-1 == system(killcmd.c_str()))
+				{
+					ERROR_MSG(fmt::format("Machine::killserver: system({}) error!",
+						killcmd));
+				}
+
+				bool usable = checkComponentUsable(&(*iter), false, false);
+
+				if (!usable)
+				{
+					iter = components.erase(iter);
+					killed = true;
+					break;
+				}
+
+				sleep(100);
+			}
+
+			if (killed)
+				continue;
+
+			success = false;
+			break;
+		}
+	}
+	else
+	{
+		INFO_MSG(fmt::format("Machine::killserver: uid={}, {} size is 0, addr={}\n",
+			uid, COMPONENT_NAME_EX(componentType), pChannel->c_str()));
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle) << success;
+
+	if (finderRecvPort != 0)
+	{
+		Network::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
+
+		if (!ep.good())
+		{
+			ERROR_MSG("Machine::killserver: Failed to create socket.\n");
+			Network::Bundle::reclaimPoolObject(pBundle);
+			return;
+		}
+
+		ep.sendto(pBundle, finderRecvPort, pChannel->addr().ip);
+		Network::Bundle::reclaimPoolObject(pBundle);
+	}
+	else
+	{
+		pChannel->send(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------		
 bool Machine::installSignals()
 {
 	ServerApp::installSignals();
@@ -941,7 +1091,8 @@ void Machine::onSignalled(int sigNum)
 
 //-------------------------------------------------------------------------------------
 #if KBE_PLATFORM != PLATFORM_WIN32
-uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
+	std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH)
 {
 	uint16 childpid;
 
@@ -955,7 +1106,27 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 			exit(1);
 		}
 
-		std::string bin_path = Resmgr::getSingleton().getEnv().bin_path;
+		if (KBE_ROOT == "")
+		{
+			KBE_ROOT = Resmgr::getSingleton().getEnv().root_path;
+		}
+
+		if (KBE_RES_PATH == "")
+		{
+			KBE_RES_PATH = Resmgr::getSingleton().getEnv().res_path;
+		}
+
+		if (KBE_BIN_PATH == "")
+		{
+			KBE_BIN_PATH = Resmgr::getSingleton().getEnv().bin_path;
+		}
+
+		std::string bin_path = KBE_BIN_PATH;
+		
+		setenv("KBE_ROOT", KBE_ROOT.c_str(), 1);
+		setenv("KBE_RES_PATH", KBE_RES_PATH.c_str(), 1);
+		setenv("KBE_BIN_PATH", bin_path.c_str(), 1);
+
 		std::string cmdLine = bin_path + COMPONENT_NAME_EX(componentType);
 
 		// 改变当前目录，以让出问题的时候core能在此处生成
@@ -997,7 +1168,8 @@ uint16 Machine::startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint6
 
 #else
 
-DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus)
+DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus,
+	std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -1006,8 +1178,19 @@ DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint
 	str += COMPONENT_NAME_EX(componentType);
 	str += ".exe";
 
+	// 用双引号把命令行括起来，以避免路径中存在空格，从而执行错误
+	str = "\"" + str + "\"";
+
+	// 増加参数
+	str += fmt::format(" --cid={}", cid);
+	str += fmt::format(" --gus={}", gus);
+
 	wchar_t* szCmdline = KBEngine::strutil::char2wchar(str.c_str());
-	wchar_t* currdir = KBEngine::strutil::char2wchar(Resmgr::getSingleton().getEnv().bin_path.c_str());
+
+	// 使用machine当前的工作目录作为新进程的工作目录，
+	// 为一些与相对目录的文件操作操作一致的工作目录（如日志）
+	wchar_t currdir[1024];
+	GetCurrentDirectory(sizeof(currdir), currdir);
 
 	ZeroMemory( &si, sizeof(si));
 	si.cb = sizeof(si);
@@ -1032,7 +1215,6 @@ DWORD Machine::startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint
 	}
 
 	free(szCmdline);
-	free(currdir);
 
 	return pi.dwProcessId;
 }

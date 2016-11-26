@@ -76,7 +76,7 @@ bool InterfacesHandler_Dbmgr::createAccount(Network::Channel* pChannel, std::str
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(registerName);
 
-	thread::ThreadPool* pThreadPool =DBUtil::pThreadPool(dbInterfaceName);
+	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::createAccount: not found dbInterface({})!\n",
@@ -374,9 +374,9 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	bool needCheckPassword = (success == SERVER_ERR_NEED_CHECK_PASSWORD);
+	bool needCheckPassword = (success == SERVER_ERR_LOCAL_PROCESSING);
 
-	if (success != SERVER_SUCCESS && success != SERVER_ERR_NEED_CHECK_PASSWORD)
+	if (success != SERVER_SUCCESS && success != SERVER_ERR_LOCAL_PROCESSING)
 		accountName = "";
 	else
 		success = SERVER_SUCCESS;

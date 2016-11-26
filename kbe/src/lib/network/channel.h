@@ -55,7 +55,7 @@ public:
 	static Channel* createPoolObject();
 	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
-	void onReclaimObject();
+	virtual void onReclaimObject();
 	virtual size_t getPoolObjectBytes();
 
 	enum Traits
@@ -196,6 +196,10 @@ public:
 		ChannelID id = CHANNEL_ID_NULL);
 
 	bool finalise();
+
+	ChannelTypes type() const {
+		return channelType_;;
+	}
 
 private:
 

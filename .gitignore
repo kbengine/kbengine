@@ -24,3 +24,5 @@ logs/
 .DS_Store?
 ehthumbs.db
 Thumbs.db
+
+*.pyc

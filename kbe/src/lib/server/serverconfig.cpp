@@ -306,6 +306,18 @@ bool ServerConfig::loadConfig(std::string fileName)
 					if(childnode2)
 						Network::g_extSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				}
+
+				childnode1 = xml->enterNode(sendNode, "tickSentBytes");
+				if (childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if (childnode2)
+						Network::g_intSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "external");
+					if (childnode2)
+						Network::g_extSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 
 			TiXmlNode* recvNode = xml->enterNode(childnode, "receive");
@@ -977,6 +989,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 					_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(childchildnode) == "true");
 				}
 			} 
+
+			childnode = xml->enterNode(node, "account_resetPassword");
+			if (childnode != NULL)
+			{
+				TiXmlNode* childchildnode = xml->enterNode(childnode, "enable");
+				if (childchildnode)
+				{
+					_dbmgrInfo.account_reset_password_enable = (xml->getValStr(childchildnode) == "true");
+				}
+			}
 		}
 	}
 

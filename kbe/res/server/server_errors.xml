@@ -176,9 +176,14 @@
 		<descr>	用户自定义错误码10。</descr>
 	</SERVER_ERR_USER10>
 	
-	<SERVER_ERR_NEED_CHECK_PASSWORD>
+	<SERVER_ERR_LOCAL_PROCESSING>
 		<id>35</id>
-		<descr>	需要检查密码。</descr>
-	</SERVER_ERR_NEED_CHECK_PASSWORD>
+		<descr>	本地处理，通常为某件事情不由第三方处理而是由KBE服务器处理。</descr>
+	</SERVER_ERR_LOCAL_PROCESSING>
+	
+	<SERVER_ERR_ACCOUNT_RESET_PASSWORD_NOT_AVAILABLE>
+		<id>36</id>
+		<descr>	未开放账号重置密码功能。</descr>
+	</SERVER_ERR_ACCOUNT_RESET_PASSWORD_NOT_AVAILABLE>
 	
 </root>

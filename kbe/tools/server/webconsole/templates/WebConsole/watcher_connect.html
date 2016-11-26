@@ -1,0 +1,111 @@
+{% extends "WebConsole/base.html" %}
+  {% block content %}
+  	<div id="err">{{err}}</div>
+	<input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url }}">
+	 <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
+  	<div><hr style=" height:1px;border:none;border-top:1px solid;" /></div>
+	<div class="col-sm-12">
+		<div class="list-tree col-sm-4" style="border: 1px solid;height:750px;overflow:auto;">
+			<ul style="padding-left:0;">
+				<li class="root" >
+				<span onclick="show_result(this)" key="root"><a href="javascript:void(0);">root</a></span>
+				</li>
+			</ul>
+		</div>
+		<div class="col-sm-8 watcher-info" style="height:100%">
+		<table class="table table-striped table-condensed">
+		<thead><tr><th>属性</th><th>变量</th></tr></thead><tbody></tbody></table>
+		</div>
+	</div>
+  {% endblock %}
+
+{% block tail_js %}
+<script src="/static/js/pytools.js"></script>
+<script src="/static/js/kbengine.js"></script>
+<script src="/static/js/tablesaw.js"></script>
+<script src="/static/js/tablesaw-init.js"></script>
+<script src="/static/js/jquery-1.11.3.min.js"></script>
+
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .watcher .dd").show();
+  $(".kbe-list .watcher").css({"background-color":"#317eb4"});
+  $(".kbe-list .watcher").find('li').addClass("menu_chioce");
+
+var cp = getUrlParam("cp");
+var port = getUrlParam("port");
+var host = getUrlParam("host");
+var obj_data = ""
+
+function getUrlParam(name) 
+{ 
+    var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)"); //构造一个含有目标参数的 正则表达式 对象 
+    var r = window.location.search. substr (1).match(reg);  //匹配目标参数 
+    if (r!=null) return unescape(r[2]); return null; //返回参数值 
+}
+
+function connect_to(obj)
+{
+	$.data.profile_started = false;
+	if (window.kbe_socket != null)
+    	window.kbe_socket.close(); 
+    
+	var list = "";
+	var info = "";
+	if (socket == null)
+		var socket = new WebSocket($("#ws_url").val());
+	else
+		socket = WebSocket($("#ws_url").val());
+
+    socket.onopen = function(evt) {}; 
+    socket.onclose = function(evt) {}; 
+    socket.onmessage = function(evt) { 
+    	obj_data = evt.data.replace(/False/g,'\"False\"');
+    	obj_data = obj_data.replace(/True/g,'\"True\"')
+        obj_data = JSON.parse(obj_data.replace(/'/g,'\"'));
+        if(evt.data != '[{\'type\': 0, \'keys\': [], \'values\': {}, \'path\': \'\'}]')
+        {
+        	if (obj_data[0]["path"] == "root/network/messages") 
+        	{
+				for (var x in obj_data[0]["keys"])
+		        {
+					list += '<li><span onclick="show_result(this)" key="'+key+'/'+obj_data[0]["keys"][x]+'"><a href="javascript:void(0);">'+obj_data[0]["keys"][x]+'</a></span></li>';
+		        }
+				$(obj).parent().children("ul").html(list);
+				list = "";
+        	}
+        	else
+        	{
+	        	for (var y in obj_data[0]["values"])
+		    		info += '<tr><td>'+y+':</td><td>'+obj_data[0]["values"][y]+'</td></tr>';
+		    	$(".watcher-info tbody").html(info);
+		    	info = "";
+		    	if(obj_data[1]["keys"]){
+			        for (var x in obj_data[1]["keys"])
+			        {
+						list += '<li><span onclick="show_result(this)" key="'+key+'/'+obj_data[1]["keys"][x]+'"><a href="javascript:void(0);">'+obj_data[1]["keys"][x]+'</a></span></li>';
+			        }
+					$(obj).parent().children("ul").html(list);
+					list = "";
+				}
+			}
+	    }
+    }; 
+    socket.onerror = function(evt) {}; 
+    window.kbe_socket = socket;
+    $.data.connect_closed = false;
+}
+
+function show_result(obj)
+{ 
+	key = $(obj).attr("key");
+	
+	href = "ws://{{http_host}}/wc/watcher/process_cmd"+"?cp="+cp+"&port="+port+"&host="+host+"&key="+key;
+	$("#ws_url").val(href);
+	if ($(obj).parent().children("ul").text() =="" ||$(obj).parent().children("ul").text() == null)
+		$(obj).parent().append('<ul style="padding-left:1em;"></ul>');
+	connect_to(obj);
+}
+
+</script>
+  {% endblock %}

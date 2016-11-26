@@ -36,7 +36,7 @@ bool KBEEntityLogTableRedis::syncToDB(DBInterface* pdbi)
 {
 	/*
 	有数据时才产生表数据
-	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID)
+	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID, logger)
 	*/
 
 	return RedisHelper::dropTable(static_cast<DBInterfaceRedis*>(pdbi), fmt::format("kbe_entitylog:*:*"), false);
@@ -47,10 +47,10 @@ bool KBEEntityLogTableRedis::logEntity(DBInterface * pdbi, const char* ip, uint3
 					COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType)
 {
 	/*
-	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID)
+	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID, logger)
 	*/
-	std::string sqlstr = fmt::format("HSET kbe_entitylog:{}:{} entityID {} ip {} port {} componentID {}", 
-		dbid, entityType, entityID, ip, port, componentID);
+	std::string sqlstr = fmt::format("HSET kbe_entitylog:{}:{} entityID {} ip {} port {} componentID {} logger {}", 
+		dbid, entityType, entityID, ip, port, componentID, g_componentID);
 
 	pdbi->query(sqlstr.c_str(), sqlstr.size(), false);
 	return true;
@@ -60,15 +60,16 @@ bool KBEEntityLogTableRedis::logEntity(DBInterface * pdbi, const char* ip, uint3
 bool KBEEntityLogTableRedis::queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
 	/*
-	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID)
+	kbe_entitylog:dbid:entityType = hashes(entityID, ip, port, componentID, logger)
 	*/
 	redisReply* pRedisReply = NULL;
 
-	static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_entitylog:{}:{} entityID ip port componentID",
+	static_cast<DBInterfaceRedis*>(pdbi)->query(fmt::format("HMGET kbe_entitylog:{}:{} entityID ip port componentID logger",
 		dbid, entityType), &pRedisReply, false);
 
 	entitylog.dbid = dbid;
 	entitylog.componentID = 0;
+	entitylog.logger = 0;
 	entitylog.entityID = 0;
 	entitylog.ip[0] = '\0';
 	entitylog.port = 0;
@@ -83,6 +84,7 @@ bool KBEEntityLogTableRedis::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 				kbe_snprintf(entitylog.ip, MAX_IP, "%s", pRedisReply->element[1]->str);
 				StringConv::str2value(entitylog.port, pRedisReply->element[2]->str);
 				StringConv::str2value(entitylog.componentID, pRedisReply->element[3]->str);
+				StringConv::str2value(entitylog.logger, pRedisReply->element[4]->str);
 			}
 		}
 		

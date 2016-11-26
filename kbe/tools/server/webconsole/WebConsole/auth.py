@@ -89,6 +89,9 @@ def login(request):
 	if 	request.session["auth_is_admin"]:
 		return HttpResponseRedirect( "/wc/user/manage" )
 	else:
+		request.session["kbe_root"] = user.kbe_root
+		request.session["kbe_res_path"] = user.kbe_res_path
+		request.session["kbe_bin_path"] = user.kbe_bin_path
 		return HttpResponseRedirect( "/wc/index" )
 
 
@@ -125,6 +128,9 @@ def user_add( request ):
 		password2 = POST.get("password2", "")
 		sysuser = POST.get("sysuser", "")
 		sysuid = POST.get("sysuid", "")
+		kbe_root = POST.get("kbe-root", "")
+		kbe_res_path = POST.get("kbe-res-path", "")
+		kbe_bin_path = POST.get("kbe-bin-path", "")
 		
 		if not username:
 			context["error"] = "无效的账号名"
@@ -161,7 +167,7 @@ def user_add( request ):
 			return render(request, html_template, context)
 		
 		pwd = make_password( password1 )
-		user = AuthUser( name = username, show_name = showname, password = pwd, sys_user = sysuser, sys_uid = sysuid )
+		user = AuthUser( name = username, show_name = showname, password = pwd, sys_user = sysuser, sys_uid = sysuid, kbe_root = kbe_root, kbe_res_path = kbe_res_path, kbe_bin_path = kbe_bin_path )
 		user.save()
 		
 		return HttpResponseRedirect( "/wc/user/manage" )
@@ -171,7 +177,7 @@ def user_add( request ):
 @admin_check
 def user_delete( request ):
 	"""
-	増加新用户
+	删除用户
 	"""
 	try:
 		id = int( request.GET.get( "id", "0" ) )
@@ -217,3 +223,63 @@ def change_pwd( request ):
 	AuthUser.objects.filter(pk = id).update( password = pwd )
 	context["error"] = "修改完成"
 	return render(request, html_template, context)
+
+@admin_check
+def change_user(request,userID):
+	html_template = "User/change_user.html"
+	POST = request.POST
+	commit = POST.get( "commit", "" )
+	id = userID
+	if id =="" or not id:
+		context["error"] = "无效ID"
+		return render(request, html_template, context)
+	user = AuthUser.objects.get(pk = id)
+	context = {}
+	if commit == "" or not commit:
+		showname     = user.show_name
+		sysuser      = user.sys_user 
+		sysuid       = user.sys_uid
+		kbe_root     = user.kbe_root
+		kbe_res_path = user.kbe_res_path
+		kbe_bin_path = user.kbe_bin_path
+
+		context = {
+			"showname": showname,
+			"sysuser" : sysuser,
+			"sysuid"  : sysuid,
+			"kbe_root": kbe_root,
+			"kbe_res_path" : kbe_res_path,
+			"kbe_bin_path" : kbe_bin_path
+		}
+		return render(request, html_template, context)
+
+	showname = POST.get("showname", "")
+	sysuser = POST.get("sysuser", "")
+	sysuid = POST.get("sysuid", "")
+	kbe_root = POST.get("kbe-root", "")
+	kbe_res_path = POST.get("kbe-res-path", "")
+	kbe_bin_path = POST.get("kbe-bin-path", "")
+		
+	if not showname:
+		context["error"] = "无效的昵称"
+		return render(request, html_template, context)
+
+	try:
+		sysuid = int( POST.get("sysuid", "0") )
+	except:
+		context["error"] = "无效的uid"
+		return render(request, html_template, context)
+		
+	if not sysuser:
+		context["error"] = "系统用户名不能为空"
+		return render(request, html_template, context)
+		
+	if sysuid < 0:
+		context["error"] = "无效的uid"
+		return render(request, html_template, context)
+	AuthUser.objects.filter(pk = id).update(show_name = showname, sys_user = sysuser, sys_uid = sysuid, kbe_root = kbe_root, kbe_res_path = kbe_res_path, kbe_bin_path = kbe_bin_path )
+	context["error"] = "修改完成"
+	return render(request, html_template, context)
+
+
+

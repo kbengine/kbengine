@@ -52,11 +52,12 @@ ENTITY_GETSET_DECLARE_BEGIN(Base)
 SCRIPT_GET_DECLARE("cell",								pyGetCellMailbox,				0,								0)	
 SCRIPT_GET_DECLARE("client",							pyGetClientMailbox,				0,								0)	
 SCRIPT_GET_DECLARE("databaseID",						pyGetDBID,						0,								0)	
+SCRIPT_GET_DECLARE("databaseInterfaceName",				pyGetDBInterfaceName,			0,								0)
 SCRIPT_GETSET_DECLARE("shouldAutoBackup",				pyGetShouldAutoBackup,			pySetShouldAutoBackup,			0,		0)
 SCRIPT_GETSET_DECLARE("shouldAutoArchive",				pyGetShouldAutoArchive,			pySetShouldAutoArchive,			0,		0)
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Base, 0, 0, 0, 0, 0)	
-	
+
 //-------------------------------------------------------------------------------------
 Base::Base(ENTITY_ID id, const ScriptDefModule* pScriptModule, 
 		   PyTypeObject* pyType, bool isInitialised):
@@ -694,6 +695,23 @@ PyObject* Base::pyGetDBID()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* Base::pyGetDBInterfaceName()
+{
+	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (dbid() == 0)
+		return PyUnicode_FromString("");
+
+	return PyUnicode_FromString(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex()));
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* Base::pyGetClientMailbox()
 {
 	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
@@ -801,7 +819,7 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	MethodDescription* pMethodDescription = pScriptModule_->findBaseMethodDescription(utype);
 	if(pMethodDescription == NULL)
 	{
-		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, callerID:{1}.\n", 
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, methodName=unknown, callerID:{1}.\n", 
 			utype, id_, this->scriptName()));
 		
 		s.done();

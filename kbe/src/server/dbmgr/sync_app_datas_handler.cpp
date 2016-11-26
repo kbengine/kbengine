@@ -95,7 +95,8 @@ bool SyncAppDatasHandler::process()
 
 		COMPONENT_TYPE tcomponentType = cinfos->componentType;
 		if(tcomponentType == BASEAPP_TYPE || 
-			tcomponentType == CELLAPP_TYPE)
+			tcomponentType == CELLAPP_TYPE ||
+			tcomponentType == LOGINAPP_TYPE)
 		{
 			hasApp = true;
 			break;

@@ -273,26 +273,26 @@ int EndPoint::findIndicatedInterface(const char * spec, u_int32_t & address)
 {
 	address = 0;
 
-	if(spec == NULL || spec[0] == 0) 
+	if (spec == NULL || spec[0] == 0)
 	{
 		return -1;
 	}
 
 	// 是否指定地址
-	if(0 != Address::string2ip(spec, address))
+	if (0 == Address::string2ip(spec, address))
 	{
-		return -1;
+		return 0;
 	}
-	else if(0 != this->getInterfaceAddressByMAC(spec, address))
+	else if (0 == this->getInterfaceAddressByMAC(spec, address))
 	{
-		return -1;
+		return 0;
 	}
-	else if(0 != this->getInterfaceAddressByName(spec, address))
+	else if (0 == this->getInterfaceAddressByName(spec, address))
 	{
-		return -1;
+		return 0;
 	}
 
-	return 0;
+	return -1;
 }
 
 //-------------------------------------------------------------------------------------

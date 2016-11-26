@@ -1702,7 +1702,9 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 		bhandler.newMessage(MachineInterface::stopserver);
 		bhandler << KBEngine::getUserUID();
 		bhandler << componentType;
-
+		KBEngine::COMPONENT_ID cid = 0;
+		bhandler << cid;
+		
 		uint32 ip = _networkInterface.intaddr().ip;
 		uint16 port = bhandler.epListen().addr().port;
 		bhandler << ip << port;

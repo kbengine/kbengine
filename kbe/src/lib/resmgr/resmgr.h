@@ -45,7 +45,7 @@ public:
 	// 引擎环境变量
 	struct KBEEnv
 	{
-		std::string root;
+		std::string root_path;
 		std::string res_path;
 		std::string bin_path;
 	};

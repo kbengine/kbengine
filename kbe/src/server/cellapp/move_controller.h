@@ -41,6 +41,14 @@ public:
 	virtual void addToStream(KBEngine::MemoryStream& s);
 	virtual void createFromStream(KBEngine::MemoryStream& s);
 
+	float velocity() const {
+		return pMoveToPointHandler_->velocity();
+	}
+
+	void velocity(float v) {
+		pMoveToPointHandler_->velocity(v);
+	}
+
 protected:
 	MoveToPointHandler* pMoveToPointHandler_;
 };

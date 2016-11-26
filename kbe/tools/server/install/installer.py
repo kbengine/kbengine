@@ -940,18 +940,19 @@ def createDatabase():
 				mysql_port = ret[3].replace('port', '').strip()
 				INFO_MSG("MySQL_Port:" + mysql_port)
 
-				lower_case_table_names = ret[5].replace('lower_case_table_names', '').strip()
+				if platform.system() == 'Windows':
+					lower_case_table_names = ret[5].replace('lower_case_table_names', '').strip()
 
-				mysql_root = ret[7].strip()
+					mysql_root = ret[7].strip()
 
-				if lower_case_table_names != '2':
-					ERROR_MSG('mysql lower_case_table_names not is 2')
-					config, cnf = getMysqlConfig()
-					INFO_MSG('Attempt to modify the [%s]...' % cnf)
-					config.set('mysqld', 'lower_case_table_names', '2')
-					config.write(open(cnf, "w"))
-					restartMsql()
-					continue
+					if lower_case_table_names != '2':
+						ERROR_MSG('mysql lower_case_table_names not is 2')
+						config, cnf = getMysqlConfig()
+						INFO_MSG('Attempt to modify the [%s]...' % cnf)
+						config.set('mysqld', 'lower_case_table_names', '2')
+						config.write(open(cnf, "w"))
+						restartMsql()
+						continue
                 
 				sql = "\"delete from user where user=\'\';FLUSH PRIVILEGES\""
 				cmd = "\"" + mysql_home + ("mysql\" %s%s -hlocalhost -e" % (getRootOpt(mysql_root_password), rootusePortArgs)) + sql + " mysql"

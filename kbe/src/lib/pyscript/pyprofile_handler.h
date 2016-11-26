@@ -36,8 +36,6 @@ public:
 	void sendStream(MemoryStream* s);
 };
 
-
-
 class PyTickProfileHandler : public Task,
                              public ProfileHandler
 {
@@ -49,7 +47,6 @@ public:
 	virtual void timeout();
 	virtual bool process();
 	virtual void sendStream(MemoryStream* s);
-
 };
 
 

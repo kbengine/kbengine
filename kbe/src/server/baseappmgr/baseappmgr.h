@@ -30,7 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/forward_messagebuffer.h"
 #include "common/timer.h"
 #include "network/endpoint.h"
-	
+
 namespace KBEngine{
 
 class Baseappmgr :	public ServerApp, 
@@ -150,10 +150,16 @@ public:
 
 	uint32 numLoadBalancingApp();
 
+	/** 网络接口
+	查询所有相关进程负载信息
+	*/
+	void queryAppsLoads(Network::Channel* pChannel, MemoryStream& s);
+
 protected:
 	TimerHandle													gameTimer_;
 
-	ForwardAnywhere_MessageBuffer								forward_baseapp_messagebuffer_;
+	ForwardAnywhere_MessageBuffer								forward_anywhere_baseapp_messagebuffer_;
+	ForwardComponent_MessageBuffer								forward_baseapp_messagebuffer_;
 
 	COMPONENT_ID												bestBaseappID_;
 

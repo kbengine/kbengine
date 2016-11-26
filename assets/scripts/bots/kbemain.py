@@ -17,7 +17,7 @@ def onStart():
 	在onInitialize调用之后， 准备开始游戏时引擎调用这个接口.
 	"""
 	pass
-	
+
 def onFinish():
 	"""
 	KBEngine method.
