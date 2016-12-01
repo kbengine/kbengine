@@ -38,7 +38,7 @@ Spaces::~Spaces()
 }
 
 //-------------------------------------------------------------------------------------
-void Spaces::updateSpaceData(SPACE_ID spaceID, const std::string& geomappingPath, bool deleted)
+void Spaces::updateSpaceData(SPACE_ID spaceID, const std::string& scriptModuleName, const std::string& geomappingPath, bool deleted)
 {
 	if (deleted)
 	{
@@ -50,6 +50,7 @@ void Spaces::updateSpaceData(SPACE_ID spaceID, const std::string& geomappingPath
 
 	space.setSpaceID(spaceID);
 	space.updateGeomappingPath(geomappingPath);
+	space.updateScriptModuleName(scriptModuleName);
 }
 
 //-------------------------------------------------------------------------------------

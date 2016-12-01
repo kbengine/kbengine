@@ -185,6 +185,7 @@ void SpaceViewer::updateClient()
 			s << iter1->first;
 			s << space.id();
 			s << space.getGeomappingPath();
+			s << space.getScriptModuleName();
 
 			Cells& cells = space.cells();
 			std::map<CELL_ID, Cell>& allCells = cells.cells();
