@@ -225,10 +225,7 @@ void DataTypes::delDataType(std::string name)
 		uid_dataTypes_.erase(iter->second->id());
 		iter->second->decRef();
 		dataTypes_.erase(iter);
-
-		std::string lowername = name;
-		std::transform(lowername.begin(), lowername.end(), lowername.begin(), tolower);
-		dataTypesLowerName_.erase(lowername);
+		dataTypesLowerName_.erase(name);
 	}
 }
 
