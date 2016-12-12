@@ -253,7 +253,8 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 
 	if(!g_kbeSrvConfig.getDBMgr().account_registration_enable)
 	{
-		WARNING_MSG(fmt::format("Loginapp::_createAccount({}): not available!\n", accountName));
+		ERROR_MSG(fmt::format("Loginapp::_createAccount({}): not available! modify kbengine[_defs].xml->dbmgr->account_registration.\n",
+			accountName));
 
 		std::string retdatas = "";
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -695,6 +696,19 @@ void Loginapp::reqAccountResetPassword(Network::Channel* pChannel, std::string& 
 	accountName = KBEngine::strutil::kbe_trim(accountName);
 	INFO_MSG(fmt::format("Loginapp::reqAccountResetPassword: accountName({})\n",
 		accountName));
+
+	if (!g_kbeSrvConfig.getDBMgr().account_registration_enable)
+	{
+		ERROR_MSG(fmt::format("Loginapp::reqAccountResetPassword({}): not available! modify kbengine[_defs].xml->dbmgr->account_resetPassword.\n",
+			accountName));
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountResetPasswordCB);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_ACCOUNT_RESET_PASSWORD_NOT_AVAILABLE;
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
+		return;
+	}
 
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -1242,6 +1256,12 @@ void Loginapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << digest_;
 	(*pBundle) << g_componentType;
+
+	// 此消息不允许加密，所以设定已加密忽略再次加密，当第一次send消息不是立即发生而是交由epoll通知时会出现这种情况（一般用于测试，正规环境不会出现）
+	// web协议必须要加密，所以不能设置为true
+	if (pChannel->type() != KBEngine::Network::Channel::CHANNEL_WEB)
+		pBundle->pCurrPacket()->encrypted(true);
+
 	pChannel->send(pBundle);
 
 	if(Network::g_channelExternalEncryptType > 0)

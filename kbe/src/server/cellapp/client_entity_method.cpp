@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "client_entity_method.h"
 #include "network/bundle.h"
 #include "helper/eventhistory_stats.h"
+#include "network/network_stats.h"
 
 #include "client_lib/client_interface.h"
 #include "../../server/baseapp/baseapp_interface.h"

@@ -1405,7 +1405,11 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		if (pyModule)
 		{
 			std::string userScriptsPath = Resmgr::getSingleton().getPyUserScriptsPath();
-			std::string pyModulePath = PyModule_GetFilename(pyModule);
+			std::string pyModulePath = "";
+			
+			const char *pModulePath = PyModule_GetFilename(pyModule);
+			if (pModulePath)
+				pyModulePath = pModulePath;
 
 			strutil::kbe_replace(userScriptsPath, "/", "");
 			strutil::kbe_replace(userScriptsPath, "\\", "");

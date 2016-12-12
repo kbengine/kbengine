@@ -153,7 +153,7 @@ public:
 	static bool installScript(PyObject* mod);
 	static bool uninstallScript();
 
-	static const SCRIPT_MODULES& getScriptModules(){ 
+	static const SCRIPT_MODULES& getScriptModules() { 
 		return EntityDef::__scriptModules; 
 	}
 

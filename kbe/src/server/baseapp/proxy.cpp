@@ -251,6 +251,16 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
+
+		return 0;
+	}
+
+	if (pyOterProxy == NULL || !PyObject_TypeCheck(pyOterProxy, Proxy::getScriptType()))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s[%d]::giveClientTo: arg1 not is Proxy!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -734,7 +744,16 @@ bool Proxy::pushBundle(Network::Bundle* pBundle)
 	if(!pChannel)
 		return false;
 
-	pChannel->send(pBundle);
+	pBundle->pChannel(pChannel);
+	pBundle->finiMessage(true);
+	pChannel->pushBundle(pBundle);
+
+	{
+		// 如果数据大量阻塞发不出去将会报警
+		//AUTO_SCOPED_PROFILE("pushBundleAndSendToClient");
+		//pChannel->send(pBundle);
+	}
+
 	return true;
 }
 

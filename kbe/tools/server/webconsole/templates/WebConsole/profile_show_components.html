@@ -1,0 +1,64 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+<div class="row placeholders console-show-block">
+  <table class="table table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>Machine</th>
+          <th>组件名称</th>
+          <th>cid</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for comp in KBEComps %}
+        <tr>
+          <td>{{ comp.intaddr }}</td>
+          <td>{{ comp.fullname }}</td>
+          <td>{{ comp.componentID }}</td>
+          <td>
+            <ul class="list-inline">
+            <li><a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'TickProfile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','pytickprofile')">TickProfile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'cprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','cprofile')">cprofile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'pyprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','pyprofile')">pyprofile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'eventprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','eventprofile')">eventprofile</a>
+            </li>
+            <li>|</li>
+            <li>
+              <a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', 'networkprofile with {{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}','networkprofile')">networkprofile</a>
+            </li>
+            </ul>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script>$(".profile-comps").addClass("active");</script>
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .statistics .dd").show();
+  $(".kbe-list .statistics").css({"background-color":"#317eb4"});
+  $(".kbe-list .statistics").find('li').addClass("menu_chioce");
+    function connect_to(ip, port, title, cmd)
+    {
+        window.location.href='/wc/profile/connect?ip=' + ip + "&port=" + port + "&title=" + escape(title)+"&cmd="+cmd;
+        layer.load(2);
+    }
+   
+</script>
+    
+{% endblock %}

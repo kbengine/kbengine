@@ -1709,8 +1709,8 @@ bool DBTaskQueryEntity::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 {
-	DEBUG_MSG(fmt::format("Dbmgr::DBTaskQueryEntity: {}, dbid={}, entityID={}, wasActive={}, queryMode={}, success={}.\n", 
-		entityType_, dbid_, entityID_, wasActive_, ((int)queryMode_), success_));
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskQueryEntity: {}, dbid={}, entityID={}, wasActive={}, queryMode={}, componentID={}, success={}.\n", 
+		entityType_, dbid_, entityID_, wasActive_, ((int)queryMode_), componentID_, success_));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 

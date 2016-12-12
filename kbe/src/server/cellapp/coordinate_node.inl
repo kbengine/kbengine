@@ -56,7 +56,7 @@ INLINE void CoordinateNode::removeFlags(uint32 v) { flags_ &= ~v; }
 INLINE bool CoordinateNode::hasFlags(uint32 v) const { return (flags_ & v) > 0; }
 
 //-------------------------------------------------------------------------------------
-INLINE CoordinateSystem* CoordinateNode::pCoordinateSystem() const{ return pCoordinateSystem_; }
+INLINE CoordinateSystem* CoordinateNode::pCoordinateSystem() const { return pCoordinateSystem_; }
 
 //-------------------------------------------------------------------------------------
 }

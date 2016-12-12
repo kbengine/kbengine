@@ -52,6 +52,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 			"ip varchar(64),"
 			"port int unsigned not null DEFAULT 0,"
 			"componentID bigint unsigned not null DEFAULT 0,"
+			"logger bigint unsigned not null DEFAULT 0,"
 			"PRIMARY KEY (entityDBID, entityType))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
@@ -64,7 +65,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint32 port, DBID dbid,
 					COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "insert into kbe_entitylog (entityDBID, entityType, entityID, ip, port, componentID) values(";
+	std::string sqlstr = "insert into kbe_entitylog (entityDBID, entityType, entityID, ip, port, componentID, logger) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -91,6 +92,10 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 	sqlstr += ",";
 	
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, componentID);
+	sqlstr += tbuf;
+	sqlstr += ",";
+
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
 	sqlstr += tbuf;
 	sqlstr += ")";
 
@@ -122,7 +127,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 //-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "select entityID, ip, port, componentID from kbe_entitylog where entityDBID=";
+	std::string sqlstr = "select entityID, ip, port, componentID, logger from kbe_entitylog where entityDBID=";
 
 	char tbuf[MAX_BUF];
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, dbid);
@@ -140,6 +145,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 	
 	entitylog.dbid = dbid;
 	entitylog.componentID = 0;
+	entitylog.logger = 0;
 	entitylog.entityID = 0;
 	entitylog.ip[0] = '\0';
 	entitylog.port = 0;
@@ -154,6 +160,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 			kbe_snprintf(entitylog.ip, MAX_IP, "%s", arow[1]);
 			StringConv::str2value(entitylog.port, arow[2]);
 			StringConv::str2value(entitylog.componentID, arow[3]);
+			StringConv::str2value(entitylog.logger, arow[4]);
 		}
 
 		mysql_free_result(pResult);

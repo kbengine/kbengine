@@ -31,7 +31,43 @@ pytools = {
         for (var i = 0; i < elems; i++)
         	v[i] = defaultVal;
         return v;
-    }
+    },
+
+    lstrip : function( str1, str2 )
+    {
+        var spl = str2; 
+        var typeName = typeof str2;
+        if (typeName === 'undefined' || typeName === 'null')
+            spl = "^[\r\n\t ]*";
+        else
+            spl = "^[" + str2 + "]*";
+        
+        return str1.replace(new RegExp(spl), "");
+    },
+
+    rstrip : function( str1, str2 )
+    {
+        var spl = str2; 
+        var typeName = typeof str2;
+        if (typeName === 'undefined' || typeName === 'null')
+            spl = "[\r\n\t ]*$";
+        else
+            spl = "[" + str2 + "]*$";
+        
+        return str1.replace(new RegExp(spl), "");
+    },
+
+    strip : function( str1, str2 )
+    {
+        var spl = str2; 
+        var typeName = typeof str2;
+        if (typeName === 'undefined' || typeName === 'null')
+            spl = "^[\r\n\t ]*|[\r\n\t ]*$";
+        else
+            spl = "^[" + str2 + "]*" + "[" + str2 + "]*$";
+        
+        return str1.replace(new RegExp(spl, "g"), "");
+    },
 
 };
 

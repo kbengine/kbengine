@@ -210,6 +210,46 @@ std::string TelnetHandler::getHistoryCommand(bool isNextCommand)
 }
 
 //-------------------------------------------------------------------------------------
+Network::Reason TelnetHandler::checkLastErrors()
+{
+	int err;
+	Network::Reason reason;
+
+#ifdef unix
+	err = errno;
+
+	switch (err)
+	{
+	case ECONNREFUSED:	reason = Network::REASON_NO_SUCH_PORT; break;
+	case EAGAIN:		reason = Network::REASON_RESOURCE_UNAVAILABLE; break;
+	case EPIPE:			reason = Network::REASON_CLIENT_DISCONNECTED; break;
+	case ECONNRESET:	reason = Network::REASON_CLIENT_DISCONNECTED; break;
+	case ENOBUFS:		reason = Network::REASON_TRANSMIT_QUEUE_FULL; break;
+	default:			reason = Network::REASON_GENERAL_NETWORK; break;
+	}
+#else
+	err = WSAGetLastError();
+
+	if (err == WSAEWOULDBLOCK || err == WSAEINTR)
+	{
+		reason = Network::REASON_RESOURCE_UNAVAILABLE;
+	}
+	else
+	{
+		switch (err)
+		{
+		case WSAECONNREFUSED:   reason = Network::REASON_NO_SUCH_PORT; break;
+		case WSAECONNRESET:     reason = Network::REASON_CLIENT_DISCONNECTED; break;
+		case WSAECONNABORTED:   reason = Network::REASON_CLIENT_DISCONNECTED; break;
+		default:                reason = Network::REASON_GENERAL_NETWORK; break;
+		}
+	}
+#endif
+
+	return reason;
+}
+
+//-------------------------------------------------------------------------------------
 int	TelnetHandler::handleInputNotification(int fd)
 {
 	KBE_ASSERT((*pEndPoint_) == fd);
@@ -219,7 +259,11 @@ int	TelnetHandler::handleInputNotification(int fd)
 
 	if(recvsize == -1)
 	{
+		Network::Reason err = checkLastErrors();
+		if (err != Network::REASON_RESOURCE_UNAVAILABLE)
+			pTelnetServer_->onTelnetHandlerClosed(fd, this);
 		return 0;
+
 	}
 	else if(recvsize == 0)
 	{
@@ -827,7 +871,9 @@ void TelnetPyProfileHandler::sendStream(MemoryStream* s)
 //-------------------------------------------------------------------------------------
 void TelnetPyTickProfileHandler::sendStream(MemoryStream* s)
 {
-	if (isDestroyed_) return;
+	if (isDestroyed_ || !pTelnetHandler_)
+		return;
+
 
 	std::string datas;
 	(*s) >> datas;
@@ -849,11 +895,22 @@ void TelnetPyTickProfileHandler::sendStream(MemoryStream* s)
 	//pTelnetHandler_->onProfileEnd(datas);
 }
 
+//-------------------------------------------------------------------------------------
 void TelnetPyTickProfileHandler::timeout()
 {
 	PyTickProfileHandler::timeout();
 
+	if (isDestroyed_ || !pTelnetHandler_)
+		return;
+
 	pTelnetHandler_->onProfileEnd("");
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetPyTickProfileHandler::destroy()
+{
+	TelnetProfileHandler::destroy();
+	pTelnetHandler_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------

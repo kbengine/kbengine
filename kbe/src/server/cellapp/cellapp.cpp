@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "forward_message_over_handler.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
+#include "network/network_stats.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
 #include "dbmgr/dbmgr_interface.h"
@@ -64,7 +65,8 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 	pTelnetServer_(NULL),
 	pWitnessedTimeoutHandler_(NULL),
 	pGhostManager_(NULL),
-	flags_(APP_FLAGS_NONE)
+	flags_(APP_FLAGS_NONE),
+	spaceViewers_()
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -293,6 +295,8 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
+	spaceViewers_.finalise();
+
 	SAFE_RELEASE(pGhostManager_);
 	SAFE_RELEASE(pWitnessedTimeoutHandler_);
 
@@ -839,7 +843,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID);
+	Space* space = Spaces::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity
@@ -946,7 +950,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 	// DEBUG_MSG("Cellapp::onRestoreSpaceInCellFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID);
+	Space* space = Spaces::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity
@@ -2085,6 +2089,22 @@ PyObject* Cellapp::__py_setFlags(PyObject* self, PyObject* args)
 
 	Cellapp::getSingleton().flags(flags);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::setSpaceViewer(Network::Channel* pChannel, MemoryStream& s)
+{
+	bool del = false;
+	s >> del;
+
+	SPACE_ID spaceID;
+	s >> spaceID;
+
+	// 如果为0，则查看所有cell
+	CELL_ID cellID;
+	s >> cellID;
+
+	spaceViewers_.updateSpaceViewer(pChannel->addr(), spaceID, cellID, del);
 }
 
 //-------------------------------------------------------------------------------------

@@ -43,6 +43,14 @@ public:
 	virtual void addToStream(KBEngine::MemoryStream& s);
 	virtual void createFromStream(KBEngine::MemoryStream& s);
 
+	float velocity() const {
+		return pRotatorHandler_->velocity();
+	}
+
+	void velocity(float v) {
+		pRotatorHandler_->velocity(v);
+	}
+
 protected:
 	RotatorHandler* pRotatorHandler_;
 };

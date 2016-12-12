@@ -948,7 +948,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -1152,7 +1152,14 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		s >> wasActiveEntityID;
 	}
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: createToComponentID({}) != currComponentID({}), "
+			"dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}, wasActiveCID={}, wasActiveEntityID={}!\n",
+			createToComponentID, g_componentID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive, wasActiveCID, wasActiveEntityID));
+
+		KBE_ASSERT(false);
+	}
 
 	if(!success)
 	{
@@ -1285,7 +1292,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -1662,7 +1669,14 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	s >> entityID;
 	s >> wasActive;
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBIDOtherBaseapp: createToComponentID({}) != currComponentID({}), "
+			"sourceBaseappID={}, dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}!\n",
+			createToComponentID, g_componentID, sourceBaseappID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive));
+
+		KBE_ASSERT(false);
+	}
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
@@ -1788,7 +1802,7 @@ PyObject* Baseapp::__py_createBaseRemotelyFromDBID(PyObject* self, PyObject* arg
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -2138,7 +2152,14 @@ void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	s >> entityID;
 	s >> wasActive;
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseRemotelyFromDBIDOtherBaseapp: createToComponentID({}) != currComponentID({}), "
+			"sourceBaseappID={}, dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}!\n",
+			createToComponentID, g_componentID, sourceBaseappID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive));
+
+		KBE_ASSERT(false);
+	}
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
@@ -3184,7 +3205,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	PyObject* pyDatas = NULL, *pycallback = NULL;
 	char* pChargeID = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 
 	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
 	{
@@ -3569,6 +3590,11 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
 	}
+	else if (!ptinfos->addr.isNone() && ptinfos->addr != pChannel->addr())
+	{
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
+		return;
+	}
 
 	if(ptinfos->password != password)
 	{
@@ -3614,9 +3640,22 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 			return;
 		}
 		
+		pendingLoginMgr_.removeNextTick(accountName);
+
+		// 防止在onLogOnAttempt中销毁了
+		Py_INCREF(base);
+
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
 		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
+
+		if (base->isDestroyed())
+		{
+			Py_DECREF(base);
+
+			loginBaseappFailed(pChannel, accountName, SERVER_ERR_OP_FAILED);
+			return;
+		}
 
 		switch(ret)
 		{
@@ -3663,8 +3702,11 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		default:
 			INFO_MSG("Baseapp::loginBaseapp: script LOG_ON_REJECT.\n");
 			loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
+			Py_DECREF(base);
 			return;
 		};
+
+		Py_DECREF(base);
 	}
 	else
 	{
@@ -4242,7 +4284,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
+		WARNING_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();
@@ -4452,8 +4494,14 @@ void Baseapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << EntityDef::md5().getDigestStr();
 	(*pBundle) << g_componentType;
-	pChannel->send(pBundle);
 
+	// 此消息不允许加密，所以设定已加密忽略再次加密，当第一次send消息不是立即发生而是交由epoll通知时会出现这种情况（一般用于测试，正规环境不会出现）
+	// web协议必须要加密，所以不能设置为true
+	if (pChannel->type() != KBEngine::Network::Channel::CHANNEL_WEB)
+		pBundle->pCurrPacket()->encrypted(true);
+
+	pChannel->send(pBundle);
+	
 	if(Network::g_channelExternalEncryptType > 0)
 	{
 		if(encryptedKey.size() > 3)
@@ -4787,7 +4835,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 	char* entityType = NULL;
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 	std::string dbInterfaceName = "default";
 
 	if (currargsSize == 3)
@@ -4959,7 +5007,7 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 	
 	char* entityType = NULL;
 	PyObject* pycallback = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 	std::string dbInterfaceName = "default";
 
 	if (currargsSize == 3)

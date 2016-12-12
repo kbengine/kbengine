@@ -66,6 +66,9 @@ bool RangeTrigger::install()
 	else
 		negativeBoundary_->range(0.0f, 0.0f);
 
+	positiveBoundary_->addFlags(COORDINATE_NODE_FLAG_INSTALLING);
+	negativeBoundary_->addFlags(COORDINATE_NODE_FLAG_INSTALLING);
+
 	origin_->pCoordinateSystem()->insert(positiveBoundary_);
 	origin_->pCoordinateSystem()->insert(negativeBoundary_);
 	
@@ -83,6 +86,7 @@ bool RangeTrigger::install()
 	negativeBoundary_->range(-range_xz_, -range_y_);
 	negativeBoundary_->old_range(-range_xz_, -range_y_);
 	negativeBoundary_->update();
+	negativeBoundary_->removeFlags(COORDINATE_NODE_FLAG_INSTALLING);
 
 	// update可能导致实体销毁间接导致自己被重置，此时应该返回安装失败
 	if (!negativeBoundary_)
@@ -95,6 +99,8 @@ bool RangeTrigger::install()
 	positiveBoundary_->range(range_xz_, range_y_);
 	positiveBoundary_->old_range(range_xz_, range_y_);
 	positiveBoundary_->update();
+	positiveBoundary_->removeFlags(COORDINATE_NODE_FLAG_INSTALLING);
+
 	return positiveBoundary_ != NULL;
 }
 
