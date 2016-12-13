@@ -190,9 +190,9 @@ LDFLAGS += -export-dynamic
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/log4cxx/src/main/include
 ifeq ($(NO_USE_LOG4CXX),0)
 ifeq ($(KBE_CONFIG), Hybrid64)
-LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat  -liconv -L /usr/local/lib
+LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat
 else
-LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat  -liconv -L /usr/local/lib
+LDLIBS += -llog4cxx -lapr-1 -laprutil-1 -lexpat
 endif
 else
 CPPFLAGS += -DNO_USE_LOG4CXX
