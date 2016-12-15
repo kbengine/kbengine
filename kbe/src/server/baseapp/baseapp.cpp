@@ -3859,7 +3859,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 
 	if(!success)
 	{
-		this->destroyEntity(base->id(), true);
 
 		std::string error;
 		s >> error;
@@ -3869,6 +3868,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		s.done();
 		
 		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		
+		this->destroyEntity(base->id(), true);
 		return;
 	}
 	
