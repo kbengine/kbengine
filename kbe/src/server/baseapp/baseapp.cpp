@@ -3848,8 +3848,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 
 	if(!base)
 	{
-		this->destroyEntity(base->id(), true);
-
 		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: create {} is failed! error(base == NULL)\n",
 			accountName.c_str()));
 		
@@ -3861,6 +3859,8 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 
 	if(!success)
 	{
+		this->destroyEntity(base->id(), true);
+
 		std::string error;
 		s >> error;
 		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: query {} is failed! error({})\n",
