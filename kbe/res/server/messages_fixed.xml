@@ -433,4 +433,15 @@
 		<id>41008</id>
 		<descr>watcher数据查询</descr>
 	</Logger::queryWatcher>
+	
+	<Baseappmgr::queryAppsLoads>
+		<id>50001</id>
+		<descr>Baseappmgr状态查询</descr>
+	</Baseappmgr::queryAppsLoads>
+
+	<Cellappmgr::queryAppsLoads>
+		<id>50002</id>
+		<descr>Cellappmgr状态查询</descr>
+	</Cellappmgr::queryAppsLoads>
+
 </root>
