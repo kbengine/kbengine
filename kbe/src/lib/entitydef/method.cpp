@@ -260,7 +260,7 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 		if (isExposed() && PyErr_ExceptionMatches(PyExc_TypeError))
 		{
 			WARNING_MSG(fmt::format("MethodDescription::call: {} is exposed of method, if there is a missing arguments error, "
-				"try adding callerID, For example: \ndef func(msg): => def func(callerID, msg):\n",
+				"try adding callerEntityID, For example: \ndef func(msg): => def func(callerEntityID, msg):\n",
 				this->getName()));
 		}
 
