@@ -23,6 +23,7 @@ http://www.kbengine.org
 	
 ##Support
 	Email		: kbesrv?gmail.com
+	BBS			: http://bbs.kbengine.org
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
 
