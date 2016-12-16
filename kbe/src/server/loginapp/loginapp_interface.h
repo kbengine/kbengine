@@ -47,6 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	// 客户端协议导出。
+	LOGINAPP_MESSAGE_EXPOSED(importClientMessages)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,							NETWORK_FIXED_MESSAGE)
 
 	// 错误码描述导出。

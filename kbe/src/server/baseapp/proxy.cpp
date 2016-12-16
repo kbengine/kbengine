@@ -221,6 +221,9 @@ void Proxy::onClientDeath(void)
 //-------------------------------------------------------------------------------------
 void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	// 回调给脚本，获得了cell
 	if(cellMailbox_ == NULL)
 		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
