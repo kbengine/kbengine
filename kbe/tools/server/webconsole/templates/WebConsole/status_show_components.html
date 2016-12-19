@@ -1,12 +1,12 @@
 {% extends "WebConsole/base.html" %}
 
 {% block content %}
-<div class="row placeholders watcher-show-block">
+<div class="row placeholders status-show-block">
   <div id="server-title"><h4>The machine on {{ http_host }}</h4></div>
   <div><hr style=" height:1px;border:none;border-top:1px solid ;" /></div>
 {% for comp in KBEComps %}
 {% if comp.componentType == 3 or comp.componentType == 4 %}
-<div style="float: left;width:40%;min-height:400px;margin-right: 1em">
+<div class="div-status" style="float: left;width:40%;min-height:400px;margin-right: 1em;">
   <div id="{{ comp.fullname }}-chart" style="width: 100%;height: 350px;"></div>
   <div style="text-align: center"><a href="#" onClick="connect('{{comp.componentType}}', '{{comp.intport}}', '{{ comp.intaddr }}')">{% if comp.componentType == 3 %}baseapp{% elif comp.componentType == 4 %}cellapp{% else %}{{ comp.fullname }}{% endif %}</a></div>
 

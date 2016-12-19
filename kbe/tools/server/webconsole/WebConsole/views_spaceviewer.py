@@ -102,7 +102,6 @@ class CellSpace(object):
 			self.CellSpaceViewer.requireQueryCellViewer()
 			self.CellSpaceViewer.processOne()
 			if self.CellSpaceViewer.CellViewerData != self.test:
-				print("gm: ",self.CellSpaceViewer.CellViewerData)
 				self.wInst.send(str.encode(str(self.CellSpaceViewer.CellViewerData)))
 				self.test = self.CellSpaceViewer.CellViewerData
 			self.CellSpaceViewer.clearCellViewerData()
