@@ -408,8 +408,17 @@ public:																										\
 			}																								\
 																											\
 			PyObject* pyobj = iter->second->createFromStream(mstream);										\
-			PyDict_SetItemString(cellData, iter->second->getName(), pyobj);									\
-			Py_DECREF(pyobj);																				\
+																											\
+			if(pyobj == NULL)																				\
+			{																								\
+				SCRIPT_ERROR_CHECK();																		\
+			}																								\
+			else																							\
+			{																								\
+				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
+				Py_DECREF(pyobj);																			\
+			}																								\
+																											\
 			++count;																						\
 		}																									\
 																											\
