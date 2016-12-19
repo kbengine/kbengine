@@ -412,6 +412,9 @@ public:																										\
 			if(pyobj == NULL)																				\
 			{																								\
 				SCRIPT_ERROR_CHECK();																		\
+				pyobj = iter->second->parseDefaultStr("");													\
+				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
+				Py_DECREF(pyobj);																			\
 			}																								\
 			else																							\
 			{																								\
