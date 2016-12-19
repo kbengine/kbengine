@@ -248,6 +248,9 @@ a:hover{
 .watcher ll{
   background-image:url(images/left/watcher.png);
 }
+.spaceviewer ll{
+  background-image:url(images/left/spaceviewer.png);
+}
 
 
 .tablesaw .tablesaw-sortable-head .tablesaw-sortable-btn{
@@ -336,3 +339,9 @@ a:hover{
   word-break:break-all;
 }
 
+.div-status{
+  filter:progid:DXImageTransform.Microsoft.Shadow(color=#909090,direction=120,strength=3);/*ie*/
+  -moz-box-shadow: 2px 2px 10px #909090;/*firefox*/
+  -webkit-box-shadow: 2px 2px 10px #909090;/*safari或chrome*/
+  box-shadow:2px 2px 10px #909090;/*opera或ie9*/
+}

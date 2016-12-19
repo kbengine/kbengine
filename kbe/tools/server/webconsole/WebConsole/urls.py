@@ -13,7 +13,7 @@ Including another URLconf
     1. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import include, url
-from . import views, auth, views_console, views_profile, views_log, views_watcher, views_status
+from . import views, auth, views_console, views_profile, views_log, views_watcher, views_status, views_spaceviewer
 
 urlpatterns = [
     url(r'^login$', auth.login, name = "login"),
@@ -64,4 +64,7 @@ urlpatterns = [
     url(r'^status/connect',views_status.connect, name = "status_connect" ),
     url(r'^status/process_cmd$', views_status.process_cmd, name = "status_process_cmd" ),
 
+    url(r'^spaceviewer/show',views_spaceviewer.show_components, name = "show_components" ),
+    url(r'^spaceviewer/process_cmd$', views_spaceviewer.process_cmd, name = "spaceviewer_process_cmd" ),
+    url(r'^spaceviewer/cell_process_cmd$', views_spaceviewer.cell_process_cmd, name = "spaceviewer_cell_process_cmd" ),
 ]
