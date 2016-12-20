@@ -78,7 +78,7 @@ int NavMeshHandle::findStraightPath(int layer, uint16 flags, const Position3D& s
 	epos[2] = end.z;
 
 	dtQueryFilter filter;
-	filter.setIncludeFlags(0xffff);
+	filter.setIncludeFlags(flags);
 	filter.setExcludeFlags(0);
 
 	const float extents[3] = {2.f, 4.f, 2.f};
@@ -148,7 +148,7 @@ int NavMeshHandle::findRandomPointAroundCircle(int layer, uint16 flags, const Po
 	dtNavMeshQuery* navmeshQuery = iter->second.pNavmeshQuery;
 	
 	dtQueryFilter filter;
-	filter.setIncludeFlags(0xffff);
+	filter.setIncludeFlags(flags);
 	filter.setExcludeFlags(0);
 
 	if (maxRadius <= 0.0001f)
@@ -253,7 +253,7 @@ int NavMeshHandle::raycast(int layer, uint16 flags, const Position3D& start, con
 	epos[2] = end.z;
 
 	dtQueryFilter filter;
-	filter.setIncludeFlags(0xffff);
+	filter.setIncludeFlags(flags);
 	filter.setExcludeFlags(0);
 
 	const float extents[3] = {2.f, 4.f, 2.f};
