@@ -13,53 +13,57 @@ KBEngine is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef KBE_SELECT_POLLER_H
-#define KBE_SELECT_POLLER_H
+/*
+Windows Platform Support I/O Completion Port
+written by Yu-T,2016-2-24
+*/
+#ifndef KBE_IOCP_POLLER_H
+#define KBE_IOCP_POLLER_H
 
 #include "event_poller.h"
 
-namespace KBEngine { 
-namespace Network
-{
+namespace KBEngine {
+	namespace Network
+	{
 
 #ifndef HAS_EPOLL
-#ifndef USE_IOCP
-class SelectPoller : public EventPoller
-{
-public:
-	SelectPoller();
+#ifdef USE_IOCP
+		class IocpPoller : public EventPoller
+		{
+		public:
+			IocpPoller();
 
-protected:
-	virtual bool doRegisterForRead(int fd);
-	virtual bool doRegisterForWrite(int fd);
+		protected:
+			virtual bool doRegisterForRead(int fd);
+			virtual bool doRegisterForWrite(int fd);
 
-	virtual bool doDeregisterForRead(int fd);
-	virtual bool doDeregisterForWrite(int fd);
+			virtual bool doDeregisterForRead(int fd);
+			virtual bool doDeregisterForWrite(int fd);
 
-	virtual int processPendingEvents(double maxWait);
+			virtual int processPendingEvents(double maxWait);
 
-private:
-	void handleNotifications(int &countReady,
-			fd_set &readFDs, fd_set &writeFDs);
+		private:
+			void handleNotifications(int &countReady,
+				fd_set &readFDs, fd_set &writeFDs);
 
-	fd_set						fdReadSet_;
-	fd_set						fdWriteSet_;
+			fd_set						fdReadSet_;
+			fd_set						fdWriteSet_;
 
-	// 最后注册的socket描述符 （读或写）
-	int							fdLargest_;
+			// 最后注册的socket描述符 （读或写）
+			int							fdLargest_;
 
-	// 注册写的socket描述符数量
-	int							fdWriteCount_;
-};
+			// 注册写的socket描述符数量
+			int							fdWriteCount_;
+		};
 
 #endif // USE_IOCP
 #endif // HAS_EPOLL
 
+	}
 }
-}
-#endif // KBE_SELECT_POLLER_H
+#endif // KBE_IOCP_POLLER_H
+#pragma once

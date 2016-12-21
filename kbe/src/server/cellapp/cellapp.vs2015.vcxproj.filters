@@ -1,0 +1,312 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{16d8bce0-0c76-4408-b4f1-6945aac2312a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="all_clients.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="aoi_trigger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cell.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cellapp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cellapp_interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cells.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client_entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client_entity_method.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="clients_remote_entity_method.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="coordinate_node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="coordinate_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_coordinate_node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_remotemethod.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entityref.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="forward_message_over_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\python\Modules\getbuildinfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ghost_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="history_event.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="loadnavmesh_threadtasks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="move_controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="moveto_entity_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="moveto_point_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="navigate_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="profile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="proximity_controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="range_trigger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="range_trigger_node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="real_entity_method.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="space.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="spaces.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trap_trigger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="updatable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="updatables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="watch_obj_pools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="witness.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="witnessed_timeout_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="initprogress_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rotator_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="turn_controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="all_clients.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aoi_trigger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cell.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cellapp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cellapp_interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cellapp_interface_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cells.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client_entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client_entity_method.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clients_remote_entity_method.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="coordinate_node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="coordinate_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_coordinate_node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_interface_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_remotemethod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entityref.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="forward_message_over_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ghost_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="history_event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="loadnavmesh_threadtasks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="move_controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="moveto_entity_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="moveto_point_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="navigate_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="profile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="proximity_controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="range_trigger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="range_trigger_node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="real_entity_method.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="space.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spaces.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trap_trigger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="updatable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="updatables.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="watch_obj_pools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="witness.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="witnessed_timeout_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="initprogress_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rotator_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="turn_controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="aoi_trigger.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="range_trigger_node.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="coordinate_node.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="coordinate_system.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entity.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="range_trigger.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="trap_trigger.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="witness.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

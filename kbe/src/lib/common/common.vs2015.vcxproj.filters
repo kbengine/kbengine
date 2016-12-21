@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{e7c39194-4113-48b3-a435-f91336262a19}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="blowfish.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kbekey.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kbeversion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="memorystream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rsa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="strutil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tasks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="timestamp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="format.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blowfish.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="deadline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kbekey.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kbemalloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kbeversion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="memorystream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="memorystream_converter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="objectpool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="refcountable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rsa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="singleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="smartpointer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdfindif_handers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stringconv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="strutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tasks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timestamp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="format.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="timer.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
