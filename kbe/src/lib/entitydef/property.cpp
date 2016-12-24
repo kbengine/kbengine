@@ -108,6 +108,12 @@ PyObject* PropertyDescription::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* PropertyDescription::parseDefaultStr(const std::string& defaultVal)
+{
+	return dataType_->parseDefaultStr(defaultVal);
+}
+
+//-------------------------------------------------------------------------------------
 void PropertyDescription::addPersistentToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	// 允许使用默认值来创建一个流

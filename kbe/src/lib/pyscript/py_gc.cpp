@@ -179,10 +179,10 @@ void PyGC::collect(int8 generations)
 }
 
 //-------------------------------------------------------------------------------------
-void PyGC::set_debug(uint32 flsgs)
+void PyGC::set_debug(uint32 flags)
 {
 	PyObject* pyRet = PyObject_CallFunction(set_debugMethod_, 
-			const_cast<char*>("i"), flsgs);
+		const_cast<char*>("i"), flags);
 	
 	SCRIPT_ERROR_CHECK();
 	

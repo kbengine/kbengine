@@ -49,7 +49,7 @@ public:
 	/** 
 		设置调试标志
 	*/
-	static void set_debug(uint32 flsgs);
+	static void set_debug(uint32 flags);
 	
 	/**
 		增加计数

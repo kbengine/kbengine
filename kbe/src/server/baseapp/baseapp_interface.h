@@ -50,9 +50,11 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 客户端请求导入协议。
+	BASEAPP_MESSAGE_EXPOSED(importClientMessages)
 	BASEAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,								NETWORK_FIXED_MESSAGE)
 
 	// 客户端entitydef导出。
+	BASEAPP_MESSAGE_EXPOSED(importClientEntityDef)
 	BASEAPP_MESSAGE_DECLARE_ARGS0(importClientEntityDef,							NETWORK_FIXED_MESSAGE)
 
 	// 某app主动请求断线。

@@ -152,6 +152,7 @@ public:
 
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromStream(MemoryStream* mstream);
+	virtual PyObject* parseDefaultStr(const std::string& defaultVal);
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
