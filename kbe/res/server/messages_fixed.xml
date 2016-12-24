@@ -444,4 +444,21 @@
 		<descr>Cellappmgr状态查询</descr>
 	</Cellappmgr::queryAppsLoads>
 
+	<Cellappmgr::querySpaces>
+		<id>50003</id>
+		<descr>查询SpaceViewer列表</descr>
+	</Cellappmgr::querySpaces>
+
+	<Cellappmgr::setSpaceViewer>
+		<id>50004</id>
+		<descr>查询cellappmgr中cell列表</descr>
+	</Cellappmgr::setSpaceViewer>
+
+	<Cellapp::setSpaceViewer>
+		<id>50005</id>
+		<descr>查询cellapp中cell列表</descr>
+	</Cellapp::setSpaceViewer>
+
+
+
 </root>
