@@ -314,7 +314,7 @@ protected:
 			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(obj_count_ - OBJECT_POOL_INIT_SIZE)));
 			
 			printf("ObjectPool::reclaimObject_(): start reducing..., name=%s, currsize=%d, OBJECT_POOL_INIT_SIZE=%d\n", 
-				name_.c_str(), objects_.size(), OBJECT_POOL_INIT_SIZE);
+				name_.c_str(), (int)objects_.size(), OBJECT_POOL_INIT_SIZE);
 
 			while (reducing-- > 0)
 			{
@@ -326,7 +326,7 @@ protected:
 			}
 
 			printf("ObjectPool::reclaimObject_(): reducing over, name=%s, currsize=%d\n", 
-				name_.c_str(), objects_.size());
+				name_.c_str(), (int)objects_.size());
 
 			lastReducingCheckTime_ = now_timestamp;
 		}
