@@ -65,12 +65,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(FixedDict, 0, &FixedDict::mappingSequenceMethods, &FixedDict::mappingMethods, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, std::string& strDictInitData):
+FixedDict::FixedDict(DataType* dataType):
 Map(getScriptType(), false)
 {
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
-	initialize(strDictInitData);
 
 	script::PyGC::incTracing("FixedDict");
 
@@ -79,44 +78,15 @@ Map(getScriptType(), false)
 }
 
 //-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, PyObject* pyDictInitData):
+FixedDict::FixedDict(DataType* dataType, bool isPersistentsStream):
 Map(getScriptType(), false)
 {
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
-	initialize(pyDictInitData);
-
-	script::PyGC::incTracing("FixedDict");
-
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
-}
-
-//-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, MemoryStream* streamInitData, bool isPersistentsStream):
-Map(getScriptType(), false)
-{
-	_dataType = static_cast<FixedDictType*>(dataType);
-	_dataType->incRef();
-	initialize(streamInitData, isPersistentsStream);
 	
 	script::PyGC::incTracing("FixedDict");
 
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(3): {:p}---{}\n", (void*)this,
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
-}
-
-//-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType):
-Map(getScriptType(), false)
-{
-	_dataType = static_cast<FixedDictType*>(dataType);
-	_dataType->incRef();
-	initialize("");
-
-	script::PyGC::incTracing("FixedDict");
-
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(4): {:p}---{}\n", (void*)this,
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
 //		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
@@ -238,7 +208,9 @@ PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
-	return new FixedDict(DataTypes::getDataType(uid), dict);
+	FixedDict* pFixedDict = new FixedDict(DataTypes::getDataType(uid));
+	pFixedDict->initialize(dict);
+	return pFixedDict;
 }
 
 //-------------------------------------------------------------------------------------

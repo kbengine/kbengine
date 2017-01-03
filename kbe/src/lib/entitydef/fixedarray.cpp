@@ -44,38 +44,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(FixedArray, 0, &Sequence::seqMethods, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-FixedArray::FixedArray(DataType* dataType, std::string& strInitData):
-Sequence(getScriptType(), false)
-{
-	_dataType = static_cast<FixedArrayType*>(dataType);
-	_dataType->incRef();
-	initialize(strInitData);
-
-	script::PyGC::incTracing("FixedArray");
-
-//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
-}
-
-//-------------------------------------------------------------------------------------
-FixedArray::FixedArray(DataType* dataType, PyObject* pyInitData):
-Sequence(getScriptType(), false)
-{
-	_dataType = static_cast<FixedArrayType*>(dataType);
-	_dataType->incRef();
-	initialize(pyInitData);
-
-	script::PyGC::incTracing("FixedArray");
-
-//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
-}
-
-//-------------------------------------------------------------------------------------
 FixedArray::FixedArray(DataType* dataType):
 Sequence(getScriptType(), false)
 {
 	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
-	initialize("");
 
 	script::PyGC::incTracing("FixedArray");
 
@@ -169,7 +142,9 @@ PyObject* FixedArray::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
-	return new FixedArray(DataTypes::getDataType(uid), pyList);
+	FixedArray* pFixedArray = new FixedArray(DataTypes::getDataType(uid));
+	pFixedArray->initialize(pyList);
+	return pFixedArray;
 }
 
 //-------------------------------------------------------------------------------------

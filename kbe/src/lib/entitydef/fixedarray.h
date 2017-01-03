@@ -34,8 +34,6 @@ class FixedArray : public script::Sequence
 	INSTANCE_SCRIPT_HREADER(FixedArray, Sequence)
 public:	
 	FixedArray(DataType* dataType);
-	FixedArray(DataType* dataType, std::string& strInitData);
-	FixedArray(DataType* dataType, PyObject* pyInitData);
 	virtual ~FixedArray();
 
 	const DataType* getDataType(void){ return _dataType; }
