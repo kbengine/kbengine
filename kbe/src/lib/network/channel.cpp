@@ -824,6 +824,16 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 		pPacketReader_->currMsgID(0);
 		pPacketReader_->currMsgLen(0);
 		condemn();
+
+		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+		for (; packetIter != bufferedReceives_.end(); ++packetIter)
+		{
+			Packet* pPacket = (*packetIter);
+			if (pPacket->isEnabledPoolObject())
+			{
+				RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
+			}
+		}
 	}
 
 	bufferedReceives_.clear();
