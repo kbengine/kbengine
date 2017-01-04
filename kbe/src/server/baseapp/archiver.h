@@ -44,7 +44,7 @@ public:
 	void archive(Base& base);
 private:
 	int						archiveIndex_;
-	std::vector<ENTITY_ID> 	backupEntityIDs_;
+	std::vector<ENTITY_ID> 	arEntityIDs_;
 };
 
 

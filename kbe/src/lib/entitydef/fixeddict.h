@@ -39,9 +39,7 @@ public:
 	static PySequenceMethods mappingSequenceMethods;
 
 	FixedDict(DataType* dataType);
-	FixedDict(DataType* dataType, std::string& strDictInitData);
-	FixedDict(DataType* dataType, PyObject* pyDictInitData);
-	FixedDict(DataType* dataType, MemoryStream* streamInitData, bool isPersistentsStream);
+	FixedDict(DataType* dataType, bool isPersistentsStream);
 
 	virtual ~FixedDict();
 
