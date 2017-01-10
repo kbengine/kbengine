@@ -72,6 +72,8 @@ protected:
 
 	RangeTriggerNode* positiveBoundary_;
 	RangeTriggerNode* negativeBoundary_;
+
+	bool removing_;
 };
 
 }
