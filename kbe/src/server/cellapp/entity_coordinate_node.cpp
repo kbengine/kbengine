@@ -414,9 +414,6 @@ void EntityCoordinateNode::clearDelWatcherNodes()
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::onRemove()
 {
-	// 先设置自己的位置为-FLX，避免watcherNodes_中判断触发器载体位置没有发生改变而导致没有产生离开触发器事件
-	CoordinateNode::onRemove();
-
 	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
 		CoordinateNode* pCoordinateNode = watcherNodes_[i];
@@ -432,6 +429,8 @@ void EntityCoordinateNode::onRemove()
 
 		pCoordinateNode->onParentRemove(this);
 	}
+
+	CoordinateNode::onRemove();
 }
 
 //-------------------------------------------------------------------------------------
