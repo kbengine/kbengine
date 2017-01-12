@@ -24,6 +24,7 @@ http://www.kbengine.org
 	
 ##Support
 	Email		: kbesrv?gmail.com
+	QQ		: 3603661
 	BBS			: http://bbs.kbengine.org
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
