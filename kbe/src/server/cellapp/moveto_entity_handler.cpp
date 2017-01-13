@@ -71,6 +71,12 @@ const Position3D& MoveToEntityHandler::destPos()
 //-------------------------------------------------------------------------------------
 bool MoveToEntityHandler::update()
 {
+	if (isDestroyed_)
+	{
+		delete this;
+		return false;
+	}
+
 	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
 	if(pEntity == NULL)
 	{
