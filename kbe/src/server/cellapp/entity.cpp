@@ -352,19 +352,19 @@ PyObject* Entity::pyGetControlledBy( )
 
 //-------------------------------------------------------------------------------------
 int Entity::pySetControlledBy(PyObject *value)
-{ 
-	if (!isReal())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
-			scriptName(), id());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
+{
 	if (isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
+			scriptName(), id());
 		PyErr_PrintEx(0);
 		return 0;
 	}
