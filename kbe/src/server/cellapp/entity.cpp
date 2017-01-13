@@ -2868,7 +2868,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 			return 0;
 		}
 
-		if(!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3)
+		if (pyPosition != Py_None && (!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3))
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(position) error!");
 			PyErr_PrintEx(0);
@@ -2886,7 +2886,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	Position3D originpos;
 	
 	// 将坐标信息提取出来
-	if(pyPosition)
+	if (pyPosition && pyPosition != Py_None)
 	{
 		script::ScriptVector3::convertPyObjectToVector3(originpos, pyPosition);
 	}
