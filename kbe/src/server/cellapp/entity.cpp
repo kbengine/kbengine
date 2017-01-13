@@ -389,14 +389,6 @@ PyObject* Entity::pyGetControlledBy( )
 //-------------------------------------------------------------------------------------
 int Entity::pySetControlledBy(PyObject *value)
 { 
-	if (!isReal())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
-			scriptName(), id());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
 	if (isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
@@ -405,13 +397,21 @@ int Entity::pySetControlledBy(PyObject *value)
 		return 0;
 	}
 
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	EntityMailbox* mailbox = NULL;
 
 	if (value != Py_None )
 	{
-		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()))
+		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()) || !((EntityMailbox *)value)->isBase())
 		{
-			PyErr_Format(PyExc_AssertionError, "%s: param must be instance of Entity!\n",
+			PyErr_Format(PyExc_AssertionError, "%s: param must be base entity mailbox!\n",
 				scriptName());
 			PyErr_PrintEx(0);
 			return 0;
