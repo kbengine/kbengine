@@ -144,7 +144,7 @@ bool CoordinateSystem::insert(CoordinateNode* pNode)
 //-------------------------------------------------------------------------------------
 bool CoordinateSystem::remove(CoordinateNode* pNode)
 {
-	pNode->addFlags(COORDINATE_NODE_FLAG_REMOVEING);
+	pNode->addFlags(COORDINATE_NODE_FLAG_REMOVING);
 	pNode->onRemove();
 	update(pNode);
 	

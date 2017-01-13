@@ -327,7 +327,7 @@ EntityCoordinateNode::~EntityCoordinateNode()
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::xx() const
 {
-	if (pEntity_ == NULL || hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
+	if (pEntity_ == NULL || hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVING)))
 		return -FLT_MAX;
 
 	return pEntity_->position().x;
@@ -336,7 +336,7 @@ float EntityCoordinateNode::xx() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::yy() const
 {
-	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING))*/)
+	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVING))*/)
 		return -FLT_MAX;
 
 	return pEntity_->position().y;
@@ -345,7 +345,7 @@ float EntityCoordinateNode::yy() const
 //-------------------------------------------------------------------------------------
 float EntityCoordinateNode::zz() const
 {
-	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING))*/)
+	if(pEntity_ == NULL /*|| hasFlags((COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVING))*/)
 		return -FLT_MAX;
 
 	return pEntity_->position().z;
@@ -387,7 +387,7 @@ void EntityCoordinateNode::update()
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::clearDelWatcherNodes()
 {
-	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
+	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVING)))
 		return;
 
 	if (delWatcherNodeNum_ > 0)
@@ -453,7 +453,7 @@ bool EntityCoordinateNode::delWatcherNode(CoordinateNode* pNode)
 	if(iter == watcherNodes_.end())
 		return false;
 
-	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVEING)))
+	if (hasFlags((COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING | COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVING)))
 	{
 		(*iter) = NULL;
 		++delWatcherNodeNum_;
