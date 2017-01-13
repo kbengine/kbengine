@@ -47,6 +47,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "client_lib/client_interface.h"
 #include "helper/eventhistory_stats.h"
 #include "navigation/navigation.h"
+#include "math/math.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
@@ -154,7 +155,6 @@ Entity::~Entity()
 {
 	ENTITY_DECONSTRUCTION(Entity);
 
-	S_RELEASE(controlledBy_);
 	S_RELEASE(pCustomVolatileinfo_);
 
 	S_RELEASE(clientMailbox_);
@@ -353,7 +353,15 @@ PyObject* Entity::pyGetControlledBy( )
 //-------------------------------------------------------------------------------------
 int Entity::pySetControlledBy(PyObject *value)
 { 
-	if(isDestroyed())	
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if (isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
 			scriptName(), id());		
@@ -2768,7 +2776,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 			return 0;
 		}
 
-		if(!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3)
+		if (pyPosition != Py_None && (!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3))
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(position) error!");
 			PyErr_PrintEx(0);
@@ -2786,7 +2794,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	Position3D originpos;
 	
 	// 将坐标信息提取出来
-	if(pyPosition)
+	if (pyPosition && pyPosition != Py_None)
 	{
 		script::ScriptVector3::convertPyObjectToVector3(originpos, pyPosition);
 	}
