@@ -6,7 +6,7 @@
 <div id="show-area" style="float: left;width:140%;max-height: 100%;overflow-x: auto;">
 {% for comp in KBEComps %}
 {% if comp.componentType == child_type %}
-<div style="float: left;width:500px;min-height:400px;margin-right: 1em;display:inline">
+<div class="div-status" style="float: left;width:500px;min-height:400px;margin-left: 1em;margin-top: 1em;display:inline">
   <div id="{{ comp.fullname }}-chart" style="width: 100%;height: 350px;"></div>
   <div style="text-align: center">{{ comp.fullname }}</div>
 </div>

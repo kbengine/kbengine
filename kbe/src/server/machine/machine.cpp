@@ -543,7 +543,7 @@ bool Machine::initNetwork()
 	if (!ep_.good() ||
 		ep_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), broadcastAddr_) == -1)
 	{
-		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind UDP-socket to '{}:{}'. {}.\n",
 							inet_ntoa((struct in_addr &)broadcastAddr_),
 							(KBE_MACHINE_BROADCAST_SEND_PORT),
 							kbe_strerror()));

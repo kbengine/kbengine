@@ -650,6 +650,9 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileName, 
 	int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 0:	// pyprofile
@@ -665,6 +668,9 @@ void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileNam
 //-------------------------------------------------------------------------------------
 void PythonApp::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string cmd;
 	s.readBlob(cmd);
 

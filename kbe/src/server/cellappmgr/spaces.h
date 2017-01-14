@@ -38,7 +38,7 @@ public:
 		return spaces_.size();
 	}
 
-	void updateSpaceData(SPACE_ID spaceID, const std::string& geomappingPath, bool deleted);
+	void updateSpaceData(SPACE_ID spaceID, const std::string& scriptModuleName, const std::string& geomappingPath, bool deleted);
 
 	Space* getSpace(SPACE_ID id) {
 		std::map<SPACE_ID, Space>::iterator iter = spaces_.find(id);

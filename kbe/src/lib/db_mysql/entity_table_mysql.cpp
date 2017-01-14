@@ -519,7 +519,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 		
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint not null DEFAULT {}", defaultVal),
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint(@DATALEN@) not null DEFAULT {}", defaultVal),
 			4, NOT_NULL_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "INT16")
@@ -537,7 +537,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			6, NOT_NULL_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "INT32")
@@ -555,7 +555,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("int not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			11, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "INT64")
@@ -573,7 +573,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			20, NOT_NULL_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "UINT8")
@@ -591,7 +591,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint unsigned not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint(@DATALEN@) unsigned not null DEFAULT {}", defaultVal), 
 			3, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "UINT16")
@@ -609,7 +609,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint unsigned not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint(@DATALEN@) unsigned not null DEFAULT {}", defaultVal), 
 			5, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "UINT32")
@@ -627,7 +627,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("int unsigned not null DEFAULT {}", defaultVal),
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int(@DATALEN@) unsigned not null DEFAULT {}", defaultVal),
 			10, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "UINT64")
@@ -645,7 +645,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint unsigned not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint(@DATALEN@) unsigned not null DEFAULT {}", defaultVal), 
 			20, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "FLOAT")
@@ -663,7 +663,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("float not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("float(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 	else if(type == "DOUBLE")
@@ -681,7 +681,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("double not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("double(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			0, NOT_NULL_FLAG, FIELD_TYPE_DOUBLE);
 	}
 	else if(type == "STRING")
@@ -1533,6 +1533,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* pdbi, void* pData)
 {
 	if(datalength_ == 0)
 	{
+		KBEngine::strutil::kbe_replace(itemDBType_, "(@DATALEN@)", "");
 		return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), 
 			db_item_name(), datalength_, this->mysqlItemtype_, this->flags(), pData);
 	}
@@ -1540,10 +1541,16 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length <= 0)
+	if (length <= 0)
+	{
+		KBEngine::strutil::kbe_replace(itemDBType_, "(@DATALEN@)", "");
 		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
+	}
 	else
-		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
+	{
+		KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
+		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
+	}
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, this->mysqlItemtype_, this->flags(), pData);
 }

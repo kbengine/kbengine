@@ -598,13 +598,19 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entityType [%s] not found! Please register in entities.xml and implement a %s.def and %s.py\n", 
+			entityType, entityType, entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	else if(componentType_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: cannot create %s(%s=false)! Please check the setting of the entities.xml and the implementation of %s.py\n", 
+			entityType, 
+			(componentType_ == CELLAPP_TYPE ? "hasCell()" : "hasBase()"), 
+			entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -760,6 +766,9 @@ E* EntityApp<E>::findEntity(ENTITY_ID entityID)
 template<class E>
 void EntityApp<E>::onReqAllocEntityID(Network::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
 }
@@ -1215,6 +1224,9 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 template<class E>
 void EntityApp<E>::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 0:	// pyprofile
@@ -1233,6 +1245,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 						COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, 
 						const std::string& digest)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
 		startID, endID, startGlobalOrder, startGroupOrder, digest));
 
@@ -1258,6 +1273,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 template<class E>
 void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string key, value;
 	bool isDelete;
 	
@@ -1313,6 +1331,9 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 template<class E>
 void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string cmd;
 	s.readBlob(cmd);
 

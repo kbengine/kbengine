@@ -211,8 +211,9 @@ bool MoveToPointHandler::update()
 	if(!isDestroyed_)
 		pEntity->onMove(pController_->id(), layer_, currpos_backup, pyuserarg_);
 
-	// 如果达到目的地则返回true
-	if (!ret && requestMoveOver(currpos_backup))
+	// 如果在onMove过程中被停止，又或者达到目的地了，则直接销毁并返回false
+	if (isDestroyed_ || 
+		(!ret && requestMoveOver(currpos_backup)))
 	{
 		Py_DECREF(pEntity);
 		delete this;

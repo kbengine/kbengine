@@ -36,10 +36,12 @@ public:
 	~Space();
 
 	void updateGeomappingPath(const std::string& geomappingPath);
+	void updateScriptModuleName(const std::string& scriptModuleName);
 	void setSpaceID(SPACE_ID spaceID) { spaceID_ = spaceID; }
 
 	SPACE_ID id() const { return spaceID_; }
 	std::string& getGeomappingPath() { return geomappingPath_; }
+	std::string& getScriptModuleName() { return scriptModuleName_; }
 
 	Cells& cells() { return cells_; }
 
@@ -48,6 +50,7 @@ private:
 	Cells cells_;
 
 	std::string geomappingPath_;
+	std::string scriptModuleName_;
 };
 
 }

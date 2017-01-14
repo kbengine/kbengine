@@ -334,7 +334,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 
 			// 如果实体已经在场景中，那么需要安装
 			if (!pAOITrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-				pAOITrigger_->install();
+				pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		}
 
 		if (aoiHysteresisArea_ > 0.01f && pEntity_/*上面update流程可能导致销毁 */)
@@ -353,7 +353,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 
 				// 如果实体已经在场景中，那么需要安装
 				if (!pAOIHysteresisAreaTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-					pAOIHysteresisAreaTrigger_->install();
+					pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 			}
 		}
 		else
