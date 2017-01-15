@@ -88,8 +88,14 @@ bool Controllers::remove(KBEShared_ptr<Controller> pController)
 //-------------------------------------------------------------------------------------
 bool Controllers::remove(uint32 id)
 {
-	objects_.erase(id);
-	return true;
+	CONTROLLERS_MAP::iterator iter = objects_.find(id);
+	if (iter == objects_.end())
+		return false;
+
+	// 做个引用，防止在Controller析构中导致某些情况下在erase未结束的情况下又进入这里执行erase而产生问题
+	KBEShared_ptr< Controller > pController = iter->second;
+	objects_.erase(iter);
+	return pController != NULL;
 }
 
 //-------------------------------------------------------------------------------------
