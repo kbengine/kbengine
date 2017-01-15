@@ -41,7 +41,7 @@ Backuper::~Backuper()
 //-------------------------------------------------------------------------------------
 void Backuper::tick()
 {
-	int32 periodInTicks = (int32)secondsToTicks(ServerConfig::getSingleton().getBaseApp().backupPeriod, 0.f);
+	int32 periodInTicks = (int32)secondsToTicks(ServerConfig::getSingleton().getBaseApp().backupPeriod, 0);
 	if (periodInTicks == 0)
 		return;
 

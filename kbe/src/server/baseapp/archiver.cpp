@@ -39,7 +39,7 @@ Archiver::~Archiver()
 //-------------------------------------------------------------------------------------
 void Archiver::tick()
 {
-	int32 periodInTicks = (int32)secondsToTicks(ServerConfig::getSingleton().getBaseApp().archivePeriod, 0.f);
+	int32 periodInTicks = (int32)secondsToTicks(ServerConfig::getSingleton().getBaseApp().archivePeriod, 0);
 	if (periodInTicks == 0)
 		return;
 
