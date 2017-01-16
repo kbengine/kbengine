@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -388,7 +388,7 @@ PyObject* Entity::pyGetControlledBy( )
 
 //-------------------------------------------------------------------------------------
 int Entity::pySetControlledBy(PyObject *value)
-{ 
+{
 	if (isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
@@ -2542,6 +2542,9 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	if(this->isDestroyed())
 		return;
 
+	if(pMoveController_ == NULL)
+		return;
+	
 	pMoveController_->destroy();
 	pMoveController_.reset();
 
@@ -2558,6 +2561,9 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	if(this->isDestroyed())
 		return;
 
+	if(pMoveController_ == NULL)
+		return;
+	
 	pMoveController_->destroy();
 	pMoveController_.reset();
 

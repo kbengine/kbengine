@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,7 @@ namespace KBEngine{
 #define COORDINATE_NODE_FLAG_ENTITY					0x00000001		// 一个Entity节点
 #define COORDINATE_NODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
 #define COORDINATE_NODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
-#define COORDINATE_NODE_FLAG_REMOVEING				0x00000008		// 删除中的节点
+#define COORDINATE_NODE_FLAG_REMOVING				0x00000008		// 删除中的节点
 #define COORDINATE_NODE_FLAG_REMOVED				0x00000010		// 删除节点
 #define COORDINATE_NODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
 #define COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING	0x00000040		// entity节点正在执行update操作
@@ -95,7 +95,7 @@ public:
 	INLINE CoordinateSystem* pCoordinateSystem() const;
 
 	INLINE bool isDestroying() const {
-		return hasFlags(COORDINATE_NODE_FLAG_REMOVEING);
+		return hasFlags(COORDINATE_NODE_FLAG_REMOVING);
 	}
 
 	INLINE bool isDestroyed() const {
