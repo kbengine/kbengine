@@ -450,7 +450,7 @@ void CoordinateSystem::moveNodeZ(CoordinateNode* pNode, float pz, CoordinateNode
 void CoordinateSystem::update(CoordinateNode* pNode)
 {
 	/* 
-		对算法进行任意改动需要保证以下情况能够正确计算（所有情况描述的都是同一tick发送）:
+		对算法进行任意改动需要保证以下情况能够正确计算（所有情况描述的都是同一tick发生）:
 		1: 玩家A的移动进入了某只怪的陷阱，而某只怪在陷阱触发时又创建一只怪，新创建的怪此时应该能够正常进入玩家的AOI范围，触发陷阱的怪同时删除了陷阱并移动到了一个无人区, 同时销毁了自己和玩家A。
 		2：在某只怪创建一个陷阱时导致另一个实体立即触发进入了该陷阱，另一个怪同时也被立即移除陷阱，此时应该触发进入和离开2个事件。
 		3：玩家移动时导致另一只怪进入AOI，同时触发了怪的onWitnessed回调， 在回调中玩家移动到了无人区。
