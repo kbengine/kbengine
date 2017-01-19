@@ -1,0 +1,60 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_STRERROR_R" "3" "2016\(hy02\(hy04" "libbson"
+.SH NAME
+bson_strerror_r() \- This is a portability wrapper around strerror().
+.SH "SYNOPSIS"
+
+.nf
+.nf
+char *
+bson_strerror_r (int    err_code,
+                 char  *buf,
+                 size_t buflen);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B err_code
+An errno.
+.LP
+.TP
+.B
+.B buf
+A location to store the string.
+.LP
+.TP
+.B
+.B buflen
+The size of
+.B buf
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This is a portability wrapper around
+.B strerror(3)
+\e&.
+
+.SH "RETURNS"
+
+The passed in
+.B buf
+parameter or an internal string.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

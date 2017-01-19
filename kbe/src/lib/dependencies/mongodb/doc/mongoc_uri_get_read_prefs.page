@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_uri_get_read_prefs">
+  <info>
+    <link type="guide" xref="mongoc_uri_t" group="function"/>
+  </info>
+  <title>mongoc_uri_get_read_prefs()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[const bson_t *
+mongoc_uri_get_read_prefs (const mongoc_uri_t *uri);
+]]></code></synopsis>
+  </section>
+
+  <section id="deprecated">
+    <title>Deprecated</title>
+    <note style="warning"><p>This function is deprecated and should not be used in new code.</p></note>
+    <p>Please use <link xref="mongoc_uri_get_read_prefs_t">mongoc_uri_get_read_prefs_t()</link> instead.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>uri</p></td><td><p>A <code xref="mongoc_uri_t">mongoc_uri_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Fetches a bson document containing read preference tag information from a URI. Note that this does not include the read preference mode.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns a bson document that should not be modified or freed.</p>
+  </section>
+
+</page>

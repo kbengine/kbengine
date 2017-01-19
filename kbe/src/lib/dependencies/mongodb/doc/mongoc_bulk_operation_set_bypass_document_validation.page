@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_bulk_operation_set_bypass_document_validation">
+  <info>
+    <link type="guide" xref="mongoc_bulk_operation_t" group="function"/>
+  </info>
+  <title>mongoc_bulk_operation_set_bypass_document_validation()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_bulk_operation_set_bypass_document_validation (mongoc_bulk_operation_t   *bulk,
+                                                      bool                       bypass);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>bulk</p></td><td><p>A <link xref="mongoc_bulk_operation_t">mongoc_bulk_operation_t</link>.</p></td></tr>
+      <tr><td><p>bypass</p></td><td><p>A boolean.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Will bypass document validation for all operations part of this <link xref="mongoc_bulk_operation_t">bulk</link>.</p>
+  </section>
+
+</page>

@@ -1,0 +1,52 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_stream_tls_new()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_stream_tls_new()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">mongoc_stream_t *
+mongoc_stream_tls_new (mongoc_stream_t  *base_stream,
+                       mongoc_ssl_opt_t *opt,
+                       int               client);</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">base_stream</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_stream_t.html" title="mongoc_stream_t">mongoc_stream_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">opt</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_ssl_opt_t.html" title="mongoc_ssl_opt_t">mongoc_ssl_opt_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">client</p></td>
+<td><p class="p">1 for client, 0 for server TLS.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"></div>
+<div class="region"><div class="contents"><p class="p">Creates a new <span class="code"><a href="mongoc_stream_tls_t.html" title="mongoc_stream_tls_t">mongoc_stream_tls_t</a></span> using the parameters supplied.</p></div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents"><p class="p">A newly allocated <span class="code"><a href="mongoc_stream_tls_t.html" title="mongoc_stream_tls_t">mongoc_stream_tls_t</a></span>.</p></div></div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

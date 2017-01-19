@@ -1,0 +1,32 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Threading</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#xplat" title="Cross Platform Notes">Cross Platform Notes</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Threading</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">Libbson is <span class="em">NOT</span> thread-safe, but it is thread-aware. Libbson requires POSIX threads (pthreads) on all UNIX-like platforms. On Windows, the native threading interface is used.</p>
+<p class="p">You, the API consumer, are responsible for managing the data-structures in way that results two threads are not mutating at the same time. You may also want to bear in mind your platform may have ordering and consistency concerns that should also be followed.</p>
+<p class="p">Libbson used threading primatives for controlling state internal to the library as well as providing atomic fallbacks during <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">ObjectID</a></span> generation.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#xplat" title="Cross Platform Notes">Cross Platform Notes</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

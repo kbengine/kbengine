@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_gridfs_file_tell">
+  <info>
+    <link type="guide" xref="mongoc_gridfs_file_t" group="function"/>
+  </info>
+  <title>mongoc_gridfs_file_tell()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[uint64_t
+mongoc_gridfs_file_tell (mongoc_gridfs_file_t *file);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>file</p></td><td><p>A <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function returns the current position indicator within <code>file</code>.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns a file position as an unsigned 64-bit integer.</p>
+  </section>
+
+</page>

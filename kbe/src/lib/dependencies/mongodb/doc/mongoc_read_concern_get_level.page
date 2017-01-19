@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_read_concern_get_level">
+  <info>
+    <link type="guide" xref="mongoc_read_concern_t" group="function"/>
+  </info>
+  <title>mongoc_read_concern_get_level()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[const char*
+mongoc_read_concern_get_level (const mongoc_read_concern_t *read_concern);]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>read_concern</p></td><td><p>A <code xref="mongoc_read_concern_t">mongoc_read_concern_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Returns the currently set read concern.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns the current readConcern. If none is set, returns empty string.</p>
+  </section>
+
+</page>

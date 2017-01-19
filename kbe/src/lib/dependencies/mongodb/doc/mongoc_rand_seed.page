@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_rand_seed">
+
+
+  <info>
+    <link type="guide" xref="mongoc_rand" group="function"/>
+  </info>
+  <title>mongoc_rand_seed()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_rand_seed(const void *buf,
+                 int         num);
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Seeds the mongoc random number generator with num bytes of entropy.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>buf</p></td><td><p>A buffer.</p></td></tr>
+      <tr><td><p>num</p></td><td><p>An int of number of bytes in buf.</p></td></tr>
+    </table>
+  </section>
+
+</page>

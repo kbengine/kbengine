@@ -1,0 +1,152 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_CLIENT_T" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_client_t \- MongoDB Connection Abstraction
+.SH "SYNOPSIS"
+
+.nf
+.nf
+typedef struct _mongoc_client_t mongoc_client_t;
+    
+typedef mongoc_stream_t *
+(*mongoc_stream_initiator_t) (const mongoc_uri_t       *uri,
+                              const mongoc_host_list_t *host,
+                              void                     *user_data,
+                              bson_error_t             *error);
+.fi
+.fi
+
+.B mongoc_client_t
+is an opaque type that provides access to a MongoDB node,
+replica\(hyset, or sharded\(hycluster. It maintains management of underlying sockets
+and routing to individual nodes based on
+.B mongoc_read_prefs_t
+or
+.B mongoc_write_concern_t
+\e&.
+
+.SH "STREAMS"
+
+The underlying transport for a given client can be customized, wrapped or replaced by any implementation that fulfills
+.B mongoc_stream_t
+\e&. A custom transport can be set with
+.B mongoc_client_set_stream_initiator(3)
+\e&.
+
+.SH "THREAD SAFETY"
+
+.B mongoc_client_t
+is
+.B NOT
+thread\(hysafe and should only be used from one thread at a time. When used in multi\(hythreaded scenarios, it is recommended that you use the thread\(hysafe
+.B mongoc_client_pool_t
+to retrieve a
+.B mongoc_client_t
+for your thread.
+
+.SH "LIFECYCLE"
+
+It is an error to call
+.B mongoc_client_destroy
+on a client that has operations pending. It is required that you release
+.B mongoc_collection_t
+and
+.B mongoc_database_t
+structures before calling
+.B mongoc_client_destroy
+\e&.
+
+.SH "EXAMPLE"
+
+.nf
+
+/* gcc example.c \(hyo example $(pkg\(hyconfig \(hy\(hycflags \(hy\(hylibs libmongoc\(hy1.0) */
+
+/* ./example\(hyclient [CONNECTION_STRING [COLLECTION_NAME]] */
+
+#include <mongoc.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   const char *uristr = "mongodb://127.0.0.1/";
+   const char *collection_name = "test";
+   bson_t query;
+   char *str;
+
+   mongoc_init ();
+
+   if (argc > 1) {
+      uristr = argv [1];
+   }
+
+   if (argc > 2) {
+      collection_name = argv [2];
+   }
+
+   client = mongoc_client_new (uristr);
+
+   if (!client) {
+      fprintf (stderr, "Failed to parse URI.\en");
+      return EXIT_FAILURE;
+   }
+
+   bson_init (&query);
+
+#if 0
+   bson_append_utf8 (&query, "hello", \(hy1, "world", \(hy1);
+#endif
+
+   collection = mongoc_client_get_collection (client, "test", collection_name);
+   cursor = mongoc_collection_find (collection,
+                                    MONGOC_QUERY_NONE,
+                                    0,
+                                    0,
+                                    0,
+                                    &query,
+                                    NULL,  /* Fields, NULL for all. */
+                                    NULL); /* Read Prefs, NULL for default */
+
+   while (mongoc_cursor_next (cursor, &doc)) {
+      str = bson_as_json (doc, NULL);
+      fprintf (stdout, "%s\en", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &error)) {
+      fprintf (stderr, "Cursor Failure: %s\en", error.message);
+      return EXIT_FAILURE;
+   }
+
+   bson_destroy (&query);
+   mongoc_cursor_destroy (cursor);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return EXIT_SUCCESS;
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

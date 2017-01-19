@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_client_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_client_t</title>
+  <subtitle>MongoDB Connection Abstraction</subtitle>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_client_t mongoc_client_t;
+    
+typedef mongoc_stream_t *
+(*mongoc_stream_initiator_t) (const mongoc_uri_t       *uri,
+                              const mongoc_host_list_t *host,
+                              void                     *user_data,
+                              bson_error_t             *error);]]></code></synopsis>
+    <p><code>mongoc_client_t</code> is an opaque type that provides access to a MongoDB node,
+replica-set, or sharded-cluster. It maintains management of underlying sockets
+and routing to individual nodes based on <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> or
+<code xref="mongoc_write_concern_t">mongoc_write_concern_t</code>.</p>
+  </section>
+
+  <section id="streams">
+    <title>Streams</title>
+    <p>The underlying transport for a given client can be customized, wrapped or replaced by any implementation that fulfills <code xref="mongoc_stream_t">mongoc_stream_t</code>. A custom transport can be set with <code xref="mongoc_client_set_stream_initiator">mongoc_client_set_stream_initiator()</code>.</p>
+  </section>
+
+  <section id="threadsafety">
+    <title>Thread Safety</title>
+    <p><code>mongoc_client_t</code> is <em>NOT</em> thread-safe and should only be used from one thread at a time. When used in multi-threaded scenarios, it is recommended that you use the thread-safe <code xref="mongoc_client_pool_t">mongoc_client_pool_t</code> to retrieve a <code>mongoc_client_t</code> for your thread.</p>
+  </section>
+
+  <section id="lifecycle">
+    <title>Lifecycle</title>
+    <p>It is an error to call <code xref="mongoc_client_destroy">mongoc_client_destroy</code> on a client that has operations pending. It is required that you release <code xref="mongoc_collection_t">mongoc_collection_t</code> and <code xref="mongoc_database_t">mongoc_database_t</code> structures before calling <code xref="mongoc_client_destroy">mongoc_client_destroy</code>.</p>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <screen><code mime="text/x-csrc"><include parse="text" href="../examples/example-client.c" xmlns="http://www.w3.org/2001/XInclude" /></code></screen>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+
+</page>

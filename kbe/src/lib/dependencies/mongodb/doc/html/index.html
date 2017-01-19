@@ -1,0 +1,183 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>MongoDB C Driver</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">MongoDB C Driver</span></h1>
+<h2 class="subtitle"><span class="subtitle">A Cross Platform MongoDB Client Library for C</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="installation" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Installation</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="linkdiv "><a class="linkdiv" href="installing.html#installing-osx" title="Building on Mac OS X"><span class="title">Building on Mac OS X</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="installing.html#installing-unix" title="Building on Unix"><span class="title">Building on Unix</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="installing.html#building-windows" title="Building on Windows"><span class="title">Building on Windows</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="installing.html#mac-os-x" title="Installing on Mac OS X"><span class="title">Installing on Mac OS X</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="installing.html#supported-platforms" title="Supported Platforms"><span class="title">Supported Platforms</span></a></div>
+</div></div></div></div></div>
+</div></div>
+<div id="tutorial" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Tutorial</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#starting-mongod" title="1. Starting MongoDB"><span class="title">1. Starting MongoDB</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#connecting" title="2. Making a Connection"><span class="title">2. Making a Connection</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#creating-bson-documents" title="3. Creating BSON Documents"><span class="title">3. Creating BSON Documents</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#crud-operations" title="4. Basic CRUD Operations"><span class="title">4. Basic CRUD Operations</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#executing-commands" title="5. Executing Commands"><span class="title">5. Executing Commands</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#threading" title="6. Threading"><span class="title">6. Threading</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#next-steps" title="7. Next Steps"><span class="title">7. Next Steps</span></a></div>
+</div></div></div></div></div>
+</div></div>
+<div id="basic-operations" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Basic Operations</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#count" title="Counting Documents"><span class="title">Counting Documents</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#remove" title="Deleting a Document"><span class="title">Deleting a Document</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#find" title="Finding a Document"><span class="title">Finding a Document</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#insert" title="Inserting a Document"><span class="title">Inserting a Document</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="tutorial.html#update" title="Updating a Document"><span class="title">Updating a Document</span></a></div>
+</div>
+</div></div></div></div></div>
+</div></div>
+<div id="advanced-connections" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Advanced Connections</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="advanced-connections.html#additional-options" title="Additional Connection Options"><span class="title">Additional Connection Options</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="advanced-connections.html#replica-set" title="Connecting to a Replica Set"><span class="title">Connecting to a Replica Set</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="advanced-connections.html#sharded-cluster" title="Connecting to a Sharded Cluster"><span class="title">Connecting to a Sharded Cluster</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="advanced-connections.html#unix-socket" title="Connecting to a UNIX Domain Socket"><span class="title">Connecting to a UNIX Domain Socket</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="advanced-connections.html#ipv6" title="Connecting to an IPv6 Address"><span class="title">Connecting to an IPv6 Address</span></a></div>
+</div>
+</div></div></div></div></div>
+</div></div>
+<div id="authentication" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Authentication</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="authentication.html#basic-auth" title="Basic Authentication"><span class="title">Basic Authentication</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="authentication.html#kerberos" title="GSSAPI (Kerberos) Authentication"><span class="title">GSSAPI (Kerberos) Authentication</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="authentication.html#sasl-plain" title="SASL Plain Authentication"><span class="title">SASL Plain Authentication</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="authentication.html#ssl" title="SSL Authentication"><span class="title">SSL Authentication</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="authentication.html#x509" title="X.509 Certificate Authentication"><span class="title">X.509 Certificate Authentication</span></a></div>
+</div>
+</div></div></div></div></div>
+</div></div>
+<div id="cursors" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Cursors</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="cursors.html#killing-cursors" title="Destroying Server-Side Cursors"><span class="title">Destroying Server-Side Cursors</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="cursors.html#cursor-errors" title="Handling Cursor Failures"><span class="title">Handling Cursor Failures</span></a></div>
+</div>
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="cursors.html#tailable" title="Tailable Cursors"><span class="title">Tailable Cursors</span></a></div></div>
+</div></div></div></div></div>
+</div></div>
+<div id="bulk" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Bulk Operations</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="bulk.html#bulk-insert" title="Bulk Insert"><span class="title">Bulk Insert</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bulk.html#bulk-write-concern" title="Bulk Operation Bypassing Document Validation"><span class="title">Bulk Operation Bypassing Document ValidationBulk Operation Write Concerns</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bulk.html#bulk-write-concern" title="Bulk Operation Bypassing Document Validation"><span class="title">Bulk Operation Bypassing Document ValidationBulk Operation Write Concerns</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bulk.html#bulk-spec" title="Further Reading"><span class="title">Further Reading</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="bulk.html#mixed-bulk-write" title="Mixed Bulk Write Operations"><span class="title">Mixed Bulk Write Operations</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bulk.html#ordered-bulk-write" title="Ordered Bulk Write Operations"><span class="title">Ordered Bulk Write Operations</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bulk.html#unordered-bulk-write" title="Unordered Bulk Write Operations"><span class="title">Unordered Bulk Write Operations</span></a></div>
+</div>
+</div></div></div></div></div>
+</div></div>
+<div id="aggregation" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Aggregation Framework</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="aggregate.html" title="Aggregation Framework Examples"><span class="title">Aggregation Framework Examples</span></a></div></div>
+<div class="links-twocolumn"></div>
+</div></div></div></div></div>
+</div></div>
+<div id="matching" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Client Side Document Matching</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="matcher.html#basic-matching" title="Basic Document Matching (Deprecated)"><span class="title">Basic Document Matching (Deprecated)</span></a></div></div>
+<div class="links-twocolumn"></div>
+</div></div></div></div></div>
+</div></div>
+<div id="debugging" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Troubleshooting</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="basic-troubleshooting.html#perf-counters" title="Performance Counters"><span class="title">Performance Counters</span></a></div></div>
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="basic-troubleshooting.html#file-bug" title="Submitting a Bug Report"><span class="title">Submitting a Bug Report</span></a></div></div>
+</div></div></div></div></div>
+</div></div>
+<div id="api-reference" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">API Reference</span></h2></div>
+<div class="region"><div class="contents"><div class="links topiclinks"><div class="inner"><div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="logging.html" title="Logging"><span class="title">Logging</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_version.html" title="Version Checks"><span class="title">Version Checks</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_bulk_operation_t.html" title="mongoc_bulk_operation_t"><span class="title">mongoc_bulk_operation_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_pool_t.html" title="mongoc_client_pool_t"><span class="title">mongoc_client_pool_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_t.html" title="mongoc_client_t"><span class="title">mongoc_client_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_t.html" title="mongoc_collection_t"><span class="title">mongoc_collection_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_t.html" title="mongoc_cursor_t"><span class="title">mongoc_cursor_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_database_t.html" title="mongoc_database_t"><span class="title">mongoc_database_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_delete_flags_t.html" title="mongoc_delete_flags_t"><span class="title">mongoc_delete_flags_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_find_and_modify_opts_t.html" title="mongoc_find_and_modify_opts_t"><span class="title">mongoc_find_and_modify_opts_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_list_t.html" title="mongoc_gridfs_file_list_t"><span class="title">mongoc_gridfs_file_list_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_opt_t.html" title="mongoc_gridfs_file_opt_t"><span class="title">mongoc_gridfs_file_opt_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_t.html" title="mongoc_gridfs_file_t"><span class="title">mongoc_gridfs_file_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_t.html" title="mongoc_gridfs_t"><span class="title">mongoc_gridfs_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_host_list_t.html" title="mongoc_host_list_t"><span class="title">mongoc_host_list_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_index_opt_geo_t.html" title="mongoc_index_opt_geo_t"><span class="title">mongoc_index_opt_geo_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_index_opt_t.html" title="mongoc_index_opt_t"><span class="title">mongoc_index_opt_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_index_opt_wt_t.html" title="mongoc_index_opt_wt_t"><span class="title">mongoc_index_opt_wt_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_insert_flags_t.html" title="mongoc_insert_flags_t"><span class="title">mongoc_insert_flags_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_iovec_t.html" title="mongoc_iovec_t"><span class="title">mongoc_iovec_t</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_matcher_t.html" title="mongoc_matcher_t"><span class="title">mongoc_matcher_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_query_flags_t.html" title="mongoc_query_flags_t"><span class="title">mongoc_query_flags_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_rand.html" title="mongoc_rand"><span class="title">mongoc_rand</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_read_concern_t.html" title="mongoc_read_concern_t"><span class="title">mongoc_read_concern_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_read_mode_t.html" title="mongoc_read_mode_t"><span class="title">mongoc_read_mode_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_read_prefs_t.html" title="mongoc_read_prefs_t"><span class="title">mongoc_read_prefs_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_remove_flags_t.html" title="mongoc_remove_flags_t"><span class="title">mongoc_remove_flags_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_reply_flags_t.html" title="mongoc_reply_flags_t"><span class="title">mongoc_reply_flags_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_server_description_t.html" title="mongoc_server_description_t"><span class="title">mongoc_server_description_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_socket_t.html" title="mongoc_socket_t"><span class="title">mongoc_socket_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_ssl_opt_t.html" title="mongoc_ssl_opt_t"><span class="title">mongoc_ssl_opt_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_stream_buffered_t.html" title="mongoc_stream_buffered_t"><span class="title">mongoc_stream_buffered_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_stream_file_t.html" title="mongoc_stream_file_t"><span class="title">mongoc_stream_file_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_stream_gridfs_t.html" title="mongoc_stream_gridfs_t"><span class="title">mongoc_stream_gridfs_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_stream_socket_t.html" title="mongoc_stream_socket_t"><span class="title">mongoc_stream_socket_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_stream_t.html" title="mongoc_stream_t"><span class="title">mongoc_stream_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_stream_tls_t.html" title="mongoc_stream_tls_t"><span class="title">mongoc_stream_tls_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_update_flags_t.html" title="mongoc_update_flags_t"><span class="title">mongoc_update_flags_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_uri_t.html" title="mongoc_uri_t"><span class="title">mongoc_uri_t</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_write_concern_t.html" title="mongoc_write_concern_t"><span class="title">mongoc_write_concern_t</span></a></div>
+</div>
+</div></div></div></div></div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

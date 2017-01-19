@@ -1,0 +1,138 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_COLLECTION_COMMAND_SIMPLE" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_collection_command_simple() \- This is a simplified version of mongoc_collection_command() that returns the first result document in reply. The parameter reply is initialized even upon failure to simplify memory management.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_collection_command_simple (mongoc_collection_t       *collection,
+                                  const bson_t              *command,
+                                  const mongoc_read_prefs_t *read_prefs,
+                                  bson_t                    *reply,
+                                  bson_error_t              *error);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+collection
+A
+.B mongoc_collection_t
+\e&.
+.LP
+.TP
+.B
+command
+A
+.B bson_t
+containing the command to execute.
+.LP
+.TP
+.B
+read_prefs
+A
+.B mongoc_read_prefs_t
+or
+.B NULL
+\e&.
+.LP
+.TP
+.B
+reply
+A location to initialize a
+.B bson_t
+\e&. This should be on the stack.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This is a simplified version of
+.B mongoc_collection_command(3)
+that returns the first result document in
+.B reply
+\e&. The parameter
+.B reply
+is initialized even upon failure to simplify memory management.
+
+This function tries to unwrap an embedded error in the command when possible. The unwrapped error will be propagated via the
+.B error
+parameter. Additionally, the result document is set in
+.B reply
+\e&.
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+.B true
+if successful, otherwise
+.B false
+\e&.
+
+Not all commands have truly succeeded when
+.B {ok:1.0}
+is returned. This could simply mean the RPC successfully was executed.
+
+.SH "EXAMPLE"
+
+The following is an example of executing the collection stats command.
+
+.nf
+#include <mongoc.h>
+#include <bcon.h>
+#include <stdio.h>
+
+static void
+print_collection_stats (mongoc_collection_t *collection)
+{
+   bson_error_t error;
+   const char *name;
+   bson_t *cmd;
+   bson_t reply;
+
+   name = mongoc_collection_get_name (collection);
+   cmd = BCON_NEW ("collStats", BCON_UTF8 (name));
+
+   if (mongoc_collection_command_simple (collection, cmd, NULL, &reply, &error)) {
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf (stderr, "%s\en", error.message);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (cmd);
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

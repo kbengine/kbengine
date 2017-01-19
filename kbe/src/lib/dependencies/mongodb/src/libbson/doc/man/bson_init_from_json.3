@@ -1,0 +1,91 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_INIT_FROM_JSON" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_init_from_json() \- The bson_init_from_json() function will initialize a new bson_t by parsing the JSON found in data. Only a single JSON object may exist in data or an error will be set and false returned.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+bson_init_from_json (bson_t       *bson,
+                     const char   *data,
+                     ssize_t       len,
+                     bson_error_t *error);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+bson
+A
+.B bson_t
+\e&.
+.LP
+.TP
+.B
+data
+A UTF\(hy8 encoded string containing valid JSON.
+.LP
+.TP
+.B
+len
+The length of
+.B data
+in bytes excluding a trailing
+.B \e0
+or \(hy1 to determine the length with
+.B strlen(3)
+\e&.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+The
+.B bson_init_from_json(3)
+function will initialize a new
+.B bson_t
+by parsing the JSON found in
+.B data
+\e&. Only a single JSON object may exist in
+.B data
+or an error will be set and false returned.
+
+.B data
+should be in
+.B MongoDB Extended JSON
+format.
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+true if successful, otherwise false and
+.B error
+is set.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

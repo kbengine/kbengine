@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E737C8D6-B28D-40B9-9412-F7D09E4B2EDC}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>bson_static</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\..\..\..\..\libs\</OutDir>
+    <IntDir>..\..\..\..\..\_objs\$(ProjectName)_d\</IntDir>
+    <TargetName>bson_static_d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\..\..\..\..\libs\</OutDir>
+    <IntDir>..\..\..\..\..\_objs\$(ProjectName)_d\</IntDir>
+    <TargetName>bson-static</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;BSON_COMPILATION;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\src\bson;.\src</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;BSON_COMPILATION;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\src\bson;.\src</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\bson\bcon.c" />
+    <ClCompile Include="src\bson\bson-atomic.c" />
+    <ClCompile Include="src\bson\bson-clock.c" />
+    <ClCompile Include="src\bson\bson-context.c" />
+    <ClCompile Include="src\bson\bson-error.c" />
+    <ClCompile Include="src\bson\bson-iso8601.c" />
+    <ClCompile Include="src\bson\bson-iter.c" />
+    <ClCompile Include="src\bson\bson-json.c" />
+    <ClCompile Include="src\bson\bson-keys.c" />
+    <ClCompile Include="src\bson\bson-md5.c" />
+    <ClCompile Include="src\bson\bson-memory.c" />
+    <ClCompile Include="src\bson\bson-oid.c" />
+    <ClCompile Include="src\bson\bson-reader.c" />
+    <ClCompile Include="src\bson\bson-string.c" />
+    <ClCompile Include="src\bson\bson-timegm.c" />
+    <ClCompile Include="src\bson\bson-utf8.c" />
+    <ClCompile Include="src\bson\bson-value.c" />
+    <ClCompile Include="src\bson\bson-version-functions.c" />
+    <ClCompile Include="src\bson\bson-writer.c" />
+    <ClCompile Include="src\bson\bson.c" />
+    <ClCompile Include="src\yajl\yajl.c" />
+    <ClCompile Include="src\yajl\yajl_alloc.c" />
+    <ClCompile Include="src\yajl\yajl_buf.c" />
+    <ClCompile Include="src\yajl\yajl_encode.c" />
+    <ClCompile Include="src\yajl\yajl_gen.c" />
+    <ClCompile Include="src\yajl\yajl_lex.c" />
+    <ClCompile Include="src\yajl\yajl_parser.c" />
+    <ClCompile Include="src\yajl\yajl_tree.c" />
+    <ClCompile Include="src\yajl\yajl_version.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\bson\b64_ntop.h" />
+    <ClInclude Include="src\bson\b64_pton.h" />
+    <ClInclude Include="src\bson\bcon.h" />
+    <ClInclude Include="src\bson\bson-atomic.h" />
+    <ClInclude Include="src\bson\bson-clock.h" />
+    <ClInclude Include="src\bson\bson-compat.h" />
+    <ClInclude Include="src\bson\bson-config.h" />
+    <ClInclude Include="src\bson\bson-context-private.h" />
+    <ClInclude Include="src\bson\bson-context.h" />
+    <ClInclude Include="src\bson\bson-endian.h" />
+    <ClInclude Include="src\bson\bson-error.h" />
+    <ClInclude Include="src\bson\bson-iso8601-private.h" />
+    <ClInclude Include="src\bson\bson-iter.h" />
+    <ClInclude Include="src\bson\bson-json.h" />
+    <ClInclude Include="src\bson\bson-keys.h" />
+    <ClInclude Include="src\bson\bson-macros.h" />
+    <ClInclude Include="src\bson\bson-md5.h" />
+    <ClInclude Include="src\bson\bson-memory.h" />
+    <ClInclude Include="src\bson\bson-oid.h" />
+    <ClInclude Include="src\bson\bson-private.h" />
+    <ClInclude Include="src\bson\bson-reader.h" />
+    <ClInclude Include="src\bson\bson-stdint-win32.h" />
+    <ClInclude Include="src\bson\bson-stdint.h" />
+    <ClInclude Include="src\bson\bson-string.h" />
+    <ClInclude Include="src\bson\bson-thread-private.h" />
+    <ClInclude Include="src\bson\bson-timegm-private.h" />
+    <ClInclude Include="src\bson\bson-types.h" />
+    <ClInclude Include="src\bson\bson-utf8.h" />
+    <ClInclude Include="src\bson\bson-value.h" />
+    <ClInclude Include="src\bson\bson-version-functions.h" />
+    <ClInclude Include="src\bson\bson-version.h" />
+    <ClInclude Include="src\bson\bson-writer.h" />
+    <ClInclude Include="src\bson\bson.h" />
+    <ClInclude Include="src\yajl\yajl_alloc.h" />
+    <ClInclude Include="src\yajl\yajl_buf.h" />
+    <ClInclude Include="src\yajl\yajl_bytestack.h" />
+    <ClInclude Include="src\yajl\yajl_common.h" />
+    <ClInclude Include="src\yajl\yajl_encode.h" />
+    <ClInclude Include="src\yajl\yajl_gen.h" />
+    <ClInclude Include="src\yajl\yajl_lex.h" />
+    <ClInclude Include="src\yajl\yajl_parse.h" />
+    <ClInclude Include="src\yajl\yajl_parser.h" />
+    <ClInclude Include="src\yajl\yajl_tree.h" />
+    <ClInclude Include="src\yajl\yajl_version.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

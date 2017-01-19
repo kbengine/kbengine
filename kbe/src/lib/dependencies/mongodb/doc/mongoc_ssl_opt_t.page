@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_ssl_opt_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_ssl_opt_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <code mime="text/x-csrc"><![CDATA[typedef struct
+{
+   const char *pem_file;
+   const char *pem_pwd;
+   const char *ca_file;
+   const char *ca_dir;
+   const char *crl_file;
+   bool        weak_cert_validation;
+   void       *padding [8];
+} mongoc_ssl_opt_t;
+]]></code>
+  </section>
+
+  <section id="desc">
+    <title>Description</title>
+    <p>This structure is used to set the SSL options for a <code xref="mongoc_client_t">mongoc_client_t</code> or <code xref="mongoc_client_pool_t">mongoc_client_pool_t</code>.</p>
+    <p>Beginning in version 1.2.0, once a pool or client has any SSL options set, all connections use SSL, even if "ssl=true" is omitted from the MongoDB URI. Before, SSL options were ignored unless "ssl=true" was included in the URI.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <list>
+      <item><p><link type="seealso" xref="mongoc_client_set_ssl_opts"><code>mongoc_client_set_ssl_opts</code></link></p></item>
+      <item><p><link type="seealso" xref="mongoc_client_pool_set_ssl_opts"><code>mongoc_client_pool_set_ssl_opts</code></link></p></item>
+    </list>
+  </section>
+
+</page>

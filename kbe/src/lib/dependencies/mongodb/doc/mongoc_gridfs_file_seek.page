@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_gridfs_file_seek">
+  <info>
+    <link type="guide" xref="mongoc_gridfs_file_t" group="function"/>
+  </info>
+  <title>mongoc_gridfs_file_seek()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_gridfs_file_seek (mongoc_gridfs_file_t *file,
+                         int64_t               delta,
+                         int                   whence);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>file</p></td><td><p>A <code xref="mongoc_gridfs_file_t">mongoc_gridfs_file_t</code>.</p></td></tr>
+      <tr><td><p>delta</p></td><td><p>The amount to move the file position. May be positive or negative.</p></td></tr>
+      <tr><td><p>whence</p></td><td><p>One of SEEK_SET, SEEK_CUR or SEEK_END.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Adjust the file position pointer in the given file by <code>delta</code>, starting from the position <code>whence</code>. The <code>whence</code> argument is interpreted as in <code>fseek(2)</code>:</p>
+    <table>
+      <tr><td><p><code>SEEK_SET</code></p></td><td><p>Set the position relative to the start of the file.</p></td></tr>
+      <tr><td><p><code>SEEK_CUR</code></p></td><td><p>Move <code>delta</code> relative to the current file position.</p></td></tr>
+      <tr><td><p><code>SEEK_END</code></p></td><td><p>Move <code>delta</code> relative to the end of the file.</p></td></tr>
+    </table>
+    <p>On success, the file's underlying position pointer is set appropriately. On failure, the file position is NOT changed and errno is set to indicate the error.</p>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <table>
+      <tr><td><p><code>EINVAL</code></p></td><td><p><code>whence</code> is not one of SEEK_SET, SEEK_CUR or SEEK_END.</p></td></tr>
+      <tr><td><p><code>EINVAL</code></p></td><td><p>The resulting file position would be negative.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns 0 if successful; otherwise -1 and errno is set.</p>
+  </section>
+</page>

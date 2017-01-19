@@ -1,0 +1,94 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_VALIDATE" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_validate() \- Validates a BSON document by walking through the document and inspecting the fields for valid content.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+typedef enum
+{
+   BSON_VALIDATE_NONE            = 0,
+   BSON_VALIDATE_UTF8            = (1 << 0),
+   BSON_VALIDATE_DOLLAR_KEYS     = (1 << 1),
+   BSON_VALIDATE_DOT_KEYS        = (1 << 2),
+   BSON_VALIDATE_UTF8_ALLOW_NULL = (1 << 3),
+} bson_validate_flags_t;
+
+bool
+bson_validate (const bson_t         *bson,
+               bson_validate_flags_t flags,
+               size_t               *offset);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+bson
+A
+.B bson_t
+\e&.
+.LP
+.TP
+.B
+flags
+A bitwise\(hyor of all desired
+.B bson_validate_flags_t
+\e&.
+.LP
+.TP
+.B
+offset
+A location for the offset within
+.B bson
+where the error ocurred.
+.LP
+
+.SH "DESCRIPTION"
+
+Validates a BSON document by walking through the document and inspecting the fields for valid content.
+
+You can modify how the validation occurs through the use of the
+.B flags
+parameter. A description of their effect is below.
+
+.IP \e[bu] 2
+.B BSON_VALIDATE_UTF8
+will request that all UTF\(hy8 strings are checked to contain valid UTF\(hy8 sequences. This is expensive and disabled by default.
+.IP \e[bu] 2
+.B BSON_VALIDATE_UTF8_ALLOW_NULL
+will specify that UTF\(hy8 strings are allowed to have embedded NULL bytes. Many UTF\(hy8 implementations use a 2\(hybyte squence for embedded NULLs so that they work with stanard libc functions. Libbson expects this by default.
+.IP \e[bu] 2
+.B BSON_VALIDATE_DOLLAR_KEYS
+will request that all key names are checked to ensure they do not start with the ASCII dollar character (
+.B $
+).
+.IP \e[bu] 2
+.B BSON_VALIDATE_DOT_KEYS
+will request that all key names are checked to ensure they do not contain an ASCII dot (
+.B .
+) character.
+
+.SH "RETURNS"
+
+Returns true if
+.B bson
+is valid; otherwise false and
+.B offset
+is set to the byte offset where the error was detected.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

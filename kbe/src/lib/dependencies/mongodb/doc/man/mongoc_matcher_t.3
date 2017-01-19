@@ -1,0 +1,93 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_MATCHER_T" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_matcher_t \- Client-side document matching abstraction
+.SH "SYNOPSIS"
+
+.nf
+.nf
+typedef struct _mongoc_matcher_t mongoc_matcher_t;
+.fi
+.fi
+
+.B mongoc_matcher_t
+provides a reduced\(hyinterface for client\(hyside matching of BSON documents.
+
+It can perform the basics such as $in, $nin, $eq, $neq, $gt, $gte, $lt, and $lte.
+
+.B NOTE
+.RS
+.B mongoc_matcher_t
+does not currently support the full spectrum of query operations that the MongoDB server supports.
+.RE
+
+.SH "DEPRECATED"
+
+.B NOTE
+.RS
+.B mongoc_matcher_t
+is deprecated and will be removed in version 2.0.
+.RE
+
+.SH "EXAMPLE"
+
+.nf
+#include <bcon.h>
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_matcher_t *matcher;
+   bson_reader_t *reader;
+   const bson_t *bson;
+   bson_t *spec;
+   char *str;
+   int fd;
+
+   mongoc_init ();
+
+#ifdef _WIN32
+   fd = fileno (stdin);
+#else
+   fd = STDIN_FILENO;
+#endif
+
+   reader = bson_reader_new_from_fd (fd, false);
+
+   spec = BCON_NEW ("hello", "world");
+   matcher = mongoc_matcher_new (spec, NULL);
+
+   while ((bson = bson_reader_read (reader, NULL))) {
+      if (mongoc_matcher_match (matcher, bson)) {
+         str = bson_as_json (bson, NULL);
+         printf ("%s\en", str);
+         bson_free (str);
+      }
+   }
+
+   bson_reader_destroy (reader);
+   bson_destroy (spec);
+
+   mongoc_cleanup ();
+
+   return 0;
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

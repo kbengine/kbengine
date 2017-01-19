@@ -1,0 +1,121 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "CREATING_A_BSON_DOCUMENT" "3" "2016\(hy03\(hy30" "libbson"
+.SH NAME
+Creating_a_BSON_Document \- None
+.SH "THE BSON_T STRUCTURE"
+
+BSON documents are created using the
+.B bson_t
+structure. This structure encapsulates the necessary logic for encoding using the
+.B BSON Specification
+\e&. At the core,
+.B bson_t
+is a buffer manager and set of encoding routines.
+
+.B NOTE
+.RS
+BSON documents can live on the stack or the heap based on the performance needs or preference of the consumer.
+.RE
+
+Let's start by creating a new BSON document on the stack. Whenever using libbson, make sure you
+.B #include <bson.h>
+\e&.
+
+
+This creates an empty document. In JSON, this would be the same as
+.B {}
+\e&.
+
+We can now proceed to adding items to the BSON document. A variety of functions prefixed with
+.B bson_append_
+can be used based on the type of field you want to append. Let's append a UTF\(hy8 encoded string.
+
+
+Notice the two
+.B \(hy1
+parameters. The first indicates that the length of
+.B key
+in bytes should be determined with
+.B strlen(3)
+\e&. Alternatively, we could have passed the number
+.B 3
+\e&. The same goes for the second
+.B \(hy1
+, but for
+.B value
+\e&.
+
+Libbson provides macros to make this less tedious when using string literals. The following two appends are identical.
+
+
+Now let's take a look at an example that adds a few different field types to a BSON document.
+
+
+Notice that we omitted the call to
+.B bson_init(3)
+\e&. By specifying
+.B BSON_INITIALIZER
+we can remove the need to initialize the structure to a base state.
+
+.SH "SUB\(hyDOCUMENTS AND SUB\(hyARRAYS"
+
+To simplify the creation of sub\(hydocuments and arrays,
+.B bson_append_document_begin(3)
+and
+.B bson_append_array_begin(3)
+exist. These can be used to build a sub\(hydocument using the parent documents memory region as the destination buffer.
+
+.nf
+.nf
+bson_t parent;
+bson_t child;
+char *str;
+
+bson_init (&parent);
+bson_append_document_begin (&parent, "foo", 3, &child);
+bson_append_int32 (&child, "baz", 3, 1);
+bson_append_document_end (&parent, &child);
+
+str = bson_as_json (&parent, NULL);
+printf ("%s\en", str);
+bson_free (str);
+
+bson_destroy (&parent);
+.fi
+.fi
+.B { "foo" : { "baz" : 1 } }
+
+.SH "SIMPLIFIED BSON C OBJECT NOTATION"
+
+Creating BSON documents by hand can be tedious and time consuming. BCON, or BSON C Object Notation, was added to allow for the creation of BSON documents in a format that looks closer to the destination format.
+
+The following example shows the use of BCON. Notice that values for fields are wrapped in the
+.B BCON_*
+macros. These are required for the variadic processor to determine the parameter type.
+
+.nf
+.nf
+bson_t *doc;
+
+doc = BCON_NEW ("foo", "{",
+   "int", BCON_INT32 (1),
+   "array", "[", BCON_INT32 (100), "{", "sub", BCON_UTF8 ("value"), "}", "]",
+"}");
+.fi
+.fi
+Creates the following document
+.B { "foo" : { "int" : 1, "array" : [ 100, { "sub" : "value" } ] } }
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

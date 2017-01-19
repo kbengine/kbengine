@@ -1,0 +1,114 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Parsing and Iterating BSON Documents</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#intro" title="Getting Started">Getting Started</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Parsing and Iterating BSON Documents</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">BSON documents are lazily parsed as necessary. To begin parsing a BSON document, use one of the provided Libbson functions to create a new <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> from existing data such as <span class="code"><a href="bson_new_from_data.html" title="bson_new_from_data()">bson_new_from_data()</a></span>. This will make a copy of the data so that additional mutations may occur to the BSON document.</p>
+<div class="note note-tip" title="Tip"><div class="inner"><div class="region"><div class="contents"><p class="p">If you only want to parse a BSON document and have no need to mutate it, you may use <span class="code"><a href="bson_init_static.html" title="bson_init_static()">bson_init_static()</a></span> to avoid making a copy of the data.</p></div></div></div></div>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_t *b;
+
+b = bson_new_from_data (my_data, my_data_len);
+if (!b) {
+   fprintf (stderr, "The specified length embedded in &lt;my_data&gt; did not match &lt;my_data_len&gt;\n");
+   return;
+}
+
+bson_destroy (b);</pre></div></div>
+<p class="p">Only two checks are performed when creating a new <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> from an existing buffer. First, the document must begin with the buffer length, matching what was expected by the caller. Second, the document must end with the expected trailing <span class="code">\0</span> byte.</p>
+<p class="p">To parse the document further we use a <span class="code"><a href="bson_iter_t.html" title="bson_iter_t">bson_iter_t</a></span> to iterate the elements within the document. Let's print all of the field names in the document.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_t *b;
+bson_iter_t iter;
+
+if ((b = bson_new_from_data (my_data, my_data_len))) {
+   if (bson_iter_init (&amp;iter, b)) {
+      while (bson_iter_next (&amp;iter)) {
+         printf ("Found element key: \"%s\"\n", bson_iter_key (&amp;iter));
+      }
+   }
+   bson_destroy (b);
+}</pre></div></div>
+<p class="p">Converting a document to JSON uses a <span class="code"><a href="bson_iter_t.html" title="bson_iter_t">bson_iter_t</a></span> and <span class="code"><a href="bson_visitor_t.html" title="bson_visitor_t">bson_visitor_t</a></span> to iterate all fields of a BSON document recursively and generate a UTF-8 encoded JSON string.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_t *b;
+char *json;
+
+if ((b = bson_new_from_data (my_data, my_data_len))) {
+   if ((json = bson_as_json (b, NULL))) {
+      printf ("%s\n", json);
+      bson_free (json);
+   }
+   bson_destroy (b);
+}</pre></div></div>
+</div>
+<div id="recursing" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Recursing into Sub-Documents</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">Libbson provides convenient sub-iterators to dive down into a sub-document or sub-array. Below is an example that will dive into a sub-document named "foo" and print it's field names.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_iter_t iter;
+bson_iter_t *child;
+char *json;
+
+if (bson_iter_init_find (&amp;iter, doc, "foo") &amp;&amp;
+    BSON_ITER_HOLDS_DOCUMENT (&amp;iter) &amp;&amp;
+    bson_iter_recurse (&amp;iter, &amp;child)) {
+   while (bson_iter_next (&amp;child)) {
+      printf ("Found sub-key of \"foo\" named \"%s\"\n", bson_iter_key (&amp;child));
+   }
+}</pre></div></div>
+</div></div>
+</div></div>
+<div id="dotkey" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Finding Fields using Dot Notation</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">Using the <span class="code"><a href="bson_iter_recurse.html" title="bson_iter_recurse()">bson_iter_recurse()</a></span> function exemplified above, <span class="code"><a href="bson_iter_find_descendant.html" title="bson_iter_find_descendant()">bson_iter_find_descendant()</a></span> can find a field for you using the MongoDB style path notation such as "foo.bar.0.baz".</p>
+<p class="p">Let's create a document like <span class="code">{"foo": {"bar": [{"baz: 1}]}}</span> and locate the <span class="code">"baz"</span> field.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_t *b;
+bson_iter_t iter;
+bson_iter_t baz;
+
+b = BCON_NEW ("foo", "{", "bar", "[", "{", "baz", BCON_INT32 (1), "}", "]", "}");
+
+if (bson_iter_init (&amp;iter, b) &amp;&amp;
+    bson_iter_find_descendant (&amp;iter, "foo.bar.0.baz", &amp;baz) &amp;&amp;
+    BSON_ITER_HOLDS_INT32 (&amp;baz)) {
+   printf ("baz = %d\n", bson_iter_int32 (&amp;baz));
+}
+
+bson_destroy (b);</pre></div></div>
+</div></div>
+</div></div>
+<div id="validating" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Validating a BSON Document</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">If all you want to do is validate that a BSON document is valid, you can use <span class="code"><a href="bson_validate.html" title="bson_validate()">bson_validate()</a></span>.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">size_t err_offset;
+
+if (!bson_validate (doc, BSON_VALIDATE_NONE, &amp;err_offset)) {
+   fprintf (stderr, "The document failed to validate at offset: %u\n",
+            (unsigned)err_offset);
+}</pre></div></div>
+<p class="p">See the <span class="code"><a href="bson_validate.html" title="bson_validate()">bson_validate()</a></span> documentation for more information and examples.</p>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#intro" title="Getting Started">Getting Started</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

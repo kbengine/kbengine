@@ -1,0 +1,41 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      id="matcher">
+
+  <title>Client Side Document Matching</title>
+
+  <section id="basic-matching">
+    <info><link type="guide" xref="index#matching"/></info>
+    <title>Basic Document Matching (Deprecated)</title>
+    <note style="warning"><p>This feature will be removed in version 2.0.</p></note>
+    <p>The MongoDB C driver supports matching a subset of the MongoDB query specification on the client.</p>
+    <p>Currently, basic numeric, string, subdocument, and array equality, <code>$gt</code>, <code>$gte</code>, <code>$lt</code>, <code>$lte</code>, <code>$in</code>, <code>$nin</code>, <code>$ne</code>, <code>$exists</code>, <code>$type</code>, <code>$and</code>, and <code>$or</code> are supported. As this is not the same implementation as the MongoDB server, some inconsistencies may occur. Please file a bug if you find such a case.</p>
+
+    <p>The following example performs a basic query against a BSON document.</p>
+
+    <example>
+      <title>example-matcher.c</title>
+      <code mime="text/x-csrc"><include parse="text" href="../examples/example-matcher.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+    </example>
+
+    <p>The following example shows how to process a BSON stream from <code>stdin</code> and match it against a query. This can be useful if you need to perform simple matching against <code>mongodump</code> backups.</p>
+
+    <example>
+      <title>filter-bsondump.c</title>
+      <code mime="text/x-csrc"><include parse="text" href="../examples/filter-bsondump.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+    </example>
+
+    <p>To test this, perform a <code>mongodump</code> of a single collection and pipe it to the program.</p>
+
+    <screen>
+<output style="prompt">$ </output><input>echo "db.test.insert({hello:'world'})" | mongo</input>
+<output>MongoDB shell version: 2.6.1
+connecting to: test
+WriteResult({ "nInserted" : 1 })
+bye</output>
+<output style="prompt">$ </output><input>mongodump -d test -c test -o - | filter-bsondump</input>
+<output>{ "_id" : { "$oid" : "537afac9a70e5b4d556153bc" }, "hello" : "world" }</output></screen>
+
+  </section>
+
+</page>

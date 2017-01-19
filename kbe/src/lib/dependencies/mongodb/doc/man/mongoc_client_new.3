@@ -1,0 +1,50 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_CLIENT_NEW" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_client_new() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_client_t *
+mongoc_client_new (const char *uri_string);
+.fi
+.fi
+
+Creates a new
+.B mongoc_client_t
+using the URI string provided.
+
+.SH "PARAMETERS"
+
+.TP
+.B
+uri_string
+A string containing the MongoDB connection URI.
+.LP
+
+.SH "RETURNS"
+
+A newly allocated
+.B mongoc_client_t
+if the URI parsed successfully, otherwise
+.B NULL
+\e&.
+
+.SH "SEE ALSO"
+
+.B mongoc_client_new_from_uri(3)
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,42 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_WRITER_ROLLBACK" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_writer_rollback() \- Abort the appending of the current bson_t to the memory region managed by writer. This is useful if you detected that you went past a particular memory limit. For example, MongoDB has 48MB message limits.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+bson_writer_rollback (bson_writer_t *writer);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B writer
+A
+.B bson_writer_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Abort the appending of the current bson_t to the memory region managed by
+.B writer
+\e&. This is useful if you detected that you went past a particular memory limit. For example, MongoDB has 48MB message limits.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

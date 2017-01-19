@@ -1,0 +1,68 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_GRIDFS_FILE_WRITEV" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_gridfs_file_writev() \- Performs a gathered write to the underlying gridfs file.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+ssize_t
+mongoc_gridfs_file_writev (mongoc_gridfs_file_t *file,
+                           mongoc_iovec_t       *iov,
+                           size_t                iovcnt,
+                           uint32_t              timeout_msec);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+file
+A
+.B mongoc_gridfs_file_t
+\e&.
+.LP
+.TP
+.B
+iov
+An array of
+.B mongoc_iovec_t
+\e&.
+.LP
+.TP
+.B
+iovcnt
+The number of elements in
+.B iov
+\e&.
+.LP
+.TP
+.B
+timeout_msec
+A uint32_t with the timeout in milliseconds.
+.LP
+
+.SH "DESCRIPTION"
+
+Performs a gathered write to the underlying gridfs file.
+
+If timeout is reached, then \(hy1 is returned and errno is set to ETIMEDOUT.
+
+.SH "RETURNS"
+
+Returns the number of bytes written or \(hy1 upon error and errno is set.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_write_concern_set_w">
+  <info>
+    <link type="guide" xref="mongoc_write_concern_t" group="function"/>
+  </info>
+  <title>mongoc_write_concern_set_w()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_write_concern_set_w (mongoc_write_concern_t *write_concern,
+                            int32_t                 w);]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>write_concern</p></td><td><p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code>.</p></td></tr>
+      <tr><td><p>w</p></td><td><p>A positive <code>int32_t</code> or zero.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Sets the <code>w</code> value for the write concern. See <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code> for more information on this setting.</p>
+  </section>
+
+</page>

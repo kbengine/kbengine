@@ -1,0 +1,130 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Finding a Document</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#tutorial" title="Tutorial">Tutorial</a> » <a class="trail" href="tutorial.html#crud-operations" title="4. Basic CRUD Operations">4. Basic CRUD Operations</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Finding a Document</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">To query a MongoDB collection with the C driver, use the function <span class="link"><a href="mongoc_collection_find.html" title="mongoc_collection_find()">mongoc_collection_find()</a></span>. This returns a <span class="link"><a href="mongoc_cursor_t.html" title="mongoc_cursor_t">cursor</a></span> to the matching documents. The following examples iterate through the result cursors and print the matches to <span class="code">stdout</span> as JSON strings.</p>
+<p class="p">Note that <span class="code">mongoc_collection_find</span> uses a document as a query specifier; for example,</p>
+<div class="screen"><pre class="contents "><span class="code">{ "color" : "red" }</span></pre></div>
+<p class="p">will match any document with a field named "color" with value "red". An empty document <span class="code">{}</span> can be used to match all documents.</p>
+<p class="p">This first example uses an empty query specifier to find all documents in the database "mydb" and collection "mycoll".</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h2><span class="title"><span class="file">find.c</span></span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+int
+main (int   argc,
+     char *argv[])
+{
+  mongoc_client_t *client;
+  mongoc_collection_t *collection;
+  mongoc_cursor_t *cursor;
+  const bson_t *doc;
+  bson_t *query;
+  char *str;
+
+  mongoc_init ();
+
+  client = mongoc_client_new ("mongodb://localhost:27017/");
+  collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+  query = bson_new ();
+  cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+  while (mongoc_cursor_next (cursor, &amp;doc)) {
+     str = bson_as_json (doc, NULL);
+     printf ("%s\n", str);
+     bson_free (str);
+  }
+
+  bson_destroy (query);
+  mongoc_cursor_destroy (cursor);
+  mongoc_collection_destroy (collection);
+  mongoc_client_destroy (client);
+  mongoc_cleanup ();
+
+  return 0;
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<p class="p">Compile the code and run it: </p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o find find.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+<p class="p">On Windows:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 find.c
+C:\&gt; find
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+<p class="p">To look for a specific document, add a specifier to <span class="code">query</span>. This example adds a call to <span class="code">BSON_APPEND_UTF8()</span> to look for all documents matching <span class="code">{"hello" : "world"}</span>.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h2><span class="title"><span class="file">find-specific.c</span></span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+  #include &lt;mongoc.h&gt;
+  #include &lt;stdio.h&gt;
+
+  int
+  main (int   argc,
+        char *argv[])
+  {
+      mongoc_client_t *client;
+      mongoc_collection_t *collection;
+      mongoc_cursor_t *cursor;
+      const bson_t *doc;
+      bson_t *query;
+      char *str;
+
+      mongoc_init ();
+
+      client = mongoc_client_new ("mongodb://localhost:27017/");
+      collection = mongoc_client_get_collection (client, "mydb", "mycoll");
+      query = bson_new ();
+      BSON_APPEND_UTF8 (query, "hello", "world");
+
+      cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+      while (mongoc_cursor_next (cursor, &amp;doc)) {
+          str = bson_as_json (doc, NULL);
+          printf ("%s\n", str);
+          bson_free (str);
+      }
+
+      bson_destroy (query);
+      mongoc_cursor_destroy (cursor);
+      mongoc_collection_destroy (collection);
+      mongoc_client_destroy (client);
+      mongoc_cleanup ();
+
+      return 0;
+  }
+  </pre></div></div></div></div></div></div></div>
+</div></div>
+<div class="screen"><pre class="contents "><span class="prompt output">$ gcc -o find-specific find-specific.c $(pkg-config --cflags --libs libmongoc-1.0)
+$ ./find-specific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+<div class="screen"><pre class="contents "><span class="prompt output">C:\&gt; cl.exe /IC:\mongo-c-driver\include\libbson-1.0 /IC:\mongo-c-driver\include\libmongoc-1.0 find-specific.c
+C:\&gt; find-specific
+{ "_id" : { "$oid" : "55ef43766cb5f36a3bae6ee4" }, "hello" : "world" }</span></pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="tutorial.html#crud-operations" title="4. Basic CRUD Operations">4. Basic CRUD Operations</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

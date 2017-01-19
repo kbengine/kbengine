@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_write_concern_set_wmajority">
+  <info>
+    <link type="guide" xref="mongoc_write_concern_t" group="function"/>
+  </info>
+  <title>mongoc_write_concern_set_wmajority()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_write_concern_set_wmajority (mongoc_write_concern_t *write_concern,
+                                    int32_t                 wtimeout_msec);]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>write_concern</p></td><td><p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code>.</p></td></tr>
+      <tr><td><p>wtimeout_msec</p></td><td><p>A positive <code>int32_t</code> or zero.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Sets if the write must have been propagated to a majority of nodes before indicating write success.</p>
+    <p>The timeout specifies how long, in milliseconds, the server should wait before indicating that the write has failed. This is not the same as a socket timeout. A value of zero may be used to indicate no timeout.</p>
+  </section>
+
+</page>

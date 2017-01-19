@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_read_concern_set_level">
+  <info>
+    <link type="guide" xref="mongoc_read_concern_t" group="function"/>
+  </info>
+  <title>mongoc_read_concern_set_level()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_read_concern_set_level (mongoc_read_concern_t *read_concern,
+                               const char            *level);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>read_concern</p></td><td><p>A <code xref="mongoc_read_concern_t">mongoc_read_concern_t</code>.</p></td></tr>
+      <tr><td><p>level</p></td><td><p>The readConcern level to use. Should be either MONGOC_READ_CONCERN_LEVEL_LOCAL or MONGOC_READ_CONCERN_LEVEL_MAJORITY.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>The readConcern option allows clients to choose a level of isolation for their reads.</p>
+  </section>
+
+</page>

@@ -1,0 +1,121 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Basic Troubleshooting</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Basic Troubleshooting</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="checklist" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Troubleshooting Checklist</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">The following is a short list of things to check when you have a problem.</p>
+<div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">Did you call <span class="code">mongoc_init()</span> in <span class="code">main()</span>? If not, you will likely see a segfault.</p></li>
+<li class="list"><p class="p">Have you leaked any clients or cursors as can be found with <span class="cmd">mongoc-stat <span class="var">PID</span></span>?</p></li>
+<li class="list"><p class="p">Have packets been delivered to the server? See egress bytes from <span class="cmd">mongoc-stat <span class="var">PID</span></span>.</p></li>
+<li class="list"><p class="p">Does <span class="code">valgrind</span> show any leaks? Ensure you call <span class="code">mongoc_cleanup()</span> at the end of your process to cleanup lingering allocations from the MongoDB C driver.</p></li>
+<li class="list"><p class="p">If compiling your own copy of MongoDB C driver, consider configuring with <span class="code">--enable-tracing</span> to enable function tracing and hex dumps of network packets to <span class="code">STDERR</span> and <span class="code">STDOUT</span>.</p></li>
+</ul></div></div></div>
+</div></div>
+</div></div>
+<div id="perf-counters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Performance Counters</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">
+        The MongoDB C driver comes with a unique feature to help developers and sysadmins troubleshoot problems in production.
+        Performance counters are available for each process using the driver.
+        The counters can be accessed outside of the application process via a shared memory segment.
+        This means that you can graph statistics about your application process easily from tools like Munin or Nagios.
+        Your author often uses <span class="code">watch --interval=0.5 -d mongoc-stat $PID</span> to monitor an application.
+      </p>
+<div class="note" title="Note"><div class="inner"><div class="region"><div class="contents"><p class="p">Counters are currently available on UNIX-like platforms that support shared memory segments.</p></div></div></div></div>
+<div class="list"><div class="inner">
+<div class="title title-list"><h3><span class="title">Available Counters</span></h3></div>
+<div class="region"><ul class="list">
+<li class="list"><p class="p">Active and Disposed Cursors</p></li>
+<li class="list"><p class="p">Active and Disposed Clients, Client Pools, and Socket Streams.</p></li>
+<li class="list"><p class="p">Number of operations sent and received, by type.</p></li>
+<li class="list"><p class="p">Bytes transferred and received.</p></li>
+<li class="list"><p class="p">Authentication successes and failures.</p></li>
+<li class="list"><p class="p">Number of wire protocol errors.</p></li>
+</ul></div>
+</div></div>
+<p class="p">To access counters for a given process, simply provide the process id to the <span class="code">mongoc-stat</span> program installed with the MongoDB C Driver.</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ </span><span class="input">mongoc-stat 22203</span>
+   Operations : Egress Total        : The number of sent operations.                    : 13247
+   Operations : Ingress Total       : The number of received operations.                : 13246
+   Operations : Egress Queries      : The number of sent Query operations.              : 13247
+   Operations : Ingress Queries     : The number of received Query operations.          : 0
+   Operations : Egress GetMore      : The number of sent GetMore operations.            : 0
+   Operations : Ingress GetMore     : The number of received GetMore operations.        : 0
+   Operations : Egress Insert       : The number of sent Insert operations.             : 0
+   Operations : Ingress Insert      : The number of received Insert operations.         : 0
+   Operations : Egress Delete       : The number of sent Delete operations.             : 0
+   Operations : Ingress Delete      : The number of received Delete operations.         : 0
+   Operations : Egress Update       : The number of sent Update operations.             : 0
+   Operations : Ingress Update      : The number of received Update operations.         : 0
+   Operations : Egress KillCursors  : The number of sent KillCursors operations.        : 0
+   Operations : Ingress KillCursors : The number of received KillCursors operations.    : 0
+   Operations : Egress Msg          : The number of sent Msg operations.                : 0
+   Operations : Ingress Msg         : The number of received Msg operations.            : 0
+   Operations : Egress Reply        : The number of sent Reply operations.              : 0
+   Operations : Ingress Reply       : The number of received Reply operations.          : 13246
+      Cursors : Active              : The number of active cursors.                     : 1
+      Cursors : Disposed            : The number of disposed cursors.                   : 13246
+      Clients : Active              : The number of active clients.                     : 1
+      Clients : Disposed            : The number of disposed clients.                   : 0
+      Streams : Active              : The number of active streams.                     : 1
+      Streams : Disposed            : The number of disposed streams.                   : 0
+      Streams : Egress Bytes        : The number of bytes sent.                         : 794931
+      Streams : Ingress Bytes       : The number of bytes received.                     : 589694
+      Streams : N Socket Timeouts   : The number of socket timeouts.                    : 0
+ Client Pools : Active              : The number of active client pools.                : 1
+ Client Pools : Disposed            : The number of disposed client pools.              : 0
+     Protocol : Ingress Errors      : The number of protocol errors on ingress.         : 0
+         Auth : Failures            : The number of failed authentication requests.     : 0
+         Auth : Success             : The number of successful authentication requests. : 0</pre></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#debugging" title="Troubleshooting">Troubleshooting</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="file-bug" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Submitting a Bug Report</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">Think you’ve found a bug? Want to see a new feature in the MongoDB C driver? Please open a case in our issue management tool, JIRA:</p>
+<div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p"><span class="link"><a href="https://jira.mongodb.org" title="https://jira.mongodb.org">Create an account and login</a></span>.</p></li>
+<li class="list"><p class="p">Navigate to <span class="link"><a href="https://jira.mongodb.org/browse/CDRIVER" title="https://jira.mongodb.org/browse/CDRIVER">the CDRIVER project</a></span>.</p></li>
+<li class="list"><p class="p">Click <span class="em">Create Issue</span> - Please provide as much information as possible about the issue type and how to reproduce it.</p></li>
+</ul></div></div></div>
+<p class="p">Bug reports in JIRA for all driver projects (i.e. CDRIVER, CSHARP, JAVA) and the Core Server (i.e. SERVER) project are <span class="em">public</span>.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#debugging" title="Troubleshooting">Troubleshooting</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

@@ -1,0 +1,253 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Installing the MongoDB C Driver</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Installing the MongoDB C Driver</span></h1></div>
+<div class="region">
+<div class="contents"><p class="p">The following guide will step you through the process of downloading, building, and installing the current release of the MongoDB C Driver.</p></div>
+<div id="supported-platforms" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Supported Platforms</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">The MongoDB C Driver is continuously tested on GNU/Linux, Windows 7, Mac OS X 10.10, and Solaris 11 (Intel and Sparc). GCC, Clang, and Visual Studio 2013 compilers are continuously tested.</p>
+<p class="p">The driver supports the following operating systems and CPU architectures:</p>
+<div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><div class="title title-td"><h3><span class="title">Operating Systems</span></h3></div></td>
+<td><div class="title title-td"><h3><span class="title">CPU Architectures</span></h3></div></td>
+<td><div class="title title-td"><h3><span class="title">Compiler Toolchain</span></h3></div></td>
+</tr>
+<tr>
+<td><div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">GNU/Linux</p></li>
+<li class="list"><p class="p">Solaris 11</p></li>
+<li class="list"><p class="p">Mac OS X 10.6 and newer</p></li>
+<li class="list"><p class="p">Windows Vista, 7, and 8</p></li>
+<li class="list"><p class="p">FreeBSD</p></li>
+</ul></div></div></div></td>
+<td><div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">x86 and x86_64</p></li>
+<li class="list"><p class="p">ARM</p></li>
+<li class="list"><p class="p">PPC</p></li>
+<li class="list"><p class="p">SPARC</p></li>
+</ul></div></div></div></td>
+<td><div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">GCC 4.1 and newer</p></li>
+<li class="list"><p class="p">Clang 3.3 and newer</p></li>
+<li class="list"><p class="p">Microsoft Visual Studio 2013 and newer</p></li>
+<li class="list"><p class="p"><span class="link"><a href="http://www.oracle.com/technetwork/server-storage/solarisstudio/downloads/index.html" title="http://www.oracle.com/technetwork/server-storage/solarisstudio/downloads/index.html">Oracle Solaris Studio 12</a></span></p></li>
+<li class="list"><p class="p">MinGW</p></li>
+</ul></div></div></div></td>
+</tr>
+</table></div></div></div>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#installation" title="Installation">Installation</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="installing-unix" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Building on Unix</span></h2></div>
+<div class="region">
+<div class="contents"></div>
+<div id="unix-prerequisites" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Prerequisites</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">OpenSSL is required for authentication or for SSL connections to MongoDB. Kerberos or LDAP support requires Cyrus SASL.</p>
+<p class="p">To install all optional dependencies on RedHat / Fedora:</p>
+<div class="screen"><pre class="contents ">$ sudo yum install pkg-config openssl-devel cyrus-sasl-devel</pre></div>
+<p class="p">On Debian / Ubuntu:</p>
+<div class="screen"><pre class="contents ">$ sudo apt-get install pkg-config libssl-dev libsasl2-dev</pre></div>
+<p class="p">On FreeBSD:</p>
+<div class="screen"><pre class="contents ">$ su -c 'pkg install pkgconf openssl cyrus-sasl2'</pre></div>
+</div></div>
+</div></div>
+<div id="unix-build" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Building from a release tarball</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">Unless you intend on contributing to the mongo-c-driver, you will want to build from a release tarball.</p>
+<p class="p">The most recent release of libmongoc is 1.3.5 and can be <span class="link"><a href="https://github.com/mongodb/mongo-c-driver/releases/download/1.3.5/mongo-c-driver-1.3.5.tar.gz" title="https://github.com/mongodb/mongo-c-driver/releases/download/1.3.5/mongo-c-driver-1.3.5.tar.gz">downloaded here</a></span>. The following snippet will download and extract the driver, and configure it:</p>
+<div class="screen"><pre class="contents ">$ wget https://github.com/mongodb/mongo-c-driver/releases/download/1.3.5/mongo-c-driver-1.3.5.tar.gz
+$ tar xzf mongo-c-driver-1.3.5.tar.gz
+$ cd mongo-c-driver-1.3.5
+$ ./configure
+      </pre></div>
+<p class="p">If <span class="code">configure</span> completed successfully, you'll see something like the following describing your build configuration.</p>
+<div class="screen"><pre class="contents ">libmongoc was configured with the following options:
+
+Build configuration:
+Enable debugging (slow)                          : no
+Compile with debug symbols (slow)                : no
+Enable GCC build optimization                    : yes
+Enable automatic binary hardening                : yes
+Code coverage support                            : no
+Cross Compiling                                  : no
+Fast counters                                    : no
+SASL                                             : sasl2
+SSL                                              : yes
+Libbson                                          : bundled
+
+Documentation:
+Generate man pages                               : no
+Install man pages                                : no</pre></div>
+<p class="p">mongo-c-driver contains a copy of libbson, in case your system does not already have libbson installed. The configure script will detect if libbson is not installed and use the bundled libbson.</p>
+<div class="screen"><pre class="contents ">$ make
+$ sudo make install
+      </pre></div>
+</div></div>
+</div></div>
+<div id="unix-build-git" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Building from git</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">To build an unreleased version of the driver from git requires additional dependencies.</p>
+<p class="p">RedHat / Fedora:</p>
+<div class="screen"><pre class="contents ">$ sudo yum install git gcc automake autoconf libtool</pre></div>
+<p class="p">Debian / Ubuntu:</p>
+<div class="screen"><pre class="contents ">$ sudo apt-get install git gcc automake autoconf libtool</pre></div>
+<p class="p">FreeBSD:</p>
+<div class="screen"><pre class="contents ">$ su -c 'pkg install git gcc automake autoconf libtool'</pre></div>
+<p class="p">Once you have the dependencies installed, clone the repository and build the current master or a particular release tag:</p>
+<div class="screen"><pre class="contents ">$ git clone https://github.com/mongodb/mongo-c-driver.git
+$ cd mongo-c-driver
+$ git checkout x.y.z  # To build a particular release
+$ ./autogen.sh --with-libbson=bundled
+$ make
+$ sudo make install
+      </pre></div>
+</div></div>
+</div></div>
+<div id="unix-build-docs" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Generating the documentation</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">Install the <span class="code">yelp-tools</span> and <span class="code">yelp-xsl</span> packages, then:</p>
+<div class="screen"><pre class="contents ">$ ./configure --enable-html-docs --enable-man-pages
+$ make man html</pre></div>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#installation" title="Installation">Installation</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="installing-osx" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Building on Mac OS X</span></h2></div>
+<div class="region">
+<div class="contents"></div>
+<div id="prerequisites-osx" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Prerequisites</span></h3></div>
+<div class="region">
+<div class="contents"></div>
+<div id="gcc-osx" class="sect"><div class="inner">
+<div class="hgroup"><h4 class="title"><span class="title">XCode Command Line Tools</span></h4></div>
+<div class="region"><div class="contents"><p class="p">To install the XCode Command Line Tools, just type <span class="code">xcode-select --install</span> in the Terminal and follow the instructions.</p></div></div>
+</div></div>
+<div id="openssl-el-capitan" class="sect"><div class="inner">
+<div class="hgroup"><h4 class="title"><span class="title">OpenSSL support on El Capitan</span></h4></div>
+<div class="region"><div class="contents">
+<p class="p">Beginning in OS X 10.11 El Capitan, OS X no longer includes the OpenSSL headers. To build the driver with SSL on El Capitan and later, first <span class="link"><a href="http://brew.sh/" title="http://brew.sh/">install Homebrew according to its instructions</a></span>, then:</p>
+<div class="screen"><pre class="contents ">$ brew install openssl
+$ export LDFLAGS="-L/usr/local/opt/openssl/lib"
+$ export CPPFLAGS="-I/usr/local/opt/openssl/include"</pre></div>
+</div></div>
+</div></div>
+</div>
+</div></div>
+<div id="building-osx" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Building on OS X</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">Download the latest release tarball:</p>
+<div class="screen"><pre class="contents ">$ curl -LO https://github.com/mongodb/mongo-c-driver/releases/download/1.3.5/mongo-c-driver-1.3.5.tar.gz
+$ tar xzf mongo-c-driver-1.3.5.tar.gz
+$ cd mongo-c-driver-1.3.5</pre></div>
+<p class="p">Build and install the driver:</p>
+<div class="screen"><pre class="contents ">$ ./configure
+$ make
+$ sudo make install</pre></div>
+</div></div>
+</div></div>
+<div id="build-docs-osx" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Generating the documentation on OS X</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">Homebrew is required to generate the driver's HTML documentation and man pages:</p>
+<div class="screen"><pre class="contents ">$ brew install yelp-xsl yelp-tools
+$ ./configure --enable-html-docs --enable-man-pages
+$ make man html</pre></div>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#installation" title="Installation">Installation</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="mac-os-x" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Installing on Mac OS X</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">To build the C Driver on a Mac, install the prerequisites in order to build it from source. It is recommended to use <span class="link"><a href="http://brew.sh" title="http://brew.sh">Homebrew</a></span>:</p>
+<div class="screen"><pre class="contents "><span class="prompt output">$ brew install git automake autoconf libtool pkgconfig</span></pre></div>
+<p class="p">Additionally, <span class="link"><a href="http://developer.apple.com/xcode" title="http://developer.apple.com/xcode">XCode</a></span> is required. The driver can then be installed by following the directions for <span class="link"><a href="installing.html#build-yourself" title="installing#build-yourself">building from source</a></span>.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#installation" title="Installation">Installation</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+<div id="building-windows" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Building on Windows</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">Building on Windows requires Windows Vista or newer and Visual Studio 2010 or newer. Additionally, <span class="code">cmake</span> is required to generate Visual Studio project files.</p>
+<p class="p">Let's start by generating Visual Studio project files for libbson, a dependency of the C driver. The following assumes we are compiling for 64-bit Windows using Visual Studio 2010 Express which can be freely downloaded from Microsoft.</p>
+<div class="screen"><pre class="contents ">cd mongo-c-driver-1.3.5\src\libbson
+cmake -G "Visual Studio 10 Win64" "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver"</pre></div>
+<p class="p">(Run <span class="code">cmake -LH .</span> for a list of other options.)</p>
+<p class="p">Now that we have project files generated, we can either open the project in Visual Studio or compile from the command line. Let's build using the command line program <span class="code">msbuild.exe</span></p>
+<div class="screen"><pre class="contents ">msbuild.exe ALL_BUILD.vcxproj</pre></div>
+<p class="p">Now that libbson is compiled, let's install it using msbuild. It will be installed to the path specified by <span class="code">CMAKE_INSTALL_PREFIX</span>.</p>
+<div class="screen"><pre class="contents ">msbuild.exe INSTALL.vcxproj</pre></div>
+<p class="p">You should now see libbson installed in <span class="code">C:\mongo-c-driver</span></p>
+<p class="p">Now let's do the same for the MongoDB C driver.</p>
+<div class="screen"><pre class="contents ">cd mongo-c-driver-1.3.5
+cmake -G "Visual Studio 2010 Win64" "-DCMAKE_INSTALL_PREFIX=C:\mongo-c-driver" "-DBSON_ROOT_DIR=C:\mongo-c-driver"
+msbuild.exe ALL_BUILD.vcxproj
+msbuild.exe INSTALL.vcxproj</pre></div>
+<p class="p">All of the MongoDB C Driver's components will now be found in <span class="code">C:\mongo-c-driver</span>.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#installation" title="Installation">Installation</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

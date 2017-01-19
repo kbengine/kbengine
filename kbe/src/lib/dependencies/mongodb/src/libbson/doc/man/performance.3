@@ -1,0 +1,39 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "PERFORMANCE_NOTES" "3" "2016\(hy03\(hy30" "libbson"
+.SH NAME
+Performance_Notes \- None
+.SH "ARRAY ELEMENT KEY BUILDING"
+
+
+When writing marshaling layers between higher level languages and Libbson, you will eventually need to build keys for array elements. Each element in a BSON array has a monotonic string key like
+.B "0"
+,
+.B "1"
+, etc. Using
+.B snprintf(3)
+and others tend to be rather slow on most
+.B libc
+implementations. Therefore, Libbson provides
+.B bson_uint32_to_string(3)
+to improve this. Using this function allows an internal fast path to be used for numbers less than 1000 which is the vast majority of arrays. If the key is larger than that, a fallback of
+.B snprintf(3)
+will be used.
+
+
+For more information, see
+.B bson_uint32_to_string(3)
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

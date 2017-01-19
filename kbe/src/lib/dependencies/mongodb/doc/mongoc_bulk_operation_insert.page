@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_bulk_operation_insert">
+
+  <info>
+    <link type="guide" xref="mongoc_bulk_operation_t" group="function"/>
+  </info>
+  <title>mongoc_bulk_operation_insert()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_bulk_operation_insert (mongoc_bulk_operation_t *bulk,
+                              const bson_t            *document);
+]]></code></synopsis>
+    <p>Queue an insert of a single document into a bulk operation. The insert is not performed until <code xref="mongoc_bulk_operation_execute">mongoc_bulk_operation_execute()</code> is called.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>bulk</p></td><td><p>A <code xref="mongoc_bulk_operation_t">mongoc_bulk_operation_t</code>.</p></td></tr>
+      <tr><td><p>document</p></td><td><p>A <code xref="bson:bson_t">bson_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via <code xref="mongoc_bulk_operation_execute">mongoc_bulk_operation_execute()</code>.</p>
+  </section>
+
+</page>

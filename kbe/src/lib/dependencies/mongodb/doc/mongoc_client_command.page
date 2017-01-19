@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_command">
+
+
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_command()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_cursor_t *
+mongoc_client_command (mongoc_client_t           *client,
+                       const char                *db_name,
+                       mongoc_query_flags_t       flags,
+                       uint32_t                   skip,
+                       uint32_t                   limit,
+                       uint32_t                   batch_size,
+                       const bson_t              *query,
+                       const bson_t              *fields,
+                       const mongoc_read_prefs_t *read_prefs);
+]]></code></synopsis>
+    <p>This function executes a command on the server using the database and command specification provided.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+      <tr><td><p>db_name</p></td><td><p>The name of the database to run the command on.</p></td></tr>
+      <tr><td><p>flags</p></td><td><p>A <code xref="mongoc_query_flags_t">mongoc_query_flags_t</code>.</p></td></tr>
+      <tr><td><p>skip</p></td><td><p>The number of result documents to skip.</p></td></tr>
+      <tr><td><p>limit</p></td><td><p>The maximum number of documents to return.</p></td></tr>
+      <tr><td><p>batch_size</p></td><td><p>The batch size of documents to return from the MongoDB server.</p></td></tr>
+      <tr><td><p>query</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the command specification.</p></td></tr>
+      <tr><td><p>fields</p></td><td><p>An optional <code xref="bson:bson_t">bson_t</code> containing the fields to return in result documents.</p></td></tr>
+      <tr><td><p>read_prefs</p></td><td><p>An optional <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>This function will always return a <code xref="mongoc_cursor_t">mongoc_cursor_t</code> if valid parameters are passed.</p>
+    <p>The cursor should be freed with <code xref="mongoc_cursor_destroy">mongoc_cursor_destroy()</code>.</p>
+  </section>
+
+</page>

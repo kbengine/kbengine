@@ -1,0 +1,73 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>bson_reader_read()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » <a class="trail" href="bson_reader_t.html" title="bson_reader_t">bson_reader_t</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">bson_reader_read()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">const bson_t *
+bson_reader_read (bson_reader_t *reader,
+                  bool          *reached_eof);</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p"><span class="code">reader</span></p></td>
+<td><p class="p">A <span class="code"><a href="bson_reader_t.html" title="bson_reader_t">bson_reader_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p"><span class="code">reached_eof</span></p></td>
+<td><p class="p">A UNKNOWN.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">The <span class="code"><a href="bson_reader_read.html" title="bson_reader_read()">bson_reader_read()</a></span> function shall read the next document from the underlying file-descriptor or buffer.</p>
+<p class="p">If there are no further documents or a failure was detected, then NULL is returned.</p>
+<p class="p">If we reached the end of the sequence, <span class="code">reached_eof</span> is set to true.</p>
+<p class="p">To detect an error, check for NULL and <span class="code">reached_of</span> is false.</p>
+</div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents"><p class="p">A <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> that should not be modified or freed.</p></div></div>
+</div></div>
+<div id="example" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">const bson_t *doc;
+bool reached_eof = false;
+
+while ((doc = bson_reader_read (reader, &amp;reached_eof))) {
+	/* do something */
+}
+
+if (!reached_eof) {
+	fprintf (stderr, "Failed to read all documents.\n");
+}</pre></div></div></div></div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="bson_reader_t.html" title="bson_reader_t">bson_reader_t</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

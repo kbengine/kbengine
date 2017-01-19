@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_find_and_modify_opts_set_bypass_document_validation">
+  <info><link type="guide" xref="mongoc_find_and_modify_opts_t" group="function"/></info>
+  <title>mongoc_find_and_modify_opts_set_bypass_document_validation()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_find_and_modify_opts_set_bypass_document_validation (mongoc_find_and_modify_opts_t *opts,
+                                                            bool                           bypass);
+]]></code></synopsis>
+    <note style="tip"><p>New in MongoDB 3.2 and mongoc 1.3.0</p></note>
+    <note style="tip"><p>This option is only available when talking to MongoDB 3.2 and later.</p></note>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>opts</p></td><td><p>A <code xref="mongoc_find_and_modify_opts_t">mongoc_find_and_modify_opts_t</code>.</p></td></tr>
+      <tr><td><p>bypass</p></td><td><p>If the schema validation rules should be ignored.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Adds bypassDocumentValidation argument to the builder.</p>
+    <note style="tip"><p>When authentication is enabled, the authenticated user must have either the "dbadmin" or "restore" roles to bypass document validation.</p></note>
+  </section>
+
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns true if it successfully added the option to the builder.</p>
+  </section>
+
+  <section id="example">
+    <title>Setting bypassDocumentValidation</title>
+    <screen><code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/bypass.c" xmlns="http://www.w3.org/2001/XInclude" /></code></screen>
+    <p>Outputs:</p>
+    <screen><code mime="text/x-csrc"><![CDATA[{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}]]></code></screen>
+  </section>
+
+
+</page>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_pool_set_ssl_opts">
+  <info>
+    <link type="guide" xref="mongoc_client_pool_t" group="function"/>
+  </info>
+  <title>mongoc_client_pool_set_ssl_opts()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#ifdef MONGOC_ENABLE_SSL
+void
+mongoc_client_pool_set_ssl_opts (mongoc_client_pool_t   *pool,
+                                 const mongoc_ssl_opt_t *opts);
+#endif]]></code></synopsis>
+    <p>This function is identical to <code xref="mongoc_client_set_ssl_opts">mongoc_client_set_ssl_opts()</code> except for client pools. It ensures that all clients retrieved from <code xref="mongoc_client_pool_pop">mongoc_client_pool_pop()</code> or <code xref="mongoc_client_pool_try_pop">mongoc_client_pool_try_pop()</code> are configured with the same SSL settings.</p>
+    <p>It is a programming error to call this function after retrieving a client from the client pool.</p>
+    <p>Beginning in version 1.2.0, once a pool has any SSL options set, all connections use SSL, even if "ssl=true" is omitted from the MongoDB URI. Before, SSL options were ignored unless "ssl=true" was included in the URI.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>pool</p></td><td><p>A <code xref="mongoc_client_pool_t">mongoc_client_pool_t</code>.</p></td></tr>
+      <tr><td><p>opts</p></td><td><p>A <code xref="mongoc_ssl_opt_t">mongoc_ssl_opt_t</code> that will not be modified.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="availability">
+    <title>Availability</title>
+    <p>This feature requires that the MongoDB C driver was compiled with <code>--enable-ssl</code>.</p>
+  </section>
+
+</page>

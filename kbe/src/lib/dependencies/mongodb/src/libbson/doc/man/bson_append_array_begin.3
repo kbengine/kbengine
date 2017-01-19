@@ -1,0 +1,78 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_APPEND_ARRAY_BEGIN" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_append_array_begin() \- The bson_append_array_begin() function shall begin appending an array field to bson. This allows for incrementally building a sub-array. Doing so will generally yield better performance as you will serialize to a single buffer. When done building the sub-array, the caller MUST call bson_append_array_end().
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+bson_append_array_begin (bson_t     *bson,
+                         const char *key,
+                         int         key_length,
+                         bson_t     *child);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+bson
+A
+.B bson_t
+\e&.
+.LP
+.TP
+.B
+key
+A string containing the name for the key.
+.LP
+.TP
+.B
+key_length
+The length of
+.B key
+or \(hy1 to call
+.B strlen(3)
+\e&.
+.LP
+.TP
+.B
+child
+A
+.B bson_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+The
+.B bson_append_array_begin(3)
+function shall begin appending an array field to
+.B bson
+\e&. This allows for incrementally building a sub\(hyarray. Doing so will generally yield better performance as you will serialize to a single buffer. When done building the sub\(hyarray, the caller
+.B MUST
+call
+.B bson_append_array_end(3)
+\e&.
+
+.SH "RETURNS"
+
+true if the operation was applied successfully, otherwise false and
+.B bson
+should be discarded.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_command_simple">
+
+
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_command_simple()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_collection_command_simple (mongoc_collection_t       *collection,
+                                  const bson_t              *command,
+                                  const mongoc_read_prefs_t *read_prefs,
+                                  bson_t                    *reply,
+                                  bson_error_t              *error);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>collection</p></td><td><p>A <code xref="mongoc_collection_t">mongoc_collection_t</code>.</p></td></tr>
+      <tr><td><p>command</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the command to execute.</p></td></tr>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> or <code>NULL</code>.</p></td></tr>
+      <tr><td><p>reply</p></td><td><p>A location to initialize a <code xref="bson:bson_t">bson_t</code>. This should be on the stack.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This is a simplified version of <code xref="mongoc_collection_command">mongoc_collection_command()</code> that returns the first result document in <code>reply</code>. The parameter <code>reply</code> is initialized even upon failure to simplify memory management.</p>
+    <p>This function tries to unwrap an embedded error in the command when possible. The unwrapped error will be propagated via the <code>error</code> parameter. Additionally, the result document is set in <code>reply</code>.</p>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>true</code> if successful, otherwise <code>false</code>.</p>
+    <p>Not all commands have truly succeeded when <code>{ok:1.0}</code> is returned. This could simply mean the RPC successfully was executed.</p>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <p>The following is an example of executing the collection stats command.</p>
+    <listing>
+      <title>Command Example</title>
+      <code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+#include <bcon.h>
+#include <stdio.h>
+
+static void
+print_collection_stats (mongoc_collection_t *collection)
+{
+   bson_error_t error;
+   const char *name;
+   bson_t *cmd;
+   bson_t reply;
+
+   name = mongoc_collection_get_name (collection);
+   cmd = BCON_NEW ("collStats", BCON_UTF8 (name));
+
+   if (mongoc_collection_command_simple (collection, cmd, NULL, &reply, &error)) {
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\n", str);
+      bson_free (str);
+   } else {
+      fprintf (stderr, "%s\n", error.message);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (cmd);
+}
+  ]]></code>
+    </listing>
+  </section>
+
+</page>

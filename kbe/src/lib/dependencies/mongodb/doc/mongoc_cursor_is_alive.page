@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_cursor_is_alive">
+  <info>
+    <link type="guide" xref="mongoc_cursor_t" group="function"/>
+  </info>
+  <title>mongoc_cursor_is_alive()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_cursor_is_alive (const mongoc_cursor_t *cursor);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>cursor</p></td><td><p>A <code xref="mongoc_cursor_t">mongoc_cursor_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Checks to see if a cursor is in a state that allows for more documents to be queried.</p>
+    <p>This is primarily useful with tailable cursors.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>true if there may be more content to retrieve from the cursor.</p>
+  </section>
+
+</page>

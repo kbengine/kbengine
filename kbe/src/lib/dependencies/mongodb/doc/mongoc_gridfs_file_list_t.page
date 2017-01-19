@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_gridfs_file_list_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_gridfs_file_list_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+
+typedef struct _mongoc_gridfs_file_list_t mongoc_gridfs_file_list_t;]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p><code>mongoc_gridfs_file_list_t</code> provides a gridfs file list abstraction.  It provides iteration and basic marshalling on top of a regular <code xref="mongoc_collection_find">mongoc_collection_find()</code> style query. In interface, it's styled after <code xref="mongoc_cursor_t">mongoc_cursor_t</code>.</p>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_gridfs_file_list_t *list;
+mongoc_gridfs_file_t *file;
+
+list = mongoc_gridfs_find (gridfs, query);
+
+while ((file = mongoc_gridfs_file_list_next (list))) {
+   do_something(file);
+
+   mongoc_gridfs_file_destroy (file);
+}
+
+mongoc_gridfs_file_list_destroy (list);]]></code></synopsis>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

@@ -1,0 +1,171 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_client_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">mongoc_client_t</span></h1>
+<h2 class="subtitle"><span class="subtitle">MongoDB Connection Abstraction</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents">
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">typedef struct _mongoc_client_t mongoc_client_t;
+    
+typedef mongoc_stream_t *
+(*mongoc_stream_initiator_t) (const mongoc_uri_t       *uri,
+                              const mongoc_host_list_t *host,
+                              void                     *user_data,
+                              bson_error_t             *error);</pre></div></div></div></div></div>
+<p class="p"><span class="code">mongoc_client_t</span> is an opaque type that provides access to a MongoDB node,
+replica-set, or sharded-cluster. It maintains management of underlying sockets
+and routing to individual nodes based on <span class="code"><a href="mongoc_read_prefs_t.html" title="mongoc_read_prefs_t">mongoc_read_prefs_t</a></span> or
+<span class="code"><a href="mongoc_write_concern_t.html" title="mongoc_write_concern_t">mongoc_write_concern_t</a></span>.</p>
+</div></div>
+</div></div>
+<div id="streams" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Streams</span></h2></div>
+<div class="region"><div class="contents"><p class="p">The underlying transport for a given client can be customized, wrapped or replaced by any implementation that fulfills <span class="code"><a href="mongoc_stream_t.html" title="mongoc_stream_t">mongoc_stream_t</a></span>. A custom transport can be set with <span class="code"><a href="mongoc_client_set_stream_initiator.html" title="mongoc_client_set_stream_initiator()">mongoc_client_set_stream_initiator()</a></span>.</p></div></div>
+</div></div>
+<div id="threadsafety" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Thread Safety</span></h2></div>
+<div class="region"><div class="contents"><p class="p"><span class="code">mongoc_client_t</span> is <span class="em">NOT</span> thread-safe and should only be used from one thread at a time. When used in multi-threaded scenarios, it is recommended that you use the thread-safe <span class="code"><a href="mongoc_client_pool_t.html" title="mongoc_client_pool_t">mongoc_client_pool_t</a></span> to retrieve a <span class="code">mongoc_client_t</span> for your thread.</p></div></div>
+</div></div>
+<div id="lifecycle" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Lifecycle</span></h2></div>
+<div class="region"><div class="contents"><p class="p">It is an error to call <span class="code"><a href="mongoc_client_destroy.html" title="mongoc_client_destroy()">mongoc_client_destroy</a></span> on a client that has operations pending. It is required that you release <span class="code"><a href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a></span> and <span class="code"><a href="mongoc_database_t.html" title="mongoc_database_t">mongoc_database_t</a></span> structures before calling <span class="code"><a href="mongoc_client_destroy.html" title="mongoc_client_destroy()">mongoc_client_destroy</a></span>.</p></div></div>
+</div></div>
+<div id="example" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="screen"><pre class="contents "><span class="code">/* gcc example.c -o example $(pkg-config --cflags --libs libmongoc-1.0) */
+
+/* ./example-client [CONNECTION_STRING [COLLECTION_NAME]] */
+
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   const char *uristr = "mongodb://127.0.0.1/";
+   const char *collection_name = "test";
+   bson_t query;
+   char *str;
+
+   mongoc_init ();
+
+   if (argc &gt; 1) {
+      uristr = argv [1];
+   }
+
+   if (argc &gt; 2) {
+      collection_name = argv [2];
+   }
+
+   client = mongoc_client_new (uristr);
+
+   if (!client) {
+      fprintf (stderr, "Failed to parse URI.\n");
+      return EXIT_FAILURE;
+   }
+
+   bson_init (&amp;query);
+
+#if 0
+   bson_append_utf8 (&amp;query, "hello", -1, "world", -1);
+#endif
+
+   collection = mongoc_client_get_collection (client, "test", collection_name);
+   cursor = mongoc_collection_find (collection,
+                                    MONGOC_QUERY_NONE,
+                                    0,
+                                    0,
+                                    0,
+                                    &amp;query,
+                                    NULL,  /* Fields, NULL for all. */
+                                    NULL); /* Read Prefs, NULL for default */
+
+   while (mongoc_cursor_next (cursor, &amp;doc)) {
+      str = bson_as_json (doc, NULL);
+      fprintf (stdout, "%s\n", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &amp;error)) {
+      fprintf (stderr, "Cursor Failure: %s\n", error.message);
+      return EXIT_FAILURE;
+   }
+
+   bson_destroy (&amp;query);
+   mongoc_cursor_destroy (cursor);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return EXIT_SUCCESS;
+}
+</span></pre></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_command.html" title="mongoc_client_command()"><span class="title">mongoc_client_command()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_command_simple.html" title="mongoc_client_command_simple()"><span class="title">mongoc_client_command_simple()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_destroy.html" title="mongoc_client_destroy()"><span class="title">mongoc_client_destroy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_collection.html" title="mongoc_client_get_collection()"><span class="title">mongoc_client_get_collection()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_database.html" title="mongoc_client_get_database()"><span class="title">mongoc_client_get_database()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_database_names.html" title="mongoc_client_get_database_names()"><span class="title">mongoc_client_get_database_names()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_default_database.html" title="mongoc_client_get_default_database()"><span class="title">mongoc_client_get_default_database()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_gridfs.html" title="mongoc_client_get_gridfs()"><span class="title">mongoc_client_get_gridfs()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_max_bson_size.html" title="mongoc_client_get_max_bson_size()"><span class="title">mongoc_client_get_max_bson_size()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_max_message_size.html" title="mongoc_client_get_max_message_size()"><span class="title">mongoc_client_get_max_message_size()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_read_concern.html" title="mongoc_client_get_read_concern()"><span class="title">mongoc_client_get_read_concern()</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_read_prefs.html" title="mongoc_client_get_read_prefs()"><span class="title">mongoc_client_get_read_prefs()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_server_status.html" title="mongoc_client_get_server_status()"><span class="title">mongoc_client_get_server_status()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_uri.html" title="mongoc_client_get_uri()"><span class="title">mongoc_client_get_uri()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_get_write_concern.html" title="mongoc_client_get_write_concern()"><span class="title">mongoc_client_get_write_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_new.html" title="mongoc_client_new()"><span class="title">mongoc_client_new()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_new_from_uri.html" title="mongoc_client_new_from_uri()"><span class="title">mongoc_client_new_from_uri()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_set_read_concern.html" title="mongoc_client_set_read_concern()"><span class="title">mongoc_client_set_read_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_set_read_prefs.html" title="mongoc_client_set_read_prefs()"><span class="title">mongoc_client_set_read_prefs()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_set_ssl_opts.html" title="mongoc_client_set_ssl_opts()"><span class="title">mongoc_client_set_ssl_opts()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_set_stream_initiator.html" title="mongoc_client_set_stream_initiator()"><span class="title">mongoc_client_set_stream_initiator()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_client_set_write_concern.html" title="mongoc_client_set_write_concern()"><span class="title">mongoc_client_set_write_concern()</span></a></div>
+</div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

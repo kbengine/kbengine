@@ -1,0 +1,56 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ITER_DUP_UTF8" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_iter_dup_utf8() \- This function is similar to bson_iter_utf8() except that it calls bson_strndup() on the result.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+char *
+bson_iter_dup_utf8 (const bson_iter_t *iter,
+                    uint32_t          *length);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+iter
+A
+.B bson_iter_t
+\e&.
+.LP
+.TP
+.B
+length
+An optional location for the length of the UTF\(hy8 encoded string.
+.LP
+
+.SH "DESCRIPTION"
+
+This function is similar to
+.B bson_iter_utf8(3)
+except that it calls
+.B bson_strndup(3)
+on the result.
+
+.SH "RETURNS"
+
+A newly allocated string that should be freed with
+.B bson_free(3)
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

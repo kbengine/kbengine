@@ -1,0 +1,84 @@
+[ ca ]
+default_ca  = CA_default
+
+[ CA_default ]
+
+dir              = tests/trust_dir
+certificate      = $dir/signing-ca.crt
+cert_opt         = ca_default
+certs            = $dir/ca.db.certs
+crl_dir          = $dir/crl
+database         = $dir/ca.db.index
+default_crl_days = 30
+default_days     = 365
+default_md       = sha1
+name_opt         = ca_default
+new_certs_dir    = $dir/ca.db.certs
+policy           = policy_match
+preserve         = no
+private_key      = $dir/signing-ca.key
+RANDFILE         = $dir/ca.db.rand
+serial           = $dir/ca.db.serial
+unique_subject   = yes
+x509_extensions  = usr_cert
+
+[ policy_match ]
+commonName             = supplied
+countryName            = match
+emailAddress           = optional
+localityName           = match
+organizationalUnitName = optional
+organizationName       = match
+stateOrProvinceName    = match
+
+[ policy_anything ]
+commonName             = supplied
+countryName            = optional
+emailAddress           = optional
+localityName           = optional
+organizationalUnitName = optional
+organizationName       = optional
+stateOrProvinceName    = optional
+
+[ req ]
+attributes         = req_attributes
+default_bits       = 4096
+default_keyfile    = privkey.pem
+distinguished_name = req_distinguished_name
+req_extensions     = v3_req
+string_mask        = nombstr
+x509_extensions    = v3_ca
+
+[ req_distinguished_name ]
+
+[ req_attributes ]
+
+[ usr_cert ]
+
+authorityKeyIdentifier = keyid,issuer:always
+basicConstraints       = CA:FALSE
+nsComment              = "OpenSSL Generated Certificate"
+subjectKeyIdentifier   = hash
+
+[ v3_req ]
+
+basicConstraints = CA:FALSE
+keyUsage         = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName   = @alt_names
+
+[ alt_names ]
+
+DNS.1 = alt2.mongodb.com
+DNS.2 = *.wild.mongodb.com
+IP.1  = 192.168.1.1
+IP.2  = 10.0.0.1
+
+[ v3_ca ]
+
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer:always
+basicConstraints       = CA:true
+
+[ crl_ext ]
+
+authorityKeyIdentifier = keyid:always,issuer:always

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_set_ssl_opts">
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_set_ssl_opts()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#ifdef MONGOC_ENABLE_SSL
+mongoc_client_set_ssl_opts (mongoc_client_t        *client,
+                            const mongoc_ssl_opt_t *opts);
+#endif]]></code></synopsis>
+    <p>Sets the SSL options to use when connecting to SSL enabled MongoDB servers.</p>
+    <p>Beginning in version 1.2.0, once a client has any SSL options set, all connections use SSL, even if "ssl=true" is omitted from the MongoDB URI. Before, SSL options were ignored unless "ssl=true" was included in the URI.</p>
+    <p>Although the <code>mongoc_ssl_opt_t</code> struct itself is shallow-copied by the client, the strings it points to (<code>pem_file</code>, <code>pem_pwd</code>, <code>ca_file</code>, <code>ca_dir</code>, and <code>crl_file</code>) are not copied and must remain valid for the life of the <code>mongoc_client_t</code>.</p>
+    <p>It is a programming error to call this function on a client from a <code xref="mongoc_client_pool_t">mongoc_client_pool_t</code>. Instead, call <code xref="mongoc_client_pool_set_ssl_opts">mongoc_client_pool_set_ssl_opts</code> on the pool before popping any clients.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+      <tr><td><p>opts</p></td><td><p>A <code xref="mongoc_ssl_opt_t">mongoc_ssl_opt_t</code>. The struct is copied by the client, but the strings it points to are not.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="availability">
+    <title>Availability</title>
+    <p>This feature requires that the MongoDB C driver was compiled with <code>--enable-ssl</code>.</p>
+  </section>
+
+</page>

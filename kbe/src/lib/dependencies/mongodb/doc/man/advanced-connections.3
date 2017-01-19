@@ -1,0 +1,144 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "ADVANCED_CONNECTIONS" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+Advanced_Connections \- None
+.SH "CONNECTING TO A REPLICA SET"
+
+
+Connecting to a
+.B replica set
+is much like connecting to a standalone MongoDB server. Simply specify the replica set name using the
+.B ?replicaSet=myreplset
+URI option.
+
+.nf
+#include <bson.h>
+#include <mongoc.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+
+    mongoc_init ();
+
+    /* Create our MongoDB Client */
+    client = mongoc_client_new ("mongodb://host01:27017,host02:27017,host03:27017/?replicaSet=myreplset");
+
+    /* Do some work */
+    /* TODO */
+
+    /* Clean up */
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+.fi
+
+.B NOTE
+.RS
+Multiple hostnames can be specified in the MongoDB connection string URI, with a comma separating hosts in the seed list.
+
+It is recommended to use a seed list of members of the replica set to allow the driver to connect to any node.
+
+.RE
+
+.SH "CONNECTING TO A SHARDED CLUSTER"
+
+
+To connect to a
+.B sharded cluster
+, specify the
+.B mongos
+nodes the client should connect to. The C Driver will automatically detect that it has connected to a
+.B mongos
+sharding server.
+
+If more than one hostname is specified, a seed list will be created to attempt failover between the
+.B mongos
+instances.
+
+.B NOTE
+.RS
+Specifying the
+.B replicaSet
+parameter when connecting to a
+.B mongos
+sharding server is invalid.
+
+.RE
+
+.nf
+#include <bson.h>
+#include <mongoc.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+
+    mongoc_init ();
+
+    /* Create our MongoDB Client */
+    client = mongoc_client_new ("mongodb://myshard01:27017/");
+
+    /* Do something with client ... */
+
+    /* Free the client */
+    mongoc_client_destroy (client);
+
+    mongoc_cleanup ();
+
+    return 0;
+}
+.fi
+
+.SH "CONNECTING TO AN IPV6 ADDRESS"
+
+
+The MongoDB C Driver will automatically resolve IPv6 addresses from host names. However, to specify an IPv6 address directly, wrap the address in
+.B []
+\e&.
+
+.B mongoc_uri_t *uri = mongoc_uri_new ("mongodb://[::1]:27017");
+
+.SH "CONNECTING TO A UNIX DOMAIN SOCKET"
+
+
+On UNIX\(hylike systems, the C Driver can connect directly to a MongoDB server using a UNIX domain socket. Simply pass the path to the socket, which
+.B must
+be suffixed with
+.B .sock
+\e&.
+
+.B mongoc_uri_t *uri = mongoc_uri_new ("mongodb:///tmp/mysocket.sock");
+
+.B NOTE
+.RS
+Connecting directly to a UNIX domain socket is not a common practice.
+
+.RE
+
+.SH "ADDITIONAL CONNECTION OPTIONS"
+
+
+A variety of connection options for the MongoDB URI can be found
+.B here
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

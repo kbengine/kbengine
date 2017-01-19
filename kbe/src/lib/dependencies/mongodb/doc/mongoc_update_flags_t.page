@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_update_flags_t">
+  <info>
+    <link type="guide" xref="index#api-reference"/>
+  </info>
+  <title>mongoc_update_flags_t</title>
+  <subtitle>Flags for deletion operations</subtitle>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[
+typedef enum
+{
+   MONGOC_UPDATE_NONE         = 0,
+   MONGOC_UPDATE_UPSERT       = 1 << 0,
+   MONGOC_UPDATE_MULTI_UPDATE = 1 << 1,
+} mongoc_update_flags_t;
+
+#define MONGOC_UPDATE_NO_VALIDATE (1U << 31)
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>These flags correspond to the MongoDB wire protocol. They may be bitwise or'd together. The allow for modifying the way an update is performed in the MongoDB server.</p>
+  </section>
+
+  <section id="values">
+    <title>Flag Values</title>
+    <table>
+      <tr>
+        <td><p>MONGOC_UPDATE_NONE</p></td>
+        <td><p>No update flags set.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_UPDATE_UPSERT</p></td>
+        <td><p>If an upsert should be performed.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_UPDATE_MULTI_UPDATE</p></td>
+        <td><p>If more than a single matching document should be updated. By default only the first document is updated.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_UPDATE_NO_VALIDATE</p></td>
+        <td><p>Do not perform client side BSON validations when performing an update. This is useful if you already know your BSON documents are valid.</p></td>
+      </tr>
+    </table>
+  </section>
+
+</page>

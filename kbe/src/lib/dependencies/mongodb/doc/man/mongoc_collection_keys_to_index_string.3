@@ -1,0 +1,50 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_COLLECTION_KEYS_TO_INDEX_STRING" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_collection_keys_to_index_string() \- This function shall returns the canonical stringification, as used in mongoc_collection_create_index() without an explicit name, of a given key specification.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+char *
+mongoc_collection_keys_to_index_string (const bson_t *keys);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+keys
+A
+.B bson_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function shall returns the canonical stringification, as used in
+.B mongoc_collection_create_index(3)
+without an explicit name, of a given key specification.
+
+It is a programming error to call this function on a non\(hystandard index, such one other than a straight index with ascending and descending.
+
+.SH "RETURNS"
+
+A string that should be freed with
+.B bson_free(3)
+\e&.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

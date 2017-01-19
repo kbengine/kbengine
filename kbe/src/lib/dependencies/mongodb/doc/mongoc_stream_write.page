@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_write">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_t" group="function"/>
+  </info>
+  <title>mongoc_stream_write()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[ssize_t
+mongoc_stream_write (mongoc_stream_t *stream,
+                    void            *buf,
+                    size_t           count,
+                    int32_t          timeout_msec);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code>.</p></td></tr>
+      <tr><td><p>buf</p></td><td><p>The buffer to write.</p></td></tr>
+      <tr><td><p>count</p></td><td><p>The number of bytes to write.</p></td></tr>
+      <tr><td><p>timeout_msec</p></td><td><p>The number of milliseconds to wait before failure, a timeout of 0 will not block. If negative, use the default timeout.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>The <code xref="mongoc_stream_read">mongoc_stream_write()</code> function shall perform a write to a <code xref="mongoc_stream_t">mongoc_stream_t</code>. It's modeled on the API and semantics of <code>write()</code>, though the parameters map only loosely.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>The <code xref="mongoc_stream_write">mongoc_stream_write</code> function returns the number of bytes write on success. It returns <code>&gt;= 0</code> and <code>&lt; min_bytes</code> when end-of-file is encountered and <code>-1</code> on failure. <code>errno</code> is set upon failure.</p>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><code xref="mongoc_stream_read">mongoc_stream_read()</code></p>
+    <p><code xref="mongoc_stream_readv">mongoc_stream_readv()</code></p>
+    <p><code xref="mongoc_stream_writev">mongoc_stream_writev()</code></p>
+  </section>
+
+</page>

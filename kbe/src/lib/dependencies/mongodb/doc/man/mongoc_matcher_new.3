@@ -1,0 +1,78 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_MATCHER_NEW" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_matcher_new() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_matcher_t *
+mongoc_matcher_new (const bson_t *query,
+                    bson_error_t *error);
+.fi
+.fi
+
+Create a new
+.B mongoc_matcher_t
+using the query specification provided.
+
+.SH "DEPRECATED"
+
+.B NOTE
+.RS
+.B mongoc_matcher_t
+is deprecated and will be removed in version 2.0.
+.RE
+
+.SH "PARAMETERS"
+
+.TP
+.B
+query
+A
+.B bson_t
+\e&.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+A newly allocated
+.B mongoc_matcher_t
+that should be freed with
+.B mongoc_matcher_destroy(3)
+when no longer in use. Upon failure,
+.B NULL
+is returned and
+.B error
+is set. This could happen if
+.B query
+contains an invalid query specification.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

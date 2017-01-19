@@ -1,0 +1,19 @@
+{
+    "candidate_servers": [], 
+    "eligible_servers": [], 
+    "in_latency_window": [], 
+    "operation": "read", 
+    "read_preference": {
+        "mode": "SecondaryPreferred", 
+        "tags": [
+            {
+                "data_center": "nyc"
+            }
+        ]
+    }, 
+    "suitable_servers": [], 
+    "topology_description": {
+        "servers": [], 
+        "type": "Unknown"
+    }
+}

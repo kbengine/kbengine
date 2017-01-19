@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_cursor_more">
+  <info>
+    <link type="guide" xref="mongoc_cursor_t" group="function"/>
+  </info>
+  <title>mongoc_cursor_more()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_cursor_more (mongoc_cursor_t *cursor);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>cursor</p></td><td><p>A <code xref="mongoc_cursor_t">mongoc_cursor_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall indicate if there is more data to be read from the cursor.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>true if there is more data to be read from the cursor, otherwise false.</p>
+  </section>
+
+</page>

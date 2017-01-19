@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_cursor_destroy">
+  <info>
+    <link type="guide" xref="mongoc_cursor_t" group="function"/>
+  </info>
+  <title>mongoc_cursor_destroy()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_cursor_destroy (mongoc_cursor_t *cursor);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>cursor</p></td><td><p>A <code xref="mongoc_cursor_t">mongoc_cursor_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Frees a <code xref="mongoc_cursor_t">mongoc_cursor_t</code> and releases all associated resources. If a server-side cursor has been allocated, it will be released as well.</p>
+  </section>
+
+</page>

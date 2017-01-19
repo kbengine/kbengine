@@ -1,0 +1,1340 @@
+mongo-c-driver 1.3.5
+====================
+
+It is my pleasure to announce mongo-c-driver 1.3.5. This release fixes a crash
+in mongoc_cleanup when an allocator had been set with bson_mem_set_vtable, and
+introduces a configure option MONGOC_NO_AUTOMATIC_GLOBALS which prevents code
+built with GCC from automatically calling mongoc_init and mongoc_cleanup when
+your code does not.
+
+Thanks to everyone who contributed to the development of this release.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+
+Peace,
+
+    A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.3.4
+====================
+
+It is my pleasure to announce the MongoDB C Driver 1.3.4. This release fixes a
+security vulnerability: when a mongoc_client_t uses SSL and is disconnected, it
+failed to re-verify the server certificate after reconnecting. This flaw affects
+single clients, not pooled ones.
+
+Thanks to everyone who contributed to the development of this release.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Remi Collet
+
+Peace,
+
+    A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.3.3
+====================
+
+It is my pleasure to announce MongoDB C Driver 1.3.3. This fixes a bug where
+a slightly-oversized bulk write operation was not split into batches; instead,
+it was sent whole to the server, which rejected it.
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.3.2
+====================
+
+It is my pleasure to announce MongoDB C Driver 1.3.2. This is a bugfix release:
+
+  * A socket is properly discarded after a network error from a command.
+  * mongoc_database_get_collection now copies the database's read preferences,
+    read concern, and write concern, instead of copying the client's.
+  * mongoc_cursor_t's private struct now allows a negative limit.
+
+Thanks to everyone who contributed to this release.
+
+  * A. Jesse Jiryu Davis
+  * Jeremy Mikola
+  * Hannes Magnusson
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.3.1
+====================
+
+It is my pleasure to announce MongoDB C Driver 1.3.1. This is a bugfix release:
+
+  * mongoc_client_get_gridfs now copies the client's read preferences, read
+    concern, and write concern to the newly created mongoc_gridfs_t. Before
+    this fix, GridFS operations were always executed with the default config:
+    data was read from the primary, with the read concern level "local", and
+    written with write concern "acknowledged". Now, if you have configured any
+    of these options on the mongoc_client_t, they are respected by the
+    mongoc_gridfs_t.
+  * CMakeLists.txt now includes and installs the pkg-config files.
+
+Thanks to everyone who contributed to this release.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Christopher Wang
+  * Jean-Bernard Jansen
+  * Jeremy Mikola
+  * Jeroen Ooms
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.3.0
+====================
+
+It is my pleasure to announce to you the release of the MongoDB C Driver 1.3.0.
+
+Changes since the the release candidate 1.3.0-rc0:
+
+  * Fix a cursor bug introduced on big-endian platforms in 1.3.0-beta0.
+  * Improve documentation for mongoc_host_list_t.
+  * Move private mongoc_host_list_t functions from public header.
+  * Refactor the build system to declare library version in one place.
+
+All new features and changes since the previous stable release, 1.2.1:
+
+  * If the driver is compiled without SSL support but a URI with "ssl=true"
+    is passed to mongoc_client_new, mongoc_client_new_from_uri, or
+    mongoc_client_pool_new, the function logs an error and returns NULL. Before,
+    the driver would attempt a non-SSL connection.
+  * mongoc_collection_find_and_modify will now apply the mongoc_collection_t's
+    write_concern_t when talking to MongoDB 3.2.
+  * Support for MongoDB 3.2's "readConcern" feature for queries, counts, and
+    aggregations. The option "readConcernLevel" is now accepted in the MongoDB
+    URI. New struct mongoc_read_concern_t, and functions operating on it:
+   - mongoc_client_get_read_concern
+   - mongoc_client_set_read_concern
+   - mongoc_database_get_read_concern
+   - mongoc_database_set_read_concern
+   - mongoc_collection_get_read_concern
+   - mongoc_collection_set_read_concern
+   - mongoc_read_concern_copy
+   - mongoc_read_concern_destroy
+   - mongoc_read_concern_get_level
+   - mongoc_read_concern_new
+   - mongoc_read_concern_set_level
+   - mongoc_uri_get_read_concern
+  * Support for MongoDB 3.2's "bypassDocumentValidation" option for writes.
+  * New struct mongoc_bulk_write_flags_t and related functions:
+   - mongoc_bulk_operation_set_bypass_document_validation
+  * New struct mongoc_find_and_modify_opts_t and related functions:
+   - mongoc_find_and_modify_opts_new
+   - mongoc_find_and_modify_opts_destroy
+   - mongoc_find_and_modify_opts_set_sort
+   - mongoc_find_and_modify_opts_set_update
+   - mongoc_find_and_modify_opts_set_fields
+   - mongoc_find_and_modify_opts_set_flags
+   - mongoc_find_and_modify_opts_set_bypass_document_validation
+   - mongoc_collection_find_and_modify_with_opts
+  * New functions to copy database and collection handles:
+   - mongoc_collection_copy
+   - mongoc_database_copy
+  * Support for MongoDB 3.2 wire protocol: use commands in place of OP_QUERY,
+    OP_GETMORE, and OP_KILLCURSORS messages.
+  * To explain a query plan with MongoDB 3.2, you must now call the "explain"
+    command, instead of including the "$explain" key in a mongoc_collection_find
+    query. See the mongoc_collection_find documentation page for details.
+  * Configurable wait time on tailable cursors with MongoDB 3.2:
+   - mongoc_cursor_get_max_await_time_ms
+   - mongoc_cursor_set_max_await_time_ms
+  * Use electionId to detect a stale replica set primary during a network split.
+  * Disconnect from replica set members whose "me" field does not match the
+    connection address.
+  * The client side matching feature, mongoc_matcher_t and related functions,
+    are deprecated and scheduled for removal in version 2.0.
+  * New CMake options ENABLE_SSL, ENABLE_SASL, ENABLE_TESTS, and ENABLE_EXAMPLES.
+  * Use constant-time comparison when verifying credentials.
+  * Combine environment's CFLAGS with configure options when building.
+  * Improved man page output and "whatis" entries.
+
+There are extensive bugfixes and improvements in GridFS since 1.2.1, including:
+
+  * Handle seeking, reading, and writing past the end of a GridFS file.
+  * If a GridFS chunk is missing, mongoc_gridfs_file_readv sets file->error to
+    domain MONGOC_ERROR_GRIDFS and a new code MONGOC_ERROR_GRIDFS_CHUNK_MISSING.
+  * Optimization for long seeks forward with mongoc_gridfs_file_seek.
+
+Other fixes since 1.2.1:
+
+  * Memory leaks in mongoc_database_has_collection and mongoc_cursor_next.
+  * Report writeConcern failures from findAndModify and from legacy writes.
+  * Memory leak in mongoc_database_find_collections.
+  * Set OP_QUERY's nToReturn from the provided limit.
+  * Fix compiler warnings and errors, especially with Visual Studio 2015,
+    GCC 4.8, and IBM XL C.
+  * Bugs and typos in tutorial examples.
+
+Thanks to everyone who contributed to this release.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Kyle Suarez
+  * Jose Sebastian Battig
+  * Matt Cotter
+  * Claudio Canella
+  * alexeyvo
+  * Christopher Wang
+  * Flavio Medeiros
+  * Iago Rubio
+  * Jeremy Mikola
+  * Victor Leschuk
+  * Jason Carey
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.3.0-rc0
+========================
+
+It is my pleasure to announce to you the first release candidate of MongoDB C
+driver 1.3.0. It includes additive ABI changes and bugfixes, and support for
+the upcoming MongoDB 3.2. It is compatible with MongoDB 2.4 and later.
+
+New features and changes since 1.3.0-beta0:
+
+  * If the driver is compiled without SSL support but a URI with "ssl=true"
+    is passed to mongoc_client_new, mongoc_client_new_from_uri, or
+    mongoc_client_pool_new, the function logs an error and returns NULL. Before,
+    the driver would attempt a non-SSL connection.
+  * New functions to copy database and collection handles:
+   - mongoc_collection_copy
+   - mongoc_database_copy
+  * If a GridFS chunk is missing, mongoc_gridfs_file_readv sets file->error to
+    domain MONGOC_ERROR_GRIDFS and a new code MONGOC_ERROR_GRIDFS_CHUNK_MISSING.
+  * Use electionId to detect a stale replica set primary during a network split.
+  * Disconnect from replica set members whose "me" field does not match the
+    connection address.
+  * The client side matching feature, mongoc_matcher_t and related functions,
+    are deprecated and scheduled for removal in version 2.0.
+  * New CMake options ENABLE_SSL, ENABLE_SASL, ENABLE_TESTS, and ENABLE_EXAMPLES.
+  * The build system is refactored to declare the current version and latest
+    release in one place.
+
+Other fixes:
+
+  * Memory leaks in mongoc_database_has_collection and mongoc_cursor_next.
+  * Report writeConcern failures from findAndModify and from legacy writes.
+
+Thanks to everyone who contributed to this release candidate.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Matt Cotter
+  * Claudio Canella
+  * Victor Leschuk
+  * Flavio Medeiros
+  * Christopher Wang
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.3.0-beta0
+==========================
+
+It is my pleasure to announce to you the beta of MongoDB C driver 1.3.0.
+This beta includes additive ABI changes and bugfixes, and support for
+the upcoming MongoDB 3.2. It is compatible with MongoDB 2.4 and later.
+
+New features and changes:
+
+  * mongoc_collection_find_and_modify will now apply the mongoc_collection_t's
+    write_concern_t when talking to MongoDB 3.2.
+  * Support for MongoDB 3.2's "readConcern" feature for queries, counts, and
+    aggregations. The option "readConcernLevel" is now accepted in the MongoDB
+    URI. New struct mongoc_read_concern_t, and functions operating on it:
+   - mongoc_client_get_read_concern
+   - mongoc_client_set_read_concern
+   - mongoc_database_get_read_concern
+   - mongoc_database_set_read_concern
+   - mongoc_collection_get_read_concern
+   - mongoc_collection_set_read_concern
+   - mongoc_read_concern_copy
+   - mongoc_read_concern_destroy
+   - mongoc_read_concern_get_level
+   - mongoc_read_concern_new
+   - mongoc_read_concern_set_level
+   - mongoc_uri_get_read_concern
+  * Support for MongoDB 3.2's "bypassDocumentValidation" option for writes.
+  * New struct mongoc_bulk_write_flags_t and related functions:
+   - mongoc_bulk_operation_set_bypass_document_validation
+  * New struct mongoc_find_and_modify_opts_t and related functions:
+   - mongoc_find_and_modify_opts_new
+   - mongoc_find_and_modify_opts_destroy
+   - mongoc_find_and_modify_opts_set_sort
+   - mongoc_find_and_modify_opts_set_update
+   - mongoc_find_and_modify_opts_set_fields
+   - mongoc_find_and_modify_opts_set_flags
+   - mongoc_find_and_modify_opts_set_bypass_document_validation
+   - mongoc_collection_find_and_modify_with_opts
+  * Configurable wait time on tailable cursors with MongoDB 3.2:
+   - mongoc_cursor_get_max_await_time_ms
+   - mongoc_cursor_set_max_await_time_ms
+  * Support for MongoDB 3.2 wire protocol: use commands in place of OP_QUERY,
+    OP_GETMORE, and OP_KILLCURSORS messages.
+  * To explain a query plan with MongoDB 3.2, you must now call the "explain"
+    command, instead of including the "$explain" key in a mongoc_collection_find
+    query. See the mongoc_collection_find documentation page for details.
+  * Use constant-time comparison when verifying credentials.
+  * Combine environment's CFLAGS with configure options when building.
+  * Improved man page output and "whatis" entries.
+
+Extensive bugfixes and improvements in GridFS, including:
+
+  * Handle seeking, reading, and writing past the end of a GridFS file.
+  * Optimization for long seeks forward with mongoc_gridfs_file_seek.
+
+Other fixes:
+
+  * Memory leak in mongoc_database_find_collections.
+  * Set OP_QUERY's nToReturn from the provided limit.
+  * Fix compiler warnings and errors, especially with Visual Studio 2015,
+    GCC 4.8, and IBM XL C.
+  * Bugs and typos in tutorial examples
+
+Thanks to everyone who contributed to this beta release.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Kyle Suarez
+  * Jose Sebastian Battig
+  * Jeremy Mikola
+  * Iago Rubio
+  * Matt Cotter
+  * alexeyvo
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.2.2
+====================
+
+It is my pleasure to announce to you the MongoDB C driver 1.2.2.
+
+This release fixes a rare bug where the driver can direct reads to hidden
+secondaries unintentionally. It also includes fixes and improvements to the
+build system.
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.2.1
+====================
+
+It is my pleasure to announce to you the MongoDB C driver 1.2.1.
+
+This release includes critical bugfixes for SSL connections with
+mongoc_client_pool_t, and for Unix domain socket connections.
+
+The documentation is updated for a change introduced in version 1.2.0:
+mongoc_client_set_ssl_opts and mongoc_client_pool_set_ssl_opts now configure
+the driver to require an SSL connection to the server, even if "ssl=true" is
+omitted from the MongoDB URI. Before, SSL options were ignored unless
+"ssl=true" was included in the URI.
+
+The build instructions are improved, including the steps to build with OpenSSL
+on OS X El Capitan. Build errors and warnings are fixed for clang in gnu99
+mode and MinGW.
+
+Thanks to everyone who contributed to this version of libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Tamas Nagy
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.2.0
+====================
+
+It is my pleasure to announce to you the MongoDB C driver 1.2.0.
+
+This is a stable release with additive ABI changes and bugfixes. It is
+compatible with MongoDB version 2.4 and later.
+
+The following notes summarize changes since the previous stable release,
+1.1.11, including changes in the 1.2.0 betas and release candidate.
+
+This version rewrites mongoc_client_t's internals to match two important new
+specs for MongoDB drivers: the Server Discovery And Monitoring Spec and the
+Server Selection Spec. The rewritten client has many advantages:
+
+  * All replica set members or mongos servers are discovered and periodically
+    checked in parallel. The driver's performance is dramatically better and
+    more predictable with multi-server deployments, or with a flaky network,
+    or when some servers are slow or down.
+  * Clients from the same mongoc_client_pool_t share a background thread that
+    discovers and monitors all servers in parallel.
+  * Unnecessary round trips for server checks and pings are eliminated.
+  * Behavior is documented in the specs, and consistent with other drivers,
+    even in complex or unusual scenarios.
+  * The URI's "replicaSet" option is enforced: the driver now refuses to connect
+    to a server unless it is a member of a replica set with the correct setName.
+  * Many race conditions related to changing deployment conditions are fixed.
+
+To conform to the new specs, the client now accepts these options in the
+MongoDB URI; see the mongoc_uri_t documentation for details:
+
+  * heartbeatFrequencyMS
+  * serverSelectionTimeoutMS
+  * serverSelectionTryOnce
+  * socketCheckIntervalMS
+
+Other features:
+
+  * All timeouts that can be configured in the URI now interpret 0 to mean "use
+    the default value for this timeout".
+  * The client's read preference can be configured in the URI with the new
+    options "readPreference" and "readPreferenceTags"; see the mongoc_uri_t
+    documentation.
+  * The new mongoc_uri_get_read_prefs_t function retrieves both the read mode
+    and tags from a mongoc_uri_t.
+  * New accessors mongoc_gridfs_file_get_id, mongoc_client_get_default_database,
+    and mongoc_bulk_operation_get_write_concern.
+  * Debug tracing can be controlled at runtime with mongoc_log_trace_enable and
+    mongoc_log_trace_disable.
+  * Set mongoc_client_pool_t's size with mongoc_client_pool_min_size()
+    and mongoc_client_pool_max_size().
+
+Other changes:
+
+  * Enable runtime asserts in release build.
+  * The libbson submodule's URL now uses the recommended https://, not git://
+  * mongoc_client_kill_cursor is now deprecated and will be removed in 2.0.
+  * The write concern "w=-1" is documented as obsolete.
+
+These notable bugs have been fixed since 1.1.11:
+
+  * The driver now uses the server's maxWireVersion to avoid an error and
+    extra round-trip when executing aggregations on MongoDB 2.4 and older.
+  * Much improved reporting of network errors, unavailable servers, and
+    authentication failure
+  * Off-by-one error in mongoc_gridfs_file_seek with mode SEEK_END
+  * The writeConcernErrors field of bulk results is properly formatted.
+  * A cursor with a server "hint" sets slaveOkay and / or $readPreference.
+  * Destroying an exhaust cursor must close its socket
+  * "wtimeoutms" was ignored for write concerns besides "majority".
+  * Bulk write operations might fail in mixed-version sharded clusters with
+    some pre-2.6 mongos servers.
+  * A variety of bugs and incorrect results in mongoc_bulk_operation_execute.
+  * Numerous compiler warnings and build failures on various platforms.
+  * Copious refinements to the documentation.
+
+Thanks to everyone who contributed to this version of libmongoc.
+
+  * Jason Carey
+  * Samantha Ritter
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Kyle Suarez
+  * Jeremy Mikola
+  * Remi Collet
+  * Jose Sebastian Battig
+  * Derick Rethans
+  * Yuchen Xie
+  * Manuel Schoenlaub
+  * Sujan Dutta
+  * Lloyd Zhou
+  * rubicks
+  * Pawel Szczurko
+  * Yuval Hager
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.2.0-rc0
+========================
+
+It is my pleasure to announce the release candidate of the MongoDB C driver
+1.2.0. It includes features and bugfixes developed since 1.2.0-beta1.
+
+Notable bugs fixed:
+
+  * Much improved reporting of network errors, unavailable servers, and
+    authentication failure
+  * Destroying an exhaust cursor must close its socket
+  * Various bugs in server reconnection logic
+  * mongoc_collection_aggregate returned invalid cursor after failure
+  * Wrong error message after failed network write on Sparc
+  * Missing JSON test files in release tarball
+
+Other changes:
+
+  * Enable runtime asserts in release build.
+  * mongoc_client_kill_cursor is now deprecated and will be removed in
+    version 2.0.
+
+This release candidate also includes all bugfixes from 1.1.11.
+
+Version 1.2.0 final will be a stable release with additive ABI changes and
+bugfixes. It is compatible with MongoDB version 2.4 and later.
+
+Thanks to everyone who contributed to this version of libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Kyle Suarez
+  * rubicks
+  * Jose Sebastian Battig
+  * Jason Carey
+  * Remi Collet
+  * Yuval Hager
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.2.0-beta1
+==========================
+
+It is my pleasure to announce the second beta release of the MongoDB C driver
+1.2.0. It includes features and bugfixes developed since 1.2.0-beta.
+
+New features:
+
+  * Set mongoc_client_pool_t's size with mongoc_client_pool_min_size()
+    and mongoc_client_pool_max_size().
+  * The write concern "w=-1" is now documented as obsolete.
+  * Abundant fixes and additions to the documentation, beyond those in the
+    previous beta.
+
+Notable bugs fixed:
+
+  * Crashes and races in several replica set scenarios.
+  * The driver now uses the server's maxWireVersion to avoid an error and
+    extra round-trip when executing aggregations on MongoDB 2.4 and older.
+  * Fixed network error handling in multiple code paths.
+  * connectTimeoutMS limits the time the driver can spend reconnecting to
+    servers in single-threaded (non-pooled) mode with serverSelectionTryOnce.
+
+Version 1.2.0 final will be a stable release with additive ABI changes and
+bugfixes. It is compatible with MongoDB version 2.4 and later.
+
+Thanks to everyone who contributed to this version of libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Manuel Schoenlaub
+  * Kyle Suarez
+  * Remi Collet
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.2.0-beta
+=========================
+
+It is my pleasure to announce to you the first beta release of the MongoDB C
+driver 1.2.0.
+
+This release is a stable release with additive ABI changes and bugfixes.
+It is compatible with MongoDB version 2.4 and later.
+
+Version 1.2.0 rewrites mongoc_client_t's internals to match two important new
+specs for MongoDB drivers: the Server Discovery And Monitoring Spec and the
+Server Selection Spec. The rewritten client has many advantages:
+
+  * All replica set members or mongoses are discovered and periodically
+    checked in parallel. The driver's performance is dramatically better and
+    more predictable with multi-server deployments, or with a flaky network,
+    or when some servers are slow or down.
+  * Clients from the same mongoc_client_pool_t share a background thread that
+    discovers and monitors all servers in parallel.
+  * Unnecessary round trips for server checks and pings are eliminated.
+  * Behavior is documented in the specs, and consistent with other drivers, even
+    in complex or unusual scenarios.
+  * The URI's "replicaSet" option is enforced: the driver now refuses to connect
+    to a server unless it is a member of a replica set with the right setName.
+  * Many race conditions related to changing deployment conditions are fixed.
+
+To conform to the new specs, the client now accepts these options in the MongoDB
+URI; see the mongoc_uri_t documentation for details:
+
+  * heartbeatFrequencyMS
+  * serverSelectionTimeoutMS
+  * serverSelectionTryOnce
+  * socketCheckIntervalMS
+
+Other features:
+
+  * All timeouts that can be configured in the URI now interpret 0 to mean "use
+    the default value for this timeout".
+  * The client's read preference can be configured in the URI with the new
+    options "readPreference" and "readPreferenceTags", see the mongoc_uri_t
+    documentation.
+  * The new mongoc_uri_get_read_prefs_t function retrieves both the read mode
+    and tags from a mongoc_uri_t.
+  * New accessors mongoc_gridfs_file_get_id, mongoc_client_get_default_database,
+    and mongoc_bulk_operation_get_write_concern.
+  * Debug tracing can be controlled at runtime with mongoc_log_trace_enable and
+    mongoc_log_trace_disable.
+
+Notable bugs fixed:
+
+  * "wtimeoutms" was ignored for write concerns besides "majority".
+  * Bulk write operations might fail in mixed-version sharded clusters with
+    some pre-2.6 mongos servers.
+  * Normal operations were logged during startup and could not be silenced.
+  * A variety of bugs and incorrect results in mongoc_bulk_operation_execute.
+  * Numerous compiler warnings and build failures on various platforms.
+  * Copious refinements to the documentation.
+
+Thanks to everyone who contributed to this version of libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Sujan Dutta
+  * Jason Carey
+  * Hannes Magnusson
+  * Jeremy Mikola
+  * Derick Rethans
+  * Samantha Ritter
+  * Yuchen Xie
+  * Lloyd Zhou
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+It is my pleasure to announce to you the MongoDB C driver 1.1.11.
+
+This is a patch release with bug fixes:
+
+  * Undetected network errors when sending messages to the server
+  * Off-by-one error in mongoc_gridfs_file_seek with mode SEEK_END
+  * Memory leak parsing a URI that contains an invalid option
+  * The libbson submodule's URL now uses the recommended https://, not git://
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Jason Carey
+  * Jose Sebastian Battig
+  * rubicks
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.1.11
+=====================
+
+It is my pleasure to announce to you the MongoDB C driver 1.1.11.
+
+This is a patch release with bug fixes:
+
+  * Undetected network errors when sending messages to the server
+  * Off-by-one error in mongoc_gridfs_file_seek with mode SEEK_END
+  * Memory leak parsing a URI that contains an invalid option
+  * The libbson submodule's URL now uses the recommended https://, not git://
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Hannes Magnusson
+  * Jason Carey
+  * Jose Sebastian Battig
+  * rubicks
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.1.10
+=====================
+
+It is my pleasure to announce to you the MongoDB C driver 1.1.10.
+
+This is a patch release with bug fixes:
+
+  * Occasional crash reconnecting to replica set.
+  * Queries sent to recovering replica set members.
+  * Memory leak when calling ismaster on replica set members.
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Daniil Zaitsev
+  * Jason Carey
+  * Jeremy Mikola
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.1.9
+====================
+
+It is my pleasure to announce to you the MongoDB C driver 1.1.9.
+
+This release fixes a common crash in 1.1.8, which itself was introduced while
+fixing a rare crash in 1.1.7. For further details:
+
+https://jira.mongodb.org/browse/CDRIVER-721
+https://jira.mongodb.org/browse/CDRIVER-695
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.1.8
+====================
+
+UPDATE: 1.1.8 suffered a severe new bug so I removed the release from GitHub:
+
+https://jira.mongodb.org/browse/CDRIVER-721
+
+This is a patch release with bug fixes:
+
+  * Crash freeing client after a replica set auth error.
+  * Compile error strict C89 mode.
+
+mongo-c-driver 1.1.7
+====================
+
+It is my pleasure to announce to you the 1.1.7 release of the MongoDB C driver.
+
+This is a patch release with bug fixes:
+
+  * Thread-safe use of Cyrus SASL library.
+  * Experimental support for building with CMake and SASL.
+  * Faster reconnection to replica set with some hosts down.
+  * Crash iterating a cursor after reconnecting to a replica set.
+  * Unchecked errors decoding invalid UTF-8 in MongoDB URIs.
+  * Fix error reporting from mongoc_client_get_database_names.
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Jason Carey
+  * Hannes Magnusson
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.1.6
+====================
+
+It is my pleasure to announce to you the 1.1.6 release of the MongoDB C driver.
+
+This is a patch release with performance enhancements and bug fixes:
+
+  * mongoc_bulk_operation_execute now coalesces consecutive update operations
+    into a single message to a MongoDB 2.6+ server, yielding huge performance
+    gains. Same for remove operations. (Inserts were always coalesced.)
+  * Large numbers of insert operations are now properly batched according to
+    number of documents and total data size.
+  * GSSAPI / Kerberos auth now works.
+  * The driver no longer tries three times in vain to reconnect to a primary,
+    so socketTimeoutMS and connectTimeoutMS now behave *closer* to what you
+    expect for replica sets with down members. A full fix awaits 1.2.0.
+
+I snuck in a feature:
+
+  * mongoc_matcher_t now supports basic subdocument and array matching
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Jason Carey
+  * Kai Mast
+  * Matt Cotter
+
+Peace,
+
+  A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.1.5
+====================
+
+It is my pleasure to announce to you the 1.1.5 release of the MongoDB C driver.
+
+This is a patch release with performance enhancements and bug fixes:
+
+  * The fsync and j write concern flags now imply acknowledged writes
+  * Prevent using fsync or j with conflicting w=0 write concern
+  * Obey socket timeout consistently in TLS/SSL mode
+  * Return an error promptly after a network hangup in TLS mode
+  * Prevent crash using SSL in FIPS mode
+  * Always return NULL from mongoc_database_get_collection_names on error
+  * Fix version check for GCC 5 and future versions of Clang
+  * Fix warnings and errors building on various platforms
+  * Add configure flag to enable/disable shared memory performance counters
+  * Minor docs improvements and fix links from C Driver docs to Libbson docs
+
+With this release, Libbson abandons the convention that odd-numbered patch
+versions indicate unstable releases. We switch to simple semantic versioning:
+1.1.5 is a stable release with bug fixes since 1.1.4. During subsequent
+development the version will be "1.1.6-dev".
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * A. Jesse Jiryu Davis
+  * Christian Hergert
+  * Jason Carey
+  * Jeremy Mikola
+  * Jeroen Ooms
+  * Hannes Magnusson
+
+Enjoy!
+
+-- A. Jesse Jiryu Davis
+
+
+mongo-c-driver 1.1.4
+====================
+
+It is my pleasure to announce to you the 1.1.4 release of the MongoDB C driver.
+
+This release is a stable release with performance enhancements and bugfixes.
+
+Changes include:
+  * Fixed client pool concurrency issues
+  * Fixed some scenarios where replica sets would fail to reconnect on primary
+    step down.
+  * Improved write concern handling
+  * Validate port number in URI
+  * Various other fixes
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * Jason Carey
+  * Andrew Clayton
+  * A. Jesse Jiryu Davis
+  * Jeremy Mikola
+
+Enjoy!
+
+-- Jason Carey
+
+
+mongo-c-driver 1.1.2
+====================
+
+It is my pleasure to announce to you the 1.1.2 release of the MongoDB C driver.
+
+This release is a stable release with performance enhancements and bugfixes.
+
+Changes include:
+  * Process connectTimeoutMS cast insensitively
+  * Addition of missing trace macros
+  * Improvement of internal error messages
+  * Fix a segfault in OpenSSL cleanup routines
+  * Fix for IPv66 support for replica sets
+  * Coalesce small vectorized TLS writes
+  * MinGW fixups
+  * Fix for a memory leak in get_database_names()
+  * Fixes for patching write concern through the bulk api
+  * Fix to normalize hostnames in uri parsing
+  * Fix for managing connections in the client pool
+  * Various other fixes
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * Andrew Clayton
+  * Denis Gladkikh
+  * Hannes Magnusson
+  * Jason Carey
+  * Jeremy Mikola
+  * mschoenlaub
+  * Samantha Ritter
+  * Tyler Brock
+
+Enjoy!
+
+-- Jason Carey
+
+
+mongo-c-driver 1.1.0
+====================
+
+It is my pleasure to announce to you the 1.1.0 release of the MongoDB C driver.
+
+This release is a stable release with additive ABI changes and bugfixes.
+
+The below changes include some carried over from RC0.
+
+Changes include:
+  * RC0
+   * ABI versioning for 1.1 versus 1.0 symbols
+   * additional geo index options
+   * authMechanismProperties in URI
+   * fixes for OS X Yosemite
+   * removal of replica set member limit
+   * SCRAM-SHA-1 SASL mechanism
+   * updated dependency on libbson 1.1 abi
+   * validation for bulk insert
+   * various memory leak fixes
+  * Fixes to documentation typos
+  * "How to Ask For Help" in the README
+  * Removed dependency on sasl for PLAIN authentication
+  * Use provided username, if available, for X.509 auth
+  * Fixed WriteConcern error reporting for some writes
+  * Check for closed sockets before attempting RPCs
+  * Fixes for gridfs file seek
+  * Fixes for mongoc_cursor_clone()
+  * Fixes for unix domain socket support
+  * Fixes for polling on win32
+  * Improved warnings on failure to connect
+  * Addition of wired tiger options
+  * Fixes for examples
+
+Additions to the ABI include:
+  * support for extra option in count
+   - mongoc_collection_count_with_opts
+  * additional index options
+   - mongoc_index_opt_geo_get_default
+   - mongoc_index_opt_geo_init
+   - mongoc_index_opt_wt_get_default
+   - mongoc_index_opt_wt_init
+  * rand interface to seed and verify the strong random number generation needed
+    by some auth mechanisms
+   - mongoc_rand_seed
+   - mongoc_rand_add
+   - mongoc_rand_status
+  * URI additions to support more complicated auth credentials
+   - mongoc_uri_get_credentials
+   - mongoc_uri_get_mechanism_properties
+  * Support for cursor returning metadata crud operations
+   - mongoc_client_find_databases
+   - mongoc_collection_find_indexes
+   - mongoc_database_find_collections
+  * Kill cursor support
+   - mongoc_client_kill_cursor
+  * Various get/setters on cursor
+   - mongoc_cursor_get_batch_size
+   - mongoc_cursor_get_id
+   - mongoc_cursor_set_batch_size
+  * More socket/stream options
+   - mongoc_socket_check_closed
+   - mongoc_socket_inet_ntop
+   - mongoc_stream_check_closed
+   - mongoc_stream_write
+
+Additional Notes:
+    Existing complex index names may contain a zero instead of a type due to
+a bug in mongoc_collection_keys_to_index_string. As a result those indexes may 
+be hard to drop from the driver as they have a name you would not expect.
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * Adam Midvidy
+  * aherlihy
+  * alexeyvo
+  * Christian Hergert
+  * Hannes Magnusson
+  * Jason Carey
+  * Jérôme Lebel
+  * Jesse Jiryu Davis
+  * lloydzhou
+  * Mark Benevenuto
+  * Paul Melnikow
+  * Samantha Ritter
+  * Shraya Ramani
+  * Spencer Jackson
+  * Spencer Jackson
+  * Tyler Brock
+
+
+Enjoy!
+
+-- Jason Carey
+
+
+mongo-c-driver 1.1.0-rc0
+========================
+
+It is my pleasure to announce to you the 1.1.0-rc0 release of the MongoDB C driver.
+
+This release is a release candidate with additive ABI changes and bugfixes.
+
+Changes include:
+  * ABI versioning for 1.1 versus 1.0 symbols
+  * additional geo index options
+  * authMechanismProperties in URI
+  * fixes for OS X Yosemite
+  * removal of replica set member limit
+  * SCRAM-SHA-1 SASL mechanism
+  * updated dependency on libbson 1.1 abi
+  * validation for bulk insert
+  * various memory leak fixes
+
+Additions to the ABI include:
+  * support for extra option in count
+   - mongoc_collection_count_with_opts
+  * extra index and collection info
+   - mongoc_collection_get_index_info
+   - mongoc_database_get_collection_info
+  * additional geo options
+   - mongoc_index_opt_geo_get_default
+   - mongoc_index_opt_geo_init
+  * rand interface to seed and verify the strong random number generation needed
+    by some auth mechanisms
+   - mongoc_rand_seed
+   - mongoc_rand_add
+   - mongoc_rand_status
+  * URI additions to support more complicated auth credentials
+   - mongoc_uri_get_credentials
+   - mongoc_uri_get_mechanism_properties
+
+Additional Notes:
+    Existing complex index names may contain a zero instead of a type due to
+a bug in mongoc_collection_keys_to_index_string. As a result those indexes may 
+be hard to drop from the driver as they have a name you would not expect.
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * Adam Midvidy
+  * aherlihy
+  * alexeyvo
+  * Christian Hergert
+  * Jason Carey
+  * Jérôme Lebel
+  * Samantha Ritter
+  * Spencer Jackson
+  * Tyler Brock
+
+
+Enjoy!
+
+-- Jason Carey
+
+
+mongo-c-driver 1.0.2
+====================
+
+It is my pleasure to announce to you the 1.0.2 release of the MongoDB C driver.
+
+This release is a minor point release with no ABI changes and mostly small
+bugfixes.
+
+Changes include:
+  * A variety of fixes for read preference based node selection
+  * Avoided inclusion of getLastError in 2.6 writeConcern
+  * Correct handling of pass through params for collection_aggregate
+  * Improved error reporting in socket connect
+  * Public MONGOC_DEFAULT_CONNECTTIMEOUTMS
+
+Thanks to everyone who contributed to the development of this point release for
+libmongoc.
+
+  * Adam Midvidy
+  * Christian Hergert
+  * Denis Gladkikh
+  * Jason Carey
+  * Jeremy Mikola
+  * Jérôme Lebel
+  * Tyler Brock
+  * Wisdom Omuya
+
+-- Jason Carey
+
+
+mongo-c-driver 1.0.0
+====================
+
+It is my very distinct pleasure to announce to you the 1.0 release of
+the MongoDB C driver!
+
+This is the culmination of just over a year of work and could not have
+been done without the help of our wonderful community.
+
+Thanks to everyone who contributed to the development of this driver!
+
+  * Christian Hergert
+  * Jason Carey
+  * Gary Murakami
+  * Christian Heckl
+  * Frank Watson Song
+  * Hannes Magnusson
+  * Jérôme Lebel
+  * Kyle Suarez
+  * Maga Napanga
+  * Michael Kuhn
+  * Vincent Giersch
+  * essentia44
+  * yuqing
+
+Happy Hacking!
+
+-- Christian Hergert
+
+
+mongo-c-driver 0.98.2
+=====================
+
+One final step before our journey to 1.0!
+
+This is a relatively small release, adding some features needed for drivers
+building on top of the C driver.
+
+A new libmongoc-priv.so library is installed that does not have symbols
+hidden. You can access private headers via the -private.h variants. This
+means you will need to recompile your project every time the library is
+changed (if you use those private headers, as they are subject to change).
+
+A special thanks to Hannes Magnusson for patches in this release.
+
+See `git shortlog 0.98.0..0.98.2` for a list of all the changes.
+
+-- Christian Hergert
+
+
+mongo-c-driver 0.98.0
+=====================
+
+Another step in the rapidly approaching path to 1.0!
+
+This release is primarily a bugfix release and stablization effort as we
+approach 1.0 of the MongoDB C driver.
+
+This release requires 0.98.0 of Libbson for improvements to the memory
+management system. You can now setup custom memory allocators at the
+start of the process.
+
+This is a RC release that with a few improvements will likely become 1.0.
+
+A special thanks to the following for patches in this cycle:
+
+  * Kyle Suarez
+  * yuqing
+
+See `git shortlog 0.96.4..0.98.0` for a list of all the changes.
+
+-- Christian Hergert
+
+
+mongo-c-driver 0.96.4
+=====================
+
+Another incremental feature update and bugfix release!
+
+In this release, you will find the following changes:
+
+  * build/mci.sh script for automatically building Debian packages, RPMs, and
+    Solaris packaging based on the host operating system.
+  * Various libbson improvements, now depending on 0.8.4.
+  * Alignment fixes for Solaris Studio C compiler via libbson.
+  * Addition of mongoc_gridfs_remove_by_filename() for removing a file from
+    gridfs by filename.
+  * client command functions can now take a fully qualified namespace.
+  * collections can now support names that indicate a command namespace.
+  * Commands will no longer fail if they do not contain an "ok" field.
+  * OP_QUERY will now set the slaveOk bit in the wire protocol if
+  * readPreferences are set to non-PRIMARY.
+  * Various documentation and build fixes.
+
+Thanks again to all the contributors, and happy hacking!
+
+
+mongo-c-driver 0.96.2
+=====================
+
+Hot on the heels of 0.96.0 we would like to present mongo-c-driver 0.96.2!
+
+This is primarily a bugfix release. Included in this release are:
+
+  * Ensure batchSize is used in cursor GETMORE operations with `aggregate`.
+  * Ensure enough buffer space is allocated for incoming RPC when buffering
+    from a stream.
+  * Require libbson 0.8.2 for more robust `bson_next_power_of_two()` when
+    using `size_t` and BCON compilation fix with C++.
+  * Handle cursor id's that are not 64-bit values in response from
+   `aggregate` command.
+  * Handle upsert on MongoDB < 2.6 when _id does not contain an `ObjectId`.
+  * Use 100 for default batchSize in `aggregate` command.
+
+Happy Hacking!
+
+
+mongo-c-driver 0.96.0
+=====================
+
+It's that time again, time for another mongo-c-driver release!
+
+This release includes much new documentation, which can be found at
+http://docs.mongodb.org/ecosystem/drivers/c/.
+
+Additionally, this release improves support for various exotic systems.
+Solaris 10 is supported much better on SPARC and x86_64 based systems.
+
+Some workarounds for mixed-mode sharded-clusters have been added to improve
+resiliency when rolling upgrades are performed.
+
+Build improvements have been added to help us detect SASL and SSL
+implementations on platforms that do not support pkg-config. This should
+simplify building for some of you.
+
+We've added some more logging to SASL authentication to help debug
+authentication failures.
+
+A bug causing an abort() when SSL is used and a server is down has been fixed.
+
+We've renamed various _delete() functions to _remove() to provide consistency
+with other MongoDB drivers.
+
+You can now specify SSL options for client pools.
+
+-D_REENTRANT is always defined now on Solaris to help with errno detection.
+This may not have been done before if using a non-GCC platform with pthreads.
+
+A bug was fixed where timeouts could have been 1000x longer than expected
+due to failure to convert from microseconds to milliseconds.
+
+A bug was fixed with authentication in sharded cluster and replica set
+scenarios.
+
+Happy Hacking!
+
+
+mongo-c-driver 0.94.2
+=====================
+
+Hot on the heels of 0.94.0 is 0.94.2, a bugfix release.
+
+A bug has been fixed when using TLS streams and large result sets.
+
+In this release, we added support for Sun's C compiler (Sun Pro C) on Solaris.
+This allows for builds on Solaris 10 with SPARC using the native toolchain.
+
+This release contains a couple of fixes in libbson as well.
+
+Keep those bug reports coming, and as always, Happy Hacking!
+
+
+mongo-c-driver 0.94.0
+=====================
+
+The mongo-c-driver team is proud to announce the release of 0.94.0. This
+release is a followup to the previous release adding more features to be found
+in MongoDB 2.6.
+
+You will find some new API's, bug fixes, and more documentation. Under the
+hood, 0.94.0 uses the new write-commands as part of MongoDB 2.6 when it
+discovers it is communicating with a MongoDB server. There is now a bulk
+operation API (See `mongoc-bulk-operation.h`).
+
+Helpers for common server commands have been added. You can find most of
+them `mongoc-collection.h`.
+
+To simply using mongo-c-driver from Windows, we've included pre-built binaries
+on the release page.
+
+Thanks to all of the contributors this release!
+
+Happy Hacking!
+
+
+mongo-c-driver 0.92.0
+=====================
+
+The mongo-c-driver team is proud to announce the release of 0.92.0. This
+release is the culimation of a few months work and has many bug fixes and
+new features. It contains over 350 commits from 4 authors since the 0.90.0
+release.
+
+The mongo-c-driver release tarballs now contain a bundled copy of libbson.
+If you do not have libbson installed or the system installed libbson is too
+old, the bundled copy of libbson will be installed.
+
+  * Revamped build system to simplify installation.
+  * Windows Vista and newer support.
+  * Various GridFS fixes and features.
+  * Kerberos support via cyrus-sasl.
+  * Various SSL improvements.
+  * Support for Solaris 11, FreeBSD 10, RHEL 5+, and SmartOS.
+  * A new client side expression matcher to perform basic query processing.
+    It can perform queries such as {'field': {'$in': [1,2,3]}}. See
+    mongoc_matcher_t for more information.
+  * A new socket abstraction for platform independent network sockets.
+  * A new mongoc-dump example for how to write a simple mongodump replacement.
+  * Counters can use rdtscp instruction on Core iX systems for very fast
+    counters.
+  * configure has new options. If in doubt, the defaults are sensible.
+   * --enable-coverage=yes|no
+   * --enable-debug=yes|no
+   * --enable-debug-symbols=yes|no
+   * --enable-hardening=yes|no
+   * --enable-optimizations=yes|no
+   * --enable-ssl=yes|no
+   * --enable-sasl=yes|no
+   * --enable-tracing=yes|no
+   * --with-libbson=auto|system|bundled
+
+mongo-c-driver 0.92.0 requires libbson 0.6.4 or newer.
+
+Happy Hacking!
+
+
+Libmongoc 0.90.0
+================
+
+This is the initial release of the new Libmongoc. We chose 0.90.0 for the
+release version to differentiate ourselves from the, now legacy, version of
+libmongoc. We will rapidly work towards reaching an API/ABI stable library fit
+for a 1.0.0 release.
+
+Libmongoc is Apache licensed so it can be embedded in a multitude of scenarios.
+
+The API of 0.90.0 is completely different from the previous versions. We think
+this allowed us to create a high-quality library that you will enjoy using in
+your applications.
+
+Many outstanding bugs were closed in the process of creating Libbson 0.90.0. So
+if you had a pet issue, please take a look to see if it was resolved as part of
+this effort!
+
+Thanks, and enjoy developing your applications with libmongoc!

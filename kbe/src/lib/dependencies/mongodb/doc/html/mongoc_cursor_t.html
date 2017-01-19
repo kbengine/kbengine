@@ -1,0 +1,156 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_cursor_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">mongoc_cursor_t</span></h1>
+<h2 class="subtitle"><span class="subtitle">Client-side cursor abtraction</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents">
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">typedef struct _mongoc_cursor_t mongoc_cursor_t;</pre></div></div></div></div></div>
+<p class="p"><span class="code">mongoc_cursor_t</span> provides access to a MongoDB query cursor.
+It wraps up the wire protocol negotiation required to initiate a query and retrieve an unknown number of documents.
+
+Cursors are lazy, meaning that no network traffic occurs until the first call to <span class="code"><a href="mongoc_cursor_next.html" title="mongoc_cursor_next()">mongoc_cursor_next()</a></span>.
+
+At that point we can:</p>
+<div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">Determine which host we've connected to with <span class="code"><a href="mongoc_cursor_get_host.html" title="mongoc_cursor_get_host()">mongoc_cursor_get_host()</a></span>.</p></li>
+<li class="list"><p class="p">Retrieve more records with repeated calls to <span class="code"><a href="mongoc_cursor_next.html" title="mongoc_cursor_next()">mongoc_cursor_next()</a></span>.</p></li>
+<li class="list"><p class="p">Test for more records with <span class="code"><a href="mongoc_cursor_more.html" title="mongoc_cursor_more()">mongoc_cursor_more()</a></span></p></li>
+<li class="list"><p class="p">Clone a query to repeat execution at a later point with <span class="code"><a href="mongoc_cursor_clone.html" title="mongoc_cursor_clone()">mongoc_cursor_clone()</a></span>.</p></li>
+<li class="list"><p class="p">Test for errors with <span class="code"><a href="mongoc_cursor_error.html" title="mongoc_cursor_error()">mongoc_cursor_error()</a></span>.</p></li>
+</ul></div></div></div>
+</div></div>
+</div></div>
+<div id="" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Thread Safety</span></h2></div>
+<div class="region"><div class="contents"><p class="p"><span class="code">mongoc_cursor_t</span> is <span class="em">NOT</span> thread safe. It may only be used from the thread it was created from.</p></div></div>
+</div></div>
+<div id="" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title">Query MongoDB and iterate results</span></h3></div>
+<div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">/* gcc example.c -o example $(pkg-config --cflags --libs libmongoc-1.0) */
+
+/* ./example-client [CONNECTION_STRING [COLLECTION_NAME]] */
+
+#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int
+main (int   argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   const char *uristr = "mongodb://127.0.0.1/";
+   const char *collection_name = "test";
+   bson_t query;
+   char *str;
+
+   mongoc_init ();
+
+   if (argc &gt; 1) {
+      uristr = argv [1];
+   }
+
+   if (argc &gt; 2) {
+      collection_name = argv [2];
+   }
+
+   client = mongoc_client_new (uristr);
+
+   if (!client) {
+      fprintf (stderr, "Failed to parse URI.\n");
+      return EXIT_FAILURE;
+   }
+
+   bson_init (&amp;query);
+
+#if 0
+   bson_append_utf8 (&amp;query, "hello", -1, "world", -1);
+#endif
+
+   collection = mongoc_client_get_collection (client, "test", collection_name);
+   cursor = mongoc_collection_find (collection,
+                                    MONGOC_QUERY_NONE,
+                                    0,
+                                    0,
+                                    0,
+                                    &amp;query,
+                                    NULL,  /* Fields, NULL for all. */
+                                    NULL); /* Read Prefs, NULL for default */
+
+   while (mongoc_cursor_next (cursor, &amp;doc)) {
+      str = bson_as_json (doc, NULL);
+      fprintf (stdout, "%s\n", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &amp;error)) {
+      fprintf (stderr, "Cursor Failure: %s\n", error.message);
+      return EXIT_FAILURE;
+   }
+
+   bson_destroy (&amp;query);
+   mongoc_cursor_destroy (cursor);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return EXIT_SUCCESS;
+}</pre></div></div></div>
+</div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_clone.html" title="mongoc_cursor_clone()"><span class="title">mongoc_cursor_clone()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_current.html" title="mongoc_cursor_current()"><span class="title">mongoc_cursor_current()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_destroy.html" title="mongoc_cursor_destroy()"><span class="title">mongoc_cursor_destroy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_error.html" title="mongoc_cursor_error()"><span class="title">mongoc_cursor_error()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_get_host.html" title="mongoc_cursor_get_host()"><span class="title">mongoc_cursor_get_host()</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_get_max_await_time_ms.html" title="mongoc_cursor_get_max_await_time_ms()"><span class="title">mongoc_cursor_get_max_await_time_ms()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_is_alive.html" title="mongoc_cursor_is_alive()"><span class="title">mongoc_cursor_is_alive()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_more.html" title="mongoc_cursor_more()"><span class="title">mongoc_cursor_more()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_next.html" title="mongoc_cursor_next()"><span class="title">mongoc_cursor_next()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_cursor_set_max_await_time_ms.html" title="mongoc_cursor_set_max_await_time_ms()"><span class="title">mongoc_cursor_set_max_await_time_ms()</span></a></div>
+</div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

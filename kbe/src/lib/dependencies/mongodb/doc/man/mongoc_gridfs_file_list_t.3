@@ -1,0 +1,55 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_GRIDFS_FILE_LIST_T" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_gridfs_file_list_t \- mongoc_gridfs_file_list_t provides a gridfs file list abstraction.  It provides iteration and basic marshalling on top of a regular mongoc_collection_find() style query. In interface, it's styled after mongoc_cursor_t.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <mongoc.h>
+
+typedef struct _mongoc_gridfs_file_list_t mongoc_gridfs_file_list_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+.B mongoc_gridfs_file_list_t
+provides a gridfs file list abstraction.  It provides iteration and basic marshalling on top of a regular
+.B mongoc_collection_find(3)
+style query. In interface, it's styled after
+.B mongoc_cursor_t
+\e&.
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+mongoc_gridfs_file_list_t *list;
+mongoc_gridfs_file_t *file;
+
+list = mongoc_gridfs_find (gridfs, query);
+
+while ((file = mongoc_gridfs_file_list_next (list))) {
+   do_something(file);
+
+   mongoc_gridfs_file_destroy (file);
+}
+
+mongoc_gridfs_file_list_destroy (list);
+.fi
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

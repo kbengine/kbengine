@@ -1,0 +1,41 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide"
+      id="mongoc_version">
+
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>Version Checks</title>
+  <subtitle>Conditional compilation based on mongoc version</subtitle>
+
+  <p>
+    The following preprocessor macros can be used to perform various checks based on the version of the library you are compiling against.
+    This may be useful if you only want to enable a feature on a certain version of the library.
+  </p>
+
+  <screen><![CDATA[#include <mongoc.h>
+
+#define MONGOC_MAJOR_VERSION (@MONGOC_RELEASED_MAJOR_VERSION@)
+#define MONGOC_MINOR_VERSION (@MONGOC_RELEASED_MINOR_VERSION@)
+#define MONGOC_MICRO_VERSION (@MONGOC_RELEASED_MICRO_VERSION@)
+#define MONGOC_VERSION_S     "@MONGOC_RELEASED_VERSION@"
+#define MONGOC_VERSION_HEX   ((1 << 24) | (0 << 16) | (0 << 8) | 0)
+#define MONGOC_CHECK_VERSION(major, minor, micro)
+]]></screen>
+
+
+  <listing>
+    <title>Compile-Time Version Check</title>
+    <desc>Only compile a block on MongoDB C Driver 1.1.0 and newer.</desc>
+    <code mime="text/x-csrc"><![CDATA[#if MONGOC_CHECK_VERSION(1, 1, 0)
+static void do_something (void) {
+}
+#endif]]></code>
+  </listing>
+
+  <links type="topic" groups="function" style="1column">
+    <title>Run-Time Version Checks</title>
+  </links>
+
+</page>

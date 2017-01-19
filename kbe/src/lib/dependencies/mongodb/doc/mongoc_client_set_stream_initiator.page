@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_set_stream_initiator">
+
+
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_set_stream_initiator()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_client_set_stream_initiator (mongoc_client_t          *client,
+                                    mongoc_stream_initiator_t initiator,
+                                    void                     *user_data);]]></code></synopsis>
+    <p>The <code xref="mongoc_client_set_stream_initiator">mongoc_client_set_stream_initiator()</code>
+function shall associate a given <code xref="mongoc_client_t">mongoc_client_t</code>
+with a new stream initiator. This will completely replace the default transport
+(buffered TCP, possibly with TLS). The <code>initiator</code> should fulfill the
+<code xref="mongoc_stream_t">mongoc_stream_t</code> contract.
+<code>user_data</code> is passed through to the <code>initiator</code> callback and may
+be used for whatever run time customization is necessary.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+      <tr><td><p>initiator</p></td><td><p>A <code xref="mongoc_client_t">mongoc_stream_initiator_t</code>.</p></td></tr>
+      <tr><td><p>user_data</p></td><td><p>User supplied pointer for callback function.</p></td></tr>
+    </table>
+  </section>
+
+</page>

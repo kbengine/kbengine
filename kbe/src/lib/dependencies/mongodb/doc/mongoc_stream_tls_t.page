@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_stream_tls_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_stream_tls_t</title>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_stream_tls_t mongoc_stream_tls_t]]></code></synopsis>
+    <p><code>mongoc_stream_tls_t</code> is a <code xref="mongoc_stream_t">mongoc_stream_t</code> subclass for working with OpenSSL TLS streams.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>
