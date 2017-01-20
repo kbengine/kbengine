@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.h"
 #include "entitydef/scriptdef_module.h"
 #include "server/serverconfig.h"
+#include "server/common.h"
 
 namespace KBEngine { 
 
@@ -202,9 +203,9 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 {
 	bool ret = false;
 
-	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_accountinfos "
-			"(`accountName` varchar(255) not null, PRIMARY KEY idKey (`accountName`),"
-			"`password` varchar(255),"
+	std::string sqlstr = fmt::format("CREATE TABLE IF NOT EXISTS kbe_accountinfos "
+		"(`accountName` varchar({}) not null, PRIMARY KEY idKey (`accountName`),"
+		"`password` varchar({}),"
 			"`bindata` blob,"
 			"`email` varchar(255) not null, UNIQUE KEY `email` (`email`),"
 			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
@@ -213,7 +214,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 			"`regtime` bigint(20) not null DEFAULT 0,"
 			"`lasttime` bigint(20) not null DEFAULT 0,"
 			"`numlogin` int unsigned not null DEFAULT 0)"
-		"ENGINE=" MYSQL_ENGINE_TYPE;
+			"ENGINE=" MYSQL_ENGINE_TYPE, ACCOUNT_NAME_MAX_LENGTH, ACCOUNT_PASSWD_MAX_LENGTH);
 
 	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
@@ -910,13 +911,13 @@ bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* pdbi)
 {
 	bool ret = false;
 
-	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_email_verification "
-			"(accountName varchar(255) not null,"
+	std::string sqlstr = fmt::format("CREATE TABLE IF NOT EXISTS kbe_email_verification "
+			"(accountName varchar({}) not null,"
 			"type tinyint not null DEFAULT 0,"
 			"datas varchar(255),"
-			"code varchar(255), PRIMARY KEY idKey (code),"
+			"code varchar(128), PRIMARY KEY idKey (code),"
 			"logtime bigint(20) not null DEFAULT 0)"
-		"ENGINE=" MYSQL_ENGINE_TYPE;
+			"ENGINE=" MYSQL_ENGINE_TYPE, ACCOUNT_NAME_MAX_LENGTH);
 
 	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
