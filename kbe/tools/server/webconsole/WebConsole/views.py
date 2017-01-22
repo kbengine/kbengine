@@ -453,7 +453,9 @@ def components_load_layout( request ):
 			Define.LOGGER_TYPE,
 			
 		] )
-	
+	kbe_root = request.session["kbe_root"]
+	kbe_res_path = request.session["kbe_res_path"]
+	kbe_bin_path = request.session["kbe_bin_path"]
 	try:
 		id = int( request.GET["id"] )
 	except:
@@ -491,7 +493,7 @@ def components_load_layout( request ):
 				gus = machinesmgr.makeGUS(ct)
 			components_gus[ct] = gus
 			t2c[ct] += 1
-			components.startServer( ct, cid, gus, comp["ip"], 0 )
+			components.startServer( ct, cid, gus, comp["ip"], kbe_root, kbe_res_path, kbe_bin_path, 0 )
 
 	context = {
 		"run_counter"    : str(t2c),
