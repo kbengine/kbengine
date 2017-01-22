@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -174,6 +174,11 @@ public:
 		服务器更新entity属性
 	*/
 	void onUpdatePropertys(MemoryStream& s);
+	
+	/**
+	    用于Entity的数据第一次设置时，决定是否要回调脚本层的set_*方法
+	*/
+	void callPropertysSetMethods();
 
 	bool inWorld() const{ return enterworld_; }
 
@@ -182,6 +187,9 @@ public:
 	
 	bool isOnGround() const { return isOnGround_;}
 	void isOnGround(bool v) { isOnGround_ = v;}
+
+	INLINE bool isInited();
+	INLINE void isInited(bool status);
 
 protected:
 	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox
@@ -204,6 +212,8 @@ protected:
 	bool									isOnGround_;
 
 	ScriptID								pMoveHandlerID_;
+	
+	bool									inited_;							// __init__调用之后设置为true
 };																										
 
 }

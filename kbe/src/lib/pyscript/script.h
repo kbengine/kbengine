@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -32,19 +32,25 @@ namespace KBEngine{ namespace script{
 
 /** 脚本系统路径 */
 #ifdef _LP64
-#define SCRIPT_PATH												\
-					L"../../res/scripts;"						\
-					L"../../res/scripts/common;"				\
-					L"../../res/scripts/common/lib-dynload;"	\
-					L"../../res/scripts/common/DLLs;"			\
-					L"../../res/scripts/common/Lib"
+#define SCRIPT_PATH													\
+					L"../../res/scripts;"							\
+					L"../../res/scripts/common;"					\
+					L"../../res/scripts/common/lib-dynload;"		\
+					L"../../res/scripts/common/DLLs;"				\
+					L"../../res/scripts/common/Lib;"				\
+					L"../../res/scripts/common/Lib/site-packages;"	\
+					L"../../res/scripts/common/Lib/dist-packages"
+
 #else
-#define SCRIPT_PATH												\
-					L"../../res/scripts;"						\
-					L"../../res/scripts/common;"				\
-					L"../../res/scripts/common/lib-dynload;"	\
-					L"../../res/scripts/common/DLLs;"			\
-					L"../../res/scripts/common/Lib"
+#define SCRIPT_PATH													\
+					L"../../res/scripts;"							\
+					L"../../res/scripts/common;"					\
+					L"../../res/scripts/common/lib-dynload;"		\
+					L"../../res/scripts/common/DLLs;"				\
+					L"../../res/scripts/common/Lib;"				\
+					L"../../res/scripts/common/Lib/site-packages;"	\
+					L"../../res/scripts/common/Lib/dist-packages"
+
 #endif
 
 

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -92,17 +92,9 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 		return 0;
 	}
 
-	EntityRef::AOI_ENTITIES::iterator iter = srcEntity->pWitness()->aoiEntities().begin();
-	Entity* e = NULL;
-
-	for(; iter != srcEntity->pWitness()->aoiEntities().end(); ++iter)
-	{
-		if((*iter)->id() == clientEntityID_ && ((*iter)->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) <= 0)
-		{
-			e = (*iter)->pEntity();
-			break;
-		}
-	}
+	EntityRef* pEntityRef = srcEntity->pWitness()->getAOIEntityRef(clientEntityID_);
+	Entity* e = (pEntityRef && ((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) <= 0))
+		? pEntityRef->pEntity() : NULL;
 
 	if(e == NULL)
 	{

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -48,9 +48,9 @@ public:
 	/**
 		初始化
 	*/
-	virtual bool initialize(ScriptDefModule* sm, std::string name){ return true; };
+	virtual bool initialize(ScriptDefModule* sm, std::string name) { return true; };
 	
-	virtual EntityTableItem* createItem(std::string type) {return NULL;}
+	virtual EntityTableItem* createItem(std::string type, std::string defaultVal) { return NULL; }
 	
 protected:
 
@@ -69,6 +69,9 @@ public:
 		char ip[MAX_IP];
 		uint16 port;
 		COMPONENT_ID componentID;
+
+		// 由谁记录
+		COMPONENT_ID logger;
 	};
 
 	KBEEntityLogTable(EntityTables* pEntityTables) :

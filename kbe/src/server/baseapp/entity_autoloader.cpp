@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -136,7 +136,7 @@ bool EntityAutoLoader::process()
 	{
 		if ((*entityTypes_.begin()).size() > 0)
 		{
-			Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 			if (start_ == 0 && end_ == 0)
 				end_ = LOAD_ENTITY_SIZE;

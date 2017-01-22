@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_TIMESTAMP_H
 
 #include "common/platform.h"
-#include "helper/debug_helper.h"
+
 namespace KBEngine{
 
 // 指示是否可以通过调用RDTSC（时间戳计数器）
@@ -78,7 +78,7 @@ inline uint64 timestamp_gettimeofday()
 inline uint64 timestamp_gettime()
 {
 	timespec tv;
-	KBE_VERIFY(syscall( __NR_clock_gettime, CLOCK_MONOTONIC, &tv ) == 0);
+	assert(syscall( __NR_clock_gettime, CLOCK_MONOTONIC, &tv ) == 0);
 	return 1000000000ULL * tv.tv_sec + tv.tv_nsec;
 }
 

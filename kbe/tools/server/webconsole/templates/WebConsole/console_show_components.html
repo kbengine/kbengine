@@ -1,0 +1,43 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+<div class="row placeholders console-show-block">
+  <table class="table table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>Machine</th>
+          <th>组件名称</th>
+          <th>cid</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for comp in KBEComps %}
+        <tr>
+          <td>{{ comp.intaddr }}</td>
+          <td>{{ comp.fullname }}</td>
+          <td>{{ comp.componentID }}</td>
+          <td><a href="#" onClick="connect_to('{{comp.intaddr}}', '{{comp.consolePort}}', '{{ comp.fullname }} on {{ comp.intaddr }}:{{ comp.consolePort }}')">连接到控制台</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script>$(".py-coupling").addClass("active");</script>
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .pyconsole .dd").show();
+  $(".kbe-list .pyconsole").css({"background-color":"#317eb4"});
+  $(".kbe-list .pyconsole").find('li').addClass("menu_chioce");
+    function connect_to(ip, port, title)
+    {
+        window.location.href='/wc/console/connect?ip=' + ip + "&port=" + port + "&title=" + escape(title);
+        layer.load(2);
+    }
+   
+</script>
+    
+{% endblock %}

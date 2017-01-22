@@ -1,0 +1,124 @@
+{% autoescape on %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
+
+    <title>{% block title %}KBEngine Web Console{% endblock %}</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/static/custom_styles.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-1.11.3.min.js"></script> 
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="/static/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="/static/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    {% block head_js %}{% endblock %}
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+		  <span class="navbar-brand-custom"><a href="#" style="text-decoration:none;color: white;">KBEngine控制台</a></span>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li>
+              <p class="navbar-text">用户名：{{ request.session.auth_show_name }}</p></li>
+            <li><a href="/wc/logout">退出</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid kbe-list">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <div class="nav nav-sidebar kbe-manager">
+            <ul class="dt components "><ll class="checkbox">集群管理<img src="/static/images/left/select_xl01.png"></ll>
+	            <li class="dd components-manage"><a href="/wc/components/manage">服务器管理</a></li>
+	            <li class="dd daemon"><a href="/wc/machines/show_all">所有守护进程状态</a></li>
+	            <li class="dd config"><a href="/wc/components/show_layout">服务器运行配置</a></li>
+			      </ul>
+			       <ul class="dt statistics"><ll class="checkbox">性能分析<img src="/static/images/left/select_xl01.png"></ll>
+                <li class="dd profile-comps"><a href="/wc/profile/show_components">连接到组件</a></li>
+            </ul>
+            <ul class="dt log"><ll class="checkbox">日志查看<img src="/static/images/left/select_xl01.png"></ll>
+                <li class="dd show-log"><a href="/wc/log/connect">实时日志</a></li>
+            </ul>
+            <ul class="dt condition"><ll class="checkbox">状态图<img src="/static/images/left/select_xl01.png"></ll>
+                <li class="dd"><a href="/wc/status/show_components">我的组件</a></li>
+            </ul>
+            <ul class="dt pyconsole"><ll class="checkbox">Python控制台<img src="/static/images/left/select_xl01.png"></ll>
+                <li class="dd py-coupling" ><a href="/wc/console/show_components">连接到组件</a></li>
+            </ul>
+            <ul class="dt watcher"><ll class="checkbox">Watcher<img src="/static/images/left/select_xl01.png"></ll>
+                <li class="dd watcher-cp" ><a href="/wc/watcher/show_components">连接到组件</a></li>
+            </ul>
+            <ul class="dt spaceviewer"><ll class="checkbox">SpaceViewer<img src="/static/images/left/select_xl01.png"></ll>
+                <li class="dd spaceviewer-cp" ><a href="/wc/spaceviewer/show">连接到组件</a></li>
+            </ul>
+          </div>
+       </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        {% block content %}
+            <p>这里需要插入具体的内容</p>
+        {% endblock %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/static/js/jquery-1.11.3.min.js"></script>
+    <script src="/static/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+    <script src="/static/layer/layer.js"></script>
+    <script>
+        layer.config({extend: 'extend/layer.ext.js'});
+    </script>
+    <script>
+        $(".kbe-list .dt").css({"background-color":"#3992d0"});
+		$(".kbe-list .dt img").attr("src","/static/images/left/select_xl01.png");
+		$(function(){
+			
+			$(".kbe-list .dt ll").click(function(){
+				$(".kbe-list .dt").css({"background-color":"#3992d0"});
+				$(this).parent().css({"background-color": "#317eb4"});
+				$(this).parent().find('li').removeClass("menu_chioce");
+				$(".kbe-list ll img").attr("src","/static/images/left/select_xl01.png");
+				$(this).find('img').attr("src","/static/images/left/select_xl.png");
+				$(".menu_chioce").slideUp(); 
+				$(this).parent().find('.dd').slideToggle();
+				$(this).parent().find('.dd').addClass("menu_chioce");
+			});
+		})
+
+		$(".disable a").click(function disable(){
+			alert("此功能暂未开放");
+		})
+
+
+    </script>
+    {% block tail_js %}{% endblock %}
+    </body>
+</html>
+{% endautoescape %}

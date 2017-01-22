@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -105,7 +105,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp::process()
 	Cellapp::getSingleton()._onCreateCellEntityFromBaseapp(_entityType, _createToEntityID, _entityID, 
 		_pCellData, _hasClient, _inRescore, _componentID, _spaceID);
 
-	MemoryStream::ObjPool().reclaimObject(_pCellData);
+	MemoryStream::reclaimPoolObject(_pCellData);
 	_pCellData = NULL;
 }
 

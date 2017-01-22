@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "helper/debug_helper.h"
 #include "common/common.h"	
+
+//#define DEBUG_COORDINATE_SYSTEM
 
 namespace KBEngine{
 
@@ -45,7 +47,8 @@ public:
 	bool remove(CoordinateNode* pNode);
 	bool removeReal(CoordinateNode* pNode);
 	void removeDelNodes();
-	
+	void releaseNodes();
+
 	/**
 		当某个节点有变动时，需要更新它在list中的
 		相关位置等信息
@@ -70,6 +73,9 @@ public:
 
 	static bool hasY;
 
+	INLINE void incUpdating();
+	INLINE void decUpdating();
+
 private:
 	uint32 size_;
 
@@ -82,6 +88,8 @@ private:
 	size_t dels_count_;
 
 	int updating_;
+
+	std::list<CoordinateNode*> releases_;
 };
 
 }

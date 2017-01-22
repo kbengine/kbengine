@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -26,11 +26,12 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-MoveToEntityHandler::MoveToEntityHandler(KBEShared_ptr<Controller> pController, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
+MoveToEntityHandler::MoveToEntityHandler(KBEShared_ptr<Controller>& pController, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
 		bool moveVertically, PyObject* userarg):
 MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, range, faceMovement, moveVertically, userarg),
 pTargetID_(pTargetID)
 {
+	updatableName = "MoveToEntityHandler";
 }
 
 //-------------------------------------------------------------------------------------
@@ -38,6 +39,7 @@ MoveToEntityHandler::MoveToEntityHandler():
 MoveToPointHandler(),
 pTargetID_(0)
 {
+	updatableName = "MoveToEntityHandler";
 }
 
 //-------------------------------------------------------------------------------------
@@ -69,6 +71,12 @@ const Position3D& MoveToEntityHandler::destPos()
 //-------------------------------------------------------------------------------------
 bool MoveToEntityHandler::update()
 {
+	if (isDestroyed_)
+	{
+		delete this;
+		return false;
+	}
+
 	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
 	if(pEntity == NULL)
 	{

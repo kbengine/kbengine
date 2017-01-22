@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -179,14 +179,7 @@ PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 		return pyobj;
 	}
 
-	/*
-	if(values.size() > 0)
-	{
-		PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
-		PyErr_PrintEx(0);
-	}
-	*/
-
+	PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
 	return NULL;
 }
 
@@ -318,7 +311,6 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 		}
 	}
 
-	
 	if (index1 < index2)
 		values.erase(values.begin() + index1, values.begin() + index2);
 

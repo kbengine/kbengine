@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -480,7 +480,8 @@ class DBTaskAccountLogin : public DBTask
 {
 public:
 	DBTaskAccountLogin(const Network::Address& addr, std::string& loginName, 
-		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, std::string& getdatas);
+		std::string& accountName, std::string& password, SERVER_ERROR_CODE retcode, std::string& postdatas, 
+		std::string& getdatas, bool needCheckPassword);
 
 	virtual ~DBTaskAccountLogin();
 	virtual bool db_thread_process();
@@ -497,6 +498,7 @@ protected:
 	DBID dbid_;
 	uint32 flags_;
 	uint64 deadline_;
+	bool needCheckPassword_;
 };
 
 /**

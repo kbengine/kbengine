@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -598,13 +598,19 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entityType [%s] not found! Please register in entities.xml and implement a %s.def and %s.py\n", 
+			entityType, entityType, entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	else if(componentType_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: cannot create %s(%s=false)! Please check the setting of the entities.xml and the implementation of %s.py\n", 
+			entityType, 
+			(componentType_ == CELLAPP_TYPE ? "hasCell()" : "hasBase()"), 
+			entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -729,7 +735,11 @@ void EntityApp<E>::handleGameTick()
 	++g_kbetime;
 	threadPool_.onMainThreadTick();
 	handleTimers();
-	networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	
+	{
+		AUTO_SCOPED_PROFILE("processRecvMessages");
+		networkInterface().processChannels(KBEngine::Network::MessageHandlers::pMainMessageHandlers);
+	}
 }
 
 template<class E>
@@ -756,6 +766,9 @@ E* EntityApp<E>::findEntity(ENTITY_ID entityID)
 template<class E>
 void EntityApp<E>::onReqAllocEntityID(Network::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
 }
@@ -798,7 +811,7 @@ PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 
 	WATCHER_VALUE_TYPE wtype = pWobj->getType();
 	PyObject* pyval = NULL;
-	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	MemoryStream* stream = MemoryStream::createPoolObject();
 	pWobj->addToStream(stream);
 	WATCHER_ID id;
 	(*stream) >> id;
@@ -901,7 +914,7 @@ PyObject* EntityApp<E>::__py_getWatcher(PyObject* self, PyObject* args)
 		KBE_ASSERT(false && "no support!\n");
 	};
 
-	MemoryStream::ObjPool().reclaimObject(stream);
+	MemoryStream::reclaimPoolObject(stream);
 	return pyval;
 }
 
@@ -1045,6 +1058,12 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	return openedFile;
 }
 
@@ -1205,6 +1224,9 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 template<class E>
 void EntityApp<E>::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 0:	// pyprofile
@@ -1223,6 +1245,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 						COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, 
 						const std::string& digest)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
 		startID, endID, startGlobalOrder, startGroupOrder, digest));
 
@@ -1248,6 +1273,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 template<class E>
 void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string key, value;
 	bool isDelete;
 	
@@ -1303,6 +1331,9 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 template<class E>
 void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string cmd;
 	s.readBlob(cmd);
 
@@ -1326,7 +1357,7 @@ void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::Mem
 	}
 
 	// 将结果返回给客户端
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 	ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle((*pBundle), retbuf);

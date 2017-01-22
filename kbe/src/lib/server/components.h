@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -57,6 +57,7 @@ public:
 
 			groupOrderid = 0;
 			globalOrderid = 0;
+			gus = 0;
 
 			pChannel = NULL;
 			state = COMPONENT_STATE_INIT;
@@ -76,6 +77,7 @@ public:
 		int32 uid;
 		COMPONENT_ID cid;
 		COMPONENT_ORDER groupOrderid, globalOrderid;
+		COMPONENT_GUS gus;
 		char username[MAX_NAME + 1];
 		Network::Channel* pChannel;
 		COMPONENT_TYPE componentType;
@@ -117,9 +119,8 @@ public:
 	}
 
 	void addComponent(int32 uid, const char* username, 
-		COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid,
-		uint32 intaddr, uint16 intport, 
-		uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderid, COMPONENT_ORDER grouporderid, COMPONENT_GUS gus,
+		uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx, uint32 pid,
 		float cpu, float mem, uint32 usedmem, uint64 extradata, uint64 extradata1, uint64 extradata2, uint64 extradata3,
 		Network::Channel* pChannel = NULL);
 
@@ -189,6 +190,11 @@ public:
 	Network::Channel* getCellappmgrChannel();
 	Network::Channel* getDbmgrChannel();
 	Network::Channel* getLoggerChannel();
+
+	/**
+		统计某个UID下的所有组件数量
+	*/
+	size_t getGameSrvComponentsSize(int32 uid);
 
 	/** 
 		获取游戏服务端必要组件的注册数量。

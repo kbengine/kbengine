@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ public:
 	DBThreadPool(const std::string& dbinterfaceName);
 	~DBThreadPool();
 
-	virtual thread::TPThread* createThread(int threadWaitSecond = 0);
+	virtual thread::TPThread* createThread(int threadWaitSecond = 0, bool threadStartsImmediately = true);
 
 	virtual std::string name() const{ return std::string("DBThreadPool/") + dbinterfaceName_; }
 

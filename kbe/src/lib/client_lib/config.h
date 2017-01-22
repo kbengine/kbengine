@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,8 @@ public:
 
 	int8 encryptLogin() const { return encrypt_login_; }
 	
+	bool isOnInitCallPropertysSetMethods() const { return isOnInitCallPropertysSetMethods_; }
+
 public:
 	int16 gameUpdateHertz_;
 
@@ -83,6 +85,8 @@ public:
 	uint32 telnet_port;
 	std::string telnet_passwd;
 	std::string telnet_deflayer;
+
+	bool isOnInitCallPropertysSetMethods_;
 };
 
 #define g_kbeConfig KBEngine::Config::getSingleton()

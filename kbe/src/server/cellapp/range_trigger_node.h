@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -58,7 +58,8 @@ public:
 	bool wasInYRange(CoordinateNode * pNode);
 	INLINE bool wasInZRange(CoordinateNode * pNode);
 
-	virtual void resetOld(){ 
+	virtual void resetOld()
+	{ 
 		CoordinateNode::resetOld();
 		old_range_xz_ = range_xz_;
 		old_range_y_ = range_y_;
@@ -68,6 +69,10 @@ public:
 		父节点删除
 	*/
 	virtual void onParentRemove(CoordinateNode* pParentNode);
+
+	virtual void onRemove();
+
+	void onTriggerUninstall();
 
 	/**
 		某个节点变动经过了本节点

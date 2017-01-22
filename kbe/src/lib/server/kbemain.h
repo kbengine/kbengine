@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -166,7 +166,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	if(!app.initialize())
 	{
-		ERROR_MSG("app::initialize() is error!\n");
+		ERROR_MSG("app::initialize(): initialization failed!\n");
 
 		Components::getSingleton().finalise();
 		app.finalise();
@@ -250,6 +250,38 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 				catch(...)
 				{
 					ERROR_MSG("parseCommandArgs: --gus=? invalid, no set! type is uint16\n");
+				}
+			}
+
+			continue;
+		}
+
+		findcmd = "--hide=";
+		fi1 = cmd.find(findcmd);
+		if (fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if (cmd.size() > 0)
+			{
+				int32 hide = 0;
+				try
+				{
+					StringConv::str2value(hide, cmd.c_str());
+				}
+				catch (...)
+				{
+					ERROR_MSG("parseCommandArgs: --hide=? invalid, no set! type is int8\n");
+				}
+
+				if (hide > 0)
+				{
+#if KBE_PLATFORM == PLATFORM_WIN32
+					TCHAR strTitle[255];
+					GetConsoleTitle(strTitle, 255);
+					HWND hw = ::FindWindow(L"ConsoleWindowClass", strTitle);
+					ShowWindow(hw, SW_HIDE);
+#else
+#endif
 				}
 			}
 

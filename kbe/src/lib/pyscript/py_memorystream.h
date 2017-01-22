@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -87,8 +87,16 @@ public:
 
 	static PyObject* __py_append(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static PyObject* __py_pop(PyObject* self, PyObject* args, PyObject* kwargs);	
+	
 	static Py_ssize_t seq_length(PyObject* self);
 	INLINE int length(void) const;
+
+	static PyObject* __py_bytes(PyObject* self, PyObject* args, PyObject* kwargs);	
+	
+	static PyObject* __py_rpos(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_wpos(PyObject* self, PyObject* args, PyObject* kwargs);
+
+	static PyObject* __py_fill(PyObject* self, PyObject* args, PyObject* kwargs);
 
 protected:
 	MemoryStream stream_;

@@ -1,0 +1,74 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="{% static 'login.css' %}">
+
+    <title>Login</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="/static/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="/static/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+  <div class="col-sm-4"></div>
+	<div class="col-sm-4 center-block text-center login-block-background">
+		<h1 id="site-name">KBEngine web console</h1>
+<br/><br/>
+		<form class="form-horizontal" action="/wc/login" method="post" id="login-form">{% csrf_token %}
+		  <div class="form-group">
+			<label class="col-sm-2 control-label" for="id_username">账&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号</label> 
+			<div class="col-sm-9">
+				<input class="form-control" id="id_username" maxlength="64" name="name" type="text" />
+			</div>
+		  </div>
+		  <div class="form-group">
+			<label class="col-sm-2 control-label" for="id_password">密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码</label>
+			<div class="col-sm-9">
+				<input class="form-control" id="id_password" name="password" type="password" />
+				<input type="hidden" name="next" value="{{ next_uri }}" />
+			</div>
+		  </div>
+	  {% if error %}
+		  <p class="text-danger">{{ error }}</p>
+	  {% endif %}
+		  <div class="form-group">
+			<!-- <div class="col-sm-offset-2 col-sm-1 "> -->
+			<div>
+			  <button type="submit" class="btn btn-default">登录</button>
+			</div>
+		  </div>
+		</form>
+		
+		<script type="text/javascript">
+		document.getElementById('id_username').focus()
+		</script>
+        
+        <p>
+        <br/><br/>
+        第一次使用此工具，默认账号为“Admin”，默认密码为“123456”，请登录后及时修改密码。
+        </p>
+      </div>
+ 
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/static/js/jquery-1.11.3.min.js"></script>
+    <script src="/static/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+  </body>
+</html>
+

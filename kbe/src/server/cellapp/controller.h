@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -50,19 +50,19 @@ public:
 	Controller(Entity* pEntity);
 	virtual ~Controller();
 	
-	uint32 id(){ return id_; }
-	void id(uint32 v){ id_ = v; }
+	uint32 id() { return id_; }
+	void id(uint32 v) { id_ = v; }
 	
-	int32 userarg() const{ return userarg_; }
+	int32 userarg() const { return userarg_; }
 	
-	Entity* pEntity() const{ return pEntity_; }
+	Entity* pEntity() const { return pEntity_; }
 	
-	void pControllers(Controllers* v){ pControllers_ = v; }
+	void pControllers(Controllers* v) { pControllers_ = v; }
 
 	virtual void destroy();
 
-	Controller::ControllerType type(){ return type_; }
-	void type(Controller::ControllerType t){ type_ = t; }
+	Controller::ControllerType type() { return type_; }
+	void type(Controller::ControllerType t) { type_ = t; }
 
 	virtual void addToStream(KBEngine::MemoryStream& s);
 	virtual void createFromStream(KBEngine::MemoryStream& s);

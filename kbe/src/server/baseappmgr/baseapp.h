@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,8 @@ public:
 	
 	ENTITY_ID numProxices() const { return numProxices_; }
 	void numProxices(ENTITY_ID num) { numProxices_ = num; }
-	
+	void incNumProxices() { ++numProxices_; }
+
 	float load() const { return load_; }
 	void load(float v) { load_ = v; }
 	
@@ -49,6 +50,7 @@ public:
 	void initProgress(float v){ initProgress_ = v; }
 
 	ENTITY_ID numEntities() const { return numBases_ + numProxices_; }
+	void incNumEntities() { ++numBases_; }
 
 	uint32 flags() const { return flags_; }
 	void flags(uint32 v) { flags_ = v; }

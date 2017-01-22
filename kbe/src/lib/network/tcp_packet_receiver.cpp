@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -45,6 +45,18 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
+TCPPacketReceiver* TCPPacketReceiver::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void TCPPacketReceiver::reclaimPoolObject(TCPPacketReceiver* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
 void TCPPacketReceiver::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("TCPPacketReceiver::destroyObjPool(): size {}.\n", 
@@ -83,12 +95,12 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 		return false;
 	}
 
-	TCPPacket* pReceiveWindow = TCPPacket::ObjPool().createObject();
+	TCPPacket* pReceiveWindow = TCPPacket::createPoolObject();
 	int len = pReceiveWindow->recvFromEndPoint(*pEndpoint_);
 
 	if (len < 0)
 	{
-		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
+		TCPPacket::reclaimPoolObject(pReceiveWindow);
 
 		PacketReceiver::RecvState rstate = this->checkSocketErrors(len, expectingPacket);
 
@@ -102,7 +114,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 	}
 	else if(len == 0) // 客户端正常退出
 	{
-		TCPPacket::ObjPool().reclaimObject(pReceiveWindow);
+		TCPPacket::reclaimPoolObject(pReceiveWindow);
 		onGetError(pChannel);
 		return false;
 	}
@@ -119,6 +131,8 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 void TCPPacketReceiver::onGetError(Channel* pChannel)
 {
 	pChannel->condemn();
+	pChannel->networkInterface().deregisterChannel(pChannel);
+	pChannel->destroy();
 }
 
 //-------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -45,10 +45,12 @@ public:
 	~Updatable();
 
 	virtual bool update() = 0;
-	virtual std::string c_str(){ return "Updatable"; }
+	std::string c_str() { return updatableName; }
 
-	int removeIdx;					// 自身在Updatables容器中的位置
+	// 自身在Updatables容器中的位置
+	int removeIdx;
 
+	std::string updatableName;
 };
 
 }

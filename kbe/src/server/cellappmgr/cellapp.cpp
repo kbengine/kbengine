@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,9 @@ isDestroyed_(false),
 watchers_(),
 spaces_(),
 initProgress_(0.f),
-flags_(APP_FLAGS_NONE)
+flags_(APP_FLAGS_NONE),
+globalOrderID_(0),
+groupOrderID_(0)
 {
 }
 

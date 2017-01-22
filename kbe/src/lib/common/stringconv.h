@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -53,17 +53,11 @@ inline std::string val2str(const TYPE& value)
 
 inline void str2value(float& value, const char * pstr)
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
-	std::stringstream ss;
-	ss << pstr;
-	ss >> value;
-#else
 	char* endptr;
 	value = strtof(pstr, &endptr);
-	
+
 	if (*endptr)
 		throw std::runtime_error("not a number");
-#endif
 }
 
 inline void str2value(double& value, const char * pstr)

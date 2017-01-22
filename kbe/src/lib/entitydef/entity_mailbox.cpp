@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -71,9 +71,8 @@ atIdx_(MAILBOXS::size_type(-1))
 //-------------------------------------------------------------------------------------
 EntityMailbox::~EntityMailbox()
 {
-	char s[1024];
-	c_str(s, 1024);
-
+	//char s[1024];
+	//c_str(s, 1024);
 	//DEBUG_MSG(fmt::format("EntityMailbox::~EntityMailbox(): {}.\n", s));
 
 	KBE_ASSERT(atIdx_ < EntityMailbox::mailboxs.size());

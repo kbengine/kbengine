@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 EntityRef::EntityRef(Entity* pEntity):
 id_(0),
+aliasID_(0),
 pEntity_(pEntity),
 flags_(ENTITYREF_FLAG_UNKONWN)
 {
@@ -36,6 +37,7 @@ flags_(ENTITYREF_FLAG_UNKONWN)
 //-------------------------------------------------------------------------------------
 EntityRef::EntityRef():
 id_(0),
+aliasID_(0),
 pEntity_(NULL),
 flags_(ENTITYREF_FLAG_UNKONWN)
 {
@@ -44,6 +46,49 @@ flags_(ENTITYREF_FLAG_UNKONWN)
 //-------------------------------------------------------------------------------------
 EntityRef::~EntityRef()
 {
+}
+
+//-------------------------------------------------------------------------------------
+static ObjectPool<EntityRef> _g_objPool("EntityRef");
+ObjectPool<EntityRef>& EntityRef::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+EntityRef* EntityRef::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::reclaimPoolObject(EntityRef* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("EntityRef::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
+EntityRef::SmartPoolObjectPtr EntityRef::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<EntityRef>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::onReclaimObject()
+{
+	id_ = 0;
+	aliasID_ =  0;
+	pEntity_ = NULL;
+	flags_ = ENTITYREF_FLAG_UNKONWN;
 }
 
 //-------------------------------------------------------------------------------------
@@ -56,32 +101,20 @@ void EntityRef::pEntity(Entity* e)
 }
 
 //-------------------------------------------------------------------------------------
-bool findif_vector_entityref_exist_by_entity_handler::operator()(const EntityRef* obj)
-{
-	return obj->id() == obj_->id();
-}
-
-//-------------------------------------------------------------------------------------
-bool findif_vector_entityref_exist_by_entityid_handler::operator()(const EntityRef* obj)
-{
-	return obj->id() == entityID_;
-}
-
-//-------------------------------------------------------------------------------------
 void EntityRef::addToStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	if(pEntity_)
 		eid = pEntity_->id();
 
-	s << id_ << flags_ << eid;
+	s << id_ << aliasID_ << flags_ << eid;
 }
 
 //-------------------------------------------------------------------------------------
 void EntityRef::createFromStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
-	s >> id_ >> flags_ >> eid;
+	s >> id_ >> aliasID_ >> flags_ >> eid;
 
 	if(eid > 0)
 	{

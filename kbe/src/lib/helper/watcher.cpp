@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -432,6 +432,9 @@ void WatcherPaths::readWatchers(std::string path, MemoryStream* s)
 		std::vector<std::string> vec;
 		KBEngine::strutil::kbe_split(path, '/', vec);
 		
+		if (vec.size() <= 0)
+			return;
+
 		path.erase(0, vec[0].size() + 1);
 
 		WATCHER_PATHS::iterator iter = watcherPaths_.begin();
@@ -504,6 +507,9 @@ void WatcherPaths::readChildPaths(std::string srcPath, std::string path, MemoryS
 		std::vector<std::string> vec;
 		KBEngine::strutil::kbe_split(path, '/', vec);
 		
+		if (vec.size() <= 0)
+			return;
+
 		path.erase(0, vec[0].size() + 1);
 
 		WATCHER_PATHS::iterator iter = watcherPaths_.begin();

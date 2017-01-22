@@ -396,7 +396,8 @@ static sigar_mpr_t sigar_mpr = {
 static void sigar_dllmod_free(sigar_dll_module_t *module)
 {
     if (module->handle) {
-        FreeLibrary(module->handle);
+		if(INVALID_HANDLE_VALUE != module->handle)
+			FreeLibrary(module->handle);
         module->handle = NULL;
     }
 }

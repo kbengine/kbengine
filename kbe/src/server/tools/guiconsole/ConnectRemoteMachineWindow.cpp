@@ -96,7 +96,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	command += csport;
 	free(csport);
 
-	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::ObjPool().createObject();
+	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
 
 	KBEngine::u_int32_t address;
 	Network::Address::string2ip(strip, address);
@@ -105,7 +105,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	if(addr.ip == 0)
 	{
 		::AfxMessageBox(L"address is error!");
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;
 	}
 
@@ -113,7 +113,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	if (!endpoint->good())
 	{
 		AfxMessageBox(L"couldn't create a socket\n");
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;
 	}
 
@@ -123,7 +123,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 		CString err;
 		err.Format(L"connect server is error! %d", ::WSAGetLastError());
 		AfxMessageBox(err);
-		KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;
 	}
 
@@ -158,7 +158,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 		while(packet.length() > 0)
 		{
-			MachineInterface::onBroadcastInterfaceArgs24 args;
+			MachineInterface::onBroadcastInterfaceArgs25 args;
 			
 			try
 			{
@@ -172,7 +172,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 				COMPONENT_NAME_EX((COMPONENT_TYPE)args.componentType), inet_ntoa((struct in_addr&)args.intaddr), ntohs(args.intport)));
 
 			Components::getSingleton().addComponent(args.uid, args.username.c_str(), 
-				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, 
+				(KBEngine::COMPONENT_TYPE)args.componentType, args.componentID, args.globalorderid, args.grouporderid, args.gus,
 				args.intaddr, args.intport, args.extaddr, args.extport, args.extaddrEx, args.pid, args.cpu, args.mem, args.usedmem, 
 				args.extradata, args.extradata1, args.extradata2, args.extradata3);
 
@@ -181,7 +181,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 END:
 	dlg->updateTree();
 
-	KBEngine::Network::EndPoint::ObjPool().reclaimObject(endpoint);
+	KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 	wchar_t* wcommand = KBEngine::strutil::char2wchar(command.c_str());
 	bool found = false;
 	std::deque<CString>::iterator iter = m_historyCommand.begin();

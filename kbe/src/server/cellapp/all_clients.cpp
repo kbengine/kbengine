@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "all_clients.h"
+#include "entity.h"
+#include "cellapp.h"
 #include "pyscript/pickler.h"
 #include "helper/debug_helper.h"
 #include "network/packet.h"
@@ -45,9 +47,9 @@ SCRIPT_MEMBER_DECLARE_BEGIN(AllClients)
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(AllClients)
-SCRIPT_GET_DECLARE("id",							pyGetID,				0,					0)	
+SCRIPT_GET_DECLARE("id",							pyGetID,				0,					0)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(AllClients, 0, 0, 0, 0, 0)		
+SCRIPT_INIT(AllClients, 0, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 AllClients::AllClients(const ScriptDefModule* pScriptModule, 
@@ -74,6 +76,23 @@ PyObject* AllClients::pyGetID()
 //-------------------------------------------------------------------------------------
 PyObject* AllClients::onScriptGetAttribute(PyObject* attr)
 {
+	Entity* pEntity = Cellapp::getSingleton().findEntity(id_);
+	if(pEntity == NULL)
+	{
+		PyErr_Format(PyExc_AssertionError, "AllClients::onScriptGetAttribute: not found entity(%d).", 
+			id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!pEntity->isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "AllClients::onScriptGetAttribute: %s not is real entity(%d).", 
+			pEntity->scriptName(), pEntity->id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
@@ -109,7 +128,6 @@ PyObject* AllClients::tp_str()
 {
 	return tp_repr();
 }
-
 
 //-------------------------------------------------------------------------------------
 

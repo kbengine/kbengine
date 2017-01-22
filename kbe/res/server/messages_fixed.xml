@@ -31,7 +31,12 @@
 		<id>5</id>
 		<descr>查询所有machine进程。</descr>
 	</Machine::onQueryMachines>
-	
+
+	<Machine::killserver>
+		<id>6</id>
+		<descr>杀死服务器进程。</descr>
+	</Machine::killserver>
+
 	<Loginapp::reqClose>
 		<id>1</id>
 		<descr>客户端请求断线。</descr>
@@ -321,6 +326,13 @@
 		<id>523</id>
 		<descr>引擎版本不匹配。</descr>
 	</Client::onVersionNotMatch>
+
+	<Client::onControlEntity>
+		<id>524</id>
+		<descr>告诉玩家：你当前控制谁的位移同步。</descr>
+		<arg>INT32</arg> <!-- entityID int32 -->
+		<arg>INT8</arg> <!-- 0 取消控制，1 开始控制 -->
+	</Client::onControlEntity>
 	
 	<Logger::onAppActiveTick>
 		<id>701</id>
@@ -379,4 +391,57 @@
 		<descr>所在空间ID。</descr>
 		<arg>SPACE_ID</arg> <!-- uint32 -->
 	</Property::spaceID>
+
+
+
+	<Baseapp::queryWatcher>
+		<id>41001</id>
+		<descr>watcher数据查询</descr>
+	</Baseapp::queryWatcher>
+
+	<Cellapp::queryWatcher>
+		<id>41002</id>
+		<descr>watcher数据查询</descr>
+	</Cellapp::queryWatcher>
+
+	<Loginapp::queryWatcher>
+		<id>41003</id>
+		<descr>watcher数据查询</descr>
+	</Loginapp::queryWatcher>
+
+	<Baseappmgr::queryWatcher>
+		<id>41004</id>
+		<descr>watcher数据查询</descr>
+	</Baseappmgr::queryWatcher>
+
+	<Cellappmgr::queryWatcher>
+		<id>41005</id>
+		<descr>watcher数据查询</descr>
+	</Cellappmgr::queryWatcher>
+
+	<Dbmgr::queryWatcher>
+		<id>41006</id>
+		<descr>watcher数据查询</descr>
+	</Dbmgr::queryWatcher>
+
+	<Interfaces::queryWatcher>
+		<id>41007</id>
+		<descr>watcher数据查询</descr>
+	</Interfaces::queryWatcher>
+
+	<Logger::queryWatcher>
+		<id>41008</id>
+		<descr>watcher数据查询</descr>
+	</Logger::queryWatcher>
+	
+	<Baseappmgr::queryAppsLoads>
+		<id>50001</id>
+		<descr>Baseappmgr状态查询</descr>
+	</Baseappmgr::queryAppsLoads>
+
+	<Cellappmgr::queryAppsLoads>
+		<id>50002</id>
+		<descr>Cellappmgr状态查询</descr>
+	</Cellappmgr::queryAppsLoads>
+
 </root>

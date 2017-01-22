@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,8 @@ fileName_(),
 useLastAccountName_(false),
 telnet_port(0),
 telnet_passwd(),
-telnet_deflayer()
+telnet_deflayer(),
+isOnInitCallPropertysSetMethods_(true)
 {
 }
 
@@ -105,6 +106,10 @@ bool Config::loadConfig(std::string fileName)
 					if(c.size() > 0)
 					{
 						Network::g_trace_packet_disables.push_back(c);
+
+						// ²»debug¼ÓÃÜ°ü
+						if(c == "Encrypted::packets")
+							Network::g_trace_encrypted_packet = false;
 					}
 				}
 			}while((childnode = childnode->NextSibling()));
@@ -223,6 +228,18 @@ bool Config::loadConfig(std::string fileName)
 					if(childnode2)
 						Network::g_extSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				}
+
+				childnode1 = xml->enterNode(sendNode, "tickSentBytes");
+				if (childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if (childnode2)
+						Network::g_intSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "external");
+					if (childnode2)
+						Network::g_extSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 
 			TiXmlNode* recvNode = xml->enterNode(childnode, "receive");
@@ -337,6 +354,10 @@ bool Config::loadConfig(std::string fileName)
 	if(rootNode != NULL){
 		EntityDef::entitydefAliasID((xml->getValStr(rootNode) == "true"));
 	}
+
+	rootNode = xml->getRootNode("isOnInitCallPropertysSetMethods");
+	if (rootNode != NULL)
+		isOnInitCallPropertysSetMethods_ = (xml->getValStr(rootNode) == "true");
 
 	return true;
 }

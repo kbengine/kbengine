@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -30,9 +30,11 @@ namespace KBEngine{
 #define COORDINATE_NODE_FLAG_ENTITY					0x00000001		// 一个Entity节点
 #define COORDINATE_NODE_FLAG_TRIGGER				0x00000002		// 一个触发器节点
 #define COORDINATE_NODE_FLAG_HIDE					0x00000004		// 隐藏节点(其他节点不可见)
-#define COORDINATE_NODE_FLAG_REMOVEING				0x00000008		// 删除中的节点
+#define COORDINATE_NODE_FLAG_REMOVING				0x00000008		// 删除中的节点
 #define COORDINATE_NODE_FLAG_REMOVED				0x00000010		// 删除节点
 #define COORDINATE_NODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
+#define COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING	0x00000040		// entity节点正在执行update操作
+#define COORDINATE_NODE_FLAG_INSTALLING				0x00000080		// 节点正在安装操作
 
 #define COORDINATE_NODE_FLAG_HIDE_OR_REMOVED		(COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_HIDE)
 
@@ -45,6 +47,9 @@ public:
 	
 	INLINE void flags(uint32 v);
 	INLINE uint32 flags() const;
+	INLINE void addFlags(uint32 v);
+	INLINE void removeFlags(uint32 v);
+	INLINE bool hasFlags(uint32 v) const;
 
 	/**
 		(节点本身的坐标)
@@ -54,9 +59,9 @@ public:
 	virtual float y() const { return y_; }
 	virtual float z() const { return z_; }
 
-	virtual void x(float v){ x_ = v; }
-	virtual void y(float v){ y_ = v; }
-	virtual void z(float v){ z_ = v; }
+	virtual void x(float v) { x_ = v; }
+	virtual void y(float v) { y_ = v; }
+	virtual void z(float v) { z_ = v; }
 
 	/**
 		(扩展坐标)
@@ -74,13 +79,13 @@ public:
 	float old_yy() const { return old_yy_; }
 	float old_zz() const { return old_zz_; }
 
-	virtual void resetOld(){ 
+	virtual void resetOld() { 
 		old_xx_ = xx();
 		old_yy_ = yy();
 		old_zz_ = zz();
 	}
 
-	void c_str();
+	std::string c_str();
 
 	void debugX();
 	void debugY();
@@ -88,6 +93,14 @@ public:
 
 	INLINE void pCoordinateSystem(CoordinateSystem* p);
 	INLINE CoordinateSystem* pCoordinateSystem() const;
+
+	INLINE bool isDestroying() const {
+		return hasFlags(COORDINATE_NODE_FLAG_REMOVING);
+	}
+
+	INLINE bool isDestroyed() const {
+		return hasFlags(COORDINATE_NODE_FLAG_REMOVED);
+	}
 
 	/**
 		获取链表的前后端指针
@@ -122,7 +135,8 @@ public:
 	/**
 		父节点删除
 	*/
-	virtual void onParentRemove(CoordinateNode* pParentNode){}
+	virtual void onParentRemove(CoordinateNode* pParentNode) {
+	}
 
 	/**
 		当节点有变动时，需要更新它在list中的
@@ -131,8 +145,8 @@ public:
 	virtual void update();
 
 #ifdef _DEBUG
-	void descr(const std::string& str){ descr_ = str; }
-	virtual const char* descr(){ return descr_.c_str(); }
+	void descr(const std::string& str) { descr_ = str; }
+	virtual const char* descr() { return descr_.c_str(); }
 #else
 	void descr(const std::string& str){}
 	virtual const char* descr(){ return ""; }

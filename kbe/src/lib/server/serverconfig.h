@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -105,6 +105,13 @@ struct DBInterfaceInfo
 		isPure = false;
 		db_numConnections = 5;
 		db_passwordEncrypt = true;
+
+		memset(name, 0, sizeof(name));
+		memset(db_type, 0, sizeof(db_type));
+		memset(db_ip, 0, sizeof(db_ip));
+		memset(db_username, 0, sizeof(db_username));
+		memset(db_password, 0, sizeof(db_password));
+		memset(db_name, 0, sizeof(db_name));
 	}
 
 	int index;
@@ -130,11 +137,14 @@ typedef struct EngineComponentInfo
 		tcp_SOMAXCONN = 5;
 		notFoundAccountAutoCreate = false;
 		account_registration_enable = false;
+		account_reset_password_enable = false;
 		use_coordinate_system = true;
 		account_type = 3;
 		debugDBMgr = false;
 
 		externalAddress[0] = '\0';
+
+		isOnInitCallPropertysSetMethods = true;
 	}
 
 	~EngineComponentInfo()
@@ -144,6 +154,8 @@ typedef struct EngineComponentInfo
 	uint32 port;											// 组件的运行后监听的端口
 	char ip[MAX_BUF];										// 组件的运行期ip地址
 
+	std::vector< std::string > machine_addresses;			// 配置中给出的所有的machine的地址
+	
 	char entryScriptFile[MAX_NAME];							// 组件的入口脚本文件
 	char dbAccountEntityScriptType[MAX_NAME];				// 数据库帐号脚本类别
 	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
@@ -174,6 +186,7 @@ typedef struct EngineComponentInfo
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
 	bool allowEmptyDigest;									// 是否检查defs-MD5
 	bool account_registration_enable;						// 是否开放注册
+	bool account_reset_password_enable;						// 是否开放重设密码功能
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期
@@ -219,6 +232,8 @@ typedef struct EngineComponentInfo
 	uint16 http_cbport;										// 用户http回调接口，处理认证、密码重置等
 
 	bool debugDBMgr;										// debug模式下可输出读写操作信息
+
+	bool isOnInitCallPropertysSetMethods;					// 机器人(bots)专用：在Entity初始化时是否触发属性的set_*事件
 } ENGINE_COMPONENT_INFO;
 
 class ServerConfig : public Singleton<ServerConfig>

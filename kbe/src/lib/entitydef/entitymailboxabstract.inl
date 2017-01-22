@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -65,17 +65,17 @@ INLINE bool EntityMailboxAbstract::isBaseViaCell() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_ID EntityMailboxAbstract::id() const{ 
+INLINE ENTITY_ID EntityMailboxAbstract::id() const { 
 	return id_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void EntityMailboxAbstract::id(int v){ 
+INLINE void EntityMailboxAbstract::id(int v) { 
 	id_ = v; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE COMPONENT_ID EntityMailboxAbstract::componentID(void) const{ 
+INLINE COMPONENT_ID EntityMailboxAbstract::componentID(void) const { 
 	return componentID_; 
 }
 
@@ -86,12 +86,12 @@ void EntityMailboxAbstract::componentID(COMPONENT_ID cid)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_SCRIPT_UID EntityMailboxAbstract::utype(void) const{ 
+INLINE ENTITY_SCRIPT_UID EntityMailboxAbstract::utype(void) const { 
 	return utype_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_MAILBOX_TYPE EntityMailboxAbstract::type(void) const{
+INLINE ENTITY_MAILBOX_TYPE EntityMailboxAbstract::type(void) const {
 	return type_; 
 }
 	

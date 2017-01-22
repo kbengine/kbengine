@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@ COMPONENT_TYPE g_componentType = UNKNOWN_COMPONENT_TYPE;
 COMPONENT_ID g_componentID = 0;
 COMPONENT_ORDER g_componentGlobalOrder = -1;
 COMPONENT_ORDER g_componentGroupOrder = -1;
-int32 g_genuuid_sections = -1;
+COMPONENT_GUS g_genuuid_sections = -1;
 
 GAME_TIME g_kbetime = 0;
 
@@ -188,6 +188,9 @@ bool ServerApp::initializeWatcher()
 //-------------------------------------------------------------------------------------		
 void ServerApp::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	AUTO_SCOPED_PROFILE("watchers");
 
 	std::string path;
@@ -199,7 +202,7 @@ void ServerApp::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	MemoryStream::SmartPoolObjectPtr readStreamPtr1 = MemoryStream::createSmartPoolObj();
 	WatcherPaths::root().readChildPaths(path, path, readStreamPtr1.get()->get());
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	ConsoleInterface::ConsoleWatcherCBMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 
@@ -208,7 +211,7 @@ void ServerApp::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	(*pBundle).append(readStreamPtr.get()->get());
 	pChannel->send(pBundle);
 
-	Network::Bundle* pBundle1 = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle1 = Network::Bundle::createPoolObject();
 	(*pBundle1).newMessage(msgHandler);
 
 	type = 1;
@@ -295,7 +298,7 @@ void ServerApp::onChannelTimeOut(Network::Channel * pChannel)
 
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
-	Network::Channel::ObjPool().reclaimObject(pChannel);
+	Network::Channel::reclaimPoolObject(pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -333,6 +336,16 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 			g_componentType != WATCHER_TYPE)
 			this->shutDown(0.f);
 	}
+	else if (pInfos->componentType == CELLAPPMGR_TYPE)
+	{
+		if (g_componentType == CELLAPP_TYPE)
+			this->shutDown(0.f);
+	}
+	else if (pInfos->componentType == BASEAPPMGR_TYPE)
+	{
+		if (g_componentType == BASEAPP_TYPE)
+			this->shutDown(0.f);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -365,12 +378,21 @@ void ServerApp::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::str
 	if(cinfos == NULL)
 	{
 		Components::getSingleton().addComponent(uid, username.c_str(), 
-			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, intaddr, intport, extaddr, extport, extaddrEx, 0,
+			(KBEngine::COMPONENT_TYPE)componentType, componentID, globalorderID, grouporderID, 0, intaddr, intport, extaddr, extport, extaddrEx, 0,
 			0.f, 0.f, 0, 0, 0, 0, 0, pChannel);
 	}
 	else
 	{
-		KBE_ASSERT(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport);
+		if (!(cinfos->pIntAddr->ip == intaddr && cinfos->pIntAddr->port == intport))
+		{
+			ERROR_MSG(fmt::format("ServerApp::onRegisterNewApp: error component(uid:{}, username:{}, componentType:{}, componentID:{}, from {})!\n",
+				uid,
+				username.c_str(),
+				COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), componentID, pChannel->c_str()));
+
+			return;
+		}
+
 		cinfos->pChannel = pChannel;
 	}
 }
@@ -408,7 +430,6 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 		if(pChannel->isExternal())
 			return;
 	
-	Network::Channel* pTargetChannel = NULL;
 	if(componentType != CONSOLE_TYPE && componentType != CLIENT_TYPE)
 	{
 		Components::ComponentInfos* cinfos = 
@@ -422,13 +443,11 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 			return;
 		}
 
-		pTargetChannel = cinfos->pChannel;
-		pTargetChannel->updateLastReceivedTime();
+		cinfos->pChannel->updateLastReceivedTime();
 	}
 	else
 	{
 		pChannel->updateLastReceivedTime();
-		pTargetChannel = pChannel;
 	}
 
 	//DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 
@@ -438,6 +457,9 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 //-------------------------------------------------------------------------------------
 void ServerApp::reqClose(Network::Channel* pChannel)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("ServerApp::reqClose: {}\n", pChannel->c_str()));
 	// this->networkInterface().deregisterChannel(pChannel);
 	// pChannel->destroy();
@@ -451,7 +473,7 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 
 	DEBUG_MSG(fmt::format("ServerApp::lookApp: {}\n", pChannel->c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	
 	(*pBundle) << g_componentType;
 	(*pBundle) << componentID_;
@@ -466,9 +488,12 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::reqCloseServer(Network::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("ServerApp::reqCloseServer: {}\n", pChannel->c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	
 	bool success = true;
 	(*pBundle) << success;
@@ -479,6 +504,8 @@ void ServerApp::reqCloseServer(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ServerApp::queryLoad(Network::Channel* pChannel)
 {
+	if(pChannel->isExternal())
+		return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -539,6 +566,9 @@ void ServerApp::onScriptVersionNotMatch(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string profileName;
 	int8 profileType;
 	uint32 timelen;
@@ -551,6 +581,9 @@ void ServerApp::startProfile(Network::Channel* pChannel, KBEngine::MemoryStream&
 //-------------------------------------------------------------------------------------
 void ServerApp::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 1:	// cprofile

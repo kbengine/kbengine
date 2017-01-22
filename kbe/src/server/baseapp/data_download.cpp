@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -67,7 +67,7 @@ bool DataDownload::send(const Network::MessageHandler& msgHandler, Network::Bund
 		proxy->sendToClient(msgHandler, pBundle);
 	}
 	else{
-		Network::Bundle::ObjPool().reclaimObject(pBundle);
+		Network::Bundle::reclaimPoolObject(pBundle);
 		return false;
 	}
 
@@ -89,7 +89,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	if(remainSent_ > 0 && currSent_ < remainSent_)
 	{
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 		if(!sentStart_)
 		{
@@ -158,7 +158,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 		pDataDownloads_->onDownloadCompleted(this);
 
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 
 		pBundle->newMessage(ClientInterface::onStreamDataCompleted);

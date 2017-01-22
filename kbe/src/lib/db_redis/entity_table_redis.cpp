@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,7 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 	{
 		PropertyDescription* pdescrs = iter->second;
 
-		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName());
+		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
 
 		pETItem->pParentTable(this);
 		pETItem->utype(pdescrs->getUType());
@@ -99,7 +99,7 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 			msgInfo = NULL;	
 		}
 
-		EntityTableItem* pETItem = this->createItem("VECTOR3");
+		EntityTableItem* pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(posuid);
 		pETItem->tableName(this->tableName());
@@ -107,7 +107,7 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 		tableItems_[pETItem->utype()].reset(pETItem);
 		tableFixedOrderItems_.push_back(pETItem);
 
-		pETItem = this->createItem("VECTOR3");
+		pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(diruid);
 		pETItem->tableName(this->tableName());
@@ -223,7 +223,7 @@ void EntityTableRedis::queryAutoLoadEntities(DBInterface* pdbi, ScriptDefModule*
 }
 
 //-------------------------------------------------------------------------------------
-EntityTableItem* EntityTableRedis::createItem(std::string type)
+EntityTableItem* EntityTableRedis::createItem(std::string type, std::string defaultVal)
 {
 	if(type == "INT8")
 	{

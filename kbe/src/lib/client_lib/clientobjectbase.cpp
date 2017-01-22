@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -96,7 +96,7 @@ locktime_(0)
 {
 	appID_ = g_appID++;
 
-	pServerChannel_ = Network::Channel::ObjPool().createObject();
+	pServerChannel_ = Network::Channel::createPoolObject();
 	pServerChannel_->pNetworkInterface(&ninterface);
 }
 
@@ -158,11 +158,11 @@ void ClientObjectBase::reset(void)
 	if(pServerChannel_ && !pServerChannel_->isDestroyed())
 	{
 		pServerChannel_->destroy();
-		Network::Channel::ObjPool().reclaimObject(pServerChannel_);
+		Network::Channel::reclaimPoolObject(pServerChannel_);
 		pServerChannel_ = NULL;
 	}
 
-	pServerChannel_ = Network::Channel::ObjPool().createObject();
+	pServerChannel_ = Network::Channel::createPoolObject();
 	pServerChannel_->pNetworkInterface(&networkInterface_);
 }
 
@@ -201,7 +201,7 @@ void ClientObjectBase::tickSend()
 	{
 		lastSentActiveTickTime_ = timestamp();
 
-		Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		if(connectedBaseapp_)
 			(*pBundle).newMessage(BaseappInterface::onClientActiveTick);
 		else
@@ -258,7 +258,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 	
 	float time = 0;
@@ -268,7 +268,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(!PyCallable_Check(pyCallback))
@@ -291,7 +291,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
@@ -302,7 +302,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	pClientObjectBase->scriptCallbacks().delCallback(id);
@@ -352,6 +352,15 @@ client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject*
 
 	SCRIPT_ERROR_CHECK();
 
+	entity->isInited(true);
+	
+	bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+		g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+		Config::getSingleton().isOnInitCallPropertysSetMethods();
+
+	if (isOnInitCallPropertysSetMethods)
+		entity->callPropertysSetMethods();
+
 	if(g_debugEntity)
 	{
 		INFO_MSG(fmt::format("ClientObjectBase::createEntity: new {} ({}) refc={}.\n", 
@@ -387,8 +396,18 @@ ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 {
 	ENTITY_ID id = 0;
-	if(EntityDef::entityAliasID() && 
-		pEntityIDAliasIDList_.size() > 0 && pEntityIDAliasIDList_.size() <= 255)
+
+	if (!EntityDef::entityAliasID())
+	{
+		s >> id;
+		return id;
+	}
+
+	if(pEntityIDAliasIDList_.size() > 255)
+	{
+		s >> id;
+	}
+	else
 	{
 		uint8 aliasID = 0;
 		s >> aliasID;
@@ -396,20 +415,10 @@ ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
 		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
 		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
-		if(pEntityIDAliasIDList_.size() == 0)
+		if (pEntityIDAliasIDList_.size() <= aliasID)
 			return 0;
 
 		id = pEntityIDAliasIDList_[aliasID];
-	}
-	else
-	{
-		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
-		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
-		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
-		if(pEntityIDAliasIDList_.size() == 0)
-			return 0;
-
-		s >> id;
 	}
 
 	return id;
@@ -437,7 +446,7 @@ bool ClientObjectBase::deregisterEventHandle(EventHandle* pEventHandle)
 bool ClientObjectBase::createAccount()
 {
 	// 创建账号
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::reqCreateAccount);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -449,13 +458,13 @@ bool ClientObjectBase::createAccount()
 //-------------------------------------------------------------------------------------
 Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port)
 {
-	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObjectBase::initLoginappChannel: couldn't create a socket\n");
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 	
@@ -466,7 +475,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server is error({})!\n",
 			kbe_strerror()));
 
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 
@@ -486,13 +495,13 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 //-------------------------------------------------------------------------------------
 Network::Channel* ClientObjectBase::initBaseappChannel()
 {
-	Network::EndPoint* pEndpoint = Network::EndPoint::ObjPool().createObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObjectBase::initBaseappChannel: couldn't create a socket\n");
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 	
@@ -504,7 +513,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
 			kbe_strerror()));
 
-		Network::EndPoint::ObjPool().reclaimObject(pEndpoint);
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 
@@ -591,7 +600,7 @@ void ClientObjectBase::onScriptVersionNotMatch(Network::Channel* pChannel, Memor
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	// 提交账号密码请求登录
 	(*pBundle).newMessage(LoginappInterface::login);
@@ -611,7 +620,7 @@ bool ClientObjectBase::loginBaseapp()
 	// 请求登录网关, 能走到这里来一定是连接了网关
 	connectedBaseapp_ = true;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::loginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -625,7 +634,7 @@ bool ClientObjectBase::reLoginBaseapp()
 	// 请求重登陆网关, 通常是掉线了之后执行
 	connectedBaseapp_ = true;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::reLoginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -767,6 +776,15 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 		bufferedCreateEntityMessage_.erase(iter);
 		pEntity->initializeEntity(NULL);
 		SCRIPT_ERROR_CHECK();
+
+		pEntity->isInited(true);
+		
+		bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+			g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+			Config::getSingleton().isOnInitCallPropertysSetMethods();
+	
+		if (isOnInitCallPropertysSetMethods)
+			pEntity->callPropertysSetMethods();
 	}
 }
 
@@ -820,7 +838,9 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			entity->initializeEntity(NULL);
 			SCRIPT_ERROR_CHECK();
 			
-			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGround({}), appID({}).\n", 
+			entity->isInited(true);
+
+			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGround({}), appID({}).\n",
 				entity->scriptName(), eid, (int)isOnGround, appID()));
 		}
 		else
@@ -879,6 +899,13 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	}
 	
 	entity->onEnterWorld();
+
+	bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+		g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+		Config::getSingleton().isOnInitCallPropertysSetMethods();
+
+	if (isOnInitCallPropertysSetMethods)
+		entity->callPropertysSetMethods();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -1144,7 +1171,7 @@ void ClientObjectBase::updatePlayerToServer()
 	if(posNoChanged && dirNoChanged)
 		return;
 
-	Network::Bundle* pBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 	
 	pEntity->position(clientPos);
@@ -1164,11 +1191,8 @@ void ClientObjectBase::updatePlayerToServer()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z)
 {
-	float x, y, z;
-	s >> x >> y >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
@@ -1177,15 +1201,25 @@ void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, MemoryStream&
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 {
-	float x, z;
-	s >> x >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
 		pEntity->serverPosition(Position3D(x, pEntity->serverPosition().y, z));
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	float yaw, pitch, roll;
+	s >> yaw >> pitch >> roll;
+
+	client::Entity* pEntity = pPlayer();
+	if (pEntity)
+	{
+		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
 	}
 }
 
@@ -1264,7 +1298,7 @@ void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1282,7 +1316,7 @@ void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1300,7 +1334,7 @@ void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1318,7 +1352,7 @@ void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1333,7 +1367,7 @@ void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1348,7 +1382,7 @@ void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1363,7 +1397,7 @@ void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1376,7 +1410,7 @@ void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream&
 	s.readPackXZ(x, z);
 
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1399,7 +1433,7 @@ void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1419,7 +1453,7 @@ void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1439,7 +1473,7 @@ void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1459,7 +1493,7 @@ void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1476,7 +1510,7 @@ void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1493,7 +1527,7 @@ void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1510,7 +1544,7 @@ void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1706,7 +1740,12 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	if(isOnGround >= 0)
 		entity->isOnGround(isOnGround > 0);
 
-	if(!almostEqual(x + y + z, 0.f, 0.000001f))
+        bool positionChanged = x != FLT_MAX || y != FLT_MAX || z != FLT_MAX;
+        if (x == FLT_MAX) x = 0.0f;
+        if (y == FLT_MAX) y = 0.0f;
+        if (z == FLT_MAX) z = 0.0f;
+        
+	if(positionChanged)
 	{
 		Position3D relativePos;
 		relativePos.x = x;
@@ -1747,6 +1786,11 @@ void ClientObjectBase::onStreamDataRecv(Network::Channel* pChannel, MemoryStream
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 id)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
 {
 }
 
@@ -1929,7 +1973,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 	
 	char* key = NULL;
@@ -1937,7 +1981,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
@@ -1948,7 +1992,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 			key);
 
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 
 	return PyUnicode_FromString(pClientObjectBase->getSpaceData(key).c_str());
@@ -1962,7 +2006,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 	
 	char* path;
@@ -1971,7 +2015,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 
 	//DebugHelper::getSingleton().setScriptMsgType(type);
@@ -1981,12 +2025,12 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): not found watcher[%s]!", path);
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 
 	WATCHER_VALUE_TYPE wtype = pWobj->getType();
 	PyObject* pyval = NULL;
-	MemoryStream* stream = MemoryStream::ObjPool().createObject();
+	MemoryStream* stream = MemoryStream::createPoolObject();
 	pWobj->addToStream(stream);
 	WATCHER_ID id;
 	(*stream) >> id;
@@ -2089,7 +2133,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 		KBE_ASSERT(false && "no support!\n");
 	};
 
-	MemoryStream::ObjPool().reclaimObject(stream);
+	MemoryStream::reclaimPoolObject(stream);
 	return pyval;
 }
 
@@ -2101,7 +2145,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 	
 	char* path;
@@ -2110,7 +2154,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 
 	std::vector<std::string> vec;
@@ -2141,13 +2185,19 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] is error!");
 			PyErr_PrintEx(0);
-			return 0;
+			S_Return
 		}
 
 		pClientObjectBase->locktime(timestamp() + stampsPerSecond() * i);
 	}
 
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onAppActiveTickCB(Network::Channel* pChannel)
+{
+	pChannel->updateLastReceivedTime();
 }
 
 //-------------------------------------------------------------------------------------		

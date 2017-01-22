@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -333,6 +333,7 @@ typedef uint32													SPACE_ID;												// 一个space的id
 typedef uint32													CALLBACK_ID;											// 一个callback由CallbackMgr分配的id
 typedef uint64													COMPONENT_ID;											// 一个服务器组件的id
 typedef int32													COMPONENT_ORDER;										// 一个组件的启动顺序
+typedef int32													COMPONENT_GUS;											// 一个组件的genuuid_sections产生随机数的区间段
 typedef	uint32													TIMER_ID;												// 一个timer的id类型
 typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
 typedef uint32													GAME_TIME;
@@ -650,7 +651,7 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 extern COMPONENT_ORDER g_componentGlobalOrder;
 extern COMPONENT_ORDER g_componentGroupOrder;
 
-extern int32 g_genuuid_sections;
+extern COMPONENT_GUS g_genuuid_sections;
 
 inline uint64 genUUID64()
 {

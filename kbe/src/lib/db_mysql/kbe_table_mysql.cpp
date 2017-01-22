@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.h"
 #include "entitydef/scriptdef_module.h"
 #include "server/serverconfig.h"
+#include "server/common.h"
 
 namespace KBEngine { 
 
@@ -52,6 +53,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 			"ip varchar(64),"
 			"port int unsigned not null DEFAULT 0,"
 			"componentID bigint unsigned not null DEFAULT 0,"
+			"logger bigint unsigned not null DEFAULT 0,"
 			"PRIMARY KEY (entityDBID, entityType))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
@@ -64,7 +66,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint32 port, DBID dbid,
 					COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "insert into kbe_entitylog (entityDBID, entityType, entityID, ip, port, componentID) values(";
+	std::string sqlstr = "insert into kbe_entitylog (entityDBID, entityType, entityID, ip, port, componentID, logger) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -91,6 +93,10 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 	sqlstr += ",";
 	
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, componentID);
+	sqlstr += tbuf;
+	sqlstr += ",";
+
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
 	sqlstr += tbuf;
 	sqlstr += ")";
 
@@ -122,7 +128,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 //-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "select entityID, ip, port, componentID from kbe_entitylog where entityDBID=";
+	std::string sqlstr = "select entityID, ip, port, componentID, logger from kbe_entitylog where entityDBID=";
 
 	char tbuf[MAX_BUF];
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, dbid);
@@ -140,6 +146,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 	
 	entitylog.dbid = dbid;
 	entitylog.componentID = 0;
+	entitylog.logger = 0;
 	entitylog.entityID = 0;
 	entitylog.ip[0] = '\0';
 	entitylog.port = 0;
@@ -154,6 +161,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 			kbe_snprintf(entitylog.ip, MAX_IP, "%s", arow[1]);
 			StringConv::str2value(entitylog.port, arow[2]);
 			StringConv::str2value(entitylog.componentID, arow[3]);
+			StringConv::str2value(entitylog.logger, arow[4]);
 		}
 
 		mysql_free_result(pResult);
@@ -195,9 +203,9 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 {
 	bool ret = false;
 
-	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_accountinfos "
-			"(`accountName` varchar(255) not null, PRIMARY KEY idKey (`accountName`),"
-			"`password` varchar(255),"
+	std::string sqlstr = fmt::format("CREATE TABLE IF NOT EXISTS kbe_accountinfos "
+		"(`accountName` varchar({}) not null, PRIMARY KEY idKey (`accountName`),"
+		"`password` varchar({}),"
 			"`bindata` blob,"
 			"`email` varchar(255) not null, UNIQUE KEY `email` (`email`),"
 			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
@@ -206,7 +214,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 			"`regtime` bigint(20) not null DEFAULT 0,"
 			"`lasttime` bigint(20) not null DEFAULT 0,"
 			"`numlogin` int unsigned not null DEFAULT 0)"
-		"ENGINE=" MYSQL_ENGINE_TYPE;
+			"ENGINE=" MYSQL_ENGINE_TYPE, ACCOUNT_NAME_MAX_LENGTH, ACCOUNT_PASSWD_MAX_LENGTH);
 
 	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);
@@ -903,13 +911,13 @@ bool KBEEmailVerificationTableMysql::syncToDB(DBInterface* pdbi)
 {
 	bool ret = false;
 
-	std::string sqlstr = "CREATE TABLE IF NOT EXISTS kbe_email_verification "
-			"(accountName varchar(255) not null,"
+	std::string sqlstr = fmt::format("CREATE TABLE IF NOT EXISTS kbe_email_verification "
+			"(accountName varchar({}) not null,"
 			"type tinyint not null DEFAULT 0,"
 			"datas varchar(255),"
-			"code varchar(255), PRIMARY KEY idKey (code),"
+			"code varchar(128), PRIMARY KEY idKey (code),"
 			"logtime bigint(20) not null DEFAULT 0)"
-		"ENGINE=" MYSQL_ENGINE_TYPE;
+			"ENGINE=" MYSQL_ENGINE_TYPE, ACCOUNT_NAME_MAX_LENGTH);
 
 	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
 	KBE_ASSERT(ret);

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,18 @@ static ObjectPool<UDPPacket> _g_objPool("UDPPacket");
 ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 {
 	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+UDPPacket* UDPPacket::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacket::reclaimPoolObject(UDPPacket* obj)
+{
+	_g_objPool.reclaimObject(obj);
 }
 
 //-------------------------------------------------------------------------------------

@@ -1,0 +1,164 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
+
+    <title>{% block title %}KBEngine Web Console{% endblock %}</title>
+
+    <link href="/static/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/custom_styles.css" rel="stylesheet">
+  </head>
+
+<body>
+<div class="placeholders">
+    <div class="form-group">
+      <label for="textarea">正在停止服务器组件……</label>
+    <table id="ct-stop" class="data-table table table-striped table-condensed">
+        <thead>
+          <tr>
+            <th>组件名称</th>
+            <th>未关闭组件</th>
+          </tr>
+        </thead>
+        <tr class="ct-baseappmgr hide">
+            <td>baseappmgr</td>
+            <td class="baseappmgr"></td>
+        </tr>
+        <tr class="ct-cellappmgr hide">
+            <td>cellappmgr</td>
+            <td class="cellappmgr"></td>
+        </tr>
+        <tr class="ct-dbmgr hide">
+            <td>dbmgr</td>
+            <td class="dbmgr"></td>
+        </tr>
+        <tr class="ct-cellapp hide">
+            <td>cellapp</td>
+            <td class="cellapp"></td>
+        </tr>
+        <tr class="ct-baseapp hide">
+            <td>baseapp</td>
+            <td class="baseapp"></td>
+        </tr>
+        <tr class="ct-loginapp hide">
+            <td>loginapp</td>
+            <td class="loginapp"></td>
+        </tr>
+        <tr class="ct-logger hide">
+            <td>logger</td>
+            <td class="logger"></td>
+        </tr>
+        <tr class="ct-interfaces hide">
+            <td>interfaces</td>
+            <td class="interfaces"></td>
+        </tr>
+        <tbody>
+
+        </tbody>
+    </table>      
+    </div>
+    <div class="shutdown-finish form-group sr-only">
+      <input type="button" class="form-control btn btn-default" name="button" id="button" value="完成" onClick="close_layer()">
+        
+    </div>
+</div>
+<script src="/static/js/pytools.js"></script>
+<script src="/static/js/jquery-1.11.3.min.js"></script>
+<script src="/static/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<!-- <script src="/static/layer/layer.js"></script> -->
+<script>
+    $("document").ready(queryComponents);
+    function queryComponents()
+    {
+        $.ajax({
+            {% if shutType == "stop_cid" %}
+                // cid ={{cid}};
+                url : "/wc/components/{{ ct }}/{{cid}}/query",
+            {% else %}
+                url : "/wc/components/query",
+            {% endif %}
+                dataType : "json",
+                data : { timestap : (new Date()).valueOf() }
+            }).done(function(data, textStatus, jqXHR){
+                    onReceiveComponents( data );
+                    console.log(data);
+                });
+    }
+    
+    function onReceiveComponents( components )
+    {
+        var baseappmgr = 0,cellappmgr = 0,dbmgr = 0,cellapp = 0,baseapp = 0,loginapp = 0,logger = 0,interfaces = 0;
+
+        var counter = 0;
+        for (var i = 0; i < components.length; i++)
+        {
+            var comps = components[i];
+            for (var ii = 0; ii < comps.length; ii++)
+            {
+                counter++;
+                var comp = comps[ii];
+                // currentCount[comp.componentType] += 1;machine -= comp.fullname;
+                if (ii != 0)
+                {
+                    if(comp.componentType == 3){
+                        $(".ct-baseappmgr").removeClass("hide");
+                        baseappmgr++;
+                    }
+                    if(comp.componentType == 4){
+                        $(".ct-cellappmgr").removeClass("hide");
+                        cellappmgr++;
+                    }
+                    if(comp.componentType == 1){
+                        $(".ct-dbmgr").removeClass("hide");
+                        dbmgr++;
+                    }
+                    if(comp.componentType == 5){
+                        $(".ct-cellapp").removeClass("hide");
+                        cellapp++;
+                    }
+                    if(comp.componentType == 6){
+                        $(".ct-baseapp").removeClass("hide");
+                        baseapp++;
+                    }
+                    if(comp.componentType == 2){
+                        $(".ct-loginapp").removeClass("hide");
+                        loginapp++;
+                    }
+                    if(comp.componentType == 10){
+                        $(".ct-logger").removeClass("hide");
+                        logger++;
+                    }
+                    if(comp.componentType == 13){
+                        $(".ct-interfaces").removeClass("hide");
+                        interfaces++;
+                    }
+                }
+            }
+        }
+        $('#ct-stop .dbmgr').html(dbmgr);
+        $('#ct-stop .logger').html(logger);
+        $('#ct-stop .baseappmgr').html(baseappmgr);
+        $('#ct-stop .cellappmgr').html(cellappmgr);
+        $('#ct-stop .cellapp').html(cellapp);
+        $('#ct-stop .baseapp').html(baseapp);
+        $('#ct-stop .loginapp').html(loginapp);
+        $('#ct-stop .interfaces').html(interfaces);
+        if (components.length == counter)
+        {
+            $(".shutdown-finish").removeClass("sr-only");
+        }
+        else
+            setTimeout(queryComponents, 900);
+}
+    function close_layer(){
+        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        parent.layer.close(index);
+    }
+</script>

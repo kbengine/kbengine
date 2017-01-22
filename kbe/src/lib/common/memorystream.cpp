@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +26,18 @@ static ObjectPool<MemoryStream> _g_objPool("MemoryStream");
 ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 {
 	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+MemoryStream* MemoryStream::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void MemoryStream::reclaimPoolObject(MemoryStream* obj)
+{
+	_g_objPool.reclaimObject(obj);
 }
 
 //-------------------------------------------------------------------------------------

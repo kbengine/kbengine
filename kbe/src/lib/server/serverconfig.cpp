@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -103,8 +103,8 @@ bool ServerConfig::loadConfig(std::string fileName)
 		childnode = xml->enterNode(rootNode, "disables");
 		if(childnode)
 		{
-			do																				
-			{	
+			do
+			{
 				if(childnode->FirstChild() != NULL)
 				{
 					std::string c = childnode->FirstChild()->Value();
@@ -112,9 +112,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 					if(c.size() > 0)
 					{
 						Network::g_trace_packet_disables.push_back(c);
+						
+						// ²»debug¼ÓÃÜ°ü
+						if(c == "Encrypted::packets")
+							Network::g_trace_encrypted_packet = false;
 					}
 				}
-			}while((childnode = childnode->NextSibling()));												
+			}while((childnode = childnode->NextSibling()));
 		}
 	}
 
@@ -301,6 +305,18 @@ bool ServerConfig::loadConfig(std::string fileName)
 					childnode2 = xml->enterNode(childnode1, "external");
 					if(childnode2)
 						Network::g_extSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
+
+				childnode1 = xml->enterNode(sendNode, "tickSentBytes");
+				if (childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if (childnode2)
+						Network::g_intSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "external");
+					if (childnode2)
+						Network::g_extSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				}
 			}
 
@@ -973,6 +989,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 					_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(childchildnode) == "true");
 				}
 			} 
+
+			childnode = xml->enterNode(node, "account_resetPassword");
+			if (childnode != NULL)
+			{
+				TiXmlNode* childchildnode = xml->enterNode(childnode, "enable");
+				if (childchildnode)
+				{
+					_dbmgrInfo.account_reset_password_enable = (xml->getValStr(childchildnode) == "true");
+				}
+			}
 		}
 	}
 
@@ -1108,6 +1134,23 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL){
 			_kbMachineInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
+		
+		node = xml->enterNode(rootNode, "addresses");
+		if(node)
+		{
+			do
+			{
+				if(node->FirstChild() != NULL)
+				{
+					std::string c = node->FirstChild()->Value();
+					c = strutil::kbe_trim(c);
+					if(c.size() > 0)
+					{
+						_kbMachineInfo.machine_addresses.push_back(c);
+					}
+				}
+			} while((node = node->NextSibling()));
+		}
 	}
 	
 	rootNode = xml->getRootNode("bots");
@@ -1128,6 +1171,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "port");	
 		if(node != NULL)
 			_botsInfo.login_port = xml->getValInt(node);
+
+		node = xml->enterNode(rootNode, "isOnInitCallPropertysSetMethods");
+		if (node != NULL)
+			_botsInfo.isOnInitCallPropertysSetMethods = xml->getValInt(node);
 
 		node = xml->enterNode(rootNode, "defaultAddBots");
 		if(node != NULL)
