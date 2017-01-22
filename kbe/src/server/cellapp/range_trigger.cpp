@@ -180,19 +180,6 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 }
 
 //-------------------------------------------------------------------------------------
-bool RangeTriggerNode::wasInYRange(CoordinateNode * pNode)
-{
-	if(!CoordinateSystem::hasY)
-		return true;
-
-	float originY = old_yy() - old_range_y_;
-
-	volatile float lowerBound = originY - fabs(old_range_y_);
-	volatile float upperBound = originY + fabs(old_range_y_);
-	return (pNode->old_yy() >= lowerBound) && (pNode->old_yy() <= upperBound);
-}
-
-//-------------------------------------------------------------------------------------
 void RangeTrigger::onNodePassY(RangeTriggerNode* pRangeTriggerNode, CoordinateNode* pNode, bool isfront)
 {
 	if(pNode == origin() || !CoordinateSystem::hasY)

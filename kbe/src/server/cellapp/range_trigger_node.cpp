@@ -82,6 +82,19 @@ void RangeTriggerNode::onParentRemove(CoordinateNode* pParentNode)
 }
 
 //-------------------------------------------------------------------------------------
+bool RangeTriggerNode::wasInYRange(CoordinateNode * pNode)
+{
+	if (!CoordinateSystem::hasY)
+		return true;
+
+	float originY = old_yy() - old_range_y_;
+
+	volatile float lowerBound = originY - fabs(old_range_y_);
+	volatile float upperBound = originY + fabs(old_range_y_);
+	return (pNode->old_yy() >= lowerBound) && (pNode->old_yy() <= upperBound);
+}
+
+//-------------------------------------------------------------------------------------
 float RangeTriggerNode::xx() const 
 {
 	if (hasFlags(COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_REMOVING) || pRangeTrigger_ == NULL)
