@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -408,8 +408,20 @@ public:																										\
 			}																								\
 																											\
 			PyObject* pyobj = iter->second->createFromStream(mstream);										\
-			PyDict_SetItemString(cellData, iter->second->getName(), pyobj);									\
-			Py_DECREF(pyobj);																				\
+																											\
+			if(pyobj == NULL)																				\
+			{																								\
+				SCRIPT_ERROR_CHECK();																		\
+				pyobj = iter->second->parseDefaultStr("");													\
+				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
+				Py_DECREF(pyobj);																			\
+			}																								\
+			else																							\
+			{																								\
+				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
+				Py_DECREF(pyobj);																			\
+			}																								\
+																											\
 			++count;																						\
 		}																									\
 																											\

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,8 @@ range_xz_(fabs(xz)),
 range_y_(fabs(y)),
 origin_(origin),
 positiveBoundary_(NULL),
-negativeBoundary_(NULL)
+negativeBoundary_(NULL),
+removing_(false)
 {
 }
 
@@ -107,21 +108,26 @@ bool RangeTrigger::install()
 //-------------------------------------------------------------------------------------
 bool RangeTrigger::uninstall()
 {
+	if (removing_)
+		return false;
+
+	removing_ = true;
 	if(positiveBoundary_ && positiveBoundary_->pCoordinateSystem())
 	{
-		positiveBoundary_->onTriggerUninstall();
 		positiveBoundary_->pCoordinateSystem()->remove(positiveBoundary_);
+		positiveBoundary_->onTriggerUninstall();
 	}
 
 	if(negativeBoundary_ && negativeBoundary_->pCoordinateSystem())
 	{
-		negativeBoundary_->onTriggerUninstall();
 		negativeBoundary_->pCoordinateSystem()->remove(negativeBoundary_);
+		negativeBoundary_->onTriggerUninstall();
 	}
 	
 	// 此处不必release node， 节点的释放统一交给CoordinateSystem
 	positiveBoundary_ = NULL;
 	negativeBoundary_ = NULL;
+	removing_ = false;
 	return true;
 }
 

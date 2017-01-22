@@ -14,6 +14,7 @@ http://www.kbengine.org
 ##Demo sources
 	Unity3d		: https://github.com/kbengine/kbengine_unity3d_demo/releases/latest
 	Unity3d		: https://github.com/kbengine/kbengine_unity3d_warring/releases/latest
+	UE4			: https://github.com/kbengine/kbengine_ue4_demo/releases/latest
 	Ogre		: https://github.com/kbengine/kbengine_ogre_demo/releases/latest
 	Cocos2d_js	: https://github.com/kbengine/kbengine_cocos2d_js_demo/releases/latest
 
@@ -23,6 +24,7 @@ http://www.kbengine.org
 	
 ##Support
 	Email		: kbesrv?gmail.com
+	QQ			: 3603661
 	BBS			: http://bbs.kbengine.org
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
@@ -49,7 +51,7 @@ acatadog, colin
 
 ##中文
 
-[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412
+[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321
 
 
 ##什么是KBEngine?

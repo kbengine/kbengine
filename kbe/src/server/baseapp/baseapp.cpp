@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -619,6 +619,9 @@ void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::onRequestRestoreCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	COMPONENT_ID cid, source_cid;
 	bool canRestore = true;
 
@@ -655,6 +658,9 @@ void Baseapp::onRestoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
 //-------------------------------------------------------------------------------------
 void Baseapp::onRestoreSpaceCellFromOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	COMPONENT_ID baseappID = 0, cellappID = 0;
 	SPACE_ID spaceID = 0;
 	ENTITY_ID spaceEntityID = 0;
@@ -1126,6 +1132,9 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string entityType;
 	DBID dbid;
 	CALLBACK_ID callbackID;
@@ -1467,6 +1476,9 @@ void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyOb
 //-------------------------------------------------------------------------------------
 void Baseapp::onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	COMPONENT_ID targetComponentID;
 	s >> targetComponentID;
 
@@ -1515,6 +1527,9 @@ void Baseapp::onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pCh
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	size_t currpos = s.rpos();
 
 	std::string entityType;
@@ -1649,6 +1664,9 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string entityType;
 	DBID dbid;
 	CALLBACK_ID callbackID;
@@ -1737,6 +1755,9 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 															   std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	if(callbackID > 0)
 	{
 		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
@@ -1998,6 +2019,9 @@ void Baseapp::createBaseRemotelyFromDBID(const char* entityType, DBID dbid, COMP
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	size_t currpos = s.rpos();
 
 	std::string entityType;
@@ -2132,6 +2156,9 @@ void Baseapp::onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, K
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string entityType;
 	DBID dbid;
 	CALLBACK_ID callbackID;
@@ -2220,6 +2247,9 @@ void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel,
 void Baseapp::onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 															   std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	if(callbackID > 0)
 	{
 		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
@@ -3082,6 +3112,9 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 //-------------------------------------------------------------------------------------
 void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string err;
 	CALLBACK_ID callbackID = 0;
 	uint32 nrows = 0;
@@ -3310,6 +3343,9 @@ void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, 
 //-------------------------------------------------------------------------------------
 void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string chargeID;
 	CALLBACK_ID callbackID;
 	std::string datas;
@@ -4930,6 +4966,9 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	ENTITY_ID entityID = 0;
 	COMPONENT_ID entityInAppID = 0;
 	bool success = false;
@@ -5108,6 +5147,9 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	ENTITY_ID entityID = 0;
 	COMPONENT_ID entityInAppID = 0;
 	bool success = false;
@@ -5237,6 +5279,9 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 void Baseapp::onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 	SERVER_ERROR_CODE failedcode, std::string& code)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCB: {}({}) failedcode={}!\n", 
 		accountName, entityID, failedcode));
 
@@ -5338,6 +5383,9 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 	SERVER_ERROR_CODE failedcode)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	INFO_MSG(fmt::format("Baseapp::onReqAccountNewPasswordCB: {}({}) failedcode={}!\n", 
 		accountName, entityID, failedcode));
 

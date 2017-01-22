@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -179,10 +179,10 @@ void PyGC::collect(int8 generations)
 }
 
 //-------------------------------------------------------------------------------------
-void PyGC::set_debug(uint32 flsgs)
+void PyGC::set_debug(uint32 flags)
 {
 	PyObject* pyRet = PyObject_CallFunction(set_debugMethod_, 
-			const_cast<char*>("i"), flsgs);
+		const_cast<char*>("i"), flags);
 	
 	SCRIPT_ERROR_CHECK();
 	

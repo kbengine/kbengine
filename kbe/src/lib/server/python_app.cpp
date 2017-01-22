@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -650,6 +650,9 @@ PyObject* PythonApp::__py_listPathRes(PyObject* self, PyObject* args)
 void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileName, 
 	int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 0:	// pyprofile
@@ -665,6 +668,9 @@ void PythonApp::startProfile_(Network::Channel* pChannel, std::string profileNam
 //-------------------------------------------------------------------------------------
 void PythonApp::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string cmd;
 	s.readBlob(cmd);
 

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -220,7 +220,7 @@ void Proxy::onClientDeath(void)
 
 //-------------------------------------------------------------------------------------
 void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
-{
+{	
 	// 回调给脚本，获得了cell
 	if(cellMailbox_ == NULL)
 		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -388,15 +388,7 @@ PyObject* Entity::pyGetControlledBy( )
 
 //-------------------------------------------------------------------------------------
 int Entity::pySetControlledBy(PyObject *value)
-{ 
-	if (!isReal())
-	{
-		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
-			scriptName(), id());
-		PyErr_PrintEx(0);
-		return 0;
-	}
-
+{
 	if (isDestroyed())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",		
@@ -405,13 +397,21 @@ int Entity::pySetControlledBy(PyObject *value)
 		return 0;
 	}
 
+	if (!isReal())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::controlledBy: is not real entity(%d).",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	EntityMailbox* mailbox = NULL;
 
 	if (value != Py_None )
 	{
-		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()))
+		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()) || !((EntityMailbox *)value)->isBase())
 		{
-			PyErr_Format(PyExc_AssertionError, "%s: param must be instance of Entity!\n",
+			PyErr_Format(PyExc_AssertionError, "%s: param must be base entity mailbox!\n",
 				scriptName());
 			PyErr_PrintEx(0);
 			return 0;
@@ -2542,6 +2542,9 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	if(this->isDestroyed())
 		return;
 
+	if(pMoveController_ == NULL)
+		return;
+	
 	pMoveController_->destroy();
 	pMoveController_.reset();
 
@@ -2558,6 +2561,9 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	if(this->isDestroyed())
 		return;
 
+	if(pMoveController_ == NULL)
+		return;
+	
 	pMoveController_->destroy();
 	pMoveController_.reset();
 
@@ -2868,7 +2874,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 			return 0;
 		}
 
-		if(!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3)
+		if (pyPosition != Py_None && (!PySequence_Check(pyPosition) || PySequence_Size(pyPosition) < 3))
 		{
 			PyErr_Format(PyExc_TypeError, "Entity::entitiesInRange: args(position) error!");
 			PyErr_PrintEx(0);
@@ -2886,7 +2892,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 	Position3D originpos;
 	
 	// 将坐标信息提取出来
-	if(pyPosition)
+	if (pyPosition && pyPosition != Py_None)
 	{
 		script::ScriptVector3::convertPyObjectToVector3(originpos, pyPosition);
 	}

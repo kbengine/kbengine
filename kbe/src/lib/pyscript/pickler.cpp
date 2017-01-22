@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -163,8 +163,16 @@ PyObject* Pickler::unpickle(const std::string& str)
 	
 	if (!pyRet)
 	{
+		std::string buff;
+		for (size_t i = 0; i < str.length(); ++i)
+		{
+			if ((uchar)str[i] >= 32 && (uchar)str[i] <= 126)
+				buff += str[i];
+			else
+				buff += fmt::format("\\x{:02x}", (uchar)str[i]);
+		}
 		ERROR_MSG(fmt::format("Pickler::unpickle: failed to unpickle[{}] len={}.\n",
-			str.c_str(), str.length()));
+			buff, str.length()));
 	}
 	
 	SCRIPT_ERROR_CHECK();

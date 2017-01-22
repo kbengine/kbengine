@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -766,6 +766,9 @@ E* EntityApp<E>::findEntity(ENTITY_ID entityID)
 template<class E>
 void EntityApp<E>::onReqAllocEntityID(Network::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
 }
@@ -1221,6 +1224,9 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 template<class E>
 void EntityApp<E>::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 0:	// pyprofile
@@ -1239,6 +1245,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 						COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, 
 						const std::string& digest)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
 		startID, endID, startGlobalOrder, startGroupOrder, digest));
 
@@ -1264,6 +1273,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 template<class E>
 void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string key, value;
 	bool isDelete;
 	
@@ -1319,6 +1331,9 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 template<class E>
 void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string cmd;
 	s.readBlob(cmd);
 

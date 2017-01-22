@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -188,6 +188,9 @@ bool ServerApp::initializeWatcher()
 //-------------------------------------------------------------------------------------		
 void ServerApp::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	AUTO_SCOPED_PROFILE("watchers");
 
 	std::string path;
@@ -454,6 +457,9 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 //-------------------------------------------------------------------------------------
 void ServerApp::reqClose(Network::Channel* pChannel)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("ServerApp::reqClose: {}\n", pChannel->c_str()));
 	// this->networkInterface().deregisterChannel(pChannel);
 	// pChannel->destroy();
@@ -482,6 +488,9 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::reqCloseServer(Network::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("ServerApp::reqCloseServer: {}\n", pChannel->c_str()));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -495,6 +504,8 @@ void ServerApp::reqCloseServer(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ServerApp::queryLoad(Network::Channel* pChannel)
 {
+	if(pChannel->isExternal())
+		return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -555,6 +566,9 @@ void ServerApp::onScriptVersionNotMatch(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void ServerApp::startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string profileName;
 	int8 profileType;
 	uint32 timelen;
@@ -567,6 +581,9 @@ void ServerApp::startProfile(Network::Channel* pChannel, KBEngine::MemoryStream&
 //-------------------------------------------------------------------------------------
 void ServerApp::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 1:	// cprofile

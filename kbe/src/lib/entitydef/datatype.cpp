@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1398,7 +1398,9 @@ PyObject* FixedArrayType::createNewFromObj(PyObject* pyobj)
 		return pyobj;
 	}
 
-	return new FixedArray(this, pyobj);
+	FixedArray* pFixedArray = new FixedArray(this);
+	pFixedArray->initialize(pyobj);
+	return pFixedArray;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1497,7 +1499,9 @@ bool FixedArrayType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 {
-	return new FixedArray(this);
+	FixedArray* pFixedArray = new FixedArray(this);
+	pFixedArray->initialize("");
+	return pFixedArray;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1537,13 +1541,15 @@ PyObject* FixedArrayType::createFromStream(MemoryStream* mstream)
 PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPersistents)
 {
 	ArraySize size;
-	FixedArray* arr = new FixedArray(this);
+
+	FixedArray* pFixedArray = new FixedArray(this);
+	pFixedArray->initialize("");
 
 	if(mstream)
 	{
 		(*mstream) >> size;	
 		
-		std::vector<PyObject*>& vals = arr->getValues();
+		std::vector<PyObject*>& vals = pFixedArray->getValues();
 		for(ArraySize i=0; i<size; ++i)
 		{
 			if(mstream->length() == 0)
@@ -1577,7 +1583,7 @@ PyObject* FixedArrayType::createFromStreamEx(MemoryStream* mstream, bool onlyPer
 		}
 	}
 
-	return arr;
+	return pFixedArray;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1685,7 +1691,9 @@ PyObject* FixedDictType::createNewFromObj(PyObject* pyobj)
 		return pyobj;
 	}
 
-	return new FixedDict(this, pyobj);
+	FixedDict* pFixedDict = new FixedDict(this);
+	pFixedDict->initialize(pyobj);
+	return pFixedDict;
 }
 
 //-------------------------------------------------------------------------------------
@@ -2058,7 +2066,8 @@ PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 		Py_DECREF(item);
 	}
 
-	FixedDict* pydict = new FixedDict(this, val);
+	FixedDict* pydict = new FixedDict(this);
+	pydict->initialize(val);
 	Py_DECREF(val);
 
 	if(hasImpl())
@@ -2161,7 +2170,8 @@ PyObject* FixedDictType::createFromStream(MemoryStream* mstream)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::createFromStreamEx(MemoryStream* mstream, bool onlyPersistents)
 {
-	FixedDict* pydict = new FixedDict(this, mstream, onlyPersistents);
+	FixedDict* pydict = new FixedDict(this, onlyPersistents);
+	pydict->initialize(mstream, onlyPersistents);
 
 	if(hasImpl())
 	{

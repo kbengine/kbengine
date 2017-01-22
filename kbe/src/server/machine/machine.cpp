@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -543,7 +543,7 @@ bool Machine::initNetwork()
 	if (!ep_.good() ||
 		ep_.bind(htons(KBE_MACHINE_BROADCAST_SEND_PORT), broadcastAddr_) == -1)
 	{
-		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind socket to '{}:{}'. {}.\n",
+		ERROR_MSG(fmt::format("Machine::initNetwork: Failed to bind UDP-socket to '{}:{}'. {}.\n",
 							inet_ntoa((struct in_addr &)broadcastAddr_),
 							(KBE_MACHINE_BROADCAST_SEND_PORT),
 							kbe_strerror()));

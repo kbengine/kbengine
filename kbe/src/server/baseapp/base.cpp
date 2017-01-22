@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -886,6 +886,9 @@ void Base::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Base::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	creatingCell_ = false;
@@ -912,6 +915,9 @@ void Base::onClientDeath()
 //-------------------------------------------------------------------------------------
 void Base::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	S_RELEASE(cellMailbox_);
@@ -959,6 +965,9 @@ void Base::reqBackupCellData()
 //-------------------------------------------------------------------------------------
 void Base::onBackupCellData(Network::Channel* pChannel, MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	isGetingCellData_ = false;
 
 	bool isDirty = false;
@@ -1429,6 +1438,9 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 //-------------------------------------------------------------------------------------
 void Base::onTeleportCB(Network::Channel* pChannel, SPACE_ID spaceID, bool fromCellTeleport)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	if(spaceID > 0)
 	{
 		if(!fromCellTeleport)
@@ -1463,6 +1475,9 @@ void Base::onTeleportSuccess(SPACE_ID spaceID)
 void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 							COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("{2}::reqTeleportOther: reqTeleportEntityID={0}, reqTeleportEntityCellAppID={1}.\n",
 		reqTeleportEntityID, reqTeleportEntityCellAppID, this->scriptName()));
 
@@ -1507,6 +1522,9 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",
 		scriptName(), id(), cellappID));
 
@@ -1524,6 +1542,9 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cell
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappArrived: {}, targetCellappID={}\n",
 		scriptName(), id(), cellappID));
 	
@@ -1562,6 +1583,9 @@ void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID ce
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",
 		scriptName(), id(), cellappID));
 
@@ -1607,6 +1631,8 @@ void Base::onBufferedForwardToClientMessagesOver()
 //-------------------------------------------------------------------------------------
 void Base::onGetDBID(Network::Channel* pChannel, DBID dbid)
 {
+	if(pChannel->isExternal())
+		return;
 }
 
 //-------------------------------------------------------------------------------------

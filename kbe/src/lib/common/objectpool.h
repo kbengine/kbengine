@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -308,11 +308,14 @@ protected:
 			// 小于等于则刷新检查时间
 			lastReducingCheckTime_ = now_timestamp;
 		}
-		else if (lastReducingCheckTime_ - now_timestamp > OBJECT_POOL_REDUCING_TIME_OUT)
+		else if (now_timestamp - lastReducingCheckTime_ > OBJECT_POOL_REDUCING_TIME_OUT)
 		{
 			// 长时间大于OBJECT_POOL_INIT_SIZE未使用的对象则开始做清理工作
 			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(obj_count_ - OBJECT_POOL_INIT_SIZE)));
 			
+			printf("ObjectPool::reclaimObject_(): start reducing..., name=%s, currsize=%d, OBJECT_POOL_INIT_SIZE=%d\n", 
+				name_.c_str(), (int)objects_.size(), OBJECT_POOL_INIT_SIZE);
+
 			while (reducing-- > 0)
 			{
 				T* t = static_cast<T*>(*objects_.begin());
@@ -321,6 +324,9 @@ protected:
 
 				--obj_count_;
 			}
+
+			printf("ObjectPool::reclaimObject_(): reducing over, name=%s, currsize=%d\n", 
+				name_.c_str(), (int)objects_.size());
 
 			lastReducingCheckTime_ = now_timestamp;
 		}

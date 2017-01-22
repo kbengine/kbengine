@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -1179,8 +1179,9 @@ bool Components::findComponents()
 			}
 			else
 			{
-				std::string s = fmt::format("Components::findComponents: find {}({})...\n",
-					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count);
+				std::string s = fmt::format("Components::findComponents: find {}({})...\ndelay time is too long, please check the {} logs!\n",
+					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count, COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+
 				WARNING_MSG(s);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
