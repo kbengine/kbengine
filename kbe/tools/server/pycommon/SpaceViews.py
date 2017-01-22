@@ -164,9 +164,6 @@ class CellAppMgrViewer(ServerApp.ServerApp):
 				cellID = streamReader.readUint32()
 				_d["cellID"].append(cellID)
 		self.CellAppMgrViewerData = _d
-		print(self.CellAppMgrViewerData)
-
-
 
 class CellViewer(ServerApp.ServerApp):
 	"""
