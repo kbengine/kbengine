@@ -4225,7 +4225,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onEntityMail: entityID {} not found.\n", eid));
+		WARNING_MSG(fmt::format("Baseapp::onEntityMail: entityID {} not found.\n", eid));
 		s.done();
 		return;
 	}
