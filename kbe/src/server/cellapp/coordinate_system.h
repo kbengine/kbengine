@@ -54,7 +54,6 @@ public:
 		相关位置等信息
 	*/
 	void update(CoordinateNode* pNode);
-	void update(CoordinateNode* pNode, CoordinateNode& tmpNode, bool isMove);
 
 	/**
 		移动节点
