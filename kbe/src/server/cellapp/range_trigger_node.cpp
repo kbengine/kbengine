@@ -31,7 +31,7 @@ namespace KBEngine{
 
 
 //-------------------------------------------------------------------------------------
-RangeTriggerNode::RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y):
+RangeTriggerNode::RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y, bool positiveBoundary) :
 CoordinateNode(NULL),
 range_xz_(xz),
 range_y_(y),
@@ -39,10 +39,13 @@ old_range_xz_(range_xz_),
 old_range_y_(range_y_),
 pRangeTrigger_(pRangeTrigger)
 {
-	flags(COORDINATE_NODE_FLAG_HIDE);
+	if (positiveBoundary)
+		flags(COORDINATE_NODE_FLAG_HIDE | COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY);
+	else
+		flags(COORDINATE_NODE_FLAG_HIDE | COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY);
 
 #ifdef _DEBUG
-	descr((fmt::format("RangeTriggerNode(origin={:p}->{})", 
+	descr((fmt::format("RangeTriggerNode({}, origin={:p}->{})", (positiveBoundary ? "positiveBoundary" : "negativeBoundary"),
 		(void*)pRangeTrigger_->origin(), pRangeTrigger_->origin()->descr())));
 #endif
 

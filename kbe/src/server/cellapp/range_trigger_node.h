@@ -31,7 +31,7 @@ class RangeTrigger;
 class RangeTriggerNode : public CoordinateNode
 {
 public:
-	RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y);
+	RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y, bool positiveBoundary);
 	virtual ~RangeTriggerNode();
 
 	INLINE void range(float xz, float y);

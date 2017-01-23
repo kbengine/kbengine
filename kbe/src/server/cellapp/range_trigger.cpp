@@ -58,12 +58,12 @@ bool RangeTrigger::reinstall(CoordinateNode* pCoordinateNode)
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
+		positiveBoundary_ = new RangeTriggerNode(this, 0, 0, true);
 	else
 		positiveBoundary_->range(0.0f, 0.0f);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
+		negativeBoundary_ = new RangeTriggerNode(this, 0, 0, false);
 	else
 		negativeBoundary_->range(0.0f, 0.0f);
 
