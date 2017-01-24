@@ -604,7 +604,7 @@ public:
 	/**
 		调用实体的回调函数，有可能被缓存
 	*/
-	bool pushBufferCallback(const char * funcName, PyObject * funcArgs);
+	bool bufferOrExeCallback(const char * funcName, PyObject * funcArgs, bool notFoundIsOK = true);
 	static void bufferCallback(bool enable);
 
 private:

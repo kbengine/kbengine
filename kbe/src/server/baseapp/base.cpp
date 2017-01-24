@@ -1636,6 +1636,20 @@ void Base::onGetDBID(Network::Channel* pChannel, DBID dbid)
 }
 
 //-------------------------------------------------------------------------------------
+void Base::onTimer(ScriptID timerID, int useraAgs)
+{
+	SCOPED_PROFILE(ONTIMER_PROFILE);
+	
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),
+		const_cast<char*>("Ii"), timerID, useraAgs);
+
+	if (pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
 bool Base::_reload(bool fullReload)
 {
 	return true;
