@@ -316,6 +316,8 @@ entityNodeUpdating_(0)
 #ifdef _DEBUG
 	descr_ = (fmt::format("EntityCoordinateNode({}_{})", pEntity->scriptName(), pEntity->id()));
 #endif
+
+	weight_ = 1;
 }
 
 //-------------------------------------------------------------------------------------

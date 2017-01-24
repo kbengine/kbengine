@@ -42,6 +42,7 @@ z_(-FLT_MAX),
 old_xx_(-FLT_MAX),
 old_yy_(-FLT_MAX),
 old_zz_(-FLT_MAX),
+weight_(0),
 #ifdef _DEBUG
 descr_(),
 #endif

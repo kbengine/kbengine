@@ -81,6 +81,8 @@ public:
 	float old_yy() const { return old_yy_; }
 	float old_zz() const { return old_zz_; }
 
+	int8 weight() const { return weight_; }
+
 	virtual void resetOld() { 
 		old_xx_ = xx();
 		old_yy_ = yy();
@@ -167,6 +169,8 @@ protected:
 
 	float x_, y_, z_;
 	float old_xx_, old_yy_, old_zz_;
+
+	int8 weight_;
 
 #ifdef _DEBUG
 	std::string descr_;

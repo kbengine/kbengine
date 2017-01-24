@@ -40,9 +40,15 @@ old_range_y_(range_y_),
 pRangeTrigger_(pRangeTrigger)
 {
 	if (positiveBoundary)
+	{
 		flags(COORDINATE_NODE_FLAG_HIDE | COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY);
+		weight_ = 3;
+	}
 	else
+	{
 		flags(COORDINATE_NODE_FLAG_HIDE | COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY);
+		weight_ = 2;
+	}
 
 #ifdef _DEBUG
 	descr((fmt::format("RangeTriggerNode({}, origin={:p}->{})", (positiveBoundary ? "positiveBoundary" : "negativeBoundary"),
