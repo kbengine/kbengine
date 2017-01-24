@@ -104,6 +104,10 @@ SCRIPT_GETSET_DECLARE("volatileInfo",				pyGetVolatileinfo,				pySetVolatileinfo
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 
+Entity::BufferedScriptCallArray Entity::_scriptCallbacksBuffer;
+int32 Entity::_scriptCallbacksBufferCount = 0;
+int32 Entity::_scriptCallbacksBufferNum = 0;
+
 //-------------------------------------------------------------------------------------
 Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule):
 ScriptObject(getScriptType(), true),
@@ -1078,6 +1082,97 @@ void Entity::onWriteToDB()
 		this->scriptName(), this->id()));
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"));
+}
+
+//-------------------------------------------------------------------------------------
+bool Entity::pushBufferCallback(const char * funcName, PyObject * funcArgs)
+{
+	if (isDestroyed())
+	{
+		ERROR_MSG(fmt::format("{}::pushBufferCallback({}): is destroyed!\n",
+			scriptName(), id()));
+
+		if (funcArgs)
+			Py_DECREF(funcArgs);
+
+		return false;
+	}
+
+	bool canBuffer = _scriptCallbacksBufferCount > 0;
+
+	PyObject* pyCallable = PyObject_GetAttrString(this, const_cast<char*>(funcName));
+
+	if (pyCallable == NULL)
+	{
+		ERROR_MSG(fmt::format("{}::pushBufferCallback({}): method(%s) not found!\n",
+			scriptName(), id(), funcName));
+
+		if (funcArgs)
+			Py_DECREF(funcArgs);
+
+		PyErr_Clear();
+		return false;
+	}
+
+	if (canBuffer)
+	{
+		BufferedScriptCall* pBufferedScriptCall = new BufferedScriptCall();
+		pBufferedScriptCall->entityPtr = this;
+		pBufferedScriptCall->pyFuncArgs = funcArgs;
+		pBufferedScriptCall->pyCallable = pyCallable;
+		_scriptCallbacksBuffer.push_back(pBufferedScriptCall);
+		++_scriptCallbacksBufferNum;
+	}
+	else
+	{
+		PyObject* pyResult = PyObject_CallObject(pyCallable, funcArgs);
+
+		if (pyResult)
+			Py_DECREF(pyResult);
+		else
+			PyErr_PrintEx(0);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::bufferCallback(bool enable)
+{
+	if (enable)
+	{
+		++_scriptCallbacksBufferCount;
+	}
+	else
+	{
+		if (_scriptCallbacksBufferCount - 1 == 0)
+		{
+			// 既然将要取消缓存了，那么执行所有callback，但需要注意在执行过程中可能又产生了callback缓存
+			// 那么需要加入到队列后面
+			while (_scriptCallbacksBufferNum-- > 0)
+			{
+				BufferedScriptCall* pBufferedScriptCall = (*_scriptCallbacksBuffer.begin());
+				_scriptCallbacksBuffer.pop_front();
+
+				PyObject* pyResult = PyObject_CallObject(pBufferedScriptCall->pyCallable, pBufferedScriptCall->pyFuncArgs);
+
+				if (pyResult)
+					Py_DECREF(pyResult);
+				else
+					PyErr_PrintEx(0);
+
+				Py_DECREF(pBufferedScriptCall->pyCallable);
+				if (pBufferedScriptCall->pyFuncArgs)
+					Py_DECREF(pBufferedScriptCall->pyFuncArgs);
+
+				delete pBufferedScriptCall;
+			}
+		}
+
+		// 最后再执行减操作，防止执行callback期间又请求缓存callback
+		--_scriptCallbacksBufferCount;
+		KBE_ASSERT(_scriptCallbacksBufferCount > 0);
+	}
 }
 
 //-------------------------------------------------------------------------------------
