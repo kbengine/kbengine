@@ -1087,17 +1087,6 @@ void Entity::onWriteToDB()
 //-------------------------------------------------------------------------------------
 bool Entity::bufferOrExeCallback(const char * funcName, PyObject * funcArgs, bool notFoundIsOK)
 {
-	if (isDestroyed())
-	{
-		ERROR_MSG(fmt::format("{}::bufferOrExeCallback({}): is destroyed! funcName={}\n",
-			scriptName(), id(), funcName));
-
-		if (funcArgs)
-			Py_DECREF(funcArgs);
-
-		return false;
-	}
-
 	bool canBuffer = _scriptCallbacksBufferCount > 0;
 
 	PyObject* pyCallable = PyObject_GetAttrString(this, const_cast<char*>(funcName));
