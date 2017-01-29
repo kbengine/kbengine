@@ -21,12 +21,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_RANGE_TRIGGER_NODE_H
 #define KBE_RANGE_TRIGGER_NODE_H
 
+#include "range_trigger.h"
 #include "coordinate_node.h"
 #include "math/math.h"
 
 namespace KBEngine{
 
-class RangeTrigger;
 
 class RangeTriggerNode : public CoordinateNode
 {
