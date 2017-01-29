@@ -777,6 +777,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+
 						foundConflict = true;
 					}
 
@@ -785,6 +786,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+
 						foundConflict = true;
 					}
 
@@ -793,6 +795,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+
 						foundConflict = true;
 					}
 
@@ -828,21 +831,23 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 			// 添加到模块中
 			if(hasCellFlags > 0)
-				ret = pScriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(),
 						propertyDescription, CELLAPP_TYPE);
 
 			if(hasBaseFlags > 0)
-				ret = pScriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(),
 						propertyDescription, BASEAPP_TYPE);
 
 			if(hasClientFlags > 0)
-				ret = pScriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(),
 						propertyDescription, CLIENT_TYPE);
 
 			if(!ret)
 			{
 				ERROR_MSG(fmt::format("EntityDef::addPropertyDescription({}): {}.\n", 
 					moduleName.c_str(), xml->getTxdoc()->Value()));
+				
+				return false;
 			}
 		}
 		XML_FOR_END(defPropertyNode);
@@ -960,6 +965,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -968,6 +974,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -976,6 +983,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -984,7 +992,8 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				}
 			}
 
-			pScriptModule->addCellMethodDescription(name.c_str(), methodDescription);
+			if(!pScriptModule->addCellMethodDescription(name.c_str(), methodDescription))
+				return false;
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -1099,6 +1108,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1107,6 +1117,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1115,6 +1126,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1123,7 +1135,8 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 				}
 			}
 
-			pScriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
+			if(!pScriptModule->addBaseMethodDescription(name.c_str(), methodDescription))
+				return false;
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -1234,6 +1247,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1242,6 +1256,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1250,6 +1265,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1258,7 +1274,8 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 				}
 			}
 
-			pScriptModule->addClientMethodDescription(name.c_str(), methodDescription);
+			if(!pScriptModule->addClientMethodDescription(name.c_str(), methodDescription))
+				return false;
 		}
 		XML_FOR_END(defMethodNode);
 	}

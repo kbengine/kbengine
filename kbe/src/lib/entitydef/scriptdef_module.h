@@ -134,6 +134,9 @@ public:
 	MethodDescription* findMethodDescription(const char* attrName, COMPONENT_TYPE componentType);
 	MethodDescription* findMethodDescription(ENTITY_METHOD_UID utype, COMPONENT_TYPE componentType);
 
+	bool hasPropertyName(const std::string& name);
+	bool hasMethodName(const std::string& name);
+	
 	INLINE METHODDESCRIPTION_MAP& getBaseExposedMethodDescriptions(void);
 	INLINE METHODDESCRIPTION_MAP& getCellExposedMethodDescriptions(void);
 
