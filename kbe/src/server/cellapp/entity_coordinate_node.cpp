@@ -454,8 +454,6 @@ bool EntityCoordinateNode::addWatcherNode(CoordinateNode* pNode)
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::onAddWatcherNode(CoordinateNode* pNode)
 {
-	// 由于目前watcherNodes_基本就是RangeTriggerNode，因此我们在这里对RangeTriggerNode位置排序
-	// range大的在前面，小的在后面，这样移动时就可以保证向左和向右都能先触碰到外层触发器
 }
 
 //-------------------------------------------------------------------------------------
