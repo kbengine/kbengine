@@ -113,6 +113,10 @@ SCRIPT_GETSET_DECLARE("volatileInfo",				pyGetVolatileinfo,				pySetVolatileinfo
 ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 
+Entity::BufferedScriptCallArray Entity::_scriptCallbacksBuffer;
+int32 Entity::_scriptCallbacksBufferCount = 0;
+int32 Entity::_scriptCallbacksBufferNum = 0;
+
 //-------------------------------------------------------------------------------------
 Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule):
 ScriptObject(getScriptType(), true),
@@ -1117,6 +1121,98 @@ void Entity::onWriteToDB()
 }
 
 //-------------------------------------------------------------------------------------
+bool Entity::bufferOrExeCallback(const char * funcName, PyObject * funcArgs, bool notFoundIsOK)
+{
+	bool canBuffer = _scriptCallbacksBufferCount > 0;
+
+	PyObject* pyCallable = PyObject_GetAttrString(this, const_cast<char*>(funcName));
+
+	if (pyCallable == NULL)
+	{
+		if (!notFoundIsOK)
+		{
+			ERROR_MSG(fmt::format("{}::bufferOrExeCallback({}): method({}) not found!\n",
+				scriptName(), id(), funcName));
+		}
+
+		if (funcArgs)
+			Py_DECREF(funcArgs);
+
+		PyErr_Clear();
+		return false;
+	}
+
+	if (canBuffer)
+	{
+		BufferedScriptCall* pBufferedScriptCall = new BufferedScriptCall();
+		pBufferedScriptCall->entityPtr = this;
+		pBufferedScriptCall->pyFuncArgs = funcArgs;
+		pBufferedScriptCall->pyCallable = pyCallable;
+		_scriptCallbacksBuffer.push_back(pBufferedScriptCall);
+		++_scriptCallbacksBufferNum;
+	}
+	else
+	{
+		PyObject* pyResult = PyObject_CallObject(pyCallable, funcArgs);
+
+		if (pyResult)
+		{
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			PyErr_PrintEx(0);
+		}
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::bufferCallback(bool enable)
+{
+	if (enable)
+	{
+		++_scriptCallbacksBufferCount;
+	}
+	else
+	{
+		if (_scriptCallbacksBufferCount - 1 == 0)
+		{
+			// 既然将要取消缓存了，那么执行所有callback，但需要注意在执行过程中可能又产生了callback缓存
+			// 那么需要加入到队列后面
+			while (_scriptCallbacksBufferNum > 0)
+			{
+				BufferedScriptCall* pBufferedScriptCall = (*_scriptCallbacksBuffer.begin());
+				_scriptCallbacksBuffer.pop_front();
+				--_scriptCallbacksBufferNum;
+
+				PyObject* pyResult = PyObject_CallObject(pBufferedScriptCall->pyCallable, pBufferedScriptCall->pyFuncArgs);
+
+				if (pyResult)
+				{
+					Py_DECREF(pyResult);
+				}
+				else
+				{
+					PyErr_PrintEx(0);
+				}
+
+				Py_DECREF(pBufferedScriptCall->pyCallable);
+				if (pBufferedScriptCall->pyFuncArgs)
+					Py_DECREF(pBufferedScriptCall->pyFuncArgs);
+
+				delete pBufferedScriptCall;
+			}
+		}
+
+		// 最后再执行减操作，防止执行callback期间又请求缓存callback
+		--_scriptCallbacksBufferCount;
+		KBE_ASSERT(_scriptCallbacksBufferCount >= 0);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* Entity::pyIsReal()
 {
 	return PyBool_FromLong(isReal());
@@ -1154,8 +1250,8 @@ void Entity::addWitnessed(Entity* entity)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
-			const_cast<char*>("O"), PyBool_FromLong(1));
+		bufferOrExeCallback(const_cast<char*>("onWitnessed"),
+			Py_BuildValue(const_cast<char*>("(O)"), PyBool_FromLong(1)));
 	}
 }
 
@@ -1195,8 +1291,8 @@ void Entity::onDelWitnessed()
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWitnessed"), 
-			const_cast<char*>("O"), PyBool_FromLong(0));
+		bufferOrExeCallback(const_cast<char*>("onWitnessed"),
+			Py_BuildValue(const_cast<char*>("(O)"), PyBool_FromLong(0)));
 	}
 }
 
@@ -1421,8 +1517,8 @@ void Entity::onEnterTrap(Entity* entity, float range_xz, float range_y, uint32 c
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS5(this, const_cast<char*>("onEnterTrap"), 
-		const_cast<char*>("OffIi"), entity, range_xz, range_y, controllerID, userarg);
+	bufferOrExeCallback(const_cast<char*>("onEnterTrap"), 
+		Py_BuildValue(const_cast<char*>("(OffIi)"), entity, range_xz, range_y, controllerID, userarg));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1430,8 +1526,8 @@ void Entity::onLeaveTrap(Entity* entity, float range_xz, float range_y, uint32 c
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS5(this, const_cast<char*>("onLeaveTrap"), 
-		const_cast<char*>("OffIi"), entity, range_xz, range_y, controllerID, userarg);
+	bufferOrExeCallback(const_cast<char*>("onLeaveTrap"), 
+		Py_BuildValue(const_cast<char*>("(OffIi)"), entity, range_xz, range_y, controllerID, userarg));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1439,8 +1535,8 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, ui
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS5(this, const_cast<char*>("onLeaveTrapID"), 
-		const_cast<char*>("kffIi"), entityID, range_xz, range_y, controllerID, userarg);
+	bufferOrExeCallback(const_cast<char*>("onLeaveTrapID"), 
+		Py_BuildValue(const_cast<char*>("(kffIi)"), entityID, range_xz, range_y, controllerID, userarg));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1448,8 +1544,8 @@ void Entity::onEnteredAoI(Entity* entity)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onEnteredAoI"), 
-		const_cast<char*>("O"), entity);
+	bufferOrExeCallback(const_cast<char*>("onEnteredAoI"),
+		Py_BuildValue(const_cast<char*>("(O)"), entity));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1721,8 +1817,12 @@ void Entity::onPositionChanged()
 	if(this->isDestroyed())
 		return;
 
-	if(this->pEntityCoordinateNode())
+	if (this->pEntityCoordinateNode())
+	{
+		Entity::bufferCallback(true);
 		this->pEntityCoordinateNode()->update();
+		Entity::bufferCallback(false);
+	}
 
 	updateLastPos();
 }
@@ -2530,9 +2630,10 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 		return;
 
 	SCOPED_PROFILE(ONMOVE_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
-		const_cast<char*>("IO"), controllerId, userarg);
-	
+
+	bufferOrExeCallback(const_cast<char*>("onMove"),
+		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
+
 	setDirty();
 }
 
@@ -2549,8 +2650,9 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+
+	bufferOrExeCallback(const_cast<char*>("onMoveOver"),
+		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
 	
 	setDirty();
 }
@@ -2568,8 +2670,9 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	pMoveController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+
+	bufferOrExeCallback(const_cast<char*>("onMoveFailure"),
+		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
 	
 	setDirty();
 }
@@ -2685,8 +2788,9 @@ void Entity::onTurn(uint32 controllerId, PyObject* userarg)
 	pTurnController_.reset();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onTurn"),
-		const_cast<char*>("IO"), controllerId, userarg);
+
+	bufferOrExeCallback(const_cast<char*>("onTurn"),
+		Py_BuildValue(const_cast<char*>("(IO)"), controllerId, userarg));
 
 	setDirty();
 }
@@ -3401,7 +3505,7 @@ void Entity::onTeleport()
 	// 这个方法仅在base.teleport跳转之前被调用， cell.teleport是不会被调用的。
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleport"));
+	bufferOrExeCallback(const_cast<char*>("onTeleport"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3412,7 +3516,7 @@ void Entity::onTeleportFailure()
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"));
+	bufferOrExeCallback(const_cast<char*>("onTeleportFailure"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3444,8 +3548,9 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 	}
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onTeleportSuccess"), 
-		const_cast<char*>("O"), nearbyEntity);
+
+	bufferOrExeCallback(const_cast<char*>("onTeleportSuccess"),
+		Py_BuildValue(const_cast<char*>("(O)"), nearbyEntity));
 }
 
 //-------------------------------------------------------------------------------------
@@ -3453,7 +3558,7 @@ void Entity::onEnterSpace(Space* pSpace)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
+	bufferOrExeCallback(const_cast<char*>("onEnterSpace"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3461,7 +3566,7 @@ void Entity::onLeaveSpace(Space* pSpace)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
+	bufferOrExeCallback(const_cast<char*>("onLeaveSpace"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3469,7 +3574,7 @@ void Entity::onEnteredCell()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnteredCell"));
+	bufferOrExeCallback(const_cast<char*>("onEnteredCell"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3477,7 +3582,7 @@ void Entity::onEnteringCell()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnteringCell"));
+	bufferOrExeCallback(const_cast<char*>("onEnteringCell"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3485,7 +3590,7 @@ void Entity::onLeavingCell()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeavingCell"));
+	bufferOrExeCallback(const_cast<char*>("onLeavingCell"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3493,7 +3598,7 @@ void Entity::onLeftCell()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeftCell"));
+	bufferOrExeCallback(const_cast<char*>("onLeftCell"), NULL);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3501,7 +3606,7 @@ void Entity::onRestore()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));
+	bufferOrExeCallback(const_cast<char*>("onRestore"), NULL);
 	removeFlags(ENTITY_FLAGS_INITING);
 }
 
@@ -3899,6 +4004,15 @@ void Entity::createMovementHandlerFromStream(KBEngine::MemoryStream& s)
 		pTurnController_->createFromStream(s);
 		pControllers_->add(pTurnController_);
 	}	
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTimer(ScriptID timerID, int useraAgs)
+{
+	SCOPED_PROFILE(ONTIMER_PROFILE);
+
+	bufferOrExeCallback(const_cast<char*>("onTimer"),
+		Py_BuildValue(const_cast<char*>("(Ii)"), timerID, useraAgs));
 }
 
 //-------------------------------------------------------------------------------------

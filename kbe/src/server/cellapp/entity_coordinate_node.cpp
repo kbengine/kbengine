@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity_coordinate_node.h"
 #include "entity.h"
 #include "coordinate_system.h"
+#include "range_trigger_node.h"
 
 namespace KBEngine{	
 
@@ -316,6 +317,8 @@ entityNodeUpdating_(0)
 #ifdef _DEBUG
 	descr_ = (fmt::format("EntityCoordinateNode({}_{})", pEntity->scriptName(), pEntity->id()));
 #endif
+
+	weight_ = 1;
 }
 
 //-------------------------------------------------------------------------------------
@@ -368,7 +371,7 @@ void EntityCoordinateNode::update()
 	++entityNodeUpdating_;
 
 	// 此处必须使用watcherNodes_.size()而不能使用迭代器遍历，防止在update中导致增加了watcherNodes_数量而破坏迭代器
-	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
+	for (WATCHER_NODES::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
 		CoordinateNode* pCoordinateNode = watcherNodes_[i];
 		if (!pCoordinateNode)
@@ -392,7 +395,7 @@ void EntityCoordinateNode::clearDelWatcherNodes()
 
 	if (delWatcherNodeNum_ > 0)
 	{
-		std::vector<CoordinateNode*>::iterator iter = watcherNodes_.begin();
+		WATCHER_NODES::iterator iter = watcherNodes_.begin();
 		for (; iter != watcherNodes_.end();)
 		{
 			if (!(*iter))
@@ -414,7 +417,7 @@ void EntityCoordinateNode::clearDelWatcherNodes()
 //-------------------------------------------------------------------------------------
 void EntityCoordinateNode::onRemove()
 {
-	for (std::vector<CoordinateNode*>::size_type i = 0; i < watcherNodes_.size(); ++i)
+	for (WATCHER_NODES::size_type i = 0; i < watcherNodes_.size(); ++i)
 	{
 		CoordinateNode* pCoordinateNode = watcherNodes_[i];
 
@@ -438,18 +441,25 @@ bool EntityCoordinateNode::addWatcherNode(CoordinateNode* pNode)
 {
 	clearDelWatcherNodes();
 
-	std::vector<CoordinateNode*>::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
+	WATCHER_NODES::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
 	if(iter != watcherNodes_.end())
 		return false;
 
 	watcherNodes_.push_back(pNode);
+	
+	onAddWatcherNode(pNode);
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityCoordinateNode::onAddWatcherNode(CoordinateNode* pNode)
+{
 }
 
 //-------------------------------------------------------------------------------------
 bool EntityCoordinateNode::delWatcherNode(CoordinateNode* pNode)
 {
-	std::vector<CoordinateNode*>::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
+	WATCHER_NODES::iterator iter = std::find(watcherNodes_.begin(), watcherNodes_.end(), pNode);
 	if(iter == watcherNodes_.end())
 		return false;
 

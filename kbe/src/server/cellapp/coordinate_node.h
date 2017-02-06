@@ -35,6 +35,8 @@ namespace KBEngine{
 #define COORDINATE_NODE_FLAG_PENDING				0x00000020		// 这类节点处于update操作中。
 #define COORDINATE_NODE_FLAG_ENTITY_NODE_UPDATING	0x00000040		// entity节点正在执行update操作
 #define COORDINATE_NODE_FLAG_INSTALLING				0x00000080		// 节点正在安装操作
+#define COORDINATE_NODE_FLAG_POSITIVE_BOUNDARY		0x00000100		// 节点是触发器的正边界
+#define COORDINATE_NODE_FLAG_NEGATIVE_BOUNDARY		0x00000200		// 节点是触发器的负边界
 
 #define COORDINATE_NODE_FLAG_HIDE_OR_REMOVED		(COORDINATE_NODE_FLAG_REMOVED | COORDINATE_NODE_FLAG_HIDE)
 
@@ -78,6 +80,8 @@ public:
 	float old_xx() const { return old_xx_; }
 	float old_yy() const { return old_yy_; }
 	float old_zz() const { return old_zz_; }
+
+	int8 weight() const { return weight_; }
 
 	virtual void resetOld() { 
 		old_xx_ = xx();
@@ -165,6 +169,8 @@ protected:
 
 	float x_, y_, z_;
 	float old_xx_, old_yy_, old_zz_;
+
+	int8 weight_;
 
 #ifdef _DEBUG
 	std::string descr_;

@@ -522,16 +522,7 @@ public:																										\
 	}																										\
 																											\
 	inline ScriptTimers& scriptTimers(){ return scriptTimers_; }											\
-	void onTimer(ScriptID timerID, int useraAgs)															\
-	{																										\
-		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),						\
-			const_cast<char*>("Ii"), timerID, useraAgs);													\
-																											\
-		if(pyResult != NULL)																				\
-			Py_DECREF(pyResult);																			\
-		else																								\
-			SCRIPT_ERROR_CHECK();																			\
-	}																										\
+	void onTimer(ScriptID timerID, int useraAgs);															\
 																											\
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }													\
 																											\

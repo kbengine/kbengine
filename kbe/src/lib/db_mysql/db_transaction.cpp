@@ -107,7 +107,16 @@ void DBTransaction::commit()
 	KBE_ASSERT(!committed_);
 
 	uint64 startTime = timestamp();
-	pdbi_->query(SQL_COMMIT, false);
+
+	try
+	{
+		pdbi_->query(SQL_COMMIT, false);
+	}
+	catch (DBException & e)
+	{
+		bool ret = static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+		KBE_ASSERT(ret);
+	}
 
 	uint64 duration = timestamp() - startTime;
 	if(duration > stampsPerSecond() * 0.2f)

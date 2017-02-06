@@ -643,10 +643,16 @@ public:
 	INLINE bool isDirty() const;
 	
 	/**
-	VolatileInfo section
+		VolatileInfo section
 	*/
 	INLINE VolatileInfo* pCustomVolatileinfo(void);
 	DECLARE_PY_GETSET_MOTHOD(pyGetVolatileinfo, pySetVolatileinfo);
+
+	/**
+		调用实体的回调函数，有可能被缓存
+	*/
+	bool bufferOrExeCallback(const char * funcName, PyObject * funcArgs, bool notFoundIsOK = true);
+	static void bufferCallback(bool enable);
 
 	/**
 	脚本获取和设置父entity对象
@@ -686,6 +692,20 @@ private:
 	*/
 	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, 
 		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
+
+private:
+	struct BufferedScriptCall
+	{
+		EntityPtr		entityPtr;
+		PyObject *		pyCallable;
+		// 可以为NULL， NULL说明没有参数
+		PyObject *		pyFuncArgs;
+	};
+
+	typedef std::list<BufferedScriptCall*>					BufferedScriptCallArray;
+	static BufferedScriptCallArray							_scriptCallbacksBuffer;
+	static int32											_scriptCallbacksBufferNum;
+	static int32											_scriptCallbacksBufferCount;
 
 protected:
 	// 这个entity的客户端部分的mailbox

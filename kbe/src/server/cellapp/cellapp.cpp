@@ -471,10 +471,11 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	{
 		Py_INCREF(pEntity);
 		pEntity->spaceID(space->id());
-		pEntity->initializeEntity(params);
+		pEntity->createNamespace(params);
 		pEntity->pySetPosition(position);
 		pEntity->pySetDirection(direction);	
-		
+		pEntity->initializeScript();
+
 		// Ìí¼Óµ½space
 		space->addEntityAndEnterWorld(pEntity);
 

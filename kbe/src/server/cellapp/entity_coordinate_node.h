@@ -48,6 +48,8 @@ public:
 	void pEntity(Entity* pEntity) { pEntity_ = pEntity; }
 
 	bool addWatcherNode(CoordinateNode* pNode);
+	void onAddWatcherNode(CoordinateNode* pNode);
+	
 	bool delWatcherNode(CoordinateNode* pNode);
 
 	static void entitiesInRange(std::vector<Entity*>& foundEntities, CoordinateNode* rootNode, 
@@ -61,7 +63,8 @@ protected:
 protected:
 	Entity* pEntity_;
 
-	std::vector<CoordinateNode*> watcherNodes_;
+	typedef std::vector<CoordinateNode*> WATCHER_NODES;
+	WATCHER_NODES watcherNodes_;
 	int delWatcherNodeNum_;
 
 	int entityNodeUpdating_;

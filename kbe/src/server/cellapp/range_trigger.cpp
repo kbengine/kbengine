@@ -58,12 +58,12 @@ bool RangeTrigger::reinstall(CoordinateNode* pCoordinateNode)
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
+		positiveBoundary_ = new RangeTriggerNode(this, 0, 0, true);
 	else
 		positiveBoundary_->range(0.0f, 0.0f);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
+		negativeBoundary_ = new RangeTriggerNode(this, 0, 0, false);
 	else
 		negativeBoundary_->range(0.0f, 0.0f);
 
@@ -177,19 +177,6 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 	{
 		this->onLeave(pNode);
 	}
-}
-
-//-------------------------------------------------------------------------------------
-bool RangeTriggerNode::wasInYRange(CoordinateNode * pNode)
-{
-	if(!CoordinateSystem::hasY)
-		return true;
-
-	float originY = old_yy() - old_range_y_;
-
-	volatile float lowerBound = originY - fabs(old_range_y_);
-	volatile float upperBound = originY + fabs(old_range_y_);
-	return (pNode->old_yy() >= lowerBound) && (pNode->old_yy() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------

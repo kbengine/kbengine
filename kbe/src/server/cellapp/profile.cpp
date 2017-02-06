@@ -23,8 +23,9 @@ namespace KBEngine{
 
 ProfileVal SCRIPTCALL_PROFILE("scriptCall");
 ProfileVal ONMOVE_PROFILE("onMove");
-ProfileVal ON_NAVIGATE_PROFILE( "onNavigate" );
-ProfileVal CLIENT_UPDATE_PROFILE( "clientUpdate" );
+ProfileVal ON_NAVIGATE_PROFILE("onNavigate");
+ProfileVal CLIENT_UPDATE_PROFILE("clientUpdate");
+ProfileVal ONTIMER_PROFILE("onTimer");
 
 EventHistoryStats g_privateClientEventHistoryStats("PrivateClientEvents");
 EventHistoryStats g_publicClientEventHistoryStats("PublicClientEvents");
