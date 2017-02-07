@@ -734,7 +734,7 @@ def findMysqlService():
 	for s in ret:
 		if "mysql" in s.strip().lower():
 			if len(mysql_sercive_name) == 0:
-				for x in s[s.find("mysql"):]:
+				for x in s[s.strip().lower().find("mysql"):]:
 					if x.isalnum():
 						mysql_sercive_name += x
 
