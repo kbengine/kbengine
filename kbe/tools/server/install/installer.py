@@ -1195,27 +1195,16 @@ def download_hookreport(count, block_size, total_size):
 def download(currurl, fname = None):
 	OUT_MSG("")
 	INFO_MSG("Downloading from " + currurl)
-
-	if sys.hexversion >= 0x03000000:
-		try:
-			if hasattr(urllib, "urlretrieve"):
-				return urllib.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
-			else:
-				return urllib.request.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
-		except Exception as e:
-			OUT_MSG("")
-			ERROR_MSG(str(e))
-			return download(currurl, fname)
-	else:
-		try:
-			if hasattr(urllib, "urlretrieve"):
-				return urllib.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
-			else:
-				return urllib.request.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
-		except Exception, e:
-			OUT_MSG("")
-			ERROR_MSG(str(e))
-			return download(currurl, fname)
+	
+	try:
+		if hasattr(urllib, "urlretrieve"):
+			return urllib.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
+		else:
+			return urllib.request.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
+	except:
+		OUT_MSG("")
+		ERROR_MSG("timeout!")
+		return download(currurl, fname)
 		
 def getSystemUser():
 	global os_user_name
