@@ -30,11 +30,11 @@ http://www.kbengine.org
 
 
 ##What is KBEngine?
-An open source MMOG server engine, the clients and server communications can through a simple protocol.
-To use the KBEngine-plugins quick combine with (Unity3D, UE4, OGRE, HTML5, etc.) to form a complete client.
+An open source MMOG server engine, 
+Just use the Python script to be able to complete any game logic simply and efficiently (can hotfix).
+Using the client plug-in can be quickly combined with (Unity3D, UE4, OGRE, HTML5, etc.) to form a complete client.
 
-Engine framework written using C++, game logic layer using Python(Support the hotfix), 
-developers do not need to re-implement some common server-side technology,
+Engine written in C++, developers do not need to re-implement some common server-side technology,
 allows developers to concentrate on the game logic development, quickly create a variety of games.
 
 (Frequently asked load-limit, KBEngine is designed to be multi-process distributed dynamic load balancing scheme, 
@@ -55,11 +55,12 @@ acatadog, colin
 
 
 ##什么是KBEngine?
-一款开源的游戏服务端引擎，客户端通过简单的约定协议就能与服务端通讯，
-使用KBEngine插件能够快速与(Unity3D、UE4、OGRE、HTML5、等等)技术结合形成一个完整的客户端。
+一款开源的MMOG游戏服务端引擎，
+仅Python脚本即可简单高效的完成任何游戏逻辑(支持热更新)，
+使用配套客户端插件能够快速与(Unity3D、UE4、OGRE、HTML5、等等)结合形成一个完整的客户端。
 
-服务端引擎层使用C++编写，游戏逻辑层使用Python(支持热更新)，开发者无需重复的实现一些游戏服务端通用的底层技术，
-将精力真正集中到游戏开发层面上来，快速的打造各种网络游戏。
+引擎使用C++编写，开发者无需重复的实现游戏服务端通用的底层技术，
+将精力真正集中到游戏开发层面上来，稳定可靠并且快速的打造各种网络游戏。
 
 (经常被问到承载上限，KBEngine底层架构被设计为多进程分布式动态负载均衡方案，
 理论上只需要不断扩展硬件就能够不断增加承载上限，单台机器的承载上限取决于游戏逻辑本身的复杂度。)
