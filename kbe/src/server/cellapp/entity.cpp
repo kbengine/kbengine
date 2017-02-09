@@ -344,7 +344,7 @@ PyObject* Entity::pyGetBaseMailbox()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetControlledBy( )
+PyObject* Entity::pyGetControlledBy()
 {
 	EntityMailbox* mailbox = controlledBy();
 	if(mailbox == NULL)
