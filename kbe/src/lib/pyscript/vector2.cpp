@@ -396,7 +396,7 @@ bool ScriptVector2::check(PyObject* value, bool isPrintErr)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "args is must a sequence.");
+			PyErr_Format(PyExc_TypeError, "ScriptVector2::check(): args is must a sequence.");
 			PyErr_PrintEx(0);
 		}
 
@@ -408,7 +408,7 @@ bool ScriptVector2::check(PyObject* value, bool isPrintErr)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "len(args) != %d. can't set.", VECTOR_SIZE);
+			PyErr_Format(PyExc_TypeError, "ScriptVector2::check(): len(args) != %d. can't set.", VECTOR_SIZE);
 			PyErr_PrintEx(0);
 		}
 
