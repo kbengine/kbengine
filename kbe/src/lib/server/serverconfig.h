@@ -197,7 +197,8 @@ typedef struct EngineComponentInfo
 	uint32 login_port;										// 服务器登录端口 目前bots在用
 	char login_ip[MAX_BUF];									// 服务器登录ip地址
 
-	ENTITY_ID criticallyLowSize;							// id剩余这么多个时向dbmgr申请新的id资源
+	ENTITY_ID ids_criticallyLowSize;						// id剩余这么多个时向dbmgr申请新的id资源
+	ENTITY_ID ids_increasing_range;							// 申请ID时id每次递增范围
 
 	uint32 downloadBitsPerSecondTotal;						// 所有客户端每秒下载带宽总上限
 	uint32 downloadBitsPerSecondPerClient;					// 每个客户端每秒的下载带宽

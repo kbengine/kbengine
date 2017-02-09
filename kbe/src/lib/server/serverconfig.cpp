@@ -461,9 +461,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "criticallyLowSize");
 			if(childnode)
 			{
-				_cellAppInfo.criticallyLowSize = xml->getValInt(childnode);
-				if(_cellAppInfo.criticallyLowSize < 100)
-					_cellAppInfo.criticallyLowSize = 100;
+				_cellAppInfo.ids_criticallyLowSize = xml->getValInt(childnode);
+				if (_cellAppInfo.ids_criticallyLowSize < 100)
+					_cellAppInfo.ids_criticallyLowSize = 100;
 			}
 		}
 		
@@ -648,9 +648,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "criticallyLowSize");
 			if(childnode)
 			{
-				_baseAppInfo.criticallyLowSize = xml->getValInt(childnode);
-				if(_baseAppInfo.criticallyLowSize < 100)
-					_baseAppInfo.criticallyLowSize = 100;
+				_baseAppInfo.ids_criticallyLowSize = xml->getValInt(childnode);
+				if (_baseAppInfo.ids_criticallyLowSize < 100)
+					_baseAppInfo.ids_criticallyLowSize = 100;
 			}
 		}
 		
@@ -785,6 +785,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if (childnode)
 			{
 				_dbmgrInfo.telnet_deflayer = xml->getValStr(childnode);
+			}
+		}
+
+		node = xml->enterNode(rootNode, "ids");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "increasing_range");
+			if (childnode)
+			{
+				_dbmgrInfo.ids_increasing_range = xml->getValInt(childnode);
 			}
 		}
 
@@ -1480,6 +1490,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.externalAddr = &externalAddr;
 		info.componentID = componentID;
 
+		if (info.ids_criticallyLowSize > getDBMgr().ids_increasing_range / 2)
+		{
+			info.ids_criticallyLowSize = getDBMgr().ids_increasing_range / 2;
+			ERROR_MSG(fmt::format("kbengine[_defs].xml->cellapp->ids->criticallyLowSize > dbmgr->ids->increasing_range / 2, Force adjustment to criticallyLowSize({})\n", 
+				info.ids_criticallyLowSize));
+		}
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
@@ -1507,6 +1524,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
+		if (info.ids_criticallyLowSize > getDBMgr().ids_increasing_range / 2)
+		{
+			info.ids_criticallyLowSize = getDBMgr().ids_increasing_range / 2;
+			ERROR_MSG(fmt::format("kbengine[_defs].xml->cellapp->ids->criticallyLowSize > dbmgr->ids->increasing_range / 2, Force adjustment to criticallyLowSize({})\n",
+				info.ids_criticallyLowSize));
+		}
 
 		if(isPrint)
 		{
@@ -1583,6 +1607,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
+		if (info.ids_increasing_range < 500)
+		{
+			info.ids_increasing_range = 500;
+			ERROR_MSG(fmt::format("kbengine[_defs].xml-> dbmgr->ids->increasing_range too small, Force adjustment to ids_increasing_range({})\n",
+				info.ids_increasing_range));
+		}
 
 		if(isPrint)
 		{
