@@ -3717,6 +3717,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 				base->setClientType(ptinfos->ctype);
 				base->setClientDatas(ptinfos->datas);
 				createClientProxies(base, true);
+				base->onGetWitness();
 			}
 			else
 			{
@@ -3732,6 +3733,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 				// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 				entityClientMailbox->getChannel()->proxyID(base->id());
 				createClientProxies(base, true);
+				base->onGetWitness();
 			}
 			break;
 		case LOG_ON_WAIT_FOR_DESTROY:
