@@ -189,6 +189,10 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 					{
 						// 由于一次没有解析完， 我们回撤数据下一次再尝试解析
 						pTCPPacket_->rpos(buffer_rpos);
+
+						// 当前包如果还有数据并且大于等于我们需要的数据，则继续下一循环立即解析
+						if (pPacket->length() >= pFragmentDatasRemain_)
+							continue;
 					}
 					else
 					{
