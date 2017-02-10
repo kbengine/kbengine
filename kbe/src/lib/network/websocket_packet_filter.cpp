@@ -187,8 +187,6 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 					// 如果仍然大于0， 说明需要继续收包
 					if(pFragmentDatasRemain_ > 0)
 					{
-						pTCPPacket_->append(*(static_cast<MemoryStream*>(pPacket)));
-						
 						// 由于一次没有解析完， 我们回撤数据下一次再尝试解析
 						pTCPPacket_->rpos(buffer_rpos);
 					}
