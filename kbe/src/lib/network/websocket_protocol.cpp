@@ -255,8 +255,8 @@ int WebSocketProtocol::getFrame(Packet * pPacket, uint8& msg_opcode, uint8& msg_
 		+---------------------------------------------------------------+
 	*/
 
-	// 不足2字节，需要继续等待
-	int remainSize = 2 - pPacket->length();
+	// 不足3字节，需要继续等待
+	int remainSize = 3 - pPacket->length();
 	if(remainSize > 0) 
 	{
 		frameType = INCOMPLETE_FRAME;
