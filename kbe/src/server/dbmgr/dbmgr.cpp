@@ -217,7 +217,7 @@ void Dbmgr::handleCheckStatusTick()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::initializeBegin()
 {
-	idServer_.set_range_step(KBEngine::max<ENTITY_ID>(g_kbeSrvConfig.getDBMgr().ids_increasing_range, 1024));
+	idServer_.set_range_step(g_kbeSrvConfig.getDBMgr().ids_increasing_range);
 	return true;
 }
 
