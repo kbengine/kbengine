@@ -191,7 +191,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 						pTCPPacket_->rpos(buffer_rpos);
 
 						// 当前包如果还有数据并且大于等于我们需要的数据，则继续下一循环立即解析
-						if (pPacket->length() >= pFragmentDatasRemain_)
+						if ((int32)pPacket->length() >= pFragmentDatasRemain_)
 							continue;
 					}
 					else
