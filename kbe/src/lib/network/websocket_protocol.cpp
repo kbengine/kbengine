@@ -45,6 +45,10 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 {
 	KBE_ASSERT(s != NULL);
 
+	// 字符串加上结束符至少长度需要大于2，否则返回以免MemoryStream产生异常
+	if(s.length() < 2)
+		return false;
+
 	std::string data;
 	size_t rpos = s->rpos();
 	size_t wpos = s->wpos();
@@ -86,7 +90,11 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 {
 	KBE_ASSERT(s != NULL);
-
+	
+	// 字符串加上结束符至少长度需要大于2，否则返回以免MemoryStream产生异常
+	if(s.length() < 2)
+		return false;
+	
 	std::string data;
 	size_t rpos = s->rpos();
 	size_t wpos = s->wpos();
