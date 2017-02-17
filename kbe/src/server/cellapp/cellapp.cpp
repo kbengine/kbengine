@@ -37,6 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/telnet_server.h"
 #include "dbmgr/dbmgr_interface.h"
 #include "navigation/navigation.h"
+#include "navigation/DetourNavMesh.h"
 #include "loadnavmesh_threadtasks.h"
 #include "client_lib/client_interface.h"
 
@@ -1993,11 +1994,17 @@ bool Cellapp::navigatePathPoints(std::vector<Position3D>& outPaths, std::string 
 		return false;
 	}
 
+#ifndef DT_UE4
+	double allowMinDistance = 0.00001f;
+#else
+	double allowMinDistance = 0.001f;
+#endif
+
 	std::vector<Position3D>::iterator iter = outPaths.begin();
 	while (iter != outPaths.end())
 	{
 		Vector3 movement = (*iter) - position;
-		if (KBEVec3Length(&movement) <= 0.00001f)
+		if (KBEVec3Length(&movement) <= allowMinDistance)
 		{
 			iter++;
 			continue;
