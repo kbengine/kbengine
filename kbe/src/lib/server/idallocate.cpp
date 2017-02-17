@@ -37,9 +37,9 @@ EntityIDClient::EntityIDClient():
 	if(id_enough_limit <= 0)
 	{
 		if(g_componentType == BASEAPP_TYPE)
-			id_enough_limit = (size_t)g_kbeSrvConfig.getBaseApp().criticallyLowSize;
+			id_enough_limit = (size_t)g_kbeSrvConfig.getBaseApp().ids_criticallyLowSize;
 		else
-			id_enough_limit = (size_t)g_kbeSrvConfig.getCellApp().criticallyLowSize;
+			id_enough_limit = (size_t)g_kbeSrvConfig.getCellApp().ids_criticallyLowSize;
 	}
 }
 

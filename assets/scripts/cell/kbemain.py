@@ -37,7 +37,7 @@ def onCellAppDataDel(key):
 	"""
 	DEBUG_MSG('onCellAppDataDel: %s' % key)
 	
-def onSpaceData( spaceID, entryID, key, value ):
+def onSpaceData( spaceID, key, value ):
 	"""
 	KBEngine method.
 	spaceData改变

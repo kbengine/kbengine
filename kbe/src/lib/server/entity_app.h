@@ -457,19 +457,6 @@ bool EntityApp<E>::installPyModules()
 	pEntities_ = new Entities<E>();
 	registerPyObjectToScript("entities", pEntities_);
 
-	// 安装入口模块
-	PyObject *entryScriptFileName = NULL;
-	if(componentType() == BASEAPP_TYPE)
-	{
-		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseApp();
-		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
-	}
-	else if(componentType() == CELLAPP_TYPE)
-	{
-		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellApp();
-		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
-	}
-
 	// 添加pywatcher支持
 	if(!initializePyWatcher(&this->getScript()))
 		return false;
@@ -547,11 +534,34 @@ bool EntityApp<E>::installPyModules()
 		}
 	}
 	
-	if(entryScriptFileName != NULL)
+	// 安装入口模块
+	std::string entryScriptFileName = "";
+	if (componentType() == BASEAPP_TYPE)
 	{
-		entryScript_ = PyImport_Import(entryScriptFileName);
-		SCRIPT_ERROR_CHECK();
-		S_RELEASE(entryScriptFileName);
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseApp();
+		entryScriptFileName = info.entryScriptFile;
+	}
+	else if (componentType() == CELLAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellApp();
+		entryScriptFileName = info.entryScriptFile;
+	}
+
+	if(entryScriptFileName.size() > 0)
+	{
+		PyObject *pyEntryScriptFileName = PyUnicode_FromString(entryScriptFileName.c_str());
+		entryScript_ = PyImport_Import(pyEntryScriptFileName);
+
+		if (PyErr_Occurred())
+		{
+			INFO_MSG(fmt::format("EntityApp::installPyModules: importing scripts/{}{}.py...\n", 
+				(componentType() == BASEAPP_TYPE ? "base/" : "cell/"), 
+				entryScriptFileName));
+
+			PyErr_PrintEx(0);
+		}
+
+		S_RELEASE(pyEntryScriptFileName);
 
 		if(entryScript_.get() == NULL)
 		{

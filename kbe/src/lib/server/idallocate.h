@@ -186,6 +186,10 @@ public:
 		return p;
 	}
 
+	void set_range_step(T range_step) {
+		range_step_ = range_step;
+	}
+
 protected:
 	// 最后一次申请到的ID段的起始位置
 	T last_id_range_begin_;

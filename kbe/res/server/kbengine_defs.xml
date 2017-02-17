@@ -384,6 +384,13 @@
 			-->
 			<default_layer> python </default_layer>
 		</telnet_service>
+		
+		<!-- entityID分配器，进入溢出范围则请求获取新的ID资源 
+			(The entityID allocator, enter the overflow area will get the new ID's)
+		-->
+		<ids>
+			<increasing_range> 1024 </increasing_range>				<!-- Type: Integer -->
+		</ids>
 	</dbmgr>
 	
 	<cellapp>

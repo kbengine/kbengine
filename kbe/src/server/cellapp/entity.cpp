@@ -380,7 +380,7 @@ PyObject* Entity::pyGetBaseMailbox()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetControlledBy( )
+PyObject* Entity::pyGetControlledBy()
 {
 	EntityMailbox* mailbox = controlledBy();
 	if(mailbox == NULL)
@@ -1154,6 +1154,8 @@ bool Entity::bufferOrExeCallback(const char * funcName, PyObject * funcArgs, boo
 	else
 	{
 		PyObject* pyResult = PyObject_CallObject(pyCallable, funcArgs);
+
+		Py_DECREF(pyCallable);
 
 		if (pyResult)
 		{

@@ -2978,13 +2978,17 @@ void Baseapp::onEntityGetCell(Network::Channel* pChannel, ENTITY_ID id,
 //-------------------------------------------------------------------------------------
 void Baseapp::onClientEntityEnterWorld(Proxy* base, COMPONENT_ID componentID)
 {
+	Py_INCREF(base);
 	base->initClientCellPropertys();
 	base->onClientGetCell(NULL, componentID);
+	Py_DECREF(base);
 }
 
 //-------------------------------------------------------------------------------------
 bool Baseapp::createClientProxies(Proxy* base, bool reload)
 {
+	Py_INCREF(base);
+	
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 	Network::Channel* pChannel = base->clientMailbox()->getChannel();
 	pChannel->proxyID(base->id());
@@ -2993,7 +2997,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	// 重新生成一个ID
 	if(reload)
 		base->rndUUID(genUUID64());
-
+	
 	// 一些数据必须在实体创建后立即访问
 	base->initClientBasePropertys();
 
@@ -3009,7 +3013,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
 	//if(!reload)
 	base->onEntitiesEnabled();
-
+	Py_DECREF(base);
 	return true;
 }
 
@@ -3717,6 +3721,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 				base->setClientType(ptinfos->ctype);
 				base->setClientDatas(ptinfos->datas);
 				createClientProxies(base, true);
+				base->onGetWitness();
 			}
 			else
 			{
@@ -3732,6 +3737,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 				// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 				entityClientMailbox->getChannel()->proxyID(base->id());
 				createClientProxies(base, true);
+				base->onGetWitness();
 			}
 			break;
 		case LOG_ON_WAIT_FOR_DESTROY:
@@ -3820,8 +3826,10 @@ void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountNam
 	// 客户端重连也需要将完整的数据重发给客户端， 相当于登录之后获得的数据。
 	// 因为断线期间不能确保包括场景等数据已发生变化
 	// 客户端需要重建所有数据
+	Py_INCREF(proxy);
 	createClientProxies(proxy, true);
 	proxy->onGetWitness();
+	Py_DECREF(proxy);
 	// proxy->onEntitiesEnabled();
 
 	/*
@@ -3925,6 +3933,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	PyDict_SetItemString(pyDict, "__ACCOUNT_PASSWORD__", py__ACCOUNT_PASSWD__);
 	Py_DECREF(py__ACCOUNT_PASSWD__);
 
+	Py_INCREF(base);
 	base->initializeEntity(pyDict);
 	Py_DECREF(pyDict);
 
@@ -3954,6 +3963,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		accountName, base->rndUUID(), base->id(), flags, deadline));
 
 	SAFE_RELEASE(ptinfos);
+	Py_DECREF(base);
 }
 
 //-------------------------------------------------------------------------------------
