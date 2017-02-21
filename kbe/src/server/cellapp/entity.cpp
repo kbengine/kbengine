@@ -48,6 +48,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/eventhistory_stats.h"
 #include "navigation/navigation.h"
 #include "math/math.h"
+#include "navigation/DetourNavMesh.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
@@ -2325,11 +2326,17 @@ bool Entity::navigatePathPoints(std::vector<Position3D>& outPaths, const Positio
 		return false;
 	}
 
+#ifndef DT_UE4
+	double allowMinDistance = 0.00001f;
+#else
+	double allowMinDistance = 0.001f;
+#endif
+
 	std::vector<Position3D>::iterator iter = outPaths.begin();
 	while(iter != outPaths.end())
 	{
 		Vector3 movement = (*iter) - position_;
-		if(KBEVec3Length(&movement) <= 0.00001f)
+		if (KBEVec3Length(&movement) <= allowMinDistance)
 		{
 			iter++;
 			continue;
