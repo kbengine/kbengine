@@ -128,7 +128,6 @@ bool MoveToPointHandler::update()
 
 	const Position3D& dstPos = destPos();
 	Position3D currpos;
-	Position3D currpos_backup = currpos;
 	Direction3D direction;
 
 	if (pEntity->parent())
@@ -141,6 +140,8 @@ bool MoveToPointHandler::update()
 		currpos = pEntity->position();
 		direction = pEntity->direction();
 	}
+
+	Position3D currpos_backup = currpos;
 
 	Vector3 movement = dstPos - currpos;
 	if (!moveVertically_) movement.y = 0.f;

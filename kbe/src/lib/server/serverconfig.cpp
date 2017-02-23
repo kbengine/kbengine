@@ -510,6 +510,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_cellAppInfo.entitydefAliasID = (xml->getValStr(node) == "true");
 		}
 
+		node = xml->enterNode(rootNode, "forcedSyncEntityPosition_Y");
+		if (node != NULL){
+			_cellAppInfo.forcedSyncEntityPosition_Y = (xml->getValStr(node) == "true");
+		}
+
 		node = xml->enterNode(rootNode, "loadSmoothingBias");
 		if(node != NULL)
 			_cellAppInfo.loadSmoothingBias = float(xml->getValFloat(node));

@@ -418,6 +418,15 @@
 			(Entity client (property or a method) is less than 256, using 1 byte transmission.)
 		-->
 		<entitydefAliasID>true</entitydefAliasID>
+		
+		<!-- 坐标同步时强制同步y。
+		     在一些使用recastnavigate来导航的地图中，
+		     如果地图有大量的坑坑洼洼的地方，在频繁（如1秒1次）调用Entity.navigate()时，
+		     将会出现调用Entity.navigate()前后entity的x和z坐标完全相同但y不一样的情况，
+		     这样客户端有一些需要精确位置的功能（例如算前后两个坐标的距离）就无法达成了，
+		     这时可以考虑把Y坐标也一起更新给客户端。
+		-->
+		<forcedSyncEntityPosition_Y> false </forcedSyncEntityPosition_Y>
 	
 		<!-- 指定接口地址，可配置网卡名、MAC、IP
 			（Interface address specified, configurable NIC/MAC/IP） 

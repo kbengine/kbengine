@@ -1994,17 +1994,16 @@ bool Cellapp::navigatePathPoints(std::vector<Position3D>& outPaths, std::string 
 		return false;
 	}
 
-#ifndef DT_UE4
-	double allowMinDistance = 0.00001f;
-#else
-	double allowMinDistance = 0.001f;
-#endif
-
 	std::vector<Position3D>::iterator iter = outPaths.begin();
 	while (iter != outPaths.end())
 	{
 		Vector3 movement = (*iter) - position;
-		if (KBEVec3Length(&movement) <= allowMinDistance)
+#ifndef DT_UE4
+		if (KBEVec3Length(&movement) <= 0.01)
+#else
+		// 忽略高度，移除平面间相距特别小的点
+		if (sqrtf(movement.x * movement.x + movement.z * movement.z) <= 0.01)
+#endif
 		{
 			iter++;
 			continue;
