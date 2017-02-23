@@ -1157,6 +1157,8 @@ bool Entity::bufferOrExeCallback(const char * funcName, PyObject * funcArgs, boo
 		PyObject* pyResult = PyObject_CallObject(pyCallable, funcArgs);
 
 		Py_DECREF(pyCallable);
+		if (funcArgs)
+			Py_DECREF(funcArgs);
 
 		if (pyResult)
 		{
