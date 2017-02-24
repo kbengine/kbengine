@@ -222,7 +222,7 @@ PyObject* FixedArray::__py_insert(PyObject* self, PyObject* args, PyObject* kwar
 	const int argsize = (int)PyTuple_Size(args);
 	if (argsize != 2)
 	{
-		PyErr_Format(PyExc_ValueError, "FixedArray::insert() takes exactly 2 arguments (%d given)", argsize);
+		PyErr_SetString(PyExc_ValueError, "FixedArray::insert(): takes exactly 2 arguments (array.insert(i, x))");
 		return NULL;
 	}
 
