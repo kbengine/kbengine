@@ -2013,7 +2013,7 @@ bool Entity::checkMoveForTopSpeed(const Position3D& position)
 	bool move = true;
 	
 	// 检查移动
-	if(topSpeedY_ > 0.01f && movment.y > topSpeedY_ + 0.5f)
+	if(topSpeedY_ > 0.01f && movment.y > topSpeedY_)
 	{
 		move = false;
 	}
@@ -2022,7 +2022,7 @@ bool Entity::checkMoveForTopSpeed(const Position3D& position)
 	{
 		movment.y = 0.f;
 		
-		if(movment.length() > topSpeed_ + 0.5f)
+		if(movment.length() > topSpeed_)
 			move = false;
 	}
 
@@ -2064,7 +2064,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 	}
 	else
 	{
-		if(this->pWitness() == NULL)
+		if (this->pWitness() == NULL && this->controlledBy_ == NULL)
 			return;
 
 		Position3D currpos = this->position();
@@ -2083,11 +2083,19 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 
 		// 如果我已经被控制，那么，数据的来源则是控制者的客户端，
 		// 所以，我们需要做的是通知来源客户端，而不仅仅是自己的客户端。
+		Witness* pW = NULL;
 		KBEngine::ENTITY_ID targetID = 0;
 		if (controlledBy_ != NULL)
+		{
 			targetID = controlledBy_->id();
+			Entity* entity = Cellapp::getSingleton().findEntity(targetID);
+			pW = entity->pWitness();
+		}
 		else
+		{
 			targetID = id();
+			pW = this->pWitness();
+		}
 
 		// 通知重置
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
@@ -2100,7 +2108,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
-		this->pWitness()->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+		pW->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
 	}
 }
 
