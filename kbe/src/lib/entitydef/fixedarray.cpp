@@ -219,19 +219,19 @@ PyObject* FixedArray::__py_index(PyObject* self, PyObject* args, PyObject* kwarg
 //-------------------------------------------------------------------------------------
 PyObject* FixedArray::__py_insert(PyObject* self, PyObject* args, PyObject* kwargs)
 {
+	const int argsize = (int)PyTuple_Size(args);
+	if (argsize != 2)
+	{
+		PyErr_Format(PyExc_ValueError, "FixedArray::insert() takes exactly 2 arguments (%d given)", argsize);
+		return NULL;
+	}
+
 	int before = PyLong_AsLong(PyTuple_GetItem(args, 0));
 	PyObject* pyobj = PyTuple_GetItem(args, 1);
 	
 	//FixedArray* ary = static_cast<FixedArray*>(self);
 	PyObject* pyTuple = PyTuple_New(1);
 	PyTuple_SET_ITEM(&*pyTuple, 0, pyobj);
-
-	const int argsize = (int)PyTuple_Size(args);
-	if(argsize > 2)
-	{
-		PyErr_SetString(PyExc_ValueError, "FixedArray::insert: args is wrong!");
-		return NULL;
-	}
 	
 	return PyBool_FromLong(seq_ass_slice(self, before, before, &*pyTuple) == 0);
 }
