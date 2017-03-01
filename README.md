@@ -30,7 +30,7 @@ http://www.kbengine.org
 
 
 ##What is KBEngine?
-An open source MMOG server engine, 
+An open source MMOG server engine. 
 Just use the Python script to be able to complete any game logic simply and efficiently (can hotfix).
 Using the client plug-in can be quickly combined with (Unity3D, UE4, OGRE, HTML5, etc.) to form a complete client.
 
