@@ -2834,6 +2834,8 @@ PyObject* Entity::pyEntitiesInAOI()
 	
 	PyObject* pyList = PyList_New(calcSize);
 	
+	iter = pWitness_->aoiEntities().begin()
+		
 	int i = 0;
 	for(; iter != pWitness_->aoiEntities().end(); ++iter)
 	{
