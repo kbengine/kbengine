@@ -538,12 +538,17 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 	{
 		uint32 nfields = 0;
 		uint64 affectedRows = 0;
+		uint64 lastInsertID = 0;
 		
 		if(mysql())
+		{
 			affectedRows = mysql()->affected_rows;
+			lastInsertID = mysql_insert_id(mysql());
+		}
 		
 		(*result) << nfields;
 		(*result) << affectedRows;
+		(*result) << lastInsertID;
 	}
 
 	return true;

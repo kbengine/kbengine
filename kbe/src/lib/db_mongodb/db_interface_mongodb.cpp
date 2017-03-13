@@ -269,9 +269,11 @@ namespace KBEngine {
 		{
 			uint32 nfields = 0;
 			uint64 affectedRows = 0;
+			uint64 lastInsertID = 0;
 
 			(*result) << nfields;
 			(*result) << affectedRows;
+			(*result) << lastInsertID;
 		}
 
 		return resultFlag;
