@@ -736,55 +736,63 @@ void ClientObjectBase::onReLoginBaseappSuccessfully(Network::Channel * pChannel,
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
-	client::Entity* entity = pEntities_->find(eid);
-	if(entity != NULL)
-	{
-		WARNING_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}. has exist!\n", 
-			name_, rndUUID, eid, entityType));
-		return;
-	}
-
 	if(entityID_ == 0)
 	{
 		EventData_LoginBaseappSuccess eventdata;
 		eventHandler_.fire(&eventdata);
 	}
 
+	entityID_ = eid;
+	rndUUID_ = rndUUID;
+	
+	// 能走到这里来一定是连接了网关
+	connectedBaseapp_ = true;
+		
 	BUFFEREDMESSAGE::iterator iter = bufferedCreateEntityMessage_.find(eid);
 	bool hasBufferedMessage = (iter != bufferedCreateEntityMessage_.end());
 
-	// 能走到这里来一定是连接了网关
-	connectedBaseapp_ = true;
+	client::Entity* entity = pEntities_->find(eid);
 
-	entityID_ = eid;
-	rndUUID_ = rndUUID;
-
-	INFO_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}!\n",
-		name_, rndUUID, eid, entityType));
-
-	// 设置entity的baseMailbox
-	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-		NULL, appID(), eid, MAILBOX_TYPE_BASE);
-
-	client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, mailbox, NULL);
-	KBE_ASSERT(pEntity != NULL);
-
-	if(hasBufferedMessage)
+	if(entity == NULL)
 	{
-		// 先更新属性再初始化脚本
-		this->onUpdatePropertys(pChannel, *iter->second.get());
-		bufferedCreateEntityMessage_.erase(iter);
-		pEntity->initializeEntity(NULL);
-		SCRIPT_ERROR_CHECK();
+		INFO_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}!\n",
+			name_, rndUUID, eid, entityType));
 
-		pEntity->isInited(true);
+		// 设置entity的baseMailbox
+		EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
+			NULL, appID(), eid, MAILBOX_TYPE_BASE);
+
+		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, mailbox, NULL);
+		KBE_ASSERT(pEntity != NULL);
+
+		if(hasBufferedMessage)
+		{
+			// 先更新属性再初始化脚本
+			this->onUpdatePropertys(pChannel, *iter->second.get());
+			bufferedCreateEntityMessage_.erase(iter);
+			pEntity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
+
+			pEntity->isInited(true);
+			
+			bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+				g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+				Config::getSingleton().isOnInitCallPropertysSetMethods();
 		
-		bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
-			g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
-			Config::getSingleton().isOnInitCallPropertysSetMethods();
-	
-		if (isOnInitCallPropertysSetMethods)
-			pEntity->callPropertysSetMethods();
+			if (isOnInitCallPropertysSetMethods)
+				pEntity->callPropertysSetMethods();
+		}
+	}
+	else
+	{
+		if(hasBufferedMessage)
+		{
+			// 先更新属性再初始化脚本
+			this->onUpdatePropertys(pChannel, *iter->second.get());
+			bufferedCreateEntityMessage_.erase(iter);
+			entity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
+		}
 	}
 }
 

@@ -841,6 +841,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				do
 				{
+					if (TiXmlNode::TINYXML_COMMENT == databaseInterfacesNode->Type())
+						continue;
+
 					std::string name = databaseInterfacesNode->Value();
 
 					DBInterfaceInfo dbinfo;
