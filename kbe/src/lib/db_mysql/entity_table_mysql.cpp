@@ -966,10 +966,7 @@ bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* pdbi, void* pData)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
-	ArraySize asize = 2;
-	(*s) << asize;
-
-	for(ArraySize i = 0; i < asize; ++i)
+	for(ArraySize i = 0; i < 2; ++i)
 	{
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(context.results[context.readresultIdx++].c_str());
@@ -992,12 +989,7 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	float v;
 #endif
 
-	ArraySize asize;
-
-	(*s) >> asize;
-	KBE_ASSERT(asize == 2);
-
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<2; ++i)
 	{
 		(*s) >> v;
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
@@ -1016,8 +1008,7 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR2::getReadSqlItem(mysql::DBContext& context)
 {
-	ArraySize asize = 2;
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<2; ++i)
 	{
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
@@ -1056,10 +1047,7 @@ bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* pdbi, void* pData)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
-	ArraySize asize = 3;
-	(*s) << asize;
-
-	for(ArraySize i = 0; i < asize; ++i)
+	for(ArraySize i = 0; i < 3; ++i)
 	{
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(context.results[context.readresultIdx++].c_str());
@@ -1082,12 +1070,7 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	float v;
 #endif
 
-	ArraySize asize;
-
-	(*s) >> asize;
-	KBE_ASSERT(asize == 3);
-
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<3; ++i)
 	{
 		(*s) >> v;
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
@@ -1106,8 +1089,7 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR3::getReadSqlItem(mysql::DBContext& context)
 {
-	ArraySize asize = 3;
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<3; ++i)
 	{
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
@@ -1146,10 +1128,7 @@ bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* pdbi, void* pData)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
-	ArraySize asize = 4;
-	(*s) << asize;
-
-	for(ArraySize i = 0; i < asize; ++i)
+	for(ArraySize i = 0; i < 4; ++i)
 	{
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(context.results[context.readresultIdx++].c_str());
@@ -1172,12 +1151,7 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	float v;
 #endif
 
-	ArraySize asize;
-
-	(*s) >> asize;
-	KBE_ASSERT(asize == 4);
-
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<4; ++i)
 	{
 		(*s) >> v;
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
@@ -1196,8 +1170,7 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR4::getReadSqlItem(mysql::DBContext& context)
 {
-	ArraySize asize = 4;
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<4; ++i)
 	{
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
