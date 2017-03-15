@@ -104,7 +104,6 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 
 		if (pScriptModule->hasCell())
 		{
-			ArraySize size = 0;
 #ifdef CLIENT_NO_FLOAT
 			int32 v1, v2, v3;
 			int32 vv1, vv2, vv3;
@@ -113,8 +112,8 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 			float vv1, vv2, vv3;
 #endif
 
-			s >> size >> v1 >> v2 >> v3;
-			s >> size >> vv1 >> vv2 >> vv3;
+			s >> v1 >> v2 >> v3;
+			s >> vv1 >> vv2 >> vv3;
 
 			PyObject* position = PyTuple_New(3);
 			PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
