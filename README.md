@@ -9,7 +9,6 @@ http://www.kbengine.org
 
 ##Releases
 	Sources		: https://github.com/kbengine/kbengine/releases/latest
-	Binarys		: https://sourceforge.net/projects/kbengine/files/
 
 ##Demo sources
 	Unity3d		: https://github.com/kbengine/kbengine_unity3d_demo/releases/latest
