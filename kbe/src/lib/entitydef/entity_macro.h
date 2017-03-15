@@ -80,13 +80,13 @@ namespace KBEngine{
 		int32 y = (int32)pos.y;																				\
 		int32 z = (int32)pos.z;																				\
 																											\
-		s << posuid << posdirLen << x << y << z;															\
+		s << posuid << x << y << z;																			\
 																											\
 		x = (int32)dir.x;																					\
 		y = (int32)dir.y;																					\
 		z = (int32)dir.z;																					\
 																											\
-		s << diruid << posdirLen << x << y << z;															\
+		s << diruid << x << y << z;																			\
 
 
 	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
@@ -95,14 +95,14 @@ namespace KBEngine{
 		int32 z = (int32)pos.z;																				\
 																											\
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
-		s << aliasID << posdirLen << x << y << z;															\
+		s << aliasID << x << y << z;																		\
 																											\
 		x = (int32)dir.x;																					\
 		y = (int32)dir.y;																					\
 		z = (int32)dir.z;																					\
 																											\
 		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
-		s << aliasID << posdirLen << x << y << z;															\
+		s << aliasID << x << y << z;																		\
 
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
@@ -110,16 +110,15 @@ namespace KBEngine{
 		int32 x = 0;																						\
 		int32 y = 0;																						\
 		int32 z = 0;																						\
-		ArraySize posdirLen;																				\
 		ENTITY_PROPERTY_UID uid;																			\
 																											\
-		s >> uid >> posdirLen >> x >> y >> z;																\
+		s >> uid >> x >> y >> z;																			\
 																											\
 		pos.x = float(x);																					\
 		pos.y = float(y);																					\
 		pos.z = float(z);																					\
 																											\
-		s >> uid >> posdirLen >> x >> y >> z;																\
+		s >> uid >> x >> y >> z;																			\
 		dir.x = float(x);																					\
 		dir.y = float(y);																					\
 		dir.z = float(z);																					\
@@ -128,23 +127,22 @@ namespace KBEngine{
 
 #else																									
 	#define ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
-		s << posuid << posdirLen << pos.x << pos.y << pos.z;												\
-		s << diruid << posdirLen << dir.x << dir.y << dir.z;												\
+		s << posuid << pos.x << pos.y << pos.z;																\
+		s << diruid << dir.x << dir.y << dir.z;																\
 
 
 	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
-		s << aliasID << posdirLen << pos.x << pos.y << pos.z;												\
+		s << aliasID << pos.x << pos.y << pos.z;															\
 		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
-		s << aliasID << posdirLen << dir.x << dir.y << dir.z;												\
+		s << aliasID << dir.x << dir.y << dir.z;															\
 	
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
 	{																										\
-		ArraySize posdirLen;																				\
 		ENTITY_PROPERTY_UID uid;																			\
-		s >> uid >> posdirLen >> pos.x >> pos.y >> pos.z;													\
-		s >> uid >> posdirLen >> dir.x >> dir.y >> dir.z;													\
+		s >> uid >> pos.x >> pos.y >> pos.z;																\
+		s >> uid >> dir.x >> dir.y >> dir.z;																\
 	}																										\
 
 
@@ -172,7 +170,6 @@ namespace KBEngine{
 			msgInfo = NULL;																					\
 		}																									\
 																											\
-		ArraySize posdirLen = 3;																			\
 		ADD_POS_DIR_TO_STREAM(s, pos, dir)																	\
 																											\
 	}																										\

@@ -76,9 +76,9 @@ bool DataTypes::initialize(std::string file)
 	addDataType("MAILBOX",	new MailboxType);
 	addDataType("BLOB",		new BlobType);
 
-	addDataType("VECTOR2",	new VectorType(2));
-	addDataType("VECTOR3",	new VectorType(3));
-	addDataType("VECTOR4",	new VectorType(4));
+	addDataType("VECTOR2",	new Vector2Type);
+	addDataType("VECTOR3",	new Vector3Type);
+	addDataType("VECTOR4",	new Vector4Type);
 	return loadAlias(file);
 }
 
