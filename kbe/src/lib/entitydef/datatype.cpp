@@ -661,7 +661,7 @@ bool Vector2Type::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* Vector2Type::parseDefaultStr(std::string defaultVal)
 {
-	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+	float x = 0.0f, y = 0.0f;
 
 	if(!defaultVal.empty())
 	{
@@ -693,9 +693,9 @@ void Vector2Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 PyObject* Vector2Type::createFromStream(MemoryStream* mstream)
 {
 #ifdef CLIENT_NO_FLOAT
-		int32 x = 0, y = 0, z = 0, w = 0;
+		int32 x = 0, y = 0;
 #else
-		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+		float x = 0.0f, y = 0.0f;
 #endif
 
 	if(mstream)
@@ -757,7 +757,7 @@ bool Vector3Type::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* Vector3Type::parseDefaultStr(std::string defaultVal)
 {
-	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+	float x = 0.0f, y = 0.0f, z = 0.0f;
 
 	if (!defaultVal.empty())
 	{
@@ -789,9 +789,9 @@ void Vector3Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 PyObject* Vector3Type::createFromStream(MemoryStream* mstream)
 {
 #ifdef CLIENT_NO_FLOAT
-	int32 x = 0, y = 0, z = 0, w = 0;
+	int32 x = 0, y = 0, z = 0;
 #else
-	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+	float x = 0.0f, y = 0.0f, z = 0.0f;
 #endif
 
 	if (mstream)
