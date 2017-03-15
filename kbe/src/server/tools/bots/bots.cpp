@@ -652,12 +652,12 @@ void Bots::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE f
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void Bots::onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onReLoginBaseappSuccessfully(pChannel, s);
+		pClient->onReloginBaseappSuccessfully(pChannel, s);
 	}
 }
 

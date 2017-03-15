@@ -91,7 +91,7 @@ public:
 	bool login();
 	
 	bool loginBaseapp();
-	bool reLoginBaseapp();
+	bool reloginBaseapp();
 
 	int32 appID() const{ return appID_; }
 	const char* name(){ return name_.c_str(); }
@@ -191,12 +191,12 @@ public:
 									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
 	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
-	virtual void onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
+	virtual void onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity

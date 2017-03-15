@@ -629,13 +629,13 @@ bool ClientObjectBase::loginBaseapp()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientObjectBase::reLoginBaseapp()
+bool ClientObjectBase::reloginBaseapp()
 {
 	// 请求重登陆网关, 通常是掉线了之后执行
 	connectedBaseapp_ = true;
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(BaseappInterface::reLoginBaseapp);
+	(*pBundle).newMessage(BaseappInterface::reloginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	(*pBundle) << rndUUID();
@@ -713,9 +713,9 @@ void ClientObjectBase::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(fmt::format("ClientObjectBase::onReLoginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
+	INFO_MSG(fmt::format("ClientObjectBase::onReloginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
 
 	// 能走到这里来一定是连接了网关
 	connectedBaseapp_ = true;
@@ -727,10 +727,10 @@ void ClientObjectBase::onReLoginBaseappFailed(Network::Channel * pChannel, SERVE
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	s >> rndUUID_;
-	INFO_MSG(fmt::format("ClientObjectBase::onReLoginBaseappSuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
+	INFO_MSG(fmt::format("ClientObjectBase::onReloginBaseappSuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
 }
 
 //-------------------------------------------------------------------------------------	
