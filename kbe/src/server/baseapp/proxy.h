@@ -133,6 +133,11 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyGetClientType);
 
 	/**
+		断开客户端连接
+	*/
+	DECLARE_PY_MOTHOD_ARG0(pyDisconnect);
+
+	/**
 		获取前端附带数据
 	*/
 	INLINE const std::string& getClientDatas();
