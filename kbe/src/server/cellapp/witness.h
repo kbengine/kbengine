@@ -85,6 +85,10 @@ public:
 	Witness();
 	~Witness();
 	
+	virtual uint8 updatePriority() const {
+		return 1;
+	}
+
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
 
