@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{	
 
+
 //-------------------------------------------------------------------------------------
 Updatables::Updatables()
 {
@@ -43,7 +44,7 @@ void Updatables::clear()
 //-------------------------------------------------------------------------------------
 bool Updatables::add(Updatable* updatable)
 {
-	// ç”±äºæ²¡æœ‰å¤§é‡ä¼˜å…ˆçº§éœ€æ±‚ï¼Œå› æ­¤è¿™é‡Œå›ºå®šä¼˜å…ˆçº§æ•°ç»„
+	// ÓÉÓÚÃ»ÓĞ´óÁ¿ÓÅÏÈ¼¶ĞèÇó£¬Òò´ËÕâÀï¹Ì¶¨ÓÅÏÈ¼¶Êı×é
 	if (objects_.size() == 0)
 	{
 		objects_.push_back(std::map<uint32, Updatable*>());
@@ -55,13 +56,13 @@ bool Updatables::add(Updatable* updatable)
 	static uint32 idx = 1;
 	std::map<uint32, Updatable*>& pools = objects_[updatable->updatePriority()];
 
-	// é˜²æ­¢é‡å¤
+	// ·ÀÖ¹ÖØ¸´
 	while (pools.find(idx) != pools.end())
 		++idx;
 
 	pools[idx] = updatable;
 
-	// è®°å½•å­˜å‚¨ä½ç½®
+	// ¼ÇÂ¼´æ´¢Î»ÖÃ
 	updatable->removeIdx = idx++;
 
 	return true;
