@@ -21,6 +21,8 @@ def funcInt(mapDict, dctData, chilidDict, data):
 	except:
 		return 0
 
+	v = int(v)
+
 	if type(v) != int:
 		return 0
 
@@ -190,3 +192,18 @@ def funcUNZipFloat(mapDict, dctData, chilidDict, data):
 
 	return int(data) / 10000.0
 	
+def funcFlags(mapDict, dctData, chilidDict, data):
+	"""
+	返回标记组合数据
+	比如： 想在excel上配置标记组合
+	近程攻击:0x00000001
+	远程攻击:0x00000002
+	暴击:0x00000004
+	用此函数可以输出多个标记组成一个uint32的数字
+	"""
+	val = 0
+	for x in data.split(","):
+		if len(x) > 0:
+			val |= int(mapDict[x])
+
+	return val

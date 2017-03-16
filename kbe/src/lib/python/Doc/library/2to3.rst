@@ -142,6 +142,39 @@ and off individually.  They are described here in more detail.
    Removes usage of :func:`apply`.  For example ``apply(function, *args,
    **kwargs)`` is converted to ``function(*args, **kwargs)``.
 
+.. 2to3fixer:: asserts
+
+   Replaces deprecated :mod:`unittest` method names with the correct ones.
+
+   ================================  ==========================================
+   From                              To
+   ================================  ==========================================
+   ``failUnlessEqual(a, b)``         :meth:`assertEqual(a, b)
+                                     <unittest.TestCase.assertEqual>`
+   ``assertEquals(a, b)``            :meth:`assertEqual(a, b)
+                                     <unittest.TestCase.assertEqual>`
+   ``failIfEqual(a, b)``             :meth:`assertNotEqual(a, b)
+                                     <unittest.TestCase.assertNotEqual>`
+   ``assertNotEquals(a, b)``         :meth:`assertNotEqual(a, b)
+                                     <unittest.TestCase.assertNotEqual>`
+   ``failUnless(a)``                 :meth:`assertTrue(a)
+                                     <unittest.TestCase.assertTrue>`
+   ``assert_(a)``                    :meth:`assertTrue(a)
+                                     <unittest.TestCase.assertTrue>`
+   ``failIf(a)``                     :meth:`assertFalse(a)
+                                     <unittest.TestCase.assertFalse>`
+   ``failUnlessRaises(exc, cal)``    :meth:`assertRaises(exc, cal)
+                                     <unittest.TestCase.assertRaises>`
+   ``failUnlessAlmostEqual(a, b)``   :meth:`assertAlmostEqual(a, b)
+                                     <unittest.TestCase.assertAlmostEqual>`
+   ``assertAlmostEquals(a, b)``      :meth:`assertAlmostEqual(a, b)
+                                     <unittest.TestCase.assertAlmostEqual>`
+   ``failIfAlmostEqual(a, b)``       :meth:`assertNotAlmostEqual(a, b)
+                                     <unittest.TestCase.assertNotAlmostEqual>`
+   ``assertNotAlmostEquals(a, b)``   :meth:`assertNotAlmostEqual(a, b)
+                                     <unittest.TestCase.assertNotAlmostEqual>`
+   ================================  ==========================================
+
 .. 2to3fixer:: basestring
 
    Converts :class:`basestring` to :class:`str`.
@@ -264,8 +297,7 @@ and off individually.  They are described here in more detail.
 
 .. 2to3fixer:: long
 
-   Strips the ``L`` prefix on long literals and renames :class:`long` to
-   :class:`int`.
+   Renames :class:`long` to :class:`int`.
 
 .. 2to3fixer:: map
 
@@ -291,11 +323,11 @@ and off individually.  They are described here in more detail.
 
    Converts the use of iterator's :meth:`~iterator.next` methods to the
    :func:`next` function.  It also renames :meth:`next` methods to
-   :meth:`~object.__next__`.
+   :meth:`~iterator.__next__`.
 
 .. 2to3fixer:: nonzero
 
-   Renames :meth:`~object.__nonzero__` to :meth:`~object.__bool__`.
+   Renames :meth:`__nonzero__` to :meth:`~object.__bool__`.
 
 .. 2to3fixer:: numliterals
 
@@ -343,6 +375,10 @@ and off individually.  They are described here in more detail.
 
    Handles the move of :func:`reduce` to :func:`functools.reduce`.
 
+.. 2to3fixer:: reload
+
+   Converts :func:`reload` to :func:`imp.reload`.
+
 .. 2to3fixer:: renames
 
    Changes :data:`sys.maxint` to :data:`sys.maxsize`.
@@ -356,7 +392,7 @@ and off individually.  They are described here in more detail.
    Replaces use of the :class:`set` constructor with set literals.  This fixer
    is optional.
 
-.. 2to3fixer:: standard_error
+.. 2to3fixer:: standarderror
 
    Renames :exc:`StandardError` to :exc:`Exception`.
 

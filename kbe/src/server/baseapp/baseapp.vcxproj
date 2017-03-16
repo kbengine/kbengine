@@ -1,0 +1,312 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>baseapp</ProjectName>
+    <ProjectGuid>{69C18C83-5753-4F36-BF5A-6EE217304D2D}</ProjectGuid>
+    <RootNamespace>baseapp</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../../bin/server/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\_objs\$(ProjectName)_d\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../../bin/server/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>../../../bin/server/</OutDir>
+    <IntDir>..\..\_objs\$(ProjectName)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>../../../bin/server/</OutDir>
+    <IntDir>..\..\_objs\$(ProjectName)_d\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;Py_NO_ENABLE_SHARED;WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/ignore:4049
+/ignore:4217
+/ignore:4996 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;jwsmtp_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;zip_d.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>expat_d.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;Py_NO_ENABLE_SHARED;WIN32;_DEBUG;_CONSOLE;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/ignore:4049
+/ignore:4217
+/ignore:4996 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>openssl_uptable.obj;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;jwsmtp_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;zip_d.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>expat_d.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/ignore:4049
+/ignore:4217
+/ignore:4996 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;jwsmtp.lib;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;zip.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../lib/python/PC;../../lib/python/Include;../../lib;../../common;../../lib/dependencies/g3dlite;../../server;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;WIN32;NDEBUG;_CONSOLE;Py_NO_ENABLE_SHARED;CODE_INLINE;KBE_USE_ASSERTS;USE_PYTHON;LOG4CXX_STATIC;KBE_SERVER;KBE_BASEAPP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/ignore:4049
+/ignore:4217
+/ignore:4996 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>openssl_uptable.obj;apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;jwsmtp.lib;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;zip.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
+    <ClCompile Include="archiver.cpp" />
+    <ClCompile Include="backuper.cpp" />
+    <ClCompile Include="base.cpp" />
+    <ClCompile Include="base_messages_forward_handler.cpp" />
+    <ClCompile Include="base_remotemethod.cpp" />
+    <ClCompile Include="baseapp.cpp" />
+    <ClCompile Include="baseapp_interface.cpp" />
+    <ClCompile Include="data_download.cpp" />
+    <ClCompile Include="data_downloads.cpp" />
+    <ClCompile Include="entity_autoloader.cpp" />
+    <ClCompile Include="forward_message_over_handler.cpp" />
+    <ClCompile Include="..\..\lib\python\Modules\getbuildinfo.c" />
+    <ClCompile Include="initprogress_handler.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="profile.cpp" />
+    <ClCompile Include="proxy.cpp" />
+    <ClCompile Include="proxy_forwarder.cpp" />
+    <ClCompile Include="restore_entity_handler.cpp" />
+    <ClCompile Include="sync_entitystreamtemplate_handler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="archiver.h" />
+    <ClInclude Include="backuper.h" />
+    <ClInclude Include="base.h" />
+    <ClInclude Include="base_interface_macros.h" />
+    <ClInclude Include="base_messages_forward_handler.h" />
+    <ClInclude Include="base_remotemethod.h" />
+    <ClInclude Include="baseapp.h" />
+    <ClInclude Include="baseapp_interface.h" />
+    <ClInclude Include="baseapp_interface_macros.h" />
+    <ClInclude Include="data_download.h" />
+    <ClInclude Include="data_downloads.h" />
+    <ClInclude Include="entity_autoloader.h" />
+    <ClInclude Include="forward_message_over_handler.h" />
+    <ClInclude Include="initprogress_handler.h" />
+    <ClInclude Include="profile.h" />
+    <ClInclude Include="proxy.h" />
+    <ClInclude Include="proxy_forwarder.h" />
+    <ClInclude Include="proxy_interface_macros.h" />
+    <ClInclude Include="restore_entity_handler.h" />
+    <ClInclude Include="sync_entitystreamtemplate_handler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="base.inl" />
+    <None Include="proxy.inl" />
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\lib\common\common.vcxproj">
+      <Project>{a04109a7-46c9-42f9-ab29-8e3d84450172}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\dependencies\zip\zip2008.vcxproj">
+      <Project>{1abb1158-909c-4ad4-9f81-cb38bba5d950}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\entitydef\entitydef.vcxproj">
+      <Project>{44fa54e8-0a60-4a6c-a449-118872e75502}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\helper\helper.vcxproj">
+      <Project>{0e032fa8-bb7b-40f6-8cb1-15f204113b24}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\math\math.vcxproj">
+      <Project>{f67b2c56-d1b1-4ea7-b16e-ef8e7f1b6c5f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\network\network.vcxproj">
+      <Project>{5ef24499-4f74-4af6-8048-650be7bd7808}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\pyscript\pyscript.vcxproj">
+      <Project>{7a411d5d-da3b-474d-b08b-3dd787a1f375}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\resmgr\resmgr.vcxproj">
+      <Project>{3f8b2057-492f-4332-99de-3e12f20ed489}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\server\server.vcxproj">
+      <Project>{56d453a7-787b-49e3-84bc-465eed38de8a}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\thread\thread.vcxproj">
+      <Project>{863b8043-533c-499d-b48e-f5ec91a6cb9b}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\lib\xml\xml.vcxproj">
+      <Project>{2992abdb-0853-4c43-b9e2-98d4211192ee}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

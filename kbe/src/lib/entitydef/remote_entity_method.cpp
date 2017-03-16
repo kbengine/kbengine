@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "method.hpp"
-#include "remote_entity_method.hpp"
-#include "network/bundle.hpp"
-#include "helper/debug_helper.hpp"
+#include "method.h"
+#include "remote_entity_method.h"
+#include "network/bundle.h"
+#include "helper/debug_helper.h"
 
 namespace KBEngine{
 
@@ -53,7 +53,7 @@ RemoteEntityMethod::~RemoteEntityMethod()
 }
 
 //-------------------------------------------------------------------------------------
-const char* RemoteEntityMethod::getName(void)const
+const char* RemoteEntityMethod::getName(void) const
 { 
 	return methodDescription_->getName(); 
 };
@@ -65,26 +65,32 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
-	// DEBUG_MSG(boost::format("RemoteEntityMethod::tp_call:%1%.\n") % methodDescription->getName());
+	// DEBUG_MSG(fmt::format("RemoteEntityMethod::tp_call:{}.\n"), methodDescription->getName()));
 
 	if(methodDescription->checkArgs(args))
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		mailbox->newMail((*pBundle));
+		Network::Channel* pChannel = mailbox->getChannel();
+		Network::Bundle* pSendBundle = NULL;
+
+		if (!pChannel)
+			pSendBundle = Network::Bundle::createPoolObject();
+		else
+			pSendBundle = pChannel->createSendBundle();
+
+		mailbox->newMail((*pSendBundle));
 
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
 
 		if(mstream.wpos() > 0)
-			(*pBundle).append(mstream.data(), mstream.wpos());
+			(*pSendBundle).append(mstream.data(), mstream.wpos());
 
-		mailbox->postMail((*pBundle));
-		Mercury::Bundle::ObjPool().reclaimObject(pBundle);
+		mailbox->postMail(pSendBundle);
 	}
 	else
 	{
-        ERROR_MSG(boost::format("RemoteEntityMethod::tp_call:%1% checkArgs is error!\n") %
-                methodDescription->getName());
+        ERROR_MSG(fmt::format("RemoteEntityMethod::tp_call:{} checkArgs error!\n",
+                methodDescription->getName()));
 	}
 
 	S_Return;

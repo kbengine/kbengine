@@ -37,7 +37,7 @@
 
 PyObject* pysqlite_Error, *pysqlite_Warning, *pysqlite_InterfaceError, *pysqlite_DatabaseError,
     *pysqlite_InternalError, *pysqlite_OperationalError, *pysqlite_ProgrammingError,
-    *pysqlite_IntegrityError, *pysqlite_DataError, *pysqlite_NotSupportedError, *pysqlite_OptimizedUnicode;
+    *pysqlite_IntegrityError, *pysqlite_DataError, *pysqlite_NotSupportedError;
 
 PyObject* converters;
 int _enable_callback_tracebacks;
@@ -50,19 +50,26 @@ static PyObject* module_connect(PyObject* self, PyObject* args, PyObject*
      * C-level, so this code is redundant with the one in connection_init in
      * connection.c and must always be copied from there ... */
 
-    static char *kwlist[] = {"database", "timeout", "detect_types", "isolation_level", "check_same_thread", "factory", "cached_statements", NULL, NULL};
+    static char *kwlist[] = {
+        "database", "timeout", "detect_types", "isolation_level",
+        "check_same_thread", "factory", "cached_statements", "uri",
+        NULL
+    };
     char* database;
     int detect_types = 0;
     PyObject* isolation_level;
     PyObject* factory = NULL;
     int check_same_thread = 1;
     int cached_statements;
+    int uri = 0;
     double timeout = 5.0;
 
     PyObject* result;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|diOiOi", kwlist,
-                                     &database, &timeout, &detect_types, &isolation_level, &check_same_thread, &factory, &cached_statements))
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|diOiOip", kwlist,
+                                     &database, &timeout, &detect_types,
+                                     &isolation_level, &check_same_thread,
+                                     &factory, &cached_statements, &uri))
     {
         return NULL;
     }
@@ -77,7 +84,8 @@ static PyObject* module_connect(PyObject* self, PyObject* args, PyObject*
 }
 
 PyDoc_STRVAR(module_connect_doc,
-"connect(database[, timeout, isolation_level, detect_types, factory])\n\
+"connect(database[, timeout, detect_types, isolation_level,\n\
+        check_same_thread, factory, cached_statements, uri])\n\
 \n\
 Opens a connection to the SQLite database file *database*. You can use\n\
 \":memory:\" to open a database connection to a database that resides in\n\
@@ -179,13 +187,14 @@ static PyObject* module_register_converter(PyObject* self, PyObject* args)
     PyObject* name = NULL;
     PyObject* callable;
     PyObject* retval = NULL;
+    _Py_IDENTIFIER(upper);
 
     if (!PyArg_ParseTuple(args, "UO", &orig_name, &callable)) {
         return NULL;
     }
 
     /* convert the name to upper case */
-    name = PyObject_CallMethod(orig_name, "upper", "");
+    name = _PyObject_CallMethodId(orig_name, &PyId_upper, "");
     if (!name) {
         goto error;
     }
@@ -406,13 +415,13 @@ PyMODINIT_FUNC PyInit__sqlite3(void)
     }
     PyDict_SetItemString(dict, "NotSupportedError", pysqlite_NotSupportedError);
 
-    /* We just need "something" unique for pysqlite_OptimizedUnicode. It does not really
-     * need to be a string subclass. Just anything that can act as a special
-     * marker for us. So I pulled PyCell_Type out of my magic hat.
-     */
-    Py_INCREF((PyObject*)&PyCell_Type);
-    pysqlite_OptimizedUnicode = (PyObject*)&PyCell_Type;
-    PyDict_SetItemString(dict, "OptimizedUnicode", pysqlite_OptimizedUnicode);
+    /* In Python 2.x, setting Connection.text_factory to
+       OptimizedUnicode caused Unicode objects to be returned for
+       non-ASCII data and bytestrings to be returned for ASCII data.
+       Now OptimizedUnicode is an alias for str, so it has no
+       effect. */
+    Py_INCREF((PyObject*)&PyUnicode_Type);
+    PyDict_SetItemString(dict, "OptimizedUnicode", (PyObject*)&PyUnicode_Type);
 
     /* Set integer constants */
     for (i = 0; _int_constants[i].constant_name != 0; i++) {

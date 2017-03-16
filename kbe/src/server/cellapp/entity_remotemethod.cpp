@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,15 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "witness.hpp"
-#include "entity_remotemethod.hpp"
-#include "entitydef/method.hpp"
-#include "helper/profile.hpp"	
-#include "network/bundle.hpp"
-#include "server/eventhistory_stats.hpp"
-
-#include "client_lib/client_interface.hpp"
+#include "cellapp.h"
+#include "witness.h"
+#include "entity_remotemethod.h"
+#include "entitydef/method.h"
+#include "helper/profile.h"	
+#include "helper/eventhistory_stats.h"
+#include "network/bundle.h"
+#include "client_lib/client_interface.h"
 
 namespace KBEngine{	
 
@@ -65,63 +64,69 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
 
-	Entity* pEntity = Cellapp::getSingleton().findEntity(mailbox->getID());
+	Entity* pEntity = Cellapp::getSingleton().findEntity(mailbox->id());
 	if(pEntity == NULL || pEntity->pWitness() == NULL)
 	{
-		//WARNING_MSG(boost::format("EntityRemoteMethod::callClientMethod: not found entity(%1%).\n") % 
-		//	mailbox->getID());
+		//WARNING_MSG(fmt::format("EntityRemoteMethod::callClientMethod: not found entity({}).\n", 
+		//	mailbox->id()));
 
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
 
+	Network::Channel* pChannel = pEntity->pWitness()->pChannel();
+	if(!pChannel)
+	{
+		PyErr_Format(PyExc_AssertionError, "%s:EntityRemoteMethod(%s)::tp_call: no client, srcEntityID(%d).\n",
+			pEntity->scriptName(), methodDescription->getName(), pEntity->id());		
+		PyErr_PrintEx(0);
+		return RemoteEntityMethod::tp_call(self, args, kwds);
+	}
+	
 	// 如果是调用客户端方法， 我们记录事件并且记录带宽
 	if(methodDescription->checkArgs(args))
 	{
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+		Network::Bundle* pBundle = pChannel->createSendBundle();
 		mailbox->newMail((*pBundle));
 
-		MemoryStream* mstream = MemoryStream::ObjPool().createObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
 		if(mstream->wpos() > 0)
-			(*pBundle).append(mstream->data(), mstream->wpos());
+			(*pBundle).append(mstream->data(), (int)mstream->wpos());
 
-		if(Mercury::g_trace_packet > 0)
+		if(Network::g_trace_packet > 0)
 		{
-			if(Mercury::g_trace_packet_use_logfile)
+			if(Network::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger("packetlogs");
 
-			DEBUG_MSG(boost::format("EntityRemoteMethod::tp_call: pushUpdateData: ClientInterface::onRemoteMethodCall(%1%::%2%)\n") % 
-				pEntity->getScriptName() % methodDescription->getName());
-																								
-			switch(Mercury::g_trace_packet)																	
-			{																								
-			case 1:																							
-				mstream->hexlike();																			
-				break;																						
-			case 2:																							
-				mstream->textlike();																			
-				break;																						
-			default:																						
-				mstream->print_storage();																	
-				break;																						
-			};																								
+			DEBUG_MSG(fmt::format("EntityRemoteMethod::tp_call: pushUpdateData: ClientInterface::onRemoteMethodCall({}::{})\n",
+				pEntity->scriptName(), methodDescription->getName()));
 
-			if(Mercury::g_trace_packet_use_logfile)	
+			switch(Network::g_trace_packet)
+			{
+			case 1:
+				mstream->hexlike();
+				break;
+			case 2:
+				mstream->textlike();
+				break;
+			default:
+				mstream->print_storage();
+				break;
+			};
+
+			if(Network::g_trace_packet_use_logfile)
 				DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(g_componentType));																				
 		}
 
-		//mailbox->postMail((*pBundle));
-		pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
-
-		//Mercury::Bundle::ObjPool().reclaimObject(pBundle);
-		MemoryStream::ObjPool().reclaimObject(mstream);
-
 		// 记录这个事件产生的数据量大小
-		g_privateClientEventHistoryStats.trackEvent(pEntity->getScriptName(), 
+		g_privateClientEventHistoryStats.trackEvent(pEntity->scriptName(), 
 			methodDescription->getName(), 
 			pBundle->currMsgLength(), 
 			"::");
+		
+		pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pBundle);
+		MemoryStream::reclaimPoolObject(mstream);
 	}
 	
 	S_Return;

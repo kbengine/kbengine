@@ -2,12 +2,6 @@
 # OpenSSL/crypto/blowfish/Makefile
 #
 
-ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/lib/dependencies/openssl/crypto/blowfish,,$(CURDIR))
-endif
-
-LIBDIR= $(KBE_ROOT)/kbe/src/libs
-
 DIR=	bf
 TOP=	../..
 CC=	cc
@@ -17,9 +11,7 @@ CFLAG=-g
 MAKEFILE=	Makefile
 AR=		ar r
 
-BF_ENC=		$(KBE_CONFIG)/bf_enc.o
-# or use
-#DES_ENC=	bx86-elf.o
+BF_ENC=		bf_enc.o
 
 CFLAGS= $(INCLUDES) $(CFLAG)
 ASFLAGS= $(INCLUDES) $(ASFLAG)
@@ -29,9 +21,9 @@ GENERAL=Makefile
 TEST=bftest.c
 APPS=
 
-LIB=$(LIBDIR)/libcrypto.a
+LIB=$(TOP)/libcrypto.a
 LIBSRC=bf_skey.c bf_ecb.c bf_enc.c bf_cfb64.c bf_ofb64.c 
-LIBOBJ=$(KBE_CONFIG)/bf_skey.o $(KBE_CONFIG)/bf_ecb.o $(BF_ENC) $(KBE_CONFIG)/bf_cfb64.o $(KBE_CONFIG)/bf_ofb64.o
+LIBOBJ=bf_skey.o bf_ecb.o $(BF_ENC) bf_cfb64.o bf_ofb64.o
 
 SRC= $(LIBSRC)
 
@@ -45,26 +37,13 @@ top:
 
 all:	lib
 
-$(KBE_CONFIG):
-	@-mkdir $(KBE_CONFIG)
-
-lib:	$(KBE_CONFIG) $(LIBOBJ)
+lib:	$(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
 
-$(KBE_CONFIG)/%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-# ELF
-$(KBE_CONFIG)/bx86-elf.s: asm/bf-586.pl ../perlasm/x86asm.pl ../perlasm/cbc.pl
-	(cd asm; $(PERL) bf-586.pl elf $(CFLAGS) $(PROCESSOR) > ../$@)
-# COFF
-$(KBE_CONFIG)/bx86-cof.s: asm/bf-586.pl ../perlasm/x86asm.pl ../perlasm/cbc.pl
-	(cd asm; $(PERL) bf-586.pl coff $(CFLAGS) $(PROCESSOR) > ../$@)
-# a.out
-$(KBE_CONFIG)/bx86-out.s: asm/bf-586.pl ../perlasm/x86asm.pl ../perlasm/cbc.pl
-	(cd asm; $(PERL) bf-586.pl a.out $(CFLAGS) $(PROCESSOR) > ../$@)
+bf-586.s:	asm/bf-586.pl ../perlasm/x86asm.pl ../perlasm/cbc.pl
+	$(PERL) asm/bf-586.pl $(PERLASM_SCHEME) $(CFLAGS) $(PROCESSOR) > $@
 
 files:
 	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO
@@ -93,6 +72,8 @@ tests:
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
+update: depend
+
 depend:
 	@[ -n "$(MAKEDEPEND)" ] # should be set by upper Makefile...
 	$(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(LIBSRC)
@@ -102,18 +83,21 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(KBE_CONFIG)/*.s *.s $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f *.s *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(KBE_CONFIG)/bf_cfb64.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
-$(KBE_CONFIG)/bf_cfb64.o: ../../include/openssl/opensslconf.h bf_cfb64.c bf_locl.h
-$(KBE_CONFIG)/bf_ecb.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
-$(KBE_CONFIG)/bf_ecb.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
-$(KBE_CONFIG)/bf_ecb.o: bf_ecb.c bf_locl.h
-$(KBE_CONFIG)/bf_enc.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
-$(KBE_CONFIG)/bf_enc.o: ../../include/openssl/opensslconf.h bf_enc.c bf_locl.h
-$(KBE_CONFIG)/bf_ofb64.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
-$(KBE_CONFIG)/bf_ofb64.o: ../../include/openssl/opensslconf.h bf_locl.h bf_ofb64.c
-$(KBE_CONFIG)/bf_skey.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
-$(KBE_CONFIG)/bf_skey.o: ../../include/openssl/opensslconf.h bf_locl.h bf_pi.h bf_skey.c
+bf_cfb64.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
+bf_cfb64.o: ../../include/openssl/opensslconf.h bf_cfb64.c bf_locl.h
+bf_ecb.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
+bf_ecb.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
+bf_ecb.o: bf_ecb.c bf_locl.h
+bf_enc.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
+bf_enc.o: ../../include/openssl/opensslconf.h bf_enc.c bf_locl.h
+bf_ofb64.o: ../../include/openssl/blowfish.h ../../include/openssl/e_os2.h
+bf_ofb64.o: ../../include/openssl/opensslconf.h bf_locl.h bf_ofb64.c
+bf_skey.o: ../../include/openssl/blowfish.h ../../include/openssl/crypto.h
+bf_skey.o: ../../include/openssl/e_os2.h ../../include/openssl/opensslconf.h
+bf_skey.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+bf_skey.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+bf_skey.o: ../../include/openssl/symhacks.h bf_locl.h bf_pi.h bf_skey.c

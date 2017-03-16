@@ -8,16 +8,14 @@ from test.support import run_unittest, import_module
 thread = import_module('_thread')
 import time
 
-if sys.platform[:3] in ('win', 'os2') or sys.platform=='riscos':
+if (sys.platform[:3] == 'win'):
     raise unittest.SkipTest("Can't test signal on %s" % sys.platform)
 
 process_pid = os.getpid()
 signalled_all=thread.allocate_lock()
 
-# Issue #11223: Locks are implemented using a mutex and a condition variable of
-# the pthread library on FreeBSD6. POSIX condition variables cannot be
-# interrupted by signals (see pthread_cond_wait manual page).
-USING_PTHREAD_COND = (sys.platform == 'freebsd6')
+USING_PTHREAD_COND = (sys.thread_info.name == 'pthread'
+                      and sys.thread_info.lock == 'mutex+cond')
 
 def registerSignals(for_usr1, for_usr2, for_alrm):
     usr1 = signal.signal(signal.SIGUSR1, for_usr1)
@@ -76,6 +74,9 @@ class ThreadSignals(unittest.TestCase):
 
     @unittest.skipIf(USING_PTHREAD_COND,
                      'POSIX condition variables cannot be interrupted')
+    # Issue #20564: sem_timedwait() cannot be interrupted on OpenBSD
+    @unittest.skipIf(sys.platform.startswith('openbsd'),
+                     'lock cannot be interrupted on OpenBSD')
     def test_lock_acquire_interruption(self):
         # Mimic receiving a SIGINT (KeyboardInterrupt) with SIGALRM while stuck
         # in a deadlock.
@@ -99,6 +100,9 @@ class ThreadSignals(unittest.TestCase):
 
     @unittest.skipIf(USING_PTHREAD_COND,
                      'POSIX condition variables cannot be interrupted')
+    # Issue #20564: sem_timedwait() cannot be interrupted on OpenBSD
+    @unittest.skipIf(sys.platform.startswith('openbsd'),
+                     'lock cannot be interrupted on OpenBSD')
     def test_rlock_acquire_interruption(self):
         # Mimic receiving a SIGINT (KeyboardInterrupt) with SIGALRM while stuck
         # in a deadlock.

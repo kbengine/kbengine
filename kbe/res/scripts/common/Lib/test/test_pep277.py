@@ -1,6 +1,9 @@
 # Test the Unicode versions of normal file functions
 # open, os.open, os.stat. os.listdir, os.rename, os.remove, os.mkdir, os.chdir, os.rmdir
-import sys, os, unittest
+import os
+import sys
+import unittest
+import warnings
 from unicodedata import normalize
 from test import support
 
@@ -38,8 +41,8 @@ if sys.platform != 'darwin':
         '17_\u2001\u2001\u2001A',
         '18_\u2003\u2003\u2003A',  # == NFC('\u2001\u2001\u2001A')
         '19_\u0020\u0020\u0020A',  # '\u0020' == ' ' == NFKC('\u2000') ==
-                                #  NFKC('\u2001') == NFKC('\u2003')
-])
+                                   #  NFKC('\u2001') == NFKC('\u2003')
+    ])
 
 
 # Is it Unicode-friendly?
@@ -53,17 +56,6 @@ if not os.path.supports_unicode_filenames:
                                 "Unicode-friendly filesystem encoding")
 
 
-# Destroy directory dirname and all files under it, to one level.
-def deltree(dirname):
-    # Don't hide legitimate errors:  if one of these suckers exists, it's
-    # an error if we can't remove it.
-    if os.path.exists(dirname):
-        # must pass unicode to os.listdir() so we get back unicode results.
-        for fname in os.listdir(str(dirname)):
-            os.unlink(os.path.join(dirname, fname))
-        os.rmdir(dirname)
-
-
 class UnicodeFileTests(unittest.TestCase):
     files = set(filenames)
     normal_form = None
@@ -71,8 +63,10 @@ class UnicodeFileTests(unittest.TestCase):
     def setUp(self):
         try:
             os.mkdir(support.TESTFN)
-        except OSError:
+        except FileExistsError:
             pass
+        self.addCleanup(support.rmtree, support.TESTFN)
+
         files = set()
         for name in self.files:
             name = os.path.join(support.TESTFN, self.norm(name))
@@ -82,23 +76,18 @@ class UnicodeFileTests(unittest.TestCase):
             files.add(name)
         self.files = files
 
-    def tearDown(self):
-        deltree(support.TESTFN)
-
     def norm(self, s):
         if self.normal_form:
             return normalize(self.normal_form, s)
         return s
 
-    def _apply_failure(self, fn, filename, expected_exception,
-                       check_fn_in_exception = True):
+    def _apply_failure(self, fn, filename,
+                       expected_exception=FileNotFoundError,
+                       check_filename=True):
         with self.assertRaises(expected_exception) as c:
             fn(filename)
         exc_filename = c.exception.filename
-        # the "filename" exception attribute may be encoded
-        if isinstance(exc_filename, bytes):
-            filename = filename.encode(sys.getfilesystemencoding())
-        if check_fn_in_exception:
+        if check_filename:
             self.assertEqual(exc_filename, filename, "Function '%s(%a) failed "
                              "with bad filename in the exception: %a" %
                              (fn.__name__, filename, exc_filename))
@@ -107,13 +96,18 @@ class UnicodeFileTests(unittest.TestCase):
         # Pass non-existing Unicode filenames all over the place.
         for name in self.files:
             name = "not_" + name
-            self._apply_failure(open, name, IOError)
-            self._apply_failure(os.stat, name, OSError)
-            self._apply_failure(os.chdir, name, OSError)
-            self._apply_failure(os.rmdir, name, OSError)
-            self._apply_failure(os.remove, name, OSError)
-            # listdir may append a wildcard to the filename, so dont check
-            self._apply_failure(os.listdir, name, OSError, False)
+            self._apply_failure(open, name)
+            self._apply_failure(os.stat, name)
+            self._apply_failure(os.chdir, name)
+            self._apply_failure(os.rmdir, name)
+            self._apply_failure(os.remove, name)
+            self._apply_failure(os.listdir, name)
+
+    if sys.platform == 'win32':
+        # Windows is lunatic. Issue #13366.
+        _listdir_failure = NotADirectoryError, FileNotFoundError
+    else:
+        _listdir_failure = NotADirectoryError
 
     def test_open(self):
         for name in self.files:
@@ -121,12 +115,13 @@ class UnicodeFileTests(unittest.TestCase):
             f.write((name+'\n').encode("utf-8"))
             f.close()
             os.stat(name)
+            self._apply_failure(os.listdir, name, self._listdir_failure)
 
     # Skip the test on darwin, because darwin does normalize the filename to
     # NFD (a variant of Unicode NFD form). Normalize the filename to NFC, NFKC,
     # NFKD in Python is useless, because darwin will normalize it later and so
     # open(), os.stat(), etc. don't raise any exception.
-    @unittest.skipIf(sys.platform == 'darwin', 'irrevelant test on Mac OS X')
+    @unittest.skipIf(sys.platform == 'darwin', 'irrelevant test on Mac OS X')
     def test_normalize(self):
         files = set(self.files)
         others = set()
@@ -134,21 +129,22 @@ class UnicodeFileTests(unittest.TestCase):
             others |= set(normalize(nf, file) for file in files)
         others -= files
         for name in others:
-            self._apply_failure(open, name, IOError)
-            self._apply_failure(os.stat, name, OSError)
-            self._apply_failure(os.chdir, name, OSError)
-            self._apply_failure(os.rmdir, name, OSError)
-            self._apply_failure(os.remove, name, OSError)
-            # listdir may append a wildcard to the filename, so dont check
-            self._apply_failure(os.listdir, name, OSError, False)
+            self._apply_failure(open, name)
+            self._apply_failure(os.stat, name)
+            self._apply_failure(os.chdir, name)
+            self._apply_failure(os.rmdir, name)
+            self._apply_failure(os.remove, name)
+            self._apply_failure(os.listdir, name)
 
     # Skip the test on darwin, because darwin uses a normalization different
     # than Python NFD normalization: filenames are different even if we use
     # Python NFD normalization.
-    @unittest.skipIf(sys.platform == 'darwin', 'irrevelant test on Mac OS X')
+    @unittest.skipIf(sys.platform == 'darwin', 'irrelevant test on Mac OS X')
     def test_listdir(self):
         sf0 = set(self.files)
-        f1 = os.listdir(support.TESTFN.encode(sys.getfilesystemencoding()))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            f1 = os.listdir(support.TESTFN.encode(sys.getfilesystemencoding()))
         f2 = os.listdir(support.TESTFN)
         sf2 = set(os.path.join(support.TESTFN, f) for f in f2)
         self.assertEqual(sf0, sf2, "%a != %a" % (sf0, sf2))
@@ -192,16 +188,13 @@ class UnicodeNFKDFileTests(UnicodeFileTests):
 
 
 def test_main():
-    try:
-        support.run_unittest(
-            UnicodeFileTests,
-            UnicodeNFCFileTests,
-            UnicodeNFDFileTests,
-            UnicodeNFKCFileTests,
-            UnicodeNFKDFileTests,
-        )
-    finally:
-        deltree(support.TESTFN)
+    support.run_unittest(
+        UnicodeFileTests,
+        UnicodeNFCFileTests,
+        UnicodeNFDFileTests,
+        UnicodeNFKCFileTests,
+        UnicodeNFKDFileTests,
+    )
 
 
 if __name__ == "__main__":

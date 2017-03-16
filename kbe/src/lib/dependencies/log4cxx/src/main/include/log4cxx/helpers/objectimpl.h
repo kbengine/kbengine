@@ -25,24 +25,42 @@ namespace log4cxx
    namespace helpers
    {
       /** Implementation class for Object.*/
-      class LOG4CXX_EXPORT ObjectImpl : public virtual Object
-      {
-      public:
-         ObjectImpl();
-         virtual ~ObjectImpl();
-         void addRef() const;
-         void releaseRef() const;
+	   class LOG4CXX_EXPORT ObjectImpl : public virtual Object
+	   {
+	   public:
+		   ObjectImpl();
+		   virtual ~ObjectImpl();
+		   void addRef() const;
+		   void releaseRef() const;
 
-      protected:
-         mutable unsigned int volatile ref;
+		   // added for VS2015
+		   #if _MSC_VER >= 1900
+		   ObjectImpl(ObjectImpl && o)
+		   {
+			   ref = o.ref;
+			   o.ref = 0;
+		   }
 
-        private:
-                        //
-            //   prevent object copy and assignment
-            //
-            ObjectImpl(const ObjectImpl&);
-            ObjectImpl& operator=(const ObjectImpl&);
-      };
+		   ObjectImpl& operator=(ObjectImpl && o)
+		   {
+			   ref = o.ref;
+			   o.ref = 0;
+
+			   return *this;
+		   }
+		   #endif
+		   // -----
+
+	   protected:
+		   mutable unsigned int volatile ref;
+
+	   private:
+		   //
+		   //   prevent object copy and assignment
+		   //
+		   ObjectImpl(const ObjectImpl&);
+		   ObjectImpl& operator=(const ObjectImpl&);
+	   };
    }
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 MySQL AB
+/* Copyright (c) 2000, 2015, Oracle and/or its affiliates. All rights reserved.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -11,7 +11,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA */
 
 /* 
    Data structures for mysys/my_alloc.c (root memory allocator)
@@ -22,6 +22,13 @@
 
 #define ALLOC_MAX_BLOCK_TO_DROP			4096
 #define ALLOC_MAX_BLOCK_USAGE_BEFORE_DROP	10
+
+/* PSI_memory_key */
+#include <mysql/psi/psi_memory.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct st_used_mem
 {				   /* struct for once_alloc (block) */
@@ -37,8 +44,8 @@ typedef struct st_mem_root
   USED_MEM *used;                  /* blocks almost without free memory */
   USED_MEM *pre_alloc;             /* preallocated block */
   /* if block have less memory it will be put in 'used' list */
-  unsigned int min_malloc;
-  unsigned int block_size;         /* initial block size */
+  size_t min_malloc;
+  size_t block_size;               /* initial block size */
   unsigned int block_num;          /* allocated blocks counter */
   /* 
      first free block in queue test counter (if it exceed 
@@ -46,6 +53,26 @@ typedef struct st_mem_root
   */
   unsigned int first_block_usage;
 
+  /*
+    Maximum amount of memory this mem_root can hold. A value of 0
+    implies there is no limit.
+  */
+  size_t max_capacity;
+
+  /* Allocated size for this mem_root */
+
+  size_t allocated_size;
+
+  /* Enable this for error reporting if capacity is exceeded */
+  my_bool error_for_capacity_exceeded;
+
   void (*error_handler)(void);
+
+  PSI_memory_key m_psi_key;
 } MEM_ROOT;
+
+#ifdef  __cplusplus
+}
+#endif
+
 #endif

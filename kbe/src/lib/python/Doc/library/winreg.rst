@@ -12,6 +12,17 @@ integer as the registry handle, a :ref:`handle object <handle-object>` is used
 to ensure that the handles are closed correctly, even if the programmer neglects
 to explicitly close them.
 
+.. _exception-changed:
+
+.. versionchanged:: 3.3
+   Several functions in this module used to raise a
+   :exc:`WindowsError`, which is now an alias of :exc:`OSError`.
+
+.. _functions:
+
+Functions
+------------------
+
 This module offers the following functions:
 
 
@@ -37,8 +48,11 @@ This module offers the following functions:
 
    *key* is the predefined handle to connect to.
 
-   The return value is the handle of the opened key. If the function fails, a
-   :exc:`WindowsError` exception is raised.
+   The return value is the handle of the opened key. If the function fails, an
+   :exc:`OSError` exception is raised.
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: CreateKey(key, sub_key)
@@ -56,8 +70,11 @@ This module offers the following functions:
 
    If the key already exists, this function opens the existing key.
 
-   The return value is the handle of the opened key. If the function fails, a
-   :exc:`WindowsError` exception is raised.
+   The return value is the handle of the opened key. If the function fails, an
+   :exc:`OSError` exception is raised.
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: CreateKeyEx(key, sub_key, reserved=0, access=KEY_WRITE)
@@ -81,10 +98,13 @@ This module offers the following functions:
 
    If the key already exists, this function opens the existing key.
 
-   The return value is the handle of the opened key. If the function fails, a
-   :exc:`WindowsError` exception is raised.
+   The return value is the handle of the opened key. If the function fails, an
+   :exc:`OSError` exception is raised.
 
    .. versionadded:: 3.2
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: DeleteKey(key, sub_key)
@@ -100,7 +120,10 @@ This module offers the following functions:
    *This method can not delete keys with subkeys.*
 
    If the method succeeds, the entire key, including all of its values, is removed.
-   If the method fails, a :exc:`WindowsError` exception is raised.
+   If the method fails, an :exc:`OSError` exception is raised.
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: DeleteKeyEx(key, sub_key, access=KEY_WOW64_64KEY, reserved=0)
@@ -123,17 +146,20 @@ This module offers the following functions:
    *reserved* is a reserved integer, and must be zero. The default is zero.
 
    *access* is an integer that specifies an access mask that describes the desired
-   security access for the key.  Default is :const:`KEY_ALL_ACCESS`.  See
+   security access for the key.  Default is :const:`KEY_WOW64_64KEY`.  See
    :ref:`Access Rights <access-rights>` for other allowed values.
 
    *This method can not delete keys with subkeys.*
 
    If the method succeeds, the entire key, including all of its values, is
-   removed. If the method fails, a :exc:`WindowsError` exception is raised.
+   removed. If the method fails, an :exc:`OSError` exception is raised.
 
    On unsupported Windows versions, :exc:`NotImplementedError` is raised.
 
    .. versionadded:: 3.2
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: DeleteValue(key, value)
@@ -156,8 +182,11 @@ This module offers the following functions:
    *index* is an integer that identifies the index of the key to retrieve.
 
    The function retrieves the name of one subkey each time it is called.  It is
-   typically called repeatedly until a :exc:`WindowsError` exception is
+   typically called repeatedly until an :exc:`OSError` exception is
    raised, indicating, no more values are available.
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: EnumValue(key, index)
@@ -170,7 +199,7 @@ This module offers the following functions:
    *index* is an integer that identifies the index of the value to retrieve.
 
    The function retrieves the name of one subkey each time it is called. It is
-   typically called repeatedly, until a :exc:`WindowsError` exception is
+   typically called repeatedly, until an :exc:`OSError` exception is
    raised, indicating no more values.
 
    The result is a tuple of 3 items:
@@ -188,6 +217,9 @@ This module offers the following functions:
    |       | value data (see table in docs for          |
    |       | :meth:`SetValueEx`)                        |
    +-------+--------------------------------------------+
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: ExpandEnvironmentStrings(str)
@@ -261,9 +293,13 @@ This module offers the following functions:
 
    The result is a new handle to the specified key.
 
-   If the function fails, :exc:`WindowsError` is raised.
+   If the function fails, :exc:`OSError` is raised.
 
-   .. versionchanged:: 3.2 Allow the use of named arguments.
+   .. versionchanged:: 3.2
+      Allow the use of named arguments.
+
+   .. versionchanged:: 3.3
+      See :ref:`above <exception-changed>`.
 
 
 .. function:: QueryInfoKey(key)
@@ -286,7 +322,7 @@ This module offers the following functions:
    +-------+---------------------------------------------+
    | ``2`` | An integer giving when the key was last     |
    |       | modified (if available) as 100's of         |
-   |       | nanoseconds since Jan 1, 1600.              |
+   |       | nanoseconds since Jan 1, 1601.              |
    +-------+---------------------------------------------+
 
 

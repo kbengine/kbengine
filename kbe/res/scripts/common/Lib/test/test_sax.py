@@ -24,8 +24,8 @@ from test.support import findfile, run_unittest
 TEST_XMLFILE = findfile("test.xml", subdir="xmltestdata")
 TEST_XMLFILE_OUT = findfile("test.xml.out", subdir="xmltestdata")
 try:
-    TEST_XMLFILE.encode("utf8")
-    TEST_XMLFILE_OUT.encode("utf8")
+    TEST_XMLFILE.encode("utf-8")
+    TEST_XMLFILE_OUT.encode("utf-8")
 except UnicodeEncodeError:
     raise unittest.SkipTest("filename is not encodable to utf8")
 
@@ -319,6 +319,24 @@ class XmlgenTest:
 
         self.assertEqual(result.getvalue(), self.xml("<doc> </doc>"))
 
+    def test_xmlgen_encoding_bytes(self):
+        encodings = ('iso-8859-15', 'utf-8', 'utf-8-sig',
+                     'utf-16', 'utf-16be', 'utf-16le',
+                     'utf-32', 'utf-32be', 'utf-32le')
+        for encoding in encodings:
+            result = self.ioclass()
+            gen = XMLGenerator(result, encoding=encoding)
+
+            gen.startDocument()
+            gen.startElement("doc", {"a": '\u20ac'})
+            gen.characters("\u20ac".encode(encoding))
+            gen.ignorableWhitespace(" ".encode(encoding))
+            gen.endElement("doc")
+            gen.endDocument()
+
+            self.assertEqual(result.getvalue(),
+                self.xml('<doc a="\u20ac">\u20ac </doc>', encoding=encoding))
+
     def test_xmlgen_ns(self):
         result = self.ioclass()
         gen = XMLGenerator(result)
@@ -556,13 +574,17 @@ class StreamReaderWriterXmlgenTest(XmlgenTest, unittest.TestCase):
     def ioclass(self):
         writer = codecs.open(self.fname, 'w', encoding='ascii',
                              errors='xmlcharrefreplace', buffering=0)
-        self.addCleanup(support.unlink, self.fname)
-        writer.getvalue = self.getvalue
+        def cleanup():
+            writer.close()
+            support.unlink(self.fname)
+        self.addCleanup(cleanup)
+        def getvalue():
+            # Windows will not let use reopen without first closing
+            writer.close()
+            with open(writer.name, 'rb') as f:
+                return f.read()
+        writer.getvalue = getvalue
         return writer
-
-    def getvalue(self):
-        with open(self.fname, 'rb') as f:
-            return f.read()
 
     def xml(self, doc, encoding='iso-8859-1'):
         return ('<?xml version="1.0" encoding="%s"?>\n%s' %

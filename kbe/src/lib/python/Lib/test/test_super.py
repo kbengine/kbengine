@@ -44,6 +44,11 @@ class G(A):
 
 class TestSuper(unittest.TestCase):
 
+    def tearDown(self):
+        # This fixes the damage that test_various___class___pathologies does.
+        nonlocal __class__
+        __class__ = TestSuper
+
     def test_basics_working(self):
         self.assertEqual(D().f(), 'ABCD')
 
@@ -80,6 +85,92 @@ class TestSuper(unittest.TestCase):
                 return super().f() + 'E'
 
         self.assertEqual(E().f(), 'AE')
+
+    def test_various___class___pathologies(self):
+        # See issue #12370
+        class X(A):
+            def f(self):
+                return super().f()
+            __class__ = 413
+        x = X()
+        self.assertEqual(x.f(), 'A')
+        self.assertEqual(x.__class__, 413)
+        class X:
+            x = __class__
+            def f():
+                __class__
+        self.assertIs(X.x, type(self))
+        with self.assertRaises(NameError) as e:
+            exec("""class X:
+                __class__
+                def f():
+                    __class__""", globals(), {})
+        self.assertIs(type(e.exception), NameError) # Not UnboundLocalError
+        class X:
+            global __class__
+            __class__ = 42
+            def f():
+                __class__
+        self.assertEqual(globals()["__class__"], 42)
+        del globals()["__class__"]
+        self.assertNotIn("__class__", X.__dict__)
+        class X:
+            nonlocal __class__
+            __class__ = 42
+            def f():
+                __class__
+        self.assertEqual(__class__, 42)
+
+    def test___class___instancemethod(self):
+        # See issue #14857
+        class X:
+            def f(self):
+                return __class__
+        self.assertIs(X().f(), X)
+
+    def test___class___classmethod(self):
+        # See issue #14857
+        class X:
+            @classmethod
+            def f(cls):
+                return __class__
+        self.assertIs(X.f(), X)
+
+    def test___class___staticmethod(self):
+        # See issue #14857
+        class X:
+            @staticmethod
+            def f():
+                return __class__
+        self.assertIs(X.f(), X)
+
+    def test_obscure_super_errors(self):
+        def f():
+            super()
+        self.assertRaises(RuntimeError, f)
+        def f(x):
+            del x
+            super()
+        self.assertRaises(RuntimeError, f, None)
+        class X:
+            def f(x):
+                nonlocal __class__
+                del __class__
+                super()
+        self.assertRaises(RuntimeError, X().f)
+
+    def test_cell_as_self(self):
+        class X:
+            def meth(self):
+                super()
+
+        def f():
+            k = X()
+            def g():
+                return k
+            return g
+        c = f().__closure__[0]
+        self.assertRaises(TypeError, X.meth, c)
 
 
 def test_main():

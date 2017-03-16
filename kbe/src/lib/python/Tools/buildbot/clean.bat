@@ -1,8 +1,8 @@
 @rem Used by the buildbot "clean" step.
-call "%VS90COMNTOOLS%vsvars32.bat"
+call "%VS100COMNTOOLS%vsvars32.bat"
 @echo Deleting test leftovers ...
 rmdir /s /q build
 cd PCbuild
-vcbuild /clean pcbuild.sln "Release|Win32"
-vcbuild /clean pcbuild.sln "Debug|Win32"
+msbuild /target:clean pcbuild.sln /p:Configuration=Release /p:PlatformTarget=x86
+msbuild /target:clean pcbuild.sln /p:Configuration=Debug /p:PlatformTarget=x86
 cd ..

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -17,17 +17,30 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "entityref.hpp"
-#include "entity.hpp"
+#include "entityref.h"
+#include "entity.h"
+#include "cellapp.h"
+#include "common/memorystream.h"
 
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
 EntityRef::EntityRef(Entity* pEntity):
+id_(0),
+aliasID_(0),
 pEntity_(pEntity),
 flags_(ENTITYREF_FLAG_UNKONWN)
 {
-	id_ = pEntity->getID();
+	id_ = pEntity->id();
+}
+
+//-------------------------------------------------------------------------------------
+EntityRef::EntityRef():
+id_(0),
+aliasID_(0),
+pEntity_(NULL),
+flags_(ENTITYREF_FLAG_UNKONWN)
+{
 }
 
 //-------------------------------------------------------------------------------------
@@ -36,24 +49,77 @@ EntityRef::~EntityRef()
 }
 
 //-------------------------------------------------------------------------------------
+static ObjectPool<EntityRef> _g_objPool("EntityRef");
+ObjectPool<EntityRef>& EntityRef::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+EntityRef* EntityRef::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::reclaimPoolObject(EntityRef* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("EntityRef::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
+EntityRef::SmartPoolObjectPtr EntityRef::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<EntityRef>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::onReclaimObject()
+{
+	id_ = 0;
+	aliasID_ =  0;
+	pEntity_ = NULL;
+	flags_ = ENTITYREF_FLAG_UNKONWN;
+}
+
+//-------------------------------------------------------------------------------------
 void EntityRef::pEntity(Entity* e)
 {
 	pEntity_ = e; 
 
 	if(e)
-		id_ = e->getID(); 
+		id_ = e->id(); 
 }
 
 //-------------------------------------------------------------------------------------
-bool findif_vector_entityref_exist_by_entity_handler::operator()(const EntityRef* obj)
+void EntityRef::addToStream(KBEngine::MemoryStream& s)
 {
-	return obj->id() == obj_->getID();
+	ENTITY_ID eid = 0;
+	if(pEntity_)
+		eid = pEntity_->id();
+
+	s << id_ << aliasID_ << flags_ << eid;
 }
 
 //-------------------------------------------------------------------------------------
-bool findif_vector_entityref_exist_by_entityid_handler::operator()(const EntityRef* obj)
+void EntityRef::createFromStream(KBEngine::MemoryStream& s)
 {
-	return obj->id() == entityID_;
+	ENTITY_ID eid = 0;
+	s >> id_ >> aliasID_ >> flags_ >> eid;
+
+	if(eid > 0)
+	{
+		pEntity_ = Cellapp::getSingleton().findEntity(eid);
+	}
 }
 
 //-------------------------------------------------------------------------------------

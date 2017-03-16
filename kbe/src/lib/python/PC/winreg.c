@@ -89,7 +89,7 @@ PyDoc_STRVAR(ConnectRegistry_doc,
 "key is the predefined handle to connect to.\n"
 "\n"
 "The return value is the handle of the opened key.\n"
-"If the function fails, a WindowsError exception is raised.");
+"If the function fails, an OSError exception is raised.");
 
 PyDoc_STRVAR(CreateKey_doc,
 "CreateKey(key, sub_key) -> key\n"
@@ -104,7 +104,7 @@ PyDoc_STRVAR(CreateKey_doc,
 "If the key already exists, this function opens the existing key.\n"
 "\n"
 "The return value is the handle of the opened key.\n"
-"If the function fails, a WindowsError exception is raised.");
+"If the function fails, an OSError exception is raised.");
 
 PyDoc_STRVAR(CreateKeyEx_doc,
 "CreateKeyEx(key, sub_key, reserved=0, access=KEY_WRITE) -> key\n"
@@ -122,7 +122,7 @@ PyDoc_STRVAR(CreateKeyEx_doc,
 "If the key already exists, this function opens the existing key\n"
 "\n"
 "The return value is the handle of the opened key.\n"
-"If the function fails, a WindowsError exception is raised.");
+"If the function fails, an OSError exception is raised.");
 
 PyDoc_STRVAR(DeleteKey_doc,
 "DeleteKey(key, sub_key)\n"
@@ -136,7 +136,7 @@ PyDoc_STRVAR(DeleteKey_doc,
 "This method can not delete keys with subkeys.\n"
 "\n"
 "If the function succeeds, the entire key, including all of its values,\n"
-"is removed.  If the function fails, a WindowsError exception is raised.");
+"is removed.  If the function fails, an OSError exception is raised.");
 
 PyDoc_STRVAR(DeleteKeyEx_doc,
 "DeleteKeyEx(key, sub_key, access=KEY_WOW64_64KEY, reserved=0)\n"
@@ -153,7 +153,7 @@ PyDoc_STRVAR(DeleteKeyEx_doc,
 "This method can not delete keys with subkeys.\n"
 "\n"
 "If the function succeeds, the entire key, including all of its values,\n"
-"is removed.  If the function fails, a WindowsError exception is raised.\n"
+"is removed.  If the function fails, an OSError exception is raised.\n"
 "On unsupported Windows versions, NotImplementedError is raised.");
 
 PyDoc_STRVAR(DeleteValue_doc,
@@ -171,7 +171,7 @@ PyDoc_STRVAR(EnumKey_doc,
 "index is an integer that identifies the index of the key to retrieve.\n"
 "\n"
 "The function retrieves the name of one subkey each time it is called.\n"
-"It is typically called repeatedly until a WindowsError exception is\n"
+"It is typically called repeatedly until an OSError exception is\n"
 "raised, indicating no more values are available.");
 
 PyDoc_STRVAR(EnumValue_doc,
@@ -181,7 +181,7 @@ PyDoc_STRVAR(EnumValue_doc,
 "index is an integer that identifies the index of the value to retrieve.\n"
 "\n"
 "The function retrieves the name of one subkey each time it is called.\n"
-"It is typically called repeatedly, until a WindowsError exception\n"
+"It is typically called repeatedly, until an OSError exception\n"
 "is raised, indicating no more values.\n"
 "\n"
 "The result is a tuple of 3 items:\n"
@@ -240,7 +240,7 @@ PyDoc_STRVAR(OpenKey_doc,
 "       security access for the key.  Default is KEY_READ\n"
 "\n"
 "The result is a new handle to the specified key\n"
-"If the function fails, a WindowsError exception is raised.");
+"If the function fails, an OSError exception is raised.");
 
 PyDoc_STRVAR(OpenKeyEx_doc, "See OpenKey()");
 
@@ -253,7 +253,7 @@ PyDoc_STRVAR(QueryInfoKey_doc,
 "The result is a tuple of 3 items:"
 "An integer that identifies the number of sub keys this key has.\n"
 "An integer that identifies the number of values this key has.\n"
-"A long integer that identifies when the key was last modified (if available)\n"
+"An integer that identifies when the key was last modified (if available)\n"
 " as 100's of nanoseconds since Jan 1, 1600.");
 
 PyDoc_STRVAR(QueryValue_doc,
@@ -405,8 +405,7 @@ PyDoc_STRVAR(PyHKEY_Detach_doc,
 "After calling this function, the handle is effectively invalidated,\n"
 "but the handle is not closed.  You would call this function when you\n"
 "need the underlying win32 handle to exist beyond the lifetime of the\n"
-"handle object.\n"
-"On 64 bit windows, the result of this function is a long integer");
+"handle object.");
 
 
 /************************************************************************
@@ -792,26 +791,27 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
         case REG_SZ:
         case REG_EXPAND_SZ:
             {
-            if (value == Py_None)
-                *retDataSize = 1;
-            else {
-                if (!PyUnicode_Check(value))
-                    return FALSE;
-                *retDataSize = Py_SAFE_DOWNCAST(
-                                   2 + PyUnicode_GET_DATA_SIZE(value),
-                                   size_t, DWORD);
-            }
-            *retDataBuf = (BYTE *)PyMem_NEW(DWORD, *retDataSize);
-            if (*retDataBuf==NULL){
-                PyErr_NoMemory();
-                return FALSE;
-            }
-            if (value == Py_None)
-                wcscpy((wchar_t *)*retDataBuf, L"");
-            else
-                wcscpy((wchar_t *)*retDataBuf,
-                       PyUnicode_AS_UNICODE(value));
-            break;
+                if (value != Py_None) {
+                    Py_ssize_t len;
+                    if (!PyUnicode_Check(value))
+                        return FALSE;
+                    *retDataBuf = (BYTE*)PyUnicode_AsWideCharString(value, &len);
+                    if (*retDataBuf == NULL)
+                        return FALSE;
+                    *retDataSize = Py_SAFE_DOWNCAST(
+                        (len + 1) * sizeof(wchar_t),
+                        Py_ssize_t, DWORD);
+                }
+                else {
+                    *retDataBuf = (BYTE *)PyMem_NEW(wchar_t, 1);
+                    if (*retDataBuf == NULL) {
+                        PyErr_NoMemory();
+                        return FALSE;
+                    }
+                    ((wchar_t *)*retDataBuf)[0] = L'\0';
+                    *retDataSize = 1 * sizeof(wchar_t);
+                }
+                break;
             }
         case REG_MULTI_SZ:
             {
@@ -828,10 +828,16 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
                 for (j = 0; j < i; j++)
                 {
                     PyObject *t;
+                    wchar_t *wstr;
+                    Py_ssize_t len;
+
                     t = PyList_GET_ITEM(value, j);
                     if (!PyUnicode_Check(t))
                         return FALSE;
-                    size += Py_SAFE_DOWNCAST(2 + PyUnicode_GET_DATA_SIZE(t),
+                    wstr = PyUnicode_AsUnicodeAndSize(t, &len);
+                    if (wstr == NULL)
+                        return FALSE;
+                    size += Py_SAFE_DOWNCAST((len + 1) * sizeof(wchar_t),
                                              size_t, DWORD);
                 }
 
@@ -847,10 +853,15 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
                 for (j = 0; j < i; j++)
                 {
                     PyObject *t;
+                    wchar_t *wstr;
+                    Py_ssize_t len;
+
                     t = PyList_GET_ITEM(value, j);
-                    wcscpy(P, PyUnicode_AS_UNICODE(t));
-                    P += 1 + wcslen(
-                        PyUnicode_AS_UNICODE(t));
+                    wstr = PyUnicode_AsUnicodeAndSize(t, &len);
+                    if (wstr == NULL)
+                        return FALSE;
+                    wcscpy(P, wstr);
+                    P += (len + 1);
                 }
                 /* And doubly-terminate the list... */
                 *P = '\0';
@@ -860,8 +871,10 @@ Py2Reg(PyObject *value, DWORD typ, BYTE **retDataBuf, DWORD *retDataSize)
         /* ALSO handle ALL unknown data types here.  Even if we can't
            support it natively, we should handle the bits. */
         default:
-            if (value == Py_None)
+            if (value == Py_None) {
                 *retDataSize = 0;
+                *retDataBuf = NULL;
+            }
             else {
                 Py_buffer view;
 
@@ -914,7 +927,7 @@ Reg2Py(BYTE *retDataBuf, DWORD retDataSize, DWORD typ)
                     retDataSize -= 2;
                 if (retDataSize <= 0)
                     data = L"";
-                obData = PyUnicode_FromUnicode(data, retDataSize/2);
+                obData = PyUnicode_FromWideChar(data, retDataSize/2);
                 break;
             }
         case REG_MULTI_SZ:
@@ -926,14 +939,16 @@ Reg2Py(BYTE *retDataBuf, DWORD retDataSize, DWORD typ)
                 wchar_t *data = (wchar_t *)retDataBuf;
                 int len = retDataSize / 2;
                 int s = countStrings(data, len);
-                wchar_t **str = (wchar_t **)malloc(sizeof(wchar_t *)*s);
+                wchar_t **str = (wchar_t **)PyMem_Malloc(sizeof(wchar_t *)*s);
                 if (str == NULL)
                     return PyErr_NoMemory();
 
                 fixupMultiSZ(str, data, len);
                 obData = PyList_New(s);
-                if (obData == NULL)
+                if (obData == NULL) {
+                    PyMem_Free(str);
                     return NULL;
+                }
                 for (index = 0; index < s; index++)
                 {
                     size_t len = wcslen(str[index]);
@@ -941,13 +956,14 @@ Reg2Py(BYTE *retDataBuf, DWORD retDataSize, DWORD typ)
                         PyErr_SetString(PyExc_OverflowError,
                             "registry string is too long for a Python string");
                         Py_DECREF(obData);
+                        PyMem_Free(str);
                         return NULL;
                     }
                     PyList_SetItem(obData,
                                    index,
-                                   PyUnicode_FromUnicode(str[index], len));
+                                   PyUnicode_FromWideChar(str[index], len));
                 }
-                free(str);
+                PyMem_Free(str);
 
                 break;
             }
@@ -1086,7 +1102,7 @@ PyDeleteKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
 
     /* Only available on 64bit platforms, so we must load it
        dynamically. */
-    hMod = GetModuleHandle("advapi32.dll");
+    hMod = GetModuleHandleW(L"advapi32.dll");
     if (hMod)
         pfn = (RDKEFunc)GetProcAddress(hMod,
                                                                    "RegDeleteKeyExW");
@@ -1155,7 +1171,7 @@ PyEnumKey(PyObject *self, PyObject *args)
     if (rc != ERROR_SUCCESS)
         return PyErr_SetFromWindowsErrWithFunction(rc, "RegEnumKeyEx");
 
-    retStr = PyUnicode_FromUnicode(tmpbuf, len);
+    retStr = PyUnicode_FromWideChar(tmpbuf, len);
     return retStr;  /* can be NULL */
 }
 
@@ -1247,8 +1263,8 @@ PyEnumValue(PyObject *self, PyObject *args)
 static PyObject *
 PyExpandEnvironmentStrings(PyObject *self, PyObject *args)
 {
-    Py_UNICODE *retValue = NULL;
-    Py_UNICODE *src;
+    wchar_t *retValue = NULL;
+    wchar_t *src;
     DWORD retValueSize;
     DWORD rc;
     PyObject *o;
@@ -1261,7 +1277,7 @@ PyExpandEnvironmentStrings(PyObject *self, PyObject *args)
         return PyErr_SetFromWindowsErrWithFunction(retValueSize,
                                         "ExpandEnvironmentStrings");
     }
-    retValue = (Py_UNICODE *)PyMem_Malloc(retValueSize * sizeof(Py_UNICODE));
+    retValue = (wchar_t *)PyMem_Malloc(retValueSize * sizeof(wchar_t));
     if (retValue == NULL) {
         return PyErr_NoMemory();
     }
@@ -1272,7 +1288,7 @@ PyExpandEnvironmentStrings(PyObject *self, PyObject *args)
         return PyErr_SetFromWindowsErrWithFunction(retValueSize,
                                         "ExpandEnvironmentStrings");
     }
-    o = PyUnicode_FromUnicode(retValue, wcslen(retValue));
+    o = PyUnicode_FromWideChar(retValue, wcslen(retValue));
     PyMem_Free(retValue);
     return o;
 }
@@ -1426,7 +1442,7 @@ PyQueryValue(PyObject *self, PyObject *args)
                                                    "RegQueryValue");
     }
 
-    retStr = PyUnicode_FromUnicode(retBuf, wcslen(retBuf));
+    retStr = PyUnicode_FromWideChar(retBuf, wcslen(retBuf));
     PyMem_Free(retBuf);
     return retStr;
 }
@@ -1557,7 +1573,7 @@ PySetValueEx(PyObject *self, PyObject *args)
 {
     HKEY hKey;
     PyObject *obKey;
-    Py_UNICODE *valueName;
+    wchar_t *valueName;
     PyObject *obRes;
     PyObject *value;
     BYTE *data;
@@ -1610,7 +1626,7 @@ PyDisableReflectionKey(PyObject *self, PyObject *args)
 
     /* Only available on 64bit platforms, so we must load it
        dynamically.*/
-    hMod = GetModuleHandle("advapi32.dll");
+    hMod = GetModuleHandleW(L"advapi32.dll");
     if (hMod)
         pfn = (RDRKFunc)GetProcAddress(hMod,
                                        "RegDisableReflectionKey");
@@ -1646,7 +1662,7 @@ PyEnableReflectionKey(PyObject *self, PyObject *args)
 
     /* Only available on 64bit platforms, so we must load it
        dynamically.*/
-    hMod = GetModuleHandle("advapi32.dll");
+    hMod = GetModuleHandleW(L"advapi32.dll");
     if (hMod)
         pfn = (RERKFunc)GetProcAddress(hMod,
                                        "RegEnableReflectionKey");
@@ -1683,7 +1699,7 @@ PyQueryReflectionKey(PyObject *self, PyObject *args)
 
     /* Only available on 64bit platforms, so we must load it
        dynamically.*/
-    hMod = GetModuleHandle("advapi32.dll");
+    hMod = GetModuleHandleW(L"advapi32.dll");
     if (hMod)
         pfn = (RQRKFunc)GetProcAddress(hMod,
                                        "RegQueryReflectionKey");
@@ -1782,9 +1798,9 @@ PyMODINIT_FUNC PyInit_winreg(void)
     if (PyDict_SetItemString(d, "HKEYType",
                              (PyObject *)&PyHKEY_Type) != 0)
         return NULL;
-    Py_INCREF(PyExc_WindowsError);
+    Py_INCREF(PyExc_OSError);
     if (PyDict_SetItemString(d, "error",
-                             PyExc_WindowsError) != 0)
+                             PyExc_OSError) != 0)
         return NULL;
 
     /* Add the relevant constants */

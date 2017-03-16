@@ -1,12 +1,11 @@
 """Test cases for traceback module"""
 
-from _testcapi import traceback_print, exception_print
 from io import StringIO
 import sys
 import unittest
 import re
 from test.support import run_unittest, Error, captured_output
-from test.support import TESTFN, unlink
+from test.support import TESTFN, unlink, cpython_only
 
 import traceback
 
@@ -32,6 +31,12 @@ class SyntaxTracebackCases(unittest.TestCase):
     def syntax_error_bad_indentation(self):
         compile("def spam():\n  print(1)\n print(2)", "?", "exec")
 
+    def syntax_error_with_caret_non_ascii(self):
+        compile('Python = "\u1e54\xfd\u0163\u0125\xf2\xf1" +', "?", "exec")
+
+    def syntax_error_bad_indentation2(self):
+        compile(" print(2)", "?", "exec")
+
     def test_caret(self):
         err = self.get_exception_format(self.syntax_error_with_caret,
                                         SyntaxError)
@@ -43,8 +48,14 @@ class SyntaxTracebackCases(unittest.TestCase):
         err = self.get_exception_format(self.syntax_error_with_caret_2,
                                         SyntaxError)
         self.assertIn("^", err[2]) # third line has caret
-        self.assertTrue(err[2].count('\n') == 1) # and no additional newline
-        self.assertTrue(err[1].find("+") == err[2].find("^")) # in the right place
+        self.assertEqual(err[2].count('\n'), 1)   # and no additional newline
+        self.assertEqual(err[1].find("+"), err[2].find("^"))  # in the right place
+
+        err = self.get_exception_format(self.syntax_error_with_caret_non_ascii,
+                                        SyntaxError)
+        self.assertIn("^", err[2]) # third line has caret
+        self.assertEqual(err[2].count('\n'), 1)   # and no additional newline
+        self.assertEqual(err[1].find("+"), err[2].find("^"))  # in the right place
 
     def test_nocaret(self):
         exc = SyntaxError("error", ("x.py", 23, None, "bad syntax"))
@@ -59,6 +70,13 @@ class SyntaxTracebackCases(unittest.TestCase):
         self.assertEqual(err[1].strip(), "print(2)")
         self.assertIn("^", err[2])
         self.assertEqual(err[1].find(")"), err[2].find("^"))
+
+        err = self.get_exception_format(self.syntax_error_bad_indentation2,
+                                        IndentationError)
+        self.assertEqual(len(err), 4)
+        self.assertEqual(err[1].strip(), "print(2)")
+        self.assertIn("^", err[2])
+        self.assertEqual(err[1].find("p"), err[2].find("^"))
 
     def test_base_exception(self):
         # Test that exceptions derived from BaseException are formatted right
@@ -146,33 +164,83 @@ class SyntaxTracebackCases(unittest.TestCase):
                     text, charset, 4)
             do_test("#!shebang\n# coding: {0}\n".format(charset),
                     text, charset, 5)
+            do_test(" \t\f\n# coding: {0}\n".format(charset),
+                    text, charset, 5)
+        # Issue #18960: coding spec should has no effect
+        do_test("0\n# coding: GBK\n", "h\xe9 ho", 'utf-8', 5)
 
 
 class TracebackFormatTests(unittest.TestCase):
 
-    def test_traceback_format(self):
+    def some_exception(self):
+        raise KeyError('blah')
+
+    @cpython_only
+    def check_traceback_format(self, cleanup_func=None):
+        from _testcapi import traceback_print
         try:
-            raise KeyError('blah')
+            self.some_exception()
         except KeyError:
             type_, value, tb = sys.exc_info()
+            if cleanup_func is not None:
+                # Clear the inner frames, not this one
+                cleanup_func(tb.tb_next)
             traceback_fmt = 'Traceback (most recent call last):\n' + \
                             ''.join(traceback.format_tb(tb))
             file_ = StringIO()
             traceback_print(tb, file_)
             python_fmt  = file_.getvalue()
+            # Call all _tb and _exc functions
+            with captured_output("stderr") as tbstderr:
+                traceback.print_tb(tb)
+            tbfile = StringIO()
+            traceback.print_tb(tb, file=tbfile)
+            with captured_output("stderr") as excstderr:
+                traceback.print_exc()
+            excfmt = traceback.format_exc()
+            excfile = StringIO()
+            traceback.print_exc(file=excfile)
         else:
             raise Error("unable to create test traceback string")
 
         # Make sure that Python and the traceback module format the same thing
         self.assertEqual(traceback_fmt, python_fmt)
+        # Now verify the _tb func output
+        self.assertEqual(tbstderr.getvalue(), tbfile.getvalue())
+        # Now verify the _exc func output
+        self.assertEqual(excstderr.getvalue(), excfile.getvalue())
+        self.assertEqual(excfmt, excfile.getvalue())
 
         # Make sure that the traceback is properly indented.
         tb_lines = python_fmt.splitlines()
-        self.assertEqual(len(tb_lines), 3)
-        banner, location, source_line = tb_lines
+        self.assertEqual(len(tb_lines), 5)
+        banner = tb_lines[0]
+        location, source_line = tb_lines[-2:]
         self.assertTrue(banner.startswith('Traceback'))
         self.assertTrue(location.startswith('  File'))
         self.assertTrue(source_line.startswith('    raise'))
+
+    def test_traceback_format(self):
+        self.check_traceback_format()
+
+    def test_traceback_format_with_cleared_frames(self):
+        # Check that traceback formatting also works with a clear()ed frame
+        def cleanup_tb(tb):
+            tb.tb_frame.clear()
+        self.check_traceback_format(cleanup_tb)
+
+    def test_stack_format(self):
+        # Verify _stack functions. Note we have to use _getframe(1) to
+        # compare them without this frame appearing in the output
+        with captured_output("stderr") as ststderr:
+            traceback.print_stack(sys._getframe(1))
+        stfile = StringIO()
+        traceback.print_stack(sys._getframe(1), file=stfile)
+        self.assertEqual(ststderr.getvalue(), stfile.getvalue())
+
+        stfmt = traceback.format_stack(sys._getframe(1))
+
+        self.assertEqual(ststderr.getvalue(), "".join(stfmt))
 
 
 cause_message = (
@@ -245,6 +313,21 @@ class BaseExceptionReportingTests:
         self.assertEqual(blocks[1], context_message)
         self.check_zero_div(blocks[0])
         self.assertIn('inner_raise() # Marker', blocks[2])
+
+    def test_context_suppression(self):
+        try:
+            try:
+                raise Exception
+            except:
+                raise ZeroDivisionError from None
+        except ZeroDivisionError as _:
+            e = _
+        lines = self.get_report(e).splitlines()
+        self.assertEqual(len(lines), 4)
+        self.assertTrue(lines[0].startswith('Traceback'))
+        self.assertTrue(lines[1].startswith('  File'))
+        self.assertIn('ZeroDivisionError from None', lines[2])
+        self.assertTrue(lines[3].startswith('ZeroDivisionError'))
 
     def test_cause_and_context(self):
         # When both a cause and a context are set, only the cause should be
@@ -322,11 +405,43 @@ class CExcReportingTests(BaseExceptionReportingTests, unittest.TestCase):
     # This checks built-in reporting by the interpreter.
     #
 
+    @cpython_only
     def get_report(self, e):
+        from _testcapi import exception_print
         e = self.get_exception(e)
         with captured_output("stderr") as s:
             exception_print(e)
         return s.getvalue()
+
+
+class MiscTracebackCases(unittest.TestCase):
+    #
+    # Check non-printing functions in traceback module
+    #
+
+    def test_clear(self):
+        def outer():
+            middle()
+        def middle():
+            inner()
+        def inner():
+            i = 1
+            1/0
+
+        try:
+            outer()
+        except:
+            type_, value, tb = sys.exc_info()
+
+        # Initial assertion: there's one local in the inner frame.
+        inner_frame = tb.tb_next.tb_next.tb_next.tb_frame
+        self.assertEqual(len(inner_frame.f_locals), 1)
+
+        # Clear traceback frames
+        traceback.clear_frames(tb)
+
+        # Local variable dict should now be empty.
+        self.assertEqual(len(inner_frame.f_locals), 0)
 
 
 def test_main():

@@ -1,12 +1,8 @@
-ifneq ($(wildcard cellappmgr/Makefile),cellappmgr/Makefile)
-	LICENSE_SERVER=1
-endif
-
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server,,$(CURDIR))
 endif
 
-all clean realclean all_config install unit_tests unit_tests_build unit_tests_run unit_tests_clean::
+all clean realclean all_config install::
 
 # Check with and without the trailing slash
 ifneq ($(CURDIR),$(KBE_ROOT)/kbe/src/server)
@@ -22,13 +18,10 @@ endif
 	$(MAKE) -C baseapp $@
 	$(MAKE) -C baseappmgr $@
 	$(MAKE) -C cellapp $@
-ifndef LICENSE_SERVER
 	$(MAKE) -C cellappmgr $@
-endif
 	$(MAKE) -C dbmgr $@
 	$(MAKE) -C loginapp $@
 	$(MAKE) -C machine $@
-	$(MAKE) -C resourcemgr $@
 	$(MAKE) -C tools $@
 
 ifdef KBE_CONFIG

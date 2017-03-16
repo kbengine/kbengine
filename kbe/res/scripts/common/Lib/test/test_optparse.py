@@ -318,6 +318,22 @@ class TestOptionChecks(BaseTest):
             ["-b"], {'action': 'store',
                      'callback_kwargs': 'foo'})
 
+    def test_no_single_dash(self):
+        self.assertOptionError(
+            "invalid long option string '-debug': "
+            "must start with --, followed by non-dash",
+            ["-debug"])
+
+        self.assertOptionError(
+            "option -d: invalid long option string '-debug': must start with"
+            " --, followed by non-dash",
+            ["-d", "-debug"])
+
+        self.assertOptionError(
+            "invalid long option string '-debug': "
+            "must start with --, followed by non-dash",
+            ["-debug", "--debug"])
+
 class TestOptionParser(BaseTest):
     def setUp(self):
         self.parser = OptionParser()
@@ -379,6 +395,7 @@ class TestOptionParser(BaseTest):
         self.assertRaises(self.parser.remove_option, ('foo',), None,
                           ValueError, "no such option 'foo'")
 
+    @support.impl_detail('Relies on sys.getrefcount', cpython=True)
     def test_refleak(self):
         # If an OptionParser is carrying around a reference to a large
         # object, various cycles can prevent it from being GC'd in
@@ -631,7 +648,7 @@ class TestStandard(BaseTest):
                                                option_list=options)
 
     def test_required_value(self):
-        self.assertParseFail(["-a"], "-a option requires an argument")
+        self.assertParseFail(["-a"], "-a option requires 1 argument")
 
     def test_invalid_integer(self):
         self.assertParseFail(["-b", "5x"],
@@ -714,7 +731,7 @@ class TestStandard(BaseTest):
     def test_short_and_long_option_split(self):
         self.assertParseOK(["-a", "xyz", "--foo", "bar"],
                            {'a': 'xyz', 'boo': None, 'foo': ["bar"]},
-                           []),
+                           [])
 
     def test_short_option_split_long_option_append(self):
         self.assertParseOK(["--foo=bar", "-b", "123", "--foo", "baz"],
@@ -724,15 +741,15 @@ class TestStandard(BaseTest):
     def test_short_option_split_one_positional_arg(self):
         self.assertParseOK(["-a", "foo", "bar"],
                            {'a': "foo", 'boo': None, 'foo': None},
-                           ["bar"]),
+                           ["bar"])
 
     def test_short_option_consumes_separator(self):
         self.assertParseOK(["-a", "--", "foo", "bar"],
                            {'a': "--", 'boo': None, 'foo': None},
-                           ["foo", "bar"]),
+                           ["foo", "bar"])
         self.assertParseOK(["-a", "--", "--foo", "bar"],
                            {'a': "--", 'boo': None, 'foo': ["bar"]},
-                           []),
+                           [])
 
     def test_short_option_joined_and_separator(self):
         self.assertParseOK(["-ab", "--", "--foo", "bar"],
@@ -1023,7 +1040,7 @@ class TestExtendAddTypes(BaseTest):
         TYPE_CHECKER["file"] = check_file
 
     def test_filetype_ok(self):
-        open(support.TESTFN, "w").close()
+        support.create_empty_file(support.TESTFN)
         self.assertParseOK(["--file", support.TESTFN, "-afoo"],
                            {'file': support.TESTFN, 'a': 'foo'},
                            [])
@@ -1427,6 +1444,39 @@ Options:
   -h, --help         show this help message and exit
 """
 
+_expected_very_help_short_lines = """\
+Usage: bar.py [options]
+
+Options:
+  -a APPLE
+    throw
+    APPLEs at
+    basket
+  -b NUM, --boo=NUM
+    shout
+    "boo!" NUM
+    times (in
+    order to
+    frighten
+    away all
+    the evil
+    spirits
+    that cause
+    trouble and
+    mayhem)
+  --foo=FOO
+    store FOO
+    in the foo
+    list for
+    later
+    fooing
+  -h, --help
+    show this
+    help
+    message and
+    exit
+"""
+
 class TestHelp(BaseTest):
     def setUp(self):
         self.parser = self.make_parser(80)
@@ -1484,6 +1534,8 @@ class TestHelp(BaseTest):
         # we look at $COLUMNS.
         self.parser = self.make_parser(60)
         self.assertHelpEquals(_expected_help_short_lines)
+        self.parser = self.make_parser(0)
+        self.assertHelpEquals(_expected_very_help_short_lines)
 
     def test_help_unicode(self):
         self.parser = InterceptingOptionParser(usage=SUPPRESS_USAGE)

@@ -10,11 +10,11 @@
 
 --------------
 
-The :mod:`textwrap` module provides two convenience functions, :func:`wrap` and
-:func:`fill`, as well as :class:`TextWrapper`, the class that does all the work,
-and a utility function  :func:`dedent`.  If you're just wrapping or filling one
-or two  text strings, the convenience functions should be good enough;
-otherwise,  you should use an instance of :class:`TextWrapper` for efficiency.
+The :mod:`textwrap` module provides some convenience functions,
+as well as :class:`TextWrapper`, the class that does all the work.
+If you're just wrapping or filling one or two text strings, the convenience
+functions should be good enough; otherwise, you should use an instance of
+:class:`TextWrapper` for efficiency.
 
 .. function:: wrap(text, width=70, **kwargs)
 
@@ -39,17 +39,30 @@ otherwise,  you should use an instance of :class:`TextWrapper` for efficiency.
    In particular, :func:`fill` accepts exactly the same keyword arguments as
    :func:`wrap`.
 
-Both :func:`wrap` and :func:`fill` work by creating a :class:`TextWrapper`
-instance and calling a single method on it.  That instance is not reused, so for
-applications that wrap/fill many text strings, it will be more efficient for you
-to create your own :class:`TextWrapper` object.
 
-Text is preferably wrapped on whitespaces and right after the hyphens in
-hyphenated words; only then will long words be broken if necessary, unless
-:attr:`TextWrapper.break_long_words` is set to false.
+.. function:: shorten(text, width, **kwargs)
 
-An additional utility function, :func:`dedent`, is provided to remove
-indentation from strings that have unwanted whitespace to the left of the text.
+   Collapse and truncate the given *text* to fit in the given *width*.
+
+   First the whitespace in *text* is collapsed (all whitespace is replaced by
+   single spaces).  If the result fits in the *width*, it is returned.
+   Otherwise, enough words are dropped from the end so that the remaining words
+   plus the :attr:`placeholder` fit within :attr:`width`::
+
+      >>> textwrap.shorten("Hello  world!", width=12)
+      'Hello world!'
+      >>> textwrap.shorten("Hello  world!", width=11)
+      'Hello [...]'
+      >>> textwrap.shorten("Hello world", width=10, placeholder="...")
+      'Hello...'
+
+   Optional keyword arguments correspond to the instance attributes of
+   :class:`TextWrapper`, documented below.  Note that the whitespace is
+   collapsed before the text is passed to the :class:`TextWrapper` :meth:`fill`
+   function, so changing the value of :attr:`.tabsize`, :attr:`.expand_tabs`,
+   :attr:`.drop_whitespace`, and :attr:`.replace_whitespace` will have no effect.
+
+   .. versionadded:: 3.4
 
 
 .. function:: dedent(text)
@@ -74,6 +87,42 @@ indentation from strings that have unwanted whitespace to the left of the text.
           print(repr(s))          # prints '    hello\n      world\n    '
           print(repr(dedent(s)))  # prints 'hello\n  world\n'
 
+
+.. function:: indent(text, prefix, predicate=None)
+
+   Add *prefix* to the beginning of selected lines in *text*.
+
+   Lines are separated by calling ``text.splitlines(True)``.
+
+   By default, *prefix* is added to all lines that do not consist
+   solely of whitespace (including any line endings).
+
+   For example::
+
+      >>> s = 'hello\n\n \nworld'
+      >>> indent(s, '  ')
+      '  hello\n\n \n  world'
+
+   The optional *predicate* argument can be used to control which lines
+   are indented. For example, it is easy to add *prefix* to even empty
+   and whitespace-only lines::
+
+      >>> print(indent(s, '+ ', lambda line: True))
+      + hello
+      +
+      +
+      + world
+
+
+:func:`wrap`, :func:`fill` and :func:`shorten` work by creating a
+:class:`TextWrapper` instance and calling a single method on it.  That
+instance is not reused, so for applications that process many text
+strings using :func:`wrap` and/or :func:`fill`, it may be more efficient to
+create your own :class:`TextWrapper` object.
+
+Text is preferably wrapped on whitespaces and right after the hyphens in
+hyphenated words; only then will long words be broken if necessary, unless
+:attr:`TextWrapper.break_long_words` is set to false.
 
 .. class:: TextWrapper(**kwargs)
 
@@ -108,6 +157,15 @@ indentation from strings that have unwanted whitespace to the left of the text.
 
       (default: ``True``) If true, then all tab characters in *text* will be
       expanded to spaces using the :meth:`expandtabs` method of *text*.
+
+
+   .. attribute:: tabsize
+
+      (default: ``8``) If :attr:`expand_tabs` is true, then all tab characters
+      in *text* will be expanded to zero or more spaces, depending on the
+      current column and the given tab size.
+
+      .. versionadded:: 3.3
 
 
    .. attribute:: replace_whitespace
@@ -199,7 +257,23 @@ indentation from strings that have unwanted whitespace to the left of the text.
       was to always allow breaking hyphenated words.
 
 
-   :class:`TextWrapper` also provides two public methods, analogous to the
+   .. attribute:: max_lines
+
+      (default: ``None``) If not ``None``, then the output will contain at most
+      *max_lines* lines, with *placeholder* appearing at the end of the output.
+
+      .. versionadded:: 3.4
+
+
+   .. attribute:: placeholder
+
+      (default: ``' [...]'``) String that will appear at the end of the output
+      text if it has been truncated.
+
+      .. versionadded:: 3.4
+
+
+   :class:`TextWrapper` also provides some public methods, analogous to the
    module-level convenience functions:
 
    .. method:: wrap(text)
@@ -215,4 +289,3 @@ indentation from strings that have unwanted whitespace to the left of the text.
 
       Wraps the single paragraph in *text*, and returns a single string
       containing the wrapped paragraph.
-

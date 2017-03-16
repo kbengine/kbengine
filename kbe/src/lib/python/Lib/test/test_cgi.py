@@ -4,6 +4,7 @@ import os
 import sys
 import tempfile
 import unittest
+import warnings
 from collections import namedtuple
 from io import StringIO, BytesIO
 
@@ -136,10 +137,21 @@ class CgiTests(unittest.TestCase):
         fs.list.append(namedtuple('MockFieldStorage', 'name')('fieldvalue'))
         self.assertTrue(fs)
 
+    def test_fieldstorage_invalid(self):
+        self.assertRaises(TypeError, cgi.FieldStorage, "not-a-file-obj",
+                                                            environ={"REQUEST_METHOD":"PUT"})
+        self.assertRaises(TypeError, cgi.FieldStorage, "foo", "bar")
+        fs = cgi.FieldStorage(headers={'content-type':'text/plain'})
+        self.assertRaises(TypeError, bool, fs)
+
     def test_escape(self):
-        self.assertEqual("test &amp; string", cgi.escape("test & string"))
-        self.assertEqual("&lt;test string&gt;", cgi.escape("<test string>"))
-        self.assertEqual("&quot;test string&quot;", cgi.escape('"test string"', True))
+        # cgi.escape() is deprecated.
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', 'cgi\.escape',
+                                     DeprecationWarning)
+            self.assertEqual("test &amp; string", cgi.escape("test & string"))
+            self.assertEqual("&lt;test string&gt;", cgi.escape("<test string>"))
+            self.assertEqual("&quot;test string&quot;", cgi.escape('"test string"', True))
 
     def test_strict(self):
         for orig, expect in parse_strict_test_cases:
@@ -169,8 +181,7 @@ class CgiTests(unittest.TestCase):
 
     def test_log(self):
         cgi.log("Testing")
-        cgi.logfile = "fail/"
-        cgi.initlog("%s", "Testing initlog")
+
         cgi.logfp = StringIO()
         cgi.initlog("%s", "Testing initlog 1")
         cgi.log("%s", "Testing log 2")
@@ -179,13 +190,7 @@ class CgiTests(unittest.TestCase):
             cgi.logfp = None
             cgi.logfile = "/dev/null"
             cgi.initlog("%s", "Testing log 3")
-            def log_cleanup():
-                """Restore the global state of the log vars."""
-                cgi.logfile = ''
-                cgi.logfp.close()
-                cgi.logfp = None
-                cgi.log = cgi.initlog
-            self.addCleanup(log_cleanup)
+            self.addCleanup(cgi.closelog)
             cgi.log("Testing log 4")
 
     def test_fieldstorage_readline(self):
@@ -222,7 +227,7 @@ class CgiTests(unittest.TestCase):
         # if we're not chunking properly, readline is only called twice
         # (by read_binary); if we are chunking properly, it will be called 5 times
         # as long as the chunksize is 1 << 16.
-        self.assertTrue(f.numcalls > 2)
+        self.assertGreater(f.numcalls, 2)
         f.close()
 
     def test_fieldstorage_multipart(self):
@@ -257,6 +262,50 @@ class CgiTests(unittest.TestCase):
                 for k, exp in expect[x].items():
                     got = getattr(fs.list[x], k)
                     self.assertEqual(got, exp)
+
+    def test_fieldstorage_multipart_maxline(self):
+        # Issue #18167
+        maxline = 1 << 16
+        self.maxDiff = None
+        def check(content):
+            data = """---123
+Content-Disposition: form-data; name="upload"; filename="fake.txt"
+Content-Type: text/plain
+
+%s
+---123--
+""".replace('\n', '\r\n') % content
+            environ = {
+                'CONTENT_LENGTH':   str(len(data)),
+                'CONTENT_TYPE':     'multipart/form-data; boundary=-123',
+                'REQUEST_METHOD':   'POST',
+            }
+            self.assertEqual(gen_result(data, environ),
+                             {'upload': content.encode('latin1')})
+        check('x' * (maxline - 1))
+        check('x' * (maxline - 1) + '\r')
+        check('x' * (maxline - 1) + '\r' + 'y' * (maxline - 1))
+
+    def test_fieldstorage_multipart_w3c(self):
+        # Test basic FieldStorage multipart parsing (W3C sample)
+        env = {
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'multipart/form-data; boundary={}'.format(BOUNDARY_W3),
+            'CONTENT_LENGTH': str(len(POSTDATA_W3))}
+        fp = BytesIO(POSTDATA_W3.encode('latin-1'))
+        fs = cgi.FieldStorage(fp, environ=env, encoding="latin-1")
+        self.assertEqual(len(fs.list), 2)
+        self.assertEqual(fs.list[0].name, 'submit-name')
+        self.assertEqual(fs.list[0].value, 'Larry')
+        self.assertEqual(fs.list[1].name, 'files')
+        files = fs.list[1].value
+        self.assertEqual(len(files), 2)
+        expect = [{'name': None, 'filename': 'file1.txt', 'value': b'... contents of file1.txt ...'},
+                  {'name': None, 'filename': 'file2.gif', 'value': b'...contents of file2.gif...'}]
+        for x in range(len(files)):
+            for k, exp in expect[x].items():
+                got = getattr(files[x], k)
+                self.assertEqual(got, exp)
 
     _qs_result = {
         'key1': 'value1',
@@ -405,6 +454,31 @@ Content-Disposition: form-data; name="id"
 
 \xe7\xf1\x80
 -----------------------------721837373350705526688164684
+"""
+
+# http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4
+BOUNDARY_W3 = "AaB03x"
+POSTDATA_W3 = """--AaB03x
+Content-Disposition: form-data; name="submit-name"
+
+Larry
+--AaB03x
+Content-Disposition: form-data; name="files"
+Content-Type: multipart/mixed; boundary=BbC04y
+
+--BbC04y
+Content-Disposition: file; filename="file1.txt"
+Content-Type: text/plain
+
+... contents of file1.txt ...
+--BbC04y
+Content-Disposition: file; filename="file2.gif"
+Content-Type: image/gif
+Content-Transfer-Encoding: binary
+
+...contents of file2.gif...
+--BbC04y--
+--AaB03x--
 """
 
 

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,39 +19,40 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "bundle_broadcast.hpp"
+#include "bundle_broadcast.h"
 #ifndef CODE_INLINE
-#include "bundle_broadcast.ipp"
+#include "bundle_broadcast.inl"
 #endif
 
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
-#include "network/event_poller.hpp"
+#include "network/address.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/event_poller.h"
 
 
 namespace KBEngine { 
-namespace Mercury
+namespace Network
 {
 //-------------------------------------------------------------------------------------
 BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface, 
 								   uint16 bindPort, uint32 recvWindowSize):
-	Bundle(NULL, Mercury::PROTOCOL_UDP),
+	Bundle(NULL, Network::PROTOCOL_UDP),
 	epListen_(),
 	networkInterface_(networkInterface),
 	recvWindowSize_(recvWindowSize),
 	good_(false),
-	itry_(5)
+	itry_(5),
+	machine_addresses_()
 {
 	epListen_.socket(SOCK_DGRAM);
 	epBroadcast_.socket(SOCK_DGRAM);
 
 	if (!epListen_.good() || !epBroadcast_.good())
 	{
-		ERROR_MSG(boost::format("BundleBroadcast::BundleBroadcast: init socket is error, %1%\n") % 
-			kbe_strerror());
+		ERROR_MSG(fmt::format("BundleBroadcast::BundleBroadcast: Socket initialization failed! {}\n", 
+			kbe_strerror()));
 
-		networkInterface_.mainDispatcher().breakProcessing();
+		networkInterface_.dispatcher().breakProcessing();
 	}
 	else
 	{
@@ -62,15 +63,14 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 			if (epListen_.bind(htons(bindPort), htonl(INADDR_ANY)) != 0)
 			{
 				good_ = false;
-
-				WARNING_MSG(boost::format("BundleBroadcast::BundleBroadcast: Couldn't bind listener socket to port %1%, %2%\n") %
-					bindPort % kbe_strerror());
-				
-				KBEngine::sleep(100);
+				KBEngine::sleep(10);
 				count++;
 
-				if(count > 3)
+				if(count > 30)
 				{
+					WARNING_MSG(fmt::format("BundleBroadcast::BundleBroadcast: Cannot bind to port {}, {}\n",
+						bindPort, kbe_strerror()));
+
 					break;
 				}
 			}
@@ -79,11 +79,13 @@ BundleBroadcast::BundleBroadcast(NetworkInterface & networkInterface,
 				epListen_.addr(htons(bindPort), htonl(INADDR_ANY));
 				good_ = true;
 
-				// DEBUG_MSG(boost::format("BundleBroadcast::BundleBroadcast: epListen %1%\n") % epListen_.c_str());
+				// DEBUG_MSG(fmt::format("BundleBroadcast::BundleBroadcast: epListen {}\n", epListen_.c_str()));
 				break;
 			}
 		}
 	}
+
+	pCurrPacket()->data_resize(recvWindowSize_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -107,26 +109,54 @@ EventDispatcher & BundleBroadcast::dispatcher()
 }
 
 //-------------------------------------------------------------------------------------
+void BundleBroadcast::addBroadCastAddress(std::string addr)
+{
+	machine_addresses_.push_back(addr);
+}
+
+//-------------------------------------------------------------------------------------
 bool BundleBroadcast::broadcast(uint16 port)
 {
 	if (!epBroadcast_.good())
 		return false;
 	
 	if(port == 0)
-		port = KBE_MACHINE_BRAODCAST_SEND_PORT;
+		port = KBE_MACHINE_BROADCAST_SEND_PORT;
 
-	epBroadcast_.addr(port, Mercury::BROADCAST);
+	epBroadcast_.addr(port, Network::BROADCAST);
 
-	if(epBroadcast_.setbroadcast(true) != 0)
+	if (epBroadcast_.setbroadcast(true) != 0)
 	{
-		ERROR_MSG(boost::format("BundleBroadcast::broadcast: Couldn't broadcast socket, port %1%, %2%\n") % 
-			port % kbe_strerror());
+		ERROR_MSG(fmt::format("BundleBroadcast::broadcast: Cannot broadcast socket on port {}, {}\n",
+			port, kbe_strerror()));
 
-		networkInterface_.mainDispatcher().breakProcessing();
+		networkInterface_.dispatcher().breakProcessing();
 		return false;
 	}
 
-	this->sendto(epBroadcast_, htons(port), Mercury::BROADCAST);
+	this->finiMessage();
+	KBE_ASSERT(packets().size() == 1);
+
+	epBroadcast_.sendto(packets()[0]->data(), packets()[0]->length(), htons(port), Network::BROADCAST);
+
+	// 如果指定了地址池，则向所有地址发送消息
+	std::vector< std::string >::iterator addr_iter = machine_addresses_.begin();
+	for (; addr_iter != machine_addresses_.end(); ++addr_iter)
+	{
+		Network::EndPoint ep;
+		ep.socket(SOCK_DGRAM);
+
+		if (!ep.good())
+		{
+			ERROR_MSG("BundleBroadcast::broadcast: ep error!\n");
+			break;
+		}
+
+		u_int32_t  uaddress;
+		Network::Address::string2ip((*addr_iter).c_str(), uaddress);
+		ep.sendto(packets()[0]->data(), packets()[0]->length(), htons(KBE_MACHINE_BROADCAST_SEND_PORT), uaddress);
+	}
+
 	return true;
 }
 
@@ -158,15 +188,16 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			{
 				if(showerr)
 				{
-					ERROR_MSG("BundleBroadcast::receive: is failed(please check {firewall rule => broadcastaddr not is LAN ?})!\n");
+					ERROR_MSG("BundleBroadcast::receive: failed! It can be caused by the firewall, the broadcastaddr, etc."
+					"Maybe broadcastaddr is not a LAN ADDR, or the Machine process is not running.\n");
 				}
 				
 				return false;
 			}
 			else
 			{
-				DEBUG_MSG(boost::format("BundleBroadcast::receive: retries(%1%), bind_addr(%2%) ...\n") % 
-					icount % epListen_.addr());
+				//DEBUG_MSG(fmt::format("BundleBroadcast::receive: retries({}), bind_addr({}) ...\n", 
+				//	icount, epListen_.addr()));
 			}
 
 			icount++;
@@ -176,9 +207,10 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 		{
 			if(showerr)
 			{
-				ERROR_MSG(boost::format("BundleBroadcast::receive: select error. %1%.\n") %
-						kbe_strerror());
+				ERROR_MSG(fmt::format("BundleBroadcast::receive: select error. {}.\n",
+						kbe_strerror()));
 			}
+
 			return false;
 		}
 		else
@@ -189,19 +221,22 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 			if(psin == NULL)
 				psin = &sin;
 
+			pCurrPacket()->data_resize(recvWindowSize_);
+
 			int len = epListen_.recvfrom(pCurrPacket()->data(), recvWindowSize_, *psin);
 			if (len == -1)
 			{
 				if(showerr)
 				{
-					ERROR_MSG(boost::format("BundleBroadcast::receive: recvfrom error. %1%.\n") %
-							kbe_strerror());
+					ERROR_MSG(fmt::format("BundleBroadcast::receive: recvfrom error. {}.\n",
+							kbe_strerror()));
 				}
+
 				continue;
 			}
 			
-			//DEBUG_MSG(boost::format("BundleBroadcast::receive: from %1%, datalen=%2%.\n") % 
-			//	inet_ntoa((struct in_addr&)psin->sin_addr.s_addr) % len);
+			//DEBUG_MSG(fmt::format("BundleBroadcast::receive: from {}, datalen={}.\n", 
+			//	inet_ntoa((struct in_addr&)psin->sin_addr.s_addr), len));
 
 			pCurrPacket()->wpos(len);
 
@@ -210,17 +245,17 @@ bool BundleBroadcast::receive(MessageArgs* recvArgs, sockaddr_in* psin, int32 ti
 				try
 				{
 					recvArgs->createFromStream(*pCurrPacket());
-				}catch(MemoryStreamException &)
+				}
+				catch(MemoryStreamException &)
 				{
-					ERROR_MSG(boost::format("BundleBroadcast::receive: data is error. size=%1%.\n") %
-							len);
+					ERROR_MSG(fmt::format("BundleBroadcast::receive: data wrong. size={}, from {}.\n",
+							len, inet_ntoa((struct in_addr&)psin->sin_addr.s_addr)));
 
 					continue;
 				}
 			}
 
 			break;
-
 		}
 	}
 	

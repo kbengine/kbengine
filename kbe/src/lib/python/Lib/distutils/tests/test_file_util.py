@@ -2,10 +2,13 @@
 import unittest
 import os
 import shutil
+import errno
+from unittest.mock import patch
 
 from distutils.file_util import move_file
 from distutils import log
 from distutils.tests import support
+from distutils.errors import DistutilsFileError
 from test.support import run_unittest
 
 class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
@@ -58,6 +61,22 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         wanted = ['moving %s -> %s' % (self.source, self.target_dir)]
         self.assertEqual(self._logs, wanted)
 
+    def test_move_file_exception_unpacking_rename(self):
+        # see issue 22182
+        with patch("os.rename", side_effect=OSError("wrong", 1)), \
+             self.assertRaises(DistutilsFileError):
+            with open(self.source, 'w') as fobj:
+                fobj.write('spam eggs')
+            move_file(self.source, self.target, verbose=0)
+
+    def test_move_file_exception_unpacking_unlink(self):
+        # see issue 22182
+        with patch("os.rename", side_effect=OSError(errno.EXDEV, "wrong")), \
+             patch("os.unlink", side_effect=OSError("wrong", 1)), \
+             self.assertRaises(DistutilsFileError):
+            with open(self.source, 'w') as fobj:
+                fobj.write('spam eggs')
+            move_file(self.source, self.target, verbose=0)
 
 def test_suite():
     return unittest.makeSuite(FileUtilTestCase)

@@ -26,7 +26,7 @@
 #if APR_HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
-#if APR_HAVE_SYS_STAT_H
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
 #if APR_HAVE_PROCESS_H

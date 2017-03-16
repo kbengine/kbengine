@@ -79,7 +79,7 @@
 #define HAVE_GETPASS_R  1
 /*
  * Hack around older NDKs which have only the getpassword() function,
- * a threadsafe, API-equivilant of getpass_r().
+ * a threadsafe, API-equivalent of getpass_r().
  */
 #if (CURRENT_NDK_THRESHOLD < 709060000)
 #define getpass_r       getpassword

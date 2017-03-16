@@ -26,6 +26,29 @@ class ModuleTest(unittest.TestCase):
         self.assertEqual(string.capwords('\taBc\tDeF\t'), 'Abc Def')
         self.assertEqual(string.capwords('\taBc\tDeF\t', '\t'), '\tAbc\tDef\t')
 
+    def test_basic_formatter(self):
+        fmt = string.Formatter()
+        self.assertEqual(fmt.format("foo"), "foo")
+        self.assertEqual(fmt.format("foo{0}", "bar"), "foobar")
+        self.assertEqual(fmt.format("foo{1}{0}-{1}", "bar", 6), "foo6bar-6")
+
+    def test_auto_numbering(self):
+        fmt = string.Formatter()
+        self.assertEqual(fmt.format('foo{}{}', 'bar', 6),
+                         'foo{}{}'.format('bar', 6))
+        self.assertEqual(fmt.format('foo{1}{num}{1}', None, 'bar', num=6),
+                         'foo{1}{num}{1}'.format(None, 'bar', num=6))
+        self.assertEqual(fmt.format('{:^{}}', 'bar', 6),
+                         '{:^{}}'.format('bar', 6))
+        self.assertEqual(fmt.format('{:^{pad}}{}', 'foo', 'bar', pad=6),
+                         '{:^{pad}}{}'.format('foo', 'bar', pad=6))
+
+        with self.assertRaises(ValueError):
+            fmt.format('foo{1}{}', 'bar', 6)
+
+        with self.assertRaises(ValueError):
+            fmt.format('foo{}{1}', 'bar', 6)
+
     def test_conversion_specifiers(self):
         fmt = string.Formatter()
         self.assertEqual(fmt.format("-{arg!r}-", arg='test'), "-'test'-")
@@ -38,15 +61,26 @@ class ModuleTest(unittest.TestCase):
         self.assertEqual(fmt.format("{0!a}",  chr(255)), "'\\xff'")
         self.assertEqual(fmt.format("{0!a}",  chr(256)), "'\\u0100'")
 
-    def test_formatter(self):
+    def test_name_lookup(self):
         fmt = string.Formatter()
-        self.assertEqual(fmt.format("foo"), "foo")
+        class AnyAttr:
+            def __getattr__(self, attr):
+                return attr
+        x = AnyAttr()
+        self.assertEqual(fmt.format("{0.lumber}{0.jack}", x), 'lumberjack')
+        with self.assertRaises(AttributeError):
+            fmt.format("{0.lumber}{0.jack}", '')
 
-        self.assertEqual(fmt.format("foo{0}", "bar"), "foobar")
-        self.assertEqual(fmt.format("foo{1}{0}-{1}", "bar", 6), "foo6bar-6")
-        self.assertEqual(fmt.format("-{arg!r}-", arg='test'), "-'test'-")
+    def test_index_lookup(self):
+        fmt = string.Formatter()
+        lookup = ["eggs", "and", "spam"]
+        self.assertEqual(fmt.format("{0[2]}{0[0]}", lookup), 'spameggs')
+        with self.assertRaises(IndexError):
+            fmt.format("{0[2]}{0[0]}", [])
+        with self.assertRaises(KeyError):
+            fmt.format("{0[2]}{0[0]}", {})
 
-        # override get_value ############################################
+    def test_override_get_value(self):
         class NamespaceFormatter(string.Formatter):
             def __init__(self, namespace={}):
                 string.Formatter.__init__(self)
@@ -66,7 +100,7 @@ class ModuleTest(unittest.TestCase):
         self.assertEqual(fmt.format("{greeting}, world!"), 'hello, world!')
 
 
-        # override format_field #########################################
+    def test_override_format_field(self):
         class CallFormatter(string.Formatter):
             def format_field(self, value, format_spec):
                 return format(value(), format_spec)
@@ -75,18 +109,18 @@ class ModuleTest(unittest.TestCase):
         self.assertEqual(fmt.format('*{0}*', lambda : 'result'), '*result*')
 
 
-        # override convert_field ########################################
+    def test_override_convert_field(self):
         class XFormatter(string.Formatter):
             def convert_field(self, value, conversion):
                 if conversion == 'x':
                     return None
-                return super(XFormatter, self).convert_field(value, conversion)
+                return super().convert_field(value, conversion)
 
         fmt = XFormatter()
         self.assertEqual(fmt.format("{0!r}:{0!x}", 'foo', 'foo'), "'foo':None")
 
 
-        # override parse ################################################
+    def test_override_parse(self):
         class BarFormatter(string.Formatter):
             # returns an iterable that contains tuples of the form:
             # (literal_text, field_name, format_spec, conversion)
@@ -102,7 +136,7 @@ class ModuleTest(unittest.TestCase):
         fmt = BarFormatter()
         self.assertEqual(fmt.format('*|+0:^10s|*', 'foo'), '*   foo    *')
 
-        # test all parameters used
+    def test_check_unused_args(self):
         class CheckAllUsedFormatter(string.Formatter):
             def check_unused_args(self, used_args, args, kwargs):
                 # Track which arguments actually got used
@@ -124,28 +158,13 @@ class ModuleTest(unittest.TestCase):
         self.assertRaises(ValueError, fmt.format, "{0}", 10, 20, i=100)
         self.assertRaises(ValueError, fmt.format, "{i}", 10, 20, i=100)
 
-    def test_vformat_assert(self):
-        cls = string.Formatter()
-        kwargs = {
-            "i": 100
-        }
-        self.assertRaises(ValueError, cls._vformat,
-                cls.format, "{0}", kwargs, set(), -2)
-
-    def test_convert_field(self):
-        cls = string.Formatter()
-        self.assertEqual(cls.format("{0!s}", 'foo'), 'foo')
-        self.assertRaises(ValueError, cls.format, "{0!h}", 'foo')
-
-    def test_get_field(self):
-        cls = string.Formatter()
-        class MyClass:
-            name = 'lumberjack'
-        x = MyClass()
-        self.assertEqual(cls.format("{0.name}", x), 'lumberjack')
-
-        lookup = ["eggs", "and", "spam"]
-        self.assertEqual(cls.format("{0[2]}", lookup), 'spam')
+    def test_vformat_recursion_limit(self):
+        fmt = string.Formatter()
+        args = ()
+        kwargs = dict(i=100)
+        with self.assertRaises(ValueError) as err:
+            fmt._vformat("{i}", args, kwargs, set(), -1)
+        self.assertIn("recursion", str(err.exception))
 
 
 def test_main():

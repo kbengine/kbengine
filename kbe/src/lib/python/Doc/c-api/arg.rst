@@ -45,6 +45,7 @@ in any early abort case).
 Unless otherwise stated, buffers are not NUL-terminated.
 
 .. note::
+
    For all ``#`` variants of formats (``s#``, ``y#``, etc.), the type of
    the length argument (int or :c:type:`Py_ssize_t`) is controlled by
    defining the macro :c:macro:`PY_SSIZE_T_CLEAN` before including
@@ -70,8 +71,7 @@ Unless otherwise stated, buffers are not NUL-terminated.
       as *converter*.
 
 ``s*`` (:class:`str`, :class:`bytes`, :class:`bytearray` or buffer compatible object) [Py_buffer]
-   This format accepts Unicode objects as well as objects supporting the
-   buffer protocol.
+   This format accepts Unicode objects as well as :term:`bytes-like object`\ s.
    It fills a :c:type:`Py_buffer` structure provided by the caller.
    In this case the resulting C string may contain embedded NUL bytes.
    Unicode objects are converted to C strings using ``'utf-8'`` encoding.
@@ -101,14 +101,14 @@ Unless otherwise stated, buffers are not NUL-terminated.
    contain embedded NUL bytes; if it does, a :exc:`TypeError`
    exception is raised.
 
-``y*`` (:class:`bytes`, :class:`bytearray` or buffer compatible object) [Py_buffer]
-   This variant on ``s*`` doesn't accept Unicode objects, only objects
-   supporting the buffer protocol.  **This is the recommended way to accept
+``y*`` (:class:`bytes`, :class:`bytearray` or :term:`bytes-like object`) [Py_buffer]
+   This variant on ``s*`` doesn't accept Unicode objects, only
+   :term:`bytes-like object`\ s.  **This is the recommended way to accept
    binary data.**
 
 ``y#`` (:class:`bytes`) [const char \*, int]
-   This variant on ``s#`` doesn't accept Unicode objects, only bytes-like
-   objects.
+   This variant on ``s#`` doesn't accept Unicode objects, only :term:`bytes-like
+   object`\ s.
 
 ``S`` (:class:`bytes`) [PyBytesObject \*]
    Requires that the Python object is a :class:`bytes` object, without
@@ -146,7 +146,7 @@ Unless otherwise stated, buffers are not NUL-terminated.
    Like ``u#``, but the Python object may also be ``None``, in which case the
    :c:type:`Py_UNICODE` pointer is set to *NULL*.
 
-``U`` (:class:`str`) [PyUnicodeObject \*]
+``U`` (:class:`str`) [PyObject \*]
    Requires that the Python object is a Unicode object, without attempting
    any conversion.  Raises :exc:`TypeError` if the object is not a Unicode
    object.  The C variable may also be declared as :c:type:`PyObject\*`.
@@ -260,9 +260,12 @@ Numbers
 ``n`` (:class:`int`) [Py_ssize_t]
    Convert a Python integer to a C :c:type:`Py_ssize_t`.
 
-``c`` (:class:`bytes` of length 1) [char]
-   Convert a Python byte, represented as a :class:`bytes` object of length 1,
-   to a C :c:type:`char`.
+``c`` (:class:`bytes` or :class:`bytearray` of length 1) [char]
+   Convert a Python byte, represented as a :class:`bytes` or
+   :class:`bytearray` object of length 1, to a C :c:type:`char`.
+
+   .. versionchanged:: 3.3
+      Allow :class:`bytearray` objects.
 
 ``C`` (:class:`str` of length 1) [int]
    Convert a Python character, represented as a :class:`str` object of
@@ -292,6 +295,8 @@ Other objects
    the object pointer is stored.  If the Python object does not have the required
    type, :exc:`TypeError` is raised.
 
+.. _o_ampersand:
+
 ``O&`` (object) [*converter*, *anything*]
    Convert a Python object to a C variable through a *converter* function.  This
    takes two arguments: the first is a function, the second is the address of a C
@@ -315,6 +320,15 @@ Other objects
    .. versionchanged:: 3.1
       ``Py_CLEANUP_SUPPORTED`` was added.
 
+``p`` (:class:`bool`) [int]
+   Tests the value passed in for truth (a boolean **p**\redicate) and converts
+   the result to its equivalent C true/false integer value.
+   Sets the int to 1 if the expression was true and 0 if it was false.
+   This accepts any valid Python value.  See :ref:`truth` for more
+   information about how Python tests values for truth.
+
+   .. versionadded:: 3.3
+
 ``(items)`` (:class:`tuple`) [*matching-items*]
    The object must be a Python sequence whose length is the number of format units
    in *items*.  The C arguments must correspond to the individual format units in
@@ -335,6 +349,15 @@ inside nested parentheses.  They are:
    their default value --- when an optional argument is not specified,
    :c:func:`PyArg_ParseTuple` does not touch the contents of the corresponding C
    variable(s).
+
+``$``
+   :c:func:`PyArg_ParseTupleAndKeywords` only:
+   Indicates that the remaining arguments in the Python argument list are
+   keyword-only.  Currently, all keyword-only arguments must also be optional
+   arguments, so ``|`` must always be specified before ``$`` in the format
+   string.
+
+   .. versionadded:: 3.3
 
 ``:``
    The list of format units ends here; the string after the colon is used as the
@@ -493,7 +516,7 @@ Building values
       ``None`` is returned.
 
    ``y`` (:class:`bytes`) [char \*]
-      This converts a C string to a Python :func:`bytes` object.  If the C
+      This converts a C string to a Python :class:`bytes` object.  If the C
       string pointer is *NULL*, ``None`` is returned.
 
    ``y#`` (:class:`bytes`) [char \*, int]

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,11 +19,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "script_timers.hpp"
-#include "server/serverapp.hpp"
-#include "pyscript/script.hpp"
-#include "pyscript/pyobject_pointer.hpp"
-#include "cstdkbe/smartpointer.hpp"
+#include "script_timers.h"
+#include "server/serverapp.h"
+#include "pyscript/pickler.h"
+#include "pyscript/script.h"
+#include "pyscript/pyobject_pointer.h"
+#include "common/smartpointer.h"
 
 namespace KBEngine
 {
@@ -63,8 +64,8 @@ ScriptID ScriptTimers::addTimer( float initialOffset,
 {
 	if (initialOffset < 0.f)
 	{
-		WARNING_MSG(boost::format("ScriptTimers::addTimer: Negative timer offset (%1%)\n") %
-				initialOffset );
+		WARNING_MSG(fmt::format("ScriptTimers::addTimer: Negative timer offset ({})\n",
+				initialOffset));
 
 		initialOffset = 0.f;
 	}
@@ -72,8 +73,7 @@ ScriptID ScriptTimers::addTimer( float initialOffset,
 	KBE_ASSERT( g_pApp );
 
 	int hertz = g_kbeSrvConfig.gameUpdateHertz();
-	int initialTicks = GameTime( g_pApp->time() +
-			initialOffset * hertz );
+	int initialTicks = GameTime( g_pApp->time() + initialOffset * hertz );
 	int repeatTicks = 0;
 
 	if (repeatOffset > 0.f)
@@ -193,6 +193,11 @@ ScriptTimers::Map::const_iterator ScriptTimers::findTimer(TimerHandle handle) co
 	return iter;
 }
 
+//-------------------------------------------------------------------------------------
+void ScriptTimers::directAddTimer(ScriptID tid, TimerHandle handle)
+{
+	map_[tid] = handle;
+}
 
 //-------------------------------------------------------------------------------------
 namespace ScriptTimersUtil

@@ -12,18 +12,18 @@
 --------------
 
 This module provides the infrastructure for defining :term:`abstract base
-classes <abstract base class>` (ABCs) in Python, as outlined in :pep:`3119`; see the PEP for why this
-was added to Python. (See also :pep:`3141` and the :mod:`numbers` module
-regarding a type hierarchy for numbers based on ABCs.)
+classes <abstract base class>` (ABCs) in Python, as outlined in :pep:`3119`;
+see the PEP for why this was added to Python. (See also :pep:`3141` and the
+:mod:`numbers` module regarding a type hierarchy for numbers based on ABCs.)
 
 The :mod:`collections` module has some concrete classes that derive from
 ABCs; these can, of course, be further derived. In addition the
-:mod:`collections` module has some ABCs that can be used to test whether
+:mod:`collections.abc` submodule has some ABCs that can be used to test whether
 a class or instance provides a particular interface, for example, is it
 hashable or a mapping.
 
 
-This module provides the following class:
+This module provides the following classes:
 
 .. class:: ABCMeta
 
@@ -54,6 +54,13 @@ This module provides the following class:
 
         assert issubclass(tuple, MyABC)
         assert isinstance((), MyABC)
+
+      .. versionchanged:: 3.3
+         Returns the registered subclass, to allow usage as a class decorator.
+
+      .. versionchanged:: 3.4
+         To detect calls to :meth:`register`, you can use the
+         :func:`get_cache_token` function.
 
    You can also override this method in an abstract base class:
 
@@ -107,36 +114,48 @@ This module provides the following class:
       MyIterable.register(Foo)
 
    The ABC ``MyIterable`` defines the standard iterable method,
-   :meth:`__iter__`, as an abstract method.  The implementation given here can
-   still be called from subclasses.  The :meth:`get_iterator` method is also
-   part of the ``MyIterable`` abstract base class, but it does not have to be
-   overridden in non-abstract derived classes.
+   :meth:`~iterator.__iter__`, as an abstract method.  The implementation given
+   here can still be called from subclasses.  The :meth:`get_iterator` method
+   is also part of the ``MyIterable`` abstract base class, but it does not have
+   to be overridden in non-abstract derived classes.
 
    The :meth:`__subclasshook__` class method defined here says that any class
-   that has an :meth:`__iter__` method in its :attr:`__dict__` (or in that of
-   one of its base classes, accessed via the :attr:`__mro__` list) is
-   considered a ``MyIterable`` too.
+   that has an :meth:`~iterator.__iter__` method in its
+   :attr:`~object.__dict__` (or in that of one of its base classes, accessed
+   via the :attr:`~class.__mro__` list) is considered a ``MyIterable`` too.
 
    Finally, the last line makes ``Foo`` a virtual subclass of ``MyIterable``,
-   even though it does not define an :meth:`__iter__` method (it uses the
-   old-style iterable protocol, defined in terms of :meth:`__len__` and
+   even though it does not define an :meth:`~iterator.__iter__` method (it uses
+   the old-style iterable protocol, defined in terms of :meth:`__len__` and
    :meth:`__getitem__`).  Note that this will not make ``get_iterator``
    available as a method of ``Foo``, so it is provided separately.
 
 
-It also provides the following decorators:
+.. class:: ABC
+
+   A helper class that has :class:`ABCMeta` as its metaclass.  With this class,
+   an abstract base class can be created by simply deriving from :class:`ABC`,
+   avoiding sometimes confusing metaclass usage.
+
+   Note that the type of :class:`ABC` is still :class:`ABCMeta`, therefore
+   inheriting from :class:`ABC` requires the usual precautions regarding metaclass
+   usage, as multiple inheritance may lead to metaclass conflicts.
+
+   .. versionadded:: 3.4
+
+
+The :mod:`abc` module also provides the following decorators:
 
 .. decorator:: abstractmethod
 
    A decorator indicating abstract methods.
 
-   Using this decorator requires that the class's metaclass is :class:`ABCMeta` or
-   is derived from it.
-   A class that has a metaclass derived from :class:`ABCMeta`
-   cannot be instantiated unless all of its abstract methods and
-   properties are overridden.
-   The abstract methods can be called using any of the normal 'super' call
-   mechanisms.
+   Using this decorator requires that the class's metaclass is :class:`ABCMeta`
+   or is derived from it.  A class that has a metaclass derived from
+   :class:`ABCMeta` cannot be instantiated unless all of its abstract methods
+   and properties are overridden.  The abstract methods can be called using any
+   of the normal 'super' call mechanisms.  :func:`abstractmethod` may be used
+   to declare abstract methods for properties and descriptors.
 
    Dynamically adding abstract methods to a class, or attempting to modify the
    abstraction status of a method or class once it is created, are not
@@ -144,12 +163,52 @@ It also provides the following decorators:
    regular inheritance; "virtual subclasses" registered with the ABC's
    :meth:`register` method are not affected.
 
-   Usage::
+   When :func:`abstractmethod` is applied in combination with other method
+   descriptors, it should be applied as the innermost decorator, as shown in
+   the following usage examples::
 
       class C(metaclass=ABCMeta):
           @abstractmethod
           def my_abstract_method(self, ...):
               ...
+          @classmethod
+          @abstractmethod
+          def my_abstract_classmethod(cls, ...):
+              ...
+          @staticmethod
+          @abstractmethod
+          def my_abstract_staticmethod(...):
+              ...
+
+          @property
+          @abstractmethod
+          def my_abstract_property(self):
+              ...
+          @my_abstract_property.setter
+          @abstractmethod
+          def my_abstract_property(self, val):
+              ...
+
+          @abstractmethod
+          def _get_x(self):
+              ...
+          @abstractmethod
+          def _set_x(self, val):
+              ...
+          x = property(_get_x, _set_x)
+
+   In order to correctly interoperate with the abstract base class machinery,
+   the descriptor must identify itself as abstract using
+   :attr:`__isabstractmethod__`. In general, this attribute should be ``True``
+   if any of the methods used to compose the descriptor are abstract. For
+   example, Python's built-in property does the equivalent of::
+
+      class Descriptor:
+          ...
+          @property
+          def __isabstractmethod__(self):
+              return any(getattr(f, '__isabstractmethod__', False) for
+                         f in (self._fget, self._fset, self._fdel))
 
    .. note::
 
@@ -166,14 +225,20 @@ It also provides the following decorators:
    A subclass of the built-in :func:`classmethod`, indicating an abstract
    classmethod. Otherwise it is similar to :func:`abstractmethod`.
 
-   Usage::
+   This special case is deprecated, as the :func:`classmethod` decorator
+   is now correctly identified as abstract when applied to an abstract
+   method::
 
       class C(metaclass=ABCMeta):
-          @abstractclassmethod
+          @classmethod
+          @abstractmethod
           def my_abstract_classmethod(cls, ...):
               ...
 
    .. versionadded:: 3.2
+   .. deprecated:: 3.3
+       It is now possible to use :class:`classmethod` with
+       :func:`abstractmethod`, making this decorator redundant.
 
 
 .. decorator:: abstractstaticmethod
@@ -181,41 +246,83 @@ It also provides the following decorators:
    A subclass of the built-in :func:`staticmethod`, indicating an abstract
    staticmethod. Otherwise it is similar to :func:`abstractmethod`.
 
-   Usage::
+   This special case is deprecated, as the :func:`staticmethod` decorator
+   is now correctly identified as abstract when applied to an abstract
+   method::
 
       class C(metaclass=ABCMeta):
-          @abstractstaticmethod
+          @staticmethod
+          @abstractmethod
           def my_abstract_staticmethod(...):
               ...
 
    .. versionadded:: 3.2
+   .. deprecated:: 3.3
+       It is now possible to use :class:`staticmethod` with
+       :func:`abstractmethod`, making this decorator redundant.
 
 
-.. function:: abstractproperty(fget=None, fset=None, fdel=None, doc=None)
+.. decorator:: abstractproperty(fget=None, fset=None, fdel=None, doc=None)
 
-   A subclass of the built-in :func:`property`, indicating an abstract property.
+   A subclass of the built-in :func:`property`, indicating an abstract
+   property.
 
-   Using this function requires that the class's metaclass is :class:`ABCMeta` or
-   is derived from it.
-   A class that has a metaclass derived from :class:`ABCMeta` cannot be
-   instantiated unless all of its abstract methods and properties are overridden.
-   The abstract properties can be called using any of the normal
-   'super' call mechanisms.
+   Using this function requires that the class's metaclass is :class:`ABCMeta`
+   or is derived from it. A class that has a metaclass derived from
+   :class:`ABCMeta` cannot be instantiated unless all of its abstract methods
+   and properties are overridden. The abstract properties can be called using
+   any of the normal 'super' call mechanisms.
 
-   Usage::
+   This special case is deprecated, as the :func:`property` decorator
+   is now correctly identified as abstract when applied to an abstract
+   method::
 
       class C(metaclass=ABCMeta):
-          @abstractproperty
+          @property
+          @abstractmethod
           def my_abstract_property(self):
               ...
 
-   This defines a read-only property; you can also define a read-write abstract
-   property using the 'long' form of property declaration::
+   The above example defines a read-only property; you can also define a
+   read-write abstract property by appropriately marking one or more of the
+   underlying methods as abstract::
 
       class C(metaclass=ABCMeta):
-          def getx(self): ...
-          def setx(self, value): ...
-          x = abstractproperty(getx, setx)
+          @property
+          def x(self):
+              ...
+
+          @x.setter
+          @abstractmethod
+          def x(self, val):
+              ...
+
+   If only some components are abstract, only those components need to be
+   updated to create a concrete property in a subclass::
+
+      class D(C):
+          @C.x.setter
+          def x(self, val):
+              ...
+
+
+   .. deprecated:: 3.3
+       It is now possible to use :class:`property`, :meth:`property.getter`,
+       :meth:`property.setter` and :meth:`property.deleter` with
+       :func:`abstractmethod`, making this decorator redundant.
+
+
+The :mod:`abc` module also provides the following functions:
+
+.. function:: get_cache_token()
+
+   Returns the current abstract base class cache token.
+
+   The token is an opaque object (that supports equality testing) identifying
+   the current version of the abstract base class cache for virtual subclasses.
+   The token changes with every call to :meth:`ABCMeta.register` on any ABC.
+
+   .. versionadded:: 3.4
 
 
 .. rubric:: Footnotes

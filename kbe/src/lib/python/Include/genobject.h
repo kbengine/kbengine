@@ -11,20 +11,20 @@ extern "C" {
 struct _frame; /* Avoid including frameobject.h */
 
 typedef struct {
-	PyObject_HEAD
-	/* The gi_ prefix is intended to remind of generator-iterator. */
+    PyObject_HEAD
+    /* The gi_ prefix is intended to remind of generator-iterator. */
 
-	/* Note: gi_frame can be NULL if the generator is "finished" */
-	struct _frame *gi_frame;
+    /* Note: gi_frame can be NULL if the generator is "finished" */
+    struct _frame *gi_frame;
 
-	/* True if generator is being executed. */
-	int gi_running;
-    
-	/* The code object backing the generator */
-	PyObject *gi_code;
+    /* True if generator is being executed. */
+    char gi_running;
 
-	/* List of weak reference. */
-	PyObject *gi_weakreflist;
+    /* The code object backing the generator */
+    PyObject *gi_code;
+
+    /* List of weak reference. */
+    PyObject *gi_weakreflist;
 } PyGenObject;
 
 PyAPI_DATA(PyTypeObject) PyGen_Type;
@@ -34,6 +34,10 @@ PyAPI_DATA(PyTypeObject) PyGen_Type;
 
 PyAPI_FUNC(PyObject *) PyGen_New(struct _frame *);
 PyAPI_FUNC(int) PyGen_NeedsFinalizing(PyGenObject *);
+PyAPI_FUNC(int) _PyGen_FetchStopIterationValue(PyObject **);
+PyObject *_PyGen_Send(PyGenObject *, PyObject *);
+PyAPI_FUNC(void) _PyGen_Finalize(PyObject *self);
+
 
 #ifdef __cplusplus
 }

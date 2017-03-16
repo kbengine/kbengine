@@ -11,16 +11,12 @@ import sys
 here = os.path.abspath(os.path.dirname(__file__))
 par = os.path.pardir
 
-TCL = "tcl8.5.9"
-TK = "tk8.5.9"
-TIX = "tix-8.4.3.x"
+TCL = "tcl8.6.1"
+TK = "tk8.6.1"
+TIX = "tix-8.4.3.3"
 
 ROOT = os.path.abspath(os.path.join(here, par, par))
-# Windows 2000 compatibility: WINVER 0x0500
-# http://msdn2.microsoft.com/en-us/library/aa383745.aspx
-NMAKE = ('nmake /nologo /f %s '
-    'COMPILERFLAGS=\"-DWINVER=0x0500 -D_WIN32_WINNT=0x0500 -DNTDDI_VERSION=NTDDI_WIN2KSP4\" '
-    '%s %s')
+NMAKE = ('nmake /nologo /f %s %s %s')
 
 def nmake(makefile, command="", **kw):
     defines = ' '.join(k+'='+str(v) for k, v in kw.items())
@@ -32,7 +28,7 @@ def nmake(makefile, command="", **kw):
 def build(platform, clean):
     if platform == "Win32":
         dest = os.path.join(ROOT, "tcltk")
-        machine = "X86"
+        machine = "IX86"
     elif platform == "AMD64":
         dest = os.path.join(ROOT, "tcltk64")
         machine = "AMD64"

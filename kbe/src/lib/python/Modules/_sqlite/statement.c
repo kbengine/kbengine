@@ -27,7 +27,6 @@
 #include "microprotocols.h"
 #include "prepare_protocol.h"
 #include "util.h"
-#include "sqlitecompat.h"
 
 /* prototypes */
 static int pysqlite_check_remaining_sql(const char* tail);
@@ -64,6 +63,10 @@ int pysqlite_statement_create(pysqlite_Statement* self, pysqlite_Connection* con
         rc = PYSQLITE_SQL_WRONG_TYPE;
         return rc;
     }
+    if (strlen(sql_cstr) != (size_t)sql_cstr_len) {
+        PyErr_SetString(PyExc_ValueError, "the query contains a null character");
+        return PYSQLITE_SQL_WRONG_TYPE;
+    }
 
     self->in_weakreflist = NULL;
     Py_INCREF(sql);
@@ -88,7 +91,7 @@ int pysqlite_statement_create(pysqlite_Statement* self, pysqlite_Connection* con
     return rc;
 }
 
-int pysqlite_statement_bind_parameter(pysqlite_Statement* self, int pos, PyObject* parameter, int allow_8bit_chars)
+int pysqlite_statement_bind_parameter(pysqlite_Statement* self, int pos, PyObject* parameter)
 {
     int rc = SQLITE_OK;
     const char* buffer;
@@ -133,18 +136,26 @@ int pysqlite_statement_bind_parameter(pysqlite_Statement* self, int pos, PyObjec
             break;
         case TYPE_UNICODE:
             string = _PyUnicode_AsStringAndSize(parameter, &buflen);
-            if (string != NULL)
-                rc = sqlite3_bind_text(self->st, pos, string, buflen, SQLITE_TRANSIENT);
-            else
-                rc = -1;
+            if (string == NULL)
+                return -1;
+            if (buflen > INT_MAX) {
+                PyErr_SetString(PyExc_OverflowError,
+                                "string longer than INT_MAX bytes");
+                return -1;
+            }
+            rc = sqlite3_bind_text(self->st, pos, string, (int)buflen, SQLITE_TRANSIENT);
             break;
         case TYPE_BUFFER:
-            if (PyObject_AsCharBuffer(parameter, &buffer, &buflen) == 0) {
-                rc = sqlite3_bind_blob(self->st, pos, buffer, buflen, SQLITE_TRANSIENT);
-            } else {
+            if (PyObject_AsCharBuffer(parameter, &buffer, &buflen) != 0) {
                 PyErr_SetString(PyExc_ValueError, "could not convert BLOB to buffer");
-                rc = -1;
+                return -1;
             }
+            if (buflen > INT_MAX) {
+                PyErr_SetString(PyExc_OverflowError,
+                                "BLOB longer than INT_MAX bytes");
+                return -1;
+            }
+            rc = sqlite3_bind_blob(self->st, pos, buffer, buflen, SQLITE_TRANSIENT);
             break;
         case TYPE_UNKNOWN:
             rc = -1;
@@ -169,7 +180,7 @@ static int _need_adapt(PyObject* obj)
     }
 }
 
-void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* parameters, int allow_8bit_chars)
+void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* parameters)
 {
     PyObject* current_param;
     PyObject* adapted;
@@ -177,7 +188,7 @@ void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* para
     int i;
     int rc;
     int num_params_needed;
-    int num_params;
+    Py_ssize_t num_params;
 
     Py_BEGIN_ALLOW_THREADS
     num_params_needed = sqlite3_bind_parameter_count(self->st);
@@ -193,7 +204,9 @@ void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* para
             num_params = PySequence_Size(parameters);
         }
         if (num_params != num_params_needed) {
-            PyErr_Format(pysqlite_ProgrammingError, "Incorrect number of bindings supplied. The current statement uses %d, and there are %d supplied.",
+            PyErr_Format(pysqlite_ProgrammingError,
+                         "Incorrect number of bindings supplied. The current "
+                         "statement uses %d, and there are %zd supplied.",
                          num_params_needed, num_params);
             return;
         }
@@ -223,7 +236,7 @@ void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* para
                 }
             }
 
-            rc = pysqlite_statement_bind_parameter(self, i + 1, adapted, allow_8bit_chars);
+            rc = pysqlite_statement_bind_parameter(self, i + 1, adapted);
             Py_DECREF(adapted);
 
             if (rc != SQLITE_OK) {
@@ -249,7 +262,7 @@ void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* para
                 current_param = PyDict_GetItemString(parameters, binding_name);
                 Py_XINCREF(current_param);
             } else {
-                current_param = PyMapping_GetItemString(parameters, (char*)binding_name);
+                current_param = PyMapping_GetItemString(parameters, binding_name);
             }
             if (!current_param) {
                 PyErr_Format(pysqlite_ProgrammingError, "You did not supply a value for binding %d.", i);
@@ -268,7 +281,7 @@ void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* para
                 }
             }
 
-            rc = pysqlite_statement_bind_parameter(self, i, adapted, allow_8bit_chars);
+            rc = pysqlite_statement_bind_parameter(self, i, adapted);
             Py_DECREF(adapted);
 
             if (rc != SQLITE_OK) {
@@ -372,11 +385,9 @@ void pysqlite_statement_mark_dirty(pysqlite_Statement* self)
 
 void pysqlite_statement_dealloc(pysqlite_Statement* self)
 {
-    int rc;
-
     if (self->st) {
         Py_BEGIN_ALLOW_THREADS
-        rc = sqlite3_finalize(self->st);
+        sqlite3_finalize(self->st);
         Py_END_ALLOW_THREADS
     }
 

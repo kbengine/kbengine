@@ -27,7 +27,7 @@ conv_descriptor(PyObject *object, int *target)
 }
 
 
-/* fcntl(fd, opt, [arg]) */
+/* fcntl(fd, op, [arg]) */
 
 static PyObject *
 fcntl_fcntl(PyObject *self, PyObject *args)
@@ -77,11 +77,12 @@ fcntl_fcntl(PyObject *self, PyObject *args)
 }
 
 PyDoc_STRVAR(fcntl_doc,
-"fcntl(fd, opt, [arg])\n\
+"fcntl(fd, op, [arg])\n\
 \n\
-Perform the requested operation on file descriptor fd.  The operation\n\
-is defined by op and is operating system dependent.  These constants are\n\
-available from the fcntl module.  The argument arg is optional, and\n\
+Perform the operation op on file descriptor fd.  The values used\n\
+for op are operating system dependent, and are available\n\
+as constants in the fcntl module, using the same names as used in\n\
+the relevant C header files.  The argument arg is optional, and\n\
 defaults to 0; it may be an int or a string.  If arg is given as a string,\n\
 the return value of fcntl is a string of that length, containing the\n\
 resulting value put in the arg buffer by the operating system.  The length\n\
@@ -90,7 +91,7 @@ is an integer or if none is specified, the result value is an integer\n\
 corresponding to the return value of the fcntl call in the C code.");
 
 
-/* ioctl(fd, opt, [arg]) */
+/* ioctl(fd, op, [arg]) */
 
 static PyObject *
 fcntl_ioctl(PyObject *self, PyObject *args)
@@ -104,7 +105,7 @@ fcntl_ioctl(PyObject *self, PyObject *args)
        whereas the system expects it to be a 32bit bit field value
        regardless of it being passed as an int or unsigned long on
        various platforms.  See the termios.TIOCSWINSZ constant across
-       platforms for an example of thise.
+       platforms for an example of this.
 
        If any of the 64bit platforms ever decide to use more than 32bits
        in their unsigned long ioctl codes this will break and need
@@ -207,11 +208,7 @@ fcntl_ioctl(PyObject *self, PyObject *args)
       return NULL;
     }
     Py_BEGIN_ALLOW_THREADS
-#ifdef __VMS
-    ret = ioctl(fd, code, (void *)arg);
-#else
     ret = ioctl(fd, code, arg);
-#endif
     Py_END_ALLOW_THREADS
     if (ret < 0) {
         PyErr_SetFromErrno(PyExc_IOError);
@@ -222,11 +219,12 @@ fcntl_ioctl(PyObject *self, PyObject *args)
 }
 
 PyDoc_STRVAR(ioctl_doc,
-"ioctl(fd, opt[, arg[, mutate_flag]])\n\
+"ioctl(fd, op[, arg[, mutate_flag]])\n\
 \n\
-Perform the requested operation on file descriptor fd.  The operation is\n\
-defined by opt and is operating system dependent.  Typically these codes are\n\
-retrieved from the fcntl or termios library modules.\n\
+Perform the operation op on file descriptor fd.  The values used for op\n\
+are operating system dependent, and are available as constants in the\n\
+fcntl or termios library modules, using the same names as used in the\n\
+relevant C header files.\n\
 \n\
 The argument arg is optional, and defaults to 0; it may be an int or a\n\
 buffer containing character data (most likely a string or an array). \n\
@@ -309,7 +307,7 @@ PyDoc_STRVAR(flock_doc,
 "flock(fd, operation)\n\
 \n\
 Perform the lock operation op on file descriptor fd.  See the Unix \n\
-manual page for flock(3) for details.  (On some systems, this function is\n\
+manual page for flock(2) for details.  (On some systems, this function is\n\
 emulated using fcntl().)");
 
 
@@ -325,11 +323,6 @@ fcntl_lockf(PyObject *self, PyObject *args)
                           &lenobj, &startobj, &whence))
         return NULL;
 
-#if defined(PYOS_OS2) && defined(PYCC_GCC)
-    PyErr_SetString(PyExc_NotImplementedError,
-                    "lockf not supported on OS/2 (EMX)");
-    return NULL;
-#else
 #ifndef LOCK_SH
 #define LOCK_SH         1       /* shared lock */
 #define LOCK_EX         2       /* exclusive lock */
@@ -383,7 +376,6 @@ fcntl_lockf(PyObject *self, PyObject *args)
     }
     Py_INCREF(Py_None);
     return Py_None;
-#endif  /* defined(PYOS_OS2) && defined(PYCC_GCC) */
 }
 
 PyDoc_STRVAR(lockf_doc,
@@ -430,185 +422,179 @@ a file or socket object.");
 
 /* Module initialisation */
 
-static int
-ins(PyObject* d, char* symbol, long value)
-{
-    PyObject* v = PyLong_FromLong(value);
-    if (!v || PyDict_SetItemString(d, symbol, v) < 0)
-        return -1;
-
-    Py_DECREF(v);
-    return 0;
-}
-
-#define INS(x) if (ins(d, #x, (long)x)) return -1
 
 static int
-all_ins(PyObject* d)
+all_ins(PyObject* m)
 {
-    if (ins(d, "LOCK_SH", (long)LOCK_SH)) return -1;
-    if (ins(d, "LOCK_EX", (long)LOCK_EX)) return -1;
-    if (ins(d, "LOCK_NB", (long)LOCK_NB)) return -1;
-    if (ins(d, "LOCK_UN", (long)LOCK_UN)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_SH)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_EX)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_NB)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_UN)) return -1;
 /* GNU extensions, as of glibc 2.2.4 */
 #ifdef LOCK_MAND
-    if (ins(d, "LOCK_MAND", (long)LOCK_MAND)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_MAND)) return -1;
 #endif
 #ifdef LOCK_READ
-    if (ins(d, "LOCK_READ", (long)LOCK_READ)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_READ)) return -1;
 #endif
 #ifdef LOCK_WRITE
-    if (ins(d, "LOCK_WRITE", (long)LOCK_WRITE)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_WRITE)) return -1;
 #endif
 #ifdef LOCK_RW
-    if (ins(d, "LOCK_RW", (long)LOCK_RW)) return -1;
+    if (PyModule_AddIntMacro(m, LOCK_RW)) return -1;
 #endif
 
 #ifdef F_DUPFD
-    if (ins(d, "F_DUPFD", (long)F_DUPFD)) return -1;
+    if (PyModule_AddIntMacro(m, F_DUPFD)) return -1;
+#endif
+#ifdef F_DUPFD_CLOEXEC
+    if (PyModule_AddIntMacro(m, F_DUPFD_CLOEXEC)) return -1;
 #endif
 #ifdef F_GETFD
-    if (ins(d, "F_GETFD", (long)F_GETFD)) return -1;
+    if (PyModule_AddIntMacro(m, F_GETFD)) return -1;
 #endif
 #ifdef F_SETFD
-    if (ins(d, "F_SETFD", (long)F_SETFD)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETFD)) return -1;
 #endif
 #ifdef F_GETFL
-    if (ins(d, "F_GETFL", (long)F_GETFL)) return -1;
+    if (PyModule_AddIntMacro(m, F_GETFL)) return -1;
 #endif
 #ifdef F_SETFL
-    if (ins(d, "F_SETFL", (long)F_SETFL)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETFL)) return -1;
 #endif
 #ifdef F_GETLK
-    if (ins(d, "F_GETLK", (long)F_GETLK)) return -1;
+    if (PyModule_AddIntMacro(m, F_GETLK)) return -1;
 #endif
 #ifdef F_SETLK
-    if (ins(d, "F_SETLK", (long)F_SETLK)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETLK)) return -1;
 #endif
 #ifdef F_SETLKW
-    if (ins(d, "F_SETLKW", (long)F_SETLKW)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETLKW)) return -1;
 #endif
 #ifdef F_GETOWN
-    if (ins(d, "F_GETOWN", (long)F_GETOWN)) return -1;
+    if (PyModule_AddIntMacro(m, F_GETOWN)) return -1;
 #endif
 #ifdef F_SETOWN
-    if (ins(d, "F_SETOWN", (long)F_SETOWN)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETOWN)) return -1;
 #endif
 #ifdef F_GETSIG
-    if (ins(d, "F_GETSIG", (long)F_GETSIG)) return -1;
+    if (PyModule_AddIntMacro(m, F_GETSIG)) return -1;
 #endif
 #ifdef F_SETSIG
-    if (ins(d, "F_SETSIG", (long)F_SETSIG)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETSIG)) return -1;
 #endif
 #ifdef F_RDLCK
-    if (ins(d, "F_RDLCK", (long)F_RDLCK)) return -1;
+    if (PyModule_AddIntMacro(m, F_RDLCK)) return -1;
 #endif
 #ifdef F_WRLCK
-    if (ins(d, "F_WRLCK", (long)F_WRLCK)) return -1;
+    if (PyModule_AddIntMacro(m, F_WRLCK)) return -1;
 #endif
 #ifdef F_UNLCK
-    if (ins(d, "F_UNLCK", (long)F_UNLCK)) return -1;
+    if (PyModule_AddIntMacro(m, F_UNLCK)) return -1;
 #endif
 /* LFS constants */
 #ifdef F_GETLK64
-    if (ins(d, "F_GETLK64", (long)F_GETLK64)) return -1;
+    if (PyModule_AddIntMacro(m, F_GETLK64)) return -1;
 #endif
 #ifdef F_SETLK64
-    if (ins(d, "F_SETLK64", (long)F_SETLK64)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETLK64)) return -1;
 #endif
 #ifdef F_SETLKW64
-    if (ins(d, "F_SETLKW64", (long)F_SETLKW64)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETLKW64)) return -1;
 #endif
 /* GNU extensions, as of glibc 2.2.4. */
 #ifdef FASYNC
-    if (ins(d, "FASYNC", (long)FASYNC)) return -1;
+    if (PyModule_AddIntMacro(m, FASYNC)) return -1;
 #endif
 #ifdef F_SETLEASE
-    if (ins(d, "F_SETLEASE", (long)F_SETLEASE)) return -1;
+    if (PyModule_AddIntMacro(m, F_SETLEASE)) return -1;
 #endif
 #ifdef F_GETLEASE
-    if (ins(d, "F_GETLEASE", (long)F_GETLEASE)) return -1;
+    if (PyModule_AddIntMacro(m, F_GETLEASE)) return -1;
 #endif
 #ifdef F_NOTIFY
-    if (ins(d, "F_NOTIFY", (long)F_NOTIFY)) return -1;
+    if (PyModule_AddIntMacro(m, F_NOTIFY)) return -1;
 #endif
 /* Old BSD flock(). */
 #ifdef F_EXLCK
-    if (ins(d, "F_EXLCK", (long)F_EXLCK)) return -1;
+    if (PyModule_AddIntMacro(m, F_EXLCK)) return -1;
 #endif
 #ifdef F_SHLCK
-    if (ins(d, "F_SHLCK", (long)F_SHLCK)) return -1;
+    if (PyModule_AddIntMacro(m, F_SHLCK)) return -1;
 #endif
 
-/* OS X (and maybe others) let you tell the storage device to flush to physical media */
+/* OS X specifics */
 #ifdef F_FULLFSYNC
-    if (ins(d, "F_FULLFSYNC", (long)F_FULLFSYNC)) return -1;
+    if (PyModule_AddIntMacro(m, F_FULLFSYNC)) return -1;
+#endif
+#ifdef F_NOCACHE
+    if (PyModule_AddIntMacro(m, F_NOCACHE)) return -1;
 #endif
 
 /* For F_{GET|SET}FL */
 #ifdef FD_CLOEXEC
-    if (ins(d, "FD_CLOEXEC", (long)FD_CLOEXEC)) return -1;
+    if (PyModule_AddIntMacro(m, FD_CLOEXEC)) return -1;
 #endif
 
 /* For F_NOTIFY */
 #ifdef DN_ACCESS
-    if (ins(d, "DN_ACCESS", (long)DN_ACCESS)) return -1;
+    if (PyModule_AddIntMacro(m, DN_ACCESS)) return -1;
 #endif
 #ifdef DN_MODIFY
-    if (ins(d, "DN_MODIFY", (long)DN_MODIFY)) return -1;
+    if (PyModule_AddIntMacro(m, DN_MODIFY)) return -1;
 #endif
 #ifdef DN_CREATE
-    if (ins(d, "DN_CREATE", (long)DN_CREATE)) return -1;
+    if (PyModule_AddIntMacro(m, DN_CREATE)) return -1;
 #endif
 #ifdef DN_DELETE
-    if (ins(d, "DN_DELETE", (long)DN_DELETE)) return -1;
+    if (PyModule_AddIntMacro(m, DN_DELETE)) return -1;
 #endif
 #ifdef DN_RENAME
-    if (ins(d, "DN_RENAME", (long)DN_RENAME)) return -1;
+    if (PyModule_AddIntMacro(m, DN_RENAME)) return -1;
 #endif
 #ifdef DN_ATTRIB
-    if (ins(d, "DN_ATTRIB", (long)DN_ATTRIB)) return -1;
+    if (PyModule_AddIntMacro(m, DN_ATTRIB)) return -1;
 #endif
 #ifdef DN_MULTISHOT
-    if (ins(d, "DN_MULTISHOT", (long)DN_MULTISHOT)) return -1;
+    if (PyModule_AddIntMacro(m, DN_MULTISHOT)) return -1;
 #endif
 
 #ifdef HAVE_STROPTS_H
     /* Unix 98 guarantees that these are in stropts.h. */
-    INS(I_PUSH);
-    INS(I_POP);
-    INS(I_LOOK);
-    INS(I_FLUSH);
-    INS(I_FLUSHBAND);
-    INS(I_SETSIG);
-    INS(I_GETSIG);
-    INS(I_FIND);
-    INS(I_PEEK);
-    INS(I_SRDOPT);
-    INS(I_GRDOPT);
-    INS(I_NREAD);
-    INS(I_FDINSERT);
-    INS(I_STR);
-    INS(I_SWROPT);
+    if (PyModule_AddIntMacro(m, I_PUSH)) return -1;
+    if (PyModule_AddIntMacro(m, I_POP)) return -1;
+    if (PyModule_AddIntMacro(m, I_LOOK)) return -1;
+    if (PyModule_AddIntMacro(m, I_FLUSH)) return -1;
+    if (PyModule_AddIntMacro(m, I_FLUSHBAND)) return -1;
+    if (PyModule_AddIntMacro(m, I_SETSIG)) return -1;
+    if (PyModule_AddIntMacro(m, I_GETSIG)) return -1;
+    if (PyModule_AddIntMacro(m, I_FIND)) return -1;
+    if (PyModule_AddIntMacro(m, I_PEEK)) return -1;
+    if (PyModule_AddIntMacro(m, I_SRDOPT)) return -1;
+    if (PyModule_AddIntMacro(m, I_GRDOPT)) return -1;
+    if (PyModule_AddIntMacro(m, I_NREAD)) return -1;
+    if (PyModule_AddIntMacro(m, I_FDINSERT)) return -1;
+    if (PyModule_AddIntMacro(m, I_STR)) return -1;
+    if (PyModule_AddIntMacro(m, I_SWROPT)) return -1;
 #ifdef I_GWROPT
     /* despite the comment above, old-ish glibcs miss a couple... */
-    INS(I_GWROPT);
+    if (PyModule_AddIntMacro(m, I_GWROPT)) return -1;
 #endif
-    INS(I_SENDFD);
-    INS(I_RECVFD);
-    INS(I_LIST);
-    INS(I_ATMARK);
-    INS(I_CKBAND);
-    INS(I_GETBAND);
-    INS(I_CANPUT);
-    INS(I_SETCLTIME);
+    if (PyModule_AddIntMacro(m, I_SENDFD)) return -1;
+    if (PyModule_AddIntMacro(m, I_RECVFD)) return -1;
+    if (PyModule_AddIntMacro(m, I_LIST)) return -1;
+    if (PyModule_AddIntMacro(m, I_ATMARK)) return -1;
+    if (PyModule_AddIntMacro(m, I_CKBAND)) return -1;
+    if (PyModule_AddIntMacro(m, I_GETBAND)) return -1;
+    if (PyModule_AddIntMacro(m, I_CANPUT)) return -1;
+    if (PyModule_AddIntMacro(m, I_SETCLTIME)) return -1;
 #ifdef I_GETCLTIME
-    INS(I_GETCLTIME);
+    if (PyModule_AddIntMacro(m, I_GETCLTIME)) return -1;
 #endif
-    INS(I_LINK);
-    INS(I_UNLINK);
-    INS(I_PLINK);
-    INS(I_PUNLINK);
+    if (PyModule_AddIntMacro(m, I_LINK)) return -1;
+    if (PyModule_AddIntMacro(m, I_UNLINK)) return -1;
+    if (PyModule_AddIntMacro(m, I_PLINK)) return -1;
+    if (PyModule_AddIntMacro(m, I_PUNLINK)) return -1;
 #endif
 
     return 0;
@@ -630,7 +616,7 @@ static struct PyModuleDef fcntlmodule = {
 PyMODINIT_FUNC
 PyInit_fcntl(void)
 {
-    PyObject *m, *d;
+    PyObject *m;
 
     /* Create the module and add the functions and documentation */
     m = PyModule_Create(&fcntlmodule);
@@ -638,7 +624,8 @@ PyInit_fcntl(void)
         return NULL;
 
     /* Add some symbolic constants to the module */
-    d = PyModule_GetDict(m);
-    all_ins(d);
+    if (all_ins(m) < 0)
+        return NULL;
+
     return m;
 }

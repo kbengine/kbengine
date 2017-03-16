@@ -326,7 +326,7 @@ class RefactoringTool(object):
         """
         try:
             f = open(filename, "rb")
-        except IOError as err:
+        except OSError as err:
             self.log_error("Can't open %s: %s", filename, err)
             return None, None
         try:
@@ -534,12 +534,12 @@ class RefactoringTool(object):
         """
         try:
             f = _open_with_encoding(filename, "w", encoding=encoding)
-        except os.error as err:
+        except OSError as err:
             self.log_error("Can't create %s: %s", filename, err)
             return
         try:
             f.write(_to_system_newlines(new_text))
-        except os.error as err:
+        except OSError as err:
             self.log_error("Can't write %s: %s", filename, err)
         finally:
             f.close()
@@ -566,7 +566,7 @@ class RefactoringTool(object):
         block_lineno = None
         indent = None
         lineno = 0
-        for line in input.splitlines(True):
+        for line in input.splitlines(keepends=True):
             lineno += 1
             if line.lstrip().startswith(self.PS1):
                 if block is not None:
@@ -610,7 +610,7 @@ class RefactoringTool(object):
                            filename, lineno, err.__class__.__name__, err)
             return block
         if self.refactor_tree(tree, filename):
-            new = str(tree).splitlines(True)
+            new = str(tree).splitlines(keepends=True)
             # Undo the adjustment of the line numbers in wrap_toks() below.
             clipped, new = new[:lineno-1], new[lineno-1:]
             assert clipped == ["\n"] * (lineno-1), clipped

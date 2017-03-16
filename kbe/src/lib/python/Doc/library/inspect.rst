@@ -69,7 +69,12 @@ attributes:
 |           |                 | :term:`bytecode`          |
 +-----------+-----------------+---------------------------+
 |           | __defaults__    | tuple of any default      |
-|           |                 | values for arguments      |
+|           |                 | values for positional or  |
+|           |                 | keyword parameters        |
++-----------+-----------------+---------------------------+
+|           | __kwdefaults__  | mapping of any default    |
+|           |                 | values for keyword-only   |
+|           |                 | parameters                |
 +-----------+-----------------+---------------------------+
 |           | __globals__     | global namespace in which |
 |           |                 | this function was defined |
@@ -173,8 +178,9 @@ attributes:
 
    .. note::
 
-      :func:`getmembers` does not return metaclass attributes when the argument
-      is a class (this behavior is inherited from the :func:`dir` function).
+      :func:`getmembers` will only return class attributes defined in the
+      metaclass when the argument is a class and those attributes have been
+      listed in the metaclass' custom :meth:`__dir__`.
 
 
 .. function:: getmoduleinfo(path)
@@ -190,13 +196,26 @@ attributes:
    compared to the constants defined in the :mod:`imp` module; see the
    documentation for that module for more information on module types.
 
+   .. deprecated:: 3.3
+      You may check the file path's suffix against the supported suffixes
+      listed in :mod:`importlib.machinery` to infer the same information.
+
 
 .. function:: getmodulename(path)
 
    Return the name of the module named by the file *path*, without including the
-   names of enclosing packages.  This uses the same algorithm as the interpreter
-   uses when searching for modules.  If the name cannot be matched according to the
-   interpreter's rules, ``None`` is returned.
+   names of enclosing packages. The file extension is checked against all of
+   the entries in :func:`importlib.machinery.all_suffixes`. If it matches,
+   the final path component is returned with the extension removed.
+   Otherwise, ``None`` is returned.
+
+   Note that this function *only* returns a meaningful name for actual
+   Python modules - paths that potentially refer to Python packages will
+   still return ``None``.
+
+   .. versionchanged:: 3.3
+      This function is now based directly on :mod:`importlib` rather than the
+      deprecated :func:`getmoduleinfo`.
 
 
 .. function:: ismodule(object)
@@ -355,16 +374,24 @@ Retrieving source code
    argument may be a module, class, method, function, traceback, frame, or code
    object.  The source code is returned as a list of the lines corresponding to the
    object and the line number indicates where in the original source file the first
-   line of code was found.  An :exc:`IOError` is raised if the source code cannot
+   line of code was found.  An :exc:`OSError` is raised if the source code cannot
    be retrieved.
+
+   .. versionchanged:: 3.3
+      :exc:`OSError` is raised instead of :exc:`IOError`, now an alias of the
+      former.
 
 
 .. function:: getsource(object)
 
    Return the text of the source code for an object. The argument may be a module,
    class, method, function, traceback, frame, or code object.  The source code is
-   returned as a single string.  An :exc:`IOError` is raised if the source code
+   returned as a single string.  An :exc:`OSError` is raised if the source code
    cannot be retrieved.
+
+   .. versionchanged:: 3.3
+      :exc:`OSError` is raised instead of :exc:`IOError`, now an alias of the
+      former.
 
 
 .. function:: cleandoc(doc)
@@ -372,6 +399,281 @@ Retrieving source code
    Clean up indentation from docstrings that are indented to line up with blocks
    of code.  Any whitespace that can be uniformly removed from the second line
    onwards is removed.  Also, all tabs are expanded to spaces.
+
+
+.. _inspect-signature-object:
+
+Introspecting callables with the Signature object
+-------------------------------------------------
+
+.. versionadded:: 3.3
+
+The Signature object represents the call signature of a callable object and its
+return annotation.  To retrieve a Signature object, use the :func:`signature`
+function.
+
+.. function:: signature(callable)
+
+   Return a :class:`Signature` object for the given ``callable``::
+
+      >>> from inspect import signature
+      >>> def foo(a, *, b:int, **kwargs):
+      ...     pass
+
+      >>> sig = signature(foo)
+
+      >>> str(sig)
+      '(a, *, b:int, **kwargs)'
+
+      >>> str(sig.parameters['b'])
+      'b:int'
+
+      >>> sig.parameters['b'].annotation
+      <class 'int'>
+
+   Accepts a wide range of python callables, from plain functions and classes to
+   :func:`functools.partial` objects.
+
+   Raises :exc:`ValueError` if no signature can be provided, and
+   :exc:`TypeError` if that type of object is not supported.
+
+   .. note::
+
+      Some callables may not be introspectable in certain implementations of
+      Python.  For example, in CPython, some built-in functions defined in
+      C provide no metadata about their arguments.
+
+
+.. class:: Signature(parameters=None, \*, return_annotation=Signature.empty)
+
+   A Signature object represents the call signature of a function and its return
+   annotation.  For each parameter accepted by the function it stores a
+   :class:`Parameter` object in its :attr:`parameters` collection.
+
+   The optional *parameters* argument is a sequence of :class:`Parameter`
+   objects, which is validated to check that there are no parameters with
+   duplicate names, and that the parameters are in the right order, i.e.
+   positional-only first, then positional-or-keyword, and that parameters with
+   defaults follow parameters without defaults.
+
+   The optional *return_annotation* argument, can be an arbitrary Python object,
+   is the "return" annotation of the callable.
+
+   Signature objects are *immutable*.  Use :meth:`Signature.replace` to make a
+   modified copy.
+
+   .. attribute:: Signature.empty
+
+      A special class-level marker to specify absence of a return annotation.
+
+   .. attribute:: Signature.parameters
+
+      An ordered mapping of parameters' names to the corresponding
+      :class:`Parameter` objects.
+
+   .. attribute:: Signature.return_annotation
+
+      The "return" annotation for the callable.  If the callable has no "return"
+      annotation, this attribute is set to :attr:`Signature.empty`.
+
+   .. method:: Signature.bind(*args, **kwargs)
+
+      Create a mapping from positional and keyword arguments to parameters.
+      Returns :class:`BoundArguments` if ``*args`` and ``**kwargs`` match the
+      signature, or raises a :exc:`TypeError`.
+
+   .. method:: Signature.bind_partial(*args, **kwargs)
+
+      Works the same way as :meth:`Signature.bind`, but allows the omission of
+      some required arguments (mimics :func:`functools.partial` behavior.)
+      Returns :class:`BoundArguments`, or raises a :exc:`TypeError` if the
+      passed arguments do not match the signature.
+
+   .. method:: Signature.replace(*[, parameters][, return_annotation])
+
+      Create a new Signature instance based on the instance replace was invoked
+      on.  It is possible to pass different ``parameters`` and/or
+      ``return_annotation`` to override the corresponding properties of the base
+      signature.  To remove return_annotation from the copied Signature, pass in
+      :attr:`Signature.empty`.
+
+      ::
+
+         >>> def test(a, b):
+         ...     pass
+         >>> sig = signature(test)
+         >>> new_sig = sig.replace(return_annotation="new return anno")
+         >>> str(new_sig)
+         "(a, b) -> 'new return anno'"
+
+
+.. class:: Parameter(name, kind, \*, default=Parameter.empty, annotation=Parameter.empty)
+
+   Parameter objects are *immutable*.  Instead of modifying a Parameter object,
+   you can use :meth:`Parameter.replace` to create a modified copy.
+
+   .. attribute:: Parameter.empty
+
+      A special class-level marker to specify absence of default values and
+      annotations.
+
+   .. attribute:: Parameter.name
+
+      The name of the parameter as a string.  The name must be a valid
+      Python identifier.
+
+   .. attribute:: Parameter.default
+
+      The default value for the parameter.  If the parameter has no default
+      value, this attribute is set to :attr:`Parameter.empty`.
+
+   .. attribute:: Parameter.annotation
+
+      The annotation for the parameter.  If the parameter has no annotation,
+      this attribute is set to :attr:`Parameter.empty`.
+
+   .. attribute:: Parameter.kind
+
+      Describes how argument values are bound to the parameter.  Possible values
+      (accessible via :class:`Parameter`, like ``Parameter.KEYWORD_ONLY``):
+
+      .. tabularcolumns:: |l|L|
+
+      +------------------------+----------------------------------------------+
+      |    Name                | Meaning                                      |
+      +========================+==============================================+
+      | *POSITIONAL_ONLY*      | Value must be supplied as a positional       |
+      |                        | argument.                                    |
+      |                        |                                              |
+      |                        | Python has no explicit syntax for defining   |
+      |                        | positional-only parameters, but many built-in|
+      |                        | and extension module functions (especially   |
+      |                        | those that accept only one or two parameters)|
+      |                        | accept them.                                 |
+      +------------------------+----------------------------------------------+
+      | *POSITIONAL_OR_KEYWORD*| Value may be supplied as either a keyword or |
+      |                        | positional argument (this is the standard    |
+      |                        | binding behaviour for functions implemented  |
+      |                        | in Python.)                                  |
+      +------------------------+----------------------------------------------+
+      | *VAR_POSITIONAL*       | A tuple of positional arguments that aren't  |
+      |                        | bound to any other parameter. This           |
+      |                        | corresponds to a ``*args`` parameter in a    |
+      |                        | Python function definition.                  |
+      +------------------------+----------------------------------------------+
+      | *KEYWORD_ONLY*         | Value must be supplied as a keyword argument.|
+      |                        | Keyword only parameters are those which      |
+      |                        | appear after a ``*`` or ``*args`` entry in a |
+      |                        | Python function definition.                  |
+      +------------------------+----------------------------------------------+
+      | *VAR_KEYWORD*          | A dict of keyword arguments that aren't bound|
+      |                        | to any other parameter. This corresponds to a|
+      |                        | ``**kwargs`` parameter in a Python function  |
+      |                        | definition.                                  |
+      +------------------------+----------------------------------------------+
+
+      Example: print all keyword-only arguments without default values::
+
+         >>> def foo(a, b, *, c, d=10):
+         ...     pass
+
+         >>> sig = signature(foo)
+         >>> for param in sig.parameters.values():
+         ...     if (param.kind == param.KEYWORD_ONLY and
+         ...                        param.default is param.empty):
+         ...         print('Parameter:', param)
+         Parameter: c
+
+   .. method:: Parameter.replace(*[, name][, kind][, default][, annotation])
+
+      Create a new Parameter instance based on the instance replaced was invoked
+      on.  To override a :class:`Parameter` attribute, pass the corresponding
+      argument.  To remove a default value or/and an annotation from a
+      Parameter, pass :attr:`Parameter.empty`.
+
+      ::
+
+         >>> from inspect import Parameter
+         >>> param = Parameter('foo', Parameter.KEYWORD_ONLY, default=42)
+         >>> str(param)
+         'foo=42'
+
+         >>> str(param.replace()) # Will create a shallow copy of 'param'
+         'foo=42'
+
+         >>> str(param.replace(default=Parameter.empty, annotation='spam'))
+         "foo:'spam'"
+
+    .. versionchanged:: 3.4
+        In Python 3.3 Parameter objects were allowed to have ``name`` set
+        to ``None`` if their ``kind`` was set to ``POSITIONAL_ONLY``.
+        This is no longer permitted.
+
+.. class:: BoundArguments
+
+   Result of a :meth:`Signature.bind` or :meth:`Signature.bind_partial` call.
+   Holds the mapping of arguments to the function's parameters.
+
+   .. attribute:: BoundArguments.arguments
+
+      An ordered, mutable mapping (:class:`collections.OrderedDict`) of
+      parameters' names to arguments' values.  Contains only explicitly bound
+      arguments.  Changes in :attr:`arguments` will reflect in :attr:`args` and
+      :attr:`kwargs`.
+
+      Should be used in conjunction with :attr:`Signature.parameters` for any
+      argument processing purposes.
+
+      .. note::
+
+         Arguments for which :meth:`Signature.bind` or
+         :meth:`Signature.bind_partial` relied on a default value are skipped.
+         However, if needed, it is easy to include them.
+
+      ::
+
+        >>> def foo(a, b=10):
+        ...     pass
+
+        >>> sig = signature(foo)
+        >>> ba = sig.bind(5)
+
+        >>> ba.args, ba.kwargs
+        ((5,), {})
+
+        >>> for param in sig.parameters.values():
+        ...     if param.name not in ba.arguments:
+        ...         ba.arguments[param.name] = param.default
+
+        >>> ba.args, ba.kwargs
+        ((5, 10), {})
+
+
+   .. attribute:: BoundArguments.args
+
+      A tuple of positional arguments values.  Dynamically computed from the
+      :attr:`arguments` attribute.
+
+   .. attribute:: BoundArguments.kwargs
+
+      A dict of keyword arguments values.  Dynamically computed from the
+      :attr:`arguments` attribute.
+
+   The :attr:`args` and :attr:`kwargs` properties can be used to invoke
+   functions::
+
+      def test(a, *, b):
+         ...
+
+      sig = signature(test)
+      ba = sig.bind(10, b=20)
+      test(*ba.args, **ba.kwargs)
+
+
+.. seealso::
+
+   :pep:`362` - Function Signature Object.
+      The detailed specification, implementation details and examples.
 
 
 .. _inspect-classes-functions:
@@ -396,9 +698,9 @@ Classes and functions
    :term:`named tuple` ``ArgSpec(args, varargs, keywords, defaults)`` is
    returned. *args* is a list of the argument names. *varargs* and *keywords*
    are the names of the ``*`` and ``**`` arguments or ``None``. *defaults* is a
-   tuple of default argument values or None if there are no default arguments;
-   if this tuple has *n* elements, they correspond to the last *n* elements
-   listed in *args*.
+   tuple of default argument values or ``None`` if there are no default
+   arguments; if this tuple has *n* elements, they correspond to the last
+   *n* elements listed in *args*.
 
    .. deprecated:: 3.0
       Use :func:`getfullargspec` instead, which provides information about
@@ -414,13 +716,23 @@ Classes and functions
    annotations)``
 
    *args* is a list of the argument names.  *varargs* and *varkw* are the names
-   of the ``*`` and ``**`` arguments or ``None``.  *defaults* is an n-tuple of
-   the default values of the last n arguments.  *kwonlyargs* is a list of
+   of the ``*`` and ``**`` arguments or ``None``.  *defaults* is an *n*-tuple
+   of the default values of the last *n* arguments, or ``None`` if there are no
+   default arguments.  *kwonlyargs* is a list of
    keyword-only argument names.  *kwonlydefaults* is a dictionary mapping names
    from kwonlyargs to defaults.  *annotations* is a dictionary mapping argument
    names to annotations.
 
    The first four items in the tuple correspond to :func:`getargspec`.
+
+   .. note::
+      Consider using the new :ref:`Signature Object <inspect-signature-object>`
+      interface, which provides a better way of introspecting functions.
+
+   .. versionchanged:: 3.4
+      This function is now based on :func:`signature`, but still ignores
+      ``__wrapped__`` attributes and includes the already bound first
+      parameter in the signature output for bound methods.
 
 
 .. function:: getargvalues(frame)
@@ -432,11 +744,23 @@ Classes and functions
    locals dictionary of the given frame.
 
 
-.. function:: formatargspec(args[, varargs, varkw, defaults, formatarg, formatvarargs, formatvarkw, formatvalue])
+.. function:: formatargspec(args[, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations[, formatarg, formatvarargs, formatvarkw, formatvalue, formatreturns, formatannotations]])
 
-   Format a pretty argument spec from the four values returned by
-   :func:`getargspec`.  The format\* arguments are the corresponding optional
-   formatting functions that are called to turn names and values into strings.
+   Format a pretty argument spec from the values returned by
+   :func:`getargspec` or :func:`getfullargspec`.
+
+   The first seven arguments are (``args``, ``varargs``, ``varkw``,
+   ``defaults``, ``kwonlyargs``, ``kwonlydefaults``, ``annotations``). The
+   other five arguments are the corresponding optional formatting functions
+   that are called to turn names and values into strings. The last argument
+   is an optional function to format the sequence of arguments. For example::
+
+    >>> from inspect import formatargspec, getfullargspec
+    >>> def f(a: int, b: float):
+    ...     pass
+    ...
+    >>> formatargspec(*getfullargspec(f))
+    '(a: int, b: float)'
 
 
 .. function:: formatargvalues(args[, varargs, varkw, locals, formatarg, formatvarargs, formatvarkw, formatvalue])
@@ -454,7 +778,7 @@ Classes and functions
    metatype is in use, cls will be the first element of the tuple.
 
 
-.. function:: getcallargs(func[, *args][, **kwds])
+.. function:: getcallargs(func, *args, **kwds)
 
    Bind the *args* and *kwds* to the argument names of the Python function or
    method *func*, as if it was called with them. For bound methods, bind also the
@@ -468,16 +792,52 @@ Classes and functions
     >>> from inspect import getcallargs
     >>> def f(a, b=1, *pos, **named):
     ...     pass
-    >>> getcallargs(f, 1, 2, 3)
-    {'a': 1, 'named': {}, 'b': 2, 'pos': (3,)}
-    >>> getcallargs(f, a=2, x=4)
-    {'a': 2, 'named': {'x': 4}, 'b': 1, 'pos': ()}
+    >>> getcallargs(f, 1, 2, 3) == {'a': 1, 'named': {}, 'b': 2, 'pos': (3,)}
+    True
+    >>> getcallargs(f, a=2, x=4) == {'a': 2, 'named': {'x': 4}, 'b': 1, 'pos': ()}
+    True
     >>> getcallargs(f)
     Traceback (most recent call last):
     ...
-    TypeError: f() takes at least 1 argument (0 given)
+    TypeError: f() missing 1 required positional argument: 'a'
 
    .. versionadded:: 3.2
+
+   .. note::
+      Consider using the new :meth:`Signature.bind` instead.
+
+
+.. function:: getclosurevars(func)
+
+   Get the mapping of external name references in a Python function or
+   method *func* to their current values. A
+   :term:`named tuple` ``ClosureVars(nonlocals, globals, builtins, unbound)``
+   is returned. *nonlocals* maps referenced names to lexical closure
+   variables, *globals* to the function's module globals and *builtins* to
+   the builtins visible from the function body. *unbound* is the set of names
+   referenced in the function that could not be resolved at all given the
+   current module globals and builtins.
+
+   :exc:`TypeError` is raised if *func* is not a Python function or method.
+
+   .. versionadded:: 3.3
+
+
+.. function:: unwrap(func, *, stop=None)
+
+   Get the object wrapped by *func*. It follows the chain of :attr:`__wrapped__`
+   attributes returning the last object in the chain.
+
+   *stop* is an optional callback accepting an object in the wrapper chain
+   as its sole argument that allows the unwrapping to be terminated early if
+   the callback returns a true value. If the callback never returns a true
+   value, the last object in the chain is returned as usual. For example,
+   :func:`signature` uses this to stop unwrapping if any object in the
+   chain has a ``__signature__`` attribute defined.
+
+   :exc:`ValueError` is raised if a cycle is encountered.
+
+   .. versionadded:: 3.4
 
 
 .. _inspect-stack:
@@ -511,6 +871,10 @@ index of the current line within that list.
               # do something with the frame
           finally:
               del frame
+
+   If you want to keep the frame around (for example to print a traceback
+   later), you can also break reference cycles by using the
+   :meth:`frame.clear` method.
 
 The optional *context* argument supported by most of these functions specifies
 the number of lines of context to return, which are centered around the current
@@ -589,8 +953,9 @@ but avoids executing code when it fetches attributes.
    that raise AttributeError). It can also return descriptors objects
    instead of instance members.
 
-   If the instance :attr:`__dict__` is shadowed by another member (for example a
-   property) then this function will be unable to find instance members.
+   If the instance :attr:`~object.__dict__` is shadowed by another member (for
+   example a property) then this function will be unable to find instance
+   members.
 
    .. versionadded:: 3.2
 
@@ -643,3 +1008,46 @@ generator to be determined easily.
     * GEN_CLOSED: Execution has completed.
 
    .. versionadded:: 3.2
+
+The current internal state of the generator can also be queried. This is
+mostly useful for testing purposes, to ensure that internal state is being
+updated as expected:
+
+.. function:: getgeneratorlocals(generator)
+
+   Get the mapping of live local variables in *generator* to their current
+   values.  A dictionary is returned that maps from variable names to values.
+   This is the equivalent of calling :func:`locals` in the body of the
+   generator, and all the same caveats apply.
+
+   If *generator* is a :term:`generator` with no currently associated frame,
+   then an empty dictionary is returned.  :exc:`TypeError` is raised if
+   *generator* is not a Python generator object.
+
+   .. impl-detail::
+
+      This function relies on the generator exposing a Python stack frame
+      for introspection, which isn't guaranteed to be the case in all
+      implementations of Python. In such cases, this function will always
+      return an empty dictionary.
+
+   .. versionadded:: 3.3
+
+
+.. _inspect-module-cli:
+
+Command Line Interface
+----------------------
+
+The :mod:`inspect` module also provides a basic introspection capability
+from the command line.
+
+.. program:: inspect
+
+By default, accepts the name of a module and prints the source of that
+module. A class or function within the module can be printed instead by
+appended a colon and the qualified name of the target object.
+
+.. cmdoption:: --details
+
+   Print information about the specified object rather than the source code

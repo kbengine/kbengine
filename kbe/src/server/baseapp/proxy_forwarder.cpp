@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "proxy.hpp"
-#include "proxy_forwarder.hpp"
-#include "server/serverconfig.hpp"
+#include "baseapp.h"
+#include "proxy.h"
+#include "proxy_forwarder.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine{	
 
@@ -29,7 +29,7 @@ namespace KBEngine{
 ProxyForwarder::ProxyForwarder(Proxy * pProxy) : 
 pProxy_(pProxy)
 {
-	timerHandle_ = Baseapp::getSingleton().getMainDispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
+	timerHandle_ = Baseapp::getSingleton().dispatcher().addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), this,
 							NULL);
 }
 

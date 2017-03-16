@@ -45,7 +45,7 @@ programs, however, and result in error messages as shown here::
    >>> 10 * (1/0)
    Traceback (most recent call last):
      File "<stdin>", line 1, in ?
-   ZeroDivisionError: int division or modulo by zero
+   ZeroDivisionError: division by zero
    >>> 4 + spam*3
    Traceback (most recent call last):
      File "<stdin>", line 1, in ?
@@ -131,8 +131,8 @@ the exception (allowing a caller to handle the exception as well)::
        f = open('myfile.txt')
        s = f.readline()
        i = int(s.strip())
-   except IOError as err:
-       print("I/O error: {0}".format(err))
+   except OSError as err:
+       print("OS error: {0}".format(err))
    except ValueError:
        print("Could not convert data to an integer.")
    except:

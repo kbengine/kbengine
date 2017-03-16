@@ -237,8 +237,6 @@ typedef struct apr_file_t         apr_file_t;
  *                               support, see WARNING below 
  * @li #APR_FOPEN_SPARSE         Platform dependent flag to enable sparse file
  *                               support, see WARNING below
- * @li #APR_FOPEN_ROTATING       Do file file rotation checking
- * @li #APR_FOPEN_MANUAL_ROTATE  Enable Manual rotation
  * @li #APR_FOPEN_NONBLOCK       Platform dependent flag to enable
  *                               non blocking file io
  * @param perm Access permissions for file.

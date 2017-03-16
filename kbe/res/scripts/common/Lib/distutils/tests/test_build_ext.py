@@ -31,12 +31,11 @@ class BuildExtTestCase(TempdirManager,
         self.tmp_dir = self.mkdtemp()
         self.sys_path = sys.path, sys.path[:]
         sys.path.append(self.tmp_dir)
-        if sys.version > "2.6":
-            import site
-            self.old_user_base = site.USER_BASE
-            site.USER_BASE = self.mkdtemp()
-            from distutils.command import build_ext
-            build_ext.USER_BASE = site.USER_BASE
+        import site
+        self.old_user_base = site.USER_BASE
+        site.USER_BASE = self.mkdtemp()
+        from distutils.command import build_ext
+        build_ext.USER_BASE = site.USER_BASE
 
     def test_build_ext(self):
         global ALREADY_TESTED
@@ -61,9 +60,9 @@ class BuildExtTestCase(TempdirManager,
             sys.stdout = old_stdout
 
         if ALREADY_TESTED:
-            return
+            self.skipTest('Already tested in %s' % ALREADY_TESTED)
         else:
-            ALREADY_TESTED = True
+            ALREADY_TESTED = type(self).__name__
 
         import xx
 
@@ -76,19 +75,18 @@ class BuildExtTestCase(TempdirManager,
         if support.HAVE_DOCSTRINGS:
             doc = 'This is a template module just for instruction.'
             self.assertEqual(xx.__doc__, doc)
-        self.assertTrue(isinstance(xx.Null(), xx.Null))
-        self.assertTrue(isinstance(xx.Str(), xx.Str))
+        self.assertIsInstance(xx.Null(), xx.Null)
+        self.assertIsInstance(xx.Str(), xx.Str)
 
     def tearDown(self):
         # Get everything back to normal
         support.unload('xx')
         sys.path = self.sys_path[0]
         sys.path[:] = self.sys_path[1]
-        if sys.version > "2.6":
-            import site
-            site.USER_BASE = self.old_user_base
-            from distutils.command import build_ext
-            build_ext.USER_BASE = self.old_user_base
+        import site
+        site.USER_BASE = self.old_user_base
+        from distutils.command import build_ext
+        build_ext.USER_BASE = self.old_user_base
         super(BuildExtTestCase, self).tearDown()
 
     def test_solaris_enable_shared(self):
@@ -110,13 +108,9 @@ class BuildExtTestCase(TempdirManager,
                 _config_vars['Py_ENABLE_SHARED'] = old_var
 
         # make sure we get some library dirs under solaris
-        self.assertTrue(len(cmd.library_dirs) > 0)
+        self.assertGreater(len(cmd.library_dirs), 0)
 
     def test_user_site(self):
-        # site.USER_SITE was introduced in 2.6
-        if sys.version < '2.6':
-            return
-
         import site
         dist = Distribution({'name': 'xx'})
         cmd = build_ext(dist)
@@ -124,7 +118,7 @@ class BuildExtTestCase(TempdirManager,
         # making sure the user option is there
         options = [name for name, short, lable in
                    cmd.user_options]
-        self.assertTrue('user' in options)
+        self.assertIn('user', options)
 
         # setting a value
         cmd.user = 1
@@ -171,10 +165,10 @@ class BuildExtTestCase(TempdirManager,
 
         from distutils import sysconfig
         py_include = sysconfig.get_python_inc()
-        self.assertTrue(py_include in cmd.include_dirs)
+        self.assertIn(py_include, cmd.include_dirs)
 
         plat_py_include = sysconfig.get_python_inc(plat_specific=1)
-        self.assertTrue(plat_py_include in cmd.include_dirs)
+        self.assertIn(plat_py_include, cmd.include_dirs)
 
         # make sure cmd.libraries is turned into a list
         # if it's a string
@@ -255,13 +249,13 @@ class BuildExtTestCase(TempdirManager,
                              'some': 'bar'})]
         cmd.check_extensions_list(exts)
         ext = exts[0]
-        self.assertTrue(isinstance(ext, Extension))
+        self.assertIsInstance(ext, Extension)
 
         # check_extensions_list adds in ext the values passed
         # when they are in ('include_dirs', 'library_dirs', 'libraries'
         # 'extra_objects', 'extra_compile_args', 'extra_link_args')
         self.assertEqual(ext.libraries, 'foo')
-        self.assertTrue(not hasattr(ext, 'some'))
+        self.assertFalse(hasattr(ext, 'some'))
 
         # 'macros' element of build info dict must be 1- or 2-tuple
         exts = [('foo.bar', {'sources': [''], 'libraries': 'foo',
@@ -448,8 +442,16 @@ class BuildExtTestCase(TempdirManager,
 
         # get the deployment target that the interpreter was built with
         target = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
-        target = tuple(map(int, target.split('.')))
-        target = '%02d%01d0' % target
+        target = tuple(map(int, target.split('.')[0:2]))
+        # format the target value as defined in the Apple
+        # Availability Macros.  We can't use the macro names since
+        # at least one value we test with will not exist yet.
+        if target[1] < 10:
+            # for 10.1 through 10.9.x -> "10n0"
+            target = '%02d%01d0' % target
+        else:
+            # for 10.10 and beyond -> "10nn00"
+            target = '%02d%02d00' % target
         deptarget_ext = Extension(
             'deptarget',
             [deptarget_c],

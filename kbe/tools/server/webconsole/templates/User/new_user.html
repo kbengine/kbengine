@@ -1,0 +1,82 @@
+{% extends "User/base.html" %}
+
+{% block content %}
+<div class="row placeholders">
+  <div class="components-run-block">
+    <form action="" method="post" name="form1" id="form1">
+      <table class="table table-condensed">
+          <tbody>
+            <tr>
+                <th colspan="2" align="left">添加新用户</th>
+            </tr>
+            <tr>
+              <td>账&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号</td>
+              <td>
+                <input name="username" type="text" class="form-control" id="username" value="{{ request.POST.username }}">
+              </td>
+            </tr>
+            <tr>
+              <td>昵&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;称</td>
+              <td>
+                <input name="showname" type="text" class="form-control" id="showname" value="{{ request.POST.showname }}">
+              </td>
+            </tr>
+            <tr>
+              <td>登&nbsp;&nbsp;&nbsp;&nbsp;录&nbsp;&nbsp;&nbsp;&nbsp;密&nbsp;&nbsp;&nbsp;&nbsp;码</td>
+              <td><input name="password1" type="password" class="form-control" id="password1" value="{{ request.POST.password1 }}"></td>
+            </tr>
+            <tr>
+              <td>确&nbsp;&nbsp;&nbsp;&nbsp;认&nbsp;&nbsp;&nbsp;&nbsp;密&nbsp;&nbsp;&nbsp;&nbsp;码</td>
+              <td><input name="password2" type="password" class="form-control" id="password2" value="{{ request.POST.password2 }}"></td>
+            </tr>
+            <tr>
+              <td>操&nbsp;作&nbsp;系&nbsp;统&nbsp;用&nbsp;户</td>
+              <td>
+                <input name="sysuser" type="text" class="form-control" id="sysuser" value="{{ request.POST.sysuser }}">
+              </td>
+            </tr>
+            <tr>
+              <td>操作系统用户uid</td>
+              <td>
+                <input name="sysuid" type="number" class="form-control" id="sysuid" value="{{ request.POST.sysuid }}">
+              </td>
+            </tr>
+            <tr>
+            	<td>KBE_ROOT</td>
+            	<td>
+                	<input name="kbe-root" type="text" class="form-control" id="kbe-root" value="{{ request.POST.kbe_root }}">
+              </td>
+            </tr>
+            <tr>
+            	<td>KBE_RES_PATH</td>
+            	<td>
+                	<input name="kbe-res-path" type="text" class="form-control" id="kbe-res-path" value="{{ request.POST.kbe_res_path }}">
+              </td>
+            </tr>
+            <tr>
+            	<td>KBE_BIN_PATH</td>
+            	<td>
+                	<input name="kbe-bin-path" type="text" class="form-control" id="kbe-bin-path" value="{{ request.POST.kbe_bin_path }}">
+              </td>
+            </tr>
+            {% if error %}
+            <tr>
+                <td colspan="2">
+                    <p class="text-danger">{{ error }}</p>
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td></td>
+              <td><input type="submit" name="submit" id="submit" class="btn btn-default" value="添加">
+              <input name="commit" type="hidden" id="commit" value="1"></td>
+            </tr>
+          </tbody>
+      </table>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block tail_js %}
+<script>$(".user-new").addClass("active");</script>
+{% endblock %}

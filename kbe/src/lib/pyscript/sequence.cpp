@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,10 +19,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "sequence.hpp"
+#include "sequence.h"
 
 #ifndef CODE_INLINE
-#include "sequence.ipp"
+#include "sequence.inl"
 #endif
 
 namespace KBEngine{ namespace script{
@@ -61,7 +61,7 @@ ScriptObject(pyType, isInitialised)
 Sequence::~Sequence()
 {
 	std::vector<PyObject*>::iterator iter = values_.begin();
-	for(; iter != values_.end(); iter++)
+	for(; iter != values_.end(); ++iter)
 	{
 		Py_DECREF((*iter));
 	}
@@ -72,9 +72,15 @@ Sequence::~Sequence()
 //-------------------------------------------------------------------------------------
 bool Sequence::isSameType(PyObject* pyValue)
 {
+	if(pyValue == NULL)
+	{
+		return false;
+	}
+
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 bool Sequence::isSameItemType(PyObject* pyValue)
 {
 	return true;
@@ -113,14 +119,14 @@ PyObject* Sequence::seq_concat(PyObject* self, PyObject* seq)
 	Sequence* self_seq = static_cast<Sequence*>(self);
 	std::vector<PyObject*>& values = self_seq->getValues();
 	
-	int seqSize1 = values.size();
-	int seqSize2 = PySequence_Size(seq);
+	int seqSize1 = (int)values.size();
+	int seqSize2 = (int)PySequence_Size(seq);
 	PyObject* pyList = PyList_New(seqSize1 + seqSize2);
 
-	for (int i = 0; i < seqSize1; i++)
+	for (int i = 0; i < seqSize1; ++i)
 		PyList_SET_ITEM(pyList, i, values[i]);
 
-	for (int i = 0; i < seqSize2; i++)
+	for (int i = 0; i < seqSize2; ++i)
 	{
 		PyList_SET_ITEM(pyList, seqSize1 + i, PySequence_GetItem(seq, i));
 	}
@@ -136,21 +142,21 @@ PyObject* Sequence::seq_repeat(PyObject* self, Py_ssize_t n)
 
 	Sequence* seq = static_cast<Sequence*>(self);
 	std::vector<PyObject*>& values = seq->getValues();
-	int seqSize1 = values.size();
+	int seqSize1 = (int)values.size();
 
 	PyObject* pyList = PyList_New(seqSize1 * n);
 	// 可能没内存了
 	if (pyList == NULL) 
 		return NULL;
 
-	for (int j = 0; j < seqSize1; j++)
+	for (int j = 0; j < seqSize1; ++j)
 	{
 		PyList_SET_ITEM(pyList, j, values[j]);
 	}
 
 	for (int i = 1; i < n; i++)
 	{
-		for (int j = 0; j < seqSize1; j++)
+		for (int j = 0; j < seqSize1; ++j)
 		{
 			PyObject* pyTemp = PyList_GET_ITEM(pyList, j);
 			PyList_SET_ITEM(pyList, i * seqSize1 + j, pyTemp);
@@ -173,14 +179,7 @@ PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 		return pyobj;
 	}
 
-	/*
-	if(values.size() > 0)
-	{
-		PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
-		PyErr_PrintEx(0);
-	}
-	*/
-
+	PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
 	return NULL;
 }
 
@@ -198,7 +197,7 @@ PyObject* Sequence::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t 
 	if (endIndex < startIndex)
 		endIndex = startIndex;
 
-	int length = endIndex - startIndex;
+	int length = (int)(endIndex - startIndex);
 
 	if (length == int(values.size())) 
 	{
@@ -207,7 +206,7 @@ PyObject* Sequence::seq_slice(PyObject* self, Py_ssize_t startIndex, Py_ssize_t 
 	}
 
 	PyObject* pyRet = PyList_New(length);
-	for (int i = startIndex; i < endIndex; ++i)
+	for (int i = (int)startIndex; i < (int)endIndex; ++i)
 	{
 		Py_INCREF(values[i]);
 		PyList_SET_ITEM(pyRet, i - startIndex, values[i]);
@@ -288,8 +287,8 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 		return -1;
 	}
 
-	int sz = values.size();
-	int osz = PySequence_Size(oterSeq);
+	int sz = (int)values.size();
+	int osz = (int)PySequence_Size(oterSeq);
 
 	// 保证index不会越界
 	if (index1 > sz) index1 = sz;
@@ -312,7 +311,6 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 		}
 	}
 
-	
 	if (index1 < index2)
 		values.erase(values.begin() + index1, values.begin() + index2);
 
@@ -354,8 +352,8 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 	Sequence* seq = static_cast<Sequence*>(self);
 	std::vector<PyObject*>& values = seq->getValues();
 	
-	int szA = values.size();
-	int szB = PySequence_Size(oterSeq);
+	int szA = (int)values.size();
+	int szB = (int)PySequence_Size(oterSeq);
 
 	if (szB == 0) 
 	{
@@ -406,7 +404,7 @@ PyObject* Sequence::seq_inplace_repeat(PyObject* self, Py_ssize_t n)
 	}
 
 	std::vector<PyObject*>& values = seq->getValues();
-	int sz = values.size();
+	int sz = (int)values.size();
 
 	if (n <= 0)
 	{

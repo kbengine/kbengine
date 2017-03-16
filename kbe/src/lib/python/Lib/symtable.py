@@ -10,10 +10,7 @@ import weakref
 __all__ = ["symtable", "SymbolTable", "Class", "Function", "Symbol"]
 
 def symtable(code, filename, compile_type):
-    raw = _symtable.symtable(code, filename, compile_type)
-    for top in raw.values():
-        if top.name == 'top':
-            break
+    top = _symtable.symtable(code, filename, compile_type)
     return _newSymbolTable(top, filename)
 
 class SymbolTableFactory:
@@ -235,7 +232,8 @@ class Symbol(object):
 
 if __name__ == "__main__":
     import os, sys
-    src = open(sys.argv[0]).read()
+    with open(sys.argv[0]) as f:
+        src = f.read()
     mod = symtable(src, os.path.split(sys.argv[0])[1], "exec")
     for ident in mod.get_identifiers():
         info = mod.lookup(ident)

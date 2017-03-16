@@ -1,0 +1,273 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{38d92805-7031-4d39-bca9-62d0c8044de2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="address.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bundle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bundle_broadcast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="channel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="delayed_channels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="encryption_filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="endpoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="error_reporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="event_dispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="event_poller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fixed_messages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="interface_defs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="listener_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="message_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="network_interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packet_filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packet_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packet_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packet_sender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp_packet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp_packet_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="udp_packet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="udp_packet_receiver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="websocket_protocol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="network_stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tcp_packet_sender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="poller_epoll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="poller_select.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="websocket_packet_filter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="websocket_packet_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="address.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bundle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bundle_broadcast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="channel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="delayed_channels.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="encryption_filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="endpoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="error_reporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="event_dispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="event_poller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fixed_messages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="http_utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="interface_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="interfaces.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="listener_receiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="message_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="network_interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet_filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet_receiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet_sender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp_packet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp_packet_receiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="udp_packet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="udp_packet_receiver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="websocket_protocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="network_stats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="network_exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tcp_packet_sender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="poller_epoll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="poller_select.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="websocket_packet_filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="websocket_packet_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="packet_sender.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="bundle.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="bundle_broadcast.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="channel.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="endpoint.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="error_reporter.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="event_dispatcher.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="listener_receiver.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="network_interface.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="packet_filter.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="packet_receiver.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="tcp_packet.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="udp_packet_receiver.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="tcp_packet_receiver.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="udp_packet.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="tcp_packet_sender.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

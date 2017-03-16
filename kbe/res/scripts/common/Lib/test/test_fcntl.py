@@ -1,16 +1,14 @@
 """Test program for the fcntl C module.
-
-OS/2+EMX doesn't support the file locking operations.
-
 """
+import platform
 import os
 import struct
 import sys
-import _testcapi
 import unittest
-from test.support import verbose, TESTFN, unlink, run_unittest, import_module
+from test.support import (verbose, TESTFN, unlink, run_unittest, import_module,
+                          cpython_only)
 
-# Skip test if no fnctl module.
+# Skip test if no fcntl module.
 fcntl = import_module('fcntl')
 
 
@@ -34,10 +32,10 @@ def get_lockdata():
             pid_t = 'l'
         lockdata = struct.pack(off_t + off_t + pid_t + 'hh', 0, 0, 0,
                                fcntl.F_WRLCK, 0)
+    elif sys.platform.startswith('gnukfreebsd'):
+        lockdata = struct.pack('qqihhi', 0, 0, 0, fcntl.F_WRLCK, 0, 0)
     elif sys.platform in ['aix3', 'aix4', 'hp-uxB', 'unixware7']:
         lockdata = struct.pack('hhlllii', fcntl.F_WRLCK, 0, 0, 0, 0, 0, 0)
-    elif sys.platform in ['os2emx']:
-        lockdata = None
     else:
         lockdata = struct.pack('hh'+start_len+'hh', fcntl.F_WRLCK, 0, 0, 0, 0, 0)
     if lockdata:
@@ -46,6 +44,12 @@ def get_lockdata():
     return lockdata
 
 lockdata = get_lockdata()
+
+class BadFile:
+    def __init__(self, fn):
+        self.fn = fn
+    def fileno(self):
+        return self.fn
 
 class TestFcntl(unittest.TestCase):
 
@@ -63,40 +67,48 @@ class TestFcntl(unittest.TestCase):
         rv = fcntl.fcntl(self.f.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
         if verbose:
             print('Status from fcntl with O_NONBLOCK: ', rv)
-        if sys.platform not in ['os2emx']:
-            rv = fcntl.fcntl(self.f.fileno(), fcntl.F_SETLKW, lockdata)
-            if verbose:
-                print('String from fcntl with F_SETLKW: ', repr(rv))
+        rv = fcntl.fcntl(self.f.fileno(), fcntl.F_SETLKW, lockdata)
+        if verbose:
+            print('String from fcntl with F_SETLKW: ', repr(rv))
         self.f.close()
 
     def test_fcntl_file_descriptor(self):
         # again, but pass the file rather than numeric descriptor
         self.f = open(TESTFN, 'wb')
         rv = fcntl.fcntl(self.f, fcntl.F_SETFL, os.O_NONBLOCK)
-        if sys.platform not in ['os2emx']:
-            rv = fcntl.fcntl(self.f, fcntl.F_SETLKW, lockdata)
+        if verbose:
+            print('Status from fcntl with O_NONBLOCK: ', rv)
+        rv = fcntl.fcntl(self.f, fcntl.F_SETLKW, lockdata)
+        if verbose:
+            print('String from fcntl with F_SETLKW: ', repr(rv))
         self.f.close()
 
     def test_fcntl_bad_file(self):
-        class F:
-            def __init__(self, fn):
-                self.fn = fn
-            def fileno(self):
-                return self.fn
-        self.assertRaises(ValueError, fcntl.fcntl, -1, fcntl.F_SETFL, os.O_NONBLOCK)
-        self.assertRaises(ValueError, fcntl.fcntl, F(-1), fcntl.F_SETFL, os.O_NONBLOCK)
-        self.assertRaises(TypeError, fcntl.fcntl, 'spam', fcntl.F_SETFL, os.O_NONBLOCK)
-        self.assertRaises(TypeError, fcntl.fcntl, F('spam'), fcntl.F_SETFL, os.O_NONBLOCK)
-        # Issue 15989
-        self.assertRaises(OverflowError, fcntl.fcntl, _testcapi.INT_MAX + 1,
-                                                      fcntl.F_SETFL, os.O_NONBLOCK)
-        self.assertRaises(OverflowError, fcntl.fcntl, F(_testcapi.INT_MAX + 1),
-                                                      fcntl.F_SETFL, os.O_NONBLOCK)
-        self.assertRaises(OverflowError, fcntl.fcntl, _testcapi.INT_MIN - 1,
-                                                      fcntl.F_SETFL, os.O_NONBLOCK)
-        self.assertRaises(OverflowError, fcntl.fcntl, F(_testcapi.INT_MIN - 1),
-                                                      fcntl.F_SETFL, os.O_NONBLOCK)
+        with self.assertRaises(ValueError):
+            fcntl.fcntl(-1, fcntl.F_SETFL, os.O_NONBLOCK)
+        with self.assertRaises(ValueError):
+            fcntl.fcntl(BadFile(-1), fcntl.F_SETFL, os.O_NONBLOCK)
+        with self.assertRaises(TypeError):
+            fcntl.fcntl('spam', fcntl.F_SETFL, os.O_NONBLOCK)
+        with self.assertRaises(TypeError):
+            fcntl.fcntl(BadFile('spam'), fcntl.F_SETFL, os.O_NONBLOCK)
 
+    @cpython_only
+    def test_fcntl_bad_file_overflow(self):
+        from _testcapi import INT_MAX, INT_MIN
+        # Issue 15989
+        with self.assertRaises(OverflowError):
+            fcntl.fcntl(INT_MAX + 1, fcntl.F_SETFL, os.O_NONBLOCK)
+        with self.assertRaises(OverflowError):
+            fcntl.fcntl(BadFile(INT_MAX + 1), fcntl.F_SETFL, os.O_NONBLOCK)
+        with self.assertRaises(OverflowError):
+            fcntl.fcntl(INT_MIN - 1, fcntl.F_SETFL, os.O_NONBLOCK)
+        with self.assertRaises(OverflowError):
+            fcntl.fcntl(BadFile(INT_MIN - 1), fcntl.F_SETFL, os.O_NONBLOCK)
+
+    @unittest.skipIf(
+        platform.machine().startswith('arm') and platform.system() == 'Linux',
+        "ARM Linux returns EINVAL for F_NOTIFY DN_MULTISHOT")
     def test_fcntl_64_bit(self):
         # Issue #1309352: fcntl shouldn't fail when the third arg fits in a
         # C 'long' but not in a C 'int'.
@@ -111,6 +123,26 @@ class TestFcntl(unittest.TestCase):
             fcntl.fcntl(fd, cmd, flags)
         finally:
             os.close(fd)
+
+    def test_flock(self):
+        # Solaris needs readable file for shared lock
+        self.f = open(TESTFN, 'wb+')
+        fileno = self.f.fileno()
+        fcntl.flock(fileno, fcntl.LOCK_SH)
+        fcntl.flock(fileno, fcntl.LOCK_UN)
+        fcntl.flock(self.f, fcntl.LOCK_SH | fcntl.LOCK_NB)
+        fcntl.flock(self.f, fcntl.LOCK_UN)
+        fcntl.flock(fileno, fcntl.LOCK_EX)
+        fcntl.flock(fileno, fcntl.LOCK_UN)
+
+        self.assertRaises(ValueError, fcntl.flock, -1, fcntl.LOCK_SH)
+        self.assertRaises(TypeError, fcntl.flock, 'spam', fcntl.LOCK_SH)
+
+    @cpython_only
+    def test_flock_overflow(self):
+        import _testcapi
+        self.assertRaises(OverflowError, fcntl.flock, _testcapi.INT_MAX+1,
+                          fcntl.LOCK_SH)
 
 
 def test_main():

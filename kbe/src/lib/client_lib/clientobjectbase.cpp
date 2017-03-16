@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,73 +18,85 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "entity.hpp"
-#include "config.hpp"
-#include "clientobjectbase.hpp"
-#include "network/channel.hpp"
-#include "network/fixed_messages.hpp"
-#include "network/common.hpp"
-#include "network/message_handler.hpp"
-#include "entitydef/scriptdef_module.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "entitydef/entitydef.hpp"
+#include "entity.h"
+#include "config.h"
+#include "clientobjectbase.h"
+#include "pyscript/pywatcher.h"
+#include "network/channel.h"
+#include "network/fixed_messages.h"
+#include "network/common.h"
+#include "network/message_handler.h"
+#include "entitydef/scriptdef_module.h"
+#include "entitydef/entity_mailbox.h"
+#include "entitydef/entitydef.h"
 
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/loginapp/loginapp_interface.hpp"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/loginapp/loginapp_interface.h"
 
 namespace KBEngine{
 
 SCRIPT_METHOD_DECLARE_BEGIN(ClientObjectBase)
-SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			0,					0)
-SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				0,					0)
-SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		0,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getSpaceData",		__py_GetSpaceData,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("callback",			__py_callback,				METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("disconnect",			__py_disconnect,			METH_VARARGS,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(ClientObjectBase)
-SCRIPT_GET_DECLARE("id",							pyGetID,					0,					0)
-SCRIPT_GET_DECLARE("entities",						pyGetEntities,				0,					0)
+SCRIPT_GET_DECLARE("id",							pyGetID,					0,								0)
+SCRIPT_GET_DECLARE("entities",						pyGetEntities,				0,								0)
 SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(ClientObjectBase, 0, 0, 0, 0, 0)		
 
 static int32 g_appID = 1;
 
 //-------------------------------------------------------------------------------------
-ClientObjectBase::ClientObjectBase(Mercury::NetworkInterface& ninterface, PyTypeObject* pyType):
+ClientObjectBase::ClientObjectBase(Network::NetworkInterface& ninterface, PyTypeObject* pyType):
 ScriptObject(pyType != NULL ? pyType : getScriptType(), false),
 appID_(0),
-pServerChannel_(new Mercury::Channel()),
+pServerChannel_(NULL),
 pEntities_(new Entities<client::Entity>()),
 pEntityIDAliasIDList_(),
 pyCallbackMgr_(),
 entityID_(0),
 spaceID_(0),
-entityPos_(FLT_MAX, FLT_MAX, FLT_MAX),
-entityDir_(FLT_MAX, FLT_MAX, FLT_MAX),
 dbid_(0),
 ip_(),
 port_(),
+baseappIP_(),
+baseappPort_(),
 lastSentActiveTickTime_(timestamp()),
 lastSentUpdateDataTime_(timestamp()),
-connectedGateway_(false),
+connectedBaseapp_(false),
 canReset_(false),
 name_(),
 password_(),
-extradatas_("unknown"),
-typeClient_(CLIENT_TYPE_PC),
+clientDatas_(""),
+serverDatas_(""),
+#if KBE_PLATFORM == PLATFORM_UNIX
+typeClient_(CLIENT_TYPE_LINUX),
+#elif KBE_PLATFORM == PLATFORM_APPLE
+typeClient_(CLIENT_TYPE_MAC),
+#else
+typeClient_(CLIENT_TYPE_WIN),
+#endif
 bufferedCreateEntityMessage_(),
 eventHandler_(),
-ninterface_(ninterface),
+networkInterface_(ninterface),
 targetID_(0),
 isLoadedGeometry_(false),
 timers_(),
-scriptCallbacks_(timers_)
+scriptCallbacks_(timers_),
+locktime_(0)
 {
-	pServerChannel_->incRef();
 	appID_ = g_appID++;
 
+	pServerChannel_ = Network::Channel::createPoolObject();
 	pServerChannel_->pNetworkInterface(&ninterface);
 }
 
@@ -100,6 +112,11 @@ void ClientObjectBase::finalise(void)
 
 	if(pEntities_)
 	{
+		client::Entity* entity = pPlayer();
+
+		if(entity && entity->inWorld())
+			entity->onBecomeNonPlayer();
+
 		pEntities_->finalise();
 		S_RELEASE(pEntities_);
 	}
@@ -107,7 +124,7 @@ void ClientObjectBase::finalise(void)
 	if(pServerChannel_)
 	{
 		pServerChannel_->destroy();
-		pServerChannel_->decRef();
+		delete pServerChannel_;
 		pServerChannel_ = NULL;
 	}
 }
@@ -118,70 +135,82 @@ void ClientObjectBase::reset(void)
 	pEntities_->finalise();
 	pEntityIDAliasIDList_.clear();
 	pyCallbackMgr_.finalise();
+
 	entityID_ = 0;
 	dbid_ = 0;
+
 	ip_ = "";
 	port_ = 0;
-	lastSentActiveTickTime_ = 0;
-	connectedGateway_ = false;
+
+	lastSentActiveTickTime_ = timestamp();
+	lastSentUpdateDataTime_ = timestamp();
+	connectedBaseapp_ = false;
+
 	name_ = "";
 	password_ = "";
-	extradatas_ = "";
+	clientDatas_ = "";
+	serverDatas_ = "";
+
 	bufferedCreateEntityMessage_.clear();
 	canReset_ = false;
+	locktime_ = 0;
 
-	if(pServerChannel_)
+	if(pServerChannel_ && !pServerChannel_->isDestroyed())
 	{
 		pServerChannel_->destroy();
-		pServerChannel_->decRef();
+		Network::Channel::reclaimPoolObject(pServerChannel_);
 		pServerChannel_ = NULL;
 	}
 
-	pServerChannel_ = new Mercury::Channel();
-	pServerChannel_->pNetworkInterface(&ninterface_);
-	pServerChannel_->incRef();
+	pServerChannel_ = Network::Channel::createPoolObject();
+	pServerChannel_->pNetworkInterface(&networkInterface_);
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onServerClosed()
+{
+	EventData_ServerCloased eventdata;
+	eventHandler_.fire(&eventdata);
+	connectedBaseapp_ = false;
+	canReset_ = true;
+
+	DEBUG_MSG("ClientObjectBase::tickSend: serverCloased!\n");
 }
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::tickSend()
 {
-	if(!pServerChannel_ || !pServerChannel_->endpoint())
+	handleTimers();
+
+	if(!pServerChannel_ || !pServerChannel_->pEndPoint())
 		return;
 	
 	if(pServerChannel_ && pServerChannel_->isDestroyed())
 	{
-		if(connectedGateway_)
+		if(connectedBaseapp_)
 		{
-			EventData_ServerCloased eventdata;
-			eventHandler_.fire(&eventdata);
-			connectedGateway_ = false;
-			canReset_ = true;
-
-			DEBUG_MSG("ClientObjectBase::tickSend: serverCloased!\n");
+			onServerClosed();
 		}
 
 		return;
 	}
 
-	handleTimers();
-
 	// 向服务器发送tick
-	uint64 check = uint64( Mercury::g_channelExternalTimeout * stampsPerSecond() ) / 2;
+	uint64 check = uint64( Network::g_channelExternalTimeout * stampsPerSecond() ) / 2;
 	if (timestamp() - lastSentActiveTickTime_ > check)
 	{
 		lastSentActiveTickTime_ = timestamp();
 
-		Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-		if(connectedGateway_)
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		if(connectedBaseapp_)
 			(*pBundle).newMessage(BaseappInterface::onClientActiveTick);
 		else
 			(*pBundle).newMessage(LoginappInterface::onClientActiveTick);
 
-		pServerChannel_->pushBundle(pBundle);
+		pServerChannel_->send(pBundle);
 	}
 
 	updatePlayerToServer();
-	pServerChannel_->send();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -194,28 +223,26 @@ bool ClientObjectBase::destroyEntity(ENTITY_ID entityID, bool callScript)
 		return true;
 	}
 
-	ERROR_MSG(boost::format("EntityApp::destroyEntity: not found %1%!\n") % entityID);
+	ERROR_MSG(fmt::format("EntityApp::destroyEntity: not found {}!\n", entityID));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------	
-Mercury::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
+Network::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
 {
 	return pServerChannel_;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onKicked(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onKicked(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(boost::format("ClientObjectBase::onKicked: code=%1%\n") % failedcode);
+	INFO_MSG(fmt::format("ClientObjectBase::onKicked: code={}\n", failedcode));
 
-#ifdef unix
-	::close(*pChannel->endpoint());
-#elif defined(PLAYSTATION3)
-	::socketclose(*pChannel->endpoint());
-#else
-	::closesocket(*pChannel->endpoint());
-#endif
+	EventData_onKicked eventdata;
+	eventdata.failedcode = failedcode;
+	eventHandler_.fire(&eventdata);
+
+	onServerClosed();
 }
 
 //-------------------------------------------------------------------------------------
@@ -231,7 +258,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 	
 	float time = 0;
@@ -241,7 +268,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	if(!PyCallable_Check(pyCallback))
@@ -253,7 +280,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
 	Py_INCREF(pyCallback);
-	ScriptID id = pClientObjectBase->scriptCallbacks().addCallback(time, new ScriptCallbackHandler(pClientObjectBase->scriptCallbacks(), pyCallback));
+	ScriptID id = pClientObjectBase->scriptCallbacks().addCallback(time, 0.0f, new ScriptCallbackHandler(pClientObjectBase->scriptCallbacks(), pyCallback));
 	return PyLong_FromLong(id);
 }
 
@@ -264,7 +291,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
@@ -275,7 +302,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return;
 	}
 
 	pClientObjectBase->scriptCallbacks().delCallback(id);
@@ -283,7 +310,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------	
-client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyObject* params,
+client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject* params,
 	bool isInitializeScript, ENTITY_ID eid, bool initProperty,
 	EntityMailbox* base, EntityMailbox* cell)
 {
@@ -292,7 +319,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", 
+		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntity: entity [%s] not found.\n", 
 			entityType);
 
 		PyErr_PrintEx(0);
@@ -300,7 +327,7 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 	}
 	else if(!sm->hasClient())
 	{
-		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntityCommon: entity [%s] not found.\n", 
+		PyErr_Format(PyExc_TypeError, "ClientObjectBase::createEntity: entity [%s] not found.\n", 
 			entityType);
 
 		PyErr_PrintEx(0);
@@ -325,19 +352,28 @@ client::Entity* ClientObjectBase::createEntityCommon(const char* entityType, PyO
 
 	SCRIPT_ERROR_CHECK();
 
+	entity->isInited(true);
+	
+	bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+		g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+		Config::getSingleton().isOnInitCallPropertysSetMethods();
+
+	if (isOnInitCallPropertysSetMethods)
+		entity->callPropertysSetMethods();
+
 	if(g_debugEntity)
 	{
-		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%) refc=%3%.\n") % 
-			entityType % eid % obj->ob_refcnt);
+		INFO_MSG(fmt::format("ClientObjectBase::createEntity: new {} ({}) refc={}.\n", 
+			entityType, eid, obj->ob_refcnt));
 	}
 	else
 	{
-		INFO_MSG(boost::format("ClientObjectBase::createEntityCommon: new %1% (%2%)\n") % 
-			entityType % eid);
+		INFO_MSG(fmt::format("ClientObjectBase::createEntity: new {} ({})\n",
+			entityType, eid));
 	}
 
 	EventData_CreatedEntity eventdata;
-	eventdata.entityID = entity->getID();
+	eventdata.entityID = entity->id();
 	//eventdata.modelres = entity->getAspect()->modelres();
 	eventdata.modelScale = entity->getAspect()->modelScale();
 	eventHandler_.fire(&eventdata);
@@ -360,16 +396,29 @@ ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 {
 	ENTITY_ID id = 0;
-	if(EntityDef::entityAliasID() && 
-		pEntityIDAliasIDList_.size() > 0 && pEntityIDAliasIDList_.size() <= 255)
+
+	if (!EntityDef::entityAliasID())
 	{
-		uint8 aliasID = 0;
-		s >> aliasID;
-		id = pEntityIDAliasIDList_[aliasID];
+		s >> id;
+		return id;
+	}
+
+	if(pEntityIDAliasIDList_.size() > 255)
+	{
+		s >> id;
 	}
 	else
 	{
-		s >> id;
+		uint8 aliasID = 0;
+		s >> aliasID;
+
+		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
+		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
+		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
+		if (pEntityIDAliasIDList_.size() <= aliasID)
+			return 0;
+
+		id = pEntityIDAliasIDList_[aliasID];
 	}
 
 	return id;
@@ -397,87 +446,89 @@ bool ClientObjectBase::deregisterEventHandle(EventHandle* pEventHandle)
 bool ClientObjectBase::createAccount()
 {
 	// 创建账号
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::reqCreateAccount);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
-
-	pServerChannel_->pushBundle(pBundle);
+	(*pBundle).appendBlob(clientDatas_);
+	pServerChannel_->send(pBundle);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* ClientObjectBase::initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port)
+Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port)
 {
-	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObjectBase::initLoginappChannel: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 	
 	u_int32_t address;
-	pEndpoint->convertAddress(ip.c_str(), address);
+	Network::Address::string2ip(ip.c_str(), address);
 	if(pEndpoint->connect(htons(port), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::initLoginappChannel: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server is error({})!\n",
+			kbe_strerror()));
 
-		delete pEndpoint;
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 
-	Mercury::Address addr(ip.c_str(), port);
+	Network::Address addr(ip.c_str(), port);
 	pEndpoint->addr(addr);
 
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
 	password_ = passwd;
 	name_ = accountName;
+	lastSentActiveTickTime_ = timestamp();
 	return pServerChannel_;
 }
 
 //-------------------------------------------------------------------------------------
-Mercury::Channel* ClientObjectBase::initBaseappChannel()
+Network::Channel* ClientObjectBase::initBaseappChannel()
 {
-	Mercury::EndPoint* pEndpoint = new Mercury::EndPoint();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
 		ERROR_MSG("ClientObjectBase::initBaseappChannel: couldn't create a socket\n");
-		delete pEndpoint;
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 	
 	u_int32_t address;
 
-	pEndpoint->convertAddress(ip_.c_str(), address);
+	Network::Address::string2ip(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::initBaseappChannel: connect server is error(%1%)!\n") %
-			kbe_strerror());
+		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
+			kbe_strerror()));
 
-		delete pEndpoint;
+		Network::EndPoint::reclaimPoolObject(pEndpoint);
 		return NULL;
 	}
 
-	Mercury::Address addr(ip_.c_str(), port_);
+	Network::Address addr(ip_.c_str(), port_);
 	pEndpoint->addr(addr);
 
-	pServerChannel_->endpoint(pEndpoint);
+	pServerChannel_->pEndPoint(pEndpoint);
 	pEndpoint->setnonblocking(true);
 	pEndpoint->setnodelay(true);
 
-	connectedGateway_ = true;
+	connectedBaseapp_ = true;
+	lastSentActiveTickTime_ = timestamp();
+	lastSentUpdateDataTime_ = timestamp();
 	return pServerChannel_;
 }
-
 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::fireEvent(const EventData* pEventData)
@@ -486,34 +537,44 @@ void ClientObjectBase::fireEvent(const EventData* pEventData)
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onHelloCB_(Mercury::Channel* pChannel, const std::string& verInfo, 
+void ClientObjectBase::onHelloCB_(Network::Channel* pChannel, const std::string& verInfo, 
+		const std::string& scriptVerInfo, const std::string& protocolMD5, const std::string& entityDefMD5, 
 		COMPONENT_TYPE componentType)
 {
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onHelloCB(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onHelloCB(Network::Channel* pChannel, MemoryStream& s)
 {
 	std::string verInfo;
 	s >> verInfo;
 	
+	std::string scriptVerInfo; 
+	s >> scriptVerInfo;
+
+	std::string protocolMD5;
+	s >> protocolMD5;
+
+	std::string entityDefMD5;
+	s >> entityDefMD5;
+
 	COMPONENT_TYPE ctype;
 	s >> ctype;
 
-	INFO_MSG(boost::format("ClientObjectBase::onHelloCB: verInfo=%1%, addr:%2%\n") % 
-		verInfo % pChannel->c_str());
+	INFO_MSG(fmt::format("ClientObjectBase::onHelloCB: verInfo={}, scriptVerInfo={}, protocolMD5={}, entityDefMD5={}, addr:{}\n",
+		verInfo, scriptVerInfo, protocolMD5, entityDefMD5, pChannel->c_str()));
 
-	onHelloCB_(pChannel, verInfo, ctype);
+	onHelloCB_(pChannel, verInfo, scriptVerInfo, protocolMD5, entityDefMD5, ctype);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onVersionNotMatch(Network::Channel* pChannel, MemoryStream& s)
 {
 	std::string verInfo;
 	s >> verInfo;
 	
-	INFO_MSG(boost::format("ClientObjectBase::onVersionNotMatch: verInfo=%1% not match(server:%2%)\n") % 
-		KBEVersion::versionString() % verInfo);
+	INFO_MSG(fmt::format("ClientObjectBase::onVersionNotMatch: verInfo={} not match(server:{})\n",
+		KBEVersion::versionString(), verInfo));
 
 	EventData_VersionNotMatch eventdata;
 	eventdata.verInfo = KBEVersion::versionString();
@@ -521,123 +582,226 @@ void ClientObjectBase::onVersionNotMatch(Mercury::Channel* pChannel, MemoryStrea
 	eventHandler_.fire(&eventdata);
 }
 
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onScriptVersionNotMatch(Network::Channel* pChannel, MemoryStream& s)
+{
+	std::string verInfo;
+	s >> verInfo;
+	
+	INFO_MSG(fmt::format("ClientObjectBase::onScriptVersionNotMatch: verInfo={} not match(server:{})\n", 
+		KBEVersion::scriptVersionString(), verInfo));
+
+	EventData_ScriptVersionNotMatch eventdata;
+	eventdata.verInfo = KBEVersion::scriptVersionString();
+	eventdata.serVerInfo = verInfo;
+	eventHandler_.fire(&eventdata);
+}
+
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	// 提交账号密码请求登录
 	(*pBundle).newMessage(LoginappInterface::login);
 	(*pBundle) << typeClient_;
-	(*pBundle).appendBlob(extradatas_);
+	(*pBundle).appendBlob(clientDatas_);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	(*pBundle) << EntityDef::md5().getDigestStr();
-	pServerChannel_->pushBundle(pBundle);
-	connectedGateway_ = false;
+	pServerChannel_->send(pBundle);
+	connectedBaseapp_ = false;
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientObjectBase::loginGateWay()
+bool ClientObjectBase::loginBaseapp()
 {
-	// 请求登录网关
-	connectedGateway_ = false;
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
-	(*pBundle).newMessage(BaseappInterface::loginGateway);
+	// 请求登录网关, 能走到这里来一定是连接了网关
+	connectedBaseapp_ = true;
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappInterface::loginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
-	pServerChannel_->pushBundle(pBundle);
+	pServerChannel_->send(pBundle);
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onCreateAccountResult(Mercury::Channel * pChannel, MemoryStream& s)
+bool ClientObjectBase::reloginBaseapp()
+{
+	// 请求重登陆网关, 通常是掉线了之后执行
+	connectedBaseapp_ = true;
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	(*pBundle).newMessage(BaseappInterface::reloginBaseapp);
+	(*pBundle) << name_;
+	(*pBundle) << password_;
+	(*pBundle) << rndUUID();
+	(*pBundle) << entityID_;
+	pServerChannel_->send(pBundle);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onCreateAccountResult(Network::Channel * pChannel, MemoryStream& s)
 {
 	SERVER_ERROR_CODE retcode;
 
 	s >> retcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 
 	if(retcode != 0)
 	{
-		INFO_MSG(boost::format("ClientObjectBase::onCreateAccountResult: %1% create is failed! code=%2%.\n") % 
-			name_ % retcode);
+		INFO_MSG(fmt::format("ClientObjectBase::onCreateAccountResult: {} create is failed! code={}.\n", 
+			name_, retcode));
 
 		return;
 	}
 
-	INFO_MSG(boost::format("ClientObjectBase::onCreateAccountResult: %1% create is successfully!\n") % name_);
+	INFO_MSG(fmt::format("ClientObjectBase::onCreateAccountResult: {} create is successfully!\n", name_));
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onLoginSuccessfully(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	std::string accountName;
 
 	s >> accountName;
 	s >> ip_;
 	s >> port_;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 	
-	connectedGateway_ = false;
-	INFO_MSG(boost::format("ClientObjectBase::onLoginSuccessfully: %1% addr=%2%:%3%!\n") % name_ % ip_ % port_);
+	connectedBaseapp_ = false;
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}!\n", name_, ip_, port_));
 
 	EventData_LoginSuccess eventdata;
 	eventHandler_.fire(&eventdata);
+
+	baseappIP_ = ip_;
+	baseappPort_ = port_;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onLoginFailed(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onLoginFailed(Network::Channel * pChannel, MemoryStream& s)
 {
 	SERVER_ERROR_CODE failedcode;
 
 	s >> failedcode;
-	s.readBlob(extradatas_);
+	s.readBlob(serverDatas_);
 	
-	connectedGateway_ = false;
-	INFO_MSG(boost::format("ClientObjectBase::onLoginFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
+	connectedBaseapp_ = false;
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginFailed: {} failedcode={}!\n", name_, failedcode));
 	EventData_LoginFailed eventdata;
+	eventdata.failedcode = failedcode;
 	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onLoginGatewayFailed(Mercury::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(boost::format("ClientObjectBase::onLoginGatewayFailed: %1% failedcode=%2%!\n") % name_ % failedcode);
-	connectedGateway_ = false;
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
 
-	EventData_LoginGatewayFailed eventdata;
+	// 能走到这里来一定是连接了网关
+	connectedBaseapp_ = true;
+
+	EventData_LoginBaseappFailed eventdata;
+	eventdata.failedcode = failedcode;
+	eventdata.relogin = false;
 	eventHandler_.fire(&eventdata);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onCreatedProxies(Mercury::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
+void ClientObjectBase::onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+{
+	INFO_MSG(fmt::format("ClientObjectBase::onReloginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
+
+	// 能走到这里来一定是连接了网关
+	connectedBaseapp_ = true;
+
+	EventData_LoginBaseappFailed eventdata;
+	eventdata.failedcode = failedcode;
+	eventdata.relogin = true;
+	eventHandler_.fire(&eventdata);
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
+{
+	s >> rndUUID_;
+	INFO_MSG(fmt::format("ClientObjectBase::onReloginBaseappSuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
+}
+
+//-------------------------------------------------------------------------------------	
+void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
 	if(entityID_ == 0)
 	{
-		EventData_LoginGatewaySuccess eventdata;
+		EventData_LoginBaseappSuccess eventdata;
 		eventHandler_.fire(&eventdata);
 	}
 
-	connectedGateway_ = true;
 	entityID_ = eid;
-	INFO_MSG(boost::format("ClientObject::onCreatedProxies(%1%): rndUUID=%2% eid=%3% entityType=%4%!\n") % 
-		name_ % rndUUID % eid % entityType);
+	rndUUID_ = rndUUID;
+	
+	// 能走到这里来一定是连接了网关
+	connectedBaseapp_ = true;
+		
+	BUFFEREDMESSAGE::iterator iter = bufferedCreateEntityMessage_.find(eid);
+	bool hasBufferedMessage = (iter != bufferedCreateEntityMessage_.end());
 
-	// 设置entity的baseMailbox
-	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-		NULL, appID(), eid, MAILBOX_TYPE_BASE);
+	client::Entity* entity = pEntities_->find(eid);
 
-	createEntityCommon(entityType.c_str(), NULL, true, eid, true, mailbox, NULL);
+	if(entity == NULL)
+	{
+		INFO_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}!\n",
+			name_, rndUUID, eid, entityType));
+
+		// 设置entity的baseMailbox
+		EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
+			NULL, appID(), eid, MAILBOX_TYPE_BASE);
+
+		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, mailbox, NULL);
+		KBE_ASSERT(pEntity != NULL);
+
+		if(hasBufferedMessage)
+		{
+			// 先更新属性再初始化脚本
+			this->onUpdatePropertys(pChannel, *iter->second.get());
+			bufferedCreateEntityMessage_.erase(iter);
+			pEntity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
+
+			pEntity->isInited(true);
+			
+			bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+				g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+				Config::getSingleton().isOnInitCallPropertysSetMethods();
+		
+			if (isOnInitCallPropertysSetMethods)
+				pEntity->callPropertysSetMethods();
+		}
+	}
+	else
+	{
+		if(hasBufferedMessage)
+		{
+			// 先更新属性再初始化脚本
+			this->onUpdatePropertys(pChannel, *iter->second.get());
+			bufferedCreateEntityMessage_.erase(iter);
+			entity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	ENTITY_SCRIPT_UID scriptType;
-	int8 isOnGound = 0;
+	int8 isOnGround = 0;
 
 	s >> eid;
 
@@ -652,8 +816,8 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 		s >> scriptType;
 	}
 
-	if(s.opsize() > 0)
-		s >> isOnGound;
+	if(s.length() > 0)
+		s >> isOnGround;
 
 	if(eid != entityID_ && entityID_ > 0)
 		pEntityIDAliasIDList_.push_back(eid);
@@ -671,87 +835,113 @@ void ClientObjectBase::onEntityEnterWorld(Mercury::Channel * pChannel, MemoryStr
 			EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(sm->getName()), 
 				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-			entity = createEntityCommon(sm->getName(), NULL, true, eid, true, NULL, mailbox);
+			entity = createEntity(sm->getName(), NULL, false, eid, true, NULL, mailbox);
+			KBE_ASSERT(entity != NULL);
 
+			// 先更新属性再初始化脚本
 			this->onUpdatePropertys(pChannel, *iter->second.get());
 			bufferedCreateEntityMessage_.erase(iter);
+			entity->isOnGround(isOnGround > 0);
+			entity->spaceID(spaceID_);
+			entity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
+			
+			entity->isInited(true);
+
+			DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: {}({}), isOnGround({}), appID({}).\n",
+				entity->scriptName(), eid, (int)isOnGround, appID()));
 		}
 		else
 		{
-			ERROR_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: not found entity(%1%).\n") % eid);
+			ERROR_MSG(fmt::format("ClientObjectBase::onEntityEnterWorld: not found entity({}), appID({}).\n", eid, appID()));
 			return;
 		}
 	}
 	else
 	{
-		if(!entity->isEnterword())
-		{
-			KBE_ASSERT(entity->getCellMailbox() == NULL);
-			
-			// 初始化一下服务端当前的位置
-			entity->setServerPosition(entity->getPosition());
+		spaceID_ = entity->spaceID();
+		entity->isOnGround(isOnGround > 0);
+		entity->clientPos(entity->position());
+		entity->clientDir(entity->direction());
 
-			// 设置entity的cellMailbox
-			EntityMailbox* mailbox = new EntityMailbox(entity->getScriptModule(), 
-				NULL, appID(), eid, MAILBOX_TYPE_CELL);
+		// 初始化一下服务端当前的位置
+		entity->serverPosition(entity->position());
 
-			entity->setCellMailbox(mailbox);
-		}
-		else
-		{
-			return;
-		}
+		DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGround({}), appID({}).\n",
+			entity->scriptName(), eid, (int)isOnGround, appID()));
+
+		KBE_ASSERT(!entity->inWorld());
+		KBE_ASSERT(entity->cellMailbox() == NULL);
+
+		// 设置entity的cellMailbox
+		EntityMailbox* mailbox = new EntityMailbox(entity->pScriptModule(), 
+			NULL, appID(), eid, MAILBOX_TYPE_CELL);
+
+		entity->cellMailbox(mailbox);
+
+		// 安全起见， 这里清空一下
+		// 如果服务端上使用giveClientTo切换控制权
+		// 之前的实体已经进入世界， 切换后的实体也进入世界， 这里可能会残留之前那个实体进入世界的信息
+		pEntityIDAliasIDList_.clear();
+		std::vector<ENTITY_ID> excludes;
+		excludes.push_back(entityID_);
+		pEntities_->clear(true, excludes);
 	}
-
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterWorld: %1%(%2%), isOnGound(%3%).\n") % 
-		entity->getScriptName() % eid  % (int)isOnGound);
 
 	EventData_EnterWorld eventdata;
 	eventdata.spaceID = spaceID_;
-	eventdata.entityID = entity->getID();
-	eventdata.x = entity->getPosition().x;
-	eventdata.y = entity->getPosition().y;
-	eventdata.z = entity->getPosition().z;
-	eventdata.pitch = entity->getDirection().pitch();
-	eventdata.roll = entity->getDirection().roll();
-	eventdata.yaw = entity->getDirection().yaw();
-	eventdata.speed = entity->getMoveSpeed();
-	eventdata.isOnGound = isOnGound > 0;
+	eventdata.entityID = entity->id();
+	eventdata.x = entity->position().x;
+	eventdata.y = entity->position().y;
+	eventdata.z = entity->position().z;
+	eventdata.pitch = entity->direction().pitch();
+	eventdata.roll = entity->direction().roll();
+	eventdata.yaw = entity->direction().yaw();
+	eventdata.speed = entity->moveSpeed();
+	eventdata.isOnGround = isOnGround > 0;
 	eventHandler_.fire(&eventdata);
 
 	if(entityID_ == eid)
 	{
 		entity->onBecomePlayer();
-		entityPos_ = entity->getPosition();
-		entityDir_ = entity->getDirection();
 	}
 	
-	entity->isOnGound(isOnGound > 0);
 	entity->onEnterWorld();
+
+	bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+		g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+		Config::getSingleton().isOnInitCallPropertysSetMethods();
+
+	if (isOnInitCallPropertysSetMethods)
+		entity->callPropertysSetMethods();
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveWorldOptimized(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onEntityLeaveWorldOptimized(Network::Channel * pChannel, MemoryStream& s)
 {
 	onEntityLeaveWorld(pChannel, getAoiEntityIDFromStream(s));
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID eid)
+void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID eid)
 {
+	bufferedCreateEntityMessage_.erase(eid);
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: not found entity({}), appID({}).\n", eid, appID()));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveWorld: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveWorld: {}({}), appID({}).\n", 
+		entity->scriptName(), eid, appID()));
 
 	EventData_LeaveWorld eventdata;
-	eventdata.spaceID = entity->getSpaceID();
-	eventdata.entityID = entity->getID();
+	eventdata.spaceID = entity->spaceID();
+	eventdata.entityID = entity->id();
+
+	if(entityID_ == eid)
+		entity->onBecomeNonPlayer();
 
 	entity->onLeaveWorld();
 
@@ -765,77 +955,114 @@ void ClientObjectBase::onEntityLeaveWorld(Mercury::Channel * pChannel, ENTITY_ID
 	}
 	else
 	{
-		clearSpace();
+		clearSpace(false);
 
-		Py_DECREF(entity->getCellMailbox());
-		entity->setCellMailbox(NULL);
+		Py_DECREF(entity->cellMailbox());
+		entity->cellMailbox(NULL);
 	}
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityEnterSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void ClientObjectBase::onEntityEnterSpace(Network::Channel * pChannel, MemoryStream& s)
 {
+	ENTITY_ID eid = 0;
+	int8 isOnGround = 0;
+
+	s >> eid;
+	s >> spaceID_;
+
+	if(s.length() > 0)
+		s >> isOnGround;
+
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityEnterSpace: not found entity({}).\n", eid));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityEnterSpace: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityEnterSpace: {}({}).\n", 
+		entity->scriptName(), eid));
+
+	entity->isOnGround(isOnGround > 0);
+
+	entity->clientPos(entity->position());
+	entity->clientDir(entity->direction());
+
+	// 初始化一下服务端当前的位置
+	entity->serverPosition(entity->position());
 
 	EventData_EnterSpace eventdata;
-	eventdata.spaceID = spaceID;
-	eventdata.entityID = entity->getID();
-
+	eventdata.spaceID = spaceID_;
+	eventdata.entityID = entity->id();
+	eventdata.x = entity->position().x;
+	eventdata.y = entity->position().y;
+	eventdata.z = entity->position().z;
+	eventdata.pitch = entity->direction().pitch();
+	eventdata.roll = entity->direction().roll();
+	eventdata.yaw = entity->direction().yaw();
+	eventdata.speed = entity->moveSpeed();
+	eventdata.isOnGround = isOnGround > 0;
 	eventHandler_.fire(&eventdata);
+
+	entity->onEnterSpace();
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityLeaveSpace(Mercury::Channel * pChannel, SPACE_ID spaceID, ENTITY_ID eid)
+void ClientObjectBase::onEntityLeaveSpace(Network::Channel * pChannel, ENTITY_ID eid)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityLeaveSpace: not found entity({}).\n", eid));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityLeaveSpace: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityLeaveSpace: {}({}).\n", 
+		entity->scriptName(), eid));
 
 	EventData_LeaveSpace eventdata;
-	eventdata.spaceID = spaceID;
-	eventdata.entityID = entity->getID();
+	eventdata.spaceID = spaceID_;
+	eventdata.entityID = entity->id();
 	eventHandler_.fire(&eventdata);
+
+	entity->onLeaveSpace();
+	clearSpace(false);
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onEntityDestroyed(Mercury::Channel * pChannel, ENTITY_ID eid)
+void ClientObjectBase::onEntityDestroyed(Network::Channel * pChannel, ENTITY_ID eid)
 {
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		ERROR_MSG(boost::format("ClientObjectBase::onEntityDestroyed: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onEntityDestroyed: not found entity({}).\n", eid));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::onEntityDestroyed: %1%(%2%).\n") % 
-		entity->getScriptName() % eid);
+	DEBUG_MSG(fmt::format("ClientObjectBase::onEntityDestroyed: {}({}).\n", 
+		entity->scriptName(), eid));
+
+	if (entity->inWorld())
+	{
+		if(entityID_ == eid)
+			clearSpace(false);
+		
+		entity->onLeaveWorld();
+	}
 
 	destroyEntity(eid, false);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onRemoteMethodCallOptimized(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
+void ClientObjectBase::onRemoteMethodCallOptimized(Network::Channel * pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 	onRemoteMethodCall_(eid, s);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onRemoteMethodCall(Mercury::Channel * pChannel, KBEngine::MemoryStream& s)
+void ClientObjectBase::onRemoteMethodCall(Network::Channel * pChannel, KBEngine::MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	s >> eid;
@@ -848,8 +1075,8 @@ void ClientObjectBase::onRemoteMethodCall_(ENTITY_ID eid, KBEngine::MemoryStream
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{	
-		s.opfini();
-		ERROR_MSG(boost::format("ClientObjectBase::onRemoteMethodCall: not found entity(%1%).\n") % eid);
+		s.done();
+		ERROR_MSG(fmt::format("ClientObjectBase::onRemoteMethodCall: not found entity({}).\n", eid));
 		return;
 	}
 
@@ -857,7 +1084,7 @@ void ClientObjectBase::onRemoteMethodCall_(ENTITY_ID eid, KBEngine::MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdatePropertys(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = 0;
 	s >> eid;
@@ -865,7 +1092,7 @@ void ClientObjectBase::onUpdatePropertys(Mercury::Channel * pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdatePropertysOptimized(Mercury::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdatePropertysOptimized(Network::Channel * pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 	onUpdatePropertys_(eid, s);
@@ -881,13 +1108,13 @@ void ClientObjectBase::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& s)
 		{
 			MemoryStream* buffered = new MemoryStream();
 			(*buffered) << eid;
-			(*buffered).append(s.data() + s.rpos(), s.opsize());
+			(*buffered).append(s.data() + s.rpos(), s.length());
 			bufferedCreateEntityMessage_[eid].reset(buffered);
-			s.opfini();
+			s.done();
 		}
 		else
 		{
-			ERROR_MSG(boost::format("ClientObjectBase::onUpdatePropertys: not found entity(%1%).\n") % eid);
+			ERROR_MSG(fmt::format("ClientObjectBase::onUpdatePropertys: not found entity({}).\n", eid));
 		}
 
 		return;
@@ -924,76 +1151,88 @@ ENTITY_ID ClientObjectBase::readEntityIDFromStream(MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::updatePlayerToServer()
 {
-	if (timestamp() - lastSentUpdateDataTime_ < uint64(stampsPerSecond() * 0.01) || this->spaceID_ == 0)
-	{
+	if(!pServerChannel_ || !pServerChannel_->pEndPoint())
 		return;
-	}
+
+	if (timestamp() - lastSentUpdateDataTime_ < uint64(stampsPerSecond() * 0.01) || 
+		this->spaceID_ == 0)
+		return;
 
 	lastSentUpdateDataTime_ = timestamp();
 
 	client::Entity* pEntity = pEntities_->find(entityID_);
-	if(pEntity == NULL || !connectedGateway_ || 
-		pServerChannel_ == NULL || pEntity->getCellMailbox() == NULL)
+	if(pEntity == NULL || !connectedBaseapp_ || 
+		pServerChannel_ == NULL || pEntity->cellMailbox() == NULL)
 		return;
 
-	Position3D& pos = pEntity->getPosition();
-	Direction3D& dir = pEntity->getDirection();
+	Position3D& pos = pEntity->position();
+	Direction3D& dir = pEntity->direction();
 
-	bool dirNoChanged = almostEqual(dir.yaw(), entityDir_.yaw()) && almostEqual(dir.pitch(), entityDir_.pitch()) && almostEqual(dir.roll(), entityDir_.roll());
-	Vector3 movement = pos - entityPos_;
+	Position3D& clientPos = pEntity->clientPos();
+	Direction3D& clientDir = pEntity->clientDir();
+
+	bool dirNoChanged = almostEqual(dir.yaw(), clientDir.yaw()) && almostEqual(dir.pitch(), clientDir.pitch()) && almostEqual(dir.roll(), clientDir.roll());
+	Vector3 movement = pos - clientPos;
 
 	bool posNoChanged =  KBEVec3Length(&movement) < 0.0004f;
 
 	if(posNoChanged && dirNoChanged)
 		return;
 
-	Mercury::Bundle* pBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 	
-	pEntity->setPosition(entityPos_);
-	pEntity->setDirection(entityDir_);
+	pEntity->position(clientPos);
+	pEntity->direction(clientDir);
 
 	(*pBundle) << pos.x;
 	(*pBundle) << pos.y;
 	(*pBundle) << pos.z;
 
-	(*pBundle) << dir.yaw();
-	(*pBundle) << dir.pitch();
 	(*pBundle) << dir.roll();
+	(*pBundle) << dir.pitch();
+	(*pBundle) << dir.yaw();
 
-	(*pBundle) << pEntity->isOnGound();
+	(*pBundle) << pEntity->isOnGround();
 	(*pBundle) << spaceID_;
-	pServerChannel_->pushBundle(pBundle);
+	pServerChannel_->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePos(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, float x, float y, float z)
 {
-	float x, y, z;
-	s >> x >> y >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
-		pEntity->setServerPosition(Position3D(x, y, z));
+		pEntity->serverPosition(Position3D(x, y, z));
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateBasePosXZ(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 {
-	float x, z;
-	s >> x >> z;
-	
 	client::Entity* pEntity = pPlayer();
 	if(pEntity)
 	{
-		pEntity->setServerPosition(Position3D(x, pEntity->getServerPosition().y, z));
+		pEntity->serverPosition(Position3D(x, pEntity->serverPosition().y, z));
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	float yaw, pitch, roll;
+	s >> yaw >> pitch >> roll;
+
+	client::Entity* pEntity = pPlayer();
+	if (pEntity)
+	{
+		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid;
 	s >> eid;
@@ -1001,53 +1240,56 @@ void ClientObjectBase::onSetEntityPosAndDir(Mercury::Channel* pChannel, MemorySt
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::onSetEntityPosAndDir: not found entity(%1%).\n") % eid);
-		s.opfini();
+		ERROR_MSG(fmt::format("ClientObjectBase::onSetEntityPosAndDir: not found entity({}).\n", eid));
+		s.done();
 		return;
 	}
 
 	Position3D pos;
 	Direction3D dir;
 	float yaw, pitch, roll;
-	s >> pos.x >> pos.y >> pos.z >> yaw >> pitch >> roll;
+	s >> pos.x >> pos.y >> pos.z >> roll >> pitch >> yaw;
 	
 	dir.yaw(yaw);
 	dir.pitch(pitch);
 	dir.roll(roll);
 
-	entity->setPosition(pos);
-	entity->setDirection(dir);
+	entity->position(pos);
+	entity->direction(dir);
+
+	entity->clientPos(pos);
+	entity->clientDir(dir);
 
 	EventData_PositionForce eventdata;
 	eventdata.x = pos.x;
 	eventdata.y = pos.y;
 	eventdata.z = pos.z;
-	eventdata.entityID = entity->getID();
+	eventdata.entityID = entity->id();
 	fireEvent(&eventdata);
 
 	EventData_DirectionForce direventData;
 	direventData.yaw = dir.yaw();
 	direventData.pitch = dir.pitch();
 	direventData.roll = dir.roll();
-	direventData.entityID = entity->getID();
+	direventData.entityID = entity->id();
 	fireEvent(&direventData);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::onUpdateData: not found entity(%1%).\n") % eid);
+		ERROR_MSG(fmt::format("ClientObjectBase::onUpdateData: not found entity({}).\n", eid));
 		return;
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1064,11 +1306,11 @@ void ClientObjectBase::onUpdateData_ypr(Mercury::Channel* pChannel, MemoryStream
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1082,11 +1324,11 @@ void ClientObjectBase::onUpdateData_yp(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1100,11 +1342,11 @@ void ClientObjectBase::onUpdateData_yr(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1118,11 +1360,11 @@ void ClientObjectBase::onUpdateData_pr(Mercury::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1133,11 +1375,11 @@ void ClientObjectBase::onUpdateData_y(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1148,11 +1390,11 @@ void ClientObjectBase::onUpdateData_p(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1163,11 +1405,11 @@ void ClientObjectBase::onUpdateData_r(Mercury::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1176,11 +1418,11 @@ void ClientObjectBase::onUpdateData_xz(Mercury::Channel* pChannel, MemoryStream&
 	s.readPackXZ(x, z);
 
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1199,11 +1441,11 @@ void ClientObjectBase::onUpdateData_xz_ypr(Mercury::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1219,11 +1461,11 @@ void ClientObjectBase::onUpdateData_xz_yp(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1239,11 +1481,11 @@ void ClientObjectBase::onUpdateData_xz_yr(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1259,11 +1501,11 @@ void ClientObjectBase::onUpdateData_xz_pr(Mercury::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1276,11 +1518,11 @@ void ClientObjectBase::onUpdateData_xz_y(Mercury::Channel* pChannel, MemoryStrea
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1293,11 +1535,11 @@ void ClientObjectBase::onUpdateData_xz_p(Mercury::Channel* pChannel, MemoryStrea
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1310,11 +1552,11 @@ void ClientObjectBase::onUpdateData_xz_r(Mercury::Channel* pChannel, MemoryStrea
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1327,7 +1569,7 @@ void ClientObjectBase::onUpdateData_xyz(Mercury::Channel* pChannel, MemoryStream
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1353,7 +1595,7 @@ void ClientObjectBase::onUpdateData_xyz_ypr(Mercury::Channel* pChannel, MemorySt
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_yp(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1376,7 +1618,7 @@ void ClientObjectBase::onUpdateData_xyz_yp(Mercury::Channel* pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_yr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1399,7 +1641,7 @@ void ClientObjectBase::onUpdateData_xyz_yr(Mercury::Channel* pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_pr(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1422,7 +1664,7 @@ void ClientObjectBase::onUpdateData_xyz_pr(Mercury::Channel* pChannel, MemoryStr
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1442,7 +1684,7 @@ void ClientObjectBase::onUpdateData_xyz_y(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1462,7 +1704,7 @@ void ClientObjectBase::onUpdateData_xyz_p(Mercury::Channel* pChannel, MemoryStre
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
 {
 	ENTITY_ID eid = getAoiEntityIDFromStream(s);
 
@@ -1483,42 +1725,50 @@ void ClientObjectBase::onUpdateData_xyz_r(Mercury::Channel* pChannel, MemoryStre
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y, float z, 
-										   float roll, float pitch, float yaw, int8 isOnGound)
+										   float roll, float pitch, float yaw, int8 isOnGround)
 {
 	client::Entity* entity = pEntities_->find(entityID);
 	if(entity == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::onUpdateData_xz_yp: not found entity(%1%).\n") % entityID);
+		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
+		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
+		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
+		ERROR_MSG(fmt::format("ClientObjectBase::onUpdateData_xz_yp: not found entity({}).\n", entityID));
 		return;
 	}
 
 	client::Entity* player = pPlayer();
 	if(player == NULL)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::_updateVolatileData: not found player(%1%).\n") % entityID_);
+		ERROR_MSG(fmt::format("ClientObjectBase::_updateVolatileData: not found player({}).\n", entityID_));
 		return;
 	}
 
 	// 小于0不设置
-	if(isOnGound >= 0)
-		entity->isOnGound(isOnGound > 0);
+	if(isOnGround >= 0)
+		entity->isOnGround(isOnGround > 0);
 
-	if(!almostEqual(x + y + z, 0.f, 0.000001f))
+        bool positionChanged = x != FLT_MAX || y != FLT_MAX || z != FLT_MAX;
+        if (x == FLT_MAX) x = 0.0f;
+        if (y == FLT_MAX) y = 0.0f;
+        if (z == FLT_MAX) z = 0.0f;
+        
+	if(positionChanged)
 	{
 		Position3D relativePos;
 		relativePos.x = x;
 		relativePos.y = y;
 		relativePos.z = z;
 		
-		Position3D basepos = player->getServerPosition();
+		Position3D basepos = player->serverPosition();
 		basepos += relativePos;
 		
-		// DEBUG_MSG(boost::format("ClientObjectBase::_updateVolatileData: %1%-%2%-%3%--%4%-%5%-%6%-\n") % x % y % z % basepos.x % basepos.y % basepos.z);
-		entity->setPosition(basepos);
+		// DEBUG_MSG(fmt::format("ClientObjectBase::_updateVolatileData: {}-{}-{}--{}-{}-{}-\n", x, y, z, basepos.x, basepos.y, basepos.z));
+		entity->position(basepos);
 	}
 
-	Direction3D dir = entity->getDirection();
-
+	Direction3D dir = entity->direction();
+	
 	if(yaw != FLT_MAX)
 		dir.yaw(yaw);
 
@@ -1528,29 +1778,35 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	if(roll != FLT_MAX)
 		dir.roll(roll);
 
-	entity->setDirection(dir);
+	if(yaw != FLT_MAX || pitch != FLT_MAX || roll != FLT_MAX)
+		entity->direction(dir);
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onStreamDataStarted(Mercury::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
+void ClientObjectBase::onStreamDataStarted(Network::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onStreamDataRecv(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::onStreamDataRecv(Network::Channel* pChannel, MemoryStream& s)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onStreamDataCompleted(Mercury::Channel* pChannel, int16 id)
+void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 id)
+{
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
 {
 }
 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::string& respath)
 {
-	INFO_MSG(boost::format("ClientObjectBase::addSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
-		spaceID % respath);
+	INFO_MSG(fmt::format("ClientObjectBase::addSpaceGeometryMapping: spaceID={}, respath={}!\n",
+		spaceID, respath));
 
 	isLoadedGeometry_ = false;
 	onAddSpaceGeometryMapping(spaceID, respath);
@@ -1562,30 +1818,53 @@ void ClientObjectBase::addSpaceGeometryMapping(SPACE_ID spaceID, const std::stri
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::clearSpace()
+void ClientObjectBase::clearSpace(bool isAll)
 {
-	Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
-	for(; iter != pEntities_->getEntities().end(); iter++)
+	if(!isAll)
 	{
-		client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
-		if(pEntity->getID() == this->entityID())
-			continue;
+		Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
+		for(; iter != pEntities_->getEntities().end(); ++iter)
+		{
+			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
+			if(pEntity->id() == this->entityID())
+			{
+				pEntity->spaceID(0);
+				continue;
+			}
 
-		EventData_LeaveWorld eventdata;
-		eventdata.spaceID = pEntity->getSpaceID();
-		eventdata.entityID = pEntity->getID();
+			EventData_LeaveWorld eventdata;
+			eventdata.spaceID = pEntity->spaceID();
+			eventdata.entityID = pEntity->id();
 
-		pEntity->onLeaveWorld();
+			pEntity->onLeaveWorld();
 
-		eventHandler_.fire(&eventdata);
+			eventHandler_.fire(&eventdata);
+		}
+
+		std::vector<ENTITY_ID> excludes;
+		excludes.push_back(entityID_);
+		pEntities_->clear(true, excludes);
+	}
+	else
+	{
+		Entities<client::Entity>::ENTITYS_MAP::iterator iter = pEntities_->getEntities().begin();
+		for(; iter != pEntities_->getEntities().end(); ++iter)
+		{
+			client::Entity* pEntity = static_cast<client::Entity*>(iter->second.get());
+
+			EventData_LeaveWorld eventdata;
+			eventdata.spaceID = pEntity->spaceID();
+			eventdata.entityID = pEntity->id();
+
+			pEntity->onLeaveWorld();
+
+			eventHandler_.fire(&eventdata);
+		}
 	}
 
 	pEntityIDAliasIDList_.clear();
 	spacedatas_.clear();
-
-	std::vector<ENTITY_ID> excludes;
-	excludes.push_back(entityID_);
-	pEntities_->clear(true, excludes);
+	bufferedCreateEntityMessage_.clear();
 
 	isLoadedGeometry_ = false;
 	spaceID_ = 0;
@@ -1593,21 +1872,28 @@ void ClientObjectBase::clearSpace()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::initSpaceData(Mercury::Channel* pChannel, MemoryStream& s)
+void ClientObjectBase::initSpaceData(Network::Channel* pChannel, MemoryStream& s)
 {
-	clearSpace();
+	clearSpace(false);
 
 	s >> spaceID_;
-	std::string key, value;
 
-	while(s.opsize() > 0)
+	client::Entity* player = pPlayer();
+	if(player)
+	{
+		player->spaceID(spaceID_);
+	}
+
+	std::string key, value;
+	
+	while(s.length() > 0)
 	{
 		s >> key >> value;
 		setSpaceData(pChannel, spaceID_, key, value);
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::initSpaceData: spaceID(%1%), datasize=%2%.\n") % 
-		spaceID_ % spacedatas_.size());
+	DEBUG_MSG(fmt::format("ClientObjectBase::initSpaceData: spaceID({}), datasize={}.\n", 
+		spaceID_, spacedatas_.size()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1617,17 +1903,17 @@ const std::string& ClientObjectBase::getGeometryPath()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::setSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
+void ClientObjectBase::setSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key, const std::string& value)
 {
 	if(spaceID_ != spaceID)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::setSpaceData: spaceID(curr:%1%->%2%) not match, key=%3%, value=%4%.\n") % 
-			spaceID_ % spaceID % key % value);
+		ERROR_MSG(fmt::format("ClientObjectBase::setSpaceData: spaceID(curr:{}->{}) not match, key={}, value={}.\n", 
+			spaceID_, spaceID, key, value));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::setSpaceData: spaceID(%1%), key=%2%, value=%3%.\n") % 
-		spaceID_ % key % value);
+	DEBUG_MSG(fmt::format("ClientObjectBase::setSpaceData: spaceID({}), key={}, value={}.\n", 
+		spaceID_, key, value));
 
 	SPACE_DATA::iterator iter = spacedatas_.find(key);
 	if(iter == spacedatas_.end())
@@ -1669,17 +1955,17 @@ const std::string& ClientObjectBase::getSpaceData(const std::string& key)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::delSpaceData(Mercury::Channel* pChannel, SPACE_ID spaceID, const std::string& key)
+void ClientObjectBase::delSpaceData(Network::Channel* pChannel, SPACE_ID spaceID, const std::string& key)
 {
 	if(spaceID_ != spaceID)
 	{
-		ERROR_MSG(boost::format("ClientObjectBase::delSpaceData: spaceID(curr:%1%->%2%) not match, key=%3%.\n") % 
-			spaceID_ % spaceID % key);
+		ERROR_MSG(fmt::format("ClientObjectBase::delSpaceData: spaceID(curr:{}->{}) not match, key={}.\n", 
+			spaceID_, spaceID, key));
 		return;
 	}
 
-	DEBUG_MSG(boost::format("ClientObjectBase::delSpaceData: spaceID(%1%), key=%2%.\n") % 
-		spaceID_ % key);
+	DEBUG_MSG(fmt::format("ClientObjectBase::delSpaceData: spaceID({}), key={}.\n", 
+		spaceID_, key));
 
 	SPACE_DATA::iterator iter = spacedatas_.find(key);
 	if(iter == spacedatas_.end())
@@ -1695,7 +1981,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 	
 	char* key = NULL;
@@ -1703,7 +1989,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 	
 	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
@@ -1714,10 +2000,212 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 			key);
 
 		PyErr_PrintEx(0);
-		return 0;
+		S_Return
 	}
 
 	return PyUnicode_FromString(pClientObjectBase->getSpaceData(key).c_str());
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
+{
+	int argCount = (int)PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		S_Return
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		S_Return
+	}
+
+	//DebugHelper::getSingleton().setScriptMsgType(type);
+
+	KBEShared_ptr< WatcherObject > pWobj = WatcherPaths::root().getWatcher(path);
+	if(pWobj.get() == NULL)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): not found watcher[%s]!", path);
+		PyErr_PrintEx(0);
+		S_Return
+	}
+
+	WATCHER_VALUE_TYPE wtype = pWobj->getType();
+	PyObject* pyval = NULL;
+	MemoryStream* stream = MemoryStream::createPoolObject();
+	pWobj->addToStream(stream);
+	WATCHER_ID id;
+	(*stream) >> id;
+
+	switch(wtype)
+	{
+	case WATCHER_VALUE_TYPE_UINT8:
+		{
+			uint8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT16:
+		{
+			uint16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT32:
+		{
+			uint32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_UINT64:
+		{
+			uint64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromUnsignedLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT8:
+		{
+			int8 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT16:
+		{
+			int16 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT32:
+		{
+			int32 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_INT64:
+		{
+			int64 v;
+			(*stream) >> v;
+			pyval = PyLong_FromLongLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_FLOAT:
+		{
+			float v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_DOUBLE:
+		{
+			double v;
+			(*stream) >> v;
+			pyval = PyLong_FromDouble(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_CHAR:
+	case WATCHER_VALUE_TYPE_STRING:
+		{
+			std::string v;
+			(*stream) >> v;
+			pyval = PyUnicode_FromString(v.c_str());
+		}
+		break;
+	case WATCHER_VALUE_TYPE_BOOL:
+		{
+			bool v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	case WATCHER_VALUE_TYPE_COMPONENT_TYPE:
+		{
+			COMPONENT_TYPE v;
+			(*stream) >> v;
+			pyval = PyBool_FromLong(v);
+		}
+		break;
+	default:
+		KBE_ASSERT(false && "no support!\n");
+	};
+
+	MemoryStream::reclaimPoolObject(stream);
+	return pyval;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
+{
+	int argCount = (int)PyTuple_Size(args);
+	if(argCount != 1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		S_Return
+	}
+	
+	char* path;
+
+	if(PyArg_ParseTuple(args, "s", &path) == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_PrintEx(0);
+		S_Return
+	}
+
+	std::vector<std::string> vec;
+	WatcherPaths::root().dirPath(path, vec);
+
+	PyObject* pyTuple = PyTuple_New(vec.size());
+	std::vector<std::string>::iterator iter = vec.begin();
+	int i = 0;
+	for(; iter != vec.end(); ++iter)
+	{
+		PyTuple_SET_ITEM(pyTuple, i++, PyUnicode_FromString((*iter).c_str()));
+	}
+
+	return pyTuple;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
+{
+	ClientObjectBase* pClientObjectBase = static_cast<ClientObjectBase*>(self);
+	pClientObjectBase->reset();
+	pClientObjectBase->canReset(true);
+
+	if(PyTuple_Size(args) == 1)
+	{
+		uint32 i = 0;
+		if(PyArg_ParseTuple(args, "I", &i) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] is error!");
+			PyErr_PrintEx(0);
+			S_Return
+		}
+
+		pClientObjectBase->locktime(timestamp() + stampsPerSecond() * i);
+	}
+
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onAppActiveTickCB(Network::Channel* pChannel)
+{
+	pChannel->updateLastReceivedTime();
 }
 
 //-------------------------------------------------------------------------------------		

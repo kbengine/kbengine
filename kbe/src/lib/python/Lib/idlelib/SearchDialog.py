@@ -24,13 +24,12 @@ class SearchDialog(SearchDialogBase):
 
     def create_widgets(self):
         f = SearchDialogBase.create_widgets(self)
-        self.make_button("Find", self.default_command, 1)
+        self.make_button("Find Next", self.default_command, 1)
 
     def default_command(self, event=None):
         if not self.engine.getprog():
             return
-        if self.find_again(self.text):
-            self.close()
+        self.find_again(self.text)
 
     def find_again(self, text):
         if not self.engine.getpat():
@@ -66,3 +65,25 @@ class SearchDialog(SearchDialogBase):
         if pat:
             self.engine.setcookedpat(pat)
         return self.find_again(text)
+
+def _search_dialog(parent):
+    root = Tk()
+    root.title("Test SearchDialog")
+    width, height, x, y = list(map(int, re.split('[x+]', parent.geometry())))
+    root.geometry("+%d+%d"%(x, y + 150))
+    text = Text(root)
+    text.pack()
+    text.insert("insert","This is a sample string.\n"*10)
+
+    def show_find():
+        text.tag_add(SEL, "1.0", END)
+        s = _setup(text)
+        s.open(text)
+        text.tag_remove(SEL, "1.0", END)
+
+    button = Button(root, text="Search", command=show_find)
+    button.pack()
+
+if __name__ == '__main__':
+    from idlelib.idle_test.htest import run
+    run(_search_dialog)

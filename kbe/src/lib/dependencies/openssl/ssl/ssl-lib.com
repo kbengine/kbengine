@@ -8,11 +8,11 @@ $!
 $!  Changes by Richard Levitte <richard@levitte.org>
 $!
 $!  This command file compiles and creates the "[.xxx.EXE.SSL]LIBSSL.OLB" 
-$!  library for OpenSSL.  The "xxx" denotes the machine architecture of AXP 
-$!  or VAX.
+$!  library for OpenSSL.  The "xxx" denotes the machine architecture of
+$!  ALPHA, IA64 or VAX.
 $!
 $!  It is written to detect what type of machine you are compiling on
-$!  (i.e. AXP or VAX) and which "C" compiler you have (i.e. VAXC, DECC 
+$!  (i.e. ALPHA or VAX) and which "C" compiler you have (i.e. VAXC, DECC 
 $!  or GNU C) or you can specify which compiler to use.
 $!
 $!  Specify the following as P1 to build just that part or ALL to just
@@ -30,7 +30,7 @@ $!	   VAXC	 For VAX C.
 $!	   DECC	 For DEC C.
 $!	   GNUC	 For GNU C.
 $!
-$!  If you don't speficy a compiler, it will try to determine which
+$!  If you don't specify a compiler, it will try to determine which
 $!  "C" compiler to use.
 $!
 $!  P4, if defined, sets a TCP/IP library to use, through one of the following
@@ -42,36 +42,83 @@ $!	SOCKETSHR	for SOCKETSHR+NETLIB
 $!
 $!  P5, if defined, sets a compiler thread NOT needed on OpenVMS 7.1 (and up)
 $!
+$!  P6, if defined, specifies the C pointer size.  Ignored on VAX.
+$!      ("64=ARGV" gives more efficient code with HP C V7.3 or newer.)
+$!      Supported values are:
+$!
+$!      ""       Compile with default (/NOPOINTER_SIZE)
+$!      32       Compile with /POINTER_SIZE=32 (SHORT)
+$!      64       Compile with /POINTER_SIZE=64[=ARGV] (LONG[=ARGV])
+$!               (Automatically select ARGV if compiler supports it.)
+$!      64=      Compile with /POINTER_SIZE=64 (LONG).
+$!      64=ARGV  Compile with /POINTER_SIZE=64=ARGV (LONG=ARGV).
+$!
+$!  P7, if defined, specifies a directory where ZLIB files (zlib.h,
+$!  libz.olb) may be found.  Optionally, a non-default object library
+$!  name may be included ("dev:[dir]libz_64.olb", for example).
+$!
+$!
+$! Announce/identify.
+$!
+$ proc = f$environment( "procedure")
+$ write sys$output "@@@ "+ -
+   f$parse( proc, , , "name")+ f$parse( proc, , , "type")
 $!
 $! Define A TCP/IP Library That We Will Need To Link To.
 $! (That Is, If We Need To Link To One.)
 $!
 $ TCPIP_LIB = ""
+$ ZLIB_LIB = ""
 $!
-$! Check Which Architecture We Are Using.
+$! Check What Architecture We Are Using.
 $!
-$ IF (F$GETSYI("CPU").GE.128)
+$ IF (F$GETSYI("CPU").LT.128)
 $ THEN
 $!
-$!  The Architecture Is AXP.
+$!  The Architecture Is VAX.
 $!
-$   ARCH := AXP
+$   ARCH = "VAX"
 $!
 $! Else...
 $!
 $ ELSE
 $!
-$!  The Architecture Is VAX.
+$!  The Architecture Is Alpha, IA64 or whatever comes in the future.
 $!
-$   ARCH := VAX
+$   ARCH = F$EDIT( F$GETSYI( "ARCH_NAME"), "UPCASE")
+$   IF (ARCH .EQS. "") THEN ARCH = "UNK"
 $!
 $! End The Architecture Check.
 $!
 $ ENDIF
 $!
+$ ARCHD = ARCH
+$ LIB32 = "32"
+$ OPT_FILE = ""
+$ POINTER_SIZE = ""
+$!
 $! Check To Make Sure We Have Valid Command Line Parameters.
 $!
 $ GOSUB CHECK_OPTIONS
+$!
+$! Define The OBJ and EXE Directories.
+$!
+$ OBJ_DIR := SYS$DISK:[-.'ARCHD'.OBJ.SSL]
+$ EXE_DIR := SYS$DISK:[-.'ARCHD'.EXE.SSL]
+$!
+$! Specify the destination directory in any /MAP option.
+$!
+$ if (LINKMAP .eqs. "MAP")
+$ then
+$   LINKMAP = LINKMAP+ "=''EXE_DIR'"
+$ endif
+$!
+$! Add the location prefix to the linker options file name.
+$!
+$ if (OPT_FILE .nes. "")
+$ then
+$   OPT_FILE = EXE_DIR+ OPT_FILE
+$ endif
 $!
 $! Initialise logical names and such
 $!
@@ -79,11 +126,7 @@ $ GOSUB INITIALISE
 $!
 $! Tell The User What Kind of Machine We Run On.
 $!
-$ WRITE SYS$OUTPUT "Compiling On A ",ARCH," Machine."
-$!
-$! Define The OBJ Directory.
-$!
-$ OBJ_DIR := SYS$DISK:[-.'ARCH'.OBJ.SSL]
+$ WRITE SYS$OUTPUT "Host system architecture: ''ARCHD'"
 $!
 $! Check To See If The Architecture Specific OBJ Directory Exists.
 $!
@@ -97,10 +140,6 @@ $!
 $! End The Architecture Specific OBJ Directory Check.
 $!
 $ ENDIF
-$!
-$! Define The EXE Directory.
-$!
-$ EXE_DIR := SYS$DISK:[-.'ARCH'.EXE.SSL]
 $!
 $! Check To See If The Architecture Specific Directory Exists.
 $!
@@ -117,11 +156,15 @@ $ ENDIF
 $!
 $! Define The Library Name.
 $!
-$ SSL_LIB := 'EXE_DIR'LIBSSL.OLB
+$ SSL_LIB := 'EXE_DIR'SSL_LIBSSL'LIB32'.OLB
 $!
 $! Define The CRYPTO-LIB We Are To Use.
 $!
-$ CRYPTO_LIB := SYS$DISK:[-.'ARCH'.EXE.CRYPTO]LIBCRYPTO.OLB
+$ CRYPTO_LIB := SYS$DISK:[-.'ARCHD'.EXE.CRYPTO]SSL_LIBCRYPTO'LIB32'.OLB
+$!
+$! Set up exceptional compilations.
+$!
+$ CC5_SHOWN = 0
 $!
 $! Check To See What We Are To Do.
 $!
@@ -155,7 +198,7 @@ $! Compile The Library.
 $!
 $ LIBRARY:
 $!
-$! Check To See If We Already Have A "[.xxx.EXE.SSL]LIBSSL.OLB" Library...
+$! Check To See If We Already Have A "[.xxx.EXE.SSL]SSL_LIBSSL''LIB32'.OLB" Library...
 $!
 $ IF (F$SEARCH(SSL_LIB).EQS."")
 $ THEN
@@ -170,16 +213,18 @@ $ ENDIF
 $!
 $! Define The Different SSL "library" Files.
 $!
-$ LIB_SSL = "s2_meth,s2_srvr,s2_clnt,s2_lib,s2_enc,s2_pkt,"+ -
-	    "s3_meth,s3_srvr,s3_clnt,s3_lib,s3_enc,s3_pkt,s3_both,"+ -
-	    "s23_meth,s23_srvr,s23_clnt,s23_lib,s23_pkt,"+ -
-	    "t1_meth,t1_srvr,t1_clnt,t1_lib,t1_enc,"+ -
-	    "d1_meth,d1_srvr,d1_clnt,d1_lib,d1_pkt,"+ -
-	    "d1_both,d1_enc,"+ -
+$ LIB_SSL = "s2_meth, s2_srvr, s2_clnt, s2_lib, s2_enc, s2_pkt,"+ -
+	    "s3_meth, s3_srvr, s3_clnt, s3_lib, s3_enc, s3_pkt, s3_both, s3_cbc,"+ -
+	    "s23_meth,s23_srvr,s23_clnt,s23_lib,        s23_pkt,"+ -
+	    "t1_meth, t1_srvr, t1_clnt, t1_lib, t1_enc, t1_ext,"+ -
+	    "d1_meth, d1_srvr, d1_clnt, d1_lib, d1_pkt,"+ -
+	    "d1_both,d1_srtp,"+ -
 	    "ssl_lib,ssl_err2,ssl_cert,ssl_sess,"+ -
 	    "ssl_ciph,ssl_stat,ssl_rsa,"+ -
-	    "ssl_asn1,ssl_txt,ssl_algs,"+ -
-	    "bio_ssl,ssl_err,kssl"
+	    "ssl_asn1,ssl_txt,ssl_algs,ssl_conf,"+ -
+	    "bio_ssl,ssl_err,kssl,t1_reneg,tls_srp,t1_trce,ssl_utst"
+$!
+$ COMPILEWITH_CC5 = ""
 $!
 $! Tell The User That We Are Compiling The Library.
 $!
@@ -195,7 +240,7 @@ $ NEXT_FILE:
 $!
 $! O.K, Extract The File Name From The File List.
 $!
-$ FILE_NAME = F$ELEMENT(FILE_COUNTER,",",LIB_SSL)
+$ FILE_NAME = F$EDIT(F$ELEMENT(FILE_COUNTER,",",LIB_SSL),"COLLAPSE")
 $!
 $! Check To See If We Are At The End Of The File List.
 $!
@@ -294,42 +339,47 @@ $! End The SSL_TASK.C File Check.
 $!
 $ ENDIF
 $!
+$ COMPILEWITH_CC5 = "" !!! ",ssl_task,"
+$!
+$! Tell The User We Are Creating The SSL_TASK.
+$!
 $! Tell The User We Are Creating The SSL_TASK.
 $!
 $ WRITE SYS$OUTPUT "Creating SSL_TASK OSU HTTP SSL Engine."	
 $!
+$!  Tell The User What File We Are Compiling.
+$!
+$ FILE_NAME = "ssl_task"
+$ WRITE SYS$OUTPUT "	",FILE_NAME,".c"
+$!
 $! Compile The File.
 $!
 $ ON ERROR THEN GOTO SSL_TASK_END
-$ CC5/OBJECT='OBJ_DIR'SSL_TASK.OBJ SYS$DISK:[]SSL_TASK.C
+$!
+$ FILE_NAME0 = ","+ F$ELEMENT(0,".",FILE_NAME)+ ","
+$ IF COMPILEWITH_CC5 - FILE_NAME0 .NES. COMPILEWITH_CC5
+$ THEN
+$   if (.not. CC5_SHOWN)
+$   then
+$     CC5_SHOWN = 1
+$     write sys$output "        \Using special rule (5)"
+$     x = "    "+ CC5
+$     write /symbol sys$output x
+$   endif
+$   CC5 /OBJECT='OBJ_DIR''FILE_NAME'.OBJ SYS$DISK:[]'FILE_NAME'.C
+$ ELSE
+$   CC /OBJECT='OBJ_DIR''FILE_NAME'.OBJ SYS$DISK:[]'FILE_NAME'.C
+$ ENDIF
 $!
 $! Link The Program.
-$! Check To See If We Are To Link With A Specific TCP/IP Library.
 $!
-$ IF (TCPIP_LIB.NES."")
-$ THEN
-$!
-$!  Link With TCP/IP Library.
-$!
-$   LINK/'DEBUGGER'/'TRACEBACK'/EXE='EXE_DIR'SSL_TASK.EXE -
-        'OBJ_DIR'SSL_TASK.OBJ, -
-	'SSL_LIB'/LIBRARY,'CRYPTO_LIB'/LIBRARY, -
-        'TCPIP_LIB','OPT_FILE'/OPTION
-$!
-$! Else...
-$!
-$ ELSE
-$!
-$!  Don't Link With TCP/IP Library.
-$!
-$   LINK/'DEBUGGER'/'TRACEBACK'/EXE='EXE_DIR'SSL_TASK.EXE -
-        'OBJ_DIR'SSL_TASK.OBJ,-
-	'SSL_LIB'/LIBRARY,'CRYPTO_LIB'/LIBRARY, -
-        'OPT_FILE'/OPTION
-$!
-$! End The TCP/IP Library Check.
-$!
-$ ENDIF
+$ LINK /'DEBUGGER' /'LINKMAP' /'TRACEBACK' /EXE='EXE_DIR'SSL_TASK.EXE -
+   'OBJ_DIR'SSL_TASK.OBJ, -
+   'SSL_LIB'/LIBRARY, -
+   'CRYPTO_LIB'/LIBRARY -
+   'TCPIP_LIB' -
+   'ZLIB_LIB' -
+   ,'OPT_FILE' /OPTIONS
 $!
 $! Time To Return.
 $!
@@ -355,7 +405,7 @@ $!
 $     CREATE 'OPT_FILE'
 $DECK
 !
-! Default System Options File To Link Agianst 
+! Default System Options File To Link Against 
 ! The Sharable VAX C Runtime Library.
 !
 SYS$SHARE:VAXCRTL.EXE/SHARE
@@ -384,7 +434,7 @@ $!
 $     CREATE 'OPT_FILE'
 $DECK
 !
-! Default System Options File To Link Agianst 
+! Default System Options File To Link Against 
 ! The Sharable C Runtime Library.
 !
 GNU_CC:[000000]GCCLIB/LIBRARY
@@ -409,7 +459,7 @@ $!
 $   IF (F$SEARCH(OPT_FILE).EQS."")
 $   THEN
 $!
-$!    Figure Out If We Need An AXP Or A VAX Linker Option File.
+$!    Figure Out If We Need A non-VAX Or A VAX Linker Option File.
 $!
 $     IF (ARCH.EQS."VAX")
 $     THEN
@@ -419,7 +469,7 @@ $!
 $       CREATE 'OPT_FILE'
 $DECK
 !
-! Default System Options File To Link Agianst 
+! Default System Options File To Link Against 
 ! The Sharable DEC C Runtime Library.
 !
 SYS$SHARE:DECC$SHR.EXE/SHARE
@@ -429,19 +479,19 @@ $!    Else...
 $!
 $     ELSE
 $!
-$!      Create The AXP Linker Option File.
+$!      Create The non-VAX Linker Option File.
 $!
 $       CREATE 'OPT_FILE'
 $DECK
 !
-! Default System Options File For AXP To Link Agianst 
+! Default System Options File For non-VAX To Link Against 
 ! The Sharable C Runtime Library.
 !
 SYS$SHARE:CMA$OPEN_LIB_SHR/SHARE
 SYS$SHARE:CMA$OPEN_RTL/SHARE
 $EOD
 $!
-$!    End The VAX/AXP DEC C Option File Check.
+$!    End The DEC C Option File Check.
 $!
 $     ENDIF
 $!
@@ -523,12 +573,12 @@ $! Else...
 $!
 $ ELSE
 $!
-$!  Else, Check To See If P1 Has A Valid Arguement.
+$!  Else, Check To See If P1 Has A Valid Argument.
 $!
 $   IF (P1.EQS."LIBRARY").OR.(P1.EQS."SSL_TASK")
 $   THEN
 $!
-$!    A Valid Arguement.
+$!    A Valid Argument.
 $!
 $     BUILDALL = P1
 $!
@@ -547,15 +597,16 @@ $     WRITE SYS$OUTPUT "    SSL_TASK :  To Compile Just The [.xxx.EXE.SSL]SSL_TA
 $     WRITE SYS$OUTPUT ""
 $     WRITE SYS$OUTPUT " Where 'xxx' Stands For:"
 $     WRITE SYS$OUTPUT ""
-$     WRITE SYS$OUTPUT "        AXP  :  Alpha Architecture."
-$     WRITE SYS$OUTPUT "        VAX  :  VAX Architecture."
+$     WRITE SYS$OUTPUT "    ALPHA[64]:  Alpha Architecture."
+$     WRITE SYS$OUTPUT "    IA64[64] :  IA64 Architecture."
+$     WRITE SYS$OUTPUT "    VAX      :  VAX Architecture."
 $     WRITE SYS$OUTPUT ""
 $!
 $!    Time To EXIT.
 $!
 $     EXIT
 $!
-$!  End The Valid Arguement Check.
+$!  End The Valid Argument Check.
 $!
 $   ENDIF
 $!
@@ -568,14 +619,15 @@ $!
 $ IF (P2.EQS."NODEBUG")
 $ THEN
 $!
-$!   P2 Is NODEBUG, So Compile Without Debugger Information.
+$!  P2 Is NODEBUG, So Compile Without Debugger Information.
 $!
-$    DEBUGGER  = "NODEBUG"
-$    TRACEBACK = "NOTRACEBACK" 
-$    GCC_OPTIMIZE = "OPTIMIZE"
-$    CC_OPTIMIZE = "OPTIMIZE"
-$    WRITE SYS$OUTPUT "No Debugger Information Will Be Produced During Compile."
-$    WRITE SYS$OUTPUT "Compiling With Compiler Optimization."
+$   DEBUGGER  = "NODEBUG"
+$   LINKMAP = "NOMAP"
+$   TRACEBACK = "NOTRACEBACK" 
+$   GCC_OPTIMIZE = "OPTIMIZE"
+$   CC_OPTIMIZE = "OPTIMIZE"
+$   WRITE SYS$OUTPUT "No Debugger Information Will Be Produced During Compile."
+$   WRITE SYS$OUTPUT "Compiling With Compiler Optimization."
 $!
 $! Else...
 $!
@@ -589,6 +641,7 @@ $!
 $!    Compile With Debugger Information.
 $!
 $     DEBUGGER  = "DEBUG"
+$     LINKMAP = "MAP"
 $     TRACEBACK = "TRACEBACK"
 $     GCC_OPTIMIZE = "NOOPTIMIZE"
 $     CC_OPTIMIZE = "NOOPTIMIZE"
@@ -596,7 +649,7 @@ $     WRITE SYS$OUTPUT "Debugger Information Will Be Produced During Compile."
 $     WRITE SYS$OUTPUT "Compiling Without Compiler Optimization."
 $   ELSE
 $!
-$!    Tell The User Entered An Invalid Option..
+$!    Tell The User Entered An Invalid Option.
 $!
 $     WRITE SYS$OUTPUT ""
 $     WRITE SYS$OUTPUT "The Option ",P2," Is Invalid.  The Valid Options Are:"
@@ -609,7 +662,7 @@ $!    Time To EXIT.
 $!
 $     EXIT
 $!
-$!  End The Valid Arguement Check.
+$!  End The Valid Argument Check.
 $!
 $   ENDIF
 $!
@@ -651,6 +704,59 @@ $! End The P5 Check.
 $!
 $ ENDIF
 $!
+$! Check P6 (POINTER_SIZE).
+$!
+$ IF (P6 .NES. "") .AND. (ARCH .NES. "VAX")
+$ THEN
+$!
+$   IF (P6 .EQS. "32")
+$   THEN
+$     POINTER_SIZE = " /POINTER_SIZE=32"
+$   ELSE
+$     POINTER_SIZE = F$EDIT( P6, "COLLAPSE, UPCASE")
+$     IF ((POINTER_SIZE .EQS. "64") .OR. -
+       (POINTER_SIZE .EQS. "64=") .OR. -
+       (POINTER_SIZE .EQS. "64=ARGV"))
+$     THEN
+$       ARCHD = ARCH+ "_64"
+$       LIB32 = ""
+$       POINTER_SIZE = " /POINTER_SIZE=64"
+$     ELSE
+$!
+$!      Tell The User Entered An Invalid Option.
+$!
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT "The Option ", P6, -
+         " Is Invalid.  The Valid Options Are:"
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT -
+         "    """"       :  Compile with default (short) pointers."
+$       WRITE SYS$OUTPUT -
+         "    32       :  Compile with 32-bit (short) pointers."
+$       WRITE SYS$OUTPUT -
+         "    64       :  Compile with 64-bit (long) pointers (auto ARGV)."
+$       WRITE SYS$OUTPUT -
+         "    64=      :  Compile with 64-bit (long) pointers (no ARGV)."
+$       WRITE SYS$OUTPUT -
+         "    64=ARGV  :  Compile with 64-bit (long) pointers (ARGV)."
+$       WRITE SYS$OUTPUT ""
+$! 
+$!      Time To EXIT.
+$!
+$       EXIT
+$!
+$     ENDIF
+$!
+$   ENDIF
+$!
+$! End The P6 (POINTER_SIZE) Check.
+$!
+$ ENDIF
+$!
+$! Set basic C compiler /INCLUDE directories.
+$!
+$ CC_INCLUDES = "SYS$DISK:[-.CRYPTO],SYS$DISK:[-]"
+$!
 $! Check To See If P3 Is Blank.
 $!
 $ IF (P3.EQS."")
@@ -674,7 +780,7 @@ $   ELSE
 $!
 $!  Check To See If We Have VAXC Or DECC.
 $!
-$     IF (ARCH.EQS."AXP").OR.(F$TRNLNM("DECC$CC_DEFAULT").NES."")
+$     IF (ARCH.NES."VAX").OR.(F$TRNLNM("DECC$CC_DEFAULT").NES."")
 $     THEN 
 $!
 $!      Looks Like DECC, Set To Use DECC.
@@ -751,11 +857,67 @@ $ CCDEFS = "TCPIP_TYPE_''P4'"
 $ IF F$TYPE(USER_CCDEFS) .NES. "" THEN CCDEFS = CCDEFS + "," + USER_CCDEFS
 $ CCEXTRAFLAGS = ""
 $ IF F$TYPE(USER_CCFLAGS) .NES. "" THEN CCEXTRAFLAGS = USER_CCFLAGS
-$ CCDISABLEWARNINGS = "LONGLONGTYPE,LONGLONGSUFX,FOUNDCR"
-$ IF F$TYPE(USER_CCDISABLEWARNINGS) .NES. "" THEN -
-	CCDISABLEWARNINGS = CCDISABLEWARNINGS + "," + USER_CCDISABLEWARNINGS
+$ CCDISABLEWARNINGS = "" !!! "MAYLOSEDATA3" !!! "LONGLONGTYPE,LONGLONGSUFX,FOUNDCR"
+$ IF F$TYPE(USER_CCDISABLEWARNINGS) .NES. ""
+$ THEN
+$     IF CCDISABLEWARNINGS .NES. THEN CCDISABLEWARNINGS = CCDISABLEWARNINGS + ","
+$     CCDISABLEWARNINGS = CCDISABLEWARNINGS + USER_CCDISABLEWARNINGS
+$ ENDIF
 $!
-$!  Check To See If The User Entered A Valid Paramter.
+$! Check To See If We Have A ZLIB Option.
+$!
+$ ZLIB = P7
+$ IF (ZLIB .NES. "")
+$ THEN
+$!
+$!  Check for expected ZLIB files.
+$!
+$   err = 0
+$   file1 = f$parse( "zlib.h", ZLIB, , , "SYNTAX_ONLY")
+$   if (f$search( file1) .eqs. "")
+$   then
+$     WRITE SYS$OUTPUT ""
+$     WRITE SYS$OUTPUT "The Option ", ZLIB, " Is Invalid."
+$     WRITE SYS$OUTPUT "    Can't find header: ''file1'"
+$     err = 1
+$   endif
+$   file1 = f$parse( "A.;", ZLIB)- "A.;"
+$!
+$   file2 = f$parse( ZLIB, "libz.olb", , , "SYNTAX_ONLY")
+$   if (f$search( file2) .eqs. "")
+$   then
+$     if (err .eq. 0)
+$     then
+$       WRITE SYS$OUTPUT ""
+$       WRITE SYS$OUTPUT "The Option ", ZLIB, " Is Invalid."
+$     endif
+$     WRITE SYS$OUTPUT "    Can't find library: ''file2'"
+$     WRITE SYS$OUTPUT ""
+$     err = err+ 2
+$   endif
+$   if (err .eq. 1)
+$   then
+$     WRITE SYS$OUTPUT ""
+$   endif
+$!
+$   if (err .ne. 0)
+$   then
+$     EXIT
+$   endif
+$!
+$   CCDEFS = """ZLIB=1"", "+ CCDEFS
+$   CC_INCLUDES = CC_INCLUDES+ ", "+ file1
+$   ZLIB_LIB = ", ''file2' /library"
+$!
+$!  Print info
+$!
+$   WRITE SYS$OUTPUT "ZLIB library spec: ", file2
+$!
+$! End The ZLIB Check.
+$!
+$ ENDIF
+$!
+$!  Check To See If The User Entered A Valid Parameter.
 $!
 $ IF (P3.EQS."VAXC").OR.(P3.EQS."DECC").OR.(P3.EQS."GNUC")
 $ THEN
@@ -778,13 +940,13 @@ $!
 $     CC = "CC"
 $     IF ARCH.EQS."VAX" .AND. F$TRNLNM("DECC$CC_DEFAULT").NES."/DECC" -
 	 THEN CC = "CC/DECC"
-$     CC = CC + "/''CC_OPTIMIZE'/''DEBUGGER'/STANDARD=ANSI89" + -
-           "/NOLIST/PREFIX=ALL" + -
-	   "/INCLUDE=(SYS$DISK:[-.CRYPTO],SYS$DISK:[-])" + CCEXTRAFLAGS
+$     CC = CC + " /''CC_OPTIMIZE' /''DEBUGGER' /STANDARD=RELAXED"+ -
+       "''POINTER_SIZE' /NOLIST /PREFIX=ALL" + -
+       " /INCLUDE=(''CC_INCLUDES') " + CCEXTRAFLAGS
 $!
 $!    Define The Linker Options File Name.
 $!
-$     OPT_FILE = "SYS$DISK:[]VAX_DECC_OPTIONS.OPT"
+$     OPT_FILE = "VAX_DECC_OPTIONS.OPT"
 $!
 $!  End DECC Check.
 $!
@@ -806,14 +968,14 @@ $!
 $!    Compile Using VAXC.
 $!
 $     CC = "CC"
-$     IF ARCH.EQS."AXP"
+$     IF ARCH.NES."VAX"
 $     THEN
-$	WRITE SYS$OUTPUT "There is no VAX C on Alpha!"
+$	WRITE SYS$OUTPUT "There is no VAX C on ''ARCH'!"
 $	EXIT
 $     ENDIF
 $     IF F$TRNLNM("DECC$CC_DEFAULT").EQS."/DECC" THEN CC = "CC/VAXC"
 $     CC = CC + "/''CC_OPTIMIZE'/''DEBUGGER'/NOLIST" + -
-	   "/INCLUDE=(SYS$DISK:[-.CRYPTO],SYS$DISK:[-])" + CCEXTRAFLAGS
+	   "/INCLUDE=(''CC_INCLUDES')" + CCEXTRAFLAGS
 $     CCDEFS = CCDEFS + ",""VAXC"""
 $!
 $!    Define <sys> As SYS$COMMON:[SYSLIB]
@@ -822,7 +984,7 @@ $     DEFINE/NOLOG SYS SYS$COMMON:[SYSLIB]
 $!
 $!    Define The Linker Options File Name.
 $!
-$     OPT_FILE = "SYS$DISK:[]VAX_VAXC_OPTIONS.OPT"
+$     OPT_FILE = "VAX_VAXC_OPTIONS.OPT"
 $!
 $!  End VAXC Check
 $!
@@ -845,11 +1007,11 @@ $!    Use GNU C...
 $!
 $     IF F$TYPE(GCC) .EQS. "" THEN GCC := GCC
 $     CC = GCC+"/NOCASE_HACK/''GCC_OPTIMIZE'/''DEBUGGER'/NOLIST" + -
-	   "/INCLUDE=(SYS$DISK:[-.CRYPTO],SYS$DISK:[-])" + CCEXTRAFLAGS
+	   "/INCLUDE=(''CC_INCLUDES')" + CCEXTRAFLAGS
 $!
 $!    Define The Linker Options File Name.
 $!
-$     OPT_FILE = "SYS$DISK:[]VAX_GNUC_OPTIONS.OPT"
+$     OPT_FILE = "VAX_GNUC_OPTIONS.OPT"
 $!
 $!  End The GNU C Check.
 $!
@@ -863,21 +1025,33 @@ $!  Finish up the definition of CC.
 $!
 $   IF COMPILER .EQS. "DECC"
 $   THEN
+$!    Not all compiler versions support MAYLOSEDATA3.
+$     OPT_TEST = "MAYLOSEDATA3"
+$     DEFINE /USER_MODE SYS$ERROR NL:
+$     DEFINE /USER_MODE SYS$OUTPUT NL:
+$     'CC' /NOCROSS_REFERENCE /NOLIST /NOOBJECT -
+       /WARNINGS = DISABLE = ('OPT_TEST', EMPTYFILE) NL:
+$     IF ($SEVERITY)
+$     THEN
+$       IF CCDISABLEWARNINGS .NES. "" THEN -
+         CCDISABLEWARNINGS = CCDISABLEWARNINGS+ ","
+$       CCDISABLEWARNINGS = CCDISABLEWARNINGS+ OPT_TEST
+$     ENDIF
 $     IF CCDISABLEWARNINGS .EQS. ""
 $     THEN
 $       CC4DISABLEWARNINGS = "DOLLARID"
 $     ELSE
 $       CC4DISABLEWARNINGS = CCDISABLEWARNINGS + ",DOLLARID"
-$       CCDISABLEWARNINGS = "/WARNING=(DISABLE=(" + CCDISABLEWARNINGS + "))"
+$       CCDISABLEWARNINGS = " /WARNING=(DISABLE=(" + CCDISABLEWARNINGS + "))"
 $     ENDIF
-$     CC4DISABLEWARNINGS = "/WARNING=(DISABLE=(" + CC4DISABLEWARNINGS + "))"
+$     CC4DISABLEWARNINGS = " /WARNING=(DISABLE=(" + CC4DISABLEWARNINGS + "))"
 $   ELSE
 $     CCDISABLEWARNINGS = ""
 $     CC4DISABLEWARNINGS = ""
 $   ENDIF
-$   CC2 = CC + "/DEFINE=(" + CCDEFS + ",_POSIX_C_SOURCE)" + CCDISABLEWARNINGS
-$   CC3 = CC + "/DEFINE=(" + CCDEFS + ISSEVEN + ")" + CCDISABLEWARNINGS
-$   CC = CC + "/DEFINE=(" + CCDEFS + ")" + CCDISABLEWARNINGS
+$   CC2 = CC + " /DEFINE=(" + CCDEFS + ",_POSIX_C_SOURCE)" + CCDISABLEWARNINGS
+$   CC3 = CC + " /DEFINE=(" + CCDEFS + ISSEVEN + ")" + CCDISABLEWARNINGS
+$   CC = CC + " /DEFINE=(" + CCDEFS + ")" + CCDISABLEWARNINGS
 $   IF COMPILER .EQS. "DECC"
 $   THEN
 $     CC4 = CC - CCDISABLEWARNINGS + CC4DISABLEWARNINGS
@@ -891,7 +1065,7 @@ $!  Show user the result
 $!
 $   WRITE/SYMBOL SYS$OUTPUT "Main Compiling Command: ",CC
 $!
-$!  Else The User Entered An Invalid Arguement.
+$!  Else The User Entered An Invalid Argument.
 $!
 $ ELSE
 $!
@@ -923,7 +1097,7 @@ $   THEN
 $!
 $!    Set the library to use SOCKETSHR
 $!
-$     TCPIP_LIB = "SYS$DISK:[-.VMS]SOCKETSHR_SHR.OPT/OPT"
+$     TCPIP_LIB = ",SYS$DISK:[-.VMS]SOCKETSHR_SHR.OPT /OPTIONS"
 $!
 $!    Done with SOCKETSHR
 $!
@@ -949,13 +1123,13 @@ $   THEN
 $!
 $!    Set the library to use UCX.
 $!
-$     TCPIP_LIB = "SYS$DISK:[-.VMS]UCX_SHR_DECC.OPT/OPT"
+$     TCPIP_LIB = ",SYS$DISK:[-.VMS]UCX_SHR_DECC.OPT /OPTIONS"
 $     IF F$TRNLNM("UCX$IPC_SHR") .NES. ""
 $     THEN
-$       TCPIP_LIB = "SYS$DISK:[-.VMS]UCX_SHR_DECC_LOG.OPT/OPT"
+$       TCPIP_LIB = ",SYS$DISK:[-.VMS]UCX_SHR_DECC_LOG.OPT /OPTIONS"
 $     ELSE
 $       IF COMPILER .NES. "DECC" .AND. ARCH .EQS. "VAX" THEN -
-	  TCPIP_LIB = "SYS$DISK:[-.VMS]UCX_SHR_VAXC.OPT/OPT"
+	  TCPIP_LIB = ",SYS$DISK:[-.VMS]UCX_SHR_VAXC.OPT /OPTIONS"
 $     ENDIF
 $!
 $!    Done with UCX
@@ -969,7 +1143,7 @@ $   THEN
 $!
 $!    Set the library to use TCPIP (post UCX).
 $!
-$     TCPIP_LIB = "SYS$DISK:[-.VMS]TCPIP_SHR_DECC.OPT/OPT"
+$     TCPIP_LIB = ",SYS$DISK:[-.VMS]TCPIP_SHR_DECC.OPT /OPTIONS"
 $!
 $!    Done with TCPIP
 $!
@@ -990,9 +1164,9 @@ $   ENDIF
 $!
 $!  Print info
 $!
-$   WRITE SYS$OUTPUT "TCP/IP library spec: ", TCPIP_LIB
+$   WRITE SYS$OUTPUT "TCP/IP library spec: ", TCPIP_LIB- ","
 $!
-$!  Else The User Entered An Invalid Arguement.
+$!  Else The User Entered An Invalid Argument.
 $!
 $ ELSE
 $!

@@ -743,7 +743,7 @@ do_run_installscript(HINSTANCE hPython, char *pathname, int argc, char **argv)
     if (pathname == NULL || pathname[0] == '\0')
         return 2;
 
-    fh = open(pathname, _O_RDONLY);
+    fh = open(pathname, _O_RDONLY | O_NOINHERIT);
     if (-1 == fh) {
         fprintf(stderr, "Could not open postinstall-script %s\n",
             pathname);
@@ -1019,7 +1019,7 @@ static char *MapExistingFile(char *pathname, DWORD *psize)
                                       NULL, PAGE_READONLY, 0, 0, NULL);
     CloseHandle(hFile);
 
-    if (hFileMapping == INVALID_HANDLE_VALUE)
+    if (hFileMapping == NULL)
         return NULL;
 
     data = MapViewOfFile(hFileMapping,

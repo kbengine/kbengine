@@ -27,12 +27,12 @@ PyAPI_DATA(PyTypeObject) PyFloat_Type;
 #define Py_RETURN_NAN return PyFloat_FromDouble(Py_NAN)
 #endif
 
-#define Py_RETURN_INF(sign) do					\
-	if (copysign(1., sign) == 1.) {				\
-		return PyFloat_FromDouble(Py_HUGE_VAL);	\
-	} else {						\
-		return PyFloat_FromDouble(-Py_HUGE_VAL);	\
-	} while(0)
+#define Py_RETURN_INF(sign) do                     \
+    if (copysign(1., sign) == 1.) {                \
+        return PyFloat_FromDouble(Py_HUGE_VAL);    \
+    } else {                        \
+        return PyFloat_FromDouble(-Py_HUGE_VAL);   \
+    } while(0)
 
 PyAPI_FUNC(double) PyFloat_GetMax(void);
 PyAPI_FUNC(double) PyFloat_GetMin(void);
@@ -110,11 +110,16 @@ PyAPI_FUNC(double) _PyFloat_Unpack8(const unsigned char *p, int le);
 /* free list api */
 PyAPI_FUNC(int) PyFloat_ClearFreeList(void);
 
+PyAPI_FUNC(void) _PyFloat_DebugMallocStats(FILE* out);
+
 /* Format the object based on the format_spec, as defined in PEP 3101
    (Advanced String Formatting). */
-PyAPI_FUNC(PyObject *) _PyFloat_FormatAdvanced(PyObject *obj,
-					       Py_UNICODE *format_spec,
-					       Py_ssize_t format_spec_len);
+PyAPI_FUNC(int) _PyFloat_FormatAdvancedWriter(
+    _PyUnicodeWriter *writer,
+    PyObject *obj,
+    PyObject *format_spec,
+    Py_ssize_t start,
+    Py_ssize_t end);
 #endif /* Py_LIMITED_API */
 
 #ifdef __cplusplus

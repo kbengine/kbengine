@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,29 +19,29 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "scriptdef_module.hpp"
-#include "entitydef.hpp"
-#include "datatypes.hpp"
-#include "common.hpp"
-#include "cstdkbe/smartpointer.hpp"
-#include "entitydef/entity_mailbox.hpp"
-#include "resmgr/resmgr.hpp"
-#include "pyscript/script.hpp"
-#include "server/serverconfig.hpp"
-#include "client_lib/config.hpp"
-#include "network/bundle.hpp"
+#include "scriptdef_module.h"
+#include "entitydef.h"
+#include "datatypes.h"
+#include "common.h"
+#include "common/smartpointer.h"
+#include "entitydef/entity_mailbox.h"
+#include "resmgr/resmgr.h"
+#include "pyscript/script.h"
+#include "server/serverconfig.h"
+#include "client_lib/config.h"
+#include "network/bundle.h"
 
 #ifndef CODE_INLINE
-#include "scriptdef_module.ipp"
+#include "scriptdef_module.inl"
 #endif
 
 
 namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
-ScriptDefModule::ScriptDefModule(std::string name):
+ScriptDefModule::ScriptDefModule(std::string name, ENTITY_SCRIPT_UID utype):
 scriptType_(NULL),
-uType_(0),
+uType_(utype),
 persistentPropertyDescr_(),
 cellPropertyDescr_(),
 basePropertyDescr_(),
@@ -63,12 +63,12 @@ methodDescr_aliasmap_(),
 hasCell_(false),
 hasBase_(false),
 hasClient_(false),
-volatileinfo_(),
+pVolatileinfo_(new VolatileInfo()),
 name_(name),
 usePropertyDescrAlias_(false),
 useMethodDescrAlias_(false)
 {
-	EntityDef::md5().append((void*)name.c_str(), name.size());
+	EntityDef::md5().append((void*)name.c_str(), (int)name.size());
 }
 
 //-------------------------------------------------------------------------------------
@@ -81,38 +81,40 @@ ScriptDefModule::~ScriptDefModule()
 void ScriptDefModule::finalise(void)
 {
 	S_RELEASE(scriptType_);
+	S_RELEASE(pVolatileinfo_);
+
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
-	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();
 	
 	cellPropertyDescr_.clear();
 
 	iter1 = basePropertyDescr_.begin();
-	for(; iter1 != basePropertyDescr_.end(); iter1++)
+	for(; iter1 != basePropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();
 
 	basePropertyDescr_.clear();
 
 	iter1 = clientPropertyDescr_.begin();
-	for(; iter1 != clientPropertyDescr_.end(); iter1++)
+	for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 		iter1->second->decRef();
 
 	clientPropertyDescr_.clear();
 
 	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
-	for(; iter2 != methodCellDescr_.end(); iter2++)
+	for(; iter2 != methodCellDescr_.end(); ++iter2)
 		SAFE_RELEASE(iter2->second);
 		
 	methodCellDescr_.clear();
 
 	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
-	for(; iter3 != methodBaseDescr_.end(); iter3++)
+	for(; iter3 != methodBaseDescr_.end(); ++iter3)
 		SAFE_RELEASE(iter3->second);
 	
 	methodBaseDescr_.clear();
 
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
-	for(; iter4 != methodClientDescr_.end(); iter4++)
+	for(; iter4 != methodClientDescr_.end(); ++iter4)
 		SAFE_RELEASE(iter4->second);
 
 	methodClientDescr_.clear();
@@ -125,7 +127,7 @@ void ScriptDefModule::onLoaded(void)
 	{
 		int aliasID = ENTITY_BASE_PROPERTY_ALIASID_MAX;
 		PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
-		for(; iter1 != cellPropertyDescr_.end(); iter1++)
+		for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 		{
 			if(iter1->second->hasClient())
 			{
@@ -135,7 +137,7 @@ void ScriptDefModule::onLoaded(void)
 		}
 
 		iter1 = basePropertyDescr_.begin();
-		for(; iter1 != basePropertyDescr_.end(); iter1++)
+		for(; iter1 != basePropertyDescr_.end(); ++iter1)
 		{
 			if(iter1->second->hasClient())
 			{
@@ -145,7 +147,7 @@ void ScriptDefModule::onLoaded(void)
 		}
 
 		iter1 = clientPropertyDescr_.begin();
-		for(; iter1 != clientPropertyDescr_.end(); iter1++)
+		for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 		{
 			if(iter1->second->hasClient())
 			{
@@ -157,7 +159,7 @@ void ScriptDefModule::onLoaded(void)
 		if(aliasID > 255)
 		{
 			iter1 = cellPropertyDescr_.begin();
-			for(; iter1 != cellPropertyDescr_.end(); iter1++)
+			for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 			{
 				if(iter1->second->hasClient())
 				{
@@ -166,7 +168,7 @@ void ScriptDefModule::onLoaded(void)
 			}
 
 			iter1 = basePropertyDescr_.begin();
-			for(; iter1 != basePropertyDescr_.end(); iter1++)
+			for(; iter1 != basePropertyDescr_.end(); ++iter1)
 			{
 				if(iter1->second->hasClient())
 				{
@@ -175,7 +177,7 @@ void ScriptDefModule::onLoaded(void)
 			}
 
 			iter1 = clientPropertyDescr_.begin();
-			for(; iter1 != clientPropertyDescr_.end(); iter1++)
+			for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 			{
 				if(iter1->second->hasClient())
 				{
@@ -193,7 +195,7 @@ void ScriptDefModule::onLoaded(void)
 		aliasID = 0;
 
 		METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
-		for(; iter2 != methodClientDescr_.end(); iter2++)
+		for(; iter2 != methodClientDescr_.end(); ++iter2)
 		{
 			methodDescr_aliasmap_[aliasID] = iter2->second;
 			iter2->second->aliasID(aliasID++);
@@ -202,7 +204,7 @@ void ScriptDefModule::onLoaded(void)
 		if(aliasID > 255)
 		{
 			METHODDESCRIPTION_MAP::iterator iter2 = methodClientDescr_.begin();
-			for(; iter2 != methodClientDescr_.end(); iter2++)
+			for(; iter2 != methodClientDescr_.end(); ++iter2)
 			{
 				iter2->second->aliasID(-1);
 				methodDescr_aliasmap_.clear();
@@ -224,60 +226,60 @@ void ScriptDefModule::onLoaded(void)
 void ScriptDefModule::c_str()
 {
 	PROPERTYDESCRIPTION_MAP::iterator iter1 = cellPropertyDescr_.begin();
-	for(; iter1 != cellPropertyDescr_.end(); iter1++)
+	for(; iter1 != cellPropertyDescr_.end(); ++iter1)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
-			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
+			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	iter1 = basePropertyDescr_.begin();
-	for(; iter1 != basePropertyDescr_.end(); iter1++)
+	for(; iter1 != basePropertyDescr_.end(); ++iter1)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
-			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
+			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	iter1 = clientPropertyDescr_.begin();
-	for(; iter1 != clientPropertyDescr_.end(); iter1++)
+	for(; iter1 != clientPropertyDescr_.end(); ++iter1)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.%2% uid=%3%, flags=%4%, aliasID=%5%.\n") % 
-			getName() % iter1->second->getName() % iter1->second->getUType() % entityDataFlagsToString(iter1->second->getFlags()) % iter1->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.{} uid={}, flags={}, aliasID={}.\n",
+			getName(), iter1->second->getName(), iter1->second->getUType(), entityDataFlagsToString(iter1->second->getFlags()), iter1->second->aliasID()));
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter2 = methodCellDescr_.begin();
-	for(; iter2 != methodCellDescr_.end(); iter2++)
+	for(; iter2 != methodCellDescr_.end(); ++iter2)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.CellMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
-			getName() % iter2->second->getName() % iter2->second->getUType() % 
-			iter2->second->getArgSize() % iter2->second->aliasID() % (iter2->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.CellMethod {} uid={}, argssize={}, aliasID={}{}.\n",
+			getName(), iter2->second->getName(), iter2->second->getUType(),
+			iter2->second->getArgSize(), iter2->second->aliasID(), (iter2->second->isExposed() ? ", exposed=true" : ", exposed=false")));
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter3 = methodBaseDescr_.begin();
-	for(; iter3 != methodBaseDescr_.end(); iter3++)
+	for(; iter3 != methodBaseDescr_.end(); ++iter3)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.BaseMethod %2% uid=%3%, argssize=%4%, aliasID=%5%%6%.\n") % 
-			getName() % iter3->second->getName() % iter3->second->getUType() % 
-			iter3->second->getArgSize() % iter3->second->aliasID() % (iter3->second->isExposed() ? ", exposed=true" : ", exposed=false"));
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.BaseMethod {} uid={}, argssize={}, aliasID={}{}.\n",
+			getName(), iter3->second->getName(), iter3->second->getUType(),
+			iter3->second->getArgSize(), iter3->second->aliasID(), (iter3->second->isExposed() ? ", exposed=true" : ", exposed=false")));
 	}
 
 	METHODDESCRIPTION_MAP::iterator iter4 = methodClientDescr_.begin();
-	for(; iter4 != methodClientDescr_.end(); iter4++)
+	for(; iter4 != methodClientDescr_.end(); ++iter4)
 	{
-		DEBUG_MSG(boost::format("ScriptDefModule::c_str: %1%.ClientMethod %2% uid=%3%, argssize=%4%, aliasID=%5%.\n") % 
-			getName() % iter4->second->getName() % iter4->second->getUType() % iter4->second->getArgSize() % iter4->second->aliasID());
+		DEBUG_MSG(fmt::format("ScriptDefModule::c_str: {}.ClientMethod {} uid={}, argssize={}, aliasID={}.\n",
+			getName(), iter4->second->getName(), iter4->second->getUType(), iter4->second->getArgSize(), iter4->second->aliasID()));
 	}
 
-	DEBUG_MSG(boost::format("ScriptDefModule::c_str: [%1%], cellPropertys=%2%, basePropertys=%2%, "
-		"clientPropertys=%4%, cellMethods=%5%(%6%), baseMethods=%7%(%8%), clientMethods=%9%\n") %
-		getName() % 
-		getCellPropertyDescriptions().size() % 
-		getBasePropertyDescriptions().size() % 
-		getClientPropertyDescriptions().size() % 
-		getCellMethodDescriptions().size() % 
-		getCellExposedMethodDescriptions().size() % 
-		getBaseMethodDescriptions().size() % 
-		getBaseExposedMethodDescriptions().size() % 
-		getClientMethodDescriptions().size());
+	DEBUG_MSG(fmt::format("ScriptDefModule::c_str: [{}], cellPropertys={}, basePropertys={}, "
+		"clientPropertys={}, cellMethods={}({}), baseMethods={}({}), clientMethods={}\n",
+		getName(), 
+		getCellPropertyDescriptions().size(), 
+		getBasePropertyDescriptions().size(), 
+		getClientPropertyDescriptions().size(), 
+		getCellMethodDescriptions().size(), 
+		getCellExposedMethodDescriptions().size(), 
+		getBaseMethodDescriptions().size(), 
+		getBaseExposedMethodDescriptions().size(), 
+		getClientMethodDescriptions().size()));
 }
 
 //-------------------------------------------------------------------------------------
@@ -297,7 +299,7 @@ void ScriptDefModule::addSmartUTypeToStream(MemoryStream* pStream)
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptDefModule::addSmartUTypeToBundle(Mercury::Bundle* pBundle)
+void ScriptDefModule::addSmartUTypeToBundle(Network::Bundle* pBundle)
 {
 	if(EntityDef::scriptModuleAliasID())
 		(*pBundle) << getAliasID();
@@ -327,18 +329,109 @@ PyObject* ScriptDefModule::getInitDict(void)
 //-------------------------------------------------------------------------------------
 void ScriptDefModule::autoMatchCompOwn()
 {
-	setClient(false);
-	setBase(false);
-	setCell(false);
+	/*
+		entity存在某部分(cell, base, client)的判定规则
+
+		1: entitydef文件中存在实体某部分的方法或者属性，同时也必须也存在py脚本
+		2: 用户在entities.xml明确声明存在某实体部分(为了unity3d或者html5类的前端无法加载py的环境考虑)
+			entities.xml， <Spaces hasCell="true" hasClient="false", hasBase="true"></Spaces>
+	*/
+
+	std::string entitiesFile = Resmgr::getSingleton().getPyUserScriptsPath() + "entities.xml";
+
+	// 打开这个entities.xml文件
+	SmartPointer<XML> xml(new XML());
+	if(!xml->openSection(entitiesFile.c_str()) || !xml->isGood())
+		return;
+	
+	// 获得entities.xml根节点, 如果没有定义一个entity那么直接返回true
+	TiXmlNode* node = xml->getRootNode();
+	if(node == NULL)
+		return;
+
+	int assertionHasClient = -1;
+	int assertionHasBase = -1;
+	int assertionHasCell = -1;
+
+	// 开始遍历所有的entity节点
+	XML_FOR_BEGIN(node)
+	{
+		std::string moduleName = xml.get()->getKey(node);
+		if(name_ == moduleName)
+		{
+			const char* val = node->ToElement()->Attribute("hasClient");
+			if(val)
+			{
+				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
+					assertionHasClient = 1;
+				else
+					assertionHasClient = 0;
+			}
+
+			EntityDef::md5().append((void*)&assertionHasClient, sizeof(int));
+
+			val = node->ToElement()->Attribute("hasCell");
+			if(val)
+			{
+				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
+					assertionHasCell = 1;
+				else
+					assertionHasCell = 0;
+			}
+
+			EntityDef::md5().append((void*)&assertionHasCell, sizeof(int));
+
+			val = node->ToElement()->Attribute("hasBase");
+			if(val)
+			{
+				if(kbe_strnicmp(val, "true", strlen(val)) == 0)
+					assertionHasBase = 1;
+				else
+					assertionHasBase = 0;
+			}
+
+			EntityDef::md5().append((void*)&assertionHasBase, sizeof(int));
+			break;
+		}
+	}
+	XML_FOR_END(node);
 
 	std::string fmodule = "scripts/client/" + name_ + ".py";
-	std::string fmodule_pyc = "scripts/client/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
+	std::string fmodule_pyc = fmodule + "c";
 	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
 		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
-		setClient(true);
+		if (assertionHasClient < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在客户端属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setClient(true);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setClient(assertionHasClient == 1);
+		}
 	}
-	
+	else
+	{
+		if(assertionHasClient < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在客户端属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setClient(false);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setClient(assertionHasClient == 1);
+		}
+	}
+
 	if(g_componentType == CLIENT_TYPE)
 	{
 		setBase(true);
@@ -347,19 +440,75 @@ void ScriptDefModule::autoMatchCompOwn()
 	}
 
 	fmodule = "scripts/base/" + name_ + ".py";
-	fmodule_pyc = "scripts/base/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
+	fmodule_pyc = fmodule + "c";
 	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
 		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
-		setBase(true);
+		if (assertionHasBase < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在base属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setBase(true);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setBase(assertionHasBase == 1);
+		}
+	}
+	else
+	{
+		if(assertionHasBase < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在base属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setBase(false);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setBase(assertionHasBase == 1);
+		}
 	}
 
 	fmodule = "scripts/cell/" + name_ + ".py";
-	fmodule_pyc = "scripts/cell/"SCRIPT_BIN_CACHEDIR"/" + name_ + "."SCRIPT_BIN_TAG".pyc";
+	fmodule_pyc = fmodule + "c";
 	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
 		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
-		setCell(true);
+		if (assertionHasCell < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在cell属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setCell(true);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setCell(assertionHasCell == 1);
+		}
+	}
+	else
+	{
+		if(assertionHasCell < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在cell属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setCell(false);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setCell(assertionHasCell == 1);
+		}
 	}
 }
 
@@ -368,6 +517,14 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 										  PropertyDescription* propertyDescription, 
 										  COMPONENT_TYPE componentType)
 {
+	if(hasMethodName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: There is a method[{}] name conflict! componentType={}.\n",
+			attrName, componentType));
+		
+		return false;
+	}
+	
 	PropertyDescription* f_propertyDescription = NULL;
 	PROPERTYDESCRIPTION_MAP*  propertyDescr;
 	PROPERTYDESCRIPTION_UIDMAP*  propertyDescr_uidmap;
@@ -402,8 +559,8 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 
 	if(f_propertyDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addPropertyDescription: [%1%] is exist! componentType=%2%.\n") %
-			attrName % componentType);
+		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: [{}] is exist! componentType={}.\n",
+			attrName, componentType));
 
 		return false;
 	}
@@ -670,10 +827,18 @@ MethodDescription* ScriptDefModule::findAliasMethodDescription(ENTITY_DEF_ALIASI
 bool ScriptDefModule::addCellMethodDescription(const char* attrName, 
 											   MethodDescription* methodDescription)
 {
+	if(hasPropertyName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addCellMethodDescription: There is a property[{}] name conflict!\n",
+			attrName));
+		
+		return false;
+	}
+	
 	MethodDescription* f_methodDescription = findCellMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addCellMethodDescription: [%1%] is exist!\n") % attrName);
+		ERROR_MSG(fmt::format("ScriptDefModule::addCellMethodDescription: [{}] is exist!\n", attrName));
 		return false;
 	}
 	
@@ -715,11 +880,19 @@ MethodDescription* ScriptDefModule::findBaseMethodDescription(ENTITY_METHOD_UID 
 bool ScriptDefModule::addBaseMethodDescription(const char* attrName, 
 											   MethodDescription* methodDescription)
 {
+	if(hasPropertyName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addBaseMethodDescription: There is a property[{}] name conflict!\n",
+			attrName));
+		
+		return false;
+	}
+	
 	MethodDescription* f_methodDescription = findBaseMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addBaseMethodDescription: [%1%] is exist!\n") % 
-			attrName);
+		ERROR_MSG(fmt::format("ScriptDefModule::addBaseMethodDescription: [{}] is exist!\n", 
+			attrName));
 
 		return false;
 	}
@@ -762,11 +935,19 @@ MethodDescription* ScriptDefModule::findClientMethodDescription(ENTITY_METHOD_UI
 bool ScriptDefModule::addClientMethodDescription(const char* attrName, 
 												 MethodDescription* methodDescription)
 {
+	if(hasPropertyName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addClientMethodDescription: There is a property[{}] name conflict!\n",
+			attrName));
+		
+		return false;
+	}
+	
 	MethodDescription* f_methodDescription = findClientMethodDescription(attrName);
 	if(f_methodDescription)
 	{
-		ERROR_MSG(boost::format("ScriptDefModule::addClientMethodDescription: [%1%] is exist!\n") %
-			attrName);
+		ERROR_MSG(fmt::format("ScriptDefModule::addClientMethodDescription: [{}] is exist!\n",
+			attrName));
 
 		return false;
 	}
@@ -778,25 +959,41 @@ bool ScriptDefModule::addClientMethodDescription(const char* attrName,
 }
 
 //-------------------------------------------------------------------------------------
-ScriptDefModule::PROPERTYDESCRIPTION_MAP& ScriptDefModule::getPropertyDescrs()										
-{																										
-	ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs = NULL;										
-																										
-	switch(g_componentType)																				
-	{																									
-		case CELLAPP_TYPE:																				
-			lpPropertyDescrs = &getCellPropertyDescriptions();							
-			break;																						
-		case BASEAPP_TYPE:																				
-			lpPropertyDescrs = &getBasePropertyDescriptions();							
-			break;																						
-		default:																						
-			lpPropertyDescrs = &getClientPropertyDescriptions();							
-			break;																						
-	};																									
-																									
-	return *lpPropertyDescrs;																			
-}																										
+ScriptDefModule::PROPERTYDESCRIPTION_MAP& ScriptDefModule::getPropertyDescrs()
+{
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP* lpPropertyDescrs = NULL;	
+
+	switch(g_componentType)	
+	{					
+		case CELLAPP_TYPE:
+			lpPropertyDescrs = &getCellPropertyDescriptions();
+			break;
+		case BASEAPP_TYPE:
+			lpPropertyDescrs = &getBasePropertyDescriptions();
+			break;	
+		default:
+			lpPropertyDescrs = &getClientPropertyDescriptions();
+			break;	
+	};
+	
+	return *lpPropertyDescrs;	
+}
+
+//-------------------------------------------------------------------------------------
+bool ScriptDefModule::hasPropertyName(const std::string& name)
+{
+	return findPropertyDescription(name.c_str(), CELLAPP_TYPE) ||
+		findPropertyDescription(name.c_str(), BASEAPP_TYPE) ||
+		findPropertyDescription(name.c_str(), CLIENT_TYPE); 
+}
+
+//-------------------------------------------------------------------------------------
+bool ScriptDefModule::hasMethodName(const std::string& name)
+{
+	return findMethodDescription(name.c_str(), CELLAPP_TYPE) ||
+		findMethodDescription(name.c_str(), BASEAPP_TYPE) ||
+		findMethodDescription(name.c_str(), CLIENT_TYPE);
+}
 
 //-------------------------------------------------------------------------------------
 }

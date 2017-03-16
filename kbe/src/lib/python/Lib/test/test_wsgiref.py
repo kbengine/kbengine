@@ -9,6 +9,8 @@ from wsgiref.simple_server import WSGIServer, WSGIRequestHandler, demo_app
 from wsgiref.simple_server import make_server
 from io import StringIO, BytesIO, BufferedReader
 from socketserver import BaseServer
+from platform import python_implementation
+
 import os
 import re
 import sys
@@ -100,9 +102,11 @@ def compare_generic_iter(make_it,match):
 class IntegrationTests(TestCase):
 
     def check_hello(self, out, has_length=True):
+        pyver = (python_implementation() + "/" +
+                sys.version.split()[0])
         self.assertEqual(out,
             ("HTTP/1.0 200 OK\r\n"
-            "Server: WSGIServer/0.2 Python/"+sys.version.split()[0]+"\r\n"
+            "Server: WSGIServer/0.2 " + pyver +"\r\n"
             "Content-Type: text/plain\r\n"
             "Date: Mon, 05 Jun 2006 18:49:54 GMT\r\n" +
             (has_length and  "Content-Length: 13\r\n" or "") +
@@ -113,6 +117,11 @@ class IntegrationTests(TestCase):
     def test_plain_hello(self):
         out, err = run_amock()
         self.check_hello(out)
+
+    def test_request_length(self):
+        out, err = run_amock(data=b"GET " + (b"x" * 65537) + b" HTTP/1.0\n\n")
+        self.assertEqual(out.splitlines()[0],
+                         b"HTTP/1.0 414 Request-URI Too Long")
 
     def test_validated_hello(self):
         out, err = run_amock(validator(hello_app))
@@ -156,9 +165,11 @@ class IntegrationTests(TestCase):
         out, err = run_amock(validator(app))
         self.assertTrue(err.endswith('"GET / HTTP/1.0" 200 4\n'))
         ver = sys.version.split()[0].encode('ascii')
+        py  = python_implementation().encode('ascii')
+        pyver = py + b"/" + ver
         self.assertEqual(
                 b"HTTP/1.0 200 OK\r\n"
-                b"Server: WSGIServer/0.2 Python/" + ver + b"\r\n"
+                b"Server: WSGIServer/0.2 "+ pyver + b"\r\n"
                 b"Content-Type: text/plain; charset=utf-8\r\n"
                 b"Date: Wed, 24 Dec 2008 13:29:32 GMT\r\n"
                 b"\r\n"
@@ -190,7 +201,7 @@ class UtilityTests(TestCase):
         # Check existing value
         env = {key:alt}
         util.setup_testing_defaults(env)
-        self.assertTrue(env[key] is alt)
+        self.assertIs(env[key], alt)
 
     def checkCrossDefault(self,key,value,**kw):
         util.setup_testing_defaults(kw)
@@ -280,7 +291,7 @@ class UtilityTests(TestCase):
     def testAppURIs(self):
         self.checkAppURI("http://127.0.0.1/")
         self.checkAppURI("http://127.0.0.1/spam", SCRIPT_NAME="/spam")
-        self.checkAppURI("http://127.0.0.1/sp%C3%A4m", SCRIPT_NAME="/späm")
+        self.checkAppURI("http://127.0.0.1/sp%E4m", SCRIPT_NAME="/sp\xe4m")
         self.checkAppURI("http://spam.example.com:2071/",
             HTTP_HOST="spam.example.com:2071", SERVER_PORT="2071")
         self.checkAppURI("http://spam.example.com/",
@@ -294,15 +305,19 @@ class UtilityTests(TestCase):
     def testReqURIs(self):
         self.checkReqURI("http://127.0.0.1/")
         self.checkReqURI("http://127.0.0.1/spam", SCRIPT_NAME="/spam")
-        self.checkReqURI("http://127.0.0.1/sp%C3%A4m", SCRIPT_NAME="/späm")
+        self.checkReqURI("http://127.0.0.1/sp%E4m", SCRIPT_NAME="/sp\xe4m")
         self.checkReqURI("http://127.0.0.1/spammity/spam",
             SCRIPT_NAME="/spammity", PATH_INFO="/spam")
+        self.checkReqURI("http://127.0.0.1/spammity/sp%E4m",
+            SCRIPT_NAME="/spammity", PATH_INFO="/sp\xe4m")
         self.checkReqURI("http://127.0.0.1/spammity/spam;ham",
             SCRIPT_NAME="/spammity", PATH_INFO="/spam;ham")
         self.checkReqURI("http://127.0.0.1/spammity/spam;cookie=1234,5678",
             SCRIPT_NAME="/spammity", PATH_INFO="/spam;cookie=1234,5678")
         self.checkReqURI("http://127.0.0.1/spammity/spam?say=ni",
             SCRIPT_NAME="/spammity", PATH_INFO="/spam",QUERY_STRING="say=ni")
+        self.checkReqURI("http://127.0.0.1/spammity/spam?s%E4y=ni",
+            SCRIPT_NAME="/spammity", PATH_INFO="/spam",QUERY_STRING="s%E4y=ni")
         self.checkReqURI("http://127.0.0.1/spammity/spam", 0,
             SCRIPT_NAME="/spammity", PATH_INFO="/spam",QUERY_STRING="say=ni")
 
@@ -333,7 +348,7 @@ class HeaderTests(TestCase):
         self.assertEqual(Headers(test[:]).keys(), ['x'])
         self.assertEqual(Headers(test[:]).values(), ['y'])
         self.assertEqual(Headers(test[:]).items(), test)
-        self.assertFalse(Headers(test).items() is test)  # must be copy!
+        self.assertIsNot(Headers(test).items(), test)  # must be copy!
 
         h=Headers([])
         del h['foo']   # should not raise an error

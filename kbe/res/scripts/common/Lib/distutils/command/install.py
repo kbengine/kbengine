@@ -15,32 +15,17 @@ from distutils.util import convert_path, subst_vars, change_root
 from distutils.util import get_platform
 from distutils.errors import DistutilsOptionError
 
-# this keeps compatibility from 2.3 to 2.5
-if sys.version < "2.6":
-    USER_BASE = None
-    USER_SITE = None
-    HAS_USER_SITE = False
-else:
-    from site import USER_BASE
-    from site import USER_SITE
-    HAS_USER_SITE = True
+from site import USER_BASE
+from site import USER_SITE
+HAS_USER_SITE = True
 
-if sys.version < "2.2":
-    WINDOWS_SCHEME = {
-        'purelib': '$base',
-        'platlib': '$base',
-        'headers': '$base/Include/$dist_name',
-        'scripts': '$base/Scripts',
-        'data'   : '$base',
-    }
-else:
-    WINDOWS_SCHEME = {
-        'purelib': '$base/Lib/site-packages',
-        'platlib': '$base/Lib/site-packages',
-        'headers': '$base/Include/$dist_name',
-        'scripts': '$base/Scripts',
-        'data'   : '$base',
-    }
+WINDOWS_SCHEME = {
+    'purelib': '$base/Lib/site-packages',
+    'platlib': '$base/Lib/site-packages',
+    'headers': '$base/Include/$dist_name',
+    'scripts': '$base/Scripts',
+    'data'   : '$base',
+}
 
 INSTALL_SCHEMES = {
     'unix_prefix': {
@@ -58,13 +43,6 @@ INSTALL_SCHEMES = {
         'data'   : '$base',
         },
     'nt': WINDOWS_SCHEME,
-    'os2': {
-        'purelib': '$base/Lib/site-packages',
-        'platlib': '$base/Lib/site-packages',
-        'headers': '$base/Include/$dist_name',
-        'scripts': '$base/Scripts',
-        'data'   : '$base',
-        },
     }
 
 # user site schemes
@@ -82,14 +60,6 @@ if HAS_USER_SITE:
         'platlib': '$usersite',
         'headers':
             '$userbase/include/python$py_version_short$abiflags/$dist_name',
-        'scripts': '$userbase/bin',
-        'data'   : '$userbase',
-        }
-
-    INSTALL_SCHEMES['os2_home'] = {
-        'purelib': '$usersite',
-        'platlib': '$usersite',
-        'headers': '$userbase/include/python$py_version_short/$dist_name',
         'scripts': '$userbase/bin',
         'data'   : '$userbase',
         }
@@ -545,7 +515,7 @@ class install(Command):
         self.extra_dirs = extra_dirs
 
     def change_roots(self, *names):
-        """Change the install direcories pointed by name using root."""
+        """Change the install directories pointed by name using root."""
         for name in names:
             attr = "install_" + name
             setattr(self, attr, change_root(self.root, getattr(self, attr)))

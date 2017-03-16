@@ -1,12 +1,29 @@
-import imp
+try:
+    import _thread
+except ImportError:
+    _thread = None
+import importlib
 import os
 import os.path
 import shutil
 import sys
-import unittest
 from test import support
-import importlib
+import unittest
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', PendingDeprecationWarning)
+    import imp
 
+
+def requires_load_dynamic(meth):
+    """Decorator to skip a test if not running under CPython or lacking
+    imp.load_dynamic()."""
+    meth = support.cpython_only(meth)
+    return unittest.skipIf(not hasattr(imp, 'load_dynamic'),
+                           'imp.load_dynamic() required')(meth)
+
+
+@unittest.skipIf(_thread is None, '_thread module is required')
 class LockTests(unittest.TestCase):
 
     """Very basic test of import lock functions."""
@@ -57,6 +74,10 @@ class ImportTests(unittest.TestCase):
         for mod, encoding, _ in self.test_strings:
             with imp.find_module('module_' + mod, self.test_path)[0] as fd:
                 self.assertEqual(fd.encoding, encoding)
+
+        path = [os.path.dirname(__file__)]
+        with self.assertRaises(SyntaxError):
+            imp.find_module('badsyntax_pep3120', path)
 
     def test_issue1267(self):
         for mod, encoding, _ in self.test_strings:
@@ -144,26 +165,32 @@ class ImportTests(unittest.TestCase):
                 self.assertIsNotNone(file)
                 self.assertTrue(filename[:-3].endswith(temp_mod_name))
                 self.assertEqual(info[0], '.py')
-                self.assertEqual(info[1], 'U')
+                self.assertEqual(info[1], 'r')
                 self.assertEqual(info[2], imp.PY_SOURCE)
 
                 mod = imp.load_module(temp_mod_name, file, filename, info)
                 self.assertEqual(mod.a, 1)
 
-            mod = imp.load_source(temp_mod_name, temp_mod_name + '.py')
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                mod = imp.load_source(temp_mod_name, temp_mod_name + '.py')
             self.assertEqual(mod.a, 1)
 
-            if not sys.dont_write_bytecode:
-                mod = imp.load_compiled(
-                    temp_mod_name,
-                    imp.cache_from_source(temp_mod_name + '.py'))
-                self.assertEqual(mod.a, 1)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                if not sys.dont_write_bytecode:
+                    mod = imp.load_compiled(
+                        temp_mod_name,
+                        imp.cache_from_source(temp_mod_name + '.py'))
+            self.assertEqual(mod.a, 1)
 
             if not os.path.exists(test_package_name):
                 os.mkdir(test_package_name)
             with open(init_file_name, 'w') as file:
                 file.write('b = 2\n')
-            package = imp.load_package(test_package_name, test_package_name)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                package = imp.load_package(test_package_name, test_package_name)
             self.assertEqual(package.b, 2)
         finally:
             del sys.path[0]
@@ -176,6 +203,93 @@ class ImportTests(unittest.TestCase):
         path = os.path.dirname(__file__)
         self.assertRaises(SyntaxError,
                           imp.find_module, "badsyntax_pep3120", [path])
+
+    def test_load_from_source(self):
+        # Verify that the imp module can correctly load and find .py files
+        # XXX (ncoghlan): It would be nice to use support.CleanImport
+        # here, but that breaks because the os module registers some
+        # handlers in copy_reg on import. Since CleanImport doesn't
+        # revert that registration, the module is left in a broken
+        # state after reversion. Reinitialising the module contents
+        # and just reverting os.environ to its previous state is an OK
+        # workaround
+        orig_path = os.path
+        orig_getenv = os.getenv
+        with support.EnvironmentVarGuard():
+            x = imp.find_module("os")
+            self.addCleanup(x[0].close)
+            new_os = imp.load_module("os", *x)
+            self.assertIs(os, new_os)
+            self.assertIs(orig_path, new_os.path)
+            self.assertIsNot(orig_getenv, new_os.getenv)
+
+    @requires_load_dynamic
+    def test_issue15828_load_extensions(self):
+        # Issue 15828 picked up that the adapter between the old imp API
+        # and importlib couldn't handle C extensions
+        example = "_heapq"
+        x = imp.find_module(example)
+        file_ = x[0]
+        if file_ is not None:
+            self.addCleanup(file_.close)
+        mod = imp.load_module(example, *x)
+        self.assertEqual(mod.__name__, example)
+
+    @requires_load_dynamic
+    def test_issue16421_multiple_modules_in_one_dll(self):
+        # Issue 16421: loading several modules from the same compiled file fails
+        m = '_testimportmultiple'
+        fileobj, pathname, description = imp.find_module(m)
+        fileobj.close()
+        mod0 = imp.load_dynamic(m, pathname)
+        mod1 = imp.load_dynamic('_testimportmultiple_foo', pathname)
+        mod2 = imp.load_dynamic('_testimportmultiple_bar', pathname)
+        self.assertEqual(mod0.__name__, m)
+        self.assertEqual(mod1.__name__, '_testimportmultiple_foo')
+        self.assertEqual(mod2.__name__, '_testimportmultiple_bar')
+        with self.assertRaises(ImportError):
+            imp.load_dynamic('nonexistent', pathname)
+
+    @requires_load_dynamic
+    def test_load_dynamic_ImportError_path(self):
+        # Issue #1559549 added `name` and `path` attributes to ImportError
+        # in order to provide better detail. Issue #10854 implemented those
+        # attributes on import failures of extensions on Windows.
+        path = 'bogus file path'
+        name = 'extension'
+        with self.assertRaises(ImportError) as err:
+            imp.load_dynamic(name, path)
+        self.assertIn(path, err.exception.path)
+        self.assertEqual(name, err.exception.name)
+
+    @requires_load_dynamic
+    def test_load_module_extension_file_is_None(self):
+        # When loading an extension module and the file is None, open one
+        # on the behalf of imp.load_dynamic().
+        # Issue #15902
+        name = '_testimportmultiple'
+        found = imp.find_module(name)
+        if found[0] is not None:
+            found[0].close()
+        if found[2][2] != imp.C_EXTENSION:
+            self.skipTest("found module doesn't appear to be a C extension")
+        imp.load_module(name, None, *found[1:])
+
+    @unittest.skipIf(sys.dont_write_bytecode,
+        "test meaningful only when writing bytecode")
+    def test_bug7732(self):
+        with support.temp_cwd():
+            source = support.TESTFN + '.py'
+            os.mkdir(source)
+            self.assertRaisesRegex(ImportError, '^No module',
+                imp.find_module, support.TESTFN, ["."])
+
+    def test_multiple_calls_to_get_data(self):
+        # Issue #18755: make sure multiple calls to get_data() can succeed.
+        loader = imp._LoadSourceCompatibility('imp', imp.__file__,
+                                              open(imp.__file__))
+        loader.get_data(imp.__file__)  # File should be closed
+        loader.get_data(imp.__file__)  # Will need to create a newly opened file
 
 
 class ReloadTests(unittest.TestCase):
@@ -205,78 +319,99 @@ class ReloadTests(unittest.TestCase):
             import marshal
             imp.reload(marshal)
 
+    def test_with_deleted_parent(self):
+        # see #18681
+        from html import parser
+        html = sys.modules.pop('html')
+        def cleanup():
+            sys.modules['html'] = html
+        self.addCleanup(cleanup)
+        with self.assertRaisesRegex(ImportError, 'html'):
+            imp.reload(parser)
+
 
 class PEP3147Tests(unittest.TestCase):
     """Tests of PEP 3147."""
 
     tag = imp.get_tag()
 
+    @unittest.skipUnless(sys.implementation.cache_tag is not None,
+                         'requires sys.implementation.cache_tag not be None')
     def test_cache_from_source(self):
         # Given the path to a .py file, return the path to its PEP 3147
         # defined .pyc file (i.e. under __pycache__).
-        self.assertEqual(
-            imp.cache_from_source('/foo/bar/baz/qux.py', True),
-            '/foo/bar/baz/__pycache__/qux.{}.pyc'.format(self.tag))
+        path = os.path.join('foo', 'bar', 'baz', 'qux.py')
+        expect = os.path.join('foo', 'bar', 'baz', '__pycache__',
+                              'qux.{}.pyc'.format(self.tag))
+        self.assertEqual(imp.cache_from_source(path, True), expect)
+
+    def test_cache_from_source_no_cache_tag(self):
+        # Non cache tag means NotImplementedError.
+        with support.swap_attr(sys.implementation, 'cache_tag', None):
+            with self.assertRaises(NotImplementedError):
+                imp.cache_from_source('whatever.py')
+
+    def test_cache_from_source_no_dot(self):
+        # Directory with a dot, filename without dot.
+        path = os.path.join('foo.bar', 'file')
+        expect = os.path.join('foo.bar', '__pycache__',
+                              'file{}.pyc'.format(self.tag))
+        self.assertEqual(imp.cache_from_source(path, True), expect)
 
     def test_cache_from_source_optimized(self):
         # Given the path to a .py file, return the path to its PEP 3147
         # defined .pyo file (i.e. under __pycache__).
-        self.assertEqual(
-            imp.cache_from_source('/foo/bar/baz/qux.py', False),
-            '/foo/bar/baz/__pycache__/qux.{}.pyo'.format(self.tag))
+        path = os.path.join('foo', 'bar', 'baz', 'qux.py')
+        expect = os.path.join('foo', 'bar', 'baz', '__pycache__',
+                              'qux.{}.pyo'.format(self.tag))
+        self.assertEqual(imp.cache_from_source(path, False), expect)
 
     def test_cache_from_source_cwd(self):
-        self.assertEqual(imp.cache_from_source('foo.py', True),
-                         os.sep.join(('__pycache__',
-                                      'foo.{}.pyc'.format(self.tag))))
+        path = 'foo.py'
+        expect = os.path.join('__pycache__', 'foo.{}.pyc'.format(self.tag))
+        self.assertEqual(imp.cache_from_source(path, True), expect)
 
     def test_cache_from_source_override(self):
         # When debug_override is not None, it can be any true-ish or false-ish
         # value.
-        self.assertEqual(
-            imp.cache_from_source('/foo/bar/baz.py', []),
-            '/foo/bar/__pycache__/baz.{}.pyo'.format(self.tag))
-        self.assertEqual(
-            imp.cache_from_source('/foo/bar/baz.py', [17]),
-            '/foo/bar/__pycache__/baz.{}.pyc'.format(self.tag))
+        path = os.path.join('foo', 'bar', 'baz.py')
+        partial_expect = os.path.join('foo', 'bar', '__pycache__',
+                                      'baz.{}.py'.format(self.tag))
+        self.assertEqual(imp.cache_from_source(path, []), partial_expect + 'o')
+        self.assertEqual(imp.cache_from_source(path, [17]),
+                         partial_expect + 'c')
         # However if the bool-ishness can't be determined, the exception
         # propagates.
         class Bearish:
             def __bool__(self): raise RuntimeError
-        self.assertRaises(
-            RuntimeError,
-            imp.cache_from_source, '/foo/bar/baz.py', Bearish())
+        with self.assertRaises(RuntimeError):
+            imp.cache_from_source('/foo/bar/baz.py', Bearish())
 
-    @unittest.skipIf(os.altsep is None,
-                     'test meaningful only where os.altsep is defined')
-    def test_altsep_cache_from_source(self):
-        # Windows path and PEP 3147.
-        self.assertEqual(
-            imp.cache_from_source('\\foo\\bar\\baz\\qux.py', True),
-            '\\foo\\bar\\baz\\__pycache__\\qux.{}.pyc'.format(self.tag))
-
-    @unittest.skipIf(os.altsep is None,
-                     'test meaningful only where os.altsep is defined')
-    def test_altsep_and_sep_cache_from_source(self):
-        # Windows path and PEP 3147 where altsep is right of sep.
-        self.assertEqual(
-            imp.cache_from_source('\\foo\\bar/baz\\qux.py', True),
-            '\\foo\\bar/baz\\__pycache__\\qux.{}.pyc'.format(self.tag))
-
-    @unittest.skipIf(os.altsep is None,
+    @unittest.skipUnless(os.sep == '\\' and os.altsep == '/',
                      'test meaningful only where os.altsep is defined')
     def test_sep_altsep_and_sep_cache_from_source(self):
         # Windows path and PEP 3147 where sep is right of altsep.
         self.assertEqual(
             imp.cache_from_source('\\foo\\bar\\baz/qux.py', True),
-            '\\foo\\bar\\baz/__pycache__/qux.{}.pyc'.format(self.tag))
+            '\\foo\\bar\\baz\\__pycache__\\qux.{}.pyc'.format(self.tag))
 
+    @unittest.skipUnless(sys.implementation.cache_tag is not None,
+                         'requires sys.implementation.cache_tag to not be '
+                         'None')
     def test_source_from_cache(self):
         # Given the path to a PEP 3147 defined .pyc file, return the path to
         # its source.  This tests the good path.
-        self.assertEqual(imp.source_from_cache(
-            '/foo/bar/baz/__pycache__/qux.{}.pyc'.format(self.tag)),
-            '/foo/bar/baz/qux.py')
+        path = os.path.join('foo', 'bar', 'baz', '__pycache__',
+                            'qux.{}.pyc'.format(self.tag))
+        expect = os.path.join('foo', 'bar', 'baz', 'qux.py')
+        self.assertEqual(imp.source_from_cache(path), expect)
+
+    def test_source_from_cache_no_cache_tag(self):
+        # If sys.implementation.cache_tag is None, raise NotImplementedError.
+        path = os.path.join('blah', '__pycache__', 'whatever.pyc')
+        with support.swap_attr(sys.implementation, 'cache_tag', None):
+            with self.assertRaises(NotImplementedError):
+                imp.source_from_cache(path)
 
     def test_source_from_cache_bad_path(self):
         # When the path to a pyc file is not in PEP 3147 format, a ValueError
@@ -307,6 +442,12 @@ class PEP3147Tests(unittest.TestCase):
             '/foo/bar/foo.cpython-32.foo.pyc')
 
     def test_package___file__(self):
+        try:
+            m = __import__('pep3147')
+        except ImportError:
+            pass
+        else:
+            self.fail("pep3147 module already exists: %r" % (m,))
         # Test that a package's __file__ points to the right source directory.
         os.mkdir('pep3147')
         sys.path.insert(0, os.curdir)
@@ -316,14 +457,16 @@ class PEP3147Tests(unittest.TestCase):
             shutil.rmtree('pep3147')
         self.addCleanup(cleanup)
         # Touch the __init__.py file.
-        with open('pep3147/__init__.py', 'w'):
-            pass
+        support.create_empty_file('pep3147/__init__.py')
+        importlib.invalidate_caches()
+        expected___file__ = os.sep.join(('.', 'pep3147', '__init__.py'))
         m = __import__('pep3147')
+        self.assertEqual(m.__file__, expected___file__, (m.__file__, m.__path__, sys.path, sys.path_importer_cache))
         # Ensure we load the pyc file.
-        support.forget('pep3147')
+        support.unload('pep3147')
         m = __import__('pep3147')
-        self.assertEqual(m.__file__,
-                         os.sep.join(('.', 'pep3147', '__init__.py')))
+        support.unload('pep3147')
+        self.assertEqual(m.__file__, expected___file__, (m.__file__, m.__path__, sys.path, sys.path_importer_cache))
 
 
 class NullImporterTests(unittest.TestCase):
@@ -338,20 +481,5 @@ class NullImporterTests(unittest.TestCase):
             os.rmdir(name)
 
 
-def test_main():
-    tests = [
-        ImportTests,
-        PEP3147Tests,
-        ReloadTests,
-        NullImporterTests,
-        ]
-    try:
-        import _thread
-    except ImportError:
-        pass
-    else:
-        tests.append(LockTests)
-    support.run_unittest(*tests)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

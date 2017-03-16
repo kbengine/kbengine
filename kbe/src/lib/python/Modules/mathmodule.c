@@ -55,11 +55,6 @@ raised for division by zero and mod by zero.
 #include "Python.h"
 #include "_math.h"
 
-#ifdef _OSF_SOURCE
-/* OSF1 5.1 doesn't make this available with XOPEN_SOURCE_EXTENDED defined */
-extern double copysign(double, double);
-#endif
-
 /*
    sin(pi*x), giving accurate results for all finite x (especially x
    integral or close to an integer).  This is here for use in the
@@ -244,7 +239,8 @@ m_tgamma(double x)
     }
     if (x == 0.0) {
         errno = EDOM;
-        return 1.0/x; /* tgamma(+-0.0) = +-inf, divide-by-zero */
+        /* tgamma(+-0.0) = +-inf, divide-by-zero */
+        return copysign(Py_HUGE_VAL, x);
     }
 
     /* integer arguments */
@@ -582,6 +578,61 @@ m_log(double x)
     }
 }
 
+/*
+   log2: log to base 2.
+
+   Uses an algorithm that should:
+
+     (a) produce exact results for powers of 2, and
+     (b) give a monotonic log2 (for positive finite floats),
+         assuming that the system log is monotonic.
+*/
+
+static double
+m_log2(double x)
+{
+    if (!Py_IS_FINITE(x)) {
+        if (Py_IS_NAN(x))
+            return x; /* log2(nan) = nan */
+        else if (x > 0.0)
+            return x; /* log2(+inf) = +inf */
+        else {
+            errno = EDOM;
+            return Py_NAN; /* log2(-inf) = nan, invalid-operation */
+        }
+    }
+
+    if (x > 0.0) {
+#ifdef HAVE_LOG2
+        return log2(x);
+#else
+        double m;
+        int e;
+        m = frexp(x, &e);
+        /* We want log2(m * 2**e) == log(m) / log(2) + e.  Care is needed when
+         * x is just greater than 1.0: in that case e is 1, log(m) is negative,
+         * and we get significant cancellation error from the addition of
+         * log(m) / log(2) to e.  The slight rewrite of the expression below
+         * avoids this problem.
+         */
+        if (x >= 1.0) {
+            return log(2.0 * m) / log(2.0) + (e - 1);
+        }
+        else {
+            return log(m) / log(2.0) + e;
+        }
+#endif
+    }
+    else if (x == 0.0) {
+        errno = EDOM;
+        return -Py_HUGE_VAL; /* log2(0) = -inf, divide-by-zero */
+    }
+    else {
+        errno = EDOM;
+        return Py_NAN; /* log2(-inf) = nan, invalid-operation */
+    }
+}
+
 static double
 m_log10(double x)
 {
@@ -836,10 +887,10 @@ FUNC1(atanh, m_atanh, 0,
       "atanh(x)\n\nReturn the hyperbolic arc tangent (measured in radians) of x.")
 
 static PyObject * math_ceil(PyObject *self, PyObject *number) {
-    static PyObject *ceil_str = NULL;
+    _Py_IDENTIFIER(__ceil__);
     PyObject *method, *result;
 
-    method = _PyObject_LookupSpecial(number, "__ceil__", &ceil_str);
+    method = _PyObject_LookupSpecial(number, &PyId___ceil__);
     if (method == NULL) {
         if (PyErr_Occurred())
             return NULL;
@@ -855,7 +906,9 @@ PyDoc_STRVAR(math_ceil_doc,
              "This is the smallest integral value >= x.");
 
 FUNC2(copysign, copysign,
-      "copysign(x, y)\n\nReturn x with the sign of y.")
+      "copysign(x, y)\n\nReturn a float with the magnitude (absolute value) "
+      "of x but the sign \nof y. On platforms that support signed zeros, "
+      "copysign(1.0, -0.0) \nreturns -1.0.\n")
 FUNC1(cos, cos, 0,
       "cos(x)\n\nReturn the cosine of x (measured in radians).")
 FUNC1(cosh, cosh, 1,
@@ -874,10 +927,10 @@ FUNC1(fabs, fabs, 0,
       "fabs(x)\n\nReturn the absolute value of the float x.")
 
 static PyObject * math_floor(PyObject *self, PyObject *number) {
-    static PyObject *floor_str = NULL;
+    _Py_IDENTIFIER(__floor__);
     PyObject *method, *result;
 
-    method = _PyObject_LookupSpecial(number, "__floor__", &floor_str);
+    method = _PyObject_LookupSpecial(number, &PyId___floor__);
     if (method == NULL) {
         if (PyErr_Occurred())
             return NULL;
@@ -1383,7 +1436,7 @@ math_factorial(PyObject *self, PyObject *arg)
     }
 
     /* use lookup table if x is small */
-    if (x < (long)(sizeof(SmallFactorials)/sizeof(SmallFactorials[0])))
+    if (x < (long)Py_ARRAY_LENGTH(SmallFactorials))
         return PyLong_FromUnsignedLong(SmallFactorials[x]);
 
     /* else express in the form odd_part * 2**two_valuation, and compute as
@@ -1410,7 +1463,7 @@ PyDoc_STRVAR(math_factorial_doc,
 static PyObject *
 math_trunc(PyObject *self, PyObject *number)
 {
-    static PyObject *trunc_str = NULL;
+    _Py_IDENTIFIER(__trunc__);
     PyObject *trunc, *result;
 
     if (Py_TYPE(number)->tp_dict == NULL) {
@@ -1418,7 +1471,7 @@ math_trunc(PyObject *self, PyObject *number)
             return NULL;
     }
 
-    trunc = _PyObject_LookupSpecial(number, "__trunc__", &trunc_str);
+    trunc = _PyObject_LookupSpecial(number, &PyId___trunc__);
     if (trunc == NULL) {
         if (!PyErr_Occurred())
             PyErr_Format(PyExc_TypeError,
@@ -1484,8 +1537,7 @@ math_ldexp(PyObject *self, PyObject *args)
     }
     else {
         PyErr_SetString(PyExc_TypeError,
-                        "Expected an int or long as second argument "
-                        "to ldexp.");
+                        "Expected an int as second argument to ldexp.");
         return NULL;
     }
 
@@ -1547,19 +1599,19 @@ PyDoc_STRVAR(math_modf_doc,
 "Return the fractional and integer parts of x.  Both results carry the sign\n"
 "of x and are floats.");
 
-/* A decent logarithm is easy to compute even for huge longs, but libm can't
+/* A decent logarithm is easy to compute even for huge ints, but libm can't
    do that by itself -- loghelper can.  func is log or log10, and name is
-   "log" or "log10".  Note that overflow of the result isn't possible: a long
+   "log" or "log10".  Note that overflow of the result isn't possible: an int
    can contain no more than INT_MAX * SHIFT bits, so has value certainly less
    than 2**(2**64 * 2**16) == 2**2**80, and log2 of that is 2**80, which is
    small enough to fit in an IEEE single.  log and log10 are even smaller.
-   However, intermediate overflow is possible for a long if the number of bits
-   in that long is larger than PY_SSIZE_T_MAX. */
+   However, intermediate overflow is possible for an int if the number of bits
+   in that int is larger than PY_SSIZE_T_MAX. */
 
 static PyObject*
 loghelper(PyObject* arg, double (*func)(double), char *funcname)
 {
-    /* If it is long, do it ourselves. */
+    /* If it is int, do it ourselves. */
     if (PyLong_Check(arg)) {
         double x, result;
         Py_ssize_t e;
@@ -1625,6 +1677,15 @@ PyDoc_STRVAR(math_log_doc,
 "log(x[, base])\n\n\
 Return the logarithm of x to the given base.\n\
 If the base not specified, returns the natural logarithm (base e) of x.");
+
+static PyObject *
+math_log2(PyObject *self, PyObject *arg)
+{
+    return loghelper(arg, m_log2, "log2");
+}
+
+PyDoc_STRVAR(math_log2_doc,
+"log2(x)\n\nReturn the base 2 logarithm of x.");
 
 static PyObject *
 math_log10(PyObject *self, PyObject *arg)
@@ -1898,6 +1959,7 @@ static PyMethodDef math_methods[] = {
     {"log",             math_log,       METH_VARARGS,   math_log_doc},
     {"log1p",           math_log1p,     METH_O,         math_log1p_doc},
     {"log10",           math_log10,     METH_O,         math_log10_doc},
+    {"log2",            math_log2,      METH_O,         math_log2_doc},
     {"modf",            math_modf,      METH_O,         math_modf_doc},
     {"pow",             math_pow,       METH_VARARGS,   math_pow_doc},
     {"radians",         math_radians,   METH_O,         math_radians_doc},

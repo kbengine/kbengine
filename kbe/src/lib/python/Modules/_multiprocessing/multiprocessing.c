@@ -3,39 +3,30 @@
  *
  * multiprocessing.c
  *
- * Copyright (c) 2006-2008, R Oudkerk --- see COPYING.txt
+ * Copyright (c) 2006-2008, R Oudkerk
+ * Licensed to PSF under a Contributor Agreement.
  */
 
 #include "multiprocessing.h"
 
-#if (defined(CMSG_LEN) && defined(SCM_RIGHTS))
-    #define HAVE_FD_TRANSFER 1
-#else
-    #define HAVE_FD_TRANSFER 0
-#endif
-
-PyObject *create_win32_namespace(void);
-
-PyObject *pickle_dumps, *pickle_loads, *pickle_protocol;
-PyObject *ProcessError, *BufferTooShort;
 
 /*
  * Function which raises exceptions based on error codes
  */
 
 PyObject *
-mp_SetError(PyObject *Type, int num)
+_PyMp_SetError(PyObject *Type, int num)
 {
     switch (num) {
 #ifdef MS_WINDOWS
     case MP_STANDARD_ERROR:
         if (Type == NULL)
-            Type = PyExc_WindowsError;
+            Type = PyExc_OSError;
         PyErr_SetExcFromWindowsErr(Type, 0);
         break;
     case MP_SOCKET_ERROR:
         if (Type == NULL)
-            Type = PyExc_WindowsError;
+            Type = PyExc_OSError;
         PyErr_SetExcFromWindowsErr(Type, WSAGetLastError());
         break;
 #else /* !MS_WINDOWS */
@@ -49,189 +40,96 @@ mp_SetError(PyObject *Type, int num)
     case MP_MEMORY_ERROR:
         PyErr_NoMemory();
         break;
-    case MP_END_OF_FILE:
-        PyErr_SetNone(PyExc_EOFError);
-        break;
-    case MP_EARLY_END_OF_FILE:
-        PyErr_SetString(PyExc_IOError,
-                        "got end of file during message");
-        break;
-    case MP_BAD_MESSAGE_LENGTH:
-        PyErr_SetString(PyExc_IOError, "bad message length");
-        break;
     case MP_EXCEPTION_HAS_BEEN_SET:
         break;
     default:
         PyErr_Format(PyExc_RuntimeError,
-                     "unkown error number %d", num);
+                     "unknown error number %d", num);
     }
     return NULL;
 }
 
-
-/*
- * Windows only
- */
-
 #ifdef MS_WINDOWS
-
-/* On Windows we set an event to signal Ctrl-C; compare with timemodule.c */
-
-HANDLE sigint_event = NULL;
-
-static BOOL WINAPI
-ProcessingCtrlHandler(DWORD dwCtrlType)
-{
-    SetEvent(sigint_event);
-    return FALSE;
-}
-
-/*
- * Unix only
- */
-
-#else /* !MS_WINDOWS */
-
-#if HAVE_FD_TRANSFER
-
-/* Functions for transferring file descriptors between processes.
-   Reimplements some of the functionality of the fdcred
-   module at http://www.mca-ltd.com/resources/fdcred_1.tgz. */
-/* Based in http://resin.csoft.net/cgi-bin/man.cgi?section=3&topic=CMSG_DATA */
-
 static PyObject *
-multiprocessing_sendfd(PyObject *self, PyObject *args)
+multiprocessing_closesocket(PyObject *self, PyObject *args)
 {
-    int conn, fd, res;
-    struct iovec dummy_iov;
-    char dummy_char;
-    struct msghdr msg;
-    struct cmsghdr *cmsg;
-    union {
-        struct cmsghdr hdr;
-        unsigned char buf[CMSG_SPACE(sizeof(int))];
-    } cmsgbuf;
+    HANDLE handle;
+    int ret;
 
-    if (!PyArg_ParseTuple(args, "ii", &conn, &fd))
+    if (!PyArg_ParseTuple(args, F_HANDLE ":closesocket" , &handle))
         return NULL;
 
-    dummy_iov.iov_base = &dummy_char;
-    dummy_iov.iov_len = 1;
-
-    memset(&msg, 0, sizeof(msg));
-    msg.msg_control = &cmsgbuf.buf;
-    msg.msg_controllen = sizeof(cmsgbuf.buf);
-    msg.msg_iov = &dummy_iov;
-    msg.msg_iovlen = 1;
-
-    cmsg = CMSG_FIRSTHDR(&msg);
-    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-    cmsg->cmsg_level = SOL_SOCKET;
-    cmsg->cmsg_type = SCM_RIGHTS;
-    * (int *) CMSG_DATA(cmsg) = fd;
-
     Py_BEGIN_ALLOW_THREADS
-    res = sendmsg(conn, &msg, 0);
+    ret = closesocket((SOCKET) handle);
     Py_END_ALLOW_THREADS
 
-    if (res < 0)
-        return PyErr_SetFromErrno(PyExc_OSError);
+    if (ret)
+        return PyErr_SetExcFromWindowsErr(PyExc_IOError, WSAGetLastError());
     Py_RETURN_NONE;
 }
 
 static PyObject *
-multiprocessing_recvfd(PyObject *self, PyObject *args)
+multiprocessing_recv(PyObject *self, PyObject *args)
 {
-    int conn, fd, res;
-    char dummy_char;
-    struct iovec dummy_iov;
-    struct msghdr msg = {0};
-    struct cmsghdr *cmsg;
-    union {
-        struct cmsghdr hdr;
-        unsigned char buf[CMSG_SPACE(sizeof(int))];
-    } cmsgbuf;
+    HANDLE handle;
+    int size, nread;
+    PyObject *buf;
 
-    if (!PyArg_ParseTuple(args, "i", &conn))
+    if (!PyArg_ParseTuple(args, F_HANDLE "i:recv" , &handle, &size))
         return NULL;
 
-    dummy_iov.iov_base = &dummy_char;
-    dummy_iov.iov_len = 1;
-
-    memset(&msg, 0, sizeof(msg));
-    msg.msg_control = &cmsgbuf.buf;
-    msg.msg_controllen = sizeof(cmsgbuf.buf);
-    msg.msg_iov = &dummy_iov;
-    msg.msg_iovlen = 1;
-
-    cmsg = CMSG_FIRSTHDR(&msg);
-    cmsg->cmsg_level = SOL_SOCKET;
-    cmsg->cmsg_type = SCM_RIGHTS;
-    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-    msg.msg_controllen = cmsg->cmsg_len;
+    buf = PyBytes_FromStringAndSize(NULL, size);
+    if (!buf)
+        return NULL;
 
     Py_BEGIN_ALLOW_THREADS
-    res = recvmsg(conn, &msg, 0);
+    nread = recv((SOCKET) handle, PyBytes_AS_STRING(buf), size, 0);
     Py_END_ALLOW_THREADS
 
-    if (res < 0)
-        return PyErr_SetFromErrno(PyExc_OSError);
-
-    if (msg.msg_controllen < CMSG_LEN(sizeof(int)) ||
-        (cmsg = CMSG_FIRSTHDR(&msg)) == NULL ||
-        cmsg->cmsg_level != SOL_SOCKET ||
-        cmsg->cmsg_type != SCM_RIGHTS ||
-        cmsg->cmsg_len < CMSG_LEN(sizeof(int))) {
-        /* If at least one control message is present, there should be
-           no room for any further data in the buffer. */
-        PyErr_SetString(PyExc_RuntimeError, "No file descriptor received");
-        return NULL;
+    if (nread < 0) {
+        Py_DECREF(buf);
+        return PyErr_SetExcFromWindowsErr(PyExc_IOError, WSAGetLastError());
     }
-
-    fd = * (int *) CMSG_DATA(cmsg);
-    return Py_BuildValue("i", fd);
+    _PyBytes_Resize(&buf, nread);
+    return buf;
 }
 
-#endif /* HAVE_FD_TRANSFER */
-
-#endif /* !MS_WINDOWS */
-
-
-/*
- * All platforms
- */
-
-static PyObject*
-multiprocessing_address_of_buffer(PyObject *self, PyObject *obj)
+static PyObject *
+multiprocessing_send(PyObject *self, PyObject *args)
 {
-    void *buffer;
-    Py_ssize_t buffer_len;
+    HANDLE handle;
+    Py_buffer buf;
+    int ret, length;
 
-    if (PyObject_AsWriteBuffer(obj, &buffer, &buffer_len) < 0)
+    if (!PyArg_ParseTuple(args, F_HANDLE "y*:send" , &handle, &buf))
         return NULL;
 
-    return Py_BuildValue("N" F_PY_SSIZE_T,
-                         PyLong_FromVoidPtr(buffer), buffer_len);
+    length = (int)Py_MIN(buf.len, INT_MAX);
+
+    Py_BEGIN_ALLOW_THREADS
+    ret = send((SOCKET) handle, buf.buf, length, 0);
+    Py_END_ALLOW_THREADS
+
+    PyBuffer_Release(&buf);
+    if (ret < 0)
+        return PyErr_SetExcFromWindowsErr(PyExc_IOError, WSAGetLastError());
+    return PyLong_FromLong(ret);
 }
 
+#endif
 
 /*
  * Function table
  */
 
 static PyMethodDef module_methods[] = {
-    {"address_of_buffer", multiprocessing_address_of_buffer, METH_O,
-     "address_of_buffer(obj) -> int\n"
-     "Return address of obj assuming obj supports buffer inteface"},
-#if HAVE_FD_TRANSFER
-    {"sendfd", multiprocessing_sendfd, METH_VARARGS,
-     "sendfd(sockfd, fd) -> None\n"
-     "Send file descriptor given by fd over the unix domain socket\n"
-     "whose file decriptor is sockfd"},
-    {"recvfd", multiprocessing_recvfd, METH_VARARGS,
-     "recvfd(sockfd) -> fd\n"
-     "Receive a file descriptor over a unix domain socket\n"
-     "whose file decriptor is sockfd"},
+#ifdef MS_WINDOWS
+    {"closesocket", multiprocessing_closesocket, METH_VARARGS, ""},
+    {"recv", multiprocessing_recv, METH_VARARGS, ""},
+    {"send", multiprocessing_send, METH_VARARGS, ""},
+#endif
+#ifndef POSIX_SEMAPHORES_NOT_ENABLED
+    {"sem_unlink", _PyMp_sem_unlink, METH_VARARGS, ""},
 #endif
     {NULL}
 };
@@ -257,41 +155,19 @@ static struct PyModuleDef multiprocessing_module = {
 PyMODINIT_FUNC
 PyInit__multiprocessing(void)
 {
-    PyObject *module, *temp, *value;
+    PyObject *module, *temp, *value = NULL;
 
     /* Initialize module */
     module = PyModule_Create(&multiprocessing_module);
     if (!module)
         return NULL;
 
-    /* Get copy of objects from pickle */
-    temp = PyImport_ImportModule(PICKLE_MODULE);
-    if (!temp)
-        return NULL;
-    pickle_dumps = PyObject_GetAttrString(temp, "dumps");
-    pickle_loads = PyObject_GetAttrString(temp, "loads");
-    pickle_protocol = PyObject_GetAttrString(temp, "HIGHEST_PROTOCOL");
-    Py_XDECREF(temp);
-
-    /* Get copy of BufferTooShort */
-    temp = PyImport_ImportModule("multiprocessing");
-    if (!temp)
-        return NULL;
-    BufferTooShort = PyObject_GetAttrString(temp, "BufferTooShort");
-    Py_XDECREF(temp);
-
-    /* Add connection type to module */
-    if (PyType_Ready(&ConnectionType) < 0)
-        return NULL;
-    Py_INCREF(&ConnectionType);
-    PyModule_AddObject(module, "Connection", (PyObject*)&ConnectionType);
-
 #if defined(MS_WINDOWS) ||                                              \
   (defined(HAVE_SEM_OPEN) && !defined(POSIX_SEMAPHORES_NOT_ENABLED))
-    /* Add SemLock type to module */
-    if (PyType_Ready(&SemLockType) < 0)
+    /* Add _PyMp_SemLock type to module */
+    if (PyType_Ready(&_PyMp_SemLockType) < 0)
         return NULL;
-    Py_INCREF(&SemLockType);
+    Py_INCREF(&_PyMp_SemLockType);
     {
         PyObject *py_sem_value_max;
         /* Some systems define SEM_VALUE_MAX as an unsigned value that
@@ -302,36 +178,10 @@ PyInit__multiprocessing(void)
             py_sem_value_max = PyLong_FromLong(SEM_VALUE_MAX);
         if (py_sem_value_max == NULL)
             return NULL;
-        PyDict_SetItemString(SemLockType.tp_dict, "SEM_VALUE_MAX",
+        PyDict_SetItemString(_PyMp_SemLockType.tp_dict, "SEM_VALUE_MAX",
                              py_sem_value_max);
     }
-    PyModule_AddObject(module, "SemLock", (PyObject*)&SemLockType);
-#endif
-
-#ifdef MS_WINDOWS
-    /* Add PipeConnection to module */
-    if (PyType_Ready(&PipeConnectionType) < 0)
-        return NULL;
-    Py_INCREF(&PipeConnectionType);
-    PyModule_AddObject(module, "PipeConnection",
-                       (PyObject*)&PipeConnectionType);
-
-    /* Initialize win32 class and add to multiprocessing */
-    temp = create_win32_namespace();
-    if (!temp)
-        return NULL;
-    PyModule_AddObject(module, "win32", temp);
-
-    /* Initialize the event handle used to signal Ctrl-C */
-    sigint_event = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (!sigint_event) {
-        PyErr_SetFromWindowsErr(0);
-        return NULL;
-    }
-    if (!SetConsoleCtrlHandler(ProcessingCtrlHandler, TRUE)) {
-        PyErr_SetFromWindowsErr(0);
-        return NULL;
-    }
+    PyModule_AddObject(module, "SemLock", (PyObject*)&_PyMp_SemLockType);
 #endif
 
     /* Add configuration macros */
@@ -343,7 +193,7 @@ PyInit__multiprocessing(void)
     value = Py_BuildValue("i", name);                             \
     if (value == NULL) { Py_DECREF(temp); return NULL; }          \
     if (PyDict_SetItemString(temp, #name, value) < 0) {           \
-        Py_DECREF(temp); Py_DECREF(value); return NULL; }                 \
+        Py_DECREF(temp); Py_DECREF(value); return NULL; }         \
     Py_DECREF(value)
 
 #if defined(HAVE_SEM_OPEN) && !defined(POSIX_SEMAPHORES_NOT_ENABLED)
@@ -351,9 +201,6 @@ PyInit__multiprocessing(void)
 #endif
 #ifdef HAVE_SEM_TIMEDWAIT
     ADD_FLAG(HAVE_SEM_TIMEDWAIT);
-#endif
-#ifdef HAVE_FD_TRANSFER
-    ADD_FLAG(HAVE_FD_TRANSFER);
 #endif
 #ifdef HAVE_BROKEN_SEM_GETVALUE
     ADD_FLAG(HAVE_BROKEN_SEM_GETVALUE);

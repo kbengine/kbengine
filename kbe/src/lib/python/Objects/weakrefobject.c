@@ -155,36 +155,32 @@ weakref_hash(PyWeakReference *self)
 static PyObject *
 weakref_repr(PyWeakReference *self)
 {
-    char buffer[256];
-    if (PyWeakref_GET_OBJECT(self) == Py_None) {
-        PyOS_snprintf(buffer, sizeof(buffer), "<weakref at %p; dead>", self);
+    PyObject *name, *repr;
+    _Py_IDENTIFIER(__name__);
+
+    if (PyWeakref_GET_OBJECT(self) == Py_None)
+        return PyUnicode_FromFormat("<weakref at %p; dead>", self);
+
+    name = _PyObject_GetAttrId(PyWeakref_GET_OBJECT(self), &PyId___name__);
+    if (name == NULL || !PyUnicode_Check(name)) {
+        if (name == NULL)
+            PyErr_Clear();
+        repr = PyUnicode_FromFormat(
+            "<weakref at %p; to '%s' at %p>",
+            self,
+            Py_TYPE(PyWeakref_GET_OBJECT(self))->tp_name,
+            PyWeakref_GET_OBJECT(self));
     }
     else {
-        char *name = NULL;
-        PyObject *nameobj = PyObject_GetAttrString(PyWeakref_GET_OBJECT(self),
-                                                   "__name__");
-        if (nameobj == NULL)
-                PyErr_Clear();
-        else if (PyUnicode_Check(nameobj))
-                name = _PyUnicode_AsString(nameobj);
-        if (name != NULL) {
-            PyOS_snprintf(buffer, sizeof(buffer),
-                          "<weakref at %p; to '%.50s' at %p (%s)>",
-                          self,
-                          Py_TYPE(PyWeakref_GET_OBJECT(self))->tp_name,
-                          PyWeakref_GET_OBJECT(self),
-                          name);
-        }
-        else {
-            PyOS_snprintf(buffer, sizeof(buffer),
-                          "<weakref at %p; to '%.50s' at %p>",
-                          self,
-                          Py_TYPE(PyWeakref_GET_OBJECT(self))->tp_name,
-                          PyWeakref_GET_OBJECT(self));
-        }
-        Py_XDECREF(nameobj);
+        repr = PyUnicode_FromFormat(
+            "<weakref at %p; to '%s' at %p (%U)>",
+            self,
+            Py_TYPE(PyWeakref_GET_OBJECT(self))->tp_name,
+            PyWeakref_GET_OBJECT(self),
+            name);
     }
-    return PyUnicode_FromString(buffer);
+    Py_XDECREF(name);
+    return repr;
 }
 
 /* Weak references only support equality, not ordering. Two weak references
@@ -197,8 +193,7 @@ weakref_richcompare(PyWeakReference* self, PyWeakReference* other, int op)
     if ((op != Py_EQ && op != Py_NE) ||
         !PyWeakref_Check(self) ||
         !PyWeakref_Check(other)) {
-        Py_INCREF(Py_NotImplemented);
-        return Py_NotImplemented;
+        Py_RETURN_NOTIMPLEMENTED;
     }
     if (PyWeakref_GET_OBJECT(self) == Py_None
         || PyWeakref_GET_OBJECT(other) == Py_None) {
@@ -343,6 +338,11 @@ weakref___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 
 
+static PyMemberDef weakref_members[] = {
+    {"__callback__", T_OBJECT, offsetof(PyWeakReference, wr_callback), READONLY},
+    {NULL} /* Sentinel */
+};
+
 PyTypeObject
 _PyWeakref_RefType = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
@@ -374,7 +374,7 @@ _PyWeakref_RefType = {
     0,                          /*tp_iter*/
     0,                          /*tp_iternext*/
     0,                          /*tp_methods*/
-    0,                          /*tp_members*/
+    weakref_members,            /*tp_members*/
     0,                          /*tp_getset*/
     0,                          /*tp_base*/
     0,                          /*tp_dict*/
@@ -449,8 +449,9 @@ proxy_checkref(PyWeakReference *proxy)
 #define WRAP_METHOD(method, special) \
     static PyObject * \
     method(PyObject *proxy) { \
+            _Py_IDENTIFIER(special); \
             UNWRAP(proxy); \
-                return PyObject_CallMethod(proxy, special, ""); \
+                return _PyObject_CallMethodId(proxy, &PyId_##special, ""); \
         }
 
 
@@ -463,12 +464,11 @@ WRAP_TERNARY(proxy_call, PyEval_CallObjectWithKeywords)
 static PyObject *
 proxy_repr(PyWeakReference *proxy)
 {
-    char buf[160];
-    PyOS_snprintf(buf, sizeof(buf),
-                  "<weakproxy at %p to %.100s at %p>", proxy,
-                  Py_TYPE(PyWeakref_GET_OBJECT(proxy))->tp_name,
-                  PyWeakref_GET_OBJECT(proxy));
-    return PyUnicode_FromString(buf);
+    return PyUnicode_FromFormat(
+        "<weakproxy at %p to %s at %p>",
+        proxy,
+        Py_TYPE(PyWeakref_GET_OBJECT(proxy))->tp_name,
+        PyWeakref_GET_OBJECT(proxy));
 }
 
 
@@ -594,7 +594,7 @@ proxy_iternext(PyWeakReference *proxy)
 }
 
 
-WRAP_METHOD(proxy_bytes, "__bytes__")
+WRAP_METHOD(proxy_bytes, __bytes__)
 
 
 static PyMethodDef proxy_methods[] = {

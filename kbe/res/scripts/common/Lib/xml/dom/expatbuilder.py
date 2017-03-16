@@ -33,8 +33,6 @@ from xml.parsers import expat
 from xml.dom.minidom import _append_child, _set_attribute_node
 from xml.dom.NodeFilter import NodeFilter
 
-from xml.dom.minicompat import *
-
 TEXT_NODE = Node.TEXT_NODE
 CDATA_SECTION_NODE = Node.CDATA_SECTION_NODE
 DOCUMENT_NODE = Node.DOCUMENT_NODE
@@ -123,10 +121,12 @@ def _parse_ns_name(builder, name):
         qname = "%s:%s" % (prefix, localname)
         qname = intern(qname, qname)
         localname = intern(localname, localname)
-    else:
+    elif len(parts) == 2:
         uri, localname = parts
         prefix = EMPTY_PREFIX
         qname = localname = intern(localname, localname)
+    else:
+        raise ValueError("Unsupported syntax: spaces in URIs not supported: %r" % name)
     return intern(uri, uri), localname, prefix, qname
 
 
@@ -283,27 +283,23 @@ class ExpatBuilder:
         elif childNodes and childNodes[-1].nodeType == TEXT_NODE:
             node = childNodes[-1]
             value = node.data + data
-            d = node.__dict__
-            d['data'] = d['nodeValue'] = value
+            node.data = value
             return
         else:
             node = minidom.Text()
-            d = node.__dict__
-            d['data'] = d['nodeValue'] = data
-            d['ownerDocument'] = self.document
+            node.data = data
+            node.ownerDocument = self.document
         _append_child(self.curNode, node)
 
     def character_data_handler(self, data):
         childNodes = self.curNode.childNodes
         if childNodes and childNodes[-1].nodeType == TEXT_NODE:
             node = childNodes[-1]
-            d = node.__dict__
-            d['data'] = d['nodeValue'] = node.data + data
+            node.data = node.data + data
             return
         node = minidom.Text()
-        d = node.__dict__
-        d['data'] = d['nodeValue'] = node.data + data
-        d['ownerDocument'] = self.document
+        node.data = node.data + data
+        node.ownerDocument = self.document
         _append_child(self.curNode, node)
 
     def entity_decl_handler(self, entityName, is_parameter_entity, value,
@@ -363,11 +359,8 @@ class ExpatBuilder:
                 a = minidom.Attr(attributes[i], EMPTY_NAMESPACE,
                                  None, EMPTY_PREFIX)
                 value = attributes[i+1]
-                d = a.childNodes[0].__dict__
-                d['data'] = d['nodeValue'] = value
-                d = a.__dict__
-                d['value'] = d['nodeValue'] = value
-                d['ownerDocument'] = self.document
+                a.value = value
+                a.ownerDocument = self.document
                 _set_attribute_node(node, a)
 
         if node is not self.document.documentElement:
@@ -761,15 +754,13 @@ class Namespaces:
                 else:
                     a = minidom.Attr("xmlns", XMLNS_NAMESPACE,
                                      "xmlns", EMPTY_PREFIX)
-                d = a.childNodes[0].__dict__
-                d['data'] = d['nodeValue'] = uri
-                d = a.__dict__
-                d['value'] = d['nodeValue'] = uri
-                d['ownerDocument'] = self.document
+                a.value = uri
+                a.ownerDocument = self.document
                 _set_attribute_node(node, a)
             del self._ns_ordered_prefixes[:]
 
         if attributes:
+            node._ensure_attributes()
             _attrs = node._attrs
             _attrsNS = node._attrsNS
             for i in range(0, len(attributes), 2):
@@ -785,12 +776,9 @@ class Namespaces:
                                      aname, EMPTY_PREFIX)
                     _attrs[aname] = a
                     _attrsNS[(EMPTY_NAMESPACE, aname)] = a
-                d = a.childNodes[0].__dict__
-                d['data'] = d['nodeValue'] = value
-                d = a.__dict__
-                d['ownerDocument'] = self.document
-                d['value'] = d['nodeValue'] = value
-                d['ownerElement'] = node
+                a.ownerDocument = self.document
+                a.value = value
+                a.ownerElement = node
 
     if __debug__:
         # This only adds some asserts to the original
@@ -919,11 +907,8 @@ def parse(file, namespaces=True):
         builder = ExpatBuilder()
 
     if isinstance(file, str):
-        fp = open(file, 'rb')
-        try:
+        with open(file, 'rb') as fp:
             result = builder.parseFile(fp)
-        finally:
-            fp.close()
     else:
         result = builder.parseFile(file)
     return result
@@ -953,11 +938,8 @@ def parseFragment(file, context, namespaces=True):
         builder = FragmentBuilder(context)
 
     if isinstance(file, str):
-        fp = open(file, 'rb')
-        try:
+        with open(file, 'rb') as fp:
             result = builder.parseFile(fp)
-        finally:
-            fp.close()
     else:
         result = builder.parseFile(file)
     return result

@@ -23,37 +23,45 @@ algorithm (defined in Internet :rfc:`1321`).  The terms "secure hash" and
 digests.  The modern term is secure hash.
 
 .. note::
-   If you want the adler32 or crc32 hash functions they are available in
+
+   If you want the adler32 or crc32 hash functions, they are available in
    the :mod:`zlib` module.
 
 .. warning::
 
-   Some algorithms have known hash collision weaknesses, see the FAQ at the end.
+   Some algorithms have known hash collision weaknesses, refer to the "See
+   also" section at the end.
+
+
+.. _hash-algorithms:
+
+Hash algorithms
+---------------
 
 There is one constructor method named for each type of :dfn:`hash`.  All return
 a hash object with the same simple interface. For example: use :func:`sha1` to
-create a SHA1 hash object. You can now feed this object with objects conforming
-to the buffer interface (normally :class:`bytes` objects) using the
-:meth:`update` method.  At any point you can ask it for the :dfn:`digest` of the
+create a SHA1 hash object. You can now feed this object with :term:`bytes-like
+object`\ s (normally :class:`bytes`) using the :meth:`update` method.
+At any point you can ask it for the :dfn:`digest` of the
 concatenation of the data fed to it so far using the :meth:`digest` or
 :meth:`hexdigest` methods.
 
 .. note::
 
-   For better multithreading performance, the Python GIL is released for
-   strings of more than 2047 bytes at object creation or on update.
+   For better multithreading performance, the Python :term:`GIL` is released for
+   data larger than 2047 bytes at object creation or on update.
 
 .. note::
 
-   Feeding string objects is to :meth:`update` is not supported, as hashes work
+   Feeding string objects into :meth:`update` is not supported, as hashes work
    on bytes, not on characters.
 
 .. index:: single: OpenSSL; (use in module hashlib)
 
 Constructors for hash algorithms that are always present in this module are
-:func:`md5`, :func:`sha1`, :func:`sha224`, :func:`sha256`, :func:`sha384`, and
-:func:`sha512`.  Additional algorithms may also be available depending upon the
-OpenSSL library that Python uses on your platform.
+:func:`md5`, :func:`sha1`, :func:`sha224`, :func:`sha256`, :func:`sha384`,
+and :func:`sha512`. Additional algorithms may also be available depending upon
+the OpenSSL library that Python uses on your platform.
 
 For example, to obtain the digest of the byte string ``b'Nobody inspects the
 spammish repetition'``::
@@ -93,18 +101,18 @@ Hashlib provides the following constant attributes:
 
 .. data:: algorithms_guaranteed
 
-   Contains the names of the hash algorithms guaranteed to be supported
+   A set containing the names of the hash algorithms guaranteed to be supported
    by this module on all platforms.
 
    .. versionadded:: 3.2
 
 .. data:: algorithms_available
 
-   Contains the names of the hash algorithms that are available
-   in the running Python interpreter.  These names will be recognized
-   when passed to :func:`new`.  :attr:`algorithms_guaranteed`
-   will always be a subset.  Duplicate algorithms with different
-   name formats may appear in this set (thanks to OpenSSL).
+   A set containing the names of the hash algorithms that are available in the
+   running Python interpreter.  These names will be recognized when passed to
+   :func:`new`.  :attr:`algorithms_guaranteed` will always be a subset.  The
+   same algorithm may appear multiple times in this set under different names
+   (thanks to OpenSSL).
 
    .. versionadded:: 3.2
 
@@ -120,6 +128,18 @@ returned by the constructors:
 
    The internal block size of the hash algorithm in bytes.
 
+A hash object has the following attributes:
+
+.. attribute:: hash.name
+
+   The canonical name of this hash, always lowercase and always suitable as a
+   parameter to :func:`new` to create another hash of this type.
+
+   .. versionchanged:: 3.4
+      The name attribute has been present in CPython since its inception, but
+      until Python 3.4 was not formally specified, so may not exist on some
+      platforms.
+
 A hash object has the following methods:
 
 
@@ -132,7 +152,7 @@ A hash object has the following methods:
 
    .. versionchanged:: 3.1
       The Python GIL is released to allow other threads to run while hash
-      updates on data larger than 2048 bytes is taking place when using hash
+      updates on data larger than 2047 bytes is taking place when using hash
       algorithms supplied by OpenSSL.
 
 
@@ -156,6 +176,46 @@ A hash object has the following methods:
    compute the digests of data sharing a common initial substring.
 
 
+Key Derivation Function
+-----------------------
+
+Key derivation and key stretching algorithms are designed for secure password
+hashing. Naive algorithms such as ``sha1(password)`` are not resistant against
+brute-force attacks. A good password hashing function must be tunable, slow, and
+include a `salt <https://en.wikipedia.org/wiki/Salt_%28cryptography%29>`_.
+
+
+.. function:: pbkdf2_hmac(name, password, salt, rounds, dklen=None)
+
+   The function provides PKCS#5 password-based key derivation function 2. It
+   uses HMAC as pseudorandom function.
+
+   The string *name* is the desired name of the hash digest algorithm for
+   HMAC, e.g. 'sha1' or 'sha256'. *password* and *salt* are interpreted as
+   buffers of bytes. Applications and libraries should limit *password* to
+   a sensible value (e.g. 1024). *salt* should be about 16 or more bytes from
+   a proper source, e.g. :func:`os.urandom`.
+
+   The number of *rounds* should be chosen based on the hash algorithm and
+   computing power. As of 2013, at least 100,000 rounds of SHA-256 is suggested.
+
+   *dklen* is the length of the derived key. If *dklen* is ``None`` then the
+   digest size of the hash algorithm *name* is used, e.g. 64 for SHA-512.
+
+   >>> import hashlib, binascii
+   >>> dk = hashlib.pbkdf2_hmac('sha256', b'password', b'salt', 100000)
+   >>> binascii.hexlify(dk)
+   b'0394a2ede332c9a13eb82e9b24631604c31df978b4e2f0fbd2c549944f9d79a5'
+
+   .. versionadded:: 3.4
+
+   .. note::
+
+      A fast implementation of *pbkdf2_hmac* is available with OpenSSL.  The
+      Python implementation uses an inline version of :mod:`hmac`. It is about
+      three times slower and doesn't release the GIL.
+
+
 .. seealso::
 
    Module :mod:`hmac`
@@ -171,3 +231,5 @@ A hash object has the following methods:
       Wikipedia article with information on which algorithms have known issues and
       what that means regarding their use.
 
+   http://www.ietf.org/rfc/rfc2898.txt
+      PKCS #5: Password-Based Cryptography Specification Version 2.0

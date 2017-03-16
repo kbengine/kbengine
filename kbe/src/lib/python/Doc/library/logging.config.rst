@@ -17,6 +17,10 @@
    * :ref:`Advanced Tutorial <logging-advanced-tutorial>`
    * :ref:`Logging Cookbook <logging-cookbook>`
 
+**Source code:** :source:`Lib/logging/config.py`
+
+--------------
+
 This section describes the API for configuring the logging module.
 
 .. _logging-config-api:
@@ -76,40 +80,77 @@ in :mod:`logging` itself) and defining handlers which are declared either in
 
 .. function:: fileConfig(fname, defaults=None, disable_existing_loggers=True)
 
-   Reads the logging configuration from a :mod:`configparser`\-format file
-   named *fname*. This function can be called several times from an
-   application, allowing an end user to select from various pre-canned
-   configurations (if the developer provides a mechanism to present the choices
-   and load the chosen configuration).
+   Reads the logging configuration from a :mod:`configparser`\-format file. The
+   format of the file should be as described in
+   :ref:`logging-config-fileformat`.
+   This function can be called several times from an application, allowing an
+   end user to select from various pre-canned configurations (if the developer
+   provides a mechanism to present the choices and load the chosen
+   configuration).
+
+   :param fname: A filename, or a file-like object, or an instance derived
+                 from :class:`~configparser.RawConfigParser`. If a
+                 ``RawConfigParser``-derived instance is passed, it is used as
+                 is. Otherwise, a :class:`~configparser.Configparser` is
+                 instantiated, and the configuration read by it from the
+                 object passed in ``fname``. If that has a :meth:`readline`
+                 method, it is assumed to be a file-like object and read using
+                 :meth:`~configparser.ConfigParser.read_file`; otherwise,
+                 it is assumed to be a filename and passed to
+                 :meth:`~configparser.ConfigParser.read`.
+
 
    :param defaults: Defaults to be passed to the ConfigParser can be specified
                     in this argument.
 
    :param disable_existing_loggers: If specified as ``False``, loggers which
                                     exist when this call is made are left
-                                    alone. The default is ``True`` because this
+                                    enabled. The default is ``True`` because this
                                     enables old behaviour in a backward-
                                     compatible way. This behaviour is to
                                     disable any existing loggers unless they or
                                     their ancestors are explicitly named in the
                                     logging configuration.
 
+   .. versionchanged:: 3.4
+      An instance of a subclass of :class:`~configparser.RawConfigParser` is
+      now accepted as a value for ``fname``. This facilitates:
 
-.. function:: listen(port=DEFAULT_LOGGING_CONFIG_PORT)
+      * Use of a configuration file where logging configuration is just part
+        of the overall application configuration.
+      * Use of a configuration read from a file, and then modified by the using
+        application (e.g. based on command-line parameters or other aspects
+        of the runtime environment) before being passed to ``fileConfig``.
+
+.. function:: listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None)
 
    Starts up a socket server on the specified port, and listens for new
    configurations. If no port is specified, the module's default
    :const:`DEFAULT_LOGGING_CONFIG_PORT` is used. Logging configurations will be
    sent as a file suitable for processing by :func:`fileConfig`. Returns a
-   :class:`Thread` instance on which you can call :meth:`start` to start the
-   server, and which you can :meth:`join` when appropriate. To stop the server,
+   :class:`~threading.Thread` instance on which you can call
+   :meth:`~threading.Thread.start` to start the server, and which you can
+   :meth:`~threading.Thread.join` when appropriate. To stop the server,
    call :func:`stopListening`.
+
+   The ``verify`` argument, if specified, should be a callable which should
+   verify whether bytes received across the socket are valid and should be
+   processed. This could be done by encrypting and/or signing what is sent
+   across the socket, such that the ``verify`` callable can perform
+   signature verification and/or decryption. The ``verify`` callable is called
+   with a single argument - the bytes received across the socket - and should
+   return the bytes to be processed, or None to indicate that the bytes should
+   be discarded. The returned bytes could be the same as the passed in bytes
+   (e.g. when only verification is done), or they could be completely different
+   (perhaps if decryption were performed).
 
    To send a configuration to the socket, read in the configuration file and
    send it to the socket as a string of bytes preceded by a four-byte length
    string packed in binary using ``struct.pack('>L', n)``.
 
-   .. note:: Because portions of the configuration are passed through
+   .. note::
+
+      Because portions of the configuration are passed through
       :func:`eval`, use of this function may open its users to a security risk.
       While the function only binds to a socket on ``localhost``, and so does
       not accept connections from remote machines, there are scenarios where
@@ -121,7 +162,12 @@ in :mod:`logging` itself) and defining handlers which are declared either in
       :func:`listen` socket and sending a configuration which runs whatever
       code the attacker wants to have executed in the victim's process. This is
       especially easy to do if the default port is used, but not hard even if a
-      different port is used).
+      different port is used). To avoid the risk of this happening, use the
+      ``verify`` argument to :func:`listen` to prevent unrecognised
+      configurations from being applied.
+
+   .. versionchanged:: 3.4.
+      The ``verify`` argument was added.
 
 .. function:: stopListening()
 
@@ -166,11 +212,11 @@ otherwise, the context is used to determine what to instantiate.
 
 * *formatters* - the corresponding value will be a dict in which each
   key is a formatter id and each value is a dict describing how to
-  configure the corresponding Formatter instance.
+  configure the corresponding :class:`~logging.Formatter` instance.
 
   The configuring dict is searched for keys ``format`` and ``datefmt``
   (with defaults of ``None``) and these are used to construct a
-  :class:`logging.Formatter` instance.
+  :class:`~logging.Formatter` instance.
 
 * *filters* - the corresponding value will be a dict in which each key
   is a filter id and each value is a dict describing how to configure
@@ -704,10 +750,13 @@ format string, with a comma separator.  An example time in ISO8601 format is
 
 The ``class`` entry is optional.  It indicates the name of the formatter's class
 (as a dotted module and class name.)  This option is useful for instantiating a
-:class:`Formatter` subclass.  Subclasses of :class:`Formatter` can present
-exception tracebacks in an expanded or condensed format.
+:class:`~logging.Formatter` subclass.  Subclasses of
+:class:`~logging.Formatter` can present exception tracebacks in an expanded or
+condensed format.
 
-.. note:: Due to the use of :func:`eval` as described above, there are
+.. note::
+
+   Due to the use of :func:`eval` as described above, there are
    potential security risks which result from using the :func:`listen` to send
    and receive configurations via sockets. The risks are limited to where
    multiple users with no mutual trust run code on the same machine; see the

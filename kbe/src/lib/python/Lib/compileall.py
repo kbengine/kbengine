@@ -12,8 +12,7 @@ See module py_compile for details of the actual byte-compilation.
 """
 import os
 import sys
-import errno
-import imp
+import importlib.util
 import py_compile
 import struct
 
@@ -38,7 +37,7 @@ def compile_dir(dir, maxlevels=10, ddir=None, force=False, rx=None,
         print('Listing {!r}...'.format(dir))
     try:
         names = os.listdir(dir)
-    except os.error:
+    except OSError:
         print("Can't list {!r}".format(dir))
         names = []
     names.sort()
@@ -91,22 +90,23 @@ def compile_file(fullname, ddir=None, force=False, rx=None, quiet=False,
             cfile = fullname + ('c' if __debug__ else 'o')
         else:
             if optimize >= 0:
-                cfile = imp.cache_from_source(fullname,
-                                              debug_override=not optimize)
+                cfile = importlib.util.cache_from_source(
+                                fullname, debug_override=not optimize)
             else:
-                cfile = imp.cache_from_source(fullname)
+                cfile = importlib.util.cache_from_source(fullname)
             cache_dir = os.path.dirname(cfile)
         head, tail = name[:-3], name[-3:]
         if tail == '.py':
             if not force:
                 try:
                     mtime = int(os.stat(fullname).st_mtime)
-                    expect = struct.pack('<4sl', imp.get_magic(), mtime)
+                    expect = struct.pack('<4sl', importlib.util.MAGIC_NUMBER,
+                                         mtime)
                     with open(cfile, 'rb') as chandle:
                         actual = chandle.read(8)
                     if expect == actual:
                         return success
-                except IOError:
+                except OSError:
                     pass
             if not quiet:
                 print('Compiling {!r}...'.format(fullname))
@@ -124,7 +124,7 @@ def compile_file(fullname, ddir=None, force=False, rx=None, quiet=False,
                 msg = msg.decode(sys.stdout.encoding)
                 print(msg)
                 success = 0
-            except (SyntaxError, UnicodeError, IOError) as e:
+            except (SyntaxError, UnicodeError, OSError) as e:
                 if quiet:
                     print('*** Error compiling {!r}...'.format(fullname))
                 else:
@@ -209,7 +209,7 @@ def main():
             with (sys.stdin if args.flist=='-' else open(args.flist)) as f:
                 for line in f:
                     compile_dests.append(line.strip())
-        except EnvironmentError:
+        except OSError:
             print("Error reading file list {}".format(args.flist))
             return False
 
@@ -228,7 +228,8 @@ def main():
                         success = False
             return success
         else:
-            return compile_path(legacy=args.legacy)
+            return compile_path(legacy=args.legacy, force=args.force,
+                                quiet=args.quiet)
     except KeyboardInterrupt:
         print("\n[interrupted]")
         return False

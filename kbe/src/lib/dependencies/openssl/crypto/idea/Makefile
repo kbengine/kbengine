@@ -2,12 +2,6 @@
 # OpenSSL/crypto/idea/Makefile
 #
 
-ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/lib/dependencies/openssl/crypto/idea,,$(CURDIR))
-endif
-
-LIBDIR= $(KBE_ROOT)/kbe/src/libs
-
 DIR=	idea
 TOP=	../..
 CC=	cc
@@ -22,9 +16,9 @@ GENERAL=Makefile
 TEST=ideatest.c
 APPS=
 
-LIB=$(LIBDIR)/libcrypto.a
+LIB=$(TOP)/libcrypto.a
 LIBSRC=i_cbc.c i_cfb64.c i_ofb64.c i_ecb.c i_skey.c
-LIBOBJ=$(KBE_CONFIG)/i_cbc.o $(KBE_CONFIG)/i_cfb64.o $(KBE_CONFIG)/i_ofb64.o $(KBE_CONFIG)/i_ecb.o $(KBE_CONFIG)/i_skey.o
+LIBOBJ=i_cbc.o i_cfb64.o i_ofb64.o i_ecb.o i_skey.o
 
 SRC= $(LIBSRC)
 
@@ -38,16 +32,10 @@ top:
 
 all:	lib
 
-$(KBE_CONFIG):
-	@-mkdir $(KBE_CONFIG)
-
-lib:	$(KBE_CONFIG) $(LIBOBJ)
+lib:	$(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
-
-$(KBE_CONFIG)/%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
 	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO
@@ -73,6 +61,8 @@ tests:
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
+update: depend
+
 depend:
 	@[ -n "$(MAKEDEPEND)" ] # should be set by upper Makefile...
 	$(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(LIBSRC)
@@ -82,17 +72,20 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(KBE_CONFIG)/*.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(KBE_CONFIG)/i_cbc.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/i_cbc.o: i_cbc.c idea_lcl.h
-$(KBE_CONFIG)/i_cfb64.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/i_cfb64.o: i_cfb64.c idea_lcl.h
-$(KBE_CONFIG)/i_ecb.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/i_ecb.o: ../../include/openssl/opensslv.h i_ecb.c idea_lcl.h
-$(KBE_CONFIG)/i_ofb64.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/i_ofb64.o: i_ofb64.c idea_lcl.h
-$(KBE_CONFIG)/i_skey.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/i_skey.o: i_skey.c idea_lcl.h
+i_cbc.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
+i_cbc.o: i_cbc.c idea_lcl.h
+i_cfb64.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
+i_cfb64.o: i_cfb64.c idea_lcl.h
+i_ecb.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
+i_ecb.o: ../../include/openssl/opensslv.h i_ecb.c idea_lcl.h
+i_ofb64.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
+i_ofb64.o: i_ofb64.c idea_lcl.h
+i_skey.o: ../../include/openssl/crypto.h ../../include/openssl/e_os2.h
+i_skey.o: ../../include/openssl/idea.h ../../include/openssl/opensslconf.h
+i_skey.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+i_skey.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+i_skey.o: ../../include/openssl/symhacks.h i_skey.c idea_lcl.h

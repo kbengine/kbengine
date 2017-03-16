@@ -73,7 +73,7 @@ public:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnPaint();
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnSize(UINT nType, int cx, int cy);

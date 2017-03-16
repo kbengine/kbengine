@@ -41,6 +41,7 @@ class GeneralFloatCases(unittest.TestCase):
         self.assertRaises(ValueError, float, "-.")
         self.assertRaises(ValueError, float, b"-")
         self.assertRaises(TypeError, float, {})
+        self.assertRaisesRegex(TypeError, "not 'dict'", float, {})
         # Lone surrogate
         self.assertRaises(UnicodeEncodeError, float, '\uD8F0')
         # check that we don't accept alternate exponent markers
@@ -70,7 +71,7 @@ class GeneralFloatCases(unittest.TestCase):
         # it still has to accept the normal python syntax
         import locale
         if not locale.localeconv()['decimal_point'] == ',':
-            return
+            self.skipTest('decimal_point is not ","')
 
         self.assertEqual(float("  3.14  "), 3.14)
         self.assertEqual(float("+3.14  "), 3.14)
@@ -88,7 +89,7 @@ class GeneralFloatCases(unittest.TestCase):
         self.assertRaises(ValueError, float, "  -0x3.p-1  ")
         self.assertRaises(ValueError, float, "  +0x3.p-1  ")
         self.assertEqual(float("  25.e-1  "), 2.5)
-        self.assertEqual(support.fcmp(float("  .25e-1  "), .025), 0)
+        self.assertAlmostEqual(float("  .25e-1  "), .025)
 
     def test_floatconversion(self):
         # Make sure that calls to __float__() work properly
@@ -860,15 +861,18 @@ class InfNanTest(unittest.TestCase):
         self.assertEqual(str(1e300 * 1e300 * 0), "nan")
         self.assertEqual(str(-1e300 * 1e300 * 0), "nan")
 
-    def notest_float_nan(self):
-        self.assertTrue(NAN.is_nan())
-        self.assertFalse(INF.is_nan())
-        self.assertFalse((0.).is_nan())
+    def test_inf_signs(self):
+        self.assertEqual(copysign(1.0, float('inf')), 1.0)
+        self.assertEqual(copysign(1.0, float('-inf')), -1.0)
 
-    def notest_float_inf(self):
-        self.assertTrue(INF.is_inf())
-        self.assertFalse(NAN.is_inf())
-        self.assertFalse((0.).is_inf())
+    @unittest.skipUnless(getattr(sys, 'float_repr_style', '') == 'short',
+                         "applies only when using short float repr style")
+    def test_nan_signs(self):
+        # When using the dtoa.c code, the sign of float('nan') should
+        # be predictable.
+        self.assertEqual(copysign(1.0, float('nan')), 1.0)
+        self.assertEqual(copysign(1.0, float('-nan')), -1.0)
+
 
 fromHex = float.fromhex
 toHex = float.hex

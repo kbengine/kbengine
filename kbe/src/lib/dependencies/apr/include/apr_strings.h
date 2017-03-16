@@ -235,8 +235,14 @@ APR_DECLARE(apr_status_t) apr_tokenize_to_argv(const char *arg_str,
  *            first call to apr_strtok() for a given string, and NULL
  *            on subsequent calls.
  * @param sep The set of delimiters
- * @param last Internal state saved by apr_strtok() between calls.
+ * @param last State saved by apr_strtok() between calls.
  * @return The next token from the string
+ * @note the 'last' state points to the trailing NUL char of the final
+ * token, otherwise it points to the character following the current
+ * token (all successive or empty occurances of sep are skiped on the
+ * subsequent call to apr_strtok).  Therefore it is possible to avoid
+ * a strlen() determination, with the following logic;
+ * toklen = last - retval; if (*last) --toklen;
  */
 APR_DECLARE(char *) apr_strtok(char *str, const char *sep, char **last);
 

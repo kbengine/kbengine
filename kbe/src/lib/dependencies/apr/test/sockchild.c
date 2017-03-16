@@ -69,8 +69,14 @@ int main(int argc, char *argv[])
         
         exit((int)length);
     }
-    else if (!strcmp("write", argv[1])) {
+    else if (!strcmp("write", argv[1])
+             || !strcmp("write_after_delay", argv[1])) {
         apr_size_t length = strlen(DATASTR);
+
+        if (!strcmp("write_after_delay", argv[1])) {
+            apr_sleep(apr_time_from_sec(2));
+        }
+
         apr_socket_send(sock, DATASTR, &length);
 
         apr_socket_close(sock);

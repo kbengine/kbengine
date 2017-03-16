@@ -6,7 +6,7 @@
 #include "WatcherWindow.h"
 #include "guiconsole.h"
 #include "guiconsoleDlg.h"
-#include "helper/watcher.hpp"
+#include "helper/watcher.h"
 
 // CWatcherWindow dialog
 
@@ -113,7 +113,25 @@ void CWatcherWindow::OnTimer(UINT_PTR nIDEvent)
 		}
 
 		for(int ii = 0; ii<m_status.GetHeaderCtrl()->GetItemCount(); ii++)
-			m_statusShow.SetItemText(ii, 1, m_status.GetItemText(0, ii));
+		{
+			CString s = m_status.GetItemText(0, ii);
+
+			LVCOLUMN lvcol;
+			WCHAR str[256];
+			memset(str, 0, 256);
+			lvcol.mask = LVCF_TEXT|LVCF_WIDTH;
+			lvcol.pszText = str;
+			lvcol.cchTextMax = 256;
+			lvcol.cx = ii;
+			m_status.GetColumn(ii, &lvcol);
+
+			for(int iix = 0; iix < m_statusShow.GetItemCount(); iix++)
+			{
+				CString ss = m_statusShow.GetItemText(iix, 0);
+				if(ss == lvcol.pszText)
+					m_statusShow.SetItemText(iix, 1, s);
+			}
+		}
 	}
 	else
 	{
@@ -159,7 +177,9 @@ void CWatcherWindow::OnTimer(UINT_PTR nIDEvent)
 				}
 
 				for(int ii = 0; ii<m_status.GetHeaderCtrl()->GetItemCount(); ii++)
+				{
 					m_statusShow.SetItemText(i, ii, m_status.GetItemText(i, ii));
+				}
 			}
 		}
 	}
@@ -481,7 +501,7 @@ void CWatcherWindow::onReceiveWatcherData(KBEngine::MemoryStream& s)
 	{
 		KBEngine::WatcherPaths watcherPaths;
 
-		while(s.opsize() > 0)
+		while(s.length() > 0)
 		{
 			std::string path;
 			s >> path;
@@ -492,7 +512,7 @@ void CWatcherWindow::onReceiveWatcherData(KBEngine::MemoryStream& s)
 			KBEngine::WATCHER_ID id = 0;
 			s >> id;
 
-			KBEngine::WATCHERTYPE type;
+			KBEngine::WATCHER_VALUE_TYPE type;
 			s >> type;
 
 			KBEngine::WatcherObject* wo = watcherPaths.addWatcherFromStream(path, name, id, type, &s);
@@ -507,7 +527,7 @@ void CWatcherWindow::onReceiveWatcherData(KBEngine::MemoryStream& s)
 		if(rootpath == "/")
 			rootpath = "";
 
-		while(s.opsize() > 0)
+		while(s.length() > 0)
 		{
 			std::string path;
 			s >> path;
@@ -520,8 +540,13 @@ std::string CWatcherWindow::getCurrSelPath()
 {
 	HTREEITEM item = m_tree.GetSelectedItem();
 	if(item == NULL)
+	{
+		if(m_tree.GetCount() > 0)
+			return "root";
+
 		return "";
-	
+	}
+
 	CString path;
 
 	do

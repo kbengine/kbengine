@@ -84,7 +84,7 @@ String = group(r"[uU]?[rR]?'[^\n'\\]*(?:\\.[^\n'\\]*)*'",
 # recognized as two instances of =).
 Operator = group(r"\*\*=?", r">>=?", r"<<=?", r"<>", r"!=",
                  r"//=?", r"->",
-                 r"[+\-*/%&|^=<>]=?",
+                 r"[+\-*/%&@|^=<>]=?",
                  r"~")
 
 Bracket = '[][(){}]'
@@ -236,7 +236,8 @@ class Untokenizer:
                 startline = False
             toks_append(tokval)
 
-cookie_re = re.compile("coding[:=]\s*([-\w.]+)")
+cookie_re = re.compile(r'^[ \t\f]*#.*coding[:=][ \t]*([-\w.]+)', re.ASCII)
+blank_re = re.compile(br'^[ \t\f]*(?:[#\r\n]|$)', re.ASCII)
 
 def _get_normal_name(orig_enc):
     """Imitates get_normal_name in tokenizer.c."""
@@ -252,7 +253,7 @@ def _get_normal_name(orig_enc):
 def detect_encoding(readline):
     """
     The detect_encoding() function is used to detect the encoding that should
-    be used to decode a Python source file. It requires one argment, readline,
+    be used to decode a Python source file. It requires one argument, readline,
     in the same way as the tokenize() generator.
 
     It will call readline a maximum of twice, and return the encoding used
@@ -281,11 +282,10 @@ def detect_encoding(readline):
             line_string = line.decode('ascii')
         except UnicodeDecodeError:
             return None
-
-        matches = cookie_re.findall(line_string)
-        if not matches:
+        match = cookie_re.match(line_string)
+        if not match:
             return None
-        encoding = _get_normal_name(matches[0])
+        encoding = _get_normal_name(match.group(1))
         try:
             codec = lookup(encoding)
         except LookupError:
@@ -310,6 +310,8 @@ def detect_encoding(readline):
     encoding = find_cookie(first)
     if encoding:
         return encoding, [first]
+    if not blank_re.match(first):
+        return default, [first]
 
     second = read_or_stop()
     if not second:
@@ -344,7 +346,7 @@ def untokenize(iterable):
 
 def generate_tokens(readline):
     """
-    The generate_tokens() generator requires one argment, readline, which
+    The generate_tokens() generator requires one argument, readline, which
     must be a callable object which provides the same interface as the
     readline() method of built-in file objects. Each call to the function
     should return one line of input as a string.  Alternately, readline

@@ -9,64 +9,17 @@
 #include <ctype.h>
 #include <float.h>
 
-#undef MAX
-#undef MIN
-#define MAX(x, y) ((x) < (y) ? (y) : (x))
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
-
-
-#ifdef _OSF_SOURCE
-/* OSF1 5.1 doesn't make this available with XOPEN_SOURCE_EXTENDED defined */
-extern int finite(double);
-#endif
 
 /* Special free list
-
-   Since some Python programs can spend much of their time allocating
-   and deallocating floats, these operations should be very fast.
-   Therefore we use a dedicated allocation scheme with a much lower
-   overhead (in space and time) than straight malloc(): a simple
-   dedicated free list, filled when necessary with memory from malloc().
-
-   block_list is a singly-linked list of all PyFloatBlocks ever allocated,
-   linked via their next members.  PyFloatBlocks are never returned to the
-   system before shutdown (PyFloat_Fini).
-
    free_list is a singly-linked list of available PyFloatObjects, linked
    via abuse of their ob_type members.
 */
 
-#define BLOCK_SIZE      1000    /* 1K less typical malloc overhead */
-#define BHEAD_SIZE      8       /* Enough for a 64-bit pointer */
-#define N_FLOATOBJECTS  ((BLOCK_SIZE - BHEAD_SIZE) / sizeof(PyFloatObject))
-
-struct _floatblock {
-    struct _floatblock *next;
-    PyFloatObject objects[N_FLOATOBJECTS];
-};
-
-typedef struct _floatblock PyFloatBlock;
-
-static PyFloatBlock *block_list = NULL;
+#ifndef PyFloat_MAXFREELIST
+#define PyFloat_MAXFREELIST    100
+#endif
+static int numfree = 0;
 static PyFloatObject *free_list = NULL;
-
-static PyFloatObject *
-fill_free_list(void)
-{
-    PyFloatObject *p, *q;
-    /* XXX Float blocks escape the object heap. Use PyObject_MALLOC ??? */
-    p = (PyFloatObject *) PyMem_MALLOC(sizeof(PyFloatBlock));
-    if (p == NULL)
-        return (PyFloatObject *) PyErr_NoMemory();
-    ((PyFloatBlock *)p)->next = block_list;
-    block_list = (PyFloatBlock *)p;
-    p = &((PyFloatBlock *)p)->objects[0];
-    q = p + N_FLOATOBJECTS;
-    while (--q > p)
-        Py_TYPE(q) = (struct _typeobject *)(q-1);
-    Py_TYPE(q) = NULL;
-    return p + N_FLOATOBJECTS - 1;
-}
 
 double
 PyFloat_GetMax(void)
@@ -156,15 +109,17 @@ PyFloat_GetInfo(void)
 PyObject *
 PyFloat_FromDouble(double fval)
 {
-    register PyFloatObject *op;
-    if (free_list == NULL) {
-        if ((free_list = fill_free_list()) == NULL)
-            return NULL;
+    PyFloatObject *op = free_list;
+    if (op != NULL) {
+        free_list = (PyFloatObject *) Py_TYPE(op);
+        numfree--;
+    } else {
+        op = (PyFloatObject*) PyObject_MALLOC(sizeof(PyFloatObject));
+        if (!op)
+            return PyErr_NoMemory();
     }
     /* Inline PyObject_New */
-    op = free_list;
-    free_list = (PyFloatObject *)Py_TYPE(op);
-    PyObject_INIT(op, &PyFloat_Type);
+    (void)PyObject_INIT(op, &PyFloat_Type);
     op->ob_fval = fval;
     return (PyObject *) op;
 }
@@ -179,29 +134,19 @@ PyFloat_FromString(PyObject *v)
     PyObject *result = NULL;
 
     if (PyUnicode_Check(v)) {
-        Py_ssize_t i, buflen = PyUnicode_GET_SIZE(v);
-        Py_UNICODE *bufptr;
-        s_buffer = PyUnicode_TransformDecimalToASCII(
-            PyUnicode_AS_UNICODE(v), buflen);
+        s_buffer = _PyUnicode_TransformDecimalAndSpaceToASCII(v);
         if (s_buffer == NULL)
             return NULL;
-        /* Replace non-ASCII whitespace with ' ' */
-        bufptr = PyUnicode_AS_UNICODE(s_buffer);
-        for (i = 0; i < buflen; i++) {
-            Py_UNICODE ch = bufptr[i];
-            if (ch > 127 && Py_UNICODE_ISSPACE(ch))
-                bufptr[i] = ' ';
-        }
-        s = _PyUnicode_AsStringAndSize(s_buffer, &len);
+        s = PyUnicode_AsUTF8AndSize(s_buffer, &len);
         if (s == NULL) {
             Py_DECREF(s_buffer);
             return NULL;
         }
-        last = s + len;
     }
     else if (PyObject_AsCharBuffer(v, &s, &len)) {
-        PyErr_SetString(PyExc_TypeError,
-            "float() argument must be a string or a number");
+        PyErr_Format(PyExc_TypeError,
+            "float() argument must be a string or a number, not '%.200s'",
+            Py_TYPE(v)->tp_name);
         return NULL;
     }
     last = s + len;
@@ -233,6 +178,11 @@ static void
 float_dealloc(PyFloatObject *op)
 {
     if (PyFloat_CheckExact(op)) {
+        if (numfree >= PyFloat_MAXFREELIST)  {
+            PyObject_FREE(op);
+            return;
+        }
+        numfree++;
         Py_TYPE(op) = (struct _typeobject *)free_list;
         free_list = op;
     }
@@ -278,7 +228,7 @@ PyFloat_AsDouble(PyObject *op)
 /* Macro and helper that convert PyObject obj to a C double and store
    the value in dbl.  If conversion to double raises an exception, obj is
    set to NULL, and the function invoking this macro returns NULL.  If
-   obj is not of float, int or long type, Py_NotImplemented is incref'ed,
+   obj is not of float or int type, Py_NotImplemented is incref'ed,
    stored in obj, and returned from the function invoking this macro.
 */
 #define CONVERT_TO_DOUBLE(obj, dbl)                     \
@@ -292,7 +242,7 @@ PyFloat_AsDouble(PyObject *op)
 static int
 convert_to_double(PyObject **v, double *dbl)
 {
-    register PyObject *obj = *v;
+    PyObject *obj = *v;
 
     if (PyLong_Check(obj)) {
         *dbl = PyLong_AsDouble(obj);
@@ -313,13 +263,15 @@ static PyObject *
 float_repr(PyFloatObject *v)
 {
     PyObject *result;
-    char *buf = PyOS_double_to_string(PyFloat_AS_DOUBLE(v),
-                                      'r', 0,
-                                      Py_DTSF_ADD_DOT_0,
-                                      NULL);
+    char *buf;
+
+    buf = PyOS_double_to_string(PyFloat_AS_DOUBLE(v),
+                                'r', 0,
+                                Py_DTSF_ADD_DOT_0,
+                                NULL);
     if (!buf)
         return PyErr_NoMemory();
-    result = PyUnicode_FromString(buf);
+    result = _PyUnicode_FromASCII(buf, strlen(buf));
     PyMem_Free(buf);
     return result;
 }
@@ -331,9 +283,9 @@ float_repr(PyFloatObject *v)
  * When mixing float with an integer type, there's no good *uniform* approach.
  * Converting the double to an integer obviously doesn't work, since we
  * may lose info from fractional bits.  Converting the integer to a double
- * also has two failure modes:  (1) a long int may trigger overflow (too
+ * also has two failure modes:  (1) an int may trigger overflow (too
  * large to fit in the dynamic range of a C double); (2) even a C long may have
- * more bits than fit in a C double (e.g., on a a 64-bit box long may have
+ * more bits than fit in a C double (e.g., on a 64-bit box long may have
  * 63 bits of precision, but a C double probably has only 53), and then
  * we can falsely claim equality when low-order integer bits are lost by
  * coercion to double.  So this part is painful too.
@@ -429,7 +381,7 @@ float_richcompare(PyObject *v, PyObject *w, int op)
             goto Compare;
         }
         /* v and w have the same number of bits before the radix
-         * point.  Construct two longs that have the same comparison
+         * point.  Construct two ints that have the same comparison
          * outcome.
          */
         {
@@ -494,7 +446,7 @@ float_richcompare(PyObject *v, PyObject *w, int op)
         }
     } /* else if (PyLong_Check(w)) */
 
-    else        /* w isn't float, int, or long */
+    else        /* w isn't float or int */
         goto Unimplemented;
 
  Compare:
@@ -523,8 +475,7 @@ float_richcompare(PyObject *v, PyObject *w, int op)
     return PyBool_FromLong(r);
 
  Unimplemented:
-    Py_INCREF(Py_NotImplemented);
-    return Py_NotImplemented;
+    Py_RETURN_NOTIMPLEMENTED;
 }
 
 static Py_hash_t
@@ -1080,7 +1031,7 @@ static char
 char_from_hex(int x)
 {
     assert(0 <= x && x < 16);
-    return "0123456789abcdef"[x];
+    return Py_hexdigits[x];
 }
 
 static int
@@ -1176,7 +1127,7 @@ float_hex(PyObject *v)
     }
 
     m = frexp(fabs(x), &e);
-    shift = 1 - MAX(DBL_MIN_EXP - e, 0);
+    shift = 1 - Py_MAX(DBL_MIN_EXP - e, 0);
     m = ldexp(m, shift);
     e -= shift;
 
@@ -1330,8 +1281,8 @@ float_fromhex(PyObject *cls, PyObject *arg)
     fdigits = coeff_end - s_store;
     if (ndigits == 0)
         goto parse_error;
-    if (ndigits > MIN(DBL_MIN_EXP - DBL_MANT_DIG - LONG_MIN/2,
-                      LONG_MAX/2 + 1 - DBL_MAX_EXP)/4)
+    if (ndigits > Py_MIN(DBL_MIN_EXP - DBL_MANT_DIG - LONG_MIN/2,
+                         LONG_MAX/2 + 1 - DBL_MAX_EXP)/4)
         goto insane_length_error;
 
     /* [p <exponent>] */
@@ -1387,7 +1338,7 @@ float_fromhex(PyObject *cls, PyObject *arg)
 
     /* lsb = exponent of least significant bit of the *rounded* value.
        This is top_exp - DBL_MANT_DIG unless result is subnormal. */
-    lsb = MAX(top_exp, (long)DBL_MIN_EXP) - DBL_MANT_DIG;
+    lsb = Py_MAX(top_exp, (long)DBL_MIN_EXP) - DBL_MANT_DIG;
 
     x = 0.0;
     if (exp >= lsb) {
@@ -1466,7 +1417,7 @@ Create a floating-point number from a hexadecimal string.\n\
 >>> float.fromhex('0x1.ffffp10')\n\
 2047.984375\n\
 >>> float.fromhex('-0x1p-1074')\n\
--4.9406564584124654e-324");
+-5e-324");
 
 
 static PyObject *
@@ -1548,9 +1499,9 @@ error:
 PyDoc_STRVAR(float_as_integer_ratio_doc,
 "float.as_integer_ratio() -> (int, int)\n"
 "\n"
-"Returns a pair of integers, whose ratio is exactly equal to the original\n"
+"Return a pair of integers, whose ratio is exactly equal to the original\n"
 "float and with a positive denominator.\n"
-"Raises OverflowError on infinities and a ValueError on NaNs.\n"
+"Raise OverflowError on infinities and a ValueError on NaNs.\n"
 "\n"
 ">>> (10.0).as_integer_ratio()\n"
 "(10, 1)\n"
@@ -1737,7 +1688,7 @@ PyDoc_STRVAR(float_setformat_doc,
 "'IEEE, big-endian' or 'IEEE, little-endian', and in addition can only be\n"
 "one of the latter two if it appears to match the underlying C reality.\n"
 "\n"
-"Overrides the automatic determination of C-level floating point type.\n"
+"Override the automatic determination of C-level floating point type.\n"
 "This affects how floats are converted to and from binary strings.");
 
 static PyObject *
@@ -1750,12 +1701,22 @@ static PyObject *
 float__format__(PyObject *self, PyObject *args)
 {
     PyObject *format_spec;
+    _PyUnicodeWriter writer;
+    int ret;
 
     if (!PyArg_ParseTuple(args, "U:__format__", &format_spec))
         return NULL;
-    return _PyFloat_FormatAdvanced(self,
-                                   PyUnicode_AS_UNICODE(format_spec),
-                                   PyUnicode_GET_SIZE(format_spec));
+
+    _PyUnicodeWriter_Init(&writer);
+    ret = _PyFloat_FormatAdvancedWriter(
+        &writer,
+        self,
+        format_spec, 0, PyUnicode_GET_LENGTH(format_spec));
+    if (ret == -1) {
+        _PyUnicodeWriter_Dealloc(&writer);
+        return NULL;
+    }
+    return _PyUnicodeWriter_Finish(&writer);
 }
 
 PyDoc_STRVAR(float__format__doc,
@@ -1766,12 +1727,12 @@ PyDoc_STRVAR(float__format__doc,
 
 static PyMethodDef float_methods[] = {
     {"conjugate",       (PyCFunction)float_float,       METH_NOARGS,
-     "Returns self, the complex conjugate of any float."},
+     "Return self, the complex conjugate of any float."},
     {"__trunc__",       (PyCFunction)float_trunc, METH_NOARGS,
-     "Returns the Integral closest to x between 0 and x."},
+     "Return the Integral closest to x between 0 and x."},
     {"__round__",       (PyCFunction)float_round, METH_VARARGS,
-     "Returns the Integral closest to x, rounding half toward even.\n"
-     "When an argument is passed, works like built-in round(x, ndigits)."},
+     "Return the Integral closest to x, rounding half toward even.\n"
+     "When an argument is passed, work like built-in round(x, ndigits)."},
     {"as_integer_ratio", (PyCFunction)float_as_integer_ratio, METH_NOARGS,
      float_as_integer_ratio_doc},
     {"fromhex", (PyCFunction)float_fromhex,
@@ -1779,14 +1740,14 @@ static PyMethodDef float_methods[] = {
     {"hex", (PyCFunction)float_hex,
      METH_NOARGS, float_hex_doc},
     {"is_integer",      (PyCFunction)float_is_integer,  METH_NOARGS,
-     "Returns True if the float is an integer."},
+     "Return True if the float is an integer."},
 #if 0
     {"is_inf",          (PyCFunction)float_is_inf,      METH_NOARGS,
-     "Returns True if the float is positive or negative infinite."},
+     "Return True if the float is positive or negative infinite."},
     {"is_finite",       (PyCFunction)float_is_finite,   METH_NOARGS,
-     "Returns True if the float is finite, neither infinite nor NaN."},
+     "Return True if the float is finite, neither infinite nor NaN."},
     {"is_nan",          (PyCFunction)float_is_nan,      METH_NOARGS,
-     "Returns True if the float is not a number (NaN)."},
+     "Return True if the float is not a number (NaN)."},
 #endif
     {"__getnewargs__",          (PyCFunction)float_getnewargs,  METH_NOARGS},
     {"__getformat__",           (PyCFunction)float_getformat,
@@ -1893,7 +1854,7 @@ PyTypeObject PyFloat_Type = {
     float_new,                                  /* tp_new */
 };
 
-void
+int
 _PyFloat_Init(void)
 {
     /* We attempt to determine if this machine is using IEEE
@@ -1943,104 +1904,43 @@ _PyFloat_Init(void)
     float_format = detected_float_format;
 
     /* Init float info */
-    if (FloatInfoType.tp_name == 0)
-        PyStructSequence_InitType(&FloatInfoType, &floatinfo_desc);
+    if (FloatInfoType.tp_name == NULL) {
+        if (PyStructSequence_InitType2(&FloatInfoType, &floatinfo_desc) < 0)
+            return 0;
+    }
+    return 1;
 }
 
 int
 PyFloat_ClearFreeList(void)
 {
-    PyFloatObject *p;
-    PyFloatBlock *list, *next;
-    int i;
-    int u;                      /* remaining unfreed floats per block */
-    int freelist_size = 0;
-
-    list = block_list;
-    block_list = NULL;
-    free_list = NULL;
-    while (list != NULL) {
-        u = 0;
-        for (i = 0, p = &list->objects[0];
-             i < N_FLOATOBJECTS;
-             i++, p++) {
-            if (PyFloat_CheckExact(p) && Py_REFCNT(p) != 0)
-                u++;
-        }
-        next = list->next;
-        if (u) {
-            list->next = block_list;
-            block_list = list;
-            for (i = 0, p = &list->objects[0];
-                 i < N_FLOATOBJECTS;
-                 i++, p++) {
-                if (!PyFloat_CheckExact(p) ||
-                    Py_REFCNT(p) == 0) {
-                    Py_TYPE(p) = (struct _typeobject *)
-                        free_list;
-                    free_list = p;
-                }
-            }
-        }
-        else {
-            PyMem_FREE(list);
-        }
-        freelist_size += u;
-        list = next;
+    PyFloatObject *f = free_list, *next;
+    int i = numfree;
+    while (f) {
+        next = (PyFloatObject*) Py_TYPE(f);
+        PyObject_FREE(f);
+        f = next;
     }
-    return freelist_size;
+    free_list = NULL;
+    numfree = 0;
+    return i;
 }
 
 void
 PyFloat_Fini(void)
 {
-    PyFloatObject *p;
-    PyFloatBlock *list;
-    int i;
-    int u;                      /* total unfreed floats per block */
-
-    u = PyFloat_ClearFreeList();
-
-    if (!Py_VerboseFlag)
-        return;
-    fprintf(stderr, "# cleanup floats");
-    if (!u) {
-        fprintf(stderr, "\n");
-    }
-    else {
-        fprintf(stderr,
-            ": %d unfreed float%s\n",
-            u, u == 1 ? "" : "s");
-    }
-    if (Py_VerboseFlag > 1) {
-        list = block_list;
-        while (list != NULL) {
-            for (i = 0, p = &list->objects[0];
-                 i < N_FLOATOBJECTS;
-                 i++, p++) {
-                if (PyFloat_CheckExact(p) &&
-                    Py_REFCNT(p) != 0) {
-                    char *buf = PyOS_double_to_string(
-                        PyFloat_AS_DOUBLE(p), 'r',
-                        0, 0, NULL);
-                    if (buf) {
-                        /* XXX(twouters) cast
-                           refcount to long
-                           until %zd is
-                           universally
-                           available
-                        */
-                        fprintf(stderr,
-                 "#   <float at %p, refcnt=%ld, val=%s>\n",
-                                    p, (long)Py_REFCNT(p), buf);
-                                    PyMem_Free(buf);
-                            }
-                }
-            }
-            list = list->next;
-        }
-    }
+    (void)PyFloat_ClearFreeList();
 }
+
+/* Print summary info about the state of the optimized allocator */
+void
+_PyFloat_DebugMallocStats(FILE *out)
+{
+    _PyDebugAllocatorStats(out,
+                           "free PyFloatObject",
+                           numfree, sizeof(PyFloatObject));
+}
+
 
 /*----------------------------------------------------------------------------
  * _PyFloat_{Pack,Unpack}{4,8}.  See floatobject.h.
@@ -2251,7 +2151,7 @@ _PyFloat_Pack8(double x, unsigned char *p, int le)
 
         /* Eighth byte */
         *p = flo & 0xFF;
-        p += incr;
+        /* p += incr; */
 
         /* Done */
         return 0;

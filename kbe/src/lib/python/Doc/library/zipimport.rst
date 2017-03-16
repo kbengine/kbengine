@@ -85,8 +85,11 @@ zipimporter Objects
 
    .. method:: get_data(pathname)
 
-      Return the data associated with *pathname*. Raise :exc:`IOError` if the
+      Return the data associated with *pathname*. Raise :exc:`OSError` if the
       file wasn't found.
+
+      .. versionchanged:: 3.3
+         :exc:`IOError` used to be raised instead of :exc:`OSError`.
 
 
    .. method:: get_filename(fullname)
@@ -108,7 +111,7 @@ zipimporter Objects
 
    .. method:: is_package(fullname)
 
-      Return True if the module specified by *fullname* is a package. Raise
+      Return ``True`` if the module specified by *fullname* is a package. Raise
       :exc:`ZipImportError` if the module couldn't be found.
 
 

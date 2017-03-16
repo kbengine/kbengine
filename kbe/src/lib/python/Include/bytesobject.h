@@ -62,8 +62,6 @@ PyAPI_FUNC(void) PyBytes_Concat(PyObject **, PyObject *);
 PyAPI_FUNC(void) PyBytes_ConcatAndDel(PyObject **, PyObject *);
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(int) _PyBytes_Resize(PyObject **, Py_ssize_t);
-PyAPI_FUNC(PyObject *) _PyBytes_FormatLong(PyObject*, int, int,
-						  int, char**, int*);
 #endif
 PyAPI_FUNC(PyObject *) PyBytes_DecodeEscape(const char *, Py_ssize_t,
 						   const char *, Py_ssize_t,
@@ -88,11 +86,11 @@ PyAPI_FUNC(PyObject *) _PyBytes_Join(PyObject *sep, PyObject *x);
    0-terminated (passing a string with embedded NULL characters will
    cause an exception).  */
 PyAPI_FUNC(int) PyBytes_AsStringAndSize(
-    register PyObject *obj,	/* string or Unicode object */
-    register char **s,		/* pointer to buffer variable */
-    register Py_ssize_t *len	/* pointer to length variable or NULL
-				   (only possible for 0-terminated
-				   strings) */
+    PyObject *obj,      /* string or Unicode object */
+    char **s,           /* pointer to buffer variable */
+    Py_ssize_t *len     /* pointer to length variable or NULL
+                           (only possible for 0-terminated
+                           strings) */
     );
 
 /* Using the current locale, insert the thousands grouping

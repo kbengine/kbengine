@@ -29,16 +29,31 @@ There are only a few functions special to module objects.
    :c:data:`PyModule_Type`.
 
 
-.. c:function:: PyObject* PyModule_New(const char *name)
+.. c:function:: PyObject* PyModule_NewObject(PyObject *name)
 
    .. index::
       single: __name__ (module attribute)
       single: __doc__ (module attribute)
       single: __file__ (module attribute)
+      single: __package__ (module attribute)
+      single: __loader__ (module attribute)
 
    Return a new module object with the :attr:`__name__` attribute set to *name*.
-   Only the module's :attr:`__doc__` and :attr:`__name__` attributes are filled in;
-   the caller is responsible for providing a :attr:`__file__` attribute.
+   The module's :attr:`__name__`, :attr:`__doc__`, :attr:`__package__`, and
+   :attr:`__loader__` attributes are filled in (all but :attr:`__name__` are set
+   to ``None``); the caller is responsible for providing a :attr:`__file__`
+   attribute.
+
+   .. versionadded:: 3.3
+
+   .. versionchanged:: 3.4
+      :attr:`__package__` and :attr:`__loader__` are set to ``None``.
+
+
+.. c:function:: PyObject* PyModule_New(const char *name)
+
+   Similar to :c:func:`PyImport_NewObject`, but the name is an UTF-8 encoded
+   string instead of a Unicode object.
 
 
 .. c:function:: PyObject* PyModule_GetDict(PyObject *module)
@@ -52,7 +67,7 @@ There are only a few functions special to module objects.
    manipulate a module's :attr:`__dict__`.
 
 
-.. c:function:: char* PyModule_GetName(PyObject *module)
+.. c:function:: PyObject* PyModule_GetNameObject(PyObject *module)
 
    .. index::
       single: __name__ (module attribute)
@@ -61,15 +76,13 @@ There are only a few functions special to module objects.
    Return *module*'s :attr:`__name__` value.  If the module does not provide one,
    or if it is not a string, :exc:`SystemError` is raised and *NULL* is returned.
 
+   .. versionadded:: 3.3
 
-.. c:function:: char* PyModule_GetFilename(PyObject *module)
 
-   Similar to :c:func:`PyModule_GetFilenameObject` but return the filename
-   encoded to 'utf-8'.
+.. c:function:: char* PyModule_GetName(PyObject *module)
 
-   .. deprecated:: 3.2
-      :c:func:`PyModule_GetFilename` raises :c:type:`UnicodeEncodeError` on
-      unencodable filenames, use :c:func:`PyModule_GetFilenameObject` instead.
+   Similar to :c:func:`PyModule_GetNameObject` but return the name encoded to
+   ``'utf-8'``.
 
 
 .. c:function:: PyObject* PyModule_GetFilenameObject(PyObject *module)
@@ -81,9 +94,19 @@ There are only a few functions special to module objects.
    Return the name of the file from which *module* was loaded using *module*'s
    :attr:`__file__` attribute.  If this is not defined, or if it is not a
    unicode string, raise :exc:`SystemError` and return *NULL*; otherwise return
-   a reference to a :c:type:`PyUnicodeObject`.
+   a reference to a Unicode object.
 
    .. versionadded:: 3.2
+
+
+.. c:function:: char* PyModule_GetFilename(PyObject *module)
+
+   Similar to :c:func:`PyModule_GetFilenameObject` but return the filename
+   encoded to 'utf-8'.
+
+   .. deprecated:: 3.2
+      :c:func:`PyModule_GetFilename` raises :c:type:`UnicodeEncodeError` on
+      unencodable filenames, use :c:func:`PyModule_GetFilenameObject` instead.
 
 
 .. c:function:: void* PyModule_GetState(PyObject *module)
@@ -99,6 +122,26 @@ There are only a few functions special to module objects.
    created, or *NULL* if the module wasn't created with
    :c:func:`PyModule_Create`.
 
+.. c:function:: PyObject* PyState_FindModule(PyModuleDef *def)
+
+   Returns the module object that was created from *def* for the current interpreter.
+   This method requires that the module object has been attached to the interpreter state with
+   :c:func:`PyState_AddModule` beforehand. In case the corresponding module object is not
+   found or has not been attached to the interpreter state yet, it returns NULL.
+
+.. c:function:: int PyState_AddModule(PyObject *module, PyModuleDef *def)
+
+   Attaches the module object passed to the function to the interpreter state. This allows
+   the module object to be accessible via
+   :c:func:`PyState_FindModule`.
+
+   .. versionadded:: 3.3
+
+.. c:function:: int PyState_RemoveModule(PyModuleDef *def)
+
+   Removes the module object created from *def* from the interpreter state.
+
+   .. versionadded:: 3.3
 
 Initializing C modules
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -146,15 +189,21 @@ These functions are usually used in the module initialization function.
 
    .. c:member:: Py_ssize_t m_size
 
-      If the module object needs additional memory, this should be set to the
-      number of bytes to allocate; a pointer to the block of memory can be
-      retrieved with :c:func:`PyModule_GetState`.  If no memory is needed, set
-      this to ``-1``.
+      Some modules allow re-initialization (calling their ``PyInit_*`` function
+      more than once). These modules should keep their state in a per-module
+      memory area that can be retrieved with :c:func:`PyModule_GetState`.
 
       This memory should be used, rather than static globals, to hold per-module
       state, since it is then safe for use in multiple sub-interpreters.  It is
       freed when the module object is deallocated, after the :c:member:`m_free`
       function has been called, if present.
+
+      Setting ``m_size`` to ``-1`` means that the module can not be
+      re-initialized because it has global state. Setting it to a non-negative
+      value means that the module can be re-initialized and specifies the
+      additional amount of memory it requires for its state.
+
+      See :PEP:`3121` for more details.
 
    .. c:member:: PyMethodDef* m_methods
 

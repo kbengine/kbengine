@@ -96,9 +96,6 @@ Node classes
 Abstract Grammar
 ----------------
 
-The module defines a string constant ``__version__`` which is the decimal
-Subversion revision number of the file shown below.
-
 The abstract grammar is currently defined as follows:
 
 .. literalinclude:: ../../Parser/Python.asdl
@@ -247,6 +244,6 @@ and classes for traversing abstract syntax trees:
    Return a formatted dump of the tree in *node*.  This is mainly useful for
    debugging purposes.  The returned string will show the names and the values
    for fields.  This makes the code impossible to evaluate, so if evaluation is
-   wanted *annotate_fields* must be set to False.  Attributes such as line
+   wanted *annotate_fields* must be set to ``False``.  Attributes such as line
    numbers and column offsets are not dumped by default.  If this is wanted,
    *include_attributes* can be set to ``True``.

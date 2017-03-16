@@ -19,13 +19,13 @@ objects:
 .. method:: list.append(x)
    :noindex:
 
-   Add an item to the end of the list; equivalent to ``a[len(a):] = [x]``.
+   Add an item to the end of the list.  Equivalent to ``a[len(a):] = [x]``.
 
 
 .. method:: list.extend(L)
    :noindex:
 
-   Extend the list by appending all the items in the given list; equivalent to
+   Extend the list by appending all the items in the given list.  Equivalent to
    ``a[len(a):] = L``.
 
 
@@ -40,8 +40,8 @@ objects:
 .. method:: list.remove(x)
    :noindex:
 
-   Remove the first item from the list whose value is *x*. It is an error if there
-   is no such item.
+   Remove the first item from the list whose value is *x*.  It is an error if
+   there is no such item.
 
 
 .. method:: list.pop([i])
@@ -52,6 +52,12 @@ objects:
    square brackets around the *i* in the method signature denote that the parameter
    is optional, not that you should type square brackets at that position.  You
    will see this notation frequently in the Python Library Reference.)
+
+
+.. method:: list.clear()
+   :noindex:
+
+   Remove all items from the list.  Equivalent to ``del a[:]``.
 
 
 .. method:: list.index(x)
@@ -70,13 +76,20 @@ objects:
 .. method:: list.sort()
    :noindex:
 
-   Sort the items of the list, in place.
+   Sort the items of the list in place.
 
 
 .. method:: list.reverse()
    :noindex:
 
-   Reverse the elements of the list, in place.
+   Reverse the elements of the list in place.
+
+
+.. method:: list.copy()
+   :noindex:
+
+   Return a shallow copy of the list.  Equivalent to ``a[:]``.
+
 
 An example that uses most of the list methods::
 
@@ -98,6 +111,15 @@ An example that uses most of the list methods::
    >>> a.sort()
    >>> a
    [-1, 1, 66.25, 333, 333, 1234.5]
+   >>> a.pop()
+   1234.5
+   >>> a
+   [-1, 1, 66.25, 333, 333]
+
+You might have noticed that methods like ``insert``, ``remove`` or ``sort`` that
+only modify the list have no return value printed -- they return the default
+``None``. [1]_  This is a design principle for all mutable data structures in
+Python.
 
 
 .. _tut-lists-as-stacks:
@@ -480,7 +502,7 @@ using a non-existent key.
 
 Performing ``list(d.keys())`` on a dictionary returns a list of all the keys
 used in the dictionary, in arbitrary order (if you want it sorted, just use
-``sorted(d.keys())`` instead). [1]_  To check whether a single key is in the
+``sorted(d.keys())`` instead). [2]_  To check whether a single key is in the
 dictionary, use the :keyword:`in` keyword.
 
 Here is a small example using a dictionary::
@@ -677,6 +699,9 @@ interpreter will raise a :exc:`TypeError` exception.
 
 .. rubric:: Footnotes
 
-.. [1] Calling ``d.keys()`` will return a :dfn:`dictionary view` object.  It
+.. [1] Other languages may return the mutated object, which allows method
+       chaining, such as ``d->insert("a")->remove("b")->sort();``.
+
+.. [2] Calling ``d.keys()`` will return a :dfn:`dictionary view` object.  It
        supports operations like membership test and iteration, but its contents
        are not independent of the original dictionary -- it is only a *view*.

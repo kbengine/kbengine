@@ -15,7 +15,7 @@ operating system::
 
    >>> import os
    >>> os.getcwd()      # Return the current working directory
-   'C:\\Python31'
+   'C:\\Python34'
    >>> os.chdir('/server/accesslogs')   # Change current working directory
    >>> os.system('mkdir today')   # Run the command mkdir in the system shell
    0
@@ -40,7 +40,9 @@ a higher level interface that is easier to use::
 
    >>> import shutil
    >>> shutil.copyfile('data.db', 'archive.db')
+   'archive.db'
    >>> shutil.move('/build/executables', 'installdir')
+   'installdir'
 
 
 .. _tut-file-wildcards:
@@ -203,7 +205,7 @@ Data Compression
 ================
 
 Common data archiving and compression formats are directly supported by modules
-including: :mod:`zlib`, :mod:`gzip`, :mod:`bz2`, :mod:`zipfile` and
+including: :mod:`zlib`, :mod:`gzip`, :mod:`bz2`, :mod:`lzma`, :mod:`zipfile` and
 :mod:`tarfile`. ::
 
    >>> import zlib
@@ -281,8 +283,10 @@ file::
        def test_average(self):
            self.assertEqual(average([20, 30, 70]), 40.0)
            self.assertEqual(round(average([1, 5, 7]), 1), 4.3)
-           self.assertRaises(ZeroDivisionError, average, [])
-           self.assertRaises(TypeError, average, 20, 30, 70)
+           with self.assertRaises(ZeroDivisionError):
+               average([])
+           with self.assertRaises(TypeError):
+               average(20, 30, 70)
 
    unittest.main() # Calling from the command line invokes all tests
 

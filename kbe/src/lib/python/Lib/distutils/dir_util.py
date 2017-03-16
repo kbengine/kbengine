@@ -2,7 +2,7 @@
 
 Utility functions for manipulating directories and directory trees."""
 
-import os, sys
+import os
 import errno
 from distutils.errors import DistutilsFileError, DistutilsInternalError
 from distutils import log
@@ -124,13 +124,12 @@ def copy_tree(src, dst, preserve_mode=1, preserve_times=1,
               "cannot copy tree '%s': not a directory" % src)
     try:
         names = os.listdir(src)
-    except os.error as e:
-        (errno, errstr) = e
+    except OSError as e:
         if dry_run:
             names = []
         else:
             raise DistutilsFileError(
-                  "error listing files in '%s': %s" % (src, errstr))
+                  "error listing files in '%s': %s" % (src, e.strerror))
 
     if not dry_run:
         mkpath(dst, verbose=verbose)
@@ -182,7 +181,6 @@ def remove_tree(directory, verbose=1, dry_run=0):
     Any errors are ignored (apart from being reported to stdout if 'verbose'
     is true).
     """
-    from distutils.util import grok_environment_error
     global _path_created
 
     if verbose >= 1:
@@ -198,9 +196,8 @@ def remove_tree(directory, verbose=1, dry_run=0):
             abspath = os.path.abspath(cmd[1])
             if abspath in _path_created:
                 del _path_created[abspath]
-        except (IOError, OSError) as exc:
-            log.warn(grok_environment_error(
-                    exc, "error removing %s: " % directory))
+        except OSError as exc:
+            log.warn("error removing %s: %s", directory, exc)
 
 def ensure_relative(path):
     """Take the full path 'path', and make it a relative path.

@@ -166,6 +166,7 @@ static void test_escape(abts_case *tc, void *data)
             apr_psprintf(pool, "size mismatch (%" APR_SIZE_T_FMT "!=%" APR_SIZE_T_FMT ")", len, strlen(dest) + 1),
             (len == strlen(dest) + 1));
 
+#if !APR_CHARSET_EBCDIC
     src = "Hello";
     dest = apr_pescape_entity(pool, src, 1);
     ABTS_PTR_EQUAL(tc, src, dest);
@@ -209,6 +210,7 @@ static void test_escape(abts_case *tc, void *data)
     ABTS_ASSERT(tc,
             apr_psprintf(pool, "size mismatch (%" APR_SIZE_T_FMT "!=%" APR_SIZE_T_FMT ")", len, strlen(dest) + 1),
             (len == strlen(dest) + 1));
+#endif
 
     src = "Hello";
     dest = apr_pescape_echo(pool, src, 0);

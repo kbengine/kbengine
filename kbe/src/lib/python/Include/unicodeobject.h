@@ -64,16 +64,15 @@ Copyright (c) Corporation for National Research Initiatives.
 /* Python 3.x requires unicode */
 #define Py_USING_UNICODE
 
-/* FIXME: MvL's new implementation assumes that Py_UNICODE_SIZE is
-   properly set, but the default rules below doesn't set it.  I'll
-   sort this out some other day -- fredrik@pythonware.com */
-
-#ifndef Py_UNICODE_SIZE
-#error Must define Py_UNICODE_SIZE
+#ifndef SIZEOF_WCHAR_T
+#error Must define SIZEOF_WCHAR_T
 #endif
 
-/* Setting Py_UNICODE_WIDE enables UCS-4 storage.  Otherwise, Unicode
-   strings are stored as UCS-2 (with limited support for UTF-16) */
+#define Py_UNICODE_SIZE SIZEOF_WCHAR_T
+
+/* If wchar_t can be used for UCS-4 storage, set Py_UNICODE_WIDE.
+   Otherwise, Unicode strings are stored as UCS-2 (with limited support
+   for UTF-16) */
 
 #if Py_UNICODE_SIZE >= 4
 #define Py_UNICODE_WIDE
@@ -84,19 +83,14 @@ Copyright (c) Corporation for National Research Initiatives.
 /* #define HAVE_WCHAR_H */
 /* #define HAVE_USABLE_WCHAR_T */
 
-/* Defaults for various platforms */
-#ifndef PY_UNICODE_TYPE
+/* Py_UNICODE was the native Unicode storage format (code unit) used by
+   Python and represents a single Unicode element in the Unicode type.
+   With PEP 393, Py_UNICODE is deprecated and replaced with a
+   typedef to wchar_t. */
 
-/* Windows has a usable wchar_t type (unless we're using UCS-4) */
-# if defined(MS_WIN32) && Py_UNICODE_SIZE == 2
-#  define HAVE_USABLE_WCHAR_T
-#  define PY_UNICODE_TYPE wchar_t
-# endif
-
-# if defined(Py_UNICODE_WIDE)
-#  define PY_UNICODE_TYPE Py_UCS4
-# endif
-
+#ifndef Py_LIMITED_API
+#define PY_UNICODE_TYPE wchar_t
+typedef wchar_t Py_UNICODE;
 #endif
 
 /* If the compiler provides a wchar_t type we try to support it
@@ -109,6 +103,10 @@ Copyright (c) Corporation for National Research Initiatives.
 # endif
 #endif
 
+#if defined(MS_WINDOWS)
+#  define HAVE_MBCS
+#endif
+
 #ifdef HAVE_WCHAR_H
 /* Work around a cosmetic bug in BSDI 4.x wchar.h; thanks to Thomas Wouters */
 # ifdef _HAVE_BSDI
@@ -117,200 +115,23 @@ Copyright (c) Corporation for National Research Initiatives.
 #  include <wchar.h>
 #endif
 
-/*
- * Use this typedef when you need to represent a UTF-16 surrogate pair
- * as single unsigned integer.
- */
-#if SIZEOF_INT >= 4
+/* Py_UCS4 and Py_UCS2 are typedefs for the respective
+   unicode representations. */
+#if SIZEOF_INT == 4
 typedef unsigned int Py_UCS4;
-#elif SIZEOF_LONG >= 4
+#elif SIZEOF_LONG == 4
 typedef unsigned long Py_UCS4;
-#endif
-
-/* Py_UNICODE is the native Unicode storage format (code unit) used by
-   Python and represents a single Unicode element in the Unicode
-   type. */
-
-#ifndef Py_LIMITED_API
-typedef PY_UNICODE_TYPE Py_UNICODE;
-#endif
-
-/* --- UCS-2/UCS-4 Name Mangling ------------------------------------------ */
-
-/* Unicode API names are mangled to assure that UCS-2 and UCS-4 builds
-   produce different external names and thus cause import errors in
-   case Python interpreters and extensions with mixed compiled in
-   Unicode width assumptions are combined. */
-
-#ifndef Py_UNICODE_WIDE
-
-# define PyUnicode_AsASCIIString PyUnicodeUCS2_AsASCIIString
-# define PyUnicode_AsCharmapString PyUnicodeUCS2_AsCharmapString
-# define PyUnicode_AsDecodedObject PyUnicodeUCS2_AsDecodedObject
-# define PyUnicode_AsDecodedUnicode PyUnicodeUCS2_AsDecodedUnicode
-# define PyUnicode_AsEncodedObject PyUnicodeUCS2_AsEncodedObject
-# define PyUnicode_AsEncodedString PyUnicodeUCS2_AsEncodedString
-# define PyUnicode_AsEncodedUnicode PyUnicodeUCS2_AsEncodedUnicode
-# define PyUnicode_AsLatin1String PyUnicodeUCS2_AsLatin1String
-# define PyUnicode_AsRawUnicodeEscapeString PyUnicodeUCS2_AsRawUnicodeEscapeString
-# define PyUnicode_AsUTF32String PyUnicodeUCS2_AsUTF32String
-# define PyUnicode_AsUTF16String PyUnicodeUCS2_AsUTF16String
-# define PyUnicode_AsUTF8String PyUnicodeUCS2_AsUTF8String
-# define PyUnicode_AsUnicode PyUnicodeUCS2_AsUnicode
-# define PyUnicode_AsUnicodeEscapeString PyUnicodeUCS2_AsUnicodeEscapeString
-# define PyUnicode_AsWideChar PyUnicodeUCS2_AsWideChar
-# define PyUnicode_AsWideCharString PyUnicodeUCS2_AsWideCharString
-# define PyUnicode_ClearFreeList PyUnicodeUCS2_ClearFreelist
-# define PyUnicode_Compare PyUnicodeUCS2_Compare
-# define PyUnicode_CompareWithASCIIString PyUnicodeUCS2_CompareWithASCIIString
-# define PyUnicode_Concat PyUnicodeUCS2_Concat
-# define PyUnicode_Append PyUnicodeUCS2_Append
-# define PyUnicode_AppendAndDel PyUnicodeUCS2_AppendAndDel
-# define PyUnicode_Contains PyUnicodeUCS2_Contains
-# define PyUnicode_Count PyUnicodeUCS2_Count
-# define PyUnicode_Decode PyUnicodeUCS2_Decode
-# define PyUnicode_DecodeASCII PyUnicodeUCS2_DecodeASCII
-# define PyUnicode_DecodeCharmap PyUnicodeUCS2_DecodeCharmap
-# define PyUnicode_DecodeLatin1 PyUnicodeUCS2_DecodeLatin1
-# define PyUnicode_DecodeFSDefault PyUnicodeUCS2_DecodeFSDefault
-# define PyUnicode_DecodeFSDefaultAndSize PyUnicodeUCS2_DecodeFSDefaultAndSize
-# define PyUnicode_DecodeRawUnicodeEscape PyUnicodeUCS2_DecodeRawUnicodeEscape
-# define PyUnicode_DecodeUTF32 PyUnicodeUCS2_DecodeUTF32
-# define PyUnicode_DecodeUTF32Stateful PyUnicodeUCS2_DecodeUTF32Stateful
-# define PyUnicode_DecodeUTF16 PyUnicodeUCS2_DecodeUTF16
-# define PyUnicode_DecodeUTF16Stateful PyUnicodeUCS2_DecodeUTF16Stateful
-# define PyUnicode_DecodeUTF8 PyUnicodeUCS2_DecodeUTF8
-# define PyUnicode_DecodeUTF8Stateful PyUnicodeUCS2_DecodeUTF8Stateful
-# define PyUnicode_DecodeUnicodeEscape PyUnicodeUCS2_DecodeUnicodeEscape
-# define PyUnicode_Encode PyUnicodeUCS2_Encode
-# define PyUnicode_EncodeASCII PyUnicodeUCS2_EncodeASCII
-# define PyUnicode_EncodeCharmap PyUnicodeUCS2_EncodeCharmap
-# define PyUnicode_EncodeDecimal PyUnicodeUCS2_EncodeDecimal
-# define PyUnicode_EncodeLatin1 PyUnicodeUCS2_EncodeLatin1
-# define PyUnicode_EncodeRawUnicodeEscape PyUnicodeUCS2_EncodeRawUnicodeEscape
-# define PyUnicode_EncodeUTF32 PyUnicodeUCS2_EncodeUTF32
-# define PyUnicode_EncodeUTF16 PyUnicodeUCS2_EncodeUTF16
-# define PyUnicode_EncodeUTF8 PyUnicodeUCS2_EncodeUTF8
-# define PyUnicode_EncodeUnicodeEscape PyUnicodeUCS2_EncodeUnicodeEscape
-# define PyUnicode_Find PyUnicodeUCS2_Find
-# define PyUnicode_Format PyUnicodeUCS2_Format
-# define PyUnicode_FromEncodedObject PyUnicodeUCS2_FromEncodedObject
-# define PyUnicode_FromFormat PyUnicodeUCS2_FromFormat
-# define PyUnicode_FromFormatV PyUnicodeUCS2_FromFormatV
-# define PyUnicode_FromObject PyUnicodeUCS2_FromObject
-# define PyUnicode_FromOrdinal PyUnicodeUCS2_FromOrdinal
-# define PyUnicode_FromString PyUnicodeUCS2_FromString
-# define PyUnicode_FromStringAndSize PyUnicodeUCS2_FromStringAndSize
-# define PyUnicode_FromUnicode PyUnicodeUCS2_FromUnicode
-# define PyUnicode_FromWideChar PyUnicodeUCS2_FromWideChar
-# define PyUnicode_FSConverter PyUnicodeUCS2_FSConverter
-# define PyUnicode_FSDecoder PyUnicodeUCS2_FSDecoder
-# define PyUnicode_GetDefaultEncoding PyUnicodeUCS2_GetDefaultEncoding
-# define PyUnicode_GetMax PyUnicodeUCS2_GetMax
-# define PyUnicode_GetSize PyUnicodeUCS2_GetSize
-# define PyUnicode_IsIdentifier PyUnicodeUCS2_IsIdentifier
-# define PyUnicode_Join PyUnicodeUCS2_Join
-# define PyUnicode_Partition PyUnicodeUCS2_Partition
-# define PyUnicode_RPartition PyUnicodeUCS2_RPartition
-# define PyUnicode_RSplit PyUnicodeUCS2_RSplit
-# define PyUnicode_Replace PyUnicodeUCS2_Replace
-# define PyUnicode_Resize PyUnicodeUCS2_Resize
-# define PyUnicode_RichCompare PyUnicodeUCS2_RichCompare
-# define PyUnicode_Split PyUnicodeUCS2_Split
-# define PyUnicode_Splitlines PyUnicodeUCS2_Splitlines
-# define PyUnicode_Tailmatch PyUnicodeUCS2_Tailmatch
-# define PyUnicode_Translate PyUnicodeUCS2_Translate
-# define PyUnicode_TranslateCharmap PyUnicodeUCS2_TranslateCharmap
-# define _PyUnicode_AsDefaultEncodedString _PyUnicodeUCS2_AsDefaultEncodedString
-# define _PyUnicode_Fini _PyUnicodeUCS2_Fini
-# define _PyUnicode_Init _PyUnicodeUCS2_Init
-# define PyUnicode_strdup PyUnicodeUCS2_strdup
-
 #else
-
-# define PyUnicode_AsASCIIString PyUnicodeUCS4_AsASCIIString
-# define PyUnicode_AsCharmapString PyUnicodeUCS4_AsCharmapString
-# define PyUnicode_AsDecodedObject PyUnicodeUCS4_AsDecodedObject
-# define PyUnicode_AsDecodedUnicode PyUnicodeUCS4_AsDecodedUnicode
-# define PyUnicode_AsEncodedObject PyUnicodeUCS4_AsEncodedObject
-# define PyUnicode_AsEncodedString PyUnicodeUCS4_AsEncodedString
-# define PyUnicode_AsEncodedUnicode PyUnicodeUCS4_AsEncodedUnicode
-# define PyUnicode_AsLatin1String PyUnicodeUCS4_AsLatin1String
-# define PyUnicode_AsRawUnicodeEscapeString PyUnicodeUCS4_AsRawUnicodeEscapeString
-# define PyUnicode_AsUTF32String PyUnicodeUCS4_AsUTF32String
-# define PyUnicode_AsUTF16String PyUnicodeUCS4_AsUTF16String
-# define PyUnicode_AsUTF8String PyUnicodeUCS4_AsUTF8String
-# define PyUnicode_AsUnicode PyUnicodeUCS4_AsUnicode
-# define PyUnicode_AsUnicodeEscapeString PyUnicodeUCS4_AsUnicodeEscapeString
-# define PyUnicode_AsWideChar PyUnicodeUCS4_AsWideChar
-# define PyUnicode_AsWideCharString PyUnicodeUCS4_AsWideCharString
-# define PyUnicode_ClearFreeList PyUnicodeUCS4_ClearFreelist
-# define PyUnicode_Compare PyUnicodeUCS4_Compare
-# define PyUnicode_CompareWithASCIIString PyUnicodeUCS4_CompareWithASCIIString
-# define PyUnicode_Concat PyUnicodeUCS4_Concat
-# define PyUnicode_Append PyUnicodeUCS4_Append
-# define PyUnicode_AppendAndDel PyUnicodeUCS4_AppendAndDel
-# define PyUnicode_Contains PyUnicodeUCS4_Contains
-# define PyUnicode_Count PyUnicodeUCS4_Count
-# define PyUnicode_Decode PyUnicodeUCS4_Decode
-# define PyUnicode_DecodeASCII PyUnicodeUCS4_DecodeASCII
-# define PyUnicode_DecodeCharmap PyUnicodeUCS4_DecodeCharmap
-# define PyUnicode_DecodeLatin1 PyUnicodeUCS4_DecodeLatin1
-# define PyUnicode_DecodeFSDefault PyUnicodeUCS4_DecodeFSDefault
-# define PyUnicode_DecodeFSDefaultAndSize PyUnicodeUCS4_DecodeFSDefaultAndSize
-# define PyUnicode_DecodeRawUnicodeEscape PyUnicodeUCS4_DecodeRawUnicodeEscape
-# define PyUnicode_DecodeUTF32 PyUnicodeUCS4_DecodeUTF32
-# define PyUnicode_DecodeUTF32Stateful PyUnicodeUCS4_DecodeUTF32Stateful
-# define PyUnicode_DecodeUTF16 PyUnicodeUCS4_DecodeUTF16
-# define PyUnicode_DecodeUTF16Stateful PyUnicodeUCS4_DecodeUTF16Stateful
-# define PyUnicode_DecodeUTF8 PyUnicodeUCS4_DecodeUTF8
-# define PyUnicode_DecodeUTF8Stateful PyUnicodeUCS4_DecodeUTF8Stateful
-# define PyUnicode_DecodeUnicodeEscape PyUnicodeUCS4_DecodeUnicodeEscape
-# define PyUnicode_Encode PyUnicodeUCS4_Encode
-# define PyUnicode_EncodeASCII PyUnicodeUCS4_EncodeASCII
-# define PyUnicode_EncodeCharmap PyUnicodeUCS4_EncodeCharmap
-# define PyUnicode_EncodeDecimal PyUnicodeUCS4_EncodeDecimal
-# define PyUnicode_EncodeLatin1 PyUnicodeUCS4_EncodeLatin1
-# define PyUnicode_EncodeRawUnicodeEscape PyUnicodeUCS4_EncodeRawUnicodeEscape
-# define PyUnicode_EncodeUTF32 PyUnicodeUCS4_EncodeUTF32
-# define PyUnicode_EncodeUTF16 PyUnicodeUCS4_EncodeUTF16
-# define PyUnicode_EncodeUTF8 PyUnicodeUCS4_EncodeUTF8
-# define PyUnicode_EncodeUnicodeEscape PyUnicodeUCS4_EncodeUnicodeEscape
-# define PyUnicode_Find PyUnicodeUCS4_Find
-# define PyUnicode_Format PyUnicodeUCS4_Format
-# define PyUnicode_FromEncodedObject PyUnicodeUCS4_FromEncodedObject
-# define PyUnicode_FromFormat PyUnicodeUCS4_FromFormat
-# define PyUnicode_FromFormatV PyUnicodeUCS4_FromFormatV
-# define PyUnicode_FromObject PyUnicodeUCS4_FromObject
-# define PyUnicode_FromOrdinal PyUnicodeUCS4_FromOrdinal
-# define PyUnicode_FromString PyUnicodeUCS4_FromString
-# define PyUnicode_FromStringAndSize PyUnicodeUCS4_FromStringAndSize
-# define PyUnicode_FromUnicode PyUnicodeUCS4_FromUnicode
-# define PyUnicode_FromWideChar PyUnicodeUCS4_FromWideChar
-# define PyUnicode_FSConverter PyUnicodeUCS4_FSConverter
-# define PyUnicode_FSDecoder PyUnicodeUCS4_FSDecoder
-# define PyUnicode_GetDefaultEncoding PyUnicodeUCS4_GetDefaultEncoding
-# define PyUnicode_GetMax PyUnicodeUCS4_GetMax
-# define PyUnicode_GetSize PyUnicodeUCS4_GetSize
-# define PyUnicode_IsIdentifier PyUnicodeUCS4_IsIdentifier
-# define PyUnicode_Join PyUnicodeUCS4_Join
-# define PyUnicode_Partition PyUnicodeUCS4_Partition
-# define PyUnicode_RPartition PyUnicodeUCS4_RPartition
-# define PyUnicode_RSplit PyUnicodeUCS4_RSplit
-# define PyUnicode_Replace PyUnicodeUCS4_Replace
-# define PyUnicode_Resize PyUnicodeUCS4_Resize
-# define PyUnicode_RichCompare PyUnicodeUCS4_RichCompare
-# define PyUnicode_Split PyUnicodeUCS4_Split
-# define PyUnicode_Splitlines PyUnicodeUCS4_Splitlines
-# define PyUnicode_Tailmatch PyUnicodeUCS4_Tailmatch
-# define PyUnicode_Translate PyUnicodeUCS4_Translate
-# define PyUnicode_TranslateCharmap PyUnicodeUCS4_TranslateCharmap
-# define _PyUnicode_AsDefaultEncodedString _PyUnicodeUCS4_AsDefaultEncodedString
-# define _PyUnicode_Fini _PyUnicodeUCS4_Fini
-# define _PyUnicode_Init _PyUnicodeUCS4_Init
-# define PyUnicode_strdup PyUnicodeUCS4_strdup
-
+#error "Could not find a proper typedef for Py_UCS4"
 #endif
+
+#if SIZEOF_SHORT == 2
+typedef unsigned short Py_UCS2;
+#else
+#error "Could not find a proper typedef for Py_UCS2"
+#endif
+
+typedef unsigned char Py_UCS1;
 
 /* --- Internal Unicode Operations ---------------------------------------- */
 
@@ -350,7 +171,7 @@ typedef PY_UNICODE_TYPE Py_UNICODE;
     Py_UNICODE_ISDIGIT(ch) || \
     Py_UNICODE_ISNUMERIC(ch))
 
-#define Py_UNICODE_COPY(target, source, length)                         \
+#define Py_UNICODE_COPY(target, source, length) \
     Py_MEMCPY((target), (source), (length)*sizeof(Py_UNICODE))
 
 #define Py_UNICODE_FILL(target, value, length) \
@@ -358,13 +179,27 @@ typedef PY_UNICODE_TYPE Py_UNICODE;
     for (i_ = 0; i_ < (length); i_++) t_[i_] = v_;\
     } while (0)
 
+/* macros to work with surrogates */
+#define Py_UNICODE_IS_SURROGATE(ch) (0xD800 <= (ch) && (ch) <= 0xDFFF)
+#define Py_UNICODE_IS_HIGH_SURROGATE(ch) (0xD800 <= (ch) && (ch) <= 0xDBFF)
+#define Py_UNICODE_IS_LOW_SURROGATE(ch) (0xDC00 <= (ch) && (ch) <= 0xDFFF)
+/* Join two surrogate characters and return a single Py_UCS4 value. */
+#define Py_UNICODE_JOIN_SURROGATES(high, low)  \
+    (((((Py_UCS4)(high) & 0x03FF) << 10) |      \
+      ((Py_UCS4)(low) & 0x03FF)) + 0x10000)
+/* high surrogate = top 10 bits added to D800 */
+#define Py_UNICODE_HIGH_SURROGATE(ch) (0xD800 - (0x10000 >> 10) + ((ch) >> 10))
+/* low surrogate = bottom 10 bits added to DC00 */
+#define Py_UNICODE_LOW_SURROGATE(ch) (0xDC00 + ((ch) & 0x3FF))
+
 /* Check if substring matches at given offset.  The offset must be
    valid, and the substring must not be empty. */
 
 #define Py_UNICODE_MATCH(string, offset, substring) \
-    ((*((string)->str + (offset)) == *((substring)->str)) && \
-    ((*((string)->str + (offset) + (substring)->length-1) == *((substring)->str + (substring)->length-1))) && \
-     !memcmp((string)->str + (offset), (substring)->str, (substring)->length*sizeof(Py_UNICODE)))
+    ((*((string)->wstr + (offset)) == *((substring)->wstr)) && \
+     ((*((string)->wstr + (offset) + (substring)->wstr_length-1) == *((substring)->wstr + (substring)->wstr_length-1))) && \
+     !memcmp((string)->wstr + (offset), (substring)->wstr, (substring)->wstr_length*sizeof(Py_UNICODE)))
+
 #endif /* Py_LIMITED_API */
 
 #ifdef __cplusplus
@@ -374,26 +209,175 @@ extern "C" {
 /* --- Unicode Type ------------------------------------------------------- */
 
 #ifndef Py_LIMITED_API
+
+/* ASCII-only strings created through PyUnicode_New use the PyASCIIObject
+   structure. state.ascii and state.compact are set, and the data
+   immediately follow the structure. utf8_length and wstr_length can be found
+   in the length field; the utf8 pointer is equal to the data pointer. */
 typedef struct {
+    /* There are 4 forms of Unicode strings:
+
+       - compact ascii:
+
+         * structure = PyASCIIObject
+         * test: PyUnicode_IS_COMPACT_ASCII(op)
+         * kind = PyUnicode_1BYTE_KIND
+         * compact = 1
+         * ascii = 1
+         * ready = 1
+         * (length is the length of the utf8 and wstr strings)
+         * (data starts just after the structure)
+         * (since ASCII is decoded from UTF-8, the utf8 string are the data)
+
+       - compact:
+
+         * structure = PyCompactUnicodeObject
+         * test: PyUnicode_IS_COMPACT(op) && !PyUnicode_IS_ASCII(op)
+         * kind = PyUnicode_1BYTE_KIND, PyUnicode_2BYTE_KIND or
+           PyUnicode_4BYTE_KIND
+         * compact = 1
+         * ready = 1
+         * ascii = 0
+         * utf8 is not shared with data
+         * utf8_length = 0 if utf8 is NULL
+         * wstr is shared with data and wstr_length=length
+           if kind=PyUnicode_2BYTE_KIND and sizeof(wchar_t)=2
+           or if kind=PyUnicode_4BYTE_KIND and sizeof(wchar_t)=4
+         * wstr_length = 0 if wstr is NULL
+         * (data starts just after the structure)
+
+       - legacy string, not ready:
+
+         * structure = PyUnicodeObject
+         * test: kind == PyUnicode_WCHAR_KIND
+         * length = 0 (use wstr_length)
+         * hash = -1
+         * kind = PyUnicode_WCHAR_KIND
+         * compact = 0
+         * ascii = 0
+         * ready = 0
+         * interned = SSTATE_NOT_INTERNED
+         * wstr is not NULL
+         * data.any is NULL
+         * utf8 is NULL
+         * utf8_length = 0
+
+       - legacy string, ready:
+
+         * structure = PyUnicodeObject structure
+         * test: !PyUnicode_IS_COMPACT(op) && kind != PyUnicode_WCHAR_KIND
+         * kind = PyUnicode_1BYTE_KIND, PyUnicode_2BYTE_KIND or
+           PyUnicode_4BYTE_KIND
+         * compact = 0
+         * ready = 1
+         * data.any is not NULL
+         * utf8 is shared and utf8_length = length with data.any if ascii = 1
+         * utf8_length = 0 if utf8 is NULL
+         * wstr is shared with data.any and wstr_length = length
+           if kind=PyUnicode_2BYTE_KIND and sizeof(wchar_t)=2
+           or if kind=PyUnicode_4BYTE_KIND and sizeof(wchar_4)=4
+         * wstr_length = 0 if wstr is NULL
+
+       Compact strings use only one memory block (structure + characters),
+       whereas legacy strings use one block for the structure and one block
+       for characters.
+
+       Legacy strings are created by PyUnicode_FromUnicode() and
+       PyUnicode_FromStringAndSize(NULL, size) functions. They become ready
+       when PyUnicode_READY() is called.
+
+       See also _PyUnicode_CheckConsistency().
+    */
     PyObject_HEAD
-    Py_ssize_t length;          /* Length of raw Unicode data in buffer */
-    Py_UNICODE *str;            /* Raw Unicode buffer */
+    Py_ssize_t length;          /* Number of code points in the string */
     Py_hash_t hash;             /* Hash value; -1 if not set */
-    int state;                  /* != 0 if interned. In this case the two
-                                 * references from the dictionary to this object
-                                 * are *not* counted in ob_refcnt. */
-    PyObject *defenc;           /* (Default) Encoded version as Python
-                                   string, or NULL; this is used for
-                                   implementing the buffer protocol */
+    struct {
+        /*
+           SSTATE_NOT_INTERNED (0)
+           SSTATE_INTERNED_MORTAL (1)
+           SSTATE_INTERNED_IMMORTAL (2)
+
+           If interned != SSTATE_NOT_INTERNED, the two references from the
+           dictionary to this object are *not* counted in ob_refcnt.
+         */
+        unsigned int interned:2;
+        /* Character size:
+
+           - PyUnicode_WCHAR_KIND (0):
+
+             * character type = wchar_t (16 or 32 bits, depending on the
+               platform)
+
+           - PyUnicode_1BYTE_KIND (1):
+
+             * character type = Py_UCS1 (8 bits, unsigned)
+             * all characters are in the range U+0000-U+00FF (latin1)
+             * if ascii is set, all characters are in the range U+0000-U+007F
+               (ASCII), otherwise at least one character is in the range
+               U+0080-U+00FF
+
+           - PyUnicode_2BYTE_KIND (2):
+
+             * character type = Py_UCS2 (16 bits, unsigned)
+             * all characters are in the range U+0000-U+FFFF (BMP)
+             * at least one character is in the range U+0100-U+FFFF
+
+           - PyUnicode_4BYTE_KIND (4):
+
+             * character type = Py_UCS4 (32 bits, unsigned)
+             * all characters are in the range U+0000-U+10FFFF
+             * at least one character is in the range U+10000-U+10FFFF
+         */
+        unsigned int kind:3;
+        /* Compact is with respect to the allocation scheme. Compact unicode
+           objects only require one memory block while non-compact objects use
+           one block for the PyUnicodeObject struct and another for its data
+           buffer. */
+        unsigned int compact:1;
+        /* The string only contains characters in the range U+0000-U+007F (ASCII)
+           and the kind is PyUnicode_1BYTE_KIND. If ascii is set and compact is
+           set, use the PyASCIIObject structure. */
+        unsigned int ascii:1;
+        /* The ready flag indicates whether the object layout is initialized
+           completely. This means that this is either a compact object, or
+           the data pointer is filled out. The bit is redundant, and helps
+           to minimize the test in PyUnicode_IS_READY(). */
+        unsigned int ready:1;
+        /* Padding to ensure that PyUnicode_DATA() is always aligned to
+           4 bytes (see issue #19537 on m68k). */
+        unsigned int :24;
+    } state;
+    wchar_t *wstr;              /* wchar_t representation (null-terminated) */
+} PyASCIIObject;
+
+/* Non-ASCII strings allocated through PyUnicode_New use the
+   PyCompactUnicodeObject structure. state.compact is set, and the data
+   immediately follow the structure. */
+typedef struct {
+    PyASCIIObject _base;
+    Py_ssize_t utf8_length;     /* Number of bytes in utf8, excluding the
+                                 * terminating \0. */
+    char *utf8;                 /* UTF-8 representation (null-terminated) */
+    Py_ssize_t wstr_length;     /* Number of code points in wstr, possible
+                                 * surrogates count as two code points. */
+} PyCompactUnicodeObject;
+
+/* Strings allocated through PyUnicode_FromUnicode(NULL, len) use the
+   PyUnicodeObject structure. The actual string data is initially in the wstr
+   block, and copied into the data block using _PyUnicode_Ready. */
+typedef struct {
+    PyCompactUnicodeObject _base;
+    union {
+        void *any;
+        Py_UCS1 *latin1;
+        Py_UCS2 *ucs2;
+        Py_UCS4 *ucs4;
+    } data;                     /* Canonical, smallest-form Unicode buffer */
 } PyUnicodeObject;
 #endif
 
 PyAPI_DATA(PyTypeObject) PyUnicode_Type;
 PyAPI_DATA(PyTypeObject) PyUnicodeIter_Type;
-
-#define SSTATE_NOT_INTERNED 0
-#define SSTATE_INTERNED_MORTAL 1
-#define SSTATE_INTERNED_IMMORTAL 2
 
 #define PyUnicode_Check(op) \
                  PyType_FastSubclass(Py_TYPE(op), Py_TPFLAGS_UNICODE_SUBCLASS)
@@ -401,14 +385,201 @@ PyAPI_DATA(PyTypeObject) PyUnicodeIter_Type;
 
 /* Fast access macros */
 #ifndef Py_LIMITED_API
-#define PyUnicode_GET_SIZE(op) \
-    (assert(PyUnicode_Check(op)),(((PyUnicodeObject *)(op))->length))
+
+#define PyUnicode_WSTR_LENGTH(op) \
+    (PyUnicode_IS_COMPACT_ASCII(op) ?                  \
+     ((PyASCIIObject*)op)->length :                    \
+     ((PyCompactUnicodeObject*)op)->wstr_length)
+
+/* Returns the deprecated Py_UNICODE representation's size in code units
+   (this includes surrogate pairs as 2 units).
+   If the Py_UNICODE representation is not available, it will be computed
+   on request.  Use PyUnicode_GET_LENGTH() for the length in code points. */
+
+#define PyUnicode_GET_SIZE(op)                       \
+    (assert(PyUnicode_Check(op)),                    \
+     (((PyASCIIObject *)(op))->wstr) ?               \
+      PyUnicode_WSTR_LENGTH(op) :                    \
+      ((void)PyUnicode_AsUnicode((PyObject *)(op)),  \
+       assert(((PyASCIIObject *)(op))->wstr),        \
+       PyUnicode_WSTR_LENGTH(op)))
+
 #define PyUnicode_GET_DATA_SIZE(op) \
-    (assert(PyUnicode_Check(op)),(((PyUnicodeObject *)(op))->length * sizeof(Py_UNICODE)))
+    (PyUnicode_GET_SIZE(op) * Py_UNICODE_SIZE)
+
+/* Alias for PyUnicode_AsUnicode().  This will create a wchar_t/Py_UNICODE
+   representation on demand.  Using this macro is very inefficient now,
+   try to port your code to use the new PyUnicode_*BYTE_DATA() macros or
+   use PyUnicode_WRITE() and PyUnicode_READ(). */
+
 #define PyUnicode_AS_UNICODE(op) \
-    (assert(PyUnicode_Check(op)),(((PyUnicodeObject *)(op))->str))
+    (assert(PyUnicode_Check(op)), \
+     (((PyASCIIObject *)(op))->wstr) ? (((PyASCIIObject *)(op))->wstr) : \
+      PyUnicode_AsUnicode((PyObject *)(op)))
+
 #define PyUnicode_AS_DATA(op) \
-    (assert(PyUnicode_Check(op)),((const char *)((PyUnicodeObject *)(op))->str))
+    ((const char *)(PyUnicode_AS_UNICODE(op)))
+
+
+/* --- Flexible String Representation Helper Macros (PEP 393) -------------- */
+
+/* Values for PyASCIIObject.state: */
+
+/* Interning state. */
+#define SSTATE_NOT_INTERNED 0
+#define SSTATE_INTERNED_MORTAL 1
+#define SSTATE_INTERNED_IMMORTAL 2
+
+/* Return true if the string contains only ASCII characters, or 0 if not. The
+   string may be compact (PyUnicode_IS_COMPACT_ASCII) or not, but must be
+   ready. */
+#define PyUnicode_IS_ASCII(op)                   \
+    (assert(PyUnicode_Check(op)),                \
+     assert(PyUnicode_IS_READY(op)),             \
+     ((PyASCIIObject*)op)->state.ascii)
+
+/* Return true if the string is compact or 0 if not.
+   No type checks or Ready calls are performed. */
+#define PyUnicode_IS_COMPACT(op) \
+    (((PyASCIIObject*)(op))->state.compact)
+
+/* Return true if the string is a compact ASCII string (use PyASCIIObject
+   structure), or 0 if not.  No type checks or Ready calls are performed. */
+#define PyUnicode_IS_COMPACT_ASCII(op)                 \
+    (((PyASCIIObject*)op)->state.ascii && PyUnicode_IS_COMPACT(op))
+
+enum PyUnicode_Kind {
+/* String contains only wstr byte characters.  This is only possible
+   when the string was created with a legacy API and _PyUnicode_Ready()
+   has not been called yet.  */
+    PyUnicode_WCHAR_KIND = 0,
+/* Return values of the PyUnicode_KIND() macro: */
+    PyUnicode_1BYTE_KIND = 1,
+    PyUnicode_2BYTE_KIND = 2,
+    PyUnicode_4BYTE_KIND = 4
+};
+
+/* Return pointers to the canonical representation cast to unsigned char,
+   Py_UCS2, or Py_UCS4 for direct character access.
+   No checks are performed, use PyUnicode_KIND() before to ensure
+   these will work correctly. */
+
+#define PyUnicode_1BYTE_DATA(op) ((Py_UCS1*)PyUnicode_DATA(op))
+#define PyUnicode_2BYTE_DATA(op) ((Py_UCS2*)PyUnicode_DATA(op))
+#define PyUnicode_4BYTE_DATA(op) ((Py_UCS4*)PyUnicode_DATA(op))
+
+/* Return one of the PyUnicode_*_KIND values defined above. */
+#define PyUnicode_KIND(op) \
+    (assert(PyUnicode_Check(op)), \
+     assert(PyUnicode_IS_READY(op)),            \
+     ((PyASCIIObject *)(op))->state.kind)
+
+/* Return a void pointer to the raw unicode buffer. */
+#define _PyUnicode_COMPACT_DATA(op)                     \
+    (PyUnicode_IS_ASCII(op) ?                   \
+     ((void*)((PyASCIIObject*)(op) + 1)) :              \
+     ((void*)((PyCompactUnicodeObject*)(op) + 1)))
+
+#define _PyUnicode_NONCOMPACT_DATA(op)                  \
+    (assert(((PyUnicodeObject*)(op))->data.any),        \
+     ((((PyUnicodeObject *)(op))->data.any)))
+
+#define PyUnicode_DATA(op) \
+    (assert(PyUnicode_Check(op)), \
+     PyUnicode_IS_COMPACT(op) ? _PyUnicode_COMPACT_DATA(op) :   \
+     _PyUnicode_NONCOMPACT_DATA(op))
+
+/* In the access macros below, "kind" may be evaluated more than once.
+   All other macro parameters are evaluated exactly once, so it is safe
+   to put side effects into them (such as increasing the index). */
+
+/* Write into the canonical representation, this macro does not do any sanity
+   checks and is intended for usage in loops.  The caller should cache the
+   kind and data pointers obtained from other macro calls.
+   index is the index in the string (starts at 0) and value is the new
+   code point value which should be written to that location. */
+#define PyUnicode_WRITE(kind, data, index, value) \
+    do { \
+        switch ((kind)) { \
+        case PyUnicode_1BYTE_KIND: { \
+            ((Py_UCS1 *)(data))[(index)] = (Py_UCS1)(value); \
+            break; \
+        } \
+        case PyUnicode_2BYTE_KIND: { \
+            ((Py_UCS2 *)(data))[(index)] = (Py_UCS2)(value); \
+            break; \
+        } \
+        default: { \
+            assert((kind) == PyUnicode_4BYTE_KIND); \
+            ((Py_UCS4 *)(data))[(index)] = (Py_UCS4)(value); \
+        } \
+        } \
+    } while (0)
+
+/* Read a code point from the string's canonical representation.  No checks
+   or ready calls are performed. */
+#define PyUnicode_READ(kind, data, index) \
+    ((Py_UCS4) \
+    ((kind) == PyUnicode_1BYTE_KIND ? \
+        ((const Py_UCS1 *)(data))[(index)] : \
+        ((kind) == PyUnicode_2BYTE_KIND ? \
+            ((const Py_UCS2 *)(data))[(index)] : \
+            ((const Py_UCS4 *)(data))[(index)] \
+        ) \
+    ))
+
+/* PyUnicode_READ_CHAR() is less efficient than PyUnicode_READ() because it
+   calls PyUnicode_KIND() and might call it twice.  For single reads, use
+   PyUnicode_READ_CHAR, for multiple consecutive reads callers should
+   cache kind and use PyUnicode_READ instead. */
+#define PyUnicode_READ_CHAR(unicode, index) \
+    (assert(PyUnicode_Check(unicode)),          \
+     assert(PyUnicode_IS_READY(unicode)),       \
+     (Py_UCS4)                                  \
+        (PyUnicode_KIND((unicode)) == PyUnicode_1BYTE_KIND ? \
+            ((const Py_UCS1 *)(PyUnicode_DATA((unicode))))[(index)] : \
+            (PyUnicode_KIND((unicode)) == PyUnicode_2BYTE_KIND ? \
+                ((const Py_UCS2 *)(PyUnicode_DATA((unicode))))[(index)] : \
+                ((const Py_UCS4 *)(PyUnicode_DATA((unicode))))[(index)] \
+            ) \
+        ))
+
+/* Returns the length of the unicode string. The caller has to make sure that
+   the string has it's canonical representation set before calling
+   this macro.  Call PyUnicode_(FAST_)Ready to ensure that. */
+#define PyUnicode_GET_LENGTH(op)                \
+    (assert(PyUnicode_Check(op)),               \
+     assert(PyUnicode_IS_READY(op)),            \
+     ((PyASCIIObject *)(op))->length)
+
+
+/* Fast check to determine whether an object is ready. Equivalent to
+   PyUnicode_IS_COMPACT(op) || ((PyUnicodeObject*)(op))->data.any) */
+
+#define PyUnicode_IS_READY(op) (((PyASCIIObject*)op)->state.ready)
+
+/* PyUnicode_READY() does less work than _PyUnicode_Ready() in the best
+   case.  If the canonical representation is not yet set, it will still call
+   _PyUnicode_Ready().
+   Returns 0 on success and -1 on errors. */
+#define PyUnicode_READY(op)                        \
+    (assert(PyUnicode_Check(op)),                       \
+     (PyUnicode_IS_READY(op) ?                          \
+      0 : _PyUnicode_Ready((PyObject *)(op))))
+
+/* Return a maximum character value which is suitable for creating another
+   string based on op.  This is always an approximation but more efficient
+   than iterating over the string. */
+#define PyUnicode_MAX_CHAR_VALUE(op) \
+    (assert(PyUnicode_IS_READY(op)),                                    \
+     (PyUnicode_IS_ASCII(op) ?                                          \
+      (0x7f) :                                                          \
+      (PyUnicode_KIND(op) == PyUnicode_1BYTE_KIND ?                     \
+       (0xffU) :                                                        \
+       (PyUnicode_KIND(op) == PyUnicode_2BYTE_KIND ?                    \
+        (0xffffU) :                                                     \
+        (0x10ffffU)))))
+
 #endif
 
 /* --- Constants ---------------------------------------------------------- */
@@ -418,11 +589,106 @@ PyAPI_DATA(PyTypeObject) PyUnicodeIter_Type;
    Unicode character U+FFFD is the official REPLACEMENT CHARACTER in
    Unicode 3.0. */
 
-#define Py_UNICODE_REPLACEMENT_CHARACTER ((Py_UNICODE) 0xFFFD)
+#define Py_UNICODE_REPLACEMENT_CHARACTER ((Py_UCS4) 0xFFFD)
 
 /* === Public API ========================================================= */
 
 /* --- Plain Py_UNICODE --------------------------------------------------- */
+
+/* With PEP 393, this is the recommended way to allocate a new unicode object.
+   This function will allocate the object and its buffer in a single memory
+   block.  Objects created using this function are not resizable. */
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(PyObject*) PyUnicode_New(
+    Py_ssize_t size,            /* Number of code points in the new string */
+    Py_UCS4 maxchar             /* maximum code point value in the string */
+    );
+#endif
+
+/* Initializes the canonical string representation from a the deprecated
+   wstr/Py_UNICODE representation. This function is used to convert Unicode
+   objects which were created using the old API to the new flexible format
+   introduced with PEP 393.
+
+   Don't call this function directly, use the public PyUnicode_READY() macro
+   instead. */
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(int) _PyUnicode_Ready(
+    PyObject *unicode           /* Unicode object */
+    );
+#endif
+
+/* Get a copy of a Unicode string. */
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(PyObject*) _PyUnicode_Copy(
+    PyObject *unicode
+    );
+#endif
+
+/* Copy character from one unicode object into another, this function performs
+   character conversion when necessary and falls back to memcpy() if possible.
+
+   Fail if to is too small (smaller than *how_many* or smaller than
+   len(from)-from_start), or if kind(from[from_start:from_start+how_many]) >
+   kind(to), or if *to* has more than 1 reference.
+
+   Return the number of written character, or return -1 and raise an exception
+   on error.
+
+   Pseudo-code:
+
+       how_many = min(how_many, len(from) - from_start)
+       to[to_start:to_start+how_many] = from[from_start:from_start+how_many]
+       return how_many
+
+   Note: The function doesn't write a terminating null character.
+   */
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(Py_ssize_t) PyUnicode_CopyCharacters(
+    PyObject *to,
+    Py_ssize_t to_start,
+    PyObject *from,
+    Py_ssize_t from_start,
+    Py_ssize_t how_many
+    );
+
+/* Unsafe version of PyUnicode_CopyCharacters(): don't check arguments and so
+   may crash if parameters are invalid (e.g. if the output string
+   is too short). */
+PyAPI_FUNC(void) _PyUnicode_FastCopyCharacters(
+    PyObject *to,
+    Py_ssize_t to_start,
+    PyObject *from,
+    Py_ssize_t from_start,
+    Py_ssize_t how_many
+    );
+#endif
+
+#ifndef Py_LIMITED_API
+/* Fill a string with a character: write fill_char into
+   unicode[start:start+length].
+
+   Fail if fill_char is bigger than the string maximum character, or if the
+   string has more than 1 reference.
+
+   Return the number of written character, or return -1 and raise an exception
+   on error. */
+PyAPI_FUNC(Py_ssize_t) PyUnicode_Fill(
+    PyObject *unicode,
+    Py_ssize_t start,
+    Py_ssize_t length,
+    Py_UCS4 fill_char
+    );
+
+/* Unsafe version of PyUnicode_Fill(): don't check arguments and so may crash
+   if parameters are invalid (e.g. if length is longer than the string). */
+PyAPI_FUNC(void) _PyUnicode_FastFill(
+    PyObject *unicode,
+    Py_ssize_t start,
+    Py_ssize_t length,
+    Py_UCS4 fill_char
+    );
+#endif
 
 /* Create a Unicode Object from the Py_UNICODE buffer u of the given
    size.
@@ -448,13 +714,60 @@ PyAPI_FUNC(PyObject*) PyUnicode_FromStringAndSize(
     );
 
 /* Similar to PyUnicode_FromUnicode(), but u points to null-terminated
-   UTF-8 encoded bytes */
+   UTF-8 encoded bytes.  The size is determined with strlen(). */
 PyAPI_FUNC(PyObject*) PyUnicode_FromString(
     const char *u              /* UTF-8 encoded string */
     );
 
+#ifndef Py_LIMITED_API
+/* Create a new string from a buffer of Py_UCS1, Py_UCS2 or Py_UCS4 characters.
+   Scan the string to find the maximum character. */
+PyAPI_FUNC(PyObject*) PyUnicode_FromKindAndData(
+    int kind,
+    const void *buffer,
+    Py_ssize_t size);
+
+/* Create a new string from a buffer of ASCII characters.
+   WARNING: Don't check if the string contains any non-ASCII character. */
+PyAPI_FUNC(PyObject*) _PyUnicode_FromASCII(
+    const char *buffer,
+    Py_ssize_t size);
+#endif
+
+PyAPI_FUNC(PyObject*) PyUnicode_Substring(
+    PyObject *str,
+    Py_ssize_t start,
+    Py_ssize_t end);
+
+#ifndef Py_LIMITED_API
+/* Compute the maximum character of the substring unicode[start:end].
+   Return 127 for an empty string. */
+PyAPI_FUNC(Py_UCS4) _PyUnicode_FindMaxChar (
+    PyObject *unicode,
+    Py_ssize_t start,
+    Py_ssize_t end);
+#endif
+
+/* Copy the string into a UCS4 buffer including the null character if copy_null
+   is set. Return NULL and raise an exception on error. Raise a ValueError if
+   the buffer is smaller than the string. Return buffer on success.
+
+   buflen is the length of the buffer in (Py_UCS4) characters. */
+PyAPI_FUNC(Py_UCS4*) PyUnicode_AsUCS4(
+    PyObject *unicode,
+    Py_UCS4* buffer,
+    Py_ssize_t buflen,
+    int copy_null);
+
+/* Copy the string into a UCS4 buffer. A new buffer is allocated using
+ * PyMem_Malloc; if this fails, NULL is returned with a memory error
+   exception set. */
+PyAPI_FUNC(Py_UCS4*) PyUnicode_AsUCS4Copy(PyObject *unicode);
+
 /* Return a read-only pointer to the Unicode object's internal
-   Py_UNICODE buffer. */
+   Py_UNICODE buffer.
+   If the wchar_t/Py_UNICODE representation is not yet available, this
+   function will calculate it. */
 
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(Py_UNICODE *) PyUnicode_AsUnicode(
@@ -462,10 +775,47 @@ PyAPI_FUNC(Py_UNICODE *) PyUnicode_AsUnicode(
     );
 #endif
 
+/* Return a read-only pointer to the Unicode object's internal
+   Py_UNICODE buffer and save the length at size.
+   If the wchar_t/Py_UNICODE representation is not yet available, this
+   function will calculate it. */
+
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(Py_UNICODE *) PyUnicode_AsUnicodeAndSize(
+    PyObject *unicode,          /* Unicode object */
+    Py_ssize_t *size            /* location where to save the length */
+    );
+#endif
+
 /* Get the length of the Unicode object. */
+
+PyAPI_FUNC(Py_ssize_t) PyUnicode_GetLength(
+    PyObject *unicode
+);
+
+/* Get the number of Py_UNICODE units in the
+   string representation. */
 
 PyAPI_FUNC(Py_ssize_t) PyUnicode_GetSize(
     PyObject *unicode           /* Unicode object */
+    );
+
+/* Read a character from the string. */
+
+PyAPI_FUNC(Py_UCS4) PyUnicode_ReadChar(
+    PyObject *unicode,
+    Py_ssize_t index
+    );
+
+/* Write a character to the string. The string must have been created through
+   PyUnicode_New, must not be shared, and must not have been hashed yet.
+
+   Return 0 on success, -1 on error. */
+
+PyAPI_FUNC(int) PyUnicode_WriteChar(
+    PyObject *unicode,
+    Py_ssize_t index,
+    Py_UCS4 character
     );
 
 #ifndef Py_LIMITED_API
@@ -473,19 +823,21 @@ PyAPI_FUNC(Py_ssize_t) PyUnicode_GetSize(
 PyAPI_FUNC(Py_UNICODE) PyUnicode_GetMax(void);
 #endif
 
-/* Resize an already allocated Unicode object to the new size length.
+/* Resize an Unicode object. The length is the number of characters, except
+   if the kind of the string is PyUnicode_WCHAR_KIND: in this case, the length
+   is the number of Py_UNICODE characters.
 
    *unicode is modified to point to the new (resized) object and 0
    returned on success.
 
-   This API may only be called by the function which also called the
-   Unicode constructor. The refcount on the object must be 1. Otherwise,
-   an error is returned.
+   Try to resize the string in place (which is usually faster than allocating
+   a new string and copy characters), or create a new string.
 
    Error handling is implemented as follows: an exception is set, -1
    is returned and *unicode left untouched.
 
-*/
+   WARNING: The function doesn't check string content, the result may not be a
+            string in canonical representation. */
 
 PyAPI_FUNC(int) PyUnicode_Resize(
     PyObject **unicode,         /* Pointer to the Unicode object */
@@ -510,7 +862,7 @@ PyAPI_FUNC(int) PyUnicode_Resize(
 */
 
 PyAPI_FUNC(PyObject*) PyUnicode_FromEncodedObject(
-    register PyObject *obj,     /* Object */
+    PyObject *obj,              /* Object */
     const char *encoding,       /* encoding */
     const char *errors          /* error handling */
     );
@@ -529,7 +881,7 @@ PyAPI_FUNC(PyObject*) PyUnicode_FromEncodedObject(
 */
 
 PyAPI_FUNC(PyObject*) PyUnicode_FromObject(
-    register PyObject *obj      /* Object */
+    PyObject *obj      /* Object */
     );
 
 PyAPI_FUNC(PyObject *) PyUnicode_FromFormatV(
@@ -542,11 +894,113 @@ PyAPI_FUNC(PyObject *) PyUnicode_FromFormat(
     );
 
 #ifndef Py_LIMITED_API
+typedef struct {
+    PyObject *buffer;
+    void *data;
+    enum PyUnicode_Kind kind;
+    Py_UCS4 maxchar;
+    Py_ssize_t size;
+    Py_ssize_t pos;
+
+    /* minimum number of allocated characters (default: 0) */
+    Py_ssize_t min_length;
+
+    /* minimum character (default: 127, ASCII) */
+    Py_UCS4 min_char;
+
+    /* If non-zero, overallocate the buffer by 25% (default: 0). */
+    unsigned char overallocate;
+
+    /* If readonly is 1, buffer is a shared string (cannot be modified)
+       and size is set to 0. */
+    unsigned char readonly;
+} _PyUnicodeWriter ;
+
+/* Initialize a Unicode writer.
+ *
+ * By default, the minimum buffer size is 0 character and overallocation is
+ * disabled. Set min_length, min_char and overallocate attributes to control
+ * the allocation of the buffer. */
+PyAPI_FUNC(void)
+_PyUnicodeWriter_Init(_PyUnicodeWriter *writer);
+
+/* Prepare the buffer to write 'length' characters
+   with the specified maximum character.
+
+   Return 0 on success, raise an exception and return -1 on error. */
+#define _PyUnicodeWriter_Prepare(WRITER, LENGTH, MAXCHAR)             \
+    (((MAXCHAR) <= (WRITER)->maxchar                                  \
+      && (LENGTH) <= (WRITER)->size - (WRITER)->pos)                  \
+     ? 0                                                              \
+     : (((LENGTH) == 0)                                               \
+        ? 0                                                           \
+        : _PyUnicodeWriter_PrepareInternal((WRITER), (LENGTH), (MAXCHAR))))
+
+/* Don't call this function directly, use the _PyUnicodeWriter_Prepare() macro
+   instead. */
+PyAPI_FUNC(int)
+_PyUnicodeWriter_PrepareInternal(_PyUnicodeWriter *writer,
+                                 Py_ssize_t length, Py_UCS4 maxchar);
+
+/* Append a Unicode character.
+   Return 0 on success, raise an exception and return -1 on error. */
+PyAPI_FUNC(int)
+_PyUnicodeWriter_WriteChar(_PyUnicodeWriter *writer,
+    Py_UCS4 ch
+    );
+
+/* Append a Unicode string.
+   Return 0 on success, raise an exception and return -1 on error. */
+PyAPI_FUNC(int)
+_PyUnicodeWriter_WriteStr(_PyUnicodeWriter *writer,
+    PyObject *str               /* Unicode string */
+    );
+
+/* Append a substring of a Unicode string.
+   Return 0 on success, raise an exception and return -1 on error. */
+PyAPI_FUNC(int)
+_PyUnicodeWriter_WriteSubstring(_PyUnicodeWriter *writer,
+    PyObject *str,              /* Unicode string */
+    Py_ssize_t start,
+    Py_ssize_t end
+    );
+
+/* Append a ASCII-encoded byte string.
+   Return 0 on success, raise an exception and return -1 on error. */
+PyAPI_FUNC(int)
+_PyUnicodeWriter_WriteASCIIString(_PyUnicodeWriter *writer,
+    const char *str,           /* ASCII-encoded byte string */
+    Py_ssize_t len             /* number of bytes, or -1 if unknown */
+    );
+
+/* Append a latin1-encoded byte string.
+   Return 0 on success, raise an exception and return -1 on error. */
+PyAPI_FUNC(int)
+_PyUnicodeWriter_WriteLatin1String(_PyUnicodeWriter *writer,
+    const char *str,           /* latin1-encoded byte string */
+    Py_ssize_t len             /* length in bytes */
+    );
+
+/* Get the value of the writer as an Unicode string. Clear the
+   buffer of the writer. Raise an exception and return NULL
+   on error. */
+PyAPI_FUNC(PyObject *)
+_PyUnicodeWriter_Finish(_PyUnicodeWriter *writer);
+
+/* Deallocate memory of a writer (clear its internal buffer). */
+PyAPI_FUNC(void)
+_PyUnicodeWriter_Dealloc(_PyUnicodeWriter *writer);
+#endif
+
+#ifndef Py_LIMITED_API
 /* Format the object based on the format_spec, as defined in PEP 3101
    (Advanced String Formatting). */
-PyAPI_FUNC(PyObject *) _PyUnicode_FormatAdvanced(PyObject *obj,
-                                                 Py_UNICODE *format_spec,
-                                                 Py_ssize_t format_spec_len);
+PyAPI_FUNC(int) _PyUnicode_FormatAdvancedWriter(
+    _PyUnicodeWriter *writer,
+    PyObject *obj,
+    PyObject *format_spec,
+    Py_ssize_t start,
+    Py_ssize_t end);
 #endif
 
 PyAPI_FUNC(void) PyUnicode_InternInPlace(PyObject **);
@@ -559,7 +1013,8 @@ PyAPI_FUNC(void) _Py_ReleaseInternedUnicodeStrings(void);
 #endif
 
 /* Use only if you know it's a string */
-#define PyUnicode_CHECK_INTERNED(op) (((PyUnicodeObject *)(op))->state)
+#define PyUnicode_CHECK_INTERNED(op) \
+    (((PyASCIIObject *)(op))->state.interned)
 
 /* --- wchar_t support for platforms which support it --------------------- */
 
@@ -571,7 +1026,7 @@ PyAPI_FUNC(void) _Py_ReleaseInternedUnicodeStrings(void);
    The buffer is copied into the new object. */
 
 PyAPI_FUNC(PyObject*) PyUnicode_FromWideChar(
-    register const wchar_t *w,  /* wchar_t buffer */
+    const wchar_t *w,           /* wchar_t buffer */
     Py_ssize_t size             /* size of buffer */
     );
 
@@ -589,7 +1044,7 @@ PyAPI_FUNC(PyObject*) PyUnicode_FromWideChar(
 
 PyAPI_FUNC(Py_ssize_t) PyUnicode_AsWideChar(
     PyObject *unicode,          /* Unicode object */
-    register wchar_t *w,        /* wchar_t buffer */
+    wchar_t *w,                 /* wchar_t buffer */
     Py_ssize_t size             /* size of buffer */
     );
 
@@ -606,14 +1061,17 @@ PyAPI_FUNC(wchar_t*) PyUnicode_AsWideCharString(
     Py_ssize_t *size            /* number of characters of the result */
     );
 
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(void*) _PyUnicode_AsKind(PyObject *s, unsigned int kind);
+#endif
+
 #endif
 
 /* --- Unicode ordinals --------------------------------------------------- */
 
 /* Create a Unicode Object from the given Unicode code point ordinal.
 
-   The ordinal must be in range(0x10000) on narrow Python builds
-   (UCS2), and range(0x110000) on wide builds (UCS4). A ValueError is
+   The ordinal must be in range(0x110000). A ValueError is
    raised in case it is not.
 
 */
@@ -651,49 +1109,41 @@ PyAPI_FUNC(int) PyUnicode_ClearFreeList(void);
 
 /* --- Manage the default encoding ---------------------------------------- */
 
-/* Return a Python string holding the default encoded value of the
-   Unicode object.
-
-   Same as PyUnicode_AsUTF8String() except
-   the resulting string is cached in the Unicode object for subsequent
-   usage by this function. The cached version is needed to implement
-   the character buffer interface and will live (at least) as long as
-   the Unicode object itself.
-
-   The refcount of the string is *not* incremented.
-
-   *** Exported for internal use by the interpreter only !!! ***
-
-*/
-
-#ifndef Py_LIMITED_API
-PyAPI_FUNC(PyObject *) _PyUnicode_AsDefaultEncodedString(
-    PyObject *unicode,
-    const char *errors);
-#endif
-
 /* Returns a pointer to the default encoding (UTF-8) of the
    Unicode object unicode and the size of the encoded representation
    in bytes stored in *size.
 
    In case of an error, no *size is set.
 
+   This function caches the UTF-8 encoded string in the unicodeobject
+   and subsequent calls will return the same string.  The memory is released
+   when the unicodeobject is deallocated.
+
+   _PyUnicode_AsStringAndSize is a #define for PyUnicode_AsUTF8AndSize to
+   support the previous internal function with the same behaviour.
+
    *** This API is for interpreter INTERNAL USE ONLY and will likely
    *** be removed or changed in the future.
 
    *** If you need to access the Unicode object as UTF-8 bytes string,
    *** please use PyUnicode_AsUTF8String() instead.
-
 */
 
 #ifndef Py_LIMITED_API
-PyAPI_FUNC(char *) _PyUnicode_AsStringAndSize(
+PyAPI_FUNC(char *) PyUnicode_AsUTF8AndSize(
     PyObject *unicode,
     Py_ssize_t *size);
+#define _PyUnicode_AsStringAndSize PyUnicode_AsUTF8AndSize
 #endif
 
 /* Returns a pointer to the default encoding (UTF-8) of the
    Unicode object unicode.
+
+   Like PyUnicode_AsUTF8AndSize(), this also caches the UTF-8 representation
+   in the unicodeobject.
+
+   _PyUnicode_AsString is a #define for PyUnicode_AsUTF8 to
+   support the previous internal function with the same behaviour.
 
    Use of this API is DEPRECATED since no size information can be
    extracted from the returned data.
@@ -707,7 +1157,8 @@ PyAPI_FUNC(char *) _PyUnicode_AsStringAndSize(
 */
 
 #ifndef Py_LIMITED_API
-PyAPI_FUNC(char *) _PyUnicode_AsString(PyObject *unicode);
+PyAPI_FUNC(char *) PyUnicode_AsUTF8(PyObject *unicode);
+#define _PyUnicode_AsString PyUnicode_AsUTF8
 #endif
 
 /* Returns "utf-8".  */
@@ -812,6 +1263,12 @@ PyAPI_FUNC(PyObject*) PyUnicode_EncodeUTF7(
     int base64WhiteSpace,       /* Encode whitespace (sp, ht, nl, cr) in base64 */
     const char *errors          /* error handling */
     );
+PyAPI_FUNC(PyObject*) _PyUnicode_EncodeUTF7(
+    PyObject *unicode,          /* Unicode object */
+    int base64SetO,             /* Encode RFC2152 Set O characters in base64 */
+    int base64WhiteSpace,       /* Encode whitespace (sp, ht, nl, cr) in base64 */
+    const char *errors          /* error handling */
+    );
 #endif
 
 /* --- UTF-8 Codecs ------------------------------------------------------- */
@@ -834,6 +1291,10 @@ PyAPI_FUNC(PyObject*) PyUnicode_AsUTF8String(
     );
 
 #ifndef Py_LIMITED_API
+PyAPI_FUNC(PyObject*) _PyUnicode_AsUTF8String(
+    PyObject *unicode,
+    const char *errors);
+
 PyAPI_FUNC(PyObject*) PyUnicode_EncodeUTF8(
     const Py_UNICODE *data,     /* Unicode char buffer */
     Py_ssize_t length,          /* number of Py_UNICODE chars to encode */
@@ -912,6 +1373,11 @@ PyAPI_FUNC(PyObject*) PyUnicode_AsUTF32String(
 PyAPI_FUNC(PyObject*) PyUnicode_EncodeUTF32(
     const Py_UNICODE *data,     /* Unicode char buffer */
     Py_ssize_t length,          /* number of Py_UNICODE chars to encode */
+    const char *errors,         /* error handling */
+    int byteorder               /* byteorder to use 0=BOM+native;-1=LE,1=BE */
+    );
+PyAPI_FUNC(PyObject*) _PyUnicode_EncodeUTF32(
+    PyObject *object,           /* Unicode object */
     const char *errors,         /* error handling */
     int byteorder               /* byteorder to use 0=BOM+native;-1=LE,1=BE */
     );
@@ -995,6 +1461,11 @@ PyAPI_FUNC(PyObject*) PyUnicode_EncodeUTF16(
     const char *errors,         /* error handling */
     int byteorder               /* byteorder to use 0=BOM+native;-1=LE,1=BE */
     );
+PyAPI_FUNC(PyObject*) _PyUnicode_EncodeUTF16(
+    PyObject* unicode,          /* Unicode object */
+    const char *errors,         /* error handling */
+    int byteorder               /* byteorder to use 0=BOM+native;-1=LE,1=BE */
+    );
 #endif
 
 /* --- Unicode-Escape Codecs ---------------------------------------------- */
@@ -1064,6 +1535,10 @@ PyAPI_FUNC(PyObject*) PyUnicode_AsLatin1String(
     );
 
 #ifndef Py_LIMITED_API
+PyAPI_FUNC(PyObject*) _PyUnicode_AsLatin1String(
+    PyObject* unicode,
+    const char* errors);
+
 PyAPI_FUNC(PyObject*) PyUnicode_EncodeLatin1(
     const Py_UNICODE *data,     /* Unicode char buffer */
     Py_ssize_t length,          /* Number of Py_UNICODE chars to encode */
@@ -1088,6 +1563,10 @@ PyAPI_FUNC(PyObject*) PyUnicode_AsASCIIString(
     );
 
 #ifndef Py_LIMITED_API
+PyAPI_FUNC(PyObject*) _PyUnicode_AsASCIIString(
+    PyObject* unicode,
+    const char* errors);
+
 PyAPI_FUNC(PyObject*) PyUnicode_EncodeASCII(
     const Py_UNICODE *data,     /* Unicode char buffer */
     Py_ssize_t length,          /* Number of Py_UNICODE chars to encode */
@@ -1139,6 +1618,12 @@ PyAPI_FUNC(PyObject*) PyUnicode_EncodeCharmap(
                                    (unicode ordinal -> char ordinal) */
     const char *errors          /* error handling */
     );
+PyAPI_FUNC(PyObject*) _PyUnicode_EncodeCharmap(
+    PyObject *unicode,          /* Unicode object */
+    PyObject *mapping,          /* character mapping
+                                   (unicode ordinal -> char ordinal) */
+    const char *errors          /* error handling */
+    );
 #endif
 
 /* Translate a Py_UNICODE buffer of the given length by applying a
@@ -1163,7 +1648,7 @@ PyAPI_FUNC(PyObject *) PyUnicode_TranslateCharmap(
     );
 #endif
 
-#ifdef MS_WIN32
+#ifdef HAVE_MBCS
 
 /* --- MBCS codecs for Windows -------------------------------------------- */
 
@@ -1180,6 +1665,14 @@ PyAPI_FUNC(PyObject*) PyUnicode_DecodeMBCSStateful(
     Py_ssize_t *consumed        /* bytes consumed */
     );
 
+PyAPI_FUNC(PyObject*) PyUnicode_DecodeCodePageStateful(
+    int code_page,              /* code page number */
+    const char *string,         /* encoded string */
+    Py_ssize_t length,          /* size of string */
+    const char *errors,         /* error handling */
+    Py_ssize_t *consumed        /* bytes consumed */
+    );
+
 PyAPI_FUNC(PyObject*) PyUnicode_AsMBCSString(
     PyObject *unicode           /* Unicode object */
     );
@@ -1187,12 +1680,18 @@ PyAPI_FUNC(PyObject*) PyUnicode_AsMBCSString(
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(PyObject*) PyUnicode_EncodeMBCS(
     const Py_UNICODE *data,     /* Unicode char buffer */
-    Py_ssize_t length,          /* Number of Py_UNICODE chars to encode */
+    Py_ssize_t length,          /* number of Py_UNICODE chars to encode */
     const char *errors          /* error handling */
     );
 #endif
 
-#endif /* MS_WIN32 */
+PyAPI_FUNC(PyObject*) PyUnicode_EncodeCodePage(
+    int code_page,              /* code page number */
+    PyObject *unicode,          /* Unicode object */
+    const char *errors          /* error handling */
+    );
+
+#endif /* HAVE_MBCS */
 
 /* --- Decimal Encoder ---------------------------------------------------- */
 
@@ -1239,6 +1738,49 @@ PyAPI_FUNC(PyObject*) PyUnicode_TransformDecimalToASCII(
     Py_ssize_t length           /* Number of Py_UNICODE chars to transform */
     );
 #endif
+
+/* Similar to PyUnicode_TransformDecimalToASCII(), but takes a PyObject
+   as argument instead of a raw buffer and length.  This function additionally
+   transforms spaces to ASCII because this is what the callers in longobject,
+   floatobject, and complexobject did anyways. */
+
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(PyObject*) _PyUnicode_TransformDecimalAndSpaceToASCII(
+    PyObject *unicode           /* Unicode object */
+    );
+#endif
+
+/* --- Locale encoding --------------------------------------------------- */
+
+/* Decode a string from the current locale encoding. The decoder is strict if
+   *surrogateescape* is equal to zero, otherwise it uses the 'surrogateescape'
+   error handler (PEP 383) to escape undecodable bytes. If a byte sequence can
+   be decoded as a surrogate character and *surrogateescape* is not equal to
+   zero, the byte sequence is escaped using the 'surrogateescape' error handler
+   instead of being decoded. *str* must end with a null character but cannot
+   contain embedded null characters. */
+
+PyAPI_FUNC(PyObject*) PyUnicode_DecodeLocaleAndSize(
+    const char *str,
+    Py_ssize_t len,
+    const char *errors);
+
+/* Similar to PyUnicode_DecodeLocaleAndSize(), but compute the string
+   length using strlen(). */
+
+PyAPI_FUNC(PyObject*) PyUnicode_DecodeLocale(
+    const char *str,
+    const char *errors);
+
+/* Encode a Unicode object to the current locale encoding. The encoder is
+   strict is *surrogateescape* is equal to zero, otherwise the
+   "surrogateescape" error handler is used. Return a bytes object. The string
+   cannot contain embedded null characters. */
+
+PyAPI_FUNC(PyObject*) PyUnicode_EncodeLocale(
+    PyObject *unicode,
+    const char *errors
+    );
 
 /* --- File system encoding ---------------------------------------------- */
 
@@ -1292,7 +1834,7 @@ PyAPI_FUNC(PyObject*) PyUnicode_EncodeFSDefault(
 
    These are capable of handling Unicode objects and strings on input
    (we refer to them as strings in the descriptions) and return
-   Unicode objects or integers as apporpriate. */
+   Unicode objects or integers as appropriate. */
 
 /* Concat two strings giving a new Unicode string. */
 
@@ -1427,6 +1969,15 @@ PyAPI_FUNC(Py_ssize_t) PyUnicode_Find(
     int direction               /* Find direction: +1 forward, -1 backward */
     );
 
+/* Like PyUnicode_Find, but search for single character only. */
+PyAPI_FUNC(Py_ssize_t) PyUnicode_FindChar(
+    PyObject *str,
+    Py_UCS4 ch,
+    Py_ssize_t start,
+    Py_ssize_t end,
+    int direction
+    );
+
 /* Count the number of occurrences of substr in str[start:end]. */
 
 PyAPI_FUNC(Py_ssize_t) PyUnicode_Count(
@@ -1448,12 +1999,20 @@ PyAPI_FUNC(PyObject *) PyUnicode_Replace(
     );
 
 /* Compare two strings and return -1, 0, 1 for less than, equal,
-   greater than resp. */
+   greater than resp.
+   Raise an exception and return -1 on error. */
 
 PyAPI_FUNC(int) PyUnicode_Compare(
     PyObject *left,             /* Left string */
     PyObject *right             /* Right string */
     );
+
+#ifndef Py_LIMITED_API
+PyAPI_FUNC(int) _PyUnicode_CompareWithId(
+    PyObject *left,             /* Left string */
+    _Py_Identifier *right       /* Right identifier */
+    );
+#endif
 
 PyAPI_FUNC(int) PyUnicode_CompareWithASCIIString(
     PyObject *left,
@@ -1463,7 +2022,7 @@ PyAPI_FUNC(int) PyUnicode_CompareWithASCIIString(
 /* Rich compare two strings and return one of the following:
 
    - NULL in case an exception was raised
-   - Py_True or Py_False for successfuly comparisons
+   - Py_True or Py_False for successfully comparisons
    - Py_NotImplemented in case the type combination is unknown
 
    Note that Py_EQ and Py_NE comparisons can cause a UnicodeWarning in
@@ -1514,35 +2073,26 @@ PyAPI_FUNC(int) PyUnicode_IsIdentifier(PyObject *s);
 #ifndef Py_LIMITED_API
 /* Externally visible for str.strip(unicode) */
 PyAPI_FUNC(PyObject *) _PyUnicode_XStrip(
-    PyUnicodeObject *self,
+    PyObject *self,
     int striptype,
     PyObject *sepobj
     );
-#endif
-
-/* Using the current locale, insert the thousands grouping
-   into the string pointed to by buffer.  For the argument descriptions,
-   see Objects/stringlib/localeutil.h */
-
-#ifndef Py_LIMITED_API
-PyAPI_FUNC(Py_ssize_t) _PyUnicode_InsertThousandsGroupingLocale(Py_UNICODE *buffer,
-                                                   Py_ssize_t n_buffer,
-                                                   Py_UNICODE *digits,
-                                                   Py_ssize_t n_digits,
-                                                   Py_ssize_t min_width);
 #endif
 
 /* Using explicit passed-in values, insert the thousands grouping
    into the string pointed to by buffer.  For the argument descriptions,
    see Objects/stringlib/localeutil.h */
 #ifndef Py_LIMITED_API
-PyAPI_FUNC(Py_ssize_t) _PyUnicode_InsertThousandsGrouping(Py_UNICODE *buffer,
-                                                   Py_ssize_t n_buffer,
-                                                   Py_UNICODE *digits,
-                                                   Py_ssize_t n_digits,
-                                                   Py_ssize_t min_width,
-                                                   const char *grouping,
-                                                   const char *thousands_sep);
+PyAPI_FUNC(Py_ssize_t) _PyUnicode_InsertThousandsGrouping(
+    PyObject *unicode,
+    Py_ssize_t index,
+    Py_ssize_t n_buffer,
+    void *digits,
+    Py_ssize_t n_digits,
+    Py_ssize_t min_width,
+    const char *grouping,
+    PyObject *thousands_sep,
+    Py_UCS4 *maxchar);
 #endif
 /* === Characters Type APIs =============================================== */
 
@@ -1596,6 +2146,34 @@ PyAPI_FUNC(Py_UCS4) _PyUnicode_ToUppercase(
 
 PyAPI_FUNC(Py_UCS4) _PyUnicode_ToTitlecase(
     Py_UCS4 ch       /* Unicode character */
+    );
+
+PyAPI_FUNC(int) _PyUnicode_ToLowerFull(
+    Py_UCS4 ch,       /* Unicode character */
+    Py_UCS4 *res
+    );
+
+PyAPI_FUNC(int) _PyUnicode_ToTitleFull(
+    Py_UCS4 ch,       /* Unicode character */
+    Py_UCS4 *res
+    );
+
+PyAPI_FUNC(int) _PyUnicode_ToUpperFull(
+    Py_UCS4 ch,       /* Unicode character */
+    Py_UCS4 *res
+    );
+
+PyAPI_FUNC(int) _PyUnicode_ToFoldedFull(
+    Py_UCS4 ch,       /* Unicode character */
+    Py_UCS4 *res
+    );
+
+PyAPI_FUNC(int) _PyUnicode_IsCaseIgnorable(
+    Py_UCS4 ch         /* Unicode character */
+    );
+
+PyAPI_FUNC(int) _PyUnicode_IsCased(
+    Py_UCS4 ch         /* Unicode character */
     );
 
 PyAPI_FUNC(int) _PyUnicode_ToDecimalDigit(
@@ -1675,6 +2253,17 @@ PyAPI_FUNC(Py_UNICODE*) PyUnicode_AsUnicodeCopy(
     PyObject *unicode
     );
 #endif /* Py_LIMITED_API */
+
+#if defined(Py_DEBUG) && !defined(Py_LIMITED_API)
+PyAPI_FUNC(int) _PyUnicode_CheckConsistency(
+    PyObject *op,
+    int check_content);
+#endif
+
+/* Return an interned Unicode object for an Identifier; may fail if there is no memory.*/
+PyAPI_FUNC(PyObject*) _PyUnicode_FromId(_Py_Identifier*);
+/* Clear all static strings. */
+PyAPI_FUNC(void) _PyUnicode_ClearStaticStrings(void);
 
 #ifdef __cplusplus
 }

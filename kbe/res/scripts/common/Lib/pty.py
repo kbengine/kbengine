@@ -47,27 +47,16 @@ def master_open():
     return _open_terminal()
 
 def _open_terminal():
-    """Open pty master and return (master_fd, tty_name).
-    SGI and generic BSD version, for when openpty() fails."""
-    try:
-        import sgi
-    except ImportError:
-        pass
-    else:
-        try:
-            tty_name, master_fd = sgi._getpty(os.O_RDWR, 0o666, 0)
-        except IOError as msg:
-            raise os.error(msg)
-        return master_fd, tty_name
+    """Open pty master and return (master_fd, tty_name)."""
     for x in 'pqrstuvwxyzPQRST':
         for y in '0123456789abcdef':
             pty_name = '/dev/pty' + x + y
             try:
                 fd = os.open(pty_name, os.O_RDWR)
-            except os.error:
+            except OSError:
                 continue
             return (fd, '/dev/tty' + x + y)
-    raise os.error('out of pty devices')
+    raise OSError('out of pty devices')
 
 def slave_open(tty_name):
     """slave_open(tty_name) -> slave_fd
@@ -83,7 +72,7 @@ def slave_open(tty_name):
     try:
         ioctl(result, I_PUSH, "ptem")
         ioctl(result, I_PUSH, "ldterm")
-    except IOError:
+    except OSError:
         pass
     return result
 
@@ -173,8 +162,9 @@ def spawn(argv, master_read=_read, stdin_read=_read):
         restore = 0
     try:
         _copy(master_fd, master_read, stdin_read)
-    except (IOError, OSError):
+    except OSError:
         if restore:
             tty.tcsetattr(STDIN_FILENO, tty.TCSAFLUSH, mode)
 
     os.close(master_fd)
+    return os.waitpid(pid, 0)[1]

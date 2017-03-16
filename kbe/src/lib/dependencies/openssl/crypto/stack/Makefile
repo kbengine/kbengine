@@ -2,12 +2,6 @@
 # OpenSSL/crypto/stack/Makefile
 #
 
-ifndef KBE_ROOT
-export KBE_ROOT := $(subst /kbe/src/lib/dependencies/openssl/crypto/stack,,$(CURDIR))
-endif
-
-LIBDIR= $(KBE_ROOT)/kbe/src/libs
-
 DIR=	stack
 TOP=	../..
 CC=	cc
@@ -22,9 +16,9 @@ GENERAL=Makefile
 TEST=
 APPS=
 
-LIB=$(LIBDIR)/libcrypto.a
+LIB=$(TOP)/libcrypto.a
 LIBSRC=stack.c
-LIBOBJ=$(KBE_CONFIG)/stack.o
+LIBOBJ=stack.o
 
 SRC= $(LIBSRC)
 
@@ -38,16 +32,10 @@ top:
 
 all:	lib
 
-$(KBE_CONFIG):
-	@-mkdir $(KBE_CONFIG)
-
-lib:	$(KBE_CONFIG) $(LIBOBJ)
+lib:	$(LIBOBJ)
 	$(AR) $(LIB) $(LIBOBJ)
 	$(RANLIB) $(LIB) || echo Never mind.
 	@touch lib
-
-$(KBE_CONFIG)/%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
 
 files:
 	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO
@@ -73,6 +61,8 @@ tests:
 lint:
 	lint -DLINT $(INCLUDES) $(SRC)>fluff
 
+update: depend
+
 depend:
 	@[ -n "$(MAKEDEPEND)" ] # should be set by upper Makefile...
 	$(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(LIBSRC)
@@ -82,15 +72,15 @@ dclean:
 	mv -f Makefile.new $(MAKEFILE)
 
 clean:
-	rm -f $(KBE_CONFIG)/*.o *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
+	rm -f *.o *.obj lib tags core .pure .nfs* *.old *.bak fluff
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-$(KBE_CONFIG)/stack.o: ../../e_os.h ../../include/openssl/asn1.h ../../include/openssl/bio.h
-$(KBE_CONFIG)/stack.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
-$(KBE_CONFIG)/stack.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
-$(KBE_CONFIG)/stack.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
-$(KBE_CONFIG)/stack.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
-$(KBE_CONFIG)/stack.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
-$(KBE_CONFIG)/stack.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
-$(KBE_CONFIG)/stack.o: ../../include/openssl/symhacks.h ../cryptlib.h stack.c
+stack.o: ../../e_os.h ../../include/openssl/asn1.h ../../include/openssl/bio.h
+stack.o: ../../include/openssl/buffer.h ../../include/openssl/crypto.h
+stack.o: ../../include/openssl/e_os2.h ../../include/openssl/err.h
+stack.o: ../../include/openssl/lhash.h ../../include/openssl/obj_mac.h
+stack.o: ../../include/openssl/objects.h ../../include/openssl/opensslconf.h
+stack.o: ../../include/openssl/opensslv.h ../../include/openssl/ossl_typ.h
+stack.o: ../../include/openssl/safestack.h ../../include/openssl/stack.h
+stack.o: ../../include/openssl/symhacks.h ../cryptlib.h stack.c

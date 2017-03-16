@@ -105,10 +105,6 @@ char *PyCursesVersion = "2.2";
 #include "Python.h"
 
 
-#ifdef __osf__
-#define STRICT_SYSV_CURSES      /* Don't use ncurses extensions */
-#endif
-
 #ifdef __hpux
 #define STRICT_SYSV_CURSES
 #endif
@@ -125,6 +121,10 @@ extern int setupterm(char *,int,int *);
 #include <term.h>
 #endif
 
+#ifdef HAVE_LANGINFO_H
+#include <langinfo.h>
+#endif
+
 #if !defined(HAVE_NCURSES_H) && (defined(sgi) || defined(__sun) || defined(SCO5))
 #define STRICT_SYSV_CURSES       /* Don't use ncurses extensions */
 typedef chtype attr_t;           /* No attr_t type is available */
@@ -133,6 +133,12 @@ typedef chtype attr_t;           /* No attr_t type is available */
 #if defined(_AIX)
 #define STRICT_SYSV_CURSES
 #endif
+
+/*[clinic input]
+module curses
+class curses.window "PyCursesWindowObject *" "&PyCursesWindow_Type"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=88c860abdbb50e0c]*/
 
 /* Definition of exception curses.error */
 
@@ -146,6 +152,8 @@ static int initialised = FALSE;
 
 /* Tells whether start_color() has been called to initialise color usage. */
 static int initialisedcolors = FALSE;
+
+static char *screen_encoding = NULL;
 
 /* Utility Macros */
 #define PyCursesSetupTermCalled                                         \
@@ -166,10 +174,6 @@ static int initialisedcolors = FALSE;
                         "must call start_color() first");       \
         return 0; }
 
-#ifndef MIN
-#define MIN(x,y) ((x) < (y) ? (x) : (y))
-#endif
-
 /* Utility Functions */
 
 /*
@@ -179,7 +183,7 @@ static int initialisedcolors = FALSE;
  */
 
 static PyObject *
-PyCursesCheckERR(int code, char *fname)
+PyCursesCheckERR(int code, const char *fname)
 {
     if (code != ERR) {
         Py_INCREF(Py_None);
@@ -194,25 +198,173 @@ PyCursesCheckERR(int code, char *fname)
     }
 }
 
+/* Convert an object to a byte (an integer of type chtype):
+
+   - int
+   - bytes of length 1
+   - str of length 1
+
+   Return 1 on success, 0 on error (invalid type or integer overflow). */
 static int
-PyCurses_ConvertToChtype(PyObject *obj, chtype *ch)
+PyCurses_ConvertToChtype(PyCursesWindowObject *win, PyObject *obj, chtype *ch)
 {
-    if (PyLong_CheckExact(obj)) {
-        int overflow;
-        /* XXX should the truncation by the cast also be reported
-           as an error? */
-        *ch = (chtype) PyLong_AsLongAndOverflow(obj, &overflow);
-        if (overflow)
+    long value;
+    if(PyBytes_Check(obj) && PyBytes_Size(obj) == 1) {
+        value = (unsigned char)PyBytes_AsString(obj)[0];
+    }
+    else if (PyUnicode_Check(obj)) {
+        if (PyUnicode_GetLength(obj) != 1) {
+            PyErr_Format(PyExc_TypeError,
+                         "expect bytes or str of length 1, or int, "
+                         "got a str of length %zi",
+                         PyUnicode_GET_LENGTH(obj));
             return 0;
-    } else if(PyBytes_Check(obj)
-              && (PyBytes_Size(obj) == 1)) {
-        *ch = (chtype) *PyBytes_AsString(obj);
-    } else if (PyUnicode_Check(obj) && PyUnicode_GetSize(obj) == 1) {
-        *ch = (chtype) *PyUnicode_AS_UNICODE(obj);
-    } else {
+        }
+        value = PyUnicode_READ_CHAR(obj, 0);
+        if (128 < value) {
+            PyObject *bytes;
+            const char *encoding;
+            if (win)
+                encoding = win->encoding;
+            else
+                encoding = screen_encoding;
+            bytes = PyUnicode_AsEncodedObject(obj, encoding, NULL);
+            if (bytes == NULL)
+                return 0;
+            if (PyBytes_GET_SIZE(bytes) == 1)
+                value = (unsigned char)PyBytes_AS_STRING(bytes)[0];
+            else
+                value = -1;
+            Py_DECREF(bytes);
+            if (value < 0)
+                goto overflow;
+        }
+    }
+    else if (PyLong_CheckExact(obj)) {
+        int long_overflow;
+        value = PyLong_AsLongAndOverflow(obj, &long_overflow);
+        if (long_overflow)
+            goto overflow;
+    }
+    else {
+        PyErr_Format(PyExc_TypeError,
+                     "expect bytes or str of length 1, or int, got %s",
+                     Py_TYPE(obj)->tp_name);
+        return 0;
+    }
+    *ch = (chtype)value;
+    if ((long)*ch != value)
+        goto overflow;
+    return 1;
+
+overflow:
+    PyErr_SetString(PyExc_OverflowError,
+                    "byte doesn't fit in chtype");
+    return 0;
+}
+
+/* Convert an object to a byte (chtype) or a character (cchar_t):
+
+    - int
+    - bytes of length 1
+    - str of length 1
+
+   Return:
+
+    - 2 if obj is a character (written into *wch)
+    - 1 if obj is a byte (written into *ch)
+    - 0 on error: raise an exception */
+static int
+PyCurses_ConvertToCchar_t(PyCursesWindowObject *win, PyObject *obj,
+                          chtype *ch
+#ifdef HAVE_NCURSESW
+                          , cchar_t *wch
+#endif
+                          )
+{
+    long value;
+#ifdef HAVE_NCURSESW
+    wchar_t buffer[2];
+#endif
+
+    if (PyUnicode_Check(obj)) {
+#ifdef HAVE_NCURSESW
+        if (PyUnicode_AsWideChar(obj, buffer, 2) != 1) {
+            PyErr_Format(PyExc_TypeError,
+                         "expect bytes or str of length 1, or int, "
+                         "got a str of length %zi",
+                         PyUnicode_GET_LENGTH(obj));
+            return 0;
+        }
+        memset(wch->chars, 0, sizeof(wch->chars));
+        wch->chars[0] = buffer[0];
+        return 2;
+#else
+        return PyCurses_ConvertToChtype(win, obj, ch);
+#endif
+    }
+    else if(PyBytes_Check(obj) && PyBytes_Size(obj) == 1) {
+        value = (unsigned char)PyBytes_AsString(obj)[0];
+    }
+    else if (PyLong_CheckExact(obj)) {
+        int overflow;
+        value = PyLong_AsLongAndOverflow(obj, &overflow);
+        if (overflow) {
+            PyErr_SetString(PyExc_OverflowError,
+                            "int doesn't fit in long");
+            return 0;
+        }
+    }
+    else {
+        PyErr_Format(PyExc_TypeError,
+                     "expect bytes or str of length 1, or int, got %s",
+                     Py_TYPE(obj)->tp_name);
+        return 0;
+    }
+
+    *ch = (chtype)value;
+    if ((long)*ch != value) {
+        PyErr_Format(PyExc_OverflowError,
+                     "byte doesn't fit in chtype");
         return 0;
     }
     return 1;
+}
+
+/* Convert an object to a byte string (char*) or a wide character string
+   (wchar_t*). Return:
+
+    - 2 if obj is a character string (written into *wch)
+    - 1 if obj is a byte string (written into *bytes)
+    - 0 on error: raise an exception */
+static int
+PyCurses_ConvertToString(PyCursesWindowObject *win, PyObject *obj,
+                         PyObject **bytes, wchar_t **wstr)
+{
+    if (PyUnicode_Check(obj)) {
+#ifdef HAVE_NCURSESW
+        assert (wstr != NULL);
+        *wstr = PyUnicode_AsWideCharString(obj, NULL);
+        if (*wstr == NULL)
+            return 0;
+        return 2;
+#else
+        assert (wstr == NULL);
+        *bytes = PyUnicode_AsEncodedObject(obj, win->encoding, NULL);
+        if (*bytes == NULL)
+            return 0;
+        return 1;
+#endif
+    }
+    else if (PyBytes_Check(obj)) {
+        Py_INCREF(obj);
+        *bytes = obj;
+        return 1;
+    }
+
+    PyErr_Format(PyExc_TypeError, "expect bytes or str, got %s",
+                 Py_TYPE(obj)->tp_name);
+    return 0;
 }
 
 /* Function versions of the 3 functions for testing whether curses has been
@@ -358,13 +510,37 @@ Window_TwoArgNoReturnFunction(wresize, int, "ii;lines,columns")
 /* Allocation and deallocation of Window Objects */
 
 static PyObject *
-PyCursesWindow_New(WINDOW *win)
+PyCursesWindow_New(WINDOW *win, const char *encoding)
 {
     PyCursesWindowObject *wo;
+
+    if (encoding == NULL) {
+#if defined(MS_WINDOWS)
+        char *buffer[100];
+        UINT cp;
+        cp = GetConsoleOutputCP();
+        if (cp != 0) {
+            PyOS_snprintf(buffer, sizeof(buffer), "cp%u", cp);
+            encoding = buffer;
+        }
+#elif defined(CODESET)
+        const char *codeset = nl_langinfo(CODESET);
+        if (codeset != NULL && codeset[0] != 0)
+            encoding = codeset;
+#endif
+        if (encoding == NULL)
+            encoding = "utf-8";
+    }
 
     wo = PyObject_NEW(PyCursesWindowObject, &PyCursesWindow_Type);
     if (wo == NULL) return NULL;
     wo->win = win;
+    wo->encoding = _PyMem_Strdup(encoding);
+    if (wo->encoding == NULL) {
+        Py_DECREF(wo);
+        PyErr_NoMemory();
+        return NULL;
+    }
     return (PyObject *)wo;
 }
 
@@ -372,58 +548,152 @@ static void
 PyCursesWindow_Dealloc(PyCursesWindowObject *wo)
 {
     if (wo->win != stdscr) delwin(wo->win);
+    if (wo->encoding != NULL)
+        PyMem_Free(wo->encoding);
     PyObject_DEL(wo);
 }
 
 /* Addch, Addstr, Addnstr */
 
+/*[clinic input]
+
+curses.window.addch
+
+    [
+    y: int
+      Y-coordinate.
+    x: int
+      X-coordinate.
+    ]
+
+    ch: object
+      Character to add.
+
+    [
+    attr: long
+      Attributes for the character.
+    ]
+    /
+
+Paint character ch at (y, x) with attributes attr.
+
+Paint character ch at (y, x) with attributes attr,
+overwriting any character previously painted at that location.
+By default, the character position and attributes are the
+current settings for the window object.
+[clinic start generated code]*/
+
+PyDoc_STRVAR(curses_window_addch__doc__,
+"addch([y, x,] ch, [attr])\n"
+"Paint character ch at (y, x) with attributes attr.\n"
+"\n"
+"  y\n"
+"    Y-coordinate.\n"
+"  x\n"
+"    X-coordinate.\n"
+"  ch\n"
+"    Character to add.\n"
+"  attr\n"
+"    Attributes for the character.\n"
+"\n"
+"Paint character ch at (y, x) with attributes attr,\n"
+"overwriting any character previously painted at that location.\n"
+"By default, the character position and attributes are the\n"
+"current settings for the window object.");
+
+#define CURSES_WINDOW_ADDCH_METHODDEF    \
+    {"addch", (PyCFunction)curses_window_addch, METH_VARARGS, curses_window_addch__doc__},
+
 static PyObject *
-PyCursesWindow_AddCh(PyCursesWindowObject *self, PyObject *args)
+curses_window_addch_impl(PyCursesWindowObject *self, int group_left_1, int y, int x, PyObject *ch, int group_right_1, long attr);
+
+static PyObject *
+curses_window_addch(PyCursesWindowObject *self, PyObject *args)
 {
-    int rtn, x, y, use_xy = FALSE;
-    PyObject *temp;
-    chtype ch = 0;
-    attr_t attr = A_NORMAL;
-    long lattr;
+    PyObject *return_value = NULL;
+    int group_left_1 = 0;
+    int y = 0;
+    int x = 0;
+    PyObject *ch;
+    int group_right_1 = 0;
+    long attr = 0;
 
-    switch (PyTuple_Size(args)) {
-    case 1:
-        if (!PyArg_ParseTuple(args, "O;ch or int", &temp))
-            return NULL;
-        break;
-    case 2:
-        if (!PyArg_ParseTuple(args, "Ol;ch or int,attr", &temp, &lattr))
-            return NULL;
-        attr = lattr;
-        break;
-    case 3:
-        if (!PyArg_ParseTuple(args,"iiO;y,x,ch or int", &y, &x, &temp))
-            return NULL;
-        use_xy = TRUE;
-        break;
-    case 4:
-        if (!PyArg_ParseTuple(args,"iiOl;y,x,ch or int, attr",
-                              &y, &x, &temp, &lattr))
-            return NULL;
-        attr = lattr;
-        use_xy = TRUE;
-        break;
-    default:
-        PyErr_SetString(PyExc_TypeError, "addch requires 1 to 4 arguments");
-        return NULL;
+    switch (PyTuple_GET_SIZE(args)) {
+        case 1:
+            if (!PyArg_ParseTuple(args, "O:addch", &ch))
+                goto exit;
+            break;
+        case 2:
+            if (!PyArg_ParseTuple(args, "Ol:addch", &ch, &attr))
+                goto exit;
+            group_right_1 = 1;
+            break;
+        case 3:
+            if (!PyArg_ParseTuple(args, "iiO:addch", &y, &x, &ch))
+                goto exit;
+            group_left_1 = 1;
+            break;
+        case 4:
+            if (!PyArg_ParseTuple(args, "iiOl:addch", &y, &x, &ch, &attr))
+                goto exit;
+            group_right_1 = 1;
+            group_left_1 = 1;
+            break;
+        default:
+            PyErr_SetString(PyExc_TypeError, "curses.window.addch requires 1 to 4 arguments");
+            goto exit;
     }
+    return_value = curses_window_addch_impl(self, group_left_1, y, x, ch, group_right_1, attr);
 
-    if (!PyCurses_ConvertToChtype(temp, &ch)) {
-        PyErr_SetString(PyExc_TypeError, "argument 1 or 3 must be a ch or an int");
-        return NULL;
+exit:
+    return return_value;
+}
+
+static PyObject *
+curses_window_addch_impl(PyCursesWindowObject *self, int group_left_1, int y, int x, PyObject *ch, int group_right_1, long attr)
+/*[clinic end generated code: output=d4b97cc287010c54 input=5a41efb34a2de338]*/
+{
+    PyCursesWindowObject *cwself = (PyCursesWindowObject *)self;
+    int coordinates_group = group_left_1;
+    int attr_group = group_right_1;
+    int rtn;
+    int type;
+    chtype cch;
+#ifdef HAVE_NCURSESW
+    cchar_t wch;
+#endif
+    const char *funcname;
+
+    if (!attr_group)
+      attr = A_NORMAL;
+
+#ifdef HAVE_NCURSESW
+    type = PyCurses_ConvertToCchar_t(cwself, ch, &cch, &wch);
+    if (type == 2) {
+        funcname = "add_wch";
+        wch.attr = attr;
+        if (coordinates_group)
+            rtn = mvwadd_wch(cwself->win,y,x, &wch);
+        else {
+            rtn = wadd_wch(cwself->win, &wch);
+        }
     }
-
-    if (use_xy == TRUE)
-        rtn = mvwaddch(self->win,y,x, ch | attr);
+    else
+#else
+    type = PyCurses_ConvertToCchar_t(cwself, ch, &cch);
+#endif
+    if (type == 1) {
+        funcname = "addch";
+        if (coordinates_group)
+            rtn = mvwaddch(cwself->win,y,x, cch | attr);
+        else {
+            rtn = waddch(cwself->win, cch | attr);
+        }
+    }
     else {
-        rtn = waddch(self->win, ch | attr);
+        return NULL;
     }
-    return PyCursesCheckERR(rtn, "addch");
+    return PyCursesCheckERR(rtn, funcname);
 }
 
 static PyObject *
@@ -431,29 +701,34 @@ PyCursesWindow_AddStr(PyCursesWindowObject *self, PyObject *args)
 {
     int rtn;
     int x, y;
-    char *str;
+    int strtype;
+    PyObject *strobj, *bytesobj = NULL;
+#ifdef HAVE_NCURSESW
+    wchar_t *wstr = NULL;
+#endif
     attr_t attr = A_NORMAL , attr_old = A_NORMAL;
     long lattr;
     int use_xy = FALSE, use_attr = FALSE;
+    const char *funcname;
 
     switch (PyTuple_Size(args)) {
     case 1:
-        if (!PyArg_ParseTuple(args,"s;str", &str))
+        if (!PyArg_ParseTuple(args,"O;str", &strobj))
             return NULL;
         break;
     case 2:
-        if (!PyArg_ParseTuple(args,"sl;str,attr", &str, &lattr))
+        if (!PyArg_ParseTuple(args,"Ol;str,attr", &strobj, &lattr))
             return NULL;
         attr = lattr;
         use_attr = TRUE;
         break;
     case 3:
-        if (!PyArg_ParseTuple(args,"iis;int,int,str", &y, &x, &str))
+        if (!PyArg_ParseTuple(args,"iiO;int,int,str", &y, &x, &strobj))
             return NULL;
         use_xy = TRUE;
         break;
     case 4:
-        if (!PyArg_ParseTuple(args,"iisl;int,int,str,attr", &y, &x, &str, &lattr))
+        if (!PyArg_ParseTuple(args,"iiOl;int,int,str,attr", &y, &x, &strobj, &lattr))
             return NULL;
         attr = lattr;
         use_xy = use_attr = TRUE;
@@ -462,47 +737,74 @@ PyCursesWindow_AddStr(PyCursesWindowObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "addstr requires 1 to 4 arguments");
         return NULL;
     }
-
+#ifdef HAVE_NCURSESW
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, &wstr);
+#else
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, NULL);
+#endif
+    if (strtype == 0)
+        return NULL;
     if (use_attr == TRUE) {
         attr_old = getattrs(self->win);
         (void)wattrset(self->win,attr);
     }
-    if (use_xy == TRUE)
-        rtn = mvwaddstr(self->win,y,x,str);
+#ifdef HAVE_NCURSESW
+    if (strtype == 2) {
+        funcname = "addwstr";
+        if (use_xy == TRUE)
+            rtn = mvwaddwstr(self->win,y,x,wstr);
+        else
+            rtn = waddwstr(self->win,wstr);
+        PyMem_Free(wstr);
+    }
     else
-        rtn = waddstr(self->win,str);
+#endif
+    {
+        char *str = PyBytes_AS_STRING(bytesobj);
+        funcname = "addstr";
+        if (use_xy == TRUE)
+            rtn = mvwaddstr(self->win,y,x,str);
+        else
+            rtn = waddstr(self->win,str);
+        Py_DECREF(bytesobj);
+    }
     if (use_attr == TRUE)
         (void)wattrset(self->win,attr_old);
-    return PyCursesCheckERR(rtn, "addstr");
+    return PyCursesCheckERR(rtn, funcname);
 }
 
 static PyObject *
 PyCursesWindow_AddNStr(PyCursesWindowObject *self, PyObject *args)
 {
     int rtn, x, y, n;
-    char *str;
+    int strtype;
+    PyObject *strobj, *bytesobj = NULL;
+#ifdef HAVE_NCURSESW
+    wchar_t *wstr = NULL;
+#endif
     attr_t attr = A_NORMAL , attr_old = A_NORMAL;
     long lattr;
     int use_xy = FALSE, use_attr = FALSE;
+    const char *funcname;
 
     switch (PyTuple_Size(args)) {
     case 2:
-        if (!PyArg_ParseTuple(args,"si;str,n", &str, &n))
+        if (!PyArg_ParseTuple(args,"Oi;str,n", &strobj, &n))
             return NULL;
         break;
     case 3:
-        if (!PyArg_ParseTuple(args,"sil;str,n,attr", &str, &n, &lattr))
+        if (!PyArg_ParseTuple(args,"Oil;str,n,attr", &strobj, &n, &lattr))
             return NULL;
         attr = lattr;
         use_attr = TRUE;
         break;
     case 4:
-        if (!PyArg_ParseTuple(args,"iisi;y,x,str,n", &y, &x, &str, &n))
+        if (!PyArg_ParseTuple(args,"iiOi;y,x,str,n", &y, &x, &strobj, &n))
             return NULL;
         use_xy = TRUE;
         break;
     case 5:
-        if (!PyArg_ParseTuple(args,"iisil;y,x,str,n,attr", &y, &x, &str, &n, &lattr))
+        if (!PyArg_ParseTuple(args,"iiOil;y,x,str,n,attr", &y, &x, &strobj, &n, &lattr))
             return NULL;
         attr = lattr;
         use_xy = use_attr = TRUE;
@@ -511,18 +813,41 @@ PyCursesWindow_AddNStr(PyCursesWindowObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "addnstr requires 2 to 5 arguments");
         return NULL;
     }
+#ifdef HAVE_NCURSESW
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, &wstr);
+#else
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, NULL);
+#endif
+    if (strtype == 0)
+        return NULL;
 
     if (use_attr == TRUE) {
         attr_old = getattrs(self->win);
         (void)wattrset(self->win,attr);
     }
-    if (use_xy == TRUE)
-        rtn = mvwaddnstr(self->win,y,x,str,n);
+#ifdef HAVE_NCURSESW
+    if (strtype == 2) {
+        funcname = "addnwstr";
+        if (use_xy == TRUE)
+            rtn = mvwaddnwstr(self->win,y,x,wstr,n);
+        else
+            rtn = waddnwstr(self->win,wstr,n);
+        PyMem_Free(wstr);
+    }
     else
-        rtn = waddnstr(self->win,str,n);
+#endif
+    {
+        char *str = PyBytes_AS_STRING(bytesobj);
+        funcname = "addnstr";
+        if (use_xy == TRUE)
+            rtn = mvwaddnstr(self->win,y,x,str,n);
+        else
+            rtn = waddnstr(self->win,str,n);
+        Py_DECREF(bytesobj);
+    }
     if (use_attr == TRUE)
         (void)wattrset(self->win,attr_old);
-    return PyCursesCheckERR(rtn, "addnstr");
+    return PyCursesCheckERR(rtn, funcname);
 }
 
 static PyObject *
@@ -548,10 +873,8 @@ PyCursesWindow_Bkgd(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyCurses_ConvertToChtype(temp, &bkgd)) {
-        PyErr_SetString(PyExc_TypeError, "argument 1 or 3 must be a ch or an int");
+    if (!PyCurses_ConvertToChtype(self, temp, &bkgd))
         return NULL;
-    }
 
     return PyCursesCheckERR(wbkgd(self->win, bkgd | attr), "bkgd");
 }
@@ -606,10 +929,8 @@ PyCursesWindow_BkgdSet(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyCurses_ConvertToChtype(temp, &bkgd)) {
-        PyErr_SetString(PyExc_TypeError, "argument 1 must be a ch or an int");
+    if (!PyCurses_ConvertToChtype(self, temp, &bkgd))
         return NULL;
-    }
 
     wbkgdset(self->win, bkgd | attr);
     return PyCursesCheckERR(0, "bkgdset");
@@ -634,11 +955,8 @@ PyCursesWindow_Border(PyCursesWindowObject *self, PyObject *args)
         return NULL;
 
     for(i=0; i<8; i++) {
-        if (temp[i] != NULL && !PyCurses_ConvertToChtype(temp[i], &ch[i])) {
-            PyErr_Format(PyExc_TypeError,
-                         "argument %i must be a ch or an int", i+1);
+        if (temp[i] != NULL && !PyCurses_ConvertToChtype(self, temp[i], &ch[i]))
             return NULL;
-        }
     }
 
     wborder(self->win,
@@ -783,7 +1101,7 @@ PyCursesWindow_DerWin(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)PyCursesWindow_New(win);
+    return (PyObject *)PyCursesWindow_New(win, NULL);
 }
 
 static PyObject *
@@ -811,10 +1129,8 @@ PyCursesWindow_EchoChar(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyCurses_ConvertToChtype(temp, &ch)) {
-        PyErr_SetString(PyExc_TypeError, "argument 1 must be a ch or an int");
+    if (!PyCurses_ConvertToChtype(self, temp, &ch))
         return NULL;
-    }
 
 #ifdef WINDOW_HAS_FLAGS
     if (self->win->_flags & _ISPAD)
@@ -912,6 +1228,46 @@ PyCursesWindow_GetKey(PyCursesWindowObject *self, PyObject *args)
     }
 }
 
+#ifdef HAVE_NCURSESW
+static PyObject *
+PyCursesWindow_Get_WCh(PyCursesWindowObject *self, PyObject *args)
+{
+    int x, y;
+    int ct;
+    wint_t rtn;
+
+    switch (PyTuple_Size(args)) {
+    case 0:
+        Py_BEGIN_ALLOW_THREADS
+        ct = wget_wch(self->win,&rtn);
+        Py_END_ALLOW_THREADS
+        break;
+    case 2:
+        if (!PyArg_ParseTuple(args,"ii;y,x",&y,&x))
+            return NULL;
+        Py_BEGIN_ALLOW_THREADS
+        ct = mvwget_wch(self->win,y,x,&rtn);
+        Py_END_ALLOW_THREADS
+        break;
+    default:
+        PyErr_SetString(PyExc_TypeError, "get_wch requires 0 or 2 arguments");
+        return NULL;
+    }
+    if (ct == ERR) {
+        if (PyErr_CheckSignals())
+            return NULL;
+
+        /* get_wch() returns ERR in nodelay mode */
+        PyErr_SetString(PyCursesError, "no input");
+        return NULL;
+    }
+    if (ct == KEY_CODE_YES)
+        return PyLong_FromLong(rtn);
+    else
+        return PyUnicode_FromOrdinal(rtn);
+}
+#endif
+
 static PyObject *
 PyCursesWindow_GetStr(PyCursesWindowObject *self, PyObject *args)
 {
@@ -929,7 +1285,7 @@ PyCursesWindow_GetStr(PyCursesWindowObject *self, PyObject *args)
         if (!PyArg_ParseTuple(args,"i;n", &n))
             return NULL;
         Py_BEGIN_ALLOW_THREADS
-        rtn2 = wgetnstr(self->win,rtn,MIN(n, 1023));
+        rtn2 = wgetnstr(self->win, rtn, Py_MIN(n, 1023));
         Py_END_ALLOW_THREADS
         break;
     case 2:
@@ -949,11 +1305,11 @@ PyCursesWindow_GetStr(PyCursesWindowObject *self, PyObject *args)
 #ifdef STRICT_SYSV_CURSES
         Py_BEGIN_ALLOW_THREADS
         rtn2 = wmove(self->win,y,x)==ERR ? ERR :
-        wgetnstr(self->win, rtn, MIN(n, 1023));
+        wgetnstr(self->win, rtn, Py_MIN(n, 1023));
         Py_END_ALLOW_THREADS
 #else
         Py_BEGIN_ALLOW_THREADS
-        rtn2 = mvwgetnstr(self->win, y, x, rtn, MIN(n, 1023));
+        rtn2 = mvwgetnstr(self->win, y, x, rtn, Py_MIN(n, 1023));
         Py_END_ALLOW_THREADS
 #endif
         break;
@@ -1003,11 +1359,8 @@ PyCursesWindow_Hline(PyCursesWindowObject *self, PyObject *args)
     }
 
     if (code != ERR) {
-        if (!PyCurses_ConvertToChtype(temp, &ch)) {
-            PyErr_SetString(PyExc_TypeError,
-                            "argument 1 or 3 must be a ch or an int");
+        if (!PyCurses_ConvertToChtype(self, temp, &ch))
             return NULL;
-        }
         return PyCursesCheckERR(whline(self->win, ch | attr, n), "hline");
     } else
         return PyCursesCheckERR(code, "wmove");
@@ -1048,11 +1401,8 @@ PyCursesWindow_InsCh(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyCurses_ConvertToChtype(temp, &ch)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "argument 1 or 3 must be a ch or an int");
+    if (!PyCurses_ConvertToChtype(self, temp, &ch))
         return NULL;
-    }
 
     if (use_xy == TRUE)
         rtn = mvwinsch(self->win,y,x, ch | attr);
@@ -1065,7 +1415,8 @@ PyCursesWindow_InsCh(PyCursesWindowObject *self, PyObject *args)
 static PyObject *
 PyCursesWindow_InCh(PyCursesWindowObject *self, PyObject *args)
 {
-    int x, y, rtn;
+    int x, y;
+    unsigned long rtn;
 
     switch (PyTuple_Size(args)) {
     case 0:
@@ -1080,7 +1431,7 @@ PyCursesWindow_InCh(PyCursesWindowObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "inch requires 0 or 2 arguments");
         return NULL;
     }
-    return PyLong_FromLong((long) rtn);
+    return PyLong_FromUnsignedLong(rtn);
 }
 
 static PyObject *
@@ -1097,7 +1448,7 @@ PyCursesWindow_InStr(PyCursesWindowObject *self, PyObject *args)
     case 1:
         if (!PyArg_ParseTuple(args,"i;n", &n))
             return NULL;
-        rtn2 = winnstr(self->win,rtn,MIN(n,1023));
+        rtn2 = winnstr(self->win, rtn, Py_MIN(n, 1023));
         break;
     case 2:
         if (!PyArg_ParseTuple(args,"ii;y,x",&y,&x))
@@ -1107,7 +1458,7 @@ PyCursesWindow_InStr(PyCursesWindowObject *self, PyObject *args)
     case 3:
         if (!PyArg_ParseTuple(args, "iii;y,x,n", &y, &x, &n))
             return NULL;
-        rtn2 = mvwinnstr(self->win, y, x, rtn, MIN(n,1023));
+        rtn2 = mvwinnstr(self->win, y, x, rtn, Py_MIN(n,1023));
         break;
     default:
         PyErr_SetString(PyExc_TypeError, "instr requires 0 or 3 arguments");
@@ -1123,29 +1474,34 @@ PyCursesWindow_InsStr(PyCursesWindowObject *self, PyObject *args)
 {
     int rtn;
     int x, y;
-    char *str;
+    int strtype;
+    PyObject *strobj, *bytesobj = NULL;
+#ifdef HAVE_NCURSESW
+    wchar_t *wstr = NULL;
+#endif
     attr_t attr = A_NORMAL , attr_old = A_NORMAL;
     long lattr;
     int use_xy = FALSE, use_attr = FALSE;
+    const char *funcname;
 
     switch (PyTuple_Size(args)) {
     case 1:
-        if (!PyArg_ParseTuple(args,"s;str", &str))
+        if (!PyArg_ParseTuple(args,"O;str", &strobj))
             return NULL;
         break;
     case 2:
-        if (!PyArg_ParseTuple(args,"sl;str,attr", &str, &lattr))
+        if (!PyArg_ParseTuple(args,"Ol;str,attr", &strobj, &lattr))
             return NULL;
         attr = lattr;
         use_attr = TRUE;
         break;
     case 3:
-        if (!PyArg_ParseTuple(args,"iis;y,x,str", &y, &x, &str))
+        if (!PyArg_ParseTuple(args,"iiO;y,x,str", &y, &x, &strobj))
             return NULL;
         use_xy = TRUE;
         break;
     case 4:
-        if (!PyArg_ParseTuple(args,"iisl;y,x,str,attr", &y, &x, &str, &lattr))
+        if (!PyArg_ParseTuple(args,"iiOl;y,x,str,attr", &y, &x, &strobj, &lattr))
             return NULL;
         attr = lattr;
         use_xy = use_attr = TRUE;
@@ -1155,46 +1511,75 @@ PyCursesWindow_InsStr(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
+#ifdef HAVE_NCURSESW
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, &wstr);
+#else
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, NULL);
+#endif
+    if (strtype == 0)
+        return NULL;
+
     if (use_attr == TRUE) {
         attr_old = getattrs(self->win);
         (void)wattrset(self->win,attr);
     }
-    if (use_xy == TRUE)
-        rtn = mvwinsstr(self->win,y,x,str);
+#ifdef HAVE_NCURSESW
+    if (strtype == 2) {
+        funcname = "inswstr";
+        if (use_xy == TRUE)
+            rtn = mvwins_wstr(self->win,y,x,wstr);
+        else
+            rtn = wins_wstr(self->win,wstr);
+        PyMem_Free(wstr);
+    }
     else
-        rtn = winsstr(self->win,str);
+#endif
+    {
+        char *str = PyBytes_AS_STRING(bytesobj);
+        funcname = "insstr";
+        if (use_xy == TRUE)
+            rtn = mvwinsstr(self->win,y,x,str);
+        else
+            rtn = winsstr(self->win,str);
+        Py_DECREF(bytesobj);
+    }
     if (use_attr == TRUE)
         (void)wattrset(self->win,attr_old);
-    return PyCursesCheckERR(rtn, "insstr");
+    return PyCursesCheckERR(rtn, funcname);
 }
 
 static PyObject *
 PyCursesWindow_InsNStr(PyCursesWindowObject *self, PyObject *args)
 {
     int rtn, x, y, n;
-    char *str;
+    int strtype;
+    PyObject *strobj, *bytesobj = NULL;
+#ifdef HAVE_NCURSESW
+    wchar_t *wstr = NULL;
+#endif
     attr_t attr = A_NORMAL , attr_old = A_NORMAL;
     long lattr;
     int use_xy = FALSE, use_attr = FALSE;
+    const char *funcname;
 
     switch (PyTuple_Size(args)) {
     case 2:
-        if (!PyArg_ParseTuple(args,"si;str,n", &str, &n))
+        if (!PyArg_ParseTuple(args,"Oi;str,n", &strobj, &n))
             return NULL;
         break;
     case 3:
-        if (!PyArg_ParseTuple(args,"sil;str,n,attr", &str, &n, &lattr))
+        if (!PyArg_ParseTuple(args,"Oil;str,n,attr", &strobj, &n, &lattr))
             return NULL;
         attr = lattr;
         use_attr = TRUE;
         break;
     case 4:
-        if (!PyArg_ParseTuple(args,"iisi;y,x,str,n", &y, &x, &str, &n))
+        if (!PyArg_ParseTuple(args,"iiOi;y,x,str,n", &y, &x, &strobj, &n))
             return NULL;
         use_xy = TRUE;
         break;
     case 5:
-        if (!PyArg_ParseTuple(args,"iisil;y,x,str,n,attr", &y, &x, &str, &n, &lattr))
+        if (!PyArg_ParseTuple(args,"iiOil;y,x,str,n,attr", &y, &x, &strobj, &n, &lattr))
             return NULL;
         attr = lattr;
         use_xy = use_attr = TRUE;
@@ -1204,17 +1589,41 @@ PyCursesWindow_InsNStr(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
+#ifdef HAVE_NCURSESW
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, &wstr);
+#else
+    strtype = PyCurses_ConvertToString(self, strobj, &bytesobj, NULL);
+#endif
+    if (strtype == 0)
+        return NULL;
+
     if (use_attr == TRUE) {
         attr_old = getattrs(self->win);
         (void)wattrset(self->win,attr);
     }
-    if (use_xy == TRUE)
-        rtn = mvwinsnstr(self->win,y,x,str,n);
+#ifdef HAVE_NCURSESW
+    if (strtype == 2) {
+        funcname = "insn_wstr";
+        if (use_xy == TRUE)
+            rtn = mvwins_nwstr(self->win,y,x,wstr,n);
+        else
+            rtn = wins_nwstr(self->win,wstr,n);
+        PyMem_Free(wstr);
+    }
     else
-        rtn = winsnstr(self->win,str,n);
+#endif
+    {
+        char *str = PyBytes_AS_STRING(bytesobj);
+        funcname = "insnstr";
+        if (use_xy == TRUE)
+            rtn = mvwinsnstr(self->win,y,x,str,n);
+        else
+            rtn = winsnstr(self->win,str,n);
+        Py_DECREF(bytesobj);
+    }
     if (use_attr == TRUE)
         (void)wattrset(self->win,attr_old);
-    return PyCursesCheckERR(rtn, "insnstr");
+    return PyCursesCheckERR(rtn, funcname);
 }
 
 static PyObject *
@@ -1363,38 +1772,43 @@ PyCursesWindow_PutWin(PyCursesWindowObject *self, PyObject *stream)
     /* We have to simulate this by writing to a temporary FILE*,
        then reading back, then writing to the argument stream. */
     char fn[100];
-    int fd;
-    FILE *fp;
-    PyObject *res;
+    int fd = -1;
+    FILE *fp = NULL;
+    PyObject *res = NULL;
 
     strcpy(fn, "/tmp/py.curses.putwin.XXXXXX");
     fd = mkstemp(fn);
     if (fd < 0)
         return PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+    if (_Py_set_inheritable(fd, 0, NULL) < 0)
+        goto exit;
     fp = fdopen(fd, "wb+");
     if (fp == NULL) {
-        close(fd);
-        remove(fn);
-        return PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+        PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+        goto exit;
     }
     res = PyCursesCheckERR(putwin(self->win, fp), "putwin");
-    if (res == NULL) {
-        fclose(fp);
-        remove(fn);
-        return res;
-    }
+    if (res == NULL)
+        goto exit;
     fseek(fp, 0, 0);
     while (1) {
         char buf[BUFSIZ];
         Py_ssize_t n = fread(buf, 1, BUFSIZ, fp);
+        _Py_IDENTIFIER(write);
+
         if (n <= 0)
             break;
         Py_DECREF(res);
-        res = PyObject_CallMethod(stream, "write", "y#", buf, n);
+        res = _PyObject_CallMethodId(stream, &PyId_write, "y#", buf, n);
         if (res == NULL)
             break;
     }
-    fclose(fp);
+
+exit:
+    if (fp != NULL)
+        fclose(fp);
+    else if (fd != -1)
+        close(fd);
     remove(fn);
     return res;
 }
@@ -1495,7 +1909,7 @@ PyCursesWindow_SubWin(PyCursesWindowObject *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)PyCursesWindow_New(win);
+    return (PyObject *)PyCursesWindow_New(win, self->encoding);
 }
 
 static PyObject *
@@ -1571,18 +1985,54 @@ PyCursesWindow_Vline(PyCursesWindowObject *self, PyObject *args)
     }
 
     if (code != ERR) {
-        if (!PyCurses_ConvertToChtype(temp, &ch)) {
-            PyErr_SetString(PyExc_TypeError,
-                            "argument 1 or 3 must be a ch or an int");
+        if (!PyCurses_ConvertToChtype(self, temp, &ch))
             return NULL;
-        }
         return PyCursesCheckERR(wvline(self->win, ch | attr, n), "vline");
     } else
         return PyCursesCheckERR(code, "wmove");
 }
 
+static PyObject *
+PyCursesWindow_get_encoding(PyCursesWindowObject *self, void *closure)
+{
+    return PyUnicode_FromString(self->encoding);
+}
+
+static int
+PyCursesWindow_set_encoding(PyCursesWindowObject *self, PyObject *value)
+{
+    PyObject *ascii;
+    char *encoding;
+
+    /* It is illegal to del win.encoding */
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError,
+                        "encoding may not be deleted");
+        return -1;
+    }
+
+    if (!PyUnicode_Check(value)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "setting encoding to a non-string");
+        return -1;
+    }
+    ascii = PyUnicode_AsASCIIString(value);
+    if (ascii == NULL)
+        return -1;
+    encoding = _PyMem_Strdup(PyBytes_AS_STRING(ascii));
+    Py_DECREF(ascii);
+    if (encoding == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
+    PyMem_Free(self->encoding);
+    self->encoding = encoding;
+    return 0;
+}
+
+
 static PyMethodDef PyCursesWindow_Methods[] = {
-    {"addch",           (PyCFunction)PyCursesWindow_AddCh, METH_VARARGS},
+    CURSES_WINDOW_ADDCH_METHODDEF
     {"addnstr",         (PyCFunction)PyCursesWindow_AddNStr, METH_VARARGS},
     {"addstr",          (PyCFunction)PyCursesWindow_AddStr, METH_VARARGS},
     {"attroff",         (PyCFunction)PyCursesWindow_AttrOff, METH_VARARGS},
@@ -1610,6 +2060,9 @@ static PyMethodDef PyCursesWindow_Methods[] = {
     {"getbkgd",         (PyCFunction)PyCursesWindow_GetBkgd, METH_NOARGS},
     {"getch",           (PyCFunction)PyCursesWindow_GetCh, METH_VARARGS},
     {"getkey",          (PyCFunction)PyCursesWindow_GetKey, METH_VARARGS},
+#ifdef HAVE_NCURSESW
+    {"get_wch",         (PyCFunction)PyCursesWindow_Get_WCh, METH_VARARGS},
+#endif
     {"getmaxyx",        (PyCFunction)PyCursesWindow_getmaxyx, METH_NOARGS},
     {"getparyx",        (PyCFunction)PyCursesWindow_getparyx, METH_NOARGS},
     {"getstr",          (PyCFunction)PyCursesWindow_GetStr, METH_VARARGS},
@@ -1635,8 +2088,6 @@ static PyMethodDef PyCursesWindow_Methods[] = {
     {"nodelay",         (PyCFunction)PyCursesWindow_nodelay, METH_VARARGS},
     {"notimeout",       (PyCFunction)PyCursesWindow_notimeout, METH_VARARGS},
     {"noutrefresh",     (PyCFunction)PyCursesWindow_NoOutRefresh, METH_VARARGS},
-    /* Backward compatibility alias -- remove in Python 2.3 */
-    {"nooutrefresh",    (PyCFunction)PyCursesWindow_NoOutRefresh, METH_VARARGS},
     {"overlay",         (PyCFunction)PyCursesWindow_Overlay, METH_VARARGS},
     {"overwrite",       (PyCFunction)PyCursesWindow_Overwrite,
      METH_VARARGS},
@@ -1663,6 +2114,14 @@ static PyMethodDef PyCursesWindow_Methods[] = {
     {"untouchwin",      (PyCFunction)PyCursesWindow_untouchwin, METH_NOARGS},
     {"vline",           (PyCFunction)PyCursesWindow_Vline, METH_VARARGS},
     {NULL,                  NULL}   /* sentinel */
+};
+
+static PyGetSetDef PyCursesWindow_getsets[] = {
+    {"encoding",
+     (getter)PyCursesWindow_get_encoding,
+     (setter)PyCursesWindow_set_encoding,
+     "the typecode character used to create the array"},
+    {NULL, NULL, NULL, NULL }  /* sentinel */
 };
 
 /* -------------------------------------------------------*/
@@ -1697,6 +2156,8 @@ PyTypeObject PyCursesWindow_Type = {
     0,                          /*tp_iter*/
     0,                          /*tp_iternext*/
     PyCursesWindow_Methods,     /*tp_methods*/
+    0,                          /* tp_members */
+    PyCursesWindow_getsets,     /* tp_getset */
 };
 
 /*********************************************************************
@@ -1870,11 +2331,13 @@ static PyObject *
 PyCurses_GetWin(PyCursesWindowObject *self, PyObject *stream)
 {
     char fn[100];
-    int fd;
-    FILE *fp;
+    int fd = -1;
+    FILE *fp = NULL;
     PyObject *data;
     size_t datalen;
     WINDOW *win;
+    _Py_IDENTIFIER(read);
+    PyObject *res = NULL;
 
     PyCursesInitialised;
 
@@ -1882,44 +2345,47 @@ PyCurses_GetWin(PyCursesWindowObject *self, PyObject *stream)
     fd = mkstemp(fn);
     if (fd < 0)
         return PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+    if (_Py_set_inheritable(fd, 0, NULL) < 0)
+        goto error;
     fp = fdopen(fd, "wb+");
     if (fp == NULL) {
-        close(fd);
-        remove(fn);
-        return PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+        PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+        goto error;
     }
-    data = PyObject_CallMethod(stream, "read", "");
-    if (data == NULL) {
-        fclose(fp);
-        remove(fn);
-        return NULL;
-    }
+
+    data = _PyObject_CallMethodId(stream, &PyId_read, "");
+    if (data == NULL)
+        goto error;
     if (!PyBytes_Check(data)) {
         PyErr_Format(PyExc_TypeError,
                      "f.read() returned %.100s instead of bytes",
                      data->ob_type->tp_name);
         Py_DECREF(data);
-        fclose(fp);
-        remove(fn);
-        return NULL;
+        goto error;
     }
     datalen = PyBytes_GET_SIZE(data);
     if (fwrite(PyBytes_AS_STRING(data), 1, datalen, fp) != datalen) {
         Py_DECREF(data);
-        fclose(fp);
-        remove(fn);
-        return PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+        PyErr_SetFromErrnoWithFilename(PyExc_IOError, fn);
+        goto error;
     }
     Py_DECREF(data);
+
     fseek(fp, 0, 0);
     win = getwin(fp);
-    fclose(fp);
-    remove(fn);
     if (win == NULL) {
         PyErr_SetString(PyCursesError, catchall_NULL);
-        return NULL;
+        goto error;
     }
-    return PyCursesWindow_New(win);
+    res = PyCursesWindow_New(win, NULL);
+
+error:
+    if (fp != NULL)
+        fclose(fp);
+    else if (fd != -1)
+        close(fd);
+    remove(fn);
+    return res;
 }
 
 static PyObject *
@@ -1997,10 +2463,11 @@ static PyObject *
 PyCurses_InitScr(PyObject *self)
 {
     WINDOW *win;
+    PyCursesWindowObject *winobj;
 
     if (initialised == TRUE) {
         wrefresh(stdscr);
-        return (PyObject *)PyCursesWindow_New(stdscr);
+        return (PyObject *)PyCursesWindow_New(stdscr, NULL);
     }
 
     win = initscr();
@@ -2092,7 +2559,9 @@ PyCurses_InitScr(PyObject *self)
     SetDictInt("LINES", LINES);
     SetDictInt("COLS", COLS);
 
-    return (PyObject *)PyCursesWindow_New(win);
+    winobj = (PyCursesWindowObject *)PyCursesWindow_New(win, NULL);
+    screen_encoding = winobj->encoding;
+    return (PyObject *)winobj;
 }
 
 static PyObject *
@@ -2294,7 +2763,7 @@ PyCurses_NewPad(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)PyCursesWindow_New(win);
+    return (PyObject *)PyCursesWindow_New(win, NULL);
 }
 
 static PyObject *
@@ -2326,7 +2795,7 @@ PyCurses_NewWindow(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)PyCursesWindow_New(win);
+    return (PyObject *)PyCursesWindow_New(win, NULL);
 }
 
 static PyObject *
@@ -2418,6 +2887,8 @@ update_lines_cols(void)
 {
     PyObject *o;
     PyObject *m = PyImport_ImportModuleNoBlock("curses");
+    _Py_IDENTIFIER(LINES);
+    _Py_IDENTIFIER(COLS);
 
     if (!m)
         return 0;
@@ -2427,12 +2898,13 @@ update_lines_cols(void)
         Py_DECREF(m);
         return 0;
     }
-    if (PyObject_SetAttrString(m, "LINES", o)) {
+    if (_PyObject_SetAttrId(m, &PyId_LINES, o)) {
         Py_DECREF(m);
         Py_DECREF(o);
         return 0;
     }
-    if (PyDict_SetItemString(ModDict, "LINES", o)) {
+    /* PyId_LINES.object will be initialized here. */
+    if (PyDict_SetItem(ModDict, PyId_LINES.object, o)) {
         Py_DECREF(m);
         Py_DECREF(o);
         return 0;
@@ -2443,12 +2915,12 @@ update_lines_cols(void)
         Py_DECREF(m);
         return 0;
     }
-    if (PyObject_SetAttrString(m, "COLS", o)) {
+    if (_PyObject_SetAttrId(m, &PyId_COLS, o)) {
         Py_DECREF(m);
         Py_DECREF(o);
         return 0;
     }
-    if (PyDict_SetItemString(ModDict, "COLS", o)) {
+    if (PyDict_SetItem(ModDict, PyId_COLS.object, o)) {
         Py_DECREF(m);
         Py_DECREF(o);
         return 0;
@@ -2537,9 +3009,13 @@ PyCurses_Start_Color(PyObject *self)
     if (code != ERR) {
         initialisedcolors = TRUE;
         c = PyLong_FromLong((long) COLORS);
+        if (c == NULL)
+            return NULL;
         PyDict_SetItemString(ModDict, "COLORS", c);
         Py_DECREF(c);
         cp = PyLong_FromLong((long) COLOR_PAIRS);
+        if (cp == NULL)
+            return NULL;
         PyDict_SetItemString(ModDict, "COLOR_PAIRS", cp);
         Py_DECREF(cp);
         Py_INCREF(Py_None);
@@ -2640,10 +3116,8 @@ PyCurses_UnCtrl(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args,"O;ch or int",&temp)) return NULL;
 
-    if (!PyCurses_ConvertToChtype(temp, &ch)) {
-        PyErr_SetString(PyExc_TypeError, "argument must be a ch or an int");
+    if (!PyCurses_ConvertToChtype(NULL, temp, &ch))
         return NULL;
-    }
 
     return PyBytes_FromString(unctrl(ch));
 }
@@ -2656,15 +3130,79 @@ PyCurses_UngetCh(PyObject *self, PyObject *args)
 
     PyCursesInitialised;
 
-    if (!PyArg_ParseTuple(args,"O;ch or int",&temp)) return NULL;
-
-    if (!PyCurses_ConvertToChtype(temp, &ch)) {
-        PyErr_SetString(PyExc_TypeError, "argument must be a ch or an int");
+    if (!PyArg_ParseTuple(args,"O;ch or int",&temp))
         return NULL;
-    }
+
+    if (!PyCurses_ConvertToChtype(NULL, temp, &ch))
+        return NULL;
 
     return PyCursesCheckERR(ungetch(ch), "ungetch");
 }
+
+#ifdef HAVE_NCURSESW
+/* Convert an object to a character (wchar_t):
+
+    - int
+    - str of length 1
+
+   Return 1 on success, 0 on error. */
+static int
+PyCurses_ConvertToWchar_t(PyObject *obj,
+                          wchar_t *wch)
+{
+    if (PyUnicode_Check(obj)) {
+        wchar_t buffer[2];
+        if (PyUnicode_AsWideChar(obj, buffer, 2) != 1) {
+            PyErr_Format(PyExc_TypeError,
+                         "expect bytes or str of length 1, or int, "
+                         "got a str of length %zi",
+                         PyUnicode_GET_LENGTH(obj));
+            return 0;
+        }
+        *wch = buffer[0];
+        return 2;
+    }
+    else if (PyLong_CheckExact(obj)) {
+        long value;
+        int overflow;
+        value = PyLong_AsLongAndOverflow(obj, &overflow);
+        if (overflow) {
+            PyErr_SetString(PyExc_OverflowError,
+                            "int doesn't fit in long");
+            return 0;
+        }
+        *wch = (wchar_t)value;
+        if ((long)*wch != value) {
+            PyErr_Format(PyExc_OverflowError,
+                         "character doesn't fit in wchar_t");
+            return 0;
+        }
+        return 1;
+    }
+    else {
+        PyErr_Format(PyExc_TypeError,
+                     "expect bytes or str of length 1, or int, got %s",
+                     Py_TYPE(obj)->tp_name);
+        return 0;
+    }
+}
+
+static PyObject *
+PyCurses_Unget_Wch(PyObject *self, PyObject *args)
+{
+    PyObject *obj;
+    wchar_t wch;
+
+    PyCursesInitialised;
+
+    if (!PyArg_ParseTuple(args,"O", &obj))
+        return NULL;
+
+    if (!PyCurses_ConvertToWchar_t(obj, &wch))
+        return NULL;
+    return PyCursesCheckERR(unget_wch(wch), "unget_wch");
+}
+#endif
 
 static PyObject *
 PyCurses_Use_Env(PyObject *self, PyObject *args)
@@ -2793,6 +3331,9 @@ static PyMethodDef PyCurses_methods[] = {
     {"typeahead",           (PyCFunction)PyCurses_TypeAhead, METH_VARARGS},
     {"unctrl",              (PyCFunction)PyCurses_UnCtrl, METH_VARARGS},
     {"ungetch",             (PyCFunction)PyCurses_UngetCh, METH_VARARGS},
+#ifdef HAVE_NCURSESW
+    {"unget_wch",           (PyCFunction)PyCurses_Unget_Wch, METH_VARARGS},
+#endif
     {"use_env",             (PyCFunction)PyCurses_Use_Env, METH_VARARGS},
 #ifndef STRICT_SYSV_CURSES
     {"use_default_colors",  (PyCFunction)PyCurses_Use_Default_Colors, METH_NOARGS},
@@ -2952,7 +3493,7 @@ PyInit__curses(void)
                 continue;
             if (strncmp(key_n,"KEY_F(",6)==0) {
                 char *p1, *p2;
-                key_n2 = malloc(strlen(key_n)+1);
+                key_n2 = PyMem_Malloc(strlen(key_n)+1);
                 if (!key_n2) {
                     PyErr_NoMemory();
                     break;
@@ -2971,7 +3512,7 @@ PyInit__curses(void)
                 key_n2 = key_n;
             SetDictInt(key_n2,key);
             if (key_n2 != key_n)
-                free(key_n2);
+                PyMem_Free(key_n2);
         }
 #endif
         SetDictInt("KEY_MIN", KEY_MIN);

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "trap_trigger.hpp"
-#include "entity.hpp"
-#include "entity_coordinate_node.hpp"
-#include "proximity_controller.hpp"	
+#include "trap_trigger.h"
+#include "entity.h"
+#include "entity_coordinate_node.h"
+#include "proximity_controller.h"	
 
 #ifndef CODE_INLINE
-#include "trap_trigger.ipp"
+#include "trap_trigger.inl"
 #endif
 
 namespace KBEngine{	

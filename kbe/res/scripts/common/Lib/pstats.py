@@ -93,9 +93,8 @@ class Stats:
             self.stats = {}
             return
         elif isinstance(arg, str):
-            f = open(arg, 'rb')
-            self.stats = marshal.load(f)
-            f.close()
+            with open(arg, 'rb') as f:
+                self.stats = marshal.load(f)
             try:
                 file_stats = os.stat(arg)
                 arg = time.ctime(file_stats.st_mtime) + "    " + arg
@@ -149,11 +148,8 @@ class Stats:
 
     def dump_stats(self, filename):
         """Write the profile data to a file we know how to load back."""
-        f = open(filename, 'wb')
-        try:
+        with open(filename, 'wb') as f:
             marshal.dump(self.stats, f)
-        finally:
-            f.close()
 
     # list the tuple indices and directions for sorting,
     # along with some printable description
@@ -612,7 +608,7 @@ if __name__ == '__main__':
             if line:
                 try:
                     self.stats = Stats(line)
-                except IOError as err:
+                except OSError as err:
                     print(err.args[1], file=self.stream)
                     return
                 except Exception as err:
@@ -678,13 +674,14 @@ if __name__ == '__main__':
                 return stop
             return None
 
-    import sys
     if len(sys.argv) > 1:
         initprofile = sys.argv[1]
     else:
         initprofile = None
     try:
         browser = ProfileBrowser(initprofile)
+        for profile in sys.argv[2:]:
+            browser.do_add(profile)
         print("Welcome to the profile statistics browser.", file=browser.stream)
         browser.cmdloop()
         print("Goodbye.", file=browser.stream)

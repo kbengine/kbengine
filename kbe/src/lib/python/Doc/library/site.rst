@@ -16,7 +16,14 @@ import can be suppressed using the interpreter's :option:`-S` option.
 .. index:: triple: module; search; path
 
 Importing this module will append site-specific paths to the module search path
-and add a few builtins.
+and add a few builtins, unless :option:`-S` was used.  In that case, this module
+can be safely imported with no automatic modifications to the module search path
+or additions to the builtins.  To explicitly trigger the usual site-specific
+additions, call the :func:`site.main` function.
+
+.. versionchanged:: 3.3
+   Importing the module used to trigger paths manipulation even when using
+   :option:`-S`.
 
 .. index::
    pair: site-python; directory
@@ -30,6 +37,18 @@ are skipped.  For the tail part, it uses the empty string and then
 Unix and Macintosh).  For each of the distinct head-tail combinations, it sees
 if it refers to an existing directory, and if so, adds it to ``sys.path`` and
 also inspects the newly added path for configuration files.
+
+.. deprecated:: 3.4
+   Support for the "site-python" directory will be removed in 3.5.
+
+If a file named "pyvenv.cfg" exists one directory above sys.executable,
+sys.prefix and sys.exec_prefix are set to that directory and
+it is also checked for site-packages and site-python (sys.base_prefix and
+sys.base_exec_prefix will always be the "real" prefixes of the Python
+installation). If "pyvenv.cfg" (a bootstrap configuration file) contains
+the key "include-system-site-packages" set to anything other than "false"
+(case-insensitive), the system-level prefixes will still also be
+searched for site-packages; otherwise they won't.
 
 A path configuration file is a file whose name has the form :file:`{name}.pth`
 and exists in one of the four directories mentioned above; its contents are
@@ -80,7 +99,11 @@ After these path manipulations, an attempt is made to import a module named
 :mod:`sitecustomize`, which can perform arbitrary site-specific customizations.
 It is typically created by a system administrator in the site-packages
 directory.  If this import fails with an :exc:`ImportError` exception, it is
-silently ignored.
+silently ignored.  If Python is started without output streams available, as
+with :file:`pythonw.exe` on Windows (which is used by default to start IDLE),
+attempted output from :mod:`sitecustomize` is ignored. Any exception other
+than :exc:`ImportError` causes a silent and perhaps mysterious failure of the
+process.
 
 .. index:: module: usercustomize
 
@@ -94,6 +117,27 @@ Note that for some non-Unix systems, ``sys.prefix`` and ``sys.exec_prefix`` are
 empty, and the path manipulations are skipped; however the import of
 :mod:`sitecustomize` and :mod:`usercustomize` is still attempted.
 
+
+.. _rlcompleter-config:
+
+Readline configuration
+----------------------
+
+On systems that support :mod:`readline`, this module will also import and
+configure the :mod:`rlcompleter` module, if Python is started in
+:ref:`interactive mode <tut-interactive>` and without the :option:`-S` option.
+The default behavior is enable tab-completion and to use
+:file:`~/.python_history` as the history save file.  To disable it, delete (or
+override) the :data:`sys.__interactivehook__` attribute in your
+:mod:`sitecustomize` or :mod:`usercustomize` module or your
+:envvar:`PYTHONSTARTUP` file.
+
+.. versionchanged:: 3.4
+   Activation of rlcompleter and history was made automatic.
+
+
+Module contents
+---------------
 
 .. data:: PREFIXES
 
@@ -129,8 +173,18 @@ empty, and the path manipulations are skipped; however the import of
    :file:`~/Library/Python/{X.Y}` for Mac framework builds, and
    :file:`{%APPDATA%}\\Python` for Windows.  This value is used by Distutils to
    compute the installation directories for scripts, data files, Python modules,
-   etc. for the :ref:`user installation scheme <inst-alt-install-user>`.  See
-   also :envvar:`PYTHONUSERBASE`.
+   etc. for the :ref:`user installation scheme <inst-alt-install-user>`.
+   See also :envvar:`PYTHONUSERBASE`.
+
+
+.. function:: main()
+
+   Adds all the standard site-specific directories to the module search
+   path.  This function is called automatically when this module is imported,
+   unless the Python interpreter was started with the :option:`-S` flag.
+
+   .. versionchanged:: 3.3
+      This function used to be called unconditionnally.
 
 
 .. function:: addsitedir(sitedir, known_paths=None)

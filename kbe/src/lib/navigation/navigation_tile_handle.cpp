@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,11 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "navigation_tile_handle.hpp"	
-#include "navigation/navigation.hpp"
-#include "resmgr/resmgr.hpp"
-#include "thread/threadguard.hpp"
-#include "math/math.hpp"
+#include "navigation_tile_handle.h"	
+#include "navigation/navigation.h"
+#include "resmgr/resmgr.h"
+#include "thread/threadguard.h"
+#include "math/math.h"
 
 namespace KBEngine{	
 NavTileHandle* NavTileHandle::pCurrNavTileHandle = NULL;
@@ -33,6 +33,14 @@ AStarSearch<NavTileHandle::MapSearchNode> NavTileHandle::astarsearch;
 
 #define DEBUG_LISTS 0
 #define DEBUG_LIST_LENGTHS_ONLY 0
+
+// Returns a random number [0..1)
+static float frand()
+{
+//	return ((float)(rand() & 0xffff)/(float)0xffff);
+	return (float)rand()/(float)RAND_MAX;
+}
+
 
 //-------------------------------------------------------------------------------------
 NavTileHandle::NavTileHandle(bool dir):
@@ -54,7 +62,9 @@ direction8_(navTileHandle.direction8_)
 //-------------------------------------------------------------------------------------
 NavTileHandle::~NavTileHandle()
 {
-	DEBUG_MSG(boost::format("NavTileHandle::~NavTileHandle(%2%, pTilemap=%3%): (%1%) is destroyed!\n") % name % this % pTilemap);
+	DEBUG_MSG(fmt::format("NavTileHandle::~NavTileHandle({1:p}, pTilemap={2:p}): ({0}) is destroyed!\n", 
+		resPath, (void*)this, (void*)pTilemap));
+	
 	SAFE_RELEASE(pTilemap);
 }
 
@@ -66,7 +76,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
 	{
-		ERROR_MSG(boost::format("NavTileHandle::findStraightPath: not found layer(%1%)\n") %  layer);
+		ERROR_MSG(fmt::format("NavTileHandle::findStraightPath: not found layer({})\n", layer));
 		return NAV_ERROR;
 	}
 
@@ -78,8 +88,8 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 	nodeGoal.x = int(end.x / pTilemap->GetTileWidth());				
 	nodeGoal.y = int(end.z / pTilemap->GetTileHeight()); 
 
-	//DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: start(%1%, %2%), end(%3%, %4%)\n") % 
-	//	nodeStart.x % nodeStart.y % nodeGoal.x % nodeGoal.y);
+	//DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: start({}, {}), end({}, {})\n", 
+	//	nodeStart.x, nodeStart.y, nodeGoal.x, nodeGoal.y));
 
 	// Set Start and goal states
 	astarsearch.SetStartAndGoalStates(nodeStart, nodeGoal);
@@ -95,7 +105,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 
 #if DEBUG_LISTS
 
-		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Steps: %1%\n") % SearchSteps);
+		DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Steps: {}\n", SearchSteps));
 
 		int len = 0;
 
@@ -111,7 +121,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 			
 		}
 		
-		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Open list has %1% nodes\n") % len);
+		DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Open list has {} nodes\n", len));
 
 		len = 0;
 
@@ -126,7 +136,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 			p = astarsearch.GetClosedListNext();
 		}
 
-		DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Closed list has %1% nodes\n") % len);
+		DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Closed list has {} nodes\n", len));
 #endif
 
 	}
@@ -154,7 +164,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 			paths.push_back(Position3D((float)node->x * pTilemap->GetTileWidth(), 0, (float)node->y * pTilemap->GetTileWidth()));
 		};
 
-		// DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: Solution steps %1%\n") % steps);
+		// DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: Solution steps {}\n", steps));
 		// Once you're done with the solution you can free the nodes up
 		astarsearch.FreeSolutionNodes();
 	}
@@ -164,7 +174,7 @@ int NavTileHandle::findStraightPath(int layer, const Position3D& start, const Po
 	}
 
 	// Display the number of loops the search went through
-	// DEBUG_MSG(boost::format("NavTileHandle::findStraightPath: SearchSteps: %1%\n") % SearchSteps);
+	// DEBUG_MSG(fmt::format("NavTileHandle::findStraightPath: SearchSteps: {}\n", SearchSteps));
 	astarsearch.EnsureMemoryFreed();
 
 	return 0;
@@ -233,7 +243,7 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 
 	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
 	{
-		ERROR_MSG(boost::format("NavTileHandle::raycast: not found layer(%1%)\n") %  layer);
+		ERROR_MSG(fmt::format("NavTileHandle::raycast: not found layer({})\n",  layer));
 		return NAV_ERROR;
 	}
 
@@ -268,49 +278,112 @@ int NavTileHandle::raycast(int layer, const Position3D& start, const Position3D&
 }
 
 //-------------------------------------------------------------------------------------
-NavigationHandle* NavTileHandle::create(std::string name)
+int NavTileHandle::findRandomPointAroundCircle(int layer, const Position3D& centerPos,
+	std::vector<Position3D>& points, uint32 max_points, float maxRadius)
 {
-	if(name == "")
+	setMapLayer(layer);
+	pCurrNavTileHandle = this;
+
+	if(pCurrNavTileHandle->pTilemap->GetNumLayers() < layer + 1)
+	{
+		ERROR_MSG(fmt::format("NavTileHandle::findRandomPointAroundCircle: not found layer({})\n", layer));
+		return NAV_ERROR;
+	}
+	
+	Position3D currpos;
+	
+	for (uint32 i = 0; i < max_points; i++)
+	{
+		float rnd = frand();
+		float a = maxRadius * rnd;						// 半径在maxRadius米内
+		float b = 360.0f * rnd;							// 随机一个角度
+		currpos.x = centerPos.x + (a * cos(b)); 		// 半径 * 正余玄
+		currpos.z = centerPos.z + (a * sin(b));
+		points.push_back(currpos);
+	}
+
+	return (int)points.size();
+}
+
+//-------------------------------------------------------------------------------------
+NavigationHandle* NavTileHandle::create(std::string resPath, const std::map< int, std::string >& params)
+{
+	if(resPath == "")
 		return NULL;
+	
+	std::string path;
+	
+	if(params.size() == 0)
+	{
+		path = resPath;
+		path = Resmgr::getSingleton().matchPath(path);
+		wchar_t* wpath = strutil::char2wchar(path.c_str());
+		std::wstring wspath = wpath;
+		free(wpath);
+			
+		std::vector<std::wstring> results;
+		Resmgr::getSingleton().listPathRes(wspath, L"tmx", results);
 
-	std::string path = Resmgr::getSingleton().matchRes("spaces/" + name + "/" + name + ".tmx");
+		if(results.size() == 0)
+		{
+			ERROR_MSG(fmt::format("NavTileHandle::create: path({}) not found tmx.!\n", 
+				Resmgr::getSingleton().matchRes(path)));
 
+			return NULL;
+		}
+					
+		char* cpath = strutil::wchar2char(results[0].c_str());
+		path = cpath;
+		free(cpath);
+	}
+	else
+	{
+		path = Resmgr::getSingleton().matchRes(params.begin()->second);
+	}
+	
+	return _create(path);
+}
+
+//-------------------------------------------------------------------------------------
+NavTileHandle* NavTileHandle::_create(const std::string& res)
+{
 	Tmx::Map *map = new Tmx::Map();
-	map->ParseFile(path.c_str());
+	map->ParseFile(res.c_str());
 
 	if (map->HasError()) 
 	{
-		ERROR_MSG(boost::format("NavTileHandle::create: open(%1%) is error!\n") % path);
+		ERROR_MSG(fmt::format("NavTileHandle::create: open({}) is error!\n", res));
 		delete map;
 		return NULL;
 	}
 	
 	bool mapdir = map->GetProperties().HasProperty("direction8");
 
-	DEBUG_MSG(boost::format("NavTileHandle::create: (%1%)\n") % name);
-	DEBUG_MSG(boost::format("\t==> map Width : %1%\n") % map->GetWidth());
-	DEBUG_MSG(boost::format("\t==> map Height : %1%\n") % map->GetHeight());
-	DEBUG_MSG(boost::format("\t==> tile Width : %1% px\n") % map->GetTileWidth());
-	DEBUG_MSG(boost::format("\t==> tile Height : %1% px\n") % map->GetTileHeight());
-	DEBUG_MSG(boost::format("\t==> findpath direction : %1%\n") % (mapdir ? 8 : 4));
+	DEBUG_MSG(fmt::format("NavTileHandle::create: ({})\n", res));
+	DEBUG_MSG(fmt::format("\t==> map Width : {}\n", map->GetWidth()));
+	DEBUG_MSG(fmt::format("\t==> map Height : {}\n", map->GetHeight()));
+	DEBUG_MSG(fmt::format("\t==> tile Width : {} px\n", map->GetTileWidth()));
+	DEBUG_MSG(fmt::format("\t==> tile Height : {} px\n", map->GetTileHeight()));
+	DEBUG_MSG(fmt::format("\t==> findpath direction : {}\n", (mapdir ? 8 : 4)));
 
 	// Iterate through the tilesets.
 	for (int i = 0; i < map->GetNumTilesets(); ++i) {
 
-		DEBUG_MSG(boost::format("\t==> tileset %02d\n") % i);
+		DEBUG_MSG(fmt::format("\t==> tileset {:02d}\n", i));
 
 		// Get a tileset.
 		const Tmx::Tileset *tileset = map->GetTileset(i);
 
 		// Print tileset information.
-		DEBUG_MSG(boost::format("\t==> name : %1%\n") % tileset->GetName());
-		DEBUG_MSG(boost::format("\t==> margin : %1%\n") % tileset->GetMargin());
-		DEBUG_MSG(boost::format("\t==> spacing : %1%\n") % tileset->GetSpacing());
-		DEBUG_MSG(boost::format("\t==> image Width : %1%\n") % tileset->GetImage()->GetWidth());
-		DEBUG_MSG(boost::format("\t==> image Height : %1%\n") % tileset->GetImage()->GetHeight());
-		DEBUG_MSG(boost::format("\t==> image Source : %1%\n") % tileset->GetImage()->GetSource().c_str());
-		DEBUG_MSG(boost::format("\t==> transparent Color (hex) : %1%\n") % tileset->GetImage()->GetTransparentColor());
-		DEBUG_MSG(boost::format("\t==> tiles Size : %1%\n") % tileset->GetTiles().size());
+		DEBUG_MSG(fmt::format("\t==> name : {}\n", tileset->GetName()));
+		DEBUG_MSG(fmt::format("\t==> margin : {}\n", tileset->GetMargin()));
+		DEBUG_MSG(fmt::format("\t==> spacing : {}\n", tileset->GetSpacing()));
+		DEBUG_MSG(fmt::format("\t==> image Width : {}\n", tileset->GetImage()->GetWidth()));
+		DEBUG_MSG(fmt::format("\t==> image Height : {}\n", tileset->GetImage()->GetHeight()));
+		DEBUG_MSG(fmt::format("\t==> image Source : {}\n", tileset->GetImage()->GetSource().c_str()));
+		DEBUG_MSG(fmt::format("\t==> transparent Color (hex) : {}\n", tileset->GetImage()->GetTransparentColor()));
+		DEBUG_MSG(fmt::format("\t==> tiles Size : {}\n", tileset->GetTiles().size()));
+		
 		if (tileset->GetTiles().size() > 0) 
 		{
 			// Get a tile from the tileset.
@@ -320,18 +393,18 @@ NavigationHandle* NavTileHandle::create(std::string name)
 			std::map< std::string, std::string > list = tile->GetProperties().GetList();
 			std::map< std::string, std::string >::iterator iter;
 			for (iter = list.begin(); iter != list.end(); ++iter) {
-				DEBUG_MSG(boost::format("\t==> property: %1% : %2%\n") % iter->first.c_str() % iter->second.c_str());
+				DEBUG_MSG(fmt::format("\t==> property: {} : {}\n", iter->first.c_str(), iter->second.c_str()));
 			}
 		}
 	}
-
+	
 	NavTileHandle* pNavTileHandle = new NavTileHandle(mapdir);
 	pNavTileHandle->pTilemap = map;
 	return pNavTileHandle;
 }
 
 //-------------------------------------------------------------------------------------
-bool NavTileHandle::validTile(int x, int y)const
+bool NavTileHandle::validTile(int x, int y) const
 {
 	if( x < 0 ||
 	    x >= pTilemap->GetWidth() ||
@@ -376,8 +449,9 @@ bool NavTileHandle::MapSearchNode::IsSameState(MapSearchNode &rhs)
 void NavTileHandle::MapSearchNode::PrintNodeInfo()
 {
 	char str[100];
-	sprintf( str, "NavTileHandle::MapSearchNode::printNodeInfo(): Node position : (%d,%d)\n", x,y );
-
+	sprintf( str, "NavTileHandle::MapSearchNode::printNodeInfo(): Node position : (%d,%d)\n", 
+		x, y);
+	
 	DEBUG_MSG(str);
 }
 

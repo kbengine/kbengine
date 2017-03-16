@@ -1,2 +1,0 @@
-python-3.x.msi
-pywin32-218.win32-py3.x.exe

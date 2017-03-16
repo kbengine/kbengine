@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,16 +19,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "debug_option.hpp"
+#include "debug_option.h"
 
 namespace KBEngine { 
 	
-namespace Mercury
+namespace Network
 {
 
 bool g_packetAlwaysContainLength = false;
 
 uint8 g_trace_packet = 0;
+bool g_trace_encrypted_packet = true;
 bool g_trace_packet_use_logfile = false;
 std::vector<std::string> g_trace_packet_disables;
 

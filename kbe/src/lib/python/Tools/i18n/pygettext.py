@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 # -*- coding: iso-8859-1 -*-
-# Originally written by Barry Warsaw <barry@zope.com>
+# Originally written by Barry Warsaw <barry@python.org>
 #
 # Minimally patched to make it even more xgettext compatible
 # by Peter Funk <pf@artcom-gmbh.de>
@@ -163,7 +163,6 @@ import time
 import getopt
 import token
 import tokenize
-import operator
 
 __version__ = '1.5'
 

@@ -22,7 +22,7 @@ __all__ = ["has_python_ext", "looks_like_python", "can_be_compiled", "walk_pytho
 
 import os, re
 
-binary_re = re.compile('[\x00-\x08\x0E-\x1F\x7F]')
+binary_re = re.compile(br'[\x00-\x08\x0E-\x1F\x7F]')
 
 debug = False
 
@@ -42,7 +42,7 @@ def _open(fullpath):
         return None
 
     try:
-        return open(fullpath, 'rU')
+        return open(fullpath, "rb")
     except IOError as err: # Access denied, or a special file - ignore it
         print_debug("%s: access denied: %s" % (fullpath, err))
         return None
@@ -55,8 +55,8 @@ def looks_like_python(fullpath):
     if infile is None:
         return False
 
-    line = infile.readline()
-    infile.close()
+    with infile:
+        line = infile.readline()
 
     if binary_re.search(line):
         # file appears to be binary
@@ -65,7 +65,7 @@ def looks_like_python(fullpath):
 
     if fullpath.endswith(".py") or fullpath.endswith(".pyw"):
         return True
-    elif "python" in line:
+    elif b"python" in line:
         # disguised Python script (e.g. CGI)
         return True
 
@@ -76,8 +76,8 @@ def can_be_compiled(fullpath):
     if infile is None:
         return False
 
-    code = infile.read()
-    infile.close()
+    with infile:
+        code = infile.read()
 
     try:
         compile(code, fullpath, "exec")

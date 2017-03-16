@@ -11,12 +11,16 @@ iso 2			: member-body		: ISO Member Body
 
 iso 3			: identified-organization
 
+# HMAC OIDs
+identified-organization 6 1 5 5 8 1 1	: HMAC-MD5	: hmac-md5
+identified-organization 6 1 5 5 8 1 2	: HMAC-SHA1	: hmac-sha1
+
 identified-organization 132	: certicom-arc
 
 joint-iso-itu-t 23	: international-organizations	: International Organizations
 
 international-organizations 43	: wap
-wap 13			: wap-wsg
+wap 1			: wap-wsg
 
 joint-iso-itu-t 5 1 5	: selected-attribute-types	: Selected Attribute Types
 
@@ -75,6 +79,12 @@ X9-62_primeCurve 7	 	: prime256v1
 !Alias id-ecSigType ansi-X9-62 4
 !global
 X9-62_id-ecSigType 1		: ecdsa-with-SHA1
+X9-62_id-ecSigType 2		: ecdsa-with-Recommended
+X9-62_id-ecSigType 3		: ecdsa-with-Specified
+ecdsa-with-Specified 1		: ecdsa-with-SHA224
+ecdsa-with-Specified 2		: ecdsa-with-SHA256
+ecdsa-with-Specified 3		: ecdsa-with-SHA384
+ecdsa-with-Specified 4		: ecdsa-with-SHA512
 
 # SECG curve OIDs from "SEC 2: Recommended Elliptic Curve Domain Parameters"
 # (http://www.secg.org/)
@@ -141,6 +151,10 @@ ISO-US 113533 7 66 10	: CAST5-CBC		: cast5-cbc
 !Cname pbeWithMD5AndCast5-CBC
 ISO-US 113533 7 66 12	:			: pbeWithMD5AndCast5CBC
 
+# Macs for CMP and CRMF
+ISO-US 113533 7 66 13	: id-PasswordBasedMAC	: password based MAC
+ISO-US 113533 7 66 30	: id-DHBasedMac		: Diffie-Hellman based MAC
+
 ISO-US 113549		: rsadsi		: RSA Data Security, Inc.
 
 rsadsi 1		: pkcs			: RSA Data Security, Inc. PKCS
@@ -152,6 +166,11 @@ pkcs1 3			: RSA-MD4		: md4WithRSAEncryption
 pkcs1 4			: RSA-MD5		: md5WithRSAEncryption
 pkcs1 5			: RSA-SHA1		: sha1WithRSAEncryption
 # According to PKCS #1 version 2.1
+pkcs1 7			: RSAES-OAEP		: rsaesOaep
+pkcs1 8			: MGF1			: mgf1
+pkcs1 9			: PSPECIFIED		: pSpecified
+pkcs1 10		: RSASSA-PSS		: rsassaPss
+
 pkcs1 11		: RSA-SHA256		: sha256WithRSAEncryption
 pkcs1 12		: RSA-SHA384		: sha384WithRSAEncryption
 pkcs1 13		: RSA-SHA512		: sha512WithRSAEncryption
@@ -237,6 +256,8 @@ id-smime-ct 5		: id-smime-ct-TDTInfo
 id-smime-ct 6		: id-smime-ct-contentInfo
 id-smime-ct 7		: id-smime-ct-DVCSRequestData
 id-smime-ct 8		: id-smime-ct-DVCSResponseData
+id-smime-ct 9		: id-smime-ct-compressedData
+id-smime-ct 27		: id-ct-asciiTextWithCRLF
 
 # S/MIME Attributes
 id-smime-aa 1		: id-smime-aa-receiptRequest
@@ -283,6 +304,7 @@ id-smime-alg 4		: id-smime-alg-RC2wrap
 id-smime-alg 5		: id-smime-alg-ESDH
 id-smime-alg 6		: id-smime-alg-CMS3DESwrap
 id-smime-alg 7		: id-smime-alg-CMSRC2wrap
+id-smime-alg 9		: id-alg-PWRI-KEK
 
 # S/MIME Certificate Distribution
 id-smime-cd 1		: id-smime-cd-ldap
@@ -303,6 +325,7 @@ pkcs9 20		:			: friendlyName
 pkcs9 21		:			: localKeyID
 !Cname ms-csp-name
 1 3 6 1 4 1 311 17 1	: CSPName		: Microsoft CSP Name
+1 3 6 1 4 1 311 17 2	: LocalKeySet		: Microsoft Local Key set
 !Alias certTypes pkcs9 22
 certTypes 1		:			: x509Certificate
 certTypes 2		:			: sdsiCertificate
@@ -338,7 +361,15 @@ rsadsi 2 2		: MD2			: md2
 rsadsi 2 4		: MD4			: md4
 rsadsi 2 5		: MD5			: md5
 			: MD5-SHA1		: md5-sha1
+rsadsi 2 6		:			: hmacWithMD5
 rsadsi 2 7		:			: hmacWithSHA1
+
+# From RFC4231
+rsadsi 2 8		:			: hmacWithSHA224
+rsadsi 2 9		:			: hmacWithSHA256
+rsadsi 2 10		:			: hmacWithSHA384
+rsadsi 2 11		:			: hmacWithSHA512
+
 rsadsi 3 2		: RC2-CBC		: rc2-cbc
 			: RC2-ECB		: rc2-ecb
 !Cname rc2-cfb64
@@ -484,6 +515,7 @@ id-it 12		: id-it-revPassphrase
 id-it 13		: id-it-implicitConfirm
 id-it 14		: id-it-confirmWaitTime
 id-it 15		: id-it-origPKIMessage
+id-it 16		: id-it-suppLangTags
 
 # CRMF registration
 id-pkip 1		: id-regCtrl
@@ -531,6 +563,7 @@ id-cmc 24		: id-cmc-confirmCertAcceptance
 
 # other names
 id-on 1			: id-on-personalData
+id-on 3			: id-on-permanentIdentifier : Permanent Identifier
 
 # personal data attributes
 id-pda 1		: id-pda-dateOfBirth
@@ -570,6 +603,7 @@ id-ad 2			: caIssuers		: CA Issuers
 id-ad 3			: ad_timestamping	: AD Time Stamping
 !Cname ad-dvcs
 id-ad 4			: AD_DVCS		: ad dvcs
+id-ad 5			: caRepository		: CA Repository
 
 
 !Alias id-pkix-OCSP ad-OCSP
@@ -636,18 +670,52 @@ X509 5			: 			: serialNumber
 X509 6			: C			: countryName
 X509 7			: L			: localityName
 X509 8			: ST			: stateOrProvinceName
-X509 9			:			: streetAddress
+X509 9			: street		: streetAddress
 X509 10			: O			: organizationName
 X509 11			: OU			: organizationalUnitName
-X509 12			: 			: title
+X509 12			: title			: title
 X509 13			: 			: description
-X509 17			:			: postalCode
+X509 14			: 			: searchGuide
+X509 15			: 			: businessCategory
+X509 16			: 			: postalAddress
+X509 17			: 			: postalCode
+X509 18			: 			: postOfficeBox
+X509 19			: 			: physicalDeliveryOfficeName
+X509 20			: 			: telephoneNumber
+X509 21			: 			: telexNumber
+X509 22			: 			: teletexTerminalIdentifier
+X509 23			: 			: facsimileTelephoneNumber
+X509 24			: 			: x121Address
+X509 25			: 			: internationaliSDNNumber
+X509 26			: 			: registeredAddress
+X509 27			: 			: destinationIndicator
+X509 28			: 			: preferredDeliveryMethod
+X509 29			: 			: presentationAddress
+X509 30			: 			: supportedApplicationContext
+X509 31			: member		:
+X509 32			: owner			:
+X509 33			: 			: roleOccupant
+X509 34			: seeAlso		:
+X509 35			: 			: userPassword
+X509 36			: 			: userCertificate
+X509 37			: 			: cACertificate
+X509 38			: 			: authorityRevocationList
+X509 39			: 			: certificateRevocationList
+X509 40			: 			: crossCertificatePair
 X509 41			: name			: name
 X509 42			: GN			: givenName
-X509 43			: 			: initials
+X509 43			: initials		: initials
 X509 44			: 			: generationQualifier
 X509 45			: 			: x500UniqueIdentifier
 X509 46			: dnQualifier		: dnQualifier
+X509 47			: 			: enhancedSearchGuide
+X509 48			: 			: protocolInformation
+X509 49			: 			: distinguishedName
+X509 50			: 			: uniqueMember
+X509 51			: 			: houseIdentifier
+X509 52			: 			: supportedAlgorithms
+X509 53			: 			: deltaRevocationList
+X509 54			: dmdName		:
 X509 65			:			: pseudonym
 X509 72			: role			: role
 
@@ -699,12 +767,18 @@ id-ce 35		: authorityKeyIdentifier : X509v3 Authority Key Identifier
 id-ce 36		: policyConstraints	: X509v3 Policy Constraints
 !Cname ext-key-usage
 id-ce 37		: extendedKeyUsage	: X509v3 Extended Key Usage
+!Cname freshest-crl
+id-ce 46		: freshestCRL		: X509v3 Freshest CRL
 !Cname inhibit-any-policy
 id-ce 54		: inhibitAnyPolicy	: X509v3 Inhibit Any Policy
 !Cname target-information
 id-ce 55		: targetInformation	: X509v3 AC Targeting
 !Cname no-rev-avail
 id-ce 56		: noRevAvail		: X509v3 No Revocation Available
+
+# From RFC5280
+ext-key-usage 0		: anyExtendedKeyUsage	: Any Extended Key Usage
+
 
 !Cname netscape
 2 16 840 1 113730	: Netscape		: Netscape Communications Corp.
@@ -768,7 +842,7 @@ mime-mhs-headings 2	: id-hex-multipart-message : id-hex-multipart-message
 !Cname rle-compression
 1 1 1 1 666 1		: RLE			: run length compression
 !Cname zlib-compression
-1 1 1 1 666 2		: ZLIB			: zlib compression
+id-smime-alg 8		: ZLIB			: zlib compression
 
 # AES aka Rijndael
 
@@ -782,6 +856,10 @@ aes 2			: AES-128-CBC		: aes-128-cbc
 aes 3			: AES-128-OFB		: aes-128-ofb
 !Cname aes-128-cfb128
 aes 4			: AES-128-CFB		: aes-128-cfb
+aes 5			: id-aes128-wrap
+aes 6			: id-aes128-GCM		: aes-128-gcm
+aes 7			: id-aes128-CCM		: aes-128-ccm
+aes 8			: id-aes128-wrap-pad
 
 aes 21			: AES-192-ECB		: aes-192-ecb
 aes 22			: AES-192-CBC		: aes-192-cbc
@@ -789,6 +867,10 @@ aes 22			: AES-192-CBC		: aes-192-cbc
 aes 23			: AES-192-OFB		: aes-192-ofb
 !Cname aes-192-cfb128
 aes 24			: AES-192-CFB		: aes-192-cfb
+aes 25			: id-aes192-wrap
+aes 26			: id-aes192-GCM		: aes-192-gcm
+aes 27			: id-aes192-CCM		: aes-192-ccm
+aes 28			: id-aes192-wrap-pad
 
 aes 41			: AES-256-ECB		: aes-256-ecb
 aes 42			: AES-256-CBC		: aes-256-cbc
@@ -796,6 +878,10 @@ aes 42			: AES-256-CBC		: aes-256-cbc
 aes 43			: AES-256-OFB		: aes-256-ofb
 !Cname aes-256-cfb128
 aes 44			: AES-256-CFB		: aes-256-cfb
+aes 45			: id-aes256-wrap
+aes 46			: id-aes256-GCM		: aes-256-gcm
+aes 47			: id-aes256-CCM		: aes-256-ccm
+aes 48			: id-aes256-wrap-pad
 
 # There are no OIDs for these modes...
 
@@ -805,6 +891,11 @@ aes 44			: AES-256-CFB		: aes-256-cfb
 			: AES-128-CFB8		: aes-128-cfb8
 			: AES-192-CFB8		: aes-192-cfb8
 			: AES-256-CFB8		: aes-256-cfb8
+			: AES-128-CTR		: aes-128-ctr
+			: AES-192-CTR		: aes-192-ctr
+			: AES-256-CTR		: aes-256-ctr
+			: AES-128-XTS		: aes-128-xts
+			: AES-256-XTS		: aes-256-xts
 			: DES-CFB1		: des-cfb1
 			: DES-CFB8		: des-cfb8
 			: DES-EDE3-CFB1		: des-ede3-cfb1
@@ -816,6 +907,11 @@ nist_hashalgs 1		: SHA256		: sha256
 nist_hashalgs 2		: SHA384		: sha384
 nist_hashalgs 3		: SHA512		: sha512
 nist_hashalgs 4		: SHA224		: sha224
+
+# OIDs for dsa-with-sha224 and dsa-with-sha256
+!Alias dsa_with_sha2 nistAlgorithms 3
+dsa_with_sha2 1		: dsa_with_SHA224
+dsa_with_sha2 2		: dsa_with_SHA256
 
 # Hold instruction CRL entry extension
 !Cname hold-instruction-code
@@ -1054,13 +1150,96 @@ rsadsi 1 1 6		: rsaOAEPEncryptionSET
 			: Oakley-EC2N-3		: ipsec3
 			: Oakley-EC2N-4		: ipsec4
 
+iso 0 10118 3 0 55	: whirlpool
+
+# GOST OIDs
+
+member-body 643 2 2	: cryptopro
+member-body 643 2 9	: cryptocom
+
+cryptopro 3		: id-GostR3411-94-with-GostR3410-2001 : GOST R 34.11-94 with GOST R 34.10-2001
+cryptopro 4		: id-GostR3411-94-with-GostR3410-94 : GOST R 34.11-94 with GOST R 34.10-94
+!Cname id-GostR3411-94
+cryptopro 9		: md_gost94		: GOST R 34.11-94
+cryptopro 10		: id-HMACGostR3411-94	: HMAC GOST 34.11-94
+!Cname id-GostR3410-2001
+cryptopro 19		: gost2001	: GOST R 34.10-2001
+!Cname id-GostR3410-94
+cryptopro 20		: gost94	: GOST R 34.10-94
+!Cname id-Gost28147-89
+cryptopro 21		: gost89 		: GOST 28147-89
+			: gost89-cnt
+!Cname id-Gost28147-89-MAC
+cryptopro 22		: gost-mac	: GOST 28147-89 MAC
+!Cname id-GostR3411-94-prf
+cryptopro 23		: prf-gostr3411-94	: GOST R 34.11-94 PRF
+cryptopro 98		: id-GostR3410-2001DH	: GOST R 34.10-2001 DH
+cryptopro 99		: id-GostR3410-94DH	: GOST R 34.10-94 DH
+
+cryptopro 14 1		: id-Gost28147-89-CryptoPro-KeyMeshing
+cryptopro 14 0		: id-Gost28147-89-None-KeyMeshing
+
+# GOST parameter set OIDs
+
+cryptopro 30 0		: id-GostR3411-94-TestParamSet
+cryptopro 30 1		: id-GostR3411-94-CryptoProParamSet
+
+cryptopro 31 0		: id-Gost28147-89-TestParamSet
+cryptopro 31 1		: id-Gost28147-89-CryptoPro-A-ParamSet
+cryptopro 31 2		: id-Gost28147-89-CryptoPro-B-ParamSet
+cryptopro 31 3		: id-Gost28147-89-CryptoPro-C-ParamSet
+cryptopro 31 4		: id-Gost28147-89-CryptoPro-D-ParamSet
+cryptopro 31 5		: id-Gost28147-89-CryptoPro-Oscar-1-1-ParamSet
+cryptopro 31 6		: id-Gost28147-89-CryptoPro-Oscar-1-0-ParamSet
+cryptopro 31 7		: id-Gost28147-89-CryptoPro-RIC-1-ParamSet
+
+cryptopro 32 0		: id-GostR3410-94-TestParamSet
+cryptopro 32 2		: id-GostR3410-94-CryptoPro-A-ParamSet
+cryptopro 32 3		: id-GostR3410-94-CryptoPro-B-ParamSet
+cryptopro 32 4		: id-GostR3410-94-CryptoPro-C-ParamSet
+cryptopro 32 5		: id-GostR3410-94-CryptoPro-D-ParamSet
+
+cryptopro 33 1		: id-GostR3410-94-CryptoPro-XchA-ParamSet
+cryptopro 33 2		: id-GostR3410-94-CryptoPro-XchB-ParamSet
+cryptopro 33 3		: id-GostR3410-94-CryptoPro-XchC-ParamSet
+
+cryptopro 35 0		: id-GostR3410-2001-TestParamSet
+cryptopro 35 1		: id-GostR3410-2001-CryptoPro-A-ParamSet
+cryptopro 35 2		: id-GostR3410-2001-CryptoPro-B-ParamSet
+cryptopro 35 3		: id-GostR3410-2001-CryptoPro-C-ParamSet
+
+cryptopro 36 0		: id-GostR3410-2001-CryptoPro-XchA-ParamSet
+cryptopro 36 1		: id-GostR3410-2001-CryptoPro-XchB-ParamSet
+
+id-GostR3410-94 1	: id-GostR3410-94-a
+id-GostR3410-94 2	: id-GostR3410-94-aBis
+id-GostR3410-94 3	: id-GostR3410-94-b
+id-GostR3410-94 4	: id-GostR3410-94-bBis
+
+# Cryptocom LTD GOST OIDs
+
+cryptocom 1 6 1		: id-Gost28147-89-cc	: GOST 28147-89 Cryptocom ParamSet
+!Cname id-GostR3410-94-cc
+cryptocom 1 5 3		: gost94cc	: GOST 34.10-94 Cryptocom
+!Cname id-GostR3410-2001-cc
+cryptocom 1 5 4		: gost2001cc	: GOST 34.10-2001 Cryptocom
+
+cryptocom 1 3 3		: id-GostR3411-94-with-GostR3410-94-cc : GOST R 34.11-94 with GOST R 34.10-94 Cryptocom
+cryptocom 1 3 4		: id-GostR3411-94-with-GostR3410-2001-cc : GOST R 34.11-94 with GOST R 34.10-2001 Cryptocom
+
+cryptocom 1 8 1		: id-GostR3410-2001-ParamSet-cc : GOST R 3410-2001 Parameter Set Cryptocom
 
 # Definitions for Camellia cipher - CBC MODE
+
 1 2 392 200011 61 1 1 1 2 : CAMELLIA-128-CBC		: camellia-128-cbc
 1 2 392 200011 61 1 1 1 3 : CAMELLIA-192-CBC		: camellia-192-cbc
 1 2 392 200011 61 1 1 1 4 : CAMELLIA-256-CBC		: camellia-256-cbc
+1 2 392 200011 61 1 1 3 2 : id-camellia128-wrap
+1 2 392 200011 61 1 1 3 3 : id-camellia192-wrap
+1 2 392 200011 61 1 1 3 4 : id-camellia256-wrap
 
 # Definitions for Camellia cipher - ECB, CFB, OFB MODE
+
 !Alias ntt-ds 0 3 4401 5
 !Alias camellia ntt-ds 3 1 9 
 
@@ -1091,7 +1270,6 @@ camellia 44		: CAMELLIA-256-CFB		: camellia-256-cfb
 			: CAMELLIA-192-CFB8		: camellia-192-cfb8
 			: CAMELLIA-256-CFB8		: camellia-256-cfb8
 
-
 # Definitions for SEED cipher - ECB, CBC, OFB mode
 
 member-body 410 200004  : KISA          : kisa
@@ -1101,3 +1279,72 @@ kisa 1 4                : SEED-CBC      : seed-cbc
 kisa 1 5                : SEED-CFB      : seed-cfb
 !Cname seed-ofb128
 kisa 1 6                : SEED-OFB      : seed-ofb
+
+# There is no OID that just denotes "HMAC" oddly enough...
+
+			: HMAC				: hmac
+# Nor CMAC either
+			: CMAC				: cmac
+
+# Synthetic composite ciphersuites
+			: RC4-HMAC-MD5			: rc4-hmac-md5
+			: AES-128-CBC-HMAC-SHA1		: aes-128-cbc-hmac-sha1
+			: AES-192-CBC-HMAC-SHA1		: aes-192-cbc-hmac-sha1
+			: AES-256-CBC-HMAC-SHA1		: aes-256-cbc-hmac-sha1
+			: AES-128-CBC-HMAC-SHA256	: aes-128-cbc-hmac-sha256
+			: AES-192-CBC-HMAC-SHA256	: aes-192-cbc-hmac-sha256
+			: AES-256-CBC-HMAC-SHA256	: aes-256-cbc-hmac-sha256
+
+ISO-US 10046 2 1	: dhpublicnumber		: X9.42 DH
+
+# RFC 5639 curve OIDs (see http://www.ietf.org/rfc/rfc5639.txt)
+# versionOne OBJECT IDENTIFIER ::= {
+# iso(1) identifified-organization(3) teletrust(36) algorithm(3)
+# signature-algorithm(3) ecSign(2) ecStdCurvesAndGeneration(8)
+# ellipticCurve(1) 1 }
+1 3 36 3 3 2 8 1 1 1 : brainpoolP160r1
+1 3 36 3 3 2 8 1 1 2 : brainpoolP160t1
+1 3 36 3 3 2 8 1 1 3 : brainpoolP192r1
+1 3 36 3 3 2 8 1 1 4 : brainpoolP192t1
+1 3 36 3 3 2 8 1 1 5 : brainpoolP224r1
+1 3 36 3 3 2 8 1 1 6 : brainpoolP224t1
+1 3 36 3 3 2 8 1 1 7 : brainpoolP256r1
+1 3 36 3 3 2 8 1 1 8 : brainpoolP256t1
+1 3 36 3 3 2 8 1 1 9 : brainpoolP320r1
+1 3 36 3 3 2 8 1 1 10 : brainpoolP320t1
+1 3 36 3 3 2 8 1 1 11 : brainpoolP384r1
+1 3 36 3 3 2 8 1 1 12 : brainpoolP384t1
+1 3 36 3 3 2 8 1 1 13 : brainpoolP512r1
+1 3 36 3 3 2 8 1 1 14 : brainpoolP512t1            
+
+# ECDH schemes from RFC5753
+!Alias x9-63-scheme 1 3 133 16 840 63 0
+!Alias secg-scheme certicom-arc 1
+
+x9-63-scheme 2   : dhSinglePass-stdDH-sha1kdf-scheme
+secg-scheme 11 0 : dhSinglePass-stdDH-sha224kdf-scheme
+secg-scheme 11 1 : dhSinglePass-stdDH-sha256kdf-scheme
+secg-scheme 11 2 : dhSinglePass-stdDH-sha384kdf-scheme
+secg-scheme 11 3 : dhSinglePass-stdDH-sha512kdf-scheme
+
+x9-63-scheme 3   : dhSinglePass-cofactorDH-sha1kdf-scheme
+secg-scheme 14 0 : dhSinglePass-cofactorDH-sha224kdf-scheme
+secg-scheme 14 1 : dhSinglePass-cofactorDH-sha256kdf-scheme
+secg-scheme 14 2 : dhSinglePass-cofactorDH-sha384kdf-scheme
+secg-scheme 14 3 : dhSinglePass-cofactorDH-sha512kdf-scheme
+# NIDs for use with lookup tables.
+                 : dh-std-kdf
+                 : dh-cofactor-kdf
+
+# RFC 6962 Extension OIDs (see http://www.ietf.org/rfc/rfc6962.txt)
+1 3 6 1 4 1 11129 2 4 2	: ct_precert_scts		: CT Precertificate SCTs
+1 3 6 1 4 1 11129 2 4 3	: ct_precert_poison		: CT Precertificate Poison
+1 3 6 1 4 1 11129 2 4 4	: ct_precert_signer		: CT Precertificate Signer
+1 3 6 1 4 1 11129 2 4 5	: ct_cert_scts			: CT Certificate SCTs
+
+# CABForum EV SSL Certificate Guidelines
+# (see https://cabforum.org/extended-validation/)
+# OIDs for Subject Jurisdiction of Incorporation or Registration
+1 3 6 1 4 1 311 60 2 1 1	: jurisdictionL		: jurisdictionLocalityName
+1 3 6 1 4 1 311 60 2 1 2	: jurisdictionST	: jurisdictionStateOrProvinceName
+1 3 6 1 4 1 311 60 2 1 3	: jurisdictionC		: jurisdictionCountryName

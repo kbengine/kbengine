@@ -26,7 +26,8 @@ Example: Given the function :func:`myfunc`::
    def myfunc(alist):
        return len(alist)
 
-the following command can be used to get the disassembly of :func:`myfunc`::
+the following command can be used to display the disassembly of
+:func:`myfunc`::
 
    >>> dis.dis(myfunc)
      2           0 LOAD_GLOBAL              0 (len)
@@ -36,8 +37,77 @@ the following command can be used to get the disassembly of :func:`myfunc`::
 
 (The "2" is a line number).
 
-The :mod:`dis` module defines the following functions and constants:
+Bytecode analysis
+-----------------
 
+.. versionadded:: 3.4
+
+The bytecode analysis API allows pieces of Python code to be wrapped in a
+:class:`Bytecode` object that provides easy access to details of the
+compiled code.
+
+.. class:: Bytecode(x, *, first_line=None, current_offset=None)
+
+   Analyse the bytecode corresponding to a function, method, string of
+   source code, or a code object (as returned by :func:`compile`).
+
+   This is a convenience wrapper around many of the functions listed below,
+   most notably :func:`get_instructions`, as iterating over a
+   :class:`Bytecode` instance yields the bytecode operations as
+   :class:`Instruction` instances.
+
+   If *first_line* is not None, it indicates the line number that should
+   be reported for the first source line in the disassembled code.
+   Otherwise, the source line information (if any) is taken directly from
+   the disassembled code object.
+
+   If *current_offset* is not None, it refers to an instruction offset
+   in the disassembled code. Setting this means :meth:`dis` will display
+   a "current instruction" marker against the specified opcode.
+
+   .. classmethod:: from_traceback(tb)
+
+      Construct a :class:`Bytecode` instance from the given traceback,
+      setting *current_offset* to the instruction responsible for the
+      exception.
+
+   .. data:: codeobj
+
+      The compiled code object.
+
+   .. data:: first_line
+
+      The first source line of the code object (if available)
+
+   .. method:: dis()
+
+      Return a formatted view of the bytecode operations (the same as
+      printed by :func:`dis`, but returned as a multi-line string).
+
+   .. method:: info()
+
+      Return a formatted multi-line string with detailed information about the
+      code object, like :func:`code_info`.
+
+Example::
+
+    >>> bytecode = dis.Bytecode(myfunc)
+    >>> for instr in bytecode:
+    ...     print(instr.opname)
+    ...
+    LOAD_GLOBAL
+    LOAD_FAST
+    CALL_FUNCTION
+    RETURN_VALUE
+
+
+Analysis functions
+------------------
+
+The :mod:`dis` module also defines the following analysis functions that
+convert the input directly to the desired output. They can be useful if
+only a single operation is being performed, so the intermediate analysis
+object isn't useful:
 
 .. function:: code_info(x)
 
@@ -51,17 +121,22 @@ The :mod:`dis` module defines the following functions and constants:
    .. versionadded:: 3.2
 
 
-.. function:: show_code(x)
+.. function:: show_code(x, *, file=None)
 
    Print detailed code object information for the supplied function, method,
-   source code string or code object to stdout.
+   source code string or code object to *file* (or ``sys.stdout`` if *file*
+   is not specified).
 
-   This is a convenient shorthand for ``print(code_info(x))``, intended for
-   interactive exploration at the interpreter prompt.
+   This is a convenient shorthand for ``print(code_info(x), file=file)``,
+   intended for interactive exploration at the interpreter prompt.
 
    .. versionadded:: 3.2
 
-.. function:: dis(x=None)
+   .. versionchanged:: 3.4
+      Added ``file`` parameter
+
+
+.. function:: dis(x=None, *, file=None)
 
    Disassemble the *x* object.  *x* can denote either a module, a class, a
    method, a function, a code object, a string of source code or a byte sequence
@@ -72,16 +147,28 @@ The :mod:`dis` module defines the following functions and constants:
    disassembled.  If no object is provided, this function disassembles the last
    traceback.
 
+   The disassembly is written as text to the supplied ``file`` argument if
+   provided and to ``sys.stdout`` otherwise.
 
-.. function:: distb(tb=None)
+   .. versionchanged:: 3.4
+      Added ``file`` parameter
+
+
+.. function:: distb(tb=None, *, file=None)
 
    Disassemble the top-of-stack function of a traceback, using the last
    traceback if none was passed.  The instruction causing the exception is
    indicated.
 
+   The disassembly is written as text to the supplied ``file`` argument if
+   provided and to ``sys.stdout`` otherwise.
 
-.. function:: disassemble(code, lasti=-1)
-              disco(code, lasti=-1)
+   .. versionchanged:: 3.4
+      Added ``file`` parameter
+
+
+.. function:: disassemble(code, lasti=-1, *, file=None)
+              disco(code, lasti=-1, *, file=None)
 
    Disassemble a code object, indicating the last instruction if *lasti* was
    provided.  The output is divided in the following columns:
@@ -97,6 +184,28 @@ The :mod:`dis` module defines the following functions and constants:
    The parameter interpretation recognizes local and global variable names,
    constant values, branch targets, and compare operators.
 
+   The disassembly is written as text to the supplied ``file`` argument if
+   provided and to ``sys.stdout`` otherwise.
+
+   .. versionchanged:: 3.4
+      Added ``file`` parameter
+
+
+.. function:: get_instructions(x, *, first_line=None)
+
+   Return an iterator over the instructions in the supplied function, method,
+   source code string or code object.
+
+   The iterator generates a series of :class:`Instruction` named tuples
+   giving the details of each operation in the supplied code.
+
+   If *first_line* is not None, it indicates the line number that should
+   be reported for the first source line in the disassembled code.
+   Otherwise, the source line information (if any) is taken directly from
+   the disassembled code object.
+
+   .. versionadded:: 3.4
+
 
 .. function:: findlinestarts(code)
 
@@ -111,70 +220,71 @@ The :mod:`dis` module defines the following functions and constants:
    return a list of these offsets.
 
 
-.. data:: opname
+.. function:: stack_effect(opcode, [oparg])
 
-   Sequence of operation names, indexable using the bytecode.
+   Compute the stack effect of *opcode* with argument *oparg*.
 
-
-.. data:: opmap
-
-   Dictionary mapping operation names to bytecodes.
-
-
-.. data:: cmp_op
-
-   Sequence of all compare operation names.
-
-
-.. data:: hasconst
-
-   Sequence of bytecodes that have a constant parameter.
-
-
-.. data:: hasfree
-
-   Sequence of bytecodes that access a free variable.
-
-
-.. data:: hasname
-
-   Sequence of bytecodes that access an attribute by name.
-
-
-.. data:: hasjrel
-
-   Sequence of bytecodes that have a relative jump target.
-
-
-.. data:: hasjabs
-
-   Sequence of bytecodes that have an absolute jump target.
-
-
-.. data:: haslocal
-
-   Sequence of bytecodes that access a local variable.
-
-
-.. data:: hascompare
-
-   Sequence of bytecodes of Boolean operations.
-
+   .. versionadded:: 3.4
 
 .. _bytecodes:
 
 Python Bytecode Instructions
 ----------------------------
 
+The :func:`get_instructions` function and :class:`Bytecode` class provide
+details of bytecode instructions as :class:`Instruction` instances:
+
+.. class:: Instruction
+
+   Details for a bytecode operation
+
+   .. data:: opcode
+
+      numeric code for operation, corresponding to the opcode values listed
+      below and the bytecode values in the :ref:`opcode_collections`.
+
+
+   .. data:: opname
+
+      human readable name for operation
+
+
+   .. data:: arg
+
+      numeric argument to operation (if any), otherwise None
+
+
+   .. data:: argval
+
+      resolved arg value (if known), otherwise same as arg
+
+
+   .. data:: argrepr
+
+      human readable description of operation argument
+
+
+   .. data:: offset
+
+      start index of operation within bytecode sequence
+
+
+   .. data:: starts_line
+
+      line started by this opcode (if any), otherwise None
+
+
+   .. data:: is_jump_target
+
+      ``True`` if other code jumps to here, otherwise ``False``
+
+   .. versionadded:: 3.4
+
+
 The Python compiler currently generates the following bytecode instructions.
 
 
 **General instructions**
-
-.. opcode:: STOP_CODE
-
-   Indicates end-of-code to the compiler, not used by the interpreter.
-
 
 .. opcode:: NOP
 
@@ -436,6 +546,13 @@ the stack so that it is available for further iterations of the loop.
    Pops ``TOS`` and yields it from a :term:`generator`.
 
 
+.. opcode:: YIELD_FROM
+
+   Pops ``TOS`` and delegates to it as a subiterator from a :term:`generator`.
+
+   .. versionadded:: 3.3
+
+
 .. opcode:: IMPORT_STAR
 
    Loads all symbols not starting with ``'_'`` directly from the module TOS to the
@@ -502,12 +619,6 @@ the stack so that it is available for further iterations of the loop.
    (But non-local gotos will still be resumed.)
 
    .. XXX explain the WHY stuff!
-
-
-.. opcode:: STORE_LOCALS
-
-   Pops TOS from the stack and stores it as the current frame's ``f_locals``.
-   This is used in class construction.
 
 
 All of the following opcodes expect arguments.  An argument is two bytes, with
@@ -720,6 +831,13 @@ the more significant byte last.
    Pushes a reference to the object the cell contains on the stack.
 
 
+.. opcode:: LOAD_CLASSDEREF (i)
+
+   Much like :opcode:`LOAD_DEREF` but first checks the locals dictionary before
+   consulting the cell.  This is used for loading free variables in class
+   bodies.
+
+
 .. opcode:: STORE_DEREF (i)
 
    Stores TOS into the cell contained in slot *i* of the cell and free variable
@@ -752,17 +870,26 @@ the more significant byte last.
 
 .. opcode:: MAKE_FUNCTION (argc)
 
-   Pushes a new function object on the stack.  TOS is the code associated with the
-   function.  The function object is defined to have *argc* default parameters,
-   which are found below TOS.
+   Pushes a new function object on the stack.  From bottom to top, the consumed
+   stack must consist of
+
+   * ``argc & 0xFF`` default argument objects in positional order
+   * ``(argc >> 8) & 0xFF`` pairs of name and default argument, with the name
+     just below the object on the stack, for keyword-only parameters
+   * ``(argc >> 16) & 0x7FFF`` parameter annotation objects
+   * a tuple listing the parameter names for the annotations (only if there are
+     ony annotation objects)
+   * the code associated with the function (at TOS1)
+   * the :term:`qualified name` of the function (at TOS)
 
 
 .. opcode:: MAKE_CLOSURE (argc)
 
    Creates a new function object, sets its *__closure__* slot, and pushes it on
-   the stack.  TOS is the code associated with the function, TOS1 the tuple
-   containing cells for the closure's free variables.  The function also has
-   *argc* default parameters, which are found below the cells.
+   the stack.  TOS is the :term:`qualified name` of the function, TOS1 is the
+   code associated with the function, and TOS2 is the tuple containing cells for
+   the closure's free variables.  The function also has *argc* default parameters,
+   which are found below the cells.
 
 
 .. opcode:: BUILD_SLICE (argc)
@@ -809,3 +936,62 @@ the more significant byte last.
    which don't take arguments ``< HAVE_ARGUMENT`` and those which do ``>=
    HAVE_ARGUMENT``.
 
+.. _opcode_collections:
+
+Opcode collections
+------------------
+
+These collections are provided for automatic introspection of bytecode
+instructions:
+
+.. data:: opname
+
+   Sequence of operation names, indexable using the bytecode.
+
+
+.. data:: opmap
+
+   Dictionary mapping operation names to bytecodes.
+
+
+.. data:: cmp_op
+
+   Sequence of all compare operation names.
+
+
+.. data:: hasconst
+
+   Sequence of bytecodes that have a constant parameter.
+
+
+.. data:: hasfree
+
+   Sequence of bytecodes that access a free variable (note that 'free' in
+   this context refers to names in the current scope that are referenced by
+   inner scopes or names in outer scopes that are referenced from this scope.
+   It does *not* include references to global or builtin scopes).
+
+
+.. data:: hasname
+
+   Sequence of bytecodes that access an attribute by name.
+
+
+.. data:: hasjrel
+
+   Sequence of bytecodes that have a relative jump target.
+
+
+.. data:: hasjabs
+
+   Sequence of bytecodes that have an absolute jump target.
+
+
+.. data:: haslocal
+
+   Sequence of bytecodes that access a local variable.
+
+
+.. data:: hascompare
+
+   Sequence of bytecodes of Boolean operations.

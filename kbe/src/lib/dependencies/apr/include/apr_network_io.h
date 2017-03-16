@@ -405,6 +405,8 @@ APR_DECLARE(apr_status_t) apr_sockaddr_info_get(apr_sockaddr_t **sa,
  * @param hostname The hostname.
  * @param sa The apr_sockaddr_t.
  * @param flags Special processing flags.
+ * @remark Results can vary significantly between platforms
+ * when processing wildcard socket addresses.
  */
 APR_DECLARE(apr_status_t) apr_getnameinfo(char **hostname,
                                           apr_sockaddr_t *sa,

@@ -6,15 +6,17 @@ SRCS =						\
 	create_and_login_handler		\
 	profile					\
 	main					\
-	pybots
+	pybots					\
+	tcp_packet_receiver_ex			\
+	tcp_packet_sender_ex
 
 ASMS =
 
 MY_LIBS =		\
 	client_lib	\
 	entitydef	\
-	pyscript	\
 	server		\
+	pyscript	\
 	network		\
 	thread
 	
@@ -22,7 +24,7 @@ MY_LIBS =		\
 
 BUILD_TIME_FILE = main
 USE_PYTHON = 1
-USE_G3DMATH=1
+USE_G3DMATH = 1
 USE_OPENSSL = 1
 
 ifndef NO_USE_LOG4CXX

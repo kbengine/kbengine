@@ -1,3 +1,6 @@
+import contextlib
+import sys
+import os
 import unittest
 from test import support
 import time
@@ -61,7 +64,7 @@ class ResourceTest(unittest.TestCase):
                         for i in range(5):
                             time.sleep(.1)
                             f.flush()
-                    except IOError:
+                    except OSError:
                         if not limit_set:
                             raise
                     if limit_set:
@@ -123,6 +126,38 @@ class ResourceTest(unittest.TestCase):
                     raise IndexError
 
             resource.setrlimit(resource.RLIMIT_CPU, BadSequence())
+
+    def test_pagesize(self):
+        pagesize = resource.getpagesize()
+        self.assertIsInstance(pagesize, int)
+        self.assertGreaterEqual(pagesize, 0)
+
+    @unittest.skipUnless(sys.platform == 'linux', 'test requires Linux')
+    def test_linux_constants(self):
+        for attr in ['MSGQUEUE', 'NICE', 'RTPRIO', 'RTTIME', 'SIGPENDING']:
+            with contextlib.suppress(AttributeError):
+                self.assertIsInstance(getattr(resource, 'RLIMIT_' + attr), int)
+
+    @support.requires_freebsd_version(9)
+    def test_freebsd_contants(self):
+        for attr in ['SWAP', 'SBSIZE', 'NPTS']:
+            with contextlib.suppress(AttributeError):
+                self.assertIsInstance(getattr(resource, 'RLIMIT_' + attr), int)
+
+    @unittest.skipUnless(hasattr(resource, 'prlimit'), 'no prlimit')
+    @support.requires_linux_version(2, 6, 36)
+    def test_prlimit(self):
+        self.assertRaises(TypeError, resource.prlimit)
+        if os.geteuid() != 0:
+            self.assertRaises(PermissionError, resource.prlimit,
+                              1, resource.RLIMIT_AS)
+        self.assertRaises(ProcessLookupError, resource.prlimit,
+                          -1, resource.RLIMIT_AS)
+        limit = resource.getrlimit(resource.RLIMIT_AS)
+        self.assertEqual(resource.prlimit(0, resource.RLIMIT_AS), limit)
+        self.assertEqual(resource.prlimit(0, resource.RLIMIT_AS, limit),
+                         limit)
+
 
 def test_main(verbose=None):
     support.run_unittest(ResourceTest)

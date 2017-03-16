@@ -79,7 +79,7 @@ newdbmobject(char *file, int flags, int mode)
 /* Methods */
 
 static void
-dbm_dealloc(register dbmobject *dp)
+dbm_dealloc(dbmobject *dp)
 {
     if (dp->di_dbm)
         gdbm_close(dp->di_dbm);
@@ -112,7 +112,7 @@ dbm_length(dbmobject *dp)
 }
 
 static PyObject *
-dbm_subscript(dbmobject *dp, register PyObject *key)
+dbm_subscript(dbmobject *dp, PyObject *key)
 {
     PyObject *v;
     datum drec, krec;
@@ -232,7 +232,7 @@ PyDoc_STRVAR(dbm_close__doc__,
 Closes the database.");
 
 static PyObject *
-dbm_close(register dbmobject *dp, PyObject *unused)
+dbm_close(dbmobject *dp, PyObject *unused)
 {
     if (dp->di_dbm)
         gdbm_close(dp->di_dbm);
@@ -247,9 +247,9 @@ PyDoc_STRVAR(dbm_keys__doc__,
 Get a list of all keys in the database.");
 
 static PyObject *
-dbm_keys(register dbmobject *dp, PyObject *unused)
+dbm_keys(dbmobject *dp, PyObject *unused)
 {
-    register PyObject *v, *item;
+    PyObject *v, *item;
     datum key, nextkey;
     int err;
 
@@ -290,20 +290,29 @@ dbm_contains(PyObject *self, PyObject *arg)
 {
     dbmobject *dp = (dbmobject *)self;
     datum key;
+    Py_ssize_t size;
 
     if ((dp)->di_dbm == NULL) {
         PyErr_SetString(DbmError,
                         "GDBM object has already been closed");
         return -1;
     }
-    if (!PyBytes_Check(arg)) {
+    if (PyUnicode_Check(arg)) {
+        key.dptr = PyUnicode_AsUTF8AndSize(arg, &size);
+        key.dsize = size;
+        if (key.dptr == NULL)
+            return -1;
+    }
+    else if (!PyBytes_Check(arg)) {
         PyErr_Format(PyExc_TypeError,
-                     "gdbm key must be bytes, not %.100s",
+                     "gdbm key must be bytes or string, not %.100s",
                      arg->ob_type->tp_name);
         return -1;
     }
-    key.dptr = PyBytes_AS_STRING(arg);
-    key.dsize = PyBytes_GET_SIZE(arg);
+    else {
+        key.dptr = PyBytes_AS_STRING(arg);
+        key.dsize = PyBytes_GET_SIZE(arg);
+    }
     return gdbm_exists(dp->di_dbm, key);
 }
 
@@ -328,9 +337,9 @@ hash values, and won't be sorted by the key values. This method\n\
 returns the starting key.");
 
 static PyObject *
-dbm_firstkey(register dbmobject *dp, PyObject *unused)
+dbm_firstkey(dbmobject *dp, PyObject *unused)
 {
-    register PyObject *v;
+    PyObject *v;
     datum key;
 
     check_dbmobject_open(dp);
@@ -358,9 +367,9 @@ to create a list in memory that contains them all:\n\
           k = db.nextkey(k)");
 
 static PyObject *
-dbm_nextkey(register dbmobject *dp, PyObject *args)
+dbm_nextkey(dbmobject *dp, PyObject *args)
 {
-    register PyObject *v;
+    PyObject *v;
     datum key, nextkey;
 
     if (!PyArg_ParseTuple(args, "s#:nextkey", &key.dptr, &key.dsize))
@@ -387,7 +396,7 @@ by using this reorganization; otherwise, deleted file space will be\n\
 kept and reused as new (key,value) pairs are added.");
 
 static PyObject *
-dbm_reorganize(register dbmobject *dp, PyObject *unused)
+dbm_reorganize(dbmobject *dp, PyObject *unused)
 {
     check_dbmobject_open(dp);
     errno = 0;
@@ -408,12 +417,26 @@ When the database has been opened in fast mode, this method forces\n\
 any unwritten data to be written to the disk.");
 
 static PyObject *
-dbm_sync(register dbmobject *dp, PyObject *unused)
+dbm_sync(dbmobject *dp, PyObject *unused)
 {
     check_dbmobject_open(dp);
     gdbm_sync(dp->di_dbm);
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+static PyObject *
+dbm__enter__(PyObject *self, PyObject *args)
+{
+    Py_INCREF(self);
+    return self;
+}
+
+static PyObject *
+dbm__exit__(PyObject *self, PyObject *args)
+{
+    _Py_IDENTIFIER(close);
+    return _PyObject_CallMethodId(self, &PyId_close, NULL);
 }
 
 static PyMethodDef dbm_methods[] = {
@@ -425,6 +448,8 @@ static PyMethodDef dbm_methods[] = {
     {"sync",      (PyCFunction)dbm_sync,    METH_NOARGS, dbm_sync__doc__},
     {"get",       (PyCFunction)dbm_get,     METH_VARARGS, dbm_get__doc__},
     {"setdefault",(PyCFunction)dbm_setdefault,METH_VARARGS, dbm_setdefault__doc__},
+    {"__enter__", dbm__enter__, METH_NOARGS, NULL},
+    {"__exit__",  dbm__exit__, METH_VARARGS, NULL},
     {NULL,              NULL}           /* sentinel */
 };
 

@@ -6,7 +6,20 @@ operate on bytecodes (e.g. peephole optimizers).
 
 __all__ = ["cmp_op", "hasconst", "hasname", "hasjrel", "hasjabs",
            "haslocal", "hascompare", "hasfree", "opname", "opmap",
-           "HAVE_ARGUMENT", "EXTENDED_ARG"]
+           "HAVE_ARGUMENT", "EXTENDED_ARG", "hasnargs"]
+
+# It's a chicken-and-egg I'm afraid:
+# We're imported before _opcode's made.
+# With exception unheeded
+# (stack_effect is not needed)
+# Both our chickens and eggs are allayed.
+#     --Larry Hastings, 2013/11/23
+
+try:
+    from _opcode import stack_effect
+    __all__.append('stack_effect')
+except ImportError:
+    pass
 
 cmp_op = ('<', '<=', '==', '!=', '>', '>=', 'in', 'not in', 'is',
         'is not', 'exception match', 'BAD')
@@ -18,6 +31,7 @@ hasjabs = []
 haslocal = []
 hascompare = []
 hasfree = []
+hasnargs = []
 
 opmap = {}
 opname = [''] * 256
@@ -43,7 +57,6 @@ def jabs_op(name, op):
 # Instruction opcodes for compiled code
 # Blank lines correspond to available opcodes
 
-def_op('STOP_CODE', 0)
 def_op('POP_TOP', 1)
 def_op('ROT_TWO', 2)
 def_op('ROT_THREE', 3)
@@ -84,10 +97,10 @@ def_op('BINARY_XOR', 65)
 def_op('BINARY_OR', 66)
 def_op('INPLACE_POWER', 67)
 def_op('GET_ITER', 68)
-def_op('STORE_LOCALS', 69)
 
 def_op('PRINT_EXPR', 70)
 def_op('LOAD_BUILD_CLASS', 71)
+def_op('YIELD_FROM', 72)
 
 def_op('INPLACE_LSHIFT', 75)
 def_op('INPLACE_RSHIFT', 76)
@@ -152,6 +165,7 @@ haslocal.append(126)
 
 def_op('RAISE_VARARGS', 130)    # Number of raise arguments (1, 2, or 3)
 def_op('CALL_FUNCTION', 131)    # #args + (#kwargs << 8)
+hasnargs.append(131)
 def_op('MAKE_FUNCTION', 132)    # Number of args with default values
 def_op('BUILD_SLICE', 133)      # Number of items
 def_op('MAKE_CLOSURE', 134)
@@ -165,14 +179,20 @@ def_op('DELETE_DEREF', 138)
 hasfree.append(138)
 
 def_op('CALL_FUNCTION_VAR', 140)     # #args + (#kwargs << 8)
+hasnargs.append(140)
 def_op('CALL_FUNCTION_KW', 141)      # #args + (#kwargs << 8)
+hasnargs.append(141)
 def_op('CALL_FUNCTION_VAR_KW', 142)  # #args + (#kwargs << 8)
+hasnargs.append(142)
 
 jrel_op('SETUP_WITH', 143)
 
 def_op('LIST_APPEND', 145)
 def_op('SET_ADD', 146)
 def_op('MAP_ADD', 147)
+
+def_op('LOAD_CLASSDEREF', 148)
+hasfree.append(148)
 
 def_op('EXTENDED_ARG', 144)
 EXTENDED_ARG = 144

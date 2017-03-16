@@ -108,8 +108,8 @@ import tkinter as TK
 import types
 import math
 import time
-import os
 import inspect
+import sys
 
 from os.path import isfile, split, join
 from copy import deepcopy
@@ -140,7 +140,7 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
 _tg_utilities = ['write_docstringdict', 'done']
 
 __all__ = (_tg_classes + _tg_screen_functions + _tg_turtle_functions +
-           _tg_utilities) # + _math_functions)
+           _tg_utilities + ['Terminator']) # + _math_functions)
 
 _alias_list = ['addshape', 'backward', 'bk', 'fd', 'ht', 'lt', 'pd', 'pos',
                'pu', 'rt', 'seth', 'setpos', 'setposition', 'st',
@@ -993,6 +993,13 @@ class TurtleScreen(TurtleScreenBase):
         self._colormode = _CFG["colormode"]
         self._keys = []
         self.clear()
+        if sys.platform == 'darwin':
+            # Force Turtle window to the front on OS X. This is needed because
+            # the Turtle window will show behind the Terminal window when you
+            # start the demo from the command line.
+            rootwindow = cv.winfo_toplevel()
+            rootwindow.call('wm', 'attributes', '.', '-topmost', '1')
+            rootwindow.call('wm', 'attributes', '.', '-topmost', '0')
 
     def clear(self):
         """Delete all drawings and all turtles from the TurtleScreen.
@@ -1279,7 +1286,7 @@ class TurtleScreen(TurtleScreenBase):
         self._delayvalue = int(delay)
 
     def _incrementudc(self):
-        """Increment upadate counter."""
+        """Increment update counter."""
         if not TurtleScreen._RUNNING:
             TurtleScreen._RUNNNING = True
             raise Terminator
@@ -2528,7 +2535,7 @@ class RawTurtle(TPen, TNavigator):
                 self.screen = TurtleScreen(canvas)
                 RawTurtle.screens.append(self.screen)
         else:
-            raise TurtleGraphicsError("bad cavas argument %s" % canvas)
+            raise TurtleGraphicsError("bad canvas argument %s" % canvas)
 
         screen = self.screen
         TNavigator.__init__(self, screen.mode())
@@ -2588,7 +2595,7 @@ class RawTurtle(TPen, TNavigator):
         Example (for a Turtle instance named turtle):
         >>> turtle.setundobuffer(42)
         """
-        if size is None:
+        if size is None or size <= 0:
             self.undobuffer = None
         else:
             self.undobuffer = Tbuffer(size)
@@ -2773,7 +2780,7 @@ class RawTurtle(TPen, TNavigator):
     def shapesize(self, stretch_wid=None, stretch_len=None, outline=None):
         """Set/return turtle's stretchfactors/outline. Set resizemode to "user".
 
-        Optinonal arguments:
+        Optional arguments:
            stretch_wid : positive number
            stretch_len : positive number
            outline  : positive number
@@ -2939,7 +2946,7 @@ class RawTurtle(TPen, TNavigator):
         self._stretchfactor = a11, a22
         self._shearfactor = a12/a22
         self._tilt = alfa
-        self._update()
+        self.pen(resizemode="user")
 
 
     def _polytrafo(self, poly):
@@ -3136,7 +3143,7 @@ class RawTurtle(TPen, TNavigator):
 
     def _goto(self, end):
         """Move the pen to the point end, thereby drawing a line
-        if pen is down. All other methodes for turtle movement depend
+        if pen is down. All other methods for turtle movement depend
         on this one.
         """
         ## Version with undo-stuff
@@ -3844,18 +3851,18 @@ def write_docstringdict(filename="turtle_docstringdict"):
         key = "Turtle."+methodname
         docsdict[key] = eval(key).__doc__
 
-    f = open("%s.py" % filename,"w")
-    keys = sorted([x for x in docsdict.keys()
-                        if x.split('.')[1] not in _alias_list])
-    f.write('docsdict = {\n\n')
-    for key in keys[:-1]:
+    with open("%s.py" % filename,"w") as f:
+        keys = sorted([x for x in docsdict.keys()
+                            if x.split('.')[1] not in _alias_list])
+        f.write('docsdict = {\n\n')
+        for key in keys[:-1]:
+            f.write('%s :\n' % repr(key))
+            f.write('        """%s\n""",\n\n' % docsdict[key])
+        key = keys[-1]
         f.write('%s :\n' % repr(key))
-        f.write('        """%s\n""",\n\n' % docsdict[key])
-    key = keys[-1]
-    f.write('%s :\n' % repr(key))
-    f.write('        """%s\n"""\n\n' % docsdict[key])
-    f.write("}\n")
-    f.close()
+        f.write('        """%s\n"""\n\n' % docsdict[key])
+        f.write("}\n")
+        f.close()
 
 def read_docstrings(lang):
     """Read in docstrings from lang-specific docstring dictionary.

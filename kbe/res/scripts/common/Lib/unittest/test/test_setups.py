@@ -494,14 +494,13 @@ class TestSetups(unittest.TestCase):
         Test.__module__ = 'Module'
         sys.modules['Module'] = Module
 
-        _suite = unittest.defaultTestLoader.loadTestsFromTestCase(Test)
-        suite = unittest.TestSuite()
-        suite.addTest(_suite)
-
         messages = ('setUpModule', 'tearDownModule', 'setUpClass', 'tearDownClass', 'test_something')
         for phase, msg in enumerate(messages):
+            _suite = unittest.defaultTestLoader.loadTestsFromTestCase(Test)
+            suite = unittest.TestSuite([_suite])
             with self.assertRaisesRegex(Exception, msg):
                 suite.debug()
+
 
 if __name__ == '__main__':
     unittest.main()

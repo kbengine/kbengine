@@ -1,108 +1,91 @@
-"""A pure Python implementation of import.
-
-References on import:
-
-    * Language reference
-          http://docs.python.org/ref/import.html
-    * __import__ function
-          http://docs.python.org/lib/built-in-funcs.html
-    * Packages
-          http://www.python.org/doc/essays/packages.html
-    * PEP 235: Import on Case-Insensitive Platforms
-          http://www.python.org/dev/peps/pep-0235
-    * PEP 275: Import Modules from Zip Archives
-          http://www.python.org/dev/peps/pep-0273
-    * PEP 302: New Import Hooks
-          http://www.python.org/dev/peps/pep-0302/
-    * PEP 328: Imports: Multi-line and Absolute/Relative
-          http://www.python.org/dev/peps/pep-0328
-
-"""
-__all__ = ['__import__', 'import_module']
-
-from . import _bootstrap
-
-import os
-import re
-import tokenize
+"""A pure Python implementation of import."""
+__all__ = ['__import__', 'import_module', 'invalidate_caches', 'reload']
 
 # Bootstrap help #####################################################
 
-def _case_ok(directory, check):
-    """Check if the directory contains something matching 'check'.
+# Until bootstrapping is complete, DO NOT import any modules that attempt
+# to import importlib._bootstrap (directly or indirectly). Since this
+# partially initialised package would be present in sys.modules, those
+# modules would get an uninitialised copy of the source version, instead
+# of a fully initialised version (either the frozen one or the one
+# initialised below if the frozen one is not available).
+import _imp  # Just the builtin component, NOT the full Python module
+import sys
 
-    No check is done if the file/directory exists or not.
-
-    """
-    if 'PYTHONCASEOK' in os.environ:
-        return True
-    elif check in os.listdir(directory if directory else os.getcwd()):
-        return True
-    return False
-
-
-def _w_long(x):
-    """Convert a 32-bit integer to little-endian.
-
-    XXX Temporary until marshal's long functions are exposed.
-
-    """
-    x = int(x)
-    int_bytes = []
-    int_bytes.append(x & 0xFF)
-    int_bytes.append((x >> 8) & 0xFF)
-    int_bytes.append((x >> 16) & 0xFF)
-    int_bytes.append((x >> 24) & 0xFF)
-    return bytearray(int_bytes)
-
-
-def _r_long(int_bytes):
-    """Convert 4 bytes in little-endian to an integer.
-
-    XXX Temporary until marshal's long function are exposed.
-
-    """
-    x = int_bytes[0]
-    x |= int_bytes[1] << 8
-    x |= int_bytes[2] << 16
-    x |= int_bytes[3] << 24
-    return x
-
-
-# Required built-in modules.
 try:
-    import posix as _os
+    import _frozen_importlib as _bootstrap
 except ImportError:
+    from . import _bootstrap
+    _bootstrap._setup(sys, _imp)
+else:
+    # importlib._bootstrap is the built-in import, ensure we don't create
+    # a second copy of the module.
+    _bootstrap.__name__ = 'importlib._bootstrap'
+    _bootstrap.__package__ = 'importlib'
     try:
-        import nt as _os
-    except ImportError:
-        try:
-            import os2 as _os
-        except ImportError:
-            raise ImportError('posix, nt, or os2 module required for importlib')
-_bootstrap._os = _os
-import imp, sys, marshal, errno, _io
-_bootstrap.imp = imp
-_bootstrap.sys = sys
-_bootstrap.marshal = marshal
-_bootstrap.errno = errno
-_bootstrap._io = _io
-import _warnings
-_bootstrap._warnings = _warnings
+        _bootstrap.__file__ = __file__.replace('__init__.py', '_bootstrap.py')
+    except NameError:
+        # __file__ is not guaranteed to be defined, e.g. if this code gets
+        # frozen by a tool like cx_Freeze.
+        pass
+    sys.modules['importlib._bootstrap'] = _bootstrap
 
+# To simplify imports in test code
+_w_long = _bootstrap._w_long
+_r_long = _bootstrap._r_long
 
-from os import sep
-# For os.path.join replacement; pull from Include/osdefs.h:SEP .
-_bootstrap.path_sep = sep
+# Fully bootstrapped at this point, import whatever you like, circular
+# dependencies and startup overhead minimisation permitting :)
 
-_bootstrap._case_ok = _case_ok
-marshal._w_long = _w_long
-marshal._r_long = _r_long
+import types
+import warnings
 
 
 # Public API #########################################################
 
 from ._bootstrap import __import__
+
+
+def invalidate_caches():
+    """Call the invalidate_caches() method on all meta path finders stored in
+    sys.meta_path (where implemented)."""
+    for finder in sys.meta_path:
+        if hasattr(finder, 'invalidate_caches'):
+            finder.invalidate_caches()
+
+
+def find_loader(name, path=None):
+    """Return the loader for the specified module.
+
+    This is a backward-compatible wrapper around find_spec().
+
+    This function is deprecated in favor of importlib.util.find_spec().
+
+    """
+    warnings.warn('Use importlib.util.find_spec() instead.',
+                  DeprecationWarning, stacklevel=2)
+    try:
+        loader = sys.modules[name].__loader__
+        if loader is None:
+            raise ValueError('{}.__loader__ is None'.format(name))
+        else:
+            return loader
+    except KeyError:
+        pass
+    except AttributeError:
+        raise ValueError('{}.__loader__ is not set'.format(name))
+
+    spec = _bootstrap._find_spec(name, path)
+    # We won't worry about malformed specs (missing attributes).
+    if spec is None:
+        return None
+    if spec.loader is None:
+        if spec.submodule_search_locations is None:
+            raise ImportError('spec for {} missing loader'.format(name),
+                              name=name)
+        raise ImportError('namespace packages do not have loaders',
+                          name=name)
+    return spec.loader
 
 
 def import_module(name, package=None):
@@ -116,9 +99,58 @@ def import_module(name, package=None):
     level = 0
     if name.startswith('.'):
         if not package:
-            raise TypeError("relative imports require the 'package' argument")
+            msg = ("the 'package' argument is required to perform a relative "
+                   "import for {!r}")
+            raise TypeError(msg.format(name))
         for character in name:
             if character != '.':
                 break
             level += 1
     return _bootstrap._gcd_import(name[level:], package, level)
+
+
+_RELOADING = {}
+
+
+def reload(module):
+    """Reload the module and return it.
+
+    The module must have been successfully imported before.
+
+    """
+    if not module or not isinstance(module, types.ModuleType):
+        raise TypeError("reload() argument must be module")
+    try:
+        name = module.__spec__.name
+    except AttributeError:
+        name = module.__name__
+
+    if sys.modules.get(name) is not module:
+        msg = "module {} not in sys.modules"
+        raise ImportError(msg.format(name), name=name)
+    if name in _RELOADING:
+        return _RELOADING[name]
+    _RELOADING[name] = module
+    try:
+        parent_name = name.rpartition('.')[0]
+        if parent_name:
+            try:
+                parent = sys.modules[parent_name]
+            except KeyError:
+                msg = "parent {!r} not in sys.modules"
+                raise ImportError(msg.format(parent_name), name=parent_name)
+            else:
+                pkgpath = parent.__path__
+        else:
+            pkgpath = None
+        target = module
+        spec = module.__spec__ = _bootstrap._find_spec(name, pkgpath, target)
+        methods = _bootstrap._SpecMethods(spec)
+        methods.exec(module)
+        # The module may have replaced itself in sys.modules!
+        return sys.modules[name]
+    finally:
+        try:
+            del _RELOADING[name]
+        except KeyError:
+            pass

@@ -1,7 +1,6 @@
 """Tests for distutils.command.install."""
 
 import os
-import imp
 import sys
 import unittest
 import site
@@ -94,7 +93,7 @@ class InstallTestCase(support.TempdirManager,
 
         self.addCleanup(cleanup)
 
-        for key in ('nt_user', 'unix_user', 'os2_home'):
+        for key in ('nt_user', 'unix_user'):
             self.assertIn(key, INSTALL_SCHEMES)
 
         dist = Distribution({'name': 'xx'})
@@ -193,7 +192,8 @@ class InstallTestCase(support.TempdirManager,
             f.close()
 
         found = [os.path.basename(line) for line in content.splitlines()]
-        expected = ['hello.py', 'hello.%s.pyc' % imp.get_tag(), 'sayhi',
+        expected = ['hello.py', 'hello.%s.pyc' % sys.implementation.cache_tag,
+                    'sayhi',
                     'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
         self.assertEqual(found, expected)
 
@@ -236,7 +236,7 @@ class InstallTestCase(support.TempdirManager,
                 self.test_record()
         finally:
             install_module.DEBUG = False
-        self.assertTrue(len(self.logs) > old_logs_len)
+        self.assertGreater(len(self.logs), old_logs_len)
 
 
 def test_suite():

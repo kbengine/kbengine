@@ -29,7 +29,7 @@ newgrammar(int start)
 }
 
 dfa *
-adddfa(grammar *g, int type, char *name)
+adddfa(grammar *g, int type, const char *name)
 {
     dfa *d;
 
@@ -63,7 +63,7 @@ addstate(dfa *d)
     s->s_upper = 0;
     s->s_accel = NULL;
     s->s_accept = 0;
-    return s - d->d_state;
+    return Py_SAFE_DOWNCAST(s - d->d_state, Py_intptr_t, int);
 }
 
 void
@@ -85,7 +85,7 @@ addarc(dfa *d, int from, int to, int lbl)
 }
 
 int
-addlabel(labellist *ll, int type, char *str)
+addlabel(labellist *ll, int type, const char *str)
 {
     int i;
     label *lb;
@@ -105,13 +105,13 @@ addlabel(labellist *ll, int type, char *str)
     if (Py_DebugFlag)
         printf("Label @ %8p, %d: %s\n", ll, ll->ll_nlabels,
                PyGrammar_LabelRepr(lb));
-    return lb - ll->ll_label;
+    return Py_SAFE_DOWNCAST(lb - ll->ll_label, Py_intptr_t, int);
 }
 
 /* Same, but rather dies than adds */
 
 int
-findlabel(labellist *ll, int type, char *str)
+findlabel(labellist *ll, int type, const char *str)
 {
     int i;
 

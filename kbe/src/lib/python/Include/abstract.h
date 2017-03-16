@@ -7,6 +7,7 @@ extern "C" {
 #ifdef PY_SSIZE_T_CLEAN
 #define PyObject_CallFunction _PyObject_CallFunction_SizeT
 #define PyObject_CallMethod _PyObject_CallMethod_SizeT
+#define _PyObject_CallMethodId _PyObject_CallMethodId_SizeT
 #endif
 
 /* Abstract Object Interface (many thanks to Jim Fulton) */
@@ -143,7 +144,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
      /* Implemented elsewhere:
 
-     int PyObject_HasAttrString(PyObject *o, char *attr_name);
+     int PyObject_HasAttrString(PyObject *o, const char *attr_name);
 
      Returns 1 if o has the attribute attr_name, and 0 otherwise.
      This is equivalent to the Python expression:
@@ -155,7 +156,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
      /* Implemented elsewhere:
 
-     PyObject* PyObject_GetAttrString(PyObject *o, char *attr_name);
+     PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
 
      Retrieve an attributed named attr_name form object o.
      Returns the attribute value on success, or NULL on failure.
@@ -188,7 +189,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
      /* Implemented elsewhere:
 
-     int PyObject_SetAttrString(PyObject *o, char *attr_name, PyObject *v);
+     int PyObject_SetAttrString(PyObject *o, const char *attr_name, PyObject *v);
 
      Set the value of the attribute named attr_name, for object o,
      to the value, v. Returns -1 on failure.  This is
@@ -208,7 +209,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
      /* implemented as a macro:
 
-     int PyObject_DelAttrString(PyObject *o, char *attr_name);
+     int PyObject_DelAttrString(PyObject *o, const char *attr_name);
 
      Delete attribute named attr_name, for object o. Returns
      -1 on failure.  This is the equivalent of the Python
@@ -283,7 +284,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
        */
 
      PyAPI_FUNC(PyObject *) PyObject_CallFunction(PyObject *callable_object,
-                                                  char *format, ...);
+                                                  const char *format, ...);
 
        /*
      Call a callable Python object, callable_object, with a
@@ -295,8 +296,9 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
        */
 
 
-     PyAPI_FUNC(PyObject *) PyObject_CallMethod(PyObject *o, char *method,
-                                                char *format, ...);
+     PyAPI_FUNC(PyObject *) PyObject_CallMethod(PyObject *o,
+                                                const char *method,
+                                                const char *format, ...);
 
        /*
      Call the method named m of object o with a variable number of
@@ -307,11 +309,26 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
      Python expression: o.method(args).
        */
 
+     PyAPI_FUNC(PyObject *) _PyObject_CallMethodId(PyObject *o,
+                                                   _Py_Identifier *method,
+                                                   const char *format, ...);
+
+       /*
+         Like PyObject_CallMethod, but expect a _Py_Identifier* as the
+         method name.
+       */
+
      PyAPI_FUNC(PyObject *) _PyObject_CallFunction_SizeT(PyObject *callable,
-                                                         char *format, ...);
+                                                         const char *format,
+                                                         ...);
      PyAPI_FUNC(PyObject *) _PyObject_CallMethod_SizeT(PyObject *o,
-                                                       char *name,
-                                                       char *format, ...);
+                                                       const char *name,
+                                                       const char *format,
+                                                       ...);
+     PyAPI_FUNC(PyObject *) _PyObject_CallMethodId_SizeT(PyObject *o,
+                                                       _Py_Identifier *name,
+                                                       const char *format,
+                                                       ...);
 
      PyAPI_FUNC(PyObject *) PyObject_CallFunctionObjArgs(PyObject *callable,
                                                          ...);
@@ -327,6 +344,9 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
      PyAPI_FUNC(PyObject *) PyObject_CallMethodObjArgs(PyObject *o,
                                                        PyObject *method, ...);
+     PyAPI_FUNC(PyObject *) _PyObject_CallMethodIdObjArgs(PyObject *o,
+                                               struct _Py_Identifier *method,
+                                               ...);
 
        /*
      Call the method named m of object o with a variable number of
@@ -388,7 +408,8 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 #define PyObject_Length PyObject_Size
 
 #ifndef Py_LIMITED_API
-     PyAPI_FUNC(Py_ssize_t) _PyObject_LengthHint(PyObject *o, Py_ssize_t);
+     PyAPI_FUNC(int) _PyObject_HasLen(PyObject *o);
+     PyAPI_FUNC(Py_ssize_t) PyObject_LengthHint(PyObject *o, Py_ssize_t);
 #endif
 
        /*
@@ -413,7 +434,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
      statement: o[key]=v.
        */
 
-     PyAPI_FUNC(int) PyObject_DelItemString(PyObject *o, char *key);
+     PyAPI_FUNC(int) PyObject_DelItemString(PyObject *o, const char *key);
 
        /*
      Remove the mapping for object, key, from the object *o.
@@ -519,11 +540,12 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
 
 
+     /* Implementation in memoryobject.c */
      PyAPI_FUNC(int) PyBuffer_ToContiguous(void *buf, Py_buffer *view,
-                                           Py_ssize_t len, char fort);
+                                           Py_ssize_t len, char order);
 
      PyAPI_FUNC(int) PyBuffer_FromContiguous(Py_buffer *view, void *buf,
-                                             Py_ssize_t len, char fort);
+                                             Py_ssize_t len, char order);
 
 
     /* Copy len bytes of data from the contiguous chunk of memory
@@ -547,7 +569,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
     /* Copy the data from the src buffer to the buffer of destination
      */
 
-     PyAPI_FUNC(int) PyBuffer_IsContiguous(Py_buffer *view, char fort);
+     PyAPI_FUNC(int) PyBuffer_IsContiguous(const Py_buffer *view, char fort);
 
 
      PyAPI_FUNC(void) PyBuffer_FillContiguousStrides(int ndims,
@@ -754,31 +776,16 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
      PyAPI_FUNC(PyObject *) PyNumber_Index(PyObject *o);
 
        /*
-     Returns the object converted to a Python long or int
+     Returns the object converted to a Python int
      or NULL with an error raised on failure.
        */
 
      PyAPI_FUNC(Py_ssize_t) PyNumber_AsSsize_t(PyObject *o, PyObject *exc);
 
        /*
-     Returns the Integral instance converted to an int. The
-     instance is expected to be int or long or have an __int__
-     method. Steals integral's reference. error_format will be
-     used to create the TypeError if integral isn't actually an
-     Integral instance. error_format should be a format string
-     that can accept a char* naming integral's type.
-       */
-
-#ifndef Py_LIMITED_API
-     PyAPI_FUNC(PyObject *) _PyNumber_ConvertIntegralToInt(
-         PyObject *integral,
-         const char* error_format);
-#endif
-
-       /*
     Returns the object converted to Py_ssize_t by going through
     PyNumber_Index first.  If an overflow error occurs while
-    converting the int-or-long to Py_ssize_t, then the second argument
+    converting the int to Py_ssize_t, then the second argument
     is the error-type to return.  If it is NULL, then the overflow error
     is cleared and the value is clipped.
        */
@@ -1014,7 +1021,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
      PyAPI_FUNC(PyObject *) PySequence_Fast(PyObject *o, const char* m);
        /*
-     Returns the sequence, o, as a tuple, unless it's already a
+     Return the sequence, o, as a list, unless it's already a
      tuple or list.  Use PySequence_Fast_GET_ITEM to access the
      members of this list, and PySequence_Fast_GET_SIZE to get its length.
 
@@ -1149,7 +1156,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
      /* implemented as a macro:
 
-     int PyMapping_DelItemString(PyObject *o, char *key);
+     int PyMapping_DelItemString(PyObject *o, const char *key);
 
      Remove the mapping for object, key, from the object *o.
      Returns -1 on failure.  This is equivalent to
@@ -1167,7 +1174,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
        */
 #define PyMapping_DelItem(O,K) PyObject_DelItem((O),(K))
 
-     PyAPI_FUNC(int) PyMapping_HasKeyString(PyObject *o, char *key);
+     PyAPI_FUNC(int) PyMapping_HasKeyString(PyObject *o, const char *key);
 
        /*
      On success, return 1 if the mapping object has the key, key,
@@ -1211,7 +1218,8 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
        */
 
-     PyAPI_FUNC(PyObject *) PyMapping_GetItemString(PyObject *o, char *key);
+     PyAPI_FUNC(PyObject *) PyMapping_GetItemString(PyObject *o,
+                                                    const char *key);
 
        /*
      Return element of o corresponding to the object, key, or NULL
@@ -1219,7 +1227,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
      o[key].
        */
 
-     PyAPI_FUNC(int) PyMapping_SetItemString(PyObject *o, char *key,
+     PyAPI_FUNC(int) PyMapping_SetItemString(PyObject *o, const char *key,
                                             PyObject *value);
 
        /*

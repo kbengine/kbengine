@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="sigar">
+      <UniqueIdentifier>{b512776c-356f-4bab-8822-c8bc9934c2ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inline Files">
+      <UniqueIdentifier>{c506e687-b13a-4332-bbed-e565a3e4b788}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="crashhandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="debug_helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="debug_option.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="eventhistory_stats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="profile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="profile_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="profiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="script_loglevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sys_info.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="watch_pools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="watcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\peb.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar_cache.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar_fileinfo.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar_format.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar_getline.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar_ptql.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar_signal.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\sigar_util.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\win32_sigar.c">
+      <Filter>sigar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\sigar\win32\wmi.cpp">
+      <Filter>sigar</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="console_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crashhandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="debug_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="debug_option.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="eventhistory_stats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="memory_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="profile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="profile_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="profiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="script_loglevel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sys_info.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="watch_pools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="watcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_fileinfo.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_format.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_getline.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_log.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_os.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_pdh.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_private.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_ptql.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dependencies\sigar\win32\sigar_util.h">
+      <Filter>sigar</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\dependencies\sigar\win32\sigar.rc.in">
+      <Filter>sigar</Filter>
+    </None>
+    <None Include="..\dependencies\sigar\win32\sigar_version.c.in">
+      <Filter>sigar</Filter>
+    </None>
+    <None Include="ReadMe.txt" />
+    <None Include="profile.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="profiler.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="sys_info.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

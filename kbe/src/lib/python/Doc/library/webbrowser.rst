@@ -19,12 +19,12 @@ will be used if graphical browsers are not available or an X11 display isn't
 available.  If text-mode browsers are used, the calling process will block until
 the user exits the browser.
 
-If the environment variable :envvar:`BROWSER` exists, it is interpreted to
-override the platform default list of browsers, as a :data:`os.pathsep`-separated
-list of browsers to try in order.  When the value of a list part contains the
-string ``%s``, then it is  interpreted as a literal browser command line to be
-used with the argument URL substituted for ``%s``; if the part does not contain
-``%s``, it is simply interpreted as the name of the browser to launch. [1]_
+If the environment variable :envvar:`BROWSER` exists, it is interpreted as the
+:data:`os.pathsep`-separated list of browsers to try ahead of the the platform
+defaults.  When the value of a list part contains the string ``%s``, then it is
+interpreted as a literal browser command line to be used with the argument URL
+substituted for ``%s``; if the part does not contain ``%s``, it is simply
+interpreted as the name of the browser to launch. [1]_
 
 For non-Unix platforms, or when a remote browser is available on Unix, the
 controlling process will not wait for the user to finish with the browser, but
@@ -98,47 +98,55 @@ A number of browser types are predefined.  This table gives the type names that
 may be passed to the :func:`get` function and the corresponding instantiations
 for the controller classes, all defined in this module.
 
-+-----------------------+-----------------------------------------+-------+
-| Type Name             | Class Name                              | Notes |
-+=======================+=========================================+=======+
-| ``'mozilla'``         | :class:`Mozilla('mozilla')`             |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'firefox'``         | :class:`Mozilla('mozilla')`             |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'netscape'``        | :class:`Mozilla('netscape')`            |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'galeon'``          | :class:`Galeon('galeon')`               |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'epiphany'``        | :class:`Galeon('epiphany')`             |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'skipstone'``       | :class:`BackgroundBrowser('skipstone')` |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'kfmclient'``       | :class:`Konqueror()`                    | \(1)  |
-+-----------------------+-----------------------------------------+-------+
-| ``'konqueror'``       | :class:`Konqueror()`                    | \(1)  |
-+-----------------------+-----------------------------------------+-------+
-| ``'kfm'``             | :class:`Konqueror()`                    | \(1)  |
-+-----------------------+-----------------------------------------+-------+
-| ``'mosaic'``          | :class:`BackgroundBrowser('mosaic')`    |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'opera'``           | :class:`Opera()`                        |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'grail'``           | :class:`Grail()`                        |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'links'``           | :class:`GenericBrowser('links')`        |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'elinks'``          | :class:`Elinks('elinks')`               |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'lynx'``            | :class:`GenericBrowser('lynx')`         |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'w3m'``             | :class:`GenericBrowser('w3m')`          |       |
-+-----------------------+-----------------------------------------+-------+
-| ``'windows-default'`` | :class:`WindowsDefault`                 | \(2)  |
-+-----------------------+-----------------------------------------+-------+
-| ``'macosx'``          | :class:`MacOSX('default')`              | \(3)  |
-+-----------------------+-----------------------------------------+-------+
-| ``'safari'``          | :class:`MacOSX('safari')`               | \(3)  |
-+-----------------------+-----------------------------------------+-------+
++------------------------+-----------------------------------------+-------+
+| Type Name              | Class Name                              | Notes |
++========================+=========================================+=======+
+| ``'mozilla'``          | :class:`Mozilla('mozilla')`             |       |
++------------------------+-----------------------------------------+-------+
+| ``'firefox'``          | :class:`Mozilla('mozilla')`             |       |
++------------------------+-----------------------------------------+-------+
+| ``'netscape'``         | :class:`Mozilla('netscape')`            |       |
++------------------------+-----------------------------------------+-------+
+| ``'galeon'``           | :class:`Galeon('galeon')`               |       |
++------------------------+-----------------------------------------+-------+
+| ``'epiphany'``         | :class:`Galeon('epiphany')`             |       |
++------------------------+-----------------------------------------+-------+
+| ``'skipstone'``        | :class:`BackgroundBrowser('skipstone')` |       |
++------------------------+-----------------------------------------+-------+
+| ``'kfmclient'``        | :class:`Konqueror()`                    | \(1)  |
++------------------------+-----------------------------------------+-------+
+| ``'konqueror'``        | :class:`Konqueror()`                    | \(1)  |
++------------------------+-----------------------------------------+-------+
+| ``'kfm'``              | :class:`Konqueror()`                    | \(1)  |
++------------------------+-----------------------------------------+-------+
+| ``'mosaic'``           | :class:`BackgroundBrowser('mosaic')`    |       |
++------------------------+-----------------------------------------+-------+
+| ``'opera'``            | :class:`Opera()`                        |       |
++------------------------+-----------------------------------------+-------+
+| ``'grail'``            | :class:`Grail()`                        |       |
++------------------------+-----------------------------------------+-------+
+| ``'links'``            | :class:`GenericBrowser('links')`        |       |
++------------------------+-----------------------------------------+-------+
+| ``'elinks'``           | :class:`Elinks('elinks')`               |       |
++------------------------+-----------------------------------------+-------+
+| ``'lynx'``             | :class:`GenericBrowser('lynx')`         |       |
++------------------------+-----------------------------------------+-------+
+| ``'w3m'``              | :class:`GenericBrowser('w3m')`          |       |
++------------------------+-----------------------------------------+-------+
+| ``'windows-default'``  | :class:`WindowsDefault`                 | \(2)  |
++------------------------+-----------------------------------------+-------+
+| ``'macosx'``           | :class:`MacOSX('default')`              | \(3)  |
++------------------------+-----------------------------------------+-------+
+| ``'safari'``           | :class:`MacOSX('safari')`               | \(3)  |
++------------------------+-----------------------------------------+-------+
+| ``'google-chrome'``    | :class:`Chrome('google-chrome')`        |       |
++------------------------+-----------------------------------------+-------+
+| ``'chrome'``           | :class:`Chrome('chrome')`               |       |
++------------------------+-----------------------------------------+-------+
+| ``'chromium'``         | :class:`Chromium('chromium')`           |       |
++------------------------+-----------------------------------------+-------+
+| ``'chromium-browser'`` | :class:`Chromium('chromium-browser')`   |       |
++------------------------+-----------------------------------------+-------+
 
 Notes:
 
@@ -155,12 +163,15 @@ Notes:
 (3)
    Only on Mac OS X platform.
 
+.. versionadded:: 3.3
+   Support for Chrome/Chromium has been added.
+
 Here are some simple examples::
 
-   url = 'http://www.python.org/'
+   url = 'http://docs.python.org/'
 
    # Open URL in a new tab, if a browser window is already open.
-   webbrowser.open_new_tab(url + 'doc/')
+   webbrowser.open_new_tab(url)
 
    # Open URL in new window, raising the window if possible.
    webbrowser.open_new(url)

@@ -63,6 +63,8 @@ def _worker(executor_reference, work_queue):
             work_item = work_queue.get(block=True)
             if work_item is not None:
                 work_item.run()
+                # Delete references to object. See issue16284
+                del work_item
                 continue
             executor = executor_reference()
             # Exit if:
@@ -74,7 +76,7 @@ def _worker(executor_reference, work_queue):
                 work_queue.put(None)
                 return
             del executor
-    except BaseException as e:
+    except BaseException:
         _base.LOGGER.critical('Exception in worker', exc_info=True)
 
 class ThreadPoolExecutor(_base.Executor):

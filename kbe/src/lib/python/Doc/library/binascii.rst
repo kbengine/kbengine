@@ -20,8 +20,14 @@ higher-level modules.
 
 .. note::
 
-   Encoding and decoding functions do not accept Unicode strings.  Only bytestring
-   and bytearray objects can be processed.
+   ``a2b_*`` functions accept Unicode strings containing only ASCII characters.
+   Other functions only accept :term:`bytes-like object`\ s (such as
+   :class:`bytes`, :class:`bytearray` and other objects that support the buffer
+   protocol).
+
+   .. versionchanged:: 3.3
+      ASCII-only unicode strings are now accepted by the ``a2b_*`` functions.
+
 
 The :mod:`binascii` module defines the following functions:
 
@@ -139,7 +145,7 @@ The :mod:`binascii` module defines the following functions:
 
    Return the hexadecimal representation of the binary *data*.  Every byte of
    *data* is converted into the corresponding 2-digit hex representation.  The
-   resulting string is therefore twice as long as the length of *data*.
+   returned bytes object is therefore twice as long as the length of *data*.
 
 
 .. function:: a2b_hex(hexstr)

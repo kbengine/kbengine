@@ -2,7 +2,9 @@ import unittest
 from test import support
 
 import collections, random, string
+import collections.abc
 import gc, weakref
+import pickle
 
 
 class DictTest(unittest.TestCase):
@@ -43,6 +45,9 @@ class DictTest(unittest.TestCase):
         self.assertEqual(set(d.keys()), set())
         d = {'a': 1, 'b': 2}
         k = d.keys()
+        self.assertEqual(set(k), {'a', 'b'})
+        self.assertIn('a', k)
+        self.assertIn('b', k)
         self.assertIn('a', d)
         self.assertIn('b', d)
         self.assertRaises(TypeError, d.keys, None)
@@ -327,6 +332,27 @@ class DictTest(unittest.TestCase):
         self.assertEqual(hashed2.hash_count, 1)
         self.assertEqual(hashed1.eq_count + hashed2.eq_count, 1)
 
+    def test_setitem_atomic_at_resize(self):
+        class Hashed(object):
+            def __init__(self):
+                self.hash_count = 0
+                self.eq_count = 0
+            def __hash__(self):
+                self.hash_count += 1
+                return 42
+            def __eq__(self, other):
+                self.eq_count += 1
+                return id(self) == id(other)
+        hashed1 = Hashed()
+        # 5 items
+        y = {hashed1: 5, 0: 0, 1: 1, 2: 2, 3: 3}
+        hashed2 = Hashed()
+        # 6th item forces a resize
+        y[hashed2] = []
+        self.assertEqual(hashed1.hash_count, 1)
+        self.assertEqual(hashed2.hash_count, 1)
+        self.assertEqual(hashed1.eq_count + hashed2.eq_count, 1)
+
     def test_popitem(self):
         # dict.popitem()
         for copymode in -1, +1:
@@ -387,13 +413,39 @@ class DictTest(unittest.TestCase):
         x.fail = True
         self.assertRaises(Exc, d.pop, x)
 
-    def test_mutatingiteration(self):
+    def test_mutating_iteration(self):
         # changing dict size during iteration
         d = {}
         d[1] = 1
         with self.assertRaises(RuntimeError):
             for i in d:
                 d[i+1] = 1
+
+    def test_mutating_lookup(self):
+        # changing dict during a lookup (issue #14417)
+        class NastyKey:
+            mutate_dict = None
+
+            def __init__(self, value):
+                self.value = value
+
+            def __hash__(self):
+                # hash collision!
+                return 1
+
+            def __eq__(self, other):
+                if NastyKey.mutate_dict:
+                    mydict, key = NastyKey.mutate_dict
+                    NastyKey.mutate_dict = None
+                    del mydict[key]
+                return self.value == other.value
+
+        key1 = NastyKey(1)
+        key2 = NastyKey(2)
+        d = {key1: 1}
+        NastyKey.mutate_dict = (d, key1)
+        d[key2] = 2
+        self.assertEqual(d, {key2: 2})
 
     def test_repr(self):
         d = {}
@@ -784,6 +836,75 @@ class DictTest(unittest.TestCase):
             pass
         self._tracked(MyDict())
 
+    def test_iterator_pickling(self):
+        data = {1:"a", 2:"b", 3:"c"}
+        it = iter(data)
+        d = pickle.dumps(it)
+        it = pickle.loads(d)
+        self.assertEqual(sorted(it), sorted(data))
+
+        it = pickle.loads(d)
+        try:
+            drop = next(it)
+        except StopIteration:
+            return
+        d = pickle.dumps(it)
+        it = pickle.loads(d)
+        del data[drop]
+        self.assertEqual(sorted(it), sorted(data))
+
+    def test_itemiterator_pickling(self):
+        data = {1:"a", 2:"b", 3:"c"}
+        # dictviews aren't picklable, only their iterators
+        itorg = iter(data.items())
+        d = pickle.dumps(itorg)
+        it = pickle.loads(d)
+        # note that the type of type of the unpickled iterator
+        # is not necessarily the same as the original.  It is
+        # merely an object supporting the iterator protocol, yielding
+        # the same objects as the original one.
+        # self.assertEqual(type(itorg), type(it))
+        self.assertTrue(isinstance(it, collections.abc.Iterator))
+        self.assertEqual(dict(it), data)
+
+        it = pickle.loads(d)
+        drop = next(it)
+        d = pickle.dumps(it)
+        it = pickle.loads(d)
+        del data[drop[0]]
+        self.assertEqual(dict(it), data)
+
+    def test_valuesiterator_pickling(self):
+        data = {1:"a", 2:"b", 3:"c"}
+        # data.values() isn't picklable, only its iterator
+        it = iter(data.values())
+        d = pickle.dumps(it)
+        it = pickle.loads(d)
+        self.assertEqual(sorted(list(it)), sorted(list(data.values())))
+
+        it = pickle.loads(d)
+        drop = next(it)
+        d = pickle.dumps(it)
+        it = pickle.loads(d)
+        values = list(it) + [drop]
+        self.assertEqual(sorted(values), sorted(list(data.values())))
+
+    def test_instance_dict_getattr_str_subclass(self):
+        class Foo:
+            def __init__(self, msg):
+                self.msg = msg
+        f = Foo('123')
+        class _str(str):
+            pass
+        self.assertEqual(f.msg, getattr(f, _str('msg')))
+        self.assertEqual(f.msg, f.__dict__[_str('msg')])
+
+    def test_object_set_item_single_instance_non_str_key(self):
+        class Foo: pass
+        f = Foo()
+        f.__dict__[1] = 1
+        f.a = 'a'
+        self.assertEqual(f.__dict__, {1:1, 'a':'a'})
 
 from test import mapping_tests
 

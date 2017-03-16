@@ -14,6 +14,12 @@ try:
 except ImportError:
     ZLIB_SUPPORT = False
 
+try:
+    import grp
+    import pwd
+    UID_GID_SUPPORT = True
+except ImportError:
+    UID_GID_SUPPORT = False
 
 from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
@@ -125,13 +131,11 @@ class SDistTestCase(PyPIRCCommandTestCase):
         self.assertEqual(len(content), 4)
 
     @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @unittest.skipIf(find_executable('tar') is None,
+                     "The tar command is not found")
+    @unittest.skipIf(find_executable('gzip') is None,
+                     "The gzip command is not found")
     def test_make_distribution(self):
-
-        # check if tar and gzip are installed
-        if (find_executable('tar') is None or
-            find_executable('gzip') is None):
-            return
-
         # now building a sdist
         dist, cmd = self.get_cmd()
 
@@ -424,6 +428,54 @@ class SDistTestCase(PyPIRCCommandTestCase):
             archive.close()
         self.assertEqual(sorted(filenames), ['fake-1.0', 'fake-1.0/PKG-INFO',
                                              'fake-1.0/README.manual'])
+
+    @unittest.skipUnless(ZLIB_SUPPORT, "requires zlib")
+    @unittest.skipUnless(UID_GID_SUPPORT, "Requires grp and pwd support")
+    @unittest.skipIf(find_executable('tar') is None,
+                     "The tar command is not found")
+    @unittest.skipIf(find_executable('gzip') is None,
+                     "The gzip command is not found")
+    def test_make_distribution_owner_group(self):
+        # now building a sdist
+        dist, cmd = self.get_cmd()
+
+        # creating a gztar and specifying the owner+group
+        cmd.formats = ['gztar']
+        cmd.owner = pwd.getpwuid(0)[0]
+        cmd.group = grp.getgrgid(0)[0]
+        cmd.ensure_finalized()
+        cmd.run()
+
+        # making sure we have the good rights
+        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
+        archive = tarfile.open(archive_name)
+        try:
+            for member in archive.getmembers():
+                self.assertEqual(member.uid, 0)
+                self.assertEqual(member.gid, 0)
+        finally:
+            archive.close()
+
+        # building a sdist again
+        dist, cmd = self.get_cmd()
+
+        # creating a gztar
+        cmd.formats = ['gztar']
+        cmd.ensure_finalized()
+        cmd.run()
+
+        # making sure we have the good rights
+        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
+        archive = tarfile.open(archive_name)
+
+        # note that we are not testing the group ownership here
+        # because, depending on the platforms and the container
+        # rights (see #7408)
+        try:
+            for member in archive.getmembers():
+                self.assertEqual(member.uid, os.getuid())
+        finally:
+            archive.close()
 
 def test_suite():
     return unittest.makeSuite(SDistTestCase)

@@ -5,9 +5,9 @@
 # Copyright (C) 2002, 2003 Python Software Foundation.
 # Written by Greg Ward <gward@python.net>
 
-import string, re
+import re
 
-__all__ = ['TextWrapper', 'wrap', 'fill', 'dedent']
+__all__ = ['TextWrapper', 'wrap', 'fill', 'dedent', 'indent', 'shorten']
 
 # Hardcode the recognized whitespace characters to the US-ASCII
 # whitespace characters.  The main reason for doing this is that in
@@ -39,8 +39,11 @@ class TextWrapper:
         of wrapped output; also counts towards each line's width.
       expand_tabs (default: true)
         Expand tabs in input text to spaces before further processing.
-        Each tab will become 1 .. 8 spaces, depending on its position in
-        its line.  If false, each tab is treated as a single character.
+        Each tab will become 0 .. 'tabsize' spaces, depending on its position
+        in its line.  If false, each tab is treated as a single character.
+      tabsize (default: 8)
+        Expand tabs in input text to 0 .. 'tabsize' spaces, unless
+        'expand_tabs' is false.
       replace_whitespace (default: true)
         Replace all whitespace characters in the input text by spaces
         after tab expansion.  Note that if expand_tabs is false and
@@ -59,6 +62,10 @@ class TextWrapper:
         compound words.
       drop_whitespace (default: true)
         Drop leading and trailing whitespace from lines.
+      max_lines (default: None)
+        Truncate wrapped lines.
+      placeholder (default: ' [...]')
+        Append to the last line of truncated text.
     """
 
     unicode_whitespace_trans = {}
@@ -100,7 +107,11 @@ class TextWrapper:
                  fix_sentence_endings=False,
                  break_long_words=True,
                  drop_whitespace=True,
-                 break_on_hyphens=True):
+                 break_on_hyphens=True,
+                 tabsize=8,
+                 *,
+                 max_lines=None,
+                 placeholder=' [...]'):
         self.width = width
         self.initial_indent = initial_indent
         self.subsequent_indent = subsequent_indent
@@ -110,6 +121,9 @@ class TextWrapper:
         self.break_long_words = break_long_words
         self.drop_whitespace = drop_whitespace
         self.break_on_hyphens = break_on_hyphens
+        self.tabsize = tabsize
+        self.max_lines = max_lines
+        self.placeholder = placeholder
 
 
     # -- Private methods -----------------------------------------------
@@ -123,7 +137,7 @@ class TextWrapper:
         becomes " foo    bar  baz".
         """
         if self.expand_tabs:
-            text = text.expandtabs()
+            text = text.expandtabs(self.tabsize)
         if self.replace_whitespace:
             text = text.translate(self.unicode_whitespace_trans)
         return text
@@ -218,6 +232,13 @@ class TextWrapper:
         lines = []
         if self.width <= 0:
             raise ValueError("invalid width %r (must be > 0)" % self.width)
+        if self.max_lines is not None:
+            if self.max_lines > 1:
+                indent = self.subsequent_indent
+            else:
+                indent = self.initial_indent
+            if len(indent) + len(self.placeholder.lstrip()) > self.width:
+                raise ValueError("placeholder too large for max width")
 
         # Arrange in reverse order so items can be efficiently popped
         # from a stack of chucks.
@@ -260,18 +281,47 @@ class TextWrapper:
             # fit on *any* line (not just this one).
             if chunks and len(chunks[-1]) > width:
                 self._handle_long_word(chunks, cur_line, cur_len, width)
+                cur_len = sum(map(len, cur_line))
 
             # If the last chunk on this line is all whitespace, drop it.
             if self.drop_whitespace and cur_line and cur_line[-1].strip() == '':
+                cur_len -= len(cur_line[-1])
                 del cur_line[-1]
 
-            # Convert current line back to a string and store it in list
-            # of all lines (return value).
             if cur_line:
-                lines.append(indent + ''.join(cur_line))
+                if (self.max_lines is None or
+                    len(lines) + 1 < self.max_lines or
+                    (not chunks or
+                     self.drop_whitespace and
+                     len(chunks) == 1 and
+                     not chunks[0].strip()) and cur_len <= width):
+                    # Convert current line back to a string and store it in
+                    # list of all lines (return value).
+                    lines.append(indent + ''.join(cur_line))
+                else:
+                    while cur_line:
+                        if (cur_line[-1].strip() and
+                            cur_len + len(self.placeholder) <= width):
+                            cur_line.append(self.placeholder)
+                            lines.append(indent + ''.join(cur_line))
+                            break
+                        cur_len -= len(cur_line[-1])
+                        del cur_line[-1]
+                    else:
+                        if lines:
+                            prev_line = lines[-1].rstrip()
+                            if (len(prev_line) + len(self.placeholder) <=
+                                    self.width):
+                                lines[-1] = prev_line + self.placeholder
+                                break
+                        lines.append(indent + self.placeholder.lstrip())
+                    break
 
         return lines
 
+    def _split_chunks(self, text):
+        text = self._munge_whitespace(text)
+        return self._split(text)
 
     # -- Public interface ----------------------------------------------
 
@@ -284,8 +334,7 @@ class TextWrapper:
         and all other whitespace characters (including newline) are
         converted to space.
         """
-        text = self._munge_whitespace(text)
-        chunks = self._split(text)
+        chunks = self._split_chunks(text)
         if self.fix_sentence_endings:
             self._fix_sentence_endings(chunks)
         return self._wrap_chunks(chunks)
@@ -326,6 +375,21 @@ def fill(text, width=70, **kwargs):
     """
     w = TextWrapper(width=width, **kwargs)
     return w.fill(text)
+
+def shorten(text, width, **kwargs):
+    """Collapse and truncate the given text to fit in the given width.
+
+    The text first has its whitespace collapsed.  If it then fits in
+    the *width*, it is returned as is.  Otherwise, as many words
+    as possible are joined and then the placeholder is appended::
+
+        >>> textwrap.shorten("Hello  world!", width=12)
+        'Hello world!'
+        >>> textwrap.shorten("Hello  world!", width=11)
+        'Hello [...]'
+    """
+    w = TextWrapper(width=width, max_lines=1, **kwargs)
+    return w.fill(' '.join(text.strip().split()))
 
 
 # -- Loosely related functionality -------------------------------------
@@ -380,6 +444,25 @@ def dedent(text):
     if margin:
         text = re.sub(r'(?m)^' + margin, '', text)
     return text
+
+
+def indent(text, prefix, predicate=None):
+    """Adds 'prefix' to the beginning of selected lines in 'text'.
+
+    If 'predicate' is provided, 'prefix' will only be added to the lines
+    where 'predicate(line)' is True. If 'predicate' is not provided,
+    it will default to adding 'prefix' to all non-empty lines that do not
+    consist solely of whitespace characters.
+    """
+    if predicate is None:
+        def predicate(line):
+            return line.strip()
+
+    def prefixed_lines():
+        for line in text.splitlines(True):
+            yield (prefix + line if predicate(line) else line)
+    return ''.join(prefixed_lines())
+
 
 if __name__ == "__main__":
     #print dedent("\tfoo\n\tbar")

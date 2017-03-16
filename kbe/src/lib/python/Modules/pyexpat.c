@@ -10,6 +10,9 @@
 
 #define FIX_TRACE
 
+static XML_Memory_Handling_Suite ExpatMemoryHandler = {
+    PyObject_Malloc, PyObject_Realloc, PyObject_Free};
+
 enum HandlerTypes {
     StartElement,
     EndElement,
@@ -100,16 +103,17 @@ static PyObject *
 set_error(xmlparseobject *self, enum XML_Error code)
 {
     PyObject *err;
-    char buffer[256];
+    PyObject *buffer;
     XML_Parser parser = self->itself;
     int lineno = XML_GetErrorLineNumber(parser);
     int column = XML_GetErrorColumnNumber(parser);
 
-    /* There is no risk of overflowing this buffer, since
-       even for 64-bit integers, there is sufficient space. */
-    sprintf(buffer, "%.200s: line %i, column %i",
-            XML_ErrorString(code), lineno, column);
-    err = PyObject_CallFunction(ErrorObject, "s", buffer);
+    buffer = PyUnicode_FromFormat("%s: line %i, column %i",
+                                  XML_ErrorString(code), lineno, column);
+    if (buffer == NULL)
+        return NULL;
+    err = PyObject_CallFunction(ErrorObject, "O", buffer);
+    Py_DECREF(buffer);
     if (  err != NULL
           && set_error_attr(err, "code", code)
           && set_error_attr(err, "offset", column)
@@ -282,12 +286,17 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args,
 {
     PyThreadState *tstate = PyThreadState_GET();
     PyFrameObject *f;
-    PyObject *res;
+    PyObject *res, *globals;
 
     if (c == NULL)
         return NULL;
 
-    f = PyFrame_New(tstate, c, PyEval_GetGlobals(), NULL);
+    globals = PyEval_GetGlobals();
+    if (globals == NULL) {
+        return NULL;
+    }
+
+    f = PyFrame_New(tstate, c, globals, NULL);
     if (f == NULL)
         return NULL;
     tstate->frame = f;
@@ -308,8 +317,7 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args,
     }
     else {
         if (trace_frame(tstate, f, PyTrace_RETURN, res) < 0) {
-            Py_XDECREF(res);
-            res = NULL;
+            Py_CLEAR(res);
         }
     }
 #else
@@ -398,6 +406,10 @@ static void
 my_CharacterDataHandler(void *userData, const XML_Char *data, int len)
 {
     xmlparseobject *self = (xmlparseobject *) userData;
+
+    if (PyErr_Occurred())
+        return;
+
     if (self->buffer == NULL)
         call_character_handler(self, data, len);
     else {
@@ -431,6 +443,9 @@ my_StartElementHandler(void *userData,
     if (have_handler(self, StartElement)) {
         PyObject *container, *rv, *args;
         int i, max;
+
+        if (PyErr_Occurred())
+            return;
 
         if (flush_character_buffer(self) < 0)
             return;
@@ -515,6 +530,8 @@ my_##NAME##Handler PARAMS {\
     INIT \
 \
     if (have_handler(self, NAME)) { \
+        if (PyErr_Occurred()) \
+            return RETURN; \
         if (flush_character_buffer(self) < 0) \
             return RETURN; \
         args = Py_BuildValue PARAM_FORMAT ;\
@@ -628,6 +645,9 @@ my_ElementDeclHandler(void *userData,
     if (have_handler(self, ElementDecl)) {
         PyObject *rv = NULL;
         PyObject *modelobj, *nameobj;
+
+        if (PyErr_Occurred())
+            return;
 
         if (flush_character_buffer(self) < 0)
             goto finally;
@@ -793,13 +813,10 @@ xmlparse_Parse(xmlparseobject *self, PyObject *args)
         return NULL;
 
     if (PyUnicode_Check(data)) {
-        PyObject *bytes;
-        bytes = PyUnicode_AsUTF8String(data);
-        if (bytes == NULL)
-            return NULL;
         view.buf = NULL;
-        s = PyBytes_AS_STRING(bytes);
-        slen = PyBytes_GET_SIZE(bytes);
+        s = PyUnicode_AsUTF8AndSize(data, &slen);
+        if (s == NULL)
+            return NULL;
         /* Explicitly set UTF-8 encoding. Return code ignored. */
         (void)XML_SetEncoding(self->itself, "utf-8");
     }
@@ -817,7 +834,8 @@ xmlparse_Parse(xmlparseobject *self, PyObject *args)
         s += MAX_CHUNK_SIZE;
         slen -= MAX_CHUNK_SIZE;
     }
-    rc = XML_Parse(self->itself, s, slen, isFinal);
+    assert(MAX_CHUNK_SIZE < INT_MAX && slen < INT_MAX);
+    rc = XML_Parse(self->itself, s, (int)slen, isFinal);
 
 done:
     if (view.buf != NULL)
@@ -877,9 +895,9 @@ xmlparse_ParseFile(xmlparseobject *self, PyObject *f)
 {
     int rv = 1;
     PyObject *readmethod = NULL;
+    _Py_IDENTIFIER(read);
 
-
-    readmethod = PyObject_GetAttrString(f, "read");
+    readmethod = _PyObject_GetAttrId(f, &PyId_read);
     if (readmethod == NULL) {
         PyErr_SetString(PyExc_TypeError,
                         "argument must have 'read' attribute");
@@ -890,7 +908,7 @@ xmlparse_ParseFile(xmlparseobject *self, PyObject *f)
         void *buf = XML_GetBuffer(self->itself, BUF_SIZE);
         if (buf == NULL) {
             Py_XDECREF(readmethod);
-            return PyErr_NoMemory();
+            return get_parse_result(self, 0);
         }
 
         bytes_read = readinst(buf, BUF_SIZE, readmethod);
@@ -999,7 +1017,7 @@ xmlparse_ExternalEntityParserCreate(xmlparseobject *self, PyObject *args)
     PyObject_GC_Track(new_parser);
 
     if (self->buffer != NULL) {
-        new_parser->buffer = malloc(new_parser->buffer_size);
+        new_parser->buffer = PyMem_Malloc(new_parser->buffer_size);
         if (new_parser->buffer == NULL) {
             Py_DECREF(new_parser);
             return PyErr_NoMemory();
@@ -1016,7 +1034,7 @@ xmlparse_ExternalEntityParserCreate(xmlparseobject *self, PyObject *args)
     for (i = 0; handler_info[i].name != NULL; i++)
         /* do nothing */;
 
-    new_parser->handlers = malloc(sizeof(PyObject *) * i);
+    new_parser->handlers = PyMem_Malloc(sizeof(PyObject *) * i);
     if (!new_parser->handlers) {
         Py_DECREF(new_parser);
         return PyErr_NoMemory();
@@ -1067,16 +1085,10 @@ getting the advantage of providing document type information to the parser.\n\
 static PyObject *
 xmlparse_UseForeignDTD(xmlparseobject *self, PyObject *args)
 {
-    PyObject *flagobj = NULL;
     int flag = 1;
     enum XML_Error rc;
-    if (!PyArg_ParseTuple(args, "|O:UseForeignDTD", &flagobj))
+    if (!PyArg_ParseTuple(args, "|p:UseForeignDTD", &flag))
         return NULL;
-    if (flagobj != NULL) {
-        flag = PyObject_IsTrue(flagobj);
-        if (flag < 0)
-            return NULL;
-    }
     rc = XML_UseForeignDTD(self->itself, flag ? XML_TRUE : XML_FALSE);
     if (rc != XML_ERROR_NONE) {
         return set_error(self, rc);
@@ -1119,48 +1131,54 @@ static struct PyMethodDef xmlparse_methods[] = {
    Make it as simple as possible.
 */
 
-static char template_buffer[257];
-
-static void
-init_template_buffer(void)
-{
-    int i;
-    for (i = 0; i < 256; i++) {
-        template_buffer[i] = i;
-    }
-    template_buffer[256] = 0;
-}
-
 static int
 PyUnknownEncodingHandler(void *encodingHandlerData,
                          const XML_Char *name,
                          XML_Encoding *info)
 {
-    PyUnicodeObject *_u_string = NULL;
-    int result = 0;
+    static unsigned char template_buffer[256] = {0};
+    PyObject* u;
     int i;
+    void *data;
+    unsigned int kind;
 
-    /* Yes, supports only 8bit encodings */
-    _u_string = (PyUnicodeObject *)
-        PyUnicode_Decode(template_buffer, 256, name, "replace");
+    if (PyErr_Occurred())
+        return XML_STATUS_ERROR;
 
-    if (_u_string == NULL)
-        return result;
-
-    for (i = 0; i < 256; i++) {
-        /* Stupid to access directly, but fast */
-        Py_UNICODE c = _u_string->str[i];
-        if (c == Py_UNICODE_REPLACEMENT_CHARACTER)
-            info->map[i] = -1;
-        else
-            info->map[i] = c;
+    if (template_buffer[1] == 0) {
+        for (i = 0; i < 256; i++)
+            template_buffer[i] = i;
     }
+
+    u = PyUnicode_Decode((char*) template_buffer, 256, name, "replace");
+    if (u == NULL || PyUnicode_READY(u)) {
+        Py_XDECREF(u);
+        return XML_STATUS_ERROR;
+    }
+
+    if (PyUnicode_GET_LENGTH(u) != 256) {
+        Py_DECREF(u);
+        PyErr_SetString(PyExc_ValueError,
+                        "multi-byte encodings are not supported");
+        return XML_STATUS_ERROR;
+    }
+
+    kind = PyUnicode_KIND(u);
+    data = PyUnicode_DATA(u);
+    for (i = 0; i < 256; i++) {
+        Py_UCS4 ch = PyUnicode_READ(kind, data, i);
+        if (ch != Py_UNICODE_REPLACEMENT_CHARACTER)
+            info->map[i] = ch;
+        else
+            info->map[i] = -1;
+    }
+
     info->data = NULL;
     info->convert = NULL;
     info->release = NULL;
-    result = 1;
-    Py_DECREF(_u_string);
-    return result;
+    Py_DECREF(u);
+
+    return XML_STATUS_OK;
 }
 
 
@@ -1182,28 +1200,26 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
     self->in_callback = 0;
     self->ns_prefixes = 0;
     self->handlers = NULL;
-    if (namespace_separator != NULL) {
-        self->itself = XML_ParserCreateNS(encoding, *namespace_separator);
-    }
-    else {
-        self->itself = XML_ParserCreate(encoding);
-    }
-#if ((XML_MAJOR_VERSION >= 2) && (XML_MINOR_VERSION >= 1)) || defined(XML_HAS_SET_HASH_SALT)
-    /* This feature was added upstream in libexpat 2.1.0.  Our expat copy
-     * has a backport of this feature where we also define XML_HAS_SET_HASH_SALT
-     * to indicate that we can still use it. */
-    XML_SetHashSalt(self->itself,
-                    (unsigned long)_Py_HashSecret.prefix);
-#endif
     self->intern = intern;
     Py_XINCREF(self->intern);
     PyObject_GC_Track(self);
+
+    /* namespace_separator is either NULL or contains one char + \0 */
+    self->itself = XML_ParserCreate_MM(encoding, &ExpatMemoryHandler,
+                                       namespace_separator);
     if (self->itself == NULL) {
         PyErr_SetString(PyExc_RuntimeError,
                         "XML_ParserCreate failed");
         Py_DECREF(self);
         return NULL;
     }
+#if ((XML_MAJOR_VERSION >= 2) && (XML_MINOR_VERSION >= 1)) || defined(XML_HAS_SET_HASH_SALT)
+    /* This feature was added upstream in libexpat 2.1.0.  Our expat copy
+     * has a backport of this feature where we also define XML_HAS_SET_HASH_SALT
+     * to indicate that we can still use it. */
+    XML_SetHashSalt(self->itself,
+                    (unsigned long)_Py_HashSecret.expat.hashsalt);
+#endif
     XML_SetUserData(self->itself, (void *)self);
     XML_SetUnknownEncodingHandler(self->itself,
                   (XML_UnknownEncodingHandler) PyUnknownEncodingHandler, NULL);
@@ -1211,7 +1227,7 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
     for (i = 0; handler_info[i].name != NULL; i++)
         /* do nothing */;
 
-    self->handlers = malloc(sizeof(PyObject *) * i);
+    self->handlers = PyMem_Malloc(sizeof(PyObject *) * i);
     if (!self->handlers) {
         Py_DECREF(self);
         return PyErr_NoMemory();
@@ -1238,11 +1254,11 @@ xmlparse_dealloc(xmlparseobject *self)
             self->handlers[i] = NULL;
             Py_XDECREF(temp);
         }
-        free(self->handlers);
+        PyMem_Free(self->handlers);
         self->handlers = NULL;
     }
     if (self->buffer != NULL) {
-        free(self->buffer);
+        PyMem_Free(self->buffer);
         self->buffer = NULL;
     }
     Py_XDECREF(self->intern);
@@ -1273,11 +1289,13 @@ get_pybool(int istrue)
 static PyObject *
 xmlparse_getattro(xmlparseobject *self, PyObject *nameobj)
 {
-    Py_UNICODE *name;
+    Py_UCS4 first_char;
     int handlernum = -1;
 
     if (!PyUnicode_Check(nameobj))
         goto generic;
+    if (PyUnicode_READY(nameobj))
+        return NULL;
 
     handlernum = handlername2int(nameobj);
 
@@ -1289,8 +1307,8 @@ xmlparse_getattro(xmlparseobject *self, PyObject *nameobj)
         return result;
     }
 
-    name = PyUnicode_AS_UNICODE(nameobj);
-    if (name[0] == 'E') {
+    first_char = PyUnicode_READ_CHAR(nameobj, 0);
+    if (first_char == 'E') {
         if (PyUnicode_CompareWithASCIIString(nameobj, "ErrorCode") == 0)
             return PyLong_FromLong((long)
                                   XML_GetErrorCode(self->itself));
@@ -1304,7 +1322,7 @@ xmlparse_getattro(xmlparseobject *self, PyObject *nameobj)
             return PyLong_FromLong((long)
                                   XML_GetErrorByteIndex(self->itself));
     }
-    if (name[0] == 'C') {
+    if (first_char == 'C') {
         if (PyUnicode_CompareWithASCIIString(nameobj, "CurrentLineNumber") == 0)
             return PyLong_FromLong((long)
                                   XML_GetCurrentLineNumber(self->itself));
@@ -1315,7 +1333,7 @@ xmlparse_getattro(xmlparseobject *self, PyObject *nameobj)
             return PyLong_FromLong((long)
                                   XML_GetCurrentByteIndex(self->itself));
     }
-    if (name[0] == 'b') {
+    if (first_char == 'b') {
         if (PyUnicode_CompareWithASCIIString(nameobj, "buffer_size") == 0)
             return PyLong_FromLong((long) self->buffer_size);
         if (PyUnicode_CompareWithASCIIString(nameobj, "buffer_text") == 0)
@@ -1440,7 +1458,7 @@ xmlparse_setattro(xmlparseobject *self, PyObject *name, PyObject *v)
             return -1;
         if (b) {
             if (self->buffer == NULL) {
-                self->buffer = malloc(self->buffer_size);
+                self->buffer = PyMem_Malloc(self->buffer_size);
                 if (self->buffer == NULL) {
                     PyErr_NoMemory();
                     return -1;
@@ -1451,7 +1469,7 @@ xmlparse_setattro(xmlparseobject *self, PyObject *name, PyObject *v)
         else if (self->buffer != NULL) {
             if (flush_character_buffer(self) < 0)
                 return -1;
-            free(self->buffer);
+            PyMem_Free(self->buffer);
             self->buffer = NULL;
         }
         return 0;
@@ -1508,12 +1526,14 @@ xmlparse_setattro(xmlparseobject *self, PyObject *name, PyObject *v)
       if (self->buffer != NULL) {
         /* there is already a buffer */
         if (self->buffer_used != 0) {
-          flush_character_buffer(self);
+            if (flush_character_buffer(self) < 0) {
+                return -1;
+            }
         }
         /* free existing buffer */
-        free(self->buffer);
+        PyMem_Free(self->buffer);
       }
-      self->buffer = malloc(new_buffer_size);
+      self->buffer = PyMem_Malloc(new_buffer_size);
       if (self->buffer == NULL) {
         PyErr_NoMemory();
         return -1;
@@ -1709,7 +1729,6 @@ MODULE_INITFUNC(void)
     PyObject *errors_module;
     PyObject *modelmod_name;
     PyObject *model_module;
-    PyObject *version;
     PyObject *sys_modules;
     PyObject *tmpnum, *tmpstr;
     PyObject *codes_dict;
@@ -1746,10 +1765,6 @@ MODULE_INITFUNC(void)
     Py_INCREF(&Xmlparsetype);
     PyModule_AddObject(m, "XMLParserType", (PyObject *) &Xmlparsetype);
 
-    version = PyUnicode_FromString(PY_VERSION);
-    if (!version)
-        return NULL;
-    PyModule_AddObject(m, "__version__", version);
     PyModule_AddStringConstant(m, "EXPAT_VERSION",
                                (char *) XML_ExpatVersion());
     {
@@ -1758,7 +1773,6 @@ MODULE_INITFUNC(void)
                            Py_BuildValue("(iii)", info.major,
                                          info.minor, info.micro));
     }
-    init_template_buffer();
     /* XXX When Expat supports some way of figuring out how it was
        compiled, this should check and set native_encoding
        appropriately.
@@ -1942,6 +1956,9 @@ MODULE_INITFUNC(void)
     capi.SetProcessingInstructionHandler = XML_SetProcessingInstructionHandler;
     capi.SetUnknownEncodingHandler = XML_SetUnknownEncodingHandler;
     capi.SetUserData = XML_SetUserData;
+    capi.SetStartDoctypeDeclHandler = XML_SetStartDoctypeDeclHandler;
+    capi.SetEncoding = XML_SetEncoding;
+    capi.DefaultUnknownEncodingHandler = PyUnknownEncodingHandler;
 
     /* export using capsule */
     capi_object = PyCapsule_New(&capi, PyExpat_CAPSULE_NAME, NULL);

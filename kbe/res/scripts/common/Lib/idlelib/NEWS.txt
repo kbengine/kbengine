@@ -1,4 +1,21 @@
-What's New in IDLE 3.2.4?
+What's New in IDLE 3.4.0?
+=========================
+
+- Issue #17390: Display Python version on Idle title bar.
+  Initial patch by Edmond Burnett.
+
+- Issue #5066: Update IDLE docs. Patch by Todd Rovito.
+
+- Issue #17625: Close the replace dialog after it is used.
+
+- Issue #16226: Fix IDLE Path Browser crash.
+  (Patch by Roger Serwy)
+
+- Issue #15853: Prevent IDLE crash on OS X when opening Preferences menu
+  with certain versions of Tk 8.5.  Initial patch by Kevin Walzer.
+
+
+What's New in IDLE 3.3.0?
 =========================
 
 - Issue #17625: Close the replace dialog after it is used.
@@ -6,6 +23,9 @@ What's New in IDLE 3.2.4?
 - Issue #7163: Propagate return value of sys.stdout.write.
 
 - Issue #15318: Prevent writing to sys.stdin.
+
+- Issue #4832: Modify IDLE to save files with .py extension by
+  default on Windows and OS X (Tk 8.5) as it already does with X11 Tk.
 
 - Issue #13532, #15319: Check that arguments to sys.stdout.write are strings.
 
@@ -20,15 +40,10 @@ What's New in IDLE 3.2.4?
 - Issue #14937: Perform auto-completion of filenames in strings even for
   non-ASCII filenames. Likewise for identifiers.
 
-- Issue #14018: Update checks for unstable system Tcl/Tk versions on OS X
-  to include versions shipped with OS X 10.7 and 10.8 in addition to 10.6.
+- Issue #8515: Set __file__ when run file in IDLE.
+  Initial patch by Bruce Frederiksen.
 
-- Issue #15853: Prevent IDLE crash on OS X when opening Preferences menu
-  with certain versions of Tk 8.5.  Initial patch by Kevin Walzer.
-
-
-What's New in IDLE 3.2.3?
-=========================
+- IDLE can be launched as `python -m idlelib`
 
 - Issue #14409: IDLE now properly executes commands in the Shell window
   when it cannot read the normal config files on startup and
@@ -37,6 +52,9 @@ What's New in IDLE 3.2.3?
 
 - Issue #3573: IDLE hangs when passing invalid command line args
   (directory(ies) instead of file(s)).
+
+- Issue #14018: Update checks for unstable system Tcl/Tk versions on OS X
+  to include versions shipped with OS X 10.7 and 10.8 in addition to 10.6.
 
 
 What's New in IDLE 3.2.1?
@@ -857,4 +875,3 @@ What's New in IDLEfork 0.9 Alpha 1?
 --------------------------------------------------------------------
 Refer to HISTORY.txt for additional information on earlier releases.
 --------------------------------------------------------------------
-

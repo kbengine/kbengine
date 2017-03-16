@@ -13,7 +13,7 @@
 
 /* Forward */
 static node *parsetok(struct tok_state *, grammar *, int, perrdetail *, int *);
-static void initerr(perrdetail *err_ret, const char* filename);
+static int initerr(perrdetail *err_ret, PyObject * filename);
 
 /* Parse input coming from a string.  Return error code, print some errors. */
 node *
@@ -41,14 +41,15 @@ PyParser_ParseStringFlagsFilename(const char *s, const char *filename,
 }
 
 node *
-PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename,
-                          grammar *g, int start,
-                          perrdetail *err_ret, int *flags)
+PyParser_ParseStringObject(const char *s, PyObject *filename,
+                           grammar *g, int start,
+                           perrdetail *err_ret, int *flags)
 {
     struct tok_state *tok;
     int exec_input = start == file_input;
 
-    initerr(err_ret, filename);
+    if (initerr(err_ret, filename) < 0)
+        return NULL;
 
     if (*flags & PyPARSE_IGNORE_COOKIE)
         tok = PyTokenizer_FromUTF8(s, exec_input);
@@ -59,15 +60,42 @@ PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename,
         return NULL;
     }
 
-    tok->filename = filename ? filename : "<string>";
+#ifndef PGEN
+    Py_INCREF(err_ret->filename);
+    tok->filename = err_ret->filename;
+#endif
     return parsetok(tok, g, start, err_ret, flags);
+}
+
+node *
+PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename_str,
+                          grammar *g, int start,
+                          perrdetail *err_ret, int *flags)
+{
+    node *n;
+    PyObject *filename = NULL;
+#ifndef PGEN
+    if (filename_str != NULL) {
+        filename = PyUnicode_DecodeFSDefault(filename_str);
+        if (filename == NULL) {
+            err_ret->error = E_ERROR;
+            return NULL;
+        }
+    }
+#endif
+    n = PyParser_ParseStringObject(s, filename, g, start, err_ret, flags);
+#ifndef PGEN
+    Py_XDECREF(filename);
+#endif
+    return n;
 }
 
 /* Parse input coming from a file.  Return error code, print some errors. */
 
 node *
 PyParser_ParseFile(FILE *fp, const char *filename, grammar *g, int start,
-                   char *ps1, char *ps2, perrdetail *err_ret)
+                   const char *ps1, const char *ps2,
+                   perrdetail *err_ret)
 {
     return PyParser_ParseFileFlags(fp, filename, NULL,
                                    g, start, ps1, ps2, err_ret, 0);
@@ -76,7 +104,8 @@ PyParser_ParseFile(FILE *fp, const char *filename, grammar *g, int start,
 node *
 PyParser_ParseFileFlags(FILE *fp, const char *filename, const char *enc,
                         grammar *g, int start,
-                        char *ps1, char *ps2, perrdetail *err_ret, int flags)
+                        const char *ps1, const char *ps2,
+                        perrdetail *err_ret, int flags)
 {
     int iflags = flags;
     return PyParser_ParseFileFlagsEx(fp, filename, enc, g, start, ps1,
@@ -84,20 +113,50 @@ PyParser_ParseFileFlags(FILE *fp, const char *filename, const char *enc,
 }
 
 node *
-PyParser_ParseFileFlagsEx(FILE *fp, const char *filename,
-                          const char *enc, grammar *g, int start,
-                          char *ps1, char *ps2, perrdetail *err_ret, int *flags)
+PyParser_ParseFileObject(FILE *fp, PyObject *filename,
+                         const char *enc, grammar *g, int start,
+                         const char *ps1, const char *ps2,
+                         perrdetail *err_ret, int *flags)
 {
     struct tok_state *tok;
 
-    initerr(err_ret, filename);
+    if (initerr(err_ret, filename) < 0)
+        return NULL;
 
-    if ((tok = PyTokenizer_FromFile(fp, (char *)enc, ps1, ps2)) == NULL) {
+    if ((tok = PyTokenizer_FromFile(fp, enc, ps1, ps2)) == NULL) {
         err_ret->error = E_NOMEM;
         return NULL;
     }
-    tok->filename = filename;
+#ifndef PGEN
+    Py_INCREF(err_ret->filename);
+    tok->filename = err_ret->filename;
+#endif
     return parsetok(tok, g, start, err_ret, flags);
+}
+
+node *
+PyParser_ParseFileFlagsEx(FILE *fp, const char *filename,
+                          const char *enc, grammar *g, int start,
+                          const char *ps1, const char *ps2,
+                          perrdetail *err_ret, int *flags)
+{
+    node *n;
+    PyObject *fileobj = NULL;
+#ifndef PGEN
+    if (filename != NULL) {
+        fileobj = PyUnicode_DecodeFSDefault(filename);
+        if (fileobj == NULL) {
+            err_ret->error = E_ERROR;
+            return NULL;
+        }
+    }
+#endif
+    n = PyParser_ParseFileObject(fp, fileobj, enc, g,
+                                 start, ps1, ps2, err_ret, flags);
+#ifndef PGEN
+    Py_XDECREF(fileobj);
+#endif
+    return n;
 }
 
 #ifdef PY_PARSER_REQUIRES_FUTURE_KEYWORD
@@ -130,7 +189,6 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     int started = 0;
 
     if ((ps = PyParser_New(g, start)) == NULL) {
-        fprintf(stderr, "no mem for new parser\n");
         err_ret->error = E_NOMEM;
         PyTokenizer_Free(tok);
         return NULL;
@@ -170,7 +228,6 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         len = b - a; /* XXX this may compute NULL - NULL */
         str = (char *) PyObject_MALLOC(len + 1);
         if (str == NULL) {
-            fprintf(stderr, "no mem for next token\n");
             err_ret->error = E_NOMEM;
             break;
         }
@@ -197,7 +254,8 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         }
 #endif
         if (a >= tok->line_start)
-            col_offset = a - tok->line_start;
+            col_offset = Py_SAFE_DOWNCAST(a - tok->line_start,
+                                          Py_intptr_t, int);
         else
             col_offset = -1;
 
@@ -216,6 +274,36 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     if (err_ret->error == E_DONE) {
         n = ps->p_tree;
         ps->p_tree = NULL;
+
+#ifndef PGEN
+        /* Check that the source for a single input statement really
+           is a single statement by looking at what is left in the
+           buffer after parsing.  Trailing whitespace and comments
+           are OK.  */
+        if (start == single_input) {
+            char *cur = tok->cur;
+            char c = *tok->cur;
+
+            for (;;) {
+                while (c == ' ' || c == '\t' || c == '\n' || c == '\014')
+                    c = *++cur;
+
+                if (!c)
+                    break;
+
+                if (c != '#') {
+                    err_ret->error = E_BADSINGLE;
+                    PyNode_Free(n);
+                    n = NULL;
+                    break;
+                }
+
+                /* Suck up comment. */
+                while (c && c != '\n')
+                    c = *++cur;
+            }
+        }
+#endif
     }
     else
         n = NULL;
@@ -226,7 +314,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     PyParser_Delete(ps);
 
     if (n == NULL) {
-        if (tok->lineno <= 1 && tok->done == E_EOF)
+        if (tok->done == E_EOF)
             err_ret->error = E_EOF;
         err_ret->lineno = tok->lineno;
         if (tok->buf != NULL) {
@@ -269,14 +357,27 @@ done:
     return n;
 }
 
-static void
-initerr(perrdetail *err_ret, const char *filename)
+static int
+initerr(perrdetail *err_ret, PyObject *filename)
 {
     err_ret->error = E_OK;
-    err_ret->filename = filename;
     err_ret->lineno = 0;
     err_ret->offset = 0;
     err_ret->text = NULL;
     err_ret->token = -1;
     err_ret->expected = -1;
+#ifndef PGEN
+    if (filename) {
+        Py_INCREF(filename);
+        err_ret->filename = filename;
+    }
+    else {
+        err_ret->filename = PyUnicode_FromString("<string>");
+        if (err_ret->filename == NULL) {
+            err_ret->error = E_ERROR;
+            return -1;
+        }
+    }
+#endif
+    return 0;
 }

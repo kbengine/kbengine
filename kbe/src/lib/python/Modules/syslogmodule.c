@@ -70,7 +70,7 @@ syslog_get_argv(void)
 
     Py_ssize_t argv_len, scriptlen;
     PyObject *scriptobj;
-    Py_UNICODE *atslash, *atstart;
+    Py_ssize_t slash;
     PyObject *argv = PySys_GetObject("argv");
 
     if (argv == NULL) {
@@ -90,16 +90,16 @@ syslog_get_argv(void)
     if (!PyUnicode_Check(scriptobj)) {
         return(NULL);
     }
-    scriptlen = PyUnicode_GET_SIZE(scriptobj);
+    scriptlen = PyUnicode_GET_LENGTH(scriptobj);
     if (scriptlen == 0) {
         return(NULL);
     }
 
-    atstart = PyUnicode_AS_UNICODE(scriptobj);
-    atslash = Py_UNICODE_strrchr(atstart, SEP);
-    if (atslash) {
-        return(PyUnicode_FromUnicode(atslash + 1,
-                                     scriptlen - (atslash - atstart) - 1));
+    slash = PyUnicode_FindChar(scriptobj, SEP, 0, scriptlen, -1);
+    if (slash == -2)
+        return NULL;
+    if (slash != -1) {
+        return PyUnicode_Substring(scriptobj, slash, scriptlen);
     } else {
         Py_INCREF(scriptobj);
         return(scriptobj);
@@ -197,8 +197,7 @@ syslog_closelog(PyObject *self, PyObject *unused)
 {
     if (S_log_open) {
         closelog();
-        Py_XDECREF(S_ident_o);
-        S_ident_o = NULL;
+        Py_CLEAR(S_ident_o);
         S_log_open = 0;
     }
     Py_INCREF(Py_None);
@@ -278,41 +277,44 @@ PyInit_syslog(void)
     /* Add some symbolic constants to the module */
 
     /* Priorities */
-    PyModule_AddIntConstant(m, "LOG_EMERG",       LOG_EMERG);
-    PyModule_AddIntConstant(m, "LOG_ALERT",       LOG_ALERT);
-    PyModule_AddIntConstant(m, "LOG_CRIT",        LOG_CRIT);
-    PyModule_AddIntConstant(m, "LOG_ERR",         LOG_ERR);
-    PyModule_AddIntConstant(m, "LOG_WARNING", LOG_WARNING);
-    PyModule_AddIntConstant(m, "LOG_NOTICE",  LOG_NOTICE);
-    PyModule_AddIntConstant(m, "LOG_INFO",        LOG_INFO);
-    PyModule_AddIntConstant(m, "LOG_DEBUG",       LOG_DEBUG);
+    PyModule_AddIntMacro(m, LOG_EMERG);
+    PyModule_AddIntMacro(m, LOG_ALERT);
+    PyModule_AddIntMacro(m, LOG_CRIT);
+    PyModule_AddIntMacro(m, LOG_ERR);
+    PyModule_AddIntMacro(m, LOG_WARNING);
+    PyModule_AddIntMacro(m, LOG_NOTICE);
+    PyModule_AddIntMacro(m, LOG_INFO);
+    PyModule_AddIntMacro(m, LOG_DEBUG);
 
     /* openlog() option flags */
-    PyModule_AddIntConstant(m, "LOG_PID",         LOG_PID);
-    PyModule_AddIntConstant(m, "LOG_CONS",        LOG_CONS);
-    PyModule_AddIntConstant(m, "LOG_NDELAY",  LOG_NDELAY);
+    PyModule_AddIntMacro(m, LOG_PID);
+    PyModule_AddIntMacro(m, LOG_CONS);
+    PyModule_AddIntMacro(m, LOG_NDELAY);
+#ifdef LOG_ODELAY
+    PyModule_AddIntMacro(m, LOG_ODELAY);
+#endif
 #ifdef LOG_NOWAIT
-    PyModule_AddIntConstant(m, "LOG_NOWAIT",  LOG_NOWAIT);
+    PyModule_AddIntMacro(m, LOG_NOWAIT);
 #endif
 #ifdef LOG_PERROR
-    PyModule_AddIntConstant(m, "LOG_PERROR",  LOG_PERROR);
+    PyModule_AddIntMacro(m, LOG_PERROR);
 #endif
 
     /* Facilities */
-    PyModule_AddIntConstant(m, "LOG_KERN",        LOG_KERN);
-    PyModule_AddIntConstant(m, "LOG_USER",        LOG_USER);
-    PyModule_AddIntConstant(m, "LOG_MAIL",        LOG_MAIL);
-    PyModule_AddIntConstant(m, "LOG_DAEMON",  LOG_DAEMON);
-    PyModule_AddIntConstant(m, "LOG_AUTH",        LOG_AUTH);
-    PyModule_AddIntConstant(m, "LOG_LPR",         LOG_LPR);
-    PyModule_AddIntConstant(m, "LOG_LOCAL0",  LOG_LOCAL0);
-    PyModule_AddIntConstant(m, "LOG_LOCAL1",  LOG_LOCAL1);
-    PyModule_AddIntConstant(m, "LOG_LOCAL2",  LOG_LOCAL2);
-    PyModule_AddIntConstant(m, "LOG_LOCAL3",  LOG_LOCAL3);
-    PyModule_AddIntConstant(m, "LOG_LOCAL4",  LOG_LOCAL4);
-    PyModule_AddIntConstant(m, "LOG_LOCAL5",  LOG_LOCAL5);
-    PyModule_AddIntConstant(m, "LOG_LOCAL6",  LOG_LOCAL6);
-    PyModule_AddIntConstant(m, "LOG_LOCAL7",  LOG_LOCAL7);
+    PyModule_AddIntMacro(m, LOG_KERN);
+    PyModule_AddIntMacro(m, LOG_USER);
+    PyModule_AddIntMacro(m, LOG_MAIL);
+    PyModule_AddIntMacro(m, LOG_DAEMON);
+    PyModule_AddIntMacro(m, LOG_AUTH);
+    PyModule_AddIntMacro(m, LOG_LPR);
+    PyModule_AddIntMacro(m, LOG_LOCAL0);
+    PyModule_AddIntMacro(m, LOG_LOCAL1);
+    PyModule_AddIntMacro(m, LOG_LOCAL2);
+    PyModule_AddIntMacro(m, LOG_LOCAL3);
+    PyModule_AddIntMacro(m, LOG_LOCAL4);
+    PyModule_AddIntMacro(m, LOG_LOCAL5);
+    PyModule_AddIntMacro(m, LOG_LOCAL6);
+    PyModule_AddIntMacro(m, LOG_LOCAL7);
 
 #ifndef LOG_SYSLOG
 #define LOG_SYSLOG              LOG_DAEMON
@@ -327,9 +329,14 @@ PyInit_syslog(void)
 #define LOG_CRON                LOG_DAEMON
 #endif
 
-    PyModule_AddIntConstant(m, "LOG_SYSLOG",  LOG_SYSLOG);
-    PyModule_AddIntConstant(m, "LOG_CRON",        LOG_CRON);
-    PyModule_AddIntConstant(m, "LOG_UUCP",        LOG_UUCP);
-    PyModule_AddIntConstant(m, "LOG_NEWS",        LOG_NEWS);
+    PyModule_AddIntMacro(m, LOG_SYSLOG);
+    PyModule_AddIntMacro(m, LOG_CRON);
+    PyModule_AddIntMacro(m, LOG_UUCP);
+    PyModule_AddIntMacro(m, LOG_NEWS);
+
+#ifdef LOG_AUTHPRIV
+    PyModule_AddIntMacro(m, LOG_AUTHPRIV);
+#endif
+
     return m;
 }

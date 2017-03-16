@@ -1,215 +1,240 @@
 #
-# Module to allow connection and socket objects to be transferred
-# between processes
+# Module which deals with pickling of objects.
 #
 # multiprocessing/reduction.py
 #
 # Copyright (c) 2006-2008, R Oudkerk
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-# 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of author nor the names of any contributors may be
-#    used to endorse or promote products derived from this software
-#    without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-# SUCH DAMAGE.
+# Licensed to PSF under a Contributor Agreement.
 #
 
-__all__ = []
-
+import copyreg
+import functools
+import io
 import os
-import sys
+import pickle
 import socket
-import threading
+import sys
 
-import _multiprocessing
-from multiprocessing import current_process
-from multiprocessing.forking import Popen, duplicate, close, ForkingPickler
-from multiprocessing.util import register_after_fork, debug, sub_debug
-from multiprocessing.connection import Client, Listener
+from . import context
 
+__all__ = ['send_handle', 'recv_handle', 'ForkingPickler', 'register', 'dump']
+
+
+HAVE_SEND_HANDLE = (sys.platform == 'win32' or
+                    (hasattr(socket, 'CMSG_LEN') and
+                     hasattr(socket, 'SCM_RIGHTS') and
+                     hasattr(socket.socket, 'sendmsg')))
 
 #
-#
+# Pickler subclass
 #
 
-if not(sys.platform == 'win32' or hasattr(_multiprocessing, 'recvfd')):
-    raise ImportError('pickling of connections not supported')
+class ForkingPickler(pickle.Pickler):
+    '''Pickler subclass used by multiprocessing.'''
+    _extra_reducers = {}
+    _copyreg_dispatch_table = copyreg.dispatch_table
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.dispatch_table = self._copyreg_dispatch_table.copy()
+        self.dispatch_table.update(self._extra_reducers)
+
+    @classmethod
+    def register(cls, type, reduce):
+        '''Register a reduce function for a type.'''
+        cls._extra_reducers[type] = reduce
+
+    @classmethod
+    def dumps(cls, obj, protocol=None):
+        buf = io.BytesIO()
+        cls(buf, protocol).dump(obj)
+        return buf.getbuffer()
+
+    loads = pickle.loads
+
+register = ForkingPickler.register
+
+def dump(obj, file, protocol=None):
+    '''Replacement for pickle.dump() using ForkingPickler.'''
+    ForkingPickler(file, protocol).dump(obj)
 
 #
 # Platform specific definitions
 #
 
 if sys.platform == 'win32':
-    import _subprocess
-    from _multiprocessing import win32
+    # Windows
+    __all__ += ['DupHandle', 'duplicate', 'steal_handle']
+    import _winapi
+
+    def duplicate(handle, target_process=None, inheritable=False):
+        '''Duplicate a handle.  (target_process is a handle not a pid!)'''
+        if target_process is None:
+            target_process = _winapi.GetCurrentProcess()
+        return _winapi.DuplicateHandle(
+            _winapi.GetCurrentProcess(), handle, target_process,
+            0, inheritable, _winapi.DUPLICATE_SAME_ACCESS)
+
+    def steal_handle(source_pid, handle):
+        '''Steal a handle from process identified by source_pid.'''
+        source_process_handle = _winapi.OpenProcess(
+            _winapi.PROCESS_DUP_HANDLE, False, source_pid)
+        try:
+            return _winapi.DuplicateHandle(
+                source_process_handle, handle,
+                _winapi.GetCurrentProcess(), 0, False,
+                _winapi.DUPLICATE_SAME_ACCESS | _winapi.DUPLICATE_CLOSE_SOURCE)
+        finally:
+            _winapi.CloseHandle(source_process_handle)
 
     def send_handle(conn, handle, destination_pid):
-        process_handle = win32.OpenProcess(
-            win32.PROCESS_ALL_ACCESS, False, destination_pid
-            )
-        try:
-            new_handle = duplicate(handle, process_handle)
-            conn.send(new_handle)
-        finally:
-            close(process_handle)
+        '''Send a handle over a local connection.'''
+        dh = DupHandle(handle, _winapi.DUPLICATE_SAME_ACCESS, destination_pid)
+        conn.send(dh)
 
     def recv_handle(conn):
-        return conn.recv()
+        '''Receive a handle over a local connection.'''
+        return conn.recv().detach()
+
+    class DupHandle(object):
+        '''Picklable wrapper for a handle.'''
+        def __init__(self, handle, access, pid=None):
+            if pid is None:
+                # We just duplicate the handle in the current process and
+                # let the receiving process steal the handle.
+                pid = os.getpid()
+            proc = _winapi.OpenProcess(_winapi.PROCESS_DUP_HANDLE, False, pid)
+            try:
+                self._handle = _winapi.DuplicateHandle(
+                    _winapi.GetCurrentProcess(),
+                    handle, proc, access, False, 0)
+            finally:
+                _winapi.CloseHandle(proc)
+            self._access = access
+            self._pid = pid
+
+        def detach(self):
+            '''Get the handle.  This should only be called once.'''
+            # retrieve handle from process which currently owns it
+            if self._pid == os.getpid():
+                # The handle has already been duplicated for this process.
+                return self._handle
+            # We must steal the handle from the process whose pid is self._pid.
+            proc = _winapi.OpenProcess(_winapi.PROCESS_DUP_HANDLE, False,
+                                       self._pid)
+            try:
+                return _winapi.DuplicateHandle(
+                    proc, self._handle, _winapi.GetCurrentProcess(),
+                    self._access, False, _winapi.DUPLICATE_CLOSE_SOURCE)
+            finally:
+                _winapi.CloseHandle(proc)
 
 else:
+    # Unix
+    __all__ += ['DupFd', 'sendfds', 'recvfds']
+    import array
+
+    # On MacOSX we should acknowledge receipt of fds -- see Issue14669
+    ACKNOWLEDGE = sys.platform == 'darwin'
+
+    def sendfds(sock, fds):
+        '''Send an array of fds over an AF_UNIX socket.'''
+        fds = array.array('i', fds)
+        msg = bytes([len(fds) % 256])
+        sock.sendmsg([msg], [(socket.SOL_SOCKET, socket.SCM_RIGHTS, fds)])
+        if ACKNOWLEDGE and sock.recv(1) != b'A':
+            raise RuntimeError('did not receive acknowledgement of fd')
+
+    def recvfds(sock, size):
+        '''Receive an array of fds over an AF_UNIX socket.'''
+        a = array.array('i')
+        bytes_size = a.itemsize * size
+        msg, ancdata, flags, addr = sock.recvmsg(1, socket.CMSG_LEN(bytes_size))
+        if not msg and not ancdata:
+            raise EOFError
+        try:
+            if ACKNOWLEDGE:
+                sock.send(b'A')
+            if len(ancdata) != 1:
+                raise RuntimeError('received %d items of ancdata' %
+                                   len(ancdata))
+            cmsg_level, cmsg_type, cmsg_data = ancdata[0]
+            if (cmsg_level == socket.SOL_SOCKET and
+                cmsg_type == socket.SCM_RIGHTS):
+                if len(cmsg_data) % a.itemsize != 0:
+                    raise ValueError
+                a.frombytes(cmsg_data)
+                assert len(a) % 256 == msg[0]
+                return list(a)
+        except (ValueError, IndexError):
+            pass
+        raise RuntimeError('Invalid data received')
+
     def send_handle(conn, handle, destination_pid):
-        _multiprocessing.sendfd(conn.fileno(), handle)
+        '''Send a handle over a local connection.'''
+        with socket.fromfd(conn.fileno(), socket.AF_UNIX, socket.SOCK_STREAM) as s:
+            sendfds(s, [handle])
 
     def recv_handle(conn):
-        return _multiprocessing.recvfd(conn.fileno())
+        '''Receive a handle over a local connection.'''
+        with socket.fromfd(conn.fileno(), socket.AF_UNIX, socket.SOCK_STREAM) as s:
+            return recvfds(s, 1)[0]
+
+    def DupFd(fd):
+        '''Return a wrapper for an fd.'''
+        popen_obj = context.get_spawning_popen()
+        if popen_obj is not None:
+            return popen_obj.DupFd(popen_obj.duplicate_for_child(fd))
+        elif HAVE_SEND_HANDLE:
+            from . import resource_sharer
+            return resource_sharer.DupFd(fd)
+        else:
+            raise ValueError('SCM_RIGHTS appears not to be available')
 
 #
-# Support for a per-process server thread which caches pickled handles
+# Try making some callable types picklable
 #
 
-_cache = set()
+def _reduce_method(m):
+    if m.__self__ is None:
+        return getattr, (m.__class__, m.__func__.__name__)
+    else:
+        return getattr, (m.__self__, m.__func__.__name__)
+class _C:
+    def f(self):
+        pass
+register(type(_C().f), _reduce_method)
 
-def _reset(obj):
-    global _lock, _listener, _cache
-    for h in _cache:
-        close(h)
-    _cache.clear()
-    _lock = threading.Lock()
-    _listener = None
 
-_reset(None)
-register_after_fork(_reset, _reset)
+def _reduce_method_descriptor(m):
+    return getattr, (m.__objclass__, m.__name__)
+register(type(list.append), _reduce_method_descriptor)
+register(type(int.__add__), _reduce_method_descriptor)
 
-def _get_listener():
-    global _listener
 
-    if _listener is None:
-        _lock.acquire()
-        try:
-            if _listener is None:
-                debug('starting listener and thread for sending handles')
-                _listener = Listener(authkey=current_process().authkey)
-                t = threading.Thread(target=_serve)
-                t.daemon = True
-                t.start()
-        finally:
-            _lock.release()
-
-    return _listener
-
-def _serve():
-    from .util import is_exiting, sub_warning
-
-    while 1:
-        try:
-            conn = _listener.accept()
-            handle_wanted, destination_pid = conn.recv()
-            _cache.remove(handle_wanted)
-            send_handle(conn, handle_wanted, destination_pid)
-            close(handle_wanted)
-            conn.close()
-        except:
-            if not is_exiting():
-                import traceback
-                sub_warning(
-                    'thread for sharing handles raised exception :\n' +
-                    '-'*79 + '\n' + traceback.format_exc() + '-'*79
-                    )
+def _reduce_partial(p):
+    return _rebuild_partial, (p.func, p.args, p.keywords or {})
+def _rebuild_partial(func, args, keywords):
+    return functools.partial(func, *args, **keywords)
+register(functools.partial, _reduce_partial)
 
 #
-# Functions to be used for pickling/unpickling objects with handles
-#
-
-def reduce_handle(handle):
-    if Popen.thread_is_spawning():
-        return (None, Popen.duplicate_for_child(handle), True)
-    dup_handle = duplicate(handle)
-    _cache.add(dup_handle)
-    sub_debug('reducing handle %d', handle)
-    return (_get_listener().address, dup_handle, False)
-
-def rebuild_handle(pickled_data):
-    address, handle, inherited = pickled_data
-    if inherited:
-        return handle
-    sub_debug('rebuilding handle %d', handle)
-    conn = Client(address, authkey=current_process().authkey)
-    conn.send((handle, os.getpid()))
-    new_handle = recv_handle(conn)
-    conn.close()
-    return new_handle
-
-#
-# Register `_multiprocessing.Connection` with `ForkingPickler`
-#
-
-def reduce_connection(conn):
-    rh = reduce_handle(conn.fileno())
-    return rebuild_connection, (rh, conn.readable, conn.writable)
-
-def rebuild_connection(reduced_handle, readable, writable):
-    handle = rebuild_handle(reduced_handle)
-    return _multiprocessing.Connection(
-        handle, readable=readable, writable=writable
-        )
-
-ForkingPickler.register(_multiprocessing.Connection, reduce_connection)
-
-#
-# Register `socket.socket` with `ForkingPickler`
-#
-
-def fromfd(fd, family, type_, proto=0):
-    s = socket.fromfd(fd, family, type_, proto)
-    if s.__class__ is not socket.socket:
-        s = socket.socket(_sock=s)
-    return s
-
-def reduce_socket(s):
-    reduced_handle = reduce_handle(s.fileno())
-    return rebuild_socket, (reduced_handle, s.family, s.type, s.proto)
-
-def rebuild_socket(reduced_handle, family, type_, proto):
-    fd = rebuild_handle(reduced_handle)
-    _sock = fromfd(fd, family, type_, proto)
-    close(fd)
-    return _sock
-
-ForkingPickler.register(socket.socket, reduce_socket)
-
-#
-# Register `_multiprocessing.PipeConnection` with `ForkingPickler`
+# Make sockets picklable
 #
 
 if sys.platform == 'win32':
+    def _reduce_socket(s):
+        from .resource_sharer import DupSocket
+        return _rebuild_socket, (DupSocket(s),)
+    def _rebuild_socket(ds):
+        return ds.detach()
+    register(socket.socket, _reduce_socket)
 
-    def reduce_pipe_connection(conn):
-        rh = reduce_handle(conn.fileno())
-        return rebuild_pipe_connection, (rh, conn.readable, conn.writable)
-
-    def rebuild_pipe_connection(reduced_handle, readable, writable):
-        handle = rebuild_handle(reduced_handle)
-        return _multiprocessing.PipeConnection(
-            handle, readable=readable, writable=writable
-            )
-
-    ForkingPickler.register(_multiprocessing.PipeConnection, reduce_pipe_connection)
+else:
+    def _reduce_socket(s):
+        df = DupFd(s.fileno())
+        return _rebuild_socket, (df, s.family, s.type, s.proto)
+    def _rebuild_socket(df, family, type, proto):
+        fd = df.detach()
+        return socket.socket(family, type, proto, fileno=fd)
+    register(socket.socket, _reduce_socket)

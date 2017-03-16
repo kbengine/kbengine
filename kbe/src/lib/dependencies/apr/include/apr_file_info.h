@@ -208,7 +208,7 @@ struct apr_finfo_t {
     const char *fname;
     /** The file's name (no path) in filesystem case */
     const char *name;
-    /** The file's handle, if accessed (can be submitted to apr_duphandle) */
+    /** Unused */
     struct apr_file_t *filehand;
 };
 

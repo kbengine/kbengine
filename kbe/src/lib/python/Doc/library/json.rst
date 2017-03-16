@@ -42,8 +42,7 @@ Compact encoding::
 Pretty printing::
 
     >>> import json
-    >>> print(json.dumps({'4': 5, '6': 7}, sort_keys=True,
-    ...                  indent=4, separators=(',', ': ')))
+    >>> print(json.dumps({'4': 5, '6': 7}, sort_keys=True, indent=4))
     {
         "4": 5,
         "6": 7
@@ -124,7 +123,8 @@ Basic Usage
                    sort_keys=False, **kw)
 
    Serialize *obj* as a JSON formatted stream to *fp* (a ``.write()``-supporting
-   :term:`file-like object`).
+   :term:`file-like object`) using this :ref:`conversion table
+   <py-to-json-table>`.
 
    If *skipkeys* is ``True`` (default: ``False``), then dict keys that are not
    of a basic type (:class:`str`, :class:`int`, :class:`float`, :class:`bool`,
@@ -157,15 +157,13 @@ Basic Usage
    .. versionchanged:: 3.2
       Allow strings for *indent* in addition to integers.
 
-   .. note::
+   If specified, *separators* should be an ``(item_separator, key_separator)``
+   tuple.  The default is ``(', ', ': ')`` if *indent* is ``None`` and
+   ``(',', ': ')`` otherwise.  To get the most compact JSON representation,
+   you should specify ``(',', ':')`` to eliminate whitespace.
 
-      Since the default item separator is ``', '``,  the output might include
-      trailing whitespace when *indent* is specified.  You can use
-      ``separators=(',', ': ')`` to avoid this.
-
-   If *separators* is an ``(item_separator, dict_separator)`` tuple, then it
-   will be used instead of the default ``(', ', ': ')`` separators.  ``(',',
-   ':')`` is the most compact JSON representation.
+   .. versionchanged:: 3.4
+      Use ``(',', ': ')`` as default if *indent* is not ``None``.
 
    *default(obj)* is a function that should return a serializable version of
    *obj* or raise :exc:`TypeError`.  The default simply raises :exc:`TypeError`.
@@ -183,8 +181,9 @@ Basic Usage
                     indent=None, separators=None, default=None, \
                     sort_keys=False, **kw)
 
-   Serialize *obj* to a JSON formatted :class:`str`.  The arguments have the
-   same meaning as in :func:`dump`.
+   Serialize *obj* to a JSON formatted :class:`str` using this :ref:`conversion
+   table <py-to-json-table>`.  The arguments have the same meaning as in
+   :func:`dump`.
 
    .. note::
 
@@ -204,7 +203,8 @@ Basic Usage
 .. function:: load(fp, cls=None, object_hook=None, parse_float=None, parse_int=None, parse_constant=None, object_pairs_hook=None, **kw)
 
    Deserialize *fp* (a ``.read()``-supporting :term:`file-like object`
-   containing a JSON document) to a Python object.
+   containing a JSON document) to a Python object using this :ref:`conversion
+   table <json-to-py-table>`.
 
    *object_hook* is an optional function that will be called with the result of
    any object literal decoded (a :class:`dict`).  The return value of
@@ -245,15 +245,19 @@ Basic Usage
    kwarg; otherwise :class:`JSONDecoder` is used.  Additional keyword arguments
    will be passed to the constructor of the class.
 
+   If the data being deserialized is not a valid JSON document, a
+   :exc:`ValueError` will be raised.
 
 .. function:: loads(s, encoding=None, cls=None, object_hook=None, parse_float=None, parse_int=None, parse_constant=None, object_pairs_hook=None, **kw)
 
    Deserialize *s* (a :class:`str` instance containing a JSON document) to a
-   Python object.
+   Python object using this :ref:`conversion table <json-to-py-table>`.
 
    The other arguments have the same meaning as in :func:`load`, except
    *encoding* which is ignored and deprecated.
 
+   If the data being deserialized is not a valid JSON document, a
+   :exc:`ValueError` will be raised.
 
 Encoders and Decoders
 ---------------------
@@ -263,6 +267,8 @@ Encoders and Decoders
    Simple JSON decoder.
 
    Performs the following translations in decoding by default:
+
+   .. _json-to-py-table:
 
    +---------------+-------------------+
    | JSON          | Python            |
@@ -323,6 +329,8 @@ Encoders and Decoders
    those with character codes in the 0-31 range, including ``'\t'`` (tab),
    ``'\n'``, ``'\r'`` and ``'\0'``.
 
+   If the data being deserialized is not a valid JSON document, a
+   :exc:`ValueError` will be raised.
 
    .. method:: decode(s)
 
@@ -345,23 +353,28 @@ Encoders and Decoders
 
    Supports the following objects and types by default:
 
-   +-------------------+---------------+
-   | Python            | JSON          |
-   +===================+===============+
-   | dict              | object        |
-   +-------------------+---------------+
-   | list, tuple       | array         |
-   +-------------------+---------------+
-   | str               | string        |
-   +-------------------+---------------+
-   | int, float        | number        |
-   +-------------------+---------------+
-   | True              | true          |
-   +-------------------+---------------+
-   | False             | false         |
-   +-------------------+---------------+
-   | None              | null          |
-   +-------------------+---------------+
+   .. _py-to-json-table:
+
+   +----------------------------------------+---------------+
+   | Python                                 | JSON          |
+   +========================================+===============+
+   | dict                                   | object        |
+   +----------------------------------------+---------------+
+   | list, tuple                            | array         |
+   +----------------------------------------+---------------+
+   | str                                    | string        |
+   +----------------------------------------+---------------+
+   | int, float, int- & float-derived Enums | number        |
+   +----------------------------------------+---------------+
+   | True                                   | true          |
+   +----------------------------------------+---------------+
+   | False                                  | false         |
+   +----------------------------------------+---------------+
+   | None                                   | null          |
+   +----------------------------------------+---------------+
+
+   .. versionchanged:: 3.4
+      Added support for int- and float-derived Enum classes.
 
    To extend this to recognize other objects, subclass and implement a
    :meth:`default` method with another method that returns a serializable object
@@ -401,15 +414,13 @@ Encoders and Decoders
    .. versionchanged:: 3.2
       Allow strings for *indent* in addition to integers.
 
-   .. note::
-
-      Since the default item separator is ``', '``,  the output might include
-      trailing whitespace when *indent* is specified.  You can use
-      ``separators=(',', ': ')`` to avoid this.
-
    If specified, *separators* should be an ``(item_separator, key_separator)``
-   tuple.  The default is ``(', ', ': ')``.  To get the most compact JSON
-   representation, you should specify ``(',', ':')`` to eliminate whitespace.
+   tuple.  The default is ``(', ', ': ')`` if *indent* is ``None`` and
+   ``(',', ': ')`` otherwise.  To get the most compact JSON representation,
+   you should specify ``(',', ':')`` to eliminate whitespace.
+
+   .. versionchanged:: 3.4
+      Use ``(',', ': ')`` as default if *indent* is not ``None``.
 
    If specified, *default* is a function that gets called for objects that can't
    otherwise be serialized.  It should return a JSON encodable version of the

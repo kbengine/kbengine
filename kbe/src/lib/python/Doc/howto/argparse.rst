@@ -11,7 +11,7 @@ recommended command-line parsing module in the Python standard library.
 
 .. note::
 
-   There's two other modules that fulfill the same task, namely
+   There are two other modules that fulfill the same task, namely
    :mod:`getopt` (an equivalent for :c:func:`getopt` from the C
    language) and the deprecated :mod:`optparse`.
    Note also that :mod:`argparse` is based on :mod:`optparse`,
@@ -63,7 +63,7 @@ A few concepts we can learn from the four commands:
 
 * That's a snippet of the help text. It's very useful in that you can
   come across a program you have never used before, and can figure out
-  how it works simply by reading it's help text.
+  how it works simply by reading its help text.
 
 
 The basics
@@ -468,7 +468,7 @@ verbosity argument (check the output of ``python --help``)::
        print(answer)
 
 We have introduced another action, "count",
-to count the number of occurences of a specific optional arguments:
+to count the number of occurrences of a specific optional arguments:
 
 .. code-block:: sh
 
@@ -668,8 +668,8 @@ Conflicting options
 So far, we have been working with two methods of an
 :class:`argparse.ArgumentParser` instance. Let's introduce a third one,
 :meth:`add_mutually_exclusive_group`. It allows for us to specify options that
-conflict with each other. Let's also change the rest of the program make the
-new functionality makes more sense:
+conflict with each other. Let's also change the rest of the program so that
+the new functionality makes more sense:
 we'll introduce the ``--quiet`` option,
 which will be the opposite of the ``--verbose`` one::
 

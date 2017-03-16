@@ -47,45 +47,142 @@ Directory and files operations
    be copied.
 
 
-.. function:: copyfile(src, dst)
+.. function:: copyfile(src, dst, *, follow_symlinks=True)
 
    Copy the contents (no metadata) of the file named *src* to a file named
-   *dst*.  *dst* must be the complete target file name; look at
-   :func:`shutil.copy` for a copy that accepts a target directory path.  If
-   *src* and *dst* are the same files, :exc:`Error` is raised.
-   The destination location must be writable; otherwise,  an :exc:`IOError` exception
-   will be raised. If *dst* already exists, it will be replaced.   Special files
-   such as character or block devices and pipes cannot be copied with this
-   function.  *src* and *dst* are path names given as strings.
+   *dst* and return *dst*.  *src* and *dst* are path names given as strings.
+   *dst* must be the complete target file name; look at :func:`shutil.copy`
+   for a copy that accepts a target directory path.  If *src* and *dst*
+   specify the same file, :exc:`SameFileError` is raised.
+
+   The destination location must be writable; otherwise, an :exc:`OSError`
+   exception will be raised. If *dst* already exists, it will be replaced.
+   Special files such as character or block devices and pipes cannot be
+   copied with this function.
+
+   If *follow_symlinks* is false and *src* is a symbolic link,
+   a new symbolic link will be created instead of copying the
+   file *src* points to.
+
+   .. versionchanged:: 3.3
+      :exc:`IOError` used to be raised instead of :exc:`OSError`.
+      Added *follow_symlinks* argument.
+      Now returns *dst*.
+
+   .. versionchanged:: 3.4
+      Raise :exc:`SameFileError` instead of :exc:`Error`.  Since the former is
+      a subclass of the latter, this change is backward compatible.
 
 
-.. function:: copymode(src, dst)
+.. exception:: SameFileError
+
+   This exception is raised if source and destination in :func:`copyfile`
+   are the same file.
+
+   .. versionadded:: 3.4
+
+
+.. function:: copymode(src, dst, *, follow_symlinks=True)
 
    Copy the permission bits from *src* to *dst*.  The file contents, owner, and
    group are unaffected.  *src* and *dst* are path names given as strings.
+   If *follow_symlinks* is false, and both *src* and *dst* are symbolic links,
+   :func:`copymode` will attempt to modify the mode of *dst* itself (rather
+   than the file it points to).  This functionality is not available on every
+   platform; please see :func:`copystat` for more information.  If
+   :func:`copymode` cannot modify symbolic links on the local platform, and it
+   is asked to do so, it will do nothing and return.
 
+   .. versionchanged:: 3.3
+      Added *follow_symlinks* argument.
 
-.. function:: copystat(src, dst)
+.. function:: copystat(src, dst, *, follow_symlinks=True)
 
-   Copy the permission bits, last access time, last modification time, and flags
-   from *src* to *dst*.  The file contents, owner, and group are unaffected.  *src*
-   and *dst* are path names given as strings.
+   Copy the permission bits, last access time, last modification time, and
+   flags from *src* to *dst*.  On Linux, :func:`copystat` also copies the
+   "extended attributes" where possible.  The file contents, owner, and
+   group are unaffected.  *src* and *dst* are path names given as strings.
 
+   If *follow_symlinks* is false, and *src* and *dst* both
+   refer to symbolic links, :func:`copystat` will operate on
+   the symbolic links themselves rather than the files the
+   symbolic links refer to--reading the information from the
+   *src* symbolic link, and writing the information to the
+   *dst* symbolic link.
 
-.. function:: copy(src, dst)
+   .. note::
 
-   Copy the file *src* to the file or directory *dst*.  If *dst* is a directory, a
-   file with the same basename as *src*  is created (or overwritten) in the
-   directory specified.  Permission bits are copied.  *src* and *dst* are path
-   names given as strings.
+      Not all platforms provide the ability to examine and
+      modify symbolic links.  Python itself can tell you what
+      functionality is locally available.
 
+      * If ``os.chmod in os.supports_follow_symlinks`` is
+        ``True``, :func:`copystat` can modify the permission
+        bits of a symbolic link.
 
-.. function:: copy2(src, dst)
+      * If ``os.utime in os.supports_follow_symlinks`` is
+        ``True``, :func:`copystat` can modify the last access
+        and modification times of a symbolic link.
 
-   Similar to :func:`shutil.copy`, but metadata is copied as well -- in fact,
-   this is just :func:`shutil.copy` followed by :func:`copystat`.  This is
-   similar to the Unix command :program:`cp -p`.
+      * If ``os.chflags in os.supports_follow_symlinks`` is
+        ``True``, :func:`copystat` can modify the flags of
+        a symbolic link.  (``os.chflags`` is not available on
+        all platforms.)
 
+      On platforms where some or all of this functionality
+      is unavailable, when asked to modify a symbolic link,
+      :func:`copystat` will copy everything it can.
+      :func:`copystat` never returns failure.
+
+      Please see :data:`os.supports_follow_symlinks`
+      for more information.
+
+   .. versionchanged:: 3.3
+      Added *follow_symlinks* argument and support for Linux extended attributes.
+
+.. function:: copy(src, dst, *, follow_symlinks=True)
+
+   Copies the file *src* to the file or directory *dst*.  *src* and *dst*
+   should be strings.  If *dst* specifies a directory, the file will be
+   copied into *dst* using the base filename from *src*.  Returns the
+   path to the newly created file.
+
+   If *follow_symlinks* is false, and *src* is a symbolic link,
+   *dst* will be created as a symbolic link.  If *follow_symlinks*
+   is true and *src* is a symbolic link, *dst* will be a copy of
+   the file *src* refers to.
+
+   :func:`copy` copies the file data and the file's permission
+   mode (see :func:`os.chmod`).  Other metadata, like the
+   file's creation and modification times, is not preserved.
+   To preserve all file metadata from the original, use
+   :func:`~shutil.copy2` instead.
+
+   .. versionchanged:: 3.3
+      Added *follow_symlinks* argument.
+      Now returns path to the newly created file.
+
+.. function:: copy2(src, dst, *, follow_symlinks=True)
+
+   Identical to :func:`~shutil.copy` except that :func:`copy2`
+   also attempts to preserve all file metadata.
+
+   When *follow_symlinks* is false, and *src* is a symbolic
+   link, :func:`copy2` attempts to copy all metadata from the
+   *src* symbolic link to the newly-created *dst* symbolic link.
+   However, this functionality is not available on all platforms.
+   On platforms where some or all of this functionality is
+   unavailable, :func:`copy2` will preserve all the metadata
+   it can; :func:`copy2` never returns failure.
+
+   :func:`copy2` uses :func:`copystat` to copy the file metadata.
+   Please see :func:`copystat` for more information
+   about platform support for modifying symbolic link metadata.
+
+   .. versionchanged:: 3.3
+      Added *follow_symlinks* argument, try to copy extended
+      file system attributes too (currently Linux only).
+      Now returns path to the newly created file.
 
 .. function:: ignore_patterns(\*patterns)
 
@@ -96,16 +193,17 @@ Directory and files operations
 
 .. function:: copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2, ignore_dangling_symlinks=False)
 
-   Recursively copy an entire directory tree rooted at *src*.  The destination
+   Recursively copy an entire directory tree rooted at *src*, returning the
+   destination directory.  The destination
    directory, named by *dst*, must not already exist; it will be created as
    well as missing parent directories.  Permissions and times of directories
    are copied with :func:`copystat`, individual files are copied using
    :func:`shutil.copy2`.
 
    If *symlinks* is true, symbolic links in the source tree are represented as
-   symbolic links in the new tree, but the metadata of the original links is NOT
-   copied; if false or omitted, the contents and metadata of the linked files
-   are copied to the new tree.
+   symbolic links in the new tree and the metadata of the original links will
+   be copied as far as the platform allows; if false or omitted, the contents
+   and metadata of the linked files are copied to the new tree.
 
    When *symlinks* is false, if the file pointed by the symlink doesn't
    exist, a exception will be added in the list of errors raised in
@@ -129,13 +227,15 @@ Directory and files operations
    If *copy_function* is given, it must be a callable that will be used to copy
    each file. It will be called with the source path and the destination path
    as arguments. By default, :func:`shutil.copy2` is used, but any function
-   that supports the same signature (like :func:`copy`) can be used.
+   that supports the same signature (like :func:`shutil.copy`) can be used.
+
+   .. versionchanged:: 3.3
+      Copy metadata when *symlinks* is false.
+      Now returns *dst*.
 
    .. versionchanged:: 3.2
       Added the *copy_function* argument to be able to provide a custom copy
       function.
-
-   .. versionchanged:: 3.2
       Added the *ignore_dangling_symlinks* argument to silent dangling symlinks
       errors when *symlinks* is false.
 
@@ -150,19 +250,42 @@ Directory and files operations
    handled by calling a handler specified by *onerror* or, if that is omitted,
    they raise an exception.
 
+   .. note::
+
+      On platforms that support the necessary fd-based functions a symlink
+      attack resistant version of :func:`rmtree` is used by default.  On other
+      platforms, the :func:`rmtree` implementation is susceptible to a symlink
+      attack: given proper timing and circumstances, attackers can manipulate
+      symlinks on the filesystem to delete files they wouldn't be able to access
+      otherwise.  Applications can use the :data:`rmtree.avoids_symlink_attacks`
+      function attribute to determine which case applies.
+
    If *onerror* is provided, it must be a callable that accepts three
-   parameters: *function*, *path*, and *excinfo*. The first parameter,
-   *function*, is the function which raised the exception; it will be
-   :func:`os.path.islink`, :func:`os.listdir`, :func:`os.remove` or
-   :func:`os.rmdir`.  The second parameter, *path*, will be the path name passed
-   to *function*.  The third parameter, *excinfo*, will be the exception
-   information return by :func:`sys.exc_info`.  Exceptions raised by *onerror*
-   will not be caught.
+   parameters: *function*, *path*, and *excinfo*.
+
+   The first parameter, *function*, is the function which raised the exception;
+   it depends on the platform and implementation.  The second parameter,
+   *path*, will be the path name passed to *function*.  The third parameter,
+   *excinfo*, will be the exception information returned by
+   :func:`sys.exc_info`.  Exceptions raised by *onerror* will not be caught.
+
+   .. versionchanged:: 3.3
+      Added a symlink attack resistant version that is used automatically
+      if platform supports fd-based functions.
+
+   .. attribute:: rmtree.avoids_symlink_attacks
+
+      Indicates whether the current platform and implementation provides a
+      symlink attack resistant version of :func:`rmtree`.  Currently this is
+      only true for platforms supporting fd-based directory access functions.
+
+      .. versionadded:: 3.3
 
 
 .. function:: move(src, dst)
 
-   Recursively move a file or directory (*src*) to another location (*dst*).
+   Recursively move a file or directory (*src*) to another location (*dst*)
+   and return the destination.
 
    If the destination is a directory or a symlink to a directory, then *src* is
    moved inside that directory.
@@ -173,7 +296,61 @@ Directory and files operations
 
    If the destination is on the current filesystem, then :func:`os.rename` is
    used.  Otherwise, *src* is copied (using :func:`shutil.copy2`) to *dst* and
-   then removed.
+   then removed. In case of symlinks, a new symlink pointing to the target of
+   *src* will be created in or as *dst* and *src* will be removed.
+
+   .. versionchanged:: 3.3
+      Added explicit symlink handling for foreign filesystems, thus adapting
+      it to the behavior of GNU's :program:`mv`.
+      Now returns *dst*.
+
+.. function:: disk_usage(path)
+
+   Return disk usage statistics about the given path as a :term:`named tuple`
+   with the attributes *total*, *used* and *free*, which are the amount of
+   total, used and free space, in bytes.
+
+   .. versionadded:: 3.3
+
+   Availability: Unix, Windows.
+
+.. function:: chown(path, user=None, group=None)
+
+   Change owner *user* and/or *group* of the given *path*.
+
+   *user* can be a system user name or a uid; the same applies to *group*. At
+   least one argument is required.
+
+   See also :func:`os.chown`, the underlying function.
+
+   Availability: Unix.
+
+   .. versionadded:: 3.3
+
+
+.. function:: which(cmd, mode=os.F_OK | os.X_OK, path=None)
+
+   Return the path to an executable which would be run if the given *cmd* was
+   called.  If no *cmd* would be called, return ``None``.
+
+   *mode* is a permission mask passed a to :func:`os.access`, by default
+   determining if the file exists and executable.
+
+   When no *path* is specified, the results of :func:`os.environ` are used,
+   returning either the "PATH" value or a fallback of :attr:`os.defpath`.
+
+   On Windows, the current directory is always prepended to the *path* whether
+   or not you use the default or provide your own, which is the behavior the
+   command shell uses when finding executables.  Additionaly, when finding the
+   *cmd* in the *path*, the ``PATHEXT`` environment variable is checked.  For
+   example, if you call ``shutil.which("python")``, :func:`which` will search
+   ``PATHEXT`` to know that it should look for ``python.exe`` within the *path*
+   directories.  For example, on Windows::
+
+      >>> shutil.which("python")
+      'C:\\Python33\\python.EXE'
+
+   .. versionadded:: 3.3
 
 
 .. exception:: Error
@@ -186,7 +363,7 @@ Directory and files operations
 .. _shutil-copytree-example:
 
 copytree example
-::::::::::::::::
+~~~~~~~~~~~~~~~~
 
 This example is the implementation of the :func:`copytree` function, described
 above, with the docstring omitted.  It demonstrates many of the other functions
@@ -208,7 +385,7 @@ provided by this module. ::
                else:
                    copy2(srcname, dstname)
                # XXX What about devices, sockets etc.?
-           except (IOError, os.error) as why:
+           except OSError as why:
                errors.append((srcname, dstname, str(why)))
            # catch the Error from the recursive copytree so that we can
            # continue with other files
@@ -216,11 +393,10 @@ provided by this module. ::
                errors.extend(err.args[0])
        try:
            copystat(src, dst)
-       except WindowsError:
-           # can't copy file access times on Windows
-           pass
        except OSError as why:
-           errors.extend((src, dst, str(why)))
+           # can't copy file access times on Windows
+           if why.winerror is None:
+               errors.extend((src, dst, str(why)))
        if errors:
            raise Error(errors)
 
@@ -250,6 +426,8 @@ Another example that uses the *ignore* argument to add a logging call::
 Archiving operations
 --------------------
 
+.. versionadded:: 3.2
+
 High-level utilities to create and read compressed and archived files are also
 provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
 
@@ -277,8 +455,6 @@ provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
    *logger* must be an object compatible with :pep:`282`, usually an instance of
    :class:`logging.Logger`.
 
-   .. versionadded:: 3.2
-
 
 .. function:: get_archive_formats()
 
@@ -295,8 +471,6 @@ provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
    You can register new formats or provide your own archiver for any existing
    formats, by using :func:`register_archive_format`.
 
-   .. versionadded:: 3.2
-
 
 .. function:: register_archive_format(name, function, [extra_args, [description]])
 
@@ -309,14 +483,10 @@ provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
    *description* is used by :func:`get_archive_formats` which returns the
    list of archivers. Defaults to an empty list.
 
-   .. versionadded:: 3.2
-
 
 .. function:: unregister_archive_format(name)
 
    Remove the archive format *name* from the list of supported formats.
-
-   .. versionadded:: 3.2
 
 
 .. function:: unpack_archive(filename[, extract_dir[, format]])
@@ -331,8 +501,6 @@ provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
    provided, :func:`unpack_archive` will use the archive file name extension
    and see if an unpacker was registered for that extension. In case none is
    found, a :exc:`ValueError` is raised.
-
-   .. versionadded:: 3.2
 
 
 .. function:: register_unpack_format(name, extensions, function[, extra_args[, description]])
@@ -351,14 +519,10 @@ provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
    *description* can be provided to describe the format, and will be returned
    by the :func:`get_unpack_formats` function.
 
-   .. versionadded:: 3.2
-
 
 .. function:: unregister_unpack_format(name)
 
    Unregister an unpack format. *name* is the name of the format.
-
-   .. versionadded:: 3.2
 
 
 .. function:: get_unpack_formats()
@@ -377,13 +541,11 @@ provided.  They rely on the :mod:`zipfile` and :mod:`tarfile` modules.
    You can register new formats or provide your own unpacker for any existing
    formats, by using :func:`register_unpack_format`.
 
-   .. versionadded:: 3.2
-
 
 .. _shutil-archiving-example:
 
 Archiving example
-:::::::::::::::::
+~~~~~~~~~~~~~~~~~
 
 In this example, we create a gzip'ed tar-file archive containing all files
 found in the :file:`.ssh` directory of the user::
@@ -406,3 +568,36 @@ The resulting archive contains::
     -rw------- tarek/staff    1675 2008-06-09 13:26:54 ./id_rsa
     -rw-r--r-- tarek/staff     397 2008-06-09 13:26:54 ./id_rsa.pub
     -rw-r--r-- tarek/staff   37192 2010-02-06 18:23:10 ./known_hosts
+
+
+Querying the size of the output terminal
+----------------------------------------
+
+.. versionadded:: 3.3
+
+.. function:: get_terminal_size(fallback=(columns, lines))
+
+   Get the size of the terminal window.
+
+   For each of the two dimensions, the environment variable, ``COLUMNS``
+   and ``LINES`` respectively, is checked. If the variable is defined and
+   the value is a positive integer, it is used.
+
+   When ``COLUMNS`` or ``LINES`` is not defined, which is the common case,
+   the terminal connected to :data:`sys.__stdout__` is queried
+   by invoking :func:`os.get_terminal_size`.
+
+   If the terminal size cannot be successfully queried, either because
+   the system doesn't support querying, or because we are not
+   connected to a terminal, the value given in ``fallback`` parameter
+   is used. ``fallback`` defaults to ``(80, 24)`` which is the default
+   size used by many terminal emulators.
+
+   The value returned is a named tuple of type :class:`os.terminal_size`.
+
+   See also: The Single UNIX Specification, Version 2,
+   `Other Environment Variables`_.
+
+.. _`Other Environment Variables`:
+   http://pubs.opengroup.org/onlinepubs/7908799/xbd/envvar.html#tag_002_003
+

@@ -102,7 +102,7 @@ PYTHONPATH=$(COREPYTHONPATH)
 # various reasons; therefore they are listed here instead of in the
 # normal order.
 
-# This only contains the minimal set of modules required to run the 
+# This only contains the minimal set of modules required to run the
 # setup.py script in the root of the Python source tree.
 
 posix posixmodule.c		# posix (UNIX) system calls
@@ -113,9 +113,11 @@ _sre _sre.c			# Fredrik Lundh's new regular expressions
 _codecs _codecsmodule.c		# access to the builtin codecs and codec registry
 _weakref _weakref.c		# weak references
 _functools _functoolsmodule.c   # Tools for working with functions and callable objects
-operator operator.c	        # operator.add() and similar goodies
+_operator _operator.c	        # operator.add() and similar goodies
 _collections _collectionsmodule.c # Container types
-itertools itertoolsmodule.c    # Functions creating iterators for efficient looping 
+itertools itertoolsmodule.c    # Functions creating iterators for efficient looping
+atexit atexitmodule.c      # Register functions to be run at interpreter-shutdown
+_stat _stat.c			# stat.h interface
 
 # access to ISO C locale support
 _locale _localemodule.c  # -lintl
@@ -127,12 +129,18 @@ _io -I$(srcdir)/Modules/_io _io/_iomodule.c _io/iobase.c _io/fileio.c _io/bytesi
 # builtin module avoids some bootstrapping problems and reduces overhead.
 zipimport zipimport.c
 
+# faulthandler module
+faulthandler faulthandler.c
+
+# debug tool to trace memory blocks allocated by Python
+_tracemalloc _tracemalloc.c hashtable.c
+
 # The rest of the modules listed in this file are all commented out by
 # default.  Usually they can be detected and built as dynamically
 # loaded modules by the new setup.py script added in Python 2.1.  If
-# you're on a platform that doesn't support dynamic loading, want to 
-# compile modules statically into the Python binary, or need to 
-# specify some odd set of compiler switches, you can uncomment the 
+# you're on a platform that doesn't support dynamic loading, want to
+# compile modules statically into the Python binary, or need to
+# specify some odd set of compiler switches, you can uncomment the
 # appropriate lines below.
 
 # ======================================================================
@@ -167,7 +175,6 @@ _symtable symtablemodule.c
 #_weakref _weakref.c	# basic weak reference support
 #_testcapi _testcapimodule.c    # Python C API test module
 #_random _randommodule.c	# Random number generator
-#atexit atexitmodule.c      # Register functions to be run at interpreter-shutdown
 #_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
 #_pickle _pickle.c	# pickle accelerator
 #_datetime _datetimemodule.c	# datetime accelerator
@@ -182,7 +189,7 @@ _symtable symtablemodule.c
 # supported...)
 
 #fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
-#spwd spwdmodule.c		# spwd(3) 
+#spwd spwdmodule.c		# spwd(3)
 #grp grpmodule.c		# grp(3)
 #select selectmodule.c	# select(2); not on ancient System V
 
@@ -197,17 +204,17 @@ _symtable symtablemodule.c
 
 # Socket module helper for SSL support; you must comment out the other
 # socket line above, and possibly edit the SSL variable:
-SSL=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl
-_ssl _ssl.c \
-	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
-	-L$(SSL)/lib -lssl -lcrypto
+#SSL=/usr/local/ssl
+#_ssl _ssl.c \
+#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+#	-L$(SSL)/lib -lssl -lcrypto
 
 # The crypt module is now disabled by default because it breaks builds
 # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
 #
 # First, look at Setup.config; configure may have set this for you.
 
-#crypt cryptmodule.c # -lcrypt	# crypt(3); needs -lcrypt on some systems
+#_crypt _cryptmodule.c # -lcrypt	# crypt(3); needs -lcrypt on some systems
 
 
 # Some more UNIX dependent modules -- off by default, since these
@@ -231,15 +238,14 @@ _ssl _ssl.c \
 # system does not have the OpenSSL libs containing an optimized version.
 
 # The _md5 module implements the RSA Data Security, Inc. MD5
-# Message-Digest Algorithm, described in RFC 1321.  The necessary files
-# md5.c and md5.h are included here.
+# Message-Digest Algorithm, described in RFC 1321.
 
-#_md5 md5module.c md5.c
+#_md5 md5module.c
 
 
 # The _sha module implements the SHA checksum algorithms.
 # (NIST's Secure Hash Algorithms.)
-#_sha shamodule.c
+#_sha1 sha1module.c
 #_sha256 sha256module.c
 #_sha512 sha512module.c
 
@@ -299,7 +305,7 @@ _ssl _ssl.c \
 
 #_curses _cursesmodule.c -lcurses -ltermcap
 # Wrapper for the panel library that's part of ncurses and SYSV curses.
-#_curses_panel _curses_panel.c -lpanel -lncurses 
+#_curses_panel _curses_panel.c -lpanel -lncurses
 
 
 # Modules that provide persistent dictionary-like semantics.  You will

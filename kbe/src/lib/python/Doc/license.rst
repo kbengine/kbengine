@@ -50,77 +50,11 @@ been GPL-compatible; the table below summarizes the various releases.
 +----------------+--------------+------------+------------+-----------------+
 | 2.1.1          | 2.1+2.0.1    | 2001       | PSF        | yes             |
 +----------------+--------------+------------+------------+-----------------+
-| 2.2            | 2.1.1        | 2001       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
 | 2.1.2          | 2.1.1        | 2002       | PSF        | yes             |
 +----------------+--------------+------------+------------+-----------------+
 | 2.1.3          | 2.1.2        | 2002       | PSF        | yes             |
 +----------------+--------------+------------+------------+-----------------+
-| 2.2.1          | 2.2          | 2002       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.2.2          | 2.2.1        | 2002       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.2.3          | 2.2.2        | 2002-2003  | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.3            | 2.2.2        | 2002-2003  | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.3.1          | 2.3          | 2002-2003  | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.3.2          | 2.3.1        | 2003       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.3.3          | 2.3.2        | 2003       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.3.4          | 2.3.3        | 2004       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.3.5          | 2.3.4        | 2005       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.4            | 2.3          | 2004       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.4.1          | 2.4          | 2005       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.4.2          | 2.4.1        | 2005       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.4.3          | 2.4.2        | 2006       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.4.4          | 2.4.3        | 2006       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.5            | 2.4          | 2006       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.5.1          | 2.5          | 2007       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.6            | 2.5          | 2008       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.6.1          | 2.6          | 2008       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.6.2          | 2.6.1        | 2009       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.6.3          | 2.6.2        | 2009       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 2.6.4          | 2.6.3        | 2009       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.0            | 2.6          | 2008       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.0.1          | 3.0          | 2009       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.1            | 3.0.1        | 2009       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.1.1          | 3.1          | 2009       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.1.2          | 3.1.1        | 2010       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.1.3          | 3.1.2        | 2010       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.1.4          | 3.1.3        | 2011       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.2            | 3.1          | 2011       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.2.1          | 3.2          | 2011       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.2.2          | 3.2.1        | 2011       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.2.3          | 3.2.2        | 2012       | PSF        | yes             |
-+----------------+--------------+------------+------------+-----------------+
-| 3.2.4          | 3.2.3        | 2013       | PSF        | yes             |
+| 2.2 and above  | 2.1.1        | 2001-now   | PSF        | yes             |
 +----------------+--------------+------------+------------+-----------------+
 
 .. note::
@@ -150,9 +84,9 @@ Terms and conditions for accessing or otherwise using Python
    analyze, test, perform and/or display publicly, prepare derivative works,
    distribute, and otherwise use Python |release| alone or in any derivative
    version, provided, however, that PSF's License Agreement and PSF's notice of
-   copyright, i.e., "Copyright © 2001-2013 Python Software Foundation; All Rights
-   Reserved" are retained in Python |release| alone or in any derivative version
-   prepared by Licensee.
+   copyright, i.e., "Copyright © 2001-2014 Python Software Foundation; All
+   Rights Reserved" are retained in Python |release| alone or in any derivative
+   version prepared by Licensee.
 
 #. In the event Licensee prepares a derivative work that is based on or
    incorporates Python |release| or any part thereof, and wants to make the
@@ -656,6 +590,35 @@ The :mod:`select` and contains the following notice for the kqueue interface::
   SUCH DAMAGE.
 
 
+SipHash24
+---------
+
+The file :file:`Python/pyhash.c` contains Marek Majkowski' implementation of
+Dan Bernstein's SipHash24 algorithm. The contains the following note::
+
+  <MIT License>
+  Copyright (c) 2013  Marek Majkowski <marek@popcount.org>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+  </MIT License>
+
+  Original location:
+     https://github.com/majek/csiphash/
+
+  Solution inspired by code from:
+     Samuel Neves (supercop/crypto_auth/siphash24/little)
+     djb (supercop/crypto_auth/siphash24/little2)
+     Jean-Philippe Aumasson (https://131002.net/siphash/siphash24.c)
+
+
 strtod and dtoa
 ---------------
 
@@ -910,4 +873,78 @@ used for the build::
 
   Jean-loup Gailly        Mark Adler
   jloup@gzip.org          madler@alumni.caltech.edu
+
+
+cfuhash
+-------
+
+The implementation of the hash table used by the :mod:`tracemalloc` is based
+on the cfuhash project::
+
+   Copyright (c) 2005 Don Owens
+   All rights reserved.
+
+   This code is released under the BSD license:
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+     * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+     * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+
+     * Neither the name of the author nor the names of its
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+libmpdec
+--------
+
+The :mod:`_decimal` Module is built using an included copy of the libmpdec
+library unless the build is configured ``--with-system-libmpdec``::
+
+   Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+   ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+   FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+   OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
 

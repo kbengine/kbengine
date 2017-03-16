@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
-
 from test import support
 import array
+import io
 import marshal
 import sys
 import unittest
 import os
+import types
 
 class HelperMixin:
     def helper(self, sample, *extra):
@@ -22,36 +22,12 @@ class HelperMixin:
 
 class IntTestCase(unittest.TestCase, HelperMixin):
     def test_ints(self):
-        # Test the full range of Python ints.
-        n = sys.maxsize
+        # Test a range of Python ints larger than the machine word size.
+        n = sys.maxsize ** 2
         while n:
             for expected in (-n, n):
                 self.helper(expected)
             n = n >> 1
-
-    def test_int64(self):
-        # Simulate int marshaling on a 64-bit box.  This is most interesting if
-        # we're running the test on a 32-bit box, of course.
-
-        def to_little_endian_string(value, nbytes):
-            b = bytearray()
-            for i in range(nbytes):
-                b.append(value & 0xff)
-                value >>= 8
-            return b
-
-        maxint64 = (1 << 63) - 1
-        minint64 = -maxint64-1
-
-        for base in maxint64, minint64, -maxint64, -(minint64 >> 1):
-            while base:
-                s = b'I' + to_little_endian_string(base, 8)
-                got = marshal.loads(s)
-                self.assertEqual(base, got)
-                if base == -1:  # a fixed-point for shifting right 1
-                    base = 0
-                else:
-                    base >>= 1
 
     def test_bool(self):
         for b in (True, False):
@@ -113,6 +89,22 @@ class CodeTestCase(unittest.TestCase):
         count = 5000    # more than MAX_MARSHAL_STACK_DEPTH
         codes = (ExceptionTestCase.test_exceptions.__code__,) * count
         marshal.loads(marshal.dumps(codes))
+
+    def test_different_filenames(self):
+        co1 = compile("x", "f1", "exec")
+        co2 = compile("y", "f2", "exec")
+        co1, co2 = marshal.loads(marshal.dumps((co1, co2)))
+        self.assertEqual(co1.co_filename, "f1")
+        self.assertEqual(co2.co_filename, "f2")
+
+    @support.cpython_only
+    def test_same_filename_used(self):
+        s = """def f(): pass\ndef g(): pass"""
+        co = compile(s, "myfile", "exec")
+        co = marshal.loads(marshal.dumps(co))
+        for obj in co.co_consts:
+            if isinstance(obj, types.CodeType):
+                self.assertIs(co.co_filename, obj.co_filename)
 
 class ContainerTestCase(unittest.TestCase, HelperMixin):
     d = {'astring': 'foo@bar.baz.spam',
@@ -183,8 +175,12 @@ class BugsTestCase(unittest.TestCase):
             except Exception:
                 pass
 
-    def test_loads_recursion(self):
+    def test_loads_2x_code(self):
         s = b'c' + (b'X' * 4*4) + b'{' * 2**20
+        self.assertRaises(ValueError, marshal.loads, s)
+
+    def test_loads_recursion(self):
+        s = b'c' + (b'X' * 4*5) + b'{' * 2**20
         self.assertRaises(ValueError, marshal.loads, s)
 
     def test_recursion_limit(self):
@@ -262,8 +258,23 @@ class BugsTestCase(unittest.TestCase):
         unicode_string = 'T'
         self.assertRaises(TypeError, marshal.loads, unicode_string)
 
+    def test_bad_reader(self):
+        class BadReader(io.BytesIO):
+            def readinto(self, buf):
+                n = super().readinto(buf)
+                if n is not None and n > 4:
+                    n += 10**6
+                return n
+        for value in (1.0, 1j, b'0123456789', '0123456789'):
+            self.assertRaises(ValueError, marshal.load,
+                              BadReader(marshal.dumps(value)))
+
+    def _test_eof(self):
+        data = marshal.dumps(("hello", "dolly", None))
+        for i in range(len(data)):
+            self.assertRaises(EOFError, marshal.loads, data[0: i])
+
 LARGE_SIZE = 2**31
-character_size = 4 if sys.maxunicode > 0xFFFF else 2
 pointer_size = 8 if sys.maxsize > 0xFFFFFFFF else 4
 
 class NullWriter:
@@ -275,19 +286,19 @@ class LargeValuesTestCase(unittest.TestCase):
     def check_unmarshallable(self, data):
         self.assertRaises(ValueError, marshal.dump, data, NullWriter())
 
-    @support.bigmemtest(size=LARGE_SIZE, memuse=1, dry_run=False)
+    @support.bigmemtest(size=LARGE_SIZE, memuse=2, dry_run=False)
     def test_bytes(self, size):
         self.check_unmarshallable(b'x' * size)
 
-    @support.bigmemtest(size=LARGE_SIZE, memuse=character_size, dry_run=False)
+    @support.bigmemtest(size=LARGE_SIZE, memuse=2, dry_run=False)
     def test_str(self, size):
         self.check_unmarshallable('x' * size)
 
-    @support.bigmemtest(size=LARGE_SIZE, memuse=pointer_size, dry_run=False)
+    @support.bigmemtest(size=LARGE_SIZE, memuse=pointer_size + 1, dry_run=False)
     def test_tuple(self, size):
         self.check_unmarshallable((None,) * size)
 
-    @support.bigmemtest(size=LARGE_SIZE, memuse=pointer_size, dry_run=False)
+    @support.bigmemtest(size=LARGE_SIZE, memuse=pointer_size + 1, dry_run=False)
     def test_list(self, size):
         self.check_unmarshallable([None] * size)
 
@@ -303,9 +314,125 @@ class LargeValuesTestCase(unittest.TestCase):
     def test_frozenset(self, size):
         self.check_unmarshallable(frozenset(range(size)))
 
-    @support.bigmemtest(size=LARGE_SIZE, memuse=1, dry_run=False)
+    @support.bigmemtest(size=LARGE_SIZE, memuse=2, dry_run=False)
     def test_bytearray(self, size):
         self.check_unmarshallable(bytearray(size))
+
+def CollectObjectIDs(ids, obj):
+    """Collect object ids seen in a structure"""
+    if id(obj) in ids:
+        return
+    ids.add(id(obj))
+    if isinstance(obj, (list, tuple, set, frozenset)):
+        for e in obj:
+            CollectObjectIDs(ids, e)
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            CollectObjectIDs(ids, k)
+            CollectObjectIDs(ids, v)
+    return len(ids)
+
+class InstancingTestCase(unittest.TestCase, HelperMixin):
+    intobj = 123321
+    floatobj = 1.2345
+    strobj = "abcde"*3
+    dictobj = {"hello":floatobj, "goodbye":floatobj, floatobj:"hello"}
+
+    def helper3(self, rsample, recursive=False, simple=False):
+        #we have two instances
+        sample = (rsample, rsample)
+
+        n0 = CollectObjectIDs(set(), sample)
+
+        s3 = marshal.dumps(sample, 3)
+        n3 = CollectObjectIDs(set(), marshal.loads(s3))
+
+        #same number of instances generated
+        self.assertEqual(n3, n0)
+
+        if not recursive:
+            #can compare with version 2
+            s2 = marshal.dumps(sample, 2)
+            n2 = CollectObjectIDs(set(), marshal.loads(s2))
+            #old format generated more instances
+            self.assertGreater(n2, n0)
+
+            #if complex objects are in there, old format is larger
+            if not simple:
+                self.assertGreater(len(s2), len(s3))
+            else:
+                self.assertGreaterEqual(len(s2), len(s3))
+
+    def testInt(self):
+        self.helper(self.intobj)
+        self.helper3(self.intobj, simple=True)
+
+    def testFloat(self):
+        self.helper(self.floatobj)
+        self.helper3(self.floatobj)
+
+    def testStr(self):
+        self.helper(self.strobj)
+        self.helper3(self.strobj)
+
+    def testDict(self):
+        self.helper(self.dictobj)
+        self.helper3(self.dictobj)
+
+    def testModule(self):
+        with open(__file__, "rb") as f:
+            code = f.read()
+        if __file__.endswith(".py"):
+            code = compile(code, __file__, "exec")
+        self.helper(code)
+        self.helper3(code)
+
+    def testRecursion(self):
+        d = dict(self.dictobj)
+        d["self"] = d
+        self.helper3(d, recursive=True)
+        l = [self.dictobj]
+        l.append(l)
+        self.helper3(l, recursive=True)
+
+class CompatibilityTestCase(unittest.TestCase):
+    def _test(self, version):
+        with open(__file__, "rb") as f:
+            code = f.read()
+        if __file__.endswith(".py"):
+            code = compile(code, __file__, "exec")
+        data = marshal.dumps(code, version)
+        marshal.loads(data)
+
+    def test0To3(self):
+        self._test(0)
+
+    def test1To3(self):
+        self._test(1)
+
+    def test2To3(self):
+        self._test(2)
+
+    def test3To3(self):
+        self._test(3)
+
+class InterningTestCase(unittest.TestCase, HelperMixin):
+    strobj = "this is an interned string"
+    strobj = sys.intern(strobj)
+
+    def testIntern(self):
+        s = marshal.loads(marshal.dumps(self.strobj))
+        self.assertEqual(s, self.strobj)
+        self.assertEqual(id(s), id(self.strobj))
+        s2 = sys.intern(s)
+        self.assertEqual(id(s2), id(s))
+
+    def testNoIntern(self):
+        s = marshal.loads(marshal.dumps(self.strobj, 2))
+        self.assertEqual(s, self.strobj)
+        self.assertNotEqual(id(s), id(self.strobj))
+        s2 = sys.intern(s)
+        self.assertNotEqual(id(s2), id(s))
 
 
 def test_main():

@@ -17,7 +17,7 @@ __all__ = ["normcase","isabs","join","splitdrive","split","splitext",
            "ismount", "expanduser","expandvars","normpath","abspath",
            "splitunc","curdir","pardir","sep","pathsep","defpath","altsep",
            "extsep","devnull","realpath","supports_unicode_filenames","relpath",
-           "samefile", "sameopenfile",]
+           "samefile", "sameopenfile", "samestat",]
 
 # strings representing various path-related bits and pieces
 # These are primarily for export; internally, they are hardcoded.
@@ -30,9 +30,6 @@ altsep = '/'
 defpath = '.;C:\\bin'
 if 'ce' in sys.builtin_module_names:
     defpath = '\\Windows'
-elif 'os2' in sys.builtin_module_names:
-    # OS/2 w/ VACPP
-    altsep = '/'
 devnull = 'nul'
 
 def _get_empty(path):
@@ -104,82 +101,36 @@ def isabs(s):
 
 
 # Join two (or more) paths.
-
-def join(a, *p):
-    """Join two or more pathname components, inserting "\\" as needed.
-    If any component is an absolute path, all previous path components
-    will be discarded."""
-    sep = _get_sep(a)
-    seps = _get_bothseps(a)
-    colon = _get_colon(a)
-    path = a
-    for b in p:
-        b_wins = 0  # set to 1 iff b makes path irrelevant
-        if not path:
-            b_wins = 1
-
-        elif isabs(b):
-            # This probably wipes out path so far.  However, it's more
-            # complicated if path begins with a drive letter.  You get a+b
-            # (minus redundant slashes) in these four cases:
-            #     1. join('c:', '/a') == 'c:/a'
-            #     2. join('//computer/share', '/a') == '//computer/share/a'
-            #     3. join('c:/', '/a') == 'c:/a'
-            #     4. join('//computer/share/', '/a') == '//computer/share/a'
-            # But b wins in all of these cases:
-            #     5. join('c:/a', '/b') == '/b'
-            #     6. join('//computer/share/a', '/b') == '/b'
-            #     7. join('c:', 'd:/') == 'd:/'
-            #     8. join('c:', '//computer/share/') == '//computer/share/'
-            #     9. join('//computer/share', 'd:/') == 'd:/'
-            #    10. join('//computer/share', '//computer/share/') == '//computer/share/'
-            #    11. join('c:/', 'd:/') == 'd:/'
-            #    12. join('c:/', '//computer/share/') == '//computer/share/'
-            #    13. join('//computer/share/', 'd:/') == 'd:/'
-            #    14. join('//computer/share/', '//computer/share/') == '//computer/share/'
-            b_prefix, b_rest = splitdrive(b)
-
-            # if b has a prefix, it always wins.
-            if b_prefix:
-                b_wins = 1
-            else:
-                # b doesn't have a prefix.
-                # but isabs(b) returned true.
-                # and therefore b_rest[0] must be a slash.
-                # (but let's check that.)
-                assert(b_rest and b_rest[0] in seps)
-
-                # so, b still wins if path has a rest that's more than a sep.
-                # you get a+b if path_rest is empty or only has a sep.
-                # (see cases 1-4 for times when b loses.)
-                path_rest = splitdrive(path)[1]
-                b_wins = path_rest and path_rest not in seps
-
-        if b_wins:
-            path = b
-        else:
-            # Join, and ensure there's a separator.
-            assert len(path) > 0
-            if path[-1:] in seps:
-                if b and b[:1] in seps:
-                    path += b[1:]
-                else:
-                    path += b
-            elif path[-1:] == colon:
-                path += b
-            elif b:
-                if b[:1] in seps:
-                    path += b
-                else:
-                    path += sep + b
-            else:
-                # path is not empty and does not end with a backslash,
-                # but b is empty; since, e.g., split('a/') produces
-                # ('a', ''), it's best if join() adds a backslash in
-                # this case.
-                path += sep
-
-    return path
+def join(path, *paths):
+    sep = _get_sep(path)
+    seps = _get_bothseps(path)
+    colon = _get_colon(path)
+    result_drive, result_path = splitdrive(path)
+    for p in paths:
+        p_drive, p_path = splitdrive(p)
+        if p_path and p_path[0] in seps:
+            # Second path is absolute
+            if p_drive or not result_drive:
+                result_drive = p_drive
+            result_path = p_path
+            continue
+        elif p_drive and p_drive != result_drive:
+            if p_drive.lower() != result_drive.lower():
+                # Different drives => ignore the first path entirely
+                result_drive = p_drive
+                result_path = p_path
+                continue
+            # Same drive in different case
+            result_drive = p_drive
+        # Second path is relative to the first
+        if result_path and result_path[-1] not in seps:
+            result_path = result_path + sep
+        result_path = result_path + p_path
+    ## add separator between UNC and non-absolute path
+    if (result_path and result_path[0] not in seps and
+        result_drive and result_drive[-1:] != colon):
+        return result_drive + sep + result_path
+    return result_drive + result_path
 
 
 # Split a path in a drive specification (a drive letter followed by a
@@ -207,7 +158,7 @@ def splitdrive(p):
     empty = _get_empty(p)
     if len(p) > 1:
         sep = _get_sep(p)
-        normp = normcase(p)
+        normp = p.replace(_get_altsep(p), sep)
         if (normp[0:2] == sep*2) and (normp[2:3] != sep):
             # is a UNC path:
             # vvvvvvvvvvvvvvvvvvvv drive letter or UNC path
@@ -243,26 +194,12 @@ def splitunc(p):
     """
     import warnings
     warnings.warn("ntpath.splitunc is deprecated, use ntpath.splitdrive instead",
-                  DeprecationWarning)
-    sep = _get_sep(p)
-    if not p[1:2]:
-        return p[:0], p # Drive letter present
-    firstTwo = p[0:2]
-    if normcase(firstTwo) == sep + sep:
-        # is a UNC path:
-        # vvvvvvvvvvvvvvvvvvvv equivalent to drive letter
-        # \\machine\mountpoint\directories...
-        #           directory ^^^^^^^^^^^^^^^
-        normp = normcase(p)
-        index = normp.find(sep, 2)
-        if index == -1:
-            ##raise RuntimeError, 'illegal UNC path: "' + p + '"'
-            return (p[:0], p)
-        index = normp.find(sep, index + 1)
-        if index == -1:
-            index = len(p)
-        return p[:index], p[index:]
-    return p[:0], p
+                  DeprecationWarning, 2)
+    drive, path = splitdrive(p)
+    if len(drive) == 2:
+         # Drive letter present
+        return p[:0], p
+    return drive, path
 
 
 # Split a path in head (everything up to the last '/') and tail (the
@@ -320,12 +257,11 @@ def dirname(p):
 
 def islink(path):
     """Test whether a path is a symbolic link.
-    This will always return false for Windows prior to 6.0
-    and for OS/2.
+    This will always return false for Windows prior to 6.0.
     """
     try:
         st = os.lstat(path)
-    except (os.error, AttributeError):
+    except (OSError, AttributeError):
         return False
     return stat.S_ISLNK(st.st_mode)
 
@@ -335,20 +271,39 @@ def lexists(path):
     """Test whether a path exists.  Returns True for broken symbolic links"""
     try:
         st = os.lstat(path)
-    except (os.error, WindowsError):
+    except OSError:
         return False
     return True
 
-# Is a path a mount point?  Either a root (with or without drive letter)
-# or an UNC path with at most a / or \ after the mount point.
-
+# Is a path a mount point?
+# Any drive letter root (eg c:\)
+# Any share UNC (eg \\server\share)
+# Any volume mounted on a filesystem folder
+#
+# No one method detects all three situations. Historically we've lexically
+# detected drive letter roots and share UNCs. The canonical approach to
+# detecting mounted volumes (querying the reparse tag) fails for the most
+# common case: drive letter roots. The alternative which uses GetVolumePathName
+# fails if the drive letter is the result of a SUBST.
+try:
+    from nt import _getvolumepathname
+except ImportError:
+    _getvolumepathname = None
 def ismount(path):
-    """Test whether a path is a mount point (defined as root of drive)"""
+    """Test whether a path is a mount point (a drive root, the root of a
+    share, or a mounted volume)"""
     seps = _get_bothseps(path)
+    path = abspath(path)
     root, rest = splitdrive(path)
     if root and root[0] in seps:
         return (not rest) or (rest in seps)
-    return rest in seps
+    if rest in seps:
+        return True
+
+    if _getvolumepathname:
+        return path.rstrip(seps) == _getvolumepathname(path).rstrip(seps)
+    else:
+        return False
 
 
 # Expand paths beginning with '~' or '~user'.
@@ -422,6 +377,7 @@ def expandvars(path):
         percent = b'%'
         brace = b'{'
         dollar = b'$'
+        environ = getattr(os, 'environb', None)
     else:
         if '$' not in path and '%' not in path:
             return path
@@ -431,6 +387,7 @@ def expandvars(path):
         percent = '%'
         brace = '{'
         dollar = '$'
+        environ = os.environ
     res = path[:0]
     index = 0
     pathlen = len(path)
@@ -459,14 +416,13 @@ def expandvars(path):
                     index = pathlen - 1
                 else:
                     var = path[:index]
-                    if isinstance(path, bytes):
-                        var = var.decode('ascii')
-                    if var in os.environ:
-                        value = os.environ[var]
-                    else:
-                        value = '%' + var + '%'
-                    if isinstance(path, bytes):
-                        value = value.encode('ascii')
+                    try:
+                        if environ is None:
+                            value = os.fsencode(os.environ[os.fsdecode(var)])
+                        else:
+                            value = environ[var]
+                    except KeyError:
+                        value = percent + var + percent
                     res += value
         elif c == dollar:  # variable or '$$'
             if path[index + 1:index + 2] == dollar:
@@ -480,39 +436,40 @@ def expandvars(path):
                         index = path.index(b'}')
                     else:
                         index = path.index('}')
-                    var = path[:index]
-                    if isinstance(path, bytes):
-                        var = var.decode('ascii')
-                    if var in os.environ:
-                        value = os.environ[var]
-                    else:
-                        value = '${' + var + '}'
-                    if isinstance(path, bytes):
-                        value = value.encode('ascii')
-                    res += value
                 except ValueError:
                     if isinstance(path, bytes):
                         res += b'${' + path
                     else:
                         res += '${' + path
                     index = pathlen - 1
+                else:
+                    var = path[:index]
+                    try:
+                        if environ is None:
+                            value = os.fsencode(os.environ[os.fsdecode(var)])
+                        else:
+                            value = environ[var]
+                    except KeyError:
+                        if isinstance(path, bytes):
+                            value = b'${' + var + b'}'
+                        else:
+                            value = '${' + var + '}'
+                    res += value
             else:
-                var = ''
+                var = path[:0]
                 index += 1
                 c = path[index:index + 1]
                 while c and c in varchars:
-                    if isinstance(path, bytes):
-                        var += c.decode('ascii')
-                    else:
-                        var += c
+                    var += c
                     index += 1
                     c = path[index:index + 1]
-                if var in os.environ:
-                    value = os.environ[var]
-                else:
-                    value = '$' + var
-                if isinstance(path, bytes):
-                    value = value.encode('ascii')
+                try:
+                    if environ is None:
+                        value = os.fsencode(os.environ[os.fsdecode(var)])
+                    else:
+                        value = environ[var]
+                except KeyError:
+                    value = dollar + var
                 res += value
                 if c:
                     index -= 1
@@ -588,7 +545,7 @@ else:  # use native Windows method on Windows
         if path: # Empty path must return current working directory.
             try:
                 path = _getfullpathname(path)
-            except WindowsError:
+            except OSError:
                 pass # Bad path - return unchanged.
         elif isinstance(path, bytes):
             path = os.getcwdb()
@@ -655,23 +612,6 @@ except (AttributeError, ImportError):
     # approximation.
     def _getfinalpathname(f):
         return normcase(abspath(f))
-
-def samefile(f1, f2):
-    "Test whether two pathnames reference the same actual file"
-    return _getfinalpathname(f1) == _getfinalpathname(f2)
-
-
-try:
-    from nt import _getfileinformation
-except ImportError:
-    # On other operating systems, just return the fd and see that
-    # it compares equal in sameopenfile.
-    def _getfileinformation(fd):
-        return fd
-
-def sameopenfile(f1, f2):
-    """Test whether two file objects reference the same file"""
-    return _getfileinformation(f1) == _getfileinformation(f2)
 
 
 try:

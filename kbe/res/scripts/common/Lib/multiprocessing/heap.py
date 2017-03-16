@@ -4,84 +4,84 @@
 # multiprocessing/heap.py
 #
 # Copyright (c) 2006-2008, R Oudkerk
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-# 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of author nor the names of any contributors may be
-#    used to endorse or promote products derived from this software
-#    without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-# SUCH DAMAGE.
+# Licensed to PSF under a Contributor Agreement.
 #
 
 import bisect
 import mmap
-import tempfile
 import os
 import sys
+import tempfile
 import threading
-import itertools
 
-import _multiprocessing
-from multiprocessing.util import Finalize, info
-from multiprocessing.forking import assert_spawning
+from . import context
+from . import reduction
+from . import util
 
 __all__ = ['BufferWrapper']
 
 #
-# Inheirtable class which wraps an mmap, and from which blocks can be allocated
+# Inheritable class which wraps an mmap, and from which blocks can be allocated
 #
 
 if sys.platform == 'win32':
 
-    from _multiprocessing import win32
+    import _winapi
 
     class Arena(object):
 
-        _counter = itertools.count()
+        _rand = tempfile._RandomNameSequence()
 
         def __init__(self, size):
             self.size = size
-            self.name = 'pym-%d-%d' % (os.getpid(), next(Arena._counter))
-            self.buffer = mmap.mmap(-1, self.size, tagname=self.name)
-            assert win32.GetLastError() == 0, 'tagname already in use'
+            for i in range(100):
+                name = 'pym-%d-%s' % (os.getpid(), next(self._rand))
+                buf = mmap.mmap(-1, size, tagname=name)
+                if _winapi.GetLastError() == 0:
+                    break
+                # We have reopened a preexisting mmap.
+                buf.close()
+            else:
+                raise FileExistsError('Cannot find name for new mmap')
+            self.name = name
+            self.buffer = buf
             self._state = (self.size, self.name)
 
         def __getstate__(self):
-            assert_spawning(self)
+            context.assert_spawning(self)
             return self._state
 
         def __setstate__(self, state):
             self.size, self.name = self._state = state
             self.buffer = mmap.mmap(-1, self.size, tagname=self.name)
-            assert win32.GetLastError() == win32.ERROR_ALREADY_EXISTS
+            assert _winapi.GetLastError() == _winapi.ERROR_ALREADY_EXISTS
 
 else:
 
     class Arena(object):
 
-        def __init__(self, size):
-            self.buffer = mmap.mmap(-1, size)
+        def __init__(self, size, fd=-1):
             self.size = size
-            self.name = None
+            self.fd = fd
+            if fd == -1:
+                self.fd, name = tempfile.mkstemp(
+                     prefix='pym-%d-'%os.getpid(), dir=util.get_temp_dir())
+                os.unlink(name)
+                util.Finalize(self, os.close, (self.fd,))
+                with open(self.fd, 'wb', closefd=False) as f:
+                    f.write(b'\0'*size)
+            self.buffer = mmap.mmap(self.fd, self.size)
+
+    def reduce_arena(a):
+        if a.fd == -1:
+            raise ValueError('Arena is unpicklable because '
+                             'forking was enabled when it was created')
+        return rebuild_arena, (a.size, reduction.DupFd(a.fd))
+
+    def rebuild_arena(size, dupfd):
+        return Arena(size, dupfd.detach())
+
+    reduction.register(Arena, reduce_arena)
 
 #
 # Class allowing allocation of chunks of memory from arenas
@@ -116,7 +116,7 @@ class Heap(object):
         if i == len(self._lengths):
             length = self._roundup(max(self._size, size), mmap.PAGESIZE)
             self._size *= 2
-            info('allocating a new mmap of length %d', length)
+            util.info('allocating a new mmap of length %d', length)
             arena = Arena(length)
             self._arenas.append(arena)
             return (arena, 0, length)
@@ -231,7 +231,7 @@ class Heap(object):
             self._lock.release()
 
 #
-# Class representing a chunk of an mmap -- can be inherited
+# Class representing a chunk of an mmap -- can be inherited by child process
 #
 
 class BufferWrapper(object):
@@ -242,13 +242,8 @@ class BufferWrapper(object):
         assert 0 <= size < sys.maxsize
         block = BufferWrapper._heap.malloc(size)
         self._state = (block, size)
-        Finalize(self, BufferWrapper._heap.free, args=(block,))
+        util.Finalize(self, BufferWrapper._heap.free, args=(block,))
 
-    def get_address(self):
+    def create_memoryview(self):
         (arena, start, stop), size = self._state
-        address, length = _multiprocessing.address_of_buffer(arena.buffer)
-        assert size <= length
-        return address + start
-
-    def get_size(self):
-        return self._state[1]
+        return memoryview(arena.buffer)[start:start+size]

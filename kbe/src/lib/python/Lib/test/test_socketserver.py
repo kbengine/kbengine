@@ -2,8 +2,8 @@
 Test suite for socketserver.
 """
 
+import _imp as imp
 import contextlib
-import imp
 import os
 import select
 import signal
@@ -27,7 +27,10 @@ TEST_STR = b"hello world\n"
 HOST = test.support.HOST
 
 HAVE_UNIX_SOCKETS = hasattr(socket, "AF_UNIX")
-HAVE_FORKING = hasattr(os, "fork") and os.name != "os2"
+requires_unix_sockets = unittest.skipUnless(HAVE_UNIX_SOCKETS,
+                                            'requires Unix sockets')
+HAVE_FORKING = hasattr(os, "fork")
+requires_forking = unittest.skipUnless(HAVE_FORKING, 'requires forking')
 
 def signal_alarm(n):
     """Call signal.alarm when it exists (i.e. not on Windows)."""
@@ -82,7 +85,7 @@ class SocketServerTest(unittest.TestCase):
         for fn in self.test_files:
             try:
                 os.remove(fn)
-            except os.error:
+            except OSError:
                 pass
         self.test_files[:] = []
 
@@ -93,21 +96,7 @@ class SocketServerTest(unittest.TestCase):
             # XXX: We need a way to tell AF_UNIX to pick its own name
             # like AF_INET provides port==0.
             dir = None
-            if os.name == 'os2':
-                dir = '\socket'
             fn = tempfile.mktemp(prefix='unix_socket.', dir=dir)
-            if os.name == 'os2':
-                # AF_UNIX socket names on OS/2 require a specific prefix
-                # which can't include a drive letter and must also use
-                # backslashes as directory separators
-                if fn[1] == ':':
-                    fn = fn[2:]
-                if fn[0] in (os.sep, os.altsep):
-                    fn = fn[1:]
-                if os.sep == '/':
-                    fn = fn.replace(os.sep, os.altsep)
-                else:
-                    fn = fn.replace(os.altsep, os.sep)
             self.test_files.append(fn)
             return fn
 
@@ -189,30 +178,32 @@ class SocketServerTest(unittest.TestCase):
                         socketserver.StreamRequestHandler,
                         self.stream_examine)
 
-    if HAVE_FORKING:
-        def test_ForkingTCPServer(self):
-            with simple_subprocess(self):
-                self.run_server(socketserver.ForkingTCPServer,
-                                socketserver.StreamRequestHandler,
-                                self.stream_examine)
-
-    if HAVE_UNIX_SOCKETS:
-        def test_UnixStreamServer(self):
-            self.run_server(socketserver.UnixStreamServer,
+    @requires_forking
+    def test_ForkingTCPServer(self):
+        with simple_subprocess(self):
+            self.run_server(socketserver.ForkingTCPServer,
                             socketserver.StreamRequestHandler,
                             self.stream_examine)
 
-        def test_ThreadingUnixStreamServer(self):
-            self.run_server(socketserver.ThreadingUnixStreamServer,
+    @requires_unix_sockets
+    def test_UnixStreamServer(self):
+        self.run_server(socketserver.UnixStreamServer,
+                        socketserver.StreamRequestHandler,
+                        self.stream_examine)
+
+    @requires_unix_sockets
+    def test_ThreadingUnixStreamServer(self):
+        self.run_server(socketserver.ThreadingUnixStreamServer,
+                        socketserver.StreamRequestHandler,
+                        self.stream_examine)
+
+    @requires_unix_sockets
+    @requires_forking
+    def test_ForkingUnixStreamServer(self):
+        with simple_subprocess(self):
+            self.run_server(ForkingUnixStreamServer,
                             socketserver.StreamRequestHandler,
                             self.stream_examine)
-
-        if HAVE_FORKING:
-            def test_ForkingUnixStreamServer(self):
-                with simple_subprocess(self):
-                    self.run_server(ForkingUnixStreamServer,
-                                    socketserver.StreamRequestHandler,
-                                    self.stream_examine)
 
     def test_UDPServer(self):
         self.run_server(socketserver.UDPServer,
@@ -224,12 +215,12 @@ class SocketServerTest(unittest.TestCase):
                         socketserver.DatagramRequestHandler,
                         self.dgram_examine)
 
-    if HAVE_FORKING:
-        def test_ForkingUDPServer(self):
-            with simple_subprocess(self):
-                self.run_server(socketserver.ForkingUDPServer,
-                                socketserver.DatagramRequestHandler,
-                                self.dgram_examine)
+    @requires_forking
+    def test_ForkingUDPServer(self):
+        with simple_subprocess(self):
+            self.run_server(socketserver.ForkingUDPServer,
+                            socketserver.DatagramRequestHandler,
+                            self.dgram_examine)
 
     @contextlib.contextmanager
     def mocked_select_module(self):
@@ -244,7 +235,7 @@ class SocketServerTest(unittest.TestCase):
                 self.called += 1
                 if self.called == 1:
                     # raise the exception on first call
-                    raise select.error(errno.EINTR, os.strerror(errno.EINTR))
+                    raise OSError(errno.EINTR, os.strerror(errno.EINTR))
                 else:
                     # Return real select value for consecutive calls
                     return old_select(*args)
@@ -266,22 +257,24 @@ class SocketServerTest(unittest.TestCase):
     # Alas, on Linux (at least) recvfrom() doesn't return a meaningful
     # client address so this cannot work:
 
-    # if HAVE_UNIX_SOCKETS:
-    #     def test_UnixDatagramServer(self):
-    #         self.run_server(socketserver.UnixDatagramServer,
-    #                         socketserver.DatagramRequestHandler,
-    #                         self.dgram_examine)
+    # @requires_unix_sockets
+    # def test_UnixDatagramServer(self):
+    #     self.run_server(socketserver.UnixDatagramServer,
+    #                     socketserver.DatagramRequestHandler,
+    #                     self.dgram_examine)
     #
-    #     def test_ThreadingUnixDatagramServer(self):
-    #         self.run_server(socketserver.ThreadingUnixDatagramServer,
-    #                         socketserver.DatagramRequestHandler,
-    #                         self.dgram_examine)
+    # @requires_unix_sockets
+    # def test_ThreadingUnixDatagramServer(self):
+    #     self.run_server(socketserver.ThreadingUnixDatagramServer,
+    #                     socketserver.DatagramRequestHandler,
+    #                     self.dgram_examine)
     #
-    #     if HAVE_FORKING:
-    #         def test_ForkingUnixDatagramServer(self):
-    #             self.run_server(socketserver.ForkingUnixDatagramServer,
-    #                             socketserver.DatagramRequestHandler,
-    #                             self.dgram_examine)
+    # @requires_unix_sockets
+    # @requires_forking
+    # def test_ForkingUnixDatagramServer(self):
+    #     self.run_server(socketserver.ForkingUnixDatagramServer,
+    #                     socketserver.DatagramRequestHandler,
+    #                     self.dgram_examine)
 
     @reap_threads
     def test_shutdown(self):

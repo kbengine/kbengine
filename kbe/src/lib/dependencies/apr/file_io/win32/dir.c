@@ -316,8 +316,8 @@ static apr_status_t dir_make_parent(char *path,
     if (APR_STATUS_IS_ENOENT(rv)) { /* Missing an intermediate dir */
         rv = dir_make_parent(path, perm, pool);
 
-        if (rv == APR_SUCCESS) {
-            rv = apr_dir_make (path, perm, pool); /* And complete the path */
+        if (rv == APR_SUCCESS || APR_STATUS_IS_EEXIST(rv)) {
+            rv = apr_dir_make(path, perm, pool); /* And complete the path */
         }
     }
 
@@ -330,28 +330,35 @@ APR_DECLARE(apr_status_t) apr_dir_make_recursive(const char *path,
                                                  apr_pool_t *pool)
 {
     apr_status_t rv = 0;
-    
+
     rv = apr_dir_make (path, perm, pool); /* Try to make PATH right out */
-    
+
     if (APR_STATUS_IS_ENOENT(rv)) { /* Missing an intermediate dir */
         char *dir;
-        
+
         rv = apr_filepath_merge(&dir, "", path, APR_FILEPATH_NATIVE, pool);
 
-        if (rv == APR_SUCCESS)
-            rv = dir_make_parent(dir, perm, pool); /* Make intermediate dirs */
-        
-        if (rv == APR_SUCCESS)
-            rv = apr_dir_make (dir, perm, pool);   /* And complete the path */
-    }
+        if (rv != APR_SUCCESS)
+            return rv;
 
-    /*
-     * It's OK if PATH exists. Timing issues can lead to the second
-     * apr_dir_make being called on existing dir, therefore this check
-     * has to come last.
-     */
-    if (APR_STATUS_IS_EEXIST(rv))
-        return APR_SUCCESS;
+        rv = dir_make_parent(dir, perm, pool); /* Make intermediate dirs */
+
+        if (rv == APR_SUCCESS || APR_STATUS_IS_EEXIST(rv)) {
+            rv = apr_dir_make (dir, perm, pool);   /* And complete the path */
+
+            if (APR_STATUS_IS_EEXIST(rv)) {
+                rv = APR_SUCCESS; /* Timing issue; see comment below */
+            }
+        }
+    }
+    else if (APR_STATUS_IS_EEXIST(rv)) {
+        /*
+         * It's OK if PATH exists. Timing issues can lead to the
+         * second apr_dir_make being called on existing dir, therefore
+         * this check has to come last.
+         */
+        rv = APR_SUCCESS;
+    }
 
     return rv;
 }

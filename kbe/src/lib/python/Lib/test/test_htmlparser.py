@@ -70,6 +70,18 @@ class EventCollectorExtra(EventCollector):
         self.append(("starttag_text", self.get_starttag_text()))
 
 
+class EventCollectorCharrefs(EventCollector):
+
+    def get_events(self):
+        return self.events
+
+    def handle_charref(self, data):
+        self.fail('This should never be called with convert_charrefs=True')
+
+    def handle_entityref(self, data):
+        self.fail('This should never be called with convert_charrefs=True')
+
+
 class TestCaseBase(unittest.TestCase):
 
     def get_collector(self):
@@ -84,25 +96,30 @@ class TestCaseBase(unittest.TestCase):
         parser.close()
         events = parser.get_events()
         if events != expected_events:
-            self.fail("received events did not match expected events\n"
-                      "Expected:\n" + pprint.pformat(expected_events) +
+            self.fail("received events did not match expected events" +
+                      "\nSource:\n" + repr(source) +
+                      "\nExpected:\n" + pprint.pformat(expected_events) +
                       "\nReceived:\n" + pprint.pformat(events))
 
     def _run_check_extra(self, source, events):
-        self._run_check(source, events, EventCollectorExtra())
+        self._run_check(source, events,
+                        EventCollectorExtra(convert_charrefs=False))
 
     def _parse_error(self, source):
         def parse(source=source):
             parser = self.get_collector()
             parser.feed(source)
             parser.close()
-        self.assertRaises(html.parser.HTMLParseError, parse)
+        with self.assertRaises(html.parser.HTMLParseError):
+            with self.assertWarns(DeprecationWarning):
+                parse()
 
 
 class HTMLParserStrictTestCase(TestCaseBase):
 
     def get_collector(self):
-        return EventCollector(strict=True)
+        with support.check_warnings(("", DeprecationWarning), quite=False):
+            return EventCollector(strict=True, convert_charrefs=False)
 
     def test_processing_instruction_only(self):
         self._run_check("<?processing instruction>", [
@@ -149,6 +166,12 @@ text
             ("starttag", "p", []),
             ("data", "&#bad;"),
             ("endtag", "p"),
+        ])
+        # add the [] as a workaround to avoid buffering (see #20288)
+        self._run_check(["<div>&#bad;</div>"], [
+            ("starttag", "div", []),
+            ("data", "&#bad;"),
+            ("endtag", "div"),
         ])
 
     def test_unclosed_entityref(self):
@@ -228,6 +251,11 @@ text
         self._parse_error("<a foo='bar")
         self._parse_error("<a foo='>'")
         self._parse_error("<a foo='>")
+        self._parse_error("<a$>")
+        self._parse_error("<a$b>")
+        self._parse_error("<a$b/>")
+        self._parse_error("<a$b  >")
+        self._parse_error("<a$b  />")
 
     def test_valid_doctypes(self):
         # from http://www.w3.org/QA/2002/04/valid-dtd-list.html
@@ -327,7 +355,7 @@ text
             self._run_check(s, [("starttag", element_lower, []),
                                 ("data", content),
                                 ("endtag", element_lower)],
-                            collector=Collector())
+                            collector=Collector(convert_charrefs=False))
 
     def test_comments(self):
         html = ("<!-- I'm a valid comment -->"
@@ -355,11 +383,60 @@ text
                     ('comment', '[if lte IE 7]>pretty?<![endif]')]
         self._run_check(html, expected)
 
+    def test_convert_charrefs(self):
+        collector = lambda: EventCollectorCharrefs(convert_charrefs=True)
+        self.assertTrue(collector().convert_charrefs)
+        charrefs = ['&quot;', '&#34;', '&#x22;', '&quot', '&#34', '&#x22']
+        # check charrefs in the middle of the text/attributes
+        expected = [('starttag', 'a', [('href', 'foo"zar')]),
+                    ('data', 'a"z'), ('endtag', 'a')]
+        for charref in charrefs:
+            self._run_check('<a href="foo{0}zar">a{0}z</a>'.format(charref),
+                            expected, collector=collector())
+        # check charrefs at the beginning/end of the text/attributes
+        expected = [('data', '"'),
+                    ('starttag', 'a', [('x', '"'), ('y', '"X'), ('z', 'X"')]),
+                    ('data', '"'), ('endtag', 'a'), ('data', '"')]
+        for charref in charrefs:
+            self._run_check('{0}<a x="{0}" y="{0}X" z="X{0}">'
+                            '{0}</a>{0}'.format(charref),
+                            expected, collector=collector())
+        # check charrefs in <script>/<style> elements
+        for charref in charrefs:
+            text = 'X'.join([charref]*3)
+            expected = [('data', '"'),
+                        ('starttag', 'script', []), ('data', text),
+                        ('endtag', 'script'), ('data', '"'),
+                        ('starttag', 'style', []), ('data', text),
+                        ('endtag', 'style'), ('data', '"')]
+            self._run_check('{1}<script>{0}</script>{1}'
+                            '<style>{0}</style>{1}'.format(text, charref),
+                            expected, collector=collector())
+        # check truncated charrefs at the end of the file
+        html = '&quo &# &#x'
+        for x in range(1, len(html)):
+            self._run_check(html[:x], [('data', html[:x])],
+                            collector=collector())
+        # check a string with no charrefs
+        self._run_check('no charrefs here', [('data', 'no charrefs here')],
+                        collector=collector())
+
 
 class HTMLParserTolerantTestCase(HTMLParserStrictTestCase):
 
     def get_collector(self):
-        return EventCollector(strict=False)
+        return EventCollector(convert_charrefs=False)
+
+    def test_deprecation_warnings(self):
+        with self.assertWarns(DeprecationWarning):
+            EventCollector()  # convert_charrefs not passed explicitly
+        with self.assertWarns(DeprecationWarning):
+            EventCollector(strict=True)
+        with self.assertWarns(DeprecationWarning):
+            EventCollector(strict=False)
+        with self.assertRaises(html.parser.HTMLParseError):
+            with self.assertWarns(DeprecationWarning):
+                EventCollector().error('test')
 
     def test_tolerant_parsing(self):
         self._run_check('<html <html>te>>xt&a<<bc</a></html>\n'
@@ -367,8 +444,8 @@ class HTMLParserTolerantTestCase(HTMLParserStrictTestCase):
                             ('starttag', 'html', [('<html', None)]),
                             ('data', 'te>>xt'),
                             ('entityref', 'a'),
-                            ('data', '<<bc'),
-                            ('endtag', 'a'),
+                            ('data', '<'),
+                            ('starttag', 'bc<', [('a', None)]),
                             ('endtag', 'html'),
                             ('data', '\n<img src="URL>'),
                             ('comment', '/img'),
@@ -379,8 +456,7 @@ class HTMLParserTolerantTestCase(HTMLParserStrictTestCase):
         self._run_check("</$>", [('comment', '$')])
         self._run_check("</", [('data', '</')])
         self._run_check("</a", [('data', '</a')])
-        # XXX this might be wrong
-        self._run_check("<a<a>", [('data', '<a'), ('starttag', 'a', [])])
+        self._run_check("<a<a>", [('starttag', 'a<a', [])])
         self._run_check("</a<a>", [('endtag', 'a<a')])
         self._run_check("<!", [('data', '<!')])
         self._run_check("<a", [('data', '<a')])
@@ -388,6 +464,11 @@ class HTMLParserTolerantTestCase(HTMLParserStrictTestCase):
         self._run_check("<a foo='bar", [('data', "<a foo='bar")])
         self._run_check("<a foo='>'", [('data', "<a foo='>'")])
         self._run_check("<a foo='>", [('data', "<a foo='>")])
+        self._run_check("<a$>", [('starttag', 'a$', [])])
+        self._run_check("<a$b>", [('starttag', 'a$b', [])])
+        self._run_check("<a$b/>", [('startendtag', 'a$b', [])])
+        self._run_check("<a$b  >", [('starttag', 'a$b', [])])
+        self._run_check("<a$b  />", [('startendtag', 'a$b', [])])
 
     def test_slashes_in_starttag(self):
         self._run_check('<a foo="var"/>', [('startendtag', 'a', [('foo', 'var')])])
@@ -455,7 +536,7 @@ class HTMLParserTolerantTestCase(HTMLParserStrictTestCase):
         self._run_check('<form action="/xxx.php?a=1&amp;b=2&amp", '
                         'method="post">', [
                             ('starttag', 'form',
-                                [('action', '/xxx.php?a=1&b=2&amp'),
+                                [('action', '/xxx.php?a=1&b=2&'),
                                  (',', None), ('method', 'post')])])
 
     def test_weird_chars_in_unquoted_attribute_values(self):
@@ -534,12 +615,26 @@ class HTMLParserTolerantTestCase(HTMLParserStrictTestCase):
         ]
         self._run_check(html, expected)
 
-    def test_unescape_function(self):
+    def test_EOF_in_charref(self):
+        # see #17802
+        # This test checks that the UnboundLocalError reported in the issue
+        # is not raised, however I'm not sure the returned values are correct.
+        # Maybe HTMLParser should use self.unescape for these
+        data = [
+            ('a&', [('data', 'a&')]),
+            ('a&b', [('data', 'ab')]),
+            ('a&b ', [('data', 'a'), ('entityref', 'b'), ('data', ' ')]),
+            ('a&b;', [('data', 'a'), ('entityref', 'b')]),
+        ]
+        for html, expected in data:
+            self._run_check(html, expected)
+
+    def test_unescape_method(self):
+        from html import unescape
         p = self.get_collector()
-        self.assertEqual(p.unescape('&#bad;'),'&#bad;')
-        self.assertEqual(p.unescape('&#0038;'),'&')
-        # see #12888
-        self.assertEqual(p.unescape('&#123; ' * 1050), '{ ' * 1050)
+        with self.assertWarns(DeprecationWarning):
+            s = '&quot;&#34;&#x22;&quot&#34&#x22&#bad;'
+            self.assertEqual(p.unescape(s), unescape(s))
 
     def test_broken_comments(self):
         html = ('<! not really a comment >'
@@ -594,7 +689,8 @@ class HTMLParserTolerantTestCase(HTMLParserStrictTestCase):
 class AttributesStrictTestCase(TestCaseBase):
 
     def get_collector(self):
-        return EventCollector(strict=True)
+        with support.check_warnings(("", DeprecationWarning), quite=False):
+            return EventCollector(strict=True, convert_charrefs=False)
 
     def test_attr_syntax(self):
         output = [
@@ -655,7 +751,7 @@ class AttributesStrictTestCase(TestCaseBase):
 class AttributesTolerantTestCase(AttributesStrictTestCase):
 
     def get_collector(self):
-        return EventCollector(strict=False)
+        return EventCollector(convert_charrefs=False)
 
     def test_attr_funky_names2(self):
         self._run_check(
@@ -732,11 +828,5 @@ class AttributesTolerantTestCase(AttributesStrictTestCase):
                          ("data", "spam"), ("endtag", "a")])
 
 
-
-def test_main():
-    support.run_unittest(HTMLParserStrictTestCase, HTMLParserTolerantTestCase,
-                         AttributesStrictTestCase, AttributesTolerantTestCase)
-
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

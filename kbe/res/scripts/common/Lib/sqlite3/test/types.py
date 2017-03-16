@@ -1,4 +1,4 @@
-#-*- coding: ISO-8859-1 -*-
+#-*- coding: iso-8859-1 -*-
 # pysqlite2/test/types.py: tests for type conversion and detection
 #
 # Copyright (C) 2005 Gerhard Häring <gh@ghaering.de>
@@ -85,7 +85,7 @@ class DeclTypesTests(unittest.TestCase):
             if isinstance(_val, bytes):
                 # sqlite3 always calls __init__ with a bytes created from a
                 # UTF-8 string when __conform__ was used to store the object.
-                _val = _val.decode('utf8')
+                _val = _val.decode('utf-8')
             self.val = _val
 
         def __cmp__(self, other):
@@ -229,7 +229,7 @@ class DeclTypesTests(unittest.TestCase):
         self.assertEqual(type(value), float)
 
     def CheckNumber2(self):
-        """Checks wether converter names are cut off at '(' characters"""
+        """Checks whether converter names are cut off at '(' characters"""
         self.cur.execute("insert into test(n2) values (5)")
         value = self.cur.execute("select n2 from test").fetchone()[0]
         # if the converter is not used, it's an int instead of a float

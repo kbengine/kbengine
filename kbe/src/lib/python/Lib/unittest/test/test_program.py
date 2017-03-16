@@ -2,7 +2,9 @@ import io
 
 import os
 import sys
+from test import support
 import unittest
+import unittest.test
 
 
 class Test_TestProgram(unittest.TestCase):
@@ -64,6 +66,41 @@ class Test_TestProgram(unittest.TestCase):
             return self.suiteClass(
                 [self.loadTestsFromTestCase(Test_TestProgram.FooBar)])
 
+        def loadTestsFromNames(self, names, module):
+            return self.suiteClass(
+                [self.loadTestsFromTestCase(Test_TestProgram.FooBar)])
+
+    def test_defaultTest_with_string(self):
+        class FakeRunner(object):
+            def run(self, test):
+                self.test = test
+                return True
+
+        old_argv = sys.argv
+        sys.argv = ['faketest']
+        runner = FakeRunner()
+        program = unittest.TestProgram(testRunner=runner, exit=False,
+                                       defaultTest='unittest.test',
+                                       testLoader=self.FooBarLoader())
+        sys.argv = old_argv
+        self.assertEqual(('unittest.test',), program.testNames)
+
+    def test_defaultTest_with_iterable(self):
+        class FakeRunner(object):
+            def run(self, test):
+                self.test = test
+                return True
+
+        old_argv = sys.argv
+        sys.argv = ['faketest']
+        runner = FakeRunner()
+        program = unittest.TestProgram(
+            testRunner=runner, exit=False,
+            defaultTest=['unittest.test', 'unittest.test2'],
+            testLoader=self.FooBarLoader())
+        sys.argv = old_argv
+        self.assertEqual(['unittest.test', 'unittest.test2'],
+                          program.testNames)
 
     def test_NonExit(self):
         program = unittest.main(exit=False,
@@ -131,23 +168,6 @@ class TestCommandLineArgs(unittest.TestCase):
         FakeRunner.test = None
         FakeRunner.raiseError = False
 
-    def testHelpAndUnknown(self):
-        program = self.program
-        def usageExit(msg=None):
-            program.msg = msg
-            program.exit = True
-        program.usageExit = usageExit
-
-        for opt in '-h', '-H', '--help':
-            program.exit = False
-            program.parseArgs([None, opt])
-            self.assertTrue(program.exit)
-            self.assertIsNone(program.msg)
-
-        program.parseArgs([None, '-$'])
-        self.assertTrue(program.exit)
-        self.assertIsNotNone(program.msg)
-
     def testVerbosity(self):
         program = self.program
 
@@ -168,20 +188,38 @@ class TestCommandLineArgs(unittest.TestCase):
             if attr == 'catch' and not hasInstallHandler:
                 continue
 
+            setattr(program, attr, None)
+            program.parseArgs([None])
+            self.assertIs(getattr(program, attr), False)
+
+            false = []
+            setattr(program, attr, false)
+            program.parseArgs([None])
+            self.assertIs(getattr(program, attr), false)
+
+            true = [42]
+            setattr(program, attr, true)
+            program.parseArgs([None])
+            self.assertIs(getattr(program, attr), true)
+
             short_opt = '-%s' % arg[0]
             long_opt = '--%s' % arg
             for opt in short_opt, long_opt:
                 setattr(program, attr, None)
-
                 program.parseArgs([None, opt])
-                self.assertTrue(getattr(program, attr))
+                self.assertIs(getattr(program, attr), True)
 
-            for opt in short_opt, long_opt:
-                not_none = object()
-                setattr(program, attr, not_none)
+                setattr(program, attr, False)
+                with support.captured_stderr() as stderr, \
+                    self.assertRaises(SystemExit) as cm:
+                    program.parseArgs([None, opt])
+                self.assertEqual(cm.exception.args, (2,))
 
-                program.parseArgs([None, opt])
-                self.assertEqual(getattr(program, attr), not_none)
+                setattr(program, attr, True)
+                with support.captured_stderr() as stderr, \
+                    self.assertRaises(SystemExit) as cm:
+                    program.parseArgs([None, opt])
+                self.assertEqual(cm.exception.args, (2,))
 
     def testWarning(self):
         """Test the warnings argument"""
@@ -347,7 +385,7 @@ class TestCommandLineArgs(unittest.TestCase):
         self.assertEqual(program.testNames, argv[1:])
 
         # it may be better to use platform specific functions to normalise paths
-        # rather than accepting '.PY' and '\' as file seprator on Linux / Mac
+        # rather than accepting '.PY' and '\' as file separator on Linux / Mac
         # it would also be better to check that a filename is a valid module
         # identifier (we have a regex for this in loader.py)
         # for invalid filenames should we raise a useful error rather than

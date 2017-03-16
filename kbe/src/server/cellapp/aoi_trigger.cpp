@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -17,10 +17,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "witness.hpp"
-#include "entity.hpp"
-#include "aoi_trigger.hpp"
-#include "entity_coordinate_node.hpp"
+#include "witness.h"
+#include "entity.h"
+#include "aoi_trigger.h"
+#include "entity_coordinate_node.h"
+
+#ifndef CODE_INLINE
+#include "aoi_trigger.inl"
+#endif
 
 namespace KBEngine{	
 
@@ -45,10 +49,10 @@ void AOITrigger::onEnter(CoordinateNode * pNode)
 
 	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
 	Entity* pEntity = pEntityCoordinateNode->pEntity();
-	if(!pEntity->getScriptModule()->hasClient())
+	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onEnterAOI(pEntity);
+	pWitness_->onEnterAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -59,10 +63,10 @@ void AOITrigger::onLeave(CoordinateNode * pNode)
 
 	EntityCoordinateNode* pEntityCoordinateNode = static_cast<EntityCoordinateNode*>(pNode);
 	Entity* pEntity = pEntityCoordinateNode->pEntity();
-	if(!pEntity->getScriptModule()->hasClient())
+	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onLeaveAOI(pEntity);
+	pWitness_->onLeaveAOI(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,40 +18,108 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cellapp.hpp"
-#include "space.hpp"	
-#include "entity.hpp"
-#include "witness.hpp"	
-#include "navigation/navigation.hpp"
-#include "loadnavmesh_threadtasks.hpp"
-#include "entitydef/entities.hpp"
-#include "client_lib/client_interface.hpp"
+#include "cellapp.h"
+#include "space.h"	
+#include "entity.h"
+#include "witness.h"	
+#include "navigation/navigation.h"
+#include "loadnavmesh_threadtasks.h"
+#include "entitydef/entities.h"
+#include "client_lib/client_interface.h"
+#include "network/network_stats.h"
 
-#include "../../server/baseappmgr/baseappmgr_interface.hpp"
-#include "../../server/cellappmgr/cellappmgr_interface.hpp"
-#include "../../server/baseapp/baseapp_interface.hpp"
-#include "../../server/cellapp/cellapp_interface.hpp"
-#include "../../server/dbmgr/dbmgr_interface.hpp"
+#include "../../server/baseappmgr/baseappmgr_interface.h"
+#include "../../server/cellappmgr/cellappmgr_interface.h"
+#include "../../server/baseapp/baseapp_interface.h"
+#include "../../server/cellapp/cellapp_interface.h"
+#include "../../server/dbmgr/dbmgr_interface.h"
 
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-Space::Space(SPACE_ID spaceID):
+Space::Space(SPACE_ID spaceID, const std::string& scriptModuleName) :
 id_(spaceID),
+scriptModuleName_(scriptModuleName),
 entities_(),
 hasGeometry_(false),
 pCell_(NULL),
 coordinateSystem_(),
 pNavHandle_(),
-destroyed_(false)
+state_(STATE_NORMAL),
+destroyTime_(0)
 {
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+		
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
-	SAFE_RELEASE(pCell_);
 	entities_.clear();
+	pNavHandle_.clear();
+
+	SAFE_RELEASE(pCell_);	
+
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << true;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Space::_clearGhosts()
+{
+	// 因为space在destroy时做过一次清理，因此这里理论上剩下的是ghosts实体
+	if(entities_.size() == 0)
+		return;
+	
+	std::vector<ENTITY_ID> entitieslog;
+	
+	SPACE_ENTITIES::const_iterator log_iter = this->entities().begin();
+	for(; log_iter != this->entities().end(); ++log_iter)
+		entitieslog.push_back((*log_iter).get()->id());
+
+	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
+	for(; iter != entitieslog.end(); ++iter)
+	{
+		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
+		if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+		{
+			entity->destroyEntity();
+		}
+		else
+		{
+			entity = findEntity((*iter));
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id())
+			{
+				removeEntity(entity);
+			}
+		}
+	}
+	
+	entities_.clear();	
 }
 
 //-------------------------------------------------------------------------------------
@@ -93,11 +161,13 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	char* path = NULL;
 	bool shouldLoadOnServer = true;
 	PyObject* mapper = NULL;
-
+	PyObject* py_params = NULL;
+	std::map< int, std::string > params;
+	
 	int argCount = PyTuple_Size(args);
-	if(argCount < 3 || argCount > 4)
+	if(argCount < 3 || argCount > 5)
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 3 || > 4) is error!");
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (argssize[spaceID, mapper, path, shouldLoadOnServer] < 3 || > 5) is error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -111,11 +181,53 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 			return 0;
 		}
 	}
+	else if(argCount == 5)
+	{
+		if(PyArg_ParseTuple(args, "I|O|s|b|O", &spaceID, &mapper, &path, &shouldLoadOnServer, &py_params) == -1)
+		{
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_PrintEx(0);
+			return 0;
+		}
+		
+		if(py_params)
+		{
+			PyObject *key, *value;
+			Py_ssize_t pos = 0;
+
+			if(!PyDict_Check(py_params))
+			{
+				PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) not is PyDict!");
+				PyErr_PrintEx(0);					
+				return 0;
+			}
+
+			while(PyDict_Next(py_params, &pos, &key, &value)) 
+			{
+				if(!PyLong_Check(key) || !PyUnicode_Check(value))
+				{
+					PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args(params) is error!");
+					PyErr_PrintEx(0);					
+					return 0;
+				}
+				
+			    long i = PyLong_AsLong(key);
+
+				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(value, NULL);
+				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+				PyMem_Free(PyUnicode_AsWideCharStringRet0);
+				params[i] = ccattr;
+				free(ccattr);
+			}
+			
+			SCRIPT_ERROR_CHECK();
+		}
+	}
 	else
 	{
 		if(PyArg_ParseTuple(args, "I|O|s", &spaceID, &mapper, &path) == -1)
 		{
-			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args is error!");
+			PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: args wrong!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -131,9 +243,20 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer))
+	SCRIPT_ERROR_CHECK();
+
+	if (Resmgr::getSingleton().matchPath(path).size() == 0)
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) is error!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) path error!",
+			spaceID, path);
+
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	if(!space->addSpaceGeometryMapping(path, shouldLoadOnServer, params))
+	{
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) error!", 
 			spaceID, path);
 
 		PyErr_PrintEx(0);
@@ -144,16 +267,16 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 }
 
 //-------------------------------------------------------------------------------------
-bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer)
+bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer, const std::map< int, std::string >& params)
 {
-	INFO_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2%, shouldLoadOnServer=%3%!\n") %
-		getID() % respath % shouldLoadOnServer);
+	INFO_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={}, shouldLoadOnServer={}!\n",
+		id(), respath, shouldLoadOnServer));
 
 	hasGeometry_ = true;
 	if(getGeometryPath() == respath)
 	{
-		WARNING_MSG(boost::format("KBEngine::addSpaceGeometryMapping: spaceID=%1%, respath=%2% is exist!\n") %
-			getID() % respath);
+		WARNING_MSG(fmt::format("KBEngine::addSpaceGeometryMapping: spaceID={}, respath={} exist!\n",
+			id(), respath));
 
 		return true;
 	}
@@ -161,50 +284,91 @@ bool Space::addSpaceGeometryMapping(std::string respath, bool shouldLoadOnServer
 	setGeometryPath(respath);
 
 	if(shouldLoadOnServer)
-		loadSpaceGeometry();
+		loadSpaceGeometry(params);
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void Space::loadSpaceGeometry()
+void Space::loadSpaceGeometry(const std::map< int, std::string >& params)
 {
 	KBE_ASSERT(pNavHandle_ == NULL);
-	Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(getGeometryPath(), this->getID()));
+	Cellapp::getSingleton().threadPool().addTask(new LoadNavmeshTask(getGeometryPath(), this->id(), params));
 }
 
 //-------------------------------------------------------------------------------------
 void Space::unLoadSpaceGeometry()
 {
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 {
 	pNavHandle_ = pNavHandle;
-	INFO_MSG(boost::format("KBEngine::onLoadedSpaceGeometryMapping: spaceID=%1%, respath=%2%!\n") %
-			getID() % getGeometryPath());
+	INFO_MSG(fmt::format("KBEngine::onLoadedSpaceGeometryMapping: spaceID={}, respath={}!\n",
+			id(), getGeometryPath()));
 
 	// 通知脚本
-	SCRIPT_OBJECT_CALL_ARGS2(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceGeometryLoaded"), 
-		const_cast<char*>("Is"), this->getID(), getGeometryPath().c_str());
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+		SCRIPT_OBJECT_CALL_ARGS2(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceGeometryLoaded"), 
+			const_cast<char*>("Is"), this->id(), getGeometryPath().c_str());
+	}
 
 	onAllSpaceGeometryLoaded();
+
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << getGeometryPath();
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Space::onAllSpaceGeometryLoaded()
 {
+	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
 	// 通知脚本
 	SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onAllSpaceGeometryLoaded"), 
-		const_cast<char*>("Iis"), this->getID(), true, getGeometryPath().c_str());
+		const_cast<char*>("Iis"), this->id(), true, getGeometryPath().c_str());
 }
 
 //-------------------------------------------------------------------------------------
-void Space::update()
+bool Space::update()
 {
-	if(pNavHandle_ == NULL)
-		return;
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
+		return false;
+
+	this->coordinateSystem_.releaseNodes();
+
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
+		_clearGhosts();
+		
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -218,7 +382,7 @@ void Space::addEntityAndEnterWorld(Entity* pEntity, bool isRestore)
 //-------------------------------------------------------------------------------------
 void Space::addEntity(Entity* pEntity)
 {
-	pEntity->setSpaceID(this->id_);
+	pEntity->spaceID(this->id_);
 	pEntity->spaceEntityIdx(entities_.size());
 	entities_.push_back(pEntity);
 	pEntity->onEnterSpace(this);
@@ -228,15 +392,14 @@ void Space::addEntity(Entity* pEntity)
 void Space::addEntityToNode(Entity* pEntity)
 {
 	pEntity->installCoordinateNodes(&coordinateSystem_);
-
-	// 如果身上有trap等触发器还得重新添加进去
-	pEntity->restoreProximitys();
 }
 
 //-------------------------------------------------------------------------------------
 void Space::removeEntity(Entity* pEntity)
 {
-	pEntity->setSpaceID(0);
+	KBE_ASSERT(pEntity->spaceID() == id());
+
+	pEntity->spaceID(0);
 	
 	// 先获取到所在位置
 	SPACE_ENTITIES::size_type idx = pEntity->spaceEntityIdx();
@@ -257,26 +420,23 @@ void Space::removeEntity(Entity* pEntity)
 	pEntity->uninstallCoordinateNodes(&coordinateSystem_);
 	pEntity->onLeaveSpace(this);
 
-	if(pEntity->getID() == this->creatorID())
-	{
-		DEBUG_MSG(boost::format("Space::removeEntity: lose creator(%1%).\n") % this->creatorID());
-	}
-
 	// 如果没有entity了则需要销毁space, 因为space最少存在一个entity
-	// 这个entity通常是spaceEntity
-	if(entities_.empty())
+	if(entities_.empty() && state_ == STATE_NORMAL)
 	{
-		Spaces::destroySpace(this->getID(), this->creatorID());
+		Spaces::destroySpace(this->id(), 0);
 	}
 }
 
 //-------------------------------------------------------------------------------------
 void Space::_onEnterWorld(Entity* pEntity)
 {
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
+		return;
+
 	if(pEntity->hasWitness())
 	{
-		pEntity->pWitness()->onEnterSpace(this);
 		_addSpaceDatasToEntityClient(pEntity);
+		pEntity->pWitness()->onEnterSpace(this);
 	}
 }
 
@@ -303,7 +463,7 @@ void Space::onEntityAttachWitness(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Space::onLeaveWorld(Entity* pEntity)
 {
-	if(!pEntity->getScriptModule()->hasClient())
+	if(!pEntity->isReal() || !pEntity->pScriptModule()->hasClient())
 		return;
 	
 	// 向其他人客户端广播自己的离开
@@ -315,43 +475,75 @@ void Space::onLeaveWorld(Entity* pEntity)
 }
 
 //-------------------------------------------------------------------------------------
+Entity* Space::findEntity(ENTITY_ID entityID)
+{
+	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
+	for(; iter != this->entities().end(); ++iter)
+	{
+		const Entity* entity = (*iter).get();
+			
+		if(entity->id() == entityID)
+			return const_cast<Entity*>(entity);
+	}
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
 bool Space::destroy(ENTITY_ID entityID)
 {
-	if(destroyed_)
-		return true;
+	if(state_ != STATE_NORMAL)
+		return false;
 
-	destroyed_ = true;
+	state_ = STATE_DESTROYING;
+	destroyTime_ = timestamp();
+	
+	std::vector<ENTITY_ID> entitieslog;
+	
+	{
+		SPACE_ENTITIES::const_iterator iter = this->entities().begin();
+		for(; iter != this->entities().end(); ++iter)
+		{
+			const Entity* entity = (*iter).get();
+			entitieslog.push_back(entity->id());
+		}
+	}
 
+	{
+		std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
+		for(; iter != entitieslog.end(); ++iter)
+		{
+			Entity* entity = Cellapp::getSingleton().findEntity((*iter));
+			if(entity != NULL && !entity->isDestroyed() && entity->spaceID() == this->id() && entity->isReal())
+			{
+				entity->onSpaceGone();
+			}
+		}
+	}
+	
+	state_ = STATE_DESTROYED;
+	
 	if(this->entities().size() == 0)
 		return true;
 
-	SPACE_ENTITIES entitieslog;
-	
-	Entity* creator = NULL;
-
-	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
-	for(; iter != this->entities().end(); iter++)
+	std::vector<ENTITY_ID>::iterator iter = entitieslog.begin();
+	for(; iter != entitieslog.end(); ++iter)
 	{
-		const Entity* entity = (*iter).get();
-
-		if(entity->getID() == this->creatorID())
-			creator = const_cast<Entity*>(entity);
+		Entity* entity = Cellapp::getSingleton().findEntity((*iter));
+		if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
+		{
+			entity->destroyEntity();
+		}
 		else
-			entitieslog.push_back((*iter));
+		{
+			entity = findEntity((*iter));
+			if(entity != NULL && entity->isReal() && !entity->isDestroyed() && entity->spaceID() == this->id())
+			{
+				removeEntity(entity);
+			}
+		}
 	}
 
-	iter = entitieslog.begin();
-	for(; iter != entitieslog.end(); iter++)
-	{
-		(*iter)->destroyEntity();
-	}
-
-	// 最后销毁创建者
-	if(creator)
-		creator->destroyEntity();
-
-	pNavHandle_.clear();
-	entities_.clear();
 	return true;
 }
 
@@ -423,48 +615,48 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 	// 通知脚本
 	if(!isdel)
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceData"), 
-			const_cast<char*>("Iss"), this->getID(), key.c_str(), value.c_str());
+			const_cast<char*>("Iss"), this->id(), key.c_str(), value.c_str());
 	}
 	else
 	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS3(Cellapp::getSingleton().getEntryScript().get(), const_cast<char*>("onSpaceData"), 
-			const_cast<char*>("IsO"), this->getID(), key.c_str(), Py_None);
+			const_cast<char*>("IsO"), this->id(), key.c_str(), Py_None);
 	}
 
 	SPACE_ENTITIES::const_iterator iter = this->entities().begin();
-	for(; iter != this->entities().end(); iter++)
+	for(; iter != this->entities().end(); ++iter)
 	{
 		const Entity* pEntity = (*iter).get();
 
 		if(pEntity == NULL || pEntity->isDestroyed() || !pEntity->hasWitness())
 			continue;
 
-		Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
-
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+		
 		if(!isdel)
 		{
-			pForwardBundle->newMessage(ClientInterface::setSpaceData);
-			(*pForwardBundle) << this->getID();
-			(*pForwardBundle) << key;
-			(*pForwardBundle) << value;
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::setSpaceData, set);
+			(*pSendBundle) << this->id();
+			(*pSendBundle) << key;
+			(*pSendBundle) << value;
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::setSpaceData, set);
 		}
 		else
 		{
-			pForwardBundle->newMessage(ClientInterface::delSpaceData);
-			(*pForwardBundle) << this->getID();
-			(*pForwardBundle) << key;
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::delSpaceData, del);
+			(*pSendBundle) << this->id();
+			(*pSendBundle) << key;
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::delSpaceData, del);
 		}
-
-		Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-		MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
 
 		if(!isdel)
 			pEntity->pWitness()->sendToClient(ClientInterface::setSpaceData, pSendBundle);
 		else
 			pEntity->pWitness()->sendToClient(ClientInterface::delSpaceData, pSendBundle);
-
-		Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 	}
 }
 
@@ -483,29 +675,28 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 
 	if(!pEntity->hasWitness())
 	{
-		WARNING_MSG(boost::format("Space::_addSpaceDatasToEntityClient: entity %1% no client!\n") % 
-			pEntity->getID());
+		WARNING_MSG(fmt::format("Space::_addSpaceDatasToEntityClient: entity {} no client!\n", 
+			pEntity->id()));
 
 		return;
 	}
 
-	Mercury::Bundle* pForwardBundle = Mercury::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
 
-	pForwardBundle->newMessage(ClientInterface::initSpaceData);
-	(*pForwardBundle) << this->getID();
+	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::initSpaceData, init);
+	(*pSendBundle) << this->id();
 
 	SPACE_DATA::iterator iter = datas_.begin();
-	for(; iter != datas_.end(); iter++)
+	for(; iter != datas_.end(); ++iter)
 	{
-		(*pForwardBundle) << iter->first;
-		(*pForwardBundle) << iter->second;
+		(*pSendBundle) << iter->first;
+		(*pSendBundle) << iter->second;
 	}
 
-	Mercury::Bundle* pSendBundle = Mercury::Bundle::ObjPool().createObject();
-	MERCURY_ENTITY_MESSAGE_FORWARD_CLIENT(pEntity->getID(), (*pSendBundle), (*pForwardBundle));
+	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::initSpaceData, init);
 
 	pEntity->pWitness()->sendToClient(ClientInterface::initSpaceData, pSendBundle);
-	Mercury::Bundle::ObjPool().reclaimObject(pForwardBundle);
 }
 
 //-------------------------------------------------------------------------------------

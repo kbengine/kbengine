@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "backuper.hpp"
-#include "server/serverconfig.hpp"
+#include "baseapp.h"
+#include "backuper.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine{	
 float backupPeriod = 0.0;
@@ -41,7 +41,7 @@ Backuper::~Backuper()
 //-------------------------------------------------------------------------------------
 void Backuper::tick()
 {
-	int32 periodInTicks = secondsToTicks(ServerConfig::getSingleton().getBaseApp().backupPeriod, 0);
+	int32 periodInTicks = (int32)secondsToTicks(ServerConfig::getSingleton().getBaseApp().backupPeriod, 0);
 	if (periodInTicks == 0)
 		return;
 
@@ -61,20 +61,22 @@ void Backuper::tick()
 		this->createBackupTable();
 	}
 
-	Mercury::Bundle bundle;
+	MemoryStream* s = MemoryStream::createPoolObject();
+	
 	while((numToBackUp > 0) && !backupEntityIDs_.empty())
 	{
 		Base * pBase = Baseapp::getSingleton().findEntity(backupEntityIDs_.back());
 		backupEntityIDs_.pop_back();
 		
-		MemoryStream* s = MemoryStream::ObjPool().createObject();
 		if (pBase && backup(*pBase, *s))
 		{
 			--numToBackUp;
-			bundle.append(*s);
 		}
-		MemoryStream::ObjPool().reclaimObject(s);
+		
+		s->clear(false);
 	}
+	
+	MemoryStream::reclaimPoolObject(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -96,7 +98,7 @@ void Backuper::createBackupTable()
 
 	Entities<Base>::ENTITYS_MAP::const_iterator iter = Baseapp::getSingleton().pEntities()->getEntities().begin();
 
-	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); iter++)
+	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); ++iter)
 	{
 		Base* pBase = static_cast<Base*>(iter->second.get());
 

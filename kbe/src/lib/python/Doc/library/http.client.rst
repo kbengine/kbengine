@@ -27,7 +27,7 @@ HTTPS protocols.  It is normally not used directly --- the module
 The module provides the following classes:
 
 
-.. class:: HTTPConnection(host, port=None[, strict][, timeout], \
+.. class:: HTTPConnection(host, port=None[, timeout], \
                           source_address=None)
 
    An :class:`HTTPConnection` instance represents one transaction with an HTTP
@@ -43,44 +43,48 @@ The module provides the following classes:
    For example, the following calls all create instances that connect to the server
    at the same host and port::
 
-      >>> h1 = http.client.HTTPConnection('www.cwi.nl')
-      >>> h2 = http.client.HTTPConnection('www.cwi.nl:80')
-      >>> h3 = http.client.HTTPConnection('www.cwi.nl', 80)
-      >>> h3 = http.client.HTTPConnection('www.cwi.nl', 80, timeout=10)
+      >>> h1 = http.client.HTTPConnection('www.python.org')
+      >>> h2 = http.client.HTTPConnection('www.python.org:80')
+      >>> h3 = http.client.HTTPConnection('www.python.org', 80)
+      >>> h4 = http.client.HTTPConnection('www.python.org', 80, timeout=10)
 
    .. versionchanged:: 3.2
       *source_address* was added.
 
-   .. deprecated:: 3.2
-      The *strict* parameter is deprecated.  HTTP 0.9-style "Simple Responses"
-      are not supported anymore.
+   .. versionchanged:: 3.4
+      The  *strict* parameter was removed. HTTP 0.9-style "Simple Responses" are
+      not longer supported.
 
 
 .. class:: HTTPSConnection(host, port=None, key_file=None, \
-                           cert_file=None[, strict][, timeout], \
+                           cert_file=None[, timeout], \
                            source_address=None, *, context=None, \
                            check_hostname=None)
 
    A subclass of :class:`HTTPConnection` that uses SSL for communication with
    secure servers.  Default port is ``443``.  If *context* is specified, it
    must be a :class:`ssl.SSLContext` instance describing the various SSL
-   options.  If *context* is specified and has a :attr:`~ssl.SSLContext.verify_mode`
-   of either :data:`~ssl.CERT_OPTIONAL` or :data:`~ssl.CERT_REQUIRED`, then
-   by default *host* is matched against the host name(s) allowed by the
-   server's certificate.  If you want to change that behaviour, you can
-   explicitly set *check_hostname* to False.
+   options.
 
    *key_file* and *cert_file* are deprecated, please use
-   :meth:`ssl.SSLContext.load_cert_chain` instead.
+   :meth:`ssl.SSLContext.load_cert_chain` instead, or let
+   :func:`ssl.create_default_context` select the system's trusted CA
+   certificates for you.
 
-   If you access arbitrary hosts on the Internet, it is recommended to
-   require certificate checking and feed the *context* with a set of
-   trusted CA certificates::
+   The recommended way to connect to HTTPS hosts on the Internet is as
+   follows::
 
-      context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-      context.verify_mode = ssl.CERT_REQUIRED
-      context.load_verify_locations('/etc/pki/tls/certs/ca-bundle.crt')
-      h = client.HTTPSConnection('svn.python.org', 443, context=context)
+      context = ssl.create_default_context()
+      h = client.HTTPSConnection('www.python.org', 443, context=context)
+
+   Please read :ref:`ssl-security` for more information on best practices.
+
+   .. note::
+      If *context* is specified and has a :attr:`~ssl.SSLContext.verify_mode`
+      of either :data:`~ssl.CERT_OPTIONAL` or :data:`~ssl.CERT_REQUIRED`, then
+      by default *host* is matched against the host name(s) allowed by the
+      server's certificate.  If you want to change that behaviour, you can
+      explicitly set *check_hostname* to False.
 
    .. versionchanged:: 3.2
       *source_address*, *context* and *check_hostname* were added.
@@ -89,19 +93,19 @@ The module provides the following classes:
       This class now supports HTTPS virtual hosts if possible (that is,
       if :data:`ssl.HAS_SNI` is true).
 
-   .. deprecated:: 3.2
-      The *strict* parameter is deprecated.  HTTP 0.9-style "Simple Responses"
-      are not supported anymore.
+   .. versionchanged:: 3.4
+      The *strict* parameter was removed. HTTP 0.9-style "Simple Responses" are
+      no longer supported.
 
 
-.. class:: HTTPResponse(sock, debuglevel=0[, strict], method=None, url=None)
+.. class:: HTTPResponse(sock, debuglevel=0, method=None, url=None)
 
    Class whose instances are returned upon successful connection.  Not
    instantiated directly by user.
 
-   .. deprecated:: 3.2
-      The *strict* parameter is deprecated.  HTTP 0.9-style "Simple Responses"
-      are not supported anymore.
+   .. versionchanged:: 3.4
+      The *strict* parameter was removed. HTTP 0.9 style "Simple Responses" are
+      no longer supported.
 
 
 The following exceptions are raised as appropriate:
@@ -169,8 +173,8 @@ The following exceptions are raised as appropriate:
    A subclass of :exc:`HTTPException`.  Raised if a server responds with a HTTP
    status code that we don't understand.
 
-The constants defined in this module are:
 
+The constants defined in this module are:
 
 .. data:: HTTP_PORT
 
@@ -343,6 +347,15 @@ and also the following constants for integer status codes:
 | :const:`UPGRADE_REQUIRED`                | ``426`` | HTTP Upgrade to TLS,                                                  |
 |                                          |         | :rfc:`2817`, Section 6                                                |
 +------------------------------------------+---------+-----------------------------------------------------------------------+
+| :const:`PRECONDITION_REQUIRED`           | ``428`` | Additional HTTP Status Codes,                                         |
+|                                          |         | :rfc:`6585`, Section 3                                                |
++------------------------------------------+---------+-----------------------------------------------------------------------+
+| :const:`TOO_MANY_REQUESTS`               | ``429`` | Additional HTTP Status Codes,                                         |
+|                                          |         | :rfc:`6585`, Section 4                                                |
++------------------------------------------+---------+-----------------------------------------------------------------------+
+| :const:`REQUEST_HEADER_FIELDS_TOO_LARGE` | ``431`` | Additional HTTP Status Codes,                                         |
+|                                          |         | :rfc:`6585`, Section 5                                                |
++------------------------------------------+---------+-----------------------------------------------------------------------+
 | :const:`INTERNAL_SERVER_ERROR`           | ``500`` | HTTP/1.1, `RFC 2616, Section                                          |
 |                                          |         | 10.5.1                                                                |
 |                                          |         | <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.1>`_  |
@@ -373,6 +386,12 @@ and also the following constants for integer status codes:
 | :const:`NOT_EXTENDED`                    | ``510`` | An HTTP Extension Framework,                                          |
 |                                          |         | :rfc:`2774`, Section 7                                                |
 +------------------------------------------+---------+-----------------------------------------------------------------------+
+| :const:`NETWORK_AUTHENTICATION_REQUIRED` | ``511`` | Additional HTTP Status Codes,                                         |
+|                                          |         | :rfc:`6585`, Section 6                                                |
++------------------------------------------+---------+-----------------------------------------------------------------------+
+
+.. versionchanged:: 3.3
+   Added codes ``428``, ``429``, ``431`` and ``511`` from :rfc:`6585`.
 
 
 .. data:: responses
@@ -436,11 +455,25 @@ HTTPConnection Objects
 
 .. method:: HTTPConnection.set_tunnel(host, port=None, headers=None)
 
-   Set the host and the port for HTTP Connect Tunnelling. Normally used when it
-   is required to a HTTPS Connection through a proxy server.
+   Set the host and the port for HTTP Connect Tunnelling. This allows running
+   the connection through a proxy server.
 
-   The headers argument should be a mapping of extra HTTP headers to send
-   with the CONNECT request.
+   The host and port arguments specify the endpoint of the tunneled connection
+   (i.e. the address included in the CONNECT request, *not* the address of the
+   proxy server).
+
+   The headers argument should be a mapping of extra HTTP headers to send with
+   the CONNECT request.
+
+   For example, to tunnel through a HTTPS proxy server running locally on port
+   8080, we would pass the address of the proxy to the :class:`HTTPSConnection`
+   constructor, and the address of the host that we eventually want to reach to
+   the :meth:`~HTTPConnection.set_tunnel` method::
+
+      >>> import http.client
+      >>> conn = http.client.HTTPSConnection("localhost", 8080)
+      >>> conn.set_tunnel("www.python.org")
+      >>> conn.request("HEAD","/index.html")
 
    .. versionadded:: 3.2
 
@@ -506,6 +539,12 @@ statement.
 
    Reads and returns the response body, or up to the next *amt* bytes.
 
+.. method:: HTTPResponse.readinto(b)
+
+   Reads up to the next len(b) bytes of the response body into the buffer *b*.
+   Returns the number of bytes read.
+
+   .. versionadded:: 3.3
 
 .. method:: HTTPResponse.getheader(name, default=None)
 
@@ -552,7 +591,7 @@ statement.
 
 .. attribute:: HTTPResponse.closed
 
-   Is True if the stream is closed.
+   Is ``True`` if the stream is closed.
 
 Examples
 --------
@@ -614,19 +653,21 @@ Here is an example session that shows how to ``POST`` requests::
 
 Client side ``HTTP PUT`` requests are very similar to ``POST`` requests. The
 difference lies only the server side where HTTP server will allow resources to
-be created via ``PUT`` request. Here is an example session that shows how to do
-``PUT`` request using http.client::
+be created via ``PUT`` request. It should be noted that custom HTTP methods
++are also handled in :class:`urllib.request.Request` by sending the appropriate
++method attribute.Here is an example session that shows how to do ``PUT``
+request using http.client::
 
     >>> # This creates an HTTP message
     >>> # with the content of BODY as the enclosed representation
-    >>> # for the resource http://localhost:8080/foobar
+    >>> # for the resource http://localhost:8080/file
     ...
     >>> import http.client
     >>> BODY = "***filecontents***"
     >>> conn = http.client.HTTPConnection("localhost", 8080)
     >>> conn.request("PUT", "/file", BODY)
     >>> response = conn.getresponse()
-    >>> print(resp.status, response.reason)
+    >>> print(response.status, response.reason)
     200, OK
 
 .. _httpmessage-objects:

@@ -1,11 +1,13 @@
 """Tests for distutils.command.upload."""
 import os
 import unittest
-import http.client as httpclient
 from test.support import run_unittest
 
+from distutils.command import upload as upload_mod
 from distutils.command.upload import upload
 from distutils.core import Distribution
+from distutils.errors import DistutilsError
+from distutils.log import INFO
 
 from distutils.tests.test_config import PYPIRC, PyPIRCCommandTestCase
 
@@ -37,47 +39,47 @@ index-servers =
 [server1]
 username:me
 """
-class Response(object):
-    def __init__(self, status=200, reason='OK'):
-        self.status = status
-        self.reason = reason
 
-class FakeConnection(object):
+class FakeOpen(object):
 
-    def __init__(self):
-        self.requests = []
-        self.headers = []
-        self.body = ''
+    def __init__(self, url, msg=None, code=None):
+        self.url = url
+        if not isinstance(url, str):
+            self.req = url
+        else:
+            self.req = None
+        self.msg = msg or 'OK'
+        self.code = code or 200
 
-    def __call__(self, netloc):
-        return self
+    def getheader(self, name, default=None):
+        return {
+            'content-type': 'text/plain; charset=utf-8',
+            }.get(name.lower(), default)
 
-    def connect(self):
-        pass
-    endheaders = connect
+    def read(self):
+        return b'xyzzy'
 
-    def putrequest(self, method, url):
-        self.requests.append((method, url))
+    def getcode(self):
+        return self.code
 
-    def putheader(self, name, value):
-        self.headers.append((name, value))
-
-    def send(self, body):
-        self.body = body
-
-    def getresponse(self):
-        return Response()
 
 class uploadTestCase(PyPIRCCommandTestCase):
 
     def setUp(self):
         super(uploadTestCase, self).setUp()
-        self.old_class = httpclient.HTTPConnection
-        self.conn = httpclient.HTTPConnection = FakeConnection()
+        self.old_open = upload_mod.urlopen
+        upload_mod.urlopen = self._urlopen
+        self.last_open = None
+        self.next_msg = None
+        self.next_code = None
 
     def tearDown(self):
-        httpclient.HTTPConnection = self.old_class
+        upload_mod.urlopen = self.old_open
         super(uploadTestCase, self).tearDown()
+
+    def _urlopen(self, url):
+        self.last_open = FakeOpen(url, msg=self.next_msg, code=self.next_code)
+        return self.last_open
 
     def test_finalize_options(self):
 
@@ -88,7 +90,7 @@ class uploadTestCase(PyPIRCCommandTestCase):
         cmd.finalize_options()
         for attr, waited in (('username', 'me'), ('password', 'secret'),
                              ('realm', 'pypi'),
-                             ('repository', 'http://pypi.python.org/pypi')):
+                             ('repository', 'https://pypi.python.org/pypi')):
             self.assertEqual(getattr(cmd, attr), waited)
 
     def test_saved_password(self):
@@ -119,17 +121,28 @@ class uploadTestCase(PyPIRCCommandTestCase):
         # lets run it
         pkg_dir, dist = self.create_dist(dist_files=dist_files)
         cmd = upload(dist)
+        cmd.show_response = 1
         cmd.ensure_finalized()
         cmd.run()
 
         # what did we send ?
-        headers = dict(self.conn.headers)
+        headers = dict(self.last_open.req.headers)
         self.assertEqual(headers['Content-length'], '2087')
-        self.assertTrue(headers['Content-type'].startswith('multipart/form-data'))
-        self.assertFalse('\n' in headers['Authorization'])
+        content_type = headers['Content-type']
+        self.assertTrue(content_type.startswith('multipart/form-data'))
+        self.assertEqual(self.last_open.req.get_method(), 'POST')
+        expected_url = 'https://pypi.python.org/pypi'
+        self.assertEqual(self.last_open.req.get_full_url(), expected_url)
+        self.assertTrue(b'xxx' in self.last_open.req.data)
 
-        self.assertEqual(self.conn.requests, [('POST', '/pypi')])
-        self.assertTrue((b'xxx') in self.conn.body)
+        # The PyPI response body was echoed
+        results = self.get_logs(INFO)
+        self.assertIn('xyzzy\n', results[-1])
+
+    def test_upload_fails(self):
+        self.next_msg = "Not Found"
+        self.next_code = 404
+        self.assertRaises(DistutilsError, self.test_upload)
 
 def test_suite():
     return unittest.makeSuite(uploadTestCase)

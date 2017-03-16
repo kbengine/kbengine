@@ -66,6 +66,19 @@ The module defines the following exception and functions:
    format (``len(buffer[offset:])`` must be at least ``calcsize(fmt)``).
 
 
+.. function:: iter_unpack(fmt, buffer)
+
+   Iteratively unpack from the buffer *buffer* according to the format
+   string *fmt*.  This function returns an iterator which will read
+   equally-sized chunks from the buffer until all its contents have been
+   consumed.  The buffer's size in bytes must be a multiple of the amount
+   of data required by the format, as reflected by :func:`calcsize`.
+
+   Each iteration yields a tuple as specified by the format string.
+
+   .. versionadded:: 3.4
+
+
 .. function:: calcsize(fmt)
 
    Return the size of the struct (and hence of the bytes object produced by
@@ -187,16 +200,23 @@ platform-dependent.
 | ``Q``  | :c:type:`unsigned long   | integer            | 8              | \(2), \(3) |
 |        | long`                    |                    |                |            |
 +--------+--------------------------+--------------------+----------------+------------+
-| ``f``  | :c:type:`float`          | float              | 4              | \(4)       |
+| ``n``  | :c:type:`ssize_t`        | integer            |                | \(4)       |
 +--------+--------------------------+--------------------+----------------+------------+
-| ``d``  | :c:type:`double`         | float              | 8              | \(4)       |
+| ``N``  | :c:type:`size_t`         | integer            |                | \(4)       |
++--------+--------------------------+--------------------+----------------+------------+
+| ``f``  | :c:type:`float`          | float              | 4              | \(5)       |
++--------+--------------------------+--------------------+----------------+------------+
+| ``d``  | :c:type:`double`         | float              | 8              | \(5)       |
 +--------+--------------------------+--------------------+----------------+------------+
 | ``s``  | :c:type:`char[]`         | bytes              |                |            |
 +--------+--------------------------+--------------------+----------------+------------+
 | ``p``  | :c:type:`char[]`         | bytes              |                |            |
 +--------+--------------------------+--------------------+----------------+------------+
-| ``P``  | :c:type:`void \*`        | integer            |                | \(5)       |
+| ``P``  | :c:type:`void \*`        | integer            |                | \(6)       |
 +--------+--------------------------+--------------------+----------------+------------+
+
+.. versionchanged:: 3.3
+   Added support for the ``'n'`` and ``'N'`` formats.
 
 Notes:
 
@@ -219,11 +239,17 @@ Notes:
       Use of the :meth:`__index__` method for non-integers is new in 3.2.
 
 (4)
+   The ``'n'`` and ``'N'`` conversion codes are only available for the native
+   size (selected as the default or with the ``'@'`` byte order character).
+   For the standard size, you can use whichever of the other integer formats
+   fits your application.
+
+(5)
    For the ``'f'`` and ``'d'`` conversion codes, the packed representation uses
    the IEEE 754 binary32 (for ``'f'``) or binary64 (for ``'d'``) format,
    regardless of the floating-point format used by the platform.
 
-(5)
+(6)
    The ``'P'`` format character is only available for the native byte ordering
    (selected as the default or with the ``'@'`` byte order character). The byte
    order character ``'='`` chooses to use little- or big-endian ordering based
@@ -269,7 +295,7 @@ bytes.
 For the ``'?'`` format character, the return value is either :const:`True` or
 :const:`False`. When packing, the truth value of the argument object is used.
 Either 0 or 1 in the native or standard bool representation will be packed, and
-any non-zero value will be True when unpacking.
+any non-zero value will be ``True`` when unpacking.
 
 
 
@@ -374,6 +400,13 @@ The :mod:`struct` module also defines the following type:
       Identical to the :func:`unpack_from` function, using the compiled format.
       (``len(buffer[offset:])`` must be at least :attr:`self.size`).
 
+
+   .. method:: iter_unpack(buffer)
+
+      Identical to the :func:`iter_unpack` function, using the compiled format.
+      (``len(buffer)`` must be a multiple of :attr:`self.size`).
+
+      .. versionadded:: 3.4
 
    .. attribute:: format
 

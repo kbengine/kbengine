@@ -4,7 +4,10 @@
 General Python FAQ
 ==================
 
-.. contents::
+.. only:: html
+
+   .. contents::
+
 
 General Information
 ===================
@@ -164,7 +167,8 @@ Sphinx-formatted documentation, Python library modules, example programs, and
 several useful pieces of freely distributable software.  The source will compile
 and run out of the box on most UNIX platforms.
 
-Consult the `Developer FAQ <http://docs.python.org/devguide/faq>`__ for more
+Consult the `Getting Started section of the Python Developer's Guide
+<https://docs.python.org/devguide/setup.html>`__ for more
 information on getting the source code and compiling it.
 
 
@@ -178,8 +182,8 @@ at http://docs.python.org/.  PDF, plain text, and downloadable HTML versions are
 also available at http://docs.python.org/download.html.
 
 The documentation is written in reStructuredText and processed by `the Sphinx
-documentation tool <http://sphinx.pocoo.org/>`__.  The reStructuredText source
-for the documentation is part of the Python source distribution.
+documentation tool <http://sphinx-doc.org/>`__.  The reStructuredText source for
+the documentation is part of the Python source distribution.
 
 
 I've never programmed before. Is there a Python tutorial?
@@ -265,9 +269,13 @@ Python references; or perhaps search for "Python" and "language".
 Where in the world is www.python.org located?
 ---------------------------------------------
 
-It's currently in Amsterdam, graciously hosted by `XS4ALL
-<http://www.xs4all.nl>`_.  Thanks to Thomas Wouters for his work in arranging
-python.org's hosting.
+The Python project's infrastructure is located all over the world.
+`www.python.org <http://www.python.org>`_ is currently in Amsterdam, graciously
+hosted by `XS4ALL <http://www.xs4all.nl>`_.  `Upfront Systems
+<http://www.upfrontsystems.co.za>`_ hosts `bugs.python.org
+<http://bugs.python.org>`_.  Most other Python services like `PyPI
+<https://pypi.python.org>`_ and hg.python.org are hosted by `Oregon State
+University Open Source Lab <https://osuosl.org>`_.
 
 
 Why is it called Python?
@@ -369,43 +377,6 @@ Providing a gradual upgrade path is necessary if a feature has to be changed.
 changes while minimizing disruption for users.
 
 
-Is Python Y2K (Year 2000) Compliant?
-------------------------------------
-
-.. remove this question?
-
-As of August, 2003 no major problems have been reported and Y2K compliance seems
-to be a non-issue.
-
-Python does very few date calculations and for those it does perform relies on
-the C library functions.  Python generally represents times either as seconds
-since 1970 or as a ``(year, month, day, ...)`` tuple where the year is expressed
-with four digits, which makes Y2K bugs unlikely.  So as long as your C library
-is okay, Python should be okay.  Of course, it's possible that a particular
-application written in Python makes assumptions about 2-digit years.
-
-Because Python is available free of charge, there are no absolute guarantees.
-If there *are* unforeseen problems, liability is the user's problem rather than
-the developers', and there is nobody you can sue for damages.  The Python
-copyright notice contains the following disclaimer:
-
-    4. PSF is making Python 2.3 available to Licensee on an "AS IS"
-    basis.  PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY
-    WAY OF EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY
-    REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR
-    PURPOSE OR THAT THE USE OF PYTHON 2.3 WILL NOT INFRINGE ANY THIRD PARTY
-    RIGHTS.
-
-    5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON
-    2.3 FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS
-    A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 2.3,
-    OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
-
-The good news is that *if* you encounter a problem, you have full source
-available to track it down and fix it.  This is one advantage of an open source
-programming environment.
-
-
 Is Python a good language for beginning programmers?
 ----------------------------------------------------
 
@@ -464,7 +435,8 @@ that is written in Python using Tkinter.  PythonWin is a Windows-specific IDE.
 Emacs users will be happy to know that there is a very good Python mode for
 Emacs.  All of these programming environments provide syntax highlighting,
 auto-indenting, and access to the interactive interpreter while coding.  Consult
-http://www.python.org/editors/ for a full list of Python editing environments.
+`the Python wiki <https://wiki.python.org/moin/PythonEditors>`_ for a full list
+of Python editing environments.
 
 If you want to discuss Python's use in education, you may be interested in
 joining `the edu-sig mailing list

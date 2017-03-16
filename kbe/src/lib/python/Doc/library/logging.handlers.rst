@@ -17,6 +17,10 @@
    * :ref:`Advanced Tutorial <logging-advanced-tutorial>`
    * :ref:`Logging Cookbook <logging-cookbook>`
 
+**Source code:** :source:`Lib/logging/handlers.py`
+
+--------------
+
 .. currentmodule:: logging
 
 The following useful handlers are provided in the package. Note that three of
@@ -53,8 +57,8 @@ and :meth:`flush` methods).
    .. method:: flush()
 
       Flushes the stream by calling its :meth:`flush` method. Note that the
-      :meth:`close` method is inherited from :class:`Handler` and so does
-      no output, so an explicit :meth:`flush` call may be needed at times.
+      :meth:`close` method is inherited from :class:`~logging.Handler` and so
+      does no output, so an explicit :meth:`flush` call may be needed at times.
 
 .. versionchanged:: 3.2
    The ``StreamHandler`` class now has a ``terminator`` attribute, default
@@ -145,8 +149,8 @@ new stream.
 This handler is not appropriate for use under Windows, because under Windows
 open log files cannot be moved or renamed - logging opens the files with
 exclusive locks - and so there is no need for such a handler. Furthermore,
-*ST_INO* is not supported under Windows; :func:`stat` always returns zero for
-this value.
+*ST_INO* is not supported under Windows; :func:`~os.stat` always returns zero
+for this value.
 
 
 .. class:: WatchedFileHandler(filename[,mode[, encoding[, delay]]])
@@ -163,6 +167,87 @@ this value.
       Outputs the record to the file, but first checks to see if the file has
       changed.  If it has, the existing stream is flushed and closed and the
       file opened again, before outputting the record to the file.
+
+.. _base-rotating-handler:
+
+BaseRotatingHandler
+^^^^^^^^^^^^^^^^^^^
+
+The :class:`BaseRotatingHandler` class, located in the :mod:`logging.handlers`
+module, is the base class for the rotating file handlers,
+:class:`RotatingFileHandler` and :class:`TimedRotatingFileHandler`. You should
+not need to instantiate this class, but it has attributes and methods you may
+need to override.
+
+.. class:: BaseRotatingHandler(filename, mode, encoding=None, delay=False)
+
+   The parameters are as for :class:`FileHandler`. The attributes are:
+
+   .. attribute:: namer
+
+      If this attribute is set to a callable, the :meth:`rotation_filename`
+      method delegates to this callable. The parameters passed to the callable
+      are those passed to :meth:`rotation_filename`.
+
+      .. note:: The namer function is called quite a few times during rollover,
+         so it should be as simple and as fast as possible. It should also
+         return the same output every time for a given input, otherwise the
+         rollover behaviour may not work as expected.
+
+      .. versionadded:: 3.3
+
+
+   .. attribute:: BaseRotatingHandler.rotator
+
+      If this attribute is set to a callable, the :meth:`rotate` method
+      delegates to this callable.  The parameters passed to the callable are
+      those passed to :meth:`rotate`.
+
+      .. versionadded:: 3.3
+
+   .. method:: BaseRotatingHandler.rotation_filename(default_name)
+
+      Modify the filename of a log file when rotating.
+
+      This is provided so that a custom filename can be provided.
+
+      The default implementation calls the 'namer' attribute of the handler,
+      if it's callable, passing the default name to it. If the attribute isn't
+      callable (the default is ``None``), the name is returned unchanged.
+
+      :param default_name: The default name for the log file.
+
+      .. versionadded:: 3.3
+
+
+   .. method:: BaseRotatingHandler.rotate(source, dest)
+
+      When rotating, rotate the current log.
+
+      The default implementation calls the 'rotator' attribute of the handler,
+      if it's callable, passing the source and dest arguments to it. If the
+      attribute isn't callable (the default is ``None``), the source is simply
+      renamed to the destination.
+
+      :param source: The source filename. This is normally the base
+                     filename, e.g. 'test.log'
+      :param dest:   The destination filename. This is normally
+                     what the source is rotated to, e.g. 'test.log.1'.
+
+      .. versionadded:: 3.3
+
+The reason the attributes exist is to save you having to subclass - you can use
+the same callables for instances of :class:`RotatingFileHandler` and
+:class:`TimedRotatingFileHandler`. If either the namer or rotator callable
+raises an exception, this will be handled in the same way as any other
+exception during an :meth:`emit` call, i.e. via the :meth:`handleError` method
+of the handler.
+
+If you need to make more significant changes to rotation processing, you can
+override the methods.
+
+For an example, see :ref:`cookbook-rotator-namer`.
+
 
 .. _rotating-file-handler:
 
@@ -215,7 +300,7 @@ The :class:`TimedRotatingFileHandler` class, located in the
 timed intervals.
 
 
-.. class:: TimedRotatingFileHandler(filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False)
+.. class:: TimedRotatingFileHandler(filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, atTime=None)
 
    Returns a new instance of the :class:`TimedRotatingFileHandler` class. The
    specified file is opened and used as the stream for logging. On rotating it also
@@ -265,6 +350,12 @@ timed intervals.
    If *delay* is true, then file opening is deferred until the first call to
    :meth:`emit`.
 
+   If *atTime* is not ``None``, it must be a ``datetime.time`` instance which
+   specifies the time of day when rollover occurs, for the cases where rollover
+   is set to happen "at midnight" or "on a particular weekday".
+
+   .. versionchanged:: 3.4
+      *atTime* parameter was added.
 
    .. method:: doRollover()
 
@@ -290,6 +381,9 @@ sends logging output to a network socket. The base class uses a TCP socket.
    Returns a new instance of the :class:`SocketHandler` class intended to
    communicate with a remote machine whose address is given by *host* and *port*.
 
+   .. versionchanged:: 3.4
+      If ``port`` is specified as ``None``, a Unix domain socket is created
+      using the value in ``host`` - otherwise, a TCP socket is created.
 
    .. method:: close()
 
@@ -302,7 +396,8 @@ sends logging output to a network socket. The base class uses a TCP socket.
       binary format. If there is an error with the socket, silently drops the
       packet. If the connection was previously lost, re-establishes the
       connection. To unpickle the record at the receiving end into a
-      :class:`LogRecord`, use the :func:`makeLogRecord` function.
+      :class:`~logging.LogRecord`, use the :func:`~logging.makeLogRecord`
+      function.
 
 
    .. method:: handleError()
@@ -374,13 +469,17 @@ over UDP sockets.
    Returns a new instance of the :class:`DatagramHandler` class intended to
    communicate with a remote machine whose address is given by *host* and *port*.
 
+   .. versionchanged:: 3.4
+      If ``port`` is specified as ``None``, a Unix domain socket is created
+      using the value in ``host`` - otherwise, a TCP socket is created.
 
    .. method:: emit()
 
       Pickles the record's attribute dictionary and writes it to the socket in
       binary format. If there is an error with the socket, silently drops the
       packet. To unpickle the record at the receiving end into a
-      :class:`LogRecord`, use the :func:`makeLogRecord` function.
+      :class:`~logging.LogRecord`, use the :func:`~logging.makeLogRecord`
+      function.
 
 
    .. method:: makeSocket()
@@ -455,6 +554,15 @@ supports sending logging messages to a remote or local Unix syslog.
          ``append_nul``. This defaults to ``True`` (preserving the existing
          behaviour) but can be set to ``False`` on a ``SysLogHandler`` instance
          in order for that instance to *not* append the NUL terminator.
+
+      .. versionchanged:: 3.3
+         (See: :issue:`12419`.) In earlier versions, there was no facility for
+         an "ident" or "tag" prefix to identify the source of the message. This
+         can now be specified using a class-level attribute, defaulting to
+         ``""`` to preserve existing behaviour, but which can be overridden on
+         a ``SysLogHandler`` instance in order for that instance to prepend
+         the ident to every message handled. Note that the provided ident must
+         be text, not bytes, and is prepended to the message exactly as is.
 
    .. method:: encodePriority(facility, priority)
 
@@ -618,7 +726,7 @@ The :class:`SMTPHandler` class, located in the :mod:`logging.handlers` module,
 supports sending logging messages to an email address via SMTP.
 
 
-.. class:: SMTPHandler(mailhost, fromaddr, toaddrs, subject, credentials=None, secure=None)
+.. class:: SMTPHandler(mailhost, fromaddr, toaddrs, subject, credentials=None, secure=None, timeout=1.0)
 
    Returns a new instance of the :class:`SMTPHandler` class. The instance is
    initialized with the from and to addresses and subject line of the email. The
@@ -633,6 +741,12 @@ supports sending logging messages to an email address via SMTP.
    with the name of a keyfile, or a 2-value tuple with the names of the keyfile
    and certificate file. (This tuple is passed to the
    :meth:`smtplib.SMTP.starttls` method.)
+
+   A timeout can be specified for communication with the SMTP server using the
+   *timeout* argument.
+
+   .. versionadded:: 3.3
+      The *timeout* argument was added.
 
    .. method:: emit(record)
 
@@ -694,7 +808,7 @@ should, then :meth:`flush` is expected to do the flushing.
 
    .. method:: close()
 
-      Calls :meth:`flush`, sets the target to :const:`None` and clears the
+      Calls :meth:`flush`, sets the target to ``None`` and clears the
       buffer.
 
 
@@ -729,17 +843,34 @@ supports sending logging messages to a Web server, using either ``GET`` or
 
    Returns a new instance of the :class:`HTTPHandler` class. The *host* can be
    of the form ``host:port``, should you need to use a specific port number.
-   If no *method* is specified, ``GET`` is used. If *secure* is True, an HTTPS
+   If no *method* is specified, ``GET`` is used. If *secure* is true, an HTTPS
    connection will be used. If *credentials* is specified, it should be a
    2-tuple consisting of userid and password, which will be placed in an HTTP
    'Authorization' header using Basic authentication. If you specify
    credentials, you should also specify secure=True so that your userid and
    password are not passed in cleartext across the wire.
 
+   .. method:: mapLogRecord(record)
+
+      Provides a dictionary, based on ``record``, which is to be URL-encoded
+      and sent to the web server. The default implementation just returns
+      ``record.__dict__``. This method can be overridden if e.g. only a
+      subset of :class:`~logging.LogRecord` is to be sent to the web server, or
+      if more specific customization of what's sent to the server is required.
 
    .. method:: emit(record)
 
-      Sends the record to the Web server as a percent-encoded dictionary.
+      Sends the record to the Web server as an URL-encoded dictionary. The
+      :meth:`mapLogRecord` method is used to convert the record to the
+      dictionary to be sent.
+
+   .. note:: Since preparing a record for sending it to a Web server is not
+      the same as a generic formatting operation, using
+      :meth:`~logging.Handler.setFormatter` to specify a
+      :class:`~logging.Formatter` for a :class:`HTTPHandler` has no effect.
+      Instead of calling :meth:`~logging.Handler.format`, this handler calls
+      :meth:`mapLogRecord` and then :func:`urllib.parse.urlencode` to encode the
+      dictionary in a form suitable for sending to a Web server.
 
 
 .. _queue-handler:
@@ -790,7 +921,7 @@ possible, while any potentially slow operations (such as sending an email via
 
       Enqueues the record on the queue using ``put_nowait()``; you may
       want to override this if you want to use blocking behaviour, or a
-      timeout, or a customised queue implementation.
+      timeout, or a customized queue implementation.
 
 
 
@@ -862,6 +993,15 @@ possible, while any potentially slow operations (such as sending an email via
       This asks the thread to terminate, and then waits for it to do so.
       Note that if you don't call this before your application exits, there
       may be some records still left on the queue, which won't be processed.
+
+   .. method:: enqueue_sentinel()
+
+      Writes a sentinel to the queue to tell the listener to quit. This
+      implementation uses ``put_nowait()``.  You may want to override this
+      method if you want to use timeouts or work with custom queue
+      implementations.
+
+      .. versionadded:: 3.3
 
 
 .. seealso::

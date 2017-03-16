@@ -625,7 +625,7 @@ def request_path(request):
     return path
 
 def request_port(request):
-    host = request.get_host()
+    host = request.host
     i = host.find(':')
     if i >= 0:
         port = host[i+1:]
@@ -704,7 +704,7 @@ def is_third_party(request):
 
     """
     req_host = request_host(request)
-    if not domain_match(req_host, reach(request.get_origin_req_host())):
+    if not domain_match(req_host, reach(request.origin_req_host)):
         return True
     else:
         return False
@@ -949,7 +949,7 @@ class DefaultCookiePolicy(CookiePolicy):
         return True
 
     def set_ok_verifiability(self, cookie, request):
-        if request.is_unverifiable() and is_third_party(request):
+        if request.unverifiable and is_third_party(request):
             if cookie.version > 0 and self.strict_rfc2965_unverifiable:
                 _debug("   third-party RFC 2965 cookie during "
                              "unverifiable transaction")
@@ -1088,7 +1088,7 @@ class DefaultCookiePolicy(CookiePolicy):
         return True
 
     def return_ok_verifiability(self, cookie, request):
-        if request.is_unverifiable() and is_third_party(request):
+        if request.unverifiable and is_third_party(request):
             if cookie.version > 0 and self.strict_rfc2965_unverifiable:
                 _debug("   third-party RFC 2965 cookie during unverifiable "
                        "transaction")
@@ -1100,7 +1100,7 @@ class DefaultCookiePolicy(CookiePolicy):
         return True
 
     def return_ok_secure(self, cookie, request):
-        if cookie.secure and request.get_type() != "https":
+        if cookie.secure and request.type != "https":
             _debug("   secure cookie with non-secure request")
             return False
         return True
@@ -1193,8 +1193,7 @@ def deepvalues(mapping):
             pass
         else:
             mapping = True
-            for subobj in deepvalues(obj):
-                yield subobj
+            yield from deepvalues(obj)
         if not mapping:
             yield obj
 
@@ -1723,16 +1722,16 @@ class CookieJar:
     def __repr__(self):
         r = []
         for cookie in self: r.append(repr(cookie))
-        return "<%s[%s]>" % (self.__class__, ", ".join(r))
+        return "<%s[%s]>" % (self.__class__.__name__, ", ".join(r))
 
     def __str__(self):
         r = []
         for cookie in self: r.append(str(cookie))
-        return "<%s[%s]>" % (self.__class__, ", ".join(r))
+        return "<%s[%s]>" % (self.__class__.__name__, ", ".join(r))
 
 
-# derives from IOError for backwards-compatibility with Python 2.4.0
-class LoadError(IOError): pass
+# derives from OSError for backwards-compatibility with Python 2.4.0
+class LoadError(OSError): pass
 
 class FileCookieJar(CookieJar):
     """CookieJar that can be loaded from and saved to a file."""
@@ -1762,17 +1761,14 @@ class FileCookieJar(CookieJar):
             if self.filename is not None: filename = self.filename
             else: raise ValueError(MISSING_FILENAME_TEXT)
 
-        f = open(filename)
-        try:
+        with open(filename) as f:
             self._really_load(f, filename, ignore_discard, ignore_expires)
-        finally:
-            f.close()
 
     def revert(self, filename=None,
                ignore_discard=False, ignore_expires=False):
         """Clear all cookies and reload cookies from a saved file.
 
-        Raises LoadError (or IOError) if reversion is not successful; the
+        Raises LoadError (or OSError) if reversion is not successful; the
         object's state will not be altered if this happens.
 
         """
@@ -1787,7 +1783,7 @@ class FileCookieJar(CookieJar):
             self._cookies = {}
             try:
                 self.load(filename, ignore_discard, ignore_expires)
-            except (LoadError, IOError):
+            except OSError:
                 self._cookies = old_state
                 raise
 
@@ -1857,15 +1853,12 @@ class LWPCookieJar(FileCookieJar):
             if self.filename is not None: filename = self.filename
             else: raise ValueError(MISSING_FILENAME_TEXT)
 
-        f = open(filename, "w")
-        try:
+        with open(filename, "w") as f:
             # There really isn't an LWP Cookies 2.0 format, but this indicates
             # that there is extra information in here (domain_dot and
             # port_spec) while still being compatible with libwww-perl, I hope.
             f.write("#LWP-Cookies-2.0\n")
             f.write(self.as_lwp_str(ignore_discard, ignore_expires))
-        finally:
-            f.close()
 
     def _really_load(self, f, filename, ignore_discard, ignore_expires):
         magic = f.readline()
@@ -1938,8 +1931,7 @@ class LWPCookieJar(FileCookieJar):
                     if not ignore_expires and c.is_expired(now):
                         continue
                     self.set_cookie(c)
-
-        except IOError:
+        except OSError:
             raise
         except Exception:
             _warn_unhandled_exception()
@@ -1981,7 +1973,7 @@ class MozillaCookieJar(FileCookieJar):
     magic_re = re.compile("#( Netscape)? HTTP Cookie File")
     header = """\
 # Netscape HTTP Cookie File
-# http://www.netscape.com/newsref/std/cookie_spec.html
+# http://curl.haxx.se/rfc/cookie_spec.html
 # This is a generated file!  Do not edit.
 
 """
@@ -2045,7 +2037,7 @@ class MozillaCookieJar(FileCookieJar):
                     continue
                 self.set_cookie(c)
 
-        except IOError:
+        except OSError:
             raise
         except Exception:
             _warn_unhandled_exception()
@@ -2057,8 +2049,7 @@ class MozillaCookieJar(FileCookieJar):
             if self.filename is not None: filename = self.filename
             else: raise ValueError(MISSING_FILENAME_TEXT)
 
-        f = open(filename, "w")
-        try:
+        with open(filename, "w") as f:
             f.write(self.header)
             now = time.time()
             for cookie in self:
@@ -2087,5 +2078,3 @@ class MozillaCookieJar(FileCookieJar):
                     "\t".join([cookie.domain, initial_dot, cookie.path,
                                secure, expires, name, value])+
                     "\n")
-        finally:
-            f.close()

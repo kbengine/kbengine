@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "common.hpp"
-#include "server/serverconfig.hpp"
+#include "common.h"
+#include "server/serverconfig.h"
 
 namespace KBEngine { 
 
@@ -42,7 +42,7 @@ uint16 datatype2id(std::string datatype)
 	else if(datatype == "UINT16" || datatype == "UNSIGNED SHORT" || datatype == "SERVER_ERROR_CODE" || datatype == "ENTITY_TYPE" ||
 		datatype == "ENTITY_PROPERTY_UID" || datatype == "ENTITY_METHOD_UID" || datatype == "ENTITY_SCRIPT_UID" || datatype == "DATATYPE_UID")
 		return 3;
-	else if(datatype == "UINT32" || datatype == "UINT" || datatype == "UNSIGNED INT" ||datatype == "ARRAYSIZE" || datatype == "SPACE_ID" || datatype == "GAME_TIME" ||
+	else if(datatype == "UINT32" || datatype == "UINT" || datatype == "UNSIGNED INT" || datatype == "ARRAYSIZE" || datatype == "SPACE_ID" || datatype == "GAME_TIME" ||
 		datatype == "TIMER_ID")
 		return 4;
 	else if(datatype == "UINT64" || datatype == "DBID" || datatype == "COMPONENT_ID")
@@ -51,7 +51,7 @@ uint16 datatype2id(std::string datatype)
 		return 6;
 	else if(datatype == "INT16" || datatype == "SHORT")
 		return 7;
-	else if(datatype == "INT32" || datatype == "INT" ||datatype == "ENTITY_ID" || datatype == "CALLBACK_ID" || datatype == "COMPONENT_TYPE")
+	else if(datatype == "INT32" || datatype == "INT" || datatype == "ENTITY_ID" || datatype == "CALLBACK_ID" || datatype == "COMPONENT_TYPE")
 		return 8;
 	else if(datatype == "INT64")
 		return 9;

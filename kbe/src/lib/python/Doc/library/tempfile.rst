@@ -25,7 +25,7 @@ instead a string of six random characters is used.
 
 Also, all the user-callable functions now take additional arguments which
 allow direct control over the location and name of temporary files.  It is
-no longer necessary to use the global *tempdir* and *template* variables.
+no longer necessary to use the global *tempdir* variable.
 To maintain backward compatibility, the argument order is somewhat odd; it
 is recommended to use keyword arguments for clarity.
 
@@ -76,18 +76,20 @@ The module defines the following user-callable items:
    data is spooled in memory until the file size exceeds *max_size*, or
    until the file's :func:`fileno` method is called, at which point the
    contents are written to disk and operation proceeds as with
-   :func:`TemporaryFile`.  Also, it's ``truncate`` method does not
-   accept a ``size`` argument.
+   :func:`TemporaryFile`.
 
    The resulting file has one additional method, :func:`rollover`, which
    causes the file to roll over to an on-disk file regardless of its size.
 
    The returned object is a file-like object whose :attr:`_file` attribute
-   is either a :class:`BytesIO` or :class:`StringIO` object (depending on
+   is either a :class:`io.BytesIO` or :class:`io.StringIO` object (depending on
    whether binary or text *mode* was specified) or a true file
    object, depending on whether :func:`rollover` has been called.  This
    file-like object can be used in a :keyword:`with` statement, just like
    a normal file.
+
+   .. versionchanged:: 3.3
+      the truncate method now accepts a ``size`` argument.
 
 
 .. function:: TemporaryDirectory(suffix='', prefix='tmp', dir=None)
@@ -95,12 +97,14 @@ The module defines the following user-callable items:
    This function creates a temporary directory using :func:`mkdtemp`
    (the supplied arguments are passed directly to the underlying function).
    The resulting object can be used as a context manager (see
-   :ref:`context-managers`).  On completion of the context (or destruction
-   of the temporary directory object), the newly created temporary directory
+   :ref:`context-managers`).  On completion of the context or destruction
+   of the temporary directory object the newly created temporary directory
    and all its contents are removed from the filesystem.
 
-   The directory name can be retrieved from the :attr:`name` attribute
-   of the returned object.
+   The directory name can be retrieved from the :attr:`name` attribute of the
+   returned object.  When the returned object is used as a context manager, the
+   :attr:`name` will be assigned to the target of the :keyword:`as` clause in
+   the :keyword:`with` statement, if there is one.
 
    The directory can be explicitly cleaned up by calling the
    :func:`cleanup` method.

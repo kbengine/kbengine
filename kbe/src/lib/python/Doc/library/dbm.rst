@@ -73,33 +73,39 @@ Key and values are always stored as bytes. This means that when
 strings are used they are implicitly converted to the default encoding before
 being stored.
 
+These objects also support being used in a :keyword:`with` statement, which
+will automatically close them when done.
+
+.. versionchanged:: 3.4
+   Added native support for the context management protocol to the objects
+   returned by :func:`.open`.
+
 The following example records some hostnames and a corresponding title,  and
 then prints out the contents of the database::
 
    import dbm
 
    # Open database, creating it if necessary.
-   db = dbm.open('cache', 'c')
+   with dbm.open('cache', 'c') as db:
 
-   # Record some values
-   db[b'hello'] = b'there'
-   db['www.python.org'] = 'Python Website'
-   db['www.cnn.com'] = 'Cable News Network'
+       # Record some values
+       db[b'hello'] = b'there'
+       db['www.python.org'] = 'Python Website'
+       db['www.cnn.com'] = 'Cable News Network'
 
-   # Note that the keys are considered bytes now.
-   assert db[b'www.python.org'] == b'Python Website'
-   # Notice how the value is now in bytes.
-   assert db['www.cnn.com'] == b'Cable News Network'
+       # Note that the keys are considered bytes now.
+       assert db[b'www.python.org'] == b'Python Website'
+       # Notice how the value is now in bytes.
+       assert db['www.cnn.com'] == b'Cable News Network'
 
-   # Often-used methods of the dict interface work too.
-   print(db.get('python.org', b'not present'))
+       # Often-used methods of the dict interface work too.
+       print(db.get('python.org', b'not present'))
 
-   # Storing a non-string key or value will raise an exception (most
-   # likely a TypeError).
-   db['www.yahoo.com'] = 4
+       # Storing a non-string key or value will raise an exception (most
+       # likely a TypeError).
+       db['www.yahoo.com'] = 4
 
-   # Close when done.
-   db.close()
+   # db is automatically closed when leaving the with statement.
 
 
 .. seealso::
@@ -216,6 +222,9 @@ supported.
       When the database has been opened in fast mode, this method forces any
       unwritten data to be written to the disk.
 
+   .. method:: gdbm.close()
+
+      Close the ``gdbm`` database.
 
 :mod:`dbm.ndbm` --- Interface based on ndbm
 -------------------------------------------
@@ -247,7 +256,7 @@ to locate the appropriate header file to simplify building this module.
 
 .. function:: open(filename[, flag[, mode]])
 
-   Open a dbm database and return a ``dbm`` object.  The *filename* argument is the
+   Open a dbm database and return a ``ndbm`` object.  The *filename* argument is the
    name of the database file (without the :file:`.dir` or :file:`.pag` extensions).
 
    The optional *flag* argument must be one of these values:
@@ -272,6 +281,12 @@ to locate the appropriate header file to simplify building this module.
    database has to be created.  It defaults to octal ``0o666`` (and will be
    modified by the prevailing umask).
 
+   In addition to the dictionary-like methods, ``ndbm`` objects
+   provide the following method:
+
+   .. method:: ndbm.close()
+
+      Close the ``ndbm`` database.
 
 
 :mod:`dbm.dumb` --- Portable DBM implementation
@@ -317,10 +332,16 @@ The module defines the following:
    database has to be created.  It defaults to octal ``0o666`` (and will be modified
    by the prevailing umask).
 
-   In addition to the methods provided by the :class:`collections.MutableMapping` class,
-   :class:`dumbdbm` objects provide the following method:
+   In addition to the methods provided by the
+   :class:`collections.abc.MutableMapping` class, :class:`dumbdbm` objects
+   provide the following methods:
 
    .. method:: dumbdbm.sync()
 
       Synchronize the on-disk directory and data files.  This method is called
       by the :meth:`Shelve.sync` method.
+
+   .. method:: dumbdbm.close()
+
+      Close the ``dumbdbm`` database.
+

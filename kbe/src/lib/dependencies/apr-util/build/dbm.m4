@@ -112,7 +112,7 @@ AC_DEFUN([APU_CHECK_BERKELEY_DB], [
         changequote([,])
         unset $cache_id
         AC_CHECK_HEADER([$bdb_header], [
-          if test "$1" = "3" -o "$1" = "4" -o "$1" = "5"; then
+          if test "$1" = "3" -o "$1" = "4" -o "$1" = "5" -o "$1" = "6"; then
             # We generate a separate cache variable for each prefix and libname
             # we search under.  That way, we avoid caching information that
             # changes if the user runs `configure' with a different set of
@@ -455,13 +455,13 @@ AC_DEFUN([APU_CHECK_DB], [
 ])
 
 dnl
-dnl APU_CHECK_DB_ALL: Try all Berkeley DB versions, from 5.X to 1.
+dnl APU_CHECK_DB_ALL: Try all Berkeley DB versions, from 6.X to 1.
 dnl
 AC_DEFUN([APU_CHECK_DB_ALL], [
   all_places=$1
 
-  # Start version search at version 5.9
-  db_version=59
+  # Start version search at version 6.9
+  db_version=69
   while [[ $db_version -ge 40 ]]
   do
     db_major=`echo $db_version | sed -e 's/.$//'`
@@ -511,19 +511,34 @@ AC_DEFUN([APU_CHECK_DBM], [
   apu_db_version=0
 
   # Maximum supported version announced in help string.
-  # Although we search for all versions up to 5.9,
+  # Although we search for all versions up to 6.9,
   # we should only include existing versions in our
   # help string.
-  db_max_version=53
-  db_min_version=41
   dbm_list="sdbm, gdbm, ndbm, db, db1, db185, db2, db3, db4"
+  db_max_version=48
+  db_min_version=41
   db_version="$db_min_version"
   while [[ $db_version -le $db_max_version ]]
   do
     dbm_list="$dbm_list, db$db_version"
     db_version=`expr $db_version + 1`
   done
-  dbm_list="$dbm_list, db60"
+  db_max_version=53
+  db_min_version=50
+  db_version="$db_min_version"
+  while [[ $db_version -le $db_max_version ]]
+  do
+    dbm_list="$dbm_list, db$db_version"
+    db_version=`expr $db_version + 1`
+  done
+  db_max_version=60
+  db_min_version=60
+  db_version="$db_min_version"
+  while [[ $db_version -le $db_max_version ]]
+  do
+    dbm_list="$dbm_list, db$db_version"
+    db_version=`expr $db_version + 1`
+  done
 
   AC_ARG_WITH(dbm, [APR_HELP_STRING([--with-dbm=DBM], [choose the DBM type to use.
       DBM={sdbm,gdbm,ndbm,db,db1,db185,db2,db3,db4,db4X,db5X,db6X} for some X=0,...,9])],

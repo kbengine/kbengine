@@ -213,10 +213,6 @@ operation. For example::
    >>> print('The value of PI is approximately %5.3f.' % math.pi)
    The value of PI is approximately 3.142.
 
-Since :meth:`str.format` is quite new, a lot of Python code still uses the ``%``
-operator. However, because this old style of formatting will eventually be
-removed from the language, :meth:`str.format` should generally be used.
-
 More information can be found in the :ref:`old-string-formatting` section.
 
 
@@ -300,18 +296,8 @@ containing only a single newline.  ::
    >>> f.readline()
    ''
 
-``f.readlines()`` returns a list containing all the lines of data in the file.
-If given an optional parameter *sizehint*, it reads that many bytes from the
-file and enough more to complete a line, and returns the lines from that.  This
-is often used to allow efficient reading of a large file by lines, but without
-having to load the entire file in memory.  Only complete lines will be returned.
-::
-
-   >>> f.readlines()
-   ['This is the first line of the file.\n', 'Second line of the file\n']
-
-An alternative approach to reading lines is to loop over the file object. This is
-memory efficient, fast, and leads to simpler code::
+For reading lines from a file, you can loop over the file object. This is memory
+efficient, fast, and leads to simple code::
 
    >>> for line in f:
    ...     print(line, end='')
@@ -319,9 +305,8 @@ memory efficient, fast, and leads to simpler code::
    This is the first line of the file.
    Second line of the file
 
-The alternative approach is simpler but does not provide as fine-grained
-control.  Since the two approaches manage line buffering differently, they
-should not be mixed.
+If you want to read all the lines of a file in a list you can also use
+``list(f)`` or ``f.readlines()``.
 
 ``f.write(string)`` writes the contents of *string* to the file, returning
 the number of characters written. ::
@@ -337,9 +322,11 @@ first::
    >>> f.write(s)
    18
 
-``f.tell()`` returns an integer giving the file object's current position in the
-file, measured in bytes from the beginning of the file.  To change the file
-object's position, use ``f.seek(offset, from_what)``.  The position is computed
+``f.tell()`` returns an integer giving the file object's current position in the file
+represented as number of bytes from the beginning of the file when in `binary mode` and
+an opaque number when in `text mode`.
+
+To change the file object's position, use ``f.seek(offset, from_what)``.  The position is computed
 from adding *offset* to a reference point; the reference point is selected by
 the *from_what* argument.  A *from_what* value of 0 measures from the beginning
 of the file, 1 uses the current file position, and 2 uses the end of the file as
@@ -360,7 +347,10 @@ beginning of the file as the reference point. ::
 
 In text files (those opened without a ``b`` in the mode string), only seeks
 relative to the beginning of the file are allowed (the exception being seeking
-to the very file end with ``seek(0, 2)``).
+to the very file end with ``seek(0, 2)``) and the only valid *offset* values are
+those returned from the ``f.tell()``, or zero. Any other *offset* value produces
+undefined behaviour.
+
 
 When you're done with a file, call ``f.close()`` to close it and free up any
 system resources taken up by the open file.  After calling ``f.close()``,
@@ -387,47 +377,64 @@ File objects have some additional methods, such as :meth:`~file.isatty` and
 Reference for a complete guide to file objects.
 
 
-.. _tut-pickle:
+.. _tut-json:
 
-The :mod:`pickle` Module
-------------------------
+Saving structured data with :mod:`json`
+---------------------------------------
 
-.. index:: module: pickle
+.. index:: module: json
 
-Strings can easily be written to and read from a file. Numbers take a bit more
+Strings can easily be written to and read from a file.  Numbers take a bit more
 effort, since the :meth:`read` method only returns strings, which will have to
 be passed to a function like :func:`int`, which takes a string like ``'123'``
-and returns its numeric value 123.  However, when you want to save more complex
-data types like lists, dictionaries, or class instances, things get a lot more
-complicated.
+and returns its numeric value 123.  When you want to save more complex data
+types like nested lists and dictionaries, parsing and serializing by hand
+becomes complicated.
 
-Rather than have users be constantly writing and debugging code to save
-complicated data types, Python provides a standard module called :mod:`pickle`.
-This is an amazing module that can take almost any Python object (even some
-forms of Python code!), and convert it to a string representation; this process
-is called :dfn:`pickling`.  Reconstructing the object from the string
-representation is called :dfn:`unpickling`.  Between pickling and unpickling,
-the string representing the object may have been stored in a file or data, or
+Rather than having users constantly writing and debugging code to save
+complicated data types to files, Python allows you to use the popular data
+interchange format called `JSON (JavaScript Object Notation)
+<http://json.org>`_.  The standard module called :mod:`json` can take Python
+data hierarchies, and convert them to string representations; this process is
+called :dfn:`serializing`.  Reconstructing the data from the string representation
+is called :dfn:`deserializing`.  Between serializing and deserializing, the
+string representing the object may have been stored in a file or data, or
 sent over a network connection to some distant machine.
 
-If you have an object ``x``, and a file object ``f`` that's been opened for
-writing, the simplest way to pickle the object takes only one line of code::
+.. note::
+   The JSON format is commonly used by modern applications to allow for data
+   exchange.  Many programmers are already familiar with it, which makes
+   it a good choice for interoperability.
 
-   pickle.dump(x, f)
+If you have an object ``x``, you can view its JSON string representation with a
+simple line of code::
 
-To unpickle the object again, if ``f`` is a file object which has been opened
-for reading::
+   >>> json.dumps([1, 'simple', 'list'])
+   '[1, "simple", "list"]'
 
-   x = pickle.load(f)
+Another variant of the :func:`~json.dumps` function, called :func:`~json.dump`,
+simply serializes the object to a :term:`text file`.  So if ``f`` is a
+:term:`text file` object opened for writing, we can do this::
 
-(There are other variants of this, used when pickling many objects or when you
-don't want to write the pickled data to a file; consult the complete
-documentation for :mod:`pickle` in the Python Library Reference.)
+   json.dump(x, f)
 
-:mod:`pickle` is the standard way to make Python objects which can be stored and
-reused by other programs or by a future invocation of the same program; the
-technical term for this is a :dfn:`persistent` object.  Because :mod:`pickle` is
-so widely used, many authors who write Python extensions take care to ensure
-that new data types such as matrices can be properly pickled and unpickled.
+To decode the object again, if ``f`` is a :term:`text file` object which has
+been opened for reading::
 
+   x = json.load(f)
+
+This simple serialization technique can handle lists and dictionaries, but
+serializing arbitrary class instances in JSON requires a bit of extra effort.
+The reference for the :mod:`json` module contains an explanation of this.
+
+.. seealso::
+
+   :mod:`pickle` - the pickle module
+
+   Contrary to :ref:`JSON <tut-json>`, *pickle* is a protocol which allows
+   the serialization of arbitrarily complex Python objects.  As such, it is
+   specific to Python and cannot be used to communicate with applications
+   written in other languages.  It is also insecure by default:
+   deserializing pickle data coming from an untrusted source can execute
+   arbitrary code, if the data was crafted by a skilled attacker.
 

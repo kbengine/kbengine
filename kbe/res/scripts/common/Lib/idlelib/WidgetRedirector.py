@@ -1,29 +1,40 @@
-from tkinter import *
+from tkinter import TclError
 
 class WidgetRedirector:
-
     """Support for redirecting arbitrary widget subcommands.
 
-    Some Tk operations don't normally pass through Tkinter.  For example, if a
+    Some Tk operations don't normally pass through tkinter.  For example, if a
     character is inserted into a Text widget by pressing a key, a default Tk
     binding to the widget's 'insert' operation is activated, and the Tk library
-    processes the insert without calling back into Tkinter.
+    processes the insert without calling back into tkinter.
 
-    Although a binding to <Key> could be made via Tkinter, what we really want
-    to do is to hook the Tk 'insert' operation itself.
+    Although a binding to <Key> could be made via tkinter, what we really want
+    to do is to hook the Tk 'insert' operation itself.  For one thing, we want
+    a text.insert call in idle code to have the same effect as a key press.
 
     When a widget is instantiated, a Tcl command is created whose name is the
     same as the pathname widget._w.  This command is used to invoke the various
     widget operations, e.g. insert (for a Text widget). We are going to hook
     this command and provide a facility ('register') to intercept the widget
-    operation.
+    operation.  We will also intercept method calls on the tkinter class
+    instance that represents the tk widget.
 
-    In IDLE, the function being registered provides access to the top of a
-    Percolator chain.  At the bottom of the chain is a call to the original
-    Tk widget operation.
-
+    In IDLE, WidgetRedirector is used in Percolator to intercept Text
+    commands.  The function being registered provides access to the top
+    of a Percolator chain.  At the bottom of the chain is a call to the
+    original Tk widget operation.
     """
     def __init__(self, widget):
+        '''Initialize attributes and setup redirection.
+
+        _operations: dict mapping operation name to new function.
+        widget: the widget whose tcl command is to be intercepted.
+        tk: widget.tk, a convenience attribute, probably not needed.
+        orig: new name of the original tcl command.
+
+        Since renaming to orig fails with TclError when orig already
+        exists, only one WidgetDirector can exist for a given widget.
+        '''
         self._operations = {}
         self.widget = widget            # widget instance
         self.tk = tk = widget.tk        # widget's root
@@ -40,27 +51,45 @@ class WidgetRedirector:
                                              self.widget._w)
 
     def close(self):
+        "Unregister operations and revert redirection created by .__init__."
         for operation in list(self._operations):
             self.unregister(operation)
-        widget = self.widget; del self.widget
-        orig = self.orig; del self.orig
+        widget = self.widget
         tk = widget.tk
         w = widget._w
+        # Restore the original widget Tcl command.
         tk.deletecommand(w)
-        # restore the original widget Tcl command:
-        tk.call("rename", orig, w)
+        tk.call("rename", self.orig, w)
+        del self.widget, self.tk  # Should not be needed
+        # if instance is deleted after close, as in Percolator.
 
     def register(self, operation, function):
+        '''Return OriginalCommand(operation) after registering function.
+
+        Registration adds an operation: function pair to ._operations.
+        It also adds an widget function attribute that masks the tkinter
+        class instance method.  Method masking operates independently
+        from command dispatch.
+
+        If a second function is registered for the same operation, the
+        first function is replaced in both places.
+        '''
         self._operations[operation] = function
         setattr(self.widget, operation, function)
         return OriginalCommand(self, operation)
 
     def unregister(self, operation):
+        '''Return the function for the operation, or None.
+
+        Deleting the instance attribute unmasks the class attribute.
+        '''
         if operation in self._operations:
             function = self._operations[operation]
             del self._operations[operation]
-            if hasattr(self.widget, operation):
+            try:
                 delattr(self.widget, operation)
+            except AttributeError:
+                pass
             return function
         else:
             return None
@@ -88,14 +117,29 @@ class WidgetRedirector:
 
 
 class OriginalCommand:
+    '''Callable for original tk command that has been redirected.
+
+    Returned by .register; can be used in the function registered.
+    redir = WidgetRedirector(text)
+    def my_insert(*args):
+        print("insert", args)
+        original_insert(*args)
+    original_insert = redir.register("insert", my_insert)
+    '''
 
     def __init__(self, redir, operation):
+        '''Create .tk_call and .orig_and_operation for .__call__ method.
+
+        .redir and .operation store the input args for __repr__.
+        .tk and .orig copy attributes of .redir (probably not needed).
+        '''
         self.redir = redir
         self.operation = operation
-        self.tk = redir.tk
-        self.orig = redir.orig
-        self.tk_call = self.tk.call
-        self.orig_and_operation = (self.orig, self.operation)
+        self.tk = redir.tk  # redundant with self.redir
+        self.orig = redir.orig  # redundant with self.redir
+        # These two could be deleted after checking recipient code.
+        self.tk_call = redir.tk.call
+        self.orig_and_operation = (redir.orig, operation)
 
     def __repr__(self):
         return "OriginalCommand(%r, %r)" % (self.redir, self.operation)
@@ -104,23 +148,27 @@ class OriginalCommand:
         return self.tk_call(self.orig_and_operation + args)
 
 
-def main():
+def _widget_redirector(parent):  # htest #
+    from tkinter import Tk, Text
+    import re
+
     root = Tk()
-    root.wm_protocol("WM_DELETE_WINDOW", root.quit)
-    text = Text()
+    root.title("Test WidgetRedirector")
+    width, height, x, y = list(map(int, re.split('[x+]', parent.geometry())))
+    root.geometry("+%d+%d"%(x, y + 150))
+    text = Text(root)
     text.pack()
     text.focus_set()
     redir = WidgetRedirector(text)
-    global previous_tcl_fcn
     def my_insert(*args):
         print("insert", args)
-        previous_tcl_fcn(*args)
-    previous_tcl_fcn = redir.register("insert", my_insert)
+        original_insert(*args)
+    original_insert = redir.register("insert", my_insert)
     root.mainloop()
-    redir.unregister("insert")  # runs after first 'close window'
-    redir.close()
-    root.mainloop()
-    root.destroy()
 
 if __name__ == "__main__":
-    main()
+    import unittest
+    unittest.main('idlelib.idle_test.test_widgetredir',
+                  verbosity=2, exit=False)
+    from idlelib.idle_test.htest import run
+    run(_widget_redirector)

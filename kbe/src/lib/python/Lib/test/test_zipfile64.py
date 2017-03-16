@@ -11,12 +11,6 @@ support.requires(
         'test requires loads of disk-space bytes and a long time to run'
     )
 
-# We can test part of the module without zlib.
-try:
-    import zlib
-except ImportError:
-    zlib = None
-
 import zipfile, os, unittest
 import time
 import sys
@@ -24,7 +18,7 @@ import sys
 from io import StringIO
 from tempfile import TemporaryFile
 
-from test.support import TESTFN, run_unittest
+from test.support import TESTFN, run_unittest, requires_zlib
 
 TESTFN2 = TESTFN + "2"
 
@@ -44,7 +38,7 @@ class TestsWithSourceFile(unittest.TestCase):
 
     def zipTest(self, f, compression):
         # Create the ZIP archive.
-        zipfp = zipfile.ZipFile(f, "w", compression, allowZip64=True)
+        zipfp = zipfile.ZipFile(f, "w", compression)
 
         # It will contain enough copies of self.data to reach about 6GB of
         # raw data to store.
@@ -81,12 +75,12 @@ class TestsWithSourceFile(unittest.TestCase):
         for f in TemporaryFile(), TESTFN2:
             self.zipTest(f, zipfile.ZIP_STORED)
 
-    if zlib:
-        def testDeflated(self):
-            # Try the temp file first.  If we do TESTFN2 first, then it hogs
-            # gigabytes of disk space for the duration of the test.
-            for f in TemporaryFile(), TESTFN2:
-                self.zipTest(f, zipfile.ZIP_DEFLATED)
+    @requires_zlib
+    def testDeflated(self):
+        # Try the temp file first.  If we do TESTFN2 first, then it hogs
+        # gigabytes of disk space for the duration of the test.
+        for f in TemporaryFile(), TESTFN2:
+            self.zipTest(f, zipfile.ZIP_DEFLATED)
 
     def tearDown(self):
         for fname in TESTFN, TESTFN2:
@@ -98,7 +92,7 @@ class OtherTests(unittest.TestCase):
     def testMoreThan64kFiles(self):
         # This test checks that more than 64k files can be added to an archive,
         # and that the resulting archive can be read properly by ZipFile
-        zipf = zipfile.ZipFile(TESTFN, mode="w")
+        zipf = zipfile.ZipFile(TESTFN, mode="w", allowZip64=False)
         zipf.debug = 100
         numfiles = (1 << 16) * 3//2
         for i in range(numfiles):

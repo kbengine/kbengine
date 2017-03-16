@@ -70,10 +70,6 @@ extern "C" {
 
 #if defined(__FreeBSD__)
 #  include <ieeefp.h>
-#elif defined(__VMS)
-#define __NEW_STARLET
-#include <starlet.h>
-#include <ieeedef.h>
 #endif
 
 #ifndef WANT_SIGFPE_HANDLER
@@ -174,40 +170,12 @@ static void fpe_reset(Sigfunc *handler)
     fp_enable(TRP_INVALID | TRP_DIV_BY_ZERO | TRP_OVERFLOW);
     PyOS_setsig(SIGFPE, handler);
 
-/*-- DEC ALPHA OSF --------------------------------------------------------*/
-#elif defined(__alpha) && defined(__osf__)
-    /* References:   exception_intro, ieee man pages */
-    /* cc -c -I/usr/local/python/include fpectlmodule.c */
-    /* ld -shared -o fpectlmodule.so fpectlmodule.o */
-#include <machine/fpu.h>
-    unsigned long fp_control =
-    IEEE_TRAP_ENABLE_INV | IEEE_TRAP_ENABLE_DZE | IEEE_TRAP_ENABLE_OVF;
-    ieee_set_fp_control(fp_control);
-    PyOS_setsig(SIGFPE, handler);
-
 /*-- DEC ALPHA LINUX ------------------------------------------------------*/
 #elif defined(__alpha) && defined(linux)
 #include <asm/fpu.h>
     unsigned long fp_control =
     IEEE_TRAP_ENABLE_INV | IEEE_TRAP_ENABLE_DZE | IEEE_TRAP_ENABLE_OVF;
     ieee_set_fp_control(fp_control);
-    PyOS_setsig(SIGFPE, handler);
-
-/*-- DEC ALPHA VMS --------------------------------------------------------*/
-#elif defined(__ALPHA) && defined(__VMS)
-        IEEE clrmsk;
-        IEEE setmsk;
-        clrmsk.ieee$q_flags =
-                IEEE$M_TRAP_ENABLE_UNF |  IEEE$M_TRAP_ENABLE_INE |
-                 IEEE$M_MAP_UMZ;
-        setmsk.ieee$q_flags =
-                IEEE$M_TRAP_ENABLE_INV | IEEE$M_TRAP_ENABLE_DZE |
-                IEEE$M_TRAP_ENABLE_OVF;
-        sys$ieee_set_fp_control(&clrmsk, &setmsk, 0);
-        PyOS_setsig(SIGFPE, handler);
-
-/*-- HP IA64 VMS --------------------------------------------------------*/
-#elif defined(__ia64) && defined(__VMS)
     PyOS_setsig(SIGFPE, handler);
 
 /*-- Cray Unicos ----------------------------------------------------------*/
@@ -262,14 +230,6 @@ static PyObject *turnoff_sigfpe(PyObject *self,PyObject *args)
 #ifdef __FreeBSD__
     fpresetsticky(fpgetsticky());
     fpsetmask(0);
-#elif defined(__VMS)
-        IEEE clrmsk;
-         clrmsk.ieee$q_flags =
-                IEEE$M_TRAP_ENABLE_UNF |  IEEE$M_TRAP_ENABLE_INE |
-                IEEE$M_MAP_UMZ | IEEE$M_TRAP_ENABLE_INV |
-                IEEE$M_TRAP_ENABLE_DZE | IEEE$M_TRAP_ENABLE_OVF |
-                IEEE$M_INHERIT;
-        sys$ieee_set_fp_control(&clrmsk, 0, 0);
 #else
     fputs("Operation not implemented\n", stderr);
 #endif

@@ -71,19 +71,18 @@ class FatalIncludeError(SyntaxError):
 # @return The expanded resource.  If the parse mode is "xml", this
 #    is an ElementTree instance.  If the parse mode is "text", this
 #    is a Unicode string.  If the loader fails, it can return None
-#    or raise an IOError exception.
-# @throws IOError If the loader fails to load the resource.
+#    or raise an OSError exception.
+# @throws OSError If the loader fails to load the resource.
 
 def default_loader(href, parse, encoding=None):
     if parse == "xml":
-        file = open(href, 'rb')
-        data = ElementTree.parse(file).getroot()
+        with open(href, 'rb') as file:
+            data = ElementTree.parse(file).getroot()
     else:
         if not encoding:
             encoding = 'UTF-8'
-        file = open(href, 'r', encoding=encoding)
-        data = file.read()
-    file.close()
+        with open(href, 'r', encoding=encoding) as file:
+            data = file.read()
     return data
 
 ##
@@ -95,7 +94,7 @@ def default_loader(href, parse, encoding=None):
 #     that implements the same interface as <b>default_loader</b>.
 # @throws FatalIncludeError If the function fails to include a given
 #     resource, or if the tree contains malformed XInclude elements.
-# @throws IOError If the function fails to load a given resource.
+# @throws OSError If the function fails to load a given resource.
 
 def include(elem, loader=None):
     if loader is None:

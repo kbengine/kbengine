@@ -39,8 +39,13 @@ loads libraries which export functions using the standard ``cdecl`` calling
 convention, while *windll* libraries call functions using the ``stdcall``
 calling convention. *oledll* also uses the ``stdcall`` calling convention, and
 assumes the functions return a Windows :c:type:`HRESULT` error code. The error
-code is used to automatically raise a :class:`WindowsError` exception when the
+code is used to automatically raise a :class:`OSError` exception when the
 function call fails.
+
+.. versionchanged:: 3.3
+   Windows errors used to raise :exc:`WindowsError`, which is now an alias
+   of :exc:`OSError`.
+
 
 Here are some examples for Windows. Note that ``msvcrt`` is the MS standard C
 library containing most standard C functions, and uses the cdecl calling
@@ -189,11 +194,13 @@ argument values::
    >>> windll.kernel32.GetModuleHandleA(32) # doctest: +WINDOWS
    Traceback (most recent call last):
      File "<stdin>", line 1, in ?
-   WindowsError: exception: access violation reading 0x00000020
+   OSError: exception: access violation reading 0x00000020
    >>>
 
 There are, however, enough ways to crash Python with :mod:`ctypes`, so you
-should be careful anyway.
+should be careful anyway.  The :mod:`faulthandler` module can be helpful in
+debugging crashes (e.g. from segmentation faults produced by erroneous C library
+calls).
 
 ``None``, integers, bytes objects and (unicode) strings are the only native
 Python objects that can directly be used as parameters in these function calls.
@@ -211,7 +218,7 @@ more about :mod:`ctypes` data types.
 Fundamental data types
 ^^^^^^^^^^^^^^^^^^^^^^
 
-:mod:`ctypes` defines a number of primitive C compatible data types :
+:mod:`ctypes` defines a number of primitive C compatible data types:
 
 +----------------------+------------------------------------------+----------------------------+
 | ctypes type          | C type                                   | Python type                |
@@ -496,7 +503,7 @@ useful to check for error return values and automatically raise an exception::
    Traceback (most recent call last):
      File "<stdin>", line 1, in ?
      File "<stdin>", line 3, in ValidHandle
-   WindowsError: [Errno 126] The specified module could not be found.
+   OSError: [Errno 126] The specified module could not be found.
    >>>
 
 ``WinError`` is a function which will call Windows ``FormatMessage()`` api to
@@ -938,21 +945,21 @@ Callback functions
 :mod:`ctypes` allows to create C callable function pointers from Python callables.
 These are sometimes called *callback functions*.
 
-First, you must create a class for the callback function, the class knows the
+First, you must create a class for the callback function. The class knows the
 calling convention, the return type, and the number and types of arguments this
 function will receive.
 
-The CFUNCTYPE factory function creates types for callback functions using the
-normal cdecl calling convention, and, on Windows, the WINFUNCTYPE factory
-function creates types for callback functions using the stdcall calling
-convention.
+The :func:`CFUNCTYPE` factory function creates types for callback functions
+using the ``cdecl`` calling convention. On Windows, the :func:`WINFUNCTYPE`
+factory function creates types for callback functions using the ``stdcall``
+calling convention.
 
 Both of these factory functions are called with the result type as first
 argument, and the callback functions expected argument types as the remaining
 arguments.
 
 I will present an example here which uses the standard C library's
-:c:func:`qsort` function, this is used to sort items with the help of a callback
+:c:func:`qsort` function, that is used to sort items with the help of a callback
 function.  :c:func:`qsort` will be used to sort an array of integers::
 
    >>> IntArray5 = c_int * 5
@@ -965,7 +972,7 @@ function.  :c:func:`qsort` will be used to sort an array of integers::
 items in the data array, the size of one item, and a pointer to the comparison
 function, the callback. The callback will then be called with two pointers to
 items, and it must return a negative integer if the first item is smaller than
-the second, a zero if they are equal, and a positive integer else.
+the second, a zero if they are equal, and a positive integer otherwise.
 
 So our callback function receives pointers to integers, and must return an
 integer. First we create the ``type`` for the callback function::
@@ -973,36 +980,8 @@ integer. First we create the ``type`` for the callback function::
    >>> CMPFUNC = CFUNCTYPE(c_int, POINTER(c_int), POINTER(c_int))
    >>>
 
-For the first implementation of the callback function, we simply print the
-arguments we get, and return 0 (incremental development ;-)::
-
-   >>> def py_cmp_func(a, b):
-   ...     print("py_cmp_func", a, b)
-   ...     return 0
-   ...
-   >>>
-
-Create the C callable callback::
-
-   >>> cmp_func = CMPFUNC(py_cmp_func)
-   >>>
-
-And we're ready to go::
-
-   >>> qsort(ia, len(ia), sizeof(c_int), cmp_func) # doctest: +WINDOWS
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   py_cmp_func <ctypes.LP_c_long object at 0x00...> <ctypes.LP_c_long object at 0x00...>
-   >>>
-
-We know how to access the contents of a pointer, so lets redefine our callback::
+To get started, here is a simple callback that shows the values it gets
+passed::
 
    >>> def py_cmp_func(a, b):
    ...     print("py_cmp_func", a[0], b[0])
@@ -1011,23 +990,7 @@ We know how to access the contents of a pointer, so lets redefine our callback::
    >>> cmp_func = CMPFUNC(py_cmp_func)
    >>>
 
-Here is what we get on Windows::
-
-   >>> qsort(ia, len(ia), sizeof(c_int), cmp_func) # doctest: +WINDOWS
-   py_cmp_func 7 1
-   py_cmp_func 33 1
-   py_cmp_func 99 1
-   py_cmp_func 5 1
-   py_cmp_func 7 5
-   py_cmp_func 33 5
-   py_cmp_func 99 5
-   py_cmp_func 7 99
-   py_cmp_func 33 99
-   py_cmp_func 7 33
-   >>>
-
-It is funny to see that on linux the sort function seems to work much more
-efficiently, it is doing less comparisons::
+The result::
 
    >>> qsort(ia, len(ia), sizeof(c_int), cmp_func) # doctest: +LINUX
    py_cmp_func 5 1
@@ -1037,32 +1000,13 @@ efficiently, it is doing less comparisons::
    py_cmp_func 1 7
    >>>
 
-Ah, we're nearly done! The last step is to actually compare the two items and
-return a useful result::
+Now we can actually compare the two items and return a useful result::
 
    >>> def py_cmp_func(a, b):
    ...     print("py_cmp_func", a[0], b[0])
    ...     return a[0] - b[0]
    ...
    >>>
-
-Final run on Windows::
-
-   >>> qsort(ia, len(ia), sizeof(c_int), CMPFUNC(py_cmp_func)) # doctest: +WINDOWS
-   py_cmp_func 33 7
-   py_cmp_func 99 33
-   py_cmp_func 5 99
-   py_cmp_func 1 99
-   py_cmp_func 33 7
-   py_cmp_func 1 33
-   py_cmp_func 5 33
-   py_cmp_func 5 7
-   py_cmp_func 1 7
-   py_cmp_func 5 1
-   >>>
-
-and on Linux::
-
    >>> qsort(ia, len(ia), sizeof(c_int), CMPFUNC(py_cmp_func)) # doctest: +LINUX
    py_cmp_func 5 1
    py_cmp_func 33 99
@@ -1071,9 +1015,6 @@ and on Linux::
    py_cmp_func 5 7
    >>>
 
-It is quite interesting to see that the Windows :func:`qsort` function needs
-more comparisons than the linux version!
-
 As we can easily check, our array is sorted now::
 
    >>> for i in ia: print(i, end=" ")
@@ -1081,12 +1022,18 @@ As we can easily check, our array is sorted now::
    1 5 7 33 99
    >>>
 
-**Important note for callback functions:**
+.. note::
 
-Make sure you keep references to CFUNCTYPE objects as long as they are used from
-C code. :mod:`ctypes` doesn't, and if you don't, they may be garbage collected,
-crashing your program when a callback is made.
+   Make sure you keep references to :func:`CFUNCTYPE` objects as long as they
+   are used from C code. :mod:`ctypes` doesn't, and if you don't, they may be
+   garbage collected, crashing your program when a callback is made.
 
+   Also, note that if the callback function is called in a thread created
+   outside of Python's control (e.g. by the foreign code that calls the
+   callback), ctypes creates a new dummy Python thread on every invocation. This
+   behavior is correct for most purposes, but it means that values stored with
+   `threading.local` will *not* survive across different callbacks, even when
+   those calls are made from the same C thread.
 
 .. _ctypes-accessing-values-exported-from-dlls:
 
@@ -1335,7 +1282,7 @@ returns the full pathname, but since there is no predefined naming scheme a call
 like ``find_library("c")`` will fail and return ``None``.
 
 If wrapping a shared library with :mod:`ctypes`, it *may* be better to determine
-the shared library name at development type, and hardcode that into the wrapper
+the shared library name at development time, and hardcode that into the wrapper
 module instead of using :func:`find_library` to locate the library at runtime.
 
 
@@ -1362,7 +1309,10 @@ way is to instantiate one of the following classes:
    assumed to return the windows specific :class:`HRESULT` code.  :class:`HRESULT`
    values contain information specifying whether the function call failed or
    succeeded, together with additional error code.  If the return value signals a
-   failure, an :class:`WindowsError` is automatically raised.
+   failure, an :class:`OSError` is automatically raised.
+
+   .. versionchanged:: 3.3
+      :exc:`WindowsError` used to be raised.
 
 
 .. class:: WinDLL(name, mode=DEFAULT_MODE, handle=None, use_errno=False, use_last_error=False)
@@ -1707,7 +1657,7 @@ the windows header file is this::
 
    WINUSERAPI int WINAPI
    MessageBoxA(
-       HWND hWnd ,
+       HWND hWnd,
        LPCSTR lpText,
        LPCSTR lpCaption,
        UINT uType);
@@ -1965,8 +1915,8 @@ Utility functions
 
 .. function:: sizeof(obj_or_type)
 
-   Returns the size in bytes of a ctypes type or instance memory buffer. Does the
-   same as the C ``sizeof()`` function.
+   Returns the size in bytes of a ctypes type or instance memory buffer.
+   Does the same as the C ``sizeof`` operator.
 
 
 .. function:: string_at(address, size=-1)
@@ -1979,10 +1929,13 @@ Utility functions
 .. function:: WinError(code=None, descr=None)
 
    Windows only: this function is probably the worst-named thing in ctypes. It
-   creates an instance of WindowsError.  If *code* is not specified,
+   creates an instance of OSError.  If *code* is not specified,
    ``GetLastError`` is called to determine the error code. If *descr* is not
    specified, :func:`FormatError` is called to get a textual description of the
    error.
+
+   .. versionchanged:: 3.3
+      An instance of :exc:`WindowsError` used to be created.
 
 
 .. function:: wstring_at(address, size=-1)
@@ -2295,7 +2248,7 @@ These are the fundamental ctypes data types:
 .. class:: c_bool
 
    Represent the C :c:type:`bool` datatype (more accurately, :c:type:`_Bool` from
-   C99).  Its value can be True or False, and the constructor accepts any object
+   C99).  Its value can be ``True`` or ``False``, and the constructor accepts any object
    that has a truth value.
 
 

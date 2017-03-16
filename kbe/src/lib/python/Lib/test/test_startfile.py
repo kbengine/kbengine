@@ -5,7 +5,7 @@
 #
 # A possible improvement would be to have empty.vbs do something that
 # we can detect here, to make sure that not only the os.startfile()
-# call succeeded, but also the the script actually has run.
+# call succeeded, but also the script actually has run.
 
 import unittest
 from test import support
@@ -21,9 +21,11 @@ class TestCase(unittest.TestCase):
         self.assertRaises(OSError, startfile, "nonexisting.vbs")
 
     def test_empty(self):
-        # Switch to an existing, but safe, working directory to let the
-        # cleanup code do its thing without permission errors.
-        with support.temp_cwd(path=path.dirname(sys.executable)):
+        # We need to make sure the child process starts in a directory
+        # we're not about to delete. If we're running under -j, that
+        # means the test harness provided directory isn't a safe option.
+        # See http://bugs.python.org/issue15526 for more details
+        with support.change_cwd(path.dirname(sys.executable)):
             empty = path.join(path.dirname(__file__), "empty.vbs")
             startfile(empty)
             startfile(empty, "open")

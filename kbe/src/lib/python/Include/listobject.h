@@ -46,7 +46,7 @@ PyAPI_DATA(PyTypeObject) PyListRevIter_Type;
 PyAPI_DATA(PyTypeObject) PySortWrapper_Type;
 
 #define PyList_Check(op) \
-		PyType_FastSubclass(Py_TYPE(op), Py_TPFLAGS_LIST_SUBCLASS)
+    PyType_FastSubclass(Py_TYPE(op), Py_TPFLAGS_LIST_SUBCLASS)
 #define PyList_CheckExact(op) (Py_TYPE(op) == &PyList_Type)
 
 PyAPI_FUNC(PyObject *) PyList_New(Py_ssize_t size);
@@ -62,6 +62,9 @@ PyAPI_FUNC(int) PyList_Reverse(PyObject *);
 PyAPI_FUNC(PyObject *) PyList_AsTuple(PyObject *);
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(PyObject *) _PyList_Extend(PyListObject *, PyObject *);
+
+PyAPI_FUNC(int) PyList_ClearFreeList(void);
+PyAPI_FUNC(void) _PyList_DebugMallocStats(FILE *out);
 #endif
 
 /* Macro, trading safety for speed */

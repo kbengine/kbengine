@@ -1,0 +1,11 @@
+https://groups.google.com/forum/#!topic/aprdev/bc1ILvUe-fk
+
+apr_atomic.obj : error LNK2019: unresolved external symbol __InterlockedIncrement referenced in function _apr_atomic_inc32@4
+apr_atomic.obj : error LNK2019: unresolved external symbol __InterlockedExchangeAdd referenced in function _apr_atomic_add32@8
+apr_atomic.obj : error LNK2019: unresolved external symbol __InterlockedExchange referenced in function _apr_atomic_set32@8
+apr_atomic.obj : error LNK2019: unresolved external symbol __InterlockedDecrement referenced in function _apr_atomic_dec32@4
+apr_atomic.obj : error LNK2019: unresolved external symbol __InterlockedCompareExchange referenced in function _apr_atomic_cas32@12
+
+
+ÐÞ¸ÄÁË:
+	apr_atomic.c

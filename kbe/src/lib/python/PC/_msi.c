@@ -18,7 +18,7 @@ static PyObject*
 uuidcreate(PyObject* obj, PyObject*args)
 {
     UUID result;
-    unsigned short *cresult;
+    wchar_t *cresult;
     PyObject *oresult;
 
     /* May return ok, local only, and no address.
@@ -35,7 +35,7 @@ uuidcreate(PyObject* obj, PyObject*args)
         return NULL;
     }
 
-    oresult = PyUnicode_FromUnicode(cresult, wcslen(cresult));
+    oresult = PyUnicode_FromWideChar(cresult, wcslen(cresult));
     RpcStringFreeW(&cresult);
     return oresult;
 
@@ -55,7 +55,7 @@ static FNFCIFREE(cb_free)
 
 static FNFCIOPEN(cb_open)
 {
-    int result = _open(pszFile, oflag, pmode);
+    int result = _open(pszFile, oflag | O_NOINHERIT, pmode);
     if (result == -1)
         *err = errno;
     return result;
@@ -63,7 +63,7 @@ static FNFCIOPEN(cb_open)
 
 static FNFCIREAD(cb_read)
 {
-    UINT result = (UINT)_read(hf, memory, cb);
+    UINT result = (UINT)_read((int)hf, memory, cb);
     if (result != cb)
         *err = errno;
     return result;
@@ -71,7 +71,7 @@ static FNFCIREAD(cb_read)
 
 static FNFCIWRITE(cb_write)
 {
-    UINT result = (UINT)_write(hf, memory, cb);
+    UINT result = (UINT)_write((int)hf, memory, cb);
     if (result != cb)
         *err = errno;
     return result;
@@ -79,7 +79,7 @@ static FNFCIWRITE(cb_write)
 
 static FNFCICLOSE(cb_close)
 {
-    int result = _close(hf);
+    int result = _close((int)hf);
     if (result != 0)
         *err = errno;
     return result;
@@ -87,7 +87,7 @@ static FNFCICLOSE(cb_close)
 
 static FNFCISEEK(cb_seek)
 {
-    long result = (long)_lseek(hf, dist, seektype);
+    long result = (long)_lseek((int)hf, dist, seektype);
     if (result == -1)
         *err = errno;
     return result;
@@ -122,7 +122,9 @@ static FNFCIGETTEMPFILE(cb_gettempfile)
 static FNFCISTATUS(cb_status)
 {
     if (pv) {
-        PyObject *result = PyObject_CallMethod(pv, "status", "iii", typeStatus, cb1, cb2);
+        _Py_IDENTIFIER(status);
+
+        PyObject *result = _PyObject_CallMethodId(pv, &PyId_status, "iii", typeStatus, cb1, cb2);
         if (result == NULL)
             return -1;
         Py_DECREF(result);
@@ -133,7 +135,9 @@ static FNFCISTATUS(cb_status)
 static FNFCIGETNEXTCABINET(cb_getnextcabinet)
 {
     if (pv) {
-        PyObject *result = PyObject_CallMethod(pv, "getnextcabinet", "i", pccab->iCab);
+        _Py_IDENTIFIER(getnextcabinet);
+
+        PyObject *result = _PyObject_CallMethodId(pv, &PyId_getnextcabinet, "i", pccab->iCab);
         if (result == NULL)
             return -1;
         if (!PyBytes_Check(result)) {
@@ -175,7 +179,7 @@ static FNFCIGETOPENINFO(cb_getopeninfo)
 
     CloseHandle(handle);
 
-    return _open(pszName, _O_RDONLY | _O_BINARY);
+    return _open(pszName, _O_RDONLY | _O_BINARY | O_NOINHERIT);
 }
 
 static PyObject* fcicreate(PyObject* obj, PyObject* args)
@@ -375,7 +379,7 @@ record_getstring(msiobj* record, PyObject* args)
     }
     if (status != ERROR_SUCCESS)
         return msierror((int) status);
-    string = PyUnicode_FromUnicode(res, size);
+    string = PyUnicode_FromWideChar(res, size);
     if (buf != res)
         free(res);
     return string;
@@ -397,7 +401,7 @@ record_setstring(msiobj* record, PyObject *args)
 {
     int status;
     int field;
-    Py_UNICODE *data;
+    wchar_t *data;
 
     if (!PyArg_ParseTuple(args, "iu:SetString", &field, &data))
         return NULL;
@@ -414,7 +418,7 @@ record_setstream(msiobj* record, PyObject *args)
 {
     int status;
     int field;
-    Py_UNICODE *data;
+    wchar_t *data;
 
     if (!PyArg_ParseTuple(args, "iu:SetStream", &field, &data))
         return NULL;
@@ -1026,40 +1030,40 @@ PyInit__msi(void)
     PyModule_AddIntConstant(m, "MSIDBOPEN_TRANSACT", (int)MSIDBOPEN_TRANSACT);
     PyModule_AddIntConstant(m, "MSIDBOPEN_PATCHFILE", (int)MSIDBOPEN_PATCHFILE);
 
-    PyModule_AddIntConstant(m, "MSICOLINFO_NAMES", MSICOLINFO_NAMES);
-    PyModule_AddIntConstant(m, "MSICOLINFO_TYPES", MSICOLINFO_TYPES);
+    PyModule_AddIntMacro(m, MSICOLINFO_NAMES);
+    PyModule_AddIntMacro(m, MSICOLINFO_TYPES);
 
-    PyModule_AddIntConstant(m, "MSIMODIFY_SEEK", MSIMODIFY_SEEK);
-    PyModule_AddIntConstant(m, "MSIMODIFY_REFRESH", MSIMODIFY_REFRESH);
-    PyModule_AddIntConstant(m, "MSIMODIFY_INSERT", MSIMODIFY_INSERT);
-    PyModule_AddIntConstant(m, "MSIMODIFY_UPDATE", MSIMODIFY_UPDATE);
-    PyModule_AddIntConstant(m, "MSIMODIFY_ASSIGN", MSIMODIFY_ASSIGN);
-    PyModule_AddIntConstant(m, "MSIMODIFY_REPLACE", MSIMODIFY_REPLACE);
-    PyModule_AddIntConstant(m, "MSIMODIFY_MERGE", MSIMODIFY_MERGE);
-    PyModule_AddIntConstant(m, "MSIMODIFY_DELETE", MSIMODIFY_DELETE);
-    PyModule_AddIntConstant(m, "MSIMODIFY_INSERT_TEMPORARY", MSIMODIFY_INSERT_TEMPORARY);
-    PyModule_AddIntConstant(m, "MSIMODIFY_VALIDATE", MSIMODIFY_VALIDATE);
-    PyModule_AddIntConstant(m, "MSIMODIFY_VALIDATE_NEW", MSIMODIFY_VALIDATE_NEW);
-    PyModule_AddIntConstant(m, "MSIMODIFY_VALIDATE_FIELD", MSIMODIFY_VALIDATE_FIELD);
-    PyModule_AddIntConstant(m, "MSIMODIFY_VALIDATE_DELETE", MSIMODIFY_VALIDATE_DELETE);
+    PyModule_AddIntMacro(m, MSIMODIFY_SEEK);
+    PyModule_AddIntMacro(m, MSIMODIFY_REFRESH);
+    PyModule_AddIntMacro(m, MSIMODIFY_INSERT);
+    PyModule_AddIntMacro(m, MSIMODIFY_UPDATE);
+    PyModule_AddIntMacro(m, MSIMODIFY_ASSIGN);
+    PyModule_AddIntMacro(m, MSIMODIFY_REPLACE);
+    PyModule_AddIntMacro(m, MSIMODIFY_MERGE);
+    PyModule_AddIntMacro(m, MSIMODIFY_DELETE);
+    PyModule_AddIntMacro(m, MSIMODIFY_INSERT_TEMPORARY);
+    PyModule_AddIntMacro(m, MSIMODIFY_VALIDATE);
+    PyModule_AddIntMacro(m, MSIMODIFY_VALIDATE_NEW);
+    PyModule_AddIntMacro(m, MSIMODIFY_VALIDATE_FIELD);
+    PyModule_AddIntMacro(m, MSIMODIFY_VALIDATE_DELETE);
 
-    PyModule_AddIntConstant(m, "PID_CODEPAGE", PID_CODEPAGE);
-    PyModule_AddIntConstant(m, "PID_TITLE", PID_TITLE);
-    PyModule_AddIntConstant(m, "PID_SUBJECT", PID_SUBJECT);
-    PyModule_AddIntConstant(m, "PID_AUTHOR", PID_AUTHOR);
-    PyModule_AddIntConstant(m, "PID_KEYWORDS", PID_KEYWORDS);
-    PyModule_AddIntConstant(m, "PID_COMMENTS", PID_COMMENTS);
-    PyModule_AddIntConstant(m, "PID_TEMPLATE", PID_TEMPLATE);
-    PyModule_AddIntConstant(m, "PID_LASTAUTHOR", PID_LASTAUTHOR);
-    PyModule_AddIntConstant(m, "PID_REVNUMBER", PID_REVNUMBER);
-    PyModule_AddIntConstant(m, "PID_LASTPRINTED", PID_LASTPRINTED);
-    PyModule_AddIntConstant(m, "PID_CREATE_DTM", PID_CREATE_DTM);
-    PyModule_AddIntConstant(m, "PID_LASTSAVE_DTM", PID_LASTSAVE_DTM);
-    PyModule_AddIntConstant(m, "PID_PAGECOUNT", PID_PAGECOUNT);
-    PyModule_AddIntConstant(m, "PID_WORDCOUNT", PID_WORDCOUNT);
-    PyModule_AddIntConstant(m, "PID_CHARCOUNT", PID_CHARCOUNT);
-    PyModule_AddIntConstant(m, "PID_APPNAME", PID_APPNAME);
-    PyModule_AddIntConstant(m, "PID_SECURITY", PID_SECURITY);
+    PyModule_AddIntMacro(m, PID_CODEPAGE);
+    PyModule_AddIntMacro(m, PID_TITLE);
+    PyModule_AddIntMacro(m, PID_SUBJECT);
+    PyModule_AddIntMacro(m, PID_AUTHOR);
+    PyModule_AddIntMacro(m, PID_KEYWORDS);
+    PyModule_AddIntMacro(m, PID_COMMENTS);
+    PyModule_AddIntMacro(m, PID_TEMPLATE);
+    PyModule_AddIntMacro(m, PID_LASTAUTHOR);
+    PyModule_AddIntMacro(m, PID_REVNUMBER);
+    PyModule_AddIntMacro(m, PID_LASTPRINTED);
+    PyModule_AddIntMacro(m, PID_CREATE_DTM);
+    PyModule_AddIntMacro(m, PID_LASTSAVE_DTM);
+    PyModule_AddIntMacro(m, PID_PAGECOUNT);
+    PyModule_AddIntMacro(m, PID_WORDCOUNT);
+    PyModule_AddIntMacro(m, PID_CHARCOUNT);
+    PyModule_AddIntMacro(m, PID_APPNAME);
+    PyModule_AddIntMacro(m, PID_SECURITY);
 
     MSIError = PyErr_NewException ("_msi.MSIError", NULL, NULL);
     if (!MSIError)

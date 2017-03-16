@@ -8,7 +8,7 @@
 #   include <sys/socket.h>
 # endif
 # include <netinet/in.h>
-# if !(defined(__CYGWIN__) || (defined(PYOS_OS2) && defined(PYCC_VACPP)))
+# if !defined(__CYGWIN__)
 #  include <netinet/tcp.h>
 # endif
 
@@ -59,14 +59,36 @@ typedef int socklen_t;
 #include <bluetooth.h>
 #endif
 
+#ifdef HAVE_NET_IF_H
+# include <net/if.h>
+#endif
+
 #ifdef HAVE_NETPACKET_PACKET_H
 # include <sys/ioctl.h>
-# include <net/if.h>
 # include <netpacket/packet.h>
 #endif
 
 #ifdef HAVE_LINUX_TIPC_H
 # include <linux/tipc.h>
+#endif
+
+#ifdef HAVE_LINUX_CAN_H
+#include <linux/can.h>
+#endif
+
+#ifdef HAVE_LINUX_CAN_RAW_H
+#include <linux/can/raw.h>
+#endif
+
+#ifdef HAVE_LINUX_CAN_BCM_H
+#include <linux/can/bcm.h>
+#endif
+
+#ifdef HAVE_SYS_SYS_DOMAIN_H
+#include <sys/sys_domain.h>
+#endif
+#ifdef HAVE_SYS_KERN_CONTROL_H
+#include <sys/kern_control.h>
 #endif
 
 #ifndef Py__SOCKET_H
@@ -104,6 +126,7 @@ typedef int SOCKET_T;
 /* Socket address */
 typedef union sock_addr {
     struct sockaddr_in in;
+    struct sockaddr sa;
 #ifdef AF_UNIX
     struct sockaddr_un un;
 #endif
@@ -122,6 +145,12 @@ typedef union sock_addr {
 #endif
 #ifdef HAVE_NETPACKET_PACKET_H
     struct sockaddr_ll ll;
+#endif
+#ifdef HAVE_LINUX_CAN_H
+    struct sockaddr_can can;
+#endif
+#ifdef HAVE_SYS_KERN_CONTROL_H
+    struct sockaddr_ctl ctl;
 #endif
 } sock_addr_t;
 

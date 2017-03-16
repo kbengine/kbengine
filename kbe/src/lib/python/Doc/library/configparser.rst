@@ -371,7 +371,8 @@ are changed on a section proxy, they are actually mutated in the original
 parser.
 
 :mod:`configparser` objects behave as close to actual dictionaries as possible.
-The mapping interface is complete and adheres to the ``MutableMapping`` ABC.
+The mapping interface is complete and adheres to the
+:class:`~collections.abc.MutableMapping` ABC.
 However, there are a few differences that should be taken into account:
 
 * By default, all keys in sections are accessible in a case-insensitive manner
@@ -539,7 +540,7 @@ the :meth:`__init__` options:
 * *delimiters*, default value: ``('=', ':')``
 
   Delimiters are substrings that delimit keys from values within a section. The
-  first occurence of a delimiting substring on a line is considered a delimiter.
+  first occurrence of a delimiting substring on a line is considered a delimiter.
   This means values (but not keys) can contain the delimiters.
 
   See also the *space_around_delimiters* argument to

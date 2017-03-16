@@ -60,7 +60,9 @@ To create a new template object initialized to a given one:
 import re
 import os
 import tempfile
-import string
+# we import the quote function rather than the module for backward compat
+# (quote used to be an undocumented but used function in pipes)
+from shlex import quote
 
 __all__ = ["Template"]
 
@@ -243,22 +245,3 @@ def makepipeline(infile, steps, outfile):
         cmdlist = trapcmd + '\n' + cmdlist + '\n' + rmcmd
     #
     return cmdlist
-
-
-# Reliably quote a string as a single argument for /bin/sh
-
-# Safe unquoted
-_safechars = frozenset(string.ascii_letters + string.digits + '@%_-+=:,./')
-
-def quote(file):
-    """Return a shell-escaped version of the file string."""
-    for c in file:
-        if c not in _safechars:
-            break
-    else:
-        if not file:
-            return "''"
-        return file
-    # use single quotes, and put single quotes into double quotes
-    # the string $'b is then quoted as '$'"'"'b'
-    return "'" + file.replace("'", "'\"'\"'") + "'"

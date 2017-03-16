@@ -38,7 +38,7 @@ class StructSeqTest(unittest.TestCase):
         # os.stat() gives a complicated struct sequence.
         st = os.stat(__file__)
         rep = repr(st)
-        self.assertTrue(rep.startswith(os.name + ".stat_result"))
+        self.assertTrue(rep.startswith("os.stat_result"))
         self.assertIn("st_mode=", rep)
         self.assertIn("st_ino=", rep)
         self.assertIn("st_dev=", rep)
@@ -78,8 +78,9 @@ class StructSeqTest(unittest.TestCase):
 
     def test_fields(self):
         t = time.gmtime()
-        self.assertEqual(len(t), t.n_fields)
-        self.assertEqual(t.n_fields, t.n_sequence_fields+t.n_unnamed_fields)
+        self.assertEqual(len(t), t.n_sequence_fields)
+        self.assertEqual(t.n_unnamed_fields, 0)
+        self.assertEqual(t.n_fields, time._STRUCT_TM_ITEMS)
 
     def test_constructor(self):
         t = time.struct_time

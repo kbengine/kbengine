@@ -1,0 +1,95 @@
+{% extends "User/base.html" %}
+
+{% block content %}
+<div class="row placeholders user-manger">
+    <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>账号名</th>
+          <th>显示名</th>
+          <th>操作系统用户</th>
+          <th>操作系统用户uid</th>
+          <th>kbe_root</th>
+          <th>kbe_res_path</th>
+          <th>kbe_bin_path</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in Users %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.name }}</td>
+          <td>{{ u.show_name }}</td>
+          <td>{{ u.sys_user }}</td>
+          <td>{{ u.sys_uid }}</td>
+          <td>{{ u.kbe_root }}</td>
+          <td>{{ u.kbe_res_path }}</td>
+          <td>{{ u.kbe_bin_path }}</td>
+          <td><button class="ct-stop-btn btn" onClick="requestChangeUser({{u.id}})">修改资料</button> <button class="ct-stop-btn btn" onClick="requestChangePwd({{u.id}}, '{{u.name}}')">修改密码</button> <button class="ct-stop-btn btn" onClick="user_delete({{ u.id }},'{{ u.name }}')">删除</button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+
+<script>
+    function requestChangePwd( uid, uname )
+    {
+        var href = "/wc/user/change_pwd";
+        var form = document.createElement("form");   
+
+        // 只有加入到body中才能生效
+        document.body.appendChild(form);
+        form.method = 'post';
+        form.action = '/wc/user/change_pwd';
+        
+        // 创建隐藏表单
+        var euid = document.createElement("input");
+        euid.setAttribute("name", "id");
+        euid.setAttribute("type", "hidden");
+        euid.setAttribute("value", uid);
+        form.appendChild(euid);
+
+        var euname = document.createElement("input");
+        euname.setAttribute("name", "username");
+        euname.setAttribute("type", "hidden");
+        euname.setAttribute("value", uname);
+        form.appendChild(euname);
+        
+        form.submit();
+        
+    }
+    function user_delete(userID,userNAME)
+    {  
+        href="/wc/user/delete?id="+userID;
+        if (confirm('确认要删除用户'+userNAME+'(ID：'+userID+')？'))
+        { 
+          window.location.href = href;
+        }  
+    }
+    function requestChangeUser(userID)
+    {
+        href = "/wc/user/change_user/"+userID;
+        layer.open({
+            type: 2,
+            title: "账号编辑",
+            closeBtn: 1,
+            shade: 0.8,
+            //shadeClose: true,
+            area: ['800px', '650px'],
+            scrollbar: false,
+            skin: 'layui-layer-rim', //加上边框
+            content: href,
+            end: function (){
+                location.reload();
+            }
+        });
+    }
+</script>
+
+{% endblock %}
+{% block tail_js %}
+<script>$(".user-manager").addClass("active");</script>
+{% endblock %}

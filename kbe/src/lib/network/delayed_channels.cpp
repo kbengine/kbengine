@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,27 +19,27 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "delayed_channels.hpp"
-#include "network/channel.hpp"
-#include "network/address.hpp"
-#include "network/event_dispatcher.hpp"
-#include "network/network_interface.hpp"
+#include "delayed_channels.h"
+#include "network/channel.h"
+#include "network/address.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
 
 namespace KBEngine{
-namespace Mercury
+namespace Network
 {
 
 //-------------------------------------------------------------------------------------
 void DelayedChannels::init(EventDispatcher & dispatcher, NetworkInterface* pNetworkInterface)
 {
 	pNetworkInterface_ = pNetworkInterface;
-	dispatcher.addFrequentTask( this );
+	dispatcher.addTask( this );
 }
 
 //-------------------------------------------------------------------------------------
 void DelayedChannels::fini(EventDispatcher & dispatcher)
 {
-	dispatcher.cancelFrequentTask( this );
+	dispatcher.cancelTask( this );
 }
 
 //-------------------------------------------------------------------------------------
@@ -60,21 +60,25 @@ void DelayedChannels::sendIfDelayed(Channel & channel)
 //-------------------------------------------------------------------------------------
 bool DelayedChannels::process()
 {
-	ChannelAddrs::iterator iter = channeladdrs_.begin();
-
-	while (iter != channeladdrs_.end())
+	if (channeladdrs_.size() > 0)
 	{
-		Channel * pChannel = pNetworkInterface_->findChannel((*iter));
+		ChannelAddrs::iterator iter = channeladdrs_.begin();
 
-		if (pChannel && (pChannel->isCondemn() || !pChannel->isDestroyed()))
+		while (iter != channeladdrs_.end())
 		{
-			pChannel->send();
+			Channel * pChannel = pNetworkInterface_->findChannel((*iter));
+
+			if (pChannel && (!pChannel->isCondemn() && !pChannel->isDestroyed()))
+			{
+				pChannel->send();
+			}
+
+			++iter;
 		}
 
-		++iter;
+		channeladdrs_.clear();
 	}
 
-	channeladdrs_.clear();
 	return true;
 }
 

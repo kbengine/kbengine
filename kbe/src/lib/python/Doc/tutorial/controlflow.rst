@@ -19,14 +19,14 @@ example::
    >>> x = int(input("Please enter an integer: "))
    Please enter an integer: 42
    >>> if x < 0:
-   ...      x = 0
-   ...      print('Negative changed to zero')
+   ...     x = 0
+   ...     print('Negative changed to zero')
    ... elif x == 0:
-   ...      print('Zero')
+   ...     print('Zero')
    ... elif x == 1:
-   ...      print('Single')
+   ...     print('Single')
    ... else:
-   ...      print('More')
+   ...     print('More')
    ...
    More
 
@@ -370,7 +370,7 @@ defined to allow.  For example::
                return False
            retries = retries - 1
            if retries < 0:
-               raise IOError('refusenik user')
+               raise OSError('uncooperative user')
            print(complaint)
 
 This function can be called in several ways:
@@ -583,17 +583,16 @@ In the same fashion, dictionaries can deliver keyword arguments with the ``**``\
 
 .. _tut-lambda:
 
-Lambda Forms
-------------
+Lambda Expressions
+------------------
 
-By popular demand, a few features commonly found in functional programming
-languages like Lisp have been added to Python.  With the :keyword:`lambda`
-keyword, small anonymous functions can be created. Here's a function that
-returns the sum of its two arguments: ``lambda a, b: a+b``.  Lambda forms can be
-used wherever function objects are required.  They are syntactically restricted
-to a single expression.  Semantically, they are just syntactic sugar for a
-normal function definition.  Like nested function definitions, lambda forms can
-reference variables from the containing scope::
+Small anonymous functions can be created with the :keyword:`lambda` keyword.
+This function returns the sum of its two arguments: ``lambda a, b: a+b``.
+Lambda functions can be used wherever function objects are required.  They are
+syntactically restricted to a single expression.  Semantically, they are just
+syntactic sugar for a normal function definition.  Like nested function
+definitions, lambda functions can reference variables from the containing
+scope::
 
    >>> def make_incrementor(n):
    ...     return lambda x: x + n
@@ -603,6 +602,14 @@ reference variables from the containing scope::
    42
    >>> f(1)
    43
+
+The above example uses a lambda expression to return a function.  Another use
+is to pass a small function as an argument::
+
+   >>> pairs = [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]
+   >>> pairs.sort(key=lambda pair: pair[1])
+   >>> pairs
+   [(4, 'four'), (1, 'one'), (3, 'three'), (2, 'two')]
 
 
 .. _tut-docstrings:
@@ -749,4 +756,3 @@ extracted for you:
 .. [#] Actually, *call by object reference* would be a better description,
    since if a mutable object is passed, the caller will see any changes the
    callee makes to it (items inserted into a list).
-

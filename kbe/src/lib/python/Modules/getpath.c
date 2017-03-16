@@ -110,11 +110,7 @@
 #endif
 
 #ifndef PREFIX
-#  ifdef __VMS
-#    define PREFIX ""
-#  else
-#    define PREFIX "/usr/local"
-#  endif
+#  define PREFIX "/usr/local"
 #endif
 
 #ifndef EXEC_PREFIX
@@ -134,8 +130,6 @@ static wchar_t prefix[MAXPATHLEN+1];
 static wchar_t exec_prefix[MAXPATHLEN+1];
 static wchar_t progpath[MAXPATHLEN+1];
 static wchar_t *module_search_path = NULL;
-static int module_search_path_malloced = 0;
-static wchar_t *lib_python = L"lib/python" VERSION;
 
 static void
 reduce(wchar_t *dir)
@@ -260,11 +254,65 @@ absolutize(wchar_t *path)
     wcscpy(path, buffer);
 }
 
+/* search for a prefix value in an environment file. If found, copy it
+   to the provided buffer, which is expected to be no more than MAXPATHLEN
+   bytes long.
+*/
+
+static int
+find_env_config_value(FILE * env_file, const wchar_t * key, wchar_t * value)
+{
+    int result = 0; /* meaning not found */
+    char buffer[MAXPATHLEN*2+1];  /* allow extra for key, '=', etc. */
+
+    fseek(env_file, 0, SEEK_SET);
+    while (!feof(env_file)) {
+        char * p = fgets(buffer, MAXPATHLEN*2, env_file);
+        wchar_t tmpbuffer[MAXPATHLEN*2+1];
+        PyObject * decoded;
+        int n;
+
+        if (p == NULL)
+            break;
+        n = strlen(p);
+        if (p[n - 1] != '\n') {
+            /* line has overflowed - bail */
+            break;
+        }
+        if (p[0] == '#')    /* Comment - skip */
+            continue;
+        decoded = PyUnicode_DecodeUTF8(buffer, n, "surrogateescape");
+        if (decoded != NULL) {
+            Py_ssize_t k;
+            wchar_t * state;
+            k = PyUnicode_AsWideChar(decoded,
+                                     tmpbuffer, MAXPATHLEN * 2);
+            Py_DECREF(decoded);
+            if (k >= 0) {
+                wchar_t * tok = wcstok(tmpbuffer, L" \t\r\n", &state);
+                if ((tok != NULL) && !wcscmp(tok, key)) {
+                    tok = wcstok(NULL, L" \t", &state);
+                    if ((tok != NULL) && !wcscmp(tok, L"=")) {
+                        tok = wcstok(NULL, L"\r\n", &state);
+                        if (tok != NULL) {
+                            wcsncpy(value, tok, MAXPATHLEN);
+                            result = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
 /* search_for_prefix requires that argv0_path be no more than MAXPATHLEN
    bytes long.
 */
 static int
-search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix)
+search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix,
+                  wchar_t *lib_python)
 {
     size_t n;
     wchar_t *vpath;
@@ -273,6 +321,7 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix)
     if (home) {
         wchar_t *delim;
         wcsncpy(prefix, home, MAXPATHLEN);
+        prefix[MAXPATHLEN] = L'\0';
         delim = wcschr(prefix, DELIM);
         if (delim)
             *delim = L'\0';
@@ -282,15 +331,17 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix)
     }
 
     /* Check to see if argv[0] is in the build directory */
-    wcscpy(prefix, argv0_path);
+    wcsncpy(prefix, argv0_path, MAXPATHLEN);
+    prefix[MAXPATHLEN] = L'\0';
     joinpath(prefix, L"Modules/Setup");
     if (isfile(prefix)) {
         /* Check VPATH to see if argv0_path is in the build directory. */
         vpath = _Py_char2wchar(VPATH, NULL);
         if (vpath != NULL) {
-            wcscpy(prefix, argv0_path);
+            wcsncpy(prefix, argv0_path, MAXPATHLEN);
+            prefix[MAXPATHLEN] = L'\0';
             joinpath(prefix, vpath);
-            PyMem_Free(vpath);
+            PyMem_RawFree(vpath);
             joinpath(prefix, L"Lib");
             joinpath(prefix, LANDMARK);
             if (ismodule(prefix))
@@ -312,6 +363,7 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix)
 
     /* Look at configure's PREFIX */
     wcsncpy(prefix, _prefix, MAXPATHLEN);
+    prefix[MAXPATHLEN] = L'\0';
     joinpath(prefix, lib_python);
     joinpath(prefix, LANDMARK);
     if (ismodule(prefix))
@@ -326,7 +378,8 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_prefix)
    MAXPATHLEN bytes long.
 */
 static int
-search_for_exec_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_exec_prefix)
+search_for_exec_prefix(wchar_t *argv0_path, wchar_t *home,
+                       wchar_t *_exec_prefix, wchar_t *lib_python)
 {
     size_t n;
 
@@ -338,6 +391,7 @@ search_for_exec_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_exec_prefix
             wcsncpy(exec_prefix, delim+1, MAXPATHLEN);
         else
             wcsncpy(exec_prefix, home, MAXPATHLEN);
+        exec_prefix[MAXPATHLEN] = L'\0';
         joinpath(exec_prefix, lib_python);
         joinpath(exec_prefix, L"lib-dynload");
         return 1;
@@ -346,7 +400,8 @@ search_for_exec_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_exec_prefix
     /* Check to see if argv[0] is in the build directory. "pybuilddir.txt"
        is written by setup.py and contains the relative path to the location
        of shared library modules. */
-    wcscpy(exec_prefix, argv0_path);
+    wcsncpy(exec_prefix, argv0_path, MAXPATHLEN);
+    exec_prefix[MAXPATHLEN] = L'\0';
     joinpath(exec_prefix, L"pybuilddir.txt");
     if (isfile(exec_prefix)) {
         FILE *f = _Py_wfopen(exec_prefix, L"rb");
@@ -367,7 +422,8 @@ search_for_exec_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_exec_prefix
                 Py_DECREF(decoded);
                 if (k >= 0) {
                     rel_builddir_path[k] = L'\0';
-                    wcscpy(exec_prefix, argv0_path);
+                    wcsncpy(exec_prefix, argv0_path, MAXPATHLEN);
+                    exec_prefix[MAXPATHLEN] = L'\0';
                     joinpath(exec_prefix, rel_builddir_path);
                     return -1;
                 }
@@ -389,6 +445,7 @@ search_for_exec_prefix(wchar_t *argv0_path, wchar_t *home, wchar_t *_exec_prefix
 
     /* Look at configure's EXEC_PREFIX */
     wcsncpy(exec_prefix, _exec_prefix, MAXPATHLEN);
+    exec_prefix[MAXPATHLEN] = L'\0';
     joinpath(exec_prefix, lib_python);
     joinpath(exec_prefix, L"lib-dynload");
     if (isdir(exec_prefix))
@@ -406,7 +463,7 @@ calculate_path(void)
     static wchar_t delimiter[2] = {DELIM, '\0'};
     static wchar_t separator[2] = {SEP, '\0'};
     char *_rtpypath = Py_GETENV("PYTHONPATH"); /* XXX use wide version on Windows */
-    wchar_t rtpypath[MAXPATHLEN+1];
+    wchar_t *rtpypath = NULL;
     wchar_t *home = Py_GetPythonHome();
     char *_path = getenv("PATH");
     wchar_t *path_buffer = NULL;
@@ -421,6 +478,7 @@ calculate_path(void)
     wchar_t *defpath;
 #ifdef WITH_NEXT_FRAMEWORK
     NSModule pythonModule;
+    const char*    modPath;
 #endif
 #ifdef __APPLE__
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
@@ -431,12 +489,14 @@ calculate_path(void)
     char execpath[MAXPATHLEN+1];
 #endif
     wchar_t *_pythonpath, *_prefix, *_exec_prefix;
+    wchar_t *lib_python;
 
     _pythonpath = _Py_char2wchar(PYTHONPATH, NULL);
     _prefix = _Py_char2wchar(PREFIX, NULL);
     _exec_prefix = _Py_char2wchar(EXEC_PREFIX, NULL);
+    lib_python = _Py_char2wchar("lib/python" VERSION, NULL);
 
-    if (!_pythonpath || !_prefix || !_exec_prefix) {
+    if (!_pythonpath || !_prefix || !_exec_prefix || !lib_python) {
         Py_FatalError(
             "Unable to decode path variables in getpath.c: "
             "memory error");
@@ -500,8 +560,7 @@ calculate_path(void)
     }
     else
         progpath[0] = '\0';
-    if (path_buffer != NULL)
-        PyMem_Free(path_buffer);
+    PyMem_RawFree(path_buffer);
     if (progpath[0] != SEP && progpath[0] != '\0')
         absolutize(progpath);
     wcsncpy(argv0_path, progpath, MAXPATHLEN);
@@ -515,8 +574,8 @@ calculate_path(void)
     */
     pythonModule = NSModuleForSymbol(NSLookupAndBindSymbol("_Py_Initialize"));
     /* Use dylib functions to find out where the framework was loaded from */
-    buf = (wchar_t *)NSLibraryNameForModule(pythonModule);
-    if (buf != NULL) {
+    modPath = NSLibraryNameForModule(pythonModule);
+    if (modPath != NULL) {
         /* We're in a framework. */
         /* See if we might be in the build directory. The framework in the
         ** build directory is incomplete, it only has the .dylib and a few
@@ -525,7 +584,12 @@ calculate_path(void)
         ** be running the interpreter in the build directory, so we use the
         ** build-directory-specific logic to find Lib and such.
         */
-        wcsncpy(argv0_path, buf, MAXPATHLEN);
+        wchar_t* wbuf = _Py_char2wchar(modPath, NULL);
+        if (wbuf == NULL) {
+            Py_FatalError("Cannot decode framework location");
+        }
+
+        wcsncpy(argv0_path, wbuf, MAXPATHLEN);
         reduce(argv0_path);
         joinpath(argv0_path, lib_python);
         joinpath(argv0_path, LANDMARK);
@@ -536,8 +600,9 @@ calculate_path(void)
         }
         else {
             /* Use the location of the library as the progpath */
-            wcsncpy(argv0_path, buf, MAXPATHLEN);
+            wcsncpy(argv0_path, wbuf, MAXPATHLEN);
         }
+        PyMem_RawFree(wbuf);
     }
 #endif
 
@@ -565,7 +630,42 @@ calculate_path(void)
        MAXPATHLEN bytes long.
     */
 
-    if (!(pfound = search_for_prefix(argv0_path, home, _prefix))) {
+    /* Search for an environment configuration file, first in the
+       executable's directory and then in the parent directory.
+       If found, open it for use when searching for prefixes.
+    */
+
+    {
+        wchar_t tmpbuffer[MAXPATHLEN+1];
+        wchar_t *env_cfg = L"pyvenv.cfg";
+        FILE * env_file = NULL;
+
+        wcscpy(tmpbuffer, argv0_path);
+
+        joinpath(tmpbuffer, env_cfg);
+        env_file = _Py_wfopen(tmpbuffer, L"r");
+        if (env_file == NULL) {
+            errno = 0;
+            reduce(tmpbuffer);
+            reduce(tmpbuffer);
+            joinpath(tmpbuffer, env_cfg);
+            env_file = _Py_wfopen(tmpbuffer, L"r");
+            if (env_file == NULL) {
+                errno = 0;
+            }
+        }
+        if (env_file != NULL) {
+            /* Look for a 'home' variable and set argv0_path to it, if found */
+            if (find_env_config_value(env_file, L"home", tmpbuffer)) {
+                wcscpy(argv0_path, tmpbuffer);
+            }
+            fclose(env_file);
+            env_file = NULL;
+        }
+    }
+
+    pfound = search_for_prefix(argv0_path, home, _prefix, lib_python);
+    if (!pfound) {
         if (!Py_FrozenFlag)
             fprintf(stderr,
                 "Could not find platform independent libraries <prefix>\n");
@@ -588,7 +688,9 @@ calculate_path(void)
     zip_path[bufsz - 6] = VERSION[0];
     zip_path[bufsz - 5] = VERSION[2];
 
-    if (!(efound = search_for_exec_prefix(argv0_path, home, _exec_prefix))) {
+    efound = search_for_exec_prefix(argv0_path, home,
+                                    _exec_prefix, lib_python);
+    if (!efound) {
         if (!Py_FrozenFlag)
             fprintf(stderr,
                 "Could not find platform dependent libraries <exec_prefix>\n");
@@ -605,13 +707,11 @@ calculate_path(void)
      */
     bufsz = 0;
 
-    if (_rtpypath) {
-        size_t s = mbstowcs(rtpypath, _rtpypath, sizeof(rtpypath)/sizeof(wchar_t));
-        if (s == (size_t)-1 || s >=sizeof(rtpypath))
-            /* XXX deal with errors more gracefully */
-            _rtpypath = NULL;
-        if (_rtpypath)
-            bufsz += wcslen(rtpypath) + 1;
+    if (_rtpypath && _rtpypath[0] != '\0') {
+        size_t rtpypath_len;
+        rtpypath = _Py_char2wchar(_rtpypath, &rtpypath_len);
+        if (rtpypath != NULL)
+            bufsz += rtpypath_len + 1;
     }
 
     defpath = _pythonpath;
@@ -635,60 +735,55 @@ calculate_path(void)
     bufsz += wcslen(zip_path) + 1;
     bufsz += wcslen(exec_prefix) + 1;
 
-    buf = (wchar_t *)PyMem_Malloc(bufsz*sizeof(wchar_t));
-
+    buf = (wchar_t *)PyMem_Malloc(bufsz * sizeof(wchar_t));
     if (buf == NULL) {
-        /* We can't exit, so print a warning and limp along */
-        fprintf(stderr, "Not enough memory for dynamic PYTHONPATH.\n");
-        fprintf(stderr, "Using default static PYTHONPATH.\n");
-        module_search_path = L"" PYTHONPATH;
+        Py_FatalError(
+            "Not enough memory for dynamic PYTHONPATH");
     }
-    else {
-        /* Run-time value of $PYTHONPATH goes first */
-        if (_rtpypath) {
-            wcscpy(buf, rtpypath);
-            wcscat(buf, delimiter);
-        }
-        else
-            buf[0] = '\0';
 
-        /* Next is the default zip path */
-        wcscat(buf, zip_path);
+    /* Run-time value of $PYTHONPATH goes first */
+    if (rtpypath) {
+        wcscpy(buf, rtpypath);
         wcscat(buf, delimiter);
-
-        /* Next goes merge of compile-time $PYTHONPATH with
-         * dynamically located prefix.
-         */
-        defpath = _pythonpath;
-        while (1) {
-            wchar_t *delim = wcschr(defpath, DELIM);
-
-            if (defpath[0] != SEP) {
-                wcscat(buf, prefix);
-                wcscat(buf, separator);
-            }
-
-            if (delim) {
-                size_t len = delim - defpath + 1;
-                size_t end = wcslen(buf) + len;
-                wcsncat(buf, defpath, len);
-                *(buf + end) = '\0';
-            }
-            else {
-                wcscat(buf, defpath);
-                break;
-            }
-            defpath = delim + 1;
-        }
-        wcscat(buf, delimiter);
-
-        /* Finally, on goes the directory for dynamic-load modules */
-        wcscat(buf, exec_prefix);
-
-        /* And publish the results */
-        module_search_path = buf;
-        module_search_path_malloced = 1;
     }
+    else
+        buf[0] = '\0';
+
+    /* Next is the default zip path */
+    wcscat(buf, zip_path);
+    wcscat(buf, delimiter);
+
+    /* Next goes merge of compile-time $PYTHONPATH with
+     * dynamically located prefix.
+     */
+    defpath = _pythonpath;
+    while (1) {
+        wchar_t *delim = wcschr(defpath, DELIM);
+
+        if (defpath[0] != SEP) {
+            wcscat(buf, prefix);
+            wcscat(buf, separator);
+        }
+
+        if (delim) {
+            size_t len = delim - defpath + 1;
+            size_t end = wcslen(buf) + len;
+            wcsncat(buf, defpath, len);
+            *(buf + end) = '\0';
+        }
+        else {
+            wcscat(buf, defpath);
+            break;
+        }
+        defpath = delim + 1;
+    }
+    wcscat(buf, delimiter);
+
+    /* Finally, on goes the directory for dynamic-load modules */
+    wcscat(buf, exec_prefix);
+
+    /* And publish the results */
+    module_search_path = buf;
 
     /* Reduce prefix and exec_prefix to their essence,
      * e.g. /usr/local/lib/python1.5 is reduced to /usr/local.
@@ -716,9 +811,11 @@ calculate_path(void)
     else
         wcsncpy(exec_prefix, _exec_prefix, MAXPATHLEN);
 
-    PyMem_Free(_pythonpath);
-    PyMem_Free(_prefix);
-    PyMem_Free(_exec_prefix);
+    PyMem_RawFree(_pythonpath);
+    PyMem_RawFree(_prefix);
+    PyMem_RawFree(_exec_prefix);
+    PyMem_RawFree(lib_python);
+    PyMem_RawFree(rtpypath);
 }
 
 
@@ -727,18 +824,15 @@ void
 Py_SetPath(const wchar_t *path)
 {
     if (module_search_path != NULL) {
-        if (module_search_path_malloced)
-            PyMem_Free(module_search_path);
+        PyMem_RawFree(module_search_path);
         module_search_path = NULL;
-        module_search_path_malloced = 0;
     }
     if (path != NULL) {
         extern wchar_t *Py_GetProgramName(void);
         wchar_t *prog = Py_GetProgramName();
         wcsncpy(progpath, prog, MAXPATHLEN);
         exec_prefix[0] = prefix[0] = L'\0';
-        module_search_path = PyMem_Malloc((wcslen(path) + 1) * sizeof(wchar_t));
-        module_search_path_malloced = 1;
+        module_search_path = PyMem_RawMalloc((wcslen(path) + 1) * sizeof(wchar_t));
         if (module_search_path != NULL)
             wcscpy(module_search_path, path);
     }

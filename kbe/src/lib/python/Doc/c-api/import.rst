@@ -30,13 +30,13 @@ Importing Modules
 
 .. c:function:: PyObject* PyImport_ImportModuleNoBlock(const char *name)
 
-   This version of :c:func:`PyImport_ImportModule` does not block. It's intended
-   to be used in C functions that import other modules to execute a function.
-   The import may block if another thread holds the import lock. The function
-   :c:func:`PyImport_ImportModuleNoBlock` never blocks. It first tries to fetch
-   the module from sys.modules and falls back to :c:func:`PyImport_ImportModule`
-   unless the lock is held, in which case the function will raise an
-   :exc:`ImportError`.
+   This function is a deprecated alias of :c:func:`PyImport_ImportModule`.
+
+   .. versionchanged:: 3.3
+      This function used to fail immediately when the import lock was held
+      by another thread.  In Python 3.3 though, the locking scheme switched
+      to per-module locks for most purposes, so this function's special
+      behaviour isn't needed anymore.
 
 
 .. c:function:: PyObject* PyImport_ImportModuleEx(char *name, PyObject *globals, PyObject *locals, PyObject *fromlist)
@@ -44,8 +44,7 @@ Importing Modules
    .. index:: builtin: __import__
 
    Import a module.  This is best described by referring to the built-in Python
-   function :func:`__import__`, as the standard :func:`__import__` function calls
-   this function directly.
+   function :func:`__import__`.
 
    The return value is a new reference to the imported module or top-level
    package, or *NULL* with an exception set on failure.  Like for
@@ -57,7 +56,7 @@ Importing Modules
    :c:func:`PyImport_ImportModule`.
 
 
-.. c:function:: PyObject* PyImport_ImportModuleLevel(char *name, PyObject *globals, PyObject *locals, PyObject *fromlist, int level)
+.. c:function:: PyObject* PyImport_ImportModuleLevelObject(PyObject *name, PyObject *globals, PyObject *locals, PyObject *fromlist, int level)
 
    Import a module.  This is best described by referring to the built-in Python
    function :func:`__import__`, as the standard :func:`__import__` function calls
@@ -68,6 +67,16 @@ Importing Modules
    the return value when a submodule of a package was requested is normally the
    top-level package, unless a non-empty *fromlist* was given.
 
+   .. versionadded:: 3.3
+
+
+.. c:function:: PyObject* PyImport_ImportModuleLevel(char *name, PyObject *globals, PyObject *locals, PyObject *fromlist, int level)
+
+   Similar to :c:func:`PyImport_ImportModuleLevelObject`, but the name is an
+   UTF-8 encoded string instead of a Unicode object.
+
+   .. versionchanged:: 3.3
+         Negative values for *level* are no longer accepted.
 
 .. c:function:: PyObject* PyImport_Import(PyObject *name)
 
@@ -86,7 +95,7 @@ Importing Modules
    an exception set on failure (the module still exists in this case).
 
 
-.. c:function:: PyObject* PyImport_AddModule(const char *name)
+.. c:function:: PyObject* PyImport_AddModuleObject(PyObject *name)
 
    Return the module object corresponding to a module name.  The *name* argument
    may be of the form ``package.module``. First check the modules dictionary if
@@ -100,8 +109,16 @@ Importing Modules
       or one of its variants to import a module.  Package structures implied by a
       dotted name for *name* are not created if not already present.
 
+   .. versionadded:: 3.3
 
-.. c:function:: PyObject* PyImport_ExecCodeModule(char *name, PyObject *co)
+
+.. c:function:: PyObject* PyImport_AddModule(const char *name)
+
+   Similar to :c:func:`PyImport_AddModuleObject`, but the name is a UTF-8
+   encoded string instead of a Unicode object.
+
+
+.. c:function:: PyObject* PyImport_ExecCodeModule(const char *name, PyObject *co)
 
    .. index:: builtin: compile
 
@@ -115,8 +132,14 @@ Importing Modules
    such modules have no way to know that the module object is an unknown (and
    probably damaged with respect to the module author's intents) state.
 
+   The module's :attr:`__spec__` and :attr:`__loader__` will be set, if
+   not set already, with the appropriate values.  The spec's loader will
+   be set to the module's ``__loader__`` (if set) and to an instance of
+   :class:`SourceFileLoader` otherwise.
+
    The module's :attr:`__file__` attribute will be set to the code object's
-   :c:member:`co_filename`.
+   :c:member:`co_filename`.  If applicable, :attr:`__cached__` will also
+   be set.
 
    This function will reload the module if it was already imported.  See
    :c:func:`PyImport_ReloadModule` for the intended way to reload a module.
@@ -128,7 +151,7 @@ Importing Modules
    :c:func:`PyImport_ExecCodeModuleWithPathnames`.
 
 
-.. c:function:: PyObject* PyImport_ExecCodeModuleEx(char *name, PyObject *co, char *pathname)
+.. c:function:: PyObject* PyImport_ExecCodeModuleEx(const char *name, PyObject *co, const char *pathname)
 
    Like :c:func:`PyImport_ExecCodeModule`, but the :attr:`__file__` attribute of
    the module object is set to *pathname* if it is non-``NULL``.
@@ -136,25 +159,43 @@ Importing Modules
    See also :c:func:`PyImport_ExecCodeModuleWithPathnames`.
 
 
-.. c:function:: PyObject* PyImport_ExecCodeModuleWithPathnames(char *name, PyObject *co, char *pathname, char *cpathname)
+.. c:function:: PyObject* PyImport_ExecCodeModuleObject(PyObject *name, PyObject *co, PyObject *pathname, PyObject *cpathname)
 
    Like :c:func:`PyImport_ExecCodeModuleEx`, but the :attr:`__cached__`
    attribute of the module object is set to *cpathname* if it is
    non-``NULL``.  Of the three functions, this is the preferred one to use.
 
+   .. versionadded:: 3.3
+
+
+.. c:function:: PyObject* PyImport_ExecCodeModuleWithPathnames(const char *name, PyObject *co, const char *pathname, const char *cpathname)
+
+   Like :c:func:`PyImport_ExecCodeModuleObject`, but *name*, *pathname* and
+   *cpathname* are UTF-8 encoded strings. Attempts are also made to figure out
+   what the value for *pathname* should be from *cpathname* if the former is
+   set to ``NULL``.
+
    .. versionadded:: 3.2
+   .. versionchanged:: 3.3
+      Uses :func:`imp.source_from_cache()` in calculating the source path if
+      only the bytecode path is provided.
+
 
 .. c:function:: long PyImport_GetMagicNumber()
 
    Return the magic number for Python bytecode files (a.k.a. :file:`.pyc` and
    :file:`.pyo` files).  The magic number should be present in the first four bytes
-   of the bytecode file, in little-endian byte order.
+   of the bytecode file, in little-endian byte order. Returns -1 on error.
+
+   .. versionchanged:: 3.3
+      Return value of -1 upon failure.
 
 
 .. c:function:: const char * PyImport_GetMagicTag()
 
    Return the magic tag string for :pep:`3147` format Python bytecode file
-   names.
+   names.  Keep in mind that the value at ``sys.implementation.cache_tag`` is
+   authoritative and should be used instead of this function.
 
    .. versionadded:: 3.2
 
@@ -200,13 +241,24 @@ Importing Modules
    For internal use only.
 
 
-.. c:function:: int PyImport_ImportFrozenModule(char *name)
+.. c:function:: int PyImport_ImportFrozenModuleObject(PyObject *name)
 
    Load a frozen module named *name*.  Return ``1`` for success, ``0`` if the
    module is not found, and ``-1`` with an exception set if the initialization
    failed.  To access the imported module on a successful load, use
    :c:func:`PyImport_ImportModule`.  (Note the misnomer --- this function would
    reload the module if it was already imported.)
+
+   .. versionadded:: 3.3
+
+   .. versionchanged:: 3.4
+      The ``__file__`` attribute is no longer set on the module.
+
+
+.. c:function:: int PyImport_ImportFrozenModule(const char *name)
+
+   Similar to :c:func:`PyImport_ImportFrozenModuleObject`, but the name is a
+   UTF-8 encoded string instead of a Unicode object.
 
 
 .. c:type:: struct _frozen
@@ -247,13 +299,13 @@ Importing Modules
 
    Structure describing a single entry in the list of built-in modules.  Each of
    these structures gives the name and initialization function for a module built
-   into the interpreter.  Programs which embed Python may use an array of these
-   structures in conjunction with :c:func:`PyImport_ExtendInittab` to provide
-   additional built-in modules.  The structure is defined in
-   :file:`Include/import.h` as::
+   into the interpreter.  The name is an ASCII encoded string.  Programs which
+   embed Python may use an array of these structures in conjunction with
+   :c:func:`PyImport_ExtendInittab` to provide additional built-in modules.
+   The structure is defined in :file:`Include/import.h` as::
 
       struct _inittab {
-          char *name;
+          char *name;                 /* ASCII encoded string */
           PyObject* (*initfunc)(void);
       };
 

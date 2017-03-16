@@ -5,16 +5,18 @@ SRCS =						\
 	baseapp					\
 	baseapp_interface			\
 	backuper				\
+	base_messages_forward_handler		\
 	data_download				\
 	data_downloads				\
+	entity_autoloader			\
 	base_remotemethod			\
 	forward_message_over_handler		\
+	initprogress_handler			\
 	restore_entity_handler			\
 	sync_entitystreamtemplate_handler	\
 	main					\
 	proxy					\
 	proxy_forwarder				\
-	py_file_descriptor			\
 	profile
 
 ASMS =

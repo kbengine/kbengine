@@ -118,7 +118,7 @@ END_MESSAGE_MAP()
 
 // CLineChartCtrl message handlers
 
-void CLineChartCtrl::OnTimer(UINT nIDEvent)
+void CLineChartCtrl::OnTimer(UINT_PTR nIDEvent)
 {
 	Invalidate(TRUE);
 	CStatic::OnTimer(nIDEvent);

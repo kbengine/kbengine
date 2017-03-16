@@ -18,8 +18,6 @@
 
 #define doubletime(TV) ((double)(TV).tv_sec + (TV).tv_usec * 0.000001)
 
-static PyObject *ResourceError;
-
 PyDoc_STRVAR(struct_rusage__doc__,
 "struct_rusage: Result from getrusage.\n\n"
 "This object may be accessed either as a tuple of\n"
@@ -73,7 +71,7 @@ resource_getrusage(PyObject *self, PyObject *args)
                             "invalid who parameter");
             return NULL;
         }
-        PyErr_SetFromErrno(ResourceError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
 
@@ -108,6 +106,44 @@ resource_getrusage(PyObject *self, PyObject *args)
     return result;
 }
 
+static int
+py2rlimit(PyObject *curobj, PyObject *maxobj, struct rlimit *rl_out)
+{
+#if !defined(HAVE_LARGEFILE_SUPPORT)
+    rl_out->rlim_cur = PyLong_AsLong(curobj);
+    if (rl_out->rlim_cur == (rlim_t)-1 && PyErr_Occurred())
+        return -1;
+    rl_out->rlim_max = PyLong_AsLong(maxobj);
+    if (rl_out->rlim_max == (rlim_t)-1 && PyErr_Occurred())
+        return -1;
+#else
+    /* The limits are probably bigger than a long */
+    rl_out->rlim_cur = PyLong_AsLongLong(curobj);
+    if (rl_out->rlim_cur == (rlim_t)-1 && PyErr_Occurred())
+        return -1;
+    rl_out->rlim_max = PyLong_AsLongLong(maxobj);
+    if (rl_out->rlim_max == (rlim_t)-1 && PyErr_Occurred())
+        return -1;
+#endif
+
+    rl_out->rlim_cur = rl_out->rlim_cur & RLIM_INFINITY;
+    rl_out->rlim_max = rl_out->rlim_max & RLIM_INFINITY;
+    return 0;
+
+}
+
+static PyObject*
+rlimit2py(struct rlimit rl)
+{
+#if defined(HAVE_LONG_LONG)
+    if (sizeof(rl.rlim_cur) > sizeof(long)) {
+        return Py_BuildValue("LL",
+                             (PY_LONG_LONG) rl.rlim_cur,
+                             (PY_LONG_LONG) rl.rlim_max);
+    }
+#endif
+    return Py_BuildValue("ll", (long) rl.rlim_cur, (long) rl.rlim_max);
+}
 
 static PyObject *
 resource_getrlimit(PyObject *self, PyObject *args)
@@ -125,18 +161,10 @@ resource_getrlimit(PyObject *self, PyObject *args)
     }
 
     if (getrlimit(resource, &rl) == -1) {
-        PyErr_SetFromErrno(ResourceError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
-
-#if defined(HAVE_LONG_LONG)
-    if (sizeof(rl.rlim_cur) > sizeof(long)) {
-        return Py_BuildValue("LL",
-                             (PY_LONG_LONG) rl.rlim_cur,
-                             (PY_LONG_LONG) rl.rlim_max);
-    }
-#endif
-    return Py_BuildValue("ll", (long) rl.rlim_cur, (long) rl.rlim_max);
+    return rlimit2py(rl);
 }
 
 static PyObject *
@@ -168,25 +196,10 @@ resource_setrlimit(PyObject *self, PyObject *args)
     curobj = PyTuple_GET_ITEM(limits, 0);
     maxobj = PyTuple_GET_ITEM(limits, 1);
 
-#if !defined(HAVE_LARGEFILE_SUPPORT)
-    rl.rlim_cur = PyLong_AsLong(curobj);
-    if (rl.rlim_cur == (rlim_t)-1 && PyErr_Occurred())
+    if (py2rlimit(curobj, maxobj, &rl) < 0) {
         goto error;
-    rl.rlim_max = PyLong_AsLong(maxobj);
-    if (rl.rlim_max == (rlim_t)-1 && PyErr_Occurred())
-        goto error;
-#else
-    /* The limits are probably bigger than a long */
-    rl.rlim_cur = PyLong_AsLongLong(curobj);
-    if (rl.rlim_cur == (rlim_t)-1 && PyErr_Occurred())
-        goto error;
-    rl.rlim_max = PyLong_AsLongLong(maxobj);
-    if (rl.rlim_max == (rlim_t)-1 && PyErr_Occurred())
-        goto error;
-#endif
+    }
 
-    rl.rlim_cur = rl.rlim_cur & RLIM_INFINITY;
-    rl.rlim_max = rl.rlim_max & RLIM_INFINITY;
     if (setrlimit(resource, &rl) == -1) {
         if (errno == EINVAL)
             PyErr_SetString(PyExc_ValueError,
@@ -195,7 +208,7 @@ resource_setrlimit(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_ValueError,
                             "not allowed to raise maximum limit");
         else
-            PyErr_SetFromErrno(ResourceError);
+            PyErr_SetFromErrno(PyExc_OSError);
         goto error;
     }
     Py_DECREF(limits);
@@ -206,6 +219,48 @@ resource_setrlimit(PyObject *self, PyObject *args)
     Py_DECREF(limits);
     return NULL;
 }
+
+#ifdef HAVE_PRLIMIT
+static PyObject *
+resource_prlimit(PyObject *self, PyObject *args)
+{
+    struct rlimit old_limit, new_limit;
+    int resource, retval;
+    pid_t pid;
+    PyObject *curobj=NULL, *maxobj=NULL;
+
+    if (!PyArg_ParseTuple(args, _Py_PARSE_PID "i|(OO):prlimit",
+                          &pid, &resource, &curobj, &maxobj))
+        return NULL;
+
+    if (resource < 0 || resource >= RLIM_NLIMITS) {
+        PyErr_SetString(PyExc_ValueError,
+                        "invalid resource specified");
+        return NULL;
+    }
+
+    if (curobj != NULL) {
+        if (py2rlimit(curobj, maxobj, &new_limit) < 0) {
+            return NULL;
+        }
+        retval = prlimit(pid, resource, &new_limit, &old_limit);
+    }
+    else {
+        retval = prlimit(pid, resource, NULL, &old_limit);
+    }
+
+    if (retval == -1) {
+        if (errno == EINVAL) {
+            PyErr_SetString(PyExc_ValueError,
+                            "current limit exceeds maximum limit");
+        } else {
+            PyErr_SetFromErrno(PyExc_OSError);
+        }
+        return NULL;
+    }
+    return rlimit2py(old_limit);
+}
+#endif /* HAVE_PRLIMIT */
 
 static PyObject *
 resource_getpagesize(PyObject *self, PyObject *unused)
@@ -231,6 +286,9 @@ static struct PyMethodDef
 resource_methods[] = {
     {"getrusage",    resource_getrusage,   METH_VARARGS},
     {"getrlimit",    resource_getrlimit,   METH_VARARGS},
+#ifdef HAVE_PRLIMIT
+    {"prlimit",      resource_prlimit,     METH_VARARGS},
+#endif
     {"setrlimit",    resource_setrlimit,   METH_VARARGS},
     {"getpagesize",  resource_getpagesize, METH_NOARGS},
     {NULL, NULL}                             /* sentinel */
@@ -263,86 +321,121 @@ PyInit_resource(void)
         return NULL;
 
     /* Add some symbolic constants to the module */
-    if (ResourceError == NULL) {
-        ResourceError = PyErr_NewException("resource.error",
-                                           NULL, NULL);
+    Py_INCREF(PyExc_OSError);
+    PyModule_AddObject(m, "error", PyExc_OSError);
+    if (!initialized) {
+        if (PyStructSequence_InitType2(&StructRUsageType,
+                                       &struct_rusage_desc) < 0)
+            return NULL;
     }
-    Py_INCREF(ResourceError);
-    PyModule_AddObject(m, "error", ResourceError);
-    if (!initialized)
-        PyStructSequence_InitType(&StructRUsageType,
-                                  &struct_rusage_desc);
+
     Py_INCREF(&StructRUsageType);
     PyModule_AddObject(m, "struct_rusage",
                        (PyObject*) &StructRUsageType);
 
     /* insert constants */
 #ifdef RLIMIT_CPU
-    PyModule_AddIntConstant(m, "RLIMIT_CPU", RLIMIT_CPU);
+    PyModule_AddIntMacro(m, RLIMIT_CPU);
 #endif
 
 #ifdef RLIMIT_FSIZE
-    PyModule_AddIntConstant(m, "RLIMIT_FSIZE", RLIMIT_FSIZE);
+    PyModule_AddIntMacro(m, RLIMIT_FSIZE);
 #endif
 
 #ifdef RLIMIT_DATA
-    PyModule_AddIntConstant(m, "RLIMIT_DATA", RLIMIT_DATA);
+    PyModule_AddIntMacro(m, RLIMIT_DATA);
 #endif
 
 #ifdef RLIMIT_STACK
-    PyModule_AddIntConstant(m, "RLIMIT_STACK", RLIMIT_STACK);
+    PyModule_AddIntMacro(m, RLIMIT_STACK);
 #endif
 
 #ifdef RLIMIT_CORE
-    PyModule_AddIntConstant(m, "RLIMIT_CORE", RLIMIT_CORE);
+    PyModule_AddIntMacro(m, RLIMIT_CORE);
 #endif
 
 #ifdef RLIMIT_NOFILE
-    PyModule_AddIntConstant(m, "RLIMIT_NOFILE", RLIMIT_NOFILE);
+    PyModule_AddIntMacro(m, RLIMIT_NOFILE);
 #endif
 
 #ifdef RLIMIT_OFILE
-    PyModule_AddIntConstant(m, "RLIMIT_OFILE", RLIMIT_OFILE);
+    PyModule_AddIntMacro(m, RLIMIT_OFILE);
 #endif
 
 #ifdef RLIMIT_VMEM
-    PyModule_AddIntConstant(m, "RLIMIT_VMEM", RLIMIT_VMEM);
+    PyModule_AddIntMacro(m, RLIMIT_VMEM);
 #endif
 
 #ifdef RLIMIT_AS
-    PyModule_AddIntConstant(m, "RLIMIT_AS", RLIMIT_AS);
+    PyModule_AddIntMacro(m, RLIMIT_AS);
 #endif
 
 #ifdef RLIMIT_RSS
-    PyModule_AddIntConstant(m, "RLIMIT_RSS", RLIMIT_RSS);
+    PyModule_AddIntMacro(m, RLIMIT_RSS);
 #endif
 
 #ifdef RLIMIT_NPROC
-    PyModule_AddIntConstant(m, "RLIMIT_NPROC", RLIMIT_NPROC);
+    PyModule_AddIntMacro(m, RLIMIT_NPROC);
 #endif
 
 #ifdef RLIMIT_MEMLOCK
-    PyModule_AddIntConstant(m, "RLIMIT_MEMLOCK", RLIMIT_MEMLOCK);
+    PyModule_AddIntMacro(m, RLIMIT_MEMLOCK);
 #endif
 
 #ifdef RLIMIT_SBSIZE
-    PyModule_AddIntConstant(m, "RLIMIT_SBSIZE", RLIMIT_SBSIZE);
+    PyModule_AddIntMacro(m, RLIMIT_SBSIZE);
 #endif
 
+/* Linux specific */
+#ifdef RLIMIT_MSGQUEUE
+    PyModule_AddIntMacro(m, RLIMIT_MSGQUEUE);
+#endif
+
+#ifdef RLIMIT_NICE
+    PyModule_AddIntMacro(m, RLIMIT_NICE);
+#endif
+
+#ifdef RLIMIT_RTPRIO
+    PyModule_AddIntMacro(m, RLIMIT_RTPRIO);
+#endif
+
+#ifdef RLIMIT_RTTIME
+    PyModule_AddIntMacro(m, RLIMIT_RTTIME);
+#endif
+
+#ifdef RLIMIT_SIGPENDING
+    PyModule_AddIntMacro(m, RLIMIT_SIGPENDING);
+#endif
+
+/* target */
 #ifdef RUSAGE_SELF
-    PyModule_AddIntConstant(m, "RUSAGE_SELF", RUSAGE_SELF);
+    PyModule_AddIntMacro(m, RUSAGE_SELF);
 #endif
 
 #ifdef RUSAGE_CHILDREN
-    PyModule_AddIntConstant(m, "RUSAGE_CHILDREN", RUSAGE_CHILDREN);
+    PyModule_AddIntMacro(m, RUSAGE_CHILDREN);
 #endif
 
 #ifdef RUSAGE_BOTH
-    PyModule_AddIntConstant(m, "RUSAGE_BOTH", RUSAGE_BOTH);
+    PyModule_AddIntMacro(m, RUSAGE_BOTH);
 #endif
 
 #ifdef RUSAGE_THREAD
-    PyModule_AddIntConstant(m, "RUSAGE_THREAD", RUSAGE_THREAD);
+    PyModule_AddIntMacro(m, RUSAGE_THREAD);
+#endif
+
+/* FreeBSD specific */
+
+#ifdef RLIMIT_SWAP
+    PyModule_AddIntMacro(m, RLIMIT_SWAP);
+#endif
+
+#ifdef RLIMIT_SBSIZE
+    PyModule_AddIntMacro(m, RLIMIT_SBSIZE);
+#endif
+
+#ifdef RLIMIT_NPTS
+    PyModule_AddIntMacro(m, RLIMIT_NPTS);
 #endif
 
 #if defined(HAVE_LONG_LONG)

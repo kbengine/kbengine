@@ -24,6 +24,12 @@
 #define IDD_STARTSERVER                 142
 #define IDD_STARTSERVERLAYOUT           143
 #define IDD_SET_LAYOUT_NAME             144
+#define IDB_ERROR                       145
+#define IDB_INFO                        146
+#define IDB_WARNING                     147
+#define IDB_ERROR1                      148
+#define IDB_INFO1                       149
+#define IDB_WARNING1                    150
 #define IDC_TAB1                        1000
 #define IDC_LIST1                       1001
 #define IDC_EDIT1                       1002
@@ -50,6 +56,17 @@
 #define IDC_COMBO3                      1026
 #define IDC_LIST3                       1028
 #define IDC_COMBO1                      1029
+#define IDC_SPIN1                       1030
+#define IDC_ERROR                       1031
+#define IDC_WARNING                     1032
+#define IDC_INFO                        1033
+#define IDC_MFCBUTTON1                  1035
+#define IDC_LOG_DATE                    1036
+#define IDC_LOG_FINDSTR                 1037
+#define IDC_LOG_DATE_STATIC             1038
+#define IDC_LOG_FIND                    1039
+#define IDC_STATIC_APPID1               1040
+#define IDC_APPID_EDIT1                 1041
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_HELP_ABOUT                   32773
@@ -62,9 +79,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        145
+#define _APS_NEXT_RESOURCE_VALUE        152
 #define _APS_NEXT_COMMAND_VALUE         32785
-#define _APS_NEXT_CONTROL_VALUE         1030
+#define _APS_NEXT_CONTROL_VALUE         1042
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

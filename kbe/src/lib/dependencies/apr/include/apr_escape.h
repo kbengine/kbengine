@@ -72,7 +72,7 @@ APR_DECLARE(apr_status_t) apr_escape_shell(char *escaped, const char *str,
 APR_DECLARE(const char *) apr_pescape_shell(apr_pool_t *p, const char *str)
         __attribute__((nonnull(1)));
 
-/*
+/**
  * Unescapes a URL, leaving reserved characters intact.
  * @param escaped Optional buffer to write the encoded string, can be
  * NULL
@@ -93,7 +93,7 @@ APR_DECLARE(apr_status_t) apr_unescape_url(char *escaped, const char *url,
         apr_ssize_t slen, const char *forbid, const char *reserved, int plus,
         apr_size_t *len);
 
-/*
+/**
  * Unescapes a URL, leaving reserved characters intact, returning the
  * result from a pool.
  * @param p Pool to allocate from
@@ -212,7 +212,7 @@ APR_DECLARE(const char *) apr_pescape_urlencoded(apr_pool_t *p,
  * double quote becomes '&quot;" and the single quote becomes '&apos;'.
  *
  * If toasc is not zero, any non ascii character will be encoded as
- * '%#ddd;', where ddd is the decimal code of the character.
+ * '%\#ddd;', where ddd is the decimal code of the character.
  * @param escaped Optional buffer to write the encoded string, can be
  * NULL
  * @param str The original string
@@ -239,14 +239,14 @@ APR_DECLARE(apr_status_t) apr_escape_entity(char *escaped, const char *str,
 APR_DECLARE(const char *) apr_pescape_entity(apr_pool_t *p, const char *str,
         int toasc) __attribute__((nonnull(1)));
 
-/*
+/**
  * Decodes html entities or numeric character references in a string. If
  * the string to be unescaped is syntactically incorrect, then the
  * following fixups will be made:
  * unknown entities will be left undecoded;
  * references to unused numeric characters will be deleted.
  * In particular, &#00; will not be decoded, but will be deleted.
- * @param escaped Optional buffer to write the encoded string, can be
+ * @param unescaped Optional buffer to write the encoded string, can be
  * NULL
  * @param str The original string
  * @param slen The length of the original string, or APR_ESCAPE_STRING
@@ -257,7 +257,7 @@ APR_DECLARE(const char *) apr_pescape_entity(apr_pool_t *p, const char *str,
 APR_DECLARE(apr_status_t) apr_unescape_entity(char *unescaped, const char *str,
         apr_ssize_t slen, apr_size_t *len);
 
-/*
+/**
  * Decodes html entities or numeric character references in a string. If
  * the string to be unescaped is syntactically incorrect, then the
  * following fixups will be made:
@@ -275,10 +275,10 @@ APR_DECLARE(const char *) apr_punescape_entity(apr_pool_t *p, const char *str)
 /**
  * Escape control characters in a string, as performed by the shell's
  * 'echo' command. Characters are replaced as follows:
- * \a alert (bell), \b backspace, \f form feed, \n new line, \r carriage
- * return, \t horizontal tab, \v vertical tab, \\ backslash.
+ * \\a alert (bell), \\b backspace, \\f form feed, \\n new line, \\r carriage
+ * return, \\t horizontal tab, \\v vertical tab, \\ backslash.
  *
- * Any non ascii character will be encoded as '\xHH', where HH is the hex
+ * Any non ascii character will be encoded as '\\xHH', where HH is the hex
  * code of the character.
  *
  * If quote is not zero, the double quote character will also be escaped.
@@ -297,11 +297,11 @@ APR_DECLARE(apr_status_t) apr_escape_echo(char *escaped, const char *str,
 /**
  * Escape control characters in a string, as performed by the shell's
  * 'echo' command, and return the results from a pool. Characters are
- * replaced as follows: \a alert (bell), \b backspace, \f form feed,
- * \n new line, \r carriage return, \t horizontal tab, \v vertical tab,
+ * replaced as follows: \\a alert (bell), \\b backspace, \\f form feed,
+ * \\n new line, \\r carriage return, \\t horizontal tab, \\v vertical tab,
  * \\ backslash.
  *
- * Any non ascii character will be encoded as '\xHH', where HH is the hex
+ * Any non ascii character will be encoded as '\\xHH', where HH is the hex
  * code of the character.
  *
  * If quote is not zero, the double quote character will also be escaped.
@@ -342,7 +342,7 @@ APR_DECLARE(const char *) apr_pescape_hex(apr_pool_t *p, const void *src,
 /**
  * Convert hex encoded string to binary data.
  * @param dest The destination buffer, can be NULL
- * @param src The original buffer
+ * @param str The original buffer
  * @param slen The length of the original buffer
  * @param colon If not zero, ignore colon characters between hex digits.
  * @param len If present, returns the length of the string

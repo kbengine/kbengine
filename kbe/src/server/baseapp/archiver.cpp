@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "baseapp.hpp"
-#include "archiver.hpp"
-#include "base.hpp"
+#include "baseapp.h"
+#include "archiver.h"
+#include "base.h"
 
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
 Archiver::Archiver():
 	archiveIndex_(INT_MAX),
-	backupEntityIDs_()
+	arEntityIDs_()
 {
 }
 
@@ -39,7 +39,7 @@ Archiver::~Archiver()
 //-------------------------------------------------------------------------------------
 void Archiver::tick()
 {
-	int32 periodInTicks = secondsToTicks(ServerConfig::getSingleton().getBaseApp().archivePeriod, 0);
+	int32 periodInTicks = (int32)secondsToTicks(ServerConfig::getSingleton().getBaseApp().archivePeriod, 0);
 	if (periodInTicks == 0)
 		return;
 
@@ -52,7 +52,7 @@ void Archiver::tick()
 	// base的数量 * idx / tick周期 = 每次在vector中移动的一个区段
 	// 这个区段在每个gametick进行处理, 刚好平滑的在periodInTicks中处理完任务
 	// 如果archiveIndex_ >= periodInTicks则重新产生一次随机序列
-	int size = backupEntityIDs_.size();
+	int size = (int)arEntityIDs_.size();
 	int startIndex = size * archiveIndex_ / periodInTicks;
 
 	++archiveIndex_;
@@ -61,7 +61,7 @@ void Archiver::tick()
 
 	for (int i = startIndex; i < endIndex; ++i)
 	{
-		Base * pBase = Baseapp::getSingleton().findEntity(backupEntityIDs_[i]);
+		Base * pBase = Baseapp::getSingleton().findEntity(arEntityIDs_[i]);
 		
 		if(pBase && pBase->hasDB())
 		{
@@ -73,7 +73,7 @@ void Archiver::tick()
 //-------------------------------------------------------------------------------------
 void Archiver::archive(Base& base)
 {
-	base.writeToDB(NULL);
+	base.writeToDB(NULL, NULL, NULL);
 
 	if(base.shouldAutoArchive() == KBE_NEXT_ONLY)
 		base.shouldAutoArchive(0);
@@ -83,22 +83,22 @@ void Archiver::archive(Base& base)
 void Archiver::createArchiveTable()
 {
 	archiveIndex_ = 0;
-	backupEntityIDs_.clear();
+	arEntityIDs_.clear();
 
 	Entities<Base>::ENTITYS_MAP::const_iterator iter = Baseapp::getSingleton().pEntities()->getEntities().begin();
 
-	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); iter++)
+	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); ++iter)
 	{
 		Base* pBase = static_cast<Base*>(iter->second.get());
 
 		if(pBase->hasDB() && pBase->shouldAutoArchive() > 0)
 		{
-			backupEntityIDs_.push_back(iter->first);
+			arEntityIDs_.push_back(iter->first);
 		}
 	}
 
 	// 随机一下序列
-	std::random_shuffle(backupEntityIDs_.begin(), backupEntityIDs_.end());
+	std::random_shuffle(arEntityIDs_.begin(), arEntityIDs_.end());
 }
 
 }

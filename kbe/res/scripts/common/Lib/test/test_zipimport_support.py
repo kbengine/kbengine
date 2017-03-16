@@ -167,20 +167,19 @@ class ZipSupportTests(unittest.TestCase):
                     test_zipped_doctest.test_DocTestRunner.verbose_flag,
                     test_zipped_doctest.test_Example,
                     test_zipped_doctest.test_debug,
-                    test_zipped_doctest.test_pdb_set_trace,
-                    test_zipped_doctest.test_pdb_set_trace_nested,
                     test_zipped_doctest.test_testsource,
                     test_zipped_doctest.test_trailing_space_in_test,
                     test_zipped_doctest.test_DocTestSuite,
                     test_zipped_doctest.test_DocTestFinder,
                 ]
-                # These remaining tests are the ones which need access
+                # These tests are the ones which need access
                 # to the data files, so we don't run them
                 fail_due_to_missing_data_files = [
                     test_zipped_doctest.test_DocFileSuite,
                     test_zipped_doctest.test_testfile,
                     test_zipped_doctest.test_unittest_reportflags,
                 ]
+
                 for obj in known_good_tests:
                     _run_object_doctest(obj, test_zipped_doctest)
             finally:
@@ -228,13 +227,15 @@ class ZipSupportTests(unittest.TestCase):
             p = spawn_python(script_name)
             p.stdin.write(b'l\n')
             data = kill_python(p)
-            self.assertIn(script_name.encode('utf-8'), data)
+            # bdb/pdb applies normcase to its filename before displaying
+            self.assertIn(os.path.normcase(script_name.encode('utf-8')), data)
             zip_name, run_name = make_zip_script(d, "test_zip",
                                                 script_name, '__main__.py')
             p = spawn_python(zip_name)
             p.stdin.write(b'l\n')
             data = kill_python(p)
-            self.assertIn(run_name.encode('utf-8'), data)
+            # bdb/pdb applies normcase to its filename before displaying
+            self.assertIn(os.path.normcase(run_name.encode('utf-8')), data)
 
 
 def test_main():

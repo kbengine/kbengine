@@ -23,6 +23,8 @@
 #include "apr_lib.h"
 #include "apr_strings.h"
 #include "apr_poll.h"
+#define APR_WANT_BYTEFUNC
+#include "apr_want.h"
 
 static void launch_child(abts_case *tc, apr_proc_t *proc, const char *arg1, apr_pool_t *p)
 {
@@ -350,8 +352,8 @@ static void test_get_addr(abts_case *tc, void *data)
 
     APR_ASSERT_SUCCESS(tc, "create subpool", apr_pool_create(&subp, p));
 
-    if ((ld = setup_socket(tc)) != APR_SUCCESS)
-        return;
+    ld = setup_socket(tc);
+    if (!ld) return;
 
     APR_ASSERT_SUCCESS(tc,
                        "get local address of bound socket",
@@ -438,6 +440,54 @@ static void test_get_addr(abts_case *tc, void *data)
     apr_pool_destroy(subp);
 }
 
+/* Make sure that setting a connected socket non-blocking works
+ * when the listening socket was non-blocking.
+ * If APR thinks that non-blocking is inherited but it really
+ * isn't, this testcase will fail.
+ */
+static void test_nonblock_inheritance(abts_case *tc, void *data)
+{
+    apr_status_t rv;
+    apr_socket_t *sock;
+    apr_socket_t *sock2;
+    apr_proc_t proc;
+    char buffer[10];
+    apr_size_t length;
+    int tries;
+
+    sock = setup_socket(tc);
+    if (!sock) return;
+
+    rv = apr_socket_opt_set(sock, APR_SO_NONBLOCK, 1);
+    APR_ASSERT_SUCCESS(tc, "Could not make listening socket nonblocking", rv);
+
+    launch_child(tc, &proc, "write_after_delay", p);
+
+    tries = 10;
+    while (tries--) {
+        rv = apr_socket_accept(&sock2, sock, p);
+        if (!APR_STATUS_IS_EAGAIN(rv)) {
+            break;
+        }
+        apr_sleep(apr_time_from_msec(50));
+    }
+    APR_ASSERT_SUCCESS(tc, "Problem with receiving connection", rv);
+
+    rv = apr_socket_opt_set(sock2, APR_SO_NONBLOCK, 1);
+    APR_ASSERT_SUCCESS(tc, "Could not make connected socket nonblocking", rv);
+
+    length = sizeof buffer;
+    rv = apr_socket_recv(sock2, buffer, &length);
+    ABTS_ASSERT(tc, "should have gotten EAGAIN", APR_STATUS_IS_EAGAIN(rv));
+
+    wait_child(tc, &proc);
+
+    rv = apr_socket_close(sock2);
+    APR_ASSERT_SUCCESS(tc, "Problem closing connected socket", rv);
+    rv = apr_socket_close(sock);
+    APR_ASSERT_SUCCESS(tc, "Problem closing socket", rv);
+}
+
 abts_suite *testsock(abts_suite *suite)
 {
     suite = ADD_SUITE(suite)
@@ -451,6 +501,7 @@ abts_suite *testsock(abts_suite *suite)
     abts_run_test(suite, test_timeout, NULL);
     abts_run_test(suite, test_print_addr, NULL);
     abts_run_test(suite, test_get_addr, NULL);
+    abts_run_test(suite, test_nonblock_inheritance, NULL);
 
     return suite;
 }

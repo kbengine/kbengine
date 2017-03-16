@@ -2,7 +2,6 @@ import sys
 
 import unittest
 from test import support
-from test.support import run_unittest
 
 L = [
         ('0', 0),
@@ -73,14 +72,6 @@ class IntTestCases(unittest.TestCase):
         # Failed in all Linux builds.
         x = -1-sys.maxsize
         self.assertEqual(x >> 1, x//2)
-
-        self.assertRaises(ValueError, int, '123\0')
-        self.assertRaises(ValueError, int, '53', 40)
-
-        # SF bug 1545497: embedded NULs were not detected with
-        # explicit base
-        self.assertRaises(ValueError, int, '123\0', 10)
-        self.assertRaises(ValueError, int, '123\x00 245', 20)
 
         x = int('1' * 600)
         self.assertIsInstance(x, int)
@@ -226,6 +217,9 @@ class IntTestCases(unittest.TestCase):
         self.assertIs(int(b'10'), 10)
         self.assertIs(int(b'-1'), -1)
 
+    def test_no_args(self):
+        self.assertEqual(int(), 0)
+
     def test_keyword_args(self):
         # Test invoking int() using keyword arguments.
         self.assertEqual(int(x=1.2), 1)
@@ -233,6 +227,68 @@ class IntTestCases(unittest.TestCase):
         self.assertEqual(int(x='100', base=2), 4)
         self.assertRaises(TypeError, int, base=10)
         self.assertRaises(TypeError, int, base=0)
+
+    def test_int_base_limits(self):
+        """Testing the supported limits of the int() base parameter."""
+        self.assertEqual(int('0', 5), 0)
+        with self.assertRaises(ValueError):
+            int('0', 1)
+        with self.assertRaises(ValueError):
+            int('0', 37)
+        with self.assertRaises(ValueError):
+            int('0', -909)  # An old magic value base from Python 2.
+        with self.assertRaises(ValueError):
+            int('0', base=0-(2**234))
+        with self.assertRaises(ValueError):
+            int('0', base=2**234)
+        # Bases 2 through 36 are supported.
+        for base in range(2,37):
+            self.assertEqual(int('0', base=base), 0)
+
+    def test_int_base_bad_types(self):
+        """Not integer types are not valid bases; issue16772."""
+        with self.assertRaises(TypeError):
+            int('0', 5.5)
+        with self.assertRaises(TypeError):
+            int('0', 5.0)
+
+    def test_int_base_indexable(self):
+        class MyIndexable(object):
+            def __init__(self, value):
+                self.value = value
+            def __index__(self):
+                return self.value
+
+        # Check out of range bases.
+        for base in 2**100, -2**100, 1, 37:
+            with self.assertRaises(ValueError):
+                int('43', base)
+
+        # Check in-range bases.
+        self.assertEqual(int('101', base=MyIndexable(2)), 5)
+        self.assertEqual(int('101', base=MyIndexable(10)), 101)
+        self.assertEqual(int('101', base=MyIndexable(36)), 1 + 36**2)
+
+    def test_non_numeric_input_types(self):
+        # Test possible non-numeric types for the argument x, including
+        # subclasses of the explicitly documented accepted types.
+        class CustomStr(str): pass
+        class CustomBytes(bytes): pass
+        class CustomByteArray(bytearray): pass
+
+        values = [b'100',
+                  bytearray(b'100'),
+                  CustomStr('100'),
+                  CustomBytes(b'100'),
+                  CustomByteArray(b'100')]
+
+        for x in values:
+            msg = 'x has type %s' % type(x).__name__
+            self.assertEqual(int(x), 100, msg=msg)
+            self.assertEqual(int(x, 2), 4, msg=msg)
+
+    def test_string_float(self):
+        self.assertRaises(ValueError, int, '1.2')
 
     def test_intconversion(self):
         # Test __int__()
@@ -248,32 +304,7 @@ class IntTestCases(unittest.TestCase):
             def __int__(self):
                 return 42
 
-        class Foo1(object):
-            def __int__(self):
-                return 42
-
-        class Foo2(int):
-            def __int__(self):
-                return 42
-
-        class Foo3(int):
-            def __int__(self):
-                return self
-
-        class Foo4(int):
-            def __int__(self):
-                return 42
-
-        class Foo5(int):
-            def __int__(self):
-                return 42.
-
         self.assertEqual(int(Foo0()), 42)
-        self.assertEqual(int(Foo1()), 42)
-        self.assertEqual(int(Foo2()), 42)
-        self.assertEqual(int(Foo3()), 0)
-        self.assertEqual(int(Foo4()), 42)
-        self.assertRaises(TypeError, int, Foo5())
 
         class Classic:
             pass
@@ -289,6 +320,12 @@ class IntTestCases(unittest.TestCase):
                 def __trunc__(self):
                     return 42
             self.assertEqual(int(JustTrunc()), 42)
+
+            class ExceptionalTrunc(base):
+                def __trunc__(self):
+                    1 / 0
+            with self.assertRaises(ZeroDivisionError):
+                int(ExceptionalTrunc())
 
             for trunc_result_base in (object, Classic):
                 class Integral(trunc_result_base):
@@ -318,18 +355,104 @@ class IntTestCases(unittest.TestCase):
                     self.fail("Failed to raise TypeError with %s" %
                               ((base, trunc_result_base),))
 
+                # Regression test for bugs.python.org/issue16060.
+                class BadInt(trunc_result_base):
+                    def __int__(self):
+                        return 42.0
+
+                class TruncReturnsBadInt(base):
+                    def __trunc__(self):
+                        return BadInt()
+
+                with self.assertRaises(TypeError):
+                    int(TruncReturnsBadInt())
+
+    def test_int_subclass_with_int(self):
+        class MyInt(int):
+            def __int__(self):
+                return 42
+
+        class BadInt(int):
+            def __int__(self):
+                return 42.0
+
+        my_int = MyInt(7)
+        self.assertEqual(my_int, 7)
+        self.assertEqual(int(my_int), 42)
+
+        self.assertRaises(TypeError, int, BadInt())
+
+    def test_int_returns_int_subclass(self):
+        class BadInt:
+            def __int__(self):
+                return True
+
+        class BadInt2(int):
+            def __int__(self):
+                return True
+
+        class TruncReturnsBadInt:
+            def __trunc__(self):
+                return BadInt()
+
+        class TruncReturnsIntSubclass:
+            def __trunc__(self):
+                return True
+
+        bad_int = BadInt()
+        with self.assertWarns(DeprecationWarning):
+            n = int(bad_int)
+        self.assertEqual(n, 1)
+
+        bad_int = BadInt2()
+        with self.assertWarns(DeprecationWarning):
+            n = int(bad_int)
+        self.assertEqual(n, 1)
+
+        bad_int = TruncReturnsBadInt()
+        with self.assertWarns(DeprecationWarning):
+            n = int(bad_int)
+        self.assertEqual(n, 1)
+
+        good_int = TruncReturnsIntSubclass()
+        n = int(good_int)
+        self.assertEqual(n, 1)
+
     def test_error_message(self):
-        testlist = ('\xbd', '123\xbd', '  123 456  ')
-        for s in testlist:
-            try:
-                int(s)
-            except ValueError as e:
-                self.assertIn(s.strip(), e.args[0])
-            else:
-                self.fail("Expected int(%r) to raise a ValueError", s)
+        def check(s, base=None):
+            with self.assertRaises(ValueError,
+                                   msg="int(%r, %r)" % (s, base)) as cm:
+                if base is None:
+                    int(s)
+                else:
+                    int(s, base)
+            self.assertEqual(cm.exception.args[0],
+                "invalid literal for int() with base %d: %r" %
+                (10 if base is None else base, s))
+
+        check('\xbd')
+        check('123\xbd')
+        check('  123 456  ')
+
+        check('123\x00')
+        # SF bug 1545497: embedded NULs were not detected with explicit base
+        check('123\x00', 10)
+        check('123\x00 245', 20)
+        check('123\x00 245', 16)
+        check('123\x00245', 20)
+        check('123\x00245', 16)
+        # byte string with embedded NUL
+        check(b'123\x00')
+        check(b'123\x00', 10)
+        # non-UTF-8 byte string
+        check(b'123\xbd')
+        check(b'123\xbd', 10)
+        # lone surrogate in Unicode string
+        check('123\ud800')
+        check('123\ud800', 10)
 
 def test_main():
-    run_unittest(IntTestCases)
+    support.run_unittest(IntTestCases)
 
 if __name__ == "__main__":
     test_main()

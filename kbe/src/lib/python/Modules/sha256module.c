@@ -21,13 +21,6 @@
 #include "hashlib.h"
 
 
-/* Endianness testing and definitions */
-#define TestEndianness(variable) {int i=1; variable=PCT_BIG_ENDIAN;\
-        if (*((char*)&i)==1) variable=PCT_LITTLE_ENDIAN;}
-
-#define PCT_LITTLE_ENDIAN 1
-#define PCT_BIG_ENDIAN 0
-
 /* Some useful types */
 
 typedef unsigned char SHA_BYTE;
@@ -50,7 +43,6 @@ typedef struct {
     SHA_INT32 digest[8];                /* Message digest */
     SHA_INT32 count_lo, count_hi;       /* 64-bit bit count */
     SHA_BYTE data[SHA_BLOCKSIZE];       /* SHA data buffer */
-    int Endianness;
     int local;                          /* unprocessed amount in data */
     int digestsize;
 } SHAobject;
@@ -58,12 +50,10 @@ typedef struct {
 /* When run on a little-endian CPU we need to perform byte reversal on an
    array of longwords. */
 
-static void longReverse(SHA_INT32 *buffer, int byteCount, int Endianness)
+#if PY_LITTLE_ENDIAN
+static void longReverse(SHA_INT32 *buffer, int byteCount)
 {
     SHA_INT32 value;
-
-    if ( Endianness == PCT_BIG_ENDIAN )
-        return;
 
     byteCount /= sizeof(*buffer);
     while (byteCount--) {
@@ -73,10 +63,10 @@ static void longReverse(SHA_INT32 *buffer, int byteCount, int Endianness)
         *buffer++ = ( value << 16 ) | ( value >> 16 );
     }
 }
+#endif
 
 static void SHAcopy(SHAobject *src, SHAobject *dest)
 {
-    dest->Endianness = src->Endianness;
     dest->local = src->local;
     dest->digestsize = src->digestsize;
     dest->count_lo = src->count_lo;
@@ -131,7 +121,9 @@ sha_transform(SHAobject *sha_info)
         SHA_INT32 S[8], W[64], t0, t1;
 
     memcpy(W, sha_info->data, sizeof(sha_info->data));
-    longReverse(W, (int)sizeof(sha_info->data), sha_info->Endianness);
+#if PY_LITTLE_ENDIAN
+    longReverse(W, (int)sizeof(sha_info->data));
+#endif
 
     for (i = 16; i < 64; ++i) {
                 W[i] = Gamma1(W[i - 2]) + W[i - 7] + Gamma0(W[i - 15]) + W[i - 16];
@@ -228,7 +220,6 @@ sha_transform(SHAobject *sha_info)
 static void
 sha_init(SHAobject *sha_info)
 {
-    TestEndianness(sha_info->Endianness)
     sha_info->digest[0] = 0x6A09E667L;
     sha_info->digest[1] = 0xBB67AE85L;
     sha_info->digest[2] = 0x3C6EF372L;
@@ -246,7 +237,6 @@ sha_init(SHAobject *sha_info)
 static void
 sha224_init(SHAobject *sha_info)
 {
-    TestEndianness(sha_info->Endianness)
     sha_info->digest[0] = 0xc1059ed8L;
     sha_info->digest[1] = 0x367cd507L;
     sha_info->digest[2] = 0x3070dd17L;
@@ -284,7 +274,7 @@ sha_update(SHAobject *sha_info, SHA_BYTE *buffer, Py_ssize_t count)
         memcpy(((SHA_BYTE *) sha_info->data) + sha_info->local, buffer, i);
         count -= i;
         buffer += i;
-        sha_info->local += i;
+        sha_info->local += (int)i;
         if (sha_info->local == SHA_BLOCKSIZE) {
             sha_transform(sha_info);
         }
@@ -299,7 +289,7 @@ sha_update(SHAobject *sha_info, SHA_BYTE *buffer, Py_ssize_t count)
         sha_transform(sha_info);
     }
     memcpy(sha_info->data, buffer, count);
-    sha_info->local = count;
+    sha_info->local = (int)count;
 }
 
 /* finish computing the SHA digest */
@@ -445,7 +435,7 @@ SHA256_hexdigest(SHAobject *self, PyObject *unused)
     unsigned char digest[SHA_DIGESTSIZE];
     SHAobject temp;
     PyObject *retval;
-    Py_UNICODE *hex_digest;
+    Py_UCS1 *hex_digest;
     int i, j;
 
     /* Get the raw (binary) digest value */
@@ -453,25 +443,22 @@ SHA256_hexdigest(SHAobject *self, PyObject *unused)
     sha_final(digest, &temp);
 
     /* Create a new string */
-    retval = PyUnicode_FromStringAndSize(NULL, self->digestsize * 2);
+    retval = PyUnicode_New(self->digestsize * 2, 127);
     if (!retval)
             return NULL;
-    hex_digest = PyUnicode_AS_UNICODE(retval);
-    if (!hex_digest) {
-            Py_DECREF(retval);
-            return NULL;
-    }
+    hex_digest = PyUnicode_1BYTE_DATA(retval);
 
     /* Make hex version of the digest */
     for(i=j=0; i<self->digestsize; i++) {
-        char c;
+        unsigned char c;
         c = (digest[i] >> 4) & 0xf;
-        c = (c>9) ? c+'a'-10 : c + '0';
-        hex_digest[j++] = c;
+        hex_digest[j++] = Py_hexdigits[c];
         c = (digest[i] & 0xf);
-        c = (c>9) ? c+'a'-10 : c + '0';
-        hex_digest[j++] = c;
+        hex_digest[j++] = Py_hexdigits[c];
     }
+#ifdef Py_DEBUG
+    assert(_PyUnicode_CheckConsistency(retval, 1));
+#endif
     return retval;
 }
 
@@ -514,9 +501,9 @@ static PyObject *
 SHA256_get_name(PyObject *self, void *closure)
 {
     if (((SHAobject *)self)->digestsize == 32)
-        return PyUnicode_FromStringAndSize("SHA256", 6);
+        return PyUnicode_FromStringAndSize("sha256", 6);
     else
-        return PyUnicode_FromStringAndSize("SHA224", 6);
+        return PyUnicode_FromStringAndSize("sha224", 6);
 }
 
 static PyGetSetDef SHA_getseters[] = {
@@ -719,11 +706,23 @@ static struct PyModuleDef _sha256module = {
 PyMODINIT_FUNC
 PyInit__sha256(void)
 {
+    PyObject *m;
+
     Py_TYPE(&SHA224type) = &PyType_Type;
     if (PyType_Ready(&SHA224type) < 0)
         return NULL;
     Py_TYPE(&SHA256type) = &PyType_Type;
     if (PyType_Ready(&SHA256type) < 0)
         return NULL;
-    return PyModule_Create(&_sha256module);
+
+    m = PyModule_Create(&_sha256module);
+    if (m == NULL)
+        return NULL;
+
+    Py_INCREF((PyObject *)&SHA224type);
+    PyModule_AddObject(m, "SHA224Type", (PyObject *)&SHA224type);
+    Py_INCREF((PyObject *)&SHA256type);
+    PyModule_AddObject(m, "SHA256Type", (PyObject *)&SHA256type);
+    return m;
+
 }

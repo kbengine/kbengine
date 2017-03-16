@@ -44,8 +44,11 @@ lots of shared  sub-objects.  The keys are ordinary strings.
    .. note::
 
       Do not rely on the shelf being closed automatically; always call
-      :meth:`close` explicitly when you don't need it any more, or use a
-      :keyword:`with` statement with :func:`contextlib.closing`.
+      :meth:`~Shelf.close` explicitly when you don't need it any more, or
+      use :func:`shelve.open` as a context manager::
+
+          with shelve.open('spam') as db:
+              db['eggs'] = 'eggs'
 
 .. warning::
 
@@ -103,8 +106,8 @@ Restrictions
 
 .. class:: Shelf(dict, protocol=None, writeback=False, keyencoding='utf-8')
 
-   A subclass of :class:`collections.MutableMapping` which stores pickled values
-   in the *dict* object.
+   A subclass of :class:`collections.abc.MutableMapping` which stores pickled
+   values in the *dict* object.
 
    By default, version 0 pickles are used to serialize values.  The version of the
    pickle protocol can be specified with the *protocol* parameter. See the
@@ -118,9 +121,15 @@ Restrictions
    The *keyencoding* parameter is the encoding used to encode keys before they
    are used with the underlying dict.
 
-   .. versionadded:: 3.2
-      The *keyencoding* parameter; previously, keys were always encoded in
+   A :class:`Shelf` object can also be used as a context manager, in which
+   case it will be automatically closed when the :keyword:`with` block ends.
+
+   .. versionchanged:: 3.2
+      Added the *keyencoding* parameter; previously, keys were always encoded in
       UTF-8.
+
+   .. versionchanged:: 3.4
+      Added context manager support.
 
 
 .. class:: BsdDbShelf(dict, protocol=None, writeback=False, keyencoding='utf-8')

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2012 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sys_info.hpp"
+#include "sys_info.h"
 
 extern "C"
 {
@@ -27,7 +27,7 @@ extern "C"
 }
 
 #ifndef CODE_INLINE
-#include "sys_info.ipp"
+#include "sys_info.inl"
 #endif
 
 namespace KBEngine
@@ -47,8 +47,16 @@ bool hasPID(int pid, sigar_proc_list_t* proclist)
 	for (size_t i = 0; i < proclist->number; i++)
 	{
 		sigar_pid_t cpid = proclist->data[i];
-		if(cpid == pid)
+		if (cpid == pid)
+		{
+			sigar_proc_state_t procstate;
+			if (sigar_proc_state_get(_g_sigarproclist, pid, &procstate) != SIGAR_OK)
+			{
+				return false;
+			}
+
 			return true;
+		}
 	}
 
 	return false;
@@ -58,9 +66,11 @@ bool hasPID(int pid, sigar_proc_list_t* proclist)
 SystemInfo::SystemInfo()
 {
 	totalmem_ = 0;
-	_autocreate();
-	// getCPUPer();
-	// getProcessInfo();
+
+	// 不要在初始化中做这件事情，因为全局静态变量这里可能在main之前被调用一次
+	//_autocreate();
+	//getCPUPer();
+	//getProcessInfo();
 }
 
 //-------------------------------------------------------------------------------------
@@ -96,8 +106,8 @@ bool SystemInfo::_autocreate()
 		int status = sigar_proc_list_get(_g_sigarproclist, &_g_proclist);
 		if (status != SIGAR_OK) 
 		{
-			DEBUG_MSG(boost::format("SystemInfo::autocreate:error: %d (%s) sigar_proc_list_get\n") %
-					   status % sigar_strerror(_g_sigarproclist, status));
+			DEBUG_MSG(fmt::format("SystemInfo::autocreate: error: {} ({}) sigar_proc_list_get\n",
+					   status, sigar_strerror(_g_sigarproclist, status)));
 
 			sigar_close(_g_sigarproclist);
 			_g_sigarproclist = NULL;
@@ -139,8 +149,8 @@ uint32 SystemInfo::countCPU()
 		
 		if (status != SIGAR_OK) 
 		{
-			DEBUG_MSG(boost::format("error: %d (%s) cpu_list_get\n") %
-				   status % sigar_strerror(sigarcpulist, status));
+			DEBUG_MSG(fmt::format("error: {} ({}) cpu_list_get\n",
+				   status, sigar_strerror(sigarcpulist, status)));
 
 			count = 1;
 		}
@@ -172,20 +182,31 @@ SystemInfo::PROCESS_INFOS SystemInfo::getProcessInfo(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(boost::format("SystemInfo::getProcessInfo: error: not found pid(%d)\n") % pid);
+		//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: error: not found pid({})\n", pid));
 		
 		if(!tryed)
 		{
 			clear();
+
 			tryed = true;
+			infos.error = true;
+
+			//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: try to find the pid({})\n", pid));
 
 			if(_autocreate())
 				goto _TRYGET;
-
-			infos.error = true;
 		}
 
 		goto _END;
+	}
+	else
+	{
+		if (tryed)
+		{
+			//DEBUG_MSG(fmt::format("SystemInfo::getProcessInfo: found pid({})\n", pid));
+		}
+
+		infos.error = false;
 	}
 
 	infos.cpu = getCPUPerByPID(pid);
@@ -220,7 +241,7 @@ float SystemInfo::getCPUPer()
 	 
 	float ret = float(perc.combined) * 100.f;
 	//sigar_close(sigar_cpu);
-	// DEBUG_MSG(boost::format("SystemInfo::getCPUPer(): %f\n") % ret);
+	// DEBUG_MSG(fmt::format("SystemInfo::getCPUPer(): {}\n", ret));
 	return ret;
 }
 
@@ -238,7 +259,7 @@ float SystemInfo::getCPUPerByPID(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(boost::format("SystemInfo::getCPUPerByPID: error: not found pid(%d)\n") % pid);
+		//DEBUG_MSG(fmt::format("SystemInfo::getCPUPerByPID: error: not found pid({})\n", pid));
 
 		if(!tryed)
 		{
@@ -261,8 +282,8 @@ _TRYGET:
 
 		if (status != SIGAR_OK) 
 		{
-			DEBUG_MSG(boost::format("error: %d (%s) proc_cpu_get(%d)\n") %
-				   status % sigar_strerror(_g_sigarproclist, status) % pid);
+			DEBUG_MSG(fmt::format("error: {} ({}) proc_cpu_get({})\n",
+				   status, sigar_strerror(_g_sigarproclist, status), pid));
 
 			return 0.f;
 		}
@@ -282,8 +303,8 @@ _TRYGET:
 
 			if (status != SIGAR_OK) 
 			{
-				DEBUG_MSG(boost::format("error: %d (%s) proc_state(%d)\n") %
-					   status % sigar_strerror(sigarproclist, status) % pid);
+				DEBUG_MSG(fmt::format("error: {} ({}) proc_state({})\n",
+					   status, sigar_strerror(sigarproclist, status), pid));
 
 				return 0.f;
 			}
@@ -297,8 +318,8 @@ _TRYGET:
         }
 		else
 		{
-			DEBUG_MSG(boost::format("error: %d (%s) proc_cpu_get(%d)\n") %
-				   status % sigar_strerror(_g_sigarproclist, status) % pid);
+			DEBUG_MSG(fmt::format("error: {} ({}) proc_cpu_get({})\n",
+				   status, sigar_strerror(_g_sigarproclist, status), pid));
 
 			return 0.f;
 		}
@@ -349,7 +370,7 @@ uint64 SystemInfo::getMemUsedByPID(uint32 pid)
 _TRYGET:
 	if(!hasPID(pid, &_g_proclist))
 	{
-		DEBUG_MSG(boost::format("SystemInfo::getMemUsedByPID: error: not found pid(%d)\n") % pid);
+		//DEBUG_MSG(fmt::format("SystemInfo::getMemUsedByPID: error: not found pid({})\n", pid));
 
 		if(!tryed)
 		{
@@ -371,8 +392,8 @@ _TRYGET:
         status = sigar_proc_state_get(_g_sigarproclist, pid, &pstate);
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(boost::format("error: %d (%s) proc_state(%d)\n") %
-                   status % sigar_strerror(_g_sigarproclist, status) % pid);
+			DEBUG_MSG(fmt::format("error: {} ({}) proc_state({})\n",
+                   status, sigar_strerror(_g_sigarproclist, status), pid));
 			
 			goto _END;
         }
@@ -380,8 +401,8 @@ _TRYGET:
         status = sigar_proc_time_get(_g_sigarproclist, pid, &ptime);
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(boost::format("error: %d (%s) proc_time(%d)\n") %
-                   status % sigar_strerror(_g_sigarproclist, status) % pid);
+			DEBUG_MSG(fmt::format("error: {} ({}) proc_time({})\n",
+                   status, sigar_strerror(_g_sigarproclist, status), pid));
 
            goto _END;
         }
@@ -391,8 +412,8 @@ _TRYGET:
 
         if (status != SIGAR_OK) 
 		{
-            DEBUG_MSG(boost::format("error: %d (%s) sigar_proc_mem_get(%d)\n") %
-                   status % sigar_strerror(_g_sigarproclist, status) % pid);
+			DEBUG_MSG(fmt::format("error: {} ({}) sigar_proc_mem_get({})\n",
+                   status, sigar_strerror(_g_sigarproclist, status), pid));
             
 			goto _END;
         }

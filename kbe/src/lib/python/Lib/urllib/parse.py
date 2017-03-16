@@ -182,10 +182,10 @@ class _NetlocResultMixinStr(_NetlocResultMixinBase, _ResultMixinStr):
         _, have_open_br, bracketed = hostinfo.partition('[')
         if have_open_br:
             hostname, _, port = bracketed.partition(']')
-            _, have_port, port = port.partition(':')
+            _, _, port = port.partition(':')
         else:
-            hostname, have_port, port = hostinfo.partition(':')
-        if not have_port:
+            hostname, _, port = hostinfo.partition(':')
+        if not port:
             port = None
         return hostname, port
 
@@ -212,10 +212,10 @@ class _NetlocResultMixinBytes(_NetlocResultMixinBase, _ResultMixinBytes):
         _, have_open_br, bracketed = hostinfo.partition(b'[')
         if have_open_br:
             hostname, _, port = bracketed.partition(b']')
-            _, have_port, port = port.partition(b':')
+            _, _, port = port.partition(b':')
         else:
-            hostname, have_port, port = hostinfo.partition(b':')
-        if not have_port:
+            hostname, _, port = hostinfo.partition(b':')
+        if not port:
             port = None
         return hostname, port
 
@@ -472,8 +472,7 @@ def urldefrag(url):
     return _coerce_result(DefragResult(defrag, frag))
 
 _hexdig = '0123456789ABCDEFabcdef'
-_hextobyte = {(a + b).encode(): bytes([int(a + b, 16)])
-              for a in _hexdig for b in _hexdig}
+_hextobyte = None
 
 def unquote_to_bytes(string):
     """unquote_to_bytes('abc%20def') -> b'abc def'."""
@@ -490,6 +489,12 @@ def unquote_to_bytes(string):
         return string
     res = [bits[0]]
     append = res.append
+    # Delay the initialization of the table to not waste memory
+    # if the function is never called
+    global _hextobyte
+    if _hextobyte is None:
+        _hextobyte = {(a + b).encode(): bytes([int(a + b, 16)])
+                      for a in _hexdig for b in _hexdig}
     for item in bits[1:]:
         try:
             append(_hextobyte[item[:2]])
@@ -728,7 +733,7 @@ def quote_from_bytes(bs, safe='/'):
     return ''.join([quoter(char) for char in bs])
 
 def urlencode(query, doseq=False, safe='', encoding=None, errors=None):
-    """Encode a sequence of two-element tuples or dictionary into a URL query string.
+    """Encode a dict or sequence of two-element tuples into a URL query string.
 
     If any values in the query arg are sequences and doseq is true, each
     sequence element is converted to a separate parameter.
@@ -737,9 +742,9 @@ def urlencode(query, doseq=False, safe='', encoding=None, errors=None):
     parameters in the output will match the order of parameters in the
     input.
 
-    The query arg may be either a string or a bytes type. When query arg is a
-    string, the safe, encoding and error parameters are sent the quote_plus for
-    encoding.
+    The components of a query arg may each be either a string or a bytes type.
+    When a component is a string, the safe, encoding and error parameters are
+    sent to the quote_plus function for encoding.
     """
 
     if hasattr(query, "items"):
@@ -846,7 +851,6 @@ def splittype(url):
     """splittype('type:opaquestring') --> 'type', 'opaquestring'."""
     global _typeprog
     if _typeprog is None:
-        import re
         _typeprog = re.compile('^([^/:]+):')
 
     match = _typeprog.match(url)
@@ -860,7 +864,6 @@ def splithost(url):
     """splithost('//host[:port]/path') --> 'host[:port]', '/path'."""
     global _hostprog
     if _hostprog is None:
-        import re
         _hostprog = re.compile('^//([^/?]*)(.*)$')
 
     match = _hostprog.match(url)
@@ -877,7 +880,6 @@ def splituser(host):
     """splituser('user[:passwd]@host[:port]') --> 'user[:passwd]', 'host[:port]'."""
     global _userprog
     if _userprog is None:
-        import re
         _userprog = re.compile('^(.*)@(.*)$')
 
     match = _userprog.match(host)
@@ -889,7 +891,6 @@ def splitpasswd(user):
     """splitpasswd('user:passwd') -> 'user', 'passwd'."""
     global _passwdprog
     if _passwdprog is None:
-        import re
         _passwdprog = re.compile('^([^:]*):(.*)$',re.S)
 
     match = _passwdprog.match(user)
@@ -902,11 +903,13 @@ def splitport(host):
     """splitport('host:port') --> 'host', 'port'."""
     global _portprog
     if _portprog is None:
-        import re
-        _portprog = re.compile('^(.*):([0-9]+)$')
+        _portprog = re.compile('^(.*):([0-9]*)$')
 
     match = _portprog.match(host)
-    if match: return match.group(1, 2)
+    if match:
+        host, port = match.groups()
+        if port:
+            return host, port
     return host, None
 
 _nportprog = None
@@ -917,18 +920,17 @@ def splitnport(host, defport=-1):
     Return None if ':' but not a valid number."""
     global _nportprog
     if _nportprog is None:
-        import re
         _nportprog = re.compile('^(.*):(.*)$')
 
     match = _nportprog.match(host)
     if match:
         host, port = match.group(1, 2)
-        try:
-            if not port: raise ValueError("no digits")
-            nport = int(port)
-        except ValueError:
-            nport = None
-        return host, nport
+        if port:
+            try:
+                nport = int(port)
+            except ValueError:
+                nport = None
+            return host, nport
     return host, defport
 
 _queryprog = None
@@ -936,7 +938,6 @@ def splitquery(url):
     """splitquery('/path?query') --> '/path', 'query'."""
     global _queryprog
     if _queryprog is None:
-        import re
         _queryprog = re.compile('^(.*)\?([^?]*)$')
 
     match = _queryprog.match(url)
@@ -948,7 +949,6 @@ def splittag(url):
     """splittag('/path#tag') --> '/path', 'tag'."""
     global _tagprog
     if _tagprog is None:
-        import re
         _tagprog = re.compile('^(.*)#([^#]*)$')
 
     match = _tagprog.match(url)
@@ -966,7 +966,6 @@ def splitvalue(attr):
     """splitvalue('attr=value') --> 'attr', 'value'."""
     global _valueprog
     if _valueprog is None:
-        import re
         _valueprog = re.compile('^([^=]*)=(.*)$')
 
     match = _valueprog.match(attr)

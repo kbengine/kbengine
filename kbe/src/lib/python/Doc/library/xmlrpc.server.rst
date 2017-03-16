@@ -23,7 +23,9 @@ servers written in Python.  Servers can either be free standing, using
    :ref:`xml-vulnerabilities`.
 
 
-.. class:: SimpleXMLRPCServer(addr, requestHandler=SimpleXMLRPCRequestHandler, logRequests=True, allow_none=False, encoding=None, bind_and_activate=True)
+.. class:: SimpleXMLRPCServer(addr, requestHandler=SimpleXMLRPCRequestHandler,\
+               logRequests=True, allow_none=False, encoding=None,\
+               bind_and_activate=True, use_builtin_types=False)
 
    Create a new server instance.  This class provides methods for registration of
    functions that can be called by the XML-RPC protocol.  The *requestHandler*
@@ -32,18 +34,31 @@ servers written in Python.  Servers can either be free standing, using
    are passed to the :class:`socketserver.TCPServer` constructor.  If *logRequests*
    is true (the default), requests will be logged; setting this parameter to false
    will turn off logging.   The *allow_none* and *encoding* parameters are passed
-   on to  :mod:`xmlrpc.client` and control the XML-RPC responses that will be returned
+   on to :mod:`xmlrpc.client` and control the XML-RPC responses that will be returned
    from the server. The *bind_and_activate* parameter controls whether
    :meth:`server_bind` and :meth:`server_activate` are called immediately by the
    constructor; it defaults to true. Setting it to false allows code to manipulate
    the *allow_reuse_address* class variable before the address is bound.
+   The *use_builtin_types* parameter is passed to the
+   :func:`~xmlrpc.client.loads` function and controls which types are processed
+   when date/times values or binary data are received; it defaults to false.
+
+   .. versionchanged:: 3.3
+      The *use_builtin_types* flag was added.
 
 
-.. class:: CGIXMLRPCRequestHandler(allow_none=False, encoding=None)
+.. class:: CGIXMLRPCRequestHandler(allow_none=False, encoding=None,\
+               use_builtin_types=False)
 
    Create a new instance to handle XML-RPC requests in a CGI environment.  The
    *allow_none* and *encoding* parameters are passed on to :mod:`xmlrpc.client`
    and control the XML-RPC responses that will be returned from the server.
+   The *use_builtin_types* parameter is passed to the
+   :func:`~xmlrpc.client.loads` function and controls which types are processed
+   when date/times values or binary data are received; it defaults to false.
+
+   .. versionchanged:: 3.3
+      The *use_builtin_types* flag was added.
 
 
 .. class:: SimpleXMLRPCRequestHandler()
@@ -169,6 +184,70 @@ server::
    # Print list of available methods
    print(s.system.listMethods())
 
+The following example included in `Lib/xmlrpc/server.py` module shows a server
+allowing dotted names and registering a multicall function.
+
+.. warning::
+
+  Enabling the *allow_dotted_names* option allows intruders to access your
+  module's global variables and may allow intruders to execute arbitrary code on
+  your machine.  Only use this example only within a secure, closed network.
+
+::
+
+    import datetime
+
+    class ExampleService:
+        def getData(self):
+            return '42'
+
+        class currentTime:
+            @staticmethod
+            def getCurrentTime():
+                return datetime.datetime.now()
+
+    server = SimpleXMLRPCServer(("localhost", 8000))
+    server.register_function(pow)
+    server.register_function(lambda x,y: x+y, 'add')
+    server.register_instance(ExampleService(), allow_dotted_names=True)
+    server.register_multicall_functions()
+    print('Serving XML-RPC on localhost port 8000')
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nKeyboard interrupt received, exiting.")
+        server.server_close()
+        sys.exit(0)
+
+This ExampleService demo can be invoked from the command line::
+
+    python -m xmlrpc.server
+
+
+The client that interacts with the above server is included in
+`Lib/xmlrpc/client.py`::
+
+    server = ServerProxy("http://localhost:8000")
+
+    try:
+        print(server.currentTime.getCurrentTime())
+    except Error as v:
+        print("ERROR", v)
+
+    multi = MultiCall(server)
+    multi.getData()
+    multi.pow(2,9)
+    multi.add(1,2)
+    try:
+        for response in multi():
+            print(response)
+    except Error as v:
+        print("ERROR", v)
+
+This client which interacts with the demo XMLRPC server can be invoked as::
+
+    python -m xmlrpc.client
+
 
 CGIXMLRPCRequestHandler
 -----------------------
@@ -240,11 +319,16 @@ to HTTP GET requests.  Servers can either be free standing, using
 :class:`DocCGIXMLRPCRequestHandler`.
 
 
-.. class:: DocXMLRPCServer(addr, requestHandler=DocXMLRPCRequestHandler, logRequests=True, allow_none=False, encoding=None, bind_and_activate=True)
+.. class:: DocXMLRPCServer(addr, requestHandler=DocXMLRPCRequestHandler,\
+               logRequests=True, allow_none=False, encoding=None,\
+               bind_and_activate=True, use_builtin_types=True)
 
    Create a new server instance. All parameters have the same meaning as for
    :class:`SimpleXMLRPCServer`; *requestHandler* defaults to
    :class:`DocXMLRPCRequestHandler`.
+
+   .. versionchanged:: 3.3
+      The *use_builtin_types* flag was added.
 
 
 .. class:: DocCGIXMLRPCRequestHandler()

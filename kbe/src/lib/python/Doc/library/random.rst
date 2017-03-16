@@ -43,6 +43,12 @@ The :mod:`random` module also provides the :class:`SystemRandom` class which
 uses the system function :func:`os.urandom` to generate random numbers
 from sources provided by the operating system.
 
+.. warning::
+
+   The pseudo-random generators of this module should not be used for
+   security purposes.  Use :func:`os.urandom` or :class:`SystemRandom` if
+   you require a cryptographically secure pseudo-random number generator.
+
 
 Bookkeeping functions:
 
@@ -144,6 +150,9 @@ Functions for sequences:
    To choose a sample from a range of integers, use an :func:`range` object as an
    argument.  This is especially fast and space efficient for sampling from a large
    population:  ``sample(range(10000000), 60)``.
+
+   If the sample size is larger than the population size, a :exc:`ValueError`
+   is raised.
 
 The following functions generate specific real-valued distributions. Function
 parameters are named after the corresponding variables in the distribution's

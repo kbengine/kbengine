@@ -1,7 +1,3 @@
-ifneq ($(wildcard cellappmgr/Makefile),cellappmgr/Makefile)
-	LICENSE_SERVER=1
-endif
-
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/tools,,$(CURDIR))
 endif
@@ -20,8 +16,8 @@ endif
 
 	$(MAKE) -C ../../lib $@
 	$(MAKE) -C bots $@
-	$(MAKE) -C billing_system $@
-	$(MAKE) -C message_log $@
+	$(MAKE) -C interfaces $@
+	$(MAKE) -C logger $@
 	
 ifdef KBE_CONFIG
 	@echo completed $@ \(KBE_CONFIG = $(KBE_CONFIG)\)
