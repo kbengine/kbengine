@@ -390,8 +390,8 @@ inline bool validName(const std::string& name)
 inline bool email_isvalid(const char *address) 
 {
 #ifdef USE_REGEX
-	std::tr1::regex _mail_pattern("([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)");
-	return std::tr1::regex_match(accountName, _mail_pattern);
+	std::tr1::regex _mail_pattern("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,4})$");
+	return std::tr1::regex_match(address, _mail_pattern);
 #endif
 	int len = (int)strlen(address);
 	if(len <= 3)
