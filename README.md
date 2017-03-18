@@ -9,9 +9,11 @@ KBEngine
 http://www.kbengine.org
 
 ##Releases
+
 	Sources		: https://github.com/kbengine/kbengine/releases/latest
 
 ##Demo sources
+
 	Unity3d		: https://github.com/kbengine/kbengine_unity3d_demo/releases/latest
 	Unity3d		: https://github.com/kbengine/kbengine_unity3d_warring/releases/latest
 	UE4			: https://github.com/kbengine/kbengine_ue4_demo/releases/latest
@@ -19,10 +21,12 @@ http://www.kbengine.org
 	Cocos2d_js	: https://github.com/kbengine/kbengine_cocos2d_js_demo/releases/latest
 
 ##Docs
+
 	Docs		: http://www.kbengine.org/docs/
 	API			: https://github.com/kbengine/kbengine/tree/master/docs
 	
 ##Support
+
 	Email		: kbesrv?gmail.com
 	QQ			: 3603661
 	BBS			: http://bbs.kbengine.org
@@ -30,6 +34,7 @@ http://www.kbengine.org
 
 
 ##What is KBEngine?
+
 An open source MMOG server engine. 
 Just use the Python script to be able to complete any game logic simply and efficiently (can hotfix).
 Using the client plug-in can be quickly combined with (Unity3D, UE4, OGRE, HTML5, etc.) to form a complete client.
@@ -55,6 +60,7 @@ acatadog, colin
 
 
 ##什么是KBEngine?
+
 一款开源的MMOG游戏服务端引擎，
 仅Python脚本即可简单高效的完成任何游戏逻辑(支持热更新)，
 使用配套客户端插件能够快速与(Unity3D、UE4、OGRE、HTML5、等等)结合形成一个完整的客户端。
