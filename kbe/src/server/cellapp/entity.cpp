@@ -1157,6 +1157,7 @@ bool Entity::bufferOrExeCallback(const char * funcName, PyObject * funcArgs, boo
 		PyObject* pyResult = PyObject_CallObject(pyCallable, funcArgs);
 
 		Py_DECREF(pyCallable);
+
 		if (funcArgs)
 			Py_DECREF(funcArgs);
 
@@ -2912,9 +2913,23 @@ PyObject* Entity::pyEntitiesInAOI()
 		return 0;
 	}
 
-	PyObject* pyList = PyList_New(pWitness_->aoiEntitiesMap().size());
-
+	int calcSize = 0;
 	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	
+	for(; iter != pWitness_->aoiEntities().end(); ++iter)
+	{
+		Entity* pEntity = (*iter)->pEntity();
+
+		if(pEntity)
+		{
+			++calcSize;
+		}
+	}
+	
+	PyObject* pyList = PyList_New(calcSize);
+	
+	iter = pWitness_->aoiEntities().begin();
+		
 	int i = 0;
 	for(; iter != pWitness_->aoiEntities().end(); ++iter)
 	{

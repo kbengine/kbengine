@@ -48,7 +48,7 @@ public:
 	void update();
 
 private:
-	std::map<uint32, Updatable*> objects_;
+	std::vector< std::map<uint32, Updatable*> > objects_;
 };
 
 }

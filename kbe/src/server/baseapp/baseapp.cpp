@@ -104,7 +104,6 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 
 		if (pScriptModule->hasCell())
 		{
-			ArraySize size = 0;
 #ifdef CLIENT_NO_FLOAT
 			int32 v1, v2, v3;
 			int32 vv1, vv2, vv3;
@@ -113,8 +112,8 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 			float vv1, vv2, vv3;
 #endif
 
-			s >> size >> v1 >> v2 >> v3;
-			s >> size >> vv1 >> vv2 >> vv3;
+			s >> v1 >> v2 >> v3;
+			s >> vv1 >> vv2 >> vv3;
 
 			PyObject* position = PyTuple_New(3);
 			PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
@@ -3596,7 +3595,7 @@ void Baseapp::loginBaseappFailed(Network::Channel* pChannel, std::string& accoun
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	if(relogin)
-		(*pBundle).newMessage(ClientInterface::onReLoginBaseappFailed);
+		(*pBundle).newMessage(ClientInterface::onReloginBaseappFailed);
 	else
 		(*pBundle).newMessage(ClientInterface::onLoginBaseappFailed);
 
@@ -3781,11 +3780,11 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountName, 
+void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountName, 
 							 std::string& password, uint64 key, ENTITY_ID entityID)
 {
 	accountName = KBEngine::strutil::kbe_trim(accountName);
-	INFO_MSG(fmt::format("Baseapp::reLoginBaseapp: accountName={}, key={}, entityID={}.\n",
+	INFO_MSG(fmt::format("Baseapp::reloginBaseapp: accountName={}, key={}, entityID={}.\n",
 		accountName, key, entityID));
 
 	Base* base = findEntity(entityID);
@@ -3808,7 +3807,7 @@ void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountNam
 	{
 		Network::Channel* pMBChannel = entityClientMailbox->getChannel();
 
-		WARNING_MSG(fmt::format("Baseapp::reLoginBaseapp: accountName={}, key={}, "
+		WARNING_MSG(fmt::format("Baseapp::reloginBaseapp: accountName={}, key={}, "
 			"entityID={}, ClientMailbox({}) is exist, will be kicked out!\n",
 			accountName, key, entityID, 
 			(pMBChannel ? pMBChannel->c_str() : "unknown")));
@@ -3844,12 +3843,10 @@ void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountNam
 	Py_DECREF(proxy);
 	// proxy->onEntitiesEnabled();
 
-	/*
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(ClientInterface::onReLoginBaseappSuccessfully);
+	(*pBundle).newMessage(ClientInterface::onReloginBaseappSuccessfully);
 	(*pBundle) << proxy->rndUUID();
 	pChannel->send(pBundle);
-	*/
 }
 
 //-------------------------------------------------------------------------------------

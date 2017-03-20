@@ -27,7 +27,7 @@ public:
 
 	void onReceiveRemoteLog(std::string str, bool fromServer = true);
 
-	void onConnectStatus(bool success, KBEngine::Network::Address addr);
+	void onConnectionState(bool success, KBEngine::Network::Address addr);
 
 	void pullLogs(KBEngine::Network::Address addr);
 

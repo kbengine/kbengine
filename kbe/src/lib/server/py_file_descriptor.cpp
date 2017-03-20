@@ -198,8 +198,8 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 //-------------------------------------------------------------------------------------
 int PyFileDescriptor::handleInputNotification(int fd)
 {
-	INFO_MSG(fmt::format("PyFileDescriptor:handleInputNotification: fd = {}\n",
-				fd));
+	//INFO_MSG(fmt::format("PyFileDescriptor:handleInputNotification: fd = {}\n",
+	//			fd));
 
 	callback();
 	return 0;
@@ -208,8 +208,8 @@ int PyFileDescriptor::handleInputNotification(int fd)
 //-------------------------------------------------------------------------------------
 int PyFileDescriptor::handleOutputNotification( int fd )
 {
-	INFO_MSG(fmt::format("PyFileDescriptor:handleOutputNotification: fd = {}\n",
-				fd));
+	//INFO_MSG(fmt::format("PyFileDescriptor:handleOutputNotification: fd = {}\n",
+	//			fd));
 
 	callback();
 	return 0;

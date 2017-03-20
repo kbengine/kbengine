@@ -45,6 +45,11 @@ public:
 	~Updatable();
 
 	virtual bool update() = 0;
+
+	virtual uint8 updatePriority() const {
+		return 0;
+	}
+
 	std::string c_str() { return updatableName; }
 
 	// 自身在Updatables容器中的位置

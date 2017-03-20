@@ -609,49 +609,44 @@ PyObject* DoubleType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-VectorType::VectorType(uint32 elemCount, DATATYPE_UID did):
-DataType(did),
-name_(),
-elemCount_(elemCount)
-{
-	char tbuf[MAX_BUF];
-	kbe_snprintf(tbuf, MAX_BUF, "VECTOR%u", elemCount);
-	name_ += tbuf;
-}
-
-//-------------------------------------------------------------------------------------
-VectorType::~VectorType()
+Vector2Type::Vector2Type(DATATYPE_UID did) :
+DataType(did)
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool VectorType::isSameType(PyObject* pyValue)
+Vector2Type::~Vector2Type()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool Vector2Type::isSameType(PyObject* pyValue)
 {
 	if(pyValue == NULL)
 	{
 		PyErr_Format(PyExc_TypeError, 
-			"must be set to a VECTOR%d type.", elemCount_);
+			"must be set to a VECTOR2 type.");
 		
 		PyErr_PrintEx(0);
 		return false;
 	}
 
-	if(!PySequence_Check(pyValue) || (uint32)PySequence_Size(pyValue) != elemCount_)
+	if(!PySequence_Check(pyValue) || (uint32)PySequence_Size(pyValue) != 2)
 	{
 		PyErr_Format(PyExc_TypeError, 
-			"must be set to a VECTOR%d type.", elemCount_);
+			"must be set to a VECTOR2 type.");
 		
 		PyErr_PrintEx(0);
 		return false;
 	}
 
-	for(uint32 index=0; index<elemCount_; ++index)
+	for(uint32 index=0; index<2; ++index)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 		if(!PyFloat_Check(pyVal) && !PyLong_Check(pyVal) && !PyLong_AsLongLong(pyVal))
 		{
 			PyErr_Format(PyExc_TypeError, 
-				"VECTOR%d item is not digit.", elemCount_);
+				"VECTOR2 item is not digit.");
 			
 			PyErr_PrintEx(0);
 			return false;
@@ -664,51 +659,24 @@ bool VectorType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* VectorType::parseDefaultStr(std::string defaultVal)
+PyObject* Vector2Type::parseDefaultStr(std::string defaultVal)
 {
-	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+	float x = 0.0f, y = 0.0f;
 
 	if(!defaultVal.empty())
 	{
 		std::stringstream stream;
 		stream << defaultVal;
-
-		switch(elemCount_)
-		{
-			case 2:
-				stream >> x >> y;
-				break;
-			case 3:
-				stream >> x >> y >> z;
-				break;
-			case 4:
-				stream >> x >> y >> z >> w;
-				break;
-			default:
-				break;
-		}
+		stream >> x >> y;
 	}
 
-	switch(elemCount_)
-	{
-		case 2:
-			return new script::ScriptVector2(float(x), float(y));
-		case 3:
-			return new script::ScriptVector3(float(x), float(y), float(z));
-		case 4:
-			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
-		default:
-			break;
-	}
-
-	Py_RETURN_NONE;
+	return new script::ScriptVector2(float(x), float(y));
 }
 
 //-------------------------------------------------------------------------------------
-void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
+void Vector2Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	(*mstream) << elemCount_;
-	for(ArraySize index=0; index<elemCount_; ++index)
+	for(ArraySize index=0; index<2; ++index)
 	{
 		PyObject* pyVal = PySequence_GetItem(pyValue, index);
 #ifdef CLIENT_NO_FLOAT
@@ -722,39 +690,210 @@ void VectorType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* VectorType::createFromStream(MemoryStream* mstream)
+PyObject* Vector2Type::createFromStream(MemoryStream* mstream)
 {
 #ifdef CLIENT_NO_FLOAT
-		int32 x = 0, y = 0, z = 0, w = 0;
+		int32 x = 0, y = 0;
 #else
-		float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+		float x = 0.0f, y = 0.0f;
 #endif
 
-	ArraySize count = 0;
-	(*mstream) >> count;
-	
-	if(count != elemCount_)
-		return NULL;
+	if(mstream)
+		(*mstream) >> x >> y;	
 
-	switch(elemCount_)
+	return new script::ScriptVector2(float(x), float(y));
+}
+
+//-------------------------------------------------------------------------------------
+Vector3Type::Vector3Type(DATATYPE_UID did) :
+DataType(did)
+{
+}
+
+//-------------------------------------------------------------------------------------
+Vector3Type::~Vector3Type()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool Vector3Type::isSameType(PyObject* pyValue)
+{
+	if (pyValue == NULL)
 	{
-		case 2:
-			if(mstream)
-				(*mstream) >> x >> y;	
-			return new script::ScriptVector2(float(x), float(y));
-		case 3:
-			if(mstream)
-				(*mstream) >> x >> y >> z;	
-			return new script::ScriptVector3(float(x), float(y), float(z));
-		case 4:
-			if(mstream)
-				(*mstream) >> x >> y >> z >> w;	
-			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
-		default:
-			break;
+		PyErr_Format(PyExc_TypeError,
+			"must be set to a VECTOR3 type.");
+
+		PyErr_PrintEx(0);
+		return false;
 	}
-	
-	return NULL;
+
+	if (!PySequence_Check(pyValue) || (uint32)PySequence_Size(pyValue) != 3)
+	{
+		PyErr_Format(PyExc_TypeError,
+			"must be set to a VECTOR3 type.");
+
+		PyErr_PrintEx(0);
+		return false;
+	}
+
+	for (uint32 index = 0; index<3; ++index)
+	{
+		PyObject* pyVal = PySequence_GetItem(pyValue, index);
+		if (!PyFloat_Check(pyVal) && !PyLong_Check(pyVal) && !PyLong_AsLongLong(pyVal))
+		{
+			PyErr_Format(PyExc_TypeError,
+				"VECTOR3 item is not digit.");
+
+			PyErr_PrintEx(0);
+			return false;
+		}
+
+		Py_DECREF(pyVal);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Vector3Type::parseDefaultStr(std::string defaultVal)
+{
+	float x = 0.0f, y = 0.0f, z = 0.0f;
+
+	if (!defaultVal.empty())
+	{
+		std::stringstream stream;
+		stream << defaultVal;
+		stream >> x >> y >> z;
+	}
+
+	return new script::ScriptVector3(float(x), float(y), float(z));
+}
+
+//-------------------------------------------------------------------------------------
+void Vector3Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	for (ArraySize index = 0; index<3; ++index)
+	{
+		PyObject* pyVal = PySequence_GetItem(pyValue, index);
+#ifdef CLIENT_NO_FLOAT
+		int32 v = (int32)PyFloat_AsDouble(pyVal);
+#else
+		float v = (float)PyFloat_AsDouble(pyVal);
+#endif
+		(*mstream) << v;
+		Py_DECREF(pyVal);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Vector3Type::createFromStream(MemoryStream* mstream)
+{
+#ifdef CLIENT_NO_FLOAT
+	int32 x = 0, y = 0, z = 0;
+#else
+	float x = 0.0f, y = 0.0f, z = 0.0f;
+#endif
+
+	if (mstream)
+		(*mstream) >> x >> y >> z;
+
+	return new script::ScriptVector3(float(x), float(y), float(z));
+}
+
+//-------------------------------------------------------------------------------------
+Vector4Type::Vector4Type(DATATYPE_UID did) :
+DataType(did)
+{
+}
+
+//-------------------------------------------------------------------------------------
+Vector4Type::~Vector4Type()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool Vector4Type::isSameType(PyObject* pyValue)
+{
+	if (pyValue == NULL)
+	{
+		PyErr_Format(PyExc_TypeError,
+			"must be set to a VECTOR4 type.");
+
+		PyErr_PrintEx(0);
+		return false;
+	}
+
+	if (!PySequence_Check(pyValue) || (uint32)PySequence_Size(pyValue) != 4)
+	{
+		PyErr_Format(PyExc_TypeError,
+			"must be set to a VECTOR4 type.");
+
+		PyErr_PrintEx(0);
+		return false;
+	}
+
+	for (uint32 index = 0; index<4; ++index)
+	{
+		PyObject* pyVal = PySequence_GetItem(pyValue, index);
+		if (!PyFloat_Check(pyVal) && !PyLong_Check(pyVal) && !PyLong_AsLongLong(pyVal))
+		{
+			PyErr_Format(PyExc_TypeError,
+				"VECTOR4 item is not digit.");
+
+			PyErr_PrintEx(0);
+			return false;
+		}
+
+		Py_DECREF(pyVal);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Vector4Type::parseDefaultStr(std::string defaultVal)
+{
+	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+
+	if (!defaultVal.empty())
+	{
+		std::stringstream stream;
+		stream << defaultVal;
+		stream >> x >> y >> z >> w;
+	}
+
+	return new script::ScriptVector4(float(x), float(y), float(z), float(w));
+}
+
+//-------------------------------------------------------------------------------------
+void Vector4Type::addToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	for (ArraySize index = 0; index<4; ++index)
+	{
+		PyObject* pyVal = PySequence_GetItem(pyValue, index);
+#ifdef CLIENT_NO_FLOAT
+		int32 v = (int32)PyFloat_AsDouble(pyVal);
+#else
+		float v = (float)PyFloat_AsDouble(pyVal);
+#endif
+		(*mstream) << v;
+		Py_DECREF(pyVal);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Vector4Type::createFromStream(MemoryStream* mstream)
+{
+#ifdef CLIENT_NO_FLOAT
+	int32 x = 0, y = 0, z = 0, w = 0;
+#else
+	float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+#endif
+
+	if (mstream)
+		(*mstream) >> x >> y >> z >> w;
+
+	return new script::ScriptVector4(float(x), float(y), float(z), float(w));
 }
 
 //-------------------------------------------------------------------------------------

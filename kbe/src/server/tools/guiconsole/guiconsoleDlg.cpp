@@ -1580,7 +1580,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	{
 		HTREEITEM hItem = m_tree.GetSelectedItem(); 
 		KBEngine::Network::Address addr = getTreeItemAddr(hItem);
-		m_logWnd.onConnectStatus(changeToChecked, addr);
+		m_logWnd.onConnectionState(changeToChecked, addr);
 	}
 }
 
