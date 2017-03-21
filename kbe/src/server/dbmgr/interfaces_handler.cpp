@@ -477,7 +477,7 @@ bool InterfacesHandler_Interfaces::reconnect()
 
 		if(!connected)
 		{
-			ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::reconnect(): couldn't connect to:{}\n", 
+			ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::reconnect(): couldn't connect to(interfaces server): {}! Check kbengine[_defs].xml->interfaces->host and interfaces.*.log\n", 
 				pInterfacesChannel->pEndPoint()->addr().c_str()));
 
 			pInterfacesChannel->destroy();
