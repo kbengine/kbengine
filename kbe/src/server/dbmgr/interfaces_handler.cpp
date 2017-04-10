@@ -456,12 +456,14 @@ bool InterfacesHandler_Interfaces::reconnect()
 	if(pInterfacesChannel->pEndPoint()->connect() == -1)
 	{
 		struct timeval tv = { 0, 1000000 }; // 1000ms
-		fd_set	fds;
-		FD_ZERO(&fds);
-		FD_SET((int)(*pInterfacesChannel->pEndPoint()), &fds);
-
+		fd_set frds, fwds;
+		FD_ZERO( &frds );
+		FD_ZERO( &fwds );
+		FD_SET((int)(*pInterfacesChannel->pEndPoint()), &frds);
+		FD_SET((int)(*pInterfacesChannel->pEndPoint()), &fwds);
+		
 		bool connected = false;
-		int selgot = select((*pInterfacesChannel->pEndPoint())+1, &fds, &fds, NULL, &tv);
+		int selgot = select((*pInterfacesChannel->pEndPoint())+1, &frds, &fwds, NULL, &tv);
 		if(selgot > 0)
 		{
 			int error;
