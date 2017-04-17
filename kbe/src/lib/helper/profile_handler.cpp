@@ -66,7 +66,7 @@ void ProfileHandler::handleTimeout(TimerHandle handle, void * arg)
 
 //-------------------------------------------------------------------------------------
 CProfileHandler::CProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
-							   std::string name, const Network::Address& addr) :
+std::string name, const Network::Address& addr) :
 ProfileHandler(networkInterface, timinglen, name, addr)
 {
 	networkInterface_.dispatcher().addTask(this);
