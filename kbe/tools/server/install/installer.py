@@ -676,7 +676,7 @@ def installMysql():
 
 	
 	while True:
-		getInput("The MySQL service installation is complete? [yes|no]")
+		getInput("The MySQL service installation is completed? [yes|no]")
 		
 		if not findMysqlService():
 			ERROR_MSG("-  not found MySQL service.")
