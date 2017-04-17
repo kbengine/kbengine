@@ -1214,8 +1214,12 @@ void Base::onWriteToDB()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
+	PyObject* cd = cellDataDict_;
+	if (!cd)
+		cd = Py_None;
+
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWriteToDB"), 
-		const_cast<char*>("O"), cellDataDict_);
+		const_cast<char*>("O"), cd);
 }
 
 //-------------------------------------------------------------------------------------
