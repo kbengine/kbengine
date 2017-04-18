@@ -342,7 +342,7 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				if(!isShutingdown)
+				if (!isShutingdown && g_componentType != LOGGER_TYPE)
 				{
 					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit.\n",
 						COMPONENT_NAME_EX(componentType), (*iter).cid));
