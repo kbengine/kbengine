@@ -771,12 +771,7 @@ namespace KBEngine {
 		float v;
 #endif
 
-		ArraySize asize;
-
-		(*s) >> asize;
-		KBE_ASSERT(asize == 2);
-
-		for (ArraySize i = 0; i<asize; ++i)
+		for (ArraySize i = 0; i<2; ++i)
 		{
 			(*s) >> v;
 			mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
@@ -797,8 +792,7 @@ namespace KBEngine {
 
 	void EntityTableItemMongodb_VECTOR2::getReadSqlItem(mongodb::DBContext& context)
 	{
-		ArraySize asize = 2;
-		for (ArraySize i = 0; i<asize; ++i)
+		for (ArraySize i = 0; i<2; ++i)
 		{
 			mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
 			pSotvs->sqlkey = db_item_names_[i];
@@ -809,10 +803,7 @@ namespace KBEngine {
 
 	void EntityTableItemMongodb_VECTOR2::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
-		ArraySize asize = 2;
-		(*s) << asize;
-
-		for (ArraySize i = 0; i < asize; ++i)
+		for (ArraySize i = 0; i < 2; ++i)
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
@@ -858,12 +849,7 @@ namespace KBEngine {
 		float v;
 #endif
 
-		ArraySize asize;
-
-		(*s) >> asize;
-		KBE_ASSERT(asize == 3);
-
-		for (ArraySize i = 0; i<asize; ++i)
+		for (ArraySize i = 0; i<3; ++i)
 		{
 			(*s) >> v;
 			mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
@@ -883,8 +869,7 @@ namespace KBEngine {
 
 	void EntityTableItemMongodb_VECTOR3::getReadSqlItem(mongodb::DBContext& context)
 	{
-		ArraySize asize = 3;
-		for (ArraySize i = 0; i<asize; ++i)
+		for (ArraySize i = 0; i<3; ++i)
 		{
 			mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
 			pSotvs->sqlkey = db_item_names_[i];
@@ -895,10 +880,7 @@ namespace KBEngine {
 
 	void EntityTableItemMongodb_VECTOR3::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
-		ArraySize asize = 3;
-		(*s) << asize;
-
-		for (ArraySize i = 0; i < asize; ++i)
+		for (ArraySize i = 0; i < 3; ++i)
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
@@ -945,12 +927,7 @@ namespace KBEngine {
 		float v;
 #endif
 
-		ArraySize asize;
-
-		(*s) >> asize;
-		KBE_ASSERT(asize == 4);
-
-		for (ArraySize i = 0; i<asize; ++i)
+		for (ArraySize i = 0; i<4; ++i)
 		{
 			(*s) >> v;
 			mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
@@ -971,8 +948,7 @@ namespace KBEngine {
 
 	void EntityTableItemMongodb_VECTOR4::getReadSqlItem(mongodb::DBContext& context)
 	{
-		ArraySize asize = 4;
-		for (ArraySize i = 0; i<asize; ++i)
+		for (ArraySize i = 0; i<4; ++i)
 		{
 			mongodb::DBContext::DB_ITEM_DATA* pSotvs = new mongodb::DBContext::DB_ITEM_DATA();
 			pSotvs->sqlkey = db_item_names_[i];
@@ -983,10 +959,7 @@ namespace KBEngine {
 
 	void EntityTableItemMongodb_VECTOR4::addToStream(MemoryStream* s, mongodb::DBContext& context, DBID resultDBID, const bson_t * doc)
 	{
-		ArraySize asize = 4;
-		(*s) << asize;
-
-		for (ArraySize i = 0; i < asize; ++i)
+		for (ArraySize i = 0; i < 4; ++i)
 		{
 			bson_iter_t iter;
 			if (!bson_iter_init_find(&iter, doc, db_item_names_[i]))
