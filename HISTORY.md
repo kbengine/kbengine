@@ -1,3 +1,20 @@
+###v0.9.13
+
+	2017/4/22
+
+	新增与改善：
+		解决safe_kill后日志会报Abnormal误报问题。(#466)  
+		更新API文档。
+
+
+	BUG修正：
+		修正WebConsole在Python2.x下的异常错误
+		修正部分平台上dbmgr连接interfaces出错的问题
+		修正assets/start_bots.sh启动环境设置错误问题
+		修正当没有cell的entity其base部分存存储时无法正确回调onWriteToDB(self, cellData)脚本的问题 
+
+
+
 ###v0.9.12
 
 	2017/3/21
