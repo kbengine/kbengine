@@ -7,7 +7,7 @@ KBEngine
 
 ## Homepage
 
-	http://www.kbengine.org
+	http://kbengine.org
 
 
 ## Releases
@@ -26,7 +26,7 @@ KBEngine
 
 ## Docs
 
-	Docs		: http://www.kbengine.org/docs/
+	Docs		: http://kbengine.org/docs/
 	API		: https://github.com/kbengine/kbengine/tree/master/docs
 
 
