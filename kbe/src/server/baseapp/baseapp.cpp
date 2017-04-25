@@ -3894,10 +3894,22 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		return;
 	}
 
-	Proxy* base = static_cast<Proxy*>(createEntity(g_serverConfig.getDBMgr().dbAccountEntityScriptType, 
-		NULL, false, entityID));
-
 	Network::Channel* pClientChannel = this->networkInterface().findChannel(ptinfos->addr);
+
+	if (!success)
+	{
+		std::string error;
+		s >> error;
+		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: query {} is failed! error({})\n",
+			accountName.c_str(), error));
+
+		s.done();
+		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		return;
+	}
+
+	Proxy* base = static_cast<Proxy*>(createEntity(g_serverConfig.getDBMgr().dbAccountEntityScriptType,
+		NULL, false, entityID));
 
 	if(!base)
 	{
@@ -3910,22 +3922,6 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		return;
 	}
 
-	if(!success)
-	{
-
-		std::string error;
-		s >> error;
-		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: query {} is failed! error({})\n",
-			accountName.c_str(), error));
-		
-		s.done();
-		
-		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
-		
-		this->destroyEntity(base->id(), true);
-		return;
-	}
-	
 	KBE_ASSERT(base != NULL);
 	base->hasDB(true);
 	base->dbid(dbInterfaceIndex, dbid);
