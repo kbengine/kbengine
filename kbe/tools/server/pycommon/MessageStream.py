@@ -10,7 +10,10 @@ from . import Define
 # 兼容py2.5
 try:
 	bytes
-	unicode = str
+	try:
+		unicode
+	except:
+		unicode = str
 	NULL_TERMINATOR = "\0".encode()
 	NULL_BYTES = "".encode()
 except:
