@@ -111,6 +111,7 @@ class ClusterQueryHandler(ClusterControllerHandler):
 					 info.cpu, info.mem, info.usedmem / 1024.0 / 1024.0, info.extradata, info.extradata1, 0))
 					
 					numEntities += info.extradata
+					numCells += info.extradata1
 				else:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
 					(info.componentName, info.componentID, info.uid, info.pid, info.globalOrderID, info.cpu, 
