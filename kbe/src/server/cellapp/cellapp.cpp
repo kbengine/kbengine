@@ -1685,7 +1685,7 @@ void Cellapp::lookApp(Network::Channel* pChannel)
 	int8 istate = int8(state);
 	(*pBundle) << istate;
 	(*pBundle) << this->entitiesSize();
-	(*pBundle) << cells_.size();
+	(*pBundle) << Spaces::size();
 
 	uint32 port = 0;
 	if(pTelnetServer_)
