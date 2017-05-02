@@ -3524,8 +3524,9 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	uint32										flags;
 	uint64										deadline;
 	COMPONENT_TYPE								componentType;
+	bool										forceInternalLogin;
 
-	s >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType;
+	s >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -3534,7 +3535,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	(*pBundle) << loginName;
 	(*pBundle) << accountName;
 	
-	if(strlen((const char*)&g_kbeSrvConfig.getBaseApp().externalAddress) > 0)
+	if (!forceInternalLogin && strlen((const char*)&g_kbeSrvConfig.getBaseApp().externalAddress) > 0)
 	{
 		(*pBundle) << g_kbeSrvConfig.getBaseApp().externalAddress;
 	}

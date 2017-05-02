@@ -89,7 +89,8 @@ public:
 
 	bool createAccount();
 	bool login();
-	
+	virtual void onLogin(Network::Bundle* pBundle);
+
 	bool loginBaseapp();
 	bool reloginBaseapp();
 

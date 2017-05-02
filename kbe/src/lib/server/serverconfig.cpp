@@ -1232,6 +1232,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);
 		}
 
+		node = xml->enterNode(rootNode, "forceInternalLogin");
+		if (node != NULL){
+			_botsInfo.forceInternalLogin = (xml->getValStr(node) == "true");
+		}
+
 		node = xml->enterNode(rootNode, "telnet_service");
 		if(node != NULL)
 		{

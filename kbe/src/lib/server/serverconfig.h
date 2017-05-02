@@ -145,6 +145,7 @@ typedef struct EngineComponentInfo
 		externalAddress[0] = '\0';
 
 		isOnInitCallPropertysSetMethods = true;
+		forceInternalLogin = false;
 	}
 
 	~EngineComponentInfo()
@@ -208,6 +209,9 @@ typedef struct EngineComponentInfo
 	uint32 defaultAddBots_totalCount;						// 默认启动进程后自动添加这么多个bots 添加总数量
 	float defaultAddBots_tickTime;							// 默认启动进程后自动添加这么多个bots 每次添加所用时间(s)
 	uint32 defaultAddBots_tickCount;						// 默认启动进程后自动添加这么多个bots 每次添加数量
+
+	bool forceInternalLogin;								// 对应baseapp的externalAddress的解决方案，当externalAddress强制下发公网IP提供登陆时，
+															// 如果局域网内部使用机器人测试也走公网IP和流量可能会不合适，此时可以设置为true，登陆时强制直接使用内网环境
 
 	std::string bots_account_name_prefix;					// 机器人账号名称的前缀
 	uint32 bots_account_name_suffix_inc;					// 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增

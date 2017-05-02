@@ -795,6 +795,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	std::string loginName;
 	std::string password;
 	std::string datas;
+	bool forceInternalLogin = false;
 
 	// 前端类别
 	s >> tctype;
@@ -890,6 +891,14 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		{
 			//WARNING_MSG(fmt::format("Loginapp::login: loginName={} no check entitydefs!\n", loginName));
 		}
+	}
+
+	// 如果是机器人登陆，如果设置了强制使用内部地址登陆则需要读取这个标志
+	// 详细看配置文件中的forceInternalLogin
+	if (ctype == CLIENT_TYPE_BOTS)
+	{
+		if (s.length() > 0)
+			s >> forceInternalLogin;
 	}
 
 	s.done();
@@ -999,6 +1008,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	ptinfos->accountName = loginName;
 	ptinfos->password = password;
 	ptinfos->addr = pChannel->addr();
+	ptinfos->forceInternalLogin = forceInternalLogin;
 	pendingLoginMgr_.add(ptinfos);
 
 	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
@@ -1172,7 +1182,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		(*pBundle) << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype;
+		(*pBundle) << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 		return;
@@ -1190,6 +1200,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		(*pBundle) << flags;
 		(*pBundle) << deadline;
 		(*pBundle) << infos->ctype;
+		(*pBundle) << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 	}
