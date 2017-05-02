@@ -15,8 +15,9 @@ def DEBUG_MSG(*args):
 		printMsg(args, True)
 	
 def INFO_MSG(*args): 
-	KBEngine.scriptLogType(KBEngine.LOG_TYPE_INFO)
-	printMsg(args, False)
+	if KBEngine.publish() <= 1:
+		KBEngine.scriptLogType(KBEngine.LOG_TYPE_INFO)
+		printMsg(args, False)
 	
 def WARNING_MSG(*args): 
 	KBEngine.scriptLogType(KBEngine.LOG_TYPE_WAR)

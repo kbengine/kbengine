@@ -1219,7 +1219,7 @@ void Base::onWriteToDB()
 		cd = Py_None;
 
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWriteToDB"), 
-	const_cast<char*>("O"), cd);
+		const_cast<char*>("O"), cd);
 }
 
 //-------------------------------------------------------------------------------------

@@ -255,7 +255,7 @@ __RECONNECT:
 			}
 		}
 
-		if (mysql_set_character_set(mysql(), "utf8") != 0)
+		if (mysql_set_character_set(mysql(), characterSet_.c_str()) != 0)
 		{
 			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
 			return false;
