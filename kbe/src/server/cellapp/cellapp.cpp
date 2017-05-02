@@ -2201,7 +2201,7 @@ PyObject* Cellapp::__py_LoadGeometryMapping(PyObject* self, PyObject* args)
 
 	if (argCount == 3)
 	{
-		if (PyArg_ParseTuple(args, "O|s|b|O", &mapper, &path, &py_params) == -1)
+		if (PyArg_ParseTuple(args, "O|s|O", &mapper, &path, &py_params) == -1)
 		{
 			PyErr_Format(PyExc_AssertionError, "KBEngine::loadGeometryMapping: args is error!");
 			PyErr_PrintEx(0);
