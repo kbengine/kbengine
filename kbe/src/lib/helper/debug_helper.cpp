@@ -273,7 +273,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 		if (kbengine_xml_path != "server/KBEngine.xml")
 		{
 			kbe_snprintf(helpConfig, MAX_PATH, "log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
-			strutil::kbe_replace(kbengine_xml_path, "KBEngine.xml", helpConfig);
+			strutil::kbe_replace(kbengine_xml_path, "kbengine.xml", helpConfig);
 
 			FILE * f = fopen(kbengine_xml_path.c_str(), "r");
 			if (f == NULL)
