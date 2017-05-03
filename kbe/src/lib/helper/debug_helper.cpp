@@ -269,7 +269,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 	{
 		std::string cfg;
 
-		std::string kbengine_xml_path = Resmgr::getSingleton().matchRes("server/KBEngine.xml");
+		std::string kbengine_xml_path = Resmgr::getSingleton().matchRes("server/kbengine.xml");
 		if (kbengine_xml_path != "server/KBEngine.xml")
 		{
 			kbe_snprintf(helpConfig, MAX_PATH, "log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
@@ -286,6 +286,11 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 				fclose(f);
 				cfg = kbengine_xml_path;
 			}
+		}
+		else
+		{
+			kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+			cfg = Resmgr::getSingleton().matchRes(helpConfig);
 		}
 
 		log4cxx::PropertyConfigurator::configure(cfg.c_str());
