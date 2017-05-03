@@ -270,7 +270,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 		std::string cfg;
 
 		std::string kbengine_xml_path = Resmgr::getSingleton().matchRes("server/kbengine.xml");
-		if (kbengine_xml_path != "server/KBEngine.xml")
+		if (kbengine_xml_path != "server/kbengine.xml")
 		{
 			kbe_snprintf(helpConfig, MAX_PATH, "log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
 			strutil::kbe_replace(kbengine_xml_path, "kbengine.xml", helpConfig);
