@@ -1424,7 +1424,7 @@ bool Components::process()
 
 			if (!bhandler.good())
 			{
-				if (errcount++ > 1024)
+				if (errcount++ > 255)
 				{
 					ERROR_MSG(fmt::format("Components::process(): BundleBroadcast error! count > {}\n", (errcount - 1)));
 					dispatcher().breakProcessing();
