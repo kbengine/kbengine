@@ -1407,6 +1407,7 @@ bool Components::process()
 	if(state_ == 0)
 	{
 		uint64 cidex = 0;
+		uint32 errcount = 0;
 
 		DEBUG_MSG("Components::process(): Request for the process of identity...\n");
 
@@ -1421,8 +1422,20 @@ bool Components::process()
 			// 向局域网内广播UDP包，提交自己的身份
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 
-			if(!bhandler.good())
+			if (!bhandler.good())
+			{
+				if (errcount++ > 255)
+				{
+					ERROR_MSG(fmt::format("Components::process(): BundleBroadcast error! count > {}\n", (errcount - 1)));
+					dispatcher().breakProcessing();
+					return false;
+				}
+
+				// 如果失败则继续广播
+				--cidex;
+				KBEngine::sleep(10);
 				continue;
+			}
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
 			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(), 

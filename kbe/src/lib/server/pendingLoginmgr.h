@@ -53,6 +53,7 @@ public:
 			entityDBID = 0;
 			entityID = 0;
 			lastProcessTime = 0;
+			forceInternalLogin = false;
 		}
 
 		Network::Address addr;
@@ -65,6 +66,7 @@ public:
 		DBID entityDBID;
 		uint32 flags;
 		uint64 deadline;
+		bool forceInternalLogin;
 	};
 
 	typedef KBEUnordered_map<std::string, PLInfos*> PTINFO_MAP;

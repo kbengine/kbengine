@@ -1479,7 +1479,7 @@ void Base::onTeleportSuccess(SPACE_ID spaceID)
 void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEntityID, 
 							COMPONENT_ID reqTeleportEntityCellAppID, COMPONENT_ID reqTeleportEntityBaseAppID)
 {
-	if(pChannel->isExternal())
+	if (pChannel && pChannel->isExternal())
 		return;
 	
 	DEBUG_MSG(fmt::format("{2}::reqTeleportOther: reqTeleportEntityID={0}, reqTeleportEntityCellAppID={1}.\n",
@@ -1526,7 +1526,7 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	if(pChannel->isExternal())
+	if (pChannel && pChannel->isExternal())
 		return;
 	
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",
@@ -1546,7 +1546,7 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cell
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	if(pChannel->isExternal())
+	if (pChannel && pChannel->isExternal())
 		return;
 	
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappArrived: {}, targetCellappID={}\n",
@@ -1587,7 +1587,7 @@ void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID ce
 //-------------------------------------------------------------------------------------
 void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID)
 {
-	if(pChannel->isExternal())
+	if (pChannel && pChannel->isExternal())
 		return;
 	
 	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",

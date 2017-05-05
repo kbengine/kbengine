@@ -410,4 +410,9 @@ void ClientObject::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERRO
 }
 
 //-------------------------------------------------------------------------------------
+void ClientObject::onLogin(Network::Bundle* pBundle)
+{
+}
+
+//-------------------------------------------------------------------------------------
 }
