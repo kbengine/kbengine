@@ -10,6 +10,10 @@ from . import Define
 # 兼容py2.5
 try:
 	bytes
+	try:
+		unicode
+	except:
+		unicode = str
 	NULL_TERMINATOR = "\0".encode()
 	NULL_BYTES = "".encode()
 except:
@@ -208,7 +212,7 @@ class MessageStreamWriter(object):
 	def writeString(self, val):
 		"""
 		"""
-		assert isinstance(val, (bytes, str)), "value type not match! current val type = %s" % type(val)
+		assert isinstance(val, (bytes, str, unicode)), "value type not match! current val type = %s" % type(val)
 		if isinstance(val, bytes):
 			self.stream.write( struct.pack("=%ss" % (len(val) + 1), val) ) # 加1是为了有空终结符
 		else:

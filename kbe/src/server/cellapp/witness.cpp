@@ -732,7 +732,7 @@ bool Witness::update()
 	if(!pChannel)
 		return true;
 
-	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfCleint())
+	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		
@@ -867,7 +867,7 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 {
-	if (pEntity_->isControlledNotSelfCleint())
+	if (pEntity_->isControlledNotSelfClient())
 	{
 		const Direction3D& bdir = baseDir();
 		Vector3 changeDir = bdir.dir - lastBaseDir_.dir;

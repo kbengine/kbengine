@@ -267,8 +267,33 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 	}
 	else
 	{
-		kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
-		log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
+		std::string cfg;
+
+		std::string kbengine_xml_path = Resmgr::getSingleton().matchRes("server/kbengine.xml");
+		if (kbengine_xml_path != "server/kbengine.xml")
+		{
+			kbe_snprintf(helpConfig, MAX_PATH, "log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+			strutil::kbe_replace(kbengine_xml_path, "kbengine.xml", helpConfig);
+
+			FILE * f = fopen(kbengine_xml_path.c_str(), "r");
+			if (f == NULL)
+			{
+				kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+				cfg = Resmgr::getSingleton().matchRes(helpConfig);
+			}
+			else
+			{
+				fclose(f);
+				cfg = kbengine_xml_path;
+			}
+		}
+		else
+		{
+			kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+			cfg = Resmgr::getSingleton().matchRes(helpConfig);
+		}
+
+		log4cxx::PropertyConfigurator::configure(cfg.c_str());
 	}
 
 	g_logger = log4cxx::Logger::getRootLogger();

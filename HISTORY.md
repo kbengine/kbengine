@@ -1,3 +1,37 @@
+###v0.9.13
+
+	2017/4/22
+
+	新增与改善：
+		解决safe_kill后日志会报Abnormal误报问题。(#466)  
+		更新API文档。
+
+
+	BUG修正：
+		修正WebConsole在Python2.x下的异常错误
+		修正部分平台上dbmgr连接interfaces出错的问题
+		修正assets/start_bots.sh启动环境设置错误问题
+		修正当没有cell的entity其base部分存存储时无法正确回调onWriteToDB(self, cellData)脚本的问题 
+
+
+
+###v0.9.12
+
+	2017/3/21
+
+	新增与改善：
+		Vector传输优化， 不需要记录size。(#430) 
+		增加支持在服务器调用玩家的disconnect功能断开客户端连接(entity.disconnect())
+		实体移动updatable和witness的updatable之间没有优先级，导致位置可能没有及时在同一帧更新(#461)
+		更新API文档。
+
+
+	BUG修正：
+		修正entitiesInAOI在极端情况产生异常。(#459)
+		修正配置中databaseInterfaces多个接口中存在注释时读取错误的问题 
+
+
+
 ###v0.9.11
 
 	2017/2/25

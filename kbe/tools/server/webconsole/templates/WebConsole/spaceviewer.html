@@ -4,8 +4,8 @@
 {{componentName}} on {{intaddr}}:{{intport}}
  
   	<div id="err">{{err}}</div>
-	<input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url }}">
-	<input name="cell_ws_url" type="hidden" id="cell_ws_url" value="{{ cell_ws_url }}">
+	<input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url|safe }}">
+	<input name="cell_ws_url" type="hidden" id="cell_ws_url" value="{{ cell_ws_url|safe }}">
   	<div><hr style=" height:1px;border:none;border-top:1px solid;" /></div>
 	<div class="col-sm-12">
 		<div class="list-tree col-sm-4" style="border: 1px solid;height:750px;overflow:auto;">
@@ -33,8 +33,8 @@ function connect_to()
     socket.onopen = function(evt) {}; 
     socket.onclose = function(evt) {}; 
     socket.onmessage = function(evt) { 
-     	obj_data = JSON.parse(evt.data.replace(/'/g,'\"'));
-     	console.log(obj_data);
+     	console.log(evt.data);
+     	obj_data = JSON.parse(evt.data);
      	for(var i in obj_data["cellapp"]){
      		{% for comp in kbeComps %}
      		if (i ==  {{comp.componentID}} )
@@ -131,9 +131,7 @@ function show_space()
     cell_socket.onclose = function(evt) {}; 
     cell_socket.onmessage = function(evt) {
     	console.log(evt.data);
-    	var obj_cell = evt.data.replace(/False/g,'\"False\"');
-    	obj_cell = obj_cell.replace(/True/g,'\"True\"')
-    	obj_cell = JSON.parse(obj_cell.replace(/'/g,'\"'));
+    	obj_cell = JSON.parse(evt.data);
     	console.log(obj_cell);
     	for( i in obj_cell["spaceEntity"]){
     		point_arr = [obj_cell["spaceEntity"][i]["position_X"],obj_cell["spaceEntity"][i]["position_Z"],40000000,i,obj_cell["spaceEntity"][i]["pEntity"]];

@@ -216,10 +216,8 @@ std::string Resmgr::matchRes(const char* res)
 		strutil::kbe_replace(fpath, "\\", "/");
 		strutil::kbe_replace(fpath, "//", "/");
 
-		FILE * f = fopen (fpath.c_str(), "r");
-		if(f != NULL)
+		if (access(fpath.c_str(), 0) == 0)
 		{
-			fclose(f);
 			return fpath;
 		}
 	}
@@ -239,10 +237,8 @@ bool Resmgr::hasRes(const std::string& res)
 		strutil::kbe_replace(fpath, "\\", "/");
 		strutil::kbe_replace(fpath, "//", "/");
 
-		FILE * f = fopen (fpath.c_str(), "r");
-		if(f != NULL)
+		if (access(fpath.c_str(), 0) == 0)
 		{
-			fclose(f);
 			return true;
 		}
 	}
