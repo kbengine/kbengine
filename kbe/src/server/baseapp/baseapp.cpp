@@ -5257,6 +5257,20 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 	password = KBEngine::strutil::kbe_trim(password);
 	email = KBEngine::strutil::kbe_trim(email);
 
+	if (!email_isvalid(email.c_str()))
+	{
+		ERROR_MSG(fmt::format("Baseapp::reqAccountBindEmail(): invalid email({})! accountName={}\n", 
+			email, accountName));
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_NAME_MAIL;
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
+		return;
+		return false;
+	}
+			
 	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName={}, entityID={}, email={}!\n", accountName, entityID, email));
 
 	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
