@@ -5268,7 +5268,6 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 		(*pBundle) << retcode;
 		pChannel->send(pBundle);
 		return;
-		return false;
 	}
 			
 	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName={}, entityID={}, email={}!\n", accountName, entityID, email));
