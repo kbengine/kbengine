@@ -648,6 +648,11 @@ void DebugHelper::printBufferedLogs()
 		return;
 	}
 
+#ifdef NO_USE_LOG4CXX
+#else
+	LOG4CXX_INFO(g_logger, "The following logs sent to logger failed:\n");
+#endif
+
 	// 将子线程日志放入bufferedLogPackets_
 	while (childThreadBufferedLogPackets_.size() > 0)
 	{
@@ -726,7 +731,7 @@ void DebugHelper::printBufferedLogs()
 	    kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %03d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
 			aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, kbetime);
 
-		std::string logstr = fmt::format("==>printBufferedLog():{}", timebuf);
+		std::string logstr = fmt::format("==>{}", timebuf);
 		logstr += str;
 		
 #ifdef NO_USE_LOG4CXX
