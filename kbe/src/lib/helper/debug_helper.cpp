@@ -634,6 +634,153 @@ void DebugHelper::unregisterLogger(Network::MessageID msgID, Network::Address* p
 	loggerAddr_ = Network::Address::NONE;
 	canLogFile_ = true;
 	ALERT_LOG_TO("", true);
+	printBufferedLogs();
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::printBufferedLogs()
+{
+	lockthread();
+
+	if(hasBufferedLogPackets_ == 0)
+	{
+		unlockthread();
+		return;
+	}
+
+	// 将子线程日志放入bufferedLogPackets_
+	while (childThreadBufferedLogPackets_.size() > 0)
+	{
+		// 从主对象池取出一个对象，将子线程中对象vector内存交换进去
+		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
+		childThreadBufferedLogPackets_.pop();
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		bufferedLogPackets_.push(pBundle);
+
+		pBundle->newMessage(LoggerInterface::writeLog);
+		pBundle->finiCurrPacket();
+		pBundle->newPacket();
+
+		// 将他们的内存交换进去
+		pBundle->pCurrPacket()->swap(*pMemoryStream);
+		pBundle->currMsgLength(pBundle->currMsgLength() + pBundle->pCurrPacket()->length());
+
+		// 将所有对象交还给对象池
+		memoryStreamPool_.reclaimObject(pMemoryStream);
+	}
+
+	while(!bufferedLogPackets_.empty())
+	{		
+		Network::Bundle* pBundle = bufferedLogPackets_.front();
+		bufferedLogPackets_.pop();
+
+		pBundle->finiMessage(true);
+
+		Network::MessageID msgID;
+		Network::MessageLength msglen;
+		Network::MessageLength1 msglen1;
+
+		int32 uid;
+		uint32 logtype;
+		COMPONENT_TYPE componentType;
+		COMPONENT_ID componentID;
+		COMPONENT_ORDER componentGlobalOrder;
+		COMPONENT_ORDER componentGroupOrder;
+		int64 t;
+		GAME_TIME kbetime;
+
+		std::string str;
+
+		(*pBundle) >> msgID;
+		(*pBundle) >> msglen;
+
+		if (msglen == 65535)
+			(*pBundle) >> msglen1;
+
+		(*pBundle) >> uid;
+		(*pBundle) >> logtype;
+		(*pBundle) >> componentType;
+		(*pBundle) >> componentID;
+		(*pBundle) >> componentGlobalOrder;
+		(*pBundle) >> componentGroupOrder;
+		(*pBundle) >> t;
+		(*pBundle) >> kbetime;
+		(*pBundle).readBlob(str);
+
+		time_t tt = static_cast<time_t>(t);	
+	    tm* aTm = localtime(&tt);
+	    //       YYYY   year
+	    //       MM     month (2 digits 01-12)
+	    //       DD     day (2 digits 01-31)
+	    //       HH     hour (2 digits 00-23)
+	    //       MM     minutes (2 digits 00-59)
+	    //       SS     seconds (2 digits 00-59)
+
+		if(aTm == NULL)
+		{
+			continue;
+		}
+	
+		char timebuf[MAX_BUF];
+	    kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %03d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
+			aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, kbetime);
+
+		std::string logstr = fmt::format("==>printBufferedLog():{}", timebuf);
+		logstr += str;
+		
+#ifdef NO_USE_LOG4CXX
+#else
+		switch (logtype)
+		{
+		case KBELOG_PRINT:
+			LOG4CXX_INFO(g_logger, logstr);
+			break;
+		case KBELOG_ERROR:
+			LOG4CXX_ERROR(g_logger, logstr);
+			break;
+		case KBELOG_WARNING:
+			LOG4CXX_WARN(g_logger, logstr);
+			break;
+		case KBELOG_DEBUG:
+			LOG4CXX_DEBUG(g_logger, logstr);
+			break;
+		case KBELOG_INFO:
+			LOG4CXX_INFO(g_logger, logstr);
+			break;
+		case KBELOG_CRITICAL:
+			LOG4CXX_FATAL(g_logger, logstr);
+			break;
+		case KBELOG_SCRIPT_INFO:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_INFO);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_ERROR:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_DEBUG:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_DBG);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_WARNING:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_WAR);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_NORMAL:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_INFO);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		default:
+			break;
+		};
+#endif
+
+		--hasBufferedLogPackets_;
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
