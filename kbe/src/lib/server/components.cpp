@@ -344,12 +344,12 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 
 				if (!isShutingdown && g_componentType != LOGGER_TYPE)
 				{
-					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit.\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid));
+					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! isShutingdown={}, errno={}\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid, isShutingdown, kbe_strerror()));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit!\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
+					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! isShutingdown={}, errno={}\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid), isShutingdown, kbe_strerror()).c_str());
 #endif
 				}
 				else
