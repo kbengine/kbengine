@@ -724,6 +724,7 @@ void DebugHelper::printBufferedLogs()
 
 		if(aTm == NULL)
 		{
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
 			continue;
 		}
 	
