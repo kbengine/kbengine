@@ -100,7 +100,7 @@ INLINE int32 Bundle::lastPacketSpace()
 		if (!pPacket->isEnabledPoolObject())
 			return 0;
 
-		return packetMaxSize() - pPacket->wpos();
+		return packetMaxSize() - (int32)pPacket->wpos();
 	}
 
 	return 0;
