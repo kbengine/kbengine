@@ -9,6 +9,22 @@ import getpass
 import time
 import os
 
+# FLOAT；单位：秒
+# 每次查询Machine时等待响应的最长时间
+MACHINES_QUERY_WAIT_TIME = 1.0
+
+# FLOAT；单位：秒
+# 每次查询Machine失败重试次数
+MACHINES_QUERY_ATTEMPT_COUNT = 1
+
+# MACHINES地址配置
+# 当此参数不为空时，则由原来的广播探测改为固定地址探测，
+# WebConsole仅会以此配置的地址进行探测，
+# 当服务器存在跨网段的情况时，此方案犹为有用。
+# 例子：
+# MACHINES_ADDRESS = ["192.168.0.1", "10.0.0.1", "172.16.0.1"]
+MACHINES_ADDRESS = []
+
 def initRootPath():
 	"""
 	初始化root目录，以加载其它的脚本
@@ -36,7 +52,8 @@ NO_SHUTDOWN_COMPONENTS = (
 	"client",
 )
 
-
+if len(MACHINES_ADDRESS) == 0:
+	MACHINES_ADDRESS = "<broadcast>"
 
 class ClusterControllerHandler( Machines ):
 	def __init__(self, uid):
@@ -53,7 +70,7 @@ class ClusterConsoleHandler(ClusterControllerHandler):
 	def do(self):
 		self.interfaces_groups = {}
 		print("finding(" + self.consoleType  + ")...")
-		self.queryAllInterfaces()
+		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 		
 		for machineID in self.interfaces_groups:
 			infos = self.interfaces_groups.get(machineID, [])
@@ -74,7 +91,7 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		
 	def do(self):
 		self.interfaces_groups = {}
-		self.queryAllInterfaces()
+		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 		
 		numBases = 0
 		numEntities = 0
@@ -135,7 +152,7 @@ class ClusterStartHandler(ClusterControllerHandler):
 		self.kbe_bin_path = kbe_bin_path
 		
 	def do(self):
-		self.queryAllInterfaces()
+		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 		
 		print("[curr-online-components:]")
 		for ctype in self.interfaces:
@@ -166,7 +183,7 @@ class ClusterStartHandler(ClusterControllerHandler):
 			print("query status: %i" % qcount)
 			qcount += 1
 			
-			self.queryAllInterfaces()
+			self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 			
 			waitcount = 0
 			for ctype in interfacesCount:
@@ -253,7 +270,7 @@ class ClusterStopHandler(ClusterControllerHandler):
 				
 			qcount += 1
 			
-			self.queryAllInterfaces()
+			self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 			self.sendStop(qcount == 1)
 			
 			if qcount == 1:
@@ -300,7 +317,7 @@ class ClusterLogWatchHandler(ClusterControllerHandler):
 		self.watcher = LoggerWatcher()
 
 	def do(self):
-		self.queryAllInterfaces()
+		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 		
 		infos = self.getComponentInfos( LOGGER_TYPE )
 		if not infos:
@@ -341,7 +358,7 @@ class ClusterSendLogHandler(ClusterControllerHandler):
 		self.logStr = logStr
 
 	def do(self):
-		self.queryAllInterfaces()
+		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 		
 		infos = self.getComponentInfos( LOGGER_TYPE )
 		if not infos:
@@ -391,7 +408,7 @@ class ClusterSaveProcessHandler(ClusterControllerHandler):
 	def do(self):
 		"""
 		"""
-		self.queryAllInterfaces()
+		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 		
 		cper = configparser.ConfigParser()
 		for i in range( COMPONENT_END_TYPE ):
@@ -501,7 +518,7 @@ class ClusterLoadProcessHandler(ClusterControllerHandler):
 		while True:
 			queryCount += 1
 			print( "query status: %s" % queryCount )
-			self.queryAllInterfaces()
+			self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 			currentCount = [0] * COMPONENT_END_TYPE
 			for machineID, infos in self.interfaces_groups.items():
 				for info in infos:
@@ -559,7 +576,7 @@ class ClusterStartServerHandler(ClusterControllerHandler):
 		while True:
 			queryCount += 1
 			print( "query status: %s" % queryCount )
-			self.queryAllInterfaces()
+			self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 			currentCount = [0] * COMPONENT_END_TYPE
 			for machineID, infos in self.interfaces_groups.items():
 				for info in infos:
