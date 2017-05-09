@@ -162,12 +162,12 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 					onGetError(pChannel);
 
 					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
-						fmt::format("TCPPacketSender::processSend(sendfailCount({}) >= 10)", sendfailCount_).c_str());
+						fmt::format("TCPPacketSender::processSend(sendfailCount({}) >= 10)", (int)sendfailCount_).c_str());
 				}
 				else
 				{
 					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
-						fmt::format("TCPPacketSender::processSend({})", sendfailCount_).c_str());
+						fmt::format("TCPPacketSender::processSend({})", (int)sendfailCount_).c_str());
 				}
 			}
 			else
