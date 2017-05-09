@@ -119,6 +119,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 		{
 			ERROR_MSG(fmt::format("HTTPCBHandler:handleInputNotification: fd({}) not found!\n",
 				fd));
+
 			return 0;
 		}
 
@@ -138,6 +139,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 				Loginapp::getSingleton().networkInterface().dispatcher().deregisterReadFileDescriptor(*newclient);
 				clients_.erase(iter);
 			}
+
 			return 0;
 		}
 
