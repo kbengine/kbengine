@@ -712,6 +712,7 @@
 		<account_type> 3 </account_type>
 		
 		<!-- http回调接口，处理认证、密码重置等 
+			（注意：http_cbhost一般会被引擎替换为externalInterface或者externalAddress，仅第一个loginapp才会开启这个服务）
 			(Http-callback interface, handling authentication, password reset, etc.)
 		-->
 		<http_cbhost> localhost </http_cbhost>

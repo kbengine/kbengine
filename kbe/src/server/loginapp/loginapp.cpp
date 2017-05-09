@@ -786,6 +786,51 @@ void Loginapp::onReqAccountResetPasswordCB(Network::Channel* pChannel, std::stri
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pChannel, COMPONENT_ID reqBaseappID, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code)
+{
+	if (pChannel->isExternal())
+		return;
+
+	INFO_MSG(fmt::format("Loginapp::onReqAccountBindEmailAllocCallbackLoginapp: {}, email={}, failedcode={}! reqBaseappID={}\n",
+		accountName, email, failedcode, reqBaseappID));
+
+	Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+	std::string http_host = "localhost";
+	if (startGroupOrder_ == 1)
+	{
+		if (strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
+			http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
+		else
+			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+	}
+	else
+	{
+		Components::COMPONENTS::iterator iter = loginapps.begin();
+		for (; iter != loginapps.end(); ++iter)
+		{
+			if ((*iter).groupOrderid == 1)
+			{
+				if (strlen((const char*)&(*iter).externalAddressEx) > 0)
+					http_host = (*iter).externalAddressEx;
+				else
+					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+			}
+		}
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+
+	(*pBundle).newMessage(BaseappmgrInterface::onReqAccountBindEmailCBFromLoginapp);
+
+	BaseappmgrInterface::onReqAccountBindEmailCBFromLoginappArgs8::staticAddToBundle((*pBundle), reqBaseappID,
+		entityID, accountName, email, failedcode, code, http_host, g_kbeSrvConfig.getLoginApp().http_cbport);
+
+	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 {
 	AUTO_SCOPED_PROFILE("login");

@@ -497,8 +497,17 @@ public:
 	*/
 	void reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& password, std::string& email);
 
-	void onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	/** 网络接口
+		请求绑定email, dbmgr返回结果
+	*/
+	void onReqAccountBindEmailCBFromDBMgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 		SERVER_ERROR_CODE failedcode, std::string& code);
+
+	/** 网络接口
+		请求绑定email, baseappmgr返回需要找到loginapp的地址
+	*/
+	void onReqAccountBindEmailCBFromBaseappmgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+		SERVER_ERROR_CODE failedcode, std::string& code, std::string& loginappCBHost, uint16 loginappCBPort);
 
 	/** 网络接口
 		请求绑定email

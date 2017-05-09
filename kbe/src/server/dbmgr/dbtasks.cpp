@@ -1081,7 +1081,8 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 		code_, success_));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCB);
+	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCBFromDBMgr);
+
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
