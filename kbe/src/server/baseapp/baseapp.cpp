@@ -5414,7 +5414,7 @@ void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID en
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+	(*pBundle).newMessage(ClientInterface::onReqAccountNewPasswordCB);
 	(*pBundle) << failedcode;
 	base->clientMailbox()->getChannel()->send(pBundle);
 }
