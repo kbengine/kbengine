@@ -208,8 +208,9 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 				"Throwing REASON_GENERAL_NETWORK - {}\n",
 				(pEndpoint_ ? pEndpoint_->addr().c_str() : ""), kbe_strerror()));
 #endif
-	this->dispatcher().errorReporter().reportException(
-			REASON_GENERAL_NETWORK);
+
+	//this->dispatcher().errorReporter().reportException(
+	//		REASON_GENERAL_NETWORK);
 
 	return RECV_STATE_CONTINUE;
 }
