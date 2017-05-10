@@ -78,7 +78,7 @@ void myassert(const char * exp, const char * func, const char * file, unsigned i
 {
 	DebugHelper::getSingleton().backtrace_msg();
 	std::string s = (fmt::format("assertion failed: {}, file {}, line {}, at: {}\n", exp, file, line, func));
-	printf("%s: %s", COMPONENT_NAME_EX_2(g_componentType), (std::string("[ASSERT]: ") + s).c_str());
+	printf("%s%02d: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, (std::string("[ASSERT]: ") + s).c_str());
 
 	dbghelper.print_msg(s);
     abort();
@@ -817,7 +817,7 @@ void DebugHelper::error_msg(const std::string& s)
 	onMessage(KBELOG_ERROR, s.c_str(), (uint32)s.size());
 
 	set_errorcolor();
-	printf("%s: [ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), s.c_str());
+	printf("%s%02d: [ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 }
 
@@ -877,7 +877,7 @@ void DebugHelper::script_info_msg(const std::string& s)
 	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
 	{
 		set_errorcolor();
-		printf("%s: [S_ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), s.c_str());
+		printf("%s%02d: [S_ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 		set_normalcolor();
 	}
 }
@@ -898,7 +898,7 @@ void DebugHelper::script_error_msg(const std::string& s)
 	onMessage(KBELOG_SCRIPT_ERROR, s.c_str(), (uint32)s.size());
 
 	set_errorcolor();
-	printf("%s: [S_ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), s.c_str());
+	printf("%s%02d: [S_ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 }
 
@@ -943,7 +943,7 @@ void DebugHelper::warning_msg(const std::string& s)
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	set_warningcolor();
-	//printf("%s: [WARNING]: %s", COMPONENT_NAME_EX_2(g_componentType), s.c_str());
+	//printf("%s%02d: [WARNING]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 #endif
 }
@@ -963,7 +963,7 @@ void DebugHelper::critical_msg(const std::string& s)
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	set_errorcolor();
-	printf("%s: [FATAL]: %s", COMPONENT_NAME_EX_2(g_componentType), s.c_str());
+	printf("%s%02d: [FATAL]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 #endif
 
