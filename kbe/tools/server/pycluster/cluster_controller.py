@@ -129,6 +129,10 @@ class ClusterQueryHandler(ClusterControllerHandler):
 					
 					numEntities += info.extradata
 					numCells += info.extradata1
+				elif info.componentType == LOGINAPP_TYPE:
+					print("|-%12s%i\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
+					(info.componentName, info.groupOrderID, info.componentID, info.uid, info.pid, info.globalOrderID, info.cpu, 
+					 info.mem, info.usedmem / 1024.0 / 1024.0, 0, 0, 0))
 				else:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
 					(info.componentName, info.componentID, info.uid, info.pid, info.globalOrderID, info.cpu, 
