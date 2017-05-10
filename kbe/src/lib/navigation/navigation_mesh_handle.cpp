@@ -371,7 +371,7 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 
 	bool safeStorage = true;
 	int pos = 0;
-	int size = sizeof(NavMeshSetHeader);
+	int size = 0;
 	
 	fseek(fp, 0, SEEK_END); 
 	size_t flen = ftell(fp); 
@@ -410,9 +410,9 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 	}
 
 	NavMeshSetHeader header;
+	size = sizeof(NavMeshSetHeader);
+	
 	memcpy(&header, data, size);
-
-	pos += size;
 
 	if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
 	{
@@ -444,10 +444,13 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 
 	// Read tiles.
 	bool success = true;
+	pos += size;
+
 	for (int i = 0; i < header.tileCount; ++i)
 	{
 		NavMeshTileHeader tileHeader;
 		size = sizeof(NavMeshTileHeader);
+
 		memcpy(&tileHeader, &data[pos], size);
 		pos += size;
 
@@ -461,6 +464,7 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 		
 		unsigned char* tileData = 
 			(unsigned char*)dtAlloc(size, DT_ALLOC_PERM);
+
 		if (!tileData)
 		{
 			success = false;
