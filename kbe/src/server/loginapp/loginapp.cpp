@@ -224,6 +224,8 @@ void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER 
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
+	g_componentGlobalOrder = startGlobalOrder;
+	g_componentGroupOrder = startGroupOrder;
 	digest_ = digest;
 
 	// 再次同步自己的新信息(startGlobalOrder, startGroupOrder等)到machine
