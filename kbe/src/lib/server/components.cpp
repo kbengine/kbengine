@@ -1396,6 +1396,64 @@ void Components::onFoundAllComponents()
 }
 
 //-------------------------------------------------------------------------------------
+void Components::broadcastSelf()
+{
+	int cidex = 0;
+	int errcount = 0;
+
+	while (cidex++ < 2)
+	{
+		if (dispatcher().hasBreakProcessing() || dispatcher().waitingBreakProcessing())
+			return;
+
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+
+		// 向局域网内广播UDP包，提交自己的身份
+		Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
+
+		if (!bhandler.good())
+		{
+			if (errcount++ > 255)
+			{
+				ERROR_MSG(fmt::format("Components::broadcastSelf(): BundleBroadcast error! count > {}\n", (errcount - 1)));
+				dispatcher().breakProcessing();
+				return;
+			}
+
+			// 如果失败则继续广播
+			--cidex;
+			KBEngine::sleep(10);
+			continue;
+		}
+
+		bhandler.newMessage(MachineInterface::onBroadcastInterface);
+		MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(),
+			componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
+			pNetworkInterface()->intaddr().ip, pNetworkInterface()->intaddr().port,
+			pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
+			SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, extraData1_, extraData2_, extraData3_, extraData4_,
+			pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+
+		ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+		std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+		for (; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+			bhandler.addBroadCastAddress((*machine_addresses_iter));
+
+		bhandler.broadcast();
+
+		int32 timeout = 100000;
+		MachineInterface::onBroadcastInterfaceArgs25 args;
+
+		if (bhandler.receive(&args, 0, timeout, false))
+		{
+		}
+
+		bhandler.close();
+	}
+}
+
+//-------------------------------------------------------------------------------------
 bool Components::process()
 {
 	if(componentType_ == MACHINE_TYPE)

@@ -226,6 +226,9 @@ void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER 
 	startGroupOrder_ = startGroupOrder;
 	digest_ = digest;
 
+	// 再次同步自己的新信息(startGlobalOrder, startGroupOrder等)到machine
+	Components::getSingleton().broadcastSelf();
+
 	if(startGroupOrder_ == 1)
 		pHttpCBHandler = new HTTPCBHandler();
 }

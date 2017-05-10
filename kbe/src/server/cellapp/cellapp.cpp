@@ -752,6 +752,9 @@ void Cellapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 {
 	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, startGlobalOrder, startGroupOrder, digest);
 	
+	// 再次同步自己的新信息(startGlobalOrder, startGroupOrder等)到machine
+	Components::getSingleton().broadcastSelf();
+
 	// 这里需要更新一下python的环境变量
 	this->getScript().setenv("KBE_BOOTIDX_GLOBAL", getenv("KBE_BOOTIDX_GLOBAL"));
 	this->getScript().setenv("KBE_BOOTIDX_GROUP", getenv("KBE_BOOTIDX_GROUP"));
