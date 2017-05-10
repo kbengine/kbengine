@@ -134,7 +134,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 				//WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} already running, pid={}, uid={}!\n", 
 				//	COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
 
-				pinfos->globalOrderid = globalorderid;
+				//pinfos->globalOrderid = globalorderid;
 				pinfos->groupOrderid = grouporderid;
 				return;
 			}
