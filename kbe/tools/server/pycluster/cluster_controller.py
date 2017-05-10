@@ -115,7 +115,7 @@ class ClusterQueryHandler(ClusterControllerHandler):
 			for info in infos:
 				if info.componentType == BASEAPP_TYPE:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tbases=%i\t\tclients=%i\tproxices=%i" % \
-					((info.componentName + ("%.2i" % info.groupOrderID), info.componentID, info.uid, info.pid, info.globalOrderID, 
+					((info.componentName + ("%.2i" % info.groupOrderID)), info.componentID, info.uid, info.pid, info.globalOrderID, 
 					 info.cpu, info.mem, info.usedmem / 1024.0 / 1024.0, info.extradata, info.extradata1, info.extradata2))
 
 					numBases += info.extradata
@@ -124,14 +124,14 @@ class ClusterQueryHandler(ClusterControllerHandler):
 		
 				elif info.componentType == CELLAPP_TYPE:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\tentities=%i\tcells=%i\t\t%i" % \
-					((info.componentName + ("%.2i" % info.groupOrderID),, info.componentID, info.uid, info.pid, info.globalOrderID, 
+					((info.componentName + ("%.2i" % info.groupOrderID)), info.componentID, info.uid, info.pid, info.globalOrderID, 
 					 info.cpu, info.mem, info.usedmem / 1024.0 / 1024.0, info.extradata, info.extradata1, 0))
 					
 					numEntities += info.extradata
 					numCells += info.extradata1
 				elif info.componentType == LOGINAPP_TYPE:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
-					((info.componentName + ("%.2i" % info.groupOrderID),, info.componentID, info.uid, info.pid, info.globalOrderID, info.cpu, 
+					((info.componentName + ("%.2i" % info.groupOrderID)), info.componentID, info.uid, info.pid, info.globalOrderID, info.cpu, 
 					 info.mem, info.usedmem / 1024.0 / 1024.0, 0, 0, 0))
 				else:
 					print("|-%12s\t%i\t%i\t%i\t%i\t%.2f\t%.2f\t%.2fm\t%i\t\t%i\t\t%i" % \
