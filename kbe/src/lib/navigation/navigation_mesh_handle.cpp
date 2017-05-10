@@ -354,92 +354,61 @@ NavigationHandle* NavMeshHandle::create(std::string resPath, const std::map< int
 }
 
 //-------------------------------------------------------------------------------------
-bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::string& res, NavMeshHandle* pNavMeshHandle)
+template<typename NAVMESH_SET_HEADER>
+dtNavMesh* tryReadNavmesh(uint8* data, size_t readsize, const std::string& res, bool showlog)
 {
-	KBE_ASSERT(pNavMeshHandle);
-	FILE* fp = fopen(res.c_str(), "rb");
-	if (!fp)
+	if (readsize < sizeof(NAVMESH_SET_HEADER))
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}) is error!\n", 
-			Resmgr::getSingleton().matchRes(res)));
+		if(showlog)
+		{
+			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh: open({}), NavMeshSetHeader is error!\n", 
+				Resmgr::getSingleton().matchRes(res)));
+		}
 
-		return false;
+		return NULL;
 	}
 	
-	DEBUG_MSG(fmt::format("NavMeshHandle::create: ({}), layer={}\n", 
-		res, layer));
-
-	bool safeStorage = true;
 	int pos = 0;
 	int size = 0;
+	bool safeStorage = true;
 	
-	fseek(fp, 0, SEEK_END); 
-	size_t flen = ftell(fp); 
-	fseek(fp, 0, SEEK_SET); 
-
-	uint8* data = new uint8[flen];
-	if(data == NULL)
-	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), memory(size={}) error!\n", 
-			Resmgr::getSingleton().matchRes(res), flen));
-
-		fclose(fp);
-		SAFE_RELEASE_ARRAY(data);
-		return false;
-	}
-
-	size_t readsize = fread(data, 1, flen, fp);
-	if(readsize != flen)
-	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), read(size={} != {}) error!\n", 
-			Resmgr::getSingleton().matchRes(res), readsize, flen));
-
-		fclose(fp);
-		SAFE_RELEASE_ARRAY(data);
-		return false;
-	}
-
-	if (readsize < sizeof(NavMeshSetHeader))
-	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), NavMeshSetHeader is error!\n", 
-			Resmgr::getSingleton().matchRes(res)));
-
-		fclose(fp);
-		SAFE_RELEASE_ARRAY(data);
-		return false;
-	}
-
-	NavMeshSetHeader header;
-	size = sizeof(NavMeshSetHeader);
+	NAVMESH_SET_HEADER header;
+	size = sizeof(NAVMESH_SET_HEADER);
 	
 	memcpy(&header, data, size);
 
 	if (header.version != NavMeshHandle::RCN_NAVMESH_VERSION)
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: navmesh version({}) is not match({})!\n", 
-			header.version, ((int)NavMeshHandle::RCN_NAVMESH_VERSION)));
-
-		fclose(fp);
-		SAFE_RELEASE_ARRAY(data);
-		return false;
+		if(showlog)
+		{
+			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh: navmesh version({}) is not match({})!\n", 
+				header.version, ((int)NavMeshHandle::RCN_NAVMESH_VERSION)));
+		}
+		
+		return NULL;
 	}
 
 	dtNavMesh* mesh = dtAllocNavMesh();
 	if (!mesh)
 	{
-		ERROR_MSG("NavMeshHandle::create: dtAllocNavMesh is failed!\n");
-		fclose(fp);
-		SAFE_RELEASE_ARRAY(data);
-		return false;
+		if(showlog)
+		{
+			ERROR_MSG("NavMeshHandle::tryReadNavmesh: dtAllocNavMesh is failed!\n");
+		}
+		
+		return NULL;
 	}
 
 	dtStatus status = mesh->init(&header.params);
 	if (dtStatusFailed(status))
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: mesh init is error({})!\n", status));
-		fclose(fp);
-		SAFE_RELEASE_ARRAY(data);
-		return false;
+		if(showlog)
+		{
+			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh: mesh init is error({})!\n", status));
+		}
+		
+		dtFreeNavMesh(mesh);
+		return NULL;
 	}
 
 	// Read tiles.
@@ -486,16 +455,78 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 			break;
 		}
 	}
+	
+	if (!success)
+	{
+		if(showlog)
+		{
+			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh:  error({})!\n", status));
+		}
+		
+		dtFreeNavMesh(mesh);
+		return NULL;
+	}
+	
+	return mesh;
+}
+
+bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::string& res, NavMeshHandle* pNavMeshHandle)
+{
+	KBE_ASSERT(pNavMeshHandle);
+	FILE* fp = fopen(res.c_str(), "rb");
+	if (!fp)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}) is error!\n", 
+			Resmgr::getSingleton().matchRes(res)));
+
+		return false;
+	}
+	
+	DEBUG_MSG(fmt::format("NavMeshHandle::create: ({}), layer={}\n", 
+		res, layer));
+
+	fseek(fp, 0, SEEK_END); 
+	size_t flen = ftell(fp); 
+	fseek(fp, 0, SEEK_SET); 
+
+	uint8* data = new uint8[flen];
+	if(data == NULL)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), memory(size={}) error!\n", 
+			Resmgr::getSingleton().matchRes(res), flen));
+
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
+
+	size_t readsize = fread(data, 1, flen, fp);
+	if(readsize != flen)
+	{
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}), read(size={} != {}) error!\n", 
+			Resmgr::getSingleton().matchRes(res), readsize, flen));
+
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
+
+	dtNavMesh* mesh = tryReadNavmesh<NavMeshSetHeader>(data, readsize, res, false);
+	
+	// 如果加载失败则尝试加载扩展格式
+	if(!mesh)
+		mesh = tryReadNavmesh<NavMeshSetHeaderEx>(data, readsize, res, true);
+
+	if (!mesh)
+	{
+		ERROR_MSG("NavMeshHandle::create: dtAllocNavMesh is failed!\n");
+		fclose(fp);
+		SAFE_RELEASE_ARRAY(data);
+		return false;
+	}
 
 	fclose(fp);
 	SAFE_RELEASE_ARRAY(data);
-
-	if (!success)
-	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create:  error({})!\n", status));
-		dtFreeNavMesh(mesh);
-		return false;
-	}
 
 	dtNavMeshQuery* pMavmeshQuery = new dtNavMeshQuery();
 
