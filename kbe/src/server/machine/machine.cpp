@@ -131,10 +131,10 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		{
 			if(checkComponentUsable(pinfos, false, true))
 			{
-				//WARNING_MSG(fmt::format("Machine::onBroadcastInterface: {} already running, pid={}, uid={}!\n", 
-				//	COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid));
+				DEBUG_MSG(fmt::format("Machine::onBroadcastInterface: {} update, pid={}, uid={}, globalorderid={}, grouporderid={}!\n", 
+					COMPONENT_NAME_EX((COMPONENT_TYPE)componentType), pid, uid, globalorderid, grouporderid));
 
-				//pinfos->globalOrderid = globalorderid;
+				pinfos->globalOrderid = globalorderid;
 				pinfos->groupOrderid = grouporderid;
 				return;
 			}
