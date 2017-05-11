@@ -66,11 +66,11 @@ bool DBInterfaceRedis::checkErrors()
 {
 	if (!RedisHelper::hasTable(this, fmt::format("{}:*", DBUtil::accountScriptName()), true))
 	{
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset " KBE_TABLE_PERFIX "_* table...\n", 
 			DBUtil::accountScriptName()));
 		
-		RedisHelper::dropTable(this, fmt::format("kbe_*"), false);
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
+		RedisHelper::dropTable(this, fmt::format(KBE_TABLE_PERFIX "_*"), false);
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset " KBE_TABLE_PERFIX "_* table end!\n"));
 	}
 	
 	return true;

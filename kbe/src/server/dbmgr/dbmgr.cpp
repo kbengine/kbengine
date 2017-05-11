@@ -837,7 +837,7 @@ void Dbmgr::syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::Memor
 	for (; iter != EntityTables::sEntityTables.end(); ++iter)
 	{
 		KBEAccountTable* pTable =
-			static_cast<KBEAccountTable*>(iter->second.findKBETable("kbe_accountinfos"));
+			static_cast<KBEAccountTable*>(iter->second.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 
 		KBE_ASSERT(pTable);
 
