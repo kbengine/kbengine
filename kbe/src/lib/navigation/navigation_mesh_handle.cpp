@@ -361,7 +361,7 @@ dtNavMesh* tryReadNavmesh(uint8* data, size_t readsize, const std::string& res, 
 	{
 		if(showlog)
 		{
-			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh: open({}), NavMeshSetHeader is error!\n", 
+			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh: open({}), NavMeshSetHeader error!\n", 
 				Resmgr::getSingleton().matchRes(res)));
 		}
 
@@ -404,7 +404,7 @@ dtNavMesh* tryReadNavmesh(uint8* data, size_t readsize, const std::string& res, 
 	{
 		if(showlog)
 		{
-			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh: mesh init is error({})!\n", status));
+			ERROR_MSG(fmt::format("NavMeshHandle::tryReadNavmesh: mesh init error({})!\n", status));
 		}
 		
 		dtFreeNavMesh(mesh);
@@ -476,7 +476,7 @@ bool NavMeshHandle::_create(int layer, const std::string& resPath, const std::st
 	FILE* fp = fopen(res.c_str(), "rb");
 	if (!fp)
 	{
-		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}) is error!\n", 
+		ERROR_MSG(fmt::format("NavMeshHandle::create: open({}) error!\n", 
 			Resmgr::getSingleton().matchRes(res)));
 
 		return false;
