@@ -1333,6 +1333,14 @@ Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 	sport = sbuf.substr(k + 1, sbuf.find("]"));
 	strutil::kbe_replace(sport, "]", "");
 
+	std::map<CString, CString>::iterator mapiter = m_ipMappings.find(CString(sip.c_str()));
+	if (mapiter != m_ipMappings.end())
+	{
+		buf = KBEngine::strutil::wchar2char(mapiter->second.GetBuffer(0));
+		sip = buf;
+		free(buf);
+	}
+
 	Network::EndPoint endpoint;
 	u_int32_t address;
 	Network::Address::string2ip(sip.c_str(), address);

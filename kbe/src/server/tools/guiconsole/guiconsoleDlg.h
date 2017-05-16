@@ -106,6 +106,10 @@ public:
 	afx_msg void OnToolBar_Find();
 	afx_msg void OnToolBar_StartServer();
 	afx_msg void OnToolBar_StopServer();
+
+	// ip mapping
+	std::map<CString, CString> m_ipMappings;
+
 private:
 	COMPONENT_TYPE _componentType;
 	COMPONENT_ID _componentID;
@@ -129,6 +133,7 @@ private:
 
 	// Ïß³Ì³Ø
 	thread::ThreadPool threadPool_;	
+
 public:
 	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult);
