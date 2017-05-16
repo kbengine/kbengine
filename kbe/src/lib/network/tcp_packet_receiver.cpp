@@ -133,6 +133,7 @@ void TCPPacketReceiver::onGetError(Channel* pChannel)
 	pChannel->condemn();
 	pChannel->networkInterface().deregisterChannel(pChannel);
 	pChannel->destroy();
+	Network::Channel::reclaimPoolObject(pChannel);
 }
 
 //-------------------------------------------------------------------------------------
