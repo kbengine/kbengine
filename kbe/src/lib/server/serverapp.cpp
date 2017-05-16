@@ -478,7 +478,7 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG(fmt::format("ServerApp::lookApp: {}\n", pChannel->c_str()));
+	DEBUG_MSG(fmt::format("ServerApp::lookApp: {}, componentID={}\n", pChannel->c_str(), g_componentID));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	
@@ -490,6 +490,7 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 	(*pBundle) << istate;
 
 	pChannel->send(pBundle);
+	DEBUG_MSG(fmt::format("ServerApp::lookApp: response! componentID={}\n", g_componentID));
 }
 
 //-------------------------------------------------------------------------------------

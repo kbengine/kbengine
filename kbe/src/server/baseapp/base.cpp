@@ -1102,7 +1102,15 @@ void Base::onWriteToDBCallback(ENTITY_ID eid,
 		pyCallback = callbackMgr().take(callbackID);
 
 	if(dbid() <= 0)
+	{
 		dbid(dbInterfaceIndex, entityDBID);
+	}
+	
+	if (dbid() <= 0)
+	{
+		KBE_ASSERT(!success);
+		hasDB(false);
+	}
 
 	if(callbackID > 0)
 	{

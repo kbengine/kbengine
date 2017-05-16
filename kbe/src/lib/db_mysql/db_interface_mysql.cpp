@@ -345,7 +345,7 @@ bool DBInterfaceMysql::createDatabaseIfNotExist()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::checkErrors()
 {
-	std::string querycmd = fmt::format("SHOW TABLES LIKE \"tbl_{}\"", DBUtil::accountScriptName());
+	std::string querycmd = fmt::format("SHOW TABLES LIKE \"" ENTITY_TABLE_PERFIX "_{}\"", DBUtil::accountScriptName());
 	if(!query(querycmd.c_str(), querycmd.size(), true))
 	{
 		ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query is error!\n", querycmd));
@@ -362,9 +362,9 @@ bool DBInterfaceMysql::checkErrors()
 
 	if(!foundAccountTable)
 	{
-		querycmd = "DROP TABLE `kbe_email_verification`, `kbe_accountinfos`";
+		querycmd = "DROP TABLE `" KBE_TABLE_PERFIX "_email_verification`, `" KBE_TABLE_PERFIX "_accountinfos`";
 
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset " KBE_TABLE_PERFIX "_* table...\n", 
 			DBUtil::accountScriptName()));
 		
 		try
@@ -375,7 +375,7 @@ bool DBInterfaceMysql::checkErrors()
 		{
 		}
 		
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset " KBE_TABLE_PERFIX "_* table end!\n"));
 	}
 
 	return true;

@@ -3438,6 +3438,9 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
 		startGlobalOrder, startGroupOrder, digest);
 
+	// 再次同步自己的新信息(startGlobalOrder, startGroupOrder等)到machine
+	Components::getSingleton().broadcastSelf();
+
 	// 这里需要更新一下python的环境变量
 	this->getScript().setenv("KBE_BOOTIDX_GLOBAL", getenv("KBE_BOOTIDX_GLOBAL"));
 	this->getScript().setenv("KBE_BOOTIDX_GROUP", getenv("KBE_BOOTIDX_GROUP"));
@@ -5269,6 +5272,19 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 	password = KBEngine::strutil::kbe_trim(password);
 	email = KBEngine::strutil::kbe_trim(email);
 
+	if (!email_isvalid(email.c_str()))
+	{
+		ERROR_MSG(fmt::format("Baseapp::reqAccountBindEmail(): invalid email({})! accountName={}\n", 
+			email, accountName));
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_NAME_MAIL;
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
+		return;
+	}
+			
 	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName={}, entityID={}, email={}!\n", accountName, entityID, email));
 
 	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
@@ -5292,41 +5308,70 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+void Baseapp::onReqAccountBindEmailCBFromDBMgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 	SERVER_ERROR_CODE failedcode, std::string& code)
 {
 	if(pChannel->isExternal())
 		return;
 	
-	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCB: {}({}) failedcode={}!\n", 
+	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromDBMgr: {}({}) failedcode={}!\n", 
 		accountName, entityID, failedcode));
 
-	if(failedcode == SERVER_SUCCESS)
+	if (failedcode != SERVER_SUCCESS)
 	{
-		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
-
-		std::string http_host = "localhost";
-		Components::COMPONENTS::iterator iter = loginapps.begin();
-		for(; iter != loginapps.end(); ++iter)
+		Base* base = pEntities_->find(entityID);
+		if (base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
 		{
-			if((*iter).groupOrderid == 1)
-			{
-				if(strlen((const char*)&(*iter).externalAddressEx) > 0)
-					http_host = (*iter).externalAddressEx;
-				else
-					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
-			}
+			ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromDBMgr: entity:{}, channel is NULL.\n", entityID));
+			return;
 		}
 
-		threadPool_.addTask(new SendBindEMailTask(email, code, 
-			http_host, 
-			g_kbeSrvConfig.getLoginApp().http_cbport));
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+		(*pBundle) << failedcode;
+		base->clientMailbox()->getChannel()->send(pBundle);
+	}
+	else
+	{
+		Network::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
+		if (pBaseappmgrChannel != NULL)
+		{
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			(*pBundle).newMessage(BaseappmgrInterface::reqAccountBindEmailAllocCallbackLoginapp);
+			BaseappmgrInterface::reqAccountBindEmailAllocCallbackLoginappArgs6::staticAddToBundle((*pBundle), g_componentID,
+				entityID, accountName, email, failedcode, code);
+
+			pBaseappmgrChannel->send(pBundle);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromDBMgr: entity:{}, pBaseappmgrChannel is NULL.\n", entityID));
+			return;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onReqAccountBindEmailCBFromBaseappmgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code, std::string& loginappCBHost, uint16 loginappCBPort)
+{
+	if (pChannel->isExternal())
+		return;
+
+	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromBaseappmgr: {}({}) failedcode={}!\n",
+		accountName, entityID, failedcode));
+
+	if (failedcode == SERVER_SUCCESS)
+	{
+		threadPool_.addTask(new SendBindEMailTask(email, code,
+			loginappCBHost,
+			loginappCBPort));
 	}
 
 	Base* base = pEntities_->find(entityID);
-	if(base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
+	if (base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCB: entity:{}, channel is NULL.\n", entityID));
+		ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromBaseappmgr: entity:{}, channel is NULL.\n", entityID));
 		return;
 	}
 
@@ -5413,7 +5458,7 @@ void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID en
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+	(*pBundle).newMessage(ClientInterface::onReqAccountNewPasswordCB);
 	(*pBundle) << failedcode;
 	base->clientMailbox()->getChannel()->send(pBundle);
 }

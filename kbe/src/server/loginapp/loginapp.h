@@ -121,6 +121,12 @@ public:
 	void onAccountResetPassword(Network::Channel* pChannel, std::string& code, bool success);
 
 	/** 网络接口
+	baseapp请求绑定email（返回时需要找到loginapp的地址）
+	*/
+	void onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pChannel, COMPONENT_ID reqBaseappID, ENTITY_ID entityID, std::string& accountName, std::string& email,
+		SERVER_ERROR_CODE failedcode, std::string& code);
+
+	/** 网络接口
 		用户登录服务器
 		clientType[COMPONENT_CLIENT_TYPE]: 前端类别(手机， web， pcexe端)
 		clientData[str]: 前端附带数据(可以是任意的， 比如附带手机型号， 浏览器类型等)

@@ -77,7 +77,7 @@ public:
 	KBEEntityLogTable(EntityTables* pEntityTables) :
 	KBETable(pEntityTables)
 	{
-		tableName("kbe_entitylog");
+		tableName(KBE_TABLE_PERFIX "_entitylog");
 	}
 	
 	virtual ~KBEEntityLogTable()
@@ -102,7 +102,7 @@ public:
 	KBETable(pEntityTables),
 	accountDefMemoryStream_()
 	{
-		tableName("kbe_accountinfos");
+		tableName(KBE_TABLE_PERFIX "_accountinfos");
 	}
 	
 	virtual ~KBEAccountTable()
@@ -144,7 +144,7 @@ public:
 	KBEEmailVerificationTable(EntityTables* pEntityTables) :
 	KBETable(pEntityTables)
 	{
-		tableName("kbe_email_verification");
+		tableName(KBE_TABLE_PERFIX "_email_verification");
 	}
 	
 	virtual ~KBEEmailVerificationTable()

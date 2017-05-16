@@ -217,6 +217,8 @@ public:
 
 	bool findLogger();
 	
+	void broadcastSelf();
+
 private:
 	virtual bool process();
 	bool findComponents();

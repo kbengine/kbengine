@@ -321,7 +321,7 @@ bool DBTaskWriteEntity::db_thread_process()
 		success_ = false;
 
 		// 先写log， 如果写失败则可能这个entity已经在线
-		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable("kbe_entitylog"));
+		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 		KBE_ASSERT(pELTable);
 
 		success_ = pELTable->logEntity(pdbi_, inet_ntoa((struct in_addr&)ip), port, entityDBID_, 
@@ -381,7 +381,7 @@ bool DBTaskRemoveEntity::db_thread_process()
 	(*pDatas_) >> sid_;
 
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
-	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable("kbe_entitylog"));
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 
 	KBE_ASSERT(pELTable);
 	pELTable->eraseEntityLog(pdbi_, entityDBID_, sid_);
@@ -422,7 +422,7 @@ bool DBTaskDeleteBaseByDBID::db_thread_process()
 {
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-		(entityTables.findKBETable("kbe_entitylog"));
+		(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 
 	KBE_ASSERT(pELTable);
 
@@ -550,7 +550,7 @@ bool DBTaskLookUpBaseByDBID::db_thread_process()
 {
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-		(entityTables.findKBETable("kbe_entitylog"));
+		(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 
 	KBE_ASSERT(pELTable);
 
@@ -637,7 +637,7 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	// 寻找dblog是否有此账号， 如果有则创建失败
 	// 如果没有则向account表新建一个entity数据同时在accountlog表写入一个log关联dbid
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
@@ -785,7 +785,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 
 	// 寻找dblog是否有此账号， 如果有则创建失败
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 	KBE_ASSERT(pTable);
 	
 	info.flags = 0;
@@ -803,7 +803,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	getdatas_ = genmail_code(password_);
-	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(entityTables.findKBETable("kbe_email_verification"));
+	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_email_verification"));
 	KBE_ASSERT(pTable1);
 	
 	info.datas = getdatas_;
@@ -819,7 +819,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	}
 	catch (...)
 	{
-		WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): logAccount(kbe_accountinfos) is error: {}\n{}\n", 
+		WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): logAccount(" KBE_TABLE_PERFIX "_accountinfos) is error: {}\n{}\n", 
 			pdbi_->getstrerror(), pdbi_->lastquery()));
 	}
 
@@ -875,7 +875,7 @@ bool DBTaskActivateAccount::db_thread_process()
 	ACCOUNT_INFOS info;
 
 	KBEEmailVerificationTable* pTable1 = 
-		static_cast<KBEEmailVerificationTable*>(EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
+		static_cast<KBEEmailVerificationTable*>(EntityTables::findByInterfaceName(pdbi_->name()).findKBETable(KBE_TABLE_PERFIX "_email_verification"));
 
 	KBE_ASSERT(pTable1);
 
@@ -933,7 +933,7 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 	}
 
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	if(!pTable->queryAccountAllInfos(pdbi_, accountName_, info))
@@ -947,7 +947,7 @@ bool DBTaskReqAccountResetPassword::db_thread_process()
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	KBEEmailVerificationTable* pTable1 = 
-		static_cast<KBEEmailVerificationTable*>(entityTables.findKBETable("kbe_email_verification"));
+		static_cast<KBEEmailVerificationTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_email_verification"));
 	KBE_ASSERT(pTable1);
 
 	info.datas = genmail_code(accountName_);
@@ -1004,7 +1004,7 @@ DBTaskAccountResetPassword::~DBTaskAccountResetPassword()
 bool DBTaskAccountResetPassword::db_thread_process()
 {
 	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(
-		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable(KBE_TABLE_PERFIX "_email_verification"));
 
 	KBE_ASSERT(pTable1);
 
@@ -1063,7 +1063,7 @@ bool DBTaskReqAccountBindEmail::db_thread_process()
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
 	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(
-		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable(KBE_TABLE_PERFIX "_email_verification"));
 
 	KBE_ASSERT(pTable1);
 
@@ -1081,7 +1081,8 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 		code_, success_));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCB);
+	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCBFromDBMgr);
+
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
 	if(!success_)
@@ -1121,7 +1122,7 @@ DBTaskAccountBindEmail::~DBTaskAccountBindEmail()
 bool DBTaskAccountBindEmail::db_thread_process()
 {
 	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(
-		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_email_verification"));
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable(KBE_TABLE_PERFIX "_email_verification"));
 
 	KBE_ASSERT(pTable1);
 
@@ -1170,7 +1171,7 @@ DBTaskAccountNewPassword::~DBTaskAccountNewPassword()
 bool DBTaskAccountNewPassword::db_thread_process()
 {
 	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(
-		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_accountinfos"));
+		EntityTables::findByInterfaceName(pdbi_->name()).findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 
 	KBE_ASSERT(pTable);
 
@@ -1252,7 +1253,7 @@ bool DBTaskQueryAccount::db_thread_process()
 	}
 
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	ACCOUNT_INFOS info;
@@ -1312,7 +1313,7 @@ bool DBTaskQueryAccount::db_thread_process()
 
 	// 先写log， 如果写失败则可能这个entity已经在线
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-		(entityTables.findKBETable("kbe_entitylog"));
+		(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 	KBE_ASSERT(pELTable);
 	
 	success_ = pELTable->logEntity(pdbi_, inet_ntoa((struct in_addr&)ip_), port_, dbid_, 
@@ -1427,7 +1428,7 @@ DBTaskEntityOffline::~DBTaskEntityOffline()
 bool DBTaskEntityOffline::db_thread_process()
 {
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-		(EntityTables::findByInterfaceName(pdbi_->name()).findKBETable("kbe_entitylog"));
+		(EntityTables::findByInterfaceName(pdbi_->name()).findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 
 	KBE_ASSERT(pELTable);
 
@@ -1504,11 +1505,11 @@ bool DBTaskAccountLogin::db_thread_process()
 
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-		(entityTables.findKBETable("kbe_entitylog"));
+		(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 
 	KBE_ASSERT(pELTable);
 
-	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable("kbe_accountinfos"));
+	KBEAccountTable* pTable = static_cast<KBEAccountTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 	KBE_ASSERT(pTable);
 
 	ACCOUNT_INFOS info;
@@ -1672,7 +1673,7 @@ bool DBTaskQueryEntity::db_thread_process()
 	{
 		// 先写log， 如果写失败则可能这个entity已经在线
 		KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
-			(entityTables.findKBETable("kbe_entitylog"));
+			(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
 		KBE_ASSERT(pELTable);
 
 		try
