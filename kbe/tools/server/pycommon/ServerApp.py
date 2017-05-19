@@ -63,13 +63,13 @@ class ServerApp:
 		"""
 		return self.socket_.recv(4096)
 
-	def processOne(self):
+	def processOne(self, timeout = 0.1):
 		"""
 		"""
 		if not self.connected():
 			return
 			
-		rl, wl, el = select.select([self.socket_.fileno()], [], [], 0.0)
+		rl, wl, el = select.select([self.socket_.fileno()], [], [], timeout)
 		if rl:
 			data = self.socket_.recv(4096)
 			if len(data) == 0:
@@ -91,5 +91,5 @@ class ServerApp:
 				return
 			
 			stream = MessageStream.MessageStreamReader(self.buffer_[4:msgLength])
-			self.msgProcesser_[msgID](stream)
 			self.buffer_ = self.buffer_[msgLength:]
+			self.msgProcesser_[msgID](stream)

@@ -81,9 +81,8 @@ class spaceviewerDate(object):
 		self.SpaceViews.connect(self.host,self.port)
 		self.test = ""
 		while True:
-			time.sleep(1)
 			self.SpaceViews.requireQuerySpaceViewer()
-			self.SpaceViews.processOne()
+			self.SpaceViews.processOne(0.1)
 			if self.SpaceViews.SpaceViewerData != self.test:
 				data = json.dumps(self.SpaceViews.SpaceViewerData)
 				self.wInst.send(data.encode())
@@ -107,9 +106,8 @@ class CellSpace(object):
 		self.CellSpaceViewer = SpaceViews.CellViewer(self.cp, self.spaceID)
 		self.CellSpaceViewer.connect(self.host,self.port)
 		while True:
-			time.sleep(0.5) 
 			self.CellSpaceViewer.requireQueryCellViewer()
-			self.CellSpaceViewer.processOne()
+			self.CellSpaceViewer.processOne(0.1)
 			if self.CellSpaceViewer.CellViewerData != self.test:
 				data = json.dumps(self.CellSpaceViewer.CellViewerData)
 				self.wInst.send(data.encode())
