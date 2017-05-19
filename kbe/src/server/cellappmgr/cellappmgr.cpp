@@ -579,7 +579,7 @@ void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 		Spaces& spaces = cellappref.spaces();
 
 		(*pBundle) << iter1->first;
-		(*pBundle) << spaces.size();
+		(*pBundle) << (uint32)spaces.size(); 
 
 		std::map<SPACE_ID, Space>& allSpaces = spaces.spaces();
 		std::map<SPACE_ID, Space>::iterator iter2 = allSpaces.begin();
@@ -592,7 +592,7 @@ void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 
 			Cells& cells = space.cells();
 			std::map<CELL_ID, Cell>& allCells = cells.cells();
-			(*pBundle) << allCells.size();
+			(*pBundle) << (uint32)allCells.size(); 
 
 			std::map<CELL_ID, Cell>::iterator iter3 = allCells.begin();
 			for (; iter3 != allCells.end(); ++iter3)
