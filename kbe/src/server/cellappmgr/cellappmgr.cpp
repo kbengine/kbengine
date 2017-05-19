@@ -579,6 +579,8 @@ void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 		Spaces& spaces = cellappref.spaces();
 
 		(*pBundle) << iter1->first;
+		
+		// 如果不强制，则在win64下，它是8字节，而win32下是4字节
 		(*pBundle) << (uint32)spaces.size(); 
 
 		std::map<SPACE_ID, Space>& allSpaces = spaces.spaces();

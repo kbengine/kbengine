@@ -257,7 +257,10 @@ void SpaceViewer::updateClient()
 
 			ViewEntity& viewEntity = viewerIter->second;
 			if (viewEntity.updateVersion > lastUpdateVersion_)
+			{
+				++viewerIter;
 				continue;
+			}
 
 			Entities<Entity>::ENTITYS_MAP::iterator iter = entitiesMap.find(viewerIter->first);
 
