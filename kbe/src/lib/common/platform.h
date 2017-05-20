@@ -500,7 +500,7 @@ inline const T & max( const T & a, const T & b )
 #define MAX_NAME 256	
 
 // ip字符串的最大长度
-#define MAX_IP 50
+#define MAX_IP 256
 
 // 常规的buf长度
 #define MAX_BUF 256

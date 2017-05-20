@@ -57,6 +57,7 @@ public:
 	static void destroyObjPool();
 	virtual void onReclaimObject();
 	virtual size_t getPoolObjectBytes();
+	virtual void onEabledPoolObject();
 
 	enum Traits
 	{

@@ -133,6 +133,15 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 									std::string,									code, 
 									bool,											success)
 
+	// baseapp请求绑定email（返回时需要找到loginapp的地址）
+	LOGINAPP_MESSAGE_DECLARE_ARGS6(onReqAccountBindEmailAllocCallbackLoginapp,		NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_ID,									reqBaseappID,
+									ENTITY_ID,										entityID,
+									std::string,									accountName,
+									std::string,									email,
+									SERVER_ERROR_CODE,								failedcode,
+									std::string,									code)
+
 	// 请求关闭服务器
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									NETWORK_VARIABLE_MESSAGE)
 

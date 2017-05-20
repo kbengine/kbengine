@@ -85,22 +85,24 @@ class SpaceViewer(ServerApp.ServerApp):
 		componentType = streamReader.readInt32()
 		componentID = streamReader.readInt64()
 		_d = {"ComponentType" : componentType, "ComponentID" : componentID, "cellapp":{}}
+		cellapps = _d["cellapp"]
 
 		while not streamReader.EOF():
 			CellAppCID = streamReader.readUint64()
 			SpacesSize = streamReader.readUint32()
-			_d["cellapp"]["%s" % CellAppCID] = { "SpacesSize":SpacesSize,"SpaceID":{}}
-			for i in range(0,SpacesSize):
+			cellapps["%s" % CellAppCID] = cellapp = { "SpacesSize":SpacesSize, "SpaceID":{}}
+			
+			for i in range(0, SpacesSize):
 				SpaceID = streamReader.readUint32()
 				SpacePath = streamReader.readString()
 				ScriptModuleName = streamReader.readString()
-				SpacePathSize = streamReader.readUint32()
-				_d["cellapp"]["%s" % CellAppCID]["SpaceID"]["%s" % SpaceID] = {}
-				_d["cellapp"]["%s" % CellAppCID]["SpaceID"]["%s" % SpaceID]["SpacePath"] = SpacePath
-				_d["cellapp"]["%s" % CellAppCID]["SpaceID"]["%s" % SpaceID]["ScriptModuleName"] = ScriptModuleName
-				for j in range(0,SpacePathSize):
+				SpaceCellSize = streamReader.readUint32()
+				cellapp["SpaceID"]["%s" % SpaceID] = space = { "CELL_ID" : [] }
+				space["SpacePath"] = SpacePath
+				space["ScriptModuleName"] = ScriptModuleName
+				for j in range(SpaceCellSize):
 					CELL_ID = streamReader.readUint32()
-					_d["cellapp"]["%s" % CellAppCID]["SpaceID"]["%s" % SpaceID]["CELL_ID"].append(CELL_ID)
+					space["CELL_ID"].append(CELL_ID)
 
 		self.SpaceViewerData = _d
 

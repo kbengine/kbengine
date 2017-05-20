@@ -87,6 +87,30 @@ Dbmgr::~Dbmgr()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::canShutdown()
 {
+	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
+	{
+		// 所有脚本都加载完毕
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+			const_cast<char*>("onReadyForShutDown"),
+			const_cast<char*>(""));
+
+		if (pyResult != NULL)
+		{
+			bool isReady = (pyResult == Py_True);
+			Py_DECREF(pyResult);
+
+			if (isReady)
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			return false;
+		}
+	}
+
 	KBEUnordered_map<std::string, Buffered_DBTasks>::iterator bditer = bufferedDBTasksMaps_.begin();
 	for (; bditer != bufferedDBTasksMaps_.end(); ++bditer)
 	{
@@ -837,7 +861,7 @@ void Dbmgr::syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::Memor
 	for (; iter != EntityTables::sEntityTables.end(); ++iter)
 	{
 		KBEAccountTable* pTable =
-			static_cast<KBEAccountTable*>(iter->second.findKBETable("kbe_accountinfos"));
+			static_cast<KBEAccountTable*>(iter->second.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 
 		KBE_ASSERT(pTable);
 

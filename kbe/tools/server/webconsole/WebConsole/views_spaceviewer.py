@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
-import time, json, sys
+import time, sys
+import traceback
+
+try:
+	import json
+except:
+	# 如果没有json模块，则尝试导入simplejson模块（例如py2.5）
+	import simplejson as json
+
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.core.exceptions import ObjectDoesNotExist
@@ -73,11 +81,11 @@ class spaceviewerDate(object):
 		self.SpaceViews.connect(self.host,self.port)
 		self.test = ""
 		while True:
-			time.sleep(1)
 			self.SpaceViews.requireQuerySpaceViewer()
-			self.SpaceViews.processOne()
+			self.SpaceViews.processOne(0.1)
 			if self.SpaceViews.SpaceViewerData != self.test:
-				self.wInst.send(str.encode(str(self.SpaceViews.SpaceViewerData)))
+				data = json.dumps(self.SpaceViews.SpaceViewerData)
+				self.wInst.send(data.encode())
 				self.test = self.SpaceViews.SpaceViewerData
 			self.SpaceViews.clearSpaceViewerData()
 
@@ -98,11 +106,11 @@ class CellSpace(object):
 		self.CellSpaceViewer = SpaceViews.CellViewer(self.cp, self.spaceID)
 		self.CellSpaceViewer.connect(self.host,self.port)
 		while True:
-			time.sleep(0.5) 
 			self.CellSpaceViewer.requireQueryCellViewer()
-			self.CellSpaceViewer.processOne()
+			self.CellSpaceViewer.processOne(0.1)
 			if self.CellSpaceViewer.CellViewerData != self.test:
-				self.wInst.send(str.encode(str(self.CellSpaceViewer.CellViewerData)))
+				data = json.dumps(self.CellSpaceViewer.CellViewerData)
+				self.wInst.send(data.encode())
 				self.test = self.CellSpaceViewer.CellViewerData
 			self.CellSpaceViewer.clearCellViewerData()
 
@@ -115,23 +123,31 @@ class CellSpace(object):
 def process_cmd( request ):
 	"""
 	"""
-	GET = request.GET
-	cp_host = GET["host"]
-	cp_port = int(GET["port"])
-	cp_type = int(GET["cp"])
-	SpaceViewers = spaceviewerDate(request.websocket, cp_type, cp_host, cp_port)
-	SpaceViewers.do()
+	try:
+		GET = request.GET
+		cp_host = GET["host"]
+		cp_port = int(GET["port"])
+		cp_type = int(GET["cp"])
+		SpaceViewers = spaceviewerDate(request.websocket, cp_type, cp_host, cp_port)
+		SpaceViewers.do()
+	except:
+		log = '\n'.join(traceback.format_exception(*(sys.exc_info())))
+		print(log)
 	return 
 
 @accept_websocket
 def cell_process_cmd( request ):
 	"""
 	"""
-	GET = request.GET
-	cp_host = GET["host"]
-	cp_port = int(GET["port"])
-	cp_type = int(GET["cp"])
-	spaceID = int(GET["spaceID"])
-	CellSpaceViewer = CellSpace(request.websocket, cp_type, cp_host, cp_port, spaceID)
-	CellSpaceViewer.do()
+	try:
+		GET = request.GET
+		cp_host = GET["host"]
+		cp_port = int(GET["port"])
+		cp_type = int(GET["cp"])
+		spaceID = int(GET["spaceID"])
+		CellSpaceViewer = CellSpace(request.websocket, cp_type, cp_host, cp_port, spaceID)
+		CellSpaceViewer.do()
+	except:
+		log = '\n'.join(traceback.format_exception(*(sys.exc_info())))
+		print(log)
 	return 

@@ -595,8 +595,9 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	uint32 flags;
 	uint64 deadline;
 	COMPONENT_TYPE componentType;
+	bool forceInternalLogin;
 
-	s >> loginName >> accountName >> password >> entityDBID >> flags >> deadline >> componentType;
+	s >> loginName >> accountName >> password >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
@@ -626,7 +627,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-		(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
+		(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType << forceInternalLogin;
 		pBundle->appendBlob(datas);
 
 		int runstate = -1;
@@ -648,7 +649,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType;
+	(*pBundle) << loginName << accountName << password << eid << entityDBID << flags << deadline << componentType << forceInternalLogin;
 	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 
@@ -672,8 +673,9 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	uint32 flags;
 	uint64 deadline;
 	COMPONENT_TYPE componentType;
+	bool forceInternalLogin;
 
-	s >> componentID >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType;
+	s >> componentID >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr:{0}, componentID={1}, entityID={2}.\n",
@@ -698,7 +700,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType;
+	(*pBundle) << loginName << accountName << password << entityID << entityDBID << flags << deadline << componentType << forceInternalLogin;
 	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 }
@@ -814,6 +816,59 @@ void Baseappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
 	}
 
 	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::reqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pChannel, COMPONENT_ID reqBaseappID, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code)
+{
+	INFO_MSG(fmt::format("Baseappmgr::reqAccountBindEmailAllocCallbackLoginapp: {}({}) failedcode={}! reqBaseappID={}\n",
+		accountName, entityID, failedcode, reqBaseappID));
+
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+	Components::COMPONENTS::iterator iter = cts.begin();
+	for (; iter != cts.end(); ++iter)
+	{
+		if ((*iter).groupOrderid != 1)
+			continue;
+
+		if ((*iter).pChannel == NULL)
+			continue;
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+
+		(*pBundle).newMessage(LoginappInterface::onReqAccountBindEmailAllocCallbackLoginapp);
+
+		LoginappInterface::onReqAccountBindEmailAllocCallbackLoginappArgs6::staticAddToBundle((*pBundle), reqBaseappID,
+			entityID, accountName, email, failedcode, code);
+
+		(*iter).pChannel->send(pBundle);
+		break;
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseappmgr::onReqAccountBindEmailCBFromLoginapp(Network::Channel* pChannel, COMPONENT_ID reqBaseappID, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code, std::string& loginappCBHost, uint16 loginappCBPort)
+{
+	INFO_MSG(fmt::format("Baseappmgr::onReqAccountBindEmailCBFromLoginapp: {}({}) failedcode={}! loginappAddr={}:{}, reqBaseappID={}\n",
+		accountName, entityID, failedcode, loginappCBHost, loginappCBPort, reqBaseappID));
+
+	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(reqBaseappID);
+	if (cinfos == NULL || cinfos->pChannel == NULL)
+	{
+		ERROR_MSG("Baseappmgr::onReqAccountBindEmailCBFromLoginapp: not found baseapp!\n");
+		return;
+	}
+
+	Network::Bundle* pBundleToBaseapp = Network::Bundle::createPoolObject();
+	(*pBundleToBaseapp).newMessage(BaseappInterface::onReqAccountBindEmailCBFromBaseappmgr);
+
+	BaseappInterface::onReqAccountBindEmailCBFromBaseappmgrArgs7::staticAddToBundle((*pBundleToBaseapp),
+		entityID, accountName, email, failedcode, code, loginappCBHost, loginappCBPort);
+
+	cinfos->pChannel->send(pBundleToBaseapp);
 }
 
 //-------------------------------------------------------------------------------------

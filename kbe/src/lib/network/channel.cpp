@@ -97,6 +97,12 @@ void Channel::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
+void Channel::onEabledPoolObject()
+{
+
+}
+
+//-------------------------------------------------------------------------------------
 Channel::Channel(NetworkInterface & networkInterface,
 		const EndPoint * pEndPoint, Traits traits, ProtocolType pt,
 		PacketFilterPtr pFilter, ChannelID id):

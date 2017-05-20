@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include "baseappmgr_interface_macros.h"
 #include "network/interface_defs.h"
+#include "server/server_errors.h"
 //#define NDEBUG
 // windows include	
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -130,6 +131,26 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 
 	// 查询所有相关进程负载信息
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(queryAppsLoads,									NETWORK_VARIABLE_MESSAGE)
+
+	// baseapp请求绑定email（返回时需要找到loginapp的地址）
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS6(reqAccountBindEmailAllocCallbackLoginapp,			NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_ID,										reqBaseappID,
+									ENTITY_ID,											entityID,
+									std::string,										accountName,
+									std::string,										email,
+									SERVER_ERROR_CODE,									failedcode,
+									std::string,										code)
+
+	// baseapp请求绑定email（返回时需要找到loginapp的地址）
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS8(onReqAccountBindEmailCBFromLoginapp,				NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_ID,										reqBaseappID,
+									ENTITY_ID,											entityID,
+									std::string,										accountName,
+									std::string,										email,
+									SERVER_ERROR_CODE,									failedcode,
+									std::string,										code,
+									std::string,										loginappCBHost, 
+									uint16,												loginappCBPort)
 
 	NETWORK_INTERFACE_DECLARE_END()
 

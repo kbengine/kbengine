@@ -200,7 +200,7 @@ public:
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
+	virtual void onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity

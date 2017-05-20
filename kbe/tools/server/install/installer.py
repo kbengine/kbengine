@@ -105,7 +105,6 @@ def help():
 	OUT_MSG("\tinstaller.py install: Install development environment (dependent, environment variables, etc.), From the KBE_ROOT search.")
 	OUT_MSG("\tinstaller.py install=localsrc : Install from local-disk(Source code), From the KBE_ROOT search.")
 	OUT_MSG("\tinstaller.py install=remotesrc : Install from github(Source code).")
-	OUT_MSG("\tinstaller.py install=remotebin : Install from sourceforge(Binary releases).")
 	OUT_MSG("\tinstaller.py install={xxx.zip, xxx.tar.gz} : Install .zip/.tar.gz file.")
 	OUT_MSG("")
 	
@@ -677,7 +676,7 @@ def installMysql():
 
 	
 	while True:
-		getInput("The MySQL service installation is complete? [yes|no]")
+		getInput("The MySQL service installation is completed? [yes|no]")
 		
 		if not findMysqlService():
 			ERROR_MSG("-  not found MySQL service.")
@@ -1441,6 +1440,9 @@ def download_sources(release = True):
 			break
 
 def download_binary():
+	ERROR_MSG("Has been abandoned, Please use (installer.py install=remotesrc)!")
+	return
+
 	global _zip_kbengine_dirname
 	_zip_kbengine_dirname = ""
 	global _zip_kbengine_path

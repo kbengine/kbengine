@@ -37,6 +37,14 @@ struct NavMeshSetHeader
 	dtNavMeshParams params;
 };
 
+struct NavMeshSetHeaderEx
+{
+	int magic;
+	int version;
+	int tileCount;
+	dtNavMeshParams params;
+};
+
 struct NavMeshTileHeader
 {
 	dtTileRef tileRef;

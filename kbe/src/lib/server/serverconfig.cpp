@@ -841,6 +841,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				do
 				{
+					if (TiXmlNode::TINYXML_COMMENT == databaseInterfacesNode->Type())
+						continue;
+
 					std::string name = databaseInterfacesNode->Value();
 
 					DBInterfaceInfo dbinfo;
@@ -1227,6 +1230,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "forceInternalLogin");
+		if (node != NULL){
+			_botsInfo.forceInternalLogin = (xml->getValStr(node) == "true");
 		}
 
 		node = xml->enterNode(rootNode, "telnet_service");

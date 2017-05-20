@@ -213,6 +213,7 @@ PyObject* FixedArray::__py_index(PyObject* self, PyObject* args, PyObject* kwarg
 		PyErr_SetString(PyExc_ValueError, "FixedArray::index: value not found");
 		return NULL;
 	}
+
 	return PyLong_FromLong(index);
 }
 

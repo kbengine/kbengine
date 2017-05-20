@@ -224,7 +224,12 @@ void Loginapp::onDbmgrInitCompleted(Network::Channel* pChannel, COMPONENT_ORDER 
 
 	startGlobalOrder_ = startGlobalOrder;
 	startGroupOrder_ = startGroupOrder;
+	g_componentGlobalOrder = startGlobalOrder;
+	g_componentGroupOrder = startGroupOrder;
 	digest_ = digest;
+
+	// 再次同步自己的新信息(startGlobalOrder, startGroupOrder等)到machine
+	Components::getSingleton().broadcastSelf();
 
 	if(startGroupOrder_ == 1)
 		pHttpCBHandler = new HTTPCBHandler();
@@ -345,7 +350,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 				
 				if(PyArg_ParseTuple(pyResult, "H|s|s|y#",  &retcode, &sname, &spassword, &extraDatas, &extraDatas_size) == -1)
 				{
-					ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error! accountName={}\n", 
+					ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onRequestLogin, Return value error! accountName={}\n", 
 						g_kbeSrvConfig.getLoginApp().entryScriptFile, accountName));
 
 					retcode = SERVER_ERR_OP_FAILED;
@@ -363,7 +368,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onReuqestLogin, Return value error, must be errorcode or tuple! accountName={}\n", 
+				ERROR_MSG(fmt::format("Loginapp::_createAccount: {}.onRequestLogin, Return value error, must be errorcode or tuple! accountName={}\n", 
 					g_kbeSrvConfig.getLoginApp().entryScriptFile, accountName));
 
 				retcode = SERVER_ERR_OP_FAILED;
@@ -786,6 +791,51 @@ void Loginapp::onReqAccountResetPasswordCB(Network::Channel* pChannel, std::stri
 }
 
 //-------------------------------------------------------------------------------------
+void Loginapp::onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pChannel, COMPONENT_ID reqBaseappID, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code)
+{
+	if (pChannel->isExternal())
+		return;
+
+	INFO_MSG(fmt::format("Loginapp::onReqAccountBindEmailAllocCallbackLoginapp: {}, email={}, failedcode={}! reqBaseappID={}\n",
+		accountName, email, failedcode, reqBaseappID));
+
+	Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
+
+	std::string http_host = "localhost";
+	if (startGroupOrder_ == 1)
+	{
+		if (strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
+			http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
+		else
+			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+	}
+	else
+	{
+		Components::COMPONENTS::iterator iter = loginapps.begin();
+		for (; iter != loginapps.end(); ++iter)
+		{
+			if ((*iter).groupOrderid == 1)
+			{
+				if (strlen((const char*)&(*iter).externalAddressEx) > 0)
+					http_host = (*iter).externalAddressEx;
+				else
+					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
+			}
+		}
+	}
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+
+	(*pBundle).newMessage(BaseappmgrInterface::onReqAccountBindEmailCBFromLoginapp);
+
+	BaseappmgrInterface::onReqAccountBindEmailCBFromLoginappArgs8::staticAddToBundle((*pBundle), reqBaseappID,
+		entityID, accountName, email, failedcode, code, http_host, g_kbeSrvConfig.getLoginApp().http_cbport);
+
+	pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
 void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 {
 	AUTO_SCOPED_PROFILE("login");
@@ -795,6 +845,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	std::string loginName;
 	std::string password;
 	std::string datas;
+	bool forceInternalLogin = false;
 
 	// 前端类别
 	s >> tctype;
@@ -892,6 +943,14 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		}
 	}
 
+	// 如果是机器人登陆，如果设置了强制使用内部地址登陆则需要读取这个标志
+	// 详细看配置文件中的forceInternalLogin
+	if (ctype == CLIENT_TYPE_BOTS)
+	{
+		if (s.length() > 0)
+			s >> forceInternalLogin;
+	}
+
 	s.done();
 
 	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
@@ -913,7 +972,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
-										const_cast<char*>("onReuqestLogin"), 
+										const_cast<char*>("onRequestLogin"), 
 										const_cast<char*>("ssby#"), 
 										loginName.c_str(),
 										password.c_str(),
@@ -933,7 +992,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 			
 			if(PyArg_ParseTuple(pyResult, "H|s|s|b|y#",  &error, &sname, &spassword, &tctype, &extraDatas, &extraDatas_size) == -1)
 			{
-				ERROR_MSG(fmt::format("Loginapp::login: {}.onReuqestLogin, Return value error! loginName={}\n", 
+				ERROR_MSG(fmt::format("Loginapp::login: {}.onRequestLogin, Return value error! loginName={}\n", 
 					g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
 
 				login_check = false;
@@ -967,7 +1026,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("Loginapp::login: {}.onReuqestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
+			ERROR_MSG(fmt::format("Loginapp::login: {}.onRequestLogin, Return value error, must be errorcode or tuple! loginName={}\n", 
 				g_kbeSrvConfig.getLoginApp().entryScriptFile, loginName));
 
 			login_check = false;
@@ -999,6 +1058,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	ptinfos->accountName = loginName;
 	ptinfos->password = password;
 	ptinfos->addr = pChannel->addr();
+	ptinfos->forceInternalLogin = forceInternalLogin;
 	pendingLoginMgr_.add(ptinfos);
 
 	if(ctype < UNKNOWN_CLIENT_COMPONENT_TYPE || ctype >= CLIENT_TYPE_END)
@@ -1172,7 +1232,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		(*pBundle) << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype;
+		(*pBundle) << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 		return;
@@ -1190,6 +1250,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		(*pBundle) << flags;
 		(*pBundle) << deadline;
 		(*pBundle) << infos->ctype;
+		(*pBundle) << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 	}

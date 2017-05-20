@@ -340,7 +340,7 @@ void CLogWindow::onReceiveRemoteLog(std::string str, bool fromServer)
 	updateLogBtnStatus(false);
 }
 
-void CLogWindow::onConnectStatus(bool success, KBEngine::Network::Address addr)
+void CLogWindow::onConnectionState(bool success, KBEngine::Network::Address addr)
 {
 	OnBnClickedMfcbutton1();
 	pulling = !success;

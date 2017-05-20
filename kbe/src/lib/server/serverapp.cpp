@@ -99,8 +99,15 @@ ServerApp::~ServerApp()
 void ServerApp::shutDown(float shutdowntime)
 {
 	if(pShutdowner_ == NULL)
+	{
 		pShutdowner_ = new Shutdowner(this);
-
+	}
+	else
+	{
+		ERROR_MSG(fmt::format("ServerApp::shutDown:  In shuttingdown!\n"));
+		return;
+	}
+	
 	pShutdowner_->shutdown(shutdowntime < 0.f ? g_kbeSrvConfig.shutdowntime() : shutdowntime, 
 		g_kbeSrvConfig.shutdownWaitTickTime(), dispatcher_);
 }
@@ -339,12 +346,12 @@ void ServerApp::onRemoveComponent(const Components::ComponentInfos* pInfos)
 	else if (pInfos->componentType == CELLAPPMGR_TYPE)
 	{
 		if (g_componentType == CELLAPP_TYPE)
-			this->shutDown(0.f);
+			this->shutDown(1.f);
 	}
 	else if (pInfos->componentType == BASEAPPMGR_TYPE)
 	{
 		if (g_componentType == BASEAPP_TYPE)
-			this->shutDown(0.f);
+			this->shutDown(1.f);
 	}
 }
 
@@ -471,7 +478,7 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG(fmt::format("ServerApp::lookApp: {}\n", pChannel->c_str()));
+	DEBUG_MSG(fmt::format("ServerApp::lookApp: {}, componentID={}\n", pChannel->c_str(), g_componentID));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	
@@ -483,6 +490,7 @@ void ServerApp::lookApp(Network::Channel* pChannel)
 	(*pBundle) << istate;
 
 	pChannel->send(pBundle);
+	DEBUG_MSG(fmt::format("ServerApp::lookApp: response! componentID={}\n", g_componentID));
 }
 
 //-------------------------------------------------------------------------------------

@@ -307,7 +307,7 @@ public:
 		重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
 		之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
 	*/
-	void reLoginBaseapp(Network::Channel* pChannel, std::string& accountName, 
+	void reloginBaseapp(Network::Channel* pChannel, std::string& accountName, 
 		std::string& password, uint64 key, ENTITY_ID entityID);
 
 	/**
@@ -497,8 +497,17 @@ public:
 	*/
 	void reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& password, std::string& email);
 
-	void onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	/** 网络接口
+		请求绑定email, dbmgr返回结果
+	*/
+	void onReqAccountBindEmailCBFromDBMgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 		SERVER_ERROR_CODE failedcode, std::string& code);
+
+	/** 网络接口
+		请求绑定email, baseappmgr返回需要找到loginapp的地址
+	*/
+	void onReqAccountBindEmailCBFromBaseappmgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+		SERVER_ERROR_CODE failedcode, std::string& code, std::string& loginappCBHost, uint16 loginappCBPort);
 
 	/** 网络接口
 		请求绑定email

@@ -78,7 +78,8 @@ void myassert(const char * exp, const char * func, const char * file, unsigned i
 {
 	DebugHelper::getSingleton().backtrace_msg();
 	std::string s = (fmt::format("assertion failed: {}, file {}, line {}, at: {}\n", exp, file, line, func));
-	printf("%s", (std::string("[ASSERT]: ") + s).c_str());
+	printf("%s%02d: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, (std::string("[ASSERT]: ") + s).c_str());
+
 	dbghelper.print_msg(s);
     abort();
 }
@@ -267,8 +268,33 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 	}
 	else
 	{
-		kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
-		log4cxx::PropertyConfigurator::configure(Resmgr::getSingleton().matchRes(helpConfig).c_str());
+		std::string cfg;
+
+		std::string kbengine_xml_path = Resmgr::getSingleton().matchRes("server/kbengine.xml");
+		if (kbengine_xml_path != "server/kbengine.xml")
+		{
+			kbe_snprintf(helpConfig, MAX_PATH, "log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+			strutil::kbe_replace(kbengine_xml_path, "kbengine.xml", helpConfig);
+
+			FILE * f = fopen(kbengine_xml_path.c_str(), "r");
+			if (f == NULL)
+			{
+				kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+				cfg = Resmgr::getSingleton().matchRes(helpConfig);
+			}
+			else
+			{
+				fclose(f);
+				cfg = kbengine_xml_path;
+			}
+		}
+		else
+		{
+			kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+			cfg = Resmgr::getSingleton().matchRes(helpConfig);
+		}
+
+		log4cxx::PropertyConfigurator::configure(cfg.c_str());
 	}
 
 	g_logger = log4cxx::Logger::getRootLogger();
@@ -609,6 +635,159 @@ void DebugHelper::unregisterLogger(Network::MessageID msgID, Network::Address* p
 	loggerAddr_ = Network::Address::NONE;
 	canLogFile_ = true;
 	ALERT_LOG_TO("", true);
+	printBufferedLogs();
+}
+
+//-------------------------------------------------------------------------------------
+void DebugHelper::printBufferedLogs()
+{
+	lockthread();
+
+	if(hasBufferedLogPackets_ == 0)
+	{
+		unlockthread();
+		return;
+	}
+
+#ifdef NO_USE_LOG4CXX
+#else
+	LOG4CXX_INFO(g_logger, "The following logs sent to logger failed:\n");
+#endif
+
+	// 将子线程日志放入bufferedLogPackets_
+	while (childThreadBufferedLogPackets_.size() > 0)
+	{
+		// 从主对象池取出一个对象，将子线程中对象vector内存交换进去
+		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
+		childThreadBufferedLogPackets_.pop();
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		bufferedLogPackets_.push(pBundle);
+
+		pBundle->newMessage(LoggerInterface::writeLog);
+		pBundle->finiCurrPacket();
+		pBundle->newPacket();
+
+		// 将他们的内存交换进去
+		pBundle->pCurrPacket()->swap(*pMemoryStream);
+		pBundle->currMsgLength(pBundle->currMsgLength() + pBundle->pCurrPacket()->length());
+
+		// 将所有对象交还给对象池
+		memoryStreamPool_.reclaimObject(pMemoryStream);
+	}
+
+	while(!bufferedLogPackets_.empty())
+	{		
+		Network::Bundle* pBundle = bufferedLogPackets_.front();
+		bufferedLogPackets_.pop();
+
+		pBundle->finiMessage(true);
+
+		Network::MessageID msgID;
+		Network::MessageLength msglen;
+		Network::MessageLength1 msglen1;
+
+		int32 uid;
+		uint32 logtype;
+		COMPONENT_TYPE componentType;
+		COMPONENT_ID componentID;
+		COMPONENT_ORDER componentGlobalOrder;
+		COMPONENT_ORDER componentGroupOrder;
+		int64 t;
+		GAME_TIME kbetime;
+
+		std::string str;
+
+		(*pBundle) >> msgID;
+		(*pBundle) >> msglen;
+
+		if (msglen == 65535)
+			(*pBundle) >> msglen1;
+
+		(*pBundle) >> uid;
+		(*pBundle) >> logtype;
+		(*pBundle) >> componentType;
+		(*pBundle) >> componentID;
+		(*pBundle) >> componentGlobalOrder;
+		(*pBundle) >> componentGroupOrder;
+		(*pBundle) >> t;
+		(*pBundle) >> kbetime;
+		(*pBundle).readBlob(str);
+
+		time_t tt = static_cast<time_t>(t);	
+	    tm* aTm = localtime(&tt);
+	    //       YYYY   year
+	    //       MM     month (2 digits 01-12)
+	    //       DD     day (2 digits 01-31)
+	    //       HH     hour (2 digits 00-23)
+	    //       MM     minutes (2 digits 00-59)
+	    //       SS     seconds (2 digits 00-59)
+
+		if(aTm == NULL)
+		{
+			Network::Bundle::ObjPool().reclaimObject(pBundle);
+			continue;
+		}
+	
+		char timebuf[MAX_BUF];
+	    kbe_snprintf(timebuf, MAX_BUF, " [%-4d-%02d-%02d %02d:%02d:%02d %03d] ", aTm->tm_year+1900, aTm->tm_mon+1, 
+			aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec, kbetime);
+
+		std::string logstr = fmt::format("==>{}", timebuf);
+		logstr += str;
+		
+#ifdef NO_USE_LOG4CXX
+#else
+		switch (logtype)
+		{
+		case KBELOG_PRINT:
+			LOG4CXX_INFO(g_logger, logstr);
+			break;
+		case KBELOG_ERROR:
+			LOG4CXX_ERROR(g_logger, logstr);
+			break;
+		case KBELOG_WARNING:
+			LOG4CXX_WARN(g_logger, logstr);
+			break;
+		case KBELOG_DEBUG:
+			LOG4CXX_DEBUG(g_logger, logstr);
+			break;
+		case KBELOG_INFO:
+			LOG4CXX_INFO(g_logger, logstr);
+			break;
+		case KBELOG_CRITICAL:
+			LOG4CXX_FATAL(g_logger, logstr);
+			break;
+		case KBELOG_SCRIPT_INFO:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_INFO);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_ERROR:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_ERR);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_DEBUG:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_DBG);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_WARNING:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_WAR);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		case KBELOG_SCRIPT_NORMAL:
+			setScriptMsgType(log4cxx::ScriptLevel::SCRIPT_INFO);
+			LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), logstr);
+			break;
+		default:
+			break;
+		};
+#endif
+
+		--hasBufferedLogPackets_;
+		Network::Bundle::ObjPool().reclaimObject(pBundle);
+	}
+
+	unlockthread();
 }
 
 //-------------------------------------------------------------------------------------
@@ -638,7 +817,7 @@ void DebugHelper::error_msg(const std::string& s)
 	onMessage(KBELOG_ERROR, s.c_str(), (uint32)s.size());
 
 	set_errorcolor();
-	printf("[ERROR]: %s", s.c_str());
+	printf("%s%02d: [ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 }
 
@@ -698,7 +877,7 @@ void DebugHelper::script_info_msg(const std::string& s)
 	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
 	{
 		set_errorcolor();
-		printf("[S_ERROR]: %s", s.c_str());
+		printf("%s%02d: [S_ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 		set_normalcolor();
 	}
 }
@@ -719,7 +898,7 @@ void DebugHelper::script_error_msg(const std::string& s)
 	onMessage(KBELOG_SCRIPT_ERROR, s.c_str(), (uint32)s.size());
 
 	set_errorcolor();
-	printf("[S_ERROR]: %s", s.c_str());
+	printf("%s%02d: [S_ERROR]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 }
 
@@ -764,7 +943,7 @@ void DebugHelper::warning_msg(const std::string& s)
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	set_warningcolor();
-	//printf("[WARNING]: %s", s.c_str());
+	//printf("%s%02d: [WARNING]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 #endif
 }
@@ -784,7 +963,7 @@ void DebugHelper::critical_msg(const std::string& s)
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	set_errorcolor();
-	printf("[FATAL]: %s", s.c_str());
+	printf("%s%02d: [FATAL]: %s", COMPONENT_NAME_EX_2(g_componentType), g_componentGroupOrder, s.c_str());
 	set_normalcolor();
 #endif
 

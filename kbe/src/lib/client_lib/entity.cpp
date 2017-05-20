@@ -266,17 +266,16 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		if(uid == posuid)
 		{
 			Position3D pos;
-			ArraySize size;
 
 #ifdef CLIENT_NO_FLOAT		
 			int32 x, y, z;
-			s >> size >> x >> y >> z;
+			s >> x >> y >> z;
 
 			pos.x = (float)x;
 			pos.y = (float)y;
 			pos.z = (float)z;
 #else
-			s >> size >> pos.x >> pos.y >> pos.z;
+			s >> pos.x >> pos.y >> pos.z;
 #endif
 			position(pos);
 			continue;
@@ -284,18 +283,17 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		else if(uid == diruid)
 		{
 			Direction3D dir;
-			ArraySize size;
 
 #ifdef CLIENT_NO_FLOAT		
 			int32 x, y, z;
-			s >> size >> x >> y >> z;
+			s >> x >> y >> z;
 
 			dir.roll((float)x);
 			dir.pitch((float)y);
 			dir.yaw((float)z);
 #else
 			float yaw, pitch, roll;
-			s >> size >> roll >> pitch >> yaw;
+			s >> roll >> pitch >> yaw;
 			dir.yaw(yaw);
 			dir.pitch(pitch);
 			dir.roll(roll);

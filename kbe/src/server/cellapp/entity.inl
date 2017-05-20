@@ -254,7 +254,7 @@ INLINE int8 Entity::layer() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Entity::isControlledNotSelfCleint() const
+INLINE bool Entity::isControlledNotSelfClient() const
 {
 	return controlledBy_ == NULL || controlledBy_->id() != id();
 }

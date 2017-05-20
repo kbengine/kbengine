@@ -34,21 +34,21 @@ def onLoginAppShutDown():
 	"""
 	INFO_MSG('onLoginAppShutDown()')
 
-def onReuqestLogin(loginName, password, clientType, datas):
+def onRequestLogin(loginName, password, clientType, datas):
 	"""
 	KBEngine method.
 	账号请求登陆时回调
 	此处还可以对登陆进行排队，将排队信息存放于datas
 	"""
-	INFO_MSG('onReuqestLogin() loginName=%s, clientType=%s' % (loginName, clientType))
+	INFO_MSG('onRequestLogin() loginName=%s, clientType=%s' % (loginName, clientType))
 
 	errorno = KBEngine.SERVER_SUCCESS
 	
 	if len(loginName) > 64:
-		errorno = KBEngine.SERVER_ERR_NAME;
+		errorno = KBEngine.SERVER_ERR_NAME
 
 	if len(password) > 64:
-		errorno = KBEngine.SERVER_ERR_PASSWORD;
+		errorno = KBEngine.SERVER_ERR_PASSWORD
 
 	return (errorno, loginName, password, clientType, datas)
 
@@ -74,10 +74,10 @@ def onRequestCreateAccount(accountName, password, datas):
 	errorno = KBEngine.SERVER_SUCCESS
 	
 	if len(accountName) > 64:
-		errorno = KBEngine.SERVER_ERR_NAME;
+		errorno = KBEngine.SERVER_ERR_NAME
 
 	if len(password) > 64:
-		errorno = KBEngine.SERVER_ERR_PASSWORD;
+		errorno = KBEngine.SERVER_ERR_PASSWORD
 		
 	return (errorno, accountName, password, datas)
 

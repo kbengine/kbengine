@@ -165,8 +165,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,									password)
 
 	// 前端请求重新登录到网关上。
-	BASEAPP_MESSAGE_EXPOSED(reLoginBaseapp)
-	BASEAPP_MESSAGE_DECLARE_ARGS4(reLoginBaseapp,									NETWORK_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_EXPOSED(reloginBaseapp)
+	BASEAPP_MESSAGE_DECLARE_ARGS4(reloginBaseapp,									NETWORK_VARIABLE_MESSAGE,
 									std::string,									accountName,
 									std::string,									password,
 									uint64,											key,
@@ -277,12 +277,22 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,									email)
 
 	// 请求绑定email申请的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS5(onReqAccountBindEmailCB,							NETWORK_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onReqAccountBindEmailCBFromDBMgr,					NETWORK_VARIABLE_MESSAGE,
 									ENTITY_ID,										entityID,
 									std::string,									accountName,
 									std::string,									email,
 									SERVER_ERROR_CODE,								failedcode,
 									std::string,									code)
+
+	// baseapp请求绑定email（返回时需要找到loginapp的地址）
+	BASEAPP_MESSAGE_DECLARE_ARGS7(onReqAccountBindEmailCBFromBaseappmgr,			NETWORK_VARIABLE_MESSAGE,
+									ENTITY_ID,										entityID,
+									std::string,									accountName,
+									std::string,									email,
+									SERVER_ERROR_CODE,								failedcode,
+									std::string,									code,
+									std::string,									loginappCBHost,
+									uint16,											loginappCBPort)
 
 	// 请求修改密码
 	BASEAPP_MESSAGE_EXPOSED(reqAccountNewPassword)

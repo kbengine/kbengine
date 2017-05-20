@@ -750,16 +750,16 @@ void ClientApp::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_C
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	ClientObjectBase::onReLoginBaseappFailed(pChannel, failedcode);
+	ClientObjectBase::onReloginBaseappFailed(pChannel, failedcode);
 	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void ClientApp::onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
-	ClientObjectBase::onReLoginBaseappSuccessfully(pChannel, s);
+	ClientObjectBase::onReloginBaseappSuccessfully(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	

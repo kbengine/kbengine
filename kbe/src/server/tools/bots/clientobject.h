@@ -109,6 +109,8 @@ public:
 
 	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
+	virtual void onLogin(Network::Bundle* pBundle);
+
 protected:
 	C_ERROR error_;
 	C_STATE state_;

@@ -181,6 +181,8 @@ public:
 	*/
 	void sync();
 
+	void printBufferedLogs();
+
 	size_t hasBufferedLogPackets() const{ return hasBufferedLogPackets_; }
 
 	Network::Channel* pLoggerChannel();

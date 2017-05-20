@@ -342,14 +342,14 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				if(!isShutingdown)
+				if (!isShutingdown && g_componentType != LOGGER_TYPE)
 				{
-					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit.\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid));
+					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! {}\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid, kbe_strerror()));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit!\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
+					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! {}\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid, kbe_strerror())).c_str());
 #endif
 				}
 				else
@@ -1396,6 +1396,64 @@ void Components::onFoundAllComponents()
 }
 
 //-------------------------------------------------------------------------------------
+void Components::broadcastSelf()
+{
+	int cidex = 0;
+	int errcount = 0;
+
+	while (cidex++ < 2)
+	{
+		if (dispatcher().hasBreakProcessing() || dispatcher().waitingBreakProcessing())
+			return;
+
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+
+		// 向局域网内广播UDP包，提交自己的身份
+		Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
+
+		if (!bhandler.good())
+		{
+			if (errcount++ > 255)
+			{
+				ERROR_MSG(fmt::format("Components::broadcastSelf(): BundleBroadcast error! count > {}\n", (errcount - 1)));
+				dispatcher().breakProcessing();
+				return;
+			}
+
+			// 如果失败则继续广播
+			--cidex;
+			KBEngine::sleep(10);
+			continue;
+		}
+
+		bhandler.newMessage(MachineInterface::onBroadcastInterface);
+		MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(),
+			componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
+			pNetworkInterface()->intaddr().ip, pNetworkInterface()->intaddr().port,
+			pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
+			SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, extraData1_, extraData2_, extraData3_, extraData4_,
+			pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+
+		ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+		std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+		for (; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+			bhandler.addBroadCastAddress((*machine_addresses_iter));
+
+		bhandler.broadcast();
+
+		int32 timeout = 100000;
+		MachineInterface::onBroadcastInterfaceArgs25 args;
+
+		if (bhandler.receive(&args, 0, timeout, false))
+		{
+		}
+
+		bhandler.close();
+	}
+}
+
+//-------------------------------------------------------------------------------------
 bool Components::process()
 {
 	if(componentType_ == MACHINE_TYPE)
@@ -1407,6 +1465,7 @@ bool Components::process()
 	if(state_ == 0)
 	{
 		uint64 cidex = 0;
+		uint32 errcount = 0;
 
 		DEBUG_MSG("Components::process(): Request for the process of identity...\n");
 
@@ -1421,8 +1480,20 @@ bool Components::process()
 			// 向局域网内广播UDP包，提交自己的身份
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 
-			if(!bhandler.good())
+			if (!bhandler.good())
+			{
+				if (errcount++ > 255)
+				{
+					ERROR_MSG(fmt::format("Components::process(): BundleBroadcast error! count > {}\n", (errcount - 1)));
+					dispatcher().breakProcessing();
+					return false;
+				}
+
+				// 如果失败则继续广播
+				--cidex;
+				KBEngine::sleep(10);
 				continue;
+			}
 
 			bhandler.newMessage(MachineInterface::onBroadcastInterface);
 			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
