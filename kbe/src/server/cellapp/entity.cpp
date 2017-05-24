@@ -247,7 +247,8 @@ void Entity::onDestroy(bool callScript)
 	// 此时不应该还有witnesses，否则为AOI BUG
 	if (witnesses_count_ > 0)
 	{
-		ERROR_MSG(fmt::format("Entity::onDestroy(): witnesses_count({}) != 0, currSpace={}\n", witnesses_.size(), this->spaceID()));
+		ERROR_MSG(fmt::format("{}::onDestroy(): id={}, witnesses_count({}/{}) != 0, isReal={}, spaceID={}\n", 
+			scriptName(), id(), witnesses_count_, witnesses_.size(), isReal(), this->spaceID()));
 
 		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
 		for (; it != witnesses_.end(); ++it)
