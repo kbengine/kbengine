@@ -245,8 +245,29 @@ void Entity::onDestroy(bool callScript)
 	//KBE_ASSERT(spaceID() == 0);
 
 	// 此时不应该还有witnesses，否则为AOI BUG
-	KBE_ASSERT(witnesses_count_ == 0);
-	
+	if (witnesses_count_ > 0)
+	{
+		ERROR_MSG(fmt::format("Entity::onDestroy(): witnesses_count({}) != 0, currSpace={}\n", witnesses_.size(), this->spaceID()));
+
+		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
+		for (; it != witnesses_.end(); ++it)
+		{
+			Entity *ent = Cellapp::getSingleton().findEntity((*it));
+
+			if (ent)
+			{
+				ERROR_MSG(fmt::format("Entity::onDestroy(): witnessed={}, scriptName={}, isDestroyed={}, isReal={}, spaceID={}\n", 
+					(*it), ent->scriptName(), ent->isDestroyed(), ent->isReal(), ent->spaceID()));
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("Entity::onDestroy(): witnessed={}, not found entity!\n", (*it)));
+			}
+		}
+
+		KBE_ASSERT(witnesses_count_ == 0);
+	}
+
 	pPyPosition_->onLoseRef();
 	pPyDirection_->onLoseRef();
 }
@@ -1274,6 +1295,7 @@ bool Entity::entityInWitnessed(ENTITY_ID entityID)
 		if (*it == entityID)
 			return true;
 	}
+
 	return false;
 }
 
