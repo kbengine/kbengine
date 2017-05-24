@@ -1626,8 +1626,9 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 	// 等待onMigrationCellappEnd触发后做清理
 	if (!hasFlags(ENTITY_FLAGS_TELEPORT_ARRIVED))
 	{
-		// 这种状态下，pBufferedSendToClientMessages_一定为NULL
-		KBE_ASSERT(pBufferedSendToClientMessages_ == NULL);
+		createMigrationMessageBuffered(sourceCellAppID, targetCellAppID);
+		KBE_ASSERT(pBufferedSendToClientMessages_->cellappID() == targetCellAppID);
+
 		addFlags(ENTITY_FLAGS_TELEPORT_END);
 	}
 	else
