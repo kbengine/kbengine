@@ -1562,6 +1562,8 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sour
 	createMigrationMessageBuffered(sourceCellAppID, targetCellAppID);
 
 	addFlags(ENTITY_FLAGS_TELEPORT_START);
+
+	removeFlags(ENTITY_FLAGS_TELEPORT_END);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1572,21 +1574,21 @@ void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID so
 	
 	DEBUG_MSG(fmt::format("{}::onMigrationCellappArrived: {}, sourceCellAppID={}, targetCellappID={}\n",
 		scriptName(), id(), sourceCellAppID, targetCellAppID));
-	
-	// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORT_START,  说明onMigrationCellappArrived包优先于
-	// onMigrationCellappStart到达(某些压力所致的情况下会导致实体跨进程跳转时（由cell1跳转到cell2），
-	// 跳转前所产生的包会比cell2的enterSpace包慢到达)，因此发生这种情况时需要将cell2的包先缓存
-	// 等cell1的包到达后执行完毕再执行cell2的包
-	if (!hasFlags(ENTITY_FLAGS_TELEPORT_START))
-	{
-		createMigrationMessageBuffered(sourceCellAppID, targetCellAppID);
-		KBE_ASSERT(pBufferedSendToClientMessages_->cellappID() == targetCellAppID);
-	}
 
 	// 必须onMigrationCellappEnd没有执行过才有设置的价值
 	// 某些极端情况下可能onMigrationCellappArrived会慢于它触发
 	if (!hasFlags(ENTITY_FLAGS_TELEPORT_END))
 	{
+		// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORT_START,  说明onMigrationCellappArrived包优先于
+		// onMigrationCellappStart到达(某些压力所致的情况下会导致实体跨进程跳转时（由cell1跳转到cell2），
+		// 跳转前所产生的包会比cell2的enterSpace包慢到达)，因此发生这种情况时需要将cell2的包先缓存
+		// 等cell1的包到达后执行完毕再执行cell2的包
+		if (!hasFlags(ENTITY_FLAGS_TELEPORT_START))
+		{
+			createMigrationMessageBuffered(sourceCellAppID, targetCellAppID);
+			KBE_ASSERT(pBufferedSendToClientMessages_->cellappID() == targetCellAppID);
+		}
+
 		addFlags(ENTITY_FLAGS_TELEPORT_ARRIVED);
 	}
 	else
@@ -1640,8 +1642,8 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 			scriptName(), id(), sourceCellAppID, targetCellAppID));
 	}
 
-	KBE_ASSERT(pBufferedSendToCellappMessages_);
-	pBufferedSendToCellappMessages_->startForward();
+	if(pBufferedSendToCellappMessages_)
+		pBufferedSendToCellappMessages_->startForward();
 	
 	if(pBufferedSendToClientMessages_)
 		pBufferedSendToClientMessages_->startForward();
