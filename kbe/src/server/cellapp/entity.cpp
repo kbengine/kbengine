@@ -256,12 +256,12 @@ void Entity::onDestroy(bool callScript)
 
 			if (ent)
 			{
-				ERROR_MSG(fmt::format("Entity::onDestroy(): witnessed={}, scriptName={}, isDestroyed={}, isReal={}, spaceID={}\n", 
-					(*it), ent->scriptName(), ent->isDestroyed(), ent->isReal(), ent->spaceID()));
+				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, spaceID={}\n", 
+					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), ent->spaceID()));
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("Entity::onDestroy(): witnessed={}, not found entity!\n", (*it)));
+				ERROR_MSG(fmt::format("\t=> witnessed={}, not found entity!\n", (*it)));
 			}
 		}
 
