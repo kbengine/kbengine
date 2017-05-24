@@ -1770,6 +1770,9 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 
+	COMPONENT_ID ghostCell;
+	s >> ghostCell;
+
 	bool success = false;
 
 	Entity* refEntity = Cellapp::getSingleton().findEntity(nearbyMBRefID);
@@ -1779,7 +1782,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1799,7 +1802,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1818,7 +1821,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1835,14 +1838,11 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	// 在传送失败时可以用于恢复现场, 那么传送成功了我们应该停止以前的移动行为
 	e->stopMove();
 
-	COMPONENT_ID ghostCell;
-	s >> ghostCell;
-
 	// 对于传送操作来说，实体传送过来就不会有ghost部分了
 	// 当前实体做出的任何改变不需要同步到原有cell，这可能会产生网络消息死循环
-	ghostCell = 0;
+	//ghostCell = 0;
+	e->ghostCell(0);
 
-	e->ghostCell(ghostCell);
 	e->spaceID(space->id());
 	e->setPositionAndDirection(pos, dir);
 
@@ -1855,7 +1855,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappInterface::onMigrationCellappArrived);
 		(*pBundle) << e->id();
-		(*pBundle) << g_componentID;
+		(*pBundle) << ghostCell << g_componentID;
 		e->baseMailbox()->postMail(pBundle);
 	}
 
@@ -1881,7 +1881,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		pChannel->send(pBundle);
@@ -1893,9 +1893,17 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 {
 	bool success;
 	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
-	COMPONENT_ID targetCellappID, entityBaseappID;
+	COMPONENT_ID sourceCellappID, targetCellappID, entityBaseappID;
 
-	s >> targetCellappID >> entityBaseappID >> teleportEntityID >> success;
+	s >> sourceCellappID >> targetCellappID >> entityBaseappID >> teleportEntityID >> success;
+
+	// 正常情况下， 应该传送结果返回时传送前的实体应该在当前cell上， 如果到其他cellapp上了， 说明在此期间被迁移走了
+	// 此时被迁移很可能会有问题
+	if (sourceCellappID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB(): sourceCellappID={} != currCellappID={}, targetCellappID={}\n", 
+			sourceCellappID, g_componentID, targetCellappID));
+	}
 
 	// 实体可能没有base部分，那么不需要通知baseapp
 	if(entityBaseappID > 0)
@@ -1908,9 +1916,9 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 			(*pBundle) << teleportEntityID;
 
 			if(success)
-				(*pBundle) << targetCellappID;
+				(*pBundle) << sourceCellappID << targetCellappID;
 			else
-				(*pBundle) << g_componentID;
+				(*pBundle) << sourceCellappID << sourceCellappID;
 
 			pInfos->pChannel->send(pBundle);
 		}

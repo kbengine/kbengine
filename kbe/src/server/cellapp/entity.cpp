@@ -3028,8 +3028,17 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 {
 	DEBUG_MSG(fmt::format("{}::teleportFromBaseapp: {}, targetEntityID={}, cell={}, sourceBaseAppID={}.\n", 
 		this->scriptName(), this->id(), targetEntityID, cellAppID, sourceBaseAppID));
-	
+
 	SPACE_ID lastSpaceID = this->spaceID();
+
+	if (!isReal())
+	{
+		ERROR_MSG(fmt::format("{}::teleportFromBaseapp: not is real entity({}), sourceBaseAppID={}.\n",
+			this->scriptName(), this->id(), sourceBaseAppID));
+
+		_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
+		return;
+	}
 
 	// 如果不在一个cell上
 	if(cellAppID != g_componentID)
@@ -3274,6 +3283,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
+			(*pBundle) << nearbyMBRef->componentID();
 			pBaseChannel->send(pBundle);
 		}
 		else
@@ -3300,11 +3310,11 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	(*pBundle) << pScriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << dir.pitch() << dir.yaw();
+	(*pBundle) << g_componentID;
 
 	MemoryStream* s = MemoryStream::createPoolObject();
 	changeToGhost(nearbyMBRef->componentID(), *s);
 
-	(*s) << g_componentID;
 	(*pBundle).append(s);
 	MemoryStream::reclaimPoolObject(s);
 
