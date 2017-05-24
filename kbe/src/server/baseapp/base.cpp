@@ -1596,9 +1596,6 @@ void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID so
 		DEBUG_MSG(fmt::format("{}::onMigrationCellappArrived: reset flags! {}, sourceCellAppID={}, targetCellappID={}\n",
 			scriptName(), id(), sourceCellAppID, targetCellAppID));
 
-		// 这种状态下，pBufferedSendToClientMessages_一定为NULL
-		KBE_ASSERT(pBufferedSendToClientMessages_ == NULL);
-
 		removeFlags(ENTITY_FLAGS_TELEPORT_START);
 		removeFlags(ENTITY_FLAGS_TELEPORT_END);
 	}
