@@ -1952,11 +1952,13 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	Direction3D dir;
 	ENTITY_SCRIPT_UID entityType;
 	SPACE_ID lastSpaceID = 0;
+	COMPONENT_ID cid;
 
 	s >> teleportEntityID >> nearbyMBRefID >> lastSpaceID;
 	s >> entityType;
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
+	s >> cid;
 
 	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 	entity->changeToReal(0, s);
