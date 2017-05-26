@@ -1586,7 +1586,14 @@ void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID so
 		if (!hasFlags(ENTITY_FLAGS_TELEPORT_START))
 		{
 			createMigrationMessageBuffered(sourceCellAppID, targetCellAppID);
-			KBE_ASSERT(pBufferedSendToClientMessages_->cellappID() == targetCellAppID);
+
+			if (pBufferedSendToClientMessages_->cellappID() != targetCellAppID)
+			{
+				ERROR_MSG(fmt::format("{}::onMigrationCellappArrived: {} targetCellappID not match({} != {})! sourceCellAppID={}, targetCellappID={}\n",
+					scriptName(), id(), pBufferedSendToClientMessages_->cellappID(), targetCellAppID, sourceCellAppID, targetCellAppID));
+
+				KBE_ASSERT(pBufferedSendToClientMessages_->cellappID() == targetCellAppID);
+			}
 		}
 
 		addFlags(ENTITY_FLAGS_TELEPORT_ARRIVED);
@@ -1626,7 +1633,14 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 	if (!hasFlags(ENTITY_FLAGS_TELEPORT_ARRIVED))
 	{
 		createMigrationMessageBuffered(sourceCellAppID, targetCellAppID);
-		KBE_ASSERT(pBufferedSendToClientMessages_->cellappID() == targetCellAppID);
+
+		if (pBufferedSendToClientMessages_->cellappID() != targetCellAppID)
+		{
+			ERROR_MSG(fmt::format("{}::onMigrationCellappEnd: {} targetCellappID not match({} != {})! sourceCellAppID={}, targetCellappID={}\n",
+				scriptName(), id(), pBufferedSendToClientMessages_->cellappID(), targetCellAppID, sourceCellAppID, targetCellAppID));
+
+			KBE_ASSERT(pBufferedSendToClientMessages_->cellappID() == targetCellAppID);
+		}
 
 		addFlags(ENTITY_FLAGS_TELEPORT_END);
 	}
