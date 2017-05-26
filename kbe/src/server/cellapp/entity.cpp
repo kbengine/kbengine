@@ -3759,6 +3759,8 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	this->pScriptModule_ = EntityDef::findScriptModule(scriptUType);
 
+	KBE_ASSERT(this->pScriptModule_);
+
 	// ÉèÖÃentityµÄbaseMailbox
 	if(baseMailboxComponentID > 0)
 		baseMailbox(new EntityMailbox(pScriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
