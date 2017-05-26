@@ -247,8 +247,8 @@ void Entity::onDestroy(bool callScript)
 	// 此时不应该还有witnesses，否则为AOI BUG
 	if (witnesses_count_ > 0)
 	{
-		ERROR_MSG(fmt::format("{}::onDestroy(): id={}, witnesses_count({}/{}) != 0, isReal={}, spaceID={}\n", 
-			scriptName(), id(), witnesses_count_, witnesses_.size(), isReal(), this->spaceID()));
+		ERROR_MSG(fmt::format("{}::onDestroy(): id={}, witnesses_count({}/{}) != 0, isReal={}, spaceID={}, position=({},{},{})\n", 
+			scriptName(), id(), witnesses_count_, witnesses_.size(), isReal(), this->spaceID(), position().x, position().y, position().z));
 
 		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
 		for (; it != witnesses_.end(); ++it)
@@ -257,8 +257,8 @@ void Entity::onDestroy(bool callScript)
 
 			if (ent)
 			{
-				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, spaceID={}\n", 
-					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), ent->spaceID()));
+				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, spaceID={}, position=({},{},{})\n", 
+					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
 			}
 			else
 			{
