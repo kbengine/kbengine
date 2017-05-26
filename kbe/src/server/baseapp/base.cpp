@@ -450,7 +450,11 @@ PyObject* Base::createCellDataDict(uint32 flags)
 //-------------------------------------------------------------------------------------
 void Base::sendToCellapp(Network::Bundle* pBundle)
 {
-	KBE_ASSERT(cellMailbox_ != NULL);
+	if (!cellMailbox_)
+	{
+		ERROR_MSG(fmt::format("{}::sendToCellapp: no cell! entityID={}\n", this->scriptName(), id()));
+		return;
+	}
 
 	if(pBufferedSendToCellappMessages_ && pBufferedSendToCellappMessages_->isStop())
 	{
