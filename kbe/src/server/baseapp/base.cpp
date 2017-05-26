@@ -468,7 +468,14 @@ void Base::sendToCellapp(Network::Bundle* pBundle)
 //-------------------------------------------------------------------------------------
 void Base::sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle)
 {
-	KBE_ASSERT(pChannel != NULL && pBundle != NULL);
+	if (!pChannel)
+	{
+		ERROR_MSG(fmt::format("{}::sendToCellapp: pChannel == NULL! entityID={}\n", this->scriptName(), id()));
+		return;
+	}
+
+	KBE_ASSERT(pBundle != NULL);
+
 	pChannel->send(pBundle);
 }
 
