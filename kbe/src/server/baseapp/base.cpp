@@ -1605,9 +1605,6 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 		this->cellMailbox()->componentID(targetCellAppID);
 	}
 
-	DEBUG_MSG(fmt::format("{}::onMigrationCellappEnd: reset flags! {}, sourceCellAppID={}, targetCellappID={}\n",
-		scriptName(), id(), sourceCellAppID, targetCellAppID));
-
 	if(pBufferedSendToCellappMessages_)
 		pBufferedSendToCellappMessages_->startForward();
 	
