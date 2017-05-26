@@ -257,8 +257,23 @@ void Entity::onDestroy(bool callScript)
 
 			if (ent)
 			{
-				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, spaceID={}, position=({},{},{})\n", 
-					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
+				bool inTargetAOI = false;
+
+				if (ent->pWitness())
+				{
+					Witness::AOI_ENTITIES::iterator aoi_iter = ent->pWitness()->aoiEntities().begin();
+					for (; aoi_iter != ent->pWitness()->aoiEntities().end(); ++aoi_iter)
+					{
+						if ((*aoi_iter)->pEntity() == this)
+						{
+							inTargetAOI = true;
+							break;
+						}
+					}
+				}
+
+				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetAOI={}, spaceID={}, position=({},{},{})\n", 
+					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetAOI, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
 			}
 			else
 			{
