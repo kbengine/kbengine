@@ -3689,13 +3689,6 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 {
-	changeToReal(ghostCell);
-	createFromStream(s);
-}
-
-//-------------------------------------------------------------------------------------
-void Entity::changeToReal(COMPONENT_ID ghostCell)
-{
 	// 一个entity要转变为real
 	// 首先需要设置自身的ghostCell
 	// 将所有def数据添加进流
@@ -3708,6 +3701,8 @@ void Entity::changeToReal(COMPONENT_ID ghostCell)
 
 	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}.\n",
 		scriptName(), id(), ghostCell_));
+
+	createFromStream(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3865,9 +3860,10 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 
 	if (witnesses_count_ > 0)
 	{
-		ERROR_MSG(fmt::format("{}::createWitnessFromStream: witnesses_count({}/{}) != 0! entityID={}, isReal={}\n",
+		WARNING_MSG(fmt::format("{}::createWitnessFromStream: witnesses_count({}/{}) != 0! entityID={}, isReal={}\n",
 			scriptName(), witnesses_.size(), witnesses_count_, id(), isReal()));
 
+		/*
 		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
 		for (; it != witnesses_.end(); ++it)
 		{
@@ -3900,19 +3896,22 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 		}
 
 		KBE_ASSERT(witnesses_count_ == 0);
+		*/
 	}
-
-	for(uint32 i=0; i<size; ++i)
+	else
 	{
-		ENTITY_ID entityID;
-		s >> entityID;
+		for (uint32 i = 0; i < size; ++i)
+		{
+			ENTITY_ID entityID;
+			s >> entityID;
 
-		Entity* pEntity = Cellapp::getSingleton().findEntity(entityID);
-		if(pEntity == NULL || pEntity->spaceID() != spaceID())
-			continue;
+			Entity* pEntity = Cellapp::getSingleton().findEntity(entityID);
+			if (pEntity == NULL || pEntity->spaceID() != spaceID())
+				continue;
 
-		witnesses_.push_back(entityID);
-		++witnesses_count_;
+			witnesses_.push_back(entityID);
+			++witnesses_count_;
+		}
 	}
 
 	bool hasWitness;

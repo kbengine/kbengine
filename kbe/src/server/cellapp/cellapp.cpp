@@ -1965,7 +1965,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 
 	// Ö±½Ó»Ö¸´
 	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
-	entity->changeToReal(0);
+	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
 
 	s.done();
