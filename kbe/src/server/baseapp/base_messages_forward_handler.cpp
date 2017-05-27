@@ -86,7 +86,11 @@ bool BaseMessagesForwardCellappHandler::process()
 	}
 
 	if(pBase_->cellMailbox() == NULL || pBase_->cellMailbox()->getChannel() == NULL)
-		return true;
+	{
+		completed_ = true;
+		pBase_->onBufferedForwardToCellappMessagesOver();
+		return false;
+	}
 
 	int remainPacketSize = PACKET_MAX_SIZE_TCP * 10;
 
@@ -166,7 +170,11 @@ bool BaseMessagesForwardClientHandler::process()
 	}
 
 	if(pBase_->clientMailbox() == NULL || pBase_->clientMailbox()->getChannel() == NULL)
-		return true;
+	{
+		completed_ = true;
+		pBase_->onBufferedForwardToClientMessagesOver();
+		return false;
+	}
 
 	int remainPacketSize = PACKET_MAX_SIZE_TCP * 10;
 

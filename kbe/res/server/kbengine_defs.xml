@@ -389,7 +389,7 @@
 			(The entityID allocator, enter the overflow area will get the new ID's)
 		-->
 		<ids>
-			<increasing_range> 1024 </increasing_range>				<!-- Type: Integer -->
+			<increasing_range> 2000 </increasing_range>				<!-- Type: Integer -->
 		</ids>
 	</dbmgr>
 	
@@ -437,7 +437,7 @@
 			(The entityID allocator, enter the overflow area will get the new ID's)
 		-->
 		<ids>
-			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
+			<criticallyLowSize> 1000 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
 		<!-- 程序的性能分析
@@ -588,7 +588,7 @@
 			(The entityID allocator, enter the overflow area will get the new ID's)
 		-->
 		<ids>
-			<criticallyLowSize> 500 </criticallyLowSize>				<!-- Type: Integer -->
+			<criticallyLowSize> 1000 </criticallyLowSize>				<!-- Type: Integer -->
 		</ids>
 		
 		<!-- 当灾难发生后，baseapp进行灾难恢复时，每次恢复entity的数量 

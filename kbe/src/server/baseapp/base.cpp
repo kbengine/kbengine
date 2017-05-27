@@ -450,7 +450,11 @@ PyObject* Base::createCellDataDict(uint32 flags)
 //-------------------------------------------------------------------------------------
 void Base::sendToCellapp(Network::Bundle* pBundle)
 {
-	KBE_ASSERT(cellMailbox_ != NULL);
+	if (!cellMailbox_)
+	{
+		ERROR_MSG(fmt::format("{}::sendToCellapp: no cell! entityID={}\n", this->scriptName(), id()));
+		return;
+	}
 
 	if(pBufferedSendToCellappMessages_ && pBufferedSendToCellappMessages_->isStop())
 	{
@@ -464,7 +468,14 @@ void Base::sendToCellapp(Network::Bundle* pBundle)
 //-------------------------------------------------------------------------------------
 void Base::sendToCellapp(Network::Channel* pChannel, Network::Bundle* pBundle)
 {
-	KBE_ASSERT(pChannel != NULL && pBundle != NULL);
+	if (!pChannel)
+	{
+		ERROR_MSG(fmt::format("{}::sendToCellapp: pChannel == NULL! entityID={}\n", this->scriptName(), id()));
+		return;
+	}
+
+	KBE_ASSERT(pBundle != NULL);
+
 	pChannel->send(pBundle);
 }
 
@@ -1532,97 +1543,81 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID)
+void Base::createMigrationMessageBuffered(COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID)
 {
-	if (pChannel && pChannel->isExternal())
-		return;
-	
-	DEBUG_MSG(fmt::format("{}::onTeleportCellappStart: {}, targetCellappID={}\n",
-		scriptName(), id(), cellappID));
+	// 由于一些极端情况导致不确定onMigrationCellappStart和onMigrationCellappArrived的顺序，因此把buffer都创建了
 
 	// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
-	// 当onTeleportCellappEnd被调用时将缓存的包发往cell
+	// 当onMigrationCellappEnd被调用时将缓存的包发往cell
 
-	if(pBufferedSendToCellappMessages_ == NULL)
+	if (pBufferedSendToCellappMessages_ == NULL)
 		pBufferedSendToCellappMessages_ = new BaseMessagesForwardCellappHandler(this);
 
 	pBufferedSendToCellappMessages_->stopForward();
 
-	addFlags(ENTITY_FLAGS_TELEPORT_START);
+	if (pBufferedSendToClientMessages_ == NULL)
+		pBufferedSendToClientMessages_ = new BaseMessagesForwardClientHandler(this, targetCellAppID);
+
+	pBufferedSendToClientMessages_->stopForward();
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID cellappID)
+void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID)
 {
 	if (pChannel && pChannel->isExternal())
 		return;
 	
-	DEBUG_MSG(fmt::format("{}::onTeleportCellappArrived: {}, targetCellappID={}\n",
-		scriptName(), id(), cellappID));
-	
-	// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORT_START,  说明onMigrationCellappArrived包优先于
-	// onMigrationCellappStart到达(某些压力所致的情况下会导致实体跨进程跳转时（由cell1跳转到cell2），
-	// 跳转前所产生的包会比cell2的enterSpace包慢到达)，因此发生这种情况时需要将cell2的包先缓存
-	// 等cell1的包到达后执行完毕再执行cell2的包
-	if (!hasFlags(ENTITY_FLAGS_TELEPORT_START))
+	DEBUG_MSG(fmt::format("{}::onMigrationCellappStart: {}, sourceCellAppID={}, targetCellappID={}\n",
+		scriptName(), id(), sourceCellAppID, targetCellAppID));
+
+	// 如果当前记录的cellappID不是要迁移的目的cellappID很可能是发生了极端的情况
+	// 如：上一次onMigrationCellappStart发生后，由于cellapp压力大导致还没有收到onMigrationCellappEnd，此时又开始的新的迁移
+	// 新的迁移目的cellapp跟上一次不一样，所以出现了这个情况。
+	// 此时只要刷新cellappID即可
+	if (pBufferedSendToClientMessages_ && pBufferedSendToClientMessages_->cellappID() != targetCellAppID)
 	{
-		if(pBufferedSendToClientMessages_ == NULL)
-			pBufferedSendToClientMessages_ = new BaseMessagesForwardClientHandler(this, cellappID);
-		
-		pBufferedSendToClientMessages_->stopForward();
+		pBufferedSendToClientMessages_->cellappID(targetCellAppID);
 	}
 
-	// 必须onMigrationCellappEnd没有执行过才有设置的价值
-	// 某些极端情况下可能onMigrationCellappArrived会慢于它触发
-	if (!hasFlags(ENTITY_FLAGS_TELEPORT_END))
-	{
-		addFlags(ENTITY_FLAGS_TELEPORT_ARRIVED);
-	}
-	else
-	{
-		DEBUG_MSG(fmt::format("{}::onTeleportCellappArrived: reset flags! {}, targetCellappID={}\n",
-			scriptName(), id(), cellappID));
-
-		// 这种状态下，pBufferedSendToClientMessages_一定为NULL
-		KBE_ASSERT(pBufferedSendToClientMessages_ == NULL);
-
-		removeFlags(ENTITY_FLAGS_TELEPORT_START);
-		removeFlags(ENTITY_FLAGS_TELEPORT_END);
-	}
-
+	createMigrationMessageBuffered(sourceCellAppID, targetCellAppID);
 }
 
 //-------------------------------------------------------------------------------------
-void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID)
+void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID)
 {
 	if (pChannel && pChannel->isExternal())
 		return;
 	
-	DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: {}, targetCellappID={}\n",
-		scriptName(), id(), cellappID));
+	DEBUG_MSG(fmt::format("{}::onMigrationCellappArrived: {}, sourceCellAppID={}, targetCellappID={}\n",
+		scriptName(), id(), sourceCellAppID, targetCellAppID));
+}
 
-	// 改变cell的指向到新的cellapp
-	this->cellMailbox()->componentID(cellappID);
+//-------------------------------------------------------------------------------------
+void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID)
+{
+	if (pChannel && pChannel->isExternal())
+		return;
+	
+	DEBUG_MSG(fmt::format("{}::onMigrationCellappEnd: {}, sourceCellAppID={}, targetCellappID={}\n",
+		scriptName(), id(), sourceCellAppID, targetCellAppID));
 
-	// 某些极端情况下可能onMigrationCellappArrived会慢于onMigrationCellappEnd触发，此时必须设置标记
-	// 等待onMigrationCellappEnd触发后做清理
-	if (!hasFlags(ENTITY_FLAGS_TELEPORT_ARRIVED))
+	// 如果当前记录的cellappID不是要迁移的目的cellappID很可能是发生了极端的情况
+	// 如：上一次onMigrationCellappStart发生后，由于cellapp压力大导致还没有收到onMigrationCellappEnd，此时又开始的新的迁移
+	// 新的迁移目的cellapp跟上一次不一样，所以出现了这个情况。
+	// 这种情况下我们忽略上一次的onMigrationCellappEnd请求，等待新的迁移完成再刷新
+	if (pBufferedSendToClientMessages_ && pBufferedSendToClientMessages_->cellappID() != targetCellAppID)
 	{
-		// 这种状态下，pBufferedSendToClientMessages_一定为NULL
-		KBE_ASSERT(pBufferedSendToClientMessages_ == NULL);
-		addFlags(ENTITY_FLAGS_TELEPORT_END);
+		return;
 	}
-	else
+
+	if (this->cellMailbox())
 	{
-		removeFlags(ENTITY_FLAGS_TELEPORT_START);
-		removeFlags(ENTITY_FLAGS_TELEPORT_ARRIVED);
-
-		DEBUG_MSG(fmt::format("{}::onTeleportCellappEnd: reset flags! {}, targetCellappID={}\n",
-			scriptName(), id(), cellappID));
+		// 改变cell的指向到新的cellapp
+		this->cellMailbox()->componentID(targetCellAppID);
 	}
 
-	KBE_ASSERT(pBufferedSendToCellappMessages_);
-	pBufferedSendToCellappMessages_->startForward();
+	if(pBufferedSendToCellappMessages_)
+		pBufferedSendToCellappMessages_->startForward();
 	
 	if(pBufferedSendToClientMessages_)
 		pBufferedSendToClientMessages_->startForward();

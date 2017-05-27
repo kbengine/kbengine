@@ -250,9 +250,11 @@ public:
 	/** 网络接口
 		entity请求迁移到另一个cellapp上的过程开始和结束。
 	*/
-	void onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID);
-	void onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID cellappID);
-	void onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID);
+	void onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
+	void onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
+	void onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
+
+	void createMigrationMessageBuffered(COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
 
 	/**
 		设置获取是否自动存档

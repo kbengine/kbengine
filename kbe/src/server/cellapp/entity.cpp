@@ -282,8 +282,45 @@ void Entity::onDestroy(bool callScript)
 	//KBE_ASSERT(spaceID() == 0);
 
 	// 此时不应该还有witnesses，否则为AOI BUG
-	KBE_ASSERT(witnesses_count_ == 0);
-	
+	if (witnesses_count_ > 0)
+	{
+		ERROR_MSG(fmt::format("{}::onDestroy(): id={}, witnesses_count({}/{}) != 0, isReal={}, spaceID={}, position=({},{},{})\n", 
+			scriptName(), id(), witnesses_count_, witnesses_.size(), isReal(), this->spaceID(), position().x, position().y, position().z));
+
+		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
+		for (; it != witnesses_.end(); ++it)
+		{
+			Entity *ent = Cellapp::getSingleton().findEntity((*it));
+
+			if (ent)
+			{
+				bool inTargetAOI = false;
+
+				if (ent->pWitness())
+				{
+					Witness::AOI_ENTITIES::iterator aoi_iter = ent->pWitness()->aoiEntities().begin();
+					for (; aoi_iter != ent->pWitness()->aoiEntities().end(); ++aoi_iter)
+					{
+						if ((*aoi_iter)->pEntity() == this)
+						{
+							inTargetAOI = true;
+							break;
+						}
+					}
+				}
+
+				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetAOI={}, spaceID={}, position=({},{},{})\n", 
+					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetAOI, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("\t=> witnessed={}, not found entity!\n", (*it)));
+			}
+		}
+
+		KBE_ASSERT(witnesses_count_ == 0);
+	}
+
 	pPyPosition_->onLoseRef();
 	pPyDirection_->onLoseRef();
 }
@@ -1311,6 +1348,7 @@ bool Entity::entityInWitnessed(ENTITY_ID entityID)
 		if (*it == entityID)
 			return true;
 	}
+
 	return false;
 }
 
@@ -3099,8 +3137,17 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 {
 	DEBUG_MSG(fmt::format("{}::teleportFromBaseapp: {}, targetEntityID={}, cell={}, sourceBaseAppID={}.\n", 
 		this->scriptName(), this->id(), targetEntityID, cellAppID, sourceBaseAppID));
-	
+
 	SPACE_ID lastSpaceID = this->spaceID();
+
+	if (!isReal())
+	{
+		ERROR_MSG(fmt::format("{}::teleportFromBaseapp: not is real entity({}), sourceBaseAppID={}.\n",
+			this->scriptName(), this->id(), sourceBaseAppID));
+
+		_sendBaseTeleportResult(this->id(), sourceBaseAppID, 0, lastSpaceID, false);
+		return;
+	}
 
 	// 如果不在一个cell上
 	if(cellAppID != g_componentID)
@@ -3345,6 +3392,7 @@ void Entity::teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Dir
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
+			(*pBundle) << nearbyMBRef->componentID();
 			pBaseChannel->send(pBundle);
 		}
 		else
@@ -3371,11 +3419,11 @@ void Entity::onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, D
 	(*pBundle) << pScriptModule()->getUType();
 	(*pBundle) << pos.x << pos.y << pos.z;
 	(*pBundle) << dir.roll() << dir.pitch() << dir.yaw();
+	(*pBundle) << g_componentID;
 
 	MemoryStream* s = MemoryStream::createPoolObject();
 	changeToGhost(nearbyMBRef->componentID(), *s);
 
-	(*s) << g_componentID;
 	(*pBundle).append(s);
 	MemoryStream::reclaimPoolObject(s);
 
@@ -3830,6 +3878,8 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	this->pScriptModule_ = EntityDef::findScriptModule(scriptUType);
 
+	KBE_ASSERT(this->pScriptModule_);
+
 	// 设置entity的baseMailbox
 	if(baseMailboxComponentID > 0)
 		baseMailbox(new EntityMailbox(pScriptModule(), NULL, baseMailboxComponentID, id_, MAILBOX_TYPE_BASE));
@@ -3952,7 +4002,44 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 	uint32 size;
 	s >> size;
 
-	KBE_ASSERT(witnesses_count_ == 0);
+	if (witnesses_count_ > 0)
+	{
+		ERROR_MSG(fmt::format("{}::createWitnessFromStream: witnesses_count({}/{}) != 0! entityID={}, isReal={}\n",
+			scriptName(), witnesses_.size(), witnesses_count_, id(), isReal()));
+
+		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
+		for (; it != witnesses_.end(); ++it)
+		{
+			Entity *ent = Cellapp::getSingleton().findEntity((*it));
+
+			if (ent)
+			{
+				bool inTargetAOI = false;
+
+				if (ent->pWitness())
+				{
+					Witness::AOI_ENTITIES::iterator aoi_iter = ent->pWitness()->aoiEntities().begin();
+					for (; aoi_iter != ent->pWitness()->aoiEntities().end(); ++aoi_iter)
+					{
+						if ((*aoi_iter)->pEntity() == this)
+						{
+							inTargetAOI = true;
+							break;
+						}
+					}
+				}
+
+				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetAOI={}, spaceID={}, position=({},{},{})\n",
+					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetAOI, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("\t=> witnessed={}, not found entity!\n", (*it)));
+			}
+		}
+
+		KBE_ASSERT(witnesses_count_ == 0);
+	}
 
 	for(uint32 i=0; i<size; ++i)
 	{

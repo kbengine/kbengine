@@ -338,16 +338,19 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 								DBID,												dbid)
 
 	// entity请求迁移到另一个cellapp上的space过程开始
-	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappStart,								NETWORK_FIXED_MESSAGE,
-								COMPONENT_ID,										cellAppID)
+	BASE_MESSAGE_DECLARE_ARGS2(onMigrationCellappStart,								NETWORK_FIXED_MESSAGE,
+								COMPONENT_ID,										sourceCellAppID,
+								COMPONENT_ID,										targetCellAppID)
 
 	// entity请求迁移到另一个cellapp上的space过程到达目的cellapp
-	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappArrived,							NETWORK_FIXED_MESSAGE,
-								COMPONENT_ID,										cellAppID)
+	BASE_MESSAGE_DECLARE_ARGS2(onMigrationCellappArrived,							NETWORK_FIXED_MESSAGE,
+								COMPONENT_ID,										sourceCellAppID,
+								COMPONENT_ID,										targetCellAppID)
 		
 	// entity请求迁移到另一个cellapp上的space过程结束
-	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappEnd,								NETWORK_FIXED_MESSAGE,
-								COMPONENT_ID,										cellAppID)
+	BASE_MESSAGE_DECLARE_ARGS2(onMigrationCellappEnd,								NETWORK_FIXED_MESSAGE,
+								COMPONENT_ID,										sourceCellAppID,
+								COMPONENT_ID,										targetCellAppID)
 
 	//--------------------------------------------Proxy---------------------------------------------------------
 	/**

@@ -68,6 +68,10 @@ public:
 		return cellappID_;
 	}
 
+	void cellappID(COMPONENT_ID cid) {
+		cellappID_ = cid;
+	}
+
 private:
 	Base* pBase_;
 	bool completed_;
