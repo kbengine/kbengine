@@ -3689,6 +3689,13 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 {
+	changeToReal(ghostCell);
+	createFromStream(s);
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::changeToReal(COMPONENT_ID ghostCell)
+{
 	// 一个entity要转变为real
 	// 首先需要设置自身的ghostCell
 	// 将所有def数据添加进流
@@ -3699,10 +3706,8 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 	ghostCell_ = ghostCell;
 	realCell_ = 0;
 
-	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}.\n", 
+	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}.\n",
 		scriptName(), id(), ghostCell_));
-
-	createFromStream(s);
 }
 
 //-------------------------------------------------------------------------------------

@@ -568,6 +568,7 @@ public:
 		转变为real, 自身必须为ghost
 	*/
 	void changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s);
+	void changeToReal(COMPONENT_ID ghostCell);
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
