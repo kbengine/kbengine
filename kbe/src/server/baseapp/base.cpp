@@ -667,7 +667,11 @@ PyObject* Base::onScriptGetAttribute(PyObject* attr)
 	{
 		setDirty();
 	}
-
+	else if (strcmp(ccattr, "cellData") == 0)
+	{
+		setDirty();
+	}
+	
 	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
