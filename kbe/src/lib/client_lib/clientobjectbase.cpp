@@ -879,33 +879,35 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	}
 	else
 	{
-		spaceID_ = entity->spaceID();
-		entity->isOnGround(isOnGround > 0);
-		entity->clientPos(entity->position());
-		entity->clientDir(entity->direction());
+		if(!entity->inWorld())
+		{
+			spaceID_ = entity->spaceID();
+			entity->isOnGround(isOnGround > 0);
+			entity->clientPos(entity->position());
+			entity->clientDir(entity->direction());
 
-		// 初始化一下服务端当前的位置
-		entity->serverPosition(entity->position());
+			// 初始化一下服务端当前的位置
+			entity->serverPosition(entity->position());
 
-		DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGround({}), appID({}).\n",
-			entity->scriptName(), eid, (int)isOnGround, appID()));
+			DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGround({}), appID({}).\n",
+				entity->scriptName(), eid, (int)isOnGround, appID()));
 
-		KBE_ASSERT(!entity->inWorld());
-		KBE_ASSERT(entity->cellMailbox() == NULL);
+			KBE_ASSERT(entity->cellMailbox() == NULL);
 
-		// 设置entity的cellMailbox
-		EntityMailbox* mailbox = new EntityMailbox(entity->pScriptModule(), 
-			NULL, appID(), eid, MAILBOX_TYPE_CELL);
+			// 设置entity的cellMailbox
+			EntityMailbox* mailbox = new EntityMailbox(entity->pScriptModule(), 
+				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-		entity->cellMailbox(mailbox);
+			entity->cellMailbox(mailbox);
 
-		// 安全起见， 这里清空一下
-		// 如果服务端上使用giveClientTo切换控制权
-		// 之前的实体已经进入世界， 切换后的实体也进入世界， 这里可能会残留之前那个实体进入世界的信息
-		pEntityIDAliasIDList_.clear();
-		std::vector<ENTITY_ID> excludes;
-		excludes.push_back(entityID_);
-		pEntities_->clear(true, excludes);
+			// 安全起见， 这里清空一下
+			// 如果服务端上使用giveClientTo切换控制权
+			// 之前的实体已经进入世界， 切换后的实体也进入世界， 这里可能会残留之前那个实体进入世界的信息
+			pEntityIDAliasIDList_.clear();
+			std::vector<ENTITY_ID> excludes;
+			excludes.push_back(entityID_);
+			pEntities_->clear(true, excludes);
+		}
 	}
 
 	EventData_EnterWorld eventdata;
