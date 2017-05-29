@@ -1948,7 +1948,6 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	}
 
 	// 传送失败了，我们需要重恢复entity
-	/*
 	ENTITY_ID nearbyMBRefID = 0;
 	Position3D pos;
 	Direction3D dir;
@@ -1961,9 +1960,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 	s >> cid;
-	*/
 
-	// 直接恢复
 	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
