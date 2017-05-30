@@ -1556,8 +1556,7 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sour
 		scriptName(), id(), sourceCellAppID, targetCellAppID));
 
 	// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
-	// 当onTeleportCellappEnd被调用时将缓存的包发往cell
-
+	// 当onMigrationCellappEnd被调用时将缓存的包发往cell
 	if(pBufferedSendToCellappMessages_ == NULL)
 		pBufferedSendToCellappMessages_ = new BaseMessagesForwardCellappHandler(this);
 
@@ -1595,6 +1594,11 @@ void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID so
 			pBufferedSendToClientMessages_ = new BaseMessagesForwardClientHandler(this, targetCellAppID);
 		
 		pBufferedSendToClientMessages_->stopForward();
+		
+		// cell部分开始跨cellapp迁移了， 此时baseapp发往cellapp的包都应该缓存
+		// 当onMigrationCellappEnd被调用时将缓存的包发往cell
+		if(pBufferedSendToCellappMessages_ == NULL)
+			pBufferedSendToCellappMessages_ = new BaseMessagesForwardCellappHandler(this);
 	}
 
 	// 如果当前记录的cellappID不是要迁移的目的cellappID很可能是发生了极端的情况
@@ -1620,8 +1624,8 @@ void Base::onMigrationCellappArrived(Network::Channel* pChannel, COMPONENT_ID so
 		DEBUG_MSG(fmt::format("{}::onMigrationCellappArrived: reset flags! {}, sourceCellAppID={}, targetCellappID={}\n",
 			scriptName(), id(), sourceCellAppID, targetCellAppID));
 
-		// 这种状态下，pBufferedSendToClientMessages_一定为NULL
-		//KBE_ASSERT(pBufferedSendToClientMessages_ == NULL);
+		if(pBufferedSendToClientMessages_)
+			pBufferedSendToClientMessages_->startForward();
 
 		removeFlags(ENTITY_FLAGS_TELEPORT_START);
 		removeFlags(ENTITY_FLAGS_TELEPORT_END);
