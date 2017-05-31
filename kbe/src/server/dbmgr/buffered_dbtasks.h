@@ -62,7 +62,11 @@ public:
 				std::string names;
 				for (DBID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
 				{
-					names += i->second->name();
+					if (i->second)
+						names += i->second->name();
+					else
+						names = "Null";
+
 					names += ",";
 				}
 
@@ -77,7 +81,11 @@ public:
 				std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> res = entityid_tasks_.equal_range(iter->first);
 				for (ENTITYID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
 				{
-					names += i->second->name();
+					if (i->second)
+						names += i->second->name();
+					else
+						names = "Null";
+
 					names += ",";
 				}
 
