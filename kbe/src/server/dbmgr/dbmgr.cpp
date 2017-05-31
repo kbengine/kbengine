@@ -119,8 +119,8 @@ bool Dbmgr::canShutdown()
 			thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(bditer->first);
 			KBE_ASSERT(pThreadPool);
 
-			INFO_MSG(fmt::format("Dbmgr::canShutdown(): Wait for the task to complete, dbInterface={}, tasks=[{}], threads={}/{}, threadpoolDestroyed={}!\n",
-				bditer->first, bditer->second.getTasksinfos(), (pThreadPool->currentThreadCount() - pThreadPool->currentFreeThreadCount()), 
+			INFO_MSG(fmt::format("Dbmgr::canShutdown(): Wait for the task to complete, dbInterface={}, tasks{}=[{}], threads={}/{}, threadpoolDestroyed={}!\n",
+				bditer->first, bditer->second.size(), bditer->second.getTasksinfos(), (pThreadPool->currentThreadCount() - pThreadPool->currentFreeThreadCount()),
 				pThreadPool->currentThreadCount(), pThreadPool->isDestroyed()));
 
 			return false;

@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadtask.h"
 #include "helper/debug_helper.h"
 
-namespace KBEngine{ 
+namespace KBEngine { 
 
 /*
 	数据库线程任务buffer
@@ -48,7 +48,7 @@ public:
 
 	EntityDBTask* tryGetNextTask(EntityDBTask* pTask);
 
-	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
+	size_t size() { return dbid_tasks_.size() + entityid_tasks_.size(); }
 
 	std::string getTasksinfos() 
 	{
@@ -62,11 +62,8 @@ public:
 				std::string names;
 				for (DBID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
 				{
-					if (i->second)
-					{
-						names += i->second->name();
-						names += ",";
-					}
+					names += i->second->name();
+					names += ",";
 				}
 
 				ret += fmt::format("{}:({}), ", iter->first, names);
@@ -80,11 +77,8 @@ public:
 				std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> res = entityid_tasks_.equal_range(iter->first);
 				for (ENTITYID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
 				{
-					if (i->second)
-					{
-						names += i->second->name();
-						names += ",";
-					}
+					names += i->second->name();
+					names += ",";
 				}
 
 				ret += fmt::format("{}:({}), ", iter->first, names);
