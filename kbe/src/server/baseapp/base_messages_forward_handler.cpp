@@ -138,7 +138,7 @@ cellappID_(cellappID)
 BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler()
 {
 	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler(): size({}), cellappID({}), entityID({})!\n", 
-		bufferedSendToClientMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+		bufferedSendToClientMessages_.size(), cellappID_, (pBase_ ? pBase_->id() : 0)));
 
 	if(!completed_)
 		Baseapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
