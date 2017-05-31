@@ -61,6 +61,17 @@ BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler()
 void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 {
 	bufferedSendToCellappMessages_.push_back(pBundle);
+	
+	if(bufferedSendToCellappMessages_.size() > 4096)
+	{
+		WARNING_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 4096! cellappID={}\n", 
+			bufferedSendToCellappMessages_.size(), cellappID_));
+	}
+	else if(bufferedSendToCellappMessages_.size() > 65535)
+	{
+		ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 65535! cellappID={}\n", 
+			bufferedSendToCellappMessages_.size(), cellappID_));
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -145,6 +156,17 @@ BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler()
 void BaseMessagesForwardClientHandler::pushMessages(Network::Bundle* pBundle)
 {
 	bufferedSendToClientMessages_.push_back(pBundle);
+	
+	if(bufferedSendToClientMessages_.size() > 4096)
+	{
+		WARNING_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 4096! cellappID={}\n", 
+			bufferedSendToClientMessages_.size(), cellappID_));
+	}
+	else if(bufferedSendToClientMessages_.size() > 65535)
+	{
+		ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 65535! cellappID={}\n", 
+			bufferedSendToClientMessages_.size(), cellappID_));
+	}
 }
 
 //-------------------------------------------------------------------------------------
