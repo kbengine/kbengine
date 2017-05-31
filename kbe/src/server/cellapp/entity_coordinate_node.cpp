@@ -325,6 +325,9 @@ entityNodeUpdating_(0)
 EntityCoordinateNode::~EntityCoordinateNode()
 {
 	watcherNodes_.clear();
+
+	if (pEntity_)
+		pEntity_->onCoordinateNodesDestroy(this);
 }
 
 //-------------------------------------------------------------------------------------

@@ -201,6 +201,13 @@ void Entity::uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onCoordinateNodesDestroy(EntityCoordinateNode* pEntityCoordinateNode)
+{
+	if (pEntityCoordinateNode_ == pEntityCoordinateNode)
+		pEntityCoordinateNode_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
 	if(callScript && isReal())

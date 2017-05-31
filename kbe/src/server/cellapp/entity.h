@@ -537,6 +537,7 @@ public:
 	*/
 	void installCoordinateNodes(CoordinateSystem* pCoordinateSystem);
 	void uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem);
+	void onCoordinateNodesDestroy(EntityCoordinateNode* pEntityCoordinateNode);
 
 	/**
 		获取entity位置朝向在某时间是否改变过
