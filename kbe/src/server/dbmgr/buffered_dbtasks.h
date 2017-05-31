@@ -50,6 +50,44 @@ public:
 
 	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
 
+	std::string getTasksinfos() 
+	{
+		std::string ret;
+
+		{
+			for (DBID_TASKS_MAP::iterator iter = dbid_tasks_.begin(); iter != dbid_tasks_.end(); iter = dbid_tasks_.upper_bound(iter->first))
+			{
+				std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> res = dbid_tasks_.equal_range(iter->first);
+
+				std::string names;
+				for (DBID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
+				{
+					names += i->second->name();
+					names += ",";
+				}
+
+				ret += fmt::format("{}:({}), ", iter->first, names);
+			}
+		}
+
+		{
+			for (ENTITYID_TASKS_MAP::iterator iter = entityid_tasks_.begin(); iter != entityid_tasks_.end(); iter = entityid_tasks_.upper_bound(iter->first))
+			{
+				std::string names;
+				std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> res = entityid_tasks_.equal_range(iter->first);
+				for (ENTITYID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
+				{
+					names += i->second->name();
+					names += ",";
+				}
+
+				ret += fmt::format("{}:({}), ", iter->first, names);
+			}
+		}
+
+		return ret;
+	}
+
 	void dbInterfaceName(const std::string& dbInterfaceName) { dbInterfaceName_ = dbInterfaceName; }
 	const std::string& dbInterfaceName() { return dbInterfaceName_; }
 
