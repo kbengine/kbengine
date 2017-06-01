@@ -62,15 +62,17 @@ void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 {
 	bufferedSendToCellappMessages_.push_back(pBundle);
 	
-	if(bufferedSendToCellappMessages_.size() > 4096)
+	size_t msgsize = bufferedSendToCellappMessages_.size();
+
+	if(msgsize > 4096 && msgsize <= 8192)
 	{
 		WARNING_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 4096! entityID={}\n", 
-			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+			msgsize, (pBase_ ? pBase_->id() : 0)));
 	}
-	else if(bufferedSendToCellappMessages_.size() > 8192)
+	else if(msgsize > 8192)
 	{
 		ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 8192! entityID={}\n", 
-			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+			msgsize, (pBase_ ? pBase_->id() : 0)));
 		
 		startForward();
 	}
@@ -162,15 +164,17 @@ void BaseMessagesForwardClientHandler::pushMessages(Network::Bundle* pBundle)
 {
 	bufferedSendToClientMessages_.push_back(pBundle);
 	
-	if(bufferedSendToClientMessages_.size() > 4096)
+	size_t msgsize = bufferedSendToClientMessages_.size();
+	
+	if(msgsize > 4096 && msgsize <= 10240)
 	{
 		WARNING_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 4096! cellappID={}, entityID={}\n", 
-			bufferedSendToClientMessages_.size(), cellappID_, (pBase_ ? pBase_->id() : 0)));
+			msgsize, cellappID_, (pBase_ ? pBase_->id() : 0)));
 	}
-	else if(bufferedSendToClientMessages_.size() > 10240)
+	else if(msgsize > 10240)
 	{
 		ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 10240! cellappID={}, entityID={}\n", 
-			bufferedSendToClientMessages_.size(), cellappID_, (pBase_ ? pBase_->id() : 0)));
+			msgsize, cellappID_, (pBase_ ? pBase_->id() : 0)));
 	}
 }
 
