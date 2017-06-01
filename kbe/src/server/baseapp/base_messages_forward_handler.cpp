@@ -71,6 +71,8 @@ void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 	{
 		ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 8192! entityID={}\n", 
 			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+		
+		startForward();
 	}
 }
 
@@ -98,6 +100,9 @@ bool BaseMessagesForwardCellappHandler::process()
 
 	if(pBase_->cellMailbox() == NULL || pBase_->cellMailbox()->getChannel() == NULL)
 	{
+		WARNING_MSG(fmt::format("BaseMessagesForwardCellappHandler::process(): no cell! size={}, entityID={}\n", 
+			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+		
 		completed_ = true;
 		pBase_->onBufferedForwardToCellappMessagesOver();
 		return false;
@@ -162,9 +167,9 @@ void BaseMessagesForwardClientHandler::pushMessages(Network::Bundle* pBundle)
 		WARNING_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 4096! cellappID={}, entityID={}\n", 
 			bufferedSendToClientMessages_.size(), cellappID_, (pBase_ ? pBase_->id() : 0)));
 	}
-	else if(bufferedSendToClientMessages_.size() > 65535)
+	else if(bufferedSendToClientMessages_.size() > 10240)
 	{
-		ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 65535! cellappID={}, entityID={}\n", 
+		ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 10240! cellappID={}, entityID={}\n", 
 			bufferedSendToClientMessages_.size(), cellappID_, (pBase_ ? pBase_->id() : 0)));
 	}
 }
@@ -193,6 +198,9 @@ bool BaseMessagesForwardClientHandler::process()
 
 	if(pBase_->clientMailbox() == NULL || pBase_->clientMailbox()->getChannel() == NULL)
 	{
+		WARNING_MSG(fmt::format("BaseMessagesForwardClientHandler::process(): no client! size={}, entityID={}\n", 
+			bufferedSendToClientMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+		
 		completed_ = true;
 		pBase_->onBufferedForwardToClientMessagesOver();
 		return false;
