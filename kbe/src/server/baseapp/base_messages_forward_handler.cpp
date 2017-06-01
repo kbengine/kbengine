@@ -67,9 +67,9 @@ void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 		WARNING_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 4096! entityID={}\n", 
 			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
 	}
-	else if(bufferedSendToCellappMessages_.size() > 65535)
+	else if(bufferedSendToCellappMessages_.size() > 8192)
 	{
-		ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 65535! entityID={}\n", 
+		ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 8192! entityID={}\n", 
 			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
 	}
 }
