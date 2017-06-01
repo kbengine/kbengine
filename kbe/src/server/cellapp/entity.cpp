@@ -3667,8 +3667,8 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 		gm->addRoute(id(), realCell_);
 	}
 
-	DEBUG_MSG(fmt::format("{}::changeToGhost(): {}, realCell={}.\n", 
-		scriptName(), id(), realCell));
+	DEBUG_MSG(fmt::format("{}::changeToGhost(): {}, realCell={}, spaceID={}.\n", 
+		scriptName(), id(), realCell_, spaceID_));
 	
 	// 必须放在前面
 	addToStream(s);
@@ -3706,8 +3706,8 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 	ghostCell_ = ghostCell;
 	realCell_ = 0;
 
-	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}.\n",
-		scriptName(), id(), ghostCell_));
+	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}, spaceID={}.\n",
+		scriptName(), id(), ghostCell_, spaceID_));
 
 	createFromStream(s);
 }
