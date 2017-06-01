@@ -247,7 +247,12 @@ void Entity::onDestroy(bool callScript)
 	{
 		space->removeEntity(this);
 	}
-
+	else
+	{
+		WARNING_MSG(fmt::format("{}::onDestroy(): {}, not found space({})!\n", 
+			this->scriptName(), this->id(), spaceID()));
+	}
+	
 	// 在进程强制关闭时这里可能不为0
 	//KBE_ASSERT(spaceID() == 0);
 
