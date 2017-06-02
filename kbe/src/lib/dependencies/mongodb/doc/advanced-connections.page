@@ -1,0 +1,104 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      id="advanced-connections">
+
+  <title>Advanced Connections</title>
+  <p>The following guide contains information specific to certain types of MongoDB configurations.</p>
+  <p>For an example of connecting to a simple standalone server, see the <link xref="tutorial#connecting">Tutorial</link>. To establish a connection with authentication options enabled, see the <link xref="authentication">Authentication</link> page.</p>
+
+  <section id="replica-set">
+    <info><link type="guide" xref="index#advanced-connections" /></info>
+    <title>Connecting to a Replica Set</title>
+    <p>Connecting to a <link href="http://docs.mongodb.org/manual/replication/">replica set</link> is much like connecting to a standalone MongoDB server. Simply specify the replica set name using the <code>?replicaSet=myreplset</code> URI option.</p>
+
+    <code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <mongoc.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+
+    mongoc_init ();
+
+    /* Create our MongoDB Client */
+    client = mongoc_client_new ("mongodb://host01:27017,host02:27017,host03:27017/?replicaSet=myreplset");
+
+    /* Do some work */
+    /* TODO */
+
+    /* Clean up */
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code>
+
+    <note style="advanced">
+      <p>Multiple hostnames can be specified in the MongoDB connection string URI, with a comma separating hosts in the seed list.</p>
+      <p>It is recommended to use a seed list of members of the replica set to allow the driver to connect to any node.</p>
+    </note>
+  </section>
+
+  <section id="sharded-cluster">
+    <info><link type="guide" xref="index#advanced-connections" /></info>
+    <title>Connecting to a Sharded Cluster</title>
+    <p>To connect to a <link href="http://docs.mongodb.org/manual/sharding/">sharded cluster</link>, specify the <code>mongos</code> nodes the client should connect to. The C Driver will automatically detect that it has connected to a <code>mongos</code> sharding server.</p>
+    <p>If more than one hostname is specified, a seed list will be created to attempt failover between the <code>mongos</code> instances.</p>
+
+    <note style="warning">
+      <p>Specifying the <code>replicaSet</code> parameter when connecting to a <code>mongos</code> sharding server is invalid.</p>
+    </note>
+    <code mime="text/x-csrc"><![CDATA[#include <bson.h>
+#include <mongoc.h>
+
+int
+main (int   argc,
+      char *argv[])
+{
+    mongoc_client_t *client;
+
+    mongoc_init ();
+
+    /* Create our MongoDB Client */
+    client = mongoc_client_new ("mongodb://myshard01:27017/");
+
+    /* Do something with client ... */
+
+    /* Free the client */
+    mongoc_client_destroy (client);
+
+    mongoc_cleanup ();
+
+    return 0;
+}
+]]></code>
+  </section>
+
+  <section id="ipv6">
+    <info><link type="guide" xref="index#advanced-connections" /></info>
+    <title>Connecting to an IPv6 Address</title>
+    <p>The MongoDB C Driver will automatically resolve IPv6 addresses from host names. However, to specify an IPv6 address directly, wrap the address in <code>[]</code>.</p>
+
+    <screen><code><![CDATA[mongoc_uri_t *uri = mongoc_uri_new ("mongodb://[::1]:27017");]]></code></screen>
+  </section>
+
+  <section id="unix-socket">
+    <info><link type="guide" xref="index#advanced-connections" /></info>
+    <title>Connecting to a UNIX Domain Socket</title>
+    <p>On UNIX-like systems, the C Driver can connect directly to a MongoDB server using a UNIX domain socket. Simply pass the path to the socket, which <em>must</em> be suffixed with <code>.sock</code>.</p>
+
+    <screen><code><![CDATA[mongoc_uri_t *uri = mongoc_uri_new ("mongodb:///tmp/mysocket.sock");]]></code></screen>
+    <note style="warning">
+      <p>Connecting directly to a UNIX domain socket is not a common practice.</p>
+    </note>
+  </section>
+
+  <section id="additional-options">
+    <info><link type="guide" xref="index#advanced-connections" /></info>
+    <title>Additional Connection Options</title>
+    <p>A variety of connection options for the MongoDB URI can be found <link href="http://docs.mongodb.org/manual/reference/connection-string/">here</link>.</p>
+  </section>
+</page>

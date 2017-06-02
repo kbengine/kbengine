@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<page id="mongoc_cursor_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_cursor_t</title>
+  <subtitle>Client-side cursor abtraction</subtitle>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_cursor_t mongoc_cursor_t;]]></code></synopsis>
+    <p><code>mongoc_cursor_t</code> provides access to a MongoDB query cursor.
+It wraps up the wire protocol negotiation required to initiate a query and retrieve an unknown number of documents.
+
+Cursors are lazy, meaning that no network traffic occurs until the first call to <code xref="mongoc_cursor_next">mongoc_cursor_next()</code>.
+
+At that point we can:</p>
+
+<list>
+  <item><p>Determine which host we've connected to with <code xref="mongoc_cursor_get_host">mongoc_cursor_get_host()</code>.</p></item>
+  <item><p>Retrieve more records with repeated calls to <code xref="mongoc_cursor_next">mongoc_cursor_next()</code>.</p></item>
+  <item><p>Test for more records with <code xref="mongoc_cursor_more">mongoc_cursor_more()</code></p></item>
+  <item><p>Clone a query to repeat execution at a later point with <code xref="mongoc_cursor_clone">mongoc_cursor_clone()</code>.</p></item>
+  <item><p>Test for errors with <code xref="mongoc_cursor_error">mongoc_cursor_error()</code>.</p></item>
+</list>
+  </section>
+
+  <section>
+    <title>Thread Safety</title>
+    <p><code>mongoc_cursor_t</code> is <em>NOT</em> thread safe. It may only be used from the thread it was created from.</p>
+  </section>
+
+  <section>
+    <title>Example</title>
+    <listing>
+      <title>Query MongoDB and iterate results</title>
+      <code mime="text/x-csrc"><include parse="text" href="../examples/example-client.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+    </listing>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

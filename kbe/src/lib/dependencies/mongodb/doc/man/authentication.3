@@ -1,0 +1,196 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "AUTHENTICATION" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+Authentication \- None
+.SH "BASIC AUTHENTICATION"
+
+
+The MongoDB C driver supports challenge response authentication (sometimes known as
+.B MONGODB\(hyCR
+) through the use of MongoDB connection URIs.
+
+Simply provide the username and password as one would with an
+.B HTTP URL
+, as well as the database to authenticate against via
+.B authSource
+\e&.
+
+.B mongoc_client_t *client = mongoc_client_new ("mongodb://user:password@localhost/?authSource=mydb");
+
+.SH "GSSAPI (KERBEROS) AUTHENTICATION"
+
+
+.B NOTE
+.RS
+Kerberos support is only provided in environments supported by the
+.B cyrus\(hysasl
+Kerberos implementation. This currently limits support to UNIX\(hylike environments.
+.RE
+
+.B GSSAPI
+(Kerberos) authentication is available in the Enterprise Edition of MongoDB, version 2.4 and newer. To authenticate using
+.B GSSAPI
+, the MongoDB C driver must be installed with SASL support. Run the
+.B kinit
+command before using the following authentication methods:
+
+.B $ 
+.B mongodbuser@EXAMPLE.COM's Password:
+.B $ 
+.nf
+Credentials cache: FILE:/tmp/krb5cc_1000
+        Principal: mongodbuser@EXAMPLE.COM
+
+  Issued                Expires               Principal
+Feb  9 13:48:51 2013  Feb  9 23:48:51 2013  krbtgt/EXAMPLE.COM@EXAMPLE.COM
+.fi
+
+Now authenticate using the MongoDB URI.
+.B GSSAPI
+authenticates against the
+.B $external
+virtual database, so a database does not need to be specified in the URI. Note that the Kerberos principal
+.B must
+be URL\(hyencoded:
+
+.nf
+mongoc_client_t *client;
+
+client = mongoc_client_new ("mongodb://mongodbuser%40EXAMPLE.COM@example.com/?authMechanism=GSSAPI");
+.fi
+
+The default service name used by MongoDB and the MongoDB C driver is
+.B mongodb
+\e&. A custom service name can be specified with the
+.B gssapiServiceName
+option:
+
+.nf
+mongoc_client_t *client;
+
+client = mongoc_client_new ("mongodb://mongodbuser%40EXAMPLE.COM@example.com/?authMechanism=GSSAPI&gssapiServiceName=myservicename");
+.fi
+
+.B NOTE
+.RS
+When encountering errors such as
+.B Invalid net address
+, check if the application is behind a NAT (Network Address Translation) firewall. If so, create a ticket that uses
+.B forwardable
+and
+.B addressless
+Kerberos tickets. This can be done by passing
+.B \(hyf \(hyA
+to
+.B kinit
+\e&.
+
+.B $ 
+
+.RE
+
+.SH "SSL AUTHENTICATION"
+
+
+.B NOTE
+.RS
+The MongoDB C Driver must be compiled with the
+.B \(hy\(hyenable\(hyssl
+option to use SSL authentication.
+
+.RE
+
+To connect to a MongoDB server enabled with SSL, add the
+.B ?ssl=true
+option in the MongoDB URI.
+
+.B mongoc_uri_t *uri = mongoc_uri_new ("mongodb://localhost/?ssl=true");
+
+.B NOTE
+.RS
+Connecting to a server that does not support SSL will fail if the
+.B ?ssl=true
+parameter is provided in the URI. This is to prevent unintentional information leak.
+
+.RE
+
+.SH "SASL PLAIN AUTHENTICATION"
+
+
+.B NOTE
+.RS
+The MongoDB C Driver must be compiled with SASL support in order to use
+.B SASL PLAIN
+authentication.
+
+.RE
+
+MongoDB Enterprise Edition versions 2.5.0 and newer support the
+.B SASL PLAIN
+authentication mechanism, initially intended for delegating authentication to an LDAP server. Using the
+.B SASL PLAIN
+mechanism is very similar to the challenge response mechanism with usernames and passwords. These examples use the
+.B $external
+virtual database for
+.B LDAP
+support:
+
+.B NOTE
+.RS
+.B SASL PLAIN
+is a clear\(hytext authentication mechanism. It is strongly recommended to connect to MongoDB using SSL with certificate validation when using the
+.B PLAIN
+mechanism.
+.RE
+
+.nf
+mongoc_client_t *client;
+
+client = mongoc_client_new ("mongodb://user:password@example.com/?authMechanism=PLAIN&authSource=$external");
+.fi
+
+.SH "X.509 CERTIFICATE AUTHENTICATION"
+
+
+.B NOTE
+.RS
+The MongoDB C Driver must be compiled with SSL support for X.509 authentication support.
+
+.RE
+
+The
+.B MONGODB\(hyX509
+mechanism authenticates a username derived from the distinguished subject name of the X.509 certificate presented by the driver during SSL negotiation. This authentication method requires the use of SSL connections with certificate validation and is available in MongoDB 2.5.1 and newer:
+
+.nf
+mongoc_client_t *client;
+mongoc_ssl_opt_t ssl_opts = { 0 };
+
+ssl_opts.pem_file = "mycert.pem";
+ssl_opts.pem_pwd = "mycertpassword";
+ssl_opts.ca_file = "myca.pem";
+ssl_opts.ca_dir = "trust_dir";
+ssl_opts.weak_cert_validation = false;
+
+client = mongoc_client_new ("mongodb://x509_derived_username@localhost/?authMechanism=MONGODB\(hyX509");
+mongoc_client_set_ssl_opts (client, &ssl_opts);
+.fi
+
+.B MONGODB\(hyX509
+authenticates against the
+.B $external
+database, so specifying a database is not required.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

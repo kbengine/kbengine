@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_database_command_simple">
+
+
+  <info>
+    <link type="guide" xref="mongoc_database_t" group="function"/>
+  </info>
+  <title>mongoc_database_command_simple()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_database_command_simple (mongoc_database_t         *database,
+                                const bson_t              *command,
+                                const mongoc_read_prefs_t *read_prefs,
+                                bson_t                    *reply,
+                                bson_error_t              *error);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>database</p></td><td><p>A <code xref="mongoc_database_t">mongoc_database_t</code>.</p></td></tr>
+      <tr><td><p>command</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the command.</p></td></tr>
+      <tr><td><p>read_prefs</p></td><td><p>An optional <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code>.</p></td></tr>
+      <tr><td><p>reply</p></td><td><p>A location to store the commands first result document.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This is a simplified interface to <code xref="mongoc_database_command">mongoc_database_command()</code> that returns the first result document.</p>
+    <note style="warning"><p>This function will <em>always</em> initialize <code>reply</code>. The caller should always call <code xref="bson:bson_destroy">bson_destroy()</code> with <code>reply</code> as an argument.</p></note>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated through the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>true</code> on success, <code>false</code> on failure and <code>error</code> is set.</p>
+  </section>
+
+</page>

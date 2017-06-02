@@ -1,0 +1,99 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Creating a BSON Document</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#intro" title="Getting Started">Getting Started</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Creating a BSON Document</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="basic" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">The bson_t structure</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">BSON documents are created using the <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> structure. This structure encapsulates the necessary logic for encoding using the <span class="link"><a href="http://bsonspec.org" title="http://bsonspec.org">BSON Specification</a></span>. At the core, <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> is a buffer manager and set of encoding routines.</p>
+<div class="note note-tip" title="Tip"><div class="inner"><div class="region"><div class="contents"><p class="p">BSON documents can live on the stack or the heap based on the performance needs or preference of the consumer.</p></div></div></div></div>
+<p class="p">Let's start by creating a new BSON document on the stack. Whenever using libbson, make sure you <span class="code">#include &lt;bson.h&gt;</span>.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_t b;
+
+bson_init (&amp;b);</pre></div></div>
+<p class="p">This creates an empty document. In JSON, this would be the same as <span class="code">{}</span>.</p>
+<p class="p">We can now proceed to adding items to the BSON document. A variety of functions prefixed with <span class="code">bson_append_</span> can be used based on the type of field you want to append. Let's append a UTF-8 encoded string.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_append_utf8 (&amp;b, "key", -1, "value", -1);</pre></div></div>
+<p class="p">Notice the two <span class="code">-1</span> parameters. The first indicates that the length of <span class="code">key</span> in bytes should be determined with <span class="code">strlen()</span>. Alternatively, we could have passed the number <span class="code">3</span>. The same goes for the second <span class="code">-1</span>, but for <span class="code">value</span>.</p>
+<p class="p">Libbson provides macros to make this less tedious when using string literals. The following two appends are identical.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_append_utf8 (&amp;b, "key", -1, "value", -1);
+BSON_APPEND_UTF8 (&amp;b, "key", "value");</pre></div></div>
+<p class="p">Now let's take a look at an example that adds a few different field types to a BSON document.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_t b = BSON_INITIALIZER;
+
+BSON_APPEND_INT32 (&amp;b, "a", 1);
+BSON_APPEND_UTF8 (&amp;b, "hello", "world");
+BSON_APPEND_BOOL (&amp;b, "bool", true);</pre></div></div>
+<p class="p">Notice that we omitted the call to <span class="code"><a href="bson_init.html" title="bson_init()">bson_init()</a></span>. By specifying <span class="code">BSON_INITIALIZER</span> we can remove the need to initialize the structure to a base state.</p>
+</div></div>
+</div></div>
+<div id="subdocs" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Sub-Documents and Sub-Arrays</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To simplify the creation of sub-documents and arrays, <span class="code"><a href="bson_append_document_begin.html" title="bson_append_document_begin()">bson_append_document_begin()</a></span> and <span class="code"><a href="bson_append_array_begin.html" title="bson_append_array_begin()">bson_append_array_begin()</a></span> exist. These can be used to build a sub-document using the parent documents memory region as the destination buffer.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title">Creating Sub-Documents</span></h3></div>
+<div class="region"><div class="contents">
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">bson_t parent;
+bson_t child;
+char *str;
+
+bson_init (&amp;parent);
+bson_append_document_begin (&amp;parent, "foo", 3, &amp;child);
+bson_append_int32 (&amp;child, "baz", 3, 1);
+bson_append_document_end (&amp;parent, &amp;child);
+
+str = bson_as_json (&amp;parent, NULL);
+printf ("%s\n", str);
+bson_free (str);
+
+bson_destroy (&amp;parent);</pre></div></div></div></div></div>
+<div class="screen"><pre class="contents "><span class="output">{ "foo" : { "baz" : 1 } }</span></pre></div>
+</div></div>
+</div></div>
+</div></div>
+</div></div>
+<div id="bcon" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Simplified BSON C Object Notation</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">Creating BSON documents by hand can be tedious and time consuming. BCON, or BSON C Object Notation, was added to allow for the creation of BSON documents in a format that looks closer to the destination format.</p>
+<p class="p">The following example shows the use of BCON. Notice that values for fields are wrapped in the <span class="code">BCON_*</span> macros. These are required for the variadic processor to determine the parameter type.</p>
+<div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title"></span></h3></div>
+<div class="region"><div class="contents">
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">bson_t *doc;
+
+doc = BCON_NEW ("foo", "{",
+   "int", BCON_INT32 (1),
+   "array", "[", BCON_INT32 (100), "{", "sub", BCON_UTF8 ("value"), "}", "]",
+"}");</pre></div></div></div></div></div>
+<p class="p">Creates the following document</p>
+<div class="screen"><pre class="contents "><span class="output">{ "foo" : { "int" : 1, "array" : [ 100, { "sub" : "value" } ] } }</span></pre></div>
+</div></div>
+</div></div>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#intro" title="Getting Started">Getting Started</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

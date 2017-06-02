@@ -1,0 +1,127 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      id="installing">
+  <title>Installing Libbson</title>
+
+  <p>The following guide will step you through the process of downloading, building, and installing the current release of the Libbson.</p>
+
+  <section id="supported-platforms">
+    <info><link type="guide" xref="index#installation" /></info>
+
+    <title>Supported Platforms</title>
+
+    <p>Libbson is continuously tested on GNU/Linux, Windows 7, Mac OS X 10.10, and Solaris 11 (Intel and Sparc). GCC, Clang, and Visual Studio 2013 compilers are continuously tested.</p>
+    <p>The library supports the following operating systems and CPU architectures:</p>
+
+    <table>
+      <tr>
+        <td><title>Operating Systems</title></td>
+        <td><title>CPU Architectures</title></td>
+        <td><title>Compiler Toolchain</title></td>
+      </tr>
+      <tr>
+        <td>
+          <list>
+            <item><p>GNU/Linux</p></item>
+            <item><p>Solaris 11</p></item>
+            <item><p>Mac OS X 10.6 and newer</p></item>
+            <item><p>Windows Vista, 7, and 8</p></item>
+            <item><p>FreeBSD</p></item>
+          </list>
+        </td>
+        <td>
+          <list>
+            <item><p>x86 and x86_64</p></item>
+            <item><p>ARM</p></item>
+            <item><p>PPC</p></item>
+            <item><p>SPARC</p></item>
+          </list>
+        </td>
+        <td>
+          <list>
+            <item><p>GCC 4.1 and newer</p></item>
+            <item><p>Clang 3.3 and newer</p></item>
+            <item><p>Microsoft Visual Studio 2013 and newer</p></item>
+            <item><p><link href="http://www.oracle.com/technetwork/server-storage/solarisstudio/downloads/index.html">Oracle Solaris Studio 12</link></p></item>
+            <item><p>MinGW</p></item>
+          </list>
+        </td>
+      </tr>
+    </table>
+
+  </section>
+
+  <section id="build-yourself">
+    <info><link type="guide" xref="index#installation" /></info>
+    <title>Installing from Source</title>
+
+    <p>The following instructions are for UNIX-like systems such as GNU/Linux, FreeBSD, and Solaris. To build on Windows, see the instructions for <link xref="installing#building-windows">Building on Windows</link>.</p>
+
+    <p>The most recent release of libbson is @BSON_RELEASED_VERSION@ and can be <link href="https://github.com/mongodb/libbson/releases/download/@BSON_RELEASED_VERSION@/libbson-@BSON_RELEASED_VERSION@.tar.gz">downloaded here</link>. The following snippet will download and extract the current release of the driver.</p>
+
+    <screen><output style="prompt">$ </output><input>wget https://github.com/mongodb/libbson/releases/download/@BSON_RELEASED_VERSION@/libbson-@BSON_RELEASED_VERSION@.tar.gz</input>
+<output style="prompt">$ </output><input>tar -xzf libbson-@BSON_RELEASED_VERSION@.tar.gz</input>
+<output style="prompt">$ </output><input>cd libbson-@BSON_RELEASED_VERSION@/</input></screen>
+
+    <p>Minimal dependencies are needed to build Libbson. On UNIX-like systems, pthreads (the POSIX threading library) is required.</p>
+
+    <p>Make sure you have access to a <link xref="installing#supported-platforms">supported toolchain</link> such as GCC, Clang, SolarisStudio, or MinGW. Optionally, <code>pkg-config</code> can be used if your system supports it to simplify locating proper compiler and linker arguments when compiling your program.</p>
+
+    <p>The following will configure for a typical 64-bit Linux system such as RedHat Enterprise Linux 6 or CentOS 6. Note that not all systems place 64-bit libraries in <code>/usr/lib64</code>. Check your system to see what the convention is if you are building 64-bit versions of the library.</p>
+
+    <screen><output style="prompt">$ </output><input>./configure --prefix=/usr --libdir=/usr/lib64</input></screen>
+
+    <p>If <code>configure</code> completed successfully, you'll see something like the following describing your build configuration.</p>
+
+    <screen><output>libbson was configured with the following options:
+
+Build configuration:
+  Enable debugging (slow)                          : no
+  Compile with debug symbols (slow)                : no
+  Enable GCC build optimization                    : yes
+  Enable automatic binary hardening                : yes
+  Code coverage support                            : no
+  Cross Compiling                                  : no
+  Libbson                                          : bundled
+
+Documentation:
+  man                                              : yes
+  HTML                                             : yes
+  Yelp                                             : no</output></screen>
+    <p>We can now build libbson with the venerable <code>make</code> program.</p>
+
+    <screen><output style="prompt">$ </output><input>make</input></screen>
+
+    <note>
+      <p>You can optionally build code objects in parallel using the <code>-j</code> option to GNU make. Some implementations of <code>make</code> do not support this option, such as Sun's make on Solaris 10. To build in parallel on an 8 core machine, you might use:</p>
+      <screen><output style="prompt">$ </output><input>gmake -j8</input></screen>
+    </note>
+
+    <p>To install the driver, we use <code>make</code> with the <code>install</code> target.</p>
+
+    <screen><output style="prompt">$ </output><input>sudo make install</input></screen>
+
+    <note>
+      <p>On systems that do not support the <code>sudo</code> command, we can use <code>su -c 'make install'</code>.</p>
+    </note>
+
+  </section>
+
+  <section id="building-windows">
+    <title>Building on Windows</title>
+
+    <p>Building on Windows requires Windows Vista or newer and Visual Studio 2010 or newer. Additionally, <code>cmake</code> is required to generate Visual Studio project files.</p>
+
+    <p>Let's start by generating Visual Studio project files for libbson. The following assumes we are compiling for 64-bit Windows using Visual Studio 2010 Express which can be freely downloaded from Microsoft.</p>
+
+    <screen><output style="prompt">&gt; </output><input>cd libbson-@BSON_RELEASED_VERSION@</input>
+<output style="prompt">&gt; </output><input>cmake -G "Visual Studio 2010 Win64" "-DCMAKE_INSTALL_PREFIX=C:\libbson"</input>
+<output style="prompt">&gt; </output><input>msbuild.exe ALL_BUILD.vcxproj</input>
+<output style="prompt">&gt; </output><input>msbuild.exe INSTALL.vcxproj</input></screen>
+
+    <p>You should now see libbson installed in <code>C:\libbson</code></p>.
+    <p>You can disable building the tests with:</p>.
+    <screen><output style="prompt">&gt; </output><input>cmake -G "Visual Studio 2010 Win64" "-DCMAKE_INSTALL_PREFIX=C:\libbson" "-DENABLE_TESTS:BOOL=OFF"</input></screen>
+  </section>
+
+</page>

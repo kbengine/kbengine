@@ -1,0 +1,216 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_collection_find()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » <a class="trail" href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_collection_find()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">mongoc_cursor_t *
+mongoc_collection_find (mongoc_collection_t       *collection,
+                        mongoc_query_flags_t       flags,
+                        uint32_t                   skip,
+                        uint32_t                   limit,
+                        uint32_t                   batch_size,
+                        const bson_t              *query,
+                        const bson_t              *fields,
+                        const mongoc_read_prefs_t *read_prefs)
+   BSON_GNUC_WARN_UNUSED_RESULT;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">collection</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">flags</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_query_flags_t.html" title="mongoc_query_flags_t">mongoc_query_flags_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">skip</p></td>
+<td><p class="p">A uint32_t of number of documents to skip or 0.</p></td>
+</tr>
+<tr>
+<td><p class="p">limit</p></td>
+<td><p class="p">A uint32_t of max number of documents to return or 0.</p></td>
+</tr>
+<tr>
+<td><p class="p">batch_size</p></td>
+<td><p class="p">A uint32_t containing batch size of document result sets or 0 for default. Default is 100.</p></td>
+</tr>
+<tr>
+<td><p class="p">query</p></td>
+<td><p class="p">A <span class="code">bson_t</span> containing the query and options to execute.</p></td>
+</tr>
+<tr>
+<td><p class="p">fields</p></td>
+<td><p class="p">A <span class="code">bson_t</span> containing fields to return or <span class="code">NULL</span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">read_prefs</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_read_prefs_t.html" title="mongoc_read_prefs_t">mongoc_read_prefs_t</a></span> or <span class="code">NULL</span> for default read preferences.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">This function shall execute a query on the underlying <span class="code">collection</span>.</p>
+<p class="p">If no options are necessary, <span class="code">query</span> can simply contain a query such as <span class="code">{a:1}</span>. If you would like to specify options such as a sort order, the query must be placed inside of <span class="code">{"$query": {}}</span> as specified by the server documentation. See the example below for how to properly specify additional options to <span class="code">query</span>.</p>
+</div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">A newly allocated <span class="code"><a href="mongoc_cursor_t.html" title="mongoc_cursor_t">mongoc_cursor_t</a></span> that should be freed with <span class="code"><a href="mongoc_cursor_destroy.html" title="mongoc_cursor_destroy()">mongoc_cursor_destroy()</a></span> when no longer in use. If invalid parameters are supplied, <span class="code">NULL</span> may be returned.</p>
+<div class="note note-warning" title="Warning"><div class="inner"><div class="region"><div class="contents"><p class="p">Failure to handle the result of this function is a programming error.</p></div></div></div></div>
+</div></div>
+</div></div>
+<div id="example" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title">Print All Documents in a Collection</span></h3></div>
+<div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;mongoc.h&gt;
+#include &lt;stdio.h&gt;
+
+static void
+print_all_documents (mongoc_collection_t *collection)
+{
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   char *str;
+   bson_t *query;
+
+   query = BCON_NEW ("$query", "{", "foo", BCON_INT32 (1), "}",
+                     "$orderby", "{", "bar", BCON_INT32 (-1), "}");
+   cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);
+
+   while (mongoc_cursor_more (cursor) &amp;&amp; mongoc_cursor_next (cursor, &amp;doc)) {
+      str = bson_as_json (doc, NULL);
+      printf ("%s\n", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &amp;error)) {
+      fprintf (stderr, "An error occurred: %s\n", error.message);
+   }
+
+   mongoc_cursor_destroy (cursor);
+   bson_destroy (query);
+}</pre></div></div></div>
+</div></div></div></div>
+</div></div>
+<div id="find-command" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">The "find" command</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">Queries have historically been sent as OP_QUERY wire protocol messages, but beginning in MongoDB 3.2 queries use <span class="link"><a href="https://docs.mongodb.org/master/reference/command/find/" title="https://docs.mongodb.org/master/reference/command/find/">the "find" command</a></span> instead.</p>
+<p class="p">The driver automatically converts queries to the new "find" command syntax if needed, so this change is typically invisible to C Driver users. However, an application written exclusively for MongoDB 3.2 and later can choose to use the new syntax directly instead of relying on the driver to convert from the old syntax:</p>
+<div class="code"><pre class="contents syntax brush-clang">/* MongoDB 3.2+ "find" command syntax */
+query = BCON_NEW ("filter", "{", "foo", BCON_INT32 (1), "}",
+                  "sort": "{", "bar", BCON_INT32 (-1), "}");
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);</pre></div>
+<p class="p">The "find" command takes different options from the traditional OP_QUERY message.</p>
+<div class="table"><div class="inner"><div class="region"><table class="table">
+<thead><tr>
+<td><p class="p">Option</p></td>
+<td><p class="p">OP_QUERY option</p></td>
+<td><p class="p">"find" command option</p></td>
+</tr></thead>
+<tr>
+<td><p class="p">Query</p></td>
+<td><p class="p"><span class="code">$query</span></p></td>
+<td><p class="p"><span class="code">filter</span></p></td>
+</tr>
+<tr class="shade">
+<td><p class="p">Sort</p></td>
+<td><p class="p"><span class="code">$orderby</span></p></td>
+<td><p class="p"><span class="code">sort</span></p></td>
+</tr>
+<tr>
+<td><p class="p">Show record location</p></td>
+<td><p class="p"><span class="code">$showDiskLoc</span></p></td>
+<td><p class="p"><span class="code">showRecordId</span></p></td>
+</tr>
+<tr class="shade">
+<td><p class="p">Other $-options</p></td>
+<td><p class="p"><span class="code">$&lt;option name&gt;</span></p></td>
+<td><p class="p"><span class="code">&lt;option name&gt;</span></p></td>
+</tr>
+</table></div></div></div>
+<p class="p">Most applications should use the OP_QUERY syntax, with "$query", "$orderby", and so on, and rely on the driver to convert to the new syntax if needed. There are two caveats: querying documents by a key named "filter", and using new "find" command options that OP_QUERY does not support.</p>
+</div>
+<div id="seealso" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">See Also</span></h3></div>
+<div class="region"><div class="contents"><p class="p"><span class="link"><a href="https://docs.mongodb.org/master/reference/command/find/" title="https://docs.mongodb.org/master/reference/command/find/">The "find" command</a></span> in the MongoDB Manual.</p></div></div>
+</div></div>
+<div id="key-named-filter" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Finding a document by a key named "filter"</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">To find a document like <span class="code">{ "_id": 1, "filter": "value" }</span>, this query works in MongoDB before 3.2:</p>
+<div class="code"><pre class="contents syntax brush-clang">/* Fails with MongoDB 3.2+ */
+query = BCON_NEW ("filter", BCON_UTF8 ("value"));
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);</pre></div>
+<p class="p">Beginning in MongoDB 3.2, the "filter" option has special meaning, and it is no longer assumed to be a field in a document you are querying for. To execute this query on any MongoDB version, wrap it in "$query":</p>
+<div class="code"><pre class="contents syntax brush-clang">/* Works in all MongoDB versions */
+query = BCON_NEW ("$query", "{", "filter", BCON_UTF8 ("value"), "}");
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);</pre></div>
+<p class="p">This code works for any MongoDB version. The driver sends it as-is to a MongoDB server older than 3.2, and before sending to MongoDB 3.2 or later converts it to the following:</p>
+<div class="code"><pre class="contents ">{ "filter": { "filter": "value" } }</pre></div>
+</div></div>
+</div></div>
+<div id="find-command-options" class="sect"><div class="inner">
+<div class="hgroup"><h3 class="title"><span class="title">Options specific to the "find" command</span></h3></div>
+<div class="region"><div class="contents">
+<p class="p">The "find" command has new options like "singleBatch" not supported by OP_QUERY. Applications should use the new "find" syntax directly to take advantage of them:</p>
+<div class="code"><pre class="contents syntax brush-clang">/* MongoDB 3.2+ "find" command syntax */
+query = BCON_NEW ("filter", "{", "foo", BCON_INT32 (1), "}",
+                  "sort": "{", "bar", BCON_INT32 (-1), "}",
+                  "singleBatch", BCON_BOOL (true));
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);</pre></div>
+</div></div>
+</div></div>
+</div>
+</div></div>
+<div id="explain-command" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">The "explain" command</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">With MongoDB before 3.2, a query with option <span class="code">$explain: true</span> returns information about the query plan, instead of the query results. Beginning in MongoDB 3.2, there is a separate "explain" command. The driver will not convert "$explain" queries to "explain" commands, you must call the "explain" command explicitly:</p>
+<div class="code"><pre class="contents syntax brush-clang">/* MongoDB 3.2+, "explain" command syntax */
+command = BCON_NEW ("explain", "{",
+                    "find", BCON_UTF8 ("collection_name"),
+                    "filter", "{",
+                    "foo", BCON_INT32 (1), "}",
+                    "}", "}");
+cursor = mongoc_collection_find (collection, MONGOC_QUERY_NONE, 0, 0, 0, query, NULL, NULL);</pre></div>
+</div></div>
+</div></div>
+<div id="seealso" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">See Also</span></h2></div>
+<div class="region"><div class="contents"><p class="p"><span class="link"><a href="https://docs.mongodb.org/master/reference/command/explain/" title="https://docs.mongodb.org/master/reference/command/explain/">The "explain" command</a></span> in the MongoDB Manual.</p></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="mongoc_collection_t.html" title="mongoc_collection_t">mongoc_collection_t</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

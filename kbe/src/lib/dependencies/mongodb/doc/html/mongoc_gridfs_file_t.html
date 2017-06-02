@@ -1,0 +1,89 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_gridfs_file_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_gridfs_file_t</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">typedef struct _mongoc_gridfs_file_t mongoc_gridfs_file_t;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">This structure provides a MongoDB GridFS file abstraction. It provides several APIs.</p>
+<div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p">readv, writev, seek, and tell.</p></li>
+<li class="list"><p class="p">General file metadata such as filename and length.</p></li>
+<li class="list"><p class="p">GridFS metadata such as md5, filename, content_type, aliases, metadata, chunk_size, and upload_date.</p></li>
+</ul></div></div></div>
+</div></div>
+</div></div>
+<div id="thread-safety" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Thread Safety</span></h2></div>
+<div class="region"><div class="contents"><p class="p">This structure is NOT thread-safe and should only be used from one thread at a time.</p></div></div>
+</div></div>
+<div id="related" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Related</span></h2></div>
+<div class="region"><div class="contents"><div class="list"><div class="inner"><div class="region"><ul class="list">
+<li class="list"><p class="p"><span class="code"><a href="mongoc_client_t.html" title="mongoc_client_t">mongoc_client_t</a></span></p></li>
+<li class="list"><p class="p"><span class="code"><a href="mongoc_gridfs_t.html" title="mongoc_gridfs_t">mongoc_gridfs_t</a></span></p></li>
+<li class="list"><p class="p"><span class="code"><a href="mongoc_gridfs_file_list_t.html" title="mongoc_gridfs_file_list_t">mongoc_gridfs_file_list_t</a></span></p></li>
+<li class="list"><p class="p"><span class="code"><a href="mongoc_gridfs_file_opt_t.html" title="mongoc_gridfs_file_opt_t">mongoc_gridfs_file_opt_t</a></span></p></li>
+</ul></div></div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_destroy.html" title="mongoc_gridfs_file_destroy()"><span class="title">mongoc_gridfs_file_destroy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_error.html" title="mongoc_gridfs_file_error()"><span class="title">mongoc_gridfs_file_error()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_aliases.html" title="mongoc_gridfs_file_get_aliases()"><span class="title">mongoc_gridfs_file_get_aliases()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_chunk_size.html" title="mongoc_gridfs_file_get_chunk_size()"><span class="title">mongoc_gridfs_file_get_chunk_size()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_content_type.html" title="mongoc_gridfs_file_get_content_type()"><span class="title">mongoc_gridfs_file_get_content_type()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_filename.html" title="mongoc_gridfs_file_get_filename()"><span class="title">mongoc_gridfs_file_get_filename()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_id.html" title="mongoc_gridfs_file_get_id()"><span class="title">mongoc_gridfs_file_get_id()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_length.html" title="mongoc_gridfs_file_get_length()"><span class="title">mongoc_gridfs_file_get_length()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_md5.html" title="mongoc_gridfs_file_get_md5()"><span class="title">mongoc_gridfs_file_get_md5()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_metadata.html" title="mongoc_gridfs_file_get_metadata()"><span class="title">mongoc_gridfs_file_get_metadata()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_get_upload_date.html" title="mongoc_gridfs_file_get_upload_date()"><span class="title">mongoc_gridfs_file_get_upload_date()</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_readv.html" title="mongoc_gridfs_file_readv()"><span class="title">mongoc_gridfs_file_readv()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_remove.html" title="mongoc_gridfs_file_remove()"><span class="title">mongoc_gridfs_file_remove()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_save.html" title="mongoc_gridfs_file_save()"><span class="title">mongoc_gridfs_file_save()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_seek.html" title="mongoc_gridfs_file_seek()"><span class="title">mongoc_gridfs_file_seek()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_set_aliases.html" title="mongoc_gridfs_file_set_aliases()"><span class="title">mongoc_gridfs_file_set_aliases()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_set_content_type.html" title="mongoc_gridfs_file_set_content_type()"><span class="title">mongoc_gridfs_file_set_content_type()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_set_filename.html" title="mongoc_gridfs_file_set_filename()"><span class="title">mongoc_gridfs_file_set_filename()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_set_md5.html" title="mongoc_gridfs_file_set_md5()"><span class="title">mongoc_gridfs_file_set_md5()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_set_metadata.html" title="mongoc_gridfs_file_set_metadata()"><span class="title">mongoc_gridfs_file_set_metadata()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_tell.html" title="mongoc_gridfs_file_tell()"><span class="title">mongoc_gridfs_file_tell()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_gridfs_file_writev.html" title="mongoc_gridfs_file_writev()"><span class="title">mongoc_gridfs_file_writev()</span></a></div>
+</div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

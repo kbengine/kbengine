@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<page id="mongoc_find_and_modify_opts_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_find_and_modify_opts_t</title>
+  <subtitle>find_and_modify abstraction</subtitle>
+  <section id="description">
+    <title>Synopsis</title>
+    <p><code>mongoc_find_and_modify_opts_t</code> is a builder interface to construct a <link href="https://docs.mongodb.org/manual/reference/command/findAndModify/">find_and_modify</link> command.</p>
+    <p>It was created to be able to accommodate new arguments to the MongoDB find_and_modify command.</p>
+    <note style="tip"><p>New in mongoc 1.3.0</p></note>
+    <note style="tip"><p>As of MongoDB 3.2, the <link xref="mongoc_write_concern_t">mongoc_write_concern_t</link> specified on the <link xref="mongoc_collection_t">mongoc_collection_t</link> will be used, if any.</p></note>
+  </section>
+
+  <section id="example">
+    <title>Example</title>
+    <listing>
+      <title><file>find-and-modify-with-opts.c</file></title>
+      <screen>
+        <code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/flags.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+        <code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/bypass.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+        <code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/update.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+        <code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/fields.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+        <code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/sort.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+        <code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/fam.c" xmlns="http://www.w3.org/2001/XInclude" /></code>
+      </screen>
+      <p>Outputs:</p>
+      <screen>
+        <code mime="text/x-csrc"><![CDATA[{
+    "lastErrorObject": {
+        "updatedExisting": false,
+        "n": 1,
+        "upserted": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        }
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 35,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "goals": 343
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 35,
+        "firstname": "Zlatan",
+        "goals": 343,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker",
+        "author": true
+    },
+    "ok": 1
+}]]>
+        </code>
+      </screen>
+    </listing>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_socket_destroy">
+
+  <info>
+    <link type="guide" xref="mongoc_socket_t" group="function"/>
+  </info>
+  <title>mongoc_socket_destroy()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_socket_destroy (mongoc_socket_t *sock);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>sock</p></td><td><p>A <code xref="mongoc_socket_t">mongoc_socket_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function releases all resources associated with a <code xref="mongoc_socket_t">mongoc_socket_t</code>. This should be called when you are no longer using the socket.</p>
+  </section>
+
+</page>

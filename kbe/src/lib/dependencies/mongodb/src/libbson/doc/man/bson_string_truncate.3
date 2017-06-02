@@ -1,0 +1,54 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_STRING_TRUNCATE" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_string_truncate() \- Truncates the string so that it is len bytes in length. This must be smaller or equal to the current length of the string.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+bson_string_truncate (bson_string_t *string,
+                      uint32_t       len);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B string
+A
+.B bson_string_t
+\e&.
+.LP
+.TP
+.B
+.B len
+The new length of the string, excluding the trailing
+.B \e0
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+Truncates the string so that it is
+.B len
+bytes in length. This must be smaller or equal to the current length of the string.
+
+A
+.B \e0
+byte will be placed where the end of the string occurrs.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

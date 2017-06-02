@@ -1,0 +1,149 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_JSON_READER_T" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_json_reader_t \- Bulk JSON to BSON conversion
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <bson.h>
+
+typedef struct _bson_json_reader_t bson_json_reader_t;
+
+typedef enum
+{
+   BSON_JSON_ERROR_READ_CORRUPT_JS = 1,
+   BSON_JSON_ERROR_READ_INVALID_PARAM,
+   BSON_JSON_ERROR_READ_CB_FAILURE,
+} bson_json_error_code_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+The
+.B bson_json_reader_t
+structure is used for reading a sequence of JSON documents and transforming them to
+.B bson_t
+documents.
+
+This can often be useful if you want to perform bulk operations that are defined in a file containing JSON documents.
+
+.B NOTE
+.RS
+.B bson_json_reader_t
+works upon JSON documents formatted in
+.B MongoDB extended JSON
+format.
+.RE
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+
+/*
+ * Copyright 2013 MongoDB, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE\(hy2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+/*
+ * This program will print each JSON document contained in the provided files
+ * as a BSON string to STDOUT.
+ */
+
+
+#include <bson.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+
+int
+main (int   argc,
+      char *argv[])
+{
+   bson_json_reader_t *reader;
+   bson_error_t error;
+   const char *filename;
+   bson_t doc = BSON_INITIALIZER;
+   int i;
+   int b;
+
+   /*
+    * Print program usage if no arguments are provided.
+    */
+   if (argc == 1) {
+      fprintf (stderr, "usage: %s FILE...\en", argv[0]);
+      return 1;
+   }
+
+   /*
+    * Process command line arguments expecting each to be a filename.
+    */
+   for (i = 1; i < argc; i++) {
+      filename = argv[i];
+
+      /*
+       * Open the filename provided in command line arguments.
+       */
+      if (0 == strcmp (filename, "\(hy")) {
+         reader = bson_json_reader_new_from_fd (STDIN_FILENO, false);
+      } else {
+         if (!(reader = bson_json_reader_new_from_file (filename, &error))) {
+            fprintf (stderr, "Failed to open \e"%s\e": %s\en",
+                     filename, error.message);
+            continue;
+         }
+      }
+
+      /*
+       * Convert each incoming document to BSON and print to stdout.
+       */
+      while ((b = bson_json_reader_read (reader, &doc, &error))) {
+         if (b < 0) {
+            fprintf (stderr, "Error in json parsing:\en%s\en", error.message);
+            abort ();
+         }
+
+         if (fwrite (bson_get_data(&doc), 1, doc.len, stdout) != doc.len) {
+            fprintf (stderr, "Failed to write to stdout, exiting.\en");
+            exit (1);
+         }
+         bson_reinit (&doc);
+      }
+
+      bson_json_reader_destroy (reader);
+      bson_destroy (&doc);
+   }
+
+   return 0;
+}
+.fi
+
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

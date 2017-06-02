@@ -1,0 +1,92 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>ObjectIDs</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#intro" title="Getting Started">Getting Started</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">ObjectIDs</span></h1></div>
+<div class="region">
+<div class="contents">
+<p class="p">Libbson provides a simple way to generate ObjectIDs. It can be used in a single-threaded or multi-threaded manner depending on your requirements.</p>
+<p class="p">The <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span> structure represents an <span class="code">ObjectI</span> in MongoDB. It is a 96-bit identifier that includes various information about the system generating the OID.</p>
+</div>
+<div id="composition" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Composition</span></h2></div>
+<div class="region"><div class="contents"><div class="list"><div class="inner">
+<div class="title title-list"><h3><span class="title">Object ID Composition</span></h3></div>
+<div class="region"><ul class="list">
+<li class="list"><p class="p">4 bytes : The UNIX timestamp in big-endian format.</p></li>
+<li class="list"><p class="p">3 bytes : The first 3 bytes of <span class="code">MD5(hostname)</span>.</p></li>
+<li class="list"><p class="p">2 bytes : The <span class="code">pid_t</span> of the current process. Alternatively the task-id if configured.</p></li>
+<li class="list"><p class="p">3 bytes : A 24-bit monotonic counter incrementing from <span class="code">rand()</span> in big-endian.</p></li>
+</ul></div>
+</div></div></div></div>
+</div></div>
+<div id="sorting" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Sorting ObjectIDs</span></h2></div>
+<div class="region"><div class="contents"><p class="p">The typical way to sort in C is using <span class="code">qsort()</span>. Therefore, Libbson provides a <span class="code">qsort()</span> compatible callback function named <span class="code"><a href="bson_oid_compare.html" title="bson_oid_compare()">bson_oid_compare()</a></span>. It returns <span class="code">less than 1</span>, <span class="code">greater than 1</span>, or <span class="code">0</span> depending on the equality of two <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span> structures.</p></div></div>
+</div></div>
+<div id="comparing" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Comparing Object IDs</span></h2></div>
+<div class="region"><div class="contents"><p class="p">If you simply want to compare two <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span> structures for equality, use <span class="code"><a href="bson_oid_equal.html" title="bson_oid_equal()">bson_oid_equal()</a></span>.</p></div></div>
+</div></div>
+<div id="generating" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Generating</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">To generate a <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span>, you may use the following.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_oid_t oid;
+
+bson_oid_init (&amp;oid, NULL);</pre></div></div>
+</div></div>
+</div></div>
+<div id="parsing" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parsing ObjectID Strings</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">You can also parse a string contianing a <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span>. The input string <span class="em">MUST</span> be 24 characters or more in length.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_oid_t oid;
+
+bson_oid_init_from_string (&amp;oid, "123456789012345678901234");</pre></div></div>
+<p class="p">If you need to parse may <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span> in a tight loop and can guarantee the data is safe, you might consider using the inline variant. It will be inlined into your code and reduce the need for a foreign function call.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">bson_oid_t oid;
+
+bson_oid_init_from_string_unsafe (&amp;oid, "123456789012345678901234");</pre></div></div>
+</div></div>
+</div></div>
+<div id="hashing" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Hashing ObjectIDs</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">If you need to store items in a hashtable, you may want to use the <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span> as the key. Libbson provides a hash function for just this purpose. It is based on DJB hash.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">unsigned hash;
+
+hash = bson_oid_hash (oid);</pre></div></div>
+</div></div>
+</div></div>
+<div id="time" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Fetching ObjectID Creation Time</span></h2></div>
+<div class="region"><div class="contents">
+<p class="p">You can easily fetch the time that a <span class="code"><a href="bson_oid_t.html" title="bson_oid_t">bson_oid_t</a></span> was generated using <span class="code"><a href="bson_oid_get_time_t.html" title="bson_oid_get_time_t()">bson_oid_get_time_t()</a></span>.</p>
+<div class="example"><div class="code"><pre class="contents syntax brush-clang">time_t t;
+
+t = bson_oid_get_time_t (oid);
+printf ("The OID was generated at %u\n", (unsigned)t);</pre></div></div>
+</div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#intro" title="Getting Started">Getting Started</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

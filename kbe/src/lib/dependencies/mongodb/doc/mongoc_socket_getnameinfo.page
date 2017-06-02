@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_socket_getnameinfo">
+
+  <info>
+    <link type="guide" xref="mongoc_socket_t" group="function"/>
+  </info>
+  <title>mongoc_socket_getnameinfo()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[char *
+mongoc_socket_getnameinfo (mongoc_socket_t *sock);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>sock</p></td><td><p>A <code xref="mongoc_socket_t">mongoc_socket_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This is a helper around getting the local name of a socket. It is a wrapper around <code>getpeername()</code> and <code>getnameinfo()</code>.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated string that should be freed with <code xref="bson:bson_free">bson_free()</code>.</p>
+  </section>
+
+</page>

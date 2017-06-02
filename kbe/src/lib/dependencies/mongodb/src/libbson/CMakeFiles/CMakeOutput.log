@@ -1,0 +1,592 @@
+The system is: Windows - 6.1.7601 - AMD64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler:  
+Build flags: 
+Id flags: 
+
+The output was:
+0
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:30。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\3.6.0-rc2\CompilerIdC\CompilerIdC.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“Debug\”。
+  正在创建目录“Debug\CompilerIdC.tlog\”。
+InitializeBuildStatus:
+  正在创建“Debug\CompilerIdC.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /nologo /W0 /WX- /Od /Oy- /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue CMakeCCompilerId.c
+  CMakeCCompilerId.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:".\CompilerIdC.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\CompilerIdC.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\CompilerIdC.lib" /MACHINE:X86 /SAFESEH Debug\CMakeCCompilerId.obj
+  CompilerIdC.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\3.6.0-rc2\CompilerIdC\.\CompilerIdC.exe
+PostBuildEvent:
+  for %%i in (cl.exe) do @echo CMAKE_C_COMPILER=%%~$PATH:i
+  :VCEnd
+  CMAKE_C_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\cl.exe
+FinalizeBuildStatus:
+  正在删除文件“Debug\CompilerIdC.tlog\unsuccessfulbuild”。
+  正在对“Debug\CompilerIdC.tlog\CompilerIdC.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\3.6.0-rc2\CompilerIdC\CompilerIdC.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.52
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.vcxproj"
+
+The C compiler identification is MSVC, found in "E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/3.6.0-rc2/CompilerIdC/CompilerIdC.exe"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler:  
+Build flags: 
+Id flags: 
+
+The output was:
+0
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:30。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\3.6.0-rc2\CompilerIdCXX\CompilerIdCXX.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“Debug\”。
+  正在创建目录“Debug\CompilerIdCXX.tlog\”。
+InitializeBuildStatus:
+  正在创建“Debug\CompilerIdCXX.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /nologo /W0 /WX- /Od /Oy- /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:queue CMakeCXXCompilerId.cpp
+  CMakeCXXCompilerId.cpp
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:".\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\CompilerIdCXX.lib" /MACHINE:X86 /SAFESEH Debug\CMakeCXXCompilerId.obj
+  CompilerIdCXX.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\3.6.0-rc2\CompilerIdCXX\.\CompilerIdCXX.exe
+PostBuildEvent:
+  for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
+  :VCEnd
+  CMAKE_CXX_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\cl.exe
+FinalizeBuildStatus:
+  正在删除文件“Debug\CompilerIdCXX.tlog\unsuccessfulbuild”。
+  正在对“Debug\CompilerIdCXX.tlog\CompilerIdCXX.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\3.6.0-rc2\CompilerIdCXX\CompilerIdCXX.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.47
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcxproj"
+
+The CXX compiler identification is MSVC, found in "E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/3.6.0-rc2/CompilerIdCXX/CompilerIdCXX.exe"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_b8905.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:31。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_b8905.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_b8905.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_b8905.dir\Debug\cmTC_b8905.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_b8905.dir\Debug\cmTC_b8905.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_b8905.dir\Debug\\" /Fd"cmTC_b8905.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\testCCompiler.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_b8905.dir\Debug\\" /Fd"cmTC_b8905.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\testCCompiler.c"
+  
+  testCCompiler.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_b8905.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_b8905.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_b8905.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_b8905.dir\Debug\testCCompiler.obj
+  cmTC_b8905.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_b8905.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_b8905.dir\Debug\cmTC_b8905.tlog\unsuccessfulbuild”。
+  正在对“cmTC_b8905.dir\Debug\cmTC_b8905.tlog\cmTC_b8905.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_b8905.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.80
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_f107e.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:32。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_f107e.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_f107e.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_f107e.dir\Debug\cmTC_f107e.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_f107e.dir\Debug\cmTC_f107e.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_f107e.dir\Debug\\" /Fd"cmTC_f107e.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\cmake-3.6.0-rc2-win32-x86\share\cmake-3.6\Modules\CMakeCCompilerABI.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_f107e.dir\Debug\\" /Fd"cmTC_f107e.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\cmake-3.6.0-rc2-win32-x86\share\cmake-3.6\Modules\CMakeCCompilerABI.c"
+  CMakeCCompilerABI.c
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_f107e.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_f107e.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_f107e.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_f107e.dir\Debug\CMakeCCompilerABI.obj
+  cmTC_f107e.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_f107e.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_f107e.dir\Debug\cmTC_f107e.tlog\unsuccessfulbuild”。
+  正在对“cmTC_f107e.dir\Debug\cmTC_f107e.tlog\cmTC_f107e.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_f107e.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.49
+
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_ccfd5.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:33。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_ccfd5.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_ccfd5.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_ccfd5.dir\Debug\cmTC_ccfd5.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_ccfd5.dir\Debug\cmTC_ccfd5.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTC_ccfd5.dir\Debug\\" /Fd"cmTC_ccfd5.dir\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\testCXXCompiler.cxx"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTC_ccfd5.dir\Debug\\" /Fd"cmTC_ccfd5.dir\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\testCXXCompiler.cxx"
+  
+  testCXXCompiler.cxx
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_ccfd5.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_ccfd5.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_ccfd5.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_ccfd5.dir\Debug\testCXXCompiler.obj
+  cmTC_ccfd5.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_ccfd5.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_ccfd5.dir\Debug\cmTC_ccfd5.tlog\unsuccessfulbuild”。
+  正在对“cmTC_ccfd5.dir\Debug\cmTC_ccfd5.tlog\cmTC_ccfd5.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_ccfd5.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.55
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_2fb9d.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:33。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_2fb9d.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_2fb9d.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_2fb9d.dir\Debug\cmTC_2fb9d.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_2fb9d.dir\Debug\cmTC_2fb9d.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTC_2fb9d.dir\Debug\\" /Fd"cmTC_2fb9d.dir\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:queue "E:\mongodb-C\cmake-3.6.0-rc2-win32-x86\share\cmake-3.6\Modules\CMakeCXXCompilerABI.cpp"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTC_2fb9d.dir\Debug\\" /Fd"cmTC_2fb9d.dir\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:queue "E:\mongodb-C\cmake-3.6.0-rc2-win32-x86\share\cmake-3.6\Modules\CMakeCXXCompilerABI.cpp"
+  
+  CMakeCXXCompilerABI.cpp
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_2fb9d.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_2fb9d.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_2fb9d.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_2fb9d.dir\Debug\CMakeCXXCompilerABI.obj
+  cmTC_2fb9d.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_2fb9d.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_2fb9d.dir\Debug\cmTC_2fb9d.tlog\unsuccessfulbuild”。
+  正在对“cmTC_2fb9d.dir\Debug\cmTC_2fb9d.tlog\cmTC_2fb9d.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_2fb9d.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.54
+
+
+
+
+Detecting CXX [] compiler features compiled with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_8bf27.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:34。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_8bf27.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_8bf27.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_8bf27.dir\Debug\cmTC_8bf27.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_8bf27.dir\Debug\cmTC_8bf27.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTC_8bf27.dir\Debug\\" /Fd"cmTC_8bf27.dir\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\feature_tests.cxx"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"cmTC_8bf27.dir\Debug\\" /Fd"cmTC_8bf27.dir\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\feature_tests.cxx"
+  
+  feature_tests.cxx
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_8bf27.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_8bf27.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_8bf27.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_8bf27.dir\Debug\feature_tests.obj
+  cmTC_8bf27.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_8bf27.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_8bf27.dir\Debug\cmTC_8bf27.tlog\unsuccessfulbuild”。
+  正在对“cmTC_8bf27.dir\Debug\cmTC_8bf27.tlog\cmTC_8bf27.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_8bf27.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.55
+
+
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:0cxx_alignas
+    Feature record: CXX_FEATURE:0cxx_alignof
+    Feature record: CXX_FEATURE:0cxx_attributes
+    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:0cxx_binary_literals
+    Feature record: CXX_FEATURE:0cxx_constexpr
+    Feature record: CXX_FEATURE:1cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:0cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:0cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:0cxx_deleted_functions
+    Feature record: CXX_FEATURE:0cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:0cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:0cxx_generic_lambdas
+    Feature record: CXX_FEATURE:0cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:0cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:0cxx_noexcept
+    Feature record: CXX_FEATURE:0cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:0cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:0cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:0cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:0cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:0cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:0cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:0cxx_user_literals
+    Feature record: CXX_FEATURE:0cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+Determining if the include file sys/types.h exists passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_08985.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:35。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_08985.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_08985.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_08985.dir\Debug\cmTC_08985.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_08985.dir\Debug\cmTC_08985.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_08985.dir\Debug\\" /Fd"cmTC_08985.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckIncludeFile.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  CheckIncludeFile.c
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_08985.dir\Debug\\" /Fd"cmTC_08985.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckIncludeFile.c"
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_08985.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_08985.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_08985.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_08985.dir\Debug\CheckIncludeFile.obj
+  cmTC_08985.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_08985.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_08985.dir\Debug\cmTC_08985.tlog\unsuccessfulbuild”。
+  正在对“cmTC_08985.dir\Debug\cmTC_08985.tlog\cmTC_08985.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_08985.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.54
+
+
+Determining if the include file stdint.h exists passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_ea0f3.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:36。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_ea0f3.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_ea0f3.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_ea0f3.dir\Debug\cmTC_ea0f3.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_ea0f3.dir\Debug\cmTC_ea0f3.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_ea0f3.dir\Debug\\" /Fd"cmTC_ea0f3.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckIncludeFile.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_ea0f3.dir\Debug\\" /Fd"cmTC_ea0f3.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckIncludeFile.c"
+  
+  CheckIncludeFile.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_ea0f3.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_ea0f3.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_ea0f3.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_ea0f3.dir\Debug\CheckIncludeFile.obj
+  cmTC_ea0f3.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_ea0f3.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_ea0f3.dir\Debug\cmTC_ea0f3.tlog\unsuccessfulbuild”。
+  正在对“cmTC_ea0f3.dir\Debug\cmTC_ea0f3.tlog\cmTC_ea0f3.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_ea0f3.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.55
+
+
+Determining if the include file stddef.h exists passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_17622.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:36。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_17622.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_17622.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_17622.dir\Debug\cmTC_17622.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_17622.dir\Debug\cmTC_17622.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_17622.dir\Debug\\" /Fd"cmTC_17622.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckIncludeFile.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_17622.dir\Debug\\" /Fd"cmTC_17622.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\CheckIncludeFile.c"
+  
+  CheckIncludeFile.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_17622.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_17622.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_17622.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_17622.dir\Debug\CheckIncludeFile.obj
+  cmTC_17622.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_17622.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_17622.dir\Debug\cmTC_17622.tlog\unsuccessfulbuild”。
+  正在对“cmTC_17622.dir\Debug\cmTC_17622.tlog\cmTC_17622.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_17622.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.56
+
+
+Determining size of unsigned short passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_e74e7.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:37。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_e74e7.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_e74e7.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_e74e7.dir\Debug\cmTC_e74e7.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_e74e7.dir\Debug\cmTC_e74e7.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_e74e7.dir\Debug\\" /Fd"cmTC_e74e7.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CheckTypeSize\CMAKE_SIZEOF_UNSIGNED_SHORT.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_e74e7.dir\Debug\\" /Fd"cmTC_e74e7.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CheckTypeSize\CMAKE_SIZEOF_UNSIGNED_SHORT.c"
+  
+  CMAKE_SIZEOF_UNSIGNED_SHORT.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_e74e7.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_e74e7.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_e74e7.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_e74e7.dir\Debug\CMAKE_SIZEOF_UNSIGNED_SHORT.obj
+  cmTC_e74e7.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_e74e7.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_e74e7.dir\Debug\cmTC_e74e7.tlog\unsuccessfulbuild”。
+  正在对“cmTC_e74e7.dir\Debug\cmTC_e74e7.tlog\cmTC_e74e7.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_e74e7.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.51
+
+
+Determining if the system is big endian passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_4cf76.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:38。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_4cf76.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_4cf76.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_4cf76.dir\Debug\cmTC_4cf76.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_4cf76.dir\Debug\cmTC_4cf76.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_4cf76.dir\Debug\\" /Fd"cmTC_4cf76.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\TestEndianess.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_4cf76.dir\Debug\\" /Fd"cmTC_4cf76.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\TestEndianess.c"
+  
+  TestEndianess.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_4cf76.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_4cf76.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_4cf76.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_4cf76.dir\Debug\TestEndianess.obj
+  cmTC_4cf76.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_4cf76.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_4cf76.dir\Debug\cmTC_4cf76.tlog\unsuccessfulbuild”。
+  正在对“cmTC_4cf76.dir\Debug\cmTC_4cf76.tlog\cmTC_4cf76.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_4cf76.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.57
+
+TestEndianess.c:
+/* A 16 bit integer is required. */
+typedef unsigned short cmakeint16;
+
+/* On a little endian machine, these 16bit ints will give "THIS IS LITTLE ENDIAN."
+   On a big endian machine the characters will be exchanged pairwise. */
+const cmakeint16 info_little[] =  {0x4854, 0x5349, 0x4920, 0x2053, 0x494c, 0x5454, 0x454c, 0x4520, 0x444e, 0x4149, 0x2e4e, 0x0000};
+
+/* on a big endian machine, these 16bit ints will give "THIS IS BIG ENDIAN."
+   On a little endian machine the characters will be exchanged pairwise. */
+const cmakeint16 info_big[] =     {0x5448, 0x4953, 0x2049, 0x5320, 0x4249, 0x4720, 0x454e, 0x4449, 0x414e, 0x2e2e, 0x0000};
+
+#ifdef __CLASSIC_C__
+int main(argc, argv) int argc; char *argv[];
+#else
+int main(int argc, char *argv[])
+#endif
+{
+  int require = 0;
+  require += info_little[argc];
+  require += info_big[argc];
+  (void)argv;
+  return require;
+}
+
+
+Determining if the function _set_output_format exists passed with the following output:
+Change Dir: E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/MSBuild/12.0/bin/MSBuild.exe" "cmTC_b79fd.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=12.0"
+Microsoft(R) 生成引擎版本 12.0.31101.0
+[Microsoft .NET Framework 版本 4.0.30319.42000]
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+生成启动时间为 2016/6/24 11:01:39。
+节点 1 上的项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_b79fd.vcxproj”(默认目标)。
+PrepareForBuild:
+  正在创建目录“cmTC_b79fd.dir\Debug\”。
+  正在创建目录“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\”。
+  正在创建目录“cmTC_b79fd.dir\Debug\cmTC_b79fd.tlog\”。
+InitializeBuildStatus:
+  正在创建“cmTC_b79fd.dir\Debug\cmTC_b79fd.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=_set_output_format /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_b79fd.dir\Debug\\" /Fd"cmTC_b79fd.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\cmake-3.6.0-rc2-win32-x86\share\cmake-3.6\Modules\CheckFunctionExists.c"
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 18.00.31101 版版权所有(C) Microsoft Corporation。  保留所有权利。
+  
+  cl /c /Zi /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=_set_output_format /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"cmTC_b79fd.dir\Debug\\" /Fd"cmTC_b79fd.dir\Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:queue "E:\mongodb-C\cmake-3.6.0-rc2-win32-x86\share\cmake-3.6\Modules\CheckFunctionExists.c"
+  
+  CheckFunctionExists.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:QUEUE /OUT:"E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_b79fd.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_b79fd.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/CMakeTmp/Debug/cmTC_b79fd.lib" /MACHINE:X86 /SAFESEH  /machine:X86 cmTC_b79fd.dir\Debug\CheckFunctionExists.obj
+  cmTC_b79fd.vcxproj -> E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\Debug\cmTC_b79fd.exe
+FinalizeBuildStatus:
+  正在删除文件“cmTC_b79fd.dir\Debug\cmTC_b79fd.tlog\unsuccessfulbuild”。
+  正在对“cmTC_b79fd.dir\Debug\cmTC_b79fd.tlog\cmTC_b79fd.lastbuildstate”执行 Touch 任务。
+已完成生成项目“E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\src\libbson\CMakeFiles\CMakeTmp\cmTC_b79fd.vcxproj”(默认目标)的操作。
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:00.64
+
+

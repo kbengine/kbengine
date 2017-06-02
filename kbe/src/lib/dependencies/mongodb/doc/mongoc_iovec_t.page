@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_iovec_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_iovec_t</title>
+
+  <section id="description">
+    <title>Synopsis</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+
+#ifdef _WIN32
+typedef struct
+{
+   u_long  iov_len;
+   char   *iov_base;
+} mongoc_iovec_t;
+#else
+typedef struct iovec mongoc_iovec_t;
+#endif
+]]></code></synopsis>
+  </section>
+
+    <p>The <code mime="text/x-csrc">mongoc_iovec_t</code> structure is a portability abstraction for consumers of the <code xref="mongoc_stream_t">mongoc_stream_t</code> interfaces. It allows for scatter/gather I/O through the socket subsystem.</p>
+    <note style="warning"><p>When writing portable code, beware of the ordering of <code>iov_len</code> and <code>iov_base</code> as they are different on various platforms. Therefore, you should not use C initializers for initialization.</p></note>
+  </section>
+
+</page>

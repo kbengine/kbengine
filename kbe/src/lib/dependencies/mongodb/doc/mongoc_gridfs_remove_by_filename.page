@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_gridfs_remove_by_filename">
+  <info>
+    <link type="guide" xref="mongoc_gridfs_t" group="function"/>
+  </info>
+  <title>mongoc_gridfs_remove_by_filename()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_gridfs_remove_by_filename (mongoc_gridfs_t *gridfs,
+                                  const char      *filename,
+                                  bson_error_t    *error);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>gridfs</p></td><td><p>A <code xref="mongoc_gridfs_t">mongoc_gridfs_t</code>.</p></td></tr>
+      <tr><td><p>filename</p></td><td><p>A UTF-8 encoded string containing the filename.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Removes all files matching <code>filename</code> and their data chunks from the MongoDB server.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns true if successful (including when no files match), otherwise false and <code>error</code> is set.</p>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+</page>

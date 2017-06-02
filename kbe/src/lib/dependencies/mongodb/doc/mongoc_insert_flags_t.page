@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_insert_flags_t">
+  <info>
+    <link type="guide" xref="index#api-reference"/>
+  </info>
+  <title>mongoc_insert_flags_t</title>
+  <subtitle>Flags for deletion operations</subtitle>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[
+typedef enum
+{
+   MONGOC_INSERT_NONE              = 0,
+   MONGOC_INSERT_CONTINUE_ON_ERROR = 1 << 0,
+} mongoc_insert_flags_t;
+
+#define MONGOC_INSERT_NO_VALIDATE (1U << 31)
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>These flags correspond to the MongoDB wire protocol. They may be bitwise or'd together. They may modify how an insert happens on the MongoDB server.</p>
+  </section>
+
+  <section id="values">
+    <title>Flag Values</title>
+    <table>
+      <tr>
+        <td><p>MONGOC_INSERT_NONE</p></td>
+        <td><p>Specify no insert flags.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_INSERT_CONTINUE_ON_ERROR</p></td>
+        <td><p>Continue inserting documents from the insertion set even if one insert fails.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_INSERT_NO_VALIDATE</p></td>
+        <td><p>Do not validate insertion documents before performing an insert. Validation can be expensive, so this can save some time if you know your documents are already valid.</p></td>
+      </tr>
+    </table>
+  </section>
+
+</page>

@@ -1,0 +1,52 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_GRIDFS_FILE_SET_FILENAME" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_gridfs_file_set_filename() \- Sets the filename for file.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+void
+mongoc_gridfs_file_set_filename (mongoc_gridfs_file_t *file,
+                                 const char           *filename);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+file
+A
+.B mongoc_gridfs_file_t
+\e&.
+.LP
+.TP
+.B
+str
+A UTF\(hy8 encoded string containing the filename.
+.LP
+
+.SH "DESCRIPTION"
+
+Sets the filename for
+.B file
+\e&.
+
+You need to call
+.B mongoc_gridfs_file_save(3)
+to persist this change.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

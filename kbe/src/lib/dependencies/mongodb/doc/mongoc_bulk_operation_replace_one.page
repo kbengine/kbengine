@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_bulk_operation_replace_one">
+
+
+  <info>
+    <link type="guide" xref="mongoc_bulk_operation_t" group="function"/>
+  </info>
+  <title>mongoc_bulk_operation_replace_one()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_bulk_operation_replace_one (mongoc_bulk_operation_t *bulk,
+                                   const bson_t            *selector,
+                                   const bson_t            *document,
+                                   bool                     upsert);
+]]></code></synopsis>
+    <p>Replace a single document as part of a bulk operation. This only queues the operation. To execute it, call <code xref="mongoc_bulk_operation_execute">mongoc_bulk_operation_execute()</code>.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>bulk</p></td><td><p>A <code xref="mongoc_bulk_operation_t">mongoc_bulk_operation_t</code>.</p></td></tr>
+      <tr><td><p>selector</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the selector to query.</p></td></tr>
+      <tr><td><p>document</p></td><td><p>A <code xref="bson:bson_t">bson_t</code> containing the replacement document.</p></td></tr>
+      <tr><td><p>upsert</p></td><td><p><code>true</code> if this should be an <code>upsert</code>.</p></td></tr>
+    </table>
+    <note style="warning"><p><code>document</code> may not contain fields with keys containing <code>.</code> or <code>$</code>.</p></note>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via <code xref="mongoc_bulk_operation_execute">mongoc_bulk_operation_execute()</code>.</p>
+  </section>
+
+</page>

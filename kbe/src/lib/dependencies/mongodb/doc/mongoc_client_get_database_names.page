@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_get_database_names">
+
+
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_get_database_names()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[char **
+mongoc_client_get_database_names (mongoc_client_t *client,
+                                  bson_error_t    *error);
+]]></code></synopsis>
+    <p>This function queries the MongoDB server for a list of known databases.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>client</p></td><td><p>A <code xref="mongoc_client_t">mongoc_client_t</code>.</p></td></tr>
+      <tr><td><p>error</p></td><td><p>An optional location for a <code xref="bson:bson_error_t">bson_error_t</code> or <code>NULL</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="errors">
+    <title>Errors</title>
+    <p>Errors are propagated via the <code>error</code> parameter.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A <code>NULL</code> terminated vector of <code>NULL-byte</code> terminated strings. The result should be freed with <code xref="bson:bson_strfreev">bson_strfreev()</code>.</p>
+    <p><code>NULL</code> is returned upon failure and <code>error</code> is set.</p>
+  </section>
+
+  <section id="examples">
+    <title>Examples</title>
+    <screen><code mime="text/x-csrc"><![CDATA[{
+   bson_error_t error;
+   char **strv;
+   unsigned i;
+
+   if ((strv = mongoc_client_get_collection_names (client, &error))) {
+      for (i = 0; strv [i]; i++)
+         printf ("%s\n", strv [i]);
+      bson_strfreev (strv);
+   } else {
+      fprintf (stderr, "Command failed: %s\n", error.message);
+   }
+}]]></code></screen>
+  </section>
+
+</page>

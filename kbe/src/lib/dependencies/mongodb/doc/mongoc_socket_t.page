@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_socket_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_socket_t</title>
+  <subtitle>Portable socket abstraction</subtitle>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+
+typedef struct _mongoc_socket_t mongoc_socket_t]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <p>This structure provides a socket abstraction that is friendlier for portability than BSD sockets directly. Inconsistencies between Linux, various BSDs, Solaris, and Windows are handled here.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

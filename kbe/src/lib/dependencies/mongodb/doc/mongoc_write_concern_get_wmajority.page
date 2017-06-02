@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_write_concern_get_wmajority">
+  <info>
+    <link type="guide" xref="mongoc_write_concern_t" group="function"/>
+  </info>
+  <title>mongoc_write_concern_get_wmajority()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_write_concern_get_wmajority (const mongoc_write_concern_t *write_concern);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>write_concern</p></td><td><p>A <code xref="mongoc_write_concern_t">mongoc_write_concern_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Fetches if the write should be written to a majority of nodes before indicating success.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns true if wmajority is set.</p>
+  </section>
+
+</page>

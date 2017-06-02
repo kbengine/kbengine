@@ -1,0 +1,68 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_STREAM_FILE_NEW_FOR_PATH" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_stream_file_new_for_path() \- This function shall create a new mongoc_stream_file_t after opening the underlying file with open() or the platform equivalent.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+mongoc_stream_t *
+mongoc_stream_file_new_for_path (const char *path,
+                                 int         flags,
+                                 int         mode);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+path
+The path of the target file.
+.LP
+.TP
+.B
+flags
+Flags to be passed to
+.B open(3)
+\e&.
+.LP
+.TP
+.B
+mode
+An optional mode to be passed to
+.B open(3)
+when creating a file.
+.LP
+
+This function shall create a new
+.B mongoc_stream_file_t
+after opening the underlying file with
+.B open(3)
+or the platform equivalent.
+
+.SH "RETURNS"
+
+.B NULL
+on failure, otherwise a newly allocated
+.B mongoc_stream_file_t
+that should be freed with
+.B mongoc_stream_destroy(3)
+when no longer in use.
+
+.B errno
+is set upon failure.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

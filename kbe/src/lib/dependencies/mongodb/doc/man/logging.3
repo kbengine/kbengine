@@ -1,0 +1,117 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "LOGGING" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+Logging \- MongoDB C driver Logging Abstraction
+.SH "SYNOPSIS"
+
+.nf
+typedef enum
+{
+   MONGOC_LOG_LEVEL_ERROR,
+   MONGOC_LOG_LEVEL_CRITICAL,
+   MONGOC_LOG_LEVEL_WARNING,
+   MONGOC_LOG_LEVEL_MESSAGE,
+   MONGOC_LOG_LEVEL_INFO,
+   MONGOC_LOG_LEVEL_DEBUG,
+   MONGOC_LOG_LEVEL_TRACE,
+} mongoc_log_level_t;
+
+#define MONGOC_ERROR(...)    
+#define MONGOC_CRITICAL(...) 
+#define MONGOC_WARNING(...)  
+#define MONGOC_MESSAGE(...)  
+#define MONGOC_INFO(...)     
+#define MONGOC_DEBUG(...)    
+
+typedef void (*mongoc_log_func_t) (mongoc_log_level_t  log_level,
+                                   const char         *log_domain,
+                                   const char         *message,
+                                   void               *user_data);
+
+void        mongoc_log_set_handler     (mongoc_log_func_t   log_func,
+                                        void               *user_data);
+void        mongoc_log                 (mongoc_log_level_t  log_level,
+                                        const char         *log_domain,
+                                        const char         *format,
+                                        ...) BSON_GNUC_PRINTF(3, 4);
+const char *mongoc_log_level_str       (mongoc_log_level_t log_level);
+void        mongoc_log_default_handler (mongoc_log_level_t  log_level,
+                                        const char         *log_domain,
+                                        const char         *message,
+                                        void               *user_data);
+.fi
+
+The MongoDB C driver comes with an abstraction for logging that you can use in your application, or integrate with an existing logging system.
+
+.SH "MACROS"
+
+To make logging a little less painful, various helper macros are provided. See the following example.
+
+.nf
+#undef MONGOC_LOG_DOMAIN
+#define MONGOC_LOG_DOMAIN "my\(hycustom\(hydomain"
+
+MONGOC_WARNING ("An error occurred: %s", strerror (errno));
+.fi
+
+.SH "TRACING"
+
+If compiling your own copy of the MongoDB C driver, consider configuring with
+.B \(hy\(hyenable\(hytracing
+to enable function tracing and hex dumps of network packets to
+.B STDERR
+and
+.B STDOUT
+during development and debugging.
+
+This is especially useful when debugging what may be going on internally in the driver.
+
+Trace messages can be enabled and disabled by calling
+.B mongoc_log_trace_enable(3)
+and
+.B mongoc_log_trace_disable(3)
+
+.B NOTE
+.RS
+Compiling the driver with
+.B \(hy\(hyenable\(hytracing
+will affect its performance. Disabling tracing with
+.B mongoc_log_trace_disable(3)
+significantly reduces the overhead, but cannot remove it completely.
+.RE
+
+.SH "CUSTOM LOG HANDLERS"
+
+The default log handler prints a timestamp and the log message to
+.B stdout
+, or to
+.B stderr
+for warnings, critical messages, and errors.
+    You can override the handler with
+.B mongoc_log_set_handler(3)
+\e&.
+    Your handler function is called in a mutex for thread safety.
+
+To restore the default handler:
+
+.B mongoc_log_set_handler (mongoc_log_default_handler, NULL);
+
+.SH "DISABLE LOGGING"
+
+To disable all logging, including warnings, critical messages and errors, you need to provide an empty log handler
+
+.B mongoc_log_set_handler (NULL, NULL);
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

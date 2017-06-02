@@ -1,0 +1,51 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_READ_CONCERN_T" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+mongoc_read_concern_t \- Read Concern abstraction
+.SH "SYNOPSIS"
+
+.B NOTE
+.RS
+New in MongoDB 3.2 and mongoc 1.3.0
+.RE
+
+The
+.B mongoc_read_concern_t
+allows clients to choose a level of isolation for their reads. The default, MONGOC_READ_CONCERN_LEVEL_LOCAL, is right for the great majority of applications.
+
+You can specify a read concern on connection objects, database objects, or collection objects.
+
+See
+.B readConcern
+on the MongoDB website for more information.
+
+Read Concern is only sent to MongoDB when it has explicitly been set by
+.B mongoc_read_concern_set_level
+to anything other then empty string.
+
+.SH "READ CONCERN LEVELS"
+
+.TP
+.B
+MONGOC_READ_CONCERN_LEVEL_LOCAL ("local")
+Default. The query will return the node’s most recent copy of data. Provides no guarantee that the data has been written to a majority of the nodes.
+.LP
+.TP
+.B
+MONGOC_READ_CONCERN_LEVEL_MAJORITY ("majority")
+The query will return the node’s most recent copy of the data confirmed as having been written to a majority of the nodes.
+.LP
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

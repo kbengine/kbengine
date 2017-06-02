@@ -1,0 +1,68 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_UTF8_VALIDATE" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_utf8_validate() \- Validates that the content within utf8 is valid UTF-8. If allow_null is true, then embedded NULL bytes are allowed (\0).
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+bson_utf8_validate (const char *utf8,
+                    size_t      utf8_len,
+                    bool        allow_null);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B utf8
+A string to verify.
+.LP
+.TP
+.B
+.B utf8_len
+The length of
+.B utf8
+in bytes.
+.LP
+.TP
+.B
+.B allow_null
+A bool indicating that embedded
+.B \e0
+bytes are allowed.
+.LP
+
+.SH "DESCRIPTION"
+
+Validates that the content within
+.B utf8
+is valid UTF\(hy8. If
+.B allow_null
+is
+.B true
+, then embedded NULL bytes are allowed (
+.B \e0
+).
+
+.SH "RETURNS"
+
+true if
+.B utf8
+contains valid UTF\(hy8.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

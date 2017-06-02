@@ -1,0 +1,115 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>bson_value_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">bson_value_t</span></h1>
+<h2 class="subtitle"><span class="subtitle">BSON Boxed Container Type</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+
+typedef struct _bson_value_t
+{
+   bson_type_t           value_type;
+   union {
+      bson_oid_t         v_oid;
+      int64_t            v_int64;
+      int32_t            v_int32;
+      int8_t             v_int8;
+      double             v_double;
+      bool               v_bool;
+      int64_t            v_datetime;
+      struct {
+         uint32_t        timestamp;
+         uint32_t        increment;
+      } v_timestamp;
+      struct {
+         uint32_t        len;
+         char           *str;
+      } v_utf8;
+      struct {
+         uint32_t        data_len;
+         uint8_t        *data;
+      } v_doc;
+      struct {
+         uint32_t        data_len;
+         uint8_t        *data;
+         bson_subtype_t  subtype;
+      } v_binary;
+      struct {
+         char           *regex;
+         char           *options;
+      } v_regex;
+      struct {
+         char           *collection;
+         uint32_t        collection_len;
+         bson_oid_t      oid;
+      } v_dbpointer;
+      struct {
+         uint32_t        code_len;
+         char           *code;
+      } v_code;
+      struct {
+         uint32_t        code_len;
+         char           *code;
+         uint32_t        scope_len;
+         uint8_t        *scope_data;
+      } v_codewscope;
+      struct {
+         uint32_t        len;
+         char           *symbol;
+      } v_symbol;
+   } value;
+} bson_value_t;</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents"><p class="p">The <span class="code"><a href="bson_value_t.html" title="bson_value_t">bson_value_t</a></span> structure is a boxed type for encapsulating a runtime determined type.</p></div></div>
+</div></div>
+<div id="examples" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title"></span></h3></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">const bson_value_t *value;
+
+value = bson_iter_value (&amp;iter);
+
+if (value.type == BSON_TYPE_INT32) {
+   printf ("%d\n", value.value.v_int32);
+}</pre></div></div></div></div></div></div></div>
+</div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="bson_value_copy.html" title="bson_value_copy()"><span class="title">bson_value_copy()</span></a></div></div>
+<div class="links-twocolumn"><div class="linkdiv "><a class="linkdiv" href="bson_value_destroy.html" title="bson_value_destroy()"><span class="title">bson_value_destroy()</span></a></div></div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

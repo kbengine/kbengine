@@ -1,0 +1,2 @@
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v120:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
+Debug|Win32|E:\mongodb-C\mongodb-svn\mongo-c-driver-1.3.5\CMakeFiles\3.6.0-rc2\CompilerIdC\|

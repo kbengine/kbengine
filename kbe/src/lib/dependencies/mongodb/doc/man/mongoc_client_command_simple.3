@@ -1,0 +1,103 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_CLIENT_COMMAND_SIMPLE" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_client_command_simple() \- None
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+mongoc_client_command_simple (mongoc_client_t           *client,
+                              const char                *db_name,
+                              const bson_t              *command,
+                              const mongoc_read_prefs_t *read_prefs,
+                              bson_t                    *reply,
+                              bson_error_t              *error);
+.fi
+.fi
+
+This is a simplified interface to
+.B mongoc_client_command(3)
+\e&. It returns the first document from the result cursor into
+.B reply
+\e&.
+
+.B NOTE
+.RS
+.B reply
+is always set, and should be released with
+.B bson_destroy(3)
+\e&.
+.RE
+
+.SH "PARAMETERS"
+
+.TP
+.B
+client
+A
+.B mongoc_client_t
+\e&.
+.LP
+.TP
+.B
+db_name
+The name of the database to run the command on.
+.LP
+.TP
+.B
+command
+A
+.B bson_t
+containing the command specification.
+.LP
+.TP
+.B
+read_prefs
+A
+.B mongoc_read_prefs_t
+\e&.
+.LP
+.TP
+.B
+reply
+A location for the resulting document.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+.B true
+if successful; otherwise
+.B false
+and
+.B error
+is set.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_collection_keys_to_index_string">
+  <info>
+    <link type="guide" xref="mongoc_collection_t" group="function"/>
+  </info>
+  <title>mongoc_collection_keys_to_index_string()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[char *
+mongoc_collection_keys_to_index_string (const bson_t *keys);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>keys</p></td><td><p>A <code xref="bson:bson_t">bson_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function shall returns the canonical stringification, as used in <code xref="mongoc_collection_create_index">mongoc_collection_create_index()</code> without an explicit name, of a given key specification.</p>
+
+    <p>It is a programming error to call this function on a non-standard index, such one other than a straight index with ascending and descending.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A string that should be freed with <code xref="bson:bson_free">bson_free()</code>.</p>
+  </section>
+
+</page>

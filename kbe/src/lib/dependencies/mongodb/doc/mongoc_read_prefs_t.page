@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<page id="mongoc_read_prefs_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_read_prefs_t</title>
+  <subtitle>A read preference abstraction</subtitle>
+  <section id="description">
+    <title>Synopsis</title>
+    <p><code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code> provides an abstraction on top of the MongoDB connection read prefences. It allows for hinting to the driver which nodes in a replica set should be accessed first.</p>
+    <p>You can specify a read preference mode on connection objects, database objects, collection objects, or per-operation.  Generally, it makes the most sense to stick with the global default, <code>MONGOC_READ_PRIMARY</code>.  All of the other modes come with caveats that won't be covered in great detail here.</p>
+  </section>
+
+  <section id="read-modes">
+    <title>Read Modes</title>
+    <table>
+      <tr>
+        <td><p>MONGOC_READ_PRIMARY</p></td>
+        <td><p>Default mode. All operations read from the current replica set primary.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_READ_SECONDARY</p></td>
+        <td><p>All operations read from among the nearest secondary members of the replica set.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_READ_PRIMARY_PREFERRED</p></td>
+        <td><p>In most situations, operations read from the primary but if it is unavailable, operations read from secondary members.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_READ_SECONDARY_PREFERRED</p></td>
+        <td><p>In most situations, operations read from among the nearest secondary members, but if no secondaries are available, operations read from the primary.</p></td>
+      </tr>
+      <tr>
+        <td><p>MONGOC_READ_NEAREST</p></td>
+        <td><p>Operations read from among the nearest members of the replica set, irrespective of the member’s type.</p></td>
+      </tr>
+    </table>
+  </section>
+
+  <section id="tag-sets">
+    <title>Tag Sets</title>
+    <p>Tag sets allow you to specify custom read preferences and write concerns so that your application can target operations to specific members.</p>
+    <p>Custom read preferences and write concerns evaluate tags sets in different ways: read preferences consider the value of a tag when selecting a member to read from. while write concerns ignore the value of a tag to when selecting a member except to consider whether or not the value is unique.</p>
+
+    <p>You can specify tag sets with the following read preference modes:</p>
+
+    <list>
+      <item><p>primaryPreferred</p></item>
+      <item><p>secondary</p></item>
+      <item><p>secondaryPreferred</p></item>
+      <item><p>nearest</p></item>
+    </list>
+
+    <p>Tags are not compatible with <code>MONGOC_READ_PRIMARY</code> and, in general, only apply when selecting a secondary member of a set for a read operation. However, the nearest read mode, when combined with a tag set will select the nearest member that matches the specified tag set, which may be a primary or secondary.</p>
+
+    <p>All interfaces use the same member selection logic to choose the member to which to direct read operations, basing the choice on read preference mode and tag sets.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+</page>

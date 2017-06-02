@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_client_new">
+  <info>
+    <link type="guide" xref="mongoc_client_t" group="function"/>
+  </info>
+  <title>mongoc_client_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_client_t *
+mongoc_client_new (const char *uri_string);]]></code></synopsis>
+    <p>Creates a new <code xref="mongoc_client_t">mongoc_client_t</code> using the URI string provided.</p>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>uri_string</p></td><td><p>A string containing the MongoDB connection URI.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_client_t">mongoc_client_t</code> if the URI parsed successfully, otherwise <code>NULL</code>.</p>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><code xref="mongoc_client_new_from_uri">mongoc_client_new_from_uri()</code></p>
+  </section>
+
+</page>

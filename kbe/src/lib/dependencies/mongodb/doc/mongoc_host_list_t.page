@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_host_list_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+  <title>mongoc_host_list_t</title>
+  <section id="description">
+    <title>Synopsis</title>
+    <code mime="text/x-csrc"><![CDATA[typedef struct
+{
+   mongoc_host_list_t *next;
+   char                host [BSON_HOST_NAME_MAX + 1];
+   char                host_and_port [BSON_HOST_NAME_MAX + 7];
+   uint16_t            port;
+   int                 family;
+   void               *padding [4];
+} mongoc_host_list_t;
+]]></code>
+  </section>
+
+  <section id="desc">
+    <title>Description</title>
+    <p>The host and port of a MongoDB server. Can be part of a linked list: for example the return value of <code xref="mongoc_uri_get_hosts">mongoc_uri_get_hosts</code> when multiple hosts are provided in the MongoDB URI.</p>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><code xref="mongoc_uri_get_hosts">mongoc_uri_get_hosts</code> and <code xref="mongoc_cursor_get_host">mongoc_cursor_get_host</code>.</p>
+  </section>
+
+</page>

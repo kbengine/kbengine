@@ -1,0 +1,8 @@
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/bson_shared.dir
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/bson_static.dir
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/test-libbson.dir
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/PACKAGE.dir
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/RUN_TESTS.dir
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/INSTALL.dir
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/ALL_BUILD.dir
+E:/mongodb-C/mongodb-svn/mongo-c-driver-1.3.5/src/libbson/CMakeFiles/ZERO_CHECK.dir

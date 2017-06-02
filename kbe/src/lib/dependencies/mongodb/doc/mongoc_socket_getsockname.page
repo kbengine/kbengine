@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_socket_getsockname">
+  <info>
+    <link type="guide" xref="mongoc_socket_t" group="function"/>
+  </info>
+  <title>mongoc_socket_getsockname()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_socket_getsockname (mongoc_socket_t *sock,
+                           struct sockaddr *addr,
+                           socklen_t       *addrlen);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>sock</p></td><td><p>A <code xref="mongoc_socket_t">mongoc_socket_t</code>.</p></td></tr>
+      <tr><td><p>addr</p></td><td><p>A struct sockaddr.</p></td></tr>
+      <tr><td><p>addrlen</p></td><td><p>A socklen_t.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Retrieves the socket name for <code>sock</code>. The result is stored in <code>addr</code>. <code>addrlen</code> should be the size of the <code>addr</code> when calling this.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>0 if successful, otherwise -1 and errno is set.</p>
+  </section>
+
+
+</page>

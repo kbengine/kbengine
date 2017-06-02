@@ -1,0 +1,53 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_INDEX_OPT_GEO_T" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_index_opt_geo_t \- #include <mongoc.h>
+
+typedef struct
+{
+   uint8_t twod_sphere_version;
+   uint8_t twod_bits_precision;
+   double  twod_location_min;
+   double  twod_location_max;
+   double  haystack_bucket_size;
+   uint8_t *padding[32];
+} mongoc_index_opt_geo_t;
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <mongoc.h>
+
+typedef struct
+{
+   uint8_t twod_sphere_version;
+   uint8_t twod_bits_precision;
+   double  twod_location_min;
+   double  twod_location_max;
+   double  haystack_bucket_size;
+   uint8_t *padding[32];
+} mongoc_index_opt_geo_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+This structure contains the options that may be used for tuning a GEO index.
+
+.SH "SEE ALSO"
+
+
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

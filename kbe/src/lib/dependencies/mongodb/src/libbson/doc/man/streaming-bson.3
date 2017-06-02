@@ -1,0 +1,55 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "STREAMING_BSON" "3" "2016\(hy03\(hy30" "libbson"
+.SH NAME
+Streaming_BSON \- None
+.SH "READING FROM A BSON STREAM"
+
+
+.B bson_reader_t
+provides a convenient API to read sequential BSON documents from a file\(hydescriptor or memory buffer. The
+.B bson_reader_read(3)
+function will read forward in the underlying stream and returna
+.B bson_t
+that can be inspected and iterated upon.
+
+
+See
+.B bson_reader_new_from_fd(3)
+,
+.B bson_reader_new_from_file(3)
+, and
+.B bson_reader_new_from_data(3)
+for more information.
+
+.SH "WRITING A SEQUENCE OF BSON DOCUMENTS"
+
+
+.B bson_writer_t
+provides a convenient API to write a sequence of BSON documents to a
+.B realloc(3)
+'able memory buffer. The
+.B bson_writer_begin(3)
+and
+.B bson_writer_end(3)
+functions will manage the underlying buffer while building the sequence of documents.
+
+This could also be useful if you want to write to a network packet while serializing the documents from a higher level language, (but do so just after the packets header).
+
+
+See
+.B bson_writer_new(3)
+for more information.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

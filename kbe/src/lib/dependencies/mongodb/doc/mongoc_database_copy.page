@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_database_copy">
+
+  <info>
+    <link type="guide" xref="mongoc_database_t" group="function"/>
+  </info>
+  <title>mongoc_database_copy()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_database_t *
+mongoc_database_copy (mongoc_database_t *database);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>database</p></td><td><p>A <code xref="mongoc_database_t">mongoc_database_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Performs a deep copy of the <code>database</code> struct and its configuration. Useful if you intend to call <code xref="mongoc_database_set_write_concern">mongoc_database_set_write_concern</code>, <code xref="mongoc_database_set_read_prefs">mongoc_database_set_read_prefs</code>, or <code xref="mongoc_database_set_read_concern">mongoc_database_set_read_concern</code>, and want to preserve an unaltered copy of the struct.</p>
+    <p>This function does <em>not</em> copy the contents of the database on the MongoDB server; use the <link href="https://docs.mongodb.org/manual/reference/command/copydb/"><code>copydb</code> command</link> for that purpose.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_database_t">mongoc_database_t</code> that should be freed with <code xref="mongoc_database_destroy">mongoc_database_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

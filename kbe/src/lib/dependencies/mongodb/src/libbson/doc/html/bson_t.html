@@ -1,0 +1,131 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>bson_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="Libbson">Libbson</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup">
+<h1 class="title"><span class="title">bson_t</span></h1>
+<h2 class="subtitle"><span class="subtitle">BSON Document Abstraction</span></h2>
+</div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;bson.h&gt;
+
+BSON_ALIGNED_BEGIN (128)
+typedef struct
+{
+   uint32_t flags;         /* Internal flags for the bson_t. */
+   uint32_t len;           /* Length of BSON data. */
+   uint8_t  padding[120];  /* Padding for stack allocation. */
+} bson_t
+BSON_ALIGNED_END (128);</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents"><p class="p">The <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> structure represents a BSON document. This structure manages the underlying BSON encoded buffer. For mutable documents, it can append new data to the document.</p></div></div>
+</div></div>
+<div id="perf" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Performance Notes</span></h2></div>
+<div class="region"><div class="contents"><p class="p">The <span class="code"><a href="bson_t.html" title="bson_t">bson_t</a></span> structure attepts to use an inline allocation within the structure to speed up performance of small documents. When this internal buffer has been exhausted, a heap allocated buffer will be dynamically allocated. Therefore, it is essential to call <span class="code"><a href="bson_destroy.html" title="bson_destroy()">bson_destroy()</a></span> on allocated documents.</p></div></div>
+</div></div>
+<div id="examples" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Example</span></h2></div>
+<div class="region"><div class="contents"><div class="listing"><div class="inner">
+<div class="title title-listing"><h3><span class="title"></span></h3></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">static void
+create_on_heap (void)
+{
+   bson_t *b = bson_new ();
+
+   BSON_APPEND_INT32 (b, "foo", 123);
+   BSON_APPEND_UTF8 (b, "bar", "foo");
+   BSON_APPEND_DOUBLE (b, "baz", 1.23f);
+
+   bson_destroy (b);
+}</pre></div></div></div></div></div></div></div>
+</div></div></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="bson_append_array.html" title="bson_append_array()"><span class="title">bson_append_array()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_array_begin.html" title="bson_append_array_begin()"><span class="title">bson_append_array_begin()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_array_end.html" title="bson_append_array_end()"><span class="title">bson_append_array_end()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_binary.html" title="bson_append_binary()"><span class="title">bson_append_binary()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_bool.html" title="bson_append_bool()"><span class="title">bson_append_bool()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_code.html" title="bson_append_code()"><span class="title">bson_append_code()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_code_with_scope.html" title="bson_append_code_with_scope()"><span class="title">bson_append_code_with_scope()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_date_time.html" title="bson_append_date_time()"><span class="title">bson_append_date_time()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_dbpointer.html" title="bson_append_dbpointer()"><span class="title">bson_append_dbpointer()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_document.html" title="bson_append_document()"><span class="title">bson_append_document()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_document_begin.html" title="bson_append_document_begin()"><span class="title">bson_append_document_begin()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_document_end.html" title="bson_append_document_end()"><span class="title">bson_append_document_end()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_double.html" title="bson_append_double()"><span class="title">bson_append_double()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_int32.html" title="bson_append_int32()"><span class="title">bson_append_int32()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_int64.html" title="bson_append_int64()"><span class="title">bson_append_int64()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_iter.html" title="bson_append_iter()"><span class="title">bson_append_iter()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_maxkey.html" title="bson_append_maxkey()"><span class="title">bson_append_maxkey()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_minkey.html" title="bson_append_minkey()"><span class="title">bson_append_minkey()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_now_utc.html" title="bson_append_now_utc()"><span class="title">bson_append_now_utc()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_null.html" title="bson_append_null()"><span class="title">bson_append_null()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_oid.html" title="bson_append_oid()"><span class="title">bson_append_oid()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_regex.html" title="bson_append_regex()"><span class="title">bson_append_regex()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_symbol.html" title="bson_append_symbol()"><span class="title">bson_append_symbol()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_time_t.html" title="bson_append_time_t()"><span class="title">bson_append_time_t()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_timestamp.html" title="bson_append_timestamp()"><span class="title">bson_append_timestamp()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_timeval.html" title="bson_append_timeval()"><span class="title">bson_append_timeval()</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="bson_append_undefined.html" title="bson_append_undefined()"><span class="title">bson_append_undefined()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_utf8.html" title="bson_append_utf8()"><span class="title">bson_append_utf8()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_append_value.html" title="bson_append_value()"><span class="title">bson_append_value()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_as_json.html" title="bson_as_json()"><span class="title">bson_as_json()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_compare.html" title="bson_compare()"><span class="title">bson_compare()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_concat.html" title="bson_concat()"><span class="title">bson_concat()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_copy.html" title="bson_copy()"><span class="title">bson_copy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_copy_to.html" title="bson_copy_to()"><span class="title">bson_copy_to()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_copy_to_excluding.html" title="bson_copy_to_excluding()"><span class="title">bson_copy_to_excluding()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_count_keys.html" title="bson_count_keys()"><span class="title">bson_count_keys()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_destroy.html" title="bson_destroy()"><span class="title">bson_destroy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_destroy_with_steal.html" title="bson_destroy_with_steal()"><span class="title">bson_destroy_with_steal()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_equal.html" title="bson_equal()"><span class="title">bson_equal()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_get_data.html" title="bson_get_data()"><span class="title">bson_get_data()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_has_field.html" title="bson_has_field()"><span class="title">bson_has_field()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_init.html" title="bson_init()"><span class="title">bson_init()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_init_from_json.html" title="bson_init_from_json()"><span class="title">bson_init_from_json()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_init_static.html" title="bson_init_static()"><span class="title">bson_init_static()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_new.html" title="bson_new()"><span class="title">bson_new()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_new_from_buffer.html" title="bson_new_from_buffer()"><span class="title">bson_new_from_buffer()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_new_from_data.html" title="bson_new_from_data()"><span class="title">bson_new_from_data()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_new_from_json.html" title="bson_new_from_json()"><span class="title">bson_new_from_json()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_reinit.html" title="bson_reinit()"><span class="title">bson_reinit()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_sized_new.html" title="bson_sized_new()"><span class="title">bson_sized_new()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="bson_validate.html" title="bson_validate()"><span class="title">bson_validate()</span></a></div>
+</div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

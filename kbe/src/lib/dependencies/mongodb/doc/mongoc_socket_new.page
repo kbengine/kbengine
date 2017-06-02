@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_socket_new">
+  <info>
+    <link type="guide" xref="mongoc_socket_t" group="function"/>
+  </info>
+  <title>mongoc_socket_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_socket_t *
+mongoc_socket_new (int domain,
+                   int type,
+                   int protocol);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>domain</p></td><td><p>An int containing the address family such as AF_INET.</p></td></tr>
+      <tr><td><p>type</p></td><td><p>An int containing the socket type such as SOCK_STREAM.</p></td></tr>
+      <tr><td><p>protocol</p></td><td><p>A protocol subset, typically 0.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Creates a new <code>mongoc_socket_t</code> structure. This calls <code>socket()</code> underneath to create a network socket.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A new socket if successful, otherwise <code>NULL</code> and errno is set. The result should be freed with <code xref="mongoc_socket_destroy">mongoc_socket_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

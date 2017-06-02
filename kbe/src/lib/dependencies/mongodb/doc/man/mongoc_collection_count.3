@@ -1,0 +1,135 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_COLLECTION_COUNT" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+mongoc_collection_count() \- This function shall execute a count query on the underlying 'collection'. The bson 'query' is not validated, simply passed along as appropriate to the server.  As such, compatibility and errors should be validated in the appropriate server documentation.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+int64_t
+mongoc_collection_count (mongoc_collection_t       *collection,
+                         mongoc_query_flags_t       flags,
+                         const bson_t              *query,
+                         int64_t                    skip,
+                         int64_t                    limit,
+                         const mongoc_read_prefs_t *read_prefs,
+                         bson_error_t              *error);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+collection
+A
+.B mongoc_collection_t
+\e&.
+.LP
+.TP
+.B
+flags
+A
+.B mongoc_query_flags_t
+\e&.
+.LP
+.TP
+.B
+query
+A
+.B bson_t
+containing the query.
+.LP
+.TP
+.B
+skip
+A int64_t, zero to ignore.
+.LP
+.TP
+.B
+limit
+A int64_t, zero to ignore.
+.LP
+.TP
+.B
+read_prefs
+A
+.B mongoc_read_prefs_t
+or
+.B NULL
+\e&.
+.LP
+.TP
+.B
+error
+An optional location for a
+.B bson_error_t
+or
+.B NULL
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function shall execute a count query on the underlying 'collection'. The bson 'query' is not validated, simply passed along as appropriate to the server.  As such, compatibility and errors should be validated in the appropriate server documentation.
+
+For more information, see the
+.B query reference
+at the MongoDB website.
+
+.B NOTE
+.RS
+The
+.B mongoc_read_concern_t
+specified on the
+.B mongoc_collection_t
+will be used, if any.
+.RE
+
+.SH "ERRORS"
+
+Errors are propagated via the
+.B error
+parameter.
+
+.SH "RETURNS"
+
+\(hy1 on failure, otherwise the number of documents counted.
+
+.SH "EXAMPLE"
+
+.nf
+#include <mongoc.h>
+#include <bcon.h>
+#include <stdio.h>
+
+static void
+print_query_count (mongoc_collection_t *collection,
+                   bson_t              *query)
+{
+   bson_error_t error;
+   int64_t count;
+
+   count = mongoc_collection_count (collection, MONGOC_QUERY_NONE, query, 0, 0, NULL, &error);
+
+   if (count < 0) {
+      fprintf (stderr, "Count failed: %s\en", error.message);
+   } else {
+      printf ("%"PRId64" documents counted.\en", count);
+   }
+}
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

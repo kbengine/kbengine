@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_rand_status">
+
+
+  <info>
+    <link type="guide" xref="mongoc_rand" group="function"/>
+  </info>
+  <title>mongoc_rand_status()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_rand_status(void);
+]]></code></synopsis>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>The status of the mongoc random number generator.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns 1 if the PRNG has been seeded with enough data, 0 otherwise.</p>
+  </section>
+
+</page>

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_index_opt_geo_t"
+      type="guide"
+      style="index"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_index_opt_geo_t</title>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[#include <mongoc.h>
+
+typedef struct
+{
+   uint8_t twod_sphere_version;
+   uint8_t twod_bits_precision;
+   double  twod_location_min;
+   double  twod_location_max;
+   double  haystack_bucket_size;
+   uint8_t *padding[32];
+} mongoc_index_opt_geo_t;]]></code></synopsis>
+  </section>
+
+  <section id="desc">
+    <title>Description</title>
+    <p>This structure contains the options that may be used for tuning a GEO index.</p>
+
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><link type="seealso" xref="mongoc_index_opt_t"><code>mongoc_index_opt_t</code></link></p>
+    <p><link type="seealso" xref="mongoc_index_opt_wt_t"><code>mongoc_index_opt_wt_t</code></link></p>
+  </section>
+</page>

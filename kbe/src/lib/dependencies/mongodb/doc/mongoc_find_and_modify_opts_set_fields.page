@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_find_and_modify_opts_set_fields">
+  <info><link type="guide" xref="mongoc_find_and_modify_opts_t" group="function"/></info>
+  <title>mongoc_find_and_modify_opts_set_fields()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[bool
+mongoc_find_and_modify_opts_set_fields (mongoc_find_and_modify_opts_t  *opts,
+                                        const bson_t                   *fields);
+]]></code></synopsis>
+    <note style="tip"><p>New in mongoc 1.3.0</p></note>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>opts</p></td><td><p>A <code xref="mongoc_find_and_modify_opts_t">mongoc_find_and_modify_opts_t</code>.</p></td></tr>
+      <tr><td><p>fields</p></td><td><p>A subset of fields to return. Choose which fields to include by appending <code>{fieldname: 1}</code> for each fieldname, or excluding it with <code>{fieldname: 0}</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Adds fields argument to the builder.</p>
+  </section>
+
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Returns true if it successfully added the option to the builder.</p>
+  </section>
+
+  <section id="example">
+    <title>Setting fields</title>
+    <screen><code mime="text/x-csrc"><include parse="text" href="../examples/find_and_modify_with_opts/fields.c" xmlns="http://www.w3.org/2001/XInclude" /></code></screen>
+    <p>Outputs:</p>
+    <screen><code mime="text/x-csrc"><![CDATA[{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "goals": 343
+    },
+    "ok": 1
+}]]></code></screen>
+  </section>
+
+
+</page>

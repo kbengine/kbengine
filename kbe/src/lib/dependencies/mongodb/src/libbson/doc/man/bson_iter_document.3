@@ -1,0 +1,67 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ITER_DOCUMENT" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_iter_document() \- The bson_iter_document() function shall retrieve the raw buffer of a sub-document from iter. iter MUST be on an element that is of type BSON_TYPE_DOCUMENT. This can be verified with bson_iter_type() or the BSON_ITER_HOLDS_DOCUMENT() macro.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#define BSON_ITER_HOLDS_DOCUMENT(iter) \e
+   (bson_iter_type ((iter)) == BSON_TYPE_DOCUMENT)
+
+void
+bson_iter_document (const bson_iter_t *iter,
+                    uint32_t          *document_len,
+                    const uint8_t    **document);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+iter
+A
+.B bson_iter_t
+\e&.
+.LP
+.TP
+.B
+document_len
+A location for the length of the document in bytes.
+.LP
+.TP
+.B
+document
+A location for the document buffer.
+.LP
+
+.SH "DESCRIPTION"
+
+The
+.B bson_iter_document(3)
+function shall retrieve the raw buffer of a sub\(hydocument from
+.B iter
+\e&.
+.B iter
+
+.B MUST
+be on an element that is of type BSON_TYPE_DOCUMENT. This can be verified with
+.B bson_iter_type(3)
+or the
+.B BSON_ITER_HOLDS_DOCUMENT(3)
+macro.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

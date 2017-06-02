@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_stream_setsockopt">
+
+
+  <info>
+    <link type="guide" xref="mongoc_stream_t" group="function"/>
+  </info>
+  <title>mongoc_stream_setsockopt()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[int
+mongoc_stream_setsockopt (mongoc_stream_t *stream,
+                          int              level,
+                          int              optname,
+                          void            *optval,
+                          socklen_t        optlen);
+]]></code></synopsis>
+  </section>
+
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>stream</p></td><td><p>A <code xref="mongoc_stream_t">mongoc_stream_t</code>.</p></td></tr>
+      <tr><td><p>level</p></td><td><p>The level to pass to <code>setsockopt()</code>.</p></td></tr>
+      <tr><td><p>optname</p></td><td><p>The optname to pass to <code>setsockopt()</code>.</p></td></tr>
+      <tr><td><p>optval</p></td><td><p>The optval to pass to <code>setsockopt()</code>.</p></td></tr>
+      <tr><td><p>optlen</p></td><td><p>The optlen to pass to <code>setsockopt()</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <p>This function is a wrapper around <code>setsockopt()</code> for streams that wrap sockets.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p><code>0</code> on success, otherwise <code>-1</code> and <code>errno</code> is set.</p>
+  </section>
+
+</page>

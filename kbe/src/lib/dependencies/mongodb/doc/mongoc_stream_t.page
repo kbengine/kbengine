@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<page id="mongoc_stream_t"
+      type="guide"
+      style="class"
+      xmlns="http://projectmallard.org/1.0/"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/">
+  <info>
+    <link type="guide" xref="index#api-reference" />
+  </info>
+
+  <title>mongoc_stream_t</title>
+
+  <section id="description">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[typedef struct _mongoc_stream_t mongoc_stream_t]]></code></synopsis>
+    <p><code>mongoc_stream_t</code> provides a generic streaming IO abstraction based on a struct of pointers interface. The idea is to allow wrappers, perhaps other language drivers, to easily shim their IO system on top of <code>mongoc_stream_t</code>.</p>
+    <p>The API for the stream abstraction is currently private and non-extensible.</p>
+  </section>
+
+  <section id="types">
+    <title>Stream Types</title>
+    <p>There are a number of built in stream types that come with mongoc. The default configuration is a buffered unix stream.  If SSL is in use, that in turn is wrapped in a tls stream.</p>
+  </section>
+
+  <links type="topic" groups="function" style="2column">
+    <title>Functions</title>
+  </links>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><link type="seealso" xref="mongoc_stream_buffered_t"><code>mongoc_stream_buffered_t</code></link></p>
+    <p><link type="seealso" xref="mongoc_stream_file_t"><code>mongoc_stream_file_t</code></link></p>
+    <p><link type="seealso" xref="mongoc_stream_socket_t"><code>mongoc_stream_socket_t</code></link></p>
+    <p><link type="seealso" xref="mongoc_stream_tls_t"><code>mongoc_stream_tls_t</code></link></p>
+    <p><link type="seealso" xref="mongoc_stream_gridfs_t"><code>mongoc_stream_gridfs_t</code></link></p>
+  </section>
+</page>

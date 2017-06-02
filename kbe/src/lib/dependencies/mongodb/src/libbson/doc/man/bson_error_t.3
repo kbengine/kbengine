@@ -1,0 +1,67 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ERROR_T" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_error_t \- BSON Error Encapsulation
+.SH "SYNOPSIS"
+
+.nf
+.nf
+#include <bson.h>
+
+typedef struct
+{
+   uint32_t domain;
+   uint32_t code;
+   char     message[504];
+} bson_error_t;
+.fi
+.fi
+
+.SH "DESCRIPTION"
+
+The
+.B bson_error_t
+structure is used to encapsulate information about an error. Think of it as the information stored in an exception without stack trace information. It includes information about the module and error code of the error along with a human printable message.
+
+The
+.B error.domain
+field contains the logical domain within a library that created the error. This might be the JSON subsystem or
+.B bson_reader_t
+for example.
+
+The
+.B error.code
+field contains the domain specific error code.
+
+The
+.B error.message
+field contains a human printable error message.
+
+.SH "EXAMPLE"
+
+.nf
+.nf
+bson_reader_t *reader;
+bson_error_t error;
+
+reader = bson_reader_new_from_file ("dump.bson", &error);
+if (!reader) {
+   fprintf (stderr, "ERROR: %d.%d: %s\en",
+            error.domain, error.code, error.message);
+}
+.fi
+.fi
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

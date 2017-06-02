@@ -1,0 +1,70 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_socket_setsockopt()</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » <a class="trail" href="mongoc_socket_t.html" title="mongoc_socket_t">mongoc_socket_t</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_socket_setsockopt()</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="synopsis" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents"><div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">int
+mongoc_socket_setsockopt (mongoc_socket_t *sock,
+                          int              level,
+                          int              optname,
+                          const void      *optval,
+                          socklen_t        optlen);</pre></div></div></div></div></div></div></div>
+</div></div>
+<div id="parameters" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Parameters</span></h2></div>
+<div class="region"><div class="contents"><div class="table"><div class="inner"><div class="region"><table class="table">
+<tr>
+<td><p class="p">sock</p></td>
+<td><p class="p">A <span class="code"><a href="mongoc_socket_t.html" title="mongoc_socket_t">mongoc_socket_t</a></span>.</p></td>
+</tr>
+<tr>
+<td><p class="p">level</p></td>
+<td><p class="p">A sockopt level.</p></td>
+</tr>
+<tr>
+<td><p class="p">optname</p></td>
+<td><p class="p">A sockopt name.</p></td>
+</tr>
+<tr>
+<td><p class="p">optval</p></td>
+<td><p class="p">A the value for the sockopt.</p></td>
+</tr>
+<tr>
+<td><p class="p">optlen</p></td>
+<td><p class="p">A socklen_t that contains the length of optval.</p></td>
+</tr>
+</table></div></div></div></div></div>
+</div></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Description</span></h2></div>
+<div class="region"><div class="contents"><p class="p">This is a helper function for <span class="code">setsockopt()</span>.</p></div></div>
+</div></div>
+<div id="return" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Returns</span></h2></div>
+<div class="region"><div class="contents"><p class="p">0 on success, -1 on failure and errno is set.</p></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="mongoc_socket_t.html" title="mongoc_socket_t">mongoc_socket_t</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

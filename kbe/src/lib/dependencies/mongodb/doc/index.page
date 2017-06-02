@@ -1,0 +1,50 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide"
+      id="index">
+  <title>MongoDB C Driver</title>
+  <subtitle>A Cross Platform MongoDB Client Library for C</subtitle>
+
+  <section id="installation">
+    <title>Installation</title>
+  </section>
+
+  <section id="tutorial">
+    <title>Tutorial</title>
+  </section>
+
+  <section id="basic-operations" style="2column">
+    <title>Basic Operations</title>
+  </section>
+
+  <section id="advanced-connections" style="2column">
+    <title>Advanced Connections</title>
+  </section>
+
+  <section id="authentication" style="2column">
+    <title>Authentication</title>
+  </section>
+
+  <section id="cursors" style="2column">
+    <title>Cursors</title>
+  </section>
+
+  <section id="bulk" style="2column">
+    <title>Bulk Operations</title>
+  </section>
+
+  <section id="aggregation" style="2column">
+    <title>Aggregation Framework</title>
+  </section>
+
+  <section id="matching" style="2column">
+    <title>Client Side Document Matching</title>
+  </section>
+
+  <section id="debugging" style="2column">
+    <title>Troubleshooting</title>
+  </section>
+
+  <section id="api-reference" style="2column">
+    <title>API Reference</title>
+  </section>
+</page>

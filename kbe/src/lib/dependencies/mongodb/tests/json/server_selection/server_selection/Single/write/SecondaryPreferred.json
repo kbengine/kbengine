@@ -1,0 +1,74 @@
+{
+    "candidate_servers": [
+        {
+            "address": "a:27017", 
+            "avg_rtt_ms": 5, 
+            "tags": [
+                {
+                    "data_center": "dc"
+                }
+            ], 
+            "type": "Standalone"
+        }
+    ], 
+    "eligible_servers": [
+        {
+            "address": "a:27017", 
+            "avg_rtt_ms": 5, 
+            "tags": [
+                {
+                    "data_center": "dc"
+                }
+            ], 
+            "type": "Standalone"
+        }
+    ], 
+    "in_latency_window": [
+        {
+            "address": "a:27017", 
+            "avg_rtt_ms": 5, 
+            "tags": [
+                {
+                    "data_center": "dc"
+                }
+            ], 
+            "type": "Standalone"
+        }
+    ], 
+    "operation": "write", 
+    "read_preference": {
+        "mode": "SecondaryPreferred", 
+        "tags": [
+            {
+                "data_center": "nyc"
+            }
+        ]
+    }, 
+    "suitable_servers": [
+        {
+            "address": "a:27017", 
+            "avg_rtt_ms": 5, 
+            "tags": [
+                {
+                    "data_center": "dc"
+                }
+            ], 
+            "type": "Standalone"
+        }
+    ], 
+    "topology_description": {
+        "servers": [
+            {
+                "address": "a:27017", 
+                "avg_rtt_ms": 5, 
+                "tags": [
+                    {
+                        "data_center": "dc"
+                    }
+                ], 
+                "type": "Standalone"
+            }
+        ], 
+        "type": "Single"
+    }
+}

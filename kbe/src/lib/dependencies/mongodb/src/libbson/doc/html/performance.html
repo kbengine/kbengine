@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Performance Notes</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">Performance Notes</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="keys" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Array Element Key Building</span></h2></div>
+<div class="region">
+<div class="contents">
+<p class="p">When writing marshaling layers between higher level languages and Libbson, you will eventually need to build keys for array elements. Each element in a BSON array has a monotonic string key like <span class="code">"0"</span>, <span class="code">"1"</span>, etc. Using <span class="code">snprintf()</span> and others tend to be rather slow on most <span class="code">libc</span> implementations. Therefore, Libbson provides <span class="code"><a href="bson_uint32_to_string.html" title="bson_uint32_to_string()">bson_uint32_to_string()</a></span> to improve this. Using this function allows an internal fast path to be used for numbers less than 1000 which is the vast majority of arrays. If the key is larger than that, a fallback of <span class="code">snprintf()</span> will be used.</p>
+<div class="example">
+<div class="title title-example"><h3><span class="title">Example</span></h3></div>
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">char str[16];
+const char *key;
+uint32_t i;
+
+for (i = 0; i &lt; 10; i++) {
+   bson_uint32_to_string (i, &amp;key, str, sizeof str);
+   printf ("Key: %s\n", key);
+}</pre></div></div></div></div></div>
+</div>
+<p class="p">For more information, see <span class="code"><a href="bson_uint32_to_string.html" title="bson_uint32_to_string()">bson_uint32_to_string()</a></span>.</p>
+</div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents"><div class="links guidelinks"><div class="inner">
+<div class="title"><h3><span class="title">More Information</span></h3></div>
+<div class="region"><ul><li class="links "><a href="index.html#performance" title="Performance Notes">Performance Notes</a></li></ul></div>
+</div></div></div>
+</div>
+</div>
+</div></div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

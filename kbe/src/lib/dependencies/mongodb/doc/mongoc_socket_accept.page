@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_socket_accept">
+
+
+  <info>
+    <link type="guide" xref="mongoc_socket_t" group="function"/>
+  </info>
+  <title>mongoc_socket_accept()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_socket_t *
+mongoc_socket_accept (mongoc_socket_t *sock,
+                      int64_t          expire_at);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>sock</p></td><td><p>A <code xref="mongoc_socket_t">mongoc_socket_t</code>.</p></td></tr>
+      <tr><td><p>expire_at</p></td><td><p>An int64_t containing a timeout in milliseconds.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>This function is a wrapper around the BSD socket <code>accept()</code> interface. It allows for more portability between UNIX-like and Microsoft Windows platforms.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>NULL upon failure to accept or timeout. A newly allocated <code>mongoc_socket_t</code> that should be released with <code xref="mongoc_socket_destroy">mongoc_socket_destroy()</code> on success.</p>
+  </section>
+
+
+</page>

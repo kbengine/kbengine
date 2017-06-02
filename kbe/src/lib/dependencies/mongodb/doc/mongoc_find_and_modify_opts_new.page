@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_find_and_modify_opts_new">
+  <info><link type="guide" xref="mongoc_find_and_modify_opts_t" group="function"/></info>
+  <title>mongoc_find_and_modify_opts_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_find_and_modify_opts_t *
+mongoc_find_and_modify_opts_new (void);
+]]></code></synopsis>
+    <note style="tip"><p>New in mongoc 1.3.0</p></note>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>Creates a newly allocated find and modify builder structure that is used to create a findAndModify command. This should be freed with <code xref="mongoc_find_and_modify_opts_destroy">mongoc_find_and_modify_opts_destroy()</code> when no longer in use.</p>
+  </section>
+
+</page>

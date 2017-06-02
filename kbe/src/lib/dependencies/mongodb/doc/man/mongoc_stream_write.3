@@ -1,0 +1,84 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_STREAM_WRITE" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_stream_write() \- The mongoc_stream_write() function shall perform a write to a mongoc_stream_t. It's modeled on the API and semantics of write(), though the parameters map only loosely.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+ssize_t
+mongoc_stream_write (mongoc_stream_t *stream,
+                    void            *buf,
+                    size_t           count,
+                    int32_t          timeout_msec);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+stream
+A
+.B mongoc_stream_t
+\e&.
+.LP
+.TP
+.B
+buf
+The buffer to write.
+.LP
+.TP
+.B
+count
+The number of bytes to write.
+.LP
+.TP
+.B
+timeout_msec
+The number of milliseconds to wait before failure, a timeout of 0 will not block. If negative, use the default timeout.
+.LP
+
+The
+.B mongoc_stream_write(3)
+function shall perform a write to a
+.B mongoc_stream_t
+\e&. It's modeled on the API and semantics of
+.B write(3)
+, though the parameters map only loosely.
+
+.SH "RETURNS"
+
+The
+.B mongoc_stream_write
+function returns the number of bytes write on success. It returns
+.B >= 0
+and
+.B < min_bytes
+when end\(hyof\(hyfile is encountered and
+.B \(hy1
+on failure.
+.B errno
+is set upon failure.
+
+.SH "SEE ALSO"
+
+.B mongoc_stream_read(3)
+
+.B mongoc_stream_readv(3)
+
+.B mongoc_stream_writev(3)
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

@@ -1,0 +1,46 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "MONGOC_GRIDFS_FILE_TELL" "3" "2016\(hy03\(hy16" "MongoDB C Driver"
+.SH NAME
+mongoc_gridfs_file_tell() \- This function returns the current position indicator within file.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+uint64_t
+mongoc_gridfs_file_tell (mongoc_gridfs_file_t *file);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+file
+A
+.B mongoc_gridfs_file_t
+\e&.
+.LP
+
+.SH "DESCRIPTION"
+
+This function returns the current position indicator within
+.B file
+\e&.
+
+.SH "RETURNS"
+
+Returns a file position as an unsigned 64\(hybit integer.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

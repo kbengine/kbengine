@@ -1,0 +1,287 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "AGGREGATION_FRAMEWORK_EXAMPLES" "3" "2016\(hy03\(hy30" "MongoDB C Driver"
+.SH NAME
+Aggregation_Framework_Examples \- None
+.SH "REQUIREMENTS"
+
+.B MongoDB
+, version 2.2.0 or later.
+.B MongoDB C driver
+, version 0.96.0 or later.
+
+Let's check if everything is installed.
+
+Use the following command to load zips.json data set into mongod instance:
+
+.B $ 
+
+Let's use the MongoDB shell to verify that everything was imported successfully.
+
+.B $ 
+.nf
+MongoDB shell version: 2.6.1
+connecting to: test
+.fi
+.B > 
+.B 29467
+.B > 
+.nf
+{
+	"_id" : "35004",
+	"city" : "ACMAR",
+	"loc" : [
+		\(hy86.51557,
+		33.584132
+	],
+	"pop" : 6055,
+	"state" : "AL"
+}
+.fi
+
+.SH "AGGREGATIONS USING THE ZIP CODES DATA SET"
+
+Each document in this collection has the following form:
+
+.nf
+.nf
+{
+  "_id" : "35004",
+  "city" : "Acmar",
+  "state" : "AL",
+  "pop" : 6055,
+  "loc" : [\(hy86.51557, 33.584132]
+}
+.fi
+.fi
+
+In these documents:
+
+.IP \e[bu] 2
+The
+.B _id
+field holds the zipcode as a string.
+.IP \e[bu] 2
+The
+.B city
+field holds the city name.
+.IP \e[bu] 2
+The
+.B state
+field holds the two letter state abbreviation.
+.IP \e[bu] 2
+The
+.B pop
+field holds the population.
+.IP \e[bu] 2
+The
+.B loc
+field holds the location as a
+.B [latitude, longitude]
+array.
+
+.SH "STATES WITH POPULATIONS OVER 10 MILLION"
+
+To get all states with a population greater than 10 million, use the following aggregation pipeline:
+
+.nf
+.nf
+
+#include <mongoc.h>
+#include <stdio.h>
+
+static void
+print_pipeline (mongoc_collection_t *collection)
+{
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   bson_t *pipeline;
+   char *str;
+
+   pipeline = BCON_NEW ("pipeline", "[",
+      "{", "$group", "{", "_id", "$state", "total_pop", "{", "$sum", "$pop", "}", "}", "}",
+      "{", "$match", "{", "total_pop", "{", "$gte", BCON_INT32 (10000000), "}", "}", "}",
+   "]");
+
+   cursor = mongoc_collection_aggregate (collection, MONGOC_QUERY_NONE, pipeline, NULL, NULL);
+
+   while (mongoc_cursor_next (cursor, &doc)) {
+      str = bson_as_json (doc, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &error)) {
+      fprintf (stderr, "Cursor Failure: %s\en", error.message);
+   }
+
+   mongoc_cursor_destroy (cursor);
+   bson_destroy (pipeline);
+}
+
+int
+main (int argc,
+      char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+
+   mongoc_init ();
+
+   client = mongoc_client_new ("mongodb://localhost:27017");
+   collection = mongoc_client_get_collection (client, "test", "zipcodes");
+
+   print_pipeline (collection);
+
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return 0;
+}
+.fi
+.fi
+
+You should see a result like the following:
+
+.nf
+.nf
+{ "_id" : "PA", "total_pop" : 11881643 }
+{ "_id" : "OH", "total_pop" : 10847115 }
+{ "_id" : "NY", "total_pop" : 17990455 }
+{ "_id" : "FL", "total_pop" : 12937284 }
+{ "_id" : "TX", "total_pop" : 16986510 }
+{ "_id" : "IL", "total_pop" : 11430472 }
+{ "_id" : "CA", "total_pop" : 29760021 }
+.fi
+.fi
+
+The above aggregation pipeline is build from two pipeline operators:
+.B $group
+and
+.B $match
+\e&.
+
+The
+.B $group
+pipeline operator requires _id field where we specify grouping; remaining fields specify how to generate composite value and must use one of the group aggregation functions:
+.B $addToSet
+,
+.B $first
+,
+.B $last
+,
+.B $max
+,
+.B $min
+,
+.B $avg
+,
+.B $push
+,
+.B $sum
+\e&. The
+.B $match
+pipeline operator syntax is the same as the read operation query syntax.
+
+The
+.B $group
+process reads all documents and for each state it creates a separate document, for example:
+
+.nf
+.nf
+{ "_id" : "WA", "total_pop" : 4866692 }
+.fi
+.fi
+
+The
+.B total_pop
+field uses the $sum aggregation function to sum the values of all pop fields in the source documents.
+
+Documents created by
+.B $group
+are piped to the
+.B $match
+pipeline operator. It returns the documents with the value of
+.B total_pop
+field greater than or equal to 10 million.
+
+.SH "AVERAGE CITY POPULATION BY STATE"
+
+To get the first three states with the greatest average population per city, use the following aggregation:
+
+.nf
+.nf
+pipeline = BCON_NEW ("pipeline", "[",
+   "{", "$group", "{", "_id", "{", "state", "$state", "city", "$city", "}", "pop", "{", "$sum", "$pop", "}", "}", "}",
+   "{", "$group", "{", "_id", "$_id.state", "avg_city_pop", "{", "$avg", "$pop", "}", "}", "}",
+   "{", "$sort", "{", "avg_city_pop", BCON_INT32 (\(hy1), "}", "}",
+   "{", "$limit", BCON_INT32 (3) "}",
+"]");
+.fi
+.fi
+
+This aggregate pipeline produces:
+
+.nf
+.nf
+{ "_id" : "DC", "avg_city_pop" : 303450.0 }
+{ "_id" : "FL", "avg_city_pop" : 27942.29805615551 }
+{ "_id" : "CA", "avg_city_pop" : 27735.341099720412 }
+.fi
+.fi
+
+The above aggregation pipeline is build from three pipeline operators:
+.B $group
+,
+.B $sort
+and
+.B $limit
+\e&.
+
+The first
+.B $group
+operator creates the following documents:
+
+.nf
+.nf
+{ "_id" : { "state" : "WY", "city" : "Smoot" }, "pop" : 414 }
+.fi
+.fi
+
+Note, that the
+.B $group
+operator can't use nested documents except the
+.B _id
+field.
+
+The second
+.B $group
+uses these documents to create the following documents:
+
+.nf
+.nf
+{ "_id" : "FL", "avg_city_pop" : 27942.29805615551 }
+.fi
+.fi
+
+These documents are sorted by the
+.B avg_city_pop
+field in descending order. Finally, the
+.B $limit
+pipeline operator returns the first 3 documents from the sorted set.
+
+
+.B
+.SH COLOPHON
+This page is part of MongoDB C Driver.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

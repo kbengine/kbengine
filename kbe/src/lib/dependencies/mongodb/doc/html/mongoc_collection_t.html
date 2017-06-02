@@ -1,0 +1,90 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>mongoc_collection_t</title>
+<link rel="stylesheet" type="text/css" href="C.css">
+<script type="text/javascript" src="jquery.js"></script><script type="text/javascript" src="jquery.syntax.js"></script><script type="text/javascript" src="yelp.js"></script>
+</head>
+<body><div class="page" role="main">
+<div class="header"><div class="trails" role="navigation"><div class="trail">
+<a class="trail" href="index.html" title="MongoDB C Driver">MongoDB C Driver</a> › <a class="trail" href="index.html#api-reference" title="API Reference">API Reference</a> » </div></div></div>
+<div class="body">
+<div class="hgroup"><h1 class="title"><span class="title">mongoc_collection_t</span></h1></div>
+<div class="region">
+<div class="contents"></div>
+<div id="description" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Synopsis</span></h2></div>
+<div class="region"><div class="contents">
+<div class="synopsis"><div class="inner"><div class="region"><div class="contents"><div class="code"><pre class="contents syntax brush-clang">#include &lt;mongoc.h&gt;
+
+typedef struct _mongoc_collection_t mongoc_collection_t;</pre></div></div></div></div></div>
+<p class="p"><span class="code">mongoc_collection_t</span> provides access to a MongoDB collection.  This handle is useful for actions for most CRUD operations, I.e. insert, update, delete, find, etc.</p>
+</div></div>
+</div></div>
+<div id="" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Read Preferences and Write Concerns</span></h2></div>
+<div class="region"><div class="contents"><p class="p">Read preferences and write concerns are inherited from the parent client. They can be overridden by set_* commands if so desired.</p></div></div>
+</div></div>
+<div id="" class="sect"><div class="inner">
+<div class="hgroup"><h2 class="title"><span class="title">Lifecycle</span></h2></div>
+<div class="region"><div class="contents"><p class="p">It is an error to call <span class="code"><a href="mongoc_collection_destroy.html" title="mongoc_collection_destroy()">mongoc_collection_destroy()</a></span> on a collection that has operations pending. It is required that you release <span class="code"><a href="mongoc_cursor_t.html" title="mongoc_cursor_t">mongoc_cursor_t</a></span> structures before calling <span class="code"><a href="mongoc_collection_destroy.html" title="mongoc_collection_destroy()">mongoc_collection_destroy()</a></span>.</p></div></div>
+</div></div>
+<div class="sect sect-links" role="navigation">
+<div class="hgroup"></div>
+<div class="contents">
+<div class="links topiclinks"><div class="inner">
+<div class="title title-links"><h2><span class="title">Functions</span></h2></div>
+<div class="region">
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_aggregate.html" title="mongoc_collection_aggregate()"><span class="title">mongoc_collection_aggregate()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_command.html" title="mongoc_collection_command()"><span class="title">mongoc_collection_command()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_command_simple.html" title="mongoc_collection_command_simple()"><span class="title">mongoc_collection_command_simple()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_copy.html" title="mongoc_collection_copy()"><span class="title">mongoc_collection_copy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_count.html" title="mongoc_collection_count()"><span class="title">mongoc_collection_count()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_count_with_opts.html" title="mongoc_collection_count_with_opts()"><span class="title">mongoc_collection_count_with_opts()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_create_bulk_operation.html" title="mongoc_collection_create_bulk_operation()"><span class="title">mongoc_collection_create_bulk_operation()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_create_index.html" title="mongoc_collection_create_index()"><span class="title">mongoc_collection_create_index()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_delete.html" title="mongoc_collection_delete()"><span class="title">mongoc_collection_delete()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_destroy.html" title="mongoc_collection_destroy()"><span class="title">mongoc_collection_destroy()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_drop.html" title="mongoc_collection_drop()"><span class="title">mongoc_collection_drop()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_drop_index.html" title="mongoc_collection_drop_index()"><span class="title">mongoc_collection_drop_index()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_ensure_index.html" title="mongoc_collection_ensure_index()"><span class="title">mongoc_collection_ensure_index()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_find.html" title="mongoc_collection_find()"><span class="title">mongoc_collection_find()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_find_and_modify.html" title="mongoc_collection_find_and_modify()"><span class="title">mongoc_collection_find_and_modify()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_find_and_modify_with_opts.html" title="mongoc_collection_find_and_modify_with_opts()"><span class="title">mongoc_collection_find_and_modify_with_opts()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_find_indexes.html" title="mongoc_collection_find_indexes()"><span class="title">mongoc_collection_find_indexes()</span></a></div>
+</div>
+<div class="links-twocolumn">
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_get_last_error.html" title="mongoc_collection_get_last_error()"><span class="title">mongoc_collection_get_last_error()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_get_name.html" title="mongoc_collection_get_name()"><span class="title">mongoc_collection_get_name()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_get_read_concern.html" title="mongoc_collection_get_read_concern()"><span class="title">mongoc_collection_get_read_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_get_read_prefs.html" title="mongoc_collection_get_read_prefs()"><span class="title">mongoc_collection_get_read_prefs()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_get_write_concern.html" title="mongoc_collection_get_write_concern()"><span class="title">mongoc_collection_get_write_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_insert.html" title="mongoc_collection_insert()"><span class="title">mongoc_collection_insert()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_insert_bulk.html" title="mongoc_collection_insert_bulk()"><span class="title">mongoc_collection_insert_bulk()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_keys_to_index_string.html" title="mongoc_collection_keys_to_index_string()"><span class="title">mongoc_collection_keys_to_index_string()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_remove.html" title="mongoc_collection_remove()"><span class="title">mongoc_collection_remove()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_rename.html" title="mongoc_collection_rename()"><span class="title">mongoc_collection_rename()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_save.html" title="mongoc_collection_save()"><span class="title">mongoc_collection_save()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_set_read_concern.html" title="mongoc_collection_set_read_concern()"><span class="title">mongoc_collection_set_read_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_set_read_prefs.html" title="mongoc_collection_set_read_prefs()"><span class="title">mongoc_collection_set_read_prefs()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_set_write_concern.html" title="mongoc_collection_set_write_concern()"><span class="title">mongoc_collection_set_write_concern()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_stats.html" title="mongoc_collection_stats()"><span class="title">mongoc_collection_stats()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_update.html" title="mongoc_collection_update()"><span class="title">mongoc_collection_update()</span></a></div>
+<div class="linkdiv "><a class="linkdiv" href="mongoc_collection_validate.html" title="mongoc_collection_validate()"><span class="title">mongoc_collection_validate()</span></a></div>
+</div>
+</div>
+</div></div>
+<div class="links guidelinks"><div class="inner">
+<div class="title"><h2><span class="title">More Information</span></h2></div>
+<div class="region"><ul><li class="links "><a href="index.html#api-reference" title="API Reference">API Reference</a></li></ul></div>
+</div></div>
+</div>
+</div>
+</div>
+<div class="clear"></div>
+</div>
+<div class="footer"></div>
+</div></body>
+</html>

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_cursor_set_max_await_time_ms">
+  <info>
+    <link type="guide" xref="mongoc_cursor_t" group="function"/>
+  </info>
+  <title>mongoc_cursor_set_max_await_time_ms()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_cursor_set_max_await_time_ms (mongoc_cursor_t *cursor,
+                                     uint32_t         max_await_time_ms);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>cursor</p></td><td><p>A <code xref="mongoc_cursor_t">mongoc_cursor_t</code>.</p></td></tr>
+      <tr><td><p>max_await_time_ms</p></td><td><p>A timeout in milliseconds.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>The maximum amount of time for the server to wait on new documents to satisfy a tailable cursor query. Only applies if the cursor is created from <code xref="mongoc_collection_find">mongoc_collection_find</code> with the <link xref="mongoc_query_flags_t">query flags</link> MONGOC_QUERY_TAILABLE_CURSOR and MONGOC_QUERY_AWAIT_DATA, and the server is MongoDB 3.2 or later. See <link href="https://docs.mongodb.org/master/reference/command/getMore/">the documentation for maxTimeMS and the "getMore" command</link>.</p>
+    <p>The <code>max_await_time_ms</code> cannot be changed after the first call to <code xref="mongoc_cursor_next">mongoc_cursor_next</code>.</p>
+  </section>
+
+  <section id="seealso">
+    <title>See Also</title>
+    <p><link xref="cursors#tailable">Tailable Cursors.</link></p>
+  </section>
+
+</page>

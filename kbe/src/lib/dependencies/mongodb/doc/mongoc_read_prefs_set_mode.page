@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_read_prefs_set_mode">
+  <info>
+    <link type="guide" xref="mongoc_read_prefs_t" group="function"/>
+  </info>
+  <title>mongoc_read_prefs_set_mode()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[void
+mongoc_read_prefs_set_mode (mongoc_read_prefs_t *read_prefs,
+                            mongoc_read_mode_t   mode);
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>read_prefs</p></td><td><p>A <code xref="mongoc_read_prefs_t">mongoc_read_prefs_t</code>.</p></td></tr>
+      <tr><td><p>mode</p></td><td><p>A <code xref="mongoc_read_mode_t">mongoc_read_mode_t</code>.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Sets the read preference mode. See the MongoDB website for more information on <link href="http://docs.mongodb.org/manual/core/read-preference/">Read Preferences</link>.</p>
+  </section>
+
+</page>

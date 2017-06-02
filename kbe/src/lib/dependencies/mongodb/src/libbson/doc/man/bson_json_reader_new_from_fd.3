@@ -1,0 +1,54 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_JSON_READER_NEW_FROM_FD" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_json_reader_new_from_fd() \- Creates a new JSON to BSON converter that will be reading from the file-descriptor fd.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bson_json_reader_t *
+bson_json_reader_new_from_fd (int  fd,
+                              bool close_on_destroy);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+.B fd
+An open file\(hydescriptor.
+.LP
+.TP
+.B
+.B close_on_destroy
+Whether
+.B close(3)
+should be called on
+.B fd
+when the reader is destroyed.
+.LP
+
+.SH "DESCRIPTION"
+
+Creates a new JSON to BSON converter that will be reading from the file\(hydescriptor
+.B fd
+\e&.
+
+.SH "RETURNS"
+
+A newly allocated bson_json_reader_t that should be freed with bson_json_reader_destroy().
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

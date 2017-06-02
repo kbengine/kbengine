@@ -1,0 +1,59 @@
+.\" This manpage is Copyright (C) 2016 MongoDB, Inc.
+.\" 
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\" A copy of the license is included in the section entitled "GNU
+.\" Free Documentation License".
+.\" 
+.TH "BSON_ITER_FIND_CASE" "3" "2016\(hy03\(hy16" "libbson"
+.SH NAME
+bson_iter_find_case() \- Advances iter until it is observing an element matching the name of key or exhausting all elements.
+.SH "SYNOPSIS"
+
+.nf
+.nf
+bool
+bson_iter_find_case (bson_iter_t *iter,
+                     const char  *key);
+.fi
+.fi
+
+.SH "PARAMETERS"
+
+.TP
+.B
+iter
+A
+.B bson_iter_t
+\e&.
+.LP
+.TP
+.B
+key
+An ASCII string containing the field to locate.
+.LP
+
+.SH "DESCRIPTION"
+
+Advances
+.B iter
+until it is observing an element matching the name of
+.B key
+or exhausting all elements.
+
+.B key
+is not case\(hysensitive. The keys will be case\(hyfolded to determine a match using the current locale.
+
+.SH "RETURNS"
+
+true if
+.B key
+was found.
+
+
+.B
+.SH COLOPHON
+This page is part of libbson.
+Please report any bugs at https://jira.mongodb.org/browse/CDRIVER.

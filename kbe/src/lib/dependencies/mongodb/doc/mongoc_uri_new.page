@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      style="function"
+      xmlns:api="http://projectmallard.org/experimental/api/"
+      xmlns:ui="http://projectmallard.org/experimental/ui/"
+      id="mongoc_uri_new">
+  <info>
+    <link type="guide" xref="mongoc_uri_t" group="function"/>
+  </info>
+  <title>mongoc_uri_new()</title>
+
+  <section id="synopsis">
+    <title>Synopsis</title>
+    <synopsis><code mime="text/x-csrc"><![CDATA[mongoc_uri_t *
+mongoc_uri_new (const char *uri_string)
+   BSON_GNUC_WARN_UNUSED_RESULT;
+]]></code></synopsis>
+  </section>
+
+  <section id="parameters">
+    <title>Parameters</title>
+    <table>
+      <tr><td><p>uri_string</p></td><td><p>A string containing a URI.</p></td></tr>
+    </table>
+  </section>
+
+  <section id="description">
+    <title>Description</title>
+    <p>Parses a string containing a MongoDB style URI connection string.</p>
+  </section>
+
+  <section id="return">
+    <title>Returns</title>
+    <p>A newly allocated <code xref="mongoc_uri_t">mongoc_uri_t</code> if successful. Otherwise <code>NULL</code>.</p>
+    <note style="warning"><p>Failure to handle the result of this function is a programming error.</p></note>
+  </section>
+
+  <section id="example">
+    <title>Examples</title>
+    <p>Examples of some valid MongoDB connection strings can be seen below.</p>
+    <p><code mime="text/x-csrc">"mongodb://localhost/"</code></p>
+    <p><code mime="text/x-csrc">"mongodb://localhost/?replicaSet=myreplset"</code></p>
+    <p><code mime="text/x-csrc">"mongodb://myuser:mypass@localhost/"</code></p>
+    <p><code mime="text/x-csrc">"mongodb://kerberosuser%40EXAMPLE.COM@example.com/?authMechanism=GSSAPI"</code></p>
+    <p><code mime="text/x-csrc">"mongodb://[::1]:27017/"</code></p>
+    <p><code mime="text/x-csrc">"mongodb://10.0.0.1:27017,10.0.0.1:27018,[::1]:27019/?ssl=true"</code></p>
+    <p><code mime="text/x-csrc">"mongodb:///tmp/mongodb-27017.sock"</code></p>
+    <p><code mime="text/x-csrc">"mongodb://localhost,[::1]/mydb?authSource=mydb"</code></p>
+  </section>
+
+</page>
