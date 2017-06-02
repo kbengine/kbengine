@@ -3909,6 +3909,12 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 
 		KBE_ASSERT(witnesses_count_ == 0);
 		*/
+		
+		for (uint32 i = 0; i < size; ++i)
+		{
+			ENTITY_ID entityID;
+			s >> entityID;
+		}
 	}
 	else
 	{
