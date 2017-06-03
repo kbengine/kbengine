@@ -2135,30 +2135,39 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		// 所以，我们需要做的是通知来源客户端，而不仅仅是自己的客户端。
 		Witness* pW = NULL;
 		KBEngine::ENTITY_ID targetID = 0;
+
 		if (controlledBy_ != NULL)
 		{
 			targetID = controlledBy_->id();
 			Entity* entity = Cellapp::getSingleton().findEntity(targetID);
-			pW = entity->pWitness();
+			
+			if(entity->isReal())
+				pW = entity->pWitness();
 		}
 		else
 		{
 			targetID = id();
-			pW = this->pWitness();
+			
+			if(isReal())
+				pW = this->pWitness();
 		}
-
-		// 通知重置
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(targetID, (*pSendBundle));
 		
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+		// 在跨进程teleport时，极端情况（ghost）在某种状态下witness此时可能为None
+		if(pW)
+		{
+			// 通知重置
+			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(targetID, (*pSendBundle));
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 
-		(*pSendBundle) << id();
-		(*pSendBundle) << currpos.x << currpos.y << currpos.z;
-		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
+			(*pSendBundle) << id();
+			(*pSendBundle) << currpos.x << currpos.y << currpos.z;
+			(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
-		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
-		pW->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+			pW->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+		}
 	}
 }
 
