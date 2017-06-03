@@ -50,6 +50,7 @@ bool DBInterfaceRedis::initInterface(DBInterface* pdbi)
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
 
 	entityTables.addKBETable(new KBEAccountTableRedis(&entityTables));
+	entityTables.addKBETable(new KBEServerLogTableRedis(&entityTables));
 	entityTables.addKBETable(new KBEEntityLogTableRedis(&entityTables));
 	entityTables.addKBETable(new KBEEmailVerificationTableRedis(&entityTables));
 	return true;

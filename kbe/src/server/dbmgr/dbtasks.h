@@ -53,6 +53,13 @@ public:
 	{
 	}
 
+	DBTask():
+	DBTaskBase(),
+	pDatas_(0),
+	addr_()
+	{
+	}
+	
 	virtual ~DBTask();
 
 	bool send(Network::Bundle* pBundle);
@@ -620,6 +627,24 @@ protected:
 	ENTITY_ID wasActiveEntityID_;
 	
 	COMPONENT_ID logger_;
+};
+
+/**
+	写服务器日志
+*/
+class DBTaskServerLog : public DBTask
+{
+public:
+	DBTaskServerLog();
+	virtual ~DBTaskServerLog();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskServerLog";
+	}
+
+protected:
 };
 
 }

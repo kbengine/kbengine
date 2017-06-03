@@ -455,7 +455,7 @@ bool InterfacesHandler_Interfaces::reconnect()
 
 	if(pInterfacesChannel->pEndPoint()->connect() == -1)
 	{
-		struct timeval tv = { 0, 1000000 }; // 1000ms
+		struct timeval tv = { 0, 2000000 }; // 1000ms
 		fd_set frds, fwds;
 		FD_ZERO( &frds );
 		FD_ZERO( &fwds );

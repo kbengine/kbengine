@@ -110,6 +110,45 @@ KBEEntityLogTable(pEntityTables)
 {
 }
 
+
+//-------------------------------------------------------------------------------------
+bool KBEServerLogTableRedis::syncToDB(DBInterface* pdbi)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEServerLogTableRedis::updateServer(DBInterface * pdbi)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEServerLogTableRedis::queryServer(DBInterface * pdbi, ServerLog& serverlog)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+std::vector<COMPONENT_ID> KBEServerLogTableRedis::queryTimeOutServers(DBInterface * pdbi)
+{
+	std::vector<COMPONENT_ID> cids;
+
+	return cids;
+}
+
+//-------------------------------------------------------------------------------------
+bool KBEServerLogTableRedis::clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids)
+{
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+KBEServerLogTableRedis::KBEServerLogTableRedis(EntityTables* pEntityTables):
+KBEServerLogTable(pEntityTables)
+{
+}
+
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableRedis::syncToDB(DBInterface* pdbi)
 {

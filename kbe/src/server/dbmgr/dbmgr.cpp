@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.h"
 #include "interfaces_handler.h"
 #include "sync_app_datas_handler.h"
+#include "update_dblog_handler.h"
 #include "db_mysql/kbe_table_mysql.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
@@ -69,6 +70,7 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 	pInterfacesAccountHandler_(NULL),
 	pInterfacesChargeHandler_(NULL),
 	pSyncAppDatasHandler_(NULL),
+	pUpdateDBServerLogHandler_(NULL),
 	pTelnetServer_(NULL)
 {
 }
@@ -403,12 +405,17 @@ bool Dbmgr::initDB()
 		return false;
 	}
 
+	if(pUpdateDBServerLogHandler_ == NULL)
+		pUpdateDBServerLogHandler_ = new UpdateDBServerLogHandler();
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::finalise()
 {
+	SAFE_RELEASE(pUpdateDBServerLogHandler_);
+	
 	SAFE_RELEASE(pGlobalData_);
 	SAFE_RELEASE(pBaseAppData_);
 	SAFE_RELEASE(pCellAppData_);

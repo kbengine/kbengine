@@ -1820,4 +1820,33 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
+DBTaskServerLog::DBTaskServerLog():
+DBTask()
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskServerLog::~DBTaskServerLog()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskServerLog::db_thread_process()
+{
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEServerLogTable* pTable = static_cast<KBEServerLogTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_serverlog"));
+	KBE_ASSERT(pTable);
+	
+	pTable->updateServer(pdbi_);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskServerLog::presentMainThread()
+{
+	DEBUG_MSG(fmt::format("Dbmgr::DBTaskServerLog()\n"));
+	return DBTask::presentMainThread();
+}
+
+//-------------------------------------------------------------------------------------
 }
