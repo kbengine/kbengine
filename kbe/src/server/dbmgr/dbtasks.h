@@ -584,6 +584,7 @@ protected:
 	uint32 flags_;
 	uint64 deadline_;
 	bool needCheckPassword_;
+	COMPONENT_ID logger_;
 };
 
 /**
@@ -617,6 +618,8 @@ protected:
 	bool wasActive_;
 	COMPONENT_ID wasActiveCID_;
 	ENTITY_ID wasActiveEntityID_;
+	
+	COMPONENT_ID logger_;
 };
 
 }
