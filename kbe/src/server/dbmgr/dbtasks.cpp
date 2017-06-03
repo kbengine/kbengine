@@ -536,7 +536,8 @@ entityDBID_(entityDBID),
 sid_(sid),
 success_(false),
 entityID_(0),
-entityInAppID_(0)
+entityInAppID_(0),
+logger_(0)
 {
 }
 
@@ -561,6 +562,15 @@ bool DBTaskLookUpBaseByDBID::db_thread_process()
 	// 如果有在线纪录
 	if(pELTable->queryEntity(pdbi_, entityDBID_, entitylog, pModule->getUType()))
 	{
+		if(entitylog.logger != g_componentID)
+		{
+			success_ = false;
+			entityInAppID_ = 0;
+			entityID_ = 0;
+			logger_ = entitylog.logger;
+			return false;
+		}
+		
 		success_ = true;
 		entityInAppID_ = entitylog.componentID;
 		entityID_ = entitylog.entityID;
@@ -577,9 +587,16 @@ bool DBTaskLookUpBaseByDBID::db_thread_process()
 thread::TPTask::TPTaskState DBTaskLookUpBaseByDBID::presentMainThread()
 {
 	ScriptDefModule* pModule = EntityDef::findScriptModule(sid_);
-	DEBUG_MSG(fmt::format("Dbmgr::DBTaskLookUpBaseByDBID: {}({}), entityInAppID({}).\n", 
+	
+	DEBUG_MSG(fmt::format("DBTaskLookUpBaseByDBID::presentMainThread: {}({}), entityInAppID({}).\n", 
 		pModule->getName(), entityDBID_, entityInAppID_));
 
+	if(logger_ > 0)
+	{
+		ERROR_MSG(fmt::format("DBTaskLookUpBaseByDBID::presentMainThread: entitylog({}) logger not match. logger_={}, self={}\n", 
+			entityDBID_, logger_, g_componentID));
+	}
+	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::lookUpBaseByDBIDCB);
 
@@ -1314,6 +1331,7 @@ bool DBTaskQueryAccount::db_thread_process()
 	// 先写log， 如果写失败则可能这个entity已经在线
 	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>
 		(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
+	
 	KBE_ASSERT(pELTable);
 	
 	success_ = pELTable->logEntity(pdbi_, inet_ntoa((struct in_addr&)ip_), port_, dbid_, 

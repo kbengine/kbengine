@@ -285,6 +285,7 @@ protected:
 	bool success_;
 	ENTITY_ID entityID_;
 	COMPONENT_ID entityInAppID_;
+	COMPONENT_ID logger_;
 };
 
 /**

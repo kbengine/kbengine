@@ -186,4 +186,8 @@
 		<descr>	未开放账号重置密码功能。</descr>
 	</SERVER_ERR_ACCOUNT_RESET_PASSWORD_NOT_AVAILABLE>
 	
+	<SERVER_ERR_ACCOUNT_LOGIN_ANOTHER_SERVER>
+		<id>37</id>
+		<descr>	当前账号在其他服务器登陆了。</descr>
+	</SERVER_ERR_ACCOUNT_LOGIN_ANOTHER_SERVER>
 </root>
