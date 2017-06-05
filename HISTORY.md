@@ -1,3 +1,31 @@
+###v0.9.14
+
+	2017/6/6
+
+	新增与改善：
+		cellapp增加支持registerReadFileDescriptor之类的API接口。
+		增加配置选项解决在端口映射环境强制暴露公网IP地址提供客户端登陆时，机器人程序不能直接走内网登陆问题。（#478）
+		log4cxx_properties日志配置文件可以在子项目中重写，避免多个不同子项目需要改动底层默认格式引起冲突。（#479）
+		当进程与logger异常断开连接后，一部分缓存待发送的log也将输出到日志文件中，避免遗漏关键错误日志。
+		导航模块同时支持unity插件导出的navmesh文件格式和recastnavigation原生的格式。
+		GUIConsole工具支持端口映射环境连接腾讯云、阿里云等环境的局域网内部KBE进程。
+		baseapp和dbmgr脚本增加onReadyForShutDown回调，允许控制进程安全退出的时机，具体参考API手册。
+		多组服务器允许共用一个账号系统。（#413）
+		更新API文档。
+
+
+	BUG修正：
+		解决部署进程数量特别多时， 由于端口竞争造成部分进程没有能成功提交自己的身份到machine问题。
+		修正邮箱认证输入错误邮箱没有错误提示（#480）
+		修正设置新密码，服务器回调错误（#481）
+		修正绑定邮箱请求服务器发送的email中地址是localhost（#483） 
+		修正x64版本下WebConsole的SpaceView功能异常的问题。
+		修正修改cellData后并没有标脏，导致主动调用writeToDB并没有及时存档
+		修正一些出错的情况下Channel未释放的问题。
+		修正loginapp脚本接口的错别字，onReuqestLogin改为onRequestLogin。
+
+
+
 ###v0.9.13
 
 	2017/4/22
