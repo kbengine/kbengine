@@ -44,6 +44,7 @@ class DBInterface;
 class TelnetServer;
 class InterfacesHandler;
 class SyncAppDatasHandler;
+class UpdateDBServerLogHandler;
 
 class Dbmgr :	public PythonApp, 
 				public Singleton<Dbmgr>
@@ -266,7 +267,8 @@ protected:
 	InterfacesHandler*									pInterfacesChargeHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
-
+	UpdateDBServerLogHandler*							pUpdateDBServerLogHandler_;
+	
 	TelnetServer*										pTelnetServer_;
 };
 

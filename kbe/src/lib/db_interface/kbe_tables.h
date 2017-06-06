@@ -95,6 +95,44 @@ protected:
 	
 };
 
+/*
+	kbe系统表
+*/
+class KBEServerLogTable : public KBETable
+{
+public:
+	const static uint32 TIMEOUT = 3600;
+
+	struct ServerLog
+	{
+		uint64 heartbeatTime;
+
+		// 由谁记录
+		COMPONENT_ID logger;
+	};
+
+	KBEServerLogTable(EntityTables* pEntityTables) :
+	KBETable(pEntityTables)
+	{
+		tableName(KBE_TABLE_PERFIX "_serverlog");
+	}
+	
+	virtual ~KBEServerLogTable()
+	{
+	}
+	
+	virtual bool updateServer(DBInterface * pdbi) = 0;
+
+	virtual bool queryServer(DBInterface * pdbi, ServerLog& serverlog) = 0;
+	
+	virtual std::vector<COMPONENT_ID> queryTimeOutServers(DBInterface * pdbi) = 0;
+
+	virtual bool clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids) = 0;
+	
+protected:
+	
+};
+
 class KBEAccountTable : public KBETable
 {
 public:

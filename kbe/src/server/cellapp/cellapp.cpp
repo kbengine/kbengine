@@ -1909,8 +1909,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s)
 {
 	bool success;
-	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
 	COMPONENT_ID sourceCellappID, targetCellappID, entityBaseappID;
+	ENTITY_ID teleportEntityID = 0;
 
 	s >> sourceCellappID >> targetCellappID >> entityBaseappID >> teleportEntityID >> success;
 
@@ -1965,6 +1965,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	}
 
 	// 传送失败了，我们需要重恢复entity
+	ENTITY_ID nearbyMBRefID = 0;
 	Position3D pos;
 	Direction3D dir;
 	ENTITY_SCRIPT_UID entityType;

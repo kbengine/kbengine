@@ -230,6 +230,13 @@ void Entity::uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 }
 
 //-------------------------------------------------------------------------------------
+void Entity::onCoordinateNodesDestroy(EntityCoordinateNode* pEntityCoordinateNode)
+{
+	if (pEntityCoordinateNode_ == pEntityCoordinateNode)
+		pEntityCoordinateNode_ = NULL;
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
 	if(callScript && isReal())
@@ -277,7 +284,12 @@ void Entity::onDestroy(bool callScript)
 	{
 		space->removeEntity(this);
 	}
-
+	else
+	{
+		WARNING_MSG(fmt::format("{}::onDestroy(): {}, not found space({})!\n", 
+			this->scriptName(), this->id(), spaceID()));
+	}
+	
 	// 在进程强制关闭时这里可能不为0
 	//KBE_ASSERT(spaceID() == 0);
 
@@ -2210,30 +2222,39 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		// 所以，我们需要做的是通知来源客户端，而不仅仅是自己的客户端。
 		Witness* pW = NULL;
 		KBEngine::ENTITY_ID targetID = 0;
+
 		if (controlledBy_ != NULL)
 		{
 			targetID = controlledBy_->id();
 			Entity* entity = Cellapp::getSingleton().findEntity(targetID);
-			pW = entity->pWitness();
+			
+			if(entity->isReal())
+				pW = entity->pWitness();
 		}
 		else
 		{
 			targetID = id();
-			pW = this->pWitness();
+			
+			if(isReal())
+				pW = this->pWitness();
 		}
-
-		// 通知重置
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(targetID, (*pSendBundle));
 		
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+		// 在跨进程teleport时，极端情况（ghost）在某种状态下witness此时可能为None
+		if(pW)
+		{
+			// 通知重置
+			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(targetID, (*pSendBundle));
+			
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 
-		(*pSendBundle) << id();
-		(*pSendBundle) << currpos.x << currpos.y << currpos.z;
-		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
+			(*pSendBundle) << id();
+			(*pSendBundle) << currpos.x << currpos.y << currpos.z;
+			(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
 
-		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
-		pW->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+			pW->sendToClient(ClientInterface::onSetEntityPosAndDir, pSendBundle);
+		}
 	}
 
 	updateChildrenPositionAndDirection();
@@ -3768,6 +3789,7 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 	// 序列化controller并停止所有的controller(timer, navigate, trap,...)
 	// 卸载witness， 并且序列化
 	KBE_ASSERT(isReal() == true && "Entity::changeToGhost(): not is real.\n");
+	KBE_ASSERT(realCell_ != g_componentID);
 
 	realCell_ = realCell;
 	ghostCell_ = 0;
@@ -3778,8 +3800,8 @@ void Entity::changeToGhost(COMPONENT_ID realCell, KBEngine::MemoryStream& s)
 		gm->addRoute(id(), realCell_);
 	}
 
-	DEBUG_MSG(fmt::format("{}::changeToGhost(): {}, realCell={}.\n", 
-		scriptName(), id(), realCell));
+	DEBUG_MSG(fmt::format("{}::changeToGhost(): {}, realCell={}, spaceID={}.\n", 
+		scriptName(), id(), realCell_, spaceID_));
 	
 	// 必须放在前面
 	addToStream(s);
@@ -3817,8 +3839,8 @@ void Entity::changeToReal(COMPONENT_ID ghostCell, KBEngine::MemoryStream& s)
 	ghostCell_ = ghostCell;
 	realCell_ = 0;
 
-	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}.\n", 
-		scriptName(), id(), ghostCell_));
+	DEBUG_MSG(fmt::format("{}::changeToReal(): {}, ghostCell={}, spaceID={}.\n",
+		scriptName(), id(), ghostCell_, spaceID_));
 
 	createFromStream(s);
 }
@@ -4004,9 +4026,10 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 
 	if (witnesses_count_ > 0)
 	{
-		ERROR_MSG(fmt::format("{}::createWitnessFromStream: witnesses_count({}/{}) != 0! entityID={}, isReal={}\n",
+		WARNING_MSG(fmt::format("{}::createWitnessFromStream: witnesses_count({}/{}) != 0! entityID={}, isReal={}\n",
 			scriptName(), witnesses_.size(), witnesses_count_, id(), isReal()));
 
+		/*
 		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
 		for (; it != witnesses_.end(); ++it)
 		{
@@ -4039,19 +4062,28 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 		}
 
 		KBE_ASSERT(witnesses_count_ == 0);
+		*/
+		
+		for (uint32 i = 0; i < size; ++i)
+		{
+			ENTITY_ID entityID;
+			s >> entityID;
+		}
 	}
-
-	for(uint32 i=0; i<size; ++i)
+	else
 	{
-		ENTITY_ID entityID;
-		s >> entityID;
+		for (uint32 i = 0; i < size; ++i)
+		{
+			ENTITY_ID entityID;
+			s >> entityID;
 
-		Entity* pEntity = Cellapp::getSingleton().findEntity(entityID);
-		if(pEntity == NULL || pEntity->spaceID() != spaceID())
-			continue;
+			Entity* pEntity = Cellapp::getSingleton().findEntity(entityID);
+			if (pEntity == NULL || pEntity->spaceID() != spaceID())
+				continue;
 
-		witnesses_.push_back(entityID);
-		++witnesses_count_;
+			witnesses_.push_back(entityID);
+			++witnesses_count_;
+		}
 	}
 
 	bool hasWitness;

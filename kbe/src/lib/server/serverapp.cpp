@@ -437,6 +437,8 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 		if(pChannel->isExternal())
 			return;
 	
+	pChannel->updateLastReceivedTime();
+	
 	if(componentType != CONSOLE_TYPE && componentType != CLIENT_TYPE)
 	{
 		Components::ComponentInfos* cinfos = 
@@ -451,10 +453,6 @@ void ServerApp::onAppActiveTick(Network::Channel* pChannel, COMPONENT_TYPE compo
 		}
 
 		cinfos->pChannel->updateLastReceivedTime();
-	}
-	else
-	{
-		pChannel->updateLastReceivedTime();
 	}
 
 	//DEBUG_MSG("ServerApp::onAppActiveTick[%x]: %s:%"PRAppID" lastReceivedTime:%"PRIu64" at %s.\n", 

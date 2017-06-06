@@ -51,6 +51,31 @@ public:
 	virtual bool queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType);
 
 	virtual bool eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType);
+	
+protected:
+	
+};
+
+class KBEServerLogTableMysql : public KBEServerLogTable
+{
+public:
+	KBEServerLogTableMysql(EntityTables* pEntityTables);
+	virtual ~KBEServerLogTableMysql(){}
+	
+	/**
+		同步表到数据库中
+	*/
+	virtual bool syncToDB(DBInterface* pdbi);
+	virtual bool syncIndexToDB(DBInterface* pdbi){ return true; }
+
+	virtual bool updateServer(DBInterface * pdbi);
+
+	virtual bool queryServer(DBInterface * pdbi, ServerLog& serverlog);
+	
+	virtual std::vector<COMPONENT_ID> queryTimeOutServers(DBInterface * pdbi);
+	
+	virtual bool clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids);
+	
 protected:
 	
 };

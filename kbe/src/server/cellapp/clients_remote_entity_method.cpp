@@ -96,7 +96,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		if((!otherClients_ && (pEntity->pWitness() || (pEntity->clientMailbox()))))
+		if((!otherClients_ && (pEntity->pWitness() && (pEntity->clientMailbox()))))
 		{
 			Network::Bundle* pSendBundle = NULL;
 			Network::Channel* pChannel = pEntity->clientMailbox()->getChannel();

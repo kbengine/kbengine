@@ -167,6 +167,7 @@ bool DBInterfaceMysql::initInterface(DBInterface* pdbi)
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
 
 	entityTables.addKBETable(new KBEAccountTableMysql(&entityTables));
+	entityTables.addKBETable(new KBEServerLogTableMysql(&entityTables));
 	entityTables.addKBETable(new KBEEntityLogTableMysql(&entityTables));
 	entityTables.addKBETable(new KBEEmailVerificationTableMysql(&entityTables));
 	return true;

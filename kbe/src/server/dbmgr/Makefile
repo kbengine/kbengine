@@ -7,7 +7,8 @@ SRCS =						\
 	interfaces_handler			\
 	main					\
 	profile					\
-	sync_app_datas_handler
+	sync_app_datas_handler			\
+	update_dblog_handler
 
 ASMS =
 
