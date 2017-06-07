@@ -248,6 +248,12 @@ void ClientObject::gameTick()
 {
 	if(pServerChannel()->pEndPoint())
 	{
+		if(pServerChannel()->isCondemn())
+		{
+			destroy();
+			return;
+		}
+		
 		pServerChannel()->processPackets(NULL);
 	}
 	else
@@ -313,10 +319,8 @@ void ClientObject::gameTick()
 
 			break;
 		case C_STATE_PLAY:
-		
 			break;	
 		case C_STATE_DESTROYED:
-
 			return;
 		default:
 			KBE_ASSERT(false);
