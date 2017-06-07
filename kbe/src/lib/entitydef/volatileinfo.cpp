@@ -30,10 +30,11 @@ SCRIPT_MEMBER_DECLARE_BEGIN(VolatileInfo)
 SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(VolatileInfo)
-SCRIPT_GETSET_DECLARE("position",			pyGetPosition,			pySetPosition,		0,		0)
-SCRIPT_GETSET_DECLARE("yaw",				pyGetYaw,				pySetYaw,			0,		0)
-SCRIPT_GETSET_DECLARE("pitch",				pyGetPitch,				pySetPitch,			0,		0)
-SCRIPT_GETSET_DECLARE("roll",				pyGetRoll,				pySetRoll,			0,		0)
+SCRIPT_GETSET_DECLARE("position",			pyGetPosition,			pySetPosition,			0,		0)
+SCRIPT_GETSET_DECLARE("yaw",				pyGetYaw,				pySetYaw,				0,		0)
+SCRIPT_GETSET_DECLARE("pitch",				pyGetPitch,				pySetPitch,				0,		0)
+SCRIPT_GETSET_DECLARE("roll",				pyGetRoll,				pySetRoll,				0,		0)
+SCRIPT_GETSET_DECLARE("optimized",			pyGetOptimized,			pySetOptimized,			0,		0)
 SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(VolatileInfo, 0, 0, 0, 0, 0)
 
@@ -126,15 +127,36 @@ PyObject* VolatileInfo::pyGetRoll()
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* VolatileInfo::pyGetOptimized()
+{
+	return PyBool_FromLong(optimized_);
+}
+
+//-------------------------------------------------------------------------------------
+int VolatileInfo::pySetOptimized(PyObject *value)
+{
+	if (!PyBool_Check(value))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s: set pitch value is not bool!\n",
+			scriptName());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
+	optimized_ = value == Py_True;
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------
 void VolatileInfo::addToStream(KBEngine::MemoryStream& s)
 {
-	s << position_ << yaw_ << roll_ << pitch_;
+	s << position_ << yaw_ << roll_ << pitch_ << optimized_;
 }
 
 //-------------------------------------------------------------------------------------
 void VolatileInfo::createFromStream(KBEngine::MemoryStream& s)
 {
-	s >> position_ >> yaw_ >> roll_ >> pitch_;
+	s >> position_ >> yaw_ >> roll_ >> pitch_ >> optimized_;
 }
 
 //-------------------------------------------------------------------------------------

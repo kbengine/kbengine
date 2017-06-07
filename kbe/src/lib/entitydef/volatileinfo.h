@@ -34,6 +34,7 @@ class VolatileInfo : public script::ScriptObject
 	子类化 将一些py操作填充进派生类
 	*/
 	INSTANCE_SCRIPT_HREADER(VolatileInfo, ScriptObject)
+
 public:
 	static const float ALWAYS;
 	static const float NEVER;
@@ -44,7 +45,8 @@ public:
 		position_(position),
 		yaw_(yaw),
 		roll_(roll),
-		pitch_(pitch)
+		pitch_(pitch),
+		optimized_(true)
 	{
 	}
 
@@ -53,7 +55,8 @@ public:
 		position_(info.position_),
 		yaw_(info.yaw_),
 		roll_(info.roll_),
-		pitch_(info.pitch_)
+		pitch_(info.pitch_),
+		optimized_(true)
 	{
 	}
 
@@ -92,31 +95,41 @@ public:
 		pitch_ = ALWAYS;
 	}
 
-	float position() const{ return position_; };
-	float yaw() const{ return yaw_; };
-	float roll() const{ return roll_; };
-	float pitch() const{ return pitch_; };
+	float position() const { return position_; };
+	float yaw() const { return yaw_; };
+	float roll() const { return roll_; };
+	float pitch() const { return pitch_; };
 
-	void position(float v){ 
+	void position(float v) { 
 		position_ = v; 
 	};
 
-	void yaw(float v){ 
+	void yaw(float v) { 
 		yaw_ = v;
 	};
 
-	void roll(float v){ 
+	void roll(float v) { 
 		roll_ = v;
 	};
 
-	void pitch(float v){ 
+	void pitch(float v) { 
 		pitch_ = v;
+	};
+
+	bool optimized() const {
+		return optimized_;
+	}
+
+	void optimized(bool v) {
+		optimized_ = v;
 	};
 
 	DECLARE_PY_GETSET_MOTHOD(pyGetPosition, pySetPosition);
 	DECLARE_PY_GETSET_MOTHOD(pyGetYaw, pySetYaw);
 	DECLARE_PY_GETSET_MOTHOD(pyGetPitch, pySetPitch);
 	DECLARE_PY_GETSET_MOTHOD(pyGetRoll, pySetRoll);
+
+	DECLARE_PY_GETSET_MOTHOD(pyGetOptimized, pySetOptimized);
 
 	void addToStream(KBEngine::MemoryStream& s);
 	void createFromStream(KBEngine::MemoryStream& s);
@@ -126,6 +139,8 @@ protected:
 	float yaw_;
 	float roll_;
 	float pitch_;
+
+	bool optimized_;
 };
 
 }

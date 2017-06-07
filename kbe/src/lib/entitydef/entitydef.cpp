@@ -413,6 +413,19 @@ bool EntityDef::loadVolatileInfo(const std::string& defFilePath,
 			pVolatileInfo->roll(-1.f);
 	}
 
+	node = defxml->enterNode(pNode, "optimized");
+	if (node)
+	{
+		pVolatileInfo->optimized(defxml->getBool(node));
+	}
+	else
+	{
+		if (defxml->hasNode(pNode, "optimized"))
+			pVolatileInfo->optimized(true);
+		else
+			pVolatileInfo->optimized(true);
+	}
+
 	return true;
 }
 
