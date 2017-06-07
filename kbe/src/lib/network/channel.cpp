@@ -807,9 +807,10 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 		handshake();
 	}
 
+	BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+	
 	try
 	{
-		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		for(; packetIter != bufferedReceives_.end(); ++packetIter)
 		{
 			Packet* pPacket = (*packetIter);
@@ -831,7 +832,6 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers)
 		pPacketReader_->currMsgLen(0);
 		condemn();
 
-		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
 		for (; packetIter != bufferedReceives_.end(); ++packetIter)
 		{
 			Packet* pPacket = (*packetIter);

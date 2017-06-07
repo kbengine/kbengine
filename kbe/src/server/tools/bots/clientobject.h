@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/encryption_filter.h"
 #include "pyscript/pyobject_pointer.h"
 
-namespace KBEngine{ 
+namespace KBEngine { 
 
 /*
 */
@@ -72,10 +72,10 @@ public:
 
 	void gameTick();
 
-	ClientObject::C_ERROR lasterror(){ return error_; }
+	ClientObject::C_ERROR lasterror() { return error_; }
 
-	bool isDestroyed(){ return state_ == C_STATE_DESTROYED; }
-	void destroy(){ state_ = C_STATE_DESTROYED; }
+	bool isDestroyed() { return state_ == C_STATE_DESTROYED; }
+	void destroy() { state_ = C_STATE_DESTROYED; }
 
 	virtual void onHelloCB_(Network::Channel* pChannel, const std::string& verInfo,
 		const std::string& scriptVerInfo, const std::string& protocolMD5, 

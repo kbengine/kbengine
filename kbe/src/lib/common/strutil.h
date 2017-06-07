@@ -75,6 +75,9 @@ namespace strutil {
 	int kbe_replace(std::string& str,  const std::string& pattern,  const std::string& newpat);
 	int kbe_replace(std::wstring& str,  const std::wstring& pattern,  const std::wstring& newpat);
 
+	std::string toLower(const std::string& str);
+	std::string toUpper(const std::string& str);
+
 	/*
 	 ×ª»»Îª´óĞ´
 	*/

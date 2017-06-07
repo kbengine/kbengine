@@ -240,10 +240,27 @@ public:
 		return atof(strutil::kbe_trim(ptext->Value()).c_str());
 	}
 
+	bool getBool(const TiXmlNode* node)
+	{
+		std::string s = strutil::toUpper(getValStr(node));
+
+		if (s == "TRUE")
+		{
+			return true;
+		}
+		else if (s == "FALSE")
+		{
+			return false;
+		}
+
+		return getValInt(node) > 0;
+	}
+
 protected:
 	TiXmlDocument* txdoc_;
 	TiXmlElement* rootElement_;
 	bool isGood_;
+
 };
 
 }
