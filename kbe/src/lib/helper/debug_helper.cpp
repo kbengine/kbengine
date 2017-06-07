@@ -74,7 +74,7 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			LOG4CXX_ERROR(logger, s);	\
 		}	\
 		catch (const log4cxx::helpers::IOException& ioex) {	\
-			printf("IOException: %s\nERROR=%s", ioex.what(), s.c_str());	\
+			printf("IOException: %s\nERROR=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
 
@@ -84,7 +84,7 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			LOG4CXX_WARN(logger, s);	\
 		}	\
 		catch (const log4cxx::helpers::IOException& ioex) {	\
-			printf("IOException: %s\nWARN=%s", ioex.what(), s.c_str());	\
+			printf("IOException: %s\nWARN=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
     
@@ -94,7 +94,7 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			LOG4CXX_INFO(logger, s);	\
 		}	\
 		catch (const log4cxx::helpers::IOException& ioex) {	\
-			printf("IOException: %s\nINFO=%s", ioex.what(), s.c_str());	\
+			printf("IOException: %s\nINFO=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
     
@@ -104,7 +104,7 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			LOG4CXX_DEBUG(logger, s);	\
 		}	\
 		catch (const log4cxx::helpers::IOException& ioex) {	\
-			printf("IOException: %s\nDEBUG=%s", ioex.what(), s.c_str());	\
+			printf("IOException: %s\nDEBUG=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
 
@@ -114,7 +114,7 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			LOG4CXX_FATAL(logger, s);	\
 		}	\
 		catch (const log4cxx::helpers::IOException& ioex) {	\
-			printf("IOException: %s\nFATAL=%s", ioex.what(), s.c_str());	\
+			printf("IOException: %s\nFATAL=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
     
@@ -124,7 +124,7 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 			LOG4CXX_LOG(logger, level, s);	\
 		}	\
 		catch (const log4cxx::helpers::IOException& ioex) {	\
-			printf("IOException: %s\n%s=%s", ioex.what(), level->toString(), s.c_str());	\
+			printf("IOException: %s\nLOG=%s\n", ioex.what(), s.c_str());	\
 		}	\
     }
     
