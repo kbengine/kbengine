@@ -1243,11 +1243,10 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 		pVolatileInfo = otherEntity->pScriptModule()->getPVolatileInfo();
 
 	static uint16 entity_posdir_additional_updates = g_kbeSrvConfig.getCellApp().entity_posdir_additional_updates;
-	static bool forcedSyncEntityPosition_Y = g_kbeSrvConfig.getCellApp().forcedSyncEntityPosition_Y;
 	
 	if ((pVolatileInfo->position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
 	{
-		if (!otherEntity->isOnGround() || forcedSyncEntityPosition_Y)
+		if(!otherEntity->isOnGround())
 		{
 			flags |= UPDATE_FLAG_XYZ; 
 		}
