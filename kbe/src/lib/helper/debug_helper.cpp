@@ -717,7 +717,7 @@ void DebugHelper::printBufferedLogs()
 
 #ifdef NO_USE_LOG4CXX
 #else
-	KBE_LOG4CXX_INFO(g_logger, "The following logs sent to logger failed:\n");
+	KBE_LOG4CXX_INFO(g_logger, std::string("The following logs sent to logger failed:\n"));
 #endif
 
 	// 将子线程日志放入bufferedLogPackets_
@@ -936,7 +936,6 @@ void DebugHelper::script_info_msg(const std::string& s)
 		KBE_LOG4CXX_LOG(g_logger,  log4cxx::ScriptLevel::toLevel(scriptMsgType_), s);
 #endif
 
-
 	onMessage(KBELOG_TYPE_MAPPING(scriptMsgType_), s.c_str(), (uint32)s.size());
 
 	// 如果是用户手动设置的也输出为错误信息
@@ -1024,7 +1023,7 @@ void DebugHelper::critical_msg(const std::string& s)
 
 #ifdef NO_USE_LOG4CXX
 #else
-	KBE_LOG4CXX_FATAL(g_logger, buf);
+	KBE_LOG4CXX_FATAL(g_logger, std::string(buf));
 #endif
 
 #if KBE_PLATFORM == PLATFORM_WIN32
