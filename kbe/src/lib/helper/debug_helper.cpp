@@ -118,13 +118,13 @@ log4cxx::LoggerPtr g_logger(log4cxx::Logger::getLogger(""));
 		}	\
     }
     
-#define KBE_LOG4CXX_LOG(logger, type, s)	\
+#define KBE_LOG4CXX_LOG(logger, level, s)	\
 	{	\
 		try {	\
-			LOG4CXX_LOG(logger, type, s);	\
+			LOG4CXX_LOG(logger, level, s);	\
 		}	\
 		catch (const log4cxx::helpers::IOException& ioex) {	\
-			printf("IOException: %s\n%s=%s", ioex.what(), type, s.c_str());	\
+			printf("IOException: %s\n%s=%s", ioex.what(), level->toString(), s.c_str());	\
 		}	\
     }
     
