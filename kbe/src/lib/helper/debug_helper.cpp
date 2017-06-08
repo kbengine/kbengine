@@ -359,7 +359,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 	}
 
 	g_logger = log4cxx::Logger::getRootLogger();
-	LOG4CXX_INFO(logger, "\n");
+	LOG4CXX_INFO(g_logger, "\n");
 #endif
 
 	ALERT_LOG_TO("", false);
