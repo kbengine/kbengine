@@ -64,7 +64,7 @@ public:
 		if(!ret)
 			return ret;
 
-		std::map<DBID, std::vector<std::string>, std::less<DBID>> resultsDatas;
+		std::map<DBID, std::vector< std::string >, std::less<DBID> > resultsDatas;
 
 		// 将查询到的结果写入上下文
 		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
@@ -126,7 +126,7 @@ public:
 
 			mysql_free_result(pResult);
 
-			std::map<DBID, std::vector<std::string>, std::less<DBID>>::const_iterator diter = resultsDatas.begin();
+			std::map< DBID, std::vector< std::string >, std::less<DBID> >::const_iterator diter = resultsDatas.begin();
 			for (; diter != resultsDatas.end(); ++diter)
 			{
 				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
@@ -173,7 +173,7 @@ public:
 			return ret;
 
 		std::vector<DBID> t_parentTableDBIDs;
-		std::map<DBID, std::vector<std::string>, std::less<DBID>> resultsDatas;
+		std::map< DBID, std::vector< std::string >, std::less<DBID> > resultsDatas;
 		
 		// 将查询到的结果写入上下文
 		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
@@ -243,7 +243,7 @@ public:
 
 			mysql_free_result(pResult);
 
-			std::map<DBID, std::vector<std::string>, std::less<DBID>>::const_iterator diter = resultsDatas.begin();
+			std::map< DBID, std::vector< std::string >, std::less<DBID> >::const_iterator diter = resultsDatas.begin();
 			for (; diter != resultsDatas.end(); ++diter)
 			{
 				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
