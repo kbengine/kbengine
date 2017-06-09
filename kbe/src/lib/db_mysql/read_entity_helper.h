@@ -129,7 +129,7 @@ public:
 			std::map<DBID, std::vector<std::string>, std::less<DBID>>::const_iterator diter = resultsDatas.begin();
 			for (; diter != resultsDatas.end(); ++diter)
 			{
-				context.results.insert(diter->second.begin(), diter->second.end(), diter->second.end());
+				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
 			}
 		}
 		
@@ -246,7 +246,7 @@ public:
 			std::map<DBID, std::vector<std::string>, std::less<DBID>>::const_iterator diter = resultsDatas.begin();
 			for (; diter != resultsDatas.end(); ++diter)
 			{
-				context.results.insert(diter->second.begin(), diter->second.end(), diter->second.end());
+				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
 			}
 		}
 
