@@ -104,7 +104,7 @@ void ServerApp::shutDown(float shutdowntime)
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("ServerApp::shutDown:  In shuttingdown!\n"));
+		WARNING_MSG(fmt::format("ServerApp::shutDown:  In shuttingdown!\n"));
 		return;
 	}
 	

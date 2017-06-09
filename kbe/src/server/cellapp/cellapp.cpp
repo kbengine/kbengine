@@ -1870,7 +1870,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		// 向baseapp发送传送到达通知
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		(*pBundle).newMessage(BaseappInterface::onMigrationCellappArrived);
+		(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
 		(*pBundle) << e->id();
 		(*pBundle) << ghostCell << g_componentID;
 		e->baseMailbox()->postMail(pBundle);
@@ -1922,35 +1922,30 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 			sourceCellappID, g_componentID, targetCellappID));
 	}
 
-	// 实体可能没有base部分，那么不需要通知baseapp
-	if(entityBaseappID > 0)
-	{
-		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(entityBaseappID);
-		if(pInfos && pInfos->pChannel)
-		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-			(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
-			(*pBundle) << teleportEntityID;
-
-			if(success)
-				(*pBundle) << sourceCellappID << targetCellappID;
-			else
-				(*pBundle) << sourceCellappID << sourceCellappID;
-
-			pInfos->pChannel->send(pBundle);
-		}
-		else
-		{
-			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found baseapp({}), entity({})!\n", 
-				entityBaseappID, teleportEntityID));
-		}
-	}
-
 	// 传送成功，我们销毁这个entity
 	if(success)
 	{
 		destroyEntity(teleportEntityID, false);
 		return;
+	}
+
+	// 实体可能没有base部分，那么不需要通知baseapp
+	if (entityBaseappID > 0)
+	{
+		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(entityBaseappID);
+		if (pInfos && pInfos->pChannel)
+		{
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
+			(*pBundle) << teleportEntityID;
+			(*pBundle) << sourceCellappID << sourceCellappID;
+			pInfos->pChannel->send(pBundle);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found baseapp({}), entity({})!\n",
+				entityBaseappID, teleportEntityID));
+		}
 	}
 
 	// 某些情况下实体可能此时找不到了，例如：副本销毁了

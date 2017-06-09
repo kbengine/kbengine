@@ -31,12 +31,15 @@ BaseMessagesForwardCellappHandler::BaseMessagesForwardCellappHandler(Base* pBase
 Task(),
 pBase_(pBase),
 completed_(false),
-startForward_(false)
+startForward_(false),
+createTime_(0)
 {
 	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::BaseMessagesForwardCellappHandler() : entityID({})!\n", 
 		(pBase_ ? pBase_->id() : 0)));
 	
 	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
+
+	createTime_ = timestamp();
 }
 
 //-------------------------------------------------------------------------------------
@@ -90,8 +93,18 @@ void BaseMessagesForwardCellappHandler::startForward()
 //-------------------------------------------------------------------------------------
 bool BaseMessagesForwardCellappHandler::process()
 {
-	if(!startForward_)
+	if (!startForward_)
+	{
+		if (timestamp() - createTime_ >= uint64(5 * stampsPerSecond()))
+		{
+			ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::process(): Wait for a timeout({}s)! size={}, entityID={}\n",
+				((timestamp() - createTime_) / stampsPerSecond()), bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+
+			startForward_ = true;
+		}
+
 		return true;
+	}
 
 	if(bufferedSendToCellappMessages_.size() == 0)
 	{
@@ -133,12 +146,15 @@ Task(),
 pBase_(pBase),
 completed_(false),
 startForward_(false),
-cellappID_(cellappID)
+cellappID_(cellappID),
+createTime_(0)
 {
 	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::BaseMessagesForwardClientHandler() : cellappID({}), entityID({})!\n", 
 		cellappID_, (pBase_ ? pBase_->id() : 0)));
 	
 	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
+
+	createTime_ = timestamp();
 }
 
 //-------------------------------------------------------------------------------------
@@ -190,8 +206,18 @@ void BaseMessagesForwardClientHandler::startForward()
 //-------------------------------------------------------------------------------------
 bool BaseMessagesForwardClientHandler::process()
 {
-	if(!startForward_)
+	if (!startForward_)
+	{
+		if (timestamp() - createTime_ >= uint64(5 * stampsPerSecond()))
+		{
+			ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::process(): Wait for a timeout({}s)! size={}, entityID={}\n",
+				((timestamp() - createTime_) / stampsPerSecond()), bufferedSendToClientMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+
+			startForward_ = true;
+		}
+
 		return true;
+	}
 
 	if(bufferedSendToClientMessages_.size() == 0)
 	{

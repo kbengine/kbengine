@@ -480,6 +480,7 @@ void Entity::onLeaveWorld()
 //-------------------------------------------------------------------------------------
 void Entity::onEnterSpace()
 {
+	this->stopMove();
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
 }
@@ -490,6 +491,7 @@ void Entity::onLeaveSpace()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	spaceID(0);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
+	this->stopMove();
 }
 
 //-------------------------------------------------------------------------------------

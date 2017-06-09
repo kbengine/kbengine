@@ -248,14 +248,18 @@ public:
 			{
 				sqlstr1_ += " where " TABLE_PARENTID_CONST_STR " in(";
 				std::vector<DBID>::const_iterator iter = parentTableDBIDs.begin();
+				std::string queryDBIDs = "";
+
 				for(; iter != parentTableDBIDs.end(); ++iter)
 				{
 					kbe_snprintf(strdbid, MAX_BUF, "%" PRDBID ",", (*iter));
-					sqlstr1_ += strdbid;
+					queryDBIDs += strdbid;
 				}
 
-				sqlstr1_.erase(sqlstr1_.end() - 1);
-				sqlstr1_ += ")";
+				if (queryDBIDs.size() > 0)
+					queryDBIDs.erase(queryDBIDs.end() - 1);
+
+				sqlstr1_ += queryDBIDs + ") order by find_in_set(" TABLE_PARENTID_CONST_STR ",'" + queryDBIDs + "')";
 			}
 			else
 			{
