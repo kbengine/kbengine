@@ -1550,6 +1550,10 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sour
 	if (hasFlags(ENTITY_FLAGS_TELEPORT_END))
 	{
 		removeFlags(ENTITY_FLAGS_TELEPORT_END);
+
+		DEBUG_MSG(fmt::format("{}::onMigrationCellappStart: reset flags! {}, sourceCellAppID={}, targetCellappID={}\n",
+			scriptName(), id(), sourceCellAppID, targetCellAppID));
+
 	}
 	else
 	{
