@@ -126,10 +126,15 @@ public:
 
 			mysql_free_result(pResult);
 
-			std::map< DBID, std::vector< std::string >, std::less<DBID> >::const_iterator diter = resultsDatas.begin();
-			for (; diter != resultsDatas.end(); ++diter)
+			std::vector<DBID>::iterator diter = context.dbids[context.dbid].begin();
+			for (; diter != context.dbids[context.dbid].end(); ++diter)
 			{
-				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
+				std::map< DBID, std::vector< std::string >, std::less<DBID> >::iterator friter = resultsDatas.find((*diter));
+				if (friter == resultsDatas.end())
+					continue;
+
+				const std::vector< std::string >& resultsData = friter->second;
+				context.results.insert(context.results.end(), resultsData.begin(), resultsData.end());
 			}
 		}
 		
@@ -243,10 +248,15 @@ public:
 
 			mysql_free_result(pResult);
 
-			std::map< DBID, std::vector< std::string >, std::less<DBID> >::const_iterator diter = resultsDatas.begin();
-			for (; diter != resultsDatas.end(); ++diter)
+			std::vector<DBID>::iterator diter = parentTableDBIDs.begin();
+			for (; diter != parentTableDBIDs.end(); ++diter)
 			{
-				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
+				std::map< DBID, std::vector< std::string >, std::less<DBID> >::iterator friter = resultsDatas.find((*diter));
+				if (friter == resultsDatas.end())
+					continue;
+
+				const std::vector< std::string >& resultsData = friter->second;
+				context.results.insert(context.results.end(), resultsData.begin(), resultsData.end());
 			}
 		}
 
