@@ -64,6 +64,8 @@ public:
 		if(!ret)
 			return ret;
 
+		std::map<DBID, std::vector<std::string>, std::less<DBID>> resultsDatas;
+
 		// 将查询到的结果写入上下文
 		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 
@@ -115,14 +117,20 @@ public:
 						data.assign(arow[i], lengths[i]);
 
 						if (fidx != -100)
-							context.results.insert(context.results.begin() + context.results.size() - (itemDBIDs.size() - fidx - 1), data);
+							resultsDatas[context.dbid].insert(resultsDatas[context.dbid].begin() + fidx++, data);
 						else
-							context.results.push_back(data);
+							resultsDatas[context.dbid].push_back(data);
 					}
 				}
 			}
 
 			mysql_free_result(pResult);
+
+			std::map<DBID, std::vector<std::string>, std::less<DBID>>::const_iterator diter = resultsDatas.begin();
+			for (; diter != resultsDatas.end(); ++diter)
+			{
+				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
+			}
 		}
 		
 		std::vector<DBID>& dbids = context.dbids[context.dbid];
@@ -165,7 +173,8 @@ public:
 			return ret;
 
 		std::vector<DBID> t_parentTableDBIDs;
-
+		std::map<DBID, std::vector<std::string>, std::less<DBID>> resultsDatas;
+		
 		// 将查询到的结果写入上下文
 		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 
@@ -225,14 +234,20 @@ public:
 						data.assign(arow[i], lengths[i]);
 
 						if (fidx != -100)
-							context.results.insert(context.results.begin() + context.results.size() - (itemDBIDs.size() - fidx - 1), data);
+							resultsDatas[parentID].insert(resultsDatas[parentID].begin() + fidx++, data);
 						else
-							context.results.push_back(data);
+							resultsDatas[parentID].push_back(data);
 					}
 				}
 			}
 
 			mysql_free_result(pResult);
+
+			std::map<DBID, std::vector<std::string>, std::less<DBID>>::const_iterator diter = resultsDatas.begin();
+			for (; diter != resultsDatas.end(); ++diter)
+			{
+				context.results.insert(context.results.end(), diter->second.begin(), diter->second.end());
+			}
 		}
 
 		// 如果没有数据则查询完毕了
