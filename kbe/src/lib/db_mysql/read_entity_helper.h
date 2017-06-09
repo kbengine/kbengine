@@ -129,7 +129,11 @@ public:
 			std::vector<DBID>::iterator diter = context.dbids[context.dbid].begin();
 			for (; diter != context.dbids[context.dbid].end(); ++diter)
 			{
-				const std::vector< std::string >& resultsData = resultsDatas[(*diter)];
+				std::map< DBID, std::vector< std::string >, std::less<DBID> >::iterator friter = resultsDatas.find((*diter));
+				if (friter == resultsDatas.end())
+					continue;
+
+				const std::vector< std::string >& resultsData = friter->second;
 				context.results.insert(context.results.end(), resultsData.begin(), resultsData.end());
 			}
 		}
@@ -247,7 +251,11 @@ public:
 			std::vector<DBID>::iterator diter = parentTableDBIDs.begin();
 			for (; diter != parentTableDBIDs.end(); ++diter)
 			{
-				const std::vector< std::string >& resultsData = resultsDatas[(*diter)];
+				std::map< DBID, std::vector< std::string >, std::less<DBID> >::iterator friter = resultsDatas.find((*diter));
+				if (friter == resultsDatas.end())
+					continue;
+
+				const std::vector< std::string >& resultsData = friter->second;
 				context.results.insert(context.results.end(), resultsData.begin(), resultsData.end());
 			}
 		}
