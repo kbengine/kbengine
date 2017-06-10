@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,7 @@ namespace KBEngine{
 class NavigateHandler : public MoveToPointHandler
 {
 public:
-	NavigateHandler(KBEShared_ptr<Controller> pController, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
+	NavigateHandler(KBEShared_ptr<Controller>& pController, const Position3D& destPos, float velocity, float distance, bool faceMovement, 
 		float maxMoveDistance, VECTOR_POS3D_PTR paths_ptr,
 		PyObject* userarg);
 
@@ -44,7 +44,7 @@ public:
 
 	virtual bool isOnGround(){ return true; }
 
-	virtual MoveType type() const{ return MOVE_TYPE_NAV; }
+	virtual MoveType type() const { return MOVE_TYPE_NAV; }
 
 protected:
 	int destPosIdx_;

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -191,6 +191,11 @@ public:
 	Network::Channel* getDbmgrChannel();
 	Network::Channel* getLoggerChannel();
 
+	/**
+		统计某个UID下的所有组件数量
+	*/
+	size_t getGameSrvComponentsSize(int32 uid);
+
 	/** 
 		获取游戏服务端必要组件的注册数量。
 	*/
@@ -212,6 +217,8 @@ public:
 
 	bool findLogger();
 	
+	void broadcastSelf();
+
 private:
 	virtual bool process();
 	bool findComponents();

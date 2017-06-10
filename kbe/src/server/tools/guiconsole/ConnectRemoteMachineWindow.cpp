@@ -29,12 +29,19 @@ void CConnectRemoteMachineWindow::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_IPADDRESS1, m_ip);
 	DDX_Control(pDX, IDC_EDIT2, m_port);
 	DDX_Control(pDX, IDC_LIST1, m_log);
+	DDX_Control(pDX, IDC_IPADDRESS2, m_lan_ip);
+	DDX_Control(pDX, IDC_IPADDRESS3, m_internet_ip);
+	DDX_Control(pDX, IDC_LIST2, m_mappinglog);
 }
 
 
 BEGIN_MESSAGE_MAP(CConnectRemoteMachineWindow, CDialog)
 	ON_BN_CLICKED(IDOK, &CConnectRemoteMachineWindow::OnBnClickedOk)
 	ON_LBN_DBLCLK(IDC_LIST1, &CConnectRemoteMachineWindow::OnLbnDblclkList1)
+	ON_BN_CLICKED(IDC_ADD_IPMAPPING, &CConnectRemoteMachineWindow::OnBnClickedAddIpmapping)
+	ON_BN_CLICKED(IDC_DEL_IPMAPPING, &CConnectRemoteMachineWindow::OnBnClickedDelIpmapping)
+	ON_LBN_SELCHANGE(IDC_LIST1, &CConnectRemoteMachineWindow::OnLbnSelchangeList1)
+	ON_LBN_DBLCLK(IDC_LIST2, &CConnectRemoteMachineWindow::OnLbnDblclkList2)
 END_MESSAGE_MAP()
 
 BOOL CConnectRemoteMachineWindow::OnInitDialog()
@@ -304,4 +311,78 @@ void CConnectRemoteMachineWindow::OnLbnDblclkList1()
 	free(ip);
 
 	m_port.SetWindowTextW(output1);
+}
+
+
+void CConnectRemoteMachineWindow::OnBnClickedAddIpmapping()
+{
+	// TODO: Add your control notification handler code here
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+	byte lan_ips[4];
+
+	if (0 == m_lan_ip.GetAddress(lan_ips[0], lan_ips[1], lan_ips[2], lan_ips[3]))
+	{
+		AfxMessageBox(L"LAN-address error!");
+		return;
+	}
+
+	byte internet_ips[4];
+
+	if (0 == m_internet_ip.GetAddress(internet_ips[0], internet_ips[1], internet_ips[2], internet_ips[3]))
+	{
+		AfxMessageBox(L"Internet-address error!");
+		return;
+	}
+
+	char str_lanip[256];
+	sprintf_s(str_lanip, 256, "%d.%d.%d.%d", lan_ips[0], lan_ips[1], lan_ips[2], lan_ips[3]);
+
+	char str_internetip[256];
+	sprintf_s(str_internetip, 256, "%d.%d.%d.%d", internet_ips[0], internet_ips[1], internet_ips[2], internet_ips[3]);
+
+	dlg->m_ipMappings[CString(str_lanip)] = CString(str_internetip);
+	updateMappingListCtrl();
+}
+
+
+void CConnectRemoteMachineWindow::updateMappingListCtrl()
+{
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+
+	m_mappinglog.ResetContent();
+
+	std::map<CString, CString>::iterator iter = dlg->m_ipMappings.begin();
+	for (; iter != dlg->m_ipMappings.end(); ++iter)
+	{
+		m_mappinglog.AddString(iter->first + L">" + iter->second);
+	}
+}
+
+void CConnectRemoteMachineWindow::OnBnClickedDelIpmapping()
+{
+	// TODO: Add your control notification handler code here
+	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);
+
+	CString str;
+	m_mappinglog.GetText(m_mappinglog.GetCurSel(), str);
+
+	CString output = L"";
+	CString output1 = L"";
+	AfxExtractSubString(output, str, 0, _T('>'));
+	AfxExtractSubString(output1, str, 1, _T('>'));
+	
+	dlg->m_ipMappings.erase(output);
+	updateMappingListCtrl();
+}
+
+
+void CConnectRemoteMachineWindow::OnLbnSelchangeList1()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CConnectRemoteMachineWindow::OnLbnDblclkList2()
+{
+	// TODO: Add your control notification handler code here
 }

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -38,6 +38,18 @@ INLINE uint32 CoordinateSystem::size() const{ return size_; }
 INLINE bool CoordinateSystem::isEmpty() const 
 { 
 	return first_x_coordinateNode_ == NULL && first_y_coordinateNode_ == NULL && first_z_coordinateNode_ == NULL;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void CoordinateSystem::incUpdating()
+{
+	++updating_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void CoordinateSystem::decUpdating()
+{
+	--updating_;
 }
 
 //-------------------------------------------------------------------------------------

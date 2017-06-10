@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -309,7 +309,7 @@ void Bundle::newMessage(const MessageHandler& msgHandler)
 	pCurrPacket_->messageID(msgHandler.msgID);
 
 	// 此处对于非固定长度的消息来说需要先设置它的消息长度位为0， 到最后需要填充长度
-	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+	if(msgHandler.msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
 		MessageLength msglen = 0;
 		currMsgLengthPos_ = pCurrPacket_->wpos();
@@ -345,7 +345,7 @@ void Bundle::finiMessage(bool isSend)
 	}
 
 	// 此处对于非固定长度的消息来说需要设置它的最终长度信息
-	if(currMsgID_ > 0 && (currMsgHandlerLength_ < 0 || g_packetAlwaysContainLength))
+	if(currMsgID_ > 0 && (currMsgHandlerLength_ < 0))
 	{
 		Packet* pPacket = pCurrPacket_;
 		if(currMsgPacketCount_ > 0)
@@ -413,9 +413,10 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 	if (!pCurrMsgHandler || currMsgID != pCurrMsgHandler->msgID || !pCurrMsgHandler->pMessageHandlers)
 		return;
 
-	currMsgLength += NETWORK_MESSAGE_ID_SIZE;
-	if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE || g_packetAlwaysContainLength)
+	if (pCurrMsgHandler->msgLen == NETWORK_VARIABLE_MESSAGE)
 	{
+		// 因为Bundle::finiMessage等地方遇到可变参数消息时将长度去掉了消息头部，这里要还原消息就要加回来
+		currMsgLength += NETWORK_MESSAGE_ID_SIZE;
 		currMsgLength += NETWORK_MESSAGE_LENGTH_SIZE;
 		if (currMsgLength - NETWORK_MESSAGE_ID_SIZE - NETWORK_MESSAGE_LENGTH_SIZE >= NETWORK_MESSAGE_MAX_SIZE)
 			currMsgLength += NETWORK_MESSAGE_LENGTH1_SIZE;
@@ -528,9 +529,12 @@ bool Bundle::revokeMessage(int32 size)
 		}
 	}
 	
-	if(pCurrPacket_)
-		packets_.push_back(pCurrPacket_); 
-	
+	if (pCurrPacket_)
+	{
+		packets_.push_back(pCurrPacket_);
+		pCurrPacket_ = NULL;
+	}
+
 	--numMessages_;
 	currMsgHandlerLength_ = 0;
 		

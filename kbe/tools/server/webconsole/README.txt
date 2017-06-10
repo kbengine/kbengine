@@ -1,8 +1,8 @@
 使用方法:
 1.请自行为你所使用的python安装与之匹配的django模块；
   1.1.如果不想安装django，有另一个选择:
-  1.1.1.如果使用的是python2.6.6：可以选择进入到“kbe/tools/server/django”目录，并在该目录下解压Django-1.6.11.tar.gz文件（解压到当前目录）
-  1.1.2.如果使用的是python2.7或以上：可以选择进入到“kbe/tools/server/django”目录，并在该目录下解压Django-1.8.9.tar.gz文件（解压到当前目录）
+  1.1.1.如果使用的是python2.6.6：可以选择进入到“kbe/tools/server/django_packages”目录，并在该目录下解压Django-1.6.11.tar.gz文件（解压到当前目录）
+  1.1.2.如果使用的是python2.7或以上：可以选择进入到“kbe/tools/server/django_packages”目录，并在该目录下解压Django-1.8.9.tar.gz文件（解压到当前目录）
 2.修改sync_db.bat、sync_db.sh以及run_server.bat、run_server.sh，使其正确指向你所使用的python的路径
 3.第一次使用，需要初始化数据
   3.1.windows下python3.3 + django 1.8.9，运行“sync_db.bat”命令

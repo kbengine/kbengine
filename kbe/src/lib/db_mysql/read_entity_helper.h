@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -64,6 +64,8 @@ public:
 		if(!ret)
 			return ret;
 
+		std::map<DBID, std::vector< std::string >, std::less<DBID> > resultsDatas;
+
 		// 将查询到的结果写入上下文
 		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 
@@ -86,7 +88,23 @@ public:
 				sval >> item_dbid;
 
 				// 将dbid记录到列表中，如果当前表还存在子表引用则会去子表查每一条与此dbid相关的记录
-				context.dbids[context.dbid].push_back(item_dbid);
+				std::vector<DBID>& itemDBIDs = context.dbids[context.dbid];
+				int fidx = -100;
+
+				if (itemDBIDs.size() > 0 && itemDBIDs[itemDBIDs.size() - 1] > item_dbid)
+				{
+					for (fidx = itemDBIDs.size() - 1; fidx > 0; --fidx)
+					{
+						if (itemDBIDs[fidx] < item_dbid)
+							break;
+					}
+
+					itemDBIDs.insert(itemDBIDs.begin() + fidx, item_dbid);
+				}
+				else
+				{
+					itemDBIDs.push_back(item_dbid);
+				}
 
 				// 如果这条记录除了dbid以外还存在其他数据，则将数据填充到结果集中
 				if(nfields > 1)
@@ -98,12 +116,26 @@ public:
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 
-						context.results.push_back(data);
+						if (fidx != -100)
+							resultsDatas[context.dbid].insert(resultsDatas[context.dbid].begin() + fidx++, data);
+						else
+							resultsDatas[context.dbid].push_back(data);
 					}
 				}
 			}
 
 			mysql_free_result(pResult);
+
+			std::vector<DBID>::iterator diter = context.dbids[context.dbid].begin();
+			for (; diter != context.dbids[context.dbid].end(); ++diter)
+			{
+				std::map< DBID, std::vector< std::string >, std::less<DBID> >::iterator friter = resultsDatas.find((*diter));
+				if (friter == resultsDatas.end())
+					continue;
+
+				const std::vector< std::string >& resultsData = friter->second;
+				context.results.insert(context.results.end(), resultsData.begin(), resultsData.end());
+			}
 		}
 		
 		std::vector<DBID>& dbids = context.dbids[context.dbid];
@@ -146,7 +178,8 @@ public:
 			return ret;
 
 		std::vector<DBID> t_parentTableDBIDs;
-
+		std::map< DBID, std::vector< std::string >, std::less<DBID> > resultsDatas;
+		
 		// 将查询到的结果写入上下文
 		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
 
@@ -174,8 +207,25 @@ public:
 				sval >> parentID;
 
 				// 将dbid记录到列表中，如果当前表还存在子表引用则会去子表查每一条与此dbid相关的记录
-				context.dbids[parentID].push_back(item_dbid);
-				t_parentTableDBIDs.push_back(item_dbid);
+				std::vector<DBID>& itemDBIDs = context.dbids[parentID];
+				int fidx = -100;
+
+				if (itemDBIDs.size() > 0 && itemDBIDs[itemDBIDs.size() - 1] > item_dbid)
+				{
+					for (fidx = itemDBIDs.size() - 1; fidx > 0; --fidx)
+					{
+						if (itemDBIDs[fidx] < item_dbid)
+							break;
+					}
+
+					itemDBIDs.insert(itemDBIDs.begin() + fidx, item_dbid);
+					t_parentTableDBIDs.insert(t_parentTableDBIDs.begin() + t_parentTableDBIDs.size() - (itemDBIDs.size() - fidx - 1), item_dbid);
+				}
+				else
+				{
+					itemDBIDs.push_back(item_dbid);
+					t_parentTableDBIDs.push_back(item_dbid);
+				}
 
 				// 如果这条记录除了dbid以外还存在其他数据，则将数据填充到结果集中
 				const uint32 const_fields = 2; // id, parentID
@@ -188,12 +238,26 @@ public:
 						std::string data;
 						data.assign(arow[i], lengths[i]);
 
-						context.results.push_back(data);
+						if (fidx != -100)
+							resultsDatas[parentID].insert(resultsDatas[parentID].begin() + fidx++, data);
+						else
+							resultsDatas[parentID].push_back(data);
 					}
 				}
 			}
 
 			mysql_free_result(pResult);
+
+			std::vector<DBID>::iterator diter = parentTableDBIDs.begin();
+			for (; diter != parentTableDBIDs.end(); ++diter)
+			{
+				std::map< DBID, std::vector< std::string >, std::less<DBID> >::iterator friter = resultsDatas.find((*diter));
+				if (friter == resultsDatas.end())
+					continue;
+
+				const std::vector< std::string >& resultsData = friter->second;
+				context.results.insert(context.results.end(), resultsData.begin(), resultsData.end());
+			}
 		}
 
 		// 如果没有数据则查询完毕了

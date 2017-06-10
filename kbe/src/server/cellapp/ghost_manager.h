@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -54,6 +54,12 @@ public:
 
 	COMPONENT_ID getRoute(ENTITY_ID entityID);
 	void addRoute(ENTITY_ID entityID, COMPONENT_ID componentID);
+
+	/**
+	创建发送bundle，该bundle可能是从send放入发送队列中获取的，如果队列为空
+	则创建一个新的
+	*/
+	Network::Bundle* createSendBundle(COMPONENT_ID componentID);
 
 private:
 	virtual void handleTimeout(TimerHandle handle, void * pUser);

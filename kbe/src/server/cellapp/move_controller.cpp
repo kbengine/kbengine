@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@ MoveController::~MoveController()
 	// DEBUG_MSG(fmt::format("MoveController::~MoveController(): {:p}\n", (void*)this);
 	if (pMoveToPointHandler_)
 	{
-		pMoveToPointHandler_->pController(KBEShared_ptr<Controller>());
+		pMoveToPointHandler_->destroy();
 		pMoveToPointHandler_ = NULL;
 	}
 }
@@ -86,7 +86,7 @@ void MoveController::destroy()
 	// 既然自己要销毁了，那么与自己相联的updatable也应该停止了
 	if (pMoveToPointHandler_)
 	{
-		pMoveToPointHandler_->pController(KBEShared_ptr<Controller>());
+		pMoveToPointHandler_->destroy();
 		pMoveToPointHandler_ = NULL;
 	}
 }

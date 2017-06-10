@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -131,6 +131,11 @@ public:
 	INLINE COMPONENT_CLIENT_TYPE getClientType() const;
 	INLINE void setClientType(COMPONENT_CLIENT_TYPE ctype);
 	DECLARE_PY_MOTHOD_ARG0(pyGetClientType);
+
+	/**
+		断开客户端连接
+	*/
+	DECLARE_PY_MOTHOD_ARG0(pyDisconnect);
 
 	/**
 		获取前端附带数据

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,22 @@ spaces_()
 Spaces::~Spaces()
 {
 	spaces_.clear();
+}
+
+//-------------------------------------------------------------------------------------
+void Spaces::updateSpaceData(SPACE_ID spaceID, const std::string& scriptModuleName, const std::string& geomappingPath, bool deleted)
+{
+	if (deleted)
+	{
+		spaces_.erase(spaceID);
+		return;
+	}
+
+	Space& space = spaces_[spaceID];
+
+	space.setSpaceID(spaceID);
+	space.updateGeomappingPath(geomappingPath);
+	space.updateScriptModuleName(scriptModuleName);
 }
 
 //-------------------------------------------------------------------------------------

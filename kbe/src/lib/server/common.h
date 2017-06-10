@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,7 @@ namespace KBEngine {
 	size_t messageLength = SENDBUNDLE->currMsgLength() - messageLength_last_##ACTIONNAME;												\
 	Network::Packet* pCurrPacket = SENDBUNDLE->pCurrPacket();																			\
 																																		\
-	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE || Network::g_packetAlwaysContainLength)										\
+	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE)																				\
 	{																																	\
 		if(messageLength >= NETWORK_MESSAGE_MAX_SIZE)																					\
 		{																																\
@@ -90,10 +90,13 @@ namespace KBEngine {
 		}																																\
 	}																																	\
 																																		\
+	Network::NetworkStats::getSingleton().trackMessage(Network::NetworkStats::SEND, MESSAGEHANDLE, messageLength);						\
+																																		\
 	if (Network::g_trace_packet > 0)																									\
 		Network::Bundle::debugCurrentMessages(MESSAGEHANDLE.msgID, &MESSAGEHANDLE, 														\
 				pCurrPacket, SENDBUNDLE->packets(), messageLength, SENDBUNDLE->pChannel());												\
 }																																		\
+
 
 // cellapp转发消息给客户端消息包追加消息(直接在SENDBUNDLE追加)
 #define ENTITY_MESSAGE_FORWARD_CLIENT_START(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
@@ -102,7 +105,7 @@ namespace KBEngine {
 	Network::Packet* pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																\
 	if(MESSAGEHANDLE.msgLen == NETWORK_VARIABLE_MESSAGE)																				\
 	{																																	\
-		if(SENDBUNDLE->packetMaxSize() - pCurrPacket_##ACTIONNAME->wpos() - 1 < NETWORK_MESSAGE_LENGTH_SIZE)								\
+		if(SENDBUNDLE->packetMaxSize() - pCurrPacket_##ACTIONNAME->wpos() - 1 < NETWORK_MESSAGE_LENGTH_SIZE)							\
 		{																																\
 			SENDBUNDLE->finiCurrPacket();																								\
 			SENDBUNDLE->newPacket();																									\
@@ -112,9 +115,9 @@ namespace KBEngine {
 		Network::MessageLength msglen = 0;																								\
 		currMsgLengthPos_##ACTIONNAME = pCurrPacket_##ACTIONNAME->wpos();																\
 		(*SENDBUNDLE) << msglen;																										\
-	}																																		\
-																																			\
-	size_t messageLength_last_##ACTIONNAME = SENDBUNDLE->currMsgLength();															\
+	}																																	\
+																																		\
+	size_t messageLength_last_##ACTIONNAME = SENDBUNDLE->currMsgLength();																\
 
 
 // 公共消息
@@ -206,8 +209,8 @@ inline uint64 secondsToStamps(float seconds)
 /*
  账号和密码最大长度
 */
-#define ACCOUNT_NAME_MAX_LENGTH						1024
-#define ACCOUNT_PASSWD_MAX_LENGTH					1024
+#define ACCOUNT_NAME_MAX_LENGTH						128
+#define ACCOUNT_PASSWD_MAX_LENGTH					255
 
 // 登录注册时附带的信息最大长度
 #define ACCOUNT_DATA_MAX_LENGTH						1024

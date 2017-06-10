@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -115,12 +115,14 @@ public:
 	/**
 	* 在linux下启动一个新进程
 	*/
-	uint16 startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus);
+	uint16 startLinuxProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
+		std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH);
 #else
 	/**
 	* 在windows下启动一个新进程
 	*/
-	DWORD startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus);
+	DWORD startWindowsProcess(int32 uid, COMPONENT_TYPE componentType, uint64 cid, int16 gus, 
+		std::string& KBE_ROOT, std::string& KBE_RES_PATH, std::string& KBE_BIN_PATH);
 #endif
 
 	/** 网络接口
@@ -128,6 +130,12 @@ public:
 		@uid: 提供启动的uid参数
 	*/
 	void stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+	杀死服务器
+	@uid: 提供启动的uid参数
+	*/
+	void killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
 		对本机运行的组件进行检查是否可用

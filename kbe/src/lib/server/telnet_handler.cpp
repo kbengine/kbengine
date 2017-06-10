@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -210,6 +210,46 @@ std::string TelnetHandler::getHistoryCommand(bool isNextCommand)
 }
 
 //-------------------------------------------------------------------------------------
+Network::Reason TelnetHandler::checkLastErrors()
+{
+	int err;
+	Network::Reason reason;
+
+#ifdef unix
+	err = errno;
+
+	switch (err)
+	{
+	case ECONNREFUSED:	reason = Network::REASON_NO_SUCH_PORT; break;
+	case EAGAIN:		reason = Network::REASON_RESOURCE_UNAVAILABLE; break;
+	case EPIPE:			reason = Network::REASON_CLIENT_DISCONNECTED; break;
+	case ECONNRESET:	reason = Network::REASON_CLIENT_DISCONNECTED; break;
+	case ENOBUFS:		reason = Network::REASON_TRANSMIT_QUEUE_FULL; break;
+	default:			reason = Network::REASON_GENERAL_NETWORK; break;
+	}
+#else
+	err = WSAGetLastError();
+
+	if (err == WSAEWOULDBLOCK || err == WSAEINTR)
+	{
+		reason = Network::REASON_RESOURCE_UNAVAILABLE;
+	}
+	else
+	{
+		switch (err)
+		{
+		case WSAECONNREFUSED:   reason = Network::REASON_NO_SUCH_PORT; break;
+		case WSAECONNRESET:     reason = Network::REASON_CLIENT_DISCONNECTED; break;
+		case WSAECONNABORTED:   reason = Network::REASON_CLIENT_DISCONNECTED; break;
+		default:                reason = Network::REASON_GENERAL_NETWORK; break;
+		}
+	}
+#endif
+
+	return reason;
+}
+
+//-------------------------------------------------------------------------------------
 int	TelnetHandler::handleInputNotification(int fd)
 {
 	KBE_ASSERT((*pEndPoint_) == fd);
@@ -219,7 +259,11 @@ int	TelnetHandler::handleInputNotification(int fd)
 
 	if(recvsize == -1)
 	{
+		Network::Reason err = checkLastErrors();
+		if (err != Network::REASON_RESOURCE_UNAVAILABLE)
+			pTelnetServer_->onTelnetHandlerClosed(fd, this);
 		return 0;
+
 	}
 	else if(recvsize == 0)
 	{
@@ -586,7 +630,36 @@ bool TelnetHandler::processCommand()
 		readonly();
 		return false;
 	}
-	else if(cmd.find(":eventprofile") == 0)
+	else if (cmd.find(":pytickprofile") == 0)
+	{
+		uint32 timelen = 10;
+
+		cmd.erase(cmd.find(":pytickprofile"), strlen(":pytickprofile"));
+		if (cmd.size() > 0)
+		{
+			try
+			{
+				KBEngine::StringConv::str2value(timelen, cmd.c_str());
+			}
+			catch (...)
+			{
+				timelen = 10;
+			}
+
+			if (timelen < 1 || timelen > 999999999)
+				timelen = 10;
+		}
+
+		std::string profileName = KBEngine::StringConv::val2str(KBEngine::genUUID64());
+
+		if (pProfileHandler_) pProfileHandler_->destroy();
+		pProfileHandler_ = new TelnetPyTickProfileHandler(this, *pTelnetServer_->pNetworkInterface(),
+			timelen, profileName, pEndPoint_->addr());
+
+		readonly();
+		return false;
+	}
+	else if (cmd.find(":eventprofile") == 0)
 	{
 		uint32 timelen = 10;
 
@@ -761,8 +834,11 @@ void TelnetHandler::readonly()
 //-------------------------------------------------------------------------------------
 void TelnetHandler::onProfileEnd(const std::string& datas)
 {
-	sendEnter();
-	pEndPoint()->send(datas.c_str(), datas.size());
+	if (datas.size() > 0)
+	{
+		sendEnter();
+		pEndPoint()->send(datas.c_str(), datas.size());
+	}
 	setReadWrite();
 	sendEnter();
 	sendNewLine();
@@ -790,6 +866,51 @@ void TelnetPyProfileHandler::sendStream(MemoryStream* s)
 	}
 
 	pTelnetHandler_->onProfileEnd(datas);
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetPyTickProfileHandler::sendStream(MemoryStream* s)
+{
+	if (isDestroyed_ || !pTelnetHandler_)
+		return;
+
+
+	std::string datas;
+	(*s) >> datas;
+
+	// 把返回值中的'\n'替換成'\r\n'，以解决在vt100终端中显示不正确的问题
+	std::string::size_type pos = 0;
+	while ((pos = datas.find('\n', pos)) != std::string::npos)
+	{
+		if (datas[pos - 1] != '\r')
+		{
+			datas.insert(pos, "\r");
+			pos++;
+		}
+		pos++;
+	}
+
+	pTelnetHandler_->sendEnter();
+	pTelnetHandler_->pEndPoint()->send(datas.c_str(), datas.size());
+	//pTelnetHandler_->onProfileEnd(datas);
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetPyTickProfileHandler::timeout()
+{
+	PyTickProfileHandler::timeout();
+
+	if (isDestroyed_ || !pTelnetHandler_)
+		return;
+
+	pTelnetHandler_->onProfileEnd("");
+}
+
+//-------------------------------------------------------------------------------------
+void TelnetPyTickProfileHandler::destroy()
+{
+	TelnetProfileHandler::destroy();
+	pTelnetHandler_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../server/baseapp/baseapp_interface.h"
 #include "../../server/cellapp/cellapp_interface.h"
+
+#ifndef CODE_INLINE
+#include "entitymailboxabstract.inl"
+#endif
 
 namespace KBEngine{
 

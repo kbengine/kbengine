@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -198,6 +198,18 @@ void Components::addComponent(int32 uid, const char* username,
 		return;
 	}
 	
+	// 如果该uid下没有已经运行的任何相关组件，那么重置计数器
+	if (getGameSrvComponentsSize(uid) == 0)
+	{
+		_globalOrderLog[uid] = 0;
+		_baseappGrouplOrderLog[uid] = 0;
+		_cellappGrouplOrderLog[uid] = 0;
+		_loginappGrouplOrderLog[uid] = 0;
+
+		INFO_MSG(fmt::format("Components::addComponent: reset orderLog, uid={}!\n",
+			uid));
+	}
+
 	ComponentInfos componentInfos;
 
 	componentInfos.pIntAddr.reset(new Network::Address(intaddr, intport));
@@ -330,14 +342,14 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				if(!isShutingdown)
+				if (!isShutingdown && g_componentType != LOGGER_TYPE)
 				{
-					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit.\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid));
+					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! {}\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid, kbe_strerror()));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit!\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid)).c_str());
+					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! {}\n",
+						COMPONENT_NAME_EX(componentType), (*iter).cid, kbe_strerror())).c_str());
 #endif
 				}
 				else
@@ -366,7 +378,16 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPONENT_ID componentID, bool printlog)
 {
 	Components::ComponentInfos* pComponentInfos = findComponent(componentType, uid, componentID);
-	KBE_ASSERT(pComponentInfos != NULL);
+	if (pComponentInfos == NULL)
+	{
+		if (printlog)
+		{
+			ERROR_MSG(fmt::format("Components::connectComponent: not found componentType={}, uid={}, componentID={}!\n",
+				COMPONENT_NAME_EX(componentType), uid, componentID));
+		}
+
+		return -1;
+	}
 
 	Network::EndPoint * pEndpoint = Network::EndPoint::createPoolObject();
 	pEndpoint->socket(SOCK_STREAM);
@@ -713,6 +734,9 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 		return true;
 	}
 
+	if (!lookupLocalComponentRunning(info->pid))
+		return false;
+
 	Network::EndPoint epListen;
 	epListen.socket(SOCK_STREAM);
 	if (!epListen.good())
@@ -933,15 +957,58 @@ Network::Channel* Components::getLoggerChannel()
 }
 
 //-------------------------------------------------------------------------------------	
+size_t Components::getGameSrvComponentsSize(int32 uid)
+{
+	size_t size = 0;
+
+	COMPONENTS::iterator iter = _baseapps.begin();
+	for (; iter != _baseapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _baseappmgrs.begin();
+	for (; iter != _baseappmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _cellapps.begin();
+	for (; iter != _cellapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _cellappmgrs.begin();
+	for (; iter != _cellappmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _dbmgrs.begin();
+	for (; iter != _dbmgrs.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	iter = _loginapps.begin();
+	for (; iter != _loginapps.end(); ++iter)
+	{
+		if ((*iter).uid == uid)
+			++size;
+	}
+
+	return size;
+}
+
+//-------------------------------------------------------------------------------------	
 size_t Components::getGameSrvComponentsSize()
 {
-	COMPONENTS	_baseapps;
-	COMPONENTS	_cellapps;
-	COMPONENTS	_dbmgrs;
-	COMPONENTS	_loginapps;
-	COMPONENTS	_cellappmgrs;
-	COMPONENTS	_baseappmgrs;
-
 	return _baseapps.size() + _cellapps.size() + _dbmgrs.size() + 
 		_loginapps.size() + _cellappmgrs.size() + _baseappmgrs.size();
 }
@@ -992,6 +1059,11 @@ bool Components::findLogger()
 		MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 			g_componentType, g_componentID, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 
+		ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+		std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+		for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+			bhandler.addBroadCastAddress((*machine_addresses_iter));
+			
 		if(!bhandler.broadcast())
 		{
 			//ERROR_MSG("Components::findLogger: broadcast error!\n");
@@ -1107,8 +1179,9 @@ bool Components::findComponents()
 			}
 			else
 			{
-				std::string s = fmt::format("Components::findComponents: find {}({})...\n",
-					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count);
+				std::string s = fmt::format("Components::findComponents: find {}({})...\ndelay time is too long, please check the {} logs!\n",
+					COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType), ++count, COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType));
+
 				WARNING_MSG(s);
 
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -1125,6 +1198,7 @@ bool Components::findComponents()
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 			if(!bhandler.good())
 			{
+				//ERROR_MSG("Components::findComponents: bhandler error!\n");
 				return false;
 			}
 
@@ -1138,6 +1212,11 @@ bool Components::findComponents()
 			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
 				componentType_, componentID_, findComponentType, pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
 
+			ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+			std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+			for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+				bhandler.addBroadCastAddress((*machine_addresses_iter));
+			
 			if(!bhandler.broadcast())
 			{
 				ERROR_MSG("Components::findComponents: broadcast error!\n");
@@ -1317,6 +1396,64 @@ void Components::onFoundAllComponents()
 }
 
 //-------------------------------------------------------------------------------------
+void Components::broadcastSelf()
+{
+	int cidex = 0;
+	int errcount = 0;
+
+	while (cidex++ < 2)
+	{
+		if (dispatcher().hasBreakProcessing() || dispatcher().waitingBreakProcessing())
+			return;
+
+		srand(KBEngine::getSystemTime());
+		uint16 nport = KBE_PORT_START + (rand() % 1000);
+
+		// 向局域网内广播UDP包，提交自己的身份
+		Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
+
+		if (!bhandler.good())
+		{
+			if (errcount++ > 255)
+			{
+				ERROR_MSG(fmt::format("Components::broadcastSelf(): BundleBroadcast error! count > {}\n", (errcount - 1)));
+				dispatcher().breakProcessing();
+				return;
+			}
+
+			// 如果失败则继续广播
+			--cidex;
+			KBEngine::sleep(10);
+			continue;
+		}
+
+		bhandler.newMessage(MachineInterface::onBroadcastInterface);
+		MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle(bhandler, getUserUID(), getUsername(),
+			componentType_, componentID_, cidex, g_componentGlobalOrder, g_componentGroupOrder, g_genuuid_sections,
+			pNetworkInterface()->intaddr().ip, pNetworkInterface()->intaddr().port,
+			pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
+			SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, extraData1_, extraData2_, extraData3_, extraData4_,
+			pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+
+		ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+		std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+		for (; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+			bhandler.addBroadCastAddress((*machine_addresses_iter));
+
+		bhandler.broadcast();
+
+		int32 timeout = 100000;
+		MachineInterface::onBroadcastInterfaceArgs25 args;
+
+		if (bhandler.receive(&args, 0, timeout, false))
+		{
+		}
+
+		bhandler.close();
+	}
+}
+
+//-------------------------------------------------------------------------------------
 bool Components::process()
 {
 	if(componentType_ == MACHINE_TYPE)
@@ -1328,6 +1465,7 @@ bool Components::process()
 	if(state_ == 0)
 	{
 		uint64 cidex = 0;
+		uint32 errcount = 0;
 
 		DEBUG_MSG("Components::process(): Request for the process of identity...\n");
 
@@ -1342,8 +1480,18 @@ bool Components::process()
 			// 向局域网内广播UDP包，提交自己的身份
 			Network::BundleBroadcast bhandler(*pNetworkInterface(), nport);
 
-			if(!bhandler.good())
+			if (!bhandler.good())
 			{
+				if (errcount++ > 255)
+				{
+					ERROR_MSG(fmt::format("Components::process(): BundleBroadcast error! count > {}\n", (errcount - 1)));
+					dispatcher().breakProcessing();
+					return false;
+				}
+
+				// 如果失败则继续广播
+				--cidex;
+				KBEngine::sleep(10);
 				continue;
 			}
 
@@ -1354,6 +1502,11 @@ bool Components::process()
 				pNetworkInterface()->extaddr().ip, pNetworkInterface()->extaddr().port, g_kbeSrvConfig.getConfig().externalAddress, getProcessPID(),
 				SystemInfo::getSingleton().getCPUPerByPID(), 0.f, (uint32)SystemInfo::getSingleton().getMemUsedByPID(), 0, 0, extraData1_, extraData2_, extraData3_, extraData4_, 
 				pNetworkInterface()->intaddr().ip, bhandler.epListen().addr().port);
+			
+			ENGINE_COMPONENT_INFO cinfos = ServerConfig::getSingleton().getKBMachine();
+			std::vector< std::string >::iterator machine_addresses_iter = cinfos.machine_addresses.begin();
+			for(; machine_addresses_iter != cinfos.machine_addresses.end(); ++machine_addresses_iter)
+				bhandler.addBroadCastAddress((*machine_addresses_iter));
 			
 			bhandler.broadcast();
 
@@ -1399,7 +1552,7 @@ bool Components::process()
 
 					return false;
 
-				}while(bhandler.pCurrPacket()->length() > 0);
+				} while(bhandler.pCurrPacket()->length() > 0);
 			}
 
 			bhandler.close();

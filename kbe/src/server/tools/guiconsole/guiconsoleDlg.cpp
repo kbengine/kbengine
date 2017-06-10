@@ -464,6 +464,10 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	KBEngine::ConsoleInterface::messageHandlers.add("Console::onReceiveProfileData", new KBEngine::ConsoleInterface::ConsoleProfileHandlerArgsStream, NETWORK_VARIABLE_MESSAGE, 
 		new ConsoleProfileHandlerEx);
 
+	KBEngine::Network::Bundle::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
+	KBEngine::Network::TCPPacket::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
+	KBEngine::Network::UDPPacket::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
+	KBEngine::MemoryStream::ObjPool().pMutex(new KBEngine::thread::ThreadMutex());
 	threadPool_.createThreadPool(1, 1, 16);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -1329,6 +1333,14 @@ Network::Address CguiconsoleDlg::getTreeItemAddr(HTREEITEM hItem)
 	sport = sbuf.substr(k + 1, sbuf.find("]"));
 	strutil::kbe_replace(sport, "]", "");
 
+	std::map<CString, CString>::iterator mapiter = m_ipMappings.find(CString(sip.c_str()));
+	if (mapiter != m_ipMappings.end())
+	{
+		buf = KBEngine::strutil::wchar2char(mapiter->second.GetBuffer(0));
+		sip = buf;
+		free(buf);
+	}
+
 	Network::EndPoint endpoint;
 	u_int32_t address;
 	Network::Address::string2ip(sip.c_str(), address);
@@ -1576,7 +1588,7 @@ void CguiconsoleDlg::OnNMClickTree1(NMHDR *pNMHDR, LRESULT *pResult)
 	{
 		HTREEITEM hItem = m_tree.GetSelectedItem(); 
 		KBEngine::Network::Address addr = getTreeItemAddr(hItem);
-		m_logWnd.onConnectStatus(changeToChecked, addr);
+		m_logWnd.onConnectionState(changeToChecked, addr);
 	}
 }
 
@@ -1698,7 +1710,9 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 		bhandler.newMessage(MachineInterface::stopserver);
 		bhandler << KBEngine::getUserUID();
 		bhandler << componentType;
-
+		KBEngine::COMPONENT_ID cid = 0;
+		bhandler << cid;
+		
 		uint32 ip = _networkInterface.intaddr().ip;
 		uint16 port = bhandler.epListen().addr().port;
 		bhandler << ip << port;

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -58,6 +58,8 @@ uint32						g_intSendWindowMessagesOverflow = 65535;
 uint32						g_extSendWindowMessagesOverflow = 256;
 uint32						g_intSendWindowBytesOverflow = 0;
 uint32						g_extSendWindowBytesOverflow = 65535;
+uint32						g_intSentWindowBytesOverflow = 0;
+uint32						g_extSentWindowBytesOverflow = 0;
 
 // 通道发送超时重试
 uint32						g_intReSendInterval = 10;

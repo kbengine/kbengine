@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -167,6 +167,7 @@ bool DBInterfaceMysql::initInterface(DBInterface* pdbi)
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
 
 	entityTables.addKBETable(new KBEAccountTableMysql(&entityTables));
+	entityTables.addKBETable(new KBEServerLogTableMysql(&entityTables));
 	entityTables.addKBETable(new KBEEntityLogTableMysql(&entityTables));
 	entityTables.addKBETable(new KBEEmailVerificationTableMysql(&entityTables));
 	return true;
@@ -255,7 +256,7 @@ __RECONNECT:
 			}
 		}
 
-		if (mysql_set_character_set(mysql(), "utf8") != 0)
+		if (mysql_set_character_set(mysql(), characterSet_.c_str()) != 0)
 		{
 			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
 			return false;
@@ -345,7 +346,7 @@ bool DBInterfaceMysql::createDatabaseIfNotExist()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::checkErrors()
 {
-	std::string querycmd = fmt::format("SHOW TABLES LIKE \"tbl_{}\"", DBUtil::accountScriptName());
+	std::string querycmd = fmt::format("SHOW TABLES LIKE \"" ENTITY_TABLE_PERFIX "_{}\"", DBUtil::accountScriptName());
 	if(!query(querycmd.c_str(), querycmd.size(), true))
 	{
 		ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query is error!\n", querycmd));
@@ -362,9 +363,9 @@ bool DBInterfaceMysql::checkErrors()
 
 	if(!foundAccountTable)
 	{
-		querycmd = "DROP TABLE `kbe_email_verification`, `kbe_accountinfos`";
+		querycmd = "DROP TABLE `" KBE_TABLE_PERFIX "_email_verification`, `" KBE_TABLE_PERFIX "_accountinfos`";
 
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset " KBE_TABLE_PERFIX "_* table...\n", 
 			DBUtil::accountScriptName()));
 		
 		try
@@ -375,7 +376,7 @@ bool DBInterfaceMysql::checkErrors()
 		{
 		}
 		
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset " KBE_TABLE_PERFIX "_* table end!\n"));
 	}
 
 	return true;

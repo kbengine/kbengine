@@ -21,6 +21,8 @@ def funcInt(mapDict, dctData, chilidDict, data):
 	except:
 		return 0
 
+	v = int(v)
+
 	if type(v) != int:
 		return 0
 

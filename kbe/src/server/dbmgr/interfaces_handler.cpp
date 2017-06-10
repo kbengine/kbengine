@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -76,7 +76,7 @@ bool InterfacesHandler_Dbmgr::createAccount(Network::Channel* pChannel, std::str
 {
 	std::string dbInterfaceName = Dbmgr::getSingleton().selectAccountDBInterfaceName(registerName);
 
-	thread::ThreadPool* pThreadPool =DBUtil::pThreadPool(dbInterfaceName);
+	thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(dbInterfaceName);
 	if (!pThreadPool)
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Dbmgr::createAccount: not found dbInterface({})!\n",
@@ -121,7 +121,7 @@ bool InterfacesHandler_Dbmgr::loginAccount(Network::Channel* pChannel, std::stri
 	}
 
 	pThreadPool->addTask(new DBTaskAccountLogin(pChannel->addr(),
-		loginName, loginName, password, SERVER_SUCCESS, datas, datas));
+		loginName, loginName, password, SERVER_SUCCESS, datas, datas, true));
 
 	return true;
 }
@@ -374,10 +374,12 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	s.readBlob(postdatas);
 	s.readBlob(getdatas);
 
-	if(success != SERVER_SUCCESS)
-	{
+	bool needCheckPassword = (success == SERVER_ERR_LOCAL_PROCESSING);
+
+	if (success != SERVER_SUCCESS && success != SERVER_ERR_LOCAL_PROCESSING)
 		accountName = "";
-	}
+	else
+		success = SERVER_SUCCESS;
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(LOGINAPP_TYPE, cid);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
@@ -398,7 +400,7 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 	}
 
 	pThreadPool->addTask(new DBTaskAccountLogin(cinfos->pChannel->addr(),
-		loginName, accountName, password, success, postdatas, getdatas));
+		loginName, accountName, password, success, postdatas, getdatas, needCheckPassword));
 }
 
 //-------------------------------------------------------------------------------------
@@ -453,13 +455,15 @@ bool InterfacesHandler_Interfaces::reconnect()
 
 	if(pInterfacesChannel->pEndPoint()->connect() == -1)
 	{
-		struct timeval tv = { 0, 300000 }; // 300ms
-		fd_set	fds;
-		FD_ZERO(&fds);
-		FD_SET((int)(*pInterfacesChannel->pEndPoint()), &fds);
-
+		struct timeval tv = { 0, 2000000 }; // 1000ms
+		fd_set frds, fwds;
+		FD_ZERO( &frds );
+		FD_ZERO( &fwds );
+		FD_SET((int)(*pInterfacesChannel->pEndPoint()), &frds);
+		FD_SET((int)(*pInterfacesChannel->pEndPoint()), &fwds);
+		
 		bool connected = false;
-		int selgot = select((*pInterfacesChannel->pEndPoint())+1, &fds, &fds, NULL, &tv);
+		int selgot = select((*pInterfacesChannel->pEndPoint())+1, &frds, &fwds, NULL, &tv);
 		if(selgot > 0)
 		{
 			int error;
@@ -475,7 +479,7 @@ bool InterfacesHandler_Interfaces::reconnect()
 
 		if(!connected)
 		{
-			ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::reconnect(): couldn't connect to:{}\n", 
+			ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::reconnect(): couldn't connect to(interfaces server): {}! Check kbengine[_defs].xml->interfaces->host and interfaces.*.log\n", 
 				pInterfacesChannel->pEndPoint()->addr().c_str()));
 
 			pInterfacesChannel->destroy();
@@ -553,12 +557,32 @@ void InterfacesHandler_Interfaces::onChargeCB(KBEngine::MemoryStream& s)
 		chargeID, cbid, datas, dbid, cid));
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, cid);
-	if(cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
+	if (cid == 0 || cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
 	{
 		ERROR_MSG(fmt::format("InterfacesHandler_Interfaces::onChargeCB: baseapp not found!, chargeID={}, cid={}.\n", 
 			chargeID, cid));
 
-		return;
+		// 此时应该随机找一个baseapp调用onLoseChargeCB
+		bool found = false;
+
+		Components::COMPONENTS& components = Components::getSingleton().getComponents(BASEAPP_TYPE);
+		for (Components::COMPONENTS::iterator iter = components.begin(); iter != components.end(); ++iter)
+		{
+			cinfos = &(*iter);
+			if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->pChannel->isDestroyed())
+			{
+				continue;
+			}
+
+			WARNING_MSG(fmt::format("InterfacesHandler_Interfaces::onChargeCB: , chargeID={}, not found cid={}, forward to component({}) processing!\n",
+				chargeID, cid, cinfos->cid));
+
+			found = true;
+			break;
+		}
+
+		if (!found)
+			return;
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -595,34 +619,45 @@ void InterfacesHandler_Interfaces::eraseClientReq(Network::Channel* pChannel, st
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountActivate(Network::Channel* pChannel, std::string& scode)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountActivate(pChannel, scode);
 }
-
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountReqResetPassword(Network::Channel* pChannel, std::string& accountName)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountReqResetPassword(pChannel, accountName);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountResetPassword(Network::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& scode)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountResetPassword(pChannel, accountName, newpassword, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 												   std::string& password, std::string& email)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountReqBindMail(pChannel, entityID, accountName, password, email);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountBindMail(pChannel, username, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 												   std::string& password, std::string& newpassword)
 {
+	// 该功能不支持第三方系统，所以当做本地账号系统执行
+	InterfacesHandler_Dbmgr::accountNewPassword(pChannel, entityID, accountName, password, newpassword);
 }
 
 //-------------------------------------------------------------------------------------

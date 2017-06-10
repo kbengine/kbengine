@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -69,16 +69,23 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 
 	if(methodDescription->checkArgs(args))
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		mailbox->newMail((*pBundle));
+		Network::Channel* pChannel = mailbox->getChannel();
+		Network::Bundle* pSendBundle = NULL;
+
+		if (!pChannel)
+			pSendBundle = Network::Bundle::createPoolObject();
+		else
+			pSendBundle = pChannel->createSendBundle();
+
+		mailbox->newMail((*pSendBundle));
 
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
 
 		if(mstream.wpos() > 0)
-			(*pBundle).append(mstream.data(), mstream.wpos());
+			(*pSendBundle).append(mstream.data(), mstream.wpos());
 
-		mailbox->postMail(pBundle);
+		mailbox->postMail(pSendBundle);
 	}
 	else
 	{

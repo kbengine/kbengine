@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -82,9 +82,9 @@ public:
 	~ServerApp();
 
 	virtual bool initialize();
-	virtual bool initializeBegin(){return true;};
+	virtual bool initializeBegin() { return true; }
 	virtual bool inInitialize(){ return true; }
-	virtual bool initializeEnd(){return true;};
+	virtual bool initializeEnd() {return true; }
 	virtual void finalise();
 	virtual bool run();
 	
@@ -104,7 +104,7 @@ public:
 	double gameTimeInSeconds() const;
 	void handleTimers();
 
-	thread::ThreadPool& threadPool(){ return threadPool_; }
+	thread::ThreadPool& threadPool() { return threadPool_; }
 
 	Network::EventDispatcher & dispatcher()				{ return dispatcher_; }
 	Network::NetworkInterface & networkInterface()			{ return networkInterface_; }
@@ -130,8 +130,8 @@ public:
 
 	void shutDown(float shutdowntime = -FLT_MAX);
 
-	COMPONENT_ORDER globalOrder() const{ return startGlobalOrder_; }
-	COMPONENT_ORDER groupOrder() const{ return startGroupOrder_; }
+	COMPONENT_ORDER globalOrder() const { return startGlobalOrder_; }
+	COMPONENT_ORDER groupOrder() const { return startGroupOrder_; }
 
 	/** 网络接口
 		注册一个新激活的baseapp或者cellapp或者dbmgr

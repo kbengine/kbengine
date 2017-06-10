@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -132,6 +132,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 
 	// client更新数据
 	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClient,					NETWORK_VARIABLE_MESSAGE)
+	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClientForControlledEntity, NETWORK_VARIABLE_MESSAGE)
 
 	// executeRawDatabaseCommand从dbmgr的回调
 	CELLAPP_MESSAGE_DECLARE_STREAM(onExecuteRawDatabaseCommandCB,			NETWORK_VARIABLE_MESSAGE)
@@ -171,6 +172,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 
 	// 请求强制杀死当前app
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqKillServer,							NETWORK_VARIABLE_MESSAGE)
+
+	// 工具请求改变space查看器（含添加和删除功能）
+	CELLAPP_MESSAGE_DECLARE_STREAM(setSpaceViewer,							NETWORK_VARIABLE_MESSAGE)
 
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法

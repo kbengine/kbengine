@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -106,6 +106,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(MachineInterface)
 
 	// 关闭服务器
 	MACHINE_MESSAGE_DECLARE_STREAM(stopserver,						NETWORK_VARIABLE_MESSAGE)
+
+	// 关闭服务器
+	MACHINE_MESSAGE_DECLARE_STREAM(killserver,						NETWORK_VARIABLE_MESSAGE)
 
 	// 请求强制杀死当前app
 	MACHINE_MESSAGE_DECLARE_STREAM(reqKillServer,					NETWORK_VARIABLE_MESSAGE)

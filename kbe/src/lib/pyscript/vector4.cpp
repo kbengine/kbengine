@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -425,7 +425,7 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "args is must a sequence.");
+			PyErr_Format(PyExc_TypeError, "ScriptVector4::check(): args is must a sequence.");
 			PyErr_PrintEx(0);
 		}
 
@@ -437,7 +437,7 @@ bool ScriptVector4::check(PyObject* value, bool isPrintErr)
 	{
 		if(isPrintErr)
 		{
-			PyErr_Format(PyExc_TypeError, "len(args) != %d. can't set.", VECTOR_SIZE);
+			PyErr_Format(PyExc_TypeError, "ScriptVector4::check(): len(args) != %d. can't set.", VECTOR_SIZE);
 			PyErr_PrintEx(0);
 		}
 

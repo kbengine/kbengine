@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class EntityMailbox;
-class BaseMessagesForwardHandler;
+class BaseMessagesForwardCellappHandler;
+class BaseMessagesForwardClientHandler;
 
 namespace Network
 {
@@ -67,6 +68,12 @@ public:
 	INLINE DBID dbid() const;
 	INLINE void dbid(uint16 dbInterfaceIndex, DBID id);
 	DECLARE_PY_GET_MOTHOD(pyGetDBID);
+
+	/**
+	数据库关联名称
+	*/
+	INLINE uint16 dbInterfaceIndex() const;
+	DECLARE_PY_GET_MOTHOD(pyGetDBInterfaceName);
 
 	/** 
 		销毁cell部分的实体 
@@ -243,8 +250,8 @@ public:
 	/** 网络接口
 		entity请求迁移到另一个cellapp上的过程开始和结束。
 	*/
-	void onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID cellappID);
-	void onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID cellappID);
+	void onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
+	void onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
 
 	/**
 		设置获取是否自动存档
@@ -269,15 +276,16 @@ public:
 		转发消息完成 
 	*/
 	void onBufferedForwardToCellappMessagesOver();
-
+	void onBufferedForwardToClientMessagesOver();
+	
+	INLINE BaseMessagesForwardClientHandler* pBufferedSendToClientMessages();
+	
 	/** 
 		设置实体持久化数据是否已脏，脏了会自动存档 
 	*/
 	INLINE void setDirty(bool dirty = true);
 	INLINE bool isDirty() const;
 	
-	INLINE uint16 dbInterfaceIndex() const;
-
 protected:
 	/** 
 		定义属性数据被改变了 
@@ -292,14 +300,14 @@ protected:
 
 protected:
 	// 这个entity的客户端mailbox cellapp mailbox
-	EntityMailbox*							clientMailbox_;			
+	EntityMailbox*							clientMailbox_;
 	EntityMailbox*							cellMailbox_;
 
 	// entity创建后，在cell部分未创建时，将一些cell属性数据保存在这里
-	PyObject*								cellDataDict_;			
+	PyObject*								cellDataDict_;
 
 	// 是否是存储到数据库中的entity
-	bool									hasDB_;					
+	bool									hasDB_;
 	DBID									DBID_;
 
 	// 是否正在获取celldata中
@@ -322,9 +330,12 @@ protected:
 
 	// 是否正在恢复
 	bool									inRestore_;
-
-	// 在一些状态下(传送过程中)，发往cellapp的数据包需要被缓存, 合适的状态需要继续转发
-	BaseMessagesForwardHandler*				pBufferedSendToCellappMessages_;
+	
+	// 如果此时实体还没有被设置为ENTITY_FLAGS_TELEPORT_START,  说明onMigrationCellappArrived包优先于
+	// onMigrationCellappStart到达(某些压力所致的情况下会导致实体跨进程跳转时（由cell1跳转到cell2），
+	// 跳转前所产生的包会比cell2的enterSpace包慢到达)，因此发生这种情况时需要将cell2的包先缓存
+	// 等cell1的包到达后执行完毕再执行cell2的包
+	BaseMessagesForwardClientHandler*		pBufferedSendToClientMessages_;
 	
 	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
 	bool									isDirty_;

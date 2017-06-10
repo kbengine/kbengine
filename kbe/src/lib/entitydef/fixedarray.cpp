@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -44,38 +44,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(FixedArray, 0, &Sequence::seqMethods, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-FixedArray::FixedArray(DataType* dataType, std::string& strInitData):
-Sequence(getScriptType(), false)
-{
-	_dataType = static_cast<FixedArrayType*>(dataType);
-	_dataType->incRef();
-	initialize(strInitData);
-
-	script::PyGC::incTracing("FixedArray");
-
-//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
-}
-
-//-------------------------------------------------------------------------------------
-FixedArray::FixedArray(DataType* dataType, PyObject* pyInitData):
-Sequence(getScriptType(), false)
-{
-	_dataType = static_cast<FixedArrayType*>(dataType);
-	_dataType->incRef();
-	initialize(pyInitData);
-
-	script::PyGC::incTracing("FixedArray");
-
-//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
-}
-
-//-------------------------------------------------------------------------------------
 FixedArray::FixedArray(DataType* dataType):
 Sequence(getScriptType(), false)
 {
 	_dataType = static_cast<FixedArrayType*>(dataType);
 	_dataType->incRef();
-	initialize("");
 
 	script::PyGC::incTracing("FixedArray");
 
@@ -169,7 +142,9 @@ PyObject* FixedArray::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
-	return new FixedArray(DataTypes::getDataType(uid), pyList);
+	FixedArray* pFixedArray = new FixedArray(DataTypes::getDataType(uid));
+	pFixedArray->initialize(pyList);
+	return pFixedArray;
 }
 
 //-------------------------------------------------------------------------------------
@@ -238,25 +213,26 @@ PyObject* FixedArray::__py_index(PyObject* self, PyObject* args, PyObject* kwarg
 		PyErr_SetString(PyExc_ValueError, "FixedArray::index: value not found");
 		return NULL;
 	}
+
 	return PyLong_FromLong(index);
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* FixedArray::__py_insert(PyObject* self, PyObject* args, PyObject* kwargs)
 {
+	const int argsize = (int)PyTuple_Size(args);
+	if (argsize != 2)
+	{
+		PyErr_SetString(PyExc_ValueError, "FixedArray::insert(): takes exactly 2 arguments (array.insert(i, x))");
+		return NULL;
+	}
+
 	int before = PyLong_AsLong(PyTuple_GetItem(args, 0));
 	PyObject* pyobj = PyTuple_GetItem(args, 1);
 	
 	//FixedArray* ary = static_cast<FixedArray*>(self);
 	PyObject* pyTuple = PyTuple_New(1);
 	PyTuple_SET_ITEM(&*pyTuple, 0, pyobj);
-
-	const int argsize = (int)PyTuple_Size(args);
-	if(argsize > 2)
-	{
-		PyErr_SetString(PyExc_ValueError, "FixedArray::insert: args is wrong!");
-		return NULL;
-	}
 	
 	return PyBool_FromLong(seq_ass_slice(self, before, before, &*pyTuple) == 0);
 }

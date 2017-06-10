@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -43,19 +43,19 @@ void Spaces::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-Space* Spaces::createNewSpace(SPACE_ID spaceID)
+Space* Spaces::createNewSpace(SPACE_ID spaceID, const std::string& scriptModuleName)
 {
 	SPACES::iterator iter = spaces_.find(spaceID);
 	if(iter != spaces_.end())
 	{
-		ERROR_MSG(fmt::format("Spaces::createNewSpace: space {} is exist!\n", spaceID));
+		ERROR_MSG(fmt::format("Spaces::createNewSpace: space {} is exist! scriptModuleName={}\n", spaceID, scriptModuleName));
 		return NULL;
 	}
 	
-	Space* space = new Space(spaceID);
+	Space* space = new Space(spaceID, scriptModuleName);
 	spaces_[spaceID].reset(space);
 	
-	DEBUG_MSG(fmt::format("Spaces::createNewSpace: new space {}.\n", spaceID));
+	DEBUG_MSG(fmt::format("Spaces::createNewSpace: new space({}) {}.\n", scriptModuleName, spaceID));
 	return space;
 }
 

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "aoi_trigger.h"
 #include "network/channel.h"	
 #include "network/bundle.h"
+#include "network/network_stats.h"
 #include "math/math.h"
 #include "client_lib/client_interface.h"
 
@@ -60,6 +61,7 @@ aoiEntities_(),
 aoiEntities_map_(),
 clientAOISize_(0)
 {
+	updatableName = "Witness";
 }
 
 //-------------------------------------------------------------------------------------
@@ -117,35 +119,10 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 		pEntityRef->aliasID(i);
 	}
 
-	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
-	{
-		if(aoiRadius_ > 0.f)
-		{
-			if(pAOITrigger_ == NULL)
-			{
-				pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
-			}
-			else
-			{
-				pAOITrigger_->update(aoiRadius_, aoiRadius_);
-			}
+	setAoiRadius(aoiRadius_, aoiHysteresisArea_);
 
-			if (pAOIHysteresisAreaTrigger_ == NULL)
-			{
-				if (aoiHysteresisArea_ > 0.01f)
-				{
-					pAOIHysteresisAreaTrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
-						aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
-				}
-			}
-			else
-			{
-				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
-			}
-		}
-	}
-
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 	Cellapp::getSingleton().addUpdatable(this);
 }
 
@@ -157,7 +134,8 @@ void Witness::attach(Entity* pEntity)
 
 	pEntity_ = pEntity;
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
@@ -174,7 +152,8 @@ void Witness::attach(Entity* pEntity)
 //-------------------------------------------------------------------------------------
 void Witness::onAttach(Entity* pEntity)
 {
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	// 通知客户端enterworld
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
@@ -231,6 +210,7 @@ void Witness::detach(Entity* pEntity)
 void Witness::clear(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity == pEntity_);
+	uninstallAOITrigger();
 
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
@@ -248,9 +228,12 @@ void Witness::clear(Entity* pEntity)
 	aoiHysteresisArea_ = 5.0f;
 	clientAOISize_ = 0;
 
-	SAFE_RELEASE(pAOITrigger_);
-	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
-	
+	// 不需要销毁，后面还可以重用
+	// 此处销毁可能会产生错误，因为enteraoi过程中可能导致实体销毁
+	// 在pAOITrigger_流程没走完之前这里销毁了pAOITrigger_就crash
+	//SAFE_RELEASE(pAOITrigger_);
+	//SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
+
 	aoiEntities_.clear();
 	aoiEntities_map_.clear();
 
@@ -277,6 +260,15 @@ void Witness::reclaimPoolObject(Witness* obj)
 }
 
 //-------------------------------------------------------------------------------------
+void Witness::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("Witness::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
 Witness::SmartPoolObjectPtr Witness::createSmartPoolObj()
 {
 	return SmartPoolObjectPtr(new SmartPoolObject<Witness>(ObjPool().createObject(), _g_objPool));
@@ -294,6 +286,12 @@ const Position3D& Witness::basePos()
 }
 
 //-------------------------------------------------------------------------------------
+const Direction3D& Witness::baseDir()
+{
+	return pEntity()->direction();
+}
+
+//-------------------------------------------------------------------------------------
 void Witness::setAoiRadius(float radius, float hyst)
 {
 	if(!g_kbeSrvConfig.getCellApp().use_coordinate_system)
@@ -302,35 +300,69 @@ void Witness::setAoiRadius(float radius, float hyst)
 	aoiRadius_ = radius;
 	aoiHysteresisArea_ = hyst;
 
-	if(aoiRadius_ + aoiHysteresisArea_ > g_kbeSrvConfig.getCellApp().ghostDistance)
+	// 由于位置同步使用了相对位置压缩传输，可用范围为-512~512之间，因此超过范围将出现同步错误
+	// 这里做一个限制，如果需要过大的数值客户端应该调整坐标单位比例，将其放大使用。
+	// 参考: MemoryStream::appendPackXZ
+	if(aoiRadius_ + aoiHysteresisArea_ > 512)
 	{
-		aoiRadius_ = g_kbeSrvConfig.getCellApp().ghostDistance - 5.0f;
+		aoiRadius_ = 512 - 5.0f;
 		aoiHysteresisArea_ = 5.0f;
+		
+		ERROR_MSG(fmt::format("Witness::setAoiRadius({}): AOI the size({}) of more than 512!\n", 
+			pEntity_->id(), (aoiRadius_ + aoiHysteresisArea_)));
+		
+		return;
 	}
 
-	if (aoiRadius_ > 0.f)
+	if (aoiRadius_ > 0.f && pEntity_)
 	{
 		if (pAOITrigger_ == NULL)
 		{
 			pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
+
+			// 如果实体已经在场景中，那么需要安装
+			if (((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+				pAOITrigger_->install();
 		}
 		else
 		{
 			pAOITrigger_->update(aoiRadius_, aoiRadius_);
+
+			// 如果实体已经在场景中，那么需要安装
+			if (!pAOITrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+				pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		}
 
-		if (aoiHysteresisArea_ > 0.01f)
+		if (aoiHysteresisArea_ > 0.01f && pEntity_/*上面update流程可能导致销毁 */)
 		{
 			if (pAOIHysteresisAreaTrigger_ == NULL)
 			{
 				pAOIHysteresisAreaTrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
 					aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+
+				if (((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+					pAOIHysteresisAreaTrigger_->install();
 			}
 			else
 			{
 				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+
+				// 如果实体已经在场景中，那么需要安装
+				if (!pAOIHysteresisAreaTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+					pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 			}
 		}
+		else
+		{
+			// 注意：此处如果不销毁pAOIHysteresisAreaTrigger_则必须是update
+			// 因为离开AOI的判断如果pAOIHysteresisAreaTrigger_存在，那么必须出了pAOIHysteresisAreaTrigger_才算出AOI
+			if (pAOIHysteresisAreaTrigger_)
+				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+		}
+	}
+	else
+	{
+		uninstallAOITrigger();
 	}
 }
 
@@ -338,10 +370,16 @@ void Witness::setAoiRadius(float radius, float hyst)
 void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 {
 	// 如果进入的是Hysteresis区域，那么不产生作用
-	if (pAOIHysteresisAreaTrigger_ == pAOITrigger)
+	 if (pAOIHysteresisAreaTrigger_ == pAOITrigger)
 		return;
 
-	pEntity_->onEnteredAoI(pEntity);
+	// 先增加一个引用，避免实体在回调中被销毁造成后续判断出错
+	Py_INCREF(pEntity);
+
+	// 在onEnteredAoI和addWitnessed可能导致自己销毁然后
+	// pEntity_将被设置为NULL，后面没有机会DECREF
+	Entity* pSelfEntity = pEntity_;
+	Py_INCREF(pSelfEntity);
 
 	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
 	if (iter != aoiEntities_map_.end())
@@ -362,8 +400,11 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 
 			pEntityRef->pEntity(pEntity);
 			pEntity->addWitnessed(pEntity_);
+			pSelfEntity->onEnteredAoI(pEntity);
 		}
 
+		Py_DECREF(pEntity);
+		Py_DECREF(pSelfEntity);
 		return;
 	}
 
@@ -378,6 +419,10 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 	pEntityRef->aliasID(aoiEntities_map_.size() - 1);
 	
 	pEntity->addWitnessed(pEntity_);
+	pSelfEntity->onEnteredAoI(pEntity);
+
+	Py_DECREF(pEntity);
+	Py_DECREF(pSelfEntity);
 }
 
 //-------------------------------------------------------------------------------------
@@ -479,7 +524,8 @@ void Witness::onLeaveSpace(Space* pSpace)
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	lastBasePos.z = -FLT_MAX;
+	lastBasePos_.z = -FLT_MAX;
+	lastBaseDir_.yaw(-FLT_MAX);
 
 	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 	for(; iter != aoiEntities_.end(); ++iter)
@@ -503,12 +549,19 @@ void Witness::installAOITrigger()
 {
 	if (pAOITrigger_)
 	{
-		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
+		// 在设置AOI半径为0后掉线重登陆会出现这种情况
+		if (aoiRadius_ <= 0.f)
+			return;
 
-		if (pAOIHysteresisAreaTrigger_)
-		{
+		// 必须先安装pAOIHysteresisAreaTrigger_，否则一些极端情况会出现错误的结果
+		// 例如：一个Avatar正好进入到世界此时正在安装AOI触发器，而安装过程中这个实体onWitnessed触发导致自身被销毁了
+		// 由于AOI触发器并未完全安装完毕导致触发器的节点old_xx等都为-FLT_MAX，所以该实体在离开坐标管理器时Avatar的AOI触发器判断错误
+		// 如果先安装pAOIHysteresisAreaTrigger_则不会触发实体进入AOI事件，这样在安装pAOITrigger_时触发事件导致上面出现的问题时也能之前捕获离开事件了
+		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)
 			pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
-		}
+
+		if (pEntity_/*上面流程可能导致销毁 */)
+			pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 	}
 	else
 	{
@@ -524,6 +577,13 @@ void Witness::uninstallAOITrigger()
 
 	if (pAOIHysteresisAreaTrigger_)
 		pAOIHysteresisAreaTrigger_->uninstall();
+
+	// 通知所有实体离开AOI
+	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
+	for (; iter != aoiEntities_.end(); ++iter)
+	{
+		_onLeaveAOI((*iter));
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -672,7 +732,7 @@ bool Witness::update()
 	if(!pChannel)
 		return true;
 
-	if (aoiEntities_map_.size() > 0)
+	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		
@@ -681,7 +741,7 @@ bool Witness::update()
 			(pSendBundle->pCurrPacket() && pSendBundle->pCurrPacket()->length() > 0);
 		
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity_->id(), (*pSendBundle));
-		addBasePosToStream(pSendBundle);
+		addBaseDataToStream(pSendBundle);
 
 		AOI_ENTITIES::iterator iter = aoiEntities_.begin();
 		for(; iter != aoiEntities_.end(); )
@@ -805,15 +865,29 @@ bool Witness::update()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
+void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 {
+	if (pEntity_->isControlledNotSelfClient())
+	{
+		const Direction3D& bdir = baseDir();
+		Vector3 changeDir = bdir.dir - lastBaseDir_.dir;
+
+		if (KBEVec3Length(&changeDir) > 0.0004f)
+		{
+			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+			(*pSendBundle) << bdir.yaw() << bdir.pitch() << bdir.roll();
+			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBaseDir, onUpdateBaseDir);
+			lastBaseDir_ = bdir;
+		}
+	}
+
 	const Position3D& bpos = basePos();
-	Vector3 movement = bpos - lastBasePos;
+	Vector3 movement = bpos - lastBasePos_;
 
 	if(KBEVec3Length(&movement) < 0.0004f)
 		return;
 
-	if(fabs(lastBasePos.y - bpos.y) > 0.0004f)
+	if (fabs(lastBasePos_.y - bpos.y) > 0.0004f)
 	{
 		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdateBasePos, basePos);
 		pSendBundle->appendPackAnyXYZ(bpos.x, bpos.y, bpos.z, 0.f);
@@ -826,7 +900,7 @@ void Witness::addBasePosToStream(Network::Bundle* pSendBundle)
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onUpdateBasePosXZ, basePos);
 	}
 
-	lastBasePos = bpos;
+	lastBasePos_ = bpos;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1133,6 +1207,13 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 {
 	uint32 flags = UPDATE_FLAG_NULL;
 
+	/* 如果目标被我控制了，则目标的位置不通知我的客户端。
+	   注意：当这个被我控制的entity在服务器中使用moveToPoint()等接口移动时，
+	         也会由于这个判定导致坐标不会同步到控制者的客户端中
+	*/
+	if (otherEntity->controlledBy() && pEntity_->id() == otherEntity->controlledBy()->id())
+		return flags;
+
 	const VolatileInfo* pVolatileInfo = otherEntity->pCustomVolatileinfo();
 	if (!pVolatileInfo)
 		pVolatileInfo = otherEntity->pScriptModule()->getPVolatileInfo();
@@ -1141,7 +1222,7 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 	
 	if ((pVolatileInfo->position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
 	{
-		if(!otherEntity->isOnGround())
+		if (!otherEntity->isOnGround() || !pVolatileInfo->optimized())
 		{
 			flags |= UPDATE_FLAG_XYZ; 
 		}
@@ -1153,29 +1234,38 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 
 	if((entity_posdir_additional_updates == 0) || (g_kbetime - otherEntity->dirChangedTime() < entity_posdir_additional_updates))
 	{
-		if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
+		if (pVolatileInfo->yaw() > 0.f)
 		{
-			flags |= UPDATE_FLAG_YAW_PITCH_ROLL; 
-		}
-		else if (pVolatileInfo->roll() > 0.f && pVolatileInfo->pitch() > 0.f)
-		{
-			flags |= UPDATE_FLAG_PITCH_ROLL; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->pitch() > 0.f)
-		{
-			flags |= UPDATE_FLAG_YAW_PITCH; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f && pVolatileInfo->roll() > 0.f)
-		{
-			flags |= UPDATE_FLAG_YAW_ROLL; 
-		}
-		else if (pVolatileInfo->yaw() > 0.f)
-		{
-			flags |= UPDATE_FLAG_YAW; 
+			if (pVolatileInfo->roll() > 0.f)
+			{
+				if (pVolatileInfo->pitch() > 0.f)
+				{
+					flags |= UPDATE_FLAG_YAW_PITCH_ROLL;
+				}
+				else
+				{
+					flags |= UPDATE_FLAG_YAW_ROLL;
+				}
+			}
+			else if (pVolatileInfo->pitch() > 0.f)
+			{
+				flags |= UPDATE_FLAG_YAW_PITCH;
+			}
+			else
+			{
+				flags |= UPDATE_FLAG_YAW;
+			}
 		}
 		else if (pVolatileInfo->roll() > 0.f)
 		{
-			flags |= UPDATE_FLAG_ROLL; 
+			if (pVolatileInfo->pitch() > 0.f)
+			{
+				flags |= UPDATE_FLAG_PITCH_ROLL;
+			}
+			else
+			{
+				flags |= UPDATE_FLAG_ROLL;
+			}
 		}
 		else if (pVolatileInfo->pitch() > 0.f)
 		{

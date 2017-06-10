@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -504,6 +504,7 @@ public:
 
     void resize(size_t newsize)
     {
+    	KBE_ASSERT(newsize <= 1310700);
         data_.resize(newsize);
         rpos_ = 0;
         wpos_ = size();
@@ -511,11 +512,14 @@ public:
 
     void data_resize(size_t newsize)
     {
+    	KBE_ASSERT(newsize <= 1310700);
         data_.resize(newsize);
     }
 
     void reserve(size_t ressize)
     {
+    	KBE_ASSERT(ressize <= 1310700);
+
         if (ressize > size())
             data_.reserve(ressize);
     }
@@ -536,6 +540,15 @@ public:
 		if(len > 0)
 			append(datas.data(), len);
     }
+
+	void appendBlob(const MemoryStream *stream)
+	{
+		ArraySize len = (ArraySize)stream->length();
+		(*this) << len;
+
+		if (len > 0)
+			append(*stream);
+	}
 
     void append(const std::string& str)
     {

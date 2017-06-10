@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@ INLINE bool RangeTriggerNode::isInXRange(CoordinateNode * pNode)
 
 	volatile float lowerBound = originX - fabs(range_xz_);
 	volatile float upperBound = originX + fabs(range_xz_);
-	return (lowerBound < pNode->xx()) && (pNode->xx() <= upperBound);
+	return (pNode->xx() >= lowerBound) && (pNode->xx() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ INLINE bool RangeTriggerNode::isInYRange(CoordinateNode * pNode)
 
 	volatile float lowerBound = originY - fabs(range_y_);
 	volatile float upperBound = originY + fabs(range_y_);
-	return (lowerBound < pNode->yy()) && (pNode->yy() <= upperBound);
+	return (pNode->yy() >= lowerBound) && (pNode->yy() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ INLINE bool RangeTriggerNode::isInZRange(CoordinateNode * pNode)
 
 	volatile float lowerBound = originZ - fabs(range_xz_);
 	volatile float upperBound = originZ + fabs(range_xz_);
-	return (lowerBound < pNode->zz()) && (pNode->zz() <= upperBound);
+	return (pNode->zz() >= lowerBound) && (pNode->zz() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ INLINE bool RangeTriggerNode::wasInXRange(CoordinateNode * pNode)
 
 	volatile float lowerBound = originX - fabs(old_range_xz_);
 	volatile float upperBound = originX + fabs(old_range_xz_);
-	return (lowerBound < pNode->old_xx()) && (pNode->old_xx() <= upperBound);
+	return (pNode->old_xx() >= lowerBound) && (pNode->old_xx() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ INLINE bool RangeTriggerNode::wasInZRange(CoordinateNode * pNode)
 
 	volatile float lowerBound = originZ - fabs(old_range_xz_);
 	volatile float upperBound = originZ + fabs(old_range_xz_);
-	return (lowerBound < pNode->old_zz()) && (pNode->old_zz() <= upperBound);
+	return (pNode->old_zz() >= lowerBound) && (pNode->old_zz() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------

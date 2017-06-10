@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -178,12 +178,12 @@ public:
 									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
 	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
-	virtual void onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
+	virtual void onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	virtual void onTargetChanged();
 

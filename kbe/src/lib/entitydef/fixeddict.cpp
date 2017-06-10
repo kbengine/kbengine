@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -65,12 +65,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(FixedDict, 0, &FixedDict::mappingSequenceMethods, &FixedDict::mappingMethods, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, std::string& strDictInitData):
+FixedDict::FixedDict(DataType* dataType):
 Map(getScriptType(), false)
 {
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
-	initialize(strDictInitData);
 
 	script::PyGC::incTracing("FixedDict");
 
@@ -79,44 +78,15 @@ Map(getScriptType(), false)
 }
 
 //-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, PyObject* pyDictInitData):
+FixedDict::FixedDict(DataType* dataType, bool isPersistentsStream):
 Map(getScriptType(), false)
 {
 	_dataType = static_cast<FixedDictType*>(dataType);
 	_dataType->incRef();
-	initialize(pyDictInitData);
-
-	script::PyGC::incTracing("FixedDict");
-
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
-}
-
-//-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType, MemoryStream* streamInitData, bool isPersistentsStream):
-Map(getScriptType(), false)
-{
-	_dataType = static_cast<FixedDictType*>(dataType);
-	_dataType->incRef();
-	initialize(streamInitData, isPersistentsStream);
 	
 	script::PyGC::incTracing("FixedDict");
 
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(3): {:p}---{}\n", (void*)this,
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
-}
-
-//-------------------------------------------------------------------------------------
-FixedDict::FixedDict(DataType* dataType):
-Map(getScriptType(), false)
-{
-	_dataType = static_cast<FixedDictType*>(dataType);
-	_dataType->incRef();
-	initialize("");
-
-	script::PyGC::incTracing("FixedDict");
-
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(4): {:p}---{}\n", (void*)this,
+//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
 //		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
 }
 
@@ -238,7 +208,9 @@ PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 	
-	return new FixedDict(DataTypes::getDataType(uid), dict);
+	FixedDict* pFixedDict = new FixedDict(DataTypes::getDataType(uid));
+	pFixedDict->initialize(dict);
+	return pFixedDict;
 }
 
 //-------------------------------------------------------------------------------------
@@ -262,6 +234,15 @@ int FixedDict::mp_length(PyObject* self)
 int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
 	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);
+	if (PyUnicode_AsWideCharStringRet0 == NULL)
+	{
+		char err[255];
+		kbe_snprintf(err, 255, "FixedDict::mp_ass_subscript: key not is string!\n");
+		PyErr_SetString(PyExc_TypeError, err);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	char* dictKeyName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 

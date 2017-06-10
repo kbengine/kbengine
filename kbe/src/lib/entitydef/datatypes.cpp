@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -76,9 +76,9 @@ bool DataTypes::initialize(std::string file)
 	addDataType("MAILBOX",	new MailboxType);
 	addDataType("BLOB",		new BlobType);
 
-	addDataType("VECTOR2",	new VectorType(2));
-	addDataType("VECTOR3",	new VectorType(3));
-	addDataType("VECTOR4",	new VectorType(4));
+	addDataType("VECTOR2",	new Vector2Type);
+	addDataType("VECTOR3",	new Vector3Type);
+	addDataType("VECTOR4",	new Vector4Type);
 	return loadAlias(file);
 }
 
@@ -225,7 +225,10 @@ void DataTypes::delDataType(std::string name)
 		uid_dataTypes_.erase(iter->second->id());
 		iter->second->decRef();
 		dataTypes_.erase(iter);
-		dataTypesLowerName_.erase(iter);
+
+		std::string lowername = name;
+		std::transform(lowername.begin(), lowername.end(), lowername.begin(), tolower);
+		dataTypesLowerName_.erase(lowername);
 	}
 }
 
