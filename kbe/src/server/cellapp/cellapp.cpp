@@ -1969,14 +1969,6 @@ void Cellapp::reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream&
 	ENTITY_ID teleportEntityID = 0;
 
 	s >> teleportEntityID;
-
-	if(!hasFlags(ENTITY_FLAGS_TELEPORT_START))
-	{
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppOver(): entity({}) no set teleportFlags!\n", 
-			teleportEntityID));
-		
-		KBE_ASSERT(false);
-	}
 	
 	// 某些情况下实体可能此时找不到了，例如：副本销毁了
 	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
@@ -1987,6 +1979,14 @@ void Cellapp::reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream&
 
 		s.done();
 		return;
+	}
+	
+	if(!entity->hasFlags(ENTITY_FLAGS_TELEPORT_START))
+	{
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppOver(): entity({}) no set teleportFlags!\n", 
+			teleportEntityID));
+		
+		KBE_ASSERT(false);
 	}
 	
 	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
