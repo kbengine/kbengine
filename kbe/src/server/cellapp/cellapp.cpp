@@ -1981,15 +1981,7 @@ void Cellapp::reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream&
 		s.done();
 		return;
 	}
-	
-	if(!entity->hasFlags(ENTITY_FLAGS_TELEPORT_START))
-	{
-		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppOver(): entity({}) no set teleportFlags!\n", 
-			teleportEntityID));
-		
-		KBE_ASSERT(false);
-	}
-	
+
 	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 }
 
