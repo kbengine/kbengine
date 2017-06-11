@@ -1848,6 +1848,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 	if (e->baseMailbox())
 	{
+		e->addFlags(ENTITY_FLAGS_TELEPORT_START);
+		
 		// 如果是有base的实体，需要将baseappID填入，以便在reqTeleportToCellAppCB中回调给baseapp传输结束状态
 		entityBaseappID = e->baseMailbox()->componentID();
 
@@ -1956,7 +1958,6 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 	s >> cid;
 
-	entity->addFlags(ENTITY_FLAGS_TELEPORT_START);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
 
