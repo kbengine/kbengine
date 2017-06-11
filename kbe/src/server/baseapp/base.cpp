@@ -1554,6 +1554,14 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sour
 		DEBUG_MSG(fmt::format("{}::onMigrationCellappStart: reset flags! {}, sourceCellAppID={}, targetCellappID={}\n",
 			scriptName(), id(), sourceCellAppID, targetCellAppID));
 
+		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(targetCellAppID);
+		if (pInfos && pInfos->pChannel)
+		{
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppOver);
+			(*pBundle) << id();
+			pInfos->pChannel->send(pBundle);
+		}
 	}
 	else
 	{
@@ -1615,6 +1623,15 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 
 		if (pBufferedSendToClientMessages_)
 			pBufferedSendToClientMessages_->startForward();
+		
+		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(targetCellAppID);
+		if (pInfos && pInfos->pChannel)
+		{
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppOver);
+			(*pBundle) << id();
+			pInfos->pChannel->send(pBundle);
+		}
 	}
 }
 

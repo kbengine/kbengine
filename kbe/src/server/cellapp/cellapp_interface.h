@@ -161,6 +161,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// entity传送到目的cellapp上的space之后， 返回给之前cellapp的回调
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToCellAppCB,					NETWORK_VARIABLE_MESSAGE)
 
+	// 当跨cellapp传送后需要baseapp设置完成状态再清除cellapp记录的标记，此后cellapp才可以继续teleport
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToCellAppOver,				NETWORK_VARIABLE_MESSAGE)
+		
 	// real请求更新属性到ghost
 	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostPropertys,					NETWORK_VARIABLE_MESSAGE)
 	

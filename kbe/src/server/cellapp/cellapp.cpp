@@ -1964,6 +1964,35 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID teleportEntityID = 0;
+
+	s >> teleportEntityID;
+
+	if(!hasFlags(ENTITY_FLAGS_TELEPORT_START))
+	{
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppOver(): entity({}) no set teleportFlags!\n", 
+			teleportEntityID));
+		
+		KBE_ASSERT(false);
+	}
+	
+	// 某些情况下实体可能此时找不到了，例如：副本销毁了
+	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
+	if(entity == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppOver: not found reqTeleportEntity({}), lose entity!\n", 
+			teleportEntityID));
+
+		s.done();
+		return;
+	}
+	
+	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
+}
+
+//-------------------------------------------------------------------------------------
 int Cellapp::raycast(SPACE_ID spaceID, int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
 {
 	Space* pSpace = Spaces::findSpace(spaceID);
