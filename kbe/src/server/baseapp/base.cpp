@@ -1551,33 +1551,12 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sour
 	{
 		removeFlags(ENTITY_FLAGS_TELEPORT_END);
 
-		DEBUG_MSG(fmt::format("{}::onMigrationCellappStart: reset flags! {}, sourceCellAppID={}, targetCellappID={}\n",
-			scriptName(), id(), sourceCellAppID, targetCellAppID));
-
-		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(targetCellAppID);
-		if (pInfos && pInfos->pChannel)
-		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-			(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppOver);
-			(*pBundle) << id();
-			pInfos->pChannel->send(pBundle);
-		}
+		KBE_ASSERT(pBufferedSendToClientMessages_);
+		pBufferedSendToClientMessages_->startForward();
 	}
 	else
 	{
 		addFlags(ENTITY_FLAGS_TELEPORT_START);
-	}
-
-	// 如果当前记录的cellappID不是要迁移的目的cellappID很可能是发生了极端的情况
-	// 如：上一次onMigrationCellappStart发生后，由于cellapp压力大导致还没有收到onMigrationCellappEnd，此时又开始的新的迁移
-	// 新的迁移目的cellapp跟上一次不一样，所以出现了这个情况。
-	// 此时只要刷新cellappID即可
-	if (pBufferedSendToClientMessages_)
-	{
-		if (pBufferedSendToClientMessages_->cellappID() != targetCellAppID)
-			pBufferedSendToClientMessages_->cellappID(targetCellAppID);
-
-		pBufferedSendToClientMessages_->startForward();
 	}
 }
 
@@ -1590,10 +1569,8 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 	DEBUG_MSG(fmt::format("{}::onMigrationCellappEnd: {}, sourceCellAppID={}, targetCellappID={}\n",
 		scriptName(), id(), sourceCellAppID, targetCellAppID));
 
-	// 改变cell的指向到新的cellapp
-	if(this->cellMailbox())
-		this->cellMailbox()->componentID(targetCellAppID);
-
+	KBE_ASSERT(!pBufferedSendToClientMessages_);
+	
 	// 某些极端情况下可能onMigrationCellappStart会慢于onMigrationCellappEnd触发，此时必须设置标记
 	// 等待onMigrationCellappEnd触发后做清理
 	if (!hasFlags(ENTITY_FLAGS_TELEPORT_START))
@@ -1604,35 +1581,29 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 			pBufferedSendToClientMessages_ = new BaseMessagesForwardClientHandler(this, targetCellAppID);
 
 		pBufferedSendToClientMessages_->stopForward();
-
-		// 如果当前记录的cellappID不是要迁移的目的cellappID很可能是发生了极端的情况
-		// 如：上一次onMigrationCellappStart发生后，由于cellapp压力大导致还没有收到onMigrationCellappEnd，此时又开始的新的迁移
-		// 新的迁移目的cellapp跟上一次不一样，所以出现了这个情况。
-		// 此时只要刷新cellappID即可
-		if (pBufferedSendToClientMessages_ && pBufferedSendToClientMessages_->cellappID() != targetCellAppID)
-		{
-			pBufferedSendToClientMessages_->cellappID(targetCellAppID);
-		}
 	}
 	else
 	{
 		removeFlags(ENTITY_FLAGS_TELEPORT_START);
-
-		DEBUG_MSG(fmt::format("{}::onMigrationCellappEnd: reset flags! {}, sourceCellAppID={}, targetCellappID={}\n",
-			scriptName(), id(), sourceCellAppID, targetCellAppID));
-
-		if (pBufferedSendToClientMessages_)
-			pBufferedSendToClientMessages_->startForward();
-		
-		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(targetCellAppID);
-		if (pInfos && pInfos->pChannel)
-		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-			(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppOver);
-			(*pBundle) << id();
-			pInfos->pChannel->send(pBundle);
-		}
+		onMigrationCellappOver(targetCellAppID);
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Base::onMigrationCellappOver(COMPONENT_ID targetCellAppID)
+{
+	Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(targetCellAppID);
+	if (pInfos && pInfos->pChannel)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppOver);
+		(*pBundle) << id();
+		pInfos->pChannel->send(pBundle);
+	}
+	
+	// 改变cell的指向到新的cellapp
+	if(this->cellMailbox())
+		this->cellMailbox()->componentID(targetCellAppID);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1643,6 +1614,7 @@ void Base::onBufferedForwardToCellappMessagesOver()
 //-------------------------------------------------------------------------------------
 void Base::onBufferedForwardToClientMessagesOver()
 {
+	onMigrationCellappOver(pBufferedSendToClientMessages_->cellappID());
 	SAFE_RELEASE(pBufferedSendToClientMessages_);
 }
 
