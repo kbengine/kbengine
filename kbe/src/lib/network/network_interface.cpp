@@ -153,9 +153,8 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		return false;
 	}
 	
-	/*
+	if (listeningPort_min > 0 && listeningPort_min == listeningPort_max)
 		pEP->setreuseaddr(true);
-	*/
 	
 	this->dispatcher().registerReadFileDescriptor(*pEP, pLR);
 	
