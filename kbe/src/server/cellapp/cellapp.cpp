@@ -1865,6 +1865,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 	if (e->baseMailbox())
 	{
+		e->addFlags(ENTITY_FLAGS_TELEPORT_START);
+		
 		// 如果是有base的实体，需要将baseappID填入，以便在reqTeleportToCellAppCB中回调给baseapp传输结束状态
 		entityBaseappID = e->baseMailbox()->componentID();
 
@@ -1973,11 +1975,31 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 	s >> cid;
 
-	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
 
 	s.done();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID teleportEntityID = 0;
+
+	s >> teleportEntityID;
+	
+	// 某些情况下实体可能此时找不到了，例如：副本销毁了
+	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
+	if(entity == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppOver: not found reqTeleportEntity({}), lose entity!\n", 
+			teleportEntityID));
+
+		s.done();
+		return;
+	}
+
+	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 }
 
 //-------------------------------------------------------------------------------------

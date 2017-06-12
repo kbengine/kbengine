@@ -252,7 +252,8 @@ public:
 	*/
 	void onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
 	void onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID sourceCellAppID, COMPONENT_ID targetCellAppID);
-
+	void onMigrationCellappOver(COMPONENT_ID targetCellAppID);
+	
 	/**
 		设置获取是否自动存档
 	*/
