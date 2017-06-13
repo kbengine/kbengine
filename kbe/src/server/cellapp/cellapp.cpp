@@ -1958,9 +1958,11 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 	s >> cid;
 
+	Py_INCREF(entity);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
-
+	Py_DECREF(entity);
+	
 	s.done();
 }
 
