@@ -1831,7 +1831,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		s.done();
 		return;
 	}
-
+	
+	Py_INCREF(e);
 	e->createFromStream(s);
 
 	// 有可能序列化过来的ghost内容包含移动控制器，之所以序列化过来是为了
@@ -1888,6 +1889,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle) << success;
 		pChannel->send(pBundle);
 	}
+	
+	Py_DECREF(e);
 }
 
 //-------------------------------------------------------------------------------------
