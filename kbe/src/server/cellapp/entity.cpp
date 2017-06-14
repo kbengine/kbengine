@@ -286,6 +286,8 @@ void Entity::onDestroy(bool callScript)
 
 				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetAOI={}, spaceID={}, position=({},{},{})\n", 
 					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetAOI, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
+				
+				ent->delWitnessed(this);
 			}
 			else
 			{
@@ -293,7 +295,7 @@ void Entity::onDestroy(bool callScript)
 			}
 		}
 
-		KBE_ASSERT(witnesses_count_ == 0);
+		//KBE_ASSERT(witnesses_count_ == 0);
 	}
 
 	pPyPosition_->onLoseRef();
@@ -1292,7 +1294,6 @@ void Entity::delWitnessed(Entity* entity)
 
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onLoseControlledBy"),
 			const_cast<char*>("i"), entity->id());
-
 	}
 
 	// —” ±÷¥––
