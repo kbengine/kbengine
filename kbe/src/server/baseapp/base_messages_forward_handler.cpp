@@ -208,7 +208,7 @@ bool BaseMessagesForwardClientHandler::process()
 {
 	if (!startForward_)
 	{
-		if (timestamp() - createTime_ >= uint64(5 * stampsPerSecond()))
+		if (timestamp() - createTime_ >= uint64(300 * stampsPerSecond()))
 		{
 			ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::process(): Wait for a timeout({}s)! size={}, entityID={}\n",
 				((timestamp() - createTime_) / stampsPerSecond()), bufferedSendToClientMessages_.size(), (pBase_ ? pBase_->id() : 0)));

@@ -1417,7 +1417,7 @@ void EntityApp<E>::updateLoad()
 	double spareTime = 1.0;
 	if (lastTickInStamps != 0)
 	{
-		spareTime = double(dispatcher_.getSpareTime())/double(lastTickInStamps);
+		spareTime = double(dispatcher_.getSpareTime()) / double(lastTickInStamps);
 	}
 
 	dispatcher_.clearSpareTime();
