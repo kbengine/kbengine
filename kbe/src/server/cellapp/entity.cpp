@@ -279,20 +279,26 @@ void Entity::onDestroy(bool callScript)
 						if ((*aoi_iter)->pEntity() == this)
 						{
 							inTargetAOI = true;
+							ent->pWitness()->_onLeaveAOI((*aoi_iter));
 							break;
 						}
 					}
 				}
-
+				else
+				{
+					ent->delWitnessed(this);
+				}
+				
 				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetAOI={}, spaceID={}, position=({},{},{})\n", 
 					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetAOI, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
-				
-				ent->delWitnessed(this);
 			}
 			else
 			{
 				ERROR_MSG(fmt::format("\t=> witnessed={}, not found entity!\n", (*it)));
 			}
+			
+			witnesses_count_ = 0;
+			witnesses_.clear();
 		}
 
 		//KBE_ASSERT(witnesses_count_ == 0);
