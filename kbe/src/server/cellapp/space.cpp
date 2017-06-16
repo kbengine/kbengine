@@ -67,7 +67,11 @@ destroyTime_(0)
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	_clearGhosts();
 	entities_.clear();
+	
+	this->coordinateSystem_.releaseNodes();
+	
 	pNavHandle_.clear();
 
 	SAFE_RELEASE(pCell_);	
