@@ -35,13 +35,16 @@ Spaces::~Spaces()
 //-------------------------------------------------------------------------------------
 void Spaces::finalise()
 {
-	while(spaces_.size() > 0)
+	Spaces::SPACES spaces = spaces_;
+	while (spaces.size() > 0)
 	{
-		SPACES::iterator iter = spaces_.begin();
+		SPACES::iterator iter = spaces.begin();
 		KBEShared_ptr<Space> pSpace = iter->second;
-		spaces_.erase(iter++);
+		spaces.erase(iter++);
 		pSpace->destroy(0);
 	}
+
+	spaces_.clear();
 }
 
 //-------------------------------------------------------------------------------------
