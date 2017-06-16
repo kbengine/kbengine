@@ -360,13 +360,20 @@ void Space::onAllSpaceGeometryLoaded()
 //-------------------------------------------------------------------------------------
 bool Space::update()
 {
-	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
-		return false;
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 3.f * stampsPerSecond() ))
+	{
+		if(entities_.size() == 0)
+			return false;
+	}
 
 	this->coordinateSystem_.releaseNodes();
 
-	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 30.f * stampsPerSecond() ))
+	{
 		_clearGhosts();
+		KBE_ASSERT(entities_.size() == 0);
+		this->coordinateSystem_.releaseNodes();
+	}
 		
 	return true;
 }
