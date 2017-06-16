@@ -67,6 +67,9 @@ bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 	INFO_MSG(fmt::format("Spaces::destroySpace: {}.\n", spaceID));
 
 	Space* pSpace = Spaces::findSpace(spaceID);
+	if(!pSpace)
+		return true;
+	
 	if(pSpace->isDestroyed())
 		return true;
 
