@@ -472,7 +472,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		return 0;
 	}
 	
-	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	if(Cellapp::getSingleton().shuttingdown())
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: shutting down! entityType=%s", entityType);
 		PyErr_PrintEx(0);

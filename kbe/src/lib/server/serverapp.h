@@ -195,6 +195,8 @@ public:
 	void startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 
+	SHUTDOWN_STATE shuttingdown() const{ return pShutdowner_ && pShutdowner_->shuttingdown(); }
+		
 protected:
 	COMPONENT_TYPE											componentType_;
 	COMPONENT_ID											componentID_;									// 本组件的ID
