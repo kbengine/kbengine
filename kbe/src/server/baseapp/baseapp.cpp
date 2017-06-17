@@ -324,6 +324,10 @@ void Baseapp::onShutdown(bool first)
 			std::vector<ENTITY_ID>::iterator iter1 = vecs.begin();
 			for(; iter1 != vecs.end(); ++iter1)
 			{
+				Base* e = this->findEntity((*iter1));
+				if(!e)
+					continue;
+				
 				this->destroyEntity((*iter1), true);
 			}
 		}
