@@ -111,11 +111,10 @@ void Cellapp::onShutdown(bool first)
 	uint32 count = g_serverConfig.getCellApp().perSecsDestroyEntitySize;
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
-	while(count > 0)
+	while(count > 0 && entities.size() > 0)
 	{
-		std::vector<Entity*> vecs;
-
-		bool done = false;
+		std::vector<ENTITY_ID> vecs;
+		
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
 		{
@@ -123,21 +122,24 @@ void Cellapp::onShutdown(bool first)
 			//if(pEntity->baseMailbox() != NULL && 
 			//	pEntity->pScriptModule()->isPersistent())
 			{
-				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
+				vecs.push_back(static_cast<Entity*>(iter->second.get())->id());
 
-				count--;
-				done = true;
-				break;
+				if(--count == 0)
+					break;
 			}
 		}
 
-		// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
-		// 剩下的应该都是space，可以开始销毁了
-		Spaces::finalise();
-
-		if(!done)
-			break;
+		std::vector<ENTITY_ID>::iterator iter1 = vecs.begin();
+		for(; iter1 != vecs.end(); ++iter1)
+		{
+			this->destroyEntity((*iter1), true);
+		}
 	}
+
+	// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
+	// 剩下的应该都是space，可以开始销毁了
+	if(count == g_serverConfig.getCellApp().perSecsDestroyEntitySize)
+		Spaces::finalise();
 }
 
 //-------------------------------------------------------------------------------------		

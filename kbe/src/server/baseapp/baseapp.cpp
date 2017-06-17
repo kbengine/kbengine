@@ -304,25 +304,28 @@ void Baseapp::onShutdown(bool first)
 		int count = g_serverConfig.getBaseApp().perSecsDestroyEntitySize;
 		Entities<Base>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
-		while(count > 0)
+		while(count > 0 && entities.size() > 0)
 		{
-			bool done = false;
+			std::vector<ENTITY_ID> vecs;
+			
 			Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
 			for(; iter != entities.end(); ++iter)
 			{
 				//if(static_cast<Base*>(iter->second.get())->hasDB() && 
 				//	static_cast<Base*>(iter->second.get())->cellMailbox() == NULL)
 				{
-					this->destroyEntity(static_cast<Base*>(iter->second.get())->id(), true);
+					vecs.push_back(static_cast<Base*>(iter->second.get())->id());
 
-					count--;
-					done = true;
-					break;
+					if(--count == 0)
+						break;
 				}
 			}
 
-			if(!done)
-				break;
+			std::vector<ENTITY_ID>::iterator iter1 = vecs.begin();
+			for(; iter1 != vecs.end(); ++iter1)
+			{
+				this->destroyEntity((*iter1), true);
+			}
 		}
 	}
 }
