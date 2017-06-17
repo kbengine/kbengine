@@ -96,7 +96,7 @@ ServerApp::~ServerApp()
 }
 
 //-------------------------------------------------------------------------------------	
-SHUTDOWN_STATE shuttingdown() const
+bool shuttingdown() const
 { 
 	return pShutdowner_ && pShutdowner_->shuttingdown(); 
 }
