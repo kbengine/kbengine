@@ -96,12 +96,6 @@ ServerApp::~ServerApp()
 }
 
 //-------------------------------------------------------------------------------------	
-bool shuttingdown() const
-{ 
-	return pShutdowner_ && pShutdowner_->shuttingdown(); 
-}
-
-//-------------------------------------------------------------------------------------	
 void ServerApp::shutDown(float shutdowntime)
 {
 	if(pShutdowner_ == NULL)

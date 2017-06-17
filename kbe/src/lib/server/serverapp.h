@@ -194,8 +194,6 @@ public:
 	*/
 	void startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
-
-	bool isShuttingdown() const;
 		
 protected:
 	COMPONENT_TYPE											componentType_;
