@@ -96,6 +96,12 @@ ServerApp::~ServerApp()
 }
 
 //-------------------------------------------------------------------------------------	
+SHUTDOWN_STATE shuttingdown() const
+{ 
+	return pShutdowner_ && pShutdowner_->shuttingdown(); 
+}
+
+//-------------------------------------------------------------------------------------	
 void ServerApp::shutDown(float shutdowntime)
 {
 	if(pShutdowner_ == NULL)
