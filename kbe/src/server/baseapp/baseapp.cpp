@@ -593,6 +593,14 @@ void Baseapp::finalise()
 //-------------------------------------------------------------------------------------
 void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 {
+	if(pChannel && pChannel->isExternal())
+		return;
+	
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	{
+		return;
+	}
+	
 	PyObject* pyarg = PyTuple_New(1);
 
 	PyObject* pyobj = PyTuple_New(2);
@@ -4414,8 +4422,15 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	s.done();
 }
 
+//-------------------------------------------------------------------------------------
 void Baseapp::onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	{
+		s.done();
+		return;
+	}
+	
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
 	{
