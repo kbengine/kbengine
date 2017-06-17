@@ -4422,7 +4422,7 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	s.done();
 }
 
-//-------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------- 
 void Baseapp::onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
