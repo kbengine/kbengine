@@ -500,7 +500,7 @@
 			<!-- 每秒销毁有base部分的entity的数量
 				(In per-seconds, The destruction of the number of entity's(has base))
 			-->
-			<perSecsDestroyEntitySize> 100 </perSecsDestroyEntitySize>
+			<perSecsDestroyEntitySize> 500 </perSecsDestroyEntitySize>
 		</shutdown>
 		
 		<!-- 谁是观察者? 玩家就是观察者，观察到的信息会同步给客户端。
@@ -625,7 +625,7 @@
 			<!-- 每秒销毁base的数量
 				(The destroy of the per-seconds base's)
 			-->
-			<perSecsDestroyEntitySize> 100 </perSecsDestroyEntitySize>
+			<perSecsDestroyEntitySize> 500 </perSecsDestroyEntitySize>
 		</shutdown>
 		
 		<respool>
