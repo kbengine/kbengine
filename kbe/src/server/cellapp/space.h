@@ -72,7 +72,7 @@ public:
 	/**
 		销毁
 	*/
-	bool destroy(ENTITY_ID entityID);
+	bool destroy(ENTITY_ID entityID, bool ignoreGhost = true);
 
 	/**
 		这个space的cell

@@ -41,7 +41,7 @@ void Spaces::finalise()
 		SPACES::iterator iter = spaces.begin();
 		KBEShared_ptr<Space> pSpace = iter->second;
 		spaces.erase(iter++);
-		pSpace->destroy(0);
+		pSpace->destroy(0, false);
 	}
 
 	spaces_.clear();

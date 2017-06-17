@@ -501,7 +501,7 @@ Entity* Space::findEntity(ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
-bool Space::destroy(ENTITY_ID entityID)
+bool Space::destroy(ENTITY_ID entityID, bool ignoreGhost)
 {
 	if(state_ != STATE_NORMAL)
 		return false;
@@ -554,6 +554,9 @@ bool Space::destroy(ENTITY_ID entityID)
 			}
 		}
 	}
+
+	if(!ignoreGhost)
+		_clearGhosts();
 
 	return true;
 }
