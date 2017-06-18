@@ -162,7 +162,6 @@ bool MethodDescription::checkArgs(PyObject* args)
 void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 {
 	uint8 argsSize = argTypes_.size();
-	int offset = 0;
 
 	// 将utype放进去，方便对端识别这个方法
 	// 这里如果aliasID_大于0则采用一个优化的办法， 使用1字节传输
@@ -176,18 +175,10 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 		(*mstream) << utype;
 	}
 
-	// 如果是exposed方法则先将entityID打包进去
-	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
-	{
-		offset = 1;
-		ENTITY_ID eid = PyLong_AsLong(PyTuple_GetItem(args, 0));
-		(*mstream) << eid;
-	}
-
 	// 将每一个参数添加到流中
 	for(uint8 i=0; i <argsSize; ++i)
 	{
-		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
+		PyObject* pyArg = PyTuple_GetItem(args, i);
 		argTypes_[i]->addToStream(mstream, pyArg);
 	}	
 }
