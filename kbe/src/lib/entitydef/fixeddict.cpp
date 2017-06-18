@@ -255,6 +255,7 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 			return 0;
 		}
 
+		free(dictKeyName);
 		return PyDict_DelItem(fixedDict->pyDict_, key);
 	}
 	
