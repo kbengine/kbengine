@@ -3732,14 +3732,14 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		INFO_MSG(fmt::format("Baseapp::loginBaseapp: user[{}] has entity({}).\n",
 			accountName.c_str(), ptinfos->entityID));
 
+		pendingLoginMgr_.removeNextTick(accountName);
+
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
 		if(base == NULL || base->isDestroyed())
 		{
 			loginBaseappFailed(pChannel, accountName, SERVER_ERR_BUSY);
 			return;
 		}
-		
-		pendingLoginMgr_.removeNextTick(accountName);
 
 		// 防止在onLogOnAttempt中销毁了
 		Py_INCREF(base);
