@@ -144,7 +144,14 @@ public:
 	*/
 	int sendCondSignal(void)
 	{
+#if KBE_PLATFORM == PLATFORM_WIN32
 		return THREAD_SINGNAL_SET(cond_);
+#else
+		lock();
+		int ret = THREAD_SINGNAL_SET(cond_);
+		unlock();
+		return ret;
+#endif
 	}
 	
 	/**
