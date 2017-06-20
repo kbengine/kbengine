@@ -3681,24 +3681,28 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 	if(ptinfos->password != password)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_PASSWORD);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
 	if((ptinfos->flags & ACCOUNT_FLAG_LOCK) > 0)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_LOCK);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
 	if((ptinfos->flags & ACCOUNT_FLAG_NOT_ACTIVATED) > 0)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_NOT_ACTIVATED);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
 	if(ptinfos->deadline > 0 && ::time(NULL) - ptinfos->deadline <= 0)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_DEADLINE);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
@@ -3706,6 +3710,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 	{
 		ERROR_MSG("Baseapp::loginBaseapp: idClient size is 0.\n");
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
