@@ -69,7 +69,8 @@ public:
 		THREAD_STATE_STOP = -1,
 		THREAD_STATE_SLEEP = 0,
 		THREAD_STATE_BUSY = 1,
-		THREAD_STATE_END = 2
+		THREAD_STATE_END = 2,
+		THREAD_STATE_PENDING = 3
 	};
 
 public:
@@ -151,7 +152,7 @@ REATTEMPT:
 
 		lock();
 
-		if (state_ != THREAD_STATE_SLEEP && state_ != THREAD_STATE_BUSY)
+		if (state_ == THREAD_STATE_PENDING)
 		{       
 			unlock();
 			goto REATTEMPT;
