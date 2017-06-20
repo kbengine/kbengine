@@ -102,6 +102,12 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 				//	pShutdownHandler_->lastShutdownFailReason()));
 				
 				pShutdownHandler_->onShutdown(false);
+				
+				cancel();
+				
+				pTimerHandle_ = pDispatcher_->addTimer(int(100000),
+												this, (void *)TIMEOUT_SHUTDOWN_END_TICK);
+			
 				break;
 			}
 			

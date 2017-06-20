@@ -180,8 +180,6 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
 	{
 		offset = 1;
-		ENTITY_ID eid = PyLong_AsLong(PyTuple_GetItem(args, 0));
-		(*mstream) << eid;
 	}
 
 	// 将每一个参数添加到流中
@@ -189,7 +187,7 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	{
 		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
 		argTypes_[i]->addToStream(mstream, pyArg);
-	}	
+	}
 }
 
 //-------------------------------------------------------------------------------------

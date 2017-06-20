@@ -113,11 +113,10 @@ void Cellapp::onShutdown(bool first)
 	uint32 count = g_serverConfig.getCellApp().perSecsDestroyEntitySize;
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
-	while(count > 0)
+	while(count > 0 && entities.size() > 0)
 	{
-		std::vector<Entity*> vecs;
-
-		bool done = false;
+		std::vector<ENTITY_ID> vecs;
+		
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
 		{
@@ -125,21 +124,28 @@ void Cellapp::onShutdown(bool first)
 			//if(pEntity->baseMailbox() != NULL && 
 			//	pEntity->pScriptModule()->isPersistent())
 			{
-				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
+				vecs.push_back(static_cast<Entity*>(iter->second.get())->id());
 
-				count--;
-				done = true;
-				break;
+				if(--count == 0)
+					break;
 			}
 		}
 
-		// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
-		// 剩下的应该都是space，可以开始销毁了
-		Spaces::finalise();
-
-		if(!done)
-			break;
+		std::vector<ENTITY_ID>::iterator iter1 = vecs.begin();
+		for(; iter1 != vecs.end(); ++iter1)
+		{
+			Entity* e = this->findEntity((*iter1));
+			if(!e)
+				continue;
+			
+			this->destroyEntity((*iter1), true);
+		}
 	}
+
+	// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
+	// 剩下的应该都是space，可以开始销毁了
+	if(count == g_serverConfig.getCellApp().perSecsDestroyEntitySize)
+		Spaces::finalise();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -466,6 +472,13 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	if(space == NULL || !space->isGood())
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
+	if(Cellapp::getSingleton().isShuttingdown())
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: shutting down! entityType=%s", entityType);
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -1848,7 +1861,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		s.done();
 		return;
 	}
-
+	
+	Py_INCREF(e);
 	e->createFromStream(s);
 
 	// 有可能序列化过来的ghost内容包含移动控制器，之所以序列化过来是为了
@@ -1905,6 +1919,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		(*pBundle) << success;
 		pChannel->send(pBundle);
 	}
+	
+	Py_DECREF(e);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1975,9 +1991,11 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 	s >> cid;
 
+	Py_INCREF(entity);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
-
+	Py_DECREF(entity);
+	
 	s.done();
 }
 
