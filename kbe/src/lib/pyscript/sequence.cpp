@@ -244,6 +244,7 @@ int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 	}
 	else
 	{
+		Py_DECREF((*(values.begin() + index)));
 		values.erase(values.begin() + index);
 	}
 
@@ -267,7 +268,14 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 	if (!oterSeq)
 	{
 		if (index1 < index2)
+		{
+			for (Py_ssize_t istart = index1; istart < index2; ++istart)
+			{
+				Py_DECREF(values[istart]);
+			}
+
 			values.erase(values.begin() + index1, values.begin() + index2);
+		}
 
 		return 0;
 	}
@@ -312,7 +320,14 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 	}
 
 	if (index1 < index2)
+	{
+		for (Py_ssize_t istart = index1; istart < index2; ++istart)
+		{
+			Py_DECREF(values[istart]);
+		}
+
 		values.erase(values.begin() + index1, values.begin() + index2);
+	}
 
 	// 先让vector分配好内存
 	values.insert(values.begin() + index1, osz, (PyObject*)NULL);
@@ -326,7 +341,9 @@ int Sequence::seq_ass_slice(PyObject* self, Py_ssize_t index1, Py_ssize_t index2
 		}
 		
 		values[index1 + i] = seq->createNewItemFromObj(pyTemp);
-		Py_DECREF(pyTemp);
+
+		if (pyTemp)
+			Py_DECREF(pyTemp);
 	}
 
 	return 0;
@@ -382,7 +399,8 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 	for (int i = 0; i < szB; ++i)
 	{
 		PyObject* pyTemp = PySequence_GetItem(oterSeq, i);
-		if(pyTemp == NULL){
+		if(pyTemp == NULL)
+		{
 			PyErr_Format(PyExc_TypeError, "Sequence::seq_inplace_concat::PySequence_GetItem %d is NULL.", i);
 			PyErr_PrintEx(0);
 		}
@@ -418,6 +436,7 @@ PyObject* Sequence::seq_inplace_repeat(PyObject* self, Py_ssize_t n)
 	else
 	{
 		values.insert(values.end(), (n - 1)*sz, (PyObject*)NULL);
+
 		for(int i = 1; i < n; ++i)
 		{
 			for(int j = 0; j < sz; ++j)

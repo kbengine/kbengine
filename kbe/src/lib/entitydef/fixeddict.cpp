@@ -97,7 +97,7 @@ FixedDict::~FixedDict()
 	_dataType->decRef();
 	script::PyGC::decTracing("FixedDict");
 
-//	DEBUG_MSG(fmt::format("FixedDict::~FixedDict(): {:p}\n", (void*)this);
+//	DEBUG_MSG(fmt::format("FixedDict::~FixedDict(): {:p}\n", (void*)this));
 }
 
 //-------------------------------------------------------------------------------------

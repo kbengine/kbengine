@@ -52,7 +52,7 @@ Sequence(getScriptType(), false)
 
 	script::PyGC::incTracing("FixedArray");
 
-//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", this));
+//	DEBUG_MSG(fmt::format("FixedArray::FixedArray(): {:p}\n", (void*)this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ FixedArray::~FixedArray()
 
 	script::PyGC::decTracing("FixedArray");
 
-//	DEBUG_MSG(fmt::format("FixedArray::~FixedArray(): {:p}\n", this));
+//	DEBUG_MSG(fmt::format("FixedArray::~FixedArray(): {:p}\n", (void*)this));
 }
 
 //-------------------------------------------------------------------------------------
@@ -232,9 +232,14 @@ PyObject* FixedArray::__py_insert(PyObject* self, PyObject* args, PyObject* kwar
 	
 	//FixedArray* ary = static_cast<FixedArray*>(self);
 	PyObject* pyTuple = PyTuple_New(1);
+
+	Py_INCREF(pyobj);
 	PyTuple_SET_ITEM(&*pyTuple, 0, pyobj);
 	
-	return PyBool_FromLong(seq_ass_slice(self, before, before, &*pyTuple) == 0);
+	PyObject* ret = PyBool_FromLong(seq_ass_slice(self, before, before, &*pyTuple) == 0);
+	Py_DECREF(pyTuple);
+
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
@@ -259,11 +264,17 @@ PyObject* FixedArray::__py_pop(PyObject* self, PyObject* args, PyObject* kwargs)
 	}
 
 	PyObject* pyValue = values[index];
-	PyObject* pyTuple = PyTuple_New(0);
-	if (seq_ass_slice(self, index, index + 1, &*pyTuple) != 0)
-		return NULL;
-
 	Py_INCREF(pyValue);
+
+	PyObject* pyTuple = PyTuple_New(0);
+
+	if (seq_ass_slice(self, index, index + 1, &*pyTuple) != 0)
+	{
+		Py_DECREF(pyTuple);
+		return NULL;
+	}
+
+	Py_DECREF(pyTuple);
 	return pyValue;
 }
 
@@ -280,7 +291,9 @@ PyObject* FixedArray::__py_remove(PyObject* self, PyObject* args, PyObject* kwar
 	}
 
 	PyObject* pyTuple = PyTuple_New(0);
-	return PyBool_FromLong(seq_ass_slice(self, index, index + 1, &*pyTuple) == 0);
+	PyObject* ret = PyBool_FromLong(seq_ass_slice(self, index, index + 1, &*pyTuple) == 0);
+	Py_DECREF(pyTuple);
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------
