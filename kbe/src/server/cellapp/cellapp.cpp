@@ -647,16 +647,7 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 					s.readBlob(cell);
 
 					PyObject* pCell = NULL;
-						
-					if(cell == "NULL")
-					{
-						Py_INCREF(Py_None);
-						pCell = Py_None;
-					}
-					else
-					{
-						pCell = PyBytes_FromStringAndSize(cell.data(), cell.length());
-					}
+					pCell = PyBytes_FromStringAndSize(cell.data(), cell.length());
 
 					PyList_SET_ITEM(pRow, j, pCell);
 				}
