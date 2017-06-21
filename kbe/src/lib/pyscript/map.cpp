@@ -123,32 +123,31 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 {
-	PyObject* pyObj = PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
-		const_cast<char*>("get"), const_cast<char*>("O"), args);
-
-	if (!pyObj)
+	int ret = PyDict_Contains(static_cast<Map*>(self)->pyDict_, args);
+	if (ret > 0)
+	{
+		Py_RETURN_TRUE;
+	}
+	else if (ret == -1)
 	{
 		PyErr_SetObject(PyExc_KeyError, args);
-		Py_RETURN_FALSE;
-	}
-	else
-	{
-		if(pyObj != Py_None)
-		{
-			Py_DECREF(pyObj);
-			Py_RETURN_TRUE; 
-		}
+		return NULL;
 	}
 
-	Py_DECREF(pyObj);
 	Py_RETURN_FALSE;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_get(PyObject* self, PyObject* args)
 {
-	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
-		const_cast<char*>("get"), const_cast<char*>("O"), args);
+	PyObject* pyObj = PyDict_GetItem(static_cast<Map*>(self)->pyDict_, args);
+
+	if (!pyObj)
+		PyErr_SetObject(PyExc_KeyError, args);
+	else
+		Py_INCREF(pyObj);
+
+	return pyObj;
 }
 
 //-------------------------------------------------------------------------------------
