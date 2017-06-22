@@ -441,7 +441,7 @@ bool KBEAccountTableMysql::setFlagsDeadline(DBInterface * pdbi, const std::strin
 //-------------------------------------------------------------------------------------
 bool KBEAccountTableMysql::queryAccount(DBInterface * pdbi, const std::string& name, ACCOUNT_INFOS& info)
 {
-	std::string sqlstr = "select entityDBID, password, flags, deadline from " KBE_TABLE_PERFIX "_accountinfos where accountName=\"";
+	std::string sqlstr = "select entityDBID, password, flags, deadline, bindata from " KBE_TABLE_PERFIX "_accountinfos where accountName=\"";
 
 	char* tbuf = new char[name.size() * 2 + 1];
 
@@ -465,12 +465,16 @@ bool KBEAccountTableMysql::queryAccount(DBInterface * pdbi, const std::string& n
 		MYSQL_ROW arow = mysql_fetch_row(pResult);
 		if(arow != NULL)
 		{
+			unsigned long *lengths = mysql_fetch_lengths(pResult);
+
 			KBEngine::StringConv::str2value(info.dbid, arow[0]);
 			info.name = name;
 			info.password = arow[1];
 
 			KBEngine::StringConv::str2value(info.flags, arow[2]);
 			KBEngine::StringConv::str2value(info.deadline, arow[3]);
+
+			info.datas.assign(arow[4], lengths[4]);
 		}
 
 		mysql_free_result(pResult);

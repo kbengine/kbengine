@@ -517,6 +517,8 @@ protected:
 
 	uint32 flags_;
 	uint64 deadline_;
+
+	std::string bindatas_;
 };
 
 /**

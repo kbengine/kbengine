@@ -68,7 +68,8 @@ bandwidthPerSecond_(0),
 encryptionKey(),
 pProxyForwarder_(NULL),
 clientComponentType_(UNKNOWN_CLIENT_COMPONENT_TYPE),
-clientDatas_()
+loginDatas_(),
+createDatas_()
 {
 	Baseapp::getSingleton().incProxicesCount();
 
@@ -252,8 +253,17 @@ PyObject* Proxy::pyGetClientType()
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyGetClientDatas()
 {
-	const std::string& datas = this->getClientDatas();
-	return PyBytes_FromStringAndSize(datas.data(), datas.size());
+	const std::string& datas1 = this->getLoginDatas();
+	PyObject* pyDatas1 = PyBytes_FromStringAndSize(datas1.data(), datas1.size());
+
+	const std::string& datas2 = this->getCreateDatas();
+	PyObject* pyDatas2 = PyBytes_FromStringAndSize(datas2.data(), datas2.size());
+
+	PyObject* pyDatas = PyTuple_New(2);
+	PyTuple_SetItem(pyDatas, 0, pyDatas1);
+	PyTuple_SetItem(pyDatas, 1, pyDatas2);
+
+	return pyDatas;
 }
 
 //-------------------------------------------------------------------------------------
@@ -383,9 +393,9 @@ void Proxy::giveClientTo(Proxy* proxy)
 		clientMailbox()->addr(Network::Address::NONE);
 		Py_DECREF(clientMailbox());
 		proxy->setClientType(this->getClientType());
-		proxy->setClientDatas(this->getClientDatas());
+		proxy->setLoginDatas(this->getLoginDatas());
 		this->setClientType(UNKNOWN_CLIENT_COMPONENT_TYPE);
-		this->setClientDatas("");
+		this->setLoginDatas("");
 		clientMailbox(NULL);
 		proxy->onGiveClientTo(lpChannel);
 		addr(Network::Address::NONE);

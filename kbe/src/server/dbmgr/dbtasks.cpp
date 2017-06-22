@@ -1252,7 +1252,8 @@ error_(),
 ip_(ip),
 port_(port),
 flags_(0),
-deadline_(0)
+deadline_(0),
+bindatas_()
 {
 }
 
@@ -1278,12 +1279,14 @@ bool DBTaskQueryAccount::db_thread_process()
 	info.name = "";
 	info.password = "";
 	info.dbid = dbid_;
+	info.datas = "";
 
-	if(dbid_ == 0)
+	// 为了每次都能获得bindata因此这里需要每次都查询
+	//if(dbid_ == 0)
 	{
 		if(!pTable->queryAccount(pdbi_, accountName_, info))
 		{
-			error_ = "pTable->queryAccount() is failed!";
+			error_ = "pTable->queryAccount() failed!";
 			
 			if(pdbi_->getlasterror() > 0)
 			{
@@ -1308,7 +1311,7 @@ bool DBTaskQueryAccount::db_thread_process()
 
 		if (kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), (int)password_.length()).c_str()) != 0)
 		{
-			error_ = "password is error";
+			error_ = "password error";
 			return false;
 		}
 	}
@@ -1346,6 +1349,7 @@ bool DBTaskQueryAccount::db_thread_process()
 
 	flags_ = info.flags;
 	deadline_ = info.deadline;
+	bindatas_ = info.datas;
 
 	return false;
 }
@@ -1369,6 +1373,7 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 
 	if(success_)
 	{
+		pBundle->appendBlob(bindatas_.data(), bindatas_.length());
 		pBundle->append(s_);
 	}
 	else

@@ -140,8 +140,12 @@ public:
 	/**
 		获取前端附带数据
 	*/
-	INLINE const std::string& getClientDatas();
-	INLINE void setClientDatas(const std::string& datas);
+	INLINE const std::string& getLoginDatas();
+	INLINE void setLoginDatas(const std::string& datas);
+	
+	INLINE const std::string& getCreateDatas();
+	INLINE void setCreateDatas(const std::string& datas);
+
 	DECLARE_PY_MOTHOD_ARG0(pyGetClientDatas);
 
 	/**
@@ -203,7 +207,12 @@ protected:
 	ProxyForwarder* pProxyForwarder_;
 
 	COMPONENT_CLIENT_TYPE clientComponentType_;
-	std::string clientDatas_;
+
+	// 登陆时附带的datas数据（不存档）
+	std::string loginDatas_;
+
+	// 注册时附带的datas数据（永久存档）
+	std::string createDatas_;
 };
 
 }
