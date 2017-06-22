@@ -46,7 +46,7 @@ PySequenceMethods Map::mappingSequenceMethods =
     0,											/* sq_slice */
     0,											/* sq_ass_item */
     0,											/* sq_ass_slice */
-    PyMapping_HasKey,							/* sq_contains */
+	PyMapping_HasKey,							/* sq_contains */
     0,											/* sq_inplace_concat */
     0,											/* sq_inplace_repeat */
 };
@@ -120,10 +120,27 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 	return pyObj;
 }
 
+
+//-------------------------------------------------------------------------------------
+int Map::seq_contains(PyObject* self, PyObject* value)
+{
+	return PyDict_Contains(static_cast<Map*>(self)->pyDict_, value);
+}
+
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 {
-	int ret = PyDict_Contains(static_cast<Map*>(self)->pyDict_, args);
+	PyObject * pyVal = PySequence_GetItem(args, 0);
+	if (!pyVal)
+	{
+		PyErr_SetObject(PyExc_KeyError, args);
+		return NULL;
+	}
+
+	int ret = PyDict_Contains(static_cast<Map*>(self)->pyDict_, pyVal);
+
+	Py_DECREF(pyVal);
+
 	if (ret > 0)
 	{
 		Py_RETURN_TRUE;
@@ -140,12 +157,29 @@ PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_get(PyObject* self, PyObject* args)
 {
-	PyObject* pyObj = PyDict_GetItem(static_cast<Map*>(self)->pyDict_, args);
+	PyObject * pyVal = PySequence_GetItem(args, 0);
+
+	if (!pyVal)
+	{
+		PyErr_SetObject(PyExc_KeyError, args);
+		return NULL;
+	}
+
+	PyObject* pyObj = PyDict_GetItem(static_cast<Map*>(self)->pyDict_, pyVal);
+
+	Py_DECREF(pyVal);
 
 	if (!pyObj)
-		PyErr_SetObject(PyExc_KeyError, args);
+	{
+		if (PySequence_Size(args) > 1)
+			return PySequence_GetItem(args, 1);
+		else
+			PyErr_SetObject(PyExc_KeyError, args);
+	}
 	else
+	{
 		Py_INCREF(pyObj);
+	}
 
 	return pyObj;
 }
@@ -171,7 +205,16 @@ PyObject* Map::__py_items(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_update(PyObject* self, PyObject* args)
 {
-	PyDict_Update(static_cast<Map*>(self)->pyDict_, args);
+	PyObject * pyVal = PySequence_GetItem(args, 0);
+	if (!pyVal)
+	{
+		PyErr_SetObject(PyExc_KeyError, args);
+		return NULL;
+	}
+
+	PyDict_Update(static_cast<Map*>(self)->pyDict_, pyVal);
+
+	Py_DECREF(pyVal);
 	S_Return; 
 }
 
