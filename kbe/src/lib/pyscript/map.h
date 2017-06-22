@@ -47,7 +47,9 @@ public:
 	static PyObject* __py_items(PyObject* self, PyObject* args);
 	static PyObject* __py_update(PyObject* self, PyObject* args);
 	static PyObject* __py_get(PyObject* self, PyObject* args);
-	static int __py_contains(PyObject* self, PyObject* args);
+
+	static int seq_contains(PyObject* self, PyObject* value);
+
 	/** 
 		map操作函数相关 
 	*/
