@@ -37,6 +37,10 @@ KBEngine
 	BBS		: http://bbs.kbengine.org
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
+## Stresstest
+
+	https://www.youtube.com/watch?v=sWtk3CfxyGY
+	http://v.youku.com/v_show/id_XMjgyMjM0MTYwNA==.html?spm=a2h3j.8428770.3416059.1
 
 ## What is KBEngine?
 
