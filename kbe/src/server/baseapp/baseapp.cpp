@@ -3200,7 +3200,7 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 					PyObject* pCell = NULL;
 						
-					if(cell == "NULL")
+					if(cell == "KBE_QUERY_DB_NULL")
 					{
 						Py_INCREF(Py_None);
 						pCell = Py_None;

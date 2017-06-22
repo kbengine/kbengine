@@ -700,6 +700,7 @@ void* TPThread::threadFunc(void* arg)
 
 			if(!task1)
 			{
+				tptd->state_ = THREAD_STATE_PENDING;
 				tptd->onTaskCompleted();
 				break;
 			}

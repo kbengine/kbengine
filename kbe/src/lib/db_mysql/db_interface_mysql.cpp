@@ -524,7 +524,7 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 			{
 				if (arow[i] == NULL)
 				{
-					result->appendBlob("NULL", strlen("NULL"));
+					result->appendBlob("KBE_QUERY_DB_NULL", strlen("KBE_QUERY_DB_NULL"));
 				}
 				else
 				{

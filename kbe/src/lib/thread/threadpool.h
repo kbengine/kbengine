@@ -69,7 +69,8 @@ public:
 		THREAD_STATE_STOP = -1,
 		THREAD_STATE_SLEEP = 0,
 		THREAD_STATE_BUSY = 1,
-		THREAD_STATE_END = 2
+		THREAD_STATE_END = 2,
+		THREAD_STATE_PENDING = 3
 	};
 
 public:
@@ -144,7 +145,23 @@ public:
 	*/
 	int sendCondSignal(void)
 	{
+#if KBE_PLATFORM == PLATFORM_WIN32
 		return THREAD_SINGNAL_SET(cond_);
+#else
+REATTEMPT:
+
+		lock();
+
+		if (state_ == THREAD_STATE_PENDING)
+		{       
+			unlock();
+			goto REATTEMPT;
+		}
+
+		int ret = THREAD_SINGNAL_SET(cond_);
+		unlock();
+		return ret;
+#endif
 	}
 	
 	/**
