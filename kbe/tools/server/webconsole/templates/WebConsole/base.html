@@ -43,6 +43,7 @@
           <ul class="nav navbar-nav navbar-right">
             <li>
               <p class="navbar-text">用户名：{{ request.session.auth_show_name }}</p></li>
+            <li><p class="navbar-text">可管理服务器UID：{{ request.session.sys_uid }}</p></li>
             <li><a href="/wc/logout">退出</a></li>
           </ul>
         </div>
