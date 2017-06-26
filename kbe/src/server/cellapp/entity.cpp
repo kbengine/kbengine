@@ -262,8 +262,9 @@ void Entity::onDestroy(bool callScript)
 		ERROR_MSG(fmt::format("{}::onDestroy(): id={}, witnesses_count({}/{}) != 0, isReal={}, spaceID={}, position=({},{},{})\n", 
 			scriptName(), id(), witnesses_count_, witnesses_.size(), isReal(), this->spaceID(), position().x, position().y, position().z));
 
-		std::list<ENTITY_ID>::iterator it = witnesses_.begin();
-		for (; it != witnesses_.end(); ++it)
+		std::list<ENTITY_ID> witnesses_copy = witnesses_;
+		std::list<ENTITY_ID>::iterator it = witnesses_copy.begin();
+		for (; it != witnesses_copy.end(); ++it)
 		{
 			Entity *ent = Cellapp::getSingleton().findEntity((*it));
 
