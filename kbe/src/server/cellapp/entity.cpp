@@ -169,7 +169,7 @@ Entity::~Entity()
 	KBE_ASSERT(pWitness_ == NULL);
 
 	SAFE_RELEASE(pControllers_);
-	SAFE_RELEASE(pEntityCoordinateNode_);
+	KBE_ASSERT(pEntityCoordinateNode_ == NULL);
 
 	Py_DECREF(pPyPosition_);
 	pPyPosition_ = NULL;
@@ -307,6 +307,8 @@ void Entity::onDestroy(bool callScript)
 
 	pPyPosition_->onLoseRef();
 	pPyDirection_->onLoseRef();
+
+	SAFE_RELEASE(pEntityCoordinateNode_);
 }
 
 //-------------------------------------------------------------------------------------
