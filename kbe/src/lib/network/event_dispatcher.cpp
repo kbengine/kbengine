@@ -168,7 +168,7 @@ void EventDispatcher::processTasks()
 //-------------------------------------------------------------------------------------
 void EventDispatcher::processTimers()
 {
-	AUTO_SCOPED_PROFILE("processSysTimers")
+	AUTO_SCOPED_PROFILE("callSystemTimers")
 	numTimerCalls_ += pTimers_->process(timestamp());
 }
 
