@@ -1536,7 +1536,7 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		if (info.ids_criticallyLowSize > getDBMgr().ids_increasing_range / 2)
 		{
 			info.ids_criticallyLowSize = getDBMgr().ids_increasing_range / 2;
-			ERROR_MSG(fmt::format("kbengine[_defs].xml->cellapp->ids->criticallyLowSize > dbmgr->ids->increasing_range / 2, Force adjustment to criticallyLowSize({})\n",
+			ERROR_MSG(fmt::format("kbengine[_defs].xml->baseapp->ids->criticallyLowSize > dbmgr->ids->increasing_range / 2, Force adjustment to criticallyLowSize({})\n",
 				info.ids_criticallyLowSize));
 		}
 
