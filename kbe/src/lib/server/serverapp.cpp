@@ -264,7 +264,7 @@ void ServerApp::handleTimeout(TimerHandle, void * arg)
 //-------------------------------------------------------------------------------------
 void ServerApp::handleTimers()
 {
-	AUTO_SCOPED_PROFILE("callTimers");
+	AUTO_SCOPED_PROFILE("callScriptTimers");
 	timers().process(g_kbetime);
 }
 
