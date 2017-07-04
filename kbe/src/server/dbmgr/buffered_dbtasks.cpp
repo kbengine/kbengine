@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -205,6 +205,9 @@ std::string Buffered_DBTasks::printBuffered_dbid_()
 
         for (DBID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)  
         {  
+			if (i == dbid_tasks_.end())
+				break;
+
 			++count;
         } 
 
@@ -223,8 +226,12 @@ std::string Buffered_DBTasks::printBuffered_entityID_()
     {  
 		int count = 0;
         std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> res = entityid_tasks_.equal_range(iter->first);  
+
         for (ENTITYID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)  
         {  
+			if (i == entityid_tasks_.end())
+				break;
+
 			++count;
         }  
 

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -134,6 +134,9 @@ public:
 	MethodDescription* findMethodDescription(const char* attrName, COMPONENT_TYPE componentType);
 	MethodDescription* findMethodDescription(ENTITY_METHOD_UID utype, COMPONENT_TYPE componentType);
 
+	bool hasPropertyName(const std::string& name);
+	bool hasMethodName(const std::string& name);
+	
 	INLINE METHODDESCRIPTION_MAP& getBaseExposedMethodDescriptions(void);
 	INLINE METHODDESCRIPTION_MAP& getCellExposedMethodDescriptions(void);
 

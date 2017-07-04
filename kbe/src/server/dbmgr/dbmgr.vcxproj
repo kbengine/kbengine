@@ -218,6 +218,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="profile.cpp" />
     <ClCompile Include="sync_app_datas_handler.cpp" />
+    <ClCompile Include="update_dblog_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="interfaces_handler.h" />
@@ -228,6 +229,7 @@
     <ClInclude Include="dbtasks.h" />
     <ClInclude Include="profile.h" />
     <ClInclude Include="sync_app_datas_handler.h" />
+    <ClInclude Include="update_dblog_handler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

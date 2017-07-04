@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +49,7 @@ public:
 	static ObjectPool<EntityRef>& ObjPool();
 	static EntityRef* createPoolObject();
 	static void reclaimPoolObject(EntityRef* obj);
+	static void destroyObjPool();
 	void onReclaimObject();
 
 	virtual size_t getPoolObjectBytes()
@@ -60,16 +61,16 @@ public:
 		return bytes;
 	}
 
-	void flags(uint32 v){ flags_ = v; }
-	void removeflags(uint32 v){ flags_ &= ~v; }
-	uint32 flags(){ return flags_; }
+	void flags(uint32 v) { flags_ = v; }
+	void removeflags(uint32 v) { flags_ &= ~v; }
+	uint32 flags() { return flags_; }
 	
 	Entity* pEntity() const { return pEntity_; }
 	void pEntity(Entity* e);
 
-	ENTITY_ID id() const{ return id_; }
+	ENTITY_ID id() const { return id_; }
 
-	int aliasID() const{ return aliasID_; }
+	int aliasID() const { return aliasID_; }
 	void aliasID(int id) { aliasID_ = id; }
 
 	void addToStream(KBEngine::MemoryStream& s);

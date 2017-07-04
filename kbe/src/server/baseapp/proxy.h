@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -133,10 +133,19 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyGetClientType);
 
 	/**
+		断开客户端连接
+	*/
+	DECLARE_PY_MOTHOD_ARG0(pyDisconnect);
+
+	/**
 		获取前端附带数据
 	*/
-	INLINE const std::string& getClientDatas();
-	INLINE void setClientDatas(const std::string& datas);
+	INLINE const std::string& getLoginDatas();
+	INLINE void setLoginDatas(const std::string& datas);
+	
+	INLINE const std::string& getCreateDatas();
+	INLINE void setCreateDatas(const std::string& datas);
+
 	DECLARE_PY_MOTHOD_ARG0(pyGetClientDatas);
 
 	/**
@@ -198,7 +207,12 @@ protected:
 	ProxyForwarder* pProxyForwarder_;
 
 	COMPONENT_CLIENT_TYPE clientComponentType_;
-	std::string clientDatas_;
+
+	// 登陆时附带的datas数据（不存档）
+	std::string loginDatas_;
+
+	// 注册时附带的datas数据（永久存档）
+	std::string createDatas_;
 };
 
 }

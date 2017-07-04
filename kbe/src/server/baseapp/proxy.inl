@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -41,14 +41,24 @@ INLINE void Proxy::setClientType(COMPONENT_CLIENT_TYPE ctype)
 	clientComponentType_ = ctype;
 }
 
-INLINE const std::string& Proxy::getClientDatas()
+INLINE const std::string& Proxy::getLoginDatas()
 {
-	return clientDatas_;
+	return loginDatas_;
 }
 
-INLINE void Proxy::setClientDatas(const std::string& datas)
+INLINE void Proxy::setLoginDatas(const std::string& datas)
 {
-	clientDatas_ = datas;
+	loginDatas_ = datas;
+}
+
+INLINE const std::string& Proxy::getCreateDatas()
+{
+	return createDatas_;
+}
+
+INLINE void Proxy::setCreateDatas(const std::string& datas)
+{
+	createDatas_ = datas;
 }
 
 INLINE void Proxy::addr(const Network::Address& address)

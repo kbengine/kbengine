@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -136,7 +136,7 @@ int KBEBlowfish::decrypt( const unsigned char * src, unsigned char * dest,
 {
 	if (length % BLOCK_SIZE != 0)
 	{
-		ERROR_MSG(fmt::format("Blowfish::decrypt:"
+		ERROR_MSG(fmt::format("Blowfish::decrypt: "
 			"Input stream size ({}) is not a multiple of the block size ({})\n",
 			length, (int)(BLOCK_SIZE)));
 

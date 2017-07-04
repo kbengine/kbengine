@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -674,7 +674,7 @@ namespace KBEngine{ namespace script{
 */
 #define SCRIPT_OBJECT_CALL_ARGS0(OBJ, METHOT_NAME)														\
 {																										\
-	if(OBJ == NULL)																						\
+	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
 		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
 	}																									\
@@ -695,7 +695,7 @@ namespace KBEngine{ namespace script{
 			
 #define SCRIPT_OBJECT_CALL_ARGS1(OBJ, METHOT_NAME, FORMAT, ARG1)										\
 {																										\
-	if(OBJ == NULL)																						\
+	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
 		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
 	}																									\
@@ -719,7 +719,7 @@ namespace KBEngine{ namespace script{
 			
 #define SCRIPT_OBJECT_CALL_ARGS2(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2)									\
 {																										\
-	if(OBJ == NULL)																						\
+	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
 		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
 	}																									\
@@ -744,7 +744,7 @@ namespace KBEngine{ namespace script{
 
 #define SCRIPT_OBJECT_CALL_ARGS3(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3)							\
 {																										\
-	if(OBJ == NULL)																						\
+	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
 		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
 	}																									\
@@ -770,7 +770,7 @@ namespace KBEngine{ namespace script{
 
 #define SCRIPT_OBJECT_CALL_ARGS4(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4)						\
 {																										\
-	if(OBJ == NULL)																						\
+	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
 		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
 	}																									\
@@ -797,7 +797,7 @@ namespace KBEngine{ namespace script{
 
 #define SCRIPT_OBJECT_CALL_ARGS5(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4, ARG5)				\
 {																										\
-	if(OBJ == NULL)																						\
+	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
 		ERROR_MSG("call " #METHOT_NAME ", OBJ is NULL!\n");												\
 	}																									\

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -413,6 +413,7 @@ bool EntityTableMysql::syncToDB(DBInterface* pdbi)
 	DBInterfaceMysql::TABLE_FIELDS outs;
 	static_cast<DBInterfaceMysql*>(pdbi)->getFields(outs, this->tableName());
 
+	ALL_MYSQL_SET_FLAGS |= NOT_NULL_FLAG;
 	sync_item_to_db(pdbi, "tinyint not null DEFAULT 0", this->tableName(), TABLE_ITEM_PERFIX"_" TABLE_AUTOLOAD_CONST_STR, 0, 
 			FIELD_TYPE_TINY, NOT_NULL_FLAG, (void*)&outs, &sync_autoload_item_index);
 
@@ -518,7 +519,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 		
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint not null DEFAULT {}", defaultVal),
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint(@DATALEN@) not null DEFAULT {}", defaultVal),
 			4, NOT_NULL_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "INT16")
@@ -536,7 +537,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			6, NOT_NULL_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "INT32")
@@ -554,7 +555,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("int not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			11, NOT_NULL_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "INT64")
@@ -572,7 +573,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			20, NOT_NULL_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "UINT8")
@@ -590,7 +591,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint unsigned not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("tinyint(@DATALEN@) unsigned not null DEFAULT {}", defaultVal), 
 			3, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_TINY);
 	}
 	else if(type == "UINT16")
@@ -608,7 +609,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint unsigned not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("smallint(@DATALEN@) unsigned not null DEFAULT {}", defaultVal), 
 			5, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_SHORT);
 	}
 	else if(type == "UINT32")
@@ -626,7 +627,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("int unsigned not null DEFAULT {}", defaultVal),
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("int(@DATALEN@) unsigned not null DEFAULT {}", defaultVal),
 			10, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONG);
 	}
 	else if(type == "UINT64")
@@ -644,7 +645,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint unsigned not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("bigint(@DATALEN@) unsigned not null DEFAULT {}", defaultVal), 
 			20, NOT_NULL_FLAG | UNSIGNED_FLAG, FIELD_TYPE_LONGLONG);
 	}
 	else if(type == "FLOAT")
@@ -662,7 +663,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("float not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("float(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 	else if(type == "DOUBLE")
@@ -680,7 +681,7 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		if(defaultVal.size() == 0)
 			defaultVal = "0";
 
-		return new EntityTableItemMysql_DIGIT(type, fmt::format("double not null DEFAULT {}", defaultVal), 
+		return new EntityTableItemMysql_DIGIT(type, fmt::format("double(@DATALEN@) not null DEFAULT {}", defaultVal), 
 			0, NOT_NULL_FLAG, FIELD_TYPE_DOUBLE);
 	}
 	else if(type == "STRING")
@@ -965,10 +966,7 @@ bool EntityTableItemMysql_VECTOR2::syncToDB(DBInterface* pdbi, void* pData)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR2::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
-	ArraySize asize = 2;
-	(*s) << asize;
-
-	for(ArraySize i = 0; i < asize; ++i)
+	for(ArraySize i = 0; i < 2; ++i)
 	{
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(context.results[context.readresultIdx++].c_str());
@@ -991,12 +989,7 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	float v;
 #endif
 
-	ArraySize asize;
-
-	(*s) >> asize;
-	KBE_ASSERT(asize == 2);
-
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<2; ++i)
 	{
 		(*s) >> v;
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
@@ -1015,8 +1008,7 @@ void EntityTableItemMysql_VECTOR2::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR2::getReadSqlItem(mysql::DBContext& context)
 {
-	ArraySize asize = 2;
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<2; ++i)
 	{
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
@@ -1055,10 +1047,7 @@ bool EntityTableItemMysql_VECTOR3::syncToDB(DBInterface* pdbi, void* pData)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR3::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
-	ArraySize asize = 3;
-	(*s) << asize;
-
-	for(ArraySize i = 0; i < asize; ++i)
+	for(ArraySize i = 0; i < 3; ++i)
 	{
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(context.results[context.readresultIdx++].c_str());
@@ -1081,12 +1070,7 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	float v;
 #endif
 
-	ArraySize asize;
-
-	(*s) >> asize;
-	KBE_ASSERT(asize == 3);
-
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<3; ++i)
 	{
 		(*s) >> v;
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
@@ -1105,8 +1089,7 @@ void EntityTableItemMysql_VECTOR3::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR3::getReadSqlItem(mysql::DBContext& context)
 {
-	ArraySize asize = 3;
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<3; ++i)
 	{
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
@@ -1145,10 +1128,7 @@ bool EntityTableItemMysql_VECTOR4::syncToDB(DBInterface* pdbi, void* pData)
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR4::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
-	ArraySize asize = 4;
-	(*s) << asize;
-
-	for(ArraySize i = 0; i < asize; ++i)
+	for(ArraySize i = 0; i < 4; ++i)
 	{
 #ifdef CLIENT_NO_FLOAT
 		int32 v = atoi(context.results[context.readresultIdx++].c_str());
@@ -1171,12 +1151,7 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 	float v;
 #endif
 
-	ArraySize asize;
-
-	(*s) >> asize;
-	KBE_ASSERT(asize == 4);
-
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<4; ++i)
 	{
 		(*s) >> v;
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
@@ -1195,8 +1170,7 @@ void EntityTableItemMysql_VECTOR4::getWriteSqlItem(DBInterface* pdbi, MemoryStre
 //-------------------------------------------------------------------------------------
 void EntityTableItemMysql_VECTOR4::getReadSqlItem(mysql::DBContext& context)
 {
-	ArraySize asize = 4;
-	for(ArraySize i=0; i<asize; ++i)
+	for(ArraySize i=0; i<4; ++i)
 	{
 		mysql::DBContext::DB_ITEM_DATA* pSotvs = new mysql::DBContext::DB_ITEM_DATA();
 		pSotvs->sqlkey = db_item_names_[i];
@@ -1309,8 +1283,9 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 //-------------------------------------------------------------------------------------
 bool EntityTableItemMysql_ARRAY::syncToDB(DBInterface* pdbi, void* pData)
 {
-	if(pChildTable_)
-		return pChildTable_->syncToDB(pdbi);
+	// 所有的表都会在bool EntityTables::syncToDB(DBInterface* pdbi)中被同步（包括子表），因此无需再做一次同步
+	//if(pChildTable_)
+	//	return pChildTable_->syncToDB(pdbi);
 
 	return true;
 }
@@ -1531,6 +1506,7 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* pdbi, void* pData)
 {
 	if(datalength_ == 0)
 	{
+		KBEngine::strutil::kbe_replace(itemDBType_, "(@DATALEN@)", "");
 		return sync_item_to_db(pdbi, itemDBType_.c_str(), tableName_.c_str(), 
 			db_item_name(), datalength_, this->mysqlItemtype_, this->flags(), pData);
 	}
@@ -1538,10 +1514,16 @@ bool EntityTableItemMysql_DIGIT::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length <= 0)
+	if (length <= 0)
+	{
+		KBEngine::strutil::kbe_replace(itemDBType_, "(@DATALEN@)", "");
 		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
+	}
 	else
-		kbe_snprintf(sql_str, MAX_BUF, "%s(%u)", itemDBType_.c_str(), length);
+	{
+		KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
+		kbe_snprintf(sql_str, MAX_BUF, "%s", itemDBType_.c_str());
+	}
 
 	return sync_item_to_db(pdbi, sql_str, tableName_.c_str(), db_item_name(), length, this->mysqlItemtype_, this->flags(), pData);
 }
@@ -1704,16 +1686,16 @@ bool EntityTableItemMysql_STRING::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if(length <= 0)
-	{
-		// 默认长度255
-		length = 255;
-	}
-
 	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
 	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
 	{
 		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
+	}
+
+	if (length <= 0)
+	{
+		// 默认长度255
+		length = 255;
 	}
 
 	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());
@@ -1775,16 +1757,16 @@ bool EntityTableItemMysql_UNICODE::syncToDB(DBInterface* pdbi, void* pData)
 	uint32 length = pPropertyDescription_->getDatabaseLength();
 	char sql_str[MAX_BUF];
 
-	if (length <= 0)
-	{
-		// 默认长度255
-		length = 255;
-	}
-
 	// 如果父表Item是个固定字典，那么需要判断当前item有无在固定字典中设置DatabaseLength
 	if (this->pParentTableItem() && this->pParentTableItem()->type() == TABLE_ITEM_TYPE_FIXEDDICT)
 	{
 		length = static_cast<KBEngine::EntityTableItemMysql_FIXED_DICT*>(pParentTableItem())->getItemDatabaseLength(this->itemName());
+	}
+
+	if (length <= 0)
+	{
+		// 默认长度255
+		length = 255;
 	}
 
 	KBEngine::strutil::kbe_replace(itemDBType_, "@DATALEN@", fmt::format("{}", length).c_str());

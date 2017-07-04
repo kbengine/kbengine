@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -107,7 +107,16 @@ void DBTransaction::commit()
 	KBE_ASSERT(!committed_);
 
 	uint64 startTime = timestamp();
-	pdbi_->query(SQL_COMMIT, false);
+
+	try
+	{
+		pdbi_->query(SQL_COMMIT, false);
+	}
+	catch (DBException & e)
+	{
+		bool ret = static_cast<DBInterfaceMysql*>(pdbi_)->processException(e);
+		KBE_ASSERT(ret);
+	}
 
 	uint64 duration = timestamp() - startTime;
 	if(duration > stampsPerSecond() * 0.2f)

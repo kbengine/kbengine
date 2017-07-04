@@ -25,6 +25,8 @@
  {% endblock %}
 
 {% block tail_js %}
+<script src="/static/js/pytools.js"></script>
+<script src="/static/js/kbengine.js"></script>
 <script>$(".py-coupling").addClass("active");</script>
 <script>
   $(".kbe-list .dd").hide();
@@ -129,10 +131,12 @@ function connect_to()
 function show_result(data, ignoreBlankLine)
 {
     var ds = data.replace("\r\n", "\n");
-    ds = ds.replace("[9999999999D", "");
-    ds = ds.replace("[23C", "");
+    ds = ds.replace("<", "&lt;");
+    //ds = ds.replace(">", "&gt;");
+    ds = KBEngine.filterConsoleCmd(ds);
     ds = ds.split("\n");
     var em = $.data.lastEM;
+
     for (var i = 0; i < ds.length; i++)
     {
         var d = ds[i];
@@ -140,18 +144,22 @@ function show_result(data, ignoreBlankLine)
             continue;
         if ($.data.lastEM)
         {
-            em.text(em.text() + d);
+            em.text(KBEngine.filterConsoleCmd(em.text() + d));
             $.data.lastEM = null;
         }
         else
         {
-            em = $('<span>' + d + '</span>');
+        	if( KBEngine.filterConsoleCmd(d).indexOf("~] >>>")>0 || KBEngine.filterConsoleCmd(d).indexOf("~]#")>0 )
+	        	em = $('<span style="color:red">' + KBEngine.filterConsoleCmd(d) + '</span>');
+        	else
+	            em = $('<span>' + KBEngine.filterConsoleCmd(d) + '</span>');
             $('#output_block_area').append(em);
             $('#output_block_area').append('<br>');
         }
     }
     if (data[data.length - 1] != "\n")
         $.data.lastEM = em;
+
      $('#output_block_area').scrollTop( $('#output_block_area').height());
 }
 

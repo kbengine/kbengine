@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -225,7 +225,15 @@ bool Bots::installPyModules()
 	if(entryScriptFileName != NULL)
 	{
 		entryScript_ = PyImport_Import(entryScriptFileName);
-		SCRIPT_ERROR_CHECK();
+
+		if (PyErr_Occurred())
+		{
+			INFO_MSG(fmt::format("EntityApp::installPyModules: importing scripts/bots/{}.py...\n",
+				g_kbeSrvConfig.getBots().entryScriptFile));
+
+			PyErr_PrintEx(0);
+		}
+
 		S_RELEASE(entryScriptFileName);
 
 		if(entryScript_.get() == NULL)
@@ -644,12 +652,12 @@ void Bots::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE f
 }
 
 //-------------------------------------------------------------------------------------	
-void Bots::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void Bots::onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	ClientObject* pClient = findClient(pChannel);
 	if(pClient)
 	{
-		pClient->onReLoginBaseappSuccessfully(pChannel, s);
+		pClient->onReloginBaseappSuccessfully(pChannel, s);
 	}
 }
 
@@ -791,6 +799,16 @@ void Bots::onUpdateBasePosXZ(Network::Channel* pChannel, float x, float z)
 	if(pClient)
 	{
 		pClient->onUpdateBasePosXZ(pChannel, x, z);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream& s)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onUpdateBaseDir(pChannel, s);
 	}
 }
 
@@ -1045,6 +1063,16 @@ void Bots::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
+void Bots::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onControlEntity(pChannel, entityID, isControlled);
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Bots::onStreamDataStarted(Network::Channel* pChannel, int16 id, uint32 datasize, std::string& descr)
 {
 	ClientObject* pClient = findClient(pChannel);
@@ -1172,6 +1200,16 @@ void Bots::startProfile_(Network::Channel* pChannel, std::string profileName, in
 
 		break;
 	};
+}
+
+//-------------------------------------------------------------------------------------
+void Bots::onAppActiveTickCB(Network::Channel* pChannel)
+{
+	ClientObject* pClient = findClient(pChannel);
+	if (pClient)
+	{
+		pClient->onAppActiveTickCB(pChannel);
+	}
 }
 
 //-------------------------------------------------------------------------------------

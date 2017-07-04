@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -65,6 +65,15 @@ EntityRef* EntityRef::createPoolObject()
 void EntityRef::reclaimPoolObject(EntityRef* obj)
 {
 	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityRef::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("EntityRef::destroyObjPool(): size {}.\n",
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
 }
 
 //-------------------------------------------------------------------------------------

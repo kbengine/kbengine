@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -94,15 +94,21 @@ INLINE int32 Bundle::packetMaxSize() const
 
 INLINE int32 Bundle::lastPacketSpace()
 {
-	if(packets_.size() > 0)
-		return packetMaxSize() - packets_.back()->wpos();
-	
+	if (packets_.size() > 0)
+	{
+		Packet* pPacket = packets_.back();
+		if (!pPacket->isEnabledPoolObject())
+			return 0;
+
+		return packetMaxSize() - (int32)pPacket->wpos();
+	}
+
 	return 0;
 }
 
 INLINE bool Bundle::packetHaveSpace()
 {
-	return lastPacketSpace() > 8;
+	return isEnabledPoolObject() && lastPacketSpace() > 8;
 }
 
 INLINE int32 Bundle::numMessages() const

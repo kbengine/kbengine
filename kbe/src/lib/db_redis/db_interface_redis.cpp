@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -50,6 +50,7 @@ bool DBInterfaceRedis::initInterface(DBInterface* pdbi)
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi->name());
 
 	entityTables.addKBETable(new KBEAccountTableRedis(&entityTables));
+	entityTables.addKBETable(new KBEServerLogTableRedis(&entityTables));
 	entityTables.addKBETable(new KBEEntityLogTableRedis(&entityTables));
 	entityTables.addKBETable(new KBEEmailVerificationTableRedis(&entityTables));
 	return true;
@@ -66,11 +67,11 @@ bool DBInterfaceRedis::checkErrors()
 {
 	if (!RedisHelper::hasTable(this, fmt::format("{}:*", DBUtil::accountScriptName()), true))
 	{
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset kbe_* table...\n", 
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: not found {} table, reset " KBE_TABLE_PERFIX "_* table...\n", 
 			DBUtil::accountScriptName()));
 		
-		RedisHelper::dropTable(this, fmt::format("kbe_*"), false);
-		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset kbe_* table end!\n"));
+		RedisHelper::dropTable(this, fmt::format(KBE_TABLE_PERFIX "_*"), false);
+		WARNING_MSG(fmt::format("DBInterfaceRedis::checkErrors: reset " KBE_TABLE_PERFIX "_* table end!\n"));
 	}
 	
 	return true;
@@ -450,9 +451,11 @@ void DBInterfaceRedis::write_query_result(redisReply* pRedisReply, MemoryStream 
 	{
 		uint32 nfields = 0;
 		uint64 affectedRows = 0;
+		uint64 lastInsertID = 0;
 
 		(*result) << nfields;
 		(*result) << affectedRows;
+		(*result) << lastInsertID;
 	}
 }
 

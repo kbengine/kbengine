@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -66,10 +66,13 @@ public:
 	
 	virtual thread::TPTask* tryGetTask(void)
 	{
-		DBTaskBase* pDBTask = static_cast<DBTaskBase*>(task())->tryGetNextTask();
-		if(pDBTask != NULL)
+		if (task())
 		{
-			return pDBTask;
+			DBTaskBase* pDBTask = static_cast<DBTaskBase*>(task())->tryGetNextTask();
+			if (pDBTask != NULL)
+			{
+				return pDBTask;
+			}
 		}
 
 		return thread::TPThread::tryGetTask();
@@ -125,10 +128,13 @@ DBThreadPool::~DBThreadPool()
 }
 
 //-------------------------------------------------------------------------------------
-thread::TPThread* DBThreadPool::createThread(int threadWaitSecond)
+thread::TPThread* DBThreadPool::createThread(int threadWaitSecond, bool threadStartsImmediately)
 {
 	DBThread* tptd = new DBThread(dbinterfaceName_, this, threadWaitSecond);
-	tptd->createThread();
+
+	if (threadStartsImmediately)
+		tptd->createThread();
+
 	return tptd;
 }	
 

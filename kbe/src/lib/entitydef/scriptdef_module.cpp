@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -401,7 +401,19 @@ void ScriptDefModule::autoMatchCompOwn()
 	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
 		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
-		setClient(true);
+		if (assertionHasClient < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在客户端属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setClient(true);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setClient(assertionHasClient == 1);
+		}
 	}
 	else
 	{
@@ -432,7 +444,19 @@ void ScriptDefModule::autoMatchCompOwn()
 	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
 		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
-		setBase(true);
+		if (assertionHasBase < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在base属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setBase(true);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setBase(assertionHasBase == 1);
+		}
 	}
 	else
 	{
@@ -456,7 +480,19 @@ void ScriptDefModule::autoMatchCompOwn()
 	if(Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
 		Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
 	{
-		setCell(true);
+		if (assertionHasCell < 0)
+		{
+			// 如果用户不存在明确声明并设置为没有对应实体部分
+			// 这样做的原因是允许用户在def文件定义这部分的内容(因为interface的存在，interface中可能会存在cell属性或者方法)
+			// 但如果脚本不存在仍然认为用户当前不需要该部分
+			// http://www.kbengine.org/cn/docs/configuration/entities.html 
+			setCell(true);
+		}
+		else
+		{
+			// 用户明确声明并进行了设定
+			setCell(assertionHasCell == 1);
+		}
 	}
 	else
 	{
@@ -481,6 +517,14 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 										  PropertyDescription* propertyDescription, 
 										  COMPONENT_TYPE componentType)
 {
+	if(hasMethodName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: There is a method[{}] name conflict! componentType={}.\n",
+			attrName, componentType));
+		
+		return false;
+	}
+	
 	PropertyDescription* f_propertyDescription = NULL;
 	PROPERTYDESCRIPTION_MAP*  propertyDescr;
 	PROPERTYDESCRIPTION_UIDMAP*  propertyDescr_uidmap;
@@ -783,6 +827,14 @@ MethodDescription* ScriptDefModule::findAliasMethodDescription(ENTITY_DEF_ALIASI
 bool ScriptDefModule::addCellMethodDescription(const char* attrName, 
 											   MethodDescription* methodDescription)
 {
+	if(hasPropertyName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addCellMethodDescription: There is a property[{}] name conflict!\n",
+			attrName));
+		
+		return false;
+	}
+	
 	MethodDescription* f_methodDescription = findCellMethodDescription(attrName);
 	if(f_methodDescription)
 	{
@@ -828,6 +880,14 @@ MethodDescription* ScriptDefModule::findBaseMethodDescription(ENTITY_METHOD_UID 
 bool ScriptDefModule::addBaseMethodDescription(const char* attrName, 
 											   MethodDescription* methodDescription)
 {
+	if(hasPropertyName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addBaseMethodDescription: There is a property[{}] name conflict!\n",
+			attrName));
+		
+		return false;
+	}
+	
 	MethodDescription* f_methodDescription = findBaseMethodDescription(attrName);
 	if(f_methodDescription)
 	{
@@ -875,6 +935,14 @@ MethodDescription* ScriptDefModule::findClientMethodDescription(ENTITY_METHOD_UI
 bool ScriptDefModule::addClientMethodDescription(const char* attrName, 
 												 MethodDescription* methodDescription)
 {
+	if(hasPropertyName(attrName))
+	{
+		ERROR_MSG(fmt::format("ScriptDefModule::addClientMethodDescription: There is a property[{}] name conflict!\n",
+			attrName));
+		
+		return false;
+	}
+	
 	MethodDescription* f_methodDescription = findClientMethodDescription(attrName);
 	if(f_methodDescription)
 	{
@@ -909,6 +977,22 @@ ScriptDefModule::PROPERTYDESCRIPTION_MAP& ScriptDefModule::getPropertyDescrs()
 	};
 	
 	return *lpPropertyDescrs;	
+}
+
+//-------------------------------------------------------------------------------------
+bool ScriptDefModule::hasPropertyName(const std::string& name)
+{
+	return findPropertyDescription(name.c_str(), CELLAPP_TYPE) ||
+		findPropertyDescription(name.c_str(), BASEAPP_TYPE) ||
+		findPropertyDescription(name.c_str(), CLIENT_TYPE); 
+}
+
+//-------------------------------------------------------------------------------------
+bool ScriptDefModule::hasMethodName(const std::string& name)
+{
+	return findMethodDescription(name.c_str(), CELLAPP_TYPE) ||
+		findMethodDescription(name.c_str(), BASEAPP_TYPE) ||
+		findMethodDescription(name.c_str(), CLIENT_TYPE);
 }
 
 //-------------------------------------------------------------------------------------

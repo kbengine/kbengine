@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -37,9 +37,9 @@ EntityIDClient::EntityIDClient():
 	if(id_enough_limit <= 0)
 	{
 		if(g_componentType == BASEAPP_TYPE)
-			id_enough_limit = (size_t)g_kbeSrvConfig.getBaseApp().criticallyLowSize;
+			id_enough_limit = (size_t)g_kbeSrvConfig.getBaseApp().ids_criticallyLowSize;
 		else
-			id_enough_limit = (size_t)g_kbeSrvConfig.getCellApp().criticallyLowSize;
+			id_enough_limit = (size_t)g_kbeSrvConfig.getCellApp().ids_criticallyLowSize;
 	}
 }
 

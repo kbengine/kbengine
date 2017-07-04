@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -180,8 +180,6 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	if(isExposed() && g_componentType == CELLAPP_TYPE && isCell())
 	{
 		offset = 1;
-		ENTITY_ID eid = PyLong_AsLong(PyTuple_GetItem(args, 0));
-		(*mstream) << eid;
 	}
 
 	// 将每一个参数添加到流中
@@ -189,7 +187,7 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 	{
 		PyObject* pyArg = PyTuple_GetItem(args, i + offset);
 		argTypes_[i]->addToStream(mstream, pyArg);
-	}	
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -259,8 +257,8 @@ PyObject* MethodDescription::call(PyObject* func, PyObject* args)
 	{
 		if (isExposed() && PyErr_ExceptionMatches(PyExc_TypeError))
 		{
-			WARNING_MSG(fmt::format("MethodDescription::call: {} is method of exposed, if there is a missing arguments error, "
-				"try adding exposedID, For example: \ndef func(msg): => def func(exposedID, msg):\n",
+			WARNING_MSG(fmt::format("MethodDescription::call: {} is exposed of method, if there is a missing arguments error, "
+				"try adding callerEntityID, For example: \ndef func(msg): => def func(callerEntityID, msg):\n",
 				this->getName()));
 		}
 

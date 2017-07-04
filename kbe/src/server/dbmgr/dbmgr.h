@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,7 @@ class DBInterface;
 class TelnetServer;
 class InterfacesHandler;
 class SyncAppDatasHandler;
+class UpdateDBServerLogHandler;
 
 class Dbmgr :	public PythonApp, 
 				public Singleton<Dbmgr>
@@ -266,7 +267,8 @@ protected:
 	InterfacesHandler*									pInterfacesChargeHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
-
+	UpdateDBServerLogHandler*							pUpdateDBServerLogHandler_;
+	
 	TelnetServer*										pTelnetServer_;
 };
 

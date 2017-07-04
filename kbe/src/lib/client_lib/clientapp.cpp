@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -105,6 +105,7 @@ void ClientApp::reset(void)
 
 	pServerChannel_->pFilter(NULL);
 	pServerChannel_->pPacketSender(NULL);
+	pServerChannel_->stopInactivityDetection();
 
 	SAFE_RELEASE(pTCPPacketSender_);
 	SAFE_RELEASE(pTCPPacketReceiver_);
@@ -285,7 +286,15 @@ bool ClientApp::installPyModules()
 	if(entryScriptFileName != NULL)
 	{
 		entryScript_ = PyImport_Import(entryScriptFileName);
-		SCRIPT_ERROR_CHECK();
+
+		if (PyErr_Occurred())
+		{
+			INFO_MSG(fmt::format("EntityApp::installPyModules: importing scripts/client/{}.py...\n",
+				g_kbeConfig.entryScriptFile()));
+
+			PyErr_PrintEx(0);
+		}
+
 		S_RELEASE(entryScriptFileName);
 
 		if(entryScript_.get() == NULL)
@@ -616,6 +625,8 @@ bool ClientApp::updateChannel(bool loginapp, std::string accountName, std::strin
 			pTCPPacketSender_ = new Network::TCPPacketSender(*pServerChannel_->pEndPoint(), networkInterface());
 
 		pServerChannel_->pPacketSender(pTCPPacketSender_);
+		pServerChannel_->startInactivityDetection(Network::g_channelExternalTimeout, Network::g_channelExternalTimeout / 2.f);
+
 		networkInterface().registerChannel(pServerChannel_);
 		networkInterface().dispatcher().registerReadFileDescriptor(*pServerChannel_->pEndPoint(), pTCPPacketReceiver_);
 	}
@@ -739,16 +750,16 @@ void ClientApp::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_C
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientApp::onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	ClientObjectBase::onReLoginBaseappFailed(pChannel, failedcode);
+	ClientObjectBase::onReloginBaseappFailed(pChannel, failedcode);
 	canReset_ = true;
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientApp::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void ClientApp::onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
-	ClientObjectBase::onReLoginBaseappSuccessfully(pChannel, s);
+	ClientObjectBase::onReloginBaseappSuccessfully(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -838,6 +849,12 @@ PyObject* ClientApp::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+	
 	return openedFile;
 }
 

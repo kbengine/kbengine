@@ -17,9 +17,12 @@ logs/
 *.ilk
 *.exe
 *.pdb
+*.chw
 
 # -------------[ OS generated ]------------------------ #
 .DS_Store
 .DS_Store?
 ehthumbs.db
 Thumbs.db
+
+*.pyc
