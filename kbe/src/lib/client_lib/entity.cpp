@@ -77,7 +77,8 @@ velocity_(3.0f),
 enterworld_(false),
 isOnGround_(true),
 pMoveHandlerID_(0),
-inited_(false)
+inited_(false),
+isControlled_(false)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 	script::PyGC::incTracing("Entity");
@@ -278,6 +279,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			s >> pos.x >> pos.y >> pos.z;
 #endif
 			position(pos);
+            clientPos(pos);
 			continue;
 		}
 		else if(uid == diruid)
@@ -300,6 +302,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 #endif
 
 			direction(dir);
+            clientDir(dir);
 			continue;
 		}
 		else if(uid == spaceuid)
@@ -794,6 +797,17 @@ void Entity::onTimer(ScriptID timerID, int useraAgs)
 		Py_DECREF(pyResult);
 	else
 		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onControlled(bool p_controlled)
+{
+    isControlled_ = p_controlled;
+
+    PyObject *pyval = p_controlled ? Py_True : Py_False;
+    Py_INCREF(pyval);
+    SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onControlled"), const_cast<char*>("O"), pyval);
+    Py_DECREF(pyval);
 }
 
 //-------------------------------------------------------------------------------------

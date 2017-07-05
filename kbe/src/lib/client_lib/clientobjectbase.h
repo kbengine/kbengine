@@ -473,6 +473,9 @@ protected:
 	
 	// 用于重登陆网关时的key
 	uint64													rndUUID_; 
+
+    // 受本客户端控制的entity列表
+    std::list<client::Entity *>                             controlledEntities_;
 };
 
 
