@@ -1881,7 +1881,7 @@ void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 eid, in
     client::Entity* entity = pEntities()->find(eid);
     if(entity == NULL)
     {
-        ERROR_MSG("ClientObjectBase::onControlEntity:entity({}) not found.\n", eid);
+        ERROR_MSG(fmt::format("ClientObjectBase::onControlEntity:entity({}) not found.\n", eid));
         return;
     }
 
