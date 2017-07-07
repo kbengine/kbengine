@@ -1,3 +1,20 @@
+###v0.9.17
+
+	2017/7/8
+
+	新增与改善：
+		getClientDatas支持获得注册时传入的datas。(#493)
+		executeRawDatabaseCommand的回调接口增加参数insertID（回调如：def sqlcallback(result, rows, insertid, error)）。
+		完善bots，使其支持controlledBy机制。
+		WebConsole增加当前用户的UID显示，便于识别当前用户环境。
+		更新API文档。
+
+
+	BUG修正：
+		修正一处错误日志信息。
+
+
+
 ###v0.9.16
 
 	2017/6/21
