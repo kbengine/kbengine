@@ -152,10 +152,10 @@ bool ServerApp::installSignals()
 //-------------------------------------------------------------------------------------		
 bool ServerApp::initialize()
 {
-	if(!initThreadPool())
+	if (!installSignals())
 		return false;
 
-	if(!installSignals())
+	if(!initThreadPool())
 		return false;
 	
 	if(!loadConfig())
@@ -168,6 +168,10 @@ bool ServerApp::initialize()
 		return false;
 
 	bool ret = initializeEnd();
+
+	// 最后仍然需要设置一次，避免期间被其他第三方库修改
+	if (!installSignals())
+		return false;
 
 #ifdef ENABLE_WATCHERS
 	return ret && initializeWatcher();

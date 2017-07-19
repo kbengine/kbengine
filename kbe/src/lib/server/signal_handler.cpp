@@ -97,8 +97,10 @@ void SignalHandlers::attachApp(ServerApp* app)
 SignalHandler* SignalHandlers::addSignal(int sigNum, 
 	SignalHandler* pSignalHandler, int flags)
 {
-	SignalHandlerMap::iterator iter = singnalHandlerMap_.find(sigNum);
-	KBE_ASSERT(iter == singnalHandlerMap_.end());
+	// ‘ –Ì±ª÷ÿ÷√
+	// SignalHandlerMap::iterator iter = singnalHandlerMap_.find(sigNum);
+	// KBE_ASSERT(iter == singnalHandlerMap_.end());
+
 	singnalHandlerMap_[sigNum] = pSignalHandler;
 
 #if KBE_PLATFORM != PLATFORM_WIN32
