@@ -194,7 +194,7 @@ bool DBInterfaceMysql::attach(const char* databaseName)
 		pMysql_ = mysql_init(0);
 		if(pMysql_ == NULL)
 		{
-			ERROR_MSG("DBInterfaceMysql::attach: mysql_init is error!\n");
+			ERROR_MSG("DBInterfaceMysql::attach: mysql_init error!\n");
 			return false;
 		}
 		
@@ -228,7 +228,7 @@ __RECONNECT:
 				pMysql_ = mysql_init(0);
 				if (pMysql_ == NULL)
 				{
-					ERROR_MSG("DBInterfaceMysql::attach: mysql_init is error!\n");
+					ERROR_MSG("DBInterfaceMysql::attach: mysql_init error!\n");
 					return false;
 				}
 
@@ -258,7 +258,7 @@ __RECONNECT:
 
 		if (mysql_set_character_set(mysql(), characterSet_.c_str()) != 0)
 		{
-			ERROR_MSG("DBInterfaceMysql::attach: Could not set client connection character set to UTF-8\n" );
+			ERROR_MSG(fmt::format("DBInterfaceMysql::attach: Could not set client connection character set to {}\n", characterSet_));
 			return false;
 		}
 
@@ -295,7 +295,7 @@ bool DBInterfaceMysql::checkEnvironment()
 	std::string querycmd = "SHOW VARIABLES";
 	if(!query(querycmd.c_str(), querycmd.size(), true))
 	{
-		ERROR_MSG(fmt::format("DBInterfaceMysql::checkEnvironment: {}, query is error!\n", querycmd));
+		ERROR_MSG(fmt::format("DBInterfaceMysql::checkEnvironment: {}, query error!\n", querycmd));
 		return false;
 	}
 

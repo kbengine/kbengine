@@ -1636,11 +1636,12 @@ bool DBTaskAccountLogin::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
-	DEBUG_MSG(fmt::format("Dbmgr::onAccountLogin:loginName={0}, accountName={1}, success={2}, componentID={3}, dbid={4}, flags={5}, deadline={6}.\n", 
+	DEBUG_MSG(fmt::format("Dbmgr::onAccountLogin:loginName={}, accountName={}, success={}, componentID={}, entityID={}, dbid={}, flags={}, deadline={}.\n", 
 		loginName_,
 		accountName_,
 		retcode_,
 		componentID_,
+		entityID_,
 		dbid_,
 		flags_,
 		deadline_
