@@ -451,7 +451,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool printlog, Memory
 	{
 		if(printlog)
 		{
-			ERROR_MSG(fmt::format("DBInterfaceMysql::query: has no attach(db).sql:({})\n", lastquery_));
+			ERROR_MSG(fmt::format("DBInterfaceMysql::query: has no attach(db)!\nsql:({})\n", lastquery_));
 		}
 
 		if(result)
@@ -560,7 +560,7 @@ bool DBInterfaceMysql::getTableNames(std::vector<std::string>& tableNames, const
 {
 	if(pMysql_ == NULL)
 	{
-		ERROR_MSG("DBInterfaceMysql::query: has no attach(db).\n");
+		ERROR_MSG("DBInterfaceMysql::getTableNames: has no attach(db).\n");
 		return false;
 	}
 
@@ -637,7 +637,7 @@ void DBInterfaceMysql::getFields(TABLE_FIELDS& outs, const char* tableName)
 	MYSQL_RES*	result = mysql_list_fields(mysql(), sqlname.c_str(), NULL);
 	if(result == NULL)
 	{
-		ERROR_MSG(fmt::format("EntityTableMysql::loadFields:{}\n", getstrerror()));
+		ERROR_MSG(fmt::format("EntityTableMysql::getFields:{}\n", getstrerror()));
 		return;
 	}
 

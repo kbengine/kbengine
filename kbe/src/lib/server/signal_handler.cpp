@@ -67,9 +67,19 @@ const char * SIGNAL_NAMES[] =
 
 SignalHandlers g_signalHandlers;
 
+std::string SIGNAL2NAMES(int signum)
+{
+	if (signum >= SIGMIN && signum <= SIGMAX)
+	{
+		return SIGNAL_NAMES[signum];
+	}
+
+	return fmt::format("unknown({})", signum);
+}
+
 void signalHandler(int signum)
 {
-	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL_NAMES[signum]));
+	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL2NAMES(signum)));
 	g_signalHandlers.onSignalled(signum);
 };
 
@@ -158,11 +168,12 @@ bool SignalHandlers::process()
 			if(iter1 == singnalHandlerMap_.end())
 			{
 				DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n", 
-					SIGNAL_NAMES[sigNum], singnalHandlerMap_.size()));
+					SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
+
 				continue;
 			}
 			
-			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL_NAMES[sigNum]));
+			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL2NAMES(sigNum)));
 				iter1->second->onSignalled(sigNum);
 		}
 
