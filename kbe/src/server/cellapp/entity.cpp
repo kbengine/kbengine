@@ -435,7 +435,7 @@ int Entity::pySetControlledBy(PyObject *value)
 
 	EntityMailbox* mailbox = NULL;
 
-	if (value != Py_None )
+	if (value != Py_None)
 	{
 		if (!PyObject_TypeCheck(value, EntityMailbox::getScriptType()) || !((EntityMailbox *)value)->isBase())
 		{
@@ -541,6 +541,7 @@ bool Entity::setControlledBy(EntityMailbox* controllerBaseMailbox)
 			sendControlledByStatusMessage(controllerBaseMailbox, 1);
 		}
 	}
+
 	return true;
 }
 
@@ -555,6 +556,8 @@ void Entity::sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isCo
 	{
 		pChannel = (static_cast<EntityMailbox*>(clientMB))->getChannel();
 	}
+
+	Py_DECREF(clientMB);
 
 	if (!pChannel)
 		return;
