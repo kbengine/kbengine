@@ -505,6 +505,9 @@ inline const T & max( const T & a, const T & b )
 // 常规的buf长度
 #define MAX_BUF 256
 
+// 常规的buf长度
+#define SQL_BUF 65535
+
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif

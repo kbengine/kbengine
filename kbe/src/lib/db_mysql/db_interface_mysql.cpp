@@ -426,8 +426,8 @@ bool DBInterfaceMysql::dropEntityTableFromDB(const char* tableName)
   
 	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableFromDB: {}.\n", tableName));
 
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "Drop table if exists %s;", tableName);
+	char sql_str[SQL_BUF];
+	kbe_snprintf(sql_str, SQL_BUF, "Drop table if exists %s;", tableName);
 	return query(sql_str, strlen(sql_str));
 }
 
@@ -439,8 +439,8 @@ bool DBInterfaceMysql::dropEntityTableItemFromDB(const char* tableName, const ch
 	DEBUG_MSG(fmt::format("DBInterfaceMysql::dropEntityTableItemFromDB: {} {}.\n", 
 		tableName, tableItemName));
 
-	char sql_str[MAX_BUF];
-	kbe_snprintf(sql_str, MAX_BUF, "alter table %s drop column %s;", tableName, tableItemName);
+	char sql_str[SQL_BUF];
+	kbe_snprintf(sql_str, SQL_BUF, "alter table %s drop column %s;", tableName, tableItemName);
 	return query(sql_str, strlen(sql_str));
 }
 
