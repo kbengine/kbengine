@@ -33,7 +33,7 @@ KBEngine
 ## Support
 
 	Email		: kbesrv?gmail.com
-	QQ		: 3603661
+	QQ		: 3603661，Only Author(biao.ke)
 	BBS		: http://bbs.kbengine.org
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
@@ -63,7 +63,7 @@ KBEngine
 
 ## 中文
 
-[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321
+[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321，唯一作者-柯标QQ：3603661
 
 
 ## 什么是KBEngine?
