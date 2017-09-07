@@ -187,7 +187,8 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 	pRestoreEntityHandlers_(),
 	pResmgrTimerHandle_(),
 	pInitProgressHandler_(NULL),
-	flags_(APP_FLAGS_NONE)
+	flags_(APP_FLAGS_NONE),
+	pBundleImportEntityDefDatas_(NULL)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -590,6 +591,12 @@ void Baseapp::finalise()
 	loopCheckTimerHandle_.cancel();
 	pResmgrTimerHandle_.cancel();
 	forward_messagebuffer_.clear();
+
+	if (pBundleImportEntityDefDatas_)
+	{
+		Network::Bundle::reclaimPoolObject(pBundleImportEntityDefDatas_);
+		pBundleImportEntityDefDatas_ = NULL;
+	}
 
 	EntityApp<Base>::finalise();
 }
@@ -4714,10 +4721,10 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 {
-	static Network::Bundle bundle;
-	
-	if(bundle.empty())
+	if (!pBundleImportEntityDefDatas_)
 	{
+		pBundleImportEntityDefDatas_ = Network::Bundle::createPoolObject();
+
 		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
 		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
@@ -4736,20 +4743,20 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 		if(msgInfo != NULL)
 			spaceuid = msgInfo->msgid;
 
-		bundle.newMessage(ClientInterface::onImportClientEntityDef);
+		pBundleImportEntityDefDatas_->newMessage(ClientInterface::onImportClientEntityDef);
 		
 		const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
 		uint16 aliassize = (uint16)dataTypes.size();
-		bundle << aliassize;
+		(*pBundleImportEntityDefDatas_) << aliassize;
 
 		DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
 		for(; dtiter != dataTypes.end(); ++dtiter)
 		{
 			const DataType* datatype = dtiter->second;
 
-			bundle << datatype->id();
-			bundle << datatype->getName();
-			bundle << datatype->aliasName();
+			(*pBundleImportEntityDefDatas_) << datatype->id();
+			(*pBundleImportEntityDefDatas_) << datatype->getName();
+			(*pBundleImportEntityDefDatas_) << datatype->aliasName();
 
 			if(strcmp(datatype->getName(), "FIXED_DICT") == 0)
 			{
@@ -4758,19 +4765,19 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
 
 				uint8 keysize = (uint8)keys.size();
-				bundle << keysize;
-				bundle << dictdatatype->moduleName();
+				(*pBundleImportEntityDefDatas_) << keysize;
+				(*pBundleImportEntityDefDatas_) << dictdatatype->moduleName();
 
 				FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
 				for(; keyiter != keys.end(); ++keyiter)
 				{
-					bundle << keyiter->first;
-					bundle << keyiter->second->dataType->id();
+					(*pBundleImportEntityDefDatas_) << keyiter->first;
+					(*pBundleImportEntityDefDatas_) << keyiter->second->dataType->id();
 				}
 			}
 			else if(strcmp(datatype->getName(), "ARRAY") == 0)
 			{
-				bundle << const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(datatype))->getDataType()->id();
+				(*pBundleImportEntityDefDatas_) << const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(datatype))->getDataType()->id();
 			}
 		}
 
@@ -4791,16 +4798,16 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			uint16 size2 = (uint16)methods1.size();
 			uint16 size3 = (uint16)methods2.size();
 
-			bundle << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
+			(*pBundleImportEntityDefDatas_) << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
 			int16 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
-			bundle << posuid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
+			(*pBundleImportEntityDefDatas_) << posuid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
-			bundle << diruid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
+			(*pBundleImportEntityDefDatas_) << diruid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
-			bundle << spaceuid << ((uint32)ED_FLAG_CELL_PRIVATE) << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
+			(*pBundleImportEntityDefDatas_) << spaceuid << ((uint32)ED_FLAG_CELL_PRIVATE) << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 			for(; piter != propers.end(); ++piter)
@@ -4810,7 +4817,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				std::string	name = piter->second->getName();
 				std::string	defaultValStr = piter->second->getDefaultValStr();
 				uint32 flags = piter->second->getFlags();
-				bundle << properUtype << flags << aliasID << name << defaultValStr << piter->second->getDataType()->id();
+				(*pBundleImportEntityDefDatas_) << properUtype << flags << aliasID << name << defaultValStr << piter->second->getDataType()->id();
 			}
 			
 			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
@@ -4824,12 +4831,12 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = (uint8)args.size();
 
-				bundle << methodUtype << aliasID << name << argssize;
+				(*pBundleImportEntityDefDatas_) << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); ++argiter)
 				{
-					bundle << (*argiter)->id();
+					(*pBundleImportEntityDefDatas_) << (*argiter)->id();
 				}
 			}
 
@@ -4844,12 +4851,12 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = (uint8)args.size();
 
-				bundle << methodUtype << aliasID << name << argssize;
+				(*pBundleImportEntityDefDatas_) << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); ++argiter)
 				{
-					bundle << (*argiter)->id();
+					(*pBundleImportEntityDefDatas_) << (*argiter)->id();
 				}
 			}
 
@@ -4864,18 +4871,18 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = (uint8)args.size();
 
-				bundle << methodUtype << aliasID << name << argssize;
+				(*pBundleImportEntityDefDatas_) << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); ++argiter)
 				{
-					bundle << (*argiter)->id();
+					(*pBundleImportEntityDefDatas_) << (*argiter)->id();
 				}
 			}
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	pChannel->send(new Network::Bundle((*pBundleImportEntityDefDatas_)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -4900,6 +4907,12 @@ PyObject* Baseapp::__py_reloadScript(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::reloadScript(bool fullReload)
 {
+	if (pBundleImportEntityDefDatas_)
+	{
+		Network::Bundle::reclaimPoolObject(pBundleImportEntityDefDatas_);
+		pBundleImportEntityDefDatas_ = NULL;
+	}
+
 	EntityApp<Base>::reloadScript(fullReload);
 }
 
