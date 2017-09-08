@@ -493,7 +493,7 @@ protected:
 class DBTaskQueryAccount : public EntityDBTask
 {
 public:
-	DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, 
+	DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, bool needCheckPassword,
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port);
 	virtual ~DBTaskQueryAccount();
 	virtual bool db_thread_process();
@@ -519,6 +519,7 @@ protected:
 	uint64 deadline_;
 
 	std::string bindatas_;
+	bool needCheckPassword_;
 };
 
 /**

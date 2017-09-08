@@ -3586,8 +3586,9 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	uint64										deadline;
 	COMPONENT_TYPE								componentType;
 	bool										forceInternalLogin;
+	bool										needCheckPassword;
 
-	s >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
+	s >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -3617,6 +3618,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	ptinfos->deadline = deadline;
 	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)componentType;
 	ptinfos->datas = datas;
+	ptinfos->needCheckPassword = needCheckPassword;
 	pendingLoginMgr_.add(ptinfos);
 }
 
@@ -3733,6 +3735,15 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		return;
 	}
 
+	// 虽然接入第三方dbmgr不检查密码，但至少在loginapp时提交的password应该跟本次提交的能匹配上
+	// 否则容易被其他连接攻击式的试探登陆
+	if (!ptinfos->needCheckPassword && ptinfos->password != password)
+	{
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_NAME_PASSWORD);
+		pendingLoginMgr_.removeNextTick(accountName);
+		return;
+	}
+
 	// 如果entityID大于0则说明此entity是存活状态登录
 	if(ptinfos->entityID > 0)
 	{
@@ -3824,7 +3835,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		ENTITY_ID entityID = idClient_.alloc();
 		KBE_ASSERT(entityID > 0);
 
-		DbmgrInterface::queryAccountArgs7::staticAddToBundle((*pBundle), accountName, password, g_componentID, 
+		DbmgrInterface::queryAccountArgs8::staticAddToBundle((*pBundle), accountName, password, ptinfos->needCheckPassword, g_componentID,
 			entityID, ptinfos->entityDBID, pChannel->addr().ip, pChannel->addr().port);
 
 		dbmgrinfos->pChannel->send(pBundle);
