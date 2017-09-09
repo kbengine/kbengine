@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,9 @@ public:
 	static PyObject* __py_items(PyObject* self, PyObject* args);
 	static PyObject* __py_update(PyObject* self, PyObject* args);
 	static PyObject* __py_get(PyObject* self, PyObject* args);
-	static int __py_contains(PyObject* self, PyObject* args);
+
+	static int seq_contains(PyObject* self, PyObject* value);
+
 	/** 
 		map操作函数相关 
 	*/

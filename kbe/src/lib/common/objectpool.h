@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -94,6 +94,7 @@ public:
 		typename OBJECTS::iterator iter = objects_.begin();
 		for(; iter!=objects_.end(); ++iter)
 		{
+			(*iter)->isEnabledPoolObject(false);
 			if(!(*iter)->destructorPoolObject())
 			{
 				delete (*iter);
@@ -123,8 +124,11 @@ public:
 
 	void assignObjs(unsigned int preAssignVal = OBJECT_POOL_INIT_SIZE)
 	{
-		for(unsigned int i=0; i<preAssignVal; ++i){
-			objects_.push_back(new T);
+		for(unsigned int i=0; i<preAssignVal; ++i)
+		{
+			T* t = new T();
+			t->isEnabledPoolObject(false);
+			objects_.push_back(t);
 			++total_allocs_;
 			++obj_count_;
 		}
@@ -147,6 +151,7 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
+				t->isEnabledPoolObject(true);
 				pMutex_->unlockMutex();
 				return t;
 			}
@@ -175,6 +180,7 @@ public:
 				objects_.pop_front();
 				--obj_count_;
 				t->onEabledPoolObject();
+				t->isEnabledPoolObject(true);
 				pMutex_->unlockMutex();
 				return t;
 			}
@@ -259,7 +265,7 @@ public:
 		pMutex_->lockMutex();
 
 		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
-			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed ? "true" : "false"));
+			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed() ? "true" : "false"));
 
 		pMutex_->unlockMutex();
 
@@ -281,6 +287,7 @@ protected:
 		{
 			// 先重置状态
 			obj->onReclaimObject();
+			obj->isEnabledPoolObject(false);
 
 			if(size() >= max_ || isDestroyed_)
 			{
@@ -301,11 +308,14 @@ protected:
 			// 小于等于则刷新检查时间
 			lastReducingCheckTime_ = now_timestamp;
 		}
-		else if (lastReducingCheckTime_ - now_timestamp > OBJECT_POOL_REDUCING_TIME_OUT)
+		else if (now_timestamp - lastReducingCheckTime_ > OBJECT_POOL_REDUCING_TIME_OUT)
 		{
 			// 长时间大于OBJECT_POOL_INIT_SIZE未使用的对象则开始做清理工作
 			size_t reducing = std::min(objects_.size(), std::min((size_t)OBJECT_POOL_INIT_SIZE, (size_t)(obj_count_ - OBJECT_POOL_INIT_SIZE)));
 			
+			//printf("ObjectPool::reclaimObject_(): start reducing..., name=%s, currsize=%d, OBJECT_POOL_INIT_SIZE=%d\n", 
+			//	name_.c_str(), (int)objects_.size(), OBJECT_POOL_INIT_SIZE);
+
 			while (reducing-- > 0)
 			{
 				T* t = static_cast<T*>(*objects_.begin());
@@ -314,6 +324,9 @@ protected:
 
 				--obj_count_;
 			}
+
+			//printf("ObjectPool::reclaimObject_(): reducing over, name=%s, currsize=%d\n", 
+			//	name_.c_str(), (int)objects_.size());
 
 			lastReducingCheckTime_ = now_timestamp;
 		}
@@ -349,11 +362,21 @@ protected:
 class PoolObject
 {
 public:
+	PoolObject() : 
+		isEnabledPoolObject_(false)
+	{
+
+	}
+
 	virtual ~PoolObject(){}
 	virtual void onReclaimObject() = 0;
-	virtual void onEabledPoolObject(){}
+	virtual void onEabledPoolObject() {
+	}
 
-	virtual size_t getPoolObjectBytes(){ return 0; }
+	virtual size_t getPoolObjectBytes()
+	{ 
+		return 0; 
+	}
 
 	/**
 		池对象被析构前的通知
@@ -363,6 +386,21 @@ public:
 	{
 		return false;
 	}
+
+	bool isEnabledPoolObject() const
+	{
+		return isEnabledPoolObject_;
+	}
+
+	void isEnabledPoolObject(bool v)
+	{
+		isEnabledPoolObject_ = v;
+	}
+
+protected:
+
+	// 池对象是否处于激活（从池中已经取出）状态
+	bool isEnabledPoolObject_;
 };
 
 template< typename T >

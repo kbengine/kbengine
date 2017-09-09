@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -157,7 +157,7 @@ public:
 	/**
 		脚本获取controlledBy属性
 	*/
-	INLINE bool isControlledNotSelfCleint() const;
+	INLINE bool isControlledNotSelfClient() const;
 	INLINE EntityMailbox* controlledBy() const;
 	INLINE void controlledBy(EntityMailbox* baseMailbox);
 	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
@@ -339,6 +339,12 @@ public:
 			PyObject* userData, bool faceMovement, bool moveVertically);
 	
 	DECLARE_PY_MOTHOD_ARG6(pyMoveToEntity, int32, float, float, PyObject_ptr, int32, int32);
+
+	/**
+	entity移动加速
+	*/
+	float accelerate(const char* type, float acceleration);
+	DECLARE_PY_MOTHOD_ARG2(pyAccelerate, const_charptr, float);
 
 	/** 
 		脚本获取和设置entity的最高xz移动速度 
@@ -531,6 +537,7 @@ public:
 	*/
 	void installCoordinateNodes(CoordinateSystem* pCoordinateSystem);
 	void uninstallCoordinateNodes(CoordinateSystem* pCoordinateSystem);
+	void onCoordinateNodesDestroy(EntityCoordinateNode* pEntityCoordinateNode);
 
 	/**
 		获取entity位置朝向在某时间是否改变过
@@ -590,10 +597,16 @@ public:
 	INLINE bool isDirty() const;
 	
 	/**
-	VolatileInfo section
+		VolatileInfo section
 	*/
 	INLINE VolatileInfo* pCustomVolatileinfo(void);
 	DECLARE_PY_GETSET_MOTHOD(pyGetVolatileinfo, pySetVolatileinfo);
+
+	/**
+		调用实体的回调函数，有可能被缓存
+	*/
+	bool bufferOrExeCallback(const char * funcName, PyObject * funcArgs, bool notFoundIsOK = true);
+	static void bufferCallback(bool enable);
 
 private:
 	/** 
@@ -601,6 +614,20 @@ private:
 	*/
 	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, 
 		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
+
+private:
+	struct BufferedScriptCall
+	{
+		EntityPtr		entityPtr;
+		PyObject *		pyCallable;
+		// 可以为NULL， NULL说明没有参数
+		PyObject *		pyFuncArgs;
+	};
+
+	typedef std::list<BufferedScriptCall*>					BufferedScriptCallArray;
+	static BufferedScriptCallArray							_scriptCallbacksBuffer;
+	static int32											_scriptCallbacksBufferNum;
+	static int32											_scriptCallbacksBufferCount;
 
 protected:
 	// 这个entity的客户端部分的mailbox

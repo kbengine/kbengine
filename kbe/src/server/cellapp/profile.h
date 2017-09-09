@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@ extern ProfileVal SCRIPTCALL_PROFILE;
 extern ProfileVal ONMOVE_PROFILE;
 extern ProfileVal ONNAVIGATE_PROFILE;
 extern ProfileVal CLIENT_UPDATE_PROFILE;
-
+extern ProfileVal ONTIMER_PROFILE;
 
 extern EventHistoryStats g_privateClientEventHistoryStats;
 extern EventHistoryStats g_publicClientEventHistoryStats;

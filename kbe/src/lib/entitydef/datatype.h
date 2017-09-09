@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -430,11 +430,11 @@ public:
 	virtual DATATYPE type() const{ return DATA_TYPE_DIGIT; }
 };
 
-class VectorType : public DataType
+class Vector2Type : public DataType
 {
 public:	
-	VectorType(uint32 elemCount, DATATYPE_UID did = 0);
-	virtual ~VectorType();	
+	Vector2Type(DATATYPE_UID did = 0);
+	virtual ~Vector2Type();	
 
 	bool isSameType(PyObject* pyValue);
 
@@ -444,12 +444,56 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void) const{ return name_.c_str();}
+	const char* getName(void) const{ return "VECTOR2";}
 
-	virtual DATATYPE type() const{ return DATA_TYPE_VECTOR; }
+	virtual DATATYPE type() const{ return DATA_TYPE_VECTOR2; }
+
 protected:
-	std::string name_;
-	ArraySize elemCount_;
+
+};
+
+class Vector3Type : public DataType
+{
+public:
+	Vector3Type(DATATYPE_UID did = 0);
+	virtual ~Vector3Type();
+
+	bool isSameType(PyObject* pyValue);
+
+	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
+	PyObject* createFromStream(MemoryStream* mstream);
+
+	PyObject* parseDefaultStr(std::string defaultVal);
+
+	const char* getName(void) const{ return "VECTOR3"; }
+
+	virtual DATATYPE type() const{ return DATA_TYPE_VECTOR3; }
+
+protected:
+
+};
+
+class Vector4Type : public DataType
+{
+public:
+	Vector4Type(DATATYPE_UID did = 0);
+	virtual ~Vector4Type();
+
+	bool isSameType(PyObject* pyValue);
+
+	void addToStream(MemoryStream* mstream, PyObject* pyValue);
+
+	PyObject* createFromStream(MemoryStream* mstream);
+
+	PyObject* parseDefaultStr(std::string defaultVal);
+
+	const char* getName(void) const{ return "VECTOR4"; }
+
+	virtual DATATYPE type() const{ return DATA_TYPE_VECTOR4; }
+
+protected:
+
 };
 
 class StringType : public DataType

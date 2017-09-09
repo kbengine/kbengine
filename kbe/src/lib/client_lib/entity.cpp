@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -77,7 +77,8 @@ velocity_(3.0f),
 enterworld_(false),
 isOnGround_(true),
 pMoveHandlerID_(0),
-inited_(false)
+inited_(false),
+isControlled_(false)
 {
 	ENTITY_INIT_PROPERTYS(Entity);
 	script::PyGC::incTracing("Entity");
@@ -177,16 +178,16 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 
 	if(pMethodDescription == NULL)
 	{
-		ERROR_MSG(fmt::format("Entity::onRemoteMethodCall: can't found method. utype={}, callerID:{}.\n", 
-			utype, id_));
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, methodName=unknown, callerID:{1}.\n", 
+			utype, id_, this->scriptName()));
 
 		return;
 	}
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("Entity::onRemoteMethodCall: entityID {}, methodType {}.\n", 
-				id_, utype));
+		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n", 
+			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName()));
 	}
 
 	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
@@ -266,42 +267,42 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 		if(uid == posuid)
 		{
 			Position3D pos;
-			ArraySize size;
 
 #ifdef CLIENT_NO_FLOAT		
 			int32 x, y, z;
-			s >> size >> x >> y >> z;
+			s >> x >> y >> z;
 
 			pos.x = (float)x;
 			pos.y = (float)y;
 			pos.z = (float)z;
 #else
-			s >> size >> pos.x >> pos.y >> pos.z;
+			s >> pos.x >> pos.y >> pos.z;
 #endif
 			position(pos);
+            clientPos(pos);
 			continue;
 		}
 		else if(uid == diruid)
 		{
 			Direction3D dir;
-			ArraySize size;
 
 #ifdef CLIENT_NO_FLOAT		
 			int32 x, y, z;
-			s >> size >> x >> y >> z;
+			s >> x >> y >> z;
 
 			dir.roll((float)x);
 			dir.pitch((float)y);
 			dir.yaw((float)z);
 #else
 			float yaw, pitch, roll;
-			s >> size >> roll >> pitch >> yaw;
+			s >> roll >> pitch >> yaw;
 			dir.yaw(yaw);
 			dir.pitch(pitch);
 			dir.roll(roll);
 #endif
 
 			direction(dir);
+            clientDir(dir);
 			continue;
 		}
 		else if(uid == spaceuid)
@@ -482,6 +483,7 @@ void Entity::onLeaveWorld()
 //-------------------------------------------------------------------------------------
 void Entity::onEnterSpace()
 {
+	this->stopMove();
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
 }
@@ -492,6 +494,7 @@ void Entity::onLeaveSpace()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	spaceID(0);
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
+	this->stopMove();
 }
 
 //-------------------------------------------------------------------------------------
@@ -780,6 +783,29 @@ void Entity::callPropertysSetMethods()
 		Py_DECREF(pyOld);
 		SCRIPT_ERROR_CHECK();
 	}
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onTimer(ScriptID timerID, int useraAgs)
+{
+	SCOPED_PROFILE(ONTIMER_PROFILE);
+	
+	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),
+		const_cast<char*>("Ii"), timerID, useraAgs);
+
+	if (pyResult != NULL)
+		Py_DECREF(pyResult);
+	else
+		SCRIPT_ERROR_CHECK();
+}
+
+//-------------------------------------------------------------------------------------
+void Entity::onControlled(bool p_controlled)
+{
+    isControlled_ = p_controlled;
+
+    PyObject *pyval = p_controlled ? Py_True : Py_False;
+    SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onControlled"), const_cast<char*>("O"), pyval);
 }
 
 //-------------------------------------------------------------------------------------

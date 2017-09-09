@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -131,6 +131,9 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 void TCPPacketReceiver::onGetError(Channel* pChannel)
 {
 	pChannel->condemn();
+	pChannel->networkInterface().deregisterChannel(pChannel);
+	pChannel->destroy();
+	Network::Channel::reclaimPoolObject(pChannel);
 }
 
 //-------------------------------------------------------------------------------------
@@ -183,12 +186,12 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 	switch(wsaErr)
 	{
 	case WSAECONNRESET:
-		WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
-					"Throwing REASON_GENERAL_NETWORK - WSAECONNRESET\n");
+		WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "
+			"Throwing REASON_GENERAL_NETWORK - WSAECONNRESET\n", (pEndpoint_ ? pEndpoint_->addr().c_str() : "")));
 		return RECV_STATE_INTERRUPT;
 	case WSAECONNABORTED:
-		WARNING_MSG("TCPPacketReceiver::processPendingEvents: "
-					"Throwing REASON_GENERAL_NETWORK - WSAECONNABORTED\n");
+		WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "
+			"Throwing REASON_GENERAL_NETWORK - WSAECONNABORTED\n", (pEndpoint_ ? pEndpoint_->addr().c_str() : "")));
 		return RECV_STATE_INTERRUPT;
 	default:
 		break;
@@ -198,16 +201,17 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 #endif // unix
 
 #if KBE_PLATFORM == PLATFORM_WIN32
-	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "
 				"Throwing REASON_GENERAL_NETWORK - {}\n",
-				wsaErr));
+				(pEndpoint_ ? pEndpoint_->addr().c_str() : ""), wsaErr));
 #else
-	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents: "
+	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "
 				"Throwing REASON_GENERAL_NETWORK - {}\n",
-			kbe_strerror()));
+				(pEndpoint_ ? pEndpoint_->addr().c_str() : ""), kbe_strerror()));
 #endif
-	this->dispatcher().errorReporter().reportException(
-			REASON_GENERAL_NETWORK);
+
+	//this->dispatcher().errorReporter().reportException(
+	//		REASON_GENERAL_NETWORK);
 
 	return RECV_STATE_CONTINUE;
 }

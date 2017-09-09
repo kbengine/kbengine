@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -89,9 +89,10 @@ public:
 
 	bool createAccount();
 	bool login();
-	
+	virtual void onLogin(Network::Bundle* pBundle);
+
 	bool loginBaseapp();
-	bool reLoginBaseapp();
+	bool reloginBaseapp();
 
 	int32 appID() const{ return appID_; }
 	const char* name(){ return name_.c_str(); }
@@ -191,12 +192,12 @@ public:
 									NETWORK_ERR_NAME_PASSWORD:用户名或者密码不正确
 	*/
 	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
-	virtual void onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+	virtual void onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
 
 	/** 网络接口
 	   重登陆baseapp成功
 	*/
-	virtual void onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
+	virtual void onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s);
 
 	/** 网络接口
 		服务器端已经创建了一个与客户端关联的代理Entity
@@ -320,7 +321,7 @@ public:
 	/** 网络接口
 		服务器告诉客户端：你当前（取消）控制谁的位移同步
 	*/
-	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
+	virtual void onControlEntity(Network::Channel* pChannel, int32 eid, int8 p_isControlled);
 
 	/** 网络接口
 		接收到ClientMessages(通常是web等才会应用到)
@@ -466,6 +467,9 @@ protected:
 	
 	// 用于重登陆网关时的key
 	uint64													rndUUID_; 
+
+    // 受本客户端控制的entity列表
+    std::list<client::Entity *>                             controlledEntities_;
 };
 
 

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -137,6 +137,7 @@ typedef struct EngineComponentInfo
 		tcp_SOMAXCONN = 5;
 		notFoundAccountAutoCreate = false;
 		account_registration_enable = false;
+		account_reset_password_enable = false;
 		use_coordinate_system = true;
 		account_type = 3;
 		debugDBMgr = false;
@@ -144,6 +145,7 @@ typedef struct EngineComponentInfo
 		externalAddress[0] = '\0';
 
 		isOnInitCallPropertysSetMethods = true;
+		forceInternalLogin = false;
 	}
 
 	~EngineComponentInfo()
@@ -185,6 +187,7 @@ typedef struct EngineComponentInfo
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
 	bool allowEmptyDigest;									// 是否检查defs-MD5
 	bool account_registration_enable;						// 是否开放注册
+	bool account_reset_password_enable;						// 是否开放重设密码功能
 
 	float archivePeriod;									// entity存储数据库周期
 	float backupPeriod;										// entity备份周期
@@ -195,7 +198,8 @@ typedef struct EngineComponentInfo
 	uint32 login_port;										// 服务器登录端口 目前bots在用
 	char login_ip[MAX_BUF];									// 服务器登录ip地址
 
-	ENTITY_ID criticallyLowSize;							// id剩余这么多个时向dbmgr申请新的id资源
+	ENTITY_ID ids_criticallyLowSize;						// id剩余这么多个时向dbmgr申请新的id资源
+	ENTITY_ID ids_increasing_range;							// 申请ID时id每次递增范围
 
 	uint32 downloadBitsPerSecondTotal;						// 所有客户端每秒下载带宽总上限
 	uint32 downloadBitsPerSecondPerClient;					// 每个客户端每秒的下载带宽
@@ -205,6 +209,9 @@ typedef struct EngineComponentInfo
 	uint32 defaultAddBots_totalCount;						// 默认启动进程后自动添加这么多个bots 添加总数量
 	float defaultAddBots_tickTime;							// 默认启动进程后自动添加这么多个bots 每次添加所用时间(s)
 	uint32 defaultAddBots_tickCount;						// 默认启动进程后自动添加这么多个bots 每次添加数量
+
+	bool forceInternalLogin;								// 对应baseapp的externalAddress的解决方案，当externalAddress强制下发公网IP提供登陆时，
+															// 如果局域网内部使用机器人测试也走公网IP和流量可能会不合适，此时可以设置为true，登陆时强制直接使用内网环境
 
 	std::string bots_account_name_prefix;					// 机器人账号名称的前缀
 	uint32 bots_account_name_suffix_inc;					// 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增

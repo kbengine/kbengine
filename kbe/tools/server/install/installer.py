@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-  
 
 import urllib, socket
+socket.setdefaulttimeout(60.0)
+
 import tarfile, zipfile, tempfile
 import os, sys, re, platform, getopt, getpass, random, time, subprocess, shutil, string
 from xml.etree import ElementTree as ET
@@ -103,7 +105,6 @@ def help():
 	OUT_MSG("\tinstaller.py install: Install development environment (dependent, environment variables, etc.), From the KBE_ROOT search.")
 	OUT_MSG("\tinstaller.py install=localsrc : Install from local-disk(Source code), From the KBE_ROOT search.")
 	OUT_MSG("\tinstaller.py install=remotesrc : Install from github(Source code).")
-	OUT_MSG("\tinstaller.py install=remotebin : Install from sourceforge(Binary releases).")
 	OUT_MSG("\tinstaller.py install={xxx.zip, xxx.tar.gz} : Install .zip/.tar.gz file.")
 	OUT_MSG("")
 	
@@ -364,7 +365,7 @@ def _checkKBEEnvironment(is_get_error):
 	kbe_path = kbe_path.replace("\\", "/").replace("//", "/")
 	if not os.path.isdir(kbe_path):
 		if is_get_error:
-			ERROR_MSG("KBE_ROOT: is error! The directory or file not found:\n%s" % (kbe_path)) 
+			ERROR_MSG("KBE_ROOT: is error! The directory or file not found:\nKBE_ROOT/%s\nKBE_ROOT=%s" % (kbe_path, KBE_ROOT)) 
 		return False
 	
 	paths = []
@@ -548,12 +549,12 @@ def setEnvironment(scope, name, value):
 		if len(os_user_name) > 0:
 			userhome = pwd.getpwnam(os_user_name).pw_dir 
 		
-		f = open('%s/.bashrc' % userhome, 'a')
+		f = open('%s/.bash_profile' % userhome, 'a')
 		f.write("export %s=%s\n\n" % (name, value))
 		f.close()
 		
 		if os.geteuid() > 0:
-			syscommand('bash -c \'source %s/.bashrc\'' % userhome, False)
+			syscommand('bash -c \'source %s/.bash_profile\'' % userhome, False)
 
 def getWindowsEnvironmentKey(scope):
 	assert scope in ('user', 'system')
@@ -675,7 +676,7 @@ def installMysql():
 
 	
 	while True:
-		getInput("The MySQL service installation is complete? [yes|no]")
+		getInput("The MySQL service installation is completed? [yes|no]")
 		
 		if not findMysqlService():
 			ERROR_MSG("-  not found MySQL service.")
@@ -686,16 +687,21 @@ def installMysql():
 	
 def restartMsql():
 	global mysql_sercive_name
-	INFO_MSG('Try to stop %s...' % mysql_sercive_name)
 	
-	if platform.system() == 'Windows':
-		syscommand('net stop ' + mysql_sercive_name, False)
-	else:
-		syscommand('bash -c \'/etc/init.d/%s stop\'' % mysql_sercive_name, False)
+	if len(mysql_sercive_name) > 0:
+		INFO_MSG('Try to stop %s...' % mysql_sercive_name)
+		
+		if platform.system() == 'Windows':
+			syscommand('net stop ' + mysql_sercive_name, False)
+		else:
+			syscommand('bash -c \'/etc/init.d/%s stop\'' % mysql_sercive_name, False)
 		
 	if findMysqlService():
-		WARING_MSG('Unable to stop the MySQL, You need administrator privileges.')
-	
+		if platform.system() == 'Windows':
+			WARING_MSG('Unable to stop the MySQL, You need administrator privileges.')
+		else:
+			WARING_MSG('Unable to stop the MySQL, You need root privileges.')
+
 	INFO_MSG('Try to start %s...' % mysql_sercive_name)
 	
 	if platform.system() == 'Windows':
@@ -704,7 +710,10 @@ def restartMsql():
 		syscommand('bash -c \'/etc/init.d/%s start\'' % mysql_sercive_name, False)
 		
 	if not findMysqlService():
-		WARING_MSG('Unable to start the MySQL, You need administrator privileges.')
+		if platform.system() == 'Windows':
+			WARING_MSG('Unable to start the MySQL, You need administrator privileges.')
+		else:
+			WARING_MSG('Unable to start the MySQL, You need root privileges.')
 	else:
 		INFO_MSG('MySQL is ok')
 
@@ -719,18 +728,15 @@ def findMysqlService():
 	else:
 		ret, cret = syscommand('bash -c \'service --status-all | grep \"mysql\"\'', True)
 
+	mysql_sercive_name = ""
+	
 	for s in ret:
 		if "mysql" in s.strip().lower():
-			if platform.system() != 'Windows':
-				if "run" not in s.strip().lower():
-					continue
-					
 			if len(mysql_sercive_name) == 0:
-				if "mysql" in s.lower().strip():
-					mysql_sercive_name = s.strip()
-				else:
-					mysql_sercive_name = "mysql"
-					
+				for x in s[s.strip().lower().find("mysql"):]:
+					if x.isalnum():
+						mysql_sercive_name += x
+
 				INFO_MSG("found mysql service[%s]" % mysql_sercive_name)
 				
 			return True
@@ -940,18 +946,19 @@ def createDatabase():
 				mysql_port = ret[3].replace('port', '').strip()
 				INFO_MSG("MySQL_Port:" + mysql_port)
 
-				lower_case_table_names = ret[5].replace('lower_case_table_names', '').strip()
+				if platform.system() == 'Windows':
+					lower_case_table_names = ret[5].replace('lower_case_table_names', '').strip()
 
-				mysql_root = ret[7].strip()
+					mysql_root = ret[7].strip()
 
-				if lower_case_table_names != '2':
-					ERROR_MSG('mysql lower_case_table_names not is 2')
-					config, cnf = getMysqlConfig()
-					INFO_MSG('Attempt to modify the [%s]...' % cnf)
-					config.set('mysqld', 'lower_case_table_names', '2')
-					config.write(open(cnf, "w"))
-					restartMsql()
-					continue
+					if lower_case_table_names != '2':
+						ERROR_MSG('mysql lower_case_table_names not is 2')
+						config, cnf = getMysqlConfig()
+						INFO_MSG('Attempt to modify the [%s]...' % cnf)
+						config.set('mysqld', 'lower_case_table_names', '2')
+						config.write(open(cnf, "w"))
+						restartMsql()
+						continue
                 
 				sql = "\"delete from user where user=\'\';FLUSH PRIVILEGES\""
 				cmd = "\"" + mysql_home + ("mysql\" %s%s -hlocalhost -e" % (getRootOpt(mysql_root_password), rootusePortArgs)) + sql + " mysql"
@@ -1187,14 +1194,17 @@ def download_hookreport(count, block_size, total_size):
 def download(currurl, fname = None):
 	OUT_MSG("")
 	INFO_MSG("Downloading from " + currurl)
-
+	
 	try:
-		return urllib.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
+		if hasattr(urllib, "urlretrieve"):
+			return urllib.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
+		else:
+			return urllib.request.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
 	except:
-		pass
-
-	return urllib.request.urlretrieve(currurl, filename = fname, reporthook = download_hookreport)
-
+		OUT_MSG("")
+		ERROR_MSG("timeout!")
+		return download(currurl, fname)
+		
 def getSystemUser():
 	global os_user_name
 	global os_user_passwd
@@ -1205,7 +1215,7 @@ def getSystemUser():
 	if platform.system() == 'Windows':
 		return
 
-	os_user_name = getInput("Please enter the KBE system account name(No input is kbe):")
+	os_user_name = getInput("Install KBEngine to Linux-account(No input is kbe):")
 	if len(os_user_name) == 0:
 		os_user_name = "kbe"
 
@@ -1217,7 +1227,7 @@ def getSystemUser():
 
 	if len(hasuser) == 0:
 		if getInput("not found system-user[%s], create new user?: [yes|no]" % (os_user_name)) == "yes":
-			os_user_passwd = getInput("Please enter the KBE system account passwd(No input is kbe):")
+			os_user_passwd = getInput("Please enter the Linux-account passwd(No input is kbe):")
 
 			if len(os_user_passwd) == 0:
 				os_user_passwd = "kbe"
@@ -1430,6 +1440,9 @@ def download_sources(release = True):
 			break
 
 def download_binary():
+	ERROR_MSG("Has been abandoned, Please use (installer.py install=remotesrc)!")
+	return
+
 	global _zip_kbengine_dirname
 	_zip_kbengine_dirname = ""
 	global _zip_kbengine_path

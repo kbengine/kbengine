@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ INLINE void CoordinateNode::removeFlags(uint32 v) { flags_ &= ~v; }
 INLINE bool CoordinateNode::hasFlags(uint32 v) const { return (flags_ & v) > 0; }
 
 //-------------------------------------------------------------------------------------
-INLINE CoordinateSystem* CoordinateNode::pCoordinateSystem() const{ return pCoordinateSystem_; }
+INLINE CoordinateSystem* CoordinateNode::pCoordinateSystem() const { return pCoordinateSystem_; }
 
 //-------------------------------------------------------------------------------------
 }

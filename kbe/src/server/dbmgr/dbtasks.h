@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -53,9 +53,20 @@ public:
 	{
 	}
 
+	DBTask():
+	DBTaskBase(),
+	pDatas_(0),
+	addr_()
+	{
+	}
+	
 	virtual ~DBTask();
 
 	bool send(Network::Bundle* pBundle);
+
+	virtual std::string name() const {
+		return "DBTask";
+	}
 
 protected:
 	MemoryStream* pDatas_;
@@ -94,6 +105,10 @@ public:
 
 	DBTask* tryGetNextTask();
 
+	virtual std::string name() const {
+		return "EntityDBTask";
+	}
+
 private:
 	ENTITY_ID _entityID;
 	DBID _entityDBID;
@@ -110,6 +125,10 @@ public:
 	virtual ~DBTaskExecuteRawDatabaseCommand();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskExecuteRawDatabaseCommand";
+	}
 
 protected:
 	COMPONENT_ID componentID_;
@@ -132,6 +151,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskExecuteRawDatabaseCommandByEntity";
+	}
+
 protected:
 	COMPONENT_ID componentID_;
 	COMPONENT_TYPE componentType_;
@@ -153,6 +176,10 @@ public:
 	virtual ~DBTaskWriteEntity();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskWriteEntity";
+	}
 
 protected:
 	COMPONENT_ID componentID_;
@@ -177,6 +204,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskRemoveEntity";
+	}
+
 protected:
 	COMPONENT_ID componentID_;
 	ENTITY_ID eid_;
@@ -196,6 +227,10 @@ public:
 	virtual ~DBTaskDeleteBaseByDBID();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskDeleteBaseByDBID";
+	}
 
 protected:
 	COMPONENT_ID componentID_;
@@ -220,6 +255,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskEntityAutoLoad";
+	}
+
 protected:
 	COMPONENT_ID componentID_;
 	ENTITY_SCRIPT_UID entityType_;
@@ -241,6 +280,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskLookUpBaseByDBID";
+	}
+
 protected:
 	COMPONENT_ID componentID_;
 	CALLBACK_ID callbackID_;
@@ -249,6 +292,7 @@ protected:
 	bool success_;
 	ENTITY_ID entityID_;
 	COMPONENT_ID entityInAppID_;
+	COMPONENT_ID logger_;
 };
 
 /**
@@ -265,6 +309,10 @@ public:
 
 	static bool writeAccount(DBInterface* pdbi, const std::string& accountName, 
 		const std::string& passwd, const std::string& datas, ACCOUNT_INFOS& info);
+
+	virtual std::string name() const {
+		return "DBTaskCreateAccount";
+	}
 
 protected:
 	std::string registerName_; 
@@ -287,6 +335,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskCreateMailAccount";
+	}
+
 protected:
 	std::string registerName_; 
 	std::string accountName_;
@@ -307,6 +359,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskActivateAccount";
+	}
+
 protected:
 	std::string code_; 
 	bool success_;
@@ -323,6 +379,10 @@ public:
 	virtual ~DBTaskReqAccountResetPassword();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskReqAccountResetPassword";
+	}
 
 protected:
 	std::string code_; 
@@ -344,6 +404,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskAccountResetPassword";
+	}
+
 protected:
 	std::string code_; 
 	std::string accountName_;
@@ -363,6 +427,10 @@ public:
 	virtual ~DBTaskReqAccountBindEmail();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskReqAccountBindEmail";
+	}
 
 protected:
 	std::string code_; 
@@ -386,6 +454,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskAccountBindEmail";
+	}
+
 protected:
 	std::string code_; 
 	std::string accountName_;
@@ -404,6 +476,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskAccountNewPassword";
+	}
+
 protected:
 	std::string accountName_;
 	std::string oldpassword_, newpassword_;
@@ -417,11 +493,15 @@ protected:
 class DBTaskQueryAccount : public EntityDBTask
 {
 public:
-	DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, 
+	DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, bool needCheckPassword,
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port);
 	virtual ~DBTaskQueryAccount();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskQueryAccount";
+	}
 
 protected:
 	std::string accountName_;
@@ -437,6 +517,9 @@ protected:
 
 	uint32 flags_;
 	uint64 deadline_;
+
+	std::string bindatas_;
+	bool needCheckPassword_;
 };
 
 /**
@@ -450,6 +533,10 @@ public:
 	virtual ~DBTaskAccountOnline();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskAccountOnline";
+	}
 
 protected:
 	std::string accountName_;
@@ -467,6 +554,10 @@ public:
 	virtual ~DBTaskEntityOffline();
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskEntityOffline";
+	}
 
 protected:
 	ENTITY_SCRIPT_UID sid_;
@@ -487,6 +578,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskAccountLogin";
+	}
+
 protected:
 	std::string loginName_;
 	std::string accountName_;
@@ -499,6 +594,7 @@ protected:
 	uint32 flags_;
 	uint64 deadline_;
 	bool needCheckPassword_;
+	COMPONENT_ID logger_;
 };
 
 /**
@@ -514,6 +610,10 @@ public:
 	virtual bool db_thread_process();
 	virtual thread::TPTask::TPTaskState presentMainThread();
 
+	virtual std::string name() const {
+		return "DBTaskQueryEntity";
+	}
+
 protected:
 	int8 queryMode_;
 	std::string entityType_;
@@ -528,6 +628,26 @@ protected:
 	bool wasActive_;
 	COMPONENT_ID wasActiveCID_;
 	ENTITY_ID wasActiveEntityID_;
+	
+	COMPONENT_ID logger_;
+};
+
+/**
+	写服务器日志
+*/
+class DBTaskServerLog : public DBTask
+{
+public:
+	DBTaskServerLog();
+	virtual ~DBTaskServerLog();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskServerLog";
+	}
+
+protected:
 };
 
 }

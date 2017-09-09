@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/encryption_filter.h"
 #include "pyscript/pyobject_pointer.h"
 
-namespace KBEngine{ 
+namespace KBEngine { 
 
 /*
 */
@@ -72,10 +72,10 @@ public:
 
 	void gameTick();
 
-	ClientObject::C_ERROR lasterror(){ return error_; }
+	ClientObject::C_ERROR lasterror() { return error_; }
 
-	bool isDestroyed(){ return state_ == C_STATE_DESTROYED; }
-	void destroy(){ state_ = C_STATE_DESTROYED; }
+	bool isDestroyed() { return state_ == C_STATE_DESTROYED; }
+	void destroy() { state_ = C_STATE_DESTROYED; }
 
 	virtual void onHelloCB_(Network::Channel* pChannel, const std::string& verInfo,
 		const std::string& scriptVerInfo, const std::string& protocolMD5, 
@@ -106,6 +106,10 @@ public:
 	   @port: ·þÎñÆ÷¶Ë¿Ú
 	*/
 	virtual void onLoginSuccessfully(Network::Channel * pChannel, MemoryStream& s);
+
+	virtual void onLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode);
+
+	virtual void onLogin(Network::Bundle* pBundle);
 
 protected:
 	C_ERROR error_;

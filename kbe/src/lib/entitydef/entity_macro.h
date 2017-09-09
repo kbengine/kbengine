@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -80,13 +80,13 @@ namespace KBEngine{
 		int32 y = (int32)pos.y;																				\
 		int32 z = (int32)pos.z;																				\
 																											\
-		s << posuid << posdirLen << x << y << z;															\
+		s << posuid << x << y << z;																			\
 																											\
 		x = (int32)dir.x;																					\
 		y = (int32)dir.y;																					\
 		z = (int32)dir.z;																					\
 																											\
-		s << diruid << posdirLen << x << y << z;															\
+		s << diruid << x << y << z;																			\
 
 
 	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
@@ -95,14 +95,14 @@ namespace KBEngine{
 		int32 z = (int32)pos.z;																				\
 																											\
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
-		s << aliasID << posdirLen << x << y << z;															\
+		s << aliasID << x << y << z;																		\
 																											\
 		x = (int32)dir.x;																					\
 		y = (int32)dir.y;																					\
 		z = (int32)dir.z;																					\
 																											\
 		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
-		s << aliasID << posdirLen << x << y << z;															\
+		s << aliasID << x << y << z;																		\
 
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
@@ -110,16 +110,15 @@ namespace KBEngine{
 		int32 x = 0;																						\
 		int32 y = 0;																						\
 		int32 z = 0;																						\
-		ArraySize posdirLen;																				\
 		ENTITY_PROPERTY_UID uid;																			\
 																											\
-		s >> uid >> posdirLen >> x >> y >> z;																\
+		s >> uid >> x >> y >> z;																			\
 																											\
 		pos.x = float(x);																					\
 		pos.y = float(y);																					\
 		pos.z = float(z);																					\
 																											\
-		s >> uid >> posdirLen >> x >> y >> z;																\
+		s >> uid >> x >> y >> z;																			\
 		dir.x = float(x);																					\
 		dir.y = float(y);																					\
 		dir.z = float(z);																					\
@@ -128,23 +127,22 @@ namespace KBEngine{
 
 #else																									
 	#define ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
-		s << posuid << posdirLen << pos.x << pos.y << pos.z;												\
-		s << diruid << posdirLen << dir.x << dir.y << dir.z;												\
+		s << posuid << pos.x << pos.y << pos.z;																\
+		s << diruid << dir.x << dir.y << dir.z;																\
 
 
 	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
-		s << aliasID << posdirLen << pos.x << pos.y << pos.z;												\
+		s << aliasID << pos.x << pos.y << pos.z;															\
 		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
-		s << aliasID << posdirLen << dir.x << dir.y << dir.z;												\
+		s << aliasID << dir.x << dir.y << dir.z;															\
 	
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
 	{																										\
-		ArraySize posdirLen;																				\
 		ENTITY_PROPERTY_UID uid;																			\
-		s >> uid >> posdirLen >> pos.x >> pos.y >> pos.z;													\
-		s >> uid >> posdirLen >> dir.x >> dir.y >> dir.z;													\
+		s >> uid >> pos.x >> pos.y >> pos.z;																\
+		s >> uid >> dir.x >> dir.y >> dir.z;																\
 	}																										\
 
 
@@ -172,7 +170,6 @@ namespace KBEngine{
 			msgInfo = NULL;																					\
 		}																									\
 																											\
-		ArraySize posdirLen = 3;																			\
 		ADD_POS_DIR_TO_STREAM(s, pos, dir)																	\
 																											\
 	}																										\
@@ -285,8 +282,7 @@ namespace KBEngine{
 #define ENTITY_FLAGS_DESTROYING			0x00000001
 #define ENTITY_FLAGS_INITING			0x00000002
 #define ENTITY_FLAGS_TELEPORT_START		0x00000004
-#define ENTITY_FLAGS_TELEPORT_ARRIVED	0x00000008
-#define ENTITY_FLAGS_TELEPORT_END		0x00000010
+#define ENTITY_FLAGS_TELEPORT_END		0x00000008
 
 #define ENTITY_HEADER(CLASS)																				\
 protected:																									\
@@ -408,8 +404,20 @@ public:																										\
 			}																								\
 																											\
 			PyObject* pyobj = iter->second->createFromStream(mstream);										\
-			PyDict_SetItemString(cellData, iter->second->getName(), pyobj);									\
-			Py_DECREF(pyobj);																				\
+																											\
+			if(pyobj == NULL)																				\
+			{																								\
+				SCRIPT_ERROR_CHECK();																		\
+				pyobj = iter->second->parseDefaultStr("");													\
+				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
+				Py_DECREF(pyobj);																			\
+			}																								\
+			else																							\
+			{																								\
+				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
+				Py_DECREF(pyobj);																			\
+			}																								\
+																											\
 			++count;																						\
 		}																									\
 																											\
@@ -510,16 +518,7 @@ public:																										\
 	}																										\
 																											\
 	inline ScriptTimers& scriptTimers(){ return scriptTimers_; }											\
-	void onTimer(ScriptID timerID, int useraAgs)															\
-	{																										\
-		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),						\
-			const_cast<char*>("Ii"), timerID, useraAgs);													\
-																											\
-		if(pyResult != NULL)																				\
-			Py_DECREF(pyResult);																			\
-		else																								\
-			SCRIPT_ERROR_CHECK();																			\
-	}																										\
+	void onTimer(ScriptID timerID, int useraAgs);															\
 																											\
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }													\
 																											\
@@ -1018,7 +1017,6 @@ public:																										\
 		}																									\
 																											\
 																											\
-		ArraySize posdirLen = 3;																			\
 		Vector3 pos, dir;																					\
 		script::ScriptVector3::convertPyObjectToVector3(pos, pyPos);										\
 		script::ScriptVector3::convertPyObjectToVector3(dir, pyDir);										\

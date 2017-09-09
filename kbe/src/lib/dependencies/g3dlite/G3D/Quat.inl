@@ -34,5 +34,17 @@ inline Quat Quat::operator+(const Quat& other) const {
     return Quat(x + other.x, y + other.y, z + other.z, w + other.w);
 }
 
+/*
+* 标准定义
+*/
+inline Quat Quat::operator*(const Quat& other) const{
+
+	float w_ = w*other.w - x*other.x - y*other.y - z*other.z;
+	float x_ = w*other.x + x*other.w + y*other.z - z*other.y;
+	float y_ = w*other.y + y*other.w + z*other.x - x*other.z;
+	float z_ = w*other.z + z*other.w + x*other.y - y*other.x;
+	return Quat(x_, y_, z_, w_);
+}
+
 }
 

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -80,24 +80,29 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 	TCPPacket* pRetTCPPacket = TCPPacket::createPoolObject();
 	websocket::WebSocketProtocol::FrameType frameType = websocket::WebSocketProtocol::BINARY_FRAME;
 
-	if(pBundle && pBundle->packets().size() > 1)
+	if (pBundle)
 	{
-		bool isEnd = pBundle->packets().back() == pPacket;
-		bool isBegin = pBundle->packets().front() == pPacket;
+		Bundle::Packets& packs = pBundle->packets();
 
-		if(!isEnd && !isBegin)
+		if (packs.size() > 1)
 		{
-			frameType = websocket::WebSocketProtocol::NEXT_FRAME;
-		}
-		else
-		{
-			if(!isEnd)
+			bool isEnd = packs.back() == pPacket;
+			bool isBegin = packs.front() == pPacket;
+
+			if (!isEnd && !isBegin)
 			{
-				frameType = websocket::WebSocketProtocol::INCOMPLETE_BINARY_FRAME;
+				frameType = websocket::WebSocketProtocol::NEXT_FRAME;
 			}
 			else
 			{
-				frameType = websocket::WebSocketProtocol::END_FRAME;
+				if (!isEnd)
+				{
+					frameType = websocket::WebSocketProtocol::INCOMPLETE_BINARY_FRAME;
+				}
+				else
+				{
+					frameType = websocket::WebSocketProtocol::END_FRAME;
+				}
 			}
 		}
 	}
@@ -161,20 +166,46 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				// 否则将包内存继续缓存
 				if((int32)pPacket->length() >= pFragmentDatasRemain_)
 				{
+					size_t wpos = pPacket->wpos();
+					size_t rpos = pPacket->rpos();
+
+					pPacket->wpos(rpos + pFragmentDatasRemain_);
+
+					// 首先将需要的数据添加到pTCPPacket_
+					pTCPPacket_->append(*(static_cast<MemoryStream*>(pPacket)));
+					
+					// 将写位置还原回去
+					pPacket->wpos(wpos);
+					
+					// 丢弃已经读取的数据
+					pPacket->read_skip(pFragmentDatasRemain_);
+					
+					size_t buffer_rpos = pTCPPacket_->rpos();
 					pFragmentDatasRemain_ = websocket::WebSocketProtocol::getFrame(pTCPPacket_, msg_opcode_, msg_fin_, msg_masked_, 
 						msg_mask_, msg_length_field_, msg_payload_length_, msg_frameType_);
 
-					KBE_ASSERT(pFragmentDatasRemain_ == 0);
-
-					// frame解析完毕，将对象回收
-					TCPPacket::reclaimPoolObject(pTCPPacket_);
-					pTCPPacket_ = NULL;
-
-					// 是否有数据携带？如果没有则不进入data解析
-					if(msg_payload_length_ > 0)
+					// 如果仍然大于0， 说明需要继续收包
+					if(pFragmentDatasRemain_ > 0)
 					{
-						fragmentDatasFlag_ = FRAGMENT_MESSAGE_DATAS;
-						pFragmentDatasRemain_ = (int32)msg_payload_length_;
+						// 由于一次没有解析完， 我们回撤数据下一次再尝试解析
+						pTCPPacket_->rpos(buffer_rpos);
+
+						// 当前包如果还有数据并且大于等于我们需要的数据，则继续下一循环立即解析
+						if ((int32)pPacket->length() >= pFragmentDatasRemain_)
+							continue;
+					}
+					else
+					{
+						// frame解析完毕，将对象回收
+						TCPPacket::reclaimPoolObject(pTCPPacket_);
+						pTCPPacket_ = NULL;
+
+						// 是否有数据携带？如果没有则不进入data解析
+						if(msg_payload_length_ > 0)
+						{
+							fragmentDatasFlag_ = FRAGMENT_MESSAGE_DATAS;
+							pFragmentDatasRemain_ = (int32)msg_payload_length_;
+						}
 					}
 				}
 				else

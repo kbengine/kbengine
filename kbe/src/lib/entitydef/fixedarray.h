@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -34,8 +34,6 @@ class FixedArray : public script::Sequence
 	INSTANCE_SCRIPT_HREADER(FixedArray, Sequence)
 public:	
 	FixedArray(DataType* dataType);
-	FixedArray(DataType* dataType, std::string& strInitData);
-	FixedArray(DataType* dataType, PyObject* pyInitData);
 	virtual ~FixedArray();
 
 	const DataType* getDataType(void){ return _dataType; }

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "thread/threadtask.h"
 #include "helper/debug_helper.h"
 
-namespace KBEngine{ 
+namespace KBEngine { 
 
 /*
 	数据库线程任务buffer
@@ -48,7 +48,60 @@ public:
 
 	EntityDBTask* tryGetNextTask(EntityDBTask* pTask);
 
-	size_t size(){ return dbid_tasks_.size() + entityid_tasks_.size(); }
+	size_t size() { return dbid_tasks_.size() + entityid_tasks_.size(); }
+
+	std::string getTasksinfos() 
+	{
+		std::string ret;
+
+		{
+			for (DBID_TASKS_MAP::iterator iter = dbid_tasks_.begin(); iter != dbid_tasks_.end(); iter = dbid_tasks_.upper_bound(iter->first))
+			{
+				std::string names;
+				std::pair<DBID_TASKS_MAP::iterator, DBID_TASKS_MAP::iterator> res = dbid_tasks_.equal_range(iter->first);
+
+				for (DBID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
+				{
+					if (i == dbid_tasks_.end())
+						break;
+
+					if (i->second)
+						names += i->second->name();
+					else
+						names = "Null";
+
+					names += ",";
+				}
+
+				ret += fmt::format("{}:({}), ", iter->first, names);
+			}
+		}
+
+		{
+			for (ENTITYID_TASKS_MAP::iterator iter = entityid_tasks_.begin(); iter != entityid_tasks_.end(); iter = entityid_tasks_.upper_bound(iter->first))
+			{
+				std::string names;
+				std::pair<ENTITYID_TASKS_MAP::iterator, ENTITYID_TASKS_MAP::iterator> res = entityid_tasks_.equal_range(iter->first);
+
+				for (ENTITYID_TASKS_MAP::iterator i = res.first; i != res.second; ++i)
+				{
+					if (i == entityid_tasks_.end())
+						break;
+
+					if (i->second)
+						names += i->second->name();
+					else
+						names = "Null";
+
+					names += ",";
+				}
+
+				ret += fmt::format("{}:({}), ", iter->first, names);
+			}
+		}
+
+		return ret;
+	}
 
 	void dbInterfaceName(const std::string& dbInterfaceName) { dbInterfaceName_ = dbInterfaceName; }
 	const std::string& dbInterfaceName() { return dbInterfaceName_; }

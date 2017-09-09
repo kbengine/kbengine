@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -413,6 +413,19 @@ bool EntityDef::loadVolatileInfo(const std::string& defFilePath,
 			pVolatileInfo->roll(-1.f);
 	}
 
+	node = defxml->enterNode(pNode, "optimized");
+	if (node)
+	{
+		pVolatileInfo->optimized(defxml->getBool(node));
+	}
+	else
+	{
+		if (defxml->hasNode(pNode, "optimized"))
+			pVolatileInfo->optimized(true);
+		else
+			pVolatileInfo->optimized(true);
+	}
+
 	return true;
 }
 
@@ -777,6 +790,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+
 						foundConflict = true;
 					}
 
@@ -785,6 +799,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+
 						foundConflict = true;
 					}
 
@@ -793,6 +808,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefPropertys: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), iUtype, moduleName, pConflictPropertyDescription->getName(), iUtype));
+
 						foundConflict = true;
 					}
 
@@ -828,21 +844,23 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 
 			// 添加到模块中
 			if(hasCellFlags > 0)
-				ret = pScriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(),
 						propertyDescription, CELLAPP_TYPE);
 
 			if(hasBaseFlags > 0)
-				ret = pScriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(),
 						propertyDescription, BASEAPP_TYPE);
 
 			if(hasClientFlags > 0)
-				ret = pScriptModule->addPropertyDescription(name.c_str(), 
+				ret = pScriptModule->addPropertyDescription(name.c_str(),
 						propertyDescription, CLIENT_TYPE);
 
 			if(!ret)
 			{
 				ERROR_MSG(fmt::format("EntityDef::addPropertyDescription({}): {}.\n", 
 					moduleName.c_str(), xml->getTxdoc()->Value()));
+				
+				return false;
 			}
 		}
 		XML_FOR_END(defPropertyNode);
@@ -960,6 +978,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -968,6 +987,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -976,6 +996,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefCellMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -984,7 +1005,8 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 				}
 			}
 
-			pScriptModule->addCellMethodDescription(name.c_str(), methodDescription);
+			if(!pScriptModule->addCellMethodDescription(name.c_str(), methodDescription))
+				return false;
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -1099,6 +1121,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1107,6 +1130,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1115,6 +1139,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefBaseMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1123,7 +1148,8 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 				}
 			}
 
-			pScriptModule->addBaseMethodDescription(name.c_str(), methodDescription);
+			if(!pScriptModule->addBaseMethodDescription(name.c_str(), methodDescription))
+				return false;
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -1234,6 +1260,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1242,6 +1269,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1250,6 +1278,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 					{
 						ERROR_MSG(fmt::format("EntityDef::loadDefClientMethods: {}.{}, 'Utype' {} Conflict({}.{} 'Utype' {})!\n",
 							moduleName, name.c_str(), muid, moduleName, pConflictMethodDescription->getName(), muid));
+
 						foundConflict = true;
 					}
 
@@ -1258,7 +1287,8 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 				}
 			}
 
-			pScriptModule->addClientMethodDescription(name.c_str(), methodDescription);
+			if(!pScriptModule->addClientMethodDescription(name.c_str(), methodDescription))
+				return false;
 		}
 		XML_FOR_END(defMethodNode);
 	}
@@ -1405,7 +1435,11 @@ bool EntityDef::loadAllScriptModules(std::string entitiesPath,
 		if (pyModule)
 		{
 			std::string userScriptsPath = Resmgr::getSingleton().getPyUserScriptsPath();
-			std::string pyModulePath = PyModule_GetFilename(pyModule);
+			std::string pyModulePath = "";
+			
+			const char *pModulePath = PyModule_GetFilename(pyModule);
+			if (pModulePath)
+				pyModulePath = pModulePath;
 
 			strutil::kbe_replace(userScriptsPath, "/", "");
 			strutil::kbe_replace(userScriptsPath, "\\", "");

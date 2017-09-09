@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -104,7 +104,6 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 
 		if (pScriptModule->hasCell())
 		{
-			ArraySize size = 0;
 #ifdef CLIENT_NO_FLOAT
 			int32 v1, v2, v3;
 			int32 vv1, vv2, vv3;
@@ -113,8 +112,8 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 			float vv1, vv2, vv3;
 #endif
 
-			s >> size >> v1 >> v2 >> v3;
-			s >> size >> vv1 >> vv2 >> vv3;
+			s >> v1 >> v2 >> v3;
+			s >> vv1 >> vv2 >> vv3;
 
 			PyObject* position = PyTuple_New(3);
 			PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble((float)v1));
@@ -188,7 +187,8 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 	pRestoreEntityHandlers_(),
 	pResmgrTimerHandle_(),
 	pInitProgressHandler_(NULL),
-	flags_(APP_FLAGS_NONE)
+	flags_(APP_FLAGS_NONE),
+	pBundleImportEntityDefDatas_(NULL)
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
@@ -211,6 +211,30 @@ Baseapp::~Baseapp()
 //-------------------------------------------------------------------------------------	
 bool Baseapp::canShutdown()
 {
+	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
+	{
+		// 所有脚本都加载完毕
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+			const_cast<char*>("onReadyForShutDown"),
+			const_cast<char*>(""));
+
+		if (pyResult != NULL)
+		{
+			bool isReady = (pyResult == Py_True);
+			Py_DECREF(pyResult);
+
+			if (isReady)
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			return false;
+		}
+	}
+	
 	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
 	if(cellapp_components.size() > 0)
 	{
@@ -281,25 +305,32 @@ void Baseapp::onShutdown(bool first)
 		int count = g_serverConfig.getBaseApp().perSecsDestroyEntitySize;
 		Entities<Base>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
-		while(count > 0)
+		while(count > 0 && entities.size() > 0)
 		{
-			bool done = false;
+			std::vector<ENTITY_ID> vecs;
+			
 			Entities<Base>::ENTITYS_MAP::iterator iter = entities.begin();
 			for(; iter != entities.end(); ++iter)
 			{
 				//if(static_cast<Base*>(iter->second.get())->hasDB() && 
 				//	static_cast<Base*>(iter->second.get())->cellMailbox() == NULL)
 				{
-					this->destroyEntity(static_cast<Base*>(iter->second.get())->id(), true);
+					vecs.push_back(static_cast<Base*>(iter->second.get())->id());
 
-					count--;
-					done = true;
-					break;
+					if(--count == 0)
+						break;
 				}
 			}
 
-			if(!done)
-				break;
+			std::vector<ENTITY_ID>::iterator iter1 = vecs.begin();
+			for(; iter1 != vecs.end(); ++iter1)
+			{
+				Base* e = this->findEntity((*iter1));
+				if(!e)
+					continue;
+				
+				this->destroyEntity((*iter1), true);
+			}
 		}
 	}
 }
@@ -561,12 +592,26 @@ void Baseapp::finalise()
 	pResmgrTimerHandle_.cancel();
 	forward_messagebuffer_.clear();
 
+	if (pBundleImportEntityDefDatas_)
+	{
+		Network::Bundle::reclaimPoolObject(pBundleImportEntityDefDatas_);
+		pBundleImportEntityDefDatas_ = NULL;
+	}
+
 	EntityApp<Base>::finalise();
 }
 
 //-------------------------------------------------------------------------------------
 void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 {
+	if(pChannel && pChannel->isExternal())
+		return;
+	
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	{
+		return;
+	}
+	
 	PyObject* pyarg = PyTuple_New(1);
 
 	PyObject* pyobj = PyTuple_New(2);
@@ -619,6 +664,9 @@ void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::onRequestRestoreCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	COMPONENT_ID cid, source_cid;
 	bool canRestore = true;
 
@@ -655,6 +703,9 @@ void Baseapp::onRestoreEntitiesOver(RestoreEntityHandler* pRestoreEntityHandler)
 //-------------------------------------------------------------------------------------
 void Baseapp::onRestoreSpaceCellFromOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	COMPONENT_ID baseappID = 0, cellappID = 0;
 	SPACE_ID spaceID = 0;
 	ENTITY_ID spaceEntityID = 0;
@@ -948,7 +999,7 @@ PyObject* Baseapp::__py_createBaseFromDBID(PyObject* self, PyObject* args)
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -1126,6 +1177,9 @@ void Baseapp::createBaseFromDBID(const char* entityType, DBID dbid, PyObject* py
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string entityType;
 	DBID dbid;
 	CALLBACK_ID callbackID;
@@ -1152,7 +1206,14 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		s >> wasActiveEntityID;
 	}
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onCreateBaseFromDBID: createToComponentID({}) != currComponentID({}), "
+			"dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}, wasActiveCID={}, wasActiveEntityID={}!\n",
+			createToComponentID, g_componentID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive, wasActiveCID, wasActiveEntityID));
+
+		KBE_ASSERT(false);
+	}
 
 	if(!success)
 	{
@@ -1285,7 +1346,7 @@ PyObject* Baseapp::__py_createBaseAnywhereFromDBID(PyObject* self, PyObject* arg
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -1460,6 +1521,9 @@ void Baseapp::createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyOb
 //-------------------------------------------------------------------------------------
 void Baseapp::onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	COMPONENT_ID targetComponentID;
 	s >> targetComponentID;
 
@@ -1508,6 +1572,9 @@ void Baseapp::onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pCh
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	size_t currpos = s.rpos();
 
 	std::string entityType;
@@ -1642,6 +1709,9 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string entityType;
 	DBID dbid;
 	CALLBACK_ID callbackID;
@@ -1662,7 +1732,14 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	s >> entityID;
 	s >> wasActive;
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseAnywhereFromDBIDOtherBaseapp: createToComponentID({}) != currComponentID({}), "
+			"sourceBaseappID={}, dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}!\n",
+			createToComponentID, g_componentID, sourceBaseappID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive));
+
+		KBE_ASSERT(false);
+	}
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
@@ -1723,6 +1800,9 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 															   std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	if(callbackID > 0)
 	{
 		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
@@ -1788,7 +1868,7 @@ PyObject* Baseapp::__py_createBaseRemotelyFromDBID(PyObject* self, PyObject* arg
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
-	DBID dbid;
+	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
 	PyObject* pyDBInterfaceName = NULL;
 	std::string dbInterfaceName = "default";
@@ -1984,6 +2064,9 @@ void Baseapp::createBaseRemotelyFromDBID(const char* entityType, DBID dbid, COMP
 //-------------------------------------------------------------------------------------
 void Baseapp::onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	size_t currpos = s.rpos();
 
 	std::string entityType;
@@ -2118,6 +2201,9 @@ void Baseapp::onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, K
 //-------------------------------------------------------------------------------------
 void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string entityType;
 	DBID dbid;
 	CALLBACK_ID callbackID;
@@ -2138,7 +2224,14 @@ void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel,
 	s >> entityID;
 	s >> wasActive;
 
-	KBE_ASSERT(createToComponentID == g_componentID);
+	if (createToComponentID != g_componentID)
+	{
+		ERROR_MSG(fmt::format("Baseapp::createBaseRemotelyFromDBIDOtherBaseapp: createToComponentID({}) != currComponentID({}), "
+			"sourceBaseappID={}, dbInterfaceIndex={}, entityType={}, dbid={}, callbackID={}, success={}, entityID={}, wasActive={}!\n",
+			createToComponentID, g_componentID, sourceBaseappID, dbInterfaceIndex, entityType, dbid, callbackID, success, entityID, wasActive));
+
+		KBE_ASSERT(false);
+	}
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
@@ -2199,6 +2292,9 @@ void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel,
 void Baseapp::onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 															   std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	if(callbackID > 0)
 	{
 		ScriptDefModule* sm = EntityDef::findScriptModule(entityType.c_str());
@@ -2927,13 +3023,17 @@ void Baseapp::onEntityGetCell(Network::Channel* pChannel, ENTITY_ID id,
 //-------------------------------------------------------------------------------------
 void Baseapp::onClientEntityEnterWorld(Proxy* base, COMPONENT_ID componentID)
 {
+	Py_INCREF(base);
 	base->initClientCellPropertys();
 	base->onClientGetCell(NULL, componentID);
+	Py_DECREF(base);
 }
 
 //-------------------------------------------------------------------------------------
 bool Baseapp::createClientProxies(Proxy* base, bool reload)
 {
+	Py_INCREF(base);
+	
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 	Network::Channel* pChannel = base->clientMailbox()->getChannel();
 	pChannel->proxyID(base->id());
@@ -2942,7 +3042,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	// 重新生成一个ID
 	if(reload)
 		base->rndUUID(genUUID64());
-
+	
 	// 一些数据必须在实体创建后立即访问
 	base->initClientBasePropertys();
 
@@ -2958,7 +3058,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
 	//if(!reload)
 	base->onEntitiesEnabled();
-
+	Py_DECREF(base);
 	return true;
 }
 
@@ -3061,14 +3161,19 @@ void Baseapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 //-------------------------------------------------------------------------------------
 void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string err;
 	CALLBACK_ID callbackID = 0;
 	uint32 nrows = 0;
 	uint32 nfields = 0;
 	uint64 affectedRows = 0;
+	uint64 lastInsertID = 0;
 
 	PyObject* pResultSet = NULL;
 	PyObject* pAffectedRows = NULL;
+	PyObject* pLastInsertID = NULL;
 	PyObject* pErrorMsg = NULL;
 
 	s >> callbackID;
@@ -3086,6 +3191,9 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			pAffectedRows = Py_None;
 			Py_INCREF(pAffectedRows);
 
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
+
 			s >> nrows;
 
 			pResultSet = PyList_New(nrows);
@@ -3099,7 +3207,7 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 					PyObject* pCell = NULL;
 						
-					if(cell == "NULL")
+					if(cell == "KBE_QUERY_DB_NULL")
 					{
 						Py_INCREF(Py_None);
 						pCell = Py_None;
@@ -3126,6 +3234,9 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			s >> affectedRows;
 
 			pAffectedRows = PyLong_FromUnsignedLongLong(affectedRows);
+
+			s >> lastInsertID;
+			pLastInsertID = PyLong_FromUnsignedLongLong(lastInsertID);
 		}
 	}
 	else
@@ -3137,6 +3248,9 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 			pAffectedRows = Py_None;
 			Py_INCREF(pAffectedRows);
+
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
 	}
 
 	s.done();
@@ -3152,8 +3266,8 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 		if(pyfunc != NULL)
 		{
 			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
-												const_cast<char*>("OOO"), 
-												pResultSet, pAffectedRows, pErrorMsg);
+												const_cast<char*>("OOOO"), 
+												pResultSet, pAffectedRows, pLastInsertID, pErrorMsg);
 
 			if(pyResult != NULL)
 				Py_DECREF(pyResult);
@@ -3169,6 +3283,7 @@ void Baseapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 	Py_XDECREF(pResultSet);
 	Py_XDECREF(pAffectedRows);
+	Py_XDECREF(pLastInsertID);
 	Py_XDECREF(pErrorMsg);
 }
 
@@ -3184,7 +3299,7 @@ PyObject* Baseapp::__py_charge(PyObject* self, PyObject* args)
 
 	PyObject* pyDatas = NULL, *pycallback = NULL;
 	char* pChargeID = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 
 	if(PyArg_ParseTuple(args, "s|K|O|O", &pChargeID, &dbid, &pyDatas, &pycallback) == -1)
 	{
@@ -3289,6 +3404,9 @@ void Baseapp::charge(std::string chargeID, DBID dbid, const std::string& datas, 
 //-------------------------------------------------------------------------------------
 void Baseapp::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string chargeID;
 	CALLBACK_ID callbackID;
 	std::string datas;
@@ -3365,6 +3483,9 @@ void Baseapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 
 	EntityApp<Base>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, 
 		startGlobalOrder, startGroupOrder, digest);
+
+	// 再次同步自己的新信息(startGlobalOrder, startGroupOrder等)到machine
+	Components::getSingleton().broadcastSelf();
 
 	// 这里需要更新一下python的环境变量
 	this->getScript().setenv("KBE_BOOTIDX_GLOBAL", getenv("KBE_BOOTIDX_GLOBAL"));
@@ -3464,8 +3585,10 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	uint32										flags;
 	uint64										deadline;
 	COMPONENT_TYPE								componentType;
+	bool										forceInternalLogin;
+	bool										needCheckPassword;
 
-	s >> loginName >> accountName >> password >> entityID >> entityDBID >> flags >> deadline >> componentType;
+	s >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -3474,7 +3597,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	(*pBundle) << loginName;
 	(*pBundle) << accountName;
 	
-	if(strlen((const char*)&g_kbeSrvConfig.getBaseApp().externalAddress) > 0)
+	if (!forceInternalLogin && strlen((const char*)&g_kbeSrvConfig.getBaseApp().externalAddress) > 0)
 	{
 		(*pBundle) << g_kbeSrvConfig.getBaseApp().externalAddress;
 	}
@@ -3495,6 +3618,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	ptinfos->deadline = deadline;
 	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)componentType;
 	ptinfos->datas = datas;
+	ptinfos->needCheckPassword = needCheckPassword;
 	pendingLoginMgr_.add(ptinfos);
 }
 
@@ -3523,7 +3647,7 @@ void Baseapp::loginBaseappFailed(Network::Channel* pChannel, std::string& accoun
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
 	if(relogin)
-		(*pBundle).newMessage(ClientInterface::onReLoginBaseappFailed);
+		(*pBundle).newMessage(ClientInterface::onReloginBaseappFailed);
 	else
 		(*pBundle).newMessage(ClientInterface::onLoginBaseappFailed);
 
@@ -3569,28 +3693,37 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
 		return;
 	}
+	else if (!ptinfos->addr.isNone() && ptinfos->addr != pChannel->addr())
+	{
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ILLEGAL_LOGIN);
+		return;
+	}
 
 	if(ptinfos->password != password)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_PASSWORD);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
 	if((ptinfos->flags & ACCOUNT_FLAG_LOCK) > 0)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_LOCK);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
 	if((ptinfos->flags & ACCOUNT_FLAG_NOT_ACTIVATED) > 0)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_NOT_ACTIVATED);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
 	if(ptinfos->deadline > 0 && ::time(NULL) - ptinfos->deadline <= 0)
 	{
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_DEADLINE);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
@@ -3598,6 +3731,16 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 	{
 		ERROR_MSG("Baseapp::loginBaseapp: idClient size is 0.\n");
 		loginBaseappFailed(pChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		pendingLoginMgr_.removeNextTick(accountName);
+		return;
+	}
+
+	// 虽然接入第三方dbmgr不检查密码，但至少在loginapp时提交的password应该跟本次提交的能匹配上
+	// 否则容易被其他连接攻击式的试探登陆
+	if (!ptinfos->needCheckPassword && ptinfos->password != password)
+	{
+		loginBaseappFailed(pChannel, accountName, SERVER_ERR_NAME_PASSWORD);
+		pendingLoginMgr_.removeNextTick(accountName);
 		return;
 	}
 
@@ -3607,16 +3750,29 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		INFO_MSG(fmt::format("Baseapp::loginBaseapp: user[{}] has entity({}).\n",
 			accountName.c_str(), ptinfos->entityID));
 
+		pendingLoginMgr_.removeNextTick(accountName);
+
 		Proxy* base = static_cast<Proxy*>(findEntity(ptinfos->entityID));
 		if(base == NULL || base->isDestroyed())
 		{
 			loginBaseappFailed(pChannel, accountName, SERVER_ERR_BUSY);
 			return;
 		}
-		
+
+		// 防止在onLogOnAttempt中销毁了
+		Py_INCREF(base);
+
 		// 通知脚本异常登录请求有脚本决定是否允许这个通道强制登录
 		int32 ret = base->onLogOnAttempt(pChannel->addr().ipAsString(), 
 			ntohs(pChannel->addr().port), password.c_str());
+
+		if (base->isDestroyed())
+		{
+			Py_DECREF(base);
+
+			loginBaseappFailed(pChannel, accountName, SERVER_ERR_OP_FAILED);
+			return;
+		}
 
 		switch(ret)
 		{
@@ -3640,8 +3796,9 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 				base->clientMailbox()->addr(pChannel->addr());
 				base->addr(pChannel->addr());
 				base->setClientType(ptinfos->ctype);
-				base->setClientDatas(ptinfos->datas);
+				base->setLoginDatas(ptinfos->datas);
 				createClientProxies(base, true);
+				base->onGetWitness();
 			}
 			else
 			{
@@ -3652,19 +3809,23 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 				base->clientMailbox(entityClientMailbox);
 				base->addr(pChannel->addr());
 				base->setClientType(ptinfos->ctype);
-				base->setClientDatas(ptinfos->datas);
+				base->setLoginDatas(ptinfos->datas);
 
 				// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
 				entityClientMailbox->getChannel()->proxyID(base->id());
 				createClientProxies(base, true);
+				base->onGetWitness();
 			}
 			break;
 		case LOG_ON_WAIT_FOR_DESTROY:
 		default:
 			INFO_MSG("Baseapp::loginBaseapp: script LOG_ON_REJECT.\n");
 			loginBaseappFailed(pChannel, accountName, SERVER_ERR_ACCOUNT_IS_ONLINE);
+			Py_DECREF(base);
 			return;
 		};
+
+		Py_DECREF(base);
 	}
 	else
 	{
@@ -3674,7 +3835,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		ENTITY_ID entityID = idClient_.alloc();
 		KBE_ASSERT(entityID > 0);
 
-		DbmgrInterface::queryAccountArgs7::staticAddToBundle((*pBundle), accountName, password, g_componentID, 
+		DbmgrInterface::queryAccountArgs8::staticAddToBundle((*pBundle), accountName, password, ptinfos->needCheckPassword, g_componentID,
 			entityID, ptinfos->entityDBID, pChannel->addr().ip, pChannel->addr().port);
 
 		dbmgrinfos->pChannel->send(pBundle);
@@ -3685,11 +3846,11 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountName, 
+void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountName, 
 							 std::string& password, uint64 key, ENTITY_ID entityID)
 {
 	accountName = KBEngine::strutil::kbe_trim(accountName);
-	INFO_MSG(fmt::format("Baseapp::reLoginBaseapp: accountName={}, key={}, entityID={}.\n",
+	INFO_MSG(fmt::format("Baseapp::reloginBaseapp: accountName={}, key={}, entityID={}.\n",
 		accountName, key, entityID));
 
 	Base* base = findEntity(entityID);
@@ -3712,7 +3873,7 @@ void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountNam
 	{
 		Network::Channel* pMBChannel = entityClientMailbox->getChannel();
 
-		WARNING_MSG(fmt::format("Baseapp::reLoginBaseapp: accountName={}, key={}, "
+		WARNING_MSG(fmt::format("Baseapp::reloginBaseapp: accountName={}, key={}, "
 			"entityID={}, ClientMailbox({}) is exist, will be kicked out!\n",
 			accountName, key, entityID, 
 			(pMBChannel ? pMBChannel->c_str() : "unknown")));
@@ -3742,16 +3903,16 @@ void Baseapp::reLoginBaseapp(Network::Channel* pChannel, std::string& accountNam
 	// 客户端重连也需要将完整的数据重发给客户端， 相当于登录之后获得的数据。
 	// 因为断线期间不能确保包括场景等数据已发生变化
 	// 客户端需要重建所有数据
+	Py_INCREF(proxy);
 	createClientProxies(proxy, true);
 	proxy->onGetWitness();
+	Py_DECREF(proxy);
 	// proxy->onEntitiesEnabled();
 
-	/*
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(ClientInterface::onReLoginBaseappSuccessfully);
+	(*pBundle).newMessage(ClientInterface::onReloginBaseappSuccessfully);
 	(*pBundle) << proxy->rndUUID();
 	pChannel->send(pBundle);
-	*/
 }
 
 //-------------------------------------------------------------------------------------
@@ -3799,10 +3960,25 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		return;
 	}
 
-	Proxy* base = static_cast<Proxy*>(createEntity(g_serverConfig.getDBMgr().dbAccountEntityScriptType, 
-		NULL, false, entityID));
-
 	Network::Channel* pClientChannel = this->networkInterface().findChannel(ptinfos->addr);
+
+	if (!success)
+	{
+		std::string error;
+		s >> error;
+		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: query {} is failed! error({})\n",
+			accountName.c_str(), error));
+
+		s.done();
+		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
+		return;
+	}
+
+	std::string bindatas;
+	s.readBlob(bindatas);
+
+	Proxy* base = static_cast<Proxy*>(createEntity(g_serverConfig.getDBMgr().dbAccountEntityScriptType,
+		NULL, false, entityID));
 
 	if(!base)
 	{
@@ -3815,24 +3991,12 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		return;
 	}
 
-	if(!success)
-	{
-		std::string error;
-		s >> error;
-		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: query {} is failed! error({})\n",
-			accountName.c_str(), error));
-		
-		s.done();
-		
-		loginBaseappFailed(pClientChannel, accountName, SERVER_ERR_SRV_NO_READY);
-		return;
-	}
-	
 	KBE_ASSERT(base != NULL);
 	base->hasDB(true);
 	base->dbid(dbInterfaceIndex, dbid);
 	base->setClientType(ptinfos->ctype);
-	base->setClientDatas(ptinfos->datas);
+	base->setLoginDatas(ptinfos->datas);
+	base->setCreateDatas(bindatas);
 
 	PyObject* pyDict = createCellDataDictFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
 
@@ -3844,6 +4008,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	PyDict_SetItemString(pyDict, "__ACCOUNT_PASSWORD__", py__ACCOUNT_PASSWD__);
 	Py_DECREF(py__ACCOUNT_PASSWD__);
 
+	Py_INCREF(base);
 	base->initializeEntity(pyDict);
 	Py_DECREF(pyDict);
 
@@ -3873,6 +4038,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 		accountName, base->rndUUID(), base->id(), flags, deadline));
 
 	SAFE_RELEASE(ptinfos);
+	Py_DECREF(base);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3988,15 +4154,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 		return;
 
 	BaseMessagesForwardClientHandler* pBufferedSendToClientMessages = base->pBufferedSendToClientMessages();
-	
-	// 需要判断来源是否符合
-	if(pBufferedSendToClientMessages)
-	{
-		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
-		if (cinfos->cid != pBufferedSendToClientMessages->cellappID())
-			pBufferedSendToClientMessages = NULL;
-	}
-	
+
 	Network::Channel* pClientChannel = mailbox->getChannel();
 	Network::Bundle* pSendBundle = NULL;
 	
@@ -4145,7 +4303,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onEntityMail: entityID {} not found.\n", eid));
+		WARNING_MSG(fmt::format("Baseapp::onEntityMail: entityID {} not found.\n", eid));
 		s.done();
 		return;
 	}
@@ -4242,7 +4400,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 
 	if(e == NULL || e->cellMailbox() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
+		WARNING_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
 		
 		s.done();
@@ -4261,6 +4419,12 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 //-------------------------------------------------------------------------------------
 void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	{
+		s.done();
+		return;
+	}
+
 	AUTO_SCOPED_PROFILE("onUpdateDataFromClient");
 
 	ENTITY_ID srcEntityID = pChannel->proxyID();
@@ -4301,8 +4465,15 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	s.done();
 }
 
+//------------------------------------------------------------------------------------- 
 void Baseapp::onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(shuttingdown_ != SHUTDOWN_STATE_STOP)
+	{
+		s.done();
+		return;
+	}
+	
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
 	{
@@ -4452,8 +4623,14 @@ void Baseapp::onHello(Network::Channel* pChannel,
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << EntityDef::md5().getDigestStr();
 	(*pBundle) << g_componentType;
-	pChannel->send(pBundle);
 
+	// 此消息不允许加密，所以设定已加密忽略再次加密，当第一次send消息不是立即发生而是交由epoll通知时会出现这种情况（一般用于测试，正规环境不会出现）
+	// web协议必须要加密，所以不能设置为true
+	if (pChannel->type() != KBEngine::Network::Channel::CHANNEL_WEB)
+		pBundle->pCurrPacket()->encrypted(true);
+
+	pChannel->send(pBundle);
+	
 	if(Network::g_channelExternalEncryptType > 0)
 	{
 		if(encryptedKey.size() > 3)
@@ -4555,10 +4732,10 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 {
-	static Network::Bundle bundle;
-	
-	if(bundle.empty())
+	if (!pBundleImportEntityDefDatas_)
 	{
+		pBundleImportEntityDefDatas_ = Network::Bundle::createPoolObject();
+
 		ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
 		ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
@@ -4577,20 +4754,20 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 		if(msgInfo != NULL)
 			spaceuid = msgInfo->msgid;
 
-		bundle.newMessage(ClientInterface::onImportClientEntityDef);
+		pBundleImportEntityDefDatas_->newMessage(ClientInterface::onImportClientEntityDef);
 		
 		const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
 		uint16 aliassize = (uint16)dataTypes.size();
-		bundle << aliassize;
+		(*pBundleImportEntityDefDatas_) << aliassize;
 
 		DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
 		for(; dtiter != dataTypes.end(); ++dtiter)
 		{
 			const DataType* datatype = dtiter->second;
 
-			bundle << datatype->id();
-			bundle << datatype->getName();
-			bundle << datatype->aliasName();
+			(*pBundleImportEntityDefDatas_) << datatype->id();
+			(*pBundleImportEntityDefDatas_) << datatype->getName();
+			(*pBundleImportEntityDefDatas_) << datatype->aliasName();
 
 			if(strcmp(datatype->getName(), "FIXED_DICT") == 0)
 			{
@@ -4599,19 +4776,19 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
 
 				uint8 keysize = (uint8)keys.size();
-				bundle << keysize;
-				bundle << dictdatatype->moduleName();
+				(*pBundleImportEntityDefDatas_) << keysize;
+				(*pBundleImportEntityDefDatas_) << dictdatatype->moduleName();
 
 				FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
 				for(; keyiter != keys.end(); ++keyiter)
 				{
-					bundle << keyiter->first;
-					bundle << keyiter->second->dataType->id();
+					(*pBundleImportEntityDefDatas_) << keyiter->first;
+					(*pBundleImportEntityDefDatas_) << keyiter->second->dataType->id();
 				}
 			}
 			else if(strcmp(datatype->getName(), "ARRAY") == 0)
 			{
-				bundle << const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(datatype))->getDataType()->id();
+				(*pBundleImportEntityDefDatas_) << const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(datatype))->getDataType()->id();
 			}
 		}
 
@@ -4632,16 +4809,16 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			uint16 size2 = (uint16)methods1.size();
 			uint16 size3 = (uint16)methods2.size();
 
-			bundle << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
+			(*pBundleImportEntityDefDatas_) << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
 			int16 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
-			bundle << posuid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
+			(*pBundleImportEntityDefDatas_) << posuid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
-			bundle << diruid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
+			(*pBundleImportEntityDefDatas_) << diruid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
-			bundle << spaceuid << ((uint32)ED_FLAG_CELL_PRIVATE) << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
+			(*pBundleImportEntityDefDatas_) << spaceuid << ((uint32)ED_FLAG_CELL_PRIVATE) << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 			for(; piter != propers.end(); ++piter)
@@ -4651,7 +4828,7 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				std::string	name = piter->second->getName();
 				std::string	defaultValStr = piter->second->getDefaultValStr();
 				uint32 flags = piter->second->getFlags();
-				bundle << properUtype << flags << aliasID << name << defaultValStr << piter->second->getDataType()->id();
+				(*pBundleImportEntityDefDatas_) << properUtype << flags << aliasID << name << defaultValStr << piter->second->getDataType()->id();
 			}
 			
 			ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
@@ -4665,12 +4842,12 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = (uint8)args.size();
 
-				bundle << methodUtype << aliasID << name << argssize;
+				(*pBundleImportEntityDefDatas_) << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); ++argiter)
 				{
-					bundle << (*argiter)->id();
+					(*pBundleImportEntityDefDatas_) << (*argiter)->id();
 				}
 			}
 
@@ -4685,12 +4862,12 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = (uint8)args.size();
 
-				bundle << methodUtype << aliasID << name << argssize;
+				(*pBundleImportEntityDefDatas_) << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); ++argiter)
 				{
-					bundle << (*argiter)->id();
+					(*pBundleImportEntityDefDatas_) << (*argiter)->id();
 				}
 			}
 
@@ -4705,18 +4882,18 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 				const std::vector<DataType*>& args = miter->second->getArgTypes();
 				uint8 argssize = (uint8)args.size();
 
-				bundle << methodUtype << aliasID << name << argssize;
+				(*pBundleImportEntityDefDatas_) << methodUtype << aliasID << name << argssize;
 				
 				std::vector<DataType*>::const_iterator argiter = args.begin();
 				for(; argiter != args.end(); ++argiter)
 				{
-					bundle << (*argiter)->id();
+					(*pBundleImportEntityDefDatas_) << (*argiter)->id();
 				}
 			}
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	pChannel->send(new Network::Bundle((*pBundleImportEntityDefDatas_)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -4741,6 +4918,12 @@ PyObject* Baseapp::__py_reloadScript(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::reloadScript(bool fullReload)
 {
+	if (pBundleImportEntityDefDatas_)
+	{
+		Network::Bundle::reclaimPoolObject(pBundleImportEntityDefDatas_);
+		pBundleImportEntityDefDatas_ = NULL;
+	}
+
 	EntityApp<Base>::reloadScript(fullReload);
 }
 
@@ -4787,7 +4970,7 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 	char* entityType = NULL;
 	PyObject* pycallback = NULL;
 	PyObject* pyDBInterfaceName = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 	std::string dbInterfaceName = "default";
 
 	if (currargsSize == 3)
@@ -4879,6 +5062,9 @@ PyObject* Baseapp::__py_deleteBaseByDBID(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	ENTITY_ID entityID = 0;
 	COMPONENT_ID entityInAppID = 0;
 	bool success = false;
@@ -4959,7 +5145,7 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 	
 	char* entityType = NULL;
 	PyObject* pycallback = NULL;
-	DBID dbid;
+	DBID dbid = 0;
 	std::string dbInterfaceName = "default";
 
 	if (currargsSize == 3)
@@ -5057,6 +5243,9 @@ PyObject* Baseapp::__py_lookUpBaseByDBID(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Baseapp::lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	ENTITY_ID entityID = 0;
 	COMPONENT_ID entityInAppID = 0;
 	bool success = false;
@@ -5160,6 +5349,19 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 	password = KBEngine::strutil::kbe_trim(password);
 	email = KBEngine::strutil::kbe_trim(email);
 
+	if (!email_isvalid(email.c_str()))
+	{
+		ERROR_MSG(fmt::format("Baseapp::reqAccountBindEmail(): invalid email({})! accountName={}\n", 
+			email, accountName));
+
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+		SERVER_ERROR_CODE retcode = SERVER_ERR_NAME_MAIL;
+		(*pBundle) << retcode;
+		pChannel->send(pBundle);
+		return;
+	}
+			
 	INFO_MSG(fmt::format("Baseapp::reqAccountBindEmail: accountName={}, entityID={}, email={}!\n", accountName, entityID, email));
 
 	Components::ComponentInfos* dbmgrinfos = Components::getSingleton().getDbmgr();
@@ -5183,38 +5385,70 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+void Baseapp::onReqAccountBindEmailCBFromDBMgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 	SERVER_ERROR_CODE failedcode, std::string& code)
 {
-	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCB: {}({}) failedcode={}!\n", 
+	if(pChannel->isExternal())
+		return;
+	
+	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromDBMgr: {}({}) failedcode={}!\n", 
 		accountName, entityID, failedcode));
 
-	if(failedcode == SERVER_SUCCESS)
+	if (failedcode != SERVER_SUCCESS)
 	{
-		Components::COMPONENTS& loginapps = Components::getSingleton().getComponents(LOGINAPP_TYPE);
-
-		std::string http_host = "localhost";
-		Components::COMPONENTS::iterator iter = loginapps.begin();
-		for(; iter != loginapps.end(); ++iter)
+		Base* base = pEntities_->find(entityID);
+		if (base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
 		{
-			if((*iter).groupOrderid == 1)
-			{
-				if(strlen((const char*)&(*iter).externalAddressEx) > 0)
-					http_host = (*iter).externalAddressEx;
-				else
-					http_host = inet_ntoa((struct in_addr&)(*iter).pExtAddr->ip);
-			}
+			ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromDBMgr: entity:{}, channel is NULL.\n", entityID));
+			return;
 		}
 
-		threadPool_.addTask(new SendBindEMailTask(email, code, 
-			http_host, 
-			g_kbeSrvConfig.getLoginApp().http_cbport));
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+		(*pBundle) << failedcode;
+		base->clientMailbox()->getChannel()->send(pBundle);
+	}
+	else
+	{
+		Network::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
+		if (pBaseappmgrChannel != NULL)
+		{
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			(*pBundle).newMessage(BaseappmgrInterface::reqAccountBindEmailAllocCallbackLoginapp);
+			BaseappmgrInterface::reqAccountBindEmailAllocCallbackLoginappArgs6::staticAddToBundle((*pBundle), g_componentID,
+				entityID, accountName, email, failedcode, code);
+
+			pBaseappmgrChannel->send(pBundle);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromDBMgr: entity:{}, pBaseappmgrChannel is NULL.\n", entityID));
+			return;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::onReqAccountBindEmailCBFromBaseappmgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	SERVER_ERROR_CODE failedcode, std::string& code, std::string& loginappCBHost, uint16 loginappCBPort)
+{
+	if (pChannel->isExternal())
+		return;
+
+	INFO_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromBaseappmgr: {}({}) failedcode={}!\n",
+		accountName, entityID, failedcode));
+
+	if (failedcode == SERVER_SUCCESS)
+	{
+		threadPool_.addTask(new SendBindEMailTask(email, code,
+			loginappCBHost,
+			loginappCBPort));
 	}
 
 	Base* base = pEntities_->find(entityID);
-	if(base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
+	if (base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCB: entity:{}, channel is NULL.\n", entityID));
+		ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromBaseappmgr: entity:{}, channel is NULL.\n", entityID));
 		return;
 	}
 
@@ -5287,6 +5521,9 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName,
 	SERVER_ERROR_CODE failedcode)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	INFO_MSG(fmt::format("Baseapp::onReqAccountNewPasswordCB: {}({}) failedcode={}!\n", 
 		accountName, entityID, failedcode));
 
@@ -5298,7 +5535,7 @@ void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID en
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
+	(*pBundle).newMessage(ClientInterface::onReqAccountNewPasswordCB);
 	(*pBundle) << failedcode;
 	base->clientMailbox()->getChannel()->send(pBundle);
 }

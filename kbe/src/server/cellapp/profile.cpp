@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,9 @@ namespace KBEngine{
 
 ProfileVal SCRIPTCALL_PROFILE("scriptCall");
 ProfileVal ONMOVE_PROFILE("onMove");
-ProfileVal ON_NAVIGATE_PROFILE( "onNavigate" );
-ProfileVal CLIENT_UPDATE_PROFILE( "clientUpdate" );
+ProfileVal ON_NAVIGATE_PROFILE("onNavigate");
+ProfileVal CLIENT_UPDATE_PROFILE("clientUpdate");
+ProfileVal ONTIMER_PROFILE("onTimer");
 
 EventHistoryStats g_privateClientEventHistoryStats("PrivateClientEvents");
 EventHistoryStats g_publicClientEventHistoryStats("PublicClientEvents");

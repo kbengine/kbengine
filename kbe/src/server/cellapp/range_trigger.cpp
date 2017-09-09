@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,8 @@ range_xz_(fabs(xz)),
 range_y_(fabs(y)),
 origin_(origin),
 positiveBoundary_(NULL),
-negativeBoundary_(NULL)
+negativeBoundary_(NULL),
+removing_(false)
 {
 }
 
@@ -57,14 +58,17 @@ bool RangeTrigger::reinstall(CoordinateNode* pCoordinateNode)
 bool RangeTrigger::install()
 {
 	if(positiveBoundary_ == NULL)
-		positiveBoundary_ = new RangeTriggerNode(this, 0, 0);
+		positiveBoundary_ = new RangeTriggerNode(this, 0, 0, true);
 	else
 		positiveBoundary_->range(0.0f, 0.0f);
 
 	if(negativeBoundary_ == NULL)
-		negativeBoundary_ = new RangeTriggerNode(this, 0, 0);
+		negativeBoundary_ = new RangeTriggerNode(this, 0, 0, false);
 	else
 		negativeBoundary_->range(0.0f, 0.0f);
+
+	positiveBoundary_->addFlags(COORDINATE_NODE_FLAG_INSTALLING);
+	negativeBoundary_->addFlags(COORDINATE_NODE_FLAG_INSTALLING);
 
 	origin_->pCoordinateSystem()->insert(positiveBoundary_);
 	origin_->pCoordinateSystem()->insert(negativeBoundary_);
@@ -83,6 +87,7 @@ bool RangeTrigger::install()
 	negativeBoundary_->range(-range_xz_, -range_y_);
 	negativeBoundary_->old_range(-range_xz_, -range_y_);
 	negativeBoundary_->update();
+	negativeBoundary_->removeFlags(COORDINATE_NODE_FLAG_INSTALLING);
 
 	// update可能导致实体销毁间接导致自己被重置，此时应该返回安装失败
 	if (!negativeBoundary_)
@@ -95,27 +100,34 @@ bool RangeTrigger::install()
 	positiveBoundary_->range(range_xz_, range_y_);
 	positiveBoundary_->old_range(range_xz_, range_y_);
 	positiveBoundary_->update();
+	positiveBoundary_->removeFlags(COORDINATE_NODE_FLAG_INSTALLING);
+
 	return positiveBoundary_ != NULL;
 }
 
 //-------------------------------------------------------------------------------------
 bool RangeTrigger::uninstall()
 {
+	if (removing_)
+		return false;
+
+	removing_ = true;
 	if(positiveBoundary_ && positiveBoundary_->pCoordinateSystem())
 	{
-		positiveBoundary_->onTriggerUninstall();
 		positiveBoundary_->pCoordinateSystem()->remove(positiveBoundary_);
+		positiveBoundary_->onTriggerUninstall();
 	}
 
 	if(negativeBoundary_ && negativeBoundary_->pCoordinateSystem())
 	{
-		negativeBoundary_->onTriggerUninstall();
 		negativeBoundary_->pCoordinateSystem()->remove(negativeBoundary_);
+		negativeBoundary_->onTriggerUninstall();
 	}
 	
 	// 此处不必release node， 节点的释放统一交给CoordinateSystem
 	positiveBoundary_ = NULL;
 	negativeBoundary_ = NULL;
+	removing_ = false;
 	return true;
 }
 
@@ -165,19 +177,6 @@ void RangeTrigger::onNodePassX(RangeTriggerNode* pRangeTriggerNode, CoordinateNo
 	{
 		this->onLeave(pNode);
 	}
-}
-
-//-------------------------------------------------------------------------------------
-bool RangeTriggerNode::wasInYRange(CoordinateNode * pNode)
-{
-	if(!CoordinateSystem::hasY)
-		return true;
-
-	float originY = old_yy() - old_range_y_;
-
-	volatile float lowerBound = originY - fabs(old_range_y_);
-	volatile float upperBound = originY + fabs(old_range_y_);
-	return (pNode->old_yy() >= lowerBound) && (pNode->old_yy() <= upperBound);
 }
 
 //-------------------------------------------------------------------------------------

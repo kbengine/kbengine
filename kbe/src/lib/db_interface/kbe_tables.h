@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -69,12 +69,15 @@ public:
 		char ip[MAX_IP];
 		uint16 port;
 		COMPONENT_ID componentID;
+
+		// 由谁记录
+		COMPONENT_ID logger;
 	};
 
 	KBEEntityLogTable(EntityTables* pEntityTables) :
 	KBETable(pEntityTables)
 	{
-		tableName("kbe_entitylog");
+		tableName(KBE_TABLE_PERFIX "_entitylog");
 	}
 	
 	virtual ~KBEEntityLogTable()
@@ -92,6 +95,44 @@ protected:
 	
 };
 
+/*
+	kbe系统表
+*/
+class KBEServerLogTable : public KBETable
+{
+public:
+	const static uint32 TIMEOUT = 3600;
+
+	struct ServerLog
+	{
+		uint64 heartbeatTime;
+
+		// 由谁记录
+		COMPONENT_ID logger;
+	};
+
+	KBEServerLogTable(EntityTables* pEntityTables) :
+	KBETable(pEntityTables)
+	{
+		tableName(KBE_TABLE_PERFIX "_serverlog");
+	}
+	
+	virtual ~KBEServerLogTable()
+	{
+	}
+	
+	virtual bool updateServer(DBInterface * pdbi) = 0;
+
+	virtual bool queryServer(DBInterface * pdbi, ServerLog& serverlog) = 0;
+	
+	virtual std::vector<COMPONENT_ID> queryTimeOutServers(DBInterface * pdbi) = 0;
+
+	virtual bool clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids) = 0;
+	
+protected:
+	
+};
+
 class KBEAccountTable : public KBETable
 {
 public:
@@ -99,7 +140,7 @@ public:
 	KBETable(pEntityTables),
 	accountDefMemoryStream_()
 	{
-		tableName("kbe_accountinfos");
+		tableName(KBE_TABLE_PERFIX "_accountinfos");
 	}
 	
 	virtual ~KBEAccountTable()
@@ -141,7 +182,7 @@ public:
 	KBEEmailVerificationTable(EntityTables* pEntityTables) :
 	KBETable(pEntityTables)
 	{
-		tableName("kbe_email_verification");
+		tableName(KBE_TABLE_PERFIX "_email_verification");
 	}
 	
 	virtual ~KBEEmailVerificationTable()

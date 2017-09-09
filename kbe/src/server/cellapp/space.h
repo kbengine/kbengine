@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ typedef std::vector<EntityPtr> SPACE_ENTITIES;
 class Space
 {
 public:
-	Space(SPACE_ID spaceID);
+	Space(SPACE_ID spaceID, const std::string& scriptModuleName);
 	~Space();
 
 	void unLoadSpaceGeometry();
@@ -72,7 +72,7 @@ public:
 	/**
 		销毁
 	*/
-	bool destroy(ENTITY_ID entityID);
+	bool destroy(ENTITY_ID entityID, bool ignoreGhost = true);
 
 	/**
 		这个space的cell
@@ -125,6 +125,9 @@ protected:
 protected:
 	// 这个space的ID
 	SPACE_ID					id_;														
+
+	// 创建这个space时用的实体脚本模块名称
+	std::string					scriptModuleName_;
 
 	// 这个space上的entity
 	SPACE_ENTITIES				entities_;							

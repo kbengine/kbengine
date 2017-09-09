@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,7 @@ SCRIPT_METHOD_DECLARE("getClientType",					pyGetClientType,				METH_VARARGS,			0
 SCRIPT_METHOD_DECLARE("getClientDatas",					pyGetClientDatas,				METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("streamStringToClient",			pyStreamStringToClient,			METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("streamFileToClient",				pyStreamFileToClient,			METH_VARARGS,			0)
+SCRIPT_METHOD_DECLARE("disconnect",						pyDisconnect,					METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Proxy)
@@ -67,7 +68,8 @@ bandwidthPerSecond_(0),
 encryptionKey(),
 pProxyForwarder_(NULL),
 clientComponentType_(UNKNOWN_CLIENT_COMPONENT_TYPE),
-clientDatas_()
+loginDatas_(),
+createDatas_()
 {
 	Baseapp::getSingleton().incProxicesCount();
 
@@ -80,6 +82,18 @@ Proxy::~Proxy()
 	Baseapp::getSingleton().decProxicesCount();
 	kick();
 	SAFE_RELEASE(pProxyForwarder_);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Proxy::pyDisconnect()
+{
+	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
+	if (pChannel && !pChannel->isDestroyed())
+	{
+		pChannel->condemn();
+	}
+
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
@@ -220,7 +234,7 @@ void Proxy::onClientDeath(void)
 
 //-------------------------------------------------------------------------------------
 void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
-{
+{	
 	// 回调给脚本，获得了cell
 	if(cellMailbox_ == NULL)
 		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
@@ -239,8 +253,17 @@ PyObject* Proxy::pyGetClientType()
 //-------------------------------------------------------------------------------------
 PyObject* Proxy::pyGetClientDatas()
 {
-	const std::string& datas = this->getClientDatas();
-	return PyBytes_FromStringAndSize(datas.data(), datas.size());
+	const std::string& datas1 = this->getLoginDatas();
+	PyObject* pyDatas1 = PyBytes_FromStringAndSize(datas1.data(), datas1.size());
+
+	const std::string& datas2 = this->getCreateDatas();
+	PyObject* pyDatas2 = PyBytes_FromStringAndSize(datas2.data(), datas2.size());
+
+	PyObject* pyDatas = PyTuple_New(2);
+	PyTuple_SetItem(pyDatas, 0, pyDatas1);
+	PyTuple_SetItem(pyDatas, 1, pyDatas2);
+
+	return pyDatas;
 }
 
 //-------------------------------------------------------------------------------------
@@ -251,6 +274,16 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 		PyErr_Format(PyExc_AssertionError, "%s: %d is destroyed!\n",
 			scriptName(), id());		
 		PyErr_PrintEx(0);
+
+		return 0;
+	}
+
+	if (pyOterProxy == NULL || !PyObject_TypeCheck(pyOterProxy, Proxy::getScriptType()))
+	{
+		PyErr_Format(PyExc_AssertionError, "%s[%d]::giveClientTo: arg1 not is Proxy!\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+
 		return 0;
 	}
 
@@ -360,9 +393,9 @@ void Proxy::giveClientTo(Proxy* proxy)
 		clientMailbox()->addr(Network::Address::NONE);
 		Py_DECREF(clientMailbox());
 		proxy->setClientType(this->getClientType());
-		proxy->setClientDatas(this->getClientDatas());
+		proxy->setLoginDatas(this->getLoginDatas());
 		this->setClientType(UNKNOWN_CLIENT_COMPONENT_TYPE);
-		this->setClientDatas("");
+		this->setLoginDatas("");
 		clientMailbox(NULL);
 		proxy->onGiveClientTo(lpChannel);
 		addr(Network::Address::NONE);
@@ -578,7 +611,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 
 	char* pDescr = NULL;
 
-	if(pDescr != NULL)
+	if (pyDesc)
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
 		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
@@ -673,7 +706,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 
 	char* pDescr = NULL;
 
-	if(pDescr != NULL)
+	if (pyDesc)
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
 		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
@@ -734,7 +767,16 @@ bool Proxy::pushBundle(Network::Bundle* pBundle)
 	if(!pChannel)
 		return false;
 
-	pChannel->send(pBundle);
+	pBundle->pChannel(pChannel);
+	pBundle->finiMessage(true);
+	pChannel->pushBundle(pBundle);
+
+	{
+		// 如果数据大量阻塞发不出去将会报警
+		//AUTO_SCOPED_PROFILE("pushBundleAndSendToClient");
+		//pChannel->send(pBundle);
+	}
+
 	return true;
 }
 

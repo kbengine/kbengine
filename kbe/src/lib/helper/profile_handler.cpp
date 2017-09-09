@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ void ProfileHandler::handleTimeout(TimerHandle handle, void * arg)
 
 //-------------------------------------------------------------------------------------
 CProfileHandler::CProfileHandler(Network::NetworkInterface & networkInterface, uint32 timinglen, 
-							   std::string name, const Network::Address& addr) :
+std::string name, const Network::Address& addr) :
 ProfileHandler(networkInterface, timinglen, name, addr)
 {
 	networkInterface_.dispatcher().addTask(this);

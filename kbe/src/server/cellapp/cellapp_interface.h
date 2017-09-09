@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -161,6 +161,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 	// entity传送到目的cellapp上的space之后， 返回给之前cellapp的回调
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToCellAppCB,					NETWORK_VARIABLE_MESSAGE)
 
+	// 当跨cellapp传送后需要baseapp设置完成状态再清除cellapp记录的标记，此后cellapp才可以继续teleport
+	CELLAPP_MESSAGE_DECLARE_STREAM(reqTeleportToCellAppOver,				NETWORK_VARIABLE_MESSAGE)
+		
 	// real请求更新属性到ghost
 	CELLAPP_MESSAGE_DECLARE_STREAM(onUpdateGhostPropertys,					NETWORK_VARIABLE_MESSAGE)
 	
@@ -172,6 +175,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 
 	// 请求强制杀死当前app
 	CELLAPP_MESSAGE_DECLARE_STREAM(reqKillServer,							NETWORK_VARIABLE_MESSAGE)
+
+	// 工具请求改变space查看器（含添加和删除功能）
+	CELLAPP_MESSAGE_DECLARE_STREAM(setSpaceViewer,							NETWORK_VARIABLE_MESSAGE)
 
 	//--------------------------------------------Entity----------------------------------------------------------
 	//远程呼叫entity方法

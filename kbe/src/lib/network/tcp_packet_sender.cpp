@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,12 @@ void TCPPacketSender::reclaimPoolObject(TCPPacketSender* obj)
 }
 
 //-------------------------------------------------------------------------------------
+void TCPPacketSender::onReclaimObject()
+{
+	sendfailCount_ = 0;
+}
+
+//-------------------------------------------------------------------------------------
 void TCPPacketSender::destroyObjPool()
 {
 	DEBUG_MSG(fmt::format("TCPPacketSender::destroyObjPool(): size {}.\n", 
@@ -76,7 +82,8 @@ TCPPacketSender::SmartPoolObjectPtr TCPPacketSender::createSmartPoolObj()
 //-------------------------------------------------------------------------------------
 TCPPacketSender::TCPPacketSender(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
-	PacketSender(endpoint, networkInterface)
+	PacketSender(endpoint, networkInterface),
+	sendfailCount_(0)
 {
 }
 
@@ -90,6 +97,11 @@ TCPPacketSender::~TCPPacketSender()
 void TCPPacketSender::onGetError(Channel* pChannel)
 {
 	pChannel->condemn();
+	
+	// 此处不必立即销毁，可能导致bufferedReceives_内部遍历迭代器破坏
+	// 交给TCPPacketReceiver处理即可
+	//pChannel->networkInterface().deregisterChannel(pChannel);
+	//pChannel->destroy();
 }
 
 //-------------------------------------------------------------------------------------
@@ -129,6 +141,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 		{
 			pakcets.clear();
 			Network::Bundle::reclaimPoolObject((*iter));
+			sendfailCount_ = 0;
 		}
 		else
 		{
@@ -143,7 +156,19 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 						(pChannel->isInternal() ? "internal" : "external")));
 				*/
 
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()");
+				// 连续超过10次则通知出错
+				if (++sendfailCount_ >= 10 && pChannel->isExternal())
+				{
+					onGetError(pChannel);
+
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
+						fmt::format("TCPPacketSender::processSend(sendfailCount({}) >= 10)", (int)sendfailCount_).c_str());
+				}
+				else
+				{
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
+						fmt::format("TCPPacketSender::processSend({})", (int)sendfailCount_).c_str());
+				}
 			}
 			else
 			{
@@ -190,7 +215,15 @@ Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket)
 	pChannel->onPacketSent(len, sentCompleted);
 
 	if (sentCompleted)
+	{
 		return REASON_SUCCESS;
+	}
+	else
+	{
+		// 如果只发送了一部分数据，则认为是REASON_RESOURCE_UNAVAILABLE
+		if (len > 0)
+			return REASON_RESOURCE_UNAVAILABLE;
+	}
 
 	return checkSocketErrors(pEndpoint);
 }

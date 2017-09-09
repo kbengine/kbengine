@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -32,8 +32,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "forward_message_over_handler.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
+#include "network/network_stats.h"
 #include "server/components.h"
 #include "server/telnet_server.h"
+#include "server/py_file_descriptor.h"
 #include "dbmgr/dbmgr_interface.h"
 #include "navigation/navigation.h"
 #include "client_lib/client_interface.h"
@@ -64,7 +66,8 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 	pTelnetServer_(NULL),
 	pWitnessedTimeoutHandler_(NULL),
 	pGhostManager_(NULL),
-	flags_(APP_FLAGS_NONE)
+	flags_(APP_FLAGS_NONE),
+	spaceViewers_()
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
@@ -108,11 +111,10 @@ void Cellapp::onShutdown(bool first)
 	uint32 count = g_serverConfig.getCellApp().perSecsDestroyEntitySize;
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 
-	while(count > 0)
+	while(count > 0 && entities.size() > 0)
 	{
-		std::vector<Entity*> vecs;
-
-		bool done = false;
+		std::vector<ENTITY_ID> vecs;
+		
 		Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
 		for(; iter != entities.end(); ++iter)
 		{
@@ -120,21 +122,28 @@ void Cellapp::onShutdown(bool first)
 			//if(pEntity->baseMailbox() != NULL && 
 			//	pEntity->pScriptModule()->isPersistent())
 			{
-				this->destroyEntity(static_cast<Entity*>(iter->second.get())->id(), true);
+				vecs.push_back(static_cast<Entity*>(iter->second.get())->id());
 
-				count--;
-				done = true;
-				break;
+				if(--count == 0)
+					break;
 			}
 		}
 
-		// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
-		// 剩下的应该都是space，可以开始销毁了
-		Spaces::finalise();
-
-		if(!done)
-			break;
+		std::vector<ENTITY_ID>::iterator iter1 = vecs.begin();
+		for(; iter1 != vecs.end(); ++iter1)
+		{
+			Entity* e = this->findEntity((*iter1));
+			if(!e)
+				continue;
+			
+			this->destroyEntity((*iter1), true);
+		}
 	}
+
+	// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
+	// 剩下的应该都是space，可以开始销毁了
+	if(count == g_serverConfig.getCellApp().perSecsDestroyEntitySize)
+		Spaces::finalise();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -168,20 +177,24 @@ bool Cellapp::installPyModules()
 	}
 
 	// 注册创建entity的方法到py
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,						METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createEntity,					METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,					METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		Space::__py_GetSpaceGeometryMapping,METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		setSpaceData,					Space::__py_SetSpaceData,			METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceData,					Space::__py_GetSpaceData,			METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		delSpaceData,					Space::__py_DelSpaceData,			METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,				METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,						METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		raycast,						__py_raycast,						METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		setAppFlags,					__py_setFlags,						METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		getAppFlags,					__py_getFlags,						METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		time,							__py_gametime,											METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		createEntity,					__py_createEntity,										METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,							METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		reloadScript,					__py_reloadScript,										METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		registerReadFileDescriptor,		PyFileDescriptor::__py_registerReadFileDescriptor,		METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,					METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		Space::__py_GetSpaceGeometryMapping,					METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		setSpaceData,					Space::__py_SetSpaceData,								METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceData,					Space::__py_GetSpaceData,								METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		delSpaceData,					Space::__py_DelSpaceData,								METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,									METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,											METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		raycast,						__py_raycast,											METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		setAppFlags,					__py_setFlags,											METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(), 		getAppFlags,					__py_getFlags,											METH_VARARGS,			0);
 	
 	return EntityApp<Entity>::installPyModules();
 }
@@ -293,6 +306,8 @@ bool Cellapp::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Cellapp::finalise()
 {
+	spaceViewers_.finalise();
+
 	SAFE_RELEASE(pGhostManager_);
 	SAFE_RELEASE(pWitnessedTimeoutHandler_);
 
@@ -457,6 +472,13 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		return 0;
 	}
 	
+	if(Cellapp::getSingleton().isShuttingdown())
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: shutting down! entityType=%s", entityType);
+		PyErr_PrintEx(0);
+		return 0;
+	}
+	
 	// 创建entity
 	Entity* pEntity = Cellapp::getSingleton().createEntity(entityType, params, false, 0);
 
@@ -464,10 +486,11 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	{
 		Py_INCREF(pEntity);
 		pEntity->spaceID(space->id());
-		pEntity->initializeEntity(params);
+		pEntity->createNamespace(params);
 		pEntity->pySetPosition(position);
 		pEntity->pySetDirection(direction);	
-		
+		pEntity->initializeScript();
+
 		// 添加到space
 		space->addEntityAndEnterWorld(pEntity);
 
@@ -592,9 +615,11 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 	uint32 nrows = 0;
 	uint32 nfields = 0;
 	uint64 affectedRows = 0;
+	uint64 lastInsertID = 0;
 
 	PyObject* pResultSet = NULL;
 	PyObject* pAffectedRows = NULL;
+	PyObject* pLastInsertID = NULL;
 	PyObject* pErrorMsg = NULL;
 
 	s >> callbackID;
@@ -612,6 +637,9 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			pAffectedRows = Py_None;
 			Py_INCREF(pAffectedRows);
 
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
+
 			s >> nrows;
 
 			pResultSet = PyList_New(nrows);
@@ -625,7 +653,7 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 					PyObject* pCell = NULL;
 						
-					if(cell == "NULL")
+					if(cell == "KBE_QUERY_DB_NULL")
 					{
 						Py_INCREF(Py_None);
 						pCell = Py_None;
@@ -652,6 +680,9 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			s >> affectedRows;
 
 			pAffectedRows = PyLong_FromUnsignedLongLong(affectedRows);
+
+			s >> lastInsertID;
+			pLastInsertID = PyLong_FromUnsignedLongLong(lastInsertID);
 		}
 	}
 	else
@@ -663,6 +694,9 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 			pAffectedRows = Py_None;
 			Py_INCREF(pAffectedRows);
+
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
 	}
 
 	s.done();
@@ -678,8 +712,8 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 		if(pyfunc != NULL)
 		{
 			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
-												const_cast<char*>("OOO"), 
-												pResultSet, pAffectedRows, pErrorMsg);
+												const_cast<char*>("OOOO"), 
+												pResultSet, pAffectedRows, pLastInsertID, pErrorMsg);
 
 			if(pyResult != NULL)
 				Py_DECREF(pyResult);
@@ -695,6 +729,7 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 	Py_XDECREF(pResultSet);
 	Py_XDECREF(pAffectedRows);
+	Py_XDECREF(pLastInsertID);
 	Py_XDECREF(pErrorMsg);
 }
 
@@ -742,6 +777,9 @@ void Cellapp::onDbmgrInitCompleted(Network::Channel* pChannel,
 {
 	EntityApp<Entity>::onDbmgrInitCompleted(pChannel, gametime, startID, endID, startGlobalOrder, startGroupOrder, digest);
 	
+	// 再次同步自己的新信息(startGlobalOrder, startGroupOrder等)到machine
+	Components::getSingleton().broadcastSelf();
+
 	// 这里需要更新一下python的环境变量
 	this->getScript().setenv("KBE_BOOTIDX_GLOBAL", getenv("KBE_BOOTIDX_GLOBAL"));
 	this->getScript().setenv("KBE_BOOTIDX_GROUP", getenv("KBE_BOOTIDX_GROUP"));
@@ -839,7 +877,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID);
+	Space* space = Spaces::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity
@@ -946,7 +984,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 	// DEBUG_MSG("Cellapp::onRestoreSpaceInCellFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), mailboxEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID);
+	Space* space = Spaces::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity
@@ -1365,7 +1403,7 @@ void Cellapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 
 	if(e == NULL)
 	{
-		ERROR_MSG(fmt::format("Cellapp::onUpdateDataFromClient: not found entity {}!\n", srcEntityID));
+		WARNING_MSG(fmt::format("Cellapp::onUpdateDataFromClient: not found entity {}!\n", srcEntityID));
 		
 		s.done();
 		return;
@@ -1675,7 +1713,7 @@ void Cellapp::lookApp(Network::Channel* pChannel)
 	int8 istate = int8(state);
 	(*pBundle) << istate;
 	(*pBundle) << this->entitiesSize();
-	(*pBundle) << cells_.size();
+	(*pBundle) << (int32)Spaces::size();
 
 	uint32 port = 0;
 	if(pTelnetServer_)
@@ -1757,6 +1795,9 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
 
+	COMPONENT_ID ghostCell;
+	s >> ghostCell;
+
 	bool success = false;
 
 	Entity* refEntity = Cellapp::getSingleton().findEntity(nearbyMBRefID);
@@ -1766,7 +1807,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1786,7 +1827,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1805,7 +1846,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		(*pBundle).append(&s);
@@ -1815,34 +1856,34 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		s.done();
 		return;
 	}
-
+	
+	Py_INCREF(e);
 	e->createFromStream(s);
 
 	// 有可能序列化过来的ghost内容包含移动控制器，之所以序列化过来是为了
 	// 在传送失败时可以用于恢复现场, 那么传送成功了我们应该停止以前的移动行为
 	e->stopMove();
 
-	COMPONENT_ID ghostCell;
-	s >> ghostCell;
-
 	// 对于传送操作来说，实体传送过来就不会有ghost部分了
 	// 当前实体做出的任何改变不需要同步到原有cell，这可能会产生网络消息死循环
-	ghostCell = 0;
+	//ghostCell = 0;
+	e->ghostCell(0);
 
-	e->ghostCell(ghostCell);
 	e->spaceID(space->id());
 	e->setPositionAndDirection(pos, dir);
 
 	if (e->baseMailbox())
 	{
+		e->addFlags(ENTITY_FLAGS_TELEPORT_START);
+		
 		// 如果是有base的实体，需要将baseappID填入，以便在reqTeleportToCellAppCB中回调给baseapp传输结束状态
 		entityBaseappID = e->baseMailbox()->componentID();
 
 		// 向baseapp发送传送到达通知
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		(*pBundle).newMessage(BaseappInterface::onMigrationCellappArrived);
+		(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
 		(*pBundle) << e->id();
-		(*pBundle) << g_componentID;
+		(*pBundle) << ghostCell << g_componentID;
 		e->baseMailbox()->postMail(pBundle);
 	}
 
@@ -1868,44 +1909,30 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
-		(*pBundle) << g_componentID << entityBaseappID;
+		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
 		(*pBundle) << success;
 		pChannel->send(pBundle);
 	}
+	
+	Py_DECREF(e);
 }
 
 //-------------------------------------------------------------------------------------
 void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s)
 {
 	bool success;
-	ENTITY_ID nearbyMBRefID = 0, teleportEntityID = 0;
-	COMPONENT_ID targetCellappID, entityBaseappID;
+	COMPONENT_ID sourceCellappID, targetCellappID, entityBaseappID;
+	ENTITY_ID teleportEntityID = 0;
 
-	s >> targetCellappID >> entityBaseappID >> teleportEntityID >> success;
+	s >> sourceCellappID >> targetCellappID >> entityBaseappID >> teleportEntityID >> success;
 
-	// 实体可能没有base部分，那么不需要通知baseapp
-	if(entityBaseappID > 0)
+	// 正常情况下， 应该传送结果返回时传送前的实体应该在当前cell上， 如果到其他cellapp上了， 说明在此期间被迁移走了
+	// 此时被迁移很可能会有问题
+	if (sourceCellappID != g_componentID)
 	{
-		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(entityBaseappID);
-		if(pInfos && pInfos->pChannel)
-		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-			(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
-			(*pBundle) << teleportEntityID;
-
-			if(success)
-				(*pBundle) << targetCellappID;
-			else
-				(*pBundle) << g_componentID;
-
-			pInfos->pChannel->send(pBundle);
-		}
-		else
-		{
-			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found baseapp({}), entity({})!\n", 
-				entityBaseappID, teleportEntityID));
-		}
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB(): sourceCellappID={} != currCellappID={}, targetCellappID={}\n", 
+			sourceCellappID, g_componentID, targetCellappID));
 	}
 
 	// 传送成功，我们销毁这个entity
@@ -1913,6 +1940,25 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	{
 		destroyEntity(teleportEntityID, false);
 		return;
+	}
+
+	// 实体可能没有base部分，那么不需要通知baseapp
+	if (entityBaseappID > 0)
+	{
+		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(entityBaseappID);
+		if (pInfos && pInfos->pChannel)
+		{
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
+			(*pBundle) << teleportEntityID;
+			(*pBundle) << sourceCellappID << sourceCellappID;
+			pInfos->pChannel->send(pBundle);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppCB: not found baseapp({}), entity({})!\n",
+				entityBaseappID, teleportEntityID));
+		}
 	}
 
 	// 某些情况下实体可能此时找不到了，例如：副本销毁了
@@ -1927,21 +1973,46 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 	}
 
 	// 传送失败了，我们需要重恢复entity
+	ENTITY_ID nearbyMBRefID = 0;
 	Position3D pos;
 	Direction3D dir;
 	ENTITY_SCRIPT_UID entityType;
 	SPACE_ID lastSpaceID = 0;
+	COMPONENT_ID cid;
 
 	s >> teleportEntityID >> nearbyMBRefID >> lastSpaceID;
 	s >> entityType;
 	s >> pos.x >> pos.y >> pos.z;
 	s >> dir.dir.x >> dir.dir.y >> dir.dir.z;
+	s >> cid;
 
-	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
+	Py_INCREF(entity);
 	entity->changeToReal(0, s);
 	entity->onTeleportFailure();
-
+	Py_DECREF(entity);
+	
 	s.done();
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream& s)
+{
+	ENTITY_ID teleportEntityID = 0;
+
+	s >> teleportEntityID;
+	
+	// 某些情况下实体可能此时找不到了，例如：副本销毁了
+	Entity* entity = Cellapp::getSingleton().findEntity(teleportEntityID);
+	if(entity == NULL)
+	{
+		ERROR_MSG(fmt::format("Cellapp::reqTeleportToCellAppOver: not found reqTeleportEntity({}), lose entity!\n", 
+			teleportEntityID));
+
+		s.done();
+		return;
+	}
+
+	entity->removeFlags(ENTITY_FLAGS_TELEPORT_START);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2085,6 +2156,22 @@ PyObject* Cellapp::__py_setFlags(PyObject* self, PyObject* args)
 
 	Cellapp::getSingleton().flags(flags);
 	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Cellapp::setSpaceViewer(Network::Channel* pChannel, MemoryStream& s)
+{
+	bool del = false;
+	s >> del;
+
+	SPACE_ID spaceID;
+	s >> spaceID;
+
+	// 如果为0，则查看所有cell
+	CELL_ID cellID;
+	s >> cellID;
+
+	spaceViewers_.updateSpaceViewer(pChannel->addr(), spaceID, cellID, del);
 }
 
 //-------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "aoi_trigger.h"
 #include "network/channel.h"	
 #include "network/bundle.h"
+#include "network/network_stats.h"
 #include "math/math.h"
 #include "client_lib/client_interface.h"
 
@@ -329,7 +330,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 
 			// 如果实体已经在场景中，那么需要安装
 			if (!pAOITrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-				pAOITrigger_->install();
+				pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		}
 
 		if (aoiHysteresisArea_ > 0.01f && pEntity_/*上面update流程可能导致销毁 */)
@@ -348,7 +349,7 @@ void Witness::setAoiRadius(float radius, float hyst)
 
 				// 如果实体已经在场景中，那么需要安装
 				if (!pAOIHysteresisAreaTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-					pAOIHysteresisAreaTrigger_->install();
+					pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 			}
 		}
 		else
@@ -550,16 +551,17 @@ void Witness::installAOITrigger()
 	{
 		// 在设置AOI半径为0后掉线重登陆会出现这种情况
 		if (aoiRadius_ <= 0.f)
-		{
 			return;
-		}
 
-		pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
-
+		// 必须先安装pAOIHysteresisAreaTrigger_，否则一些极端情况会出现错误的结果
+		// 例如：一个Avatar正好进入到世界此时正在安装AOI触发器，而安装过程中这个实体onWitnessed触发导致自身被销毁了
+		// 由于AOI触发器并未完全安装完毕导致触发器的节点old_xx等都为-FLT_MAX，所以该实体在离开坐标管理器时Avatar的AOI触发器判断错误
+		// 如果先安装pAOIHysteresisAreaTrigger_则不会触发实体进入AOI事件，这样在安装pAOITrigger_时触发事件导致上面出现的问题时也能之前捕获离开事件了
 		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)
-		{
 			pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
-		}
+
+		if (pEntity_/*上面流程可能导致销毁 */)
+			pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 	}
 	else
 	{
@@ -730,7 +732,7 @@ bool Witness::update()
 	if(!pChannel)
 		return true;
 
-	if (aoiEntities_map_.size() > 0)
+	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		
@@ -865,7 +867,7 @@ bool Witness::update()
 //-------------------------------------------------------------------------------------
 void Witness::addBaseDataToStream(Network::Bundle* pSendBundle)
 {
-	if (pEntity_->isControlledNotSelfCleint())
+	if (pEntity_->isControlledNotSelfClient())
 	{
 		const Direction3D& bdir = baseDir();
 		Vector3 changeDir = bdir.dir - lastBaseDir_.dir;
@@ -1220,7 +1222,7 @@ uint32 Witness::getEntityVolatileDataUpdateFlags(Entity* otherEntity)
 	
 	if ((pVolatileInfo->position() > 0.f) && (entity_posdir_additional_updates == 0 || g_kbetime - otherEntity->posChangedTime() < entity_posdir_additional_updates))
 	{
-		if(!otherEntity->isOnGround())
+		if (!otherEntity->isOnGround() || !pVolatileInfo->optimized())
 		{
 			flags |= UPDATE_FLAG_XYZ; 
 		}

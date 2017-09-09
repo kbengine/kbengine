@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/profile_handler.h"
 #include "pyscript/pyprofile_handler.h"
 #include "common/common.h"
+#include "network/common.h"
 #include "helper/debug_helper.h"
 #include "network/interfaces.h"
 
@@ -45,7 +46,7 @@ public:
 
 	virtual ~TelnetProfileHandler(){}
 
-	void destroy(){ isDestroyed_ = true; }
+	virtual void destroy(){ isDestroyed_ = true; }
 
 protected:
 	TelnetHandler* pTelnetHandler_;
@@ -86,6 +87,8 @@ public:
 	void onProfileEnd(const std::string& datas);
 
 private:
+	Network::Reason checkLastErrors();
+
 	void checkAfterStr();
 
 	int	handleInputNotification(int fd);
@@ -148,6 +151,7 @@ public:
 
 	void sendStream(MemoryStream* s);
 	virtual void timeout();
+	virtual void destroy();
 };
 
 class TelnetCProfileHandler : public TelnetProfileHandler, public CProfileHandler

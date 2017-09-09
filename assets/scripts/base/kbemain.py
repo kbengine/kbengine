@@ -23,6 +23,16 @@ def onReadyForLogin(isBootstrap):
 	"""
 	return 1.0
 
+def onReadyForShutDown():
+	"""
+	KBEngine method.
+	进程询问脚本层：我要shutdown了，脚本是否准备好了？
+	如果返回True，则进程会进入shutdown的流程，其它值会使得进程在过一段时间后再次询问。
+	用户可以在收到消息时进行脚本层的数据清理工作，以让脚本层的工作成果不会因为shutdown而丢失。
+	"""
+	INFO_MSG('onReadyForShutDown()')
+	return True
+
 def onBaseAppShutDown(state):
 	"""
 	KBEngine method.
@@ -71,19 +81,19 @@ def onGlobalDataDel(key):
 	"""
 	DEBUG_MSG('onDelGlobalData: %s' % key)
 	
-def onGlobalBases(key, value):
+def onBaseAppData(key, value):
 	"""
 	KBEngine method.
-	globalBases有改变
+	baseAppData有改变
 	"""
-	DEBUG_MSG('onGlobalBases: %s' % key)
+	DEBUG_MSG('onBaseAppData: %s' % key)
 	
-def onGlobalBasesDel(key):
+def onBaseAppDataDel(key):
 	"""
 	KBEngine method.
-	globalBases有删除
+	baseAppData有删除
 	"""
-	DEBUG_MSG('onGlobalBasesDel: %s' % key)
+	DEBUG_MSG('onBaseAppDataDel: %s' % key)
 
 def onLoseChargeCB(ordersID, dbid, success, datas):
 	"""

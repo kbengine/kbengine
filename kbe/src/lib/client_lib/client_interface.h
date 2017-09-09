@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -71,7 +71,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 								SERVER_ERROR_CODE,							failedcode)
 
 	// 登录网关失败。
-	CLIENT_MESSAGE_DECLARE_ARGS1(onReLoginBaseappFailed,					NETWORK_FIXED_MESSAGE,
+	CLIENT_MESSAGE_DECLARE_ARGS1(onReloginBaseappFailed,					NETWORK_FIXED_MESSAGE,
 								SERVER_ERROR_CODE,							failedcode)
 
 	// 服务器上的entity已经进入游戏世界了。
@@ -178,7 +178,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 	CLIENT_MESSAGE_DECLARE_ARGS3(setSpaceData,								NETWORK_VARIABLE_MESSAGE,
 								SPACE_ID,									spaceID,
 								std::string,								key,
-								std::string,								valye)
+								std::string,								val)
 
 	// 服务端删除了spacedata
 	CLIENT_MESSAGE_DECLARE_ARGS2(delSpaceData,								NETWORK_VARIABLE_MESSAGE,
@@ -198,7 +198,7 @@ NETWORK_INTERFACE_DECLARE_BEGIN(ClientInterface)
 								SERVER_ERROR_CODE,							failedcode)
 
 	// 重登陆网关成功 
-	CLIENT_MESSAGE_DECLARE_STREAM(onReLoginBaseappSuccessfully,				NETWORK_VARIABLE_MESSAGE)
+	CLIENT_MESSAGE_DECLARE_STREAM(onReloginBaseappSuccessfully,				NETWORK_VARIABLE_MESSAGE)
 									
 	// 告诉客户端：你当前负责（或取消）控制谁的位移同步
 	CLIENT_MESSAGE_DECLARE_ARGS2(onControlEntity,							NETWORK_FIXED_MESSAGE,

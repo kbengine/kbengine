@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -119,6 +119,12 @@ public:
 		dbmgr账号重设密码返回
 	*/
 	void onAccountResetPassword(Network::Channel* pChannel, std::string& code, bool success);
+
+	/** 网络接口
+	baseapp请求绑定email（返回时需要找到loginapp的地址）
+	*/
+	void onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pChannel, COMPONENT_ID reqBaseappID, ENTITY_ID entityID, std::string& accountName, std::string& email,
+		SERVER_ERROR_CODE failedcode, std::string& code);
 
 	/** 网络接口
 		用户登录服务器

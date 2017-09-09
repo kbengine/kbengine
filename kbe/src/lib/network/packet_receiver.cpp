@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -38,6 +38,7 @@ namespace Network
 //-------------------------------------------------------------------------------------
 PacketReceiver::PacketReceiver() :
 	pEndpoint_(NULL),
+	pChannel_(NULL),
 	pNetworkInterface_(NULL)
 {
 }
@@ -46,6 +47,7 @@ PacketReceiver::PacketReceiver() :
 PacketReceiver::PacketReceiver(EndPoint & endpoint,
 	   NetworkInterface & networkInterface	) :
 	pEndpoint_(&endpoint),
+	pChannel_(NULL),
 	pNetworkInterface_(&networkInterface)
 {
 }
@@ -94,7 +96,16 @@ EventDispatcher & PacketReceiver::dispatcher()
 //-------------------------------------------------------------------------------------
 Channel* PacketReceiver::getChannel()
 {
-	return pNetworkInterface_->findChannel(pEndpoint_->addr());
+	if (pChannel_)
+	{
+		if (pChannel_->isDestroyed())
+			return NULL;
+
+		return pChannel_;
+	}
+
+	pChannel_ = pNetworkInterface_->findChannel(pEndpoint_->addr());
+	return pChannel_;
 }
 
 //-------------------------------------------------------------------------------------

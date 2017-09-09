@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@ PySequenceMethods Map::mappingSequenceMethods =
     0,											/* sq_slice */
     0,											/* sq_ass_item */
     0,											/* sq_ass_slice */
-    PyMapping_HasKey,							/* sq_contains */
+	PyMapping_HasKey,							/* sq_contains */
     0,											/* sq_inplace_concat */
     0,											/* sq_inplace_repeat */
 };
@@ -120,35 +120,68 @@ PyObject* Map::mp_subscript(PyObject* self, PyObject* key)
 	return pyObj;
 }
 
+
+//-------------------------------------------------------------------------------------
+int Map::seq_contains(PyObject* self, PyObject* value)
+{
+	return PyDict_Contains(static_cast<Map*>(self)->pyDict_, value);
+}
+
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_has_key(PyObject* self, PyObject* args)
 {
-	PyObject* pyObj = PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
-		const_cast<char*>("get"), const_cast<char*>("O"), args);
-
-	if (!pyObj)
+	PyObject * pyVal = PySequence_GetItem(args, 0);
+	if (!pyVal)
 	{
 		PyErr_SetObject(PyExc_KeyError, args);
-		Py_RETURN_FALSE;
-	}
-	else
-	{
-		if(pyObj != Py_None)
-		{
-			Py_DECREF(pyObj);
-			Py_RETURN_TRUE; 
-		}
+		return NULL;
 	}
 
-	Py_DECREF(pyObj);
+	int ret = PyDict_Contains(static_cast<Map*>(self)->pyDict_, pyVal);
+
+	Py_DECREF(pyVal);
+
+	if (ret > 0)
+	{
+		Py_RETURN_TRUE;
+	}
+	else if (ret == -1)
+	{
+		PyErr_SetObject(PyExc_KeyError, args);
+		return NULL;
+	}
+
 	Py_RETURN_FALSE;
 }
 
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_get(PyObject* self, PyObject* args)
 {
-	return PyObject_CallMethod(static_cast<Map*>(self)->pyDict_, 
-		const_cast<char*>("get"), const_cast<char*>("O"), args);
+	PyObject * pyVal = PySequence_GetItem(args, 0);
+
+	if (!pyVal)
+	{
+		PyErr_SetObject(PyExc_KeyError, args);
+		return NULL;
+	}
+
+	PyObject* pyObj = PyDict_GetItem(static_cast<Map*>(self)->pyDict_, pyVal);
+
+	Py_DECREF(pyVal);
+
+	if (!pyObj)
+	{
+		if (PySequence_Size(args) > 1)
+			return PySequence_GetItem(args, 1);
+		else
+			PyErr_SetObject(PyExc_KeyError, args);
+	}
+	else
+	{
+		Py_INCREF(pyObj);
+	}
+
+	return pyObj;
 }
 
 //-------------------------------------------------------------------------------------
@@ -172,7 +205,16 @@ PyObject* Map::__py_items(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 PyObject* Map::__py_update(PyObject* self, PyObject* args)
 {
-	PyDict_Update(static_cast<Map*>(self)->pyDict_, args);
+	PyObject * pyVal = PySequence_GetItem(args, 0);
+	if (!pyVal)
+	{
+		PyErr_SetObject(PyExc_KeyError, args);
+		return NULL;
+	}
+
+	PyDict_Update(static_cast<Map*>(self)->pyDict_, pyVal);
+
+	Py_DECREF(pyVal);
 	S_Return; 
 }
 

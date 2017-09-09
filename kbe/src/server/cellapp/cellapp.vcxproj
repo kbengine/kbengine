@@ -245,6 +245,7 @@
     <ClCompile Include="rotator_handler.cpp" />
     <ClCompile Include="space.cpp" />
     <ClCompile Include="spaces.cpp" />
+    <ClCompile Include="space_viewer.cpp" />
     <ClCompile Include="trap_trigger.cpp" />
     <ClCompile Include="turn_controller.cpp" />
     <ClCompile Include="updatable.cpp" />
@@ -290,6 +291,7 @@
     <ClInclude Include="rotator_handler.h" />
     <ClInclude Include="space.h" />
     <ClInclude Include="spaces.h" />
+    <ClInclude Include="space_viewer.h" />
     <ClInclude Include="trap_trigger.h" />
     <ClInclude Include="turn_controller.h" />
     <ClInclude Include="updatable.h" />

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -104,12 +104,14 @@ typedef uint8  ENTITY_DEF_ALIASID;
 #define DATA_TYPE_DIGIT			4
 #define DATA_TYPE_BLOB			5
 #define DATA_TYPE_PYTHON		6
-#define DATA_TYPE_VECTOR		7
-#define DATA_TYPE_UNICODE		8
-#define DATA_TYPE_MAILBOX		9
-#define DATA_TYPE_PYDICT		10
-#define DATA_TYPE_PYTUPLE		11
-#define DATA_TYPE_PYLIST		12
+#define DATA_TYPE_VECTOR2		7
+#define DATA_TYPE_VECTOR3		8
+#define DATA_TYPE_VECTOR4		9
+#define DATA_TYPE_UNICODE		10
+#define DATA_TYPE_MAILBOX		11
+#define DATA_TYPE_PYDICT		12
+#define DATA_TYPE_PYTUPLE		13
+#define DATA_TYPE_PYLIST		14
 
 // 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_UTYPE

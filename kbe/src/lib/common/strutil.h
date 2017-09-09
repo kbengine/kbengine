@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -74,6 +74,9 @@ namespace strutil {
 
 	int kbe_replace(std::string& str,  const std::string& pattern,  const std::string& newpat);
 	int kbe_replace(std::wstring& str,  const std::wstring& pattern,  const std::wstring& newpat);
+
+	std::string toLower(const std::string& str);
+	std::string toUpper(const std::string& str);
 
 	/*
 	 ×ª»»Îª´óÐ´

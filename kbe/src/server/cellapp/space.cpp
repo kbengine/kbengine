@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "loadnavmesh_threadtasks.h"
 #include "entitydef/entities.h"
 #include "client_lib/client_interface.h"
+#include "network/network_stats.h"
 
 #include "../../server/baseappmgr/baseappmgr_interface.h"
 #include "../../server/cellappmgr/cellappmgr_interface.h"
@@ -36,8 +37,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-Space::Space(SPACE_ID spaceID):
+Space::Space(SPACE_ID spaceID, const std::string& scriptModuleName) :
 id_(spaceID),
+scriptModuleName_(scriptModuleName),
 entities_(),
 hasGeometry_(false),
 pCell_(NULL),
@@ -46,15 +48,48 @@ pNavHandle_(),
 state_(STATE_NORMAL),
 destroyTime_(0)
 {
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+		
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
 Space::~Space()
 {
+	_clearGhosts();
 	entities_.clear();
+	
+	this->coordinateSystem_.releaseNodes();
+	
 	pNavHandle_.clear();
 
 	SAFE_RELEASE(pCell_);	
+
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << true;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -268,6 +303,20 @@ void Space::loadSpaceGeometry(const std::map< int, std::string >& params)
 //-------------------------------------------------------------------------------------
 void Space::unLoadSpaceGeometry()
 {
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << "";
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -285,6 +334,21 @@ void Space::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 	}
 
 	onAllSpaceGeometryLoaded();
+
+	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
+	if (pChannel != NULL)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
+
+		(*pBundle) << g_componentID;
+		(*pBundle) << id_;
+		(*pBundle) << scriptModuleName_;
+		(*pBundle) << false;
+		(*pBundle) << getGeometryPath();
+
+		pChannel->send(pBundle);
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -300,13 +364,20 @@ void Space::onAllSpaceGeometryLoaded()
 //-------------------------------------------------------------------------------------
 bool Space::update()
 {
-	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 5.f * stampsPerSecond() ))
-		return false;
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 3.f * stampsPerSecond() ))
+	{
+		if(entities_.size() == 0)
+			return false;
+	}
 
 	this->coordinateSystem_.releaseNodes();
 
-	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 4.f * stampsPerSecond() ))
+	if(destroyTime_ > 0 && timestamp() - destroyTime_ >= uint64( 30.f * stampsPerSecond() ))
+	{
 		_clearGhosts();
+		KBE_ASSERT(entities_.size() == 0);
+		this->coordinateSystem_.releaseNodes();
+	}
 		
 	return true;
 }
@@ -430,7 +501,7 @@ Entity* Space::findEntity(ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
-bool Space::destroy(ENTITY_ID entityID)
+bool Space::destroy(ENTITY_ID entityID, bool ignoreGhost)
 {
 	if(state_ != STATE_NORMAL)
 		return false;
@@ -483,6 +554,9 @@ bool Space::destroy(ENTITY_ID entityID)
 			}
 		}
 	}
+
+	if(!ignoreGhost)
+		_clearGhosts();
 
 	return true;
 }

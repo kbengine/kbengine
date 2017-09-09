@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -306,6 +306,18 @@ bool ServerConfig::loadConfig(std::string fileName)
 					if(childnode2)
 						Network::g_extSendWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				}
+
+				childnode1 = xml->enterNode(sendNode, "tickSentBytes");
+				if (childnode1)
+				{
+					TiXmlNode* childnode2 = xml->enterNode(childnode1, "internal");
+					if (childnode2)
+						Network::g_intSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+
+					childnode2 = xml->enterNode(childnode1, "external");
+					if (childnode2)
+						Network::g_extSentWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
+				}
 			}
 
 			TiXmlNode* recvNode = xml->enterNode(childnode, "receive");
@@ -449,9 +461,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "criticallyLowSize");
 			if(childnode)
 			{
-				_cellAppInfo.criticallyLowSize = xml->getValInt(childnode);
-				if(_cellAppInfo.criticallyLowSize < 100)
-					_cellAppInfo.criticallyLowSize = 100;
+				_cellAppInfo.ids_criticallyLowSize = xml->getValInt(childnode);
+				if (_cellAppInfo.ids_criticallyLowSize < 100)
+					_cellAppInfo.ids_criticallyLowSize = 100;
 			}
 		}
 		
@@ -636,9 +648,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "criticallyLowSize");
 			if(childnode)
 			{
-				_baseAppInfo.criticallyLowSize = xml->getValInt(childnode);
-				if(_baseAppInfo.criticallyLowSize < 100)
-					_baseAppInfo.criticallyLowSize = 100;
+				_baseAppInfo.ids_criticallyLowSize = xml->getValInt(childnode);
+				if (_baseAppInfo.ids_criticallyLowSize < 100)
+					_baseAppInfo.ids_criticallyLowSize = 100;
 			}
 		}
 		
@@ -776,6 +788,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 			}
 		}
 
+		node = xml->enterNode(rootNode, "ids");
+		if (node != NULL)
+		{
+			TiXmlNode* childnode = xml->enterNode(node, "increasing_range");
+			if (childnode)
+			{
+				_dbmgrInfo.ids_increasing_range = xml->getValInt(childnode);
+			}
+		}
+
 		node = xml->enterNode(rootNode, "InterfacesServiceAddr");
 		if (node != NULL)
 		{
@@ -819,6 +841,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				do
 				{
+					if (TiXmlNode::TINYXML_COMMENT == databaseInterfacesNode->Type())
+						continue;
+
 					std::string name = databaseInterfacesNode->Value();
 
 					DBInterfaceInfo dbinfo;
@@ -977,6 +1002,16 @@ bool ServerConfig::loadConfig(std::string fileName)
 					_dbmgrInfo.notFoundAccountAutoCreate = (xml->getValStr(childchildnode) == "true");
 				}
 			} 
+
+			childnode = xml->enterNode(node, "account_resetPassword");
+			if (childnode != NULL)
+			{
+				TiXmlNode* childchildnode = xml->enterNode(childnode, "enable");
+				if (childchildnode)
+				{
+					_dbmgrInfo.account_reset_password_enable = (xml->getValStr(childchildnode) == "true");
+				}
+			}
 		}
 	}
 
@@ -1195,6 +1230,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "SOMAXCONN");
 		if(node != NULL){
 			_botsInfo.tcp_SOMAXCONN = xml->getValInt(node);
+		}
+
+		node = xml->enterNode(rootNode, "forceInternalLogin");
+		if (node != NULL){
+			_botsInfo.forceInternalLogin = (xml->getValStr(node) == "true");
 		}
 
 		node = xml->enterNode(rootNode, "telnet_service");
@@ -1458,6 +1498,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.externalAddr = &externalAddr;
 		info.componentID = componentID;
 
+		if (info.ids_criticallyLowSize > getDBMgr().ids_increasing_range / 2)
+		{
+			info.ids_criticallyLowSize = getDBMgr().ids_increasing_range / 2;
+			ERROR_MSG(fmt::format("kbengine[_defs].xml->cellapp->ids->criticallyLowSize > dbmgr->ids->increasing_range / 2, Force adjustment to criticallyLowSize({})\n", 
+				info.ids_criticallyLowSize));
+		}
+
 		if(isPrint)
 		{
 			INFO_MSG("server-configs:\n");
@@ -1485,6 +1532,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
+		if (info.ids_criticallyLowSize > getDBMgr().ids_increasing_range / 2)
+		{
+			info.ids_criticallyLowSize = getDBMgr().ids_increasing_range / 2;
+			ERROR_MSG(fmt::format("kbengine[_defs].xml->baseapp->ids->criticallyLowSize > dbmgr->ids->increasing_range / 2, Force adjustment to criticallyLowSize({})\n",
+				info.ids_criticallyLowSize));
+		}
 
 		if(isPrint)
 		{
@@ -1561,6 +1615,13 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		info.internalAddr = const_cast<Network::Address*>(&internalAddr);
 		info.externalAddr = const_cast<Network::Address*>(&externalAddr);
 		info.componentID = componentID;
+
+		if (info.ids_increasing_range < 500)
+		{
+			info.ids_increasing_range = 500;
+			ERROR_MSG(fmt::format("kbengine[_defs].xml-> dbmgr->ids->increasing_range too small, Force adjustment to ids_increasing_range({})\n",
+				info.ids_increasing_range));
+		}
 
 		if(isPrint)
 		{

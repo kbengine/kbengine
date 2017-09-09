@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -21,17 +21,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_RANGE_TRIGGER_NODE_H
 #define KBE_RANGE_TRIGGER_NODE_H
 
+#include "range_trigger.h"
 #include "coordinate_node.h"
 #include "math/math.h"
 
 namespace KBEngine{
 
-class RangeTrigger;
 
 class RangeTriggerNode : public CoordinateNode
 {
 public:
-	RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y);
+	RangeTriggerNode(RangeTrigger* pRangeTrigger, float xz, float y, bool positiveBoundary);
 	virtual ~RangeTriggerNode();
 
 	INLINE void range(float xz, float y);
@@ -58,7 +58,8 @@ public:
 	bool wasInYRange(CoordinateNode * pNode);
 	INLINE bool wasInZRange(CoordinateNode * pNode);
 
-	virtual void resetOld(){ 
+	virtual void resetOld()
+	{ 
 		CoordinateNode::resetOld();
 		old_range_xz_ = range_xz_;
 		old_range_y_ = range_y_;

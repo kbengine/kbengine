@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,8 @@ targetID_(0),
 isLoadedGeometry_(false),
 timers_(),
 scriptCallbacks_(timers_),
-locktime_(0)
+locktime_(0),
+controlledEntities_()
 {
 	appID_ = g_appID++;
 
@@ -608,10 +609,30 @@ bool ClientObjectBase::login()
 	(*pBundle).appendBlob(clientDatas_);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
-	(*pBundle) << EntityDef::md5().getDigestStr();
+
+	if (g_componentType == BOTS_TYPE)
+	{
+		if (!g_kbeSrvConfig.getDBMgr().allowEmptyDigest)
+			(*pBundle) << EntityDef::md5().getDigestStr();
+
+		ENGINE_COMPONENT_INFO& infos = g_kbeSrvConfig.getBots();
+		(*pBundle) << infos.forceInternalLogin;
+	}
+	else
+	{
+		(*pBundle) << EntityDef::md5().getDigestStr();
+	}
+
+	onLogin(pBundle);
 	pServerChannel_->send(pBundle);
 	connectedBaseapp_ = false;
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientObjectBase::onLogin(Network::Bundle* pBundle)
+{
+
 }
 
 //-------------------------------------------------------------------------------------
@@ -629,13 +650,13 @@ bool ClientObjectBase::loginBaseapp()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientObjectBase::reLoginBaseapp()
+bool ClientObjectBase::reloginBaseapp()
 {
 	// 请求重登陆网关, 通常是掉线了之后执行
 	connectedBaseapp_ = true;
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(BaseappInterface::reLoginBaseapp);
+	(*pBundle).newMessage(BaseappInterface::reloginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
 	(*pBundle) << rndUUID();
@@ -713,9 +734,9 @@ void ClientObjectBase::onLoginBaseappFailed(Network::Channel * pChannel, SERVER_
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
+void ClientObjectBase::onReloginBaseappFailed(Network::Channel * pChannel, SERVER_ERROR_CODE failedcode)
 {
-	INFO_MSG(fmt::format("ClientObjectBase::onReLoginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
+	INFO_MSG(fmt::format("ClientObjectBase::onReloginBaseappFailed: {} failedcode={}!\n", name_, failedcode));
 
 	// 能走到这里来一定是连接了网关
 	connectedBaseapp_ = true;
@@ -727,64 +748,72 @@ void ClientObjectBase::onReLoginBaseappFailed(Network::Channel * pChannel, SERVE
 }
 
 //-------------------------------------------------------------------------------------	
-void ClientObjectBase::onReLoginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
+void ClientObjectBase::onReloginBaseappSuccessfully(Network::Channel * pChannel, MemoryStream& s)
 {
 	s >> rndUUID_;
-	INFO_MSG(fmt::format("ClientObjectBase::onReLoginBaseappSuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
+	INFO_MSG(fmt::format("ClientObjectBase::onReloginBaseappSuccessfully! name={}, rndUUID={}.\n", name_, rndUUID_));
 }
 
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndUUID, ENTITY_ID eid, std::string& entityType)
 {
-	client::Entity* entity = pEntities_->find(eid);
-	if(entity != NULL)
-	{
-		WARNING_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}. has exist!\n", 
-			name_, rndUUID, eid, entityType));
-		return;
-	}
-
 	if(entityID_ == 0)
 	{
 		EventData_LoginBaseappSuccess eventdata;
 		eventHandler_.fire(&eventdata);
 	}
 
+	entityID_ = eid;
+	rndUUID_ = rndUUID;
+	
+	// 能走到这里来一定是连接了网关
+	connectedBaseapp_ = true;
+		
 	BUFFEREDMESSAGE::iterator iter = bufferedCreateEntityMessage_.find(eid);
 	bool hasBufferedMessage = (iter != bufferedCreateEntityMessage_.end());
 
-	// 能走到这里来一定是连接了网关
-	connectedBaseapp_ = true;
+	client::Entity* entity = pEntities_->find(eid);
 
-	entityID_ = eid;
-	rndUUID_ = rndUUID;
-
-	INFO_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}!\n",
-		name_, rndUUID, eid, entityType));
-
-	// 设置entity的baseMailbox
-	EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-		NULL, appID(), eid, MAILBOX_TYPE_BASE);
-
-	client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, mailbox, NULL);
-	KBE_ASSERT(pEntity != NULL);
-
-	if(hasBufferedMessage)
+	if(entity == NULL)
 	{
-		// 先更新属性再初始化脚本
-		this->onUpdatePropertys(pChannel, *iter->second.get());
-		bufferedCreateEntityMessage_.erase(iter);
-		pEntity->initializeEntity(NULL);
-		SCRIPT_ERROR_CHECK();
+		INFO_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}!\n",
+			name_, rndUUID, eid, entityType));
 
-		pEntity->isInited(true);
+		// 设置entity的baseMailbox
+		EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
+			NULL, appID(), eid, MAILBOX_TYPE_BASE);
+
+		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, mailbox, NULL);
+		KBE_ASSERT(pEntity != NULL);
+
+		if(hasBufferedMessage)
+		{
+			// 先更新属性再初始化脚本
+			this->onUpdatePropertys(pChannel, *iter->second.get());
+			bufferedCreateEntityMessage_.erase(iter);
+			pEntity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
+
+			pEntity->isInited(true);
+			
+			bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
+				g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
+				Config::getSingleton().isOnInitCallPropertysSetMethods();
 		
-		bool isOnInitCallPropertysSetMethods = (g_componentType == BOTS_TYPE) ? 
-			g_kbeSrvConfig.getBots().isOnInitCallPropertysSetMethods : 
-			Config::getSingleton().isOnInitCallPropertysSetMethods();
-	
-		if (isOnInitCallPropertysSetMethods)
-			pEntity->callPropertysSetMethods();
+			if (isOnInitCallPropertysSetMethods)
+				pEntity->callPropertysSetMethods();
+		}
+	}
+	else
+	{
+		if(hasBufferedMessage)
+		{
+			// 先更新属性再初始化脚本
+			this->onUpdatePropertys(pChannel, *iter->second.get());
+			bufferedCreateEntityMessage_.erase(iter);
+			entity->initializeEntity(NULL);
+			SCRIPT_ERROR_CHECK();
+		}
 	}
 }
 
@@ -851,33 +880,35 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 	}
 	else
 	{
-		spaceID_ = entity->spaceID();
-		entity->isOnGround(isOnGround > 0);
-		entity->clientPos(entity->position());
-		entity->clientDir(entity->direction());
+		if(!entity->inWorld())
+		{
+			spaceID_ = entity->spaceID();
+			entity->isOnGround(isOnGround > 0);
+			entity->clientPos(entity->position());
+			entity->clientDir(entity->direction());
 
-		// 初始化一下服务端当前的位置
-		entity->serverPosition(entity->position());
+			// 初始化一下服务端当前的位置
+			entity->serverPosition(entity->position());
 
-		DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGround({}), appID({}).\n",
-			entity->scriptName(), eid, (int)isOnGround, appID()));
+			DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGround({}), appID({}).\n",
+				entity->scriptName(), eid, (int)isOnGround, appID()));
 
-		KBE_ASSERT(!entity->inWorld());
-		KBE_ASSERT(entity->cellMailbox() == NULL);
+			KBE_ASSERT(entity->cellMailbox() == NULL);
 
-		// 设置entity的cellMailbox
-		EntityMailbox* mailbox = new EntityMailbox(entity->pScriptModule(), 
-			NULL, appID(), eid, MAILBOX_TYPE_CELL);
+			// 设置entity的cellMailbox
+			EntityMailbox* mailbox = new EntityMailbox(entity->pScriptModule(), 
+				NULL, appID(), eid, MAILBOX_TYPE_CELL);
 
-		entity->cellMailbox(mailbox);
+			entity->cellMailbox(mailbox);
 
-		// 安全起见， 这里清空一下
-		// 如果服务端上使用giveClientTo切换控制权
-		// 之前的实体已经进入世界， 切换后的实体也进入世界， 这里可能会残留之前那个实体进入世界的信息
-		pEntityIDAliasIDList_.clear();
-		std::vector<ENTITY_ID> excludes;
-		excludes.push_back(entityID_);
-		pEntities_->clear(true, excludes);
+			// 安全起见， 这里清空一下
+			// 如果服务端上使用giveClientTo切换控制权
+			// 之前的实体已经进入世界， 切换后的实体也进入世界， 这里可能会残留之前那个实体进入世界的信息
+			pEntityIDAliasIDList_.clear();
+			std::vector<ENTITY_ID> excludes;
+			excludes.push_back(entityID_);
+			pEntities_->clear(true, excludes);
+		}
 	}
 
 	EventData_EnterWorld eventdata;
@@ -1154,7 +1185,7 @@ void ClientObjectBase::updatePlayerToServer()
 
 	client::Entity* pEntity = pEntities_->find(entityID_);
 	if(pEntity == NULL || !connectedBaseapp_ || 
-		pServerChannel_ == NULL || pEntity->cellMailbox() == NULL)
+        pServerChannel_ == NULL || pEntity->cellMailbox() == NULL || pEntity->isControlled())
 		return;
 
 	Position3D& pos = pEntity->position();
@@ -1163,31 +1194,66 @@ void ClientObjectBase::updatePlayerToServer()
 	Position3D& clientPos = pEntity->clientPos();
 	Direction3D& clientDir = pEntity->clientDir();
 
-	bool dirNoChanged = almostEqual(dir.yaw(), clientDir.yaw()) && almostEqual(dir.pitch(), clientDir.pitch()) && almostEqual(dir.roll(), clientDir.roll());
+	bool dirChanged = !almostEqual(dir.yaw(), clientDir.yaw()) || !almostEqual(dir.pitch(), clientDir.pitch()) || !almostEqual(dir.roll(), clientDir.roll());
 	Vector3 movement = pos - clientPos;
+	bool posChanged =  KBEVec3Length(&movement) > 0.0004f;
 
-	bool posNoChanged =  KBEVec3Length(&movement) < 0.0004f;
+    if(posChanged || dirChanged)
+    {
+        Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+        (*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 
-	if(posNoChanged && dirNoChanged)
-		return;
+        pEntity->position(clientPos);
+        pEntity->direction(clientDir);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
-	
-	pEntity->position(clientPos);
-	pEntity->direction(clientDir);
+        (*pBundle) << pos.x;
+        (*pBundle) << pos.y;
+        (*pBundle) << pos.z;
 
-	(*pBundle) << pos.x;
-	(*pBundle) << pos.y;
-	(*pBundle) << pos.z;
+        (*pBundle) << dir.roll();
+        (*pBundle) << dir.pitch();
+        (*pBundle) << dir.yaw();
 
-	(*pBundle) << dir.roll();
-	(*pBundle) << dir.pitch();
-	(*pBundle) << dir.yaw();
+        (*pBundle) << pEntity->isOnGround();
+        (*pBundle) << spaceID_;
+        pServerChannel_->send(pBundle);
+    }
 
-	(*pBundle) << pEntity->isOnGround();
-	(*pBundle) << spaceID_;
-	pServerChannel_->send(pBundle);
+    // 同步所有controlled entity的位置与朝向
+    std::list<client::Entity *>::iterator itr = controlledEntities_.begin();
+    for (; itr != controlledEntities_.end(); itr++)
+    {
+        client::Entity *entity = *itr;
+        
+        Position3D &temppos = entity->position();
+        Direction3D &tempdir = entity->direction();
+        Position3D &tempClientPos = entity->clientPos();
+        Direction3D &tempClientDir = entity->clientDir();
+
+        dirChanged = !almostEqual(tempdir.yaw(), tempClientDir.yaw()) || !almostEqual(tempdir.pitch(), tempClientDir.pitch()) || !almostEqual(tempdir.roll(), tempClientDir.roll());
+        movement = temppos - tempClientPos;
+        posChanged = KBEVec3Length(&movement) > 0.0004f;
+        if (posChanged || dirChanged)
+        {
+            entity->position(tempClientPos);
+            entity->direction(tempClientDir);
+
+            Network::Bundle *tempBundle = Network::Bundle::createPoolObject();
+            (*tempBundle).newMessage(BaseappInterface::onUpdateDataFromClientForControlledEntity);
+
+            (*tempBundle) << entity->id();
+            (*tempBundle) << temppos.x;
+            (*tempBundle) << temppos.y;
+            (*tempBundle) << temppos.z;
+            (*tempBundle) << tempdir.roll();
+            (*tempBundle) << tempdir.pitch();
+            (*tempBundle) << tempdir.yaw();
+            (*tempBundle) << entity->isOnGround();
+            (*tempBundle) << spaceID_;
+
+            pServerChannel_->send(tempBundle);
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1198,6 +1264,11 @@ void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, float x, floa
 	{
 		pEntity->serverPosition(Position3D(x, y, z));
 	}
+
+    if(pEntity->isControlled())
+    {
+        pEntity->position(pEntity->serverPosition());
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1208,6 +1279,11 @@ void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, fl
 	{
 		pEntity->serverPosition(Position3D(x, pEntity->serverPosition().y, z));
 	}
+
+    if (pEntity->isControlled())
+    {
+        pEntity->position(pEntity->serverPosition());
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1217,9 +1293,19 @@ void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream&
 	s >> yaw >> pitch >> roll;
 
 	client::Entity* pEntity = pPlayer();
-	if (pEntity)
+	if (pEntity && pEntity->isControlled())
 	{
-		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
+        Direction3D dir;
+        
+        if (yaw != FLT_MAX)
+            dir.yaw(yaw);
+        if (pitch != FLT_MAX)
+            dir.pitch(pitch);
+        if (roll != FLT_MAX)
+            dir.roll(roll);
+
+        if (yaw != FLT_MAX || pitch != FLT_MAX || roll != FLT_MAX)
+          pEntity->direction(dir);
 	}
 }
 
@@ -1298,7 +1384,7 @@ void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1316,7 +1402,7 @@ void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1334,7 +1420,7 @@ void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1352,7 +1438,7 @@ void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream&
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1367,7 +1453,7 @@ void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, FLT_MAX, y, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, y, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1382,7 +1468,7 @@ void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, FLT_MAX, p, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, p, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1397,7 +1483,7 @@ void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& 
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, 0.f, 0.f, 0.f, r, FLT_MAX, FLT_MAX, -1);
+	_updateVolatileData(eid, FLT_MAX, FLT_MAX, FLT_MAX, r, FLT_MAX, FLT_MAX, -1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1410,7 +1496,7 @@ void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream&
 	s.readPackXZ(x, z);
 
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1433,7 +1519,7 @@ void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStr
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1453,7 +1539,7 @@ void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1473,7 +1559,7 @@ void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1493,7 +1579,7 @@ void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStre
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, p, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1510,7 +1596,7 @@ void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	y = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, FLT_MAX, y, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, FLT_MAX, y, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1527,7 +1613,7 @@ void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	p = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, FLT_MAX, p, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, FLT_MAX, p, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1544,7 +1630,7 @@ void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStrea
 	s >> angle;
 	r = int82angle(angle);
 
-	_updateVolatileData(eid, x, 0.f, z, r, FLT_MAX, FLT_MAX, 1);
+	_updateVolatileData(eid, x, FLT_MAX, z, r, FLT_MAX, FLT_MAX, 1);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1740,7 +1826,12 @@ void ClientObjectBase::_updateVolatileData(ENTITY_ID entityID, float x, float y,
 	if(isOnGround >= 0)
 		entity->isOnGround(isOnGround > 0);
 
-	if(!almostEqual(x + y + z, 0.f, 0.000001f))
+        bool positionChanged = x != FLT_MAX || y != FLT_MAX || z != FLT_MAX;
+        if (x == FLT_MAX) x = 0.0f;
+        if (y == FLT_MAX) y = 0.0f;
+        if (z == FLT_MAX) z = 0.0f;
+        
+	if(positionChanged)
 	{
 		Position3D relativePos;
 		relativePos.x = x;
@@ -1785,8 +1876,25 @@ void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 i
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 eid, int8 p_isControlled)
 {
+    client::Entity* entity = pEntities()->find(eid);
+    if(entity == NULL)
+    {
+        ERROR_MSG(fmt::format("ClientObjectBase::onControlEntity:entity({}) not found.\n", eid));
+        return;
+    }
+
+    bool controlled = (p_isControlled != 0);
+    if (controlled == true)
+    {
+        if(eid != entityID())
+            controlledEntities_.push_back(entity);
+    }
+    else
+        controlledEntities_.remove(entity);
+
+    entity->onControlled(controlled);
 }
 
 //-------------------------------------------------------------------------------------

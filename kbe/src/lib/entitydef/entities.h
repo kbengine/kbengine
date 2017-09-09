@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -79,7 +79,7 @@ public:
 	static PyMappingMethods mappingMethods;
 	static PySequenceMethods mappingSequenceMethods;
 
-	ENTITYS_MAP& getEntities(void){ return _entities; }
+	ENTITYS_MAP& getEntities(void) { return _entities; }
 
 	void add(ENTITY_ID id, T* entity);
 	void clear(bool callScript);
@@ -90,7 +90,7 @@ public:
 
 	size_t size() const { return _entities.size(); }
 
-	EntityGarbages<T>* pGetbages(){ return _pGarbages; }
+	EntityGarbages<T>* pGetbages() { return _pGarbages; }
 	DECLARE_PY_GET_MOTHOD(pyGarbages);
 
 private:
