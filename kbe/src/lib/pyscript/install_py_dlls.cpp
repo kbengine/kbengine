@@ -98,6 +98,7 @@ bool install_py_dlls(void)
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 bool uninstall_py_dlls(void)
 {
 	PyObject *modules = PyImport_GetModuleDict();
