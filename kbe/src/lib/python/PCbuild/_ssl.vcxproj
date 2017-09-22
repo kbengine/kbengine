@@ -221,10 +221,6 @@
       <Project>{cf7ac3d1-e2df-41d2-bea6-1e2556cdea26}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="ssl.vcxproj">
-      <Project>{e5b04cc0-eb4c-42ab-b4dc-18ef95f864b0}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="_socket.vcxproj">
       <Project>{86937f53-c189-40ef-8ce8-8759d8e7d480}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
