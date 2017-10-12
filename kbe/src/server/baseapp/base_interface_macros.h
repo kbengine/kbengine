@@ -52,6 +52,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			if(e)																\
@@ -115,6 +127,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			if(e)																\
@@ -178,6 +202,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -244,6 +280,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -319,6 +367,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -399,6 +459,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
