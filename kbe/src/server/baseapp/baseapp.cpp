@@ -4390,7 +4390,14 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
+	{
+		ERROR_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: pChannel does not bind proxy! addr={}\n",
+			pChannel->c_str()));
+				
+		pChannel->condemn();
+		s.done();
 		return;
+	}
 	
 	if(s.length() <= 0)
 		return;
@@ -4430,6 +4437,10 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	ENTITY_ID srcEntityID = pChannel->proxyID();
 	if(srcEntityID <= 0)
 	{
+		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: pChannel does not bind proxy! addr={}\n",
+			pChannel->c_str()));
+				
+		pChannel->condemn();
 		s.done();
 		return;
 	}
