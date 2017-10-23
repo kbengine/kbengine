@@ -161,8 +161,7 @@ PyObject* Map::__py_get(PyObject* self, PyObject* args)
 
 	if (!pyVal)
 	{
-		PyErr_SetObject(PyExc_KeyError, args);
-		return NULL;
+		return Py_None;
 	}
 
 	PyObject* pyObj = PyDict_GetItem(static_cast<Map*>(self)->pyDict_, pyVal);
@@ -174,7 +173,7 @@ PyObject* Map::__py_get(PyObject* self, PyObject* args)
 		if (PySequence_Size(args) > 1)
 			return PySequence_GetItem(args, 1);
 		else
-			return NULL;
+			return Py_None;
 	}
 	else
 	{
