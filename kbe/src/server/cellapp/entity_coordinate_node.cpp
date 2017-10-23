@@ -319,6 +319,8 @@ entityNodeUpdating_(0)
 #endif
 
 	weight_ = 1;
+
+	Py_INCREF(pEntity_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -326,8 +328,8 @@ EntityCoordinateNode::~EntityCoordinateNode()
 {
 	watcherNodes_.clear();
 
-	if (pEntity_)
-		pEntity_->onCoordinateNodesDestroy(this);
+	pEntity_->onCoordinateNodesDestroy(this);
+	Py_DECREF(pEntity_);
 }
 
 //-------------------------------------------------------------------------------------

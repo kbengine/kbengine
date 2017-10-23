@@ -321,7 +321,7 @@ public:
 	/** 网络接口
 		服务器告诉客户端：你当前（取消）控制谁的位移同步
 	*/
-	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
+	virtual void onControlEntity(Network::Channel* pChannel, int32 eid, int8 p_isControlled);
 
 	/** 网络接口
 		接收到ClientMessages(通常是web等才会应用到)
@@ -467,6 +467,9 @@ protected:
 	
 	// 用于重登陆网关时的key
 	uint64													rndUUID_; 
+
+    // 受本客户端控制的entity列表
+    std::list<client::Entity *>                             controlledEntities_;
 };
 
 

@@ -80,7 +80,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 	if(error_)
 	{
 		ERROR_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread error.\n", 
-			entityID(), id(), type()));
+			entityID(), id(), (int)type()));
 
 		return thread::TPTask::TPTASK_STATE_COMPLETED; 
 	}
@@ -103,7 +103,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 			if(!send(ClientInterface::onStreamDataStarted, pBundle))
 			{
 				DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread exit.\n",
-					entityID(), id(), type()));
+					entityID(), id(), (int)type()));
 
 				return thread::TPTask::TPTASK_STATE_COMPLETED; 
 			}
@@ -125,7 +125,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 			if(!send(ClientInterface::onStreamDataRecv, pBundle))
 			{
 				DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread exit.\n",
-					entityID(), id(), type()));
+					entityID(), id(), (int)type()));
 
 				error_ = true;
 				return thread::TPTask::TPTASK_STATE_COMPLETED; 
@@ -140,7 +140,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 			if(!send(ClientInterface::onStreamDataRecv, pBundle))
 			{
 				DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread exit.\n",
-					entityID(), id(), type()));
+					entityID(), id(), (int)type()));
 
 				error_ = true;
 				return thread::TPTask::TPTASK_STATE_COMPLETED; 
@@ -154,7 +154,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 	if(totalSentBytes_ == totalBytes_)
 	{
 		DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({0}), downloadID({1}), type({6}), sentBytes={5},{2}/{3} ({4:.2f}%).\n",
-			entityID(), id(), totalSentBytes_, this->totalBytes(), 100.0f, datasize, type()));
+			entityID(), id(), totalSentBytes_, this->totalBytes(), 100.0f, datasize, (int)type()));
 
 		pDataDownloads_->onDownloadCompleted(this);
 
@@ -175,7 +175,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 	if(currSent_ == remainSent_)
 	{
 		DEBUG_MSG(fmt::format("DataDownload::presentMainThread: proxy({}), downloadID({}), type({}), thread-continue.\n",
-			entityID(), id(), type()));
+			entityID(), id(), (int)type()));
 
 		return thread::TPTask::TPTASK_STATE_CONTINUE_CHILDTHREAD; 
 	}

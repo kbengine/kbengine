@@ -92,7 +92,8 @@ targetID_(0),
 isLoadedGeometry_(false),
 timers_(),
 scriptCallbacks_(timers_),
-locktime_(0)
+locktime_(0),
+controlledEntities_()
 {
 	appID_ = g_appID++;
 
@@ -1184,7 +1185,7 @@ void ClientObjectBase::updatePlayerToServer()
 
 	client::Entity* pEntity = pEntities_->find(entityID_);
 	if(pEntity == NULL || !connectedBaseapp_ || 
-		pServerChannel_ == NULL || pEntity->cellMailbox() == NULL)
+        pServerChannel_ == NULL || pEntity->cellMailbox() == NULL || pEntity->isControlled())
 		return;
 
 	Position3D& pos = pEntity->position();
@@ -1193,31 +1194,66 @@ void ClientObjectBase::updatePlayerToServer()
 	Position3D& clientPos = pEntity->clientPos();
 	Direction3D& clientDir = pEntity->clientDir();
 
-	bool dirNoChanged = almostEqual(dir.yaw(), clientDir.yaw()) && almostEqual(dir.pitch(), clientDir.pitch()) && almostEqual(dir.roll(), clientDir.roll());
+	bool dirChanged = !almostEqual(dir.yaw(), clientDir.yaw()) || !almostEqual(dir.pitch(), clientDir.pitch()) || !almostEqual(dir.roll(), clientDir.roll());
 	Vector3 movement = pos - clientPos;
+	bool posChanged =  KBEVec3Length(&movement) > 0.0004f;
 
-	bool posNoChanged =  KBEVec3Length(&movement) < 0.0004f;
+    if(posChanged || dirChanged)
+    {
+        Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+        (*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 
-	if(posNoChanged && dirNoChanged)
-		return;
+        pEntity->position(clientPos);
+        pEntity->direction(clientDir);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
-	
-	pEntity->position(clientPos);
-	pEntity->direction(clientDir);
+        (*pBundle) << pos.x;
+        (*pBundle) << pos.y;
+        (*pBundle) << pos.z;
 
-	(*pBundle) << pos.x;
-	(*pBundle) << pos.y;
-	(*pBundle) << pos.z;
+        (*pBundle) << dir.roll();
+        (*pBundle) << dir.pitch();
+        (*pBundle) << dir.yaw();
 
-	(*pBundle) << dir.roll();
-	(*pBundle) << dir.pitch();
-	(*pBundle) << dir.yaw();
+        (*pBundle) << pEntity->isOnGround();
+        (*pBundle) << spaceID_;
+        pServerChannel_->send(pBundle);
+    }
 
-	(*pBundle) << pEntity->isOnGround();
-	(*pBundle) << spaceID_;
-	pServerChannel_->send(pBundle);
+    // 同步所有controlled entity的位置与朝向
+    std::list<client::Entity *>::iterator itr = controlledEntities_.begin();
+    for (; itr != controlledEntities_.end(); itr++)
+    {
+        client::Entity *entity = *itr;
+        
+        Position3D &temppos = entity->position();
+        Direction3D &tempdir = entity->direction();
+        Position3D &tempClientPos = entity->clientPos();
+        Direction3D &tempClientDir = entity->clientDir();
+
+        dirChanged = !almostEqual(tempdir.yaw(), tempClientDir.yaw()) || !almostEqual(tempdir.pitch(), tempClientDir.pitch()) || !almostEqual(tempdir.roll(), tempClientDir.roll());
+        movement = temppos - tempClientPos;
+        posChanged = KBEVec3Length(&movement) > 0.0004f;
+        if (posChanged || dirChanged)
+        {
+            entity->position(tempClientPos);
+            entity->direction(tempClientDir);
+
+            Network::Bundle *tempBundle = Network::Bundle::createPoolObject();
+            (*tempBundle).newMessage(BaseappInterface::onUpdateDataFromClientForControlledEntity);
+
+            (*tempBundle) << entity->id();
+            (*tempBundle) << temppos.x;
+            (*tempBundle) << temppos.y;
+            (*tempBundle) << temppos.z;
+            (*tempBundle) << tempdir.roll();
+            (*tempBundle) << tempdir.pitch();
+            (*tempBundle) << tempdir.yaw();
+            (*tempBundle) << entity->isOnGround();
+            (*tempBundle) << spaceID_;
+
+            pServerChannel_->send(tempBundle);
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1228,6 +1264,11 @@ void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, float x, floa
 	{
 		pEntity->serverPosition(Position3D(x, y, z));
 	}
+
+    if(pEntity->isControlled())
+    {
+        pEntity->position(pEntity->serverPosition());
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1238,6 +1279,11 @@ void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, fl
 	{
 		pEntity->serverPosition(Position3D(x, pEntity->serverPosition().y, z));
 	}
+
+    if (pEntity->isControlled())
+    {
+        pEntity->position(pEntity->serverPosition());
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1247,9 +1293,19 @@ void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream&
 	s >> yaw >> pitch >> roll;
 
 	client::Entity* pEntity = pPlayer();
-	if (pEntity)
+	if (pEntity && pEntity->isControlled())
 	{
-		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
+        Direction3D dir;
+        
+        if (yaw != FLT_MAX)
+            dir.yaw(yaw);
+        if (pitch != FLT_MAX)
+            dir.pitch(pitch);
+        if (roll != FLT_MAX)
+            dir.roll(roll);
+
+        if (yaw != FLT_MAX || pitch != FLT_MAX || roll != FLT_MAX)
+          pEntity->direction(dir);
 	}
 }
 
@@ -1820,8 +1876,25 @@ void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 i
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 eid, int8 p_isControlled)
 {
+    client::Entity* entity = pEntities()->find(eid);
+    if(entity == NULL)
+    {
+        ERROR_MSG(fmt::format("ClientObjectBase::onControlEntity:entity({}) not found.\n", eid));
+        return;
+    }
+
+    bool controlled = (p_isControlled != 0);
+    if (controlled == true)
+    {
+        if(eid != entityID())
+            controlledEntities_.push_back(entity);
+    }
+    else
+        controlledEntities_.remove(entity);
+
+    entity->onControlled(controlled);
 }
 
 //-------------------------------------------------------------------------------------

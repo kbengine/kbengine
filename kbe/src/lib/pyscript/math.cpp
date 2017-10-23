@@ -27,17 +27,8 @@ bool installModule(const char* moduleName)
 {
 	// 初始化一个数学相关的模块
 	PyObject *mathModule = PyImport_AddModule(moduleName);
-	static struct PyModuleDef moduleDesc =   
-	{  
-			 PyModuleDef_HEAD_INIT,  
-			 "Math",  
-			 "This module is created by KBEngine!",  
-			 -1,  
-			 NULL  
-	};  
+	PyObject_SetAttrString(mathModule, "__doc__", PyUnicode_FromString("This module is created by KBEngine!"));
 
-	PyModule_Create(&moduleDesc);			
-	
 	// 初始化ScriptVector2
 	script::ScriptVector2::installScript(mathModule, "Vector2");
 	// 初始化ScriptVector3

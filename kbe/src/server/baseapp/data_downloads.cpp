@@ -56,7 +56,7 @@ DataDownloads::~DataDownloads()
 //-------------------------------------------------------------------------------------
 int16 DataDownloads::freeID(int16 id)
 {
-	if(id > 0 && usedIDs_.find(id) != usedIDs_.end())
+	if(id > 0 && usedIDs_.find(id) == usedIDs_.end())
 		return id;
 
 	for(int16 i=2; i< 32767; ++i)
@@ -85,7 +85,7 @@ int16 DataDownloads::pushDownload(DataDownload* pdl)
 void DataDownloads::onDownloadCompleted(DataDownload* pdl)
 {
 	INFO_MSG(fmt::format("DataDownloads::onDownloadCompleted: proxy({0}), downloadID({1}), type({3}), sentTotalBytes={2}.\n", 
-		pdl->entityID(), pdl->id(), pdl->totalBytes(), pdl->type()));
+		pdl->entityID(), pdl->id(), pdl->totalBytes(), (int)pdl->type()));
 
 	downloads_.erase(pdl->id());
 	usedIDs_.erase(pdl->id());

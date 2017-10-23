@@ -615,9 +615,11 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 	uint32 nrows = 0;
 	uint32 nfields = 0;
 	uint64 affectedRows = 0;
+	uint64 lastInsertID = 0;
 
 	PyObject* pResultSet = NULL;
 	PyObject* pAffectedRows = NULL;
+	PyObject* pLastInsertID = NULL;
 	PyObject* pErrorMsg = NULL;
 
 	s >> callbackID;
@@ -634,6 +636,9 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 		{
 			pAffectedRows = Py_None;
 			Py_INCREF(pAffectedRows);
+
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
 
 			s >> nrows;
 
@@ -675,6 +680,9 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 			s >> affectedRows;
 
 			pAffectedRows = PyLong_FromUnsignedLongLong(affectedRows);
+
+			s >> lastInsertID;
+			pLastInsertID = PyLong_FromUnsignedLongLong(lastInsertID);
 		}
 	}
 	else
@@ -686,6 +694,9 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 			pAffectedRows = Py_None;
 			Py_INCREF(pAffectedRows);
+
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
 	}
 
 	s.done();
@@ -701,8 +712,8 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 		if(pyfunc != NULL)
 		{
 			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(), 
-												const_cast<char*>("OOO"), 
-												pResultSet, pAffectedRows, pErrorMsg);
+												const_cast<char*>("OOOO"), 
+												pResultSet, pAffectedRows, pLastInsertID, pErrorMsg);
 
 			if(pyResult != NULL)
 				Py_DECREF(pyResult);
@@ -718,6 +729,7 @@ void Cellapp::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine
 
 	Py_XDECREF(pResultSet);
 	Py_XDECREF(pAffectedRows);
+	Py_XDECREF(pLastInsertID);
 	Py_XDECREF(pErrorMsg);
 }
 

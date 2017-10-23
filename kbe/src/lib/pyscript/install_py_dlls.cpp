@@ -41,7 +41,7 @@ bool uninstall_py_dlls(void)
 typedef PyObject* (*pyfunc)(void);
 
 extern "C" PyObject* PyInit__socket(void);
-//extern "C" PyObject* PyInit__ssl(void);
+extern "C" PyObject* PyInit__ssl(void);
 extern "C" PyObject* PyInit__hashlib(void);
 extern "C" PyObject* PyInit_select(void);
 extern "C" PyObject* PyInit__ctypes(void);
@@ -49,13 +49,13 @@ extern "C" PyObject* PyInit__elementtree(void);
 extern "C" PyObject* PyInit_unicodedata(void);
 extern "C" PyObject* PyInit_pyexpat(void);
 
-pyfunc g_funs[] = {&PyInit_pyexpat, &PyInit__socket, /*&PyInit__ssl, */&PyInit__hashlib, 
+pyfunc g_funs[] = {&PyInit_pyexpat, &PyInit__socket, &PyInit__ssl, &PyInit__hashlib, 
 &PyInit_select, &PyInit__ctypes, &PyInit__elementtree, &PyInit_unicodedata, NULL};
 
-const char* g_sfuns[] = {"PyInit_pyexpat", "PyInit__socket", /*"PyInit__ssl",  */"PyInit__hashlib",
+const char* g_sfuns[] = {"PyInit_pyexpat", "PyInit__socket", "PyInit__ssl", "PyInit__hashlib",
 "PyInit_select", "PyInit__ctypes", "PyInit__elementtree", "PyInit_unicodedata", ""};
 
-PyObject* g_importedModules[] = {NULL, NULL, NULL,/* NULL, */
+PyObject* g_importedModules[] = {NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL
 };
 
@@ -71,6 +71,7 @@ bool install_py_dlls(void)
 			break;
 
 		DEBUG_MSG(fmt::format("Script::install_py_dlls(): {}\n", g_sfuns[i]));
+
 		PyObject * m = (*g_funs[i++])();
 		if(m == NULL)
 		{
@@ -97,6 +98,7 @@ bool install_py_dlls(void)
 	return true;
 }
 
+//-------------------------------------------------------------------------------------
 bool uninstall_py_dlls(void)
 {
 	PyObject *modules = PyImport_GetModuleDict();

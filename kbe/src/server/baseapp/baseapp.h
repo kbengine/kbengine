@@ -42,6 +42,7 @@ namespace KBEngine{
 
 namespace Network{
 	class Channel;
+	class Bundle;
 }
 
 class Proxy;
@@ -549,6 +550,9 @@ protected:
 	
 	// APP的标志
 	uint32													flags_;
+
+	// 用于客户端动态导入entitydef协议
+	Network::Bundle*										pBundleImportEntityDefDatas_;
 };
 
 }

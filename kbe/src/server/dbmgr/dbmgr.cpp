@@ -655,6 +655,7 @@ void Dbmgr::onLoginAccountCBBFromInterfaces(Network::Channel* pChannel, KBEngine
 void Dbmgr::queryAccount(Network::Channel* pChannel, 
 						 std::string& accountName, 
 						 std::string& password,
+						 bool needCheckPassword,
 						 COMPONENT_ID componentID,
 						 ENTITY_ID entityID,
 						 DBID entityDBID, 
@@ -677,7 +678,7 @@ void Dbmgr::queryAccount(Network::Channel* pChannel,
 		return;
 	}
 
-	pBuffered_DBTasks->addTask(new DBTaskQueryAccount(pChannel->addr(), accountName, password, 
+	pBuffered_DBTasks->addTask(new DBTaskQueryAccount(pChannel->addr(), accountName, password, needCheckPassword,
 		componentID, entityID, entityDBID, ip, port));
 
 	numQueryEntity_++;

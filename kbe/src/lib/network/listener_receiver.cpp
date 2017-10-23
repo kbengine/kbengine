@@ -62,8 +62,8 @@ int ListenerReceiver::handleInputNotification(int fd)
 
 			if(tickcount == 1)
 			{
-				WARNING_MSG(fmt::format("PacketReceiver::handleInputNotification: accept endpoint({}) {}!\n",
-					 fd, kbe_strerror()));
+				WARNING_MSG(fmt::format("PacketReceiver::handleInputNotification: accept endpoint({}) {}! channelSize={}\n",
+					fd, kbe_strerror(), networkInterface_.channels().size()));
 				
 				this->dispatcher().errorReporter().reportException(
 						REASON_GENERAL_NETWORK);

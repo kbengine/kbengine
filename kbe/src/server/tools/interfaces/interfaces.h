@@ -126,7 +126,7 @@ protected:
 	TimerHandle																mainProcessTimer_;
 
 	// 订单
-	ORDERS orders_;
+	ORDERS																	orders_;
 
 	// 所有的请求记录， 避免某类重复性请求。
 	REQCREATE_MAP															reqCreateAccount_requests_;

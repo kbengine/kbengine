@@ -1,3 +1,58 @@
+###v1.0.0
+
+	2017/9/25
+
+	稳定版本!
+
+
+
+###v0.9.19
+
+	2017/8/25
+
+	新增与改善：
+		将Python SSL默认集成到项目中。
+		更新API文档。
+
+	BUG修正：
+		解决热更新def后， 客户端无法动态导入最新的协议(#506)
+		当接入第三方登陆后，baseapp不应该再检查密码(#507)
+
+
+
+###v0.9.18
+
+	2017/8/6
+
+	新增与改善：
+		防止Linux中用户自定义的未知信号造成的信号转信号名识别出错。
+		调整部分调试信息。
+		更新API文档。
+
+
+	BUG修正：
+		修正启动期被第三方库取消SIGPIPE监听的问题。（#498）
+		修正controlledBy功能初始化时获取mailbox时没有减引用。（#499）
+
+
+
+###v0.9.17
+
+	2017/7/8
+
+	新增与改善：
+		getClientDatas支持获得注册时传入的datas。(#493)
+		executeRawDatabaseCommand的回调接口增加参数insertID（回调如：def sqlcallback(result, rows, insertid, error)）。
+		完善bots，使其支持controlledBy机制。
+		WebConsole增加当前用户的UID显示，便于识别当前用户环境。
+		更新API文档。
+
+
+	BUG修正：
+		修正一处错误日志信息。
+
+
+
 ###v0.9.16
 
 	2017/6/21

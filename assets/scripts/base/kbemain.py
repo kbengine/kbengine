@@ -81,19 +81,19 @@ def onGlobalDataDel(key):
 	"""
 	DEBUG_MSG('onDelGlobalData: %s' % key)
 	
-def onGlobalBases(key, value):
+def onBaseAppData(key, value):
 	"""
 	KBEngine method.
-	globalBases有改变
+	baseAppData有改变
 	"""
-	DEBUG_MSG('onGlobalBases: %s' % key)
+	DEBUG_MSG('onBaseAppData: %s' % key)
 	
-def onGlobalBasesDel(key):
+def onBaseAppDataDel(key):
 	"""
 	KBEngine method.
-	globalBases有删除
+	baseAppData有删除
 	"""
-	DEBUG_MSG('onGlobalBasesDel: %s' % key)
+	DEBUG_MSG('onBaseAppDataDel: %s' % key)
 
 def onLoseChargeCB(ordersID, dbid, success, datas):
 	"""
