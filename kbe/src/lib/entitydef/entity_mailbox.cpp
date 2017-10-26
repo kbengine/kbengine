@@ -36,7 +36,7 @@ namespace KBEngine
 EntityMailbox::GetEntityFunc EntityMailbox::__getEntityFunc;
 EntityMailbox::FindChannelFunc EntityMailbox::__findChannelFunc;
 EntityMailbox::MailboxCallHookFunc*	EntityMailbox::__hookCallFuncPtr = NULL;
-std::vector<EntityMailbox*> EntityMailbox::mailboxs;
+EntityMailbox::MAILBOXS EntityMailbox::mailboxs;
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityMailbox)
 SCRIPT_METHOD_DECLARE_END()
