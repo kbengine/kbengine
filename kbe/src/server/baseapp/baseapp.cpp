@@ -448,6 +448,7 @@ bool Baseapp::uninstallPyModules()
 
 	Base::uninstallScript();
 	Proxy::uninstallScript();
+	GlobalDataClient::uninstallScript();
 	return EntityApp<Base>::uninstallPyModules();
 }
 

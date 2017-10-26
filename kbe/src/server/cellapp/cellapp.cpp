@@ -224,6 +224,7 @@ bool Cellapp::uninstallPyModules()
 	S_RELEASE(pCellAppData_); 
 
 	Entity::uninstallScript();
+	GlobalDataClient::uninstallScript();
 	return EntityApp<Entity>::uninstallPyModules();
 }
 
