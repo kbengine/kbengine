@@ -442,7 +442,13 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 
 	XML_FOR_BEGIN(implementsNode)
 	{
+		if (defxml->getKey(implementsNode) != "Interface")
+			continue;
+
 		TiXmlNode* interfaceNode = defxml->enterNode(implementsNode, "Interface");
+		if (!interfaceNode)
+			continue;
+
 		std::string interfaceName = defxml->getKey(interfaceNode);
 		std::string interfacefile = defFilePath + "interfaces/" + interfaceName + ".def";
 		SmartPointer<XML> interfaceXml(new XML());

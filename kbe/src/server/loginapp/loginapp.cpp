@@ -1136,6 +1136,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	DBID dbid;
 	uint32 flags;
 	uint64 deadline;
+	bool needCheckPassword = true;
 
 	s >> retcode;
 
@@ -1148,6 +1149,8 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	s >> accountName;
 
 	s >> password;
+	s >> needCheckPassword;
+
 	s >> componentID;
 	s >> entityID;
 	s >> dbid;
@@ -1232,7 +1235,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		(*pBundle) << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype << infos->forceInternalLogin;
+		(*pBundle) << componentID << loginName << accountName << password << needCheckPassword << entityID << dbid << flags << deadline << infos->ctype << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 		return;
@@ -1246,6 +1249,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		(*pBundle) << loginName;
 		(*pBundle) << accountName;
 		(*pBundle) << password;
+		(*pBundle) << needCheckPassword;
 		(*pBundle) << dbid;
 		(*pBundle) << flags;
 		(*pBundle) << deadline;

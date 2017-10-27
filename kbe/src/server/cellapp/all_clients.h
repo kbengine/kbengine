@@ -21,10 +21,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_ALL_CLIENTS_H
 #define KBE_ALL_CLIENTS_H
-	
-// common include	
+
 #include "common/common.h"
-//#include "network/channel.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/common.h"
 #include "network/address.h"

@@ -611,7 +611,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 
 	char* pDescr = NULL;
 
-	if(pDescr != NULL)
+	if (pyDesc)
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
 		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
@@ -706,7 +706,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 
 	char* pDescr = NULL;
 
-	if(pDescr != NULL)
+	if (pyDesc)
 	{
 		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
 		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);

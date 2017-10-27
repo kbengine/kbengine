@@ -505,6 +505,9 @@ inline const T & max( const T & a, const T & b )
 // 常规的buf长度
 #define MAX_BUF 256
 
+// 常规的buf长度
+#define SQL_BUF 65535
+
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif
@@ -655,13 +658,8 @@ extern COMPONENT_GUS g_genuuid_sections;
 
 inline uint64 genUUID64()
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
 	static uint64 tv = (uint64)(time(NULL));
 	uint64 now = (uint64)(time(NULL));
-#else
-	static uint64 tv = (uint64)(getSystemTime() * 0.001f);
-	uint64 now = (uint64)(getSystemTime() * 0.001f);
-#endif
 
 	static uint16 lastNum = 0;
 

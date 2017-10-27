@@ -1238,7 +1238,7 @@ thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
-DBTaskQueryAccount::DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, 
+DBTaskQueryAccount::DBTaskQueryAccount(const Network::Address& addr, std::string& accountName, std::string& password, bool needCheckPassword,
 		COMPONENT_ID componentID, ENTITY_ID entityID, DBID entityDBID, uint32 ip, uint16 port):
 EntityDBTask(addr, entityID, entityDBID),
 accountName_(accountName),
@@ -1253,7 +1253,8 @@ ip_(ip),
 port_(port),
 flags_(0),
 deadline_(0),
-bindatas_()
+bindatas_(),
+needCheckPassword_(needCheckPassword)
 {
 }
 
@@ -1309,7 +1310,7 @@ bool DBTaskQueryAccount::db_thread_process()
 			return false;
 		}
 
-		if (kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), (int)password_.length()).c_str()) != 0)
+		if (needCheckPassword_ && kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), (int)password_.length()).c_str()) != 0)
 		{
 			error_ = "password error";
 			return false;
@@ -1636,11 +1637,12 @@ bool DBTaskAccountLogin::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 {
-	DEBUG_MSG(fmt::format("Dbmgr::onAccountLogin:loginName={0}, accountName={1}, success={2}, componentID={3}, dbid={4}, flags={5}, deadline={6}.\n", 
+	DEBUG_MSG(fmt::format("Dbmgr::onAccountLogin:loginName={}, accountName={}, success={}, componentID={}, entityID={}, dbid={}, flags={}, deadline={}.\n", 
 		loginName_,
 		accountName_,
 		retcode_,
 		componentID_,
+		entityID_,
 		dbid_,
 		flags_,
 		deadline_
@@ -1663,6 +1665,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	(*pBundle) << loginName_;
 	(*pBundle) << accountName_;
 	(*pBundle) << password_;
+	(*pBundle) << needCheckPassword_;
 	(*pBundle) << componentID_;   // 如果大于0则表示账号还存活在某个baseapp上
 	(*pBundle) << entityID_;
 	(*pBundle) << dbid_;

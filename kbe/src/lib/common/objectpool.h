@@ -265,7 +265,7 @@ public:
 		pMutex_->lockMutex();
 
 		sprintf(buf, "ObjectPool::c_str(): name=%s, objs=%d/%d, isDestroyed=%s.\n", 
-			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed ? "true" : "false"));
+			name_.c_str(), (int)obj_count_, (int)max_, (isDestroyed() ? "true" : "false"));
 
 		pMutex_->unlockMutex();
 

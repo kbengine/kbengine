@@ -172,9 +172,13 @@ PyObject* Map::__py_get(PyObject* self, PyObject* args)
 	if (!pyObj)
 	{
 		if (PySequence_Size(args) > 1)
+		{
 			return PySequence_GetItem(args, 1);
+		}
 		else
-			PyErr_SetObject(PyExc_KeyError, args);
+		{
+			S_Return;
+		}
 	}
 	else
 	{
