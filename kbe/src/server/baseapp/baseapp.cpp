@@ -58,14 +58,15 @@ namespace KBEngine{
 ServerConfig g_serverConfig;
 KBE_SINGLETON_INIT(Baseapp);
 
-PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* entityType)
+// 创建一个用于生成实体的字典，包含了实体所有的持久化属性和数据
+PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entityType)
 {
 	PyObject* pyDict = PyDict_New();
 	ScriptDefModule* pScriptModule = EntityDef::findScriptModule(entityType);
 
 	if (!pScriptModule)
 	{
-		ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: not found script[{}]!\n",
+		ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: not found script[{}]!\n",
 			entityType));
 
 		return pyDict;
@@ -92,7 +93,7 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 					Py_DECREF(pyVal);
 				}
 
-				ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: {}.{} error, set to default!\n",
+				ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: {}.{} error, set to default!\n",
 					entityType, attrname));
 
 				pyVal = propertyDescription->getDataType()->parseDefaultStr("");
@@ -142,7 +143,7 @@ PyObject* createCellDataDictFromPersistentStream(MemoryStream& s, const char* en
 
 			const char* attrname = propertyDescription->getName();
 
-			ERROR_MSG(fmt::format("Baseapp::createCellDataDictFromPersistentStream: set({}.{}) to default!\n",
+			ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: set({}.{}) to default!\n",
 				entityType, attrname));
 
 			PyObject* pyVal = propertyDescription->getDataType()->parseDefaultStr("");
@@ -1287,7 +1288,7 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 		return;
 	}
 
-	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
+	PyObject* pyDict = createDictDataFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
@@ -1742,7 +1743,7 @@ void Baseapp::createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel,
 		KBE_ASSERT(false);
 	}
 
-	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
+	PyObject* pyDict = createDictDataFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
@@ -2234,7 +2235,7 @@ void Baseapp::createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel,
 		KBE_ASSERT(false);
 	}
 
-	PyObject* pyDict = createCellDataDictFromPersistentStream(s, entityType.c_str());
+	PyObject* pyDict = createDictDataFromPersistentStream(s, entityType.c_str());
 	PyObject* e = Baseapp::getSingleton().createEntity(entityType.c_str(), pyDict, false, entityID);
 	if(e)
 	{
@@ -3999,7 +4000,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	base->setLoginDatas(ptinfos->datas);
 	base->setCreateDatas(bindatas);
 
-	PyObject* pyDict = createCellDataDictFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
+	PyObject* pyDict = createDictDataFromPersistentStream(s, g_serverConfig.getDBMgr().dbAccountEntityScriptType);
 
 	PyObject* py__ACCOUNT_NAME__ = PyUnicode_FromString(accountName.c_str());
 	PyDict_SetItemString(pyDict, "__ACCOUNT_NAME__", py__ACCOUNT_NAME__);
