@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -102,6 +102,12 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 				//	pShutdownHandler_->lastShutdownFailReason()));
 				
 				pShutdownHandler_->onShutdown(false);
+				
+				cancel();
+				
+				pTimerHandle_ = pDispatcher_->addTimer(int(100000),
+												this, (void *)TIMEOUT_SHUTDOWN_END_TICK);
+			
 				break;
 			}
 			

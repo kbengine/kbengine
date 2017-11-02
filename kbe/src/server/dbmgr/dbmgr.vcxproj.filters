@@ -48,6 +48,9 @@
     <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="update_dblog_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="interfaces_handler.h">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="profile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="update_dblog_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

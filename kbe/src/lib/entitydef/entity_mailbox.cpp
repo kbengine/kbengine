@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,7 @@ namespace KBEngine
 EntityMailbox::GetEntityFunc EntityMailbox::__getEntityFunc;
 EntityMailbox::FindChannelFunc EntityMailbox::__findChannelFunc;
 EntityMailbox::MailboxCallHookFunc*	EntityMailbox::__hookCallFuncPtr = NULL;
-std::vector<EntityMailbox*> EntityMailbox::mailboxs;
+EntityMailbox::MAILBOXS EntityMailbox::mailboxs;
 
 SCRIPT_METHOD_DECLARE_BEGIN(EntityMailbox)
 SCRIPT_METHOD_DECLARE_END()

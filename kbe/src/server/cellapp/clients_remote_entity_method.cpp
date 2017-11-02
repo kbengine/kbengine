@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/method.h"
 #include "clients_remote_entity_method.h"
 #include "network/bundle.h"
+#include "network/network_stats.h"
 #include "helper/eventhistory_stats.h"
 
 #include "client_lib/client_interface.h"
@@ -95,7 +96,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		if((!otherClients_ && (pEntity->pWitness() || (pEntity->clientMailbox()))))
+		if((!otherClients_ && (pEntity->pWitness() && (pEntity->clientMailbox()))))
 		{
 			Network::Bundle* pSendBundle = NULL;
 			Network::Channel* pChannel = pEntity->clientMailbox()->getChannel();

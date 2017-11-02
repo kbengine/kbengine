@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -198,8 +198,8 @@ PyObject* PyFileDescriptor::__py_deregisterWriteFileDescriptor(PyObject* self, P
 //-------------------------------------------------------------------------------------
 int PyFileDescriptor::handleInputNotification(int fd)
 {
-	INFO_MSG(fmt::format("PyFileDescriptor:handleInputNotification: fd = {}\n",
-				fd));
+	//INFO_MSG(fmt::format("PyFileDescriptor:handleInputNotification: fd = {}\n",
+	//			fd));
 
 	callback();
 	return 0;
@@ -208,8 +208,8 @@ int PyFileDescriptor::handleInputNotification(int fd)
 //-------------------------------------------------------------------------------------
 int PyFileDescriptor::handleOutputNotification( int fd )
 {
-	INFO_MSG(fmt::format("PyFileDescriptor:handleOutputNotification: fd = {}\n",
-				fd));
+	//INFO_MSG(fmt::format("PyFileDescriptor:handleOutputNotification: fd = {}\n",
+	//			fd));
 
 	callback();
 	return 0;

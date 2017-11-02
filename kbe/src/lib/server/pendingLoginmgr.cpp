@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -77,7 +77,6 @@ bool PendingLoginMgr::add(PLInfos* infos)
 	pPLMap_[infos->accountName] = infos;
 	infos->lastProcessTime = timestamp();
 
-
 	DEBUG_MSG(fmt::format("PendingLoginMgr::add: {}, size={}.\n", infos->accountName, pPLMap_.size()));
 	return true;
 }
@@ -109,6 +108,20 @@ PendingLoginMgr::PLInfos* PendingLoginMgr::find(std::string& accountName)
 	}
 
 	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+void PendingLoginMgr::removeNextTick(std::string& accountName)
+{
+	PTINFO_MAP::iterator iter = pPLMap_.find(accountName);
+	if (iter != pPLMap_.end())
+	{
+		PLInfos* infos = iter->second;
+
+		// 下一tick处理时就超时了
+		TimeStamp curr = timestamp();
+		infos->lastProcessTime = curr - OP_TIME_OUT_MAX - 1;
+	}
 }
 
 //-------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -66,6 +66,7 @@ public:
 	void onReclaimObject()
 	{
 		pEndpoint_ = NULL;
+		pChannel_ = NULL;
 		pNetworkInterface_ = NULL;
 	}
 
@@ -74,8 +75,9 @@ public:
 		return TCP_PACKET_RECEIVER;
 	}
 
-	void pEndPoint(EndPoint* pEndpoint){ 
+	void pEndPoint(EndPoint* pEndpoint) { 
 		pEndpoint_ = pEndpoint; 
+		pChannel_ = NULL;
 	}
 
 	EndPoint* pEndPoint() const { 
@@ -92,6 +94,7 @@ protected:
 
 protected:
 	EndPoint* pEndpoint_;
+	Channel* pChannel_;
 	NetworkInterface* pNetworkInterface_;
 };
 

@@ -1,0 +1,164 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+<div class="row placeholders status-show-block">
+  <div id="server-title"><h4>The machine on {{ http_host }}</h4></div>
+  <div><hr style=" height:1px;border:none;border-top:1px solid ;" /></div>
+{% for comp in KBEComps %}
+{% if comp.componentType == 3 or comp.componentType == 4 %}
+<div class="div-status" style="float: left;width:40%;min-height:400px;margin-right: 1em;">
+  <div id="{{ comp.fullname }}-chart" style="width: 100%;height: 350px;"></div>
+  <div style="text-align: center"><a href="#" onClick="connect('{{comp.componentType}}', '{{comp.intport}}', '{{ comp.intaddr }}')">{% if comp.componentType == 3 %}baseapp{% elif comp.componentType == 4 %}cellapp{% else %}{{ comp.fullname }}{% endif %}</a></div>
+
+  </div>
+  {% endif %}
+{% endfor %}
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script>$(".condition-cp").addClass("active");</script>
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .condition .dd").show();
+  $(".kbe-list .condition").css({"background-color":"#317eb4"});
+  $(".kbe-list .condition").find('li').addClass("menu_chioce");
+
+function connect(cp, port, host)
+{
+  window.location.href='/wc/status/connect?cp=' + cp + "&port=" + port + "&host="+ host;
+  // layer.load(2);
+}
+
+window.onload = run_socket;
+
+function run_socket(){
+  {% for comp in KBEComps %}
+  {% if comp.componentType == 3 or comp.componentType == 4 %}
+    {{comp.fullname}}_connect_to();
+  {% endif%}
+  {% endfor %}
+}
+
+{% for comp in KBEComps %}
+{% if comp.componentType == 3 or comp.componentType == 4 %}
+function {{comp.fullname}}_connect_to()
+{
+  var arr_x = new Array();
+  var start_num = 0;
+  var end_num = 100;
+  {{comp.fullname}}_cp_arr = { {% for comp2 in KBEComps %}{% if comp.componentType == 3 %}{% if comp2.componentType == 6 %}{{ comp2.componentID }}:new Array(),{% endif %}{% elif comp.componentType == 4 %}{% if comp2.componentType == 5 %}{{ comp2.componentID }}:new Array(),{% endif %}{% endif %}{% endfor %}}
+  var myChart = echarts.init(document.getElementById('{{comp.fullname}}-chart'));
+  
+  var {{comp.fullname}}_socket = new WebSocket("ws://{{ http_host }}/wc/status/process_cmd?cp={{ comp.componentType }}&host={{ comp.intaddr }}&port={{ comp.intport }}");
+  {{comp.fullname}}_socket.onopen = function(evt)
+  { 
+    
+    var option = {
+      tooltip : {
+          trigger: 'axis'
+      },
+      legend: {
+        data:[{% for comp3 in KBEComps %}{% if comp.componentType == 3 %}{% if comp3.componentType == 6 %}'{{ comp3.fullname }}[{{ comp3.componentID }}]',{% endif %}{% elif comp.componentType == 4 %}{% if comp3.componentType == 5 %}'{{ comp3.fullname }}[{{ comp3.componentID }}]',{% endif %}{% endif %}{% endfor %}],
+    },
+      dataZoom: [
+        {
+          show: true,
+          realtime: true,
+          start: 0,
+          end: 100,
+          zoomLock:true,
+          realtime:true
+        }
+    ],
+      grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '5%',
+          containLabel: true
+      },
+      xAxis : [
+          {
+              type : 'category',
+              boundaryGap : false,
+              data : []
+          }
+      ],
+      yAxis : [
+        {
+          scale: true,
+            splitArea: {
+                show: true
+            }
+        }
+      ],
+      series : [
+      {% for comp3 in KBEComps %}{% if comp.componentType == 3 %}{% if comp3.componentType == 6 %}
+      {
+              name:'{{ comp3.fullname }}[{{ comp3.componentID }}]',
+              type:'line',
+              smooth: true,
+              // areaStyle: {normal: {}},
+              data:[]
+          },
+      {% endif %}{% elif comp.componentType == 4 %}{% if comp3.componentType == 5 %}{
+              name:'{{ comp3.fullname }}[{{ comp3.componentID }}]',
+              type:'line',
+              smooth: true,
+              // areaStyle: {normal: {}},
+              data:[]
+          },
+          {% endif %}{% endif %}{% endfor %}
+        
+      ]
+    };
+    myChart.setOption(option);
+      //实时获取dataZoom的状态
+    myChart.on("dataZoom",function(params){
+      start_num = params.start;
+      end_num = params.end;
+    })
+
+    timeTicket = setInterval(function () {
+      if (arr_x.length > 50)
+          start_num = end_num - (50/arr_x.length)*100;
+      
+      myChart.setOption({
+        dataZoom : [{
+         start:start_num,
+         end:end_num,
+        }],
+          // xAxis : [{
+          //   data : arr_x
+          // }],
+          series: [
+      {% for comp3 in KBEComps %}{% if comp.componentType == 3 %}{% if comp3.componentType == 6 %}
+      {
+        name:'{{ comp3.fullname }}[{{ comp3.componentID }}]',
+        data:{{comp.fullname}}_cp_arr[{{ comp3.componentID }}]
+      },{% endif %}{% elif comp.componentType == 4 %}{% if comp3.componentType == 5 %}
+      {
+        name:'{{ comp3.fullname }}[{{ comp3.componentID }}]',
+        data:{{comp.fullname}}_cp_arr[{{ comp3.componentID }}]
+      },{% endif %}{% endif %}{% endfor %}  
+      ]
+        });
+      }, 500);
+    }; 
+    {{comp.fullname}}_socket.onclose = function(evt) { }; 
+    {{comp.fullname}}_socket.onmessage = function(evt) {
+      
+      {{comp.fullname}}_data = JSON.parse(evt.data.replace(/'/g,'\"'));
+      for (i = 0; i < {{comp.fullname}}_data["componentID"].length; i++) {
+        {{comp.fullname}}_cp_arr[{{comp.fullname}}_data["componentID"][i]].push({{comp.fullname}}_data["load"][i])
+        arr_x = {{comp.fullname}}_cp_arr[{{comp.fullname}}_data["componentID"][i]]
+      }
+    }; 
+    {{comp.fullname}}_socket.onerror = function(evt) { }; 
+    window.{{comp.fullname}}_socket = {{comp.fullname}}_socket;
+}
+  {% endif %}
+{% endfor %}
+</script>
+    
+{% endblock %}

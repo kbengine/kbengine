@@ -1915,6 +1915,9 @@
     <ClCompile Include="..\..\crypto\x509v3\v3_scts.c">
       <Filter>x509v3</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\crypto\evp\e_aes_cbc_hmac_sha256.c">
+      <Filter>evp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\crypto\md4\md4_locl.h">

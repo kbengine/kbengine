@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -126,7 +126,7 @@ protected:
 	TimerHandle																mainProcessTimer_;
 
 	// 订单
-	ORDERS orders_;
+	ORDERS																	orders_;
 
 	// 所有的请求记录， 避免某类重复性请求。
 	REQCREATE_MAP															reqCreateAccount_requests_;

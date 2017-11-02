@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -52,6 +52,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			if(e)																\
@@ -61,7 +73,7 @@ namespace KBEngine{
 			else																\
 			{																	\
 				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -115,6 +127,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			if(e)																\
@@ -124,7 +148,7 @@ namespace KBEngine{
 			else																\
 			{																	\
 				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -178,6 +202,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -189,7 +225,7 @@ namespace KBEngine{
 			else																\
 			{																	\
 				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -244,6 +280,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -256,7 +304,7 @@ namespace KBEngine{
 			else																\
 			{																	\
 				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -319,6 +367,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -332,7 +392,7 @@ namespace KBEngine{
 			else																\
 			{																	\
 				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\
@@ -399,6 +459,18 @@ namespace KBEngine{
 	{																			\
 			ENTITY_ID eid;														\
 			s >> eid;															\
+																				\
+			if(pChannel->isExternal() && pChannel->proxyID() != eid)			\
+			{																	\
+				ERROR_MSG(fmt::format(											\
+					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
+					eid, pChannel->proxyID()));									\
+																				\
+				pChannel->condemn();											\
+																				\
+				return;															\
+			}																	\
+																				\
 			KBEngine::Base* e =													\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
@@ -413,7 +485,7 @@ namespace KBEngine{
 			else																\
 			{																	\
 				ERROR_MSG(fmt::format(											\
-					"Messagehandler::handle: not found entityID:{}.\n",			\
+					#NAME"handler::handle: not found entityID:{}.\n",			\
 					eid));														\
 			}																	\
 	}																			\

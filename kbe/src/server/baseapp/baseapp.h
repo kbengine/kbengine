@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,7 @@ namespace KBEngine{
 
 namespace Network{
 	class Channel;
+	class Bundle;
 }
 
 class Proxy;
@@ -138,8 +139,10 @@ public:
 	*/
 	static PyObject* __py_createBase(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseRemotely(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
 	static PyObject* __py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createBaseRemotelyFromDBID(PyObject* self, PyObject* args);
 	
 	/**
 		创建一个新的space 
@@ -163,6 +166,32 @@ public:
 	*/
 	void onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
+	/**
+	baseapp 的createBaseAnywhere的回调
+	*/
+	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+
+	/**
+	在一个负载较低的baseapp上创建一个baseEntity
+	*/
+	void createBaseRemotely(const char* entityType, COMPONENT_ID componentID, PyObject* params, PyObject* pyCallback);
+
+	/** 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行
+	@param entityType	: entity的类别， entities.xml中的定义的。
+	@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
+	@param componentID	: 请求创建entity的baseapp的组件ID
+	*/
+	void onCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s);
+
+	/**
+	baseapp 的createBaseAnywhere的回调
+	*/
+	void onCreateBaseRemotelyCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateBaseRemotelyCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+
 	/** 
 		从db获取信息创建一个entity
 	*/
@@ -179,7 +208,13 @@ public:
 	void createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
 
 	/** 网络接口
-		createBaseFromDBID的回调。
+		createBaseAnywhereFromDBID的回调。
+	*/
+	// 从baseappmgr查询用于创建实体的组件id回调
+	void onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	/** 网络接口
+		createBaseAnywhereFromDBID的回调。
 	*/
 	// 从数据库来的回调
 	void onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
@@ -191,13 +226,24 @@ public:
 	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 	
-
-	/** 
-		baseapp 的createBaseAnywhere的回调 
+	/**
+	从db获取信息创建一个entity
 	*/
-	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
-	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID, 
-		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
+	void createBaseRemotelyFromDBID(const char* entityType, DBID dbid, COMPONENT_ID createToComponentID, 
+		PyObject* pyCallback, const std::string& dbInterfaceName);
+
+	/** 网络接口
+	createBaseRemotelyFromDBID的回调。
+	*/
+	// 从数据库来的回调
+	void onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	// 请求在这个进程上创建这个entity
+	void createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	// 创建完毕后的回调
+	void onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID,
+		std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 
@@ -262,7 +308,7 @@ public:
 		重新登录 快速与网关建立交互关系(前提是之前已经登录了， 
 		之后断开在服务器判定该前端的Entity未超时销毁的前提下可以快速与服务器建立连接并达到操控该entity的目的)
 	*/
-	void reLoginBaseapp(Network::Channel* pChannel, std::string& accountName, 
+	void reloginBaseapp(Network::Channel* pChannel, std::string& accountName, 
 		std::string& password, uint64 key, ENTITY_ID entityID);
 
 	/**
@@ -299,6 +345,7 @@ public:
 		client更新数据
 	*/
 	void onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 
 	/** 网络接口
@@ -335,22 +382,22 @@ public:
 	/**
 		增加proxices计数
 	*/
-	void incProxicesCount(){ ++numProxices_; }
+	void incProxicesCount() { ++numProxices_; }
 
 	/**
 		减少proxices计数
 	*/
-	void decProxicesCount(){ --numProxices_; }
+	void decProxicesCount() { --numProxices_; }
 
 	/**
 		获得proxices计数
 	*/
-	int32 numProxices() const{ return numProxices_; }
+	int32 numProxices() const { return numProxices_; }
 
 	/**
 		获得numClients计数
 	*/
-	int32 numClients(){ return this->networkInterface().numExtChannels(); }
+	int32 numClients() { return this->networkInterface().numExtChannels(); }
 	
 	/** 
 		请求充值
@@ -451,8 +498,17 @@ public:
 	*/
 	void reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID, std::string& password, std::string& email);
 
-	void onReqAccountBindEmailCB(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+	/** 网络接口
+		请求绑定email, dbmgr返回结果
+	*/
+	void onReqAccountBindEmailCBFromDBMgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
 		SERVER_ERROR_CODE failedcode, std::string& code);
+
+	/** 网络接口
+		请求绑定email, baseappmgr返回需要找到loginapp的地址
+	*/
+	void onReqAccountBindEmailCBFromBaseappmgr(Network::Channel* pChannel, ENTITY_ID entityID, std::string& accountName, std::string& email,
+		SERVER_ERROR_CODE failedcode, std::string& code, std::string& loginappCBHost, uint16 loginappCBPort);
 
 	/** 网络接口
 		请求绑定email
@@ -494,6 +550,9 @@ protected:
 	
 	// APP的标志
 	uint32													flags_;
+
+	// 用于客户端动态导入entitydef协议
+	Network::Bundle*										pBundleImportEntityDefDatas_;
 };
 
 }

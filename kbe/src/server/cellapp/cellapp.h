@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -20,11 +20,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef KBE_CELLAPP_H
 #define KBE_CELLAPP_H
-	
-// common include	
+
 #include "entity.h"
 #include "spaces.h"
 #include "cells.h"
+#include "space_viewer.h"
 #include "updatables.h"
 #include "ghost_manager.h"
 #include "witnessed_timeout_handler.h"
@@ -74,6 +74,8 @@ public:
 
 	virtual bool canShutdown();
 	virtual void onShutdown(bool first);
+
+	void destroyObjPool();
 
 	float _getLoad() const { return getLoad(); }
 	virtual void onUpdateLoad();
@@ -128,6 +130,12 @@ public:
 	void onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
+	工具请求改变space查看器（含添加和删除功能）
+	如果是请求更新并且服务器上不存在该地址的查看器则自动创建，如果是删除则明确给出删除要求
+	*/
+	void setSpaceViewer(Network::Channel* pChannel, MemoryStream& s);
+
+	/** 网络接口
 		其他APP请求在此灾难恢复
 	*/
 	void requestRestore(Network::Channel* pChannel, KBEngine::MemoryStream& s);
@@ -158,6 +166,7 @@ public:
 		client更新数据
 	*/
 	void onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onUpdateDataFromClientForControlledEntity(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		real请求更新属性到ghost
@@ -235,6 +244,7 @@ public:
 	*/
 	void reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s);
 	void reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s);
+	void reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
 		获取和设置ghost管理器
@@ -274,6 +284,9 @@ protected:
 	
 	// APP的标志
 	uint32								flags_;
+
+	// 通过工具查看space
+	SpaceViewers						spaceViewers_;
 };
 
 }

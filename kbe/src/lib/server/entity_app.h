@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -171,6 +171,11 @@ public:
 	*/
 	virtual void startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen);
 
+	/**
+		允许脚本assert底层
+	*/
+	static PyObject* __py_assert(PyObject* self, PyObject* args);
+	
 	/**
 		获取apps发布状态, 可在脚本中获取该值
 	*/
@@ -457,19 +462,6 @@ bool EntityApp<E>::installPyModules()
 	pEntities_ = new Entities<E>();
 	registerPyObjectToScript("entities", pEntities_);
 
-	// 安装入口模块
-	PyObject *entryScriptFileName = NULL;
-	if(componentType() == BASEAPP_TYPE)
-	{
-		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseApp();
-		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
-	}
-	else if(componentType() == CELLAPP_TYPE)
-	{
-		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellApp();
-		entryScriptFileName = PyUnicode_FromString(info.entryScriptFile);
-	}
-
 	// 添加pywatcher支持
 	if(!initializePyWatcher(&this->getScript()))
 		return false;
@@ -477,8 +469,11 @@ bool EntityApp<E>::installPyModules()
 	// 添加globalData, globalBases支持
 	pGlobalData_ = new GlobalDataClient(DBMGR_TYPE, GlobalDataServer::GLOBAL_DATA);
 	registerPyObjectToScript("globalData", pGlobalData_);
-
+	
 	// 注册创建entity的方法到py
+	// 允许assert底层，用于调试脚本某个时机时底层状态
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	kbassert,			__py_assert,							METH_VARARGS,	0);
+	
 	// 向脚本注册app发布状态
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),	publish,			__py_getAppPublish,						METH_VARARGS,	0);
 
@@ -547,11 +542,34 @@ bool EntityApp<E>::installPyModules()
 		}
 	}
 	
-	if(entryScriptFileName != NULL)
+	// 安装入口模块
+	std::string entryScriptFileName = "";
+	if (componentType() == BASEAPP_TYPE)
 	{
-		entryScript_ = PyImport_Import(entryScriptFileName);
-		SCRIPT_ERROR_CHECK();
-		S_RELEASE(entryScriptFileName);
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getBaseApp();
+		entryScriptFileName = info.entryScriptFile;
+	}
+	else if (componentType() == CELLAPP_TYPE)
+	{
+		ENGINE_COMPONENT_INFO& info = g_kbeSrvConfig.getCellApp();
+		entryScriptFileName = info.entryScriptFile;
+	}
+
+	if(entryScriptFileName.size() > 0)
+	{
+		PyObject *pyEntryScriptFileName = PyUnicode_FromString(entryScriptFileName.c_str());
+		entryScript_ = PyImport_Import(pyEntryScriptFileName);
+
+		if (PyErr_Occurred())
+		{
+			INFO_MSG(fmt::format("EntityApp::installPyModules: importing scripts/{}{}.py...\n", 
+				(componentType() == BASEAPP_TYPE ? "base/" : "cell/"), 
+				entryScriptFileName));
+
+			PyErr_PrintEx(0);
+		}
+
+		S_RELEASE(pyEntryScriptFileName);
 
 		if(entryScript_.get() == NULL)
 		{
@@ -598,13 +616,19 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entityType [%s] not found! Please register in entities.xml and implement a %s.def and %s.py\n", 
+			entityType, entityType, entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 	else if(componentType_ == CELLAPP_TYPE ? !sm->hasCell() : !sm->hasBase())
 	{
-		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: entity [%s] not found.\n", entityType);
+		PyErr_Format(PyExc_TypeError, "EntityApp::createEntity: cannot create %s(%s=false)! Please check the setting of the entities.xml and the implementation of %s.py\n", 
+			entityType, 
+			(componentType_ == CELLAPP_TYPE ? "hasCell()" : "hasBase()"), 
+			entityType);
+		
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -760,8 +784,18 @@ E* EntityApp<E>::findEntity(ENTITY_ID entityID)
 template<class E>
 void EntityApp<E>::onReqAllocEntityID(Network::Channel* pChannel, ENTITY_ID startID, ENTITY_ID endID)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	// INFO_MSG("EntityApp::onReqAllocEntityID: entityID alloc(%d-%d).\n", startID, endID);
 	idClient_.onAddRange(startID, endID);
+}
+
+template<class E>
+PyObject* EntityApp<E>::__py_assert(PyObject* self, PyObject* args)
+{
+	KBE_ASSERT(false && "kbassert");
+	return NULL;
 }
 
 template<class E>
@@ -1049,6 +1083,12 @@ PyObject* EntityApp<E>::__py_kbeOpen(PyObject* self, PyObject* args)
 		fargs);
 
 	Py_DECREF(ioMod);
+	
+	if(openedFile == NULL)
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
 	return openedFile;
 }
 
@@ -1209,6 +1249,9 @@ PyObject* EntityApp<E>::__py_listPathRes(PyObject* self, PyObject* args)
 template<class E>
 void EntityApp<E>::startProfile_(Network::Channel* pChannel, std::string profileName, int8 profileType, uint32 timelen)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	switch(profileType)
 	{
 	case 0:	// pyprofile
@@ -1227,6 +1270,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 						COMPONENT_ORDER startGlobalOrder, COMPONENT_ORDER startGroupOrder, 
 						const std::string& digest)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	INFO_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: entityID alloc({}-{}), startGlobalOrder={}, startGroupOrder={}, digest={}.\n",
 		startID, endID, startGlobalOrder, startGroupOrder, digest));
 
@@ -1252,6 +1298,9 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 template<class E>
 void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string key, value;
 	bool isDelete;
 	
@@ -1307,6 +1356,9 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 template<class E>
 void EntityApp<E>::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
+	if(pChannel->isExternal())
+		return;
+	
 	std::string cmd;
 	s.readBlob(cmd);
 
@@ -1380,7 +1432,7 @@ void EntityApp<E>::updateLoad()
 	double spareTime = 1.0;
 	if (lastTickInStamps != 0)
 	{
-		spareTime = double(dispatcher_.getSpareTime())/double(lastTickInStamps);
+		spareTime = double(dispatcher_.getSpareTime()) / double(lastTickInStamps);
 	}
 
 	dispatcher_.clearSpareTime();

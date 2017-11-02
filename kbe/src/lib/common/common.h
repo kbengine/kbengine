@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -90,6 +90,18 @@ const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] =
 	"base",
 	"client",
 	"client",
+};
+
+/** mailbox的类别对换为字符串名称 严格和ENTITY_MAILBOX_TYPE索引匹配 */
+const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE_EX[][14] =
+{
+	"cell",
+	"base",
+	"client",
+	"cellViaBase",
+	"baseViaCell",
+	"clientViaCell",
+	"clientViaBase",
 };
 
 /** 定义服务器各组件状态 */
@@ -378,8 +390,8 @@ inline bool validName(const std::string& name)
 inline bool email_isvalid(const char *address) 
 {
 #ifdef USE_REGEX
-	std::tr1::regex _mail_pattern("([a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)");
-	return std::tr1::regex_match(accountName, _mail_pattern);
+	std::tr1::regex _mail_pattern("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,4})$");
+	return std::tr1::regex_match(address, _mail_pattern);
 #endif
 	int len = (int)strlen(address);
 	if(len <= 3)

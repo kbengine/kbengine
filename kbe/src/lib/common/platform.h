@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -500,10 +500,13 @@ inline const T & max( const T & a, const T & b )
 #define MAX_NAME 256	
 
 // ip字符串的最大长度
-#define MAX_IP 50
+#define MAX_IP 256
 
 // 常规的buf长度
 #define MAX_BUF 256
+
+// 常规的buf长度
+#define SQL_BUF 65535
 
 #ifndef MAX_PATH
 #define MAX_PATH 260
@@ -655,13 +658,8 @@ extern COMPONENT_GUS g_genuuid_sections;
 
 inline uint64 genUUID64()
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
 	static uint64 tv = (uint64)(time(NULL));
 	uint64 now = (uint64)(time(NULL));
-#else
-	static uint64 tv = (uint64)(getSystemTime() * 0.001f);
-	uint64 now = (uint64)(getSystemTime() * 0.001f);
-#endif
 
 	static uint16 lastNum = 0;
 

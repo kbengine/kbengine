@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -529,17 +529,17 @@ public:
 	/** 
 		获取对象类别名称
 	*/
-	const char* scriptName() const{ return ob_type->tp_name; }
+	const char* scriptName() const { return ob_type->tp_name; }
 
 	/** 
 		脚本被安装时被调用 
 	*/
-	static void onInstallScript(PyObject* mod){}
+	static void onInstallScript(PyObject* mod) {}
 
 	/** 
 		脚本被卸载时被调用 
 	*/
-	static void onUninstallScript(){}
+	static void onUninstallScript() {}
 } ;
 
 }

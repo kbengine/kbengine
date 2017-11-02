@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -251,6 +251,30 @@ INLINE GAME_TIME Entity::dirChangedTime() const
 INLINE int8 Entity::layer() const
 {
 	return layer_;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE bool Entity::isControlledNotSelfClient() const
+{
+	return controlledBy_ == NULL || controlledBy_->id() != id();
+}
+
+//-------------------------------------------------------------------------------------
+INLINE EntityMailbox* Entity::controlledBy() const
+{
+	return controlledBy_; 
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void Entity::controlledBy(EntityMailbox* baseMailbox)
+{
+	if (controlledBy_)
+		Py_DECREF(controlledBy_);
+
+	controlledBy_ = baseMailbox;
+
+	if (controlledBy_)
+		Py_INCREF(controlledBy_);
 }
 
 //-------------------------------------------------------------------------------------

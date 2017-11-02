@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.h"
 #include "interfaces_handler.h"
 #include "sync_app_datas_handler.h"
+#include "update_dblog_handler.h"
 #include "db_mysql/kbe_table_mysql.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
@@ -69,6 +70,7 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 	pInterfacesAccountHandler_(NULL),
 	pInterfacesChargeHandler_(NULL),
 	pSyncAppDatasHandler_(NULL),
+	pUpdateDBServerLogHandler_(NULL),
 	pTelnetServer_(NULL)
 {
 }
@@ -87,6 +89,30 @@ Dbmgr::~Dbmgr()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::canShutdown()
 {
+	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
+	{
+		// 所有脚本都加载完毕
+		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
+			const_cast<char*>("onReadyForShutDown"),
+			const_cast<char*>(""));
+
+		if (pyResult != NULL)
+		{
+			bool isReady = (pyResult == Py_True);
+			Py_DECREF(pyResult);
+
+			if (isReady)
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			return false;
+		}
+	}
+
 	KBEUnordered_map<std::string, Buffered_DBTasks>::iterator bditer = bufferedDBTasksMaps_.begin();
 	for (; bditer != bufferedDBTasksMaps_.end(); ++bditer)
 	{
@@ -95,8 +121,9 @@ bool Dbmgr::canShutdown()
 			thread::ThreadPool* pThreadPool = DBUtil::pThreadPool(bditer->first);
 			KBE_ASSERT(pThreadPool);
 
-			INFO_MSG(fmt::format("Dbmgr::canShutdown(): Wait for the task to complete, dbInterface={}, tasks={}, threads={}, threadpoolDestroyed={}!\n",
-				bditer->first, bditer->second.size(), pThreadPool->currentThreadCount(), pThreadPool->isDestroyed()));
+			INFO_MSG(fmt::format("Dbmgr::canShutdown(): Wait for the task to complete, dbInterface={}, tasks{}=[{}], threads={}/{}, threadpoolDestroyed={}!\n",
+				bditer->first, bditer->second.size(), bditer->second.getTasksinfos(), (pThreadPool->currentThreadCount() - pThreadPool->currentFreeThreadCount()),
+				pThreadPool->currentThreadCount(), pThreadPool->isDestroyed()));
 
 			return false;
 		}
@@ -201,6 +228,8 @@ void Dbmgr::handleTimeout(TimerHandle handle, void * arg)
 //-------------------------------------------------------------------------------------
 void Dbmgr::handleMainTick()
 {
+	AUTO_SCOPED_PROFILE("mainTick");
+	
 	 //time_t t = ::time(NULL);
 	 //DEBUG_MSG("Dbmgr::handleGameTick[%"PRTime"]:%u\n", t, time_);
 	
@@ -217,6 +246,7 @@ void Dbmgr::handleCheckStatusTick()
 //-------------------------------------------------------------------------------------
 bool Dbmgr::initializeBegin()
 {
+	idServer_.set_range_step(g_kbeSrvConfig.getDBMgr().ids_increasing_range);
 	return true;
 }
 
@@ -375,12 +405,17 @@ bool Dbmgr::initDB()
 		return false;
 	}
 
+	if(pUpdateDBServerLogHandler_ == NULL)
+		pUpdateDBServerLogHandler_ = new UpdateDBServerLogHandler();
+
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::finalise()
 {
+	SAFE_RELEASE(pUpdateDBServerLogHandler_);
+	
 	SAFE_RELEASE(pGlobalData_);
 	SAFE_RELEASE(pBaseAppData_);
 	SAFE_RELEASE(pCellAppData_);
@@ -620,6 +655,7 @@ void Dbmgr::onLoginAccountCBBFromInterfaces(Network::Channel* pChannel, KBEngine
 void Dbmgr::queryAccount(Network::Channel* pChannel, 
 						 std::string& accountName, 
 						 std::string& password,
+						 bool needCheckPassword,
 						 COMPONENT_ID componentID,
 						 ENTITY_ID entityID,
 						 DBID entityDBID, 
@@ -642,7 +678,7 @@ void Dbmgr::queryAccount(Network::Channel* pChannel,
 		return;
 	}
 
-	pBuffered_DBTasks->addTask(new DBTaskQueryAccount(pChannel->addr(), accountName, password, 
+	pBuffered_DBTasks->addTask(new DBTaskQueryAccount(pChannel->addr(), accountName, password, needCheckPassword,
 		componentID, entityID, entityDBID, ip, port));
 
 	numQueryEntity_++;
@@ -836,7 +872,7 @@ void Dbmgr::syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::Memor
 	for (; iter != EntityTables::sEntityTables.end(); ++iter)
 	{
 		KBEAccountTable* pTable =
-			static_cast<KBEAccountTable*>(iter->second.findKBETable("kbe_accountinfos"));
+			static_cast<KBEAccountTable*>(iter->second.findKBETable(KBE_TABLE_PERFIX "_accountinfos"));
 
 		KBE_ASSERT(pTable);
 

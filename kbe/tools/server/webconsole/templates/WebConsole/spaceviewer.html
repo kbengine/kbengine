@@ -1,0 +1,169 @@
+{% extends "WebConsole/base.html" %}
+
+{% block content %}
+{{componentName}} on {{intaddr}}:{{intport}}
+ 
+  	<div id="err">{{err}}</div>
+	<input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url|safe }}">
+	<input name="cell_ws_url" type="hidden" id="cell_ws_url" value="{{ cell_ws_url|safe }}">
+  	<div><hr style=" height:1px;border:none;border-top:1px solid;" /></div>
+	<div class="col-sm-12">
+		<div class="list-tree col-sm-4" style="border: 1px solid;height:750px;overflow:auto;">
+		</div>
+		<div id="space-viewer" class="col-sm-8" style="width: 62%; height:600px;background-color: while;">
+		
+		</div>
+	</div>
+{% endblock %}
+
+{% block tail_js %}
+<script>$(".spaceviewer-cp").addClass("active");</script>
+<script>
+  $(".kbe-list .dd").hide();
+  $(".kbe-list .spaceviewer .dd").show();
+  $(".kbe-list .spaceviewer").css({"background-color":"#317eb4"});
+  $(".kbe-list .spaceviewer").find('li').addClass("menu_chioce");
+
+window.onload = connect_to;
+
+function connect_to()
+{
+	var list = "", list1 = "", list2 = "";
+	var socket = new WebSocket($("#ws_url").val());
+    socket.onopen = function(evt) {}; 
+    socket.onclose = function(evt) {}; 
+    socket.onmessage = function(evt) { 
+     	console.log(evt.data);
+     	obj_data = JSON.parse(evt.data);
+     	for(var i in obj_data["cellapp"]){
+     		{% for comp in kbeComps %}
+     		if (i ==  {{comp.componentID}} )
+     			var cell_name = "{{ comp.fullname }}";
+     		{% endfor %} 
+     		
+     		$(".list-tree").append(list);
+     		for(var j in obj_data["cellapp"][i]["SpaceID"]){
+     			list2 += '<li style="padding-left:5px;" class="space-'+i+'-'+j+'" spaceID='+j+' cellapp='+i+'>　<span onclick="show_result(this)"><a href="javascript:void(0);">'+obj_data["cellapp"][i]["SpaceID"][j]["SpacePath"]+'</a></span></li>';
+     		}
+     		list1 = '<ul style="padding-left:0;" class="cellapp'+i+'"><span onclick="">'+cell_name+'</span>'+list2+'</ul>';
+     		list2 = ""
+     		list +=list1 
+     	}
+     	$(".list-tree").html(list);
+     	list = ""
+    }; 
+    socket.onerror = function(evt) {}; 
+    window.kbe_socket = socket;
+    $.data.connect_closed = false;
+}
+
+function show_space()
+{
+	var point_arr = []
+	cell_data = []
+	var cell_socket = new WebSocket($("#cell_ws_url").val());
+    cell_socket.onopen = function(evt) {
+
+	  var data = cell_data;
+	  var myChart = echarts.init(document.getElementById('space-viewer'));
+	  var option = {
+	    title: {
+	        text: 'Space Viewer'
+	    },
+		dataZoom: [
+        {
+            show: true,
+            realtime: true,
+            start: 0,
+            end: 100,
+        },
+        {
+            type: 'inside',
+            realtime: true,
+            start: 0,
+            end: 100,
+        }
+    ],
+
+	    xAxis: {
+	        splitLine: {
+	            lineStyle: {
+	                type: 'dashed'
+	            }
+	        }
+	    },
+	    yAxis: {
+	        splitLine: {
+	            lineStyle: {
+	                type: 'dashed'
+	            }
+	        },
+	        scale: true
+	    },
+	    series: [{
+	        name: 'CellEntity',
+	        data: cell_data,
+	        type: 'scatter',
+	        symbolSize: function (data) {
+	            return Math.sqrt(data[2]) / 5e2;
+	        },
+	        label: {
+	            emphasis: {
+	                show: true,
+	                formatter: function (param) {
+	                    return param.data[3];
+	                },
+	                position: 'top'
+	            }
+	        },
+	    }]
+	}
+	myChart.setOption(option);	
+	timeTicket = setInterval(function () {
+    //实时更新重写数据
+    myChart.setOption({
+        series: [{
+          data: cell_data
+        }]
+      });
+    }, 500); 
+}; 
+    cell_socket.onclose = function(evt) {}; 
+    cell_socket.onmessage = function(evt) {
+    	console.log(evt.data);
+    	obj_cell = JSON.parse(evt.data);
+    	console.log(obj_cell);
+    	for( i in obj_cell["spaceEntity"]){
+    		point_arr = [obj_cell["spaceEntity"][i]["position_X"],obj_cell["spaceEntity"][i]["position_Z"],40000000,i,obj_cell["spaceEntity"][i]["pEntity"]];
+    		for (var j in cell_data )
+    			if (cell_data[j][3] == i) {
+    				cell_data.splice(j,1);
+    				break;
+    			}
+    		if (obj_cell["spaceEntity"][i]["position_X"] != obj_cell["spaceEntity"][i]["position_Z"] != 0)
+    			cell_data.push(point_arr);
+    }; 
+    cell_socket.onerror = function(evt) {}; 
+    window.kbe_cell_socket = cell_socket;
+    $.data.connect_closed = false;
+	}
+}
+
+function show_result(obj)
+{ 
+	var spaceID = $(obj).parent().attr("spaceID");
+	var cellappCPID =  $(obj).parent().attr("cellapp");
+	{% for comp in kbeComps %}
+     if (cellappCPID ==  {{comp.componentID}} )
+     	var host = "{{comp.intaddr}}";
+     	var port = {{comp.intport}};
+     	var cp = {{comp.componentType}};
+     {% endfor %}
+     var href = "ws://{{http_host}}/wc/spaceviewer/cell_process_cmd"+"?cp="+cp+"&port="+port+"&host="+host+"&spaceID="+spaceID;
+     $("#cell_ws_url").val(href);
+     show_space()
+}
+
+</script>
+    
+{% endblock %}

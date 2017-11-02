@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -47,6 +47,7 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	// 客户端协议导出。
+	LOGINAPP_MESSAGE_EXPOSED(importClientMessages)
 	LOGINAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,							NETWORK_FIXED_MESSAGE)
 
 	// 错误码描述导出。
@@ -131,6 +132,15 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_ARGS2(onAccountResetPassword,							NETWORK_VARIABLE_MESSAGE,
 									std::string,									code, 
 									bool,											success)
+
+	// baseapp请求绑定email（返回时需要找到loginapp的地址）
+	LOGINAPP_MESSAGE_DECLARE_ARGS6(onReqAccountBindEmailAllocCallbackLoginapp,		NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_ID,									reqBaseappID,
+									ENTITY_ID,										entityID,
+									std::string,									accountName,
+									std::string,									email,
+									SERVER_ERROR_CODE,								failedcode,
+									std::string,									code)
 
 	// 请求关闭服务器
 	LOGINAPP_MESSAGE_DECLARE_STREAM(reqCloseServer,									NETWORK_VARIABLE_MESSAGE)

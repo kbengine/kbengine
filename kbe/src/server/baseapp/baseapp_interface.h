@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -50,9 +50,11 @@ namespace KBEngine{
 */
 NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 客户端请求导入协议。
+	BASEAPP_MESSAGE_EXPOSED(importClientMessages)
 	BASEAPP_MESSAGE_DECLARE_ARGS0(importClientMessages,								NETWORK_FIXED_MESSAGE)
 
 	// 客户端entitydef导出。
+	BASEAPP_MESSAGE_EXPOSED(importClientEntityDef)
 	BASEAPP_MESSAGE_DECLARE_ARGS0(importClientEntityDef,							NETWORK_FIXED_MESSAGE)
 
 	// 某app主动请求断线。
@@ -134,6 +136,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// createBaseAnywhere成功之后回调消息到发起层createBaseAnywhere的baseapp的entity。
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereCallback,					NETWORK_FIXED_MESSAGE)
 
+	// createBaseRemotely成功之后回调消息到发起层createBaseRemotely的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotely,							NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotely成功之后回调消息到发起层createBaseRemotely的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotelyCallback,					 NETWORK_FIXED_MESSAGE)
+
 	// createCellEntity的cell实体创建成功回调。
 	BASEAPP_MESSAGE_DECLARE_ARGS3(onEntityGetCell,									NETWORK_FIXED_MESSAGE,
 									ENTITY_ID,										id,
@@ -157,8 +165,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,									password)
 
 	// 前端请求重新登录到网关上。
-	BASEAPP_MESSAGE_EXPOSED(reLoginBaseapp)
-	BASEAPP_MESSAGE_DECLARE_ARGS4(reLoginBaseapp,									NETWORK_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_EXPOSED(reloginBaseapp)
+	BASEAPP_MESSAGE_DECLARE_ARGS4(reloginBaseapp,									NETWORK_VARIABLE_MESSAGE,
 									std::string,									accountName,
 									std::string,									password,
 									uint64,											key,
@@ -177,6 +185,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// client更新数据
 	BASEAPP_MESSAGE_EXPOSED(onUpdateDataFromClient)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClient,							NETWORK_VARIABLE_MESSAGE)
+	BASEAPP_MESSAGE_EXPOSED(onUpdateDataFromClientForControlledEntity)
+	BASEAPP_MESSAGE_DECLARE_STREAM(onUpdateDataFromClientForControlledEntity,		NETWORK_VARIABLE_MESSAGE)
 
 	// executeRawDatabaseCommand从dbmgr的回调
 	BASEAPP_MESSAGE_DECLARE_STREAM(onExecuteRawDatabaseCommandCB,					NETWORK_VARIABLE_MESSAGE)
@@ -208,6 +218,9 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseFromDBIDCallback,					NETWORK_FIXED_MESSAGE)
 
 	// createBaseAnywhereFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onGetCreateBaseAnywhereFromDBIDBestBaseappID,	NETWORK_FIXED_MESSAGE)
+
+	// createBaseAnywhereFromDBID的回调
 	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
 
 	// createBaseAnywhereFromDBID的回调
@@ -215,6 +228,20 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 
 	// createBaseAnywhereFromDBID的回调
 	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateBaseAnywhereFromDBIDOtherBaseappCallback,	NETWORK_VARIABLE_MESSAGE,
+									COMPONENT_ID,									createByBaseappID,
+									std::string,									entityType,
+									ENTITY_ID,										createdEntityID,
+									CALLBACK_ID,									callbackID,
+									DBID,											dbid)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotelyFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(createBaseRemotelyFromDBIDOtherBaseapp,			NETWORK_FIXED_MESSAGE)
+
+	// createBaseRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateBaseRemotelyFromDBIDOtherBaseappCallback,	NETWORK_VARIABLE_MESSAGE,
 									COMPONENT_ID,									createByBaseappID,
 									std::string,									entityType,
 									ENTITY_ID,										createdEntityID,
@@ -250,12 +277,22 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									std::string,									email)
 
 	// 请求绑定email申请的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS5(onReqAccountBindEmailCB,							NETWORK_VARIABLE_MESSAGE,
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onReqAccountBindEmailCBFromDBMgr,					NETWORK_VARIABLE_MESSAGE,
 									ENTITY_ID,										entityID,
 									std::string,									accountName,
 									std::string,									email,
 									SERVER_ERROR_CODE,								failedcode,
 									std::string,									code)
+
+	// baseapp请求绑定email（返回时需要找到loginapp的地址）
+	BASEAPP_MESSAGE_DECLARE_ARGS7(onReqAccountBindEmailCBFromBaseappmgr,			NETWORK_VARIABLE_MESSAGE,
+									ENTITY_ID,										entityID,
+									std::string,									accountName,
+									std::string,									email,
+									SERVER_ERROR_CODE,								failedcode,
+									std::string,									code,
+									std::string,									loginappCBHost,
+									uint16,											loginappCBPort)
 
 	// 请求修改密码
 	BASEAPP_MESSAGE_EXPOSED(reqAccountNewPassword)
@@ -301,16 +338,14 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 								DBID,												dbid)
 
 	// entity请求迁移到另一个cellapp上的space过程开始
-	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappStart,								NETWORK_FIXED_MESSAGE,
-								COMPONENT_ID,										cellAppID)
-
-	// entity请求迁移到另一个cellapp上的space过程到达目的cellapp
-	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappArrived,							NETWORK_FIXED_MESSAGE,
-								COMPONENT_ID,										cellAppID)
+	BASE_MESSAGE_DECLARE_ARGS2(onMigrationCellappStart,								NETWORK_FIXED_MESSAGE,
+								COMPONENT_ID,										sourceCellAppID,
+								COMPONENT_ID,										targetCellAppID)
 		
 	// entity请求迁移到另一个cellapp上的space过程结束
-	BASE_MESSAGE_DECLARE_ARGS1(onMigrationCellappEnd,								NETWORK_FIXED_MESSAGE,
-								COMPONENT_ID,										cellAppID)
+	BASE_MESSAGE_DECLARE_ARGS2(onMigrationCellappEnd,								NETWORK_FIXED_MESSAGE,
+								COMPONENT_ID,										sourceCellAppID,
+								COMPONENT_ID,										targetCellAppID)
 
 	//--------------------------------------------Proxy---------------------------------------------------------
 	/**

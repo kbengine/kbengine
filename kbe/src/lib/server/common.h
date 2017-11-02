@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2016 KBEngine.
+Copyright (c) 2008-2017 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -90,10 +90,13 @@ namespace KBEngine {
 		}																																\
 	}																																	\
 																																		\
+	Network::NetworkStats::getSingleton().trackMessage(Network::NetworkStats::SEND, MESSAGEHANDLE, messageLength);						\
+																																		\
 	if (Network::g_trace_packet > 0)																									\
 		Network::Bundle::debugCurrentMessages(MESSAGEHANDLE.msgID, &MESSAGEHANDLE, 														\
 				pCurrPacket, SENDBUNDLE->packets(), messageLength, SENDBUNDLE->pChannel());												\
 }																																		\
+
 
 // cellapp转发消息给客户端消息包追加消息(直接在SENDBUNDLE追加)
 #define ENTITY_MESSAGE_FORWARD_CLIENT_START(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
@@ -206,8 +209,8 @@ inline uint64 secondsToStamps(float seconds)
 /*
  账号和密码最大长度
 */
-#define ACCOUNT_NAME_MAX_LENGTH						1024
-#define ACCOUNT_PASSWD_MAX_LENGTH					1024
+#define ACCOUNT_NAME_MAX_LENGTH						128
+#define ACCOUNT_PASSWD_MAX_LENGTH					255
 
 // 登录注册时附带的信息最大长度
 #define ACCOUNT_DATA_MAX_LENGTH						1024
