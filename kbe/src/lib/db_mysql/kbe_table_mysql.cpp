@@ -398,7 +398,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 		"(`accountName` varchar({}) not null, PRIMARY KEY idKey (`accountName`),"
 		"`password` varchar({}),"
 			"`bindata` blob,"
-			"`email` varchar(255) not null, UNIQUE KEY `email` (`email`),"
+			"`email` varchar(191) not null, UNIQUE KEY `email` (`email`),"
 			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
 			"`flags` int unsigned not null DEFAULT 0,"
 			"`deadline` bigint(20) not null DEFAULT 0,"
