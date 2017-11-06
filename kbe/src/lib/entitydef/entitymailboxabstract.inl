@@ -80,7 +80,7 @@ INLINE COMPONENT_ID EntityMailboxAbstract::componentID(void) const {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityMailboxAbstract::componentID(COMPONENT_ID cid)
+INLINE void EntityMailboxAbstract::componentID(COMPONENT_ID cid)
 {
 	componentID_ = cid;
 }
