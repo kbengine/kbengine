@@ -42,6 +42,7 @@ SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		METH_VARAR
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			METH_VARARGS,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			METH_VARARGS,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("disconnect",			__py_disconnect,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("kbassert",			__py_assert,				METH_VARARGS,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -2301,6 +2302,13 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 void ClientObjectBase::onAppActiveTickCB(Network::Channel* pChannel)
 {
 	pChannel->updateLastReceivedTime();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_assert(PyObject* self, PyObject* args)
+{
+	KBE_ASSERT(false && "kbassert");
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------		

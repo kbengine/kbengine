@@ -408,6 +408,11 @@ public:
 	*/
 	void onAppActiveTickCB(Network::Channel* pChannel);
 
+	/**
+		ÔÊÐí½Å±¾assertµ×²ã
+	*/
+	static PyObject* __py_assert(PyObject* self, PyObject* args);
+
 protected:				
 	int32													appID_;
 
