@@ -3675,7 +3675,7 @@ void Entity::onRemoteRealMethodCall(KBEngine::MemoryStream& s)
 	MethodDescription* pMethodDescription = pScriptModule()->findCellMethodDescription(utype);
 	if(pMethodDescription == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::onRemoteRealMethodCall: not found propertyID({}), entityID({})\n", 
+		ERROR_MSG(fmt::format("{}::onRemoteRealMethodCall: not found method({}), entityID({})\n", 
 			scriptName(), utype, id()));
 
 		s.done();
