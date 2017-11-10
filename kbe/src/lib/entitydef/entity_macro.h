@@ -687,8 +687,8 @@ public:																										\
 			(g_componentType == BASEAPP_TYPE && currargsSize > 3))											\
 		{																									\
 			PyErr_Format(PyExc_AssertionError,																\
-							"%s: args max require %d args, gived %d! is script[%s].\n",						\
-				__FUNCTION__, 1, currargsSize, pobj->scriptName());											\
+							"%s::writeToDB: args max require %d args, gived %d!\n",							\
+				pobj->scriptName(), 1, currargsSize);														\
 																											\
 			PyErr_PrintEx(0);																				\
 			S_Return;																						\
@@ -720,7 +720,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "O", &pycallback) == -1)											\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
+					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -730,7 +730,7 @@ public:																										\
 				{																							\
 					if(pycallback != Py_None)																\
 					{																						\
-						PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");		\
+						PyErr_Format(PyExc_TypeError, "%s::writeToDB: args1 not is callback!", pobj->scriptName());\
 						PyErr_PrintEx(0);																	\
 						S_Return;																			\
 					}																						\
@@ -744,7 +744,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "i", &extra) == -1)												\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
+					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -757,7 +757,7 @@ public:																										\
 			{																								\
 				if(PyArg_ParseTuple(args, "O|i", &pycallback, &extra) == -1)								\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
+					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -767,7 +767,7 @@ public:																										\
 				{																							\
 					if(pycallback != Py_None)																\
 					{																						\
-						PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");		\
+						PyErr_Format(PyExc_TypeError, "%s::writeToDB: args1 not is callback!", pobj->scriptName());	\
 						PyErr_PrintEx(0);																	\
 						S_Return;																			\
 					}																						\
@@ -782,7 +782,7 @@ public:																										\
 				PyObject* pystr_extra = NULL;																\
 				if(PyArg_ParseTuple(args, "i|O", &extra, &pystr_extra) == -1)								\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
+					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -799,9 +799,9 @@ public:																										\
 																											\
 				if(!g_kbeSrvConfig.dbInterface(strextra))													\
 				{																							\
-					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args2, "							\
+					PyErr_Format(PyExc_TypeError, "%s::writeToDB: args2, "									\
 													"incorrect dbInterfaceName(%s)!",						\
-													strextra.c_str());										\
+													pobj->scriptName(), strextra.c_str());					\
 					PyErr_PrintEx(0);																		\
 					S_Return;																				\
 				}																							\
@@ -814,7 +814,7 @@ public:																										\
 				PyObject* pystr_extra = NULL;																\
 				if(PyArg_ParseTuple(args, "O|i|O", &pycallback, &extra, &pystr_extra) == -1)				\
 				{																							\
-					PyErr_Format(PyExc_AssertionError, "KBEngine::writeToDB: args error!");					\
+					PyErr_Format(PyExc_AssertionError, "%s::writeToDB: args error!", pobj->scriptName());	\
 					PyErr_PrintEx(0);																		\
 					pycallback = NULL;																		\
 					S_Return;																				\
@@ -824,7 +824,7 @@ public:																										\
 				{																							\
 					if(pycallback != Py_None)																\
 					{																						\
-						PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args1 not is callback!");		\
+						PyErr_Format(PyExc_TypeError, "%s::writeToDB: args1 not is callback!", pobj->scriptName());	\
 						PyErr_PrintEx(0);																	\
 						S_Return;																			\
 					}																						\
@@ -845,9 +845,9 @@ public:																										\
 																											\
 				if(!g_kbeSrvConfig.dbInterface(strextra))													\
 				{																							\
-					PyErr_Format(PyExc_TypeError, "KBEngine::writeToDB: args3, "							\
+					PyErr_Format(PyExc_TypeError, "%s::writeToDB: args3, "									\
 										"incorrect dbInterfaceName(%s)!",									\
-											strextra.c_str());												\
+											pobj->scriptName(), strextra.c_str());							\
 					PyErr_PrintEx(0);																		\
 					S_Return;																				\
 				}																							\
