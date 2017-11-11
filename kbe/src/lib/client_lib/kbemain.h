@@ -99,10 +99,18 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 	pyPaths += user_scripts_path + L"data;";
 	pyPaths += user_scripts_path + L"user_type;";
 
-	if(componentType == CLIENT_TYPE)
+	if (componentType == CLIENT_TYPE)
+	{
 		pyPaths += user_scripts_path + L"client;";
+		pyPaths += user_scripts_path + L"client/interfaces;";
+		pyPaths += user_scripts_path + L"client/components;";
+	}
 	else
+	{
 		pyPaths += user_scripts_path + L"bots;";
+		pyPaths += user_scripts_path + L"bots/interfaces;";
+		pyPaths += user_scripts_path + L"bots/components;";
+	}
 
 	std::string kbe_res_path = Resmgr::getSingleton().getPySysResPath();
 	kbe_res_path += "scripts/common";
