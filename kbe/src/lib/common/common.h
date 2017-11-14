@@ -140,8 +140,7 @@ enum COMPONENT_TYPE
 	BOTS_TYPE				= 11,
 	WATCHER_TYPE			= 12,
 	INTERFACES_TYPE			= 13,
-	TOOL_TYPE				= 14,
-	COMPONENT_END_TYPE		= 15,
+	COMPONENT_END_TYPE		= 14,
 };
 
 /** 当前服务器组件类别和ID */
@@ -164,7 +163,6 @@ const char COMPONENT_NAME[][255] = {
 	"bots",
 	"watcher",
 	"interfaces",
-	"tool",
 };
 
 const char COMPONENT_NAME_1[][255] = {
@@ -182,7 +180,6 @@ const char COMPONENT_NAME_1[][255] = {
 	"bots      ",
 	"watcher   ",
 	"interfaces",
-	"tool      ",
 };
 
 const char COMPONENT_NAME_2[][255] = {
@@ -200,7 +197,6 @@ const char COMPONENT_NAME_2[][255] = {
 	"      bots",
 	"   watcher",
 	"interfaces",
-	"      tool",
 };
 
 inline const char* COMPONENT_NAME_EX(COMPONENT_TYPE CTYPE)
@@ -246,7 +242,7 @@ inline COMPONENT_TYPE ComponentName2ComponentType(const char* name)
 
 // 所有的组件列表
 const COMPONENT_TYPE ALL_COMPONENT_TYPES[] = {BASEAPPMGR_TYPE, CELLAPPMGR_TYPE, DBMGR_TYPE, CELLAPP_TYPE, 
-						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, CONSOLE_TYPE, TOOL_TYPE, LOGGER_TYPE,
+						BASEAPP_TYPE, LOGINAPP_TYPE, MACHINE_TYPE, CONSOLE_TYPE, LOGGER_TYPE, 
 						WATCHER_TYPE, INTERFACES_TYPE, BOTS_TYPE, UNKNOWN_COMPONENT_TYPE};
 
 // 所有的后端组件列表
