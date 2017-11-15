@@ -675,6 +675,7 @@ public:
 	virtual PyObject* createNewFromObj(PyObject* pyobj);
 
 	virtual DATATYPE type() const{ return DATA_TYPE_FIXEDARRAY; }
+
 protected:
 	DataType*			dataType_;		// 这个数组所处理的类别
 };

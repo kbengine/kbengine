@@ -1329,6 +1329,11 @@ bool EntityDef::isLoadScriptModule(ScriptDefModule* pScriptModule)
 
 			break;
 		}
+	case TOOL_TYPE:
+	{
+		return false;
+		break;
+	}
 	default:
 		{
 			if(!pScriptModule->hasCell())

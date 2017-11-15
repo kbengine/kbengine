@@ -105,6 +105,14 @@ bool DataTypes::loadAlias(std::string& file)
 		std::string aliasName = xml->getKey(node);
 		TiXmlNode* childNode = node->FirstChild();
 
+		// 不允许前面加_, 因为内部产生的一些临时结构前面使用了_, 避免误判
+		if (aliasName[0] == '_')
+		{
+			ERROR_MSG(fmt::format("DataTypes::loadAlias: Not allowed to use the prefix \"_\"! aliasName={}\n",
+				aliasName.c_str()));
+			return false;
+		}
+
 		if(childNode != NULL)
 		{
 			type = xml->getValStr(childNode);
