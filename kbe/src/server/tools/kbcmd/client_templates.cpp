@@ -227,9 +227,15 @@ bool ClientTemplates::writeTypes()
 		return false;
 
 	const DataTypes::DATATYPE_MAP& dataTypes = DataTypes::dataTypes();
-	DataTypes::DATATYPE_MAP::const_iterator iter = dataTypes.begin();
-	for (; iter != dataTypes.end(); ++iter)
+	
+
+	const DataTypes::DATATYPE_ORDERS& dataTypesOrders = DataTypes::dataTypesOrders();
+	DataTypes::DATATYPE_ORDERS::const_iterator oiter = dataTypesOrders.begin();
+
+	for (; oiter != dataTypesOrders.end(); ++oiter)
 	{
+		DataTypes::DATATYPE_MAP::const_iterator iter = dataTypes.find((*oiter));
+
 		std::string typeName = iter->first;
 
 		if (typeName[0] == '_')

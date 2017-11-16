@@ -168,6 +168,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ssl", "lib\python\PCbuild\_ssl.vcxproj", "{C6E20F84-3247-4AD6-B051-B073268F73BA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kbcmd", "server\tools\kbcmd\kbcmd.vcxproj", "{938D17CB-3F34-46A4-AF64-2099B7FF6902}"
+	ProjectSection(ProjectDependencies) = postProject
+		{44FA54E8-0A60-4A6C-A449-118872E75502} = {44FA54E8-0A60-4A6C-A449-118872E75502}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

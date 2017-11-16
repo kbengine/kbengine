@@ -463,10 +463,11 @@ bool ClientTemplatesUE4::writeModuleBegin(ScriptDefModule* pEntityScriptDefModul
 {
 	std::string newModuleName = fmt::format("{}Base", pEntityScriptDefModule->getName());
 
-	initBody_ = "";
+	initBody_ = "\tEntity(),\n";
 
 	sourcefileBody_ = headerBody;
 	sourcefileBody_ += "#pragma once\n";
+	sourcefileBody_ += "#include \"KBETypes.h\"\n\n";
 	sourcefileBody_ += "class Entity;\n";
 
 	sourcefileBody_ += std::string("\n// defined in */scripts/entity_defs/") + pEntityScriptDefModule->getName() + ".def\n";
@@ -487,7 +488,7 @@ bool ClientTemplatesUE4::writeModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	std::string newModuleName = fmt::format("{}Base", pEntityScriptDefModule->getName());
 
 	sourcefileBody_ += fmt::format("\n\t{}(){}\n\t{{\n\t}}\n", newModuleName, initBody_);
-	sourcefileBody_ += fmt::format("\n\tvirtual {}()\n\t{{\n\t}}\n\n", newModuleName);
+	sourcefileBody_ += fmt::format("\n\tvirtual ~{}()\n\t{{\n\t}}\n\n", newModuleName);
 	sourcefileBody_ += "\n};\n\n";
 	return true;
 }

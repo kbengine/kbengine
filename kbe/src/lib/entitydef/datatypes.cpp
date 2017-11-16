@@ -27,6 +27,7 @@ namespace KBEngine{
 DataTypes::DATATYPE_MAP DataTypes::dataTypes_;
 DataTypes::DATATYPE_MAP DataTypes::dataTypesLowerName_;
 DataTypes::UID_DATATYPE_MAP DataTypes::uid_dataTypes_;
+DataTypes::DATATYPE_ORDERS DataTypes::dataTypesOrders_;
 
 //-------------------------------------------------------------------------------------
 DataTypes::DataTypes()
@@ -173,6 +174,8 @@ bool DataTypes::loadAlias(std::string& file)
 //-------------------------------------------------------------------------------------
 bool DataTypes::addDataType(std::string name, DataType* dataType)
 {
+	dataTypesOrders_.push_back(name);
+
 	dataType->aliasName(name);
 	std::string lowername = name;
 	std::transform(lowername.begin(), lowername.end(), lowername.begin(), tolower);	

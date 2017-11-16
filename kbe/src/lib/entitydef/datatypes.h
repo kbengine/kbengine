@@ -40,6 +40,7 @@ class DataTypes
 public:	
 	typedef std::map<std::string, DataTypePtr> DATATYPE_MAP;
 	typedef std::map<DATATYPE_UID, DataType*> UID_DATATYPE_MAP;
+	typedef std::vector< std::string > DATATYPE_ORDERS;
 
 	DataTypes();
 	virtual ~DataTypes();	
@@ -59,11 +60,15 @@ public:
 
 	static const DATATYPE_MAP& dataTypes(){ return dataTypes_; }
 	static const UID_DATATYPE_MAP& uid_dataTypes(){ return uid_dataTypes_; }
+	static const DATATYPE_ORDERS& dataTypesOrders() { return dataTypesOrders_; }
 
 protected:
 	static DATATYPE_MAP dataTypes_;
 	static DATATYPE_MAP dataTypesLowerName_;
 	static UID_DATATYPE_MAP uid_dataTypes_;
+
+	// 类型定义的先后顺序，用于代码生成， c++等语言需要先后顺序依赖
+	static DATATYPE_ORDERS dataTypesOrders_;
 };
 
 }
