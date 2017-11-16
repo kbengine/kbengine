@@ -116,11 +116,11 @@ std::string ClientTemplatesUnity::typeToType(const std::string& type)
 	}
 	else if (type == "ARRAY")
 	{
-		return type;
+		return "List";
 	}
 	else if (type == "FIXED_DICT")
 	{
-		return type;
+		return "Dictionary";
 	}
 #ifdef CLIENT_NO_FLOAT
 	else if (type == "VECTOR2")

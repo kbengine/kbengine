@@ -124,7 +124,6 @@ ClientTemplates* ClientTemplates::createClientTemplates(const std::string& type)
 		return new ClientTemplatesUE4();
 	}
 
-
 	return NULL;
 }
 
@@ -395,7 +394,7 @@ bool ClientTemplates::writeTypes()
 		{
 			FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
 
-			if (!writeTypeBegin(typeName, pFixedArrayType, "List<#REPLACE#>"))
+			if (!writeTypeBegin(typeName, pFixedArrayType, fmt::format("{}<#REPLACE#>", typeToType("ARRAY"))))
 				return false;
 
 			std::string type = pFixedArrayType->getDataType()->getName();
@@ -672,7 +671,7 @@ bool ClientTemplates::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 
 		if (argsBody.size() > 0)
 		{
-			argsBody.erase(argsBody.size() - 2, argsBody.size() - 1);
+			argsBody.erase(argsBody.size() - 2, 1);
 		}
 
 		strutil::kbe_replace(sourcefileBody_, "#REPLACE#", argsBody);

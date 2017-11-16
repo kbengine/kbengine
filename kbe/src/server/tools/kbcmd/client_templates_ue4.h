@@ -149,7 +149,7 @@ public:
 	virtual bool writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& argsTypeBody, const std::string& childItemName);
 
 protected:
-
+	std::string initBody_;
 };
 
 }
