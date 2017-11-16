@@ -717,11 +717,11 @@ bool ClientTemplatesCSharp::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayTyp
 			FixedArrayType* pChildFixedArrayType = static_cast<FixedArrayType*>(pFixedArrayType->getDataType());
 
 			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), fmt::format("List<{}>", pFixedArrayType->getDataType()->aliasName()));
+				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), fmt::format("List<{}>", pChildFixedArrayType->aliasName()));
 			else
-				new_childItemName = fmt::format("List<{}>", pFixedArrayType->getDataType()->aliasName());
+				new_childItemName = fmt::format("List<{}>", pChildFixedArrayType->aliasName());
 
-			return writeMethodArgs_ARRAY((FixedArrayType*)pFixedArrayType->getDataType(), argsTypeBody, new_childItemName);
+			return writeMethodArgs_ARRAY(pChildFixedArrayType, argsTypeBody, new_childItemName);
 		}
 		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
 		{
