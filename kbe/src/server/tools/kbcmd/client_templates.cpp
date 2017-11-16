@@ -19,7 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "client_templates.h"
-#include "client_templates_csharp.h"	
+#include "client_templates_unity.h"	
+#include "client_templates_ue4.h"
 #include "entitydef/entitydef.h"
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/property.h"
@@ -111,10 +112,18 @@ ClientTemplates::~ClientTemplates()
 //-------------------------------------------------------------------------------------
 ClientTemplates* ClientTemplates::createClientTemplates(const std::string& type)
 {
-	if (type == "unity")
+	std::string lowerType = type;
+	std::transform(lowerType.begin(), lowerType.end(), lowerType.begin(), tolower);
+
+	if (lowerType == "unity")
 	{
-		return new ClientTemplatesCSharp();
+		return new ClientTemplatesUnity();
 	}
+	else if(lowerType == "ue4")
+	{
+		return new ClientTemplatesUE4();
+	}
+
 
 	return NULL;
 }

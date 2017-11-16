@@ -209,7 +209,8 @@
     <ClCompile Include="..\..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="..\..\..\lib\python\Modules\getbuildinfo.c" />
     <ClCompile Include="client_templates.cpp" />
-    <ClCompile Include="client_templates_csharp.cpp" />
+    <ClCompile Include="client_templates_ue4.cpp" />
+    <ClCompile Include="client_templates_unity.cpp" />
     <ClCompile Include="kbcmd.cpp" />
     <ClCompile Include="kbcmd_interface.cpp" />
     <ClCompile Include="main.cpp" />
@@ -217,7 +218,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client_templates.h" />
-    <ClInclude Include="client_templates_csharp.h" />
+    <ClInclude Include="client_templates_ue4.h" />
+    <ClInclude Include="client_templates_unity.h" />
     <ClInclude Include="kbcmd.h" />
     <ClInclude Include="kbcmd_interface.h" />
     <ClInclude Include="kbcmd_interface_macros.h" />

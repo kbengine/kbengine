@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_CLIENT_TEMPLATES_CSHARP_H
-#define KBE_CLIENT_TEMPLATES_CSHARP_H
+#ifndef KBE_CLIENT_TEMPLATES_UNITY_H
+#define KBE_CLIENT_TEMPLATES_UNITY_H
 
 #include "client_templates.h"
 #include "common/common.h"
@@ -27,11 +27,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-class ClientTemplatesCSharp : public ClientTemplates
+class ClientTemplatesUnity : public ClientTemplates
 {
 public:
-	ClientTemplatesCSharp();
-	virtual ~ClientTemplatesCSharp();
+	ClientTemplatesUnity();
+	virtual ~ClientTemplatesUnity();
 
 	virtual void onCreateModuleFileName(const std::string& moduleName);
 	virtual void onCreateTypeFileName();

@@ -185,29 +185,38 @@ int process_make_client_templates(int argc, char* argv[], const std::string clie
 	PARSE_COMMAND_ARG_GET_VALUE("--path=", path);
 	PARSE_COMMAND_ARG_END();
 
-	ClientTemplates* pTemplates = ClientTemplates::createClientTemplates("unity");
+	ClientTemplates* pTemplates = ClientTemplates::createClientTemplates(clientType);
 	
 	int ret = 0;
 
-	try
+	if (pTemplates)
 	{
-		if (!pTemplates->create(path))
+		try
 		{
-			ret = -1;
+			if (!pTemplates->create(path))
+			{
+				ret = -1;
+			}
+		}
+		catch (std::exception &err)
+		{
+			ERROR_MSG(fmt::format("app::initialize(): create templates error({})!\n", err.what()));
 		}
 	}
-	catch (std::exception &err)
+	else
 	{
-		ERROR_MSG(fmt::format("app::initialize(): create templates error({})!\n", err.what()));
+		ERROR_MSG(fmt::format("app::initialize(): create templates error! nonsupport type={}\n", clientType));
+		ret = -1;
 	}
 
 	app.finalise();
-	INFO_MSG(fmt::format("{}({}) has shut down. ClientTemplatesCSharp={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pTemplates->good()));
+	INFO_MSG(fmt::format("{}({}) has shut down. ClientTemplates={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pTemplates->good()));
 
 	// 如果还有日志未同步完成， 这里会继续同步完成才结束
 	DebugHelper::getSingleton().finalise();
 
-	delete pTemplates;
+	if(pTemplates)
+		delete pTemplates;
 
 	return ret;
 }
