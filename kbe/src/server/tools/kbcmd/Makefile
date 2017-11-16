@@ -4,6 +4,7 @@ SRCS =						\
 	client_templates_csharp	\
 	kbcmd		\
 	kbcmd_interface	\
+	entityref	\
 	profile					\
 	main
 
