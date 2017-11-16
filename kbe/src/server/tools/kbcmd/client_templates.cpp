@@ -156,7 +156,7 @@ bool ClientTemplates::saveFile()
 	}
 
 	int written = fwrite(sourcefileBody_.c_str(), 1, sourcefileBody_.size(), fp);
-	if (written != sourcefileBody_.size())
+	if (written != (int)sourcefileBody_.size())
 	{
 		ERROR_MSG(fmt::format("ClientTemplates::saveFile(): fwrite error! {}\n",
 			path));
