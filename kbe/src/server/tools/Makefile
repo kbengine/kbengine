@@ -18,7 +18,8 @@ endif
 	$(MAKE) -C bots $@
 	$(MAKE) -C interfaces $@
 	$(MAKE) -C logger $@
-	
+	$(MAKE) -C kbcmd $@
+
 ifdef KBE_CONFIG
 	@echo completed $@ \(KBE_CONFIG = $(KBE_CONFIG)\)
 else
