@@ -35,12 +35,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>  
 #endif  
 
-#ifdef _WIN32  
-#define ACCESS _access  
-#define MKDIR(a) _mkdir((a))  
-#elif _LINUX  
-#define ACCESS access  
-#define MKDIR(a) mkdir((a),0755)  
+#if KBE_PLATFORM == PLATFORM_WIN32
+#define KBE_ACCESS _access  
+#define KBE_MKDIR(a) _mkdir((a))  
+#else
+#define KBE_ACCESS access  
+#define KBE_MKDIR(a) mkdir((a),0755)  
 #endif  
 
 namespace KBEngine {	
@@ -68,10 +68,10 @@ int CreatDir(const char *pDir)
 			pszDir[i] = '\0';
 
 			//如果不存在,创建  
-			iRet = ACCESS(pszDir, 0);
+			iRet = KBE_ACCESS(pszDir, 0);
 			if (iRet != 0)
 			{
-				iRet = MKDIR(pszDir);
+				iRet = KBE_MKDIR(pszDir);
 				if (iRet != 0)
 				{
 					free(pszDir);
@@ -84,9 +84,9 @@ int CreatDir(const char *pDir)
 		}
 	}
 
-	if (iLen > 0 && ACCESS(pszDir, 0) != 0)
+	if (iLen > 0 && KBE_ACCESS(pszDir, 0) != 0)
 	{
-		iRet = MKDIR(pszDir);
+		iRet = KBE_MKDIR(pszDir);
 	}
 	
 	free(pszDir);
