@@ -181,7 +181,7 @@ int process_make_client_templates(int argc, char* argv[], const std::string clie
 	std::string path = "";
 
 	PARSE_COMMAND_ARG_BEGIN();
-	PARSE_COMMAND_ARG_GET_VALUE("--path=", path);
+	PARSE_COMMAND_ARG_GET_VALUE("--outpath=", path);
 	PARSE_COMMAND_ARG_END();
 
 	ClientTemplates* pTemplates = ClientTemplates::createClientTemplates(clientType);
@@ -225,8 +225,9 @@ int process_help(int argc, char* argv[])
 	printf("Usage:\n");
 	printf("--clienttemplates:\n");
 	printf("\tAutomatically generate client code based on entity_defs file. Environment variables based on KBE.\n");
-	printf("\tkbcmd.exe --clienttemplates=unity --path=c:/unity_clienttemplates\n");
-	printf("\tkbcmd.exe --clienttemplates=ue4 --path=c:/unity_clienttemplates\n");
+	printf("\tkbcmd.exe --clienttemplates=unity --outpath=c:/unity_clienttemplates\n");
+	printf("\tkbcmd.exe --clienttemplates=ue4 --outpath=c:/unity_clienttemplates\n");
+	printf("\tkbcmd.exe --clienttemplates=ue4 --outpath=c:/unity_clienttemplates --KBE_ROOT=\"*\"  --KBE_RES_PATH=\"*\"  --KBE_BIN_PATH=\"*\"\n");
 
 	printf("\n--help:\n");
 	printf("\tDisplay help information.\n");

@@ -287,6 +287,45 @@ inline void parseMainCommandArgs(int argc, char* argv[])
 
 			continue;
 		}
+
+		findcmd = "--KBE_ROOT=";
+		fi1 = cmd.find(findcmd);
+		if (fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if (cmd.size() > 0)
+			{
+				setenv("KBE_ROOT", cmd.c_str(), 1);
+			}
+
+			continue;
+		}
+
+		findcmd = "--KBE_RES_PATH=";
+		fi1 = cmd.find(findcmd);
+		if (fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if (cmd.size() > 0)
+			{
+				setenv("KBE_RES_PATH", cmd.c_str(), 1);
+			}
+
+			continue;
+		}
+
+		findcmd = "--KBE_BIN_PATH=";
+		fi1 = cmd.find(findcmd);
+		if (fi1 != std::string::npos)
+		{
+			cmd.erase(fi1, findcmd.size());
+			if (cmd.size() > 0)
+			{
+				setenv("KBE_BIN_PATH", cmd.c_str(), 1);
+			}
+
+			continue;
+		}
 	}
 }
 
