@@ -82,34 +82,33 @@ using namespace KBEngine;
 
 #define PARSE_COMMAND_ARG_BEGIN()	\
 	for (int argIdx = 1; argIdx < argc; ++argIdx)	\
-	{	assert(false);\
+	{	\
 		std::string cmd = argv[argIdx];	\
 		std::string findcmd;	\
 		std::string::size_type fi1;	\
 
 #define PARSE_COMMAND_ARG_DO_FUNC(NAME, EXEC)	\
+	cmd = argv[argIdx];	\
 	findcmd = NAME;	\
-	fi1 = cmd.find(findcmd);	\
+	fi1 = cmd.find(findcmd); \
 	if (fi1 != std::string::npos)	\
 	{	\
 		cmd.erase(fi1, findcmd.size());	\
-		if (cmd.size() > 0)	\
-		{	\
-			try \
-			{ \
-				if (EXEC == -1) \
-					return -1; \
-			} \
-			catch (...) \
-			{ \
-				ERROR_MSG("parseCommandArgs: "#NAME"? invalid, no set! type is uint64\n"); \
-			} \
+		try \
+		{ \
+			if (EXEC == -1) \
+				return -1; \
 		} \
-		 \
+		catch (...) \
+		{ \
+			ERROR_MSG("parseCommandArgs: "#NAME"? invalid, no set! type is uint64\n"); \
+		} \
+		\
 		continue; \
 	} \
 
 #define PARSE_COMMAND_ARG_GET_VALUE(NAME, VAL)	\
+	cmd = argv[argIdx];	\
 	findcmd = NAME;	\
 	fi1 = cmd.find(findcmd);	\
 	if (fi1 != std::string::npos)	\
@@ -221,16 +220,34 @@ int process_make_client_templates(int argc, char* argv[], const std::string clie
 	return ret;
 }
 
+int process_help(int argc, char* argv[])
+{
+	printf("Usage:\n");
+	printf("--clienttemplates:\n");
+	printf("\tAutomatically generate client code based on entity_defs file. Environment variables based on KBE.\n");
+	printf("\tkbcmd.exe --clienttemplates=unity --path=c:/unity_clienttemplates\n");
+	printf("\tkbcmd.exe --clienttemplates=ue4 --path=c:/unity_clienttemplates\n");
+
+	printf("\n--help:\n");
+	printf("\tDisplay help information.\n");
+	return 0;
+}
 
 int main(int argc, char* argv[])
 {
 	g_componentType = TOOL_TYPE;
 	g_componentID = 0;
 
+	if (argc == 1)
+	{
+		return process_help(argc, argv);
+	}
+
 	parseMainCommandArgs(argc, argv);
 
 	PARSE_COMMAND_ARG_BEGIN();
 	PARSE_COMMAND_ARG_DO_FUNC("--clienttemplates=", process_make_client_templates(argc, argv, cmd));
+	PARSE_COMMAND_ARG_DO_FUNC("--help", process_help(argc, argv));
 	PARSE_COMMAND_ARG_END();
 
 	return 0;
