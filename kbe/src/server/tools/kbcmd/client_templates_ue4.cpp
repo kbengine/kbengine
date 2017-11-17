@@ -464,6 +464,8 @@ bool ClientTemplatesUE4::writeModuleBegin(ScriptDefModule* pEntityScriptDefModul
 {
 	std::string newModuleName = fmt::format("{}{}", pEntityScriptDefModule->getName(), moduleSuffix);
 
+	initBody_ = "";
+
 	sourcefileBody_ = headerBody;
 	sourcefileBody_ += "#pragma once\n";
 	sourcefileBody_ += "#include \"KBEAlias.h\"\n\n";
