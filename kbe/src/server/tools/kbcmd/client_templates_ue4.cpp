@@ -736,7 +736,7 @@ bool ClientTemplatesUE4::writeMethod(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplatesUE4::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& argsTypeBody, const std::string& childItemName)
+bool ClientTemplatesUE4::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
 	std::string new_childItemName = childItemName;
 
@@ -752,7 +752,7 @@ bool ClientTemplatesUE4::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, 
 			else
 				new_childItemName = fmt::format("TArray<{}>", pChildFixedArrayType->aliasName());
 
-			return writeMethodArgs_ARRAY(pChildFixedArrayType, argsTypeBody, new_childItemName);
+			return writeMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
 		}
 		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
 		{
@@ -770,7 +770,14 @@ bool ClientTemplatesUE4::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, 
 		}
 	}
 
-	argsTypeBody += fmt::format("TArray<{}>", new_childItemName);
+	stackArgsTypeBody += fmt::format("const TArray<{}>&", new_childItemName);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientTemplatesUE4::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
+{
+	stackArgsTypeBody = std::string("const ") + stackArgsTypeBody + "&";
 	return true;
 }
 

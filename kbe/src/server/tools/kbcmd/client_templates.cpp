@@ -667,7 +667,24 @@ bool ClientTemplates::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 			else if (pDataType->type() == DATA_TYPE_FIXEDDICT)
 			{
 				FixedDictType* pFixedDictType = static_cast<FixedDictType*>(pDataType);
-				argsBody += fmt::format("{} param{}, ", typeToType(pFixedDictType->aliasName()), i++);
+
+				std::string argsTypeBody = typeToType(pFixedDictType->aliasName());
+				if (!writeMethodArgs_Const_Ref(pDataType, argsTypeBody))
+				{
+					return false;
+				}
+
+				argsBody += fmt::format("{} param{}, ", argsTypeBody, i++);
+			}
+			else if (pDataType->type() != DATA_TYPE_DIGIT)
+			{
+				std::string argsTypeBody = typeToType(pDataType->getName());
+				if (!writeMethodArgs_Const_Ref(pDataType, argsTypeBody))
+				{
+					return false;
+				}
+
+				argsBody += fmt::format("{} param{}, ", argsTypeBody, i++);
 			}
 			else
 			{
@@ -687,7 +704,13 @@ bool ClientTemplates::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& argsTypeBody, const std::string& childItemName)
+bool ClientTemplates::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientTemplates::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
 {
 	return false;
 }

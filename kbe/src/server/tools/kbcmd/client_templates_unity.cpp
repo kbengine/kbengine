@@ -710,7 +710,7 @@ bool ClientTemplatesUnity::writeMethod(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplatesUnity::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& argsTypeBody, const std::string& childItemName)
+bool ClientTemplatesUnity::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
 	std::string new_childItemName = childItemName;
 
@@ -726,7 +726,7 @@ bool ClientTemplatesUnity::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType
 			else
 				new_childItemName = fmt::format("List<{}>", pChildFixedArrayType->aliasName());
 
-			return writeMethodArgs_ARRAY(pChildFixedArrayType, argsTypeBody, new_childItemName);
+			return writeMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
 		}
 		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
 		{
@@ -744,9 +744,16 @@ bool ClientTemplatesUnity::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType
 		}
 	}
 
-	argsTypeBody += fmt::format("List<{}>", new_childItemName);
+	stackArgsTypeBody += fmt::format("List<{}>", new_childItemName);
 	return true;
 }
+
+//-------------------------------------------------------------------------------------
+bool ClientTemplatesUnity::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
+{
+	return true;
+}
+
 
 //-------------------------------------------------------------------------------------
 }

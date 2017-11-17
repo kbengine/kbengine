@@ -146,7 +146,8 @@ public:
 	virtual bool writeMethod(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, MethodDescription* pMethodDescription, const char* fillString);
 
-	virtual bool writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& argsTypeBody, const std::string& childItemName);
+	virtual bool writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName);
+	virtual bool writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody);
 
 protected:
 	std::string initBody_;
