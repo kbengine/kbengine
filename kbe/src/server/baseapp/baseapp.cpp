@@ -4825,12 +4825,18 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 			(*pBundleImportEntityDefDatas_) << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
 			
 			int16 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;
+			if (!iter->get()->usePropertyDescrAlias())
+				aliasID = -1;
 			(*pBundleImportEntityDefDatas_) << posuid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "position" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;
+			if (!iter->get()->usePropertyDescrAlias())
+				aliasID = -1;
 			(*pBundleImportEntityDefDatas_) << diruid << ((uint32)ED_FLAG_ALL_CLIENTS) << aliasID << "direction" << "" << DataTypes::getDataType("VECTOR3")->id();
 
 			aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
+			if (!iter->get()->usePropertyDescrAlias())
+				aliasID = -1;
 			(*pBundleImportEntityDefDatas_) << spaceuid << ((uint32)ED_FLAG_CELL_PRIVATE) << aliasID << "spaceID" << "" << DataTypes::getDataType("UINT32")->id();
 
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
