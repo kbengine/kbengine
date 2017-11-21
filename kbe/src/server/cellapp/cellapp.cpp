@@ -1892,8 +1892,8 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	if (e->clientMailbox())
 	{
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(e->id(), (*pSendBundle));
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onEntityLeaveSpace, leaveSpace);
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(e->id(), (*pSendBundle));
+		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onEntityLeaveSpace, leaveSpace);
 		(*pSendBundle) << e->id();
 		ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, leaveSpace);
 		e->clientMailbox()->postMail(pSendBundle);

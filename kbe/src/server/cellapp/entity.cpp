@@ -745,13 +745,13 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 			if(pScriptModule_->getDetailLevel().level[propertyDetailLevel].inLevel(lengthPos.length()))
 			{
 				Network::Bundle* pSendBundle = pChannel->createSendBundle();
-				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 				
 				int ialiasID = -1;
 				const Network::MessageHandler& msgHandler = pEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onUpdatePropertys, 
 					ClientInterface::onUpdatePropertysOptimized, id(), ialiasID);
 				
-				ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
+				ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, msgHandler, aOIEntityMessage);
 				
 				if(ialiasID != -1)
 				{
@@ -849,9 +849,9 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 		else
 			pSendBundle = pChannel->createSendBundle();
 		
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(id(), (*pSendBundle));
 		
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 		(*pSendBundle) << id();
 
 		if(pScriptModule_->usePropertyDescrAlias())
@@ -1925,9 +1925,9 @@ void Entity::onGetWitness(bool fromBase)
 	if(fromBase)
 	{
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(id(), (*pSendBundle));
 		
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
+		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
 		MemoryStream* s1 = MemoryStream::createPoolObject();
 		(*pSendBundle) << id();
 		
@@ -2170,9 +2170,9 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		{
 			// 通知重置
 			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(targetID, (*pSendBundle));
+			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(targetID, (*pSendBundle));
 			
-			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 
 			(*pSendBundle) << id();
 			(*pSendBundle) << currpos.x << currpos.y << currpos.z;
@@ -3419,9 +3419,9 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 	{
 		// 通知位置强制改变
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(id(), (*pSendBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(id(), (*pSendBundle));
 		
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 		(*pSendBundle) << id();
 		(*pSendBundle) << pos.x << pos.y << pos.z;
 		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();
@@ -3454,9 +3454,9 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 
 		// 通知位置强制改变
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 		
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
+		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
 		(*pSendBundle) << id();
 		(*pSendBundle) << pos.x << pos.y << pos.z;
 		(*pSendBundle) << direction().roll() << direction().pitch() << direction().yaw();

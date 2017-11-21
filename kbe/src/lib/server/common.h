@@ -50,7 +50,7 @@ namespace KBEngine {
 	SENDBUNDLE.append(FORWARDBUNDLE);	
 
 // cellapp转发消息给客户端开始
-#define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(ENTITYID, SENDBUNDLE)																\
+#define NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(ENTITYID, SENDBUNDLE)																\
 	SENDBUNDLE.newMessage(BaseappInterface::forwardMessageToClientFromCellapp);															\
 	SENDBUNDLE << ENTITYID;																												\
 
@@ -99,7 +99,7 @@ namespace KBEngine {
 
 
 // cellapp转发消息给客户端消息包追加消息(直接在SENDBUNDLE追加)
-#define ENTITY_MESSAGE_FORWARD_CLIENT_START(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
+#define ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(SENDBUNDLE, MESSAGEHANDLE, ACTIONNAME)														\
 	(*SENDBUNDLE) << MESSAGEHANDLE.msgID;																								\
 	size_t currMsgLengthPos_##ACTIONNAME = 0;																							\
 	Network::Packet* pCurrPacket_##ACTIONNAME = SENDBUNDLE->pCurrPacket();																\

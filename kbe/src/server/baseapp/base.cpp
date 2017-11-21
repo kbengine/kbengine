@@ -1519,7 +1519,7 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 		return;
 	}
 
-	if (pBufferedSendToClientMessages_ || hasFlags(ENTITY_FLAGS_TELEPORT_START) || hasFlags(ENTITY_FLAGS_TELEPORT_END))
+	if (pBufferedSendToClientMessages_ || hasFlags(ENTITY_FLAGS_TELEPORT_START) || hasFlags(ENTITY_FLAGS_TELEPORT_STOP))
 	{
 		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, in transit, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
@@ -1547,9 +1547,9 @@ void Base::onMigrationCellappStart(Network::Channel* pChannel, COMPONENT_ID sour
 	DEBUG_MSG(fmt::format("{}::onMigrationCellappStart: {}, sourceCellAppID={}, targetCellappID={}\n",
 		scriptName(), id(), sourceCellAppID, targetCellAppID));
 
-	if (hasFlags(ENTITY_FLAGS_TELEPORT_END))
+	if (hasFlags(ENTITY_FLAGS_TELEPORT_STOP))
 	{
-		removeFlags(ENTITY_FLAGS_TELEPORT_END);
+		removeFlags(ENTITY_FLAGS_TELEPORT_STOP);
 
 		KBE_ASSERT(pBufferedSendToClientMessages_);
 		pBufferedSendToClientMessages_->startForward();
@@ -1575,7 +1575,7 @@ void Base::onMigrationCellappEnd(Network::Channel* pChannel, COMPONENT_ID source
 	// 等待onMigrationCellappEnd触发后做清理
 	if (!hasFlags(ENTITY_FLAGS_TELEPORT_START))
 	{
-		addFlags(ENTITY_FLAGS_TELEPORT_END);
+		addFlags(ENTITY_FLAGS_TELEPORT_STOP);
 
 		if (pBufferedSendToClientMessages_ == NULL)
 			pBufferedSendToClientMessages_ = new BaseMessagesForwardClientHandler(this, targetCellAppID);

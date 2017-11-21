@@ -135,7 +135,7 @@ enum ENTITY_BASE_PROPERTY_ALIASID
 };
 
 // 被限制的系统属性，def中不允许定义
-const char ENTITY_LIMITED_PROPERTYS[][32] =
+const char ENTITY_LIMITED_PROPERTYS[][34] =
 {
 	"id",
 	"position",
@@ -147,6 +147,7 @@ const char ENTITY_LIMITED_PROPERTYS[][32] =
 	"client",
 	"cellData",
 	"className",
+	"component"
 	"databaseID",
 	"isDestroyed",
 	"shouldAutoArchive",
@@ -164,6 +165,7 @@ const char ENTITY_LIMITED_PROPERTYS[][32] =
 	"otherClients",
 	"topSpeed",
 	"topSpeedY",
+	"interface"
 	"",
 };
 

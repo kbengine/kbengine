@@ -131,14 +131,14 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		methodDescription->addToStream(mstream, args);
 		
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(srcEntity->id(), (*pSendBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(srcEntity->id(), (*pSendBundle));
 
 		int ialiasID = -1;
 		const Network::MessageHandler& msgHandler = 
 				srcEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onRemoteMethodCall, 
 				ClientInterface::onRemoteMethodCallOptimized, clientEntityID_, ialiasID);
 
-		ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, msgHandler, aOIEntityMessage);
+		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, msgHandler, aOIEntityMessage);
 
 		if(ialiasID != -1)
 		{

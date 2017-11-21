@@ -649,11 +649,11 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 			continue;
 
 		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 		
 		if(!isdel)
 		{
-			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::setSpaceData, set);
+			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::setSpaceData, set);
 			(*pSendBundle) << this->id();
 			(*pSendBundle) << key;
 			(*pSendBundle) << value;
@@ -661,7 +661,7 @@ void Space::onSpaceDataChanged(const std::string& key, const std::string& value,
 		}
 		else
 		{
-			ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::delSpaceData, del);
+			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::delSpaceData, del);
 			(*pSendBundle) << this->id();
 			(*pSendBundle) << key;
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::delSpaceData, del);
@@ -696,9 +696,9 @@ void Space::_addSpaceDatasToEntityClient(const Entity* pEntity)
 	}
 
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
-	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_START(pEntity->id(), (*pSendBundle));
+	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 
-	ENTITY_MESSAGE_FORWARD_CLIENT_START(pSendBundle, ClientInterface::initSpaceData, init);
+	ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::initSpaceData, init);
 	(*pSendBundle) << this->id();
 
 	SPACE_DATA::iterator iter = datas_.begin();
