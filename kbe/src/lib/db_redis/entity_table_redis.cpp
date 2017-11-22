@@ -53,7 +53,6 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 	// 找到所有存储属性并且创建出所有的字段
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = sm->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
-	std::string hasUnique = "";
 
 	for(; iter != pdescrsMap.end(); ++iter)
 	{
