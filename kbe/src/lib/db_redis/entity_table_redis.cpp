@@ -73,8 +73,7 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 			return false;
 		}
 		
-		tableItems_[pETItem->utype()].reset(pETItem);
-		tableFixedOrderItems_.push_back(pETItem);
+		addItem(pETItem);
 	}
 
 	// 特殊处理， 数据库保存方向和位置
@@ -104,16 +103,14 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 		pETItem->utype(posuid);
 		pETItem->tableName(this->tableName());
 		pETItem->itemName("position");
-		tableItems_[pETItem->utype()].reset(pETItem);
-		tableFixedOrderItems_.push_back(pETItem);
+		addItem(pETItem);
 
 		pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(diruid);
 		pETItem->tableName(this->tableName());
 		pETItem->itemName("direction");
-		tableItems_[pETItem->utype()].reset(pETItem);
-		tableFixedOrderItems_.push_back(pETItem);
+		addItem(pETItem);
 	}
 
 	init_db_item_name();
