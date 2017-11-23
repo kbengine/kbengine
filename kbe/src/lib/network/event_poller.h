@@ -59,6 +59,7 @@ public:
 
 	InputNotificationHandler* findForRead(int fd);
 	OutputNotificationHandler* findForWrite(int fd);
+
 protected:
 	virtual bool doRegisterForRead(int fd) = 0;
 	virtual bool doRegisterForWrite(int fd) = 0;

@@ -182,9 +182,9 @@ static uint64 calcStampsPerSecond()
 	LARGE_INTEGER	tvBefore,	tvAfter;
 	DWORD			tvSleep = 500;
 	uint64 stampBefore,	stampAfter;
-	
+
 	Sleep(100);
-	
+
 	QueryPerformanceCounter(&tvBefore);
 	QueryPerformanceCounter(&tvBefore);
 

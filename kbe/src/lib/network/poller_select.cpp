@@ -110,8 +110,6 @@ int SelectPoller::processPendingEvents(double maxWait)
 #if KBE_PLATFORM == PLATFORM_WIN32
 	if (fdLargest_ == -1)
 	{
-		// Windows can't handle it if we don't have any FDs to select on, but
-		// we have a non-NULL timeout.
 		Sleep(int(maxWait * 1000.0));
 	}
 	else
@@ -136,12 +134,8 @@ int SelectPoller::processPendingEvents(double maxWait)
 	}
 	else if (countReady == -1)
 	{
-		// TODO: Clean this up on shutdown
-		// if (!breakProcessing_)
-		{
-			WARNING_MSG(fmt::format("EventDispatcher::processContinuously: "
-				"error in select(): {}\n", kbe_strerror()));
-		}
+		WARNING_MSG(fmt::format("EventDispatcher::processContinuously: "
+			"error in select(): {}\n", kbe_strerror()));
 	}
 
 	return countReady;
