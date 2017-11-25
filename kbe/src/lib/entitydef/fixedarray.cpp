@@ -254,8 +254,23 @@ PyObject* FixedArray::__py_pop(PyObject* self, PyObject* args, PyObject* kwargs)
 		return NULL;
 	}
 
-	PyObject* pyItem = PyTuple_GetItem(args, 0);
-	int index = PyLong_AsLong(pyItem);
+	int index = 0;
+
+	if (PyTuple_Size(args) > 0)
+	{
+		PyObject* pyItem = PyTuple_GetItem(args, 0);
+
+		if (pyItem)
+		{
+			index = PyLong_AsLong(pyItem);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+			return NULL;
+		}
+	}
+
 	if (index < 0) index += (int)values.size();
 	if (uint32(index) >= values.size())
 	{
