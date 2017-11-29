@@ -514,8 +514,8 @@ bool Bots::delClient(Network::Channel * pChannel)
 	if(!pClient)
 		return false;
 
-	clients().erase(pChannel);
 	pClient->finalise();
+	clients().erase(pChannel);
 	Py_DECREF(pClient);
 	return true;
 }
