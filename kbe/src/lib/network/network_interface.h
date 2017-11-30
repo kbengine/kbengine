@@ -58,7 +58,7 @@ public:
 	INLINE const Address & extaddr() const;
 	INLINE const Address & intaddr() const;
 
-	bool recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
+	bool initialize(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max,
 		const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR, uint32 rbuffer = 0, uint32 wbuffer = 0);
 
 	bool registerChannel(Channel* pChannel);

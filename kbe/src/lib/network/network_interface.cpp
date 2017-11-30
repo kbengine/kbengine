@@ -60,7 +60,8 @@ NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
 	if(isExternal())
 	{
 		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
-		this->recreateListeningSocket("EXTERNAL", htons(extlisteningPort_min), htons(extlisteningPort_max), 
+
+		this->initialize("EXTERNAL", htons(extlisteningPort_min), htons(extlisteningPort_max),
 			extlisteningInterface, &extEndpoint_, pExtListenerReceiver_, extrbuffer, extwbuffer);
 
 		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
@@ -74,7 +75,8 @@ NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
 	if(intlisteningPort != -1)
 	{
 		pIntListenerReceiver_ = new ListenerReceiver(intEndpoint_, Channel::INTERNAL, *this);
-		this->recreateListeningSocket("INTERNAL", intlisteningPort, intlisteningPort, 
+
+		this->initialize("INTERNAL", intlisteningPort, intlisteningPort,
 			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_, intrbuffer, intwbuffer);
 	}
 
@@ -128,7 +130,7 @@ void NetworkInterface::closeSocket()
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
+bool NetworkInterface::initialize(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max,
 										const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR, uint32 rbuffer, 
 										uint32 wbuffer)
 {
@@ -147,7 +149,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	pEP->socket(SOCK_STREAM);
 	if (!pEP->good())
 	{
-		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): couldn't create a socket\n",
+		ERROR_MSG(fmt::format("NetworkInterface::initialize({}): couldn't create a socket\n",
 			pEndPointName));
 
 		return false;
@@ -169,16 +171,14 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		char szIp[MAX_IP] = {0};
 		Address::ip2string(ifIPAddr, szIp);
 
-		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Creating on interface '{}' (= {})\n",
+		INFO_MSG(fmt::format("NetworkInterface::initialize({}): Creating on interface '{}' (= {})\n",
 			pEndPointName, listeningInterface, szIp));
 	}
 
 	// 如果不为空又找不到那么警告用户错误的设置，同时我们采用默认的方式(绑定到INADDR_ANY)
 	else if (!listeningInterfaceEmpty)
 	{
-		WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Couldn't parse interface spec '{}' so using all interfaces\n",
+		WARNING_MSG(fmt::format("NetworkInterface::initialize({}): Couldn't parse interface spec '{}' so using all interfaces\n",
 			pEndPointName, listeningInterface));
 	}
 	
@@ -212,8 +212,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	// 如果无法绑定到合适的端口那么报错返回，进程将退出
 	if(!foundport)
 	{
-		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Couldn't bind the socket to {}:{} ({})\n",
+		ERROR_MSG(fmt::format("NetworkInterface::initialize({}): Couldn't bind the socket to {}:{} ({})\n",
 			pEndPointName, inet_ntoa((struct in_addr&)ifIPAddr), ntohs(listeningPort), kbe_strerror()));
 		
 		pEP->close();
@@ -233,15 +232,12 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 
 			char szIp[MAX_IP] = {0};
 			Address::ip2string(address.ip, szIp);
-			INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-					"bound to all interfaces with default route "
-					"interface on {} ( {} )\n",
+			INFO_MSG(fmt::format("NetworkInterface::initialize({}): bound to all interfaces with default route interface on {} ( {} )\n",
 				pEndPointName, szIp, address.c_str()));
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Couldn't determine ip addr of default interface\n", pEndPointName));
+			ERROR_MSG(fmt::format("NetworkInterface::initialize({}): Couldn't determine ip addr of default interface\n", pEndPointName));
 
 			pEP->close();
 			return false;
@@ -256,8 +252,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	{
 		if (!pEP->setBufferSize(SO_RCVBUF, rbuffer))
 		{
-			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Operating with a receive buffer of only {} bytes (instead of {})\n",
+			WARNING_MSG(fmt::format("NetworkInterface::initialize({}): Operating with a receive buffer of only {} bytes (instead of {})\n",
 				pEndPointName, pEP->getBufferSize(SO_RCVBUF), rbuffer));
 		}
 	}
@@ -265,8 +260,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	{
 		if (!pEP->setBufferSize(SO_SNDBUF, wbuffer))
 		{
-			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Operating with a send buffer of only {} bytes (instead of {})\n",
+			WARNING_MSG(fmt::format("NetworkInterface::initialize({}): Operating with a send buffer of only {} bytes (instead of {})\n",
 				pEndPointName, pEP->getBufferSize(SO_SNDBUF), wbuffer));
 		}
 	}
@@ -277,15 +271,14 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 
 	if(pEP->listen(backlog) == -1)
 	{
-		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-			"listen to {} ({})\n",
+		ERROR_MSG(fmt::format("NetworkInterface::initialize({}): listen to {} ({})\n",
 			pEndPointName, address.c_str(), kbe_strerror()));
 
 		pEP->close();
 		return false;
 	}
 	
-	INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): address {}, SOMAXCONN={}.\n", 
+	INFO_MSG(fmt::format("NetworkInterface::initialize({}): address {}, SOMAXCONN={}.\n", 
 		pEndPointName, address.c_str(), backlog));
 
 	return true;
