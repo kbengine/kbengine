@@ -814,7 +814,7 @@ def modifyKBEConfig():
 		mysql_kbe_name = "kbe"
 
 	if len(mysql_kbe_password) == 0:
-		mysql_kbe_password = "kbe"
+		mysql_kbe_password = "pwd123456"
 		
 	if len(mysql_kbe_db_name) == 0:
 		mysql_kbe_db_name = "kbe"
@@ -973,7 +973,7 @@ def createDatabase():
                         
 			mysql_kbe_password = getInput("- password(Do not enter the default is \'kbe\')): ")
 			if len(mysql_kbe_password) == 0:
-				mysql_kbe_password = "kbe"
+				mysql_kbe_password = "pwd123456"
 
 			INFO_MSG('Create kbe-account: name=%s, password=%s successfully!' % (mysql_kbe_name, mysql_kbe_password))
             

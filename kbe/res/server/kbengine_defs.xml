@@ -227,7 +227,7 @@
 		-->
 		<telnet_service>
 			<port> 33000 </port>
-			<password> kbe </password>
+			<password> pwd123456 </password>
 			<!-- 命令默认层 
 				(layer of default the command)
 			-->
@@ -297,7 +297,7 @@
 				-->
 				<auth>  
 					<username> kbe </username>									<!-- Type: String -->
-					<password> kbe </password>									<!-- Type: String -->
+					<password> pwd123456 </password>							<!-- Type: String -->
 					
 					<!-- 为true则表示password是加密(rsa)的, 可防止明文配置 
 						(is true, password is RSA)
@@ -378,7 +378,7 @@
 		-->
 		<telnet_service>
 			<port> 32000 </port>
-			<password> kbe </password>
+			<password> pwd123456 </password>
 			<!-- 命令默认层 
 				(layer of default the command)
 			-->
@@ -486,7 +486,7 @@
 		-->
 		<telnet_service>
 			<port> 50000 </port>
-			<password> kbe </password>
+			<password> pwd123456 </password>
 			<!-- 命令默认层 
 				(layer of default the command)
 			-->
@@ -611,7 +611,7 @@
 		-->
 		<telnet_service>
 			<port> 40000 </port>
-			<password> kbe </password>
+			<password> pwd123456 </password>
 			<!-- 命令默认层 
 				(layer of default the command)
 			-->
@@ -723,7 +723,7 @@
 		-->
 		<telnet_service>
 			<port> 31000 </port>
-			<password> kbe </password>
+			<password> pwd123456 </password>
 			<!-- 命令默认层 
 				(layer of default the command)
 			-->
@@ -808,7 +808,7 @@
 		-->
 		<telnet_service>
 			<port> 51000 </port>
-			<password> kbe </password>
+			<password> pwd123456 </password>
 			<!-- 命令默认层 
 				(layer of default the command)
 			-->
@@ -842,7 +842,7 @@
 		-->
 		<telnet_service>
 			<port> 34000 </port>
-			<password> kbe </password>
+			<password> pwd123456 </password>
 			<!-- 命令默认层 
 				(layer of default the command)
 			-->
