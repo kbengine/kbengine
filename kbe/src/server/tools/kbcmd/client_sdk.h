@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_CLIENT_TEMPLATES_H
-#define KBE_CLIENT_TEMPLATES_H
+#ifndef KBE_CLIENT_SDK_H
+#define KBE_CLIENT_SDK_H
 
 #include "common/common.h"
 #include "helper/debug_helper.h"
@@ -33,11 +33,11 @@ class FixedDictType;
 class FixedArrayType;
 class DataType;
 
-class ClientTemplates
+class ClientSDK
 {
 public:
-	ClientTemplates();
-	virtual ~ClientTemplates();
+	ClientSDK();
+	virtual ~ClientSDK();
 
 	virtual bool good() const;
 
@@ -179,9 +179,9 @@ public:
 
 	virtual bool saveFile();
 
-	virtual bool writeModule(ScriptDefModule* pEntityScriptDefModule);
-	virtual bool writeModuleBegin(ScriptDefModule* pEntityScriptDefModule);
-	virtual bool writeModuleEnd(ScriptDefModule* pEntityScriptDefModule);
+	virtual bool writeEntityModule(ScriptDefModule* pEntityScriptDefModule);
+	virtual bool writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule);
+	virtual bool writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule);
 
 	virtual bool writePropertys(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule);
@@ -313,7 +313,7 @@ public:
 	virtual bool writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName);
 	virtual bool writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody);
 
-	static ClientTemplates* createClientTemplates(const std::string& type);
+	static ClientSDK* createClientSDK(const std::string& type);
 
 protected:
 	std::string path_;

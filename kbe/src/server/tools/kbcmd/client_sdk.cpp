@@ -18,9 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "client_templates.h"
-#include "client_templates_unity.h"	
-#include "client_templates_ue4.h"
+#include "client_sdk.h"
+#include "client_sdk_unity.h"	
+#include "client_sdk_ue4.h"
 #include "entitydef/entitydef.h"
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/property.h"
@@ -95,7 +95,7 @@ int CreatDir(const char *pDir)
 }
 
 //-------------------------------------------------------------------------------------
-ClientTemplates::ClientTemplates():
+ClientSDK::ClientSDK():
 	path_(),
 	sourcefileBody_(),
 	sourcefileName_()
@@ -104,43 +104,43 @@ ClientTemplates::ClientTemplates():
 }
 
 //-------------------------------------------------------------------------------------
-ClientTemplates::~ClientTemplates()
+ClientSDK::~ClientSDK()
 {
 
 }
 
 //-------------------------------------------------------------------------------------
-ClientTemplates* ClientTemplates::createClientTemplates(const std::string& type)
+ClientSDK* ClientSDK::createClientSDK(const std::string& type)
 {
 	std::string lowerType = type;
 	std::transform(lowerType.begin(), lowerType.end(), lowerType.begin(), tolower);
 
 	if (lowerType == "unity")
 	{
-		return new ClientTemplatesUnity();
+		return new ClientSDKUnity();
 	}
 	else if(lowerType == "ue4")
 	{
-		return new ClientTemplatesUE4();
+		return new ClientSDKUE4();
 	}
 
 	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::good() const
+bool ClientSDK::good() const
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void ClientTemplates::onCreateModuleFileName(const std::string& moduleName)
+void ClientSDK::onCreateModuleFileName(const std::string& moduleName)
 {
 	sourcefileName_ = moduleName + ".unknown";
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::saveFile()
+bool ClientSDK::saveFile()
 {
 	if (CreatDir(path_.c_str()) == -1)
 	{
@@ -150,14 +150,14 @@ bool ClientTemplates::saveFile()
 
 	std::string path = path_ + sourcefileName_;
 	
-	DEBUG_MSG(fmt::format("ClientTemplates::saveFile(): {}\n",
+	DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 		path));
 
 	FILE *fp = fopen(path.c_str(), "w");
 
 	if (NULL == fp)
 	{
-		ERROR_MSG(fmt::format("ClientTemplates::saveFile(): fopen error! {}\n",
+		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
 			path));
 
 		return false;
@@ -166,7 +166,7 @@ bool ClientTemplates::saveFile()
 	int written = fwrite(sourcefileBody_.c_str(), 1, sourcefileBody_.size(), fp);
 	if (written != (int)sourcefileBody_.size())
 	{
-		ERROR_MSG(fmt::format("ClientTemplates::saveFile(): fwrite error! {}\n",
+		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
 			path));
 
 		return false;
@@ -174,7 +174,7 @@ bool ClientTemplates::saveFile()
 
 	if(fclose(fp))
 	{
-		ERROR_MSG(fmt::format("ClientTemplates::saveFile(): fclose error! {}\n",
+		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
 			path));
 
 		return false;
@@ -184,7 +184,7 @@ bool ClientTemplates::saveFile()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::create(const std::string& path)
+bool ClientSDK::create(const std::string& path)
 {
 	path_ = path;
 
@@ -204,7 +204,7 @@ bool ClientTemplates::create(const std::string& path)
 	{
 		ScriptDefModule* pScriptDefModule = (*moduleIter).get();
 
-		if (!writeModule(pScriptDefModule))
+		if (!writeEntityModule(pScriptDefModule))
 			return false;
 	}
 
@@ -212,13 +212,13 @@ bool ClientTemplates::create(const std::string& path)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientTemplates::onCreateTypeFileName()
+void ClientSDK::onCreateTypeFileName()
 {
 	sourcefileName_ = "kbe_types.unknown";
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeTypes()
+bool ClientSDK::writeTypes()
 {
 	sourcefileName_ = sourcefileBody_ = "";
 	onCreateTypeFileName();
@@ -443,27 +443,27 @@ bool ClientTemplates::writeTypes()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeTypesBegin()
+bool ClientSDK::writeTypesBegin()
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeTypesEnd()
+bool ClientSDK::writeTypesEnd()
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeModule(ScriptDefModule* pEntityScriptDefModule)
+bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 {
-	DEBUG_MSG(fmt::format("ClientTemplates::writeModule(): {}/{}\n",
+	DEBUG_MSG(fmt::format("ClientSDK::writeEntityModule(): {}/{}\n",
 		path_, pEntityScriptDefModule->getName()));
 
 	sourcefileName_ = sourcefileBody_ = "";
 	onCreateModuleFileName(pEntityScriptDefModule->getName());
 
-	if (!writeModuleBegin(pEntityScriptDefModule))
+	if (!writeEntityModuleBegin(pEntityScriptDefModule))
 		return false;
 
 	if (!writePropertys(pEntityScriptDefModule, pEntityScriptDefModule))
@@ -472,26 +472,26 @@ bool ClientTemplates::writeModule(ScriptDefModule* pEntityScriptDefModule)
 	if (!writeMethods(pEntityScriptDefModule, pEntityScriptDefModule))
 		return false;
 
-	if (!writeModuleEnd(pEntityScriptDefModule))
+	if (!writeEntityModuleEnd(pEntityScriptDefModule))
 		return false;
 
 	return saveFile();
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeModuleBegin(ScriptDefModule* pEntityScriptDefModule)
+bool ClientSDK::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeModuleEnd(ScriptDefModule* pEntityScriptDefModule)
+bool ClientSDK::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writePropertys(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writePropertys(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule)
 {
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& clientPropertys = pCurrScriptDefModule->getClientPropertyDescriptions();
@@ -507,7 +507,7 @@ bool ClientTemplates::writePropertys(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeProperty(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writeProperty(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	std::string type = pPropertyDescription->getDataType()->getName();
@@ -625,7 +625,7 @@ bool ClientTemplates::writeProperty(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeMethods(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule)
 {
 	sourcefileBody_ += "\n\n";
@@ -704,19 +704,19 @@ bool ClientTemplates::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
+bool ClientSDK::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
+bool ClientSDK::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
 {
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientTemplates::writeMethod(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writeMethod(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, MethodDescription* pMethodDescription, const char* fillString)
 {
 	return false;

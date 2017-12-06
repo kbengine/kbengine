@@ -18,20 +18,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_CLIENT_TEMPLATES_UNITY_H
-#define KBE_CLIENT_TEMPLATES_UNITY_H
+#ifndef KBE_CLIENT_SDK_UE4_H
+#define KBE_CLIENT_SDK_UE4_H
 
-#include "client_templates.h"
+#include "client_sdk.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
 
 namespace KBEngine{
 
-class ClientTemplatesUnity : public ClientTemplates
+class ClientSDKUE4 : public ClientSDK
 {
 public:
-	ClientTemplatesUnity();
-	virtual ~ClientTemplatesUnity();
+	ClientSDKUE4();
+	virtual ~ClientSDKUE4();
 
 	virtual void onCreateModuleFileName(const std::string& moduleName);
 	virtual void onCreateTypeFileName();
@@ -71,8 +71,8 @@ public:
 	virtual bool writeTypeItemType_VECTOR4(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_MAILBOX(const std::string& itemName, const std::string& childItemName);
 
-	virtual bool writeModuleBegin(ScriptDefModule* pEntityScriptDefModule);
-	virtual bool writeModuleEnd(ScriptDefModule* pEntityScriptDefModule);
+	virtual bool writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule);
+	virtual bool writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule);
 
 	virtual bool writeProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
@@ -150,7 +150,7 @@ public:
 	virtual bool writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody);
 
 protected:
-
+	std::string initBody_;
 };
 
 }

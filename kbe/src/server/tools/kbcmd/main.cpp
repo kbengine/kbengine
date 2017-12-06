@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "server/kbemain.h"
 #include "kbcmd.h"
-#include "client_templates.h"
+#include "client_sdk.h"
 #include "entitydef/entitydef.h"
 
 #undef DEFINE_IN_INTERFACE
@@ -131,7 +131,7 @@ using namespace KBEngine;
 
 #define PARSE_COMMAND_ARG_END()	}
 
-int process_make_client_templates(int argc, char* argv[], const std::string clientType)
+int process_make_client_sdk(int argc, char* argv[], const std::string clientType)
 {
 	Resmgr::getSingleton().initialize();
 	setEvns();
@@ -184,38 +184,38 @@ int process_make_client_templates(int argc, char* argv[], const std::string clie
 	PARSE_COMMAND_ARG_GET_VALUE("--outpath=", path);
 	PARSE_COMMAND_ARG_END();
 
-	ClientTemplates* pTemplates = ClientTemplates::createClientTemplates(clientType);
+	ClientSDK* pClientSDK = ClientSDK::createClientSDK(clientType);
 	
 	int ret = 0;
 
-	if (pTemplates)
+	if (pClientSDK)
 	{
 		try
 		{
-			if (!pTemplates->create(path))
+			if (!pClientSDK->create(path))
 			{
 				ret = -1;
 			}
 		}
 		catch (std::exception &err)
 		{
-			ERROR_MSG(fmt::format("app::initialize(): create templates error({})!\n", err.what()));
+			ERROR_MSG(fmt::format("app::initialize(): create clientsdk error({})!\n", err.what()));
 		}
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("app::initialize(): create templates error! nonsupport type={}\n", clientType));
+		ERROR_MSG(fmt::format("app::initialize(): create clientsdk error! nonsupport type={}\n", clientType));
 		ret = -1;
 	}
 
 	app.finalise();
-	INFO_MSG(fmt::format("{}({}) has shut down. ClientTemplates={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pTemplates->good()));
+	INFO_MSG(fmt::format("{}({}) has shut down. ClientSDK={}\n", COMPONENT_NAME_EX(g_componentType), g_componentID, pClientSDK->good()));
 
 	// 如果还有日志未同步完成， 这里会继续同步完成才结束
 	DebugHelper::getSingleton().finalise();
 
-	if(pTemplates)
-		delete pTemplates;
+	if(pClientSDK)
+		delete pClientSDK;
 
 	return ret;
 }
@@ -223,11 +223,11 @@ int process_make_client_templates(int argc, char* argv[], const std::string clie
 int process_help(int argc, char* argv[])
 {
 	printf("Usage:\n");
-	printf("--clienttemplates:\n");
+	printf("--clientsdk:\n");
 	printf("\tAutomatically generate client code based on entity_defs file. Environment variables based on KBE.\n");
-	printf("\tkbcmd.exe --clienttemplates=unity --outpath=c:/unity_clienttemplates\n");
-	printf("\tkbcmd.exe --clienttemplates=ue4 --outpath=c:/unity_clienttemplates\n");
-	printf("\tkbcmd.exe --clienttemplates=ue4 --outpath=c:/unity_clienttemplates --KBE_ROOT=\"*\"  --KBE_RES_PATH=\"*\"  --KBE_BIN_PATH=\"*\"\n");
+	printf("\tkbcmd.exe --clientsdk=unity --outpath=c:/unity_kbesdk\n");
+	printf("\tkbcmd.exe --clientsdk=ue4 --outpath=c:/unity_kbesdk\n");
+	printf("\tkbcmd.exe --clientsdk=ue4 --outpath=c:/unity_kbesdk --KBE_ROOT=\"*\"  --KBE_RES_PATH=\"*\"  --KBE_BIN_PATH=\"*\"\n");
 
 	printf("\n--help:\n");
 	printf("\tDisplay help information.\n");
@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
 	parseMainCommandArgs(argc, argv);
 
 	PARSE_COMMAND_ARG_BEGIN();
-	PARSE_COMMAND_ARG_DO_FUNC("--clienttemplates=", process_make_client_templates(argc, argv, cmd));
+	PARSE_COMMAND_ARG_DO_FUNC("--clientsdk=", process_make_client_sdk(argc, argv, cmd));
 	PARSE_COMMAND_ARG_DO_FUNC("--help", process_help(argc, argv));
 	PARSE_COMMAND_ARG_END();
 
