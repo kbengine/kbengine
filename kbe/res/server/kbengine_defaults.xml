@@ -197,7 +197,7 @@
 	<!-- Email服务, 提供账号验证， 密码找回等等。
 		(Email services, providing the account verification, password recovery, etc.)
 	-->
-	<email_service_config>server/email_service.xml</email_service_config>
+	<email_service_config>server/email_service_defaults.xml</email_service_config>
 		
 	<interfaces>
 		<!-- 脚本入口模块， 相当于main函数 
