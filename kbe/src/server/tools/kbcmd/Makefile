@@ -1,8 +1,8 @@
 BIN  = kbcmd
 SRCS =						\
-	client_templates		\
-	client_templates_unity	\
-	client_templates_ue4	\
+	client_sdk		\
+	client_sdk_unity	\
+	client_sdk_ue4	\
 	kbcmd		\
 	kbcmd_interface	\
 	profile					\

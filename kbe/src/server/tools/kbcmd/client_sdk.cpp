@@ -196,6 +196,9 @@ bool ClientSDK::create(const std::string& path)
 		path_ += "\\";
 #endif
 
+	if (!writeServerErrors())
+		return false;
+
 	if (!writeTypes())
 		return false;
 
