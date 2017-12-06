@@ -56,7 +56,7 @@ public:
 	static DataType* getDataType(const char* name);
 	static DataType* getDataType(DATATYPE_UID uid);
 
-	static bool loadAlias(std::string& file);
+	static bool loadTypes(std::string& file);
 
 	static const DATATYPE_MAP& dataTypes(){ return dataTypes_; }
 	static const UID_DATATYPE_MAP& uid_dataTypes(){ return uid_dataTypes_; }

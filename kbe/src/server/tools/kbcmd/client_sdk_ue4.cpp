@@ -180,7 +180,7 @@ bool ClientSDKUE4::writeTypesBegin()
 	sourcefileBody_ += "#pragma once\n\n";
 	sourcefileBody_ += "#include \"KBECommon.h\"\n";
 
-	sourcefileBody_ += "\n\n// defined in */scripts/entity_defs/alias.xml\n\n";
+	sourcefileBody_ += "\n\n// defined in */scripts/entity_defs/types.xml\n\n";
 	return true;
 }
 

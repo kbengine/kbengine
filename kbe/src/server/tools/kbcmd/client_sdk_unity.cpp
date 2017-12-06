@@ -182,7 +182,7 @@ bool ClientSDKUnity::writeTypesBegin()
 	sourcefileBody_ += "\tusing System.Collections;\n";
 	sourcefileBody_ += "\tusing System.Collections.Generic;\n\n";
 
-	sourcefileBody_ += "\n\n\t// defined in */scripts/entity_defs/alias.xml\n\n";
+	sourcefileBody_ += "\n\n\t// defined in */scripts/entity_defs/types.xml\n\n";
 	return true;
 }
 

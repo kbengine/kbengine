@@ -80,11 +80,11 @@ bool DataTypes::initialize(std::string file)
 	addDataType("VECTOR2",	new Vector2Type);
 	addDataType("VECTOR3",	new Vector3Type);
 	addDataType("VECTOR4",	new Vector4Type);
-	return loadAlias(file);
+	return loadTypes(file);
 }
 
 //-------------------------------------------------------------------------------------
-bool DataTypes::loadAlias(std::string& file)
+bool DataTypes::loadTypes(std::string& file)
 {
 	TiXmlNode* node = NULL;
 	SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes(file).c_str()));
@@ -109,7 +109,7 @@ bool DataTypes::loadAlias(std::string& file)
 		// 不允许前面加_, 因为内部产生的一些临时结构前面使用了_, 避免误判
 		if (aliasName[0] == '_')
 		{
-			ERROR_MSG(fmt::format("DataTypes::loadAlias: Not allowed to use the prefix \"_\"! aliasName={}\n",
+			ERROR_MSG(fmt::format("DataTypes::loadTypes: Not allowed to use the prefix \"_\"! aliasName={}\n",
 				aliasName.c_str()));
 			return false;
 		}
@@ -127,7 +127,7 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("DataTypes::loadAlias: parse FIXED_DICT [{}] error!\n", 
+					ERROR_MSG(fmt::format("DataTypes::loadTypes: parse FIXED_DICT [{}] error!\n", 
 						aliasName.c_str()));
 					
 					delete fixedDict;
@@ -144,7 +144,7 @@ bool DataTypes::loadAlias(std::string& file)
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("DataTypes::loadAlias: parse ARRAY [{}] error!\n", 
+					ERROR_MSG(fmt::format("DataTypes::loadTypes: parse ARRAY [{}] error!\n", 
 						aliasName.c_str()));
 					
 					delete fixedArray;
@@ -156,7 +156,7 @@ bool DataTypes::loadAlias(std::string& file)
 				DataType* dataType = getDataType(type);
 				if(dataType == NULL)
 				{
-					ERROR_MSG(fmt::format("DataTypes::loadAlias:can't fount type {} by alias[{}].\n", 
+					ERROR_MSG(fmt::format("DataTypes::loadTypes: can't fount type {} by alias[{}].\n", 
 						type.c_str(), aliasName.c_str()));
 					
 					return false;
