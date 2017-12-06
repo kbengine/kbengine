@@ -454,9 +454,9 @@ std::string Resmgr::getPySysResPath()
 
 	if(respath == "")
 	{
-		respath = matchRes("server/kbengine_defs.xml");
+		respath = matchRes("server/kbengine_defaults.xml");
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine_defs.xml");
+		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine_defaults.xml");
 
 		if(tmpvec.size() > 1)
 		{

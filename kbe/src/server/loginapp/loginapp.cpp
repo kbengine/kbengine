@@ -1462,31 +1462,110 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 	{
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
-		TiXmlNode *rootNode = NULL;
-		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
-
-		if(!xml->isGood())
 		{
-			ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
-				"server/server_errors.xml"));
+			TiXmlNode *rootNode = NULL;
+			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors_defaults.xml").c_str()));
 
-			return;
+			if (!xml->isGood())
+			{
+				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+					"server/server_errors_defaults.xml"));
+
+				return;
+			}
+
+			rootNode = xml->getRootNode();
+			if (rootNode == NULL)
+			{
+				// root节点下没有子节点了
+				return;
+			}
+
+			XML_FOR_BEGIN(rootNode)
+			{
+				TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+				TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+				errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+			}
+			XML_FOR_END(rootNode);
 		}
 
-		rootNode = xml->getRootNode();
-		if(rootNode == NULL)
 		{
-			// root节点下没有子节点了
-			return;
+			TiXmlNode *rootNode = NULL;
+			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+			if (!xml->isGood())
+			{
+				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+					"server/server_errors.xml"));
+
+				return;
+			}
+
+			rootNode = xml->getRootNode();
+			if (rootNode == NULL)
+			{
+				// root节点下没有子节点了
+				return;
+			}
+
+			XML_FOR_BEGIN(rootNode)
+			{
+				TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+				TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+				errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+			}
+			XML_FOR_END(rootNode);
 		}
 
-		XML_FOR_BEGIN(rootNode)
 		{
-			TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
-			TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
-			errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+			TiXmlNode *rootNode = NULL;
+			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+			if (xml->isGood())
+			{
+
+				rootNode = xml->getRootNode();
+				if (rootNode)
+				{
+					XML_FOR_BEGIN(rootNode)
+					{
+						TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+						TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+						errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+					}
+					XML_FOR_END(rootNode);
+				}
+			}
 		}
-		XML_FOR_END(rootNode);
+
+		{
+			TiXmlNode *rootNode = NULL;
+			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+			if (!xml->isGood())
+			{
+				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+					"server/server_errors.xml"));
+
+				return;
+			}
+
+			rootNode = xml->getRootNode();
+			if (rootNode == NULL)
+			{
+				// root节点下没有子节点了
+				return;
+			}
+
+			XML_FOR_BEGIN(rootNode)
+			{
+				TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+				TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+				errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+			}
+			XML_FOR_END(rootNode);
+		}
 
 		bundle.newMessage(ClientInterface::onImportServerErrorsDescr);
 		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();

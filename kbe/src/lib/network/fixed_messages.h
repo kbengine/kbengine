@@ -49,7 +49,7 @@ public:
 	FixedMessages();
 	~FixedMessages();
 
-	bool loadConfig(std::string fileName);
+	bool loadConfig(std::string fileName, bool notFoundError = true);
 
 	FixedMessages::MSGInfo* isFixed(const char* msgName);
 	bool isFixed(MessageID msgid);

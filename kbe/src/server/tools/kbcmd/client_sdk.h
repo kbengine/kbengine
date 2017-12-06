@@ -45,6 +45,8 @@ public:
 
 	virtual void onCreateModuleFileName(const std::string& moduleName);
 
+	virtual bool writeServerErrors();
+
 	virtual bool writeTypes();
 	virtual bool writeTypesBegin();
 	virtual bool writeTypesEnd();

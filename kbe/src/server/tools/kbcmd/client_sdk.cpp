@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/method.h"
 #include "entitydef/datatypes.h"
 #include "entitydef/datatype.h"
+#include "resmgr/resmgr.h"
 
 #ifdef _WIN32  
 #include <direct.h>  
@@ -215,6 +216,60 @@ bool ClientSDK::create(const std::string& path)
 void ClientSDK::onCreateTypeFileName()
 {
 	sourcefileName_ = "kbe_types.unknown";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeServerErrors()
+{
+	std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
+
+	{
+		TiXmlNode *rootNode = NULL;
+		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors_defaults.xml").c_str()));
+
+		if (!xml->isGood())
+		{
+			ERROR_MSG(fmt::format("ClientSDK::writeServerErrors: load {} is failed!\n",
+				"server/server_errors_defaults.xml"));
+
+			return false;
+		}
+
+		rootNode = xml->getRootNode();
+		if (rootNode)
+		{
+			XML_FOR_BEGIN(rootNode)
+			{
+				TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+				TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+				errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+			}
+			XML_FOR_END(rootNode);
+		}
+	}
+
+	{
+		TiXmlNode *rootNode = NULL;
+		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+		if (xml->isGood())
+		{
+
+			rootNode = xml->getRootNode();
+			if (rootNode)
+			{
+				XML_FOR_BEGIN(rootNode)
+				{
+					TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+					TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+					errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+				}
+				XML_FOR_END(rootNode);
+			}
+		}
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

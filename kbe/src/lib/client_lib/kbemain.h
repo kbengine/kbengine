@@ -145,8 +145,8 @@ inline bool loadConfig()
 	
 	if(g_componentType == BOTS_TYPE)
 	{
-		// "../../res/server/kbengine_defs.xml"
-		g_kbeSrvConfig.loadConfig("server/kbengine_defs.xml");
+		// "../../res/server/kbengine_defaults.xml"
+		g_kbeSrvConfig.loadConfig("server/kbengine_defaults.xml");
 
 		// "../../../assets/res/server/kbengine.xml"
 		g_kbeSrvConfig.loadConfig("server/kbengine.xml");

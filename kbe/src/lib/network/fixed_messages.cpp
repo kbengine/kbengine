@@ -44,7 +44,7 @@ FixedMessages::~FixedMessages()
 }
 
 //-------------------------------------------------------------------------------------
-bool FixedMessages::loadConfig(std::string fileName)
+bool FixedMessages::loadConfig(std::string fileName, bool notFoundError)
 {
 	if(_loaded)
 		return true;
@@ -57,13 +57,16 @@ bool FixedMessages::loadConfig(std::string fileName)
 
 	if(!xml->isGood())
 	{
+		if (notFoundError)
+		{
 #if KBE_PLATFORM == PLATFORM_WIN32
-		printf("%s", (fmt::format("[ERROR]: FixedMessages::loadConfig: load {} is failed!\n", fileName.c_str())).c_str());
+			printf("%s", (fmt::format("[ERROR]: FixedMessages::loadConfig: load {} is failed!\n", fileName.c_str())).c_str());
 #endif
 
-		if(DebugHelper::isInit())
-		{
-			ERROR_MSG(fmt::format("FixedMessages::loadConfig: load {} is failed!\n", fileName.c_str()));
+			if (DebugHelper::isInit())
+			{
+				ERROR_MSG(fmt::format("FixedMessages::loadConfig: load {} is failed!\n", fileName.c_str()));
+			}
 		}
 
 		return false;

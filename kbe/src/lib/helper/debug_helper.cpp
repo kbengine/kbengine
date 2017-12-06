@@ -340,7 +340,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 			FILE * f = fopen(kbengine_xml_path.c_str(), "r");
 			if (f == NULL)
 			{
-				kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+				kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties_defaults/%s.properties", COMPONENT_NAME_EX(componentType));
 				cfg = Resmgr::getSingleton().matchRes(helpConfig);
 			}
 			else
@@ -351,7 +351,7 @@ void DebugHelper::initialize(COMPONENT_TYPE componentType)
 		}
 		else
 		{
-			kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties/%s.properties", COMPONENT_NAME_EX(componentType));
+			kbe_snprintf(helpConfig, MAX_PATH, "server/log4cxx_properties_defaults/%s.properties", COMPONENT_NAME_EX(componentType));
 			cfg = Resmgr::getSingleton().matchRes(helpConfig);
 		}
 
