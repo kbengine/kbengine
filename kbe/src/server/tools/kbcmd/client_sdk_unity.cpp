@@ -458,7 +458,7 @@ bool ClientSDKUnity::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic SByte {} = {};\n", pPropertyDescription->getName(),
@@ -468,7 +468,7 @@ bool ClientSDKUnity::writeProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_INT16(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_INT16(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic Int16 {} = {};\n", pPropertyDescription->getName(),
@@ -478,7 +478,7 @@ bool ClientSDKUnity::writeProperty_INT16(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_INT32(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_INT32(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic Int32 {} = {};\n", pPropertyDescription->getName(),
@@ -488,7 +488,7 @@ bool ClientSDKUnity::writeProperty_INT32(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_INT64(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_INT64(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic Int64 {} = {};\n", pPropertyDescription->getName(),
@@ -498,7 +498,7 @@ bool ClientSDKUnity::writeProperty_INT64(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_UINT8(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_UINT8(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic Byte {} = {};\n", pPropertyDescription->getName(),
@@ -508,7 +508,7 @@ bool ClientSDKUnity::writeProperty_UINT8(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_UINT16(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_UINT16(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic UInt16 {} = {};\n", pPropertyDescription->getName(),
@@ -518,7 +518,7 @@ bool ClientSDKUnity::writeProperty_UINT16(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_UINT32(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_UINT32(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic UInt32 {} = {};\n", pPropertyDescription->getName(),
@@ -528,7 +528,7 @@ bool ClientSDKUnity::writeProperty_UINT32(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_UINT64(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_UINT64(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic UInt64 {} = {};\n", pPropertyDescription->getName(),
@@ -538,7 +538,7 @@ bool ClientSDKUnity::writeProperty_UINT64(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_FLOAT(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_FLOAT(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic float {} = {};\n", pPropertyDescription->getName(),
@@ -548,7 +548,7 @@ bool ClientSDKUnity::writeProperty_FLOAT(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_DOUBLE(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_DOUBLE(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic double {} = {};\n", pPropertyDescription->getName(),
@@ -558,7 +558,7 @@ bool ClientSDKUnity::writeProperty_DOUBLE(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_STRING(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_STRING(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic string {} = {};\n", pPropertyDescription->getName(),
@@ -568,7 +568,7 @@ bool ClientSDKUnity::writeProperty_STRING(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_UNICODE(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_UNICODE(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic string {} = {};\n", pPropertyDescription->getName(),
@@ -578,39 +578,39 @@ bool ClientSDKUnity::writeProperty_UNICODE(ScriptDefModule* pEntityScriptDefModu
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_PYTHON(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_PYTHON(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUnity::writeProperty_PYTHON(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUnity::writeEntityProperty_PYTHON(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_PY_DICT(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_PY_DICT(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUnity::writeProperty_PY_DICT(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUnity::writeEntityProperty_PY_DICT(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_PY_TUPLE(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_PY_TUPLE(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUnity::writeProperty_PY_TUPLE(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUnity::writeEntityProperty_PY_TUPLE(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_PY_LIST(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_PY_LIST(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUnity::writeProperty_PY_LIST(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUnity::writeEntityProperty_PY_LIST(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_BLOB(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_BLOB(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic byte[] {} = {};\n", pPropertyDescription->getName(),
@@ -620,7 +620,7 @@ bool ClientSDKUnity::writeProperty_BLOB(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_ARRAY(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_ARRAY(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	if (std::string("ARRAY") == pPropertyDescription->getDataTypeName())
@@ -637,7 +637,7 @@ bool ClientSDKUnity::writeProperty_ARRAY(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_FIXED_DICT(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_FIXED_DICT(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic {} {} = new {}();\n", pPropertyDescription->getDataTypeName(), pPropertyDescription->getName(),
@@ -647,7 +647,7 @@ bool ClientSDKUnity::writeProperty_FIXED_DICT(ScriptDefModule* pEntityScriptDefM
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_VECTOR2(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_VECTOR2(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 #ifdef CLIENT_NO_FLOAT
@@ -662,7 +662,7 @@ bool ClientSDKUnity::writeProperty_VECTOR2(ScriptDefModule* pEntityScriptDefModu
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_VECTOR3(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_VECTOR3(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 #ifdef CLIENT_NO_FLOAT
@@ -677,7 +677,7 @@ bool ClientSDKUnity::writeProperty_VECTOR3(ScriptDefModule* pEntityScriptDefModu
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 #ifdef CLIENT_NO_FLOAT
@@ -692,7 +692,7 @@ bool ClientSDKUnity::writeProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModu
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic byte[] {} = {};\n", pPropertyDescription->getName(),
@@ -702,7 +702,7 @@ bool ClientSDKUnity::writeProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModu
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeMethod(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, MethodDescription* pMethodDescription, const char* fillString)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic abstract void {}({}); \n", pMethodDescription->getName(), fillString);
@@ -710,7 +710,7 @@ bool ClientSDKUnity::writeMethod(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
+bool ClientSDKUnity::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
 	std::string new_childItemName = childItemName;
 
@@ -726,7 +726,7 @@ bool ClientSDKUnity::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std:
 			else
 				new_childItemName = fmt::format("List<{}>", pChildFixedArrayType->aliasName());
 
-			return writeMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
+			return writeEntityMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
 		}
 		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
 		{
@@ -749,7 +749,7 @@ bool ClientSDKUnity::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std:
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
+bool ClientSDKUnity::writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
 {
 	return true;
 }

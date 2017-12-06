@@ -466,10 +466,10 @@ bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 	if (!writeEntityModuleBegin(pEntityScriptDefModule))
 		return false;
 
-	if (!writePropertys(pEntityScriptDefModule, pEntityScriptDefModule))
+	if (!writeEntityPropertys(pEntityScriptDefModule, pEntityScriptDefModule))
 		return false;
 
-	if (!writeMethods(pEntityScriptDefModule, pEntityScriptDefModule))
+	if (!writeEntityMethods(pEntityScriptDefModule, pEntityScriptDefModule))
 		return false;
 
 	if (!writeEntityModuleEnd(pEntityScriptDefModule))
@@ -491,7 +491,7 @@ bool ClientSDK::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writePropertys(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writeEntityPropertys(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule)
 {
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& clientPropertys = pCurrScriptDefModule->getClientPropertyDescriptions();
@@ -499,7 +499,7 @@ bool ClientSDK::writePropertys(ScriptDefModule* pEntityScriptDefModule,
 	for (; propIter != clientPropertys.end(); ++propIter)
 	{
 		PropertyDescription* pPropertyDescription = propIter->second;
-		if (!writeProperty(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
+		if (!writeEntityProperty(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
 			return false;
 	}
 
@@ -507,117 +507,117 @@ bool ClientSDK::writePropertys(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeProperty(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writeEntityProperty(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	std::string type = pPropertyDescription->getDataType()->getName();
 
 	if (type == "INT8")
 	{
-		return writeProperty_INT8(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_INT8(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "INT16")
 	{
-		return writeProperty_INT16(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_INT16(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "INT32")
 	{
-		return writeProperty_INT32(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_INT32(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "INT64")
 	{
-		return writeProperty_INT64(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_INT64(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "UINT8")
 	{
-		return writeProperty_UINT8(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_UINT8(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "UINT16")
 	{
-		return writeProperty_UINT16(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_UINT16(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "UINT32")
 	{
-		return writeProperty_UINT32(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_UINT32(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "UINT64")
 	{
-		return writeProperty_UINT64(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_UINT64(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "FLOAT")
 	{
-		return writeProperty_FLOAT(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_FLOAT(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "DOUBLE")
 	{
-		return writeProperty_DOUBLE(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_DOUBLE(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "STRING")
 	{
-		return writeProperty_STRING(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_STRING(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "UNICODE")
 	{
-		return writeProperty_UNICODE(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_UNICODE(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "PYTHON")
 	{
-		return writeProperty_PYTHON(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_PYTHON(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "PY_DICT")
 	{
-		return writeProperty_PY_DICT(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_PY_DICT(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "PY_TUPLE")
 	{
-		return writeProperty_PY_TUPLE(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_PY_TUPLE(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "PY_LIST")
 	{
-		return writeProperty_PY_LIST(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_PY_LIST(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "BLOB")
 	{
-		return writeProperty_BLOB(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_BLOB(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "ARRAY")
 	{
-		return writeProperty_ARRAY(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_ARRAY(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "FIXED_DICT")
 	{
-		return writeProperty_FIXED_DICT(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_FIXED_DICT(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 #ifdef CLIENT_NO_FLOAT
 	else if (type == "VECTOR2")
 	{
-		return writeProperty_VECTOR2(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_VECTOR2(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "VECTOR3")
 	{
-		return writeProperty_VECTOR3(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_VECTOR3(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "VECTOR4")
 	{
-		return writeProperty_VECTOR4(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_VECTOR4(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 #else
 	else if (type == "VECTOR2")
 	{
-		return writeProperty_VECTOR2(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_VECTOR2(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "VECTOR3")
 	{
-		return writeProperty_VECTOR3(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_VECTOR3(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 	else if (type == "VECTOR4")
 	{
-		return writeProperty_VECTOR4(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_VECTOR4(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 #endif
 	else if (type == "MAILBOX")
 	{
-		return writeProperty_MAILBOX(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_MAILBOX(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 
 	assert(false);
@@ -625,7 +625,7 @@ bool ClientSDK::writeProperty(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeMethods(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule)
 {
 	sourcefileBody_ += "\n\n";
@@ -635,7 +635,7 @@ bool ClientSDK::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 	for (; methodIter != clientMethods.end(); ++methodIter)
 	{
 		MethodDescription* pMethodDescription = methodIter->second;
-		if (!writeMethod(pEntityScriptDefModule, pCurrScriptDefModule, pMethodDescription, "#REPLACE#"))
+		if (!writeEntityMethod(pEntityScriptDefModule, pCurrScriptDefModule, pMethodDescription, "#REPLACE#"))
 			return false;
 
 		std::string::size_type fpos = sourcefileBody_.find("#REPLACE#");
@@ -657,7 +657,7 @@ bool ClientSDK::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 				FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
 				
 				std::string argsTypeBody;
-				if (!writeMethodArgs_ARRAY(pFixedArrayType, argsTypeBody, pFixedArrayType->aliasName()))
+				if (!writeEntityMethodArgs_ARRAY(pFixedArrayType, argsTypeBody, pFixedArrayType->aliasName()))
 				{
 					return false;
 				}
@@ -669,7 +669,7 @@ bool ClientSDK::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 				FixedDictType* pFixedDictType = static_cast<FixedDictType*>(pDataType);
 
 				std::string argsTypeBody = typeToType(pFixedDictType->aliasName());
-				if (!writeMethodArgs_Const_Ref(pDataType, argsTypeBody))
+				if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
 				{
 					return false;
 				}
@@ -679,7 +679,7 @@ bool ClientSDK::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 			else if (pDataType->type() != DATA_TYPE_DIGIT)
 			{
 				std::string argsTypeBody = typeToType(pDataType->getName());
-				if (!writeMethodArgs_Const_Ref(pDataType, argsTypeBody))
+				if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
 				{
 					return false;
 				}
@@ -704,19 +704,19 @@ bool ClientSDK::writeMethods(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
+bool ClientSDK::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
+bool ClientSDK::writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
 {
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeMethod(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDK::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, MethodDescription* pMethodDescription, const char* fillString)
 {
 	return false;

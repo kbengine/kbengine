@@ -500,7 +500,7 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tint8 {};\n", pPropertyDescription->getName());
@@ -509,7 +509,7 @@ bool ClientSDKUE4::writeProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_INT16(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_INT16(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tint16 {};\n", pPropertyDescription->getName());
@@ -518,7 +518,7 @@ bool ClientSDKUE4::writeProperty_INT16(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_INT32(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_INT32(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tint32 {};\n", pPropertyDescription->getName());
@@ -527,7 +527,7 @@ bool ClientSDKUE4::writeProperty_INT32(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_INT64(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_INT64(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tint64 {};\n", pPropertyDescription->getName());
@@ -536,7 +536,7 @@ bool ClientSDKUE4::writeProperty_INT64(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_UINT8(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_UINT8(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tuint8 {};\n", pPropertyDescription->getName());
@@ -545,7 +545,7 @@ bool ClientSDKUE4::writeProperty_UINT8(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_UINT16(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_UINT16(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tuint16 {};\n", pPropertyDescription->getName());
@@ -554,7 +554,7 @@ bool ClientSDKUE4::writeProperty_UINT16(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_UINT32(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_UINT32(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tuint32 {};\n", pPropertyDescription->getName());
@@ -563,7 +563,7 @@ bool ClientSDKUE4::writeProperty_UINT32(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_UINT64(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_UINT64(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tuint64 {};\n", pPropertyDescription->getName());
@@ -572,7 +572,7 @@ bool ClientSDKUE4::writeProperty_UINT64(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_FLOAT(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_FLOAT(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tfloat {};\n", pPropertyDescription->getName());
@@ -581,7 +581,7 @@ bool ClientSDKUE4::writeProperty_FLOAT(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_DOUBLE(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_DOUBLE(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tdouble {};\n", pPropertyDescription->getName());
@@ -590,7 +590,7 @@ bool ClientSDKUE4::writeProperty_DOUBLE(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_STRING(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_STRING(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tFString {};\n", pPropertyDescription->getName());
@@ -599,7 +599,7 @@ bool ClientSDKUE4::writeProperty_STRING(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_UNICODE(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_UNICODE(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tFString {};\n", pPropertyDescription->getName());
@@ -608,39 +608,39 @@ bool ClientSDKUE4::writeProperty_UNICODE(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_PYTHON(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_PYTHON(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUE4::writeProperty_PYTHON(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUE4::writeEntityProperty_PYTHON(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_PY_DICT(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_PY_DICT(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUE4::writeProperty_PY_DICT(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUE4::writeEntityProperty_PY_DICT(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_PY_TUPLE(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_PY_TUPLE(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUE4::writeProperty_PY_TUPLE(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUE4::writeEntityProperty_PY_TUPLE(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_PY_LIST(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_PY_LIST(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	ERROR_MSG("ClientSDKUE4::writeProperty_PY_LIST(): nonsupport!\n");
+	ERROR_MSG("ClientSDKUE4::writeEntityProperty_PY_LIST(): nonsupport!\n");
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_BLOB(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_BLOB(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tTArray<uint8> {};\n", pPropertyDescription->getName());
@@ -649,7 +649,7 @@ bool ClientSDKUE4::writeProperty_BLOB(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_ARRAY(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_ARRAY(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	if (std::string("ARRAY") == pPropertyDescription->getDataTypeName())
@@ -666,7 +666,7 @@ bool ClientSDKUE4::writeProperty_ARRAY(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_FIXED_DICT(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_FIXED_DICT(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t{} {};\n", pPropertyDescription->getDataTypeName(), pPropertyDescription->getName());
@@ -675,7 +675,7 @@ bool ClientSDKUE4::writeProperty_FIXED_DICT(ScriptDefModule* pEntityScriptDefMod
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_VECTOR2(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_VECTOR2(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 #ifdef CLIENT_NO_FLOAT
@@ -689,7 +689,7 @@ bool ClientSDKUE4::writeProperty_VECTOR2(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_VECTOR3(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_VECTOR3(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 #ifdef CLIENT_NO_FLOAT
@@ -703,7 +703,7 @@ bool ClientSDKUE4::writeProperty_VECTOR3(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 #ifdef CLIENT_NO_FLOAT
@@ -717,7 +717,7 @@ bool ClientSDKUE4::writeProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tTArray<uint8> {};\n", pPropertyDescription->getName());
@@ -726,7 +726,7 @@ bool ClientSDKUE4::writeProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeMethod(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, MethodDescription* pMethodDescription, const char* fillString)
 {
 	sourcefileBody_ += fmt::format("\tvirtual void {}({}) = 0; \n", pMethodDescription->getName(), fillString);
@@ -734,7 +734,7 @@ bool ClientSDKUE4::writeMethod(ScriptDefModule* pEntityScriptDefModule,
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
+bool ClientSDKUE4::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
 	std::string new_childItemName = childItemName;
 
@@ -750,7 +750,7 @@ bool ClientSDKUE4::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::s
 			else
 				new_childItemName = fmt::format("TArray<{}>", pChildFixedArrayType->aliasName());
 
-			return writeMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
+			return writeEntityMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
 		}
 		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
 		{
@@ -773,7 +773,7 @@ bool ClientSDKUE4::writeMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::s
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
+bool ClientSDKUE4::writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
 {
 	stackArgsTypeBody = std::string("const ") + stackArgsTypeBody + "&";
 	return true;
