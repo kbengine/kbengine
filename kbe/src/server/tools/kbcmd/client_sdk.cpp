@@ -97,7 +97,8 @@ int CreatDir(const char *pDir)
 
 //-------------------------------------------------------------------------------------
 ClientSDK::ClientSDK():
-	path_(),
+	basepath_(),
+	currpath_(),
 	sourcefileBody_(),
 	sourcefileName_()
 {
@@ -143,13 +144,13 @@ void ClientSDK::onCreateEntityModuleFileName(const std::string& moduleName)
 //-------------------------------------------------------------------------------------
 bool ClientSDK::saveFile()
 {
-	if (CreatDir(path_.c_str()) == -1)
+	if (CreatDir(currpath_.c_str()) == -1)
 	{
-		ERROR_MSG(fmt::format("creating directory error! path={}\n", path_));
+		ERROR_MSG(fmt::format("creating directory error! path={}\n", currpath_));
 		return false;
 	}
 
-	std::string path = path_ + sourcefileName_;
+	std::string path = currpath_ + sourcefileName_;
 	
 	DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 		path));
@@ -187,14 +188,16 @@ bool ClientSDK::saveFile()
 //-------------------------------------------------------------------------------------
 bool ClientSDK::create(const std::string& path)
 {
-	path_ = path;
+	basepath_ = path;
 
-	if (path_[path_.size() - 1] != '\\' && path_[path_.size() - 1] != '/')
+	if (basepath_[basepath_.size() - 1] != '\\' && basepath_[basepath_.size() - 1] != '/')
 #ifdef _WIN32  
-		path_ += "/";
+		basepath_ += "/";
 #else
-		path_ += "\\";
+		basepath_ += "\\";
 #endif
+
+	currpath_ = basepath_;
 
 	std::string findpath = "client/sdk_templates/" + name();
 
@@ -249,7 +252,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 	std::wstring sourcePath = wpath;
 	free(wpath);
 
-	wpath = strutil::char2wchar(path_.c_str());
+	wpath = strutil::char2wchar(basepath_.c_str());
 	std::wstring destPath = wpath;
 	free(wpath);
 	
@@ -374,7 +377,7 @@ bool ClientSDK::writeServerErrorDescrs()
 	onCreateServerErrorDescrsModuleFileName();
 
 	DEBUG_MSG(fmt::format("ClientSDK::writeServerErrorDescrs(): {}/{}\n",
-		path_, sourcefileName_));
+		basepath_, sourcefileName_));
 
 	if (!writeServerErrorDescrsModuleBegin())
 		return false;
@@ -655,7 +658,7 @@ bool ClientSDK::writeTypesEnd()
 bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 {
 	DEBUG_MSG(fmt::format("ClientSDK::writeEntityModule(): {}/{}\n",
-		path_, pEntityScriptDefModule->getName()));
+		currpath_, pEntityScriptDefModule->getName()));
 
 	sourcefileName_ = sourcefileBody_ = "";
 	onCreateEntityModuleFileName(pEntityScriptDefModule->getName());

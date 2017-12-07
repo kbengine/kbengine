@@ -328,7 +328,7 @@ public:
 	static ClientSDK* createClientSDK(const std::string& type);
 
 protected:
-	std::string path_;
+	std::string basepath_, currpath_;
 	std::string sourcefileBody_;
 	std::string sourcefileName_;
 };

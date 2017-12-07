@@ -22,7 +22,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_CLIENT_SDK_UNITY_H
 
 #include "client_sdk.h"
-#include "client_sdk_unity_templates.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
 
