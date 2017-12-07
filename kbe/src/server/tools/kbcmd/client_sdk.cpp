@@ -270,12 +270,12 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 	{
 		std::wstring::size_type fpos = (*iter).find(findpath);
 
+		char* ccattr = strutil::wchar2char((*iter).c_str());
+		std::string currpath = ccattr;
+		free(ccattr);
+
 		if (fpos == std::wstring::npos)
 		{
-			char* ccattr = strutil::wchar2char((*iter).c_str());
-			std::string currpath = ccattr;
-			free(ccattr);
-
 			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): split path({}) error!\n",
 				currpath));
 
@@ -288,32 +288,33 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 
 		std::wstring basepath = targetFile;
 		fpos = targetFile.rfind(L"/");
+
+		ccattr = strutil::wchar2char(targetFile.c_str());
+		std::string currTargetFile = ccattr;
+		free(ccattr);
+
 		if (fpos == std::wstring::npos)
 		{
-			char* ccattr = strutil::wchar2char(targetFile.c_str());
-			std::string currpath = ccattr;
-			free(ccattr);
-
 			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): split basepath({}) error!\n",
-				currpath));
+				currTargetFile));
 
 			return false;
 		}
 
 		basepath.erase(fpos, basepath.size() - fpos);
 		
-		char* ccattr = strutil::wchar2char(basepath.c_str());
-		std::string currpath = ccattr;
+		ccattr = strutil::wchar2char(basepath.c_str());
+		std::string currbasepath = ccattr;
 		free(ccattr);
 
-		if (CreatDir(currpath.c_str()) == -1)
+		if (CreatDir(currbasepath.c_str()) == -1)
 		{
-			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): creating directory error! path={}\n", currpath));
+			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): creating directory error! path={}\n", currbasepath));
 			return false;
 		}
 
-		std::ifstream input((*iter).c_str(), std::ios::binary);
-		std::ofstream output(targetFile.c_str(), std::ios::binary);
+		std::ifstream input(currpath.c_str(), std::ios::binary);
+		std::ofstream output(currTargetFile.c_str(), std::ios::binary);
 		output << input.rdbuf();
 		output.close();
 		input.close();
