@@ -74,7 +74,7 @@ void UKBEMain::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompon
 	APawn* ue4_player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	Entity* kbe_player = KBEngineApp::getSingleton().player();
 
-	// 每个tick将UE4的玩家坐标写入到KBE插件中的玩家实体坐标，插件会定期同步给服务器
+	// 姣忎釜tick灏哢E4鐨勭帺瀹跺潗鏍囧啓鍏ュ埌KBE鎻掍欢涓殑鐜╁瀹炰綋鍧愭爣锛屾彃浠朵細瀹氭湡鍚屾缁欐湇鍔″櫒
 	if (kbe_player && ue4_player)
 	{
 		UE4Pos2KBPos(kbe_player->position, ue4_player->GetActorLocation());

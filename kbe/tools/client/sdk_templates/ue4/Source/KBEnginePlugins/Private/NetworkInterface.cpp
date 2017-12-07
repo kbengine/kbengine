@@ -160,7 +160,7 @@ void NetworkInterface::tickConnecting()
 	}
 	else
 	{
-		// Èç¹ûÁ¬½Ó³¬Ê±Ôò»Øµ÷Ê§°Ü
+		// å¦‚æžœè¿žæŽ¥è¶…æ—¶åˆ™å›žè°ƒå¤±è´¥
 		double currTime = getTimeSeconds();
 		if (currTime - startTime_ > 3)
 		{

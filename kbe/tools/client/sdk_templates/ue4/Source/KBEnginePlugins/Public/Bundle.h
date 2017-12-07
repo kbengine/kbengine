@@ -9,9 +9,9 @@ class NetworkInterface;
 class Message;
 
 /*
-	Õâ¸öÄ£¿é½«¶à¸öÊý¾Ý°ü´òÀ¦ÔÚÒ»Æð
-	ÓÉÓÚÃ¿¸öÊý¾Ý°ü¶¼ÓÐ×î´óÉÏÏÞ£¬ ÏòBundleÖÐÐ´Èë´óÁ¿Êý¾Ý½«»áÔÚÄÚ²¿²úÉú¶à¸öMemoryStream
-	ÔÚsendÊ±»áÈ«²¿·¢ËÍ³öÈ¥
+	è¿™ä¸ªæ¨¡å—å°†å¤šä¸ªæ•°æ®åŒ…æ‰“æ†åœ¨ä¸€èµ·
+	ç”±äºŽæ¯ä¸ªæ•°æ®åŒ…éƒ½æœ‰æœ€å¤§ä¸Šé™ï¼Œ å‘Bundleä¸­å†™å…¥å¤§é‡æ•°æ®å°†ä¼šåœ¨å†…éƒ¨äº§ç”Ÿå¤šä¸ªMemoryStream
+	åœ¨sendæ—¶ä¼šå…¨éƒ¨å‘é€å‡ºåŽ»
 */
 class KBENGINEPLUGINS_API Bundle
 {

@@ -8,8 +8,8 @@ class NetworkInterface;
 class MemoryStream;
 
 /*
-	°ü·¢ËÍÄ£¿é(Óë·þÎñ¶ËÍøÂç²¿·ÖµÄÃû³Æ¶ÔÓ¦)
-	´¦ÀíÍøÂçÊý¾ÝµÄ·¢ËÍ
+	åŒ…å‘é€æ¨¡å—(ä¸ŽæœåŠ¡ç«¯ç½‘ç»œéƒ¨åˆ†çš„åç§°å¯¹åº”)
+	å¤„ç†ç½‘ç»œæ•°æ®çš„å‘é€
 */
 class KBENGINEPLUGINS_API PacketSender
 {

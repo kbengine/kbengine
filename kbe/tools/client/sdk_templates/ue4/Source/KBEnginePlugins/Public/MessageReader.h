@@ -6,8 +6,8 @@
 
 
 /*
-	ÏûÏ¢ÔÄ¶ÁÄ£¿é
-	´ÓÊý¾Ý°üÁ÷ÖÐ·ÖÎö³öËùÓÐµÄÏûÏ¢°ü²¢½«Æä½»¸ø¶ÔÓ¦µÄÏûÏ¢´¦Àíº¯Êý
+	æ¶ˆæ¯é˜…è¯»æ¨¡å—
+	ä»Žæ•°æ®åŒ…æµä¸­åˆ†æžå‡ºæ‰€æœ‰çš„æ¶ˆæ¯åŒ…å¹¶å°†å…¶äº¤ç»™å¯¹åº”çš„æ¶ˆæ¯å¤„ç†å‡½æ•°
 */
 class KBENGINEPLUGINS_API MessageReader
 {
@@ -17,17 +17,17 @@ public:
 
 	enum READ_STATE
 	{
-		// ÏûÏ¢ID
+		// æ¶ˆæ¯ID
 		READ_STATE_MSGID = 0,
 
-		// ÏûÏ¢µÄ³¤¶È65535ÒÔÄÚ
+		// æ¶ˆæ¯çš„é•¿åº¦65535ä»¥å†…
 		READ_STATE_MSGLEN = 1,
 
-		// µ±ÉÏÃæµÄÏûÏ¢³¤¶È¶¼ÎÞ·¨µ½´ïÒªÇóÊ±Ê¹ÓÃÀ©Õ¹³¤¶È
+		// å½“ä¸Šé¢çš„æ¶ˆæ¯é•¿åº¦éƒ½æ— æ³•åˆ°è¾¾è¦æ±‚æ—¶ä½¿ç”¨æ‰©å±•é•¿åº¦
 		// uint32
 		READ_STATE_MSGLEN_EX = 2,
 
-		// ÏûÏ¢µÄÄÚÈÝ
+		// æ¶ˆæ¯çš„å†…å®¹
 		READ_STATE_BODY = 3
 	};
 

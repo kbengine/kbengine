@@ -7,9 +7,9 @@
 class KBEDATATYPE_BASE;
 
 /*
-	ÊµÌå¶¨ÒåµÄ·½·¨Ä£¿é
-	³éÏó³öÒ»¸ödefÎÄ¼þÖÐ¶¨ÒåµÄ·½·¨£¬¸ÄÄ£¿éÀàÌá¹©ÁË¸Ã·½·¨µÄÏà¹ØÃèÊöÐÅÏ¢
-	ÀýÈç£º·½·¨µÄ²ÎÊý¡¢·½·¨µÄid¡¢·½·¨¶ÔÓ¦½Å±¾µÄhandler
+	å®žä½“å®šä¹‰çš„æ–¹æ³•æ¨¡å—
+	æŠ½è±¡å‡ºä¸€ä¸ªdefæ–‡ä»¶ä¸­å®šä¹‰çš„æ–¹æ³•ï¼Œæ”¹æ¨¡å—ç±»æä¾›äº†è¯¥æ–¹æ³•çš„ç›¸å…³æè¿°ä¿¡æ¯
+	ä¾‹å¦‚ï¼šæ–¹æ³•çš„å‚æ•°ã€æ–¹æ³•çš„idã€æ–¹æ³•å¯¹åº”è„šæœ¬çš„handler
 */
 class KBENGINEPLUGINS_API Method
 {

@@ -5,7 +5,7 @@
 #include "KBECommon.h"
 
 /*
-	持久化引擎协议，在检测到协议版本发生改变时会清理协议
+	鎸佷箙鍖栧紩鎿庡崗璁紝鍦ㄦ娴嬪埌鍗忚鐗堟湰鍙戠敓鏀瑰彉鏃朵細娓呯悊鍗忚
 */
 class KBENGINEPLUGINS_API PersistentInfos
 {

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "KBECommon.h"
+#include "ServerErrorDescrs.h"
 #include "Interfaces.h"
 
 class KBEngineArgs;
@@ -472,7 +473,7 @@ protected:
 	TMap<ENTITY_ID, MemoryStream*> bufferedCreateEntityMessage_;
 
 	// 所有服务端错误码对应的错误描述
-	static TMap<uint16, FKServerErr> serverErrs_;
+	static ServerErrorDescrs serverErrs_;
 
 	double lastTickTime_;
 	double lastTickCBTime_;

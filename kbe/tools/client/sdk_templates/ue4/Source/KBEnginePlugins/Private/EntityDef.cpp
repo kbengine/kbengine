@@ -175,10 +175,10 @@ void EntityDef::bindMessageDataType()
 	id2datatypes.Add(17, datatypes["VECTOR4"]);
 
 	datatype2id.Add(TEXT("FIXED_DICT"), 18);
-	// ���ﲻ��Ҫ�󶨣�FIXED_DICT��Ҫ���ݲ�ͬ����ʵ������̬�õ�id
+	// 这里不需要绑定，FIXED_DICT需要根据不同类型实例化动态得到id
 	//id2datatypes.Add(18, datatypes["FIXED_DICT"]);
 
 	datatype2id.Add(TEXT("ARRAY"), 19);
-	// ���ﲻ��Ҫ�󶨣�ARRAY��Ҫ���ݲ�ͬ����ʵ������̬�õ�id
+	// 这里不需要绑定，ARRAY需要根据不同类型实例化动态得到id
 	//id2datatypes.Add(19, datatypes["ARRAY"]);
 }

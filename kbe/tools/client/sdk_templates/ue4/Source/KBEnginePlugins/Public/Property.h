@@ -5,8 +5,8 @@
 #include "KBECommon.h"
 
 /*
-	³éÏó³öÒ»¸öentitydefÖÐ¶¨ÒåµÄÊôÐÔ
-	¸ÃÄ£¿éÃèÊöÁËÊôÐÔµÄidÒÔ¼°Êý¾ÝÀàÐÍµÈÐÅÏ¢
+	æŠ½è±¡å‡ºä¸€ä¸ªentitydefä¸­å®šä¹‰çš„å±žæ€§
+	è¯¥æ¨¡å—æè¿°äº†å±žæ€§çš„idä»¥åŠæ•°æ®ç±»åž‹ç­‰ä¿¡æ¯
 */
 class KBENGINEPLUGINS_API Property
 {

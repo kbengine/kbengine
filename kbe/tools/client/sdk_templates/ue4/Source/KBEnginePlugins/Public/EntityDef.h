@@ -8,15 +8,15 @@ class ScriptModule;
 class KBEDATATYPE_BASE;
 
 /*
-	EntityDef模块
-	管理了所有的实体定义的描述以及所有的数据类型描述
+	EntityDef妯″潡
+	绠＄悊浜嗘墍鏈夌殑瀹炰綋瀹氫箟鐨勬弿杩颁互鍙婃墍鏈夌殑鏁版嵁绫诲瀷鎻忚堪
 */
 class KBENGINEPLUGINS_API EntityDef
 {
 public:
 	
 
-	// 所有的数据类型
+	// 鎵�鏈夌殑鏁版嵁绫诲瀷
 	static TMap<FString, uint16> datatype2id;
 	static TMap<FString, KBEDATATYPE_BASE*> datatypes;
 	static TMap<uint16, KBEDATATYPE_BASE*> id2datatypes;

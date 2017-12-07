@@ -8,8 +8,8 @@
 
 
 /*
-�¼�ģ��
-�¼������ݻ����࣬ ��ͬ�¼���Ҫʵ�ֲ�ͬ��������
+事件模块
+事件的数据基础类， 不同事件需要实现不同的数据类
 */
 UCLASS(Blueprintable, BlueprintType)
 class KBENGINEPLUGINS_API UKBEventData : public UObject
@@ -17,14 +17,14 @@ class KBENGINEPLUGINS_API UKBEventData : public UObject
 	GENERATED_BODY()
 
 public:
-	// �¼����ƣ������ڶ��¼����ͽ����жϣ����������¼�����ʱ�¼�ϵͳ�������
+	// 事件名称，可用于对事件类型进行判断，该名称由事件触发时事件系统进行填充
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	FString eventName;
 };
 
 /*
-	�¼�ģ��
-	KBEngine�������Unity3D���ֲ�ͨ���¼�������
+	事件模块
+	KBEngine插件层与Unity3D表现层通过事件来交互
 */
 class KBENGINEPLUGINS_API KBEvent
 {
@@ -57,18 +57,18 @@ protected:
 };
 
 
-// ע���¼�
+// 注册事件
 #define KBENGINE_REGISTER_EVENT(EVENT_NAME, EVENT_FUNC) \
 	KBEvent::registerEvent(EVENT_NAME, #EVENT_FUNC, [this](const UKBEventData* pEventData) {	EVENT_FUNC(pEventData);	}, (void*)this);
 
-// ע���¼�������д�¼�����
+// 注册事件，可重写事件函数
 #define KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC(EVENT_NAME, FUNC_NAME, EVENT_FUNC) \
 	KBEvent::registerEvent(EVENT_NAME, FUNC_NAME, EVENT_FUNC, (void*)this);
 
-// ע���������ĳ���¼�
+// 注销这个对象某个事件
 #define KBENGINE_DEREGISTER_EVENT(EVENT_NAME) KBEvent::deregister((void*)this, EVENT_NAME, FUNC_NAME);
 
-// ע������������е��¼�
+// 注销这个对象所有的事件
 #define KBENGINE_DEREGISTER_ALL_EVENT()	KBEvent::deregister((void*)this);
 
 // fire event

@@ -15,8 +15,8 @@ class MemoryStream;
 class InterfaceConnect;
 
 /*
-	ÍøÂçÄ£¿é
-	´¦ÀíÁ¬½Ó¡¢ÊÕ·¢Êı¾İ
+	ç½‘ç»œæ¨¡å—
+	å¤„ç†è¿æ¥ã€æ”¶å‘æ•°æ®
 */
 class KBENGINEPLUGINS_API NetworkInterface
 {

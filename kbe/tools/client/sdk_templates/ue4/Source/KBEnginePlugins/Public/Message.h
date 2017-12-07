@@ -7,14 +7,14 @@
 class Channel;
 class MemoryStream;
 
-/** һ����Ϣ�Ĳ��������� */
+/** 一个消息的参数抽象类 */
 class KBENGINEPLUGINS_API MessageArgs
 {
 public:
 	enum MESSAGE_ARGS_TYPE
 	{
-		MESSAGE_ARGS_TYPE_VARIABLE = -1,		// �ɱ��������
-		MESSAGE_ARGS_TYPE_FIXED = 0				// �̶���������
+		MESSAGE_ARGS_TYPE_VARIABLE = -1,		// 可变参数长度
+		MESSAGE_ARGS_TYPE_FIXED = 0				// 固定参数长度
 	};
 
 	MessageArgs() :strArgsTypes() {};
@@ -28,8 +28,8 @@ public:
 };
 
 /*
-��Ϣģ��
-�ͻ��������˽���������ϢͨѶ�� �κ�һ����Ϊһ��ָ�����һ����Ϣ��������
+消息模块
+客户端与服务端交互基于消息通讯， 任何一个行为一条指令都是以一个消息包来描述
 */
 class KBENGINEPLUGINS_API Message
 {

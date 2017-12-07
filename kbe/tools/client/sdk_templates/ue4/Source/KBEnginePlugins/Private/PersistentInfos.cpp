@@ -56,7 +56,7 @@ void PersistentInfos::onScriptVersionNotMatch(const FString& verInfo, const FStr
 
 void PersistentInfos::onServerDigest(const FString& currserver, const FString& serverProtocolMD5, const FString& serverEntitydefMD5)
 {
-	// ÎÒÃÇ²»ĞèÒª¼ì²éÍø¹ØµÄĞ­Òé£¬ ÒòÎªµÇÂ¼loginappÊ±Èç¹ûĞ­ÒéÓĞÎÊÌâÒÑ¾­É¾³ıÁË¾ÉµÄĞ­Òé
+	// æˆ‘ä»¬ä¸éœ€è¦æ£€æŸ¥ç½‘å…³çš„åè®®ï¼Œ å› ä¸ºç™»å½•loginappæ—¶å¦‚æœåè®®æœ‰é—®é¢˜å·²ç»åˆ é™¤äº†æ—§çš„åè®®
 	if (currserver == TEXT("baseapp"))
 	{
 		return;

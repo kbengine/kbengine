@@ -9,8 +9,8 @@ class Method;
 class EntityCreator;
 
 /*
-	一个entitydef中定义的脚本模块的描述类
-	包含了某个entity定义的属性与方法以及该entity脚本模块的名称与模块ID
+	涓�涓猠ntitydef涓畾涔夌殑鑴氭湰妯″潡鐨勬弿杩扮被
+	鍖呭惈浜嗘煇涓猠ntity瀹氫箟鐨勫睘鎬т笌鏂规硶浠ュ強璇ntity鑴氭湰妯″潡鐨勫悕绉颁笌妯″潡ID
 */
 class KBENGINEPLUGINS_API ScriptModule
 {

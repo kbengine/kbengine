@@ -53,7 +53,7 @@ bool KBEvent::deregister(void* objPtr, const FString& eventName, const FString& 
 		return false;
 	}
 
-	// 从后往前遍历，以避免中途删除的问题
+	// 浠庡悗寰�鍓嶉亶鍘嗭紝浠ラ伩鍏嶄腑閫斿垹闄ょ殑闂
 	for (int i = (*eo_array_find).Num() - 1; i >= 0; --i)
 	{
 		EventObj& item = (*eo_array_find)[i];

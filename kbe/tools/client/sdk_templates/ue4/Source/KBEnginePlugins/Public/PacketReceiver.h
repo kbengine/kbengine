@@ -8,8 +8,8 @@ class NetworkInterface;
 class MessageReader;
 
 /*
-	°ü½ÓÊÕÄ£¿é(Óë·þÎñ¶ËÍøÂç²¿·ÖµÄÃû³Æ¶ÔÓ¦)
-	´¦ÀíÍøÂçÊý¾ÝµÄ½ÓÊÕ
+	åŒ…æŽ¥æ”¶æ¨¡å—(ä¸ŽæœåŠ¡ç«¯ç½‘ç»œéƒ¨åˆ†çš„åç§°å¯¹åº”)
+	å¤„ç†ç½‘ç»œæ•°æ®çš„æŽ¥æ”¶
 */
 class KBENGINEPLUGINS_API PacketReceiver
 {

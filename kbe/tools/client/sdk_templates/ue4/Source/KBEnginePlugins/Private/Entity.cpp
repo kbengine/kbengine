@@ -104,9 +104,9 @@ void EntityFactory::initialize()
 
 	inited = true;
 
-	// Ìî³äËùÓĞ¸¸ÀàµÄdefĞÅÏ¢µ½×ÓÀà
+	// å¡«å……æ‰€æœ‰çˆ¶ç±»çš„defä¿¡æ¯åˆ°å­ç±»
 
-	/* ÓÉÓÚËùÓĞµÄĞÅÏ¢ÒÑ¾­Ö±½Ó×¢²á¸øÁË¶¥¼¶Entity£¬ ËùÒÔ¸¸ÀàÃ»ÓĞÊı¾İ
+	/* ç”±äºæ‰€æœ‰çš„ä¿¡æ¯å·²ç»ç›´æ¥æ³¨å†Œç»™äº†é¡¶çº§Entityï¼Œ æ‰€ä»¥çˆ¶ç±»æ²¡æœ‰æ•°æ®
 	for (auto& item : EntityFactory::getSingleton().creators)
 	{
 		FString scriptName = item.Key;
@@ -407,7 +407,7 @@ void Entity::enterSpace()
 	pEventData->res = TEXT("");
 	KBENGINE_EVENT_FIRE("onEnterSpace", pEventData);
 	
-	// ÒªÁ¢¼´Ë¢ĞÂ±íÏÖ²ã¶ÔÏóµÄÎ»ÖÃ
+	// è¦ç«‹å³åˆ·æ–°è¡¨ç°å±‚å¯¹è±¡çš„ä½ç½®
 	set_position(position);
 	set_direction(direction);
 }

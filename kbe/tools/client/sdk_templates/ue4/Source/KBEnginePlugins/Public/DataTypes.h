@@ -8,8 +8,8 @@
 class MemoryStream;
 
 /*
-	entitydefËùÖ§³ÖµÄ»ù±¾Êý¾ÝÀàÐÍ
-	¸ÄÄ£¿éÖÐµÄÀà³éÏó³öÁËËùÓÐµÄÖ§³ÖÀàÐÍ²¢Ìá¹©ÁËÕâÐ©ÀàÐÍµÄÊý¾ÝÐòÁÐ»¯³É¶þ½øÖÆÊý¾ÝÓë·´ÐòÁÐ»¯²Ù×÷£¨Ö÷ÒªÓÃÓÚÍøÂçÍ¨Ñ¶µÄ´ò°üÓë½â°ü£©
+	entitydefæ‰€æ”¯æŒçš„åŸºæœ¬æ•°æ®ç±»åž‹
+	æ”¹æ¨¡å—ä¸­çš„ç±»æŠ½è±¡å‡ºäº†æ‰€æœ‰çš„æ”¯æŒç±»åž‹å¹¶æä¾›äº†è¿™äº›ç±»åž‹çš„æ•°æ®åºåˆ—åŒ–æˆäºŒè¿›åˆ¶æ•°æ®ä¸Žååºåˆ—åŒ–æ“ä½œï¼ˆä¸»è¦ç”¨äºŽç½‘ç»œé€šè®¯çš„æ‰“åŒ…ä¸Žè§£åŒ…ï¼‰
 */
 class KBENGINEPLUGINS_API KBEDATATYPE_BASE
 {

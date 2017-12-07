@@ -87,7 +87,7 @@ void Bundle::send(NetworkInterface* pNetworkInterface)
 		ERROR_MSG("Bundle::send(): networkInterface invalid!");
 	}
 
-	// �Ѳ��õ�MemoryStream�Żػ���أ��Լ����������յ�����
+	// 把不用的MemoryStream放回缓冲池，以减少垃圾回收的消耗
 	for (int i = 0; i < streams_.Num(); ++i)
 	{
 		MemoryStream::reclaimObject(streams_[i]);
@@ -98,11 +98,11 @@ void Bundle::send(NetworkInterface* pNetworkInterface)
 	if(pCurrPacket_)
 		pCurrPacket_->clear(true);
 
-	// ������Ϊ��������ɣ�����Ϊ���bundle����ʹ���ˣ�
-	// �������ǻ�����Żض���أ��Լ����������մ��������ģ�
-	// �����Ҫ����ʹ�ã�Ӧ������Bundle.createObject()��
-	// ������治����createObject()��ֱ��ʹ�ã��Ϳ��ܻ����Ī�������⣬
-	// ���Դ˱�ע����ʾʹ���ߡ�
+	// 我们认为，发送完成，就视为这个bundle不再使用了，
+	// 所以我们会把它放回对象池，以减少垃圾回收带来的消耗，
+	// 如果需要继续使用，应该重新Bundle.createObject()，
+	// 如果外面不重新createObject()而直接使用，就可能会出现莫名的问题，
+	// 仅以此备注，警示使用者。
 	Bundle::reclaimObject(this);
 }
 
@@ -216,7 +216,7 @@ Bundle &Bundle::operator<<(const FString &value)
 {
 	uint32 len = value.Len();
 
-	// +1Ϊ�ַ���β����0λ��
+	// +1为字符串尾部的0位置
 	checkStream(len + 1);
 	(*pCurrPacket_) << value;
 	return *this;
@@ -224,7 +224,7 @@ Bundle &Bundle::operator<<(const FString &value)
 
 Bundle &Bundle::operator<<(const char *str)
 {
-	// +1Ϊ�ַ���β����0λ��
+	// +1为字符串尾部的0位置
 	uint32 len = (uint32)strlen(str) + 1; 
 
 	checkStream(len);

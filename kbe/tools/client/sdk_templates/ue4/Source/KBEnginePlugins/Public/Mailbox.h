@@ -7,8 +7,8 @@
 class Bundle;
 
 /*
-	实体的Mailbox
-	关于Mailbox请参考API手册中对它的描述
+	瀹炰綋鐨凪ailbox
+	鍏充簬Mailbox璇峰弬鑰傾PI鎵嬪唽涓瀹冪殑鎻忚堪
 	https://github.com/kbengine/kbengine/tree/master/docs/api
 */
 class KBENGINEPLUGINS_API Mailbox
@@ -35,12 +35,12 @@ public:
 	}
 
 	/*
-		创建新的mail
+		鍒涘缓鏂扮殑mail
 	*/
 	Bundle* newMail();
 
 	/*
-		向服务端发送这个mail
+		鍚戞湇鍔＄鍙戦�佽繖涓猰ail
 	*/
 	void postMail(Bundle* inBundle);
 

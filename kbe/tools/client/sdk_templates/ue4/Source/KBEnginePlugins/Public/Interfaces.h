@@ -5,8 +5,8 @@
 #include "KBECommon.h"
 
 /*
-接口模块
-用于声明和实现某些回调统一接口
+鎺ュ彛妯″潡
+鐢ㄤ簬澹版槑鍜屽疄鐜版煇浜涘洖璋冪粺涓�鎺ュ彛
 */
 class KBENGINEPLUGINS_API InterfaceConnect
 {

@@ -6,7 +6,7 @@
 
 
 /*
-³õÊ¼»¯KBEngineµÄ²ÎÊıÀà
+åˆå§‹åŒ–KBEngineçš„å‚æ•°ç±»
 */
 class KBENGINEPLUGINS_API KBEngineArgs
 {
@@ -21,21 +21,21 @@ public:
 	FString ip;
 	int port;
 
-	// ¿Í»§¶ËÀàĞÍ
+	// å®¢æˆ·ç«¯ç±»å‹
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	EKCLIENT_TYPE clientType;
 
-	// ³Ö¾Ã»¯²å¼şĞÅÏ¢£¬ ÀıÈç£º´Ó·şÎñ¶Ëµ¼ÈëµÄĞ­Òé¿ÉÒÔ³Ö¾Ã»¯µ½±¾µØ£¬ÏÂ´ÎµÇÂ¼°æ±¾²»·¢Éú¸Ä±ä
-	// ¿ÉÒÔÖ±½Ó´Ó±¾µØ¼ÓÔØÀ´Ìá¹©µÇÂ¼ËÙ¶È
+	// æŒä¹…åŒ–æ’ä»¶ä¿¡æ¯ï¼Œ ä¾‹å¦‚ï¼šä»æœåŠ¡ç«¯å¯¼å…¥çš„åè®®å¯ä»¥æŒä¹…åŒ–åˆ°æœ¬åœ°ï¼Œä¸‹æ¬¡ç™»å½•ç‰ˆæœ¬ä¸å‘ç”Ÿæ”¹å˜
+	// å¯ä»¥ç›´æ¥ä»æœ¬åœ°åŠ è½½æ¥æä¾›ç™»å½•é€Ÿåº¦
 	FString persistentDataPath = "";
 
 	bool syncPlayer;
 	bool useAliasEntityID;
 	bool isOnInitCallPropertysSetMethods;
 
-	// ·¢ËÍ»º³å´óĞ¡
+	// å‘é€ç¼“å†²å¤§å°
 	MessageLengthEx SEND_BUFFER_MAX;
 
-	// ½ÓÊÕ»º³åÇø´óĞ¡
+	// æ¥æ”¶ç¼“å†²åŒºå¤§å°
 	MessageLengthEx RECV_BUFFER_MAX;
 };

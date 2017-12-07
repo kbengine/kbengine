@@ -48,7 +48,7 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 				}
 				else if (pMsg->msglen == 0)
 				{
-					// Èç¹ûÊÇ0¸ö²ÎÊýµÄÏûÏ¢£¬ÄÇÃ´Ã»ÓÐºóÐøÄÚÈÝ¿É¶ÁÁË£¬´¦Àí±¾ÌõÏûÏ¢²¢ÇÒÖ±½ÓÌøµ½ÏÂÒ»ÌõÏûÏ¢
+					// å¦‚æžœæ˜¯0ä¸ªå‚æ•°çš„æ¶ˆæ¯ï¼Œé‚£ä¹ˆæ²¡æœ‰åŽç»­å†…å®¹å¯è¯»äº†ï¼Œå¤„ç†æœ¬æ¡æ¶ˆæ¯å¹¶ä¸”ç›´æŽ¥è·³åˆ°ä¸‹ä¸€æ¡æ¶ˆæ¯
 					pMsg->handle(*pMemoryStream_);
 
 					state_ = READ_STATE_MSGID;
@@ -80,7 +80,7 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 				(*pMemoryStream_) >> msglen_;
 				pMemoryStream_->clear(false);
 
-				// ³¤¶ÈÀ©Õ¹
+				// é•¿åº¦æ‰©å±•
 				if (msglen_ >= 65535)
 				{
 					state_ = READ_STATE_MSGLEN_EX;

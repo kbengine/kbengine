@@ -9,15 +9,15 @@ class Mailbox;
 
 
 /*
-	KBEngine�߼����ʵ�������
-	������չ������Ϸʵ�嶼Ӧ�ü̳��ڸ�ģ��
+	KBEngine逻辑层的实体基础类
+	所有扩展出的游戏实体都应该继承于该模块
 
-	Ҫʵ��һ��KBE��Ӧ��ʵ����뾭�����¼���
-	1: �ڷ�����entity_defs��entities.xml��ע��ʵ�岢ʵ��ʵ���def����
-	2: �ڷ����������λ���磺assets/scriptsĿ¼��cell�� ȡ����ʵ��ӵ�иò��֣���base�� ȡ����ʵ��ӵ�иò��֣��ļ�����ʵ��ʵ��ķ���������py�ű�ģ��
-	3: ��UE4�ͻ�����kbe_scripts�ļ�����ʵ��ʵ��Ŀͻ��˲��ֽű�ģ�飨����ͳһ��Ϊʵ��ű�����Ȼ��C++ʵ�֣���UE4ʵ��ʵ�����������¼���
-		A����ʵ���ͷ�ļ��а��ո�ʽ����ENTITYDEF_DECLARE_ģ��������������ʵ��def������Ժͷ������ں����Զ���Э��󶨣��� ���忴demo
-		B����ʵ��CPP�ļ���ENTITYDEF_CLASS_REGISTER��ʵ��ע�ᣨ���ڸ��߲���ͻ��˾���ʵ������Щʵ�壩�����忴demo
+	要实现一个KBE对应的实体必须经过以下几步
+	1: 在服务器entity_defs中entities.xml中注册实体并实现实体的def定义
+	2: 在服务器的相关位置如：assets/scripts目录的cell（ 取决于实体拥有该部分）或base（ 取决于实体拥有该部分）文件夹下实现实体的服务器部分py脚本模块
+	3: 在UE4客户端中kbe_scripts文件夹下实现实体的客户端部分脚本模块（这里统一称为实体脚本，虽然是C++实现），UE4实现实体后必须有如下几步
+		A：在实体的头文件中按照格式定义ENTITYDEF_DECLARE_模块名（用于声明实体def相关属性和方法用于后续自动化协议绑定）， 具体看demo
+		B：在实体CPP文件中ENTITYDEF_CLASS_REGISTER将实体注册（用于告诉插件客户端具体实现了哪些实体），具体看demo
 */
 class KBENGINEPLUGINS_API Entity
 {
@@ -119,8 +119,8 @@ public:
 
 	// This callback method is called when the local entity control by the client has been enabled or disabled. 
 	// See the Entity.controlledBy() method in the CellApp server code for more infomation.
-	// �������������˵������ʾ�Ƿ��Լ���������ҿ����ˣ�
-	// ��������entity��˵����ʾ�ұ����Ƿ���������entity
+	// 对于玩家自身来说，它表示是否自己被其它玩家控制了；
+	// 对于其它entity来说，表示我本机是否控制了这个entity
 	virtual void onControlled(bool isControlled)
 	{
 
@@ -207,11 +207,11 @@ protected:
 	Mailbox* base_;
 	Mailbox* cell_;
 
-	// enterworld֮������Ϊtrue
+	// enterworld之后设置为true
 	bool inWorld_;
 
-	// �������������˵������ʾ�Ƿ��Լ���������ҿ����ˣ�
-	// ��������entity��˵����ʾ�ұ����Ƿ���������entity
+	// 对于玩家自身来说，它表示是否自己被其它玩家控制了；
+	// 对于其它entity来说，表示我本机是否控制了这个entity
 	bool isControlled_;
 
 	bool inited_;
@@ -223,15 +223,15 @@ public:
 	FVector direction;
 	uint32 spaceID;
 
-	// ��ǰ������һ��ͬ��������˵�λ���볯��
-	// �����������Ǹ�����KBEngine.cs�õģ���ĵط���Ҫ�޸�
+	// 当前玩家最后一次同步到服务端的位置与朝向
+	// 这两个属性是给引擎KBEngine.cs用的，别的地方不要修改
 	FVector entityLastLocalPos;
 	FVector entityLastLocalDir;
 };
 
 /*
-	��������Ҫ����ĳ��ʵ��ʱ������ײ���ô�����
-	ÿ����һ���µ�ʵ�������Դ�����м���� KBENGINE_ENTITY_CLASS_REGISTER(XEntity)���Ա�ײ�ע��һ����ص�EntityCreator
+	用于在需要创建某个实体时被插件底层调用创建。
+	每添加一个新的实体必须在源代码中加入宏 KBENGINE_ENTITY_CLASS_REGISTER(XEntity)，以便底层注册一个相关的EntityCreator
 */
 class KBENGINEPLUGINS_API EntityCreator
 {
@@ -249,7 +249,7 @@ public:
 };
 
 /*
-	ʵ�崴��������
+	实体创建工厂类
 */
 class KBENGINEPLUGINS_API EntityFactory
 {
@@ -277,7 +277,7 @@ public:
 };
 
 /*
-	��װʵ���defined����
+	包装实体的defined方法
 */
 class KBENGINEPLUGINS_API EntityDefMethodHandle
 {
@@ -315,7 +315,7 @@ public:
 };
 
 /*
-	��װʵ���defined����
+	包装实体的defined属性
 */
 class KBENGINEPLUGINS_API EntityDefPropertyHandle
 {
@@ -399,7 +399,7 @@ public:
 	#define K_CONNECT1(a, b) a##b
 	#define K_CONNECT(a, b) K_CONNECT1(a, b)
 
-	// ��name�����������Ϊһ������K_EXPAND_NARG(name, 5, 6, 7, 8, 9)Ϊname5
+	// 将name与参数个数组为一个，如K_EXPAND_NARG(name, 5, 6, 7, 8, 9)为name5
 	#define K_EXPAND_NARG(name, ...) \
 		K_CONNECT K_BRACKET_L name, K_PP_NARG(__VA_ARGS__) K_BRACKET_R (__VA_ARGS__)
 
@@ -433,7 +433,7 @@ public:
 	#define K_PP_NARG_(...) \
 		K_PP_ARG_N(__VA_ARGS__)
 
-	// ��name�����������Ϊһ������K_EXPAND_NARG(name, 5, 6, 7, 8, 9)Ϊname5
+	// 将name与参数个数组为一个，如K_EXPAND_NARG(name, 5, 6, 7, 8, 9)为name5
 	#define K_EXPAND_NARG(name, ...) \
 		K_CONNECT(name, K_PP_NARG(__VA_ARGS__))(__VA_ARGS__)
 
@@ -691,7 +691,7 @@ public:
 		ENTITYDEF_DECLARE_##module19 (ENTITY_SCRIPTMODULE_NAME) \
 		ENTITYDEF_DECLARE_##module20 (ENTITY_SCRIPTMODULE_NAME)
 
-// ע�ᶨ���ʵ����
+// 注册定义的实体类
 #define ENTITYDEF_CLASS_REGISTER(ENTITY_SCRIPTMODULE_NAME, .../*The name of the parent classes*/)	\
 	ENTITYDEF_DECLARE_Entity(ENTITY_SCRIPTMODULE_NAME)	\
 	ENTITYDEF_DECLARE_##ENTITY_SCRIPTMODULE_NAME(ENTITY_SCRIPTMODULE_NAME)	\
@@ -717,7 +717,7 @@ public:
 	_##ENTITY_SCRIPTMODULE_NAME##Creator g_##ENTITY_SCRIPTMODULE_NAME##Creator(FString(TEXT(#ENTITY_SCRIPTMODULE_NAME)));	\
 
 
-// ע�ᶨ��ķ���
+// 注册定义的方法
 #define ENTITYDEF_METHOD_REGISTER(ENTITY_SCRIPTMODULE_NAME, DEF_METHOD_NAME)	\
 	class _##ENTITY_SCRIPTMODULE_NAME##_##DEF_METHOD_NAME##DefMethodHandle : public EntityDefMethodHandle {	\
 		public:	\
@@ -832,7 +832,7 @@ public:
 	ENTITYDEF_METHOD_ARGS_TEMPLATE_REGISTER(ENTITY_SCRIPTMODULE_NAME, DEF_METHOD_NAME, (*args[0], *args[1], *args[2], *args[3], *args[4], *args[5], *args[6], *args[7], *args[8], *args[9], *args[10], *args[11], *args[12], *args[13], *args[14], *args[15], *args[16], *args[17], *args[18], *args[19]))
 
 
-// ע�ᶨ�������
+// 注册定义的属性
 #define ENTITYDEF_PROPERTY_REGISTER(ENTITY_SCRIPTMODULE_NAME, DEF_PROPERTY_NAME)	\
 	class _##ENTITY_SCRIPTMODULE_NAME##_##DEF_PROPERTY_NAME##DefPropertyHandle : public EntityDefPropertyHandle {	\
 		public:	\
@@ -854,7 +854,7 @@ public:
 	};\
 	_##ENTITY_SCRIPTMODULE_NAME##_##DEF_PROPERTY_NAME##DefPropertyHandle g_##ENTITY_SCRIPTMODULE_NAME##_##DEF_PROPERTY_NAME##DefPropertyHandle(FString(TEXT(#ENTITY_SCRIPTMODULE_NAME)), FString(TEXT(#DEF_PROPERTY_NAME)));	\
 
-// ע�ᶨ������ԣ��������԰���һ��set_*���������Ա����º�ķ���������
+// 注册定义的属性，并且属性包含一个set_*方法，属性被更新后改方法被调用
 #define ENTITYDEF_PROPERTY_WITH_SETMETHOD_REGISTER(ENTITY_SCRIPTMODULE_NAME, DEF_PROPERTY_NAME)	\
 	ENTITYDEF_PROPERTY_REGISTER(ENTITY_SCRIPTMODULE_NAME, DEF_PROPERTY_NAME)	\
 	ENTITYDEF_METHOD_REGISTER(ENTITY_SCRIPTMODULE_NAME, set_##DEF_PROPERTY_NAME)	\

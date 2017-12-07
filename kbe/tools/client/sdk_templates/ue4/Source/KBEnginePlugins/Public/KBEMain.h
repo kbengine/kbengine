@@ -8,8 +8,8 @@
 #include "KBEMain.generated.h"
 
 /*
-¿ÉÒÔÀí½âÎª²å¼şµÄÈë¿ÚÄ£¿é
-ÔÚÕâ¸öÈë¿ÚÖĞ°²×°ÁËĞèÒª¼àÌıµÄÊÂ¼ş(installEvents)£¬Í¬Ê±³õÊ¼»¯KBEngine(initKBEngine)
+å¯ä»¥ç†è§£ä¸ºæ’ä»¶çš„å…¥å£æ¨¡å—
+åœ¨è¿™ä¸ªå…¥å£ä¸­å®‰è£…äº†éœ€è¦ç›‘å¬çš„äº‹ä»¶(installEvents)ï¼ŒåŒæ—¶åˆå§‹åŒ–KBEngine(initKBEngine)
 */
 class KBEngineApp;
 
@@ -61,13 +61,13 @@ public:
 	FString getServerScriptVersion();
 
 	/*
-		¿Í»§¶ËÊôÓÚKBE¿ò¼ÜÖĞµÄÒ»¸ö¹¦ÄÜ×é¼ş£¬ÕâÀï»ñÈ¡½«¹Ì¶¨·µ»Øclient
+		å®¢æˆ·ç«¯å±äºKBEæ¡†æ¶ä¸­çš„ä¸€ä¸ªåŠŸèƒ½ç»„ä»¶ï¼Œè¿™é‡Œè·å–å°†å›ºå®šè¿”å›client
 	*/
 	UFUNCTION(BlueprintCallable, Category = "KBEngine")
 	FString getComponentName();
 
 	/**
-		ÔÚ³ÌĞò¹Ø±ÕÊ±ĞèÒªÖ÷¶¯µ÷ÓÃ, ³¹µ×Ïú»ÙKBEngine
+		åœ¨ç¨‹åºå…³é—­æ—¶éœ€è¦ä¸»åŠ¨è°ƒç”¨, å½»åº•é”€æ¯KBEngine
 	*/
 	UFUNCTION(BlueprintCallable, Category = "KBEngine")
 	bool destroyKBEngine();
@@ -76,7 +76,7 @@ public:
 	bool login(FString username, FString password, TArray<uint8> datas);
 
 	/*
-		´´½¨ÕËºÅ
+		åˆ›å»ºè´¦å·
 	*/
 	UFUNCTION(BlueprintCallable, Category = "KBEngine")
 	bool createAccount(FString username, FString password, const TArray<uint8>& datas);
@@ -105,8 +105,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	int RECV_BUFFER_MAX;
 
-	// ³Ö¾Ã»¯²å¼şĞÅÏ¢£¬ ÀıÈç£º´Ó·şÎñ¶Ëµ¼ÈëµÄĞ­Òé¿ÉÒÔ³Ö¾Ã»¯µ½±¾µØ£¬ÏÂ´ÎµÇÂ¼°æ±¾²»·¢Éú¸Ä±ä
-	// ¿ÉÒÔÖ±½Ó´Ó±¾µØ¼ÓÔØÀ´Ìá¹©µÇÂ¼ËÙ¶È
+	// æŒä¹…åŒ–æ’ä»¶ä¿¡æ¯ï¼Œ ä¾‹å¦‚ï¼šä»æœåŠ¡ç«¯å¯¼å…¥çš„åè®®å¯ä»¥æŒä¹…åŒ–åˆ°æœ¬åœ°ï¼Œä¸‹æ¬¡ç™»å½•ç‰ˆæœ¬ä¸å‘ç”Ÿæ”¹å˜
+	// å¯ä»¥ç›´æ¥ä»æœ¬åœ°åŠ è½½æ¥æä¾›ç™»å½•é€Ÿåº¦
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	FString persistentDataPath;
 };
