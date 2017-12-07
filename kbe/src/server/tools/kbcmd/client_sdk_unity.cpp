@@ -188,22 +188,36 @@ bool ClientSDKUnity::writeServerErrorDescrsModuleBegin()
 	sourcefileBody_ += "\tusing System.Collections;\n";
 	sourcefileBody_ += "\tusing System.Collections.Generic;\n\n";
 
+	sourcefileBody_ += fmt::format("\tpublic struct {}\n\t{{\n\t\tpublic string name;\n\t\tpublic string descr;\n\t\tpublic UInt16 id;\n", "ServerErr");
+	sourcefileBody_ += "\t}";
+
 	sourcefileBody_ += "\n\n\t// defined in */res/server/server_errors.xml\n\n";
 	sourcefileBody_ += fmt::format("\tpublic class {}\n\t{{\n", "ServerErrorDescrs");
+	sourcefileBody_ += "\t\tpublic static Dictionary<UInt16, ServerErr> serverErrs = new Dictionary<UInt16, ServerErr>();\n\n";
+
+	sourcefileBody_ += "\t\tpublic ServerErrorDescrs()\n\t\t{\n";
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModuleErrDescr: Not Implemented!\n"));
+	sourcefileBody_ += fmt::format("\t\t\t{{\n\t\t\t\tServerErr e;\n\t\t\t\te.id = {};\n\t\t\t\te.name = \"{}\";\n\t\t\t\te.descr = \"{}\";\n\n\t\t\t\tserverErrs.Add(e.id, e);\n", errorID, errname, errdescr);
+	sourcefileBody_ += "\t\t\t}\n\n";
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeServerErrorDescrsModuleEnd()
 {
-	sourcefileBody_ += "\n\t}\n}";
+	sourcefileBody_ += "\n\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic void Clear()\n\t\t{\n\t\t\tserverErrs.Clear();\n\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic string serverErrStr(UInt16 id)\n\t\t{\n\t\t\tServerErr e;\n\t\t\tif(!serverErrs.TryGetValue(id, out e))\n\t\t\t{\n\t\t\t\treturn \"\";\n\t\t\t}\n\n\t\t\treturn e.name + \"[\" + e.descr + \"]\";\n\t\t}\n\n";
+	sourcefileBody_ += "\t\tpublic ServerErr serverErr(UInt16 id)\n\t\t{\n\t\t\tServerErr e;\n\t\t\tserverErrs.TryGetValue(id, out e);\n\t\t\treturn e;\n\t\t}\n\n";
+
+	sourcefileBody_ += "\n\n\n\t}\n}";
 	return true;
 }
 
