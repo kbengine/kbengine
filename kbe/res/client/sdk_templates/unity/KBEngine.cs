@@ -118,16 +118,8 @@
 		private List<Int32> _entityIDAliasIDList = new List<Int32>();
 		private Dictionary<Int32, MemoryStream> _bufferedCreateEntityMessage = new Dictionary<Int32, MemoryStream>(); 
 		
-		// 描述服务端返回的错误信息
-		public struct ServerErr
-		{
-			public string name;
-			public string descr;
-			public UInt16 id;
-		}
-		
 		// 所有服务端错误码对应的错误描述
-		public static Dictionary<UInt16, ServerErr> serverErrs = new Dictionary<UInt16, ServerErr>(); 
+		public static ServerErrorDescrs serverErrs = new ServerErrorDescrs(); 
 		
 		private System.DateTime _lastTickTime = System.DateTime.Now;
 		private System.DateTime _lastTickCBTime = System.DateTime.Now;
@@ -484,7 +476,7 @@
 				e.name = System.Text.Encoding.UTF8.GetString(stream.readBlob());
 				e.descr = System.Text.Encoding.UTF8.GetString(stream.readBlob());
 				
-				serverErrs.Add(e.id, e);
+				//serverErrs.Add(e.id, e);
 					
 				//Dbg.DEBUG_MSG("Client_onImportServerErrorsDescr: id=" + e.id + ", name=" + e.name + ", descr=" + e.descr);
 			}
@@ -1059,14 +1051,7 @@
 		*/
 		public string serverErr(UInt16 id)
 		{
-			ServerErr e;
-			
-			if(!serverErrs.TryGetValue(id, out e))
-			{
-				return "";
-			}
-
-			return e.name + " [" + e.descr + "]";
+			return serverErrs.serverErrStr(id);
 		}
 	
 		/*
