@@ -41,11 +41,21 @@ public:
 
 	virtual bool good() const;
 
+	virtual std::string name() const {
+		return "unknown";
+	}
+
 	virtual bool create(const std::string& path);
 
-	virtual void onCreateModuleFileName(const std::string& moduleName);
+	virtual void onCreateEntityModuleFileName(const std::string& moduleName);
+	virtual void onCreateServerErrorDescrsModuleFileName();
 
-	virtual bool writeServerErrors();
+	virtual bool copyPluginsSourceToPath(const std::string& path);
+
+	virtual bool writeServerErrorDescrs();
+	virtual bool writeServerErrorDescrsModuleBegin();
+	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
+	virtual bool writeServerErrorDescrsModuleEnd();
 
 	virtual bool writeTypes();
 	virtual bool writeTypesBegin();

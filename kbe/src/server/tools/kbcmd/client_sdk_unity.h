@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_CLIENT_SDK_UNITY_H
 
 #include "client_sdk.h"
+#include "client_sdk_unity_templates.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
 
@@ -33,8 +34,17 @@ public:
 	ClientSDKUnity();
 	virtual ~ClientSDKUnity();
 
-	virtual void onCreateModuleFileName(const std::string& moduleName);
+	virtual std::string name() const {
+		return "unity";
+	}
+
+	virtual void onCreateEntityModuleFileName(const std::string& moduleName);
 	virtual void onCreateTypeFileName();
+	virtual void onCreateServerErrorDescrsModuleFileName();
+
+	virtual bool writeServerErrorDescrsModuleBegin();
+	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
+	virtual bool writeServerErrorDescrsModuleEnd();
 
 	virtual std::string typeToType(const std::string& type);
 

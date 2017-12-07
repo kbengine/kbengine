@@ -22,6 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_CLIENT_SDK_UE4_H
 
 #include "client_sdk.h"
+#include "client_sdk_ue4_templates.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
 
@@ -33,8 +34,17 @@ public:
 	ClientSDKUE4();
 	virtual ~ClientSDKUE4();
 
-	virtual void onCreateModuleFileName(const std::string& moduleName);
+	virtual std::string name() const {
+		return "ue4";
+	}
+
+	virtual void onCreateEntityModuleFileName(const std::string& moduleName);
 	virtual void onCreateTypeFileName();
+	virtual void onCreateServerErrorDescrsModuleFileName();
+
+	virtual bool writeServerErrorDescrsModuleBegin();
+	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
+	virtual bool writeServerErrorDescrsModuleEnd();
 
 	virtual std::string typeToType(const std::string& type);
 

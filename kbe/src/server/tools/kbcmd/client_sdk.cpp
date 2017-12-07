@@ -135,7 +135,7 @@ bool ClientSDK::good() const
 }
 
 //-------------------------------------------------------------------------------------
-void ClientSDK::onCreateModuleFileName(const std::string& moduleName)
+void ClientSDK::onCreateEntityModuleFileName(const std::string& moduleName)
 {
 	sourcefileName_ = moduleName + ".unknown";
 }
@@ -196,7 +196,22 @@ bool ClientSDK::create(const std::string& path)
 		path_ += "\\";
 #endif
 
-	if (!writeServerErrors())
+	std::string findpath = "client/sdk_templates/" + name();
+
+	std::string getpath = Resmgr::getSingleton().matchPath(findpath);
+
+	if (getpath.size() == 0 || findpath == getpath)
+	{
+		ERROR_MSG(fmt::format("ClientSDK::create(): not found path({})\n",
+			findpath));
+
+		return false;
+	}
+
+	if (!copyPluginsSourceToPath(getpath))
+		return false;
+
+	if (!writeServerErrorDescrs())
 		return false;
 
 	if (!writeTypes())
@@ -222,7 +237,90 @@ void ClientSDK::onCreateTypeFileName()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeServerErrors()
+void ClientSDK::onCreateServerErrorDescrsModuleFileName()
+{
+	sourcefileName_ = "servererrdescrs.unknown";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
+{
+	wchar_t* wpath = strutil::char2wchar(path.c_str());
+	std::wstring sourcePath = wpath;
+	free(wpath);
+
+	wpath = strutil::char2wchar(path_.c_str());
+	std::wstring destPath = wpath;
+	free(wpath);
+	
+
+	std::vector<std::wstring> results;
+	if (!Resmgr::getSingleton().listPathRes(sourcePath, L"*", results))
+		return false;
+
+	wchar_t* wfindpath = strutil::char2wchar(std::string("client/sdk_templates/" + name()).c_str());
+	std::wstring findpath = wfindpath;
+	free(wfindpath);
+
+	std::vector<std::wstring>::iterator iter = results.begin();
+	for (; iter != results.end(); ++iter)
+	{
+		std::wstring::size_type fpos = (*iter).find(findpath);
+
+		if (fpos == std::wstring::npos)
+		{
+			char* ccattr = strutil::wchar2char((*iter).c_str());
+			std::string currpath = ccattr;
+			free(ccattr);
+
+			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): split path({}) error!\n",
+				currpath));
+
+			return false;
+		}
+
+		std::wstring targetFile = (*iter);
+		targetFile.erase(0, fpos + findpath.size() + 1);
+		targetFile = (destPath + targetFile);
+
+		std::wstring basepath = targetFile;
+		fpos = targetFile.rfind(L"/");
+		if (fpos == std::wstring::npos)
+		{
+			char* ccattr = strutil::wchar2char(targetFile.c_str());
+			std::string currpath = ccattr;
+			free(ccattr);
+
+			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): split basepath({}) error!\n",
+				currpath));
+
+			return false;
+		}
+
+		basepath.erase(fpos, basepath.size() - fpos);
+		
+		char* ccattr = strutil::wchar2char(basepath.c_str());
+		std::string currpath = ccattr;
+		free(ccattr);
+
+		if (CreatDir(currpath.c_str()) == -1)
+		{
+			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): creating directory error! path={}\n", currpath));
+			return false;
+		}
+
+		std::ifstream input((*iter).c_str(), std::ios::binary);
+		std::ofstream output(targetFile.c_str(), std::ios::binary);
+		output << input.rdbuf();
+		output.close();
+		input.close();
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeServerErrorDescrs()
 {
 	std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
@@ -272,7 +370,48 @@ bool ClientSDK::writeServerErrors()
 		}
 	}
 
-	return true;
+	sourcefileName_ = sourcefileBody_ = "";
+	onCreateServerErrorDescrsModuleFileName();
+
+	DEBUG_MSG(fmt::format("ClientSDK::writeServerErrorDescrs(): {}/{}\n",
+		path_, sourcefileName_));
+
+	if (!writeServerErrorDescrsModuleBegin())
+		return false;
+
+	std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();
+
+	for (; iter != errsDescrs.end(); ++iter)
+	{
+		if (!writeServerErrorDescrsModuleErrDescr(iter->first, iter->second.first, iter->second.second))
+			return false;
+	}
+
+	if (!writeServerErrorDescrsModuleEnd())
+		return false;
+
+	return saveFile();
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeServerErrorDescrsModuleBegin()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModuleBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModuleErrDescr: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeServerErrorDescrsModuleEnd()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModuleEnd: Not Implemented!\n"));
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -519,7 +658,7 @@ bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 		path_, pEntityScriptDefModule->getName()));
 
 	sourcefileName_ = sourcefileBody_ = "";
-	onCreateModuleFileName(pEntityScriptDefModule->getName());
+	onCreateEntityModuleFileName(pEntityScriptDefModule->getName());
 
 	if (!writeEntityModuleBegin(pEntityScriptDefModule))
 		return false;

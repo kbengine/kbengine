@@ -162,13 +162,58 @@ std::string ClientSDKUE4::typeToType(const std::string& type)
 //-------------------------------------------------------------------------------------
 void ClientSDKUE4::onCreateTypeFileName()
 {
-	sourcefileName_ = "KBEAlias.h";
+	sourcefileName_ = "KBETypes.h";
 }
 
 //-------------------------------------------------------------------------------------
-void ClientSDKUE4::onCreateModuleFileName(const std::string& moduleName)
+void ClientSDKUE4::onCreateEntityModuleFileName(const std::string& moduleName)
 {
 	sourcefileName_ = moduleName + moduleSuffix + ".h";
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDKUE4::onCreateServerErrorDescrsModuleFileName()
+{
+	sourcefileName_ = "ServerErrorDescrs.h";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeServerErrorDescrsModuleBegin()
+{
+	sourcefileBody_ = headerBody;
+	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", "");
+
+	sourcefileBody_ += "#pragma once\n\n";
+	sourcefileBody_ += "#include \"KBECommon.h\"\n";
+
+	sourcefileBody_ += "\n\n// defined in */res/server/server_errors.xml\n\n";
+	sourcefileBody_ += fmt::format("class {}\n{{\npublic:\n", "ServerErrorDescrs");
+
+	sourcefileBody_ += "\tServerErrorDescrs():\n\tserverErrs_()\n\t{\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr)
+{
+	sourcefileBody_ += fmt::format("\t\t{{\n\t\t\tFKServerErr e;\n\t\t\te.id = {};\n\t\t\te.name = \"{}\";\n\t\t\te.descr = \"{}\";\n\n\t\t\tserverErrs_.Add(e.id, e);\n", errorID, errname, errdescr);
+	sourcefileBody_ += "\t\t}\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeServerErrorDescrsModuleEnd()
+{
+	sourcefileBody_ += "\t}\n\n";
+
+	sourcefileBody_ += "\tvoid Clear()\n\t{\n\t\tserverErrs_.Empty();\n\t}\n\n";
+
+	sourcefileBody_ += "\tFString ServerErrStr(uint16 id)\n\t{\n\t\tFKServerErr e = serverErrs_.FindRef(id);\n\t\treturn FString::Printf(TEXT(\"%s[%s]\"), *e.name, *e.descr);\n\t}\n\n";
+	sourcefileBody_ += "\tFKServerErr ServerErr(uint16 id)\n\t{\n\t\treturn serverErrs_.FindRef(id);\n\t}\n\n";
+
+	sourcefileBody_ += "\tprotected:\n\t\tTMap<uint16, FKServerErr> serverErrs_;";
+	sourcefileBody_ += "\n};\n\n";
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
@@ -473,9 +518,10 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 		pEntityScriptDefModule->getName(), pEntityScriptDefModule->getName(), moduleSuffix));
 
 	sourcefileBody_ += "#pragma once\n";
-	sourcefileBody_ += "#include \"KBEAlias.h\"\n\n";
+	sourcefileBody_ += "#include \"KBETypes.h\"\n";
+	sourcefileBody_ += "#include \"ServerErrorDescrs.h\"\n\n";
 	sourcefileBody_ += "class Entity;\n";
-
+	
 	sourcefileBody_ += std::string("\n// defined in */scripts/entity_defs/") + pEntityScriptDefModule->getName() + ".def\n";
 
 	sourcefileBody_ += fmt::format("class {} : public Entity\n{{\npublic:\n", newModuleName);

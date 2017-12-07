@@ -161,13 +161,50 @@ std::string ClientSDKUnity::typeToType(const std::string& type)
 //-------------------------------------------------------------------------------------
 void ClientSDKUnity::onCreateTypeFileName()
 {
-	sourcefileName_ = "KBEAlias.cs";
+	sourcefileName_ = "KBETypes.cs";
 }
 
 //-------------------------------------------------------------------------------------
-void ClientSDKUnity::onCreateModuleFileName(const std::string& moduleName)
+void ClientSDKUnity::onCreateEntityModuleFileName(const std::string& moduleName)
 {
 	sourcefileName_ = moduleName + moduleSuffix + ".cs";
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDKUnity::onCreateServerErrorDescrsModuleFileName()
+{
+	sourcefileName_ = "ServerErrorDescrs.cs";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeServerErrorDescrsModuleBegin()
+{
+	sourcefileBody_ = headerBody;
+	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", "");
+
+	sourcefileBody_ += "namespace KBEngine\n{\n";
+	sourcefileBody_ += "\tusing UnityEngine;\n";
+	sourcefileBody_ += "\tusing System;\n";
+	sourcefileBody_ += "\tusing System.Collections;\n";
+	sourcefileBody_ += "\tusing System.Collections.Generic;\n\n";
+
+	sourcefileBody_ += "\n\n\t// defined in */res/server/server_errors.xml\n\n";
+	sourcefileBody_ += fmt::format("\tpublic class {}\n\t{{\n", "ServerErrorDescrs");
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModuleErrDescr: Not Implemented!\n"));
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeServerErrorDescrsModuleEnd()
+{
+	sourcefileBody_ += "\n\t}\n}";
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
