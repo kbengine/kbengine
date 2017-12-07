@@ -14,7 +14,7 @@
 #include "Regex.h"
 #include "KBDebug.h"
 
-TMap<uint16, FKServerErr> KBEngineApp::serverErrs_;
+ServerErrorDescrs KBEngineApp::serverErrs_;
 
 bool KBEngineApp::loadingLocalMessages_ = false;
 
@@ -204,7 +204,7 @@ void KBEngineApp::resetMessages()
 	entitydefImported_ = false;
 	isImportServerErrorsDescr_ = false;
 
-	serverErrs_.Empty();
+	serverErrs_.Clear();
 
 	Messages::getSingleton().clear();
 	EntityDef::clear();
@@ -358,8 +358,7 @@ Entity* KBEngineApp::findEntity(int32 entityID)
 
 FString KBEngineApp::serverErr(uint16 id)
 {
-	FKServerErr e = serverErrs_.FindRef(id);
-	return FString::Printf(TEXT("%s[%s]"), *e.name, *e.descr);
+	return serverErrs_.ServerErrStr(id);
 }
 
 void KBEngineApp::updatePlayerToServer()
@@ -550,7 +549,7 @@ void KBEngineApp::onImportServerErrorsDescr(MemoryStream& stream)
 		stream.readUTF8String(e.name);
 		stream.readUTF8String(e.descr);
 
-		serverErrs_.Add(e.id, e);
+	
 
 		DEBUG_MSG("KBEngineApp::onImportServerErrorsDescr(): id=%d, name=%s, descr=%s", e.id, *e.name, *e.descr);
 	}
