@@ -175,6 +175,8 @@ void ClientSDKUE4::onCreateEntityModuleFileName(const std::string& moduleName)
 void ClientSDKUE4::onCreateServerErrorDescrsModuleFileName()
 {
 	sourcefileName_ = "ServerErrorDescrs.h";
+
+	currpath_ = basepath_ + "Source/KBEnginePlugins/Public/";
 }
 
 //-------------------------------------------------------------------------------------
