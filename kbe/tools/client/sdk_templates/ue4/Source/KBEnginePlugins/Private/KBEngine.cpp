@@ -126,14 +126,14 @@ bool KBEngineApp::initialize(KBEngineArgs* pArgs)
 
 	EntityDef::initialize();
 
-	// ����־û�KBE(����:Э�飬entitydef��)
+	// 允许持久化KBE(例如:协议，entitydef等)
 	if (pArgs->persistentDataPath != TEXT(""))
 	{
 		KBE_SAFE_RELEASE(persistentInfos_);
 		persistentInfos_ = new PersistentInfos(pArgs->persistentDataPath);
 	}
 
-	// ע���¼�
+	// 注册事件
 	installEvents();
 
 	pArgs_ = pArgs;
@@ -178,7 +178,7 @@ void KBEngineApp::installEvents()
 		newPassword(data.old_password, data.new_password);
 	});
 
-	// �ڲ��¼�
+	// 内部事件
 	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("_closeNetwork", "_closeNetwork", [this](const UKBEventData* pEventData)
 	{
 		_closeNetwork();
@@ -279,14 +279,14 @@ bool KBEngineApp::validEmail(const FString& strEmail)
 
 void KBEngineApp::process()
 {
-	// ��������
+	// 处理网络
 	if (pNetworkInterface_)
 		pNetworkInterface_->process();
 
-	// �������������¼�
+	// 处理外层抛入的事件
 	KBEvent::processInEvents();
 
-	// �����˷��������Լ�ͬ����ɫ��Ϣ�������
+	// 向服务端发送心跳以及同步角色信息到服务端
 	sendTick();
 }
 
@@ -300,15 +300,15 @@ void KBEngineApp::sendTick()
 
 	double span = getTimeSeconds() - lastTickTime_;
 
-	// ������ҵ�λ���볯�򵽷����
+	// 更新玩家的位置与朝向到服务端
 	updatePlayerToServer();
 
 	if (span > 15)
 	{
 		span = lastTickCBTime_ - lastTickTime_;
 
-		// ��������ص�����ʱ��С����������ʱ�䣬˵��û���յ��ص�
-		// ��ʱӦ��֪ͨ�ͻ��˵�����
+		// 如果心跳回调接收时间小于心跳发送时间，说明没有收到回调
+		// 此时应该通知客户端掉线了
 		if (span < 0)
 		{
 			SCREEN_ERROR_MSG("KBEngineApp::sendTick(): Receive appTick timeout!");
@@ -405,7 +405,7 @@ void KBEngineApp::updatePlayerToServer()
 		pBundle->send(pNetworkInterface_);
 	}
 
-	// ��ʼͬ�����б������˵�entity��λ��
+	// 开始同步所有被控制了的entity的位置
 	for(auto& item : controlledEntities_)
 	{
 		Entity* pEntity = item;
@@ -900,9 +900,9 @@ ENTITY_ID KBEngineApp::getAoiEntityIDFromStream(MemoryStream& stream)
 		uint8 aliasID = 0;
 		stream >> aliasID;
 
-		// ���Ϊ0�ҿͻ�����һ�����ص�½���������������ҷ����entity�ڶ����ڼ�һֱ��������״̬
-		// ����Ժ����������, ��Ϊcellapp����һֱ����baseapp����ͬ����Ϣ�� ���ͻ���������ʱδ��
-		// ����˳�ʼ�����迪ʼ���յ�ͬ����Ϣ, ��ʱ����ͻ����
+		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
+		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
+		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
 		if (entityIDAliasIDList_.Num() <= aliasID)
 			return 0;
 
@@ -1245,8 +1245,8 @@ void KBEngineApp::createDataTypeFromStream(MemoryStream& stream, bool canprint)
 	FString valname;
 	stream >> valname;
 
-	/* ��һЩ�������ͣ�������Ҫ�ṩһ��Ψһ���Ʒŵ�datatypes��
-		�磺
+	/* 有一些匿名类型，我们需要提供一个唯一名称放到datatypes中
+		如：
 		<onRemoveAvatar>
 		<Arg>	ARRAY <of> INT8 </of>		</Arg>
 		</onRemoveAvatar>
@@ -1291,7 +1291,7 @@ void KBEngineApp::createDataTypeFromStream(MemoryStream& stream, bool canprint)
 	}
 	else
 	{
-		// ���ܻ��ظ���map��ӻ������ͣ� ��ʱ��Ҫ���˵�
+		// 可能会重复向map添加基本类型， 此时需要过滤掉
 		//if (EntityDef::datatypes.Contains(valname))
 		//	return;
 
@@ -1302,13 +1302,13 @@ void KBEngineApp::createDataTypeFromStream(MemoryStream& stream, bool canprint)
 		EntityDef::datatypes.Add(valname, val);
 	}
 
-	// ���ܻ��ظ���map��ӻ������ͣ� ��ʱ��Ҫ���˵�
+	// 可能会重复向map添加基本类型， 此时需要过滤掉
 	//if (EntityDef::id2datatypes.Contains(utype))
 	//	return;
 
 	EntityDef::id2datatypes.Add(utype, EntityDef::datatypes[valname]);
 
-	// ���û��Զ�������Ͳ��䵽ӳ�����
+	// 将用户自定义的类型补充到映射表中
 	EntityDef::datatype2id.Add(valname, utype);
 
 }
@@ -1639,7 +1639,7 @@ void KBEngineApp::onImportClientMessages(MemoryStream& stream)
 			handler->id = msgid;
 			handler->msglen = msglen;
 
-			// ��Ϊ������IDһ��ʼ��ʱ����Ϊ������ ������Ҫ��������ȷ��ID��ӵ��б�
+			// 因为握手类ID一开始临时设置为负数， 所以需要重新以正确的ID添加到列表
 			if (isClientMethod)
 				Messages::getSingleton().add(handler, msgid, msgname, msglen);
 
@@ -1984,8 +1984,8 @@ void KBEngineApp::Client_onControlEntity(ENTITY_ID eid, int8 isControlled)
 
 	if (isCont)
 	{
-		// �����������������Լ����Ǳ�ʾ����Լ��������˿�����
-		// ��������Լ���Ӧ�ý�������������б�
+		// 如果被控制者是玩家自己，那表示玩家自己被其它人控制了
+		// 所以玩家自己不应该进入这个被控制列表
 		if (entity_id_ != (*pEntityFind)->id())
 		{
 			controlledEntities_.Add((*pEntityFind));
@@ -2106,9 +2106,9 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 
 		if (!pEntity->inWorld())
 		{
-			// ��ȫ����� �������һ��
-			// ����������ʹ��giveClientTo�л�����Ȩ
-			// ֮ǰ��ʵ���Ѿ��������磬 �л����ʵ��Ҳ�������磬 ������ܻ����֮ǰ�Ǹ�ʵ������������Ϣ
+			// 安全起见， 这里清空一下
+			// 如果服务端上使用giveClientTo切换控制权
+			// 之前的实体已经进入世界， 切换后的实体也进入世界， 这里可能会残留之前那个实体进入世界的信息
 			entityIDAliasIDList_.Empty();
 			clearEntities(false);
 			entities_.Add(pEntity->id(), pEntity);
@@ -2603,16 +2603,16 @@ void KBEngineApp::_updateVolatileData(ENTITY_ID entityID, float x, float y, floa
 
 	if (!pEntityFind)
 	{
-		// ���Ϊ0�ҿͻ�����һ�����ص�½���������������ҷ����entity�ڶ����ڼ�һֱ��������״̬
-		// ����Ժ����������, ��Ϊcellapp����һֱ����baseapp����ͬ����Ϣ�� ���ͻ���������ʱδ��
-		// ����˳�ʼ�����迪ʼ���յ�ͬ����Ϣ, ��ʱ����ͻ����
+		// 如果为0且客户端上一步是重登陆或者重连操作并且服务端entity在断线期间一直处于在线状态
+		// 则可以忽略这个错误, 因为cellapp可能一直在向baseapp发送同步消息， 当客户端重连上时未等
+		// 服务端初始化步骤开始则收到同步信息, 此时这里就会出错。
 		ERROR_MSG("KBEngineApp::_updateVolatileData(): entity(%d) not found!", entityID);
 		return;
 	}
 
 	Entity& entity = *(*pEntityFind);
 
-	// С��0������
+	// 小于0不设置
 	if (isOnGround >= 0)
 	{
 		entity.isOnGround(isOnGround > 0);
