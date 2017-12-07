@@ -13,10 +13,10 @@ class MemoryStream;
 class PersistentInfos;
 
 /*
-	ÕâÊÇKBEngine²å¼şµÄºËĞÄÄ£¿é
-	°üÀ¨ÍøÂç´´½¨¡¢³Ö¾Ã»¯Ğ­Òé¡¢entitiesµÄ¹ÜÀí¡¢ÒÔ¼°ÒıÆğ¶ÔÍâ¿Éµ÷ÓÃ½Ó¿Ú¡£
+	è¿™æ˜¯KBEngineæ’ä»¶çš„æ ¸å¿ƒæ¨¡å—
+	åŒ…æ‹¬ç½‘ç»œåˆ›å»ºã€æŒä¹…åŒ–åè®®ã€entitiesçš„ç®¡ç†ã€ä»¥åŠå¼•èµ·å¯¹å¤–å¯è°ƒç”¨æ¥å£ã€‚
 
-	Ò»Ğ©¿ÉÒÔ²Î¿¼µÄµØ·½:
+	ä¸€äº›å¯ä»¥å‚è€ƒçš„åœ°æ–¹:
 	http://www.kbengine.org/docs/programming/clientsdkprogramming.html
 	http://www.kbengine.org/docs/programming/kbe_message_format.html
 */
@@ -67,7 +67,7 @@ public:
 	static bool validEmail(const FString& strEmail);
 
 	/*
-		Í¨¹ı´íÎóidµÃµ½´íÎóÃèÊö
+		é€šè¿‡é”™è¯¯idå¾—åˆ°é”™è¯¯æè¿°
 	*/
 	FString serverErr(uint16 id);
 
@@ -75,33 +75,33 @@ public:
 	Entity* findEntity(int32 entityID);
 
 	/**
-		²å¼şµÄÖ÷Ñ­»·´¦Àíº¯Êı
+		æ’ä»¶çš„ä¸»å¾ªç¯å¤„ç†å‡½æ•°
 	*/
 	void process();
 
 	/*
-		Ïò·şÎñ¶Ë·¢ËÍĞÄÌøÒÔ¼°Í¬²½½ÇÉ«ĞÅÏ¢µ½·şÎñ¶Ë
+		å‘æœåŠ¡ç«¯å‘é€å¿ƒè·³ä»¥åŠåŒæ­¥è§’è‰²ä¿¡æ¯åˆ°æœåŠ¡ç«¯
 	*/
 	void sendTick();
 
 	/**
-		µÇÂ¼µ½·şÎñ¶Ë£¬±ØĞëµÇÂ¼Íê³ÉloginappÓëÍø¹Ø(baseapp)£¬µÇÂ¼Á÷³Ì²ÅËãÍê±Ï
+		ç™»å½•åˆ°æœåŠ¡ç«¯ï¼Œå¿…é¡»ç™»å½•å®Œæˆloginappä¸ç½‘å…³(baseapp)ï¼Œç™»å½•æµç¨‹æ‰ç®—å®Œæ¯•
 	*/
 	bool login(const FString& username, const FString& password, const TArray<uint8>& datas);
 	virtual void onConnectCallback(FString ip, uint16 port, bool success, int userdata) override;
 
 	/*
-		ÕËºÅ´´½¨·µ»Ø½á¹û
+		è´¦å·åˆ›å»ºè¿”å›ç»“æœ
 	*/
 	void Client_onCreateAccountResult(MemoryStream& stream);
 
 	/*
-		´´½¨ÕËºÅ
+		åˆ›å»ºè´¦å·
 	*/
 	bool createAccount(const FString& username, const FString& password, const TArray<uint8>& datas);
 
 	/*
-		ÖØÖÃÃÜÂë, Í¨¹ıloginapp
+		é‡ç½®å¯†ç , é€šè¿‡loginapp
 	*/
 	void resetPassword(const FString& username);
 	void onOpenLoginapp_resetpassword();
@@ -109,46 +109,46 @@ public:
 	void Client_onReqAccountResetPasswordCB(uint16 failcode);
 
 	/*
-		°ó¶¨Email£¬Í¨¹ıbaseapp
+		ç»‘å®šEmailï¼Œé€šè¿‡baseapp
 	*/
 	void bindAccountEmail(const FString& emailAddress);
 	void Client_onReqAccountBindEmailCB(uint16 failcode);
 
 	/*
-		ÉèÖÃĞÂÃÜÂë£¬Í¨¹ıbaseapp£¬ ±ØĞëÍæ¼ÒµÇÂ¼ÔÚÏß²Ù×÷ËùÒÔÊÇbaseapp¡£
+		è®¾ç½®æ–°å¯†ç ï¼Œé€šè¿‡baseappï¼Œ å¿…é¡»ç©å®¶ç™»å½•åœ¨çº¿æ“ä½œæ‰€ä»¥æ˜¯baseappã€‚
 	*/
 	void newPassword(const FString& old_password, const FString& new_password);
 	void Client_onReqAccountNewPasswordCB(uint16 failcode);
 
 	/*
-	ÖØµÇÂ¼µ½Íø¹Ø(baseapp)
-	Ò»Ğ©ÒÆ¶¯ÀàÓ¦ÓÃÈİÒ×µôÏß£¬¿ÉÒÔÊ¹ÓÃ¸Ã¹¦ÄÜ¿ìËÙµÄÖØĞÂÓë·şÎñ¶Ë½¨Á¢Í¨ĞÅ
+	é‡ç™»å½•åˆ°ç½‘å…³(baseapp)
+	ä¸€äº›ç§»åŠ¨ç±»åº”ç”¨å®¹æ˜“æ‰çº¿ï¼Œå¯ä»¥ä½¿ç”¨è¯¥åŠŸèƒ½å¿«é€Ÿçš„é‡æ–°ä¸æœåŠ¡ç«¯å»ºç«‹é€šä¿¡
 	*/
 	void reloginBaseapp();
 	void onReloginTo_baseapp_callback(FString ip, uint16 port, bool success);
 
 	/*
-		µÇÂ¼loginappÊ§°ÜÁË
+		ç™»å½•loginappå¤±è´¥äº†
 	*/
 	void Client_onLoginFailed(MemoryStream& stream);
 
 	/*
-		µÇÂ¼loginapp³É¹¦ÁË
+		ç™»å½•loginappæˆåŠŸäº†
 	*/
 	void Client_onLoginSuccessfully(MemoryStream& stream);
 
 	/*
-		µÇÂ¼baseappÊ§°ÜÁË
+		ç™»å½•baseappå¤±è´¥äº†
 	*/
 	void Client_onLoginBaseappFailed(uint16 failedcode);
 
 	/*
-		ÖØµÇÂ¼baseappÊ§°ÜÁË
+		é‡ç™»å½•baseappå¤±è´¥äº†
 	*/
 	void Client_onReloginBaseappFailed(uint16 failedcode);
 
 	/*
-		µÇÂ¼baseapp³É¹¦ÁË
+		ç™»å½•baseappæˆåŠŸäº†
 	*/
 	void Client_onReloginBaseappSuccessfully(MemoryStream& stream);
 
@@ -159,113 +159,113 @@ public:
 	void Client_onScriptVersionNotMatch(MemoryStream& stream);
 
 	/*
-		±»·şÎñ¶ËÌß³ö
+		è¢«æœåŠ¡ç«¯è¸¢å‡º
 	*/
 	void Client_onKicked(uint16 failedcode);
 
 	/*
-	´Ó·şÎñ¶Ë·µ»ØµÄ¶ş½øÖÆÁ÷µ¼Èë¿Í»§¶ËÏûÏ¢Ğ­Òé
+	ä»æœåŠ¡ç«¯è¿”å›çš„äºŒè¿›åˆ¶æµå¯¼å…¥å®¢æˆ·ç«¯æ¶ˆæ¯åè®®
 	*/
 	void Client_onImportClientMessages(MemoryStream& stream);
 
 	/*
-		·şÎñ¶Ë´íÎóÃèÊöµ¼ÈëÁË
+		æœåŠ¡ç«¯é”™è¯¯æè¿°å¯¼å…¥äº†
 	*/
 	void Client_onImportServerErrorsDescr(MemoryStream& stream);
 
 	void Client_onImportClientEntityDef(MemoryStream& stream);
 
 	/*
-		·şÎñÆ÷ĞÄÌø»Øµ÷
+		æœåŠ¡å™¨å¿ƒè·³å›è°ƒ
 	*/
 	void Client_onAppActiveTickCB();
 
 	/*
-		·şÎñ¶ËÍ¨Öª´´½¨Ò»¸ö½ÇÉ«
+		æœåŠ¡ç«¯é€šçŸ¥åˆ›å»ºä¸€ä¸ªè§’è‰²
 	*/
 	void Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& entityType);
 
 	/*
-		·şÎñ¶ËÍ¨ÖªÇ¿ÖÆÏú»ÙÒ»¸öÊµÌå
+		æœåŠ¡ç«¯é€šçŸ¥å¼ºåˆ¶é”€æ¯ä¸€ä¸ªå®ä½“
 	*/
 	void Client_onEntityDestroyed(int32 eid);
 
 	/*
-		·şÎñ¶ËÊ¹ÓÃÓÅ»¯µÄ·½Ê½¸üĞÂÊµÌåÊôĞÔÊı¾İ
+		æœåŠ¡ç«¯ä½¿ç”¨ä¼˜åŒ–çš„æ–¹å¼æ›´æ–°å®ä½“å±æ€§æ•°æ®
 	*/
 	void Client_onUpdatePropertysOptimized(MemoryStream& stream);
 
 	/*
-		·şÎñ¶Ë¸üĞÂÊµÌåÊôĞÔÊı¾İ
+		æœåŠ¡ç«¯æ›´æ–°å®ä½“å±æ€§æ•°æ®
 	*/
 	void Client_onUpdatePropertys(MemoryStream& stream);
 
 	/*
-		·şÎñ¶ËÊ¹ÓÃÓÅ»¯µÄ·½Ê½µ÷ÓÃÊµÌå·½·¨
+		æœåŠ¡ç«¯ä½¿ç”¨ä¼˜åŒ–çš„æ–¹å¼è°ƒç”¨å®ä½“æ–¹æ³•
 	*/
 	void Client_onRemoteMethodCallOptimized(MemoryStream& stream);
 
 	/*
-		·şÎñ¶Ëµ÷ÓÃÊµÌå·½·¨
+		æœåŠ¡ç«¯è°ƒç”¨å®ä½“æ–¹æ³•
 	*/
 	void Client_onRemoteMethodCall(MemoryStream& stream);
 
 	/*
-		¸æËß¿Í»§¶Ë£ºÄãµ±Ç°¸ºÔğ£¨»òÈ¡Ïû£©¿ØÖÆË­µÄÎ»ÒÆÍ¬²½
+		å‘Šè¯‰å®¢æˆ·ç«¯ï¼šä½ å½“å‰è´Ÿè´£ï¼ˆæˆ–å–æ¶ˆï¼‰æ§åˆ¶è°çš„ä½ç§»åŒæ­¥
 	*/
 	void Client_onControlEntity(ENTITY_ID eid, int8 isControlled);
 
 	/*
-		·şÎñ¶Ë³õÊ¼»¯¿Í»§¶ËµÄspacedata£¬ spacedataÇë²Î¿¼API
+		æœåŠ¡ç«¯åˆå§‹åŒ–å®¢æˆ·ç«¯çš„spacedataï¼Œ spacedataè¯·å‚è€ƒAPI
 	*/
 	void Client_initSpaceData(MemoryStream& stream);
 	FString getSpaceData(const FString& key);
 
 	/*
-		·şÎñ¶Ë³õÊ¼»¯¿Í»§¶ËµÄspacedata£¬ spacedataÇë²Î¿¼API
+		æœåŠ¡ç«¯åˆå§‹åŒ–å®¢æˆ·ç«¯çš„spacedataï¼Œ spacedataè¯·å‚è€ƒAPI
 	*/
 	void Client_setSpaceData(uint32 spaceID, const FString& key, const FString& value);
 
 	/*
-		·şÎñ¶ËÉ¾³ı¿Í»§¶ËµÄspacedata£¬ spacedataÇë²Î¿¼API
+		æœåŠ¡ç«¯åˆ é™¤å®¢æˆ·ç«¯çš„spacedataï¼Œ spacedataè¯·å‚è€ƒAPI
 	*/
 	void Client_delSpaceData(uint32 spaceID, const FString& key);
 
 	/*
-		·şÎñ¶ËÍ¨ÖªÁ÷Êı¾İÏÂÔØ¿ªÊ¼
-		Çë²Î¿¼APIÊÖ²á¹ØÓÚonStreamDataStarted
+		æœåŠ¡ç«¯é€šçŸ¥æµæ•°æ®ä¸‹è½½å¼€å§‹
+		è¯·å‚è€ƒAPIæ‰‹å†Œå…³äºonStreamDataStarted
 	*/
 	void Client_onStreamDataStarted(int16 id, uint32 datasize, FString descr);
 	void Client_onStreamDataRecv(MemoryStream& stream);
 	void Client_onStreamDataCompleted(int16 id);
 
 	/*
-		·şÎñ¶ËÍ¨ÖªÒ»¸öÊµÌå½øÈëÁËÊÀ½ç(Èç¹ûÊµÌåÊÇµ±Ç°Íæ¼ÒÔòÍæ¼ÒµÚÒ»´ÎÔÚÒ»¸öspaceÖĞ´´½¨ÁË£¬ Èç¹ûÊÇÆäËûÊµÌåÔòÊÇÆäËûÊµÌå½øÈëÁËÍæ¼ÒµÄAOI)
+		æœåŠ¡ç«¯é€šçŸ¥ä¸€ä¸ªå®ä½“è¿›å…¥äº†ä¸–ç•Œ(å¦‚æœå®ä½“æ˜¯å½“å‰ç©å®¶åˆ™ç©å®¶ç¬¬ä¸€æ¬¡åœ¨ä¸€ä¸ªspaceä¸­åˆ›å»ºäº†ï¼Œ å¦‚æœæ˜¯å…¶ä»–å®ä½“åˆ™æ˜¯å…¶ä»–å®ä½“è¿›å…¥äº†ç©å®¶çš„AOI)
 	*/
 	void Client_onEntityEnterWorld(MemoryStream& stream);
 
 	/*
-		·şÎñ¶ËÊ¹ÓÃÓÅ»¯µÄ·½Ê½Í¨ÖªÒ»¸öÊµÌåÀë¿ªÁËÊÀ½ç(Èç¹ûÊµÌåÊÇµ±Ç°Íæ¼ÒÔòÍæ¼ÒÀë¿ªÁËspace£¬ Èç¹ûÊÇÆäËûÊµÌåÔòÊÇÆäËûÊµÌåÀë¿ªÁËÍæ¼ÒµÄAOI)
+		æœåŠ¡ç«¯ä½¿ç”¨ä¼˜åŒ–çš„æ–¹å¼é€šçŸ¥ä¸€ä¸ªå®ä½“ç¦»å¼€äº†ä¸–ç•Œ(å¦‚æœå®ä½“æ˜¯å½“å‰ç©å®¶åˆ™ç©å®¶ç¦»å¼€äº†spaceï¼Œ å¦‚æœæ˜¯å…¶ä»–å®ä½“åˆ™æ˜¯å…¶ä»–å®ä½“ç¦»å¼€äº†ç©å®¶çš„AOI)
 	*/
 	void Client_onEntityLeaveWorldOptimized(MemoryStream& stream);
 
 	/*
-		·şÎñ¶ËÍ¨ÖªÒ»¸öÊµÌåÀë¿ªÁËÊÀ½ç(Èç¹ûÊµÌåÊÇµ±Ç°Íæ¼ÒÔòÍæ¼ÒÀë¿ªÁËspace£¬ Èç¹ûÊÇÆäËûÊµÌåÔòÊÇÆäËûÊµÌåÀë¿ªÁËÍæ¼ÒµÄAOI)
+		æœåŠ¡ç«¯é€šçŸ¥ä¸€ä¸ªå®ä½“ç¦»å¼€äº†ä¸–ç•Œ(å¦‚æœå®ä½“æ˜¯å½“å‰ç©å®¶åˆ™ç©å®¶ç¦»å¼€äº†spaceï¼Œ å¦‚æœæ˜¯å…¶ä»–å®ä½“åˆ™æ˜¯å…¶ä»–å®ä½“ç¦»å¼€äº†ç©å®¶çš„AOI)
 	*/
 	void Client_onEntityLeaveWorld(ENTITY_ID eid);
 
 	/*
-		·şÎñ¶ËÍ¨Öªµ±Ç°Íæ¼Ò½øÈëÁËÒ»¸öĞÂµÄspace
+		æœåŠ¡ç«¯é€šçŸ¥å½“å‰ç©å®¶è¿›å…¥äº†ä¸€ä¸ªæ–°çš„space
 	*/
 	void Client_onEntityEnterSpace(MemoryStream& stream);
 
 	/*
-		·şÎñ¶ËÍ¨Öªµ±Ç°Íæ¼ÒÀë¿ªÁËspace
+		æœåŠ¡ç«¯é€šçŸ¥å½“å‰ç©å®¶ç¦»å¼€äº†space
 	*/
 	void Client_onEntityLeaveSpace(ENTITY_ID eid);
 
 	/*
-		·şÎñ¶Ë¸üĞÂÍæ¼ÒµÄ»ù´¡Î»ÖÃ£¬ ¿Í»§¶ËÒÔÕâ¸ö»ù´¡Î»ÖÃ¼ÓÉÏ±ãÒËÖµ¼ÆËã³öÍæ¼ÒÖÜÎ§ÊµÌåµÄ×ø±ê
+		æœåŠ¡ç«¯æ›´æ–°ç©å®¶çš„åŸºç¡€ä½ç½®ï¼Œ å®¢æˆ·ç«¯ä»¥è¿™ä¸ªåŸºç¡€ä½ç½®åŠ ä¸Šä¾¿å®œå€¼è®¡ç®—å‡ºç©å®¶å‘¨å›´å®ä½“çš„åæ ‡
 	*/
 	void Client_onUpdateBasePos(float x, float y, float z);
 	void Client_onUpdateBasePosXZ(float x, float z);
@@ -273,8 +273,8 @@ public:
 	void Client_onUpdateData(MemoryStream& stream);
 
 	/*
-		·şÎñ¶ËÇ¿ÖÆÉèÖÃÁËÍæ¼ÒµÄ×ø±ê
-		ÀıÈç£ºÔÚ·şÎñ¶ËÊ¹ÓÃavatar.position=(0,0,0), »òÕßÍæ¼ÒÎ»ÖÃÓëËÙ¶ÈÒì³£Ê±»áÇ¿ÖÆÀ­»Øµ½Ò»¸öÎ»ÖÃ
+		æœåŠ¡ç«¯å¼ºåˆ¶è®¾ç½®äº†ç©å®¶çš„åæ ‡
+		ä¾‹å¦‚ï¼šåœ¨æœåŠ¡ç«¯ä½¿ç”¨avatar.position=(0,0,0), æˆ–è€…ç©å®¶ä½ç½®ä¸é€Ÿåº¦å¼‚å¸¸æ—¶ä¼šå¼ºåˆ¶æ‹‰å›åˆ°ä¸€ä¸ªä½ç½®
 	*/
 	void Client_onSetEntityPosAndDir(MemoryStream& stream);
 
@@ -327,7 +327,7 @@ private:
 	void addSpaceGeometryMapping(uint32 uspaceID, const FString& respath);
 
 	/*
-		´Ó¶ş½øÖÆÁ÷µ¼ÈëÏûÏ¢Ğ­ÒéÍê±ÏÁË
+		ä»äºŒè¿›åˆ¶æµå¯¼å…¥æ¶ˆæ¯åè®®å®Œæ¯•äº†
 	*/
 	void onImportClientMessagesCompleted();
 	void onImportEntityDefCompleted();
@@ -345,12 +345,12 @@ private:
 	void onConnectTo_loginapp_create_callback(FString ip, uint16 port, bool success);
 
 	/*
-		Í¨¹ıÁ÷Êı¾İ»ñµÃAOIÊµÌåµÄID
+		é€šè¿‡æµæ•°æ®è·å¾—AOIå®ä½“çš„ID
 	*/
 	ENTITY_ID getAoiEntityIDFromStream(MemoryStream& stream);
 
 	/*
-	·şÎñ¶Ë¸üĞÂÊµÌåÊôĞÔÊı¾İ
+	æœåŠ¡ç«¯æ›´æ–°å®ä½“å±æ€§æ•°æ®
 	*/
 	void onUpdatePropertys_(ENTITY_ID eid, MemoryStream& stream);
 
@@ -413,32 +413,32 @@ protected:
 	FString username_;
 	FString password_;
 
-	// ÊÇ·ñÕıÔÚ¼ÓÔØ±¾µØÏûÏ¢Ğ­Òé
+	// æ˜¯å¦æ­£åœ¨åŠ è½½æœ¬åœ°æ¶ˆæ¯åè®®
 	static bool loadingLocalMessages_;
 
-	// ÏûÏ¢Ğ­ÒéÊÇ·ñÒÑ¾­µ¼ÈëÁË
+	// æ¶ˆæ¯åè®®æ˜¯å¦å·²ç»å¯¼å…¥äº†
 	static bool loginappMessageImported_;
 	static bool baseappMessageImported_;
 	static bool entitydefImported_;
 	static bool isImportServerErrorsDescr_;
 
-	// ·şÎñ¶Ë·ÖÅäµÄbaseappµØÖ·
+	// æœåŠ¡ç«¯åˆ†é…çš„baseappåœ°å€
 	FString baseappIP_;
 	uint16 baseappPort_;
 
-	// µ±Ç°×´Ì¬
+	// å½“å‰çŠ¶æ€
 	FString currserver_;
 	FString currstate_;
 
-	// ·şÎñ¶ËÏÂĞĞÒÔ¼°¿Í»§¶ËÉÏĞĞÓÃÓÚµÇÂ¼Ê±´¦ÀíµÄÕËºÅ°ó¶¨µÄ¶ş½øÖÆĞÅÏ¢
-	// ¸ÃĞÅÏ¢ÓÉÓÃ»§×Ô¼º½øĞĞÀ©Õ¹
+	// æœåŠ¡ç«¯ä¸‹è¡Œä»¥åŠå®¢æˆ·ç«¯ä¸Šè¡Œç”¨äºç™»å½•æ—¶å¤„ç†çš„è´¦å·ç»‘å®šçš„äºŒè¿›åˆ¶ä¿¡æ¯
+	// è¯¥ä¿¡æ¯ç”±ç”¨æˆ·è‡ªå·±è¿›è¡Œæ‰©å±•
 	TArray<uint8> serverdatas_;
 	TArray<uint8> clientdatas_;
 
-	// Í¨ĞÅĞ­Òé¼ÓÃÜ£¬blowfishĞ­Òé
+	// é€šä¿¡åè®®åŠ å¯†ï¼Œblowfishåè®®
 	TArray<uint8> encryptedKey_;
 
-	// ·şÎñ¶ËÓë¿Í»§¶ËµÄ°æ±¾ºÅÒÔ¼°Ğ­ÒéMD5
+	// æœåŠ¡ç«¯ä¸å®¢æˆ·ç«¯çš„ç‰ˆæœ¬å·ä»¥åŠåè®®MD5
 	FString serverVersion_;
 	FString clientVersion_;
 	FString serverScriptVersion_;
@@ -446,45 +446,45 @@ protected:
 	FString serverProtocolMD5_;
 	FString serverEntitydefMD5_;
 
-	// ³Ö¾Ã»¯²å¼şĞÅÏ¢£¬ ÀıÈç£º´Ó·şÎñ¶Ëµ¼ÈëµÄĞ­Òé¿ÉÒÔ³Ö¾Ã»¯µ½±¾µØ£¬ÏÂ´ÎµÇÂ¼°æ±¾²»·¢Éú¸Ä±ä
-	// ¿ÉÒÔÖ±½Ó´Ó±¾µØ¼ÓÔØÀ´Ìá¹©µÇÂ¼ËÙ¶È
+	// æŒä¹…åŒ–æ’ä»¶ä¿¡æ¯ï¼Œ ä¾‹å¦‚ï¼šä»æœåŠ¡ç«¯å¯¼å…¥çš„åè®®å¯ä»¥æŒä¹…åŒ–åˆ°æœ¬åœ°ï¼Œä¸‹æ¬¡ç™»å½•ç‰ˆæœ¬ä¸å‘ç”Ÿæ”¹å˜
+	// å¯ä»¥ç›´æ¥ä»æœ¬åœ°åŠ è½½æ¥æä¾›ç™»å½•é€Ÿåº¦
 	PersistentInfos* persistentInfos_;
 
-	// µ±Ç°Íæ¼ÒµÄÊµÌåidÓëÊµÌåÀà±ğ
+	// å½“å‰ç©å®¶çš„å®ä½“idä¸å®ä½“ç±»åˆ«
 	uint64 entity_uuid_;
 	ENTITY_ID entity_id_;
 	FString entity_type_;
 
 	TArray<Entity*> controlledEntities_;
 
-	// µ±Ç°·şÎñ¶Ë×îºóÒ»´ÎÍ¬²½¹ıÀ´µÄÍæ¼ÒÎ»ÖÃ
+	// å½“å‰æœåŠ¡ç«¯æœ€åä¸€æ¬¡åŒæ­¥è¿‡æ¥çš„ç©å®¶ä½ç½®
 	FVector entityServerPos_;
 
-	// spaceµÄÊı¾İ£¬¾ßÌå¿´APIÊÖ²á¹ØÓÚspaceData
+	// spaceçš„æ•°æ®ï¼Œå…·ä½“çœ‹APIæ‰‹å†Œå…³äºspaceData
 	// https://github.com/kbengine/kbengine/tree/master/docs/api
 	TMap<FString, FString> spacedatas_;
 	
-	// ËùÓĞÊµÌå¶¼±£´æÓÚÕâÀï£¬ Çë²Î¿´APIÊÖ²á¹ØÓÚentities²¿·Ö
+	// æ‰€æœ‰å®ä½“éƒ½ä¿å­˜äºè¿™é‡Œï¼Œ è¯·å‚çœ‹APIæ‰‹å†Œå…³äºentitieséƒ¨åˆ†
 	// https://github.com/kbengine/kbengine/tree/master/docs/api
 	ENTITIES_MAP entities_;
 
-	// ÔÚÍæ¼ÒAOI·¶Î§Ğ¡ÓÚ256¸öÊµÌåÊ±ÎÒÃÇ¿ÉÒÔÍ¨¹ıÒ»×Ö½ÚË÷ÒıÀ´ÕÒµ½entity
+	// åœ¨ç©å®¶AOIèŒƒå›´å°äº256ä¸ªå®ä½“æ—¶æˆ‘ä»¬å¯ä»¥é€šè¿‡ä¸€å­—èŠ‚ç´¢å¼•æ¥æ‰¾åˆ°entity
 	TArray<ENTITY_ID> entityIDAliasIDList_;
 	TMap<ENTITY_ID, MemoryStream*> bufferedCreateEntityMessage_;
 
-	// ËùÓĞ·şÎñ¶Ë´íÎóÂë¶ÔÓ¦µÄ´íÎóÃèÊö
+	// æ‰€æœ‰æœåŠ¡ç«¯é”™è¯¯ç å¯¹åº”çš„é”™è¯¯æè¿°
 	static ServerErrorDescrs serverErrs_;
 
 	double lastTickTime_;
 	double lastTickCBTime_;
 	double lastUpdateToServerTime_;
 
-	// Íæ¼Òµ±Ç°ËùÔÚ¿Õ¼äµÄid£¬ ÒÔ¼°¿Õ¼ä¶ÔÓ¦µÄ×ÊÔ´
+	// ç©å®¶å½“å‰æ‰€åœ¨ç©ºé—´çš„idï¼Œ ä»¥åŠç©ºé—´å¯¹åº”çš„èµ„æº
 	SPACE_ID spaceID_;
 	FString spaceResPath_;
 	bool isLoadedGeometry_;
 
-	// °´ÕÕ±ê×¼£¬Ã¿¸ö¿Í»§¶Ë²¿·Ö¶¼Ó¦¸Ã°üº¬Õâ¸öÊôĞÔ
+	// æŒ‰ç…§æ ‡å‡†ï¼Œæ¯ä¸ªå®¢æˆ·ç«¯éƒ¨åˆ†éƒ½åº”è¯¥åŒ…å«è¿™ä¸ªå±æ€§
 	FString component_;
 
 };
