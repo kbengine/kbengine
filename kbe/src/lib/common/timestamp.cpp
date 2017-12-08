@@ -28,7 +28,7 @@ namespace KBEngine{
 #ifdef KBE_USE_RDTSC
 	KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
 #else // KBE_USE_RDTSC
-	const KBETimingMethod DEFAULT_TIMING_METHOD = GET_TIME_TIMING_METHOD;
+	#define DEFAULT_TIMING_METHOD GET_TIME_TIMING_METHOD
 	KBETimingMethod g_timingMethod = NO_TIMING_METHOD;
 #endif // KBE_USE_RDTSC
 
