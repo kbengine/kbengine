@@ -293,6 +293,9 @@ bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType)
 {
+	if (componentType != CLIENT_TYPE)
+		return true;
+
 	sourcefileBody_ += fmt::format("\tpublic class Message_{} : Message\n\t{{\n", messageInfos.name);
 
 	sourcefileBody_ += "\t\tpublic override void handleMessage(MemoryStream msgstream)\n";
@@ -317,7 +320,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 		for (int i = 0; i < messageInfos.argsTypes.size(); ++i)
 		{
 			int argindex = (i + 1);
-			argsparse += fmt::format("\t\t\tobject arg{} = argtypes[{}].createFromStream(msgstream);\n", argindex, i);
+			argsparse += fmt::format("\t\t\t{} arg{} = argtypes[{}].createFromStream(msgstream);\n", typeToType(datatype2nativetype(messageInfos.argsTypes[i])), argindex, i);
 			giveargs += fmt::format("arg{}, ", argindex);
 		}
 
