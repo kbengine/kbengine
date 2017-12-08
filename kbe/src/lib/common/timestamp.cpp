@@ -24,11 +24,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 #define KBE_USE_RDTSC
+
 #ifdef KBE_USE_RDTSC
-KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
+	KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
 #else // KBE_USE_RDTSC
-const KBETimingMethod DEFAULT_TIMING_METHOD = GET_TIME_TIMING_METHOD;
-KBETimingMethod g_timingMethod = NO_TIMING_METHOD;
+	const KBETimingMethod DEFAULT_TIMING_METHOD = GET_TIME_TIMING_METHOD;
+	KBETimingMethod g_timingMethod = NO_TIMING_METHOD;
 #endif // KBE_USE_RDTSC
 
 const char* getTimingMethodName()
@@ -106,7 +107,8 @@ static uint64 calcStampsPerSecond()
 
 #ifdef KBE_USE_RDTSC
 	return calcStampsPerSecond_rdtsc();
-#else // KBE_USE_RDTSC
+#else 
+
 	if (g_timingMethod == RDTSC_TIMING_METHOD)
 		return calcStampsPerSecond_rdtsc();
 	else if (g_timingMethod == GET_TIME_OF_DAY_TIMING_METHOD)
@@ -143,7 +145,8 @@ static uint64 calcStampsPerSecond()
 
 		return calcStampsPerSecond();
 	}
-#endif // KBE_USE_RDTSC
+
+#endif
 }
 
 
@@ -223,8 +226,8 @@ static uint64 calcStampsPerSecond()
 
 
 /**
- *	每秒cpu所耗时间
- */
+ 每秒cpu所耗时间
+*/
 uint64 stampsPerSecond()
 {
 	static uint64 _stampsPerSecondCache = calcStampsPerSecond();
@@ -232,12 +235,14 @@ uint64 stampsPerSecond()
 }
 
 /**
- *	每秒cpu所耗时间 double版本
- */
+ 每秒cpu所耗时间 double版本
+*/
 double stampsPerSecondD()
 {
 	static double stampsPerSecondCacheD = double(stampsPerSecond());
 	return stampsPerSecondCacheD;
 }
+
 }
-/* timestamp.cpp */
+
+

@@ -91,7 +91,7 @@ inline uint64 timestamp()
 		return timestamp_rdtsc();
 	else if (g_timingMethod == GET_TIME_OF_DAY_TIMING_METHOD)
 		return timestamp_gettimeofday();
-	else //if (g_timingMethod == GET_TIME_TIMING_METHOD)
+	else // GET_TIME_TIMING_METHOD
 		return timestamp_gettime();
 
 #endif // KBE_USE_RDTSC
@@ -133,43 +133,50 @@ double stampsPerSecondD_rdtsc();
 uint64 stampsPerSecond_gettimeofday();
 double stampsPerSecondD_gettimeofday();
 
-inline double stampsToSeconds( uint64 stamps )
+inline double stampsToSeconds(uint64 stamps)
 {
-	return double( stamps )/stampsPerSecondD();
+	return double(stamps) / stampsPerSecondD();
 }
 
 // -----------------------------------------------------------------------------
 class TimeStamp
 {
 public:
-	TimeStamp( uint64 stamps = 0 ) : stamp_( stamps ) {}
+	TimeStamp(uint64 stamps = 0) : 
+		stamp_( stamps ) 
+	{
+	}
 
-	operator uint64 &()				{ return stamp_; }
-	operator uint64() const			{ return stamp_; }
+	operator uint64& ()	
+	{ 
+		return stamp_; 
+	}
+
+	operator uint64() const 
+	{ 
+		return stamp_; 
+	}
 	
-	inline uint64 stamp(){ return stamp_; }
+	inline uint64 stamp() { return stamp_; }
 
 	inline double inSeconds() const;
-	inline void setInSeconds( double seconds );
+	inline void setInSeconds(double seconds);
 
-	inline TimeStamp ageInStamps() const;
-	inline double ageInSeconds() const;
-
-	inline static double toSeconds( uint64 stamps );
+	inline static double toSeconds(uint64 stamps);
 	inline static TimeStamp fromSeconds( double seconds );
 
 	uint64	stamp_;
 };
 
 
-inline double TimeStamp::toSeconds( uint64 stamps )
+inline double TimeStamp::toSeconds(uint64 stamps)
 {
-	return double( stamps )/stampsPerSecondD();
+	return double(stamps) / stampsPerSecondD();
 }
 
-inline TimeStamp TimeStamp::fromSeconds( double seconds )
+inline TimeStamp TimeStamp::fromSeconds(double seconds)
 {
-	return uint64( seconds * stampsPerSecondD() );
+	return uint64(seconds * stampsPerSecondD());
 }
 
 inline double TimeStamp::inSeconds() const
@@ -177,20 +184,12 @@ inline double TimeStamp::inSeconds() const
 	return toSeconds( stamp_ );
 }
 
-inline void TimeStamp::setInSeconds( double seconds )
+inline void TimeStamp::setInSeconds(double seconds)
 {
-	stamp_ = fromSeconds( seconds );
+	stamp_ = fromSeconds(seconds);
 }
 
-inline TimeStamp TimeStamp::ageInStamps() const
-{
-	return timestamp() - stamp_;
-}
 
-inline double TimeStamp::ageInSeconds() const
-{
-	return toSeconds( this->ageInStamps() );
-}
 
 }
 
