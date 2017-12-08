@@ -82,4 +82,80 @@ uint16 datatype2id(std::string datatype)
 }
 
 //-------------------------------------------------------------------------------------
+std::string datatype2nativetype(std::string datatype)
+{
+	uint16 tid = datatype2id(datatype);
+	return datatype2nativetype(tid);
+}
+
+//-------------------------------------------------------------------------------------
+std::string datatype2nativetype(uint16 datatype)
+{
+	switch (datatype)
+	{
+	case 1:
+		return "STRING";
+		break;
+	case 2:
+		return "UINT8";
+		break;
+	case 3:
+		return "UINT16";
+		break;
+	case 4:
+		return "UINT32";
+		break;
+	case 5:
+		return "UINT64";
+		break;
+	case 6:
+		return "INT8";
+		break;
+	case 7:
+		return "INT16";
+		break;
+	case 8:
+		return "INT32";
+		break;
+	case 9:
+		return "INT64";
+		break;
+	case 10:
+		return "PYTHON";
+		break;
+	case 11:
+		return "BLOB";
+		break;
+	case 12:
+		return "UNICODE";
+		break;
+	case 13:
+		return "FLOAT";
+		break;
+	case 14:
+		return "DOUBLE";
+		break;
+	case 15:
+		return "VECTOR2";
+		break;
+	case 16:
+		return "VECTOR3";
+		break;
+	case 17:
+		return "VECTOR4";
+		break;
+	case 18:
+		return "FIXED_DICT";
+		break;
+	case 19:
+		return "ARRAY";
+		break;
+	default:
+		KBE_ASSERT(false);
+	};
+
+	return "";
+}
+
+//-------------------------------------------------------------------------------------
 }

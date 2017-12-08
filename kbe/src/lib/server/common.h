@@ -221,6 +221,9 @@ inline uint64 secondsToStamps(float seconds)
 /** c/c++数据类别转换成KBEDataTypeID */
 uint16 datatype2id(std::string datatype);
 
+/** c/c++数据类别转换成原生类别UINT16 ... */
+std::string datatype2nativetype(std::string datatype);
+std::string datatype2nativetype(uint16 datatype);
 
 }
 
