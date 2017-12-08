@@ -177,6 +177,12 @@ void ClientSDKUnity::onCreateServerErrorDescrsModuleFileName()
 }
 
 //-------------------------------------------------------------------------------------
+void ClientSDKUnity::onCreateEngineMessagesModuleFileName()
+{
+	sourcefileName_ = "Messages.cs";
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeServerErrorDescrsModuleBegin()
 {
 	sourcefileBody_ = headerBody;
@@ -218,6 +224,120 @@ bool ClientSDKUnity::writeServerErrorDescrsModuleEnd()
 	sourcefileBody_ += "\t\tpublic ServerErr serverErr(UInt16 id)\n\t\t{\n\t\t\tServerErr e;\n\t\t\tserverErrs.TryGetValue(id, out e);\n\t\t\treturn e;\n\t\t}\n\n";
 
 	sourcefileBody_ += "\n\n\n\t}\n}";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEngineMessagesModuleBegin()
+{
+	sourcefileBody_ = headerBody;
+	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", "");
+
+	sourcefileBody_ += "namespace KBEngine\n{\n";
+	sourcefileBody_ += "\tusing UnityEngine;\n";
+	sourcefileBody_ += "\tusing System;\n";
+	sourcefileBody_ += "\tusing System.Collections;\n";
+	sourcefileBody_ += "\tusing System.Collections.Generic;\n\n";
+
+	sourcefileBody_ += "\tusing MessageID = System.UInt16;\n\n";
+
+	sourcefileBody_ += "\n\n\t// engine messages\n\n";
+	sourcefileBody_ += fmt::format("\tpublic class {}\n\t{{\n", "Message");
+
+	sourcefileBody_ += "\t\tpublic MessageID id = 0;\n";
+	sourcefileBody_ += "\t\tpublic string name;\n";
+	sourcefileBody_ += "\t\tpublic Int16 msglen = -1;\n";
+	sourcefileBody_ += "\t\tpublic KBEDATATYPE_BASE[] argtypes = null;\n";
+	sourcefileBody_ += "\t\tpublic sbyte argsType = 0;\n";
+
+	sourcefileBody_ += "\n\t\tpublic Messages(MessageID msgid, string msgname, Int16 length, sbyte argstype, List<Byte> msgargtypes)\n\t\t{\n";
+	sourcefileBody_ += "\t\t\tid = msgid;\n";
+	sourcefileBody_ += "\t\t\tname = msgname;\n";
+	sourcefileBody_ += "\t\t\tmsglen = length;\n";
+	sourcefileBody_ += "\t\t\targsType = argstype;\n\n";
+
+	sourcefileBody_ += "\t\t\targtypes = new KBEDATATYPE_BASE[msgargtypes.Count];\n";
+	sourcefileBody_ += "\t\t\tfor(int i=0; i<msgargtypes.Count; i++)\n";
+	sourcefileBody_ += "\t\t\t{\n";
+	sourcefileBody_ += "\t\t\t\tif(!EntityDef.id2datatypes.TryGetValue(msgargtypes[i], out argtypes[i]))\n";
+	sourcefileBody_ += "\t\t\t\t{\n";
+	sourcefileBody_ += "\t\t\t\t\tDbg.ERROR_MSG(\"Message::Message() : argtype(\" + msgargtypes[i] + \") is not found!\");\n";
+	sourcefileBody_ += "\t\t\t\t}\n";
+	sourcefileBody_ += "\t\t\t}\n\n";
+
+	sourcefileBody_ += "\t\t\t// Dbg.DEBUG_MSG(string.Format(\"Message::Message() : ({ 0 } / {1} / {2})!\", \n";
+	sourcefileBody_ += "\t\t\t//\t\tmsgname, msgid, msglen));";
+
+	sourcefileBody_ += "\n\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic virtual object[] createFromStream(MemoryStream msgstream)\n";
+	sourcefileBody_ += "\t\t{\n";
+	sourcefileBody_ += "\t\t\tif(argtypes.Length <= 0)\n";
+	sourcefileBody_ += "\t\t\t\treturn new object[]{msgstream};\n\n";
+	sourcefileBody_ += "\t\t\tobject[] result = new object[argtypes.Length];\n\n";
+	sourcefileBody_ += "\t\t\tfor(int i=0; i<argtypes.Length; i++);\n";
+	sourcefileBody_ += "\t\t\t{\n";
+	sourcefileBody_ += "\t\t\t\tresult[i] = argtypes[i].createFromStream(msgstream);\n";
+	sourcefileBody_ += "\t\t\t}\n\n";
+	sourcefileBody_ += "\t\t\treturn result;\n";
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic virtual void handleMessage(MemoryStream msgstream)\n";
+	sourcefileBody_ += "\t\t{\n";
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\n\t}\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType)
+{
+	sourcefileBody_ += fmt::format("\tpublic class Message_{} : Message\n\t{{\n", messageInfos.name);
+
+	sourcefileBody_ += "\t\tpublic override void handleMessage(MemoryStream msgstream)\n";
+	sourcefileBody_ += "\t\t{\n";
+
+	if (messageInfos.argsTypes.size() == 0)
+	{
+		if (messageInfos.argsType < 0)
+		{
+			sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}(msgstream);\n", messageInfos.name);
+		}
+		else
+		{
+			sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}();\n", messageInfos.name);
+		}
+	}
+	else
+	{
+		std::string argsparse = "";
+		std::string giveargs = "";
+
+		for (int i = 0; i < messageInfos.argsTypes.size(); ++i)
+		{
+			int argindex = (i + 1);
+			argsparse += fmt::format("\t\t\tobject arg{} = argtypes[{}].createFromStream(msgstream);\n", argindex, i);
+			giveargs += fmt::format("arg{}, ", argindex);
+		}
+
+		if (giveargs.size() > 0)
+			giveargs.erase(giveargs.size() - 2, 2);
+
+		sourcefileBody_ += argsparse;
+		sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}({});\n", messageInfos.name, giveargs);
+	}
+
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\n\t}\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEngineMessagesModuleEnd()
+{
+	sourcefileBody_ += "\n}";
 	return true;
 }
 

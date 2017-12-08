@@ -180,6 +180,14 @@ void ClientSDKUE4::onCreateServerErrorDescrsModuleFileName()
 }
 
 //-------------------------------------------------------------------------------------
+void ClientSDKUE4::onCreateEngineMessagesModuleFileName()
+{
+	sourcefileName_ = "Messages.h";
+
+	currpath_ = basepath_ + "Source/KBEnginePlugins/Public/";
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientSDKUE4::writeServerErrorDescrsModuleBegin()
 {
 	sourcefileBody_ = headerBody;
@@ -216,6 +224,27 @@ bool ClientSDKUE4::writeServerErrorDescrsModuleEnd()
 	sourcefileBody_ += "\tprotected:\n\t\tTMap<uint16, FKServerErr> serverErrs_;";
 	sourcefileBody_ += "\n};\n\n";
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeEngineMessagesModuleBegin()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEngineMessagesModuleBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEngineMessagesModuleMessage: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeEngineMessagesModuleEnd()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEngineMessagesModuleEnd: Not Implemented!\n"));
+	return false;
 }
 
 //-------------------------------------------------------------------------------------

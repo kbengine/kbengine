@@ -28,6 +28,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/datatypes.h"
 #include "entitydef/datatype.h"
 #include "resmgr/resmgr.h"
+#include "server/common.h"
+
+#include "client_lib/client_interface.h"
+#include "baseapp/baseapp_interface.h"
+#include "baseappmgr/baseappmgr_interface.h"
+#include "dbmgr/dbmgr_interface.h"
+#include "loginapp/loginapp_interface.h"
 
 #ifdef _WIN32  
 #include <direct.h>  
@@ -214,7 +221,10 @@ bool ClientSDK::create(const std::string& path)
 	if (!copyPluginsSourceToPath(getpath))
 		return false;
 
-	if (!writeServerErrorDescrs())
+	if (!writeServerErrorDescrsModule())
+		return false;
+
+	if (!writeEngineMessagesModule())
 		return false;
 
 	if (!writeTypes())
@@ -236,13 +246,13 @@ bool ClientSDK::create(const std::string& path)
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateTypeFileName()
 {
-	sourcefileName_ = "kbe_types.unknown";
+	sourcefileName_ = "KBEType.unknown";
 }
 
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateServerErrorDescrsModuleFileName()
 {
-	sourcefileName_ = "servererrdescrs.unknown";
+	sourcefileName_ = "ServerErrDescrs.unknown";
 }
 
 //-------------------------------------------------------------------------------------
@@ -324,7 +334,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeServerErrorDescrs()
+bool ClientSDK::writeServerErrorDescrsModule()
 {
 	std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
@@ -334,7 +344,7 @@ bool ClientSDK::writeServerErrorDescrs()
 
 		if (!xml->isGood())
 		{
-			ERROR_MSG(fmt::format("ClientSDK::writeServerErrors: load {} is failed!\n",
+			ERROR_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModule: load {} is failed!\n",
 				"server/server_errors_defaults.xml"));
 
 			return false;
@@ -377,7 +387,7 @@ bool ClientSDK::writeServerErrorDescrs()
 	sourcefileName_ = sourcefileBody_ = "";
 	onCreateServerErrorDescrsModuleFileName();
 
-	DEBUG_MSG(fmt::format("ClientSDK::writeServerErrorDescrs(): {}/{}\n",
+	DEBUG_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModule(): {}/{}\n",
 		basepath_, sourcefileName_));
 
 	if (!writeServerErrorDescrsModuleBegin())
@@ -415,6 +425,131 @@ bool ClientSDK::writeServerErrorDescrsModuleErrDescr(int errorID, const std::str
 bool ClientSDK::writeServerErrorDescrsModuleEnd()
 {
 	ERROR_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModuleEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDK::onCreateEngineMessagesModuleFileName()
+{
+	sourcefileName_ = "Messages.unknown";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEngineMessagesModule()
+{
+	sourcefileName_ = sourcefileBody_ = "";
+	onCreateEngineMessagesModuleFileName();
+
+	DEBUG_MSG(fmt::format("ClientSDK::writeEngineMessagesModule(): {}/{}\n",
+		basepath_, sourcefileName_));
+
+	if (!writeEngineMessagesModuleBegin())
+		return false;
+
+	std::map< Network::MessageID, Network::ExposedMessageInfo > clientMessages;
+	{
+		const Network::MessageHandlers::MessageHandlerMap& msgHandlers = ClientInterface::messageHandlers.msgHandlers();
+		Network::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
+		for (; iter != msgHandlers.end(); ++iter)
+		{
+			Network::MessageHandler* pMessageHandler = iter->second;
+
+			Network::ExposedMessageInfo& info = clientMessages[iter->first];
+			info.id = iter->first;
+			info.name = pMessageHandler->name;
+			info.msgLen = pMessageHandler->msgLen;
+			info.argsType = (int8)pMessageHandler->pArgs->type();
+
+			KBEngine::strutil::kbe_replace(info.name, "::", "_");
+			std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
+			for (; iter1 != pMessageHandler->pArgs->strArgsTypes.end(); ++iter1)
+			{
+				info.argsTypes.push_back((uint8)datatype2id((*iter1)));
+			}
+
+			if (!writeEngineMessagesModuleMessage(info, CLIENT_TYPE))
+				return false;
+		}
+	}
+
+	std::map< Network::MessageID, Network::ExposedMessageInfo > messages;
+	{
+		const Network::MessageHandlers::MessageHandlerMap& msgHandlers = LoginappInterface::messageHandlers.msgHandlers();
+		Network::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
+		for (; iter != msgHandlers.end(); ++iter)
+		{
+			Network::MessageHandler* pMessageHandler = iter->second;
+			if (!iter->second->exposed)
+				continue;
+
+			Network::ExposedMessageInfo& info = messages[iter->first];
+			info.id = iter->first;
+			info.name = pMessageHandler->name;
+			info.msgLen = pMessageHandler->msgLen;
+
+			KBEngine::strutil::kbe_replace(info.name, "::", "_");
+			std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
+			for (; iter1 != pMessageHandler->pArgs->strArgsTypes.end(); ++iter1)
+			{
+				info.argsTypes.push_back((uint8)datatype2id((*iter1)));
+			}
+
+			if (!writeEngineMessagesModuleMessage(info, LOGINAPP_TYPE))
+				return false;
+		}
+	}
+
+	{
+		const Network::MessageHandlers::MessageHandlerMap& msgHandlers = BaseappInterface::messageHandlers.msgHandlers();
+		Network::MessageHandlers::MessageHandlerMap::const_iterator iter = msgHandlers.begin();
+		for (; iter != msgHandlers.end(); ++iter)
+		{
+			Network::MessageHandler* pMessageHandler = iter->second;
+			if (!iter->second->exposed)
+				continue;
+
+			Network::ExposedMessageInfo& info = messages[iter->first];
+			info.id = iter->first;
+			info.name = pMessageHandler->name;
+			info.msgLen = pMessageHandler->msgLen;
+			info.argsType = (int8)pMessageHandler->pArgs->type();
+
+			KBEngine::strutil::kbe_replace(info.name, "::", "_");
+			std::vector<std::string>::iterator iter1 = pMessageHandler->pArgs->strArgsTypes.begin();
+			for (; iter1 != pMessageHandler->pArgs->strArgsTypes.end(); ++iter1)
+			{
+				info.argsTypes.push_back((uint8)datatype2id((*iter1)));
+			}
+
+			if (!writeEngineMessagesModuleMessage(info, BASEAPP_TYPE))
+				return false;
+		}
+	}
+
+	if (!writeEngineMessagesModuleEnd())
+		return false;
+
+	return saveFile();
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEngineMessagesModuleBegin()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEngineMessagesModuleBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEngineMessagesModuleMessage: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEngineMessagesModuleEnd()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEngineMessagesModuleEnd: Not Implemented!\n"));
 	return false;
 }
 

@@ -40,10 +40,16 @@ public:
 	virtual void onCreateEntityModuleFileName(const std::string& moduleName);
 	virtual void onCreateTypeFileName();
 	virtual void onCreateServerErrorDescrsModuleFileName();
+	virtual void onCreateEngineMessagesModuleFileName();
 
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
 	virtual bool writeServerErrorDescrsModuleEnd();
+
+	
+	virtual bool writeEngineMessagesModuleBegin();
+	virtual bool writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType);
+	virtual bool writeEngineMessagesModuleEnd();
 
 	virtual std::string typeToType(const std::string& type);
 

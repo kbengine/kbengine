@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "common/common.h"
 #include "helper/debug_helper.h"
+#include "network/message_handler.h"
 
 namespace KBEngine{
 
@@ -49,13 +50,19 @@ public:
 
 	virtual void onCreateEntityModuleFileName(const std::string& moduleName);
 	virtual void onCreateServerErrorDescrsModuleFileName();
+	virtual void onCreateEngineMessagesModuleFileName();
 
 	virtual bool copyPluginsSourceToPath(const std::string& path);
 
-	virtual bool writeServerErrorDescrs();
+	virtual bool writeServerErrorDescrsModule();
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
 	virtual bool writeServerErrorDescrsModuleEnd();
+
+	virtual bool writeEngineMessagesModule();
+	virtual bool writeEngineMessagesModuleBegin();
+	virtual bool writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType);
+	virtual bool writeEngineMessagesModuleEnd();
 
 	virtual bool writeTypes();
 	virtual bool writeTypesBegin();
