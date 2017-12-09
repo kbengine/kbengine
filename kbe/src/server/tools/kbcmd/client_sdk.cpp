@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/datatype.h"
 #include "resmgr/resmgr.h"
 #include "server/common.h"
+#include "server/serverconfig.h"
 #include "common/kbeversion.h"
 
 #include "client_lib/client_interface.h"
@@ -338,10 +339,11 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 		ss << input.rdbuf();
 		filebody = ss.str();
 
-		strutil::kbe_replace(filebody, "${KBE_VERSION}", KBEVersion::versionString());
-		strutil::kbe_replace(filebody, "${KBE_SCRIPT_VERSION}", KBEVersion::scriptVersionString());
-		strutil::kbe_replace(filebody, "${KBE_SERVER_PROTO_MD5}", Network::MessageHandlers::getDigestStr());
-		strutil::kbe_replace(filebody, "${KBE_SERVER_ENTITYDEF_MD5}", EntityDef::md5().getDigestStr());
+		strutil::kbe_replace(filebody, "@{KBE_VERSION}", KBEVersion::versionString());
+		strutil::kbe_replace(filebody, "@{KBE_SCRIPT_VERSION}", KBEVersion::scriptVersionString());
+		strutil::kbe_replace(filebody, "@{KBE_SERVER_PROTO_MD5}", Network::MessageHandlers::getDigestStr());
+		strutil::kbe_replace(filebody, "@{KBE_SERVER_ENTITYDEF_MD5}", EntityDef::md5().getDigestStr());
+		strutil::kbe_replace(filebody, "@{KBE_USE_ALIAS_ENTITYID}", ServerConfig::getSingleton().getCellApp().aliasEntityID ? "true" : "false");
 
 		output << filebody;
 
