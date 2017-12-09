@@ -320,7 +320,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 		std::string giveargs = "";
 		initBody_ += fmt::format("\n\t\t\tList<Byte> {}_argstypes = new List<Byte>();\n", messageInfos.name);
 
-		for (int i = 0; i < messageInfos.argsTypes.size(); ++i)
+		for (int i = 0; i < (int)messageInfos.argsTypes.size(); ++i)
 		{
 			int argindex = (i + 1);
 			std::string nativetype = datatype2nativetype(messageInfos.argsTypes[i]);
