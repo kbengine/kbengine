@@ -18,12 +18,11 @@ public class KBEMain : MonoBehaviour
 	public string ip = "127.0.0.1";
 	public int port = 20013;
 	public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
-	public string persistentDataPath = "Application.persistentDataPath";
 	public bool syncPlayer = true;
 	public int threadUpdateHZ = 10;
 	public int SEND_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public int RECV_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
-	public bool useAliasEntityID = true;
+	public bool useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	public bool isOnInitCallPropertysSetMethods = true;
 
 	void Awake() 
@@ -54,12 +53,6 @@ public class KBEMain : MonoBehaviour
 		args.ip = ip;
 		args.port = port;
 		args.clientType = clientType;
-		
-		if(persistentDataPath == "Application.persistentDataPath")
-			args.persistentDataPath = Application.persistentDataPath;
-		else
-			args.persistentDataPath = persistentDataPath;
-		
 		args.syncPlayer = syncPlayer;
 		args.threadUpdateHZ = threadUpdateHZ;
 		args.useAliasEntityID = useAliasEntityID;

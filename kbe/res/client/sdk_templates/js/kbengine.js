@@ -2426,15 +2426,18 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		// 版本信息
 		KBEngine.app.serverVersion = "";
 		KBEngine.app.serverScriptVersion = "";
-		KBEngine.app.serverProtocolMD5 = "${KBE_SERVER_PROTO_MD5}";
-		KBEngine.app.serverEntityDefMD5 = "${KBE_SERVER_ENTITYDEF_MD5}";
-		KBEngine.app.clientVersion = "${KBE_VERSION}";
-		KBEngine.app.clientScriptVersion = "${KBE_SCRIPT_VERSION}";
+		KBEngine.app.serverProtocolMD5 = "@{KBE_SERVER_PROTO_MD5}";
+		KBEngine.app.serverEntityDefMD5 = "@{KBE_SERVER_ENTITYDEF_MD5}";
+		KBEngine.app.clientVersion = "@{KBE_VERSION}";
+		KBEngine.app.clientScriptVersion = "@{KBE_SCRIPT_VERSION}";
 		
 		// player的相关信息
 		KBEngine.app.entity_uuid = null;
 		KBEngine.app.entity_id = 0;
 		KBEngine.app.entity_type = "";
+
+		// 这个参数的选择必须与kbengine_defs.xml::cellapp/aliasEntityID的参数保持一致
+		KBEngine.app.useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 
 		// 当前玩家最后一次同步到服务端的位置与朝向与服务端最后一次同步过来的位置
 		KBEngine.app.entityServerPos = new KBEngine.Vector3(0.0, 0.0, 0.0);

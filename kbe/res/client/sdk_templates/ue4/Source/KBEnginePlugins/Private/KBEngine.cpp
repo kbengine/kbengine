@@ -40,12 +40,13 @@ KBEngineApp::KBEngineApp() :
 	clientVersion_(TEXT("")),
 	serverScriptVersion_(TEXT("")),
 	clientScriptVersion_(TEXT("")),
-	serverProtocolMD5_(TEXT("${KBE_SERVER_PROTO_MD5}")),
-	serverEntitydefMD5_(TEXT("${KBE_SERVER_ENTITYDEF_MD5}")),
+	serverProtocolMD5_(TEXT("@{KBE_SERVER_PROTO_MD5}")),
+	serverEntitydefMD5_(TEXT("@{KBE_SERVER_ENTITYDEF_MD5}")),
 	persistentInfos_(NULL),
 	entity_uuid_(0),
 	entity_id_(0),
 	entity_type_(TEXT("")),
+	useAliasEntityID_(@{KBE_USE_ALIAS_ENTITYID}),
 	controlledEntities_(),
 	entityServerPos_(),
 	spacedatas_(),
@@ -79,12 +80,13 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	clientVersion_(TEXT("")),
 	serverScriptVersion_(TEXT("")),
 	clientScriptVersion_(TEXT("")),
-	serverProtocolMD5_(TEXT("${KBE_SERVER_PROTO_MD5}")),
-	serverEntitydefMD5_(TEXT("${KBE_SERVER_ENTITYDEF_MD5}")),
+	serverProtocolMD5_(TEXT("@{KBE_SERVER_PROTO_MD5}")),
+	serverEntitydefMD5_(TEXT("@{KBE_SERVER_ENTITYDEF_MD5}")),
 	persistentInfos_(NULL),
 	entity_uuid_(0),
 	entity_id_(0),
 	entity_type_(TEXT("")),
+	useAliasEntityID_(@{KBE_USE_ALIAS_ENTITYID}),
 	controlledEntities_(),
 	entityServerPos_(),
 	spacedatas_(),
@@ -225,9 +227,9 @@ void KBEngineApp::reset()
 	serverdatas_.Empty();
 
 	serverVersion_ = TEXT("");
-	clientVersion_ = TEXT("${KBE_VERSION}");
+	clientVersion_ = TEXT("@{KBE_VERSION}");
 	serverScriptVersion_ = TEXT("");
-	clientScriptVersion_ = TEXT("${KBE_SCRIPT_VERSION}");
+	clientScriptVersion_ = TEXT("@{KBE_SCRIPT_VERSION}");
 
 	entity_uuid_ = 0;
 	entity_id_ = 0;

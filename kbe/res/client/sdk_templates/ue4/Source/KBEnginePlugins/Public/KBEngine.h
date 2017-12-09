@@ -454,6 +454,9 @@ protected:
 	uint64 entity_uuid_;
 	ENTITY_ID entity_id_;
 	FString entity_type_;
+	
+	// 这个参数的选择必须与kbengine_defs.xml::cellapp/aliasEntityID的参数保持一致
+	bool useAliasEntityID_;
 
 	TArray<Entity*> controlledEntities_;
 
