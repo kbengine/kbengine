@@ -55,9 +55,9 @@
 				bundle = Bundle.createObject();
 			
 			if(type == Mailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL)
-				bundle.newMessage(Message.messages["Baseapp_onRemoteCallCellMethodFromClient"]);
+				bundle.newMessage(Messages.messages["Baseapp_onRemoteCallCellMethodFromClient"]);
 			else
-				bundle.newMessage(Message.messages["Base_onRemoteMethodCall"]);
+				bundle.newMessage(Messages.messages["Base_onRemoteMethodCall"]);
 	
 			bundle.writeInt32(this.id);
 			

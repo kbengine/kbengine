@@ -56,7 +56,7 @@
 						msgid = stream.readUint16();
 						stream.clear();
 
-						Message msg = Message.clientMessages[msgid];
+						Message msg = Messages.clientMessages[msgid];
 
 						if(msg.msglen == -1)
 						{
@@ -155,7 +155,7 @@
 						totallen += expectSize;
 						length -= expectSize;
 
-						Message msg = Message.clientMessages[msgid];
+						Message msg = Messages.clientMessages[msgid];
 						
 #if UNITY_EDITOR
 						Dbg.profileStart(msg.name);
