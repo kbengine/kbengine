@@ -34,7 +34,8 @@ static std::string moduleSuffix = "Base";
 
 //-------------------------------------------------------------------------------------
 ClientSDKUnity::ClientSDKUnity():
-	ClientSDK()
+	ClientSDK(),
+	initBody_()
 {
 }
 
@@ -230,6 +231,7 @@ bool ClientSDKUnity::writeServerErrorDescrsModuleEnd()
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 {
+	initBody_ = "";
 	sourcefileBody_ = headerBody;
 	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", "");
 
@@ -241,7 +243,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 
 	sourcefileBody_ += "\tusing MessageID = System.UInt16;\n\n";
 
-	sourcefileBody_ += "\n\n\t// engine messages\n\n";
+	sourcefileBody_ += "\t// engine-c++ messages\n\n";
 	sourcefileBody_ += fmt::format("\tpublic class {}\n\t{{\n", "Message");
 
 	sourcefileBody_ += "\t\tpublic MessageID id = 0;\n";
@@ -250,7 +252,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 	sourcefileBody_ += "\t\tpublic KBEDATATYPE_BASE[] argtypes = null;\n";
 	sourcefileBody_ += "\t\tpublic sbyte argsType = 0;\n";
 
-	sourcefileBody_ += "\n\t\tpublic Messages(MessageID msgid, string msgname, Int16 length, sbyte argstype, List<Byte> msgargtypes)\n\t\t{\n";
+	sourcefileBody_ += "\n\t\tpublic Message(MessageID msgid, string msgname, Int16 length, sbyte argstype, List<Byte> msgargtypes)\n\t\t{\n";
 	sourcefileBody_ += "\t\t\tid = msgid;\n";
 	sourcefileBody_ += "\t\t\tname = msgname;\n";
 	sourcefileBody_ += "\t\t\tmsglen = length;\n";
@@ -284,18 +286,15 @@ bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 
 	sourcefileBody_ += "\t\tpublic virtual void handleMessage(MemoryStream msgstream)\n";
 	sourcefileBody_ += "\t\t{\n";
-	sourcefileBody_ += "\t\t}\n\n";
+	sourcefileBody_ += "\t\t}\n";
 
-	sourcefileBody_ += "\n\t}\n\n";
+	sourcefileBody_ += "\t}\n\n";
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType)
 {
-	if (componentType != CLIENT_TYPE)
-		return true;
-
 	sourcefileBody_ += fmt::format("\tpublic class Message_{} : Message\n\t{{\n", messageInfos.name);
 
 	sourcefileBody_ += "\t\tpublic override void handleMessage(MemoryStream msgstream)\n";
@@ -303,6 +302,9 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 
 	if (messageInfos.argsTypes.size() == 0)
 	{
+		initBody_ += fmt::format("\t\t\tMessages.messages[\"{}\"] = new Message_{}({}, \"{}\", 0, 0, ", messageInfos.name, messageInfos.name, messageInfos.id, messageInfos.name);
+		initBody_ += "new List<Byte>());\n";
+
 		if (messageInfos.argsType < 0)
 		{
 			sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}(msgstream);\n", messageInfos.name);
@@ -316,30 +318,79 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 	{
 		std::string argsparse = "";
 		std::string giveargs = "";
+		initBody_ += fmt::format("\n\t\t\tList<Byte> {}_argstypes = new List<Byte>();\n", messageInfos.name);
 
 		for (int i = 0; i < messageInfos.argsTypes.size(); ++i)
 		{
 			int argindex = (i + 1);
-			argsparse += fmt::format("\t\t\t{} arg{} = argtypes[{}].createFromStream(msgstream);\n", typeToType(datatype2nativetype(messageInfos.argsTypes[i])), argindex, i);
+			std::string nativetype = datatype2nativetype(messageInfos.argsTypes[i]);
+
+			KBE_ASSERT(nativetype != "FIXED_DICT" && nativetype != "ARRAY" && nativetype != "PYTHON" && nativetype != "MAILBOX");
+
+			argsparse += fmt::format("\t\t\t{} arg{} = argtypes[{}].createFromStream(msgstream);\n", typeToType(nativetype), argindex, i);
 			giveargs += fmt::format("arg{}, ", argindex);
+			initBody_ += fmt::format("\t\t\t{}_argstypes.Add({});\n", messageInfos.name, (int)messageInfos.argsTypes[i]);
 		}
 
 		if (giveargs.size() > 0)
 			giveargs.erase(giveargs.size() - 2, 2);
 
-		sourcefileBody_ += argsparse;
-		sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}({});\n", messageInfos.name, giveargs);
+		initBody_ += fmt::format("\t\t\tMessages.messages[\"{}\"] = new Message_{}({}, \"{}\", 0, 0, {}_argstypes);\n", 
+			messageInfos.name, messageInfos.name, messageInfos.id, messageInfos.name, messageInfos.name);
+		
+		if (componentType == CLIENT_TYPE)
+		{
+			sourcefileBody_ += argsparse;
+			sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}({});\n", messageInfos.name, giveargs);
+		}
 	}
 
-	sourcefileBody_ += "\t\t}\n\n";
+	if (componentType == CLIENT_TYPE)
+	{
+		initBody_ += fmt::format("\t\t\tMessages.clientMessages[{}] = Message.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
+	}
+	else if (componentType == LOGINAPP_TYPE)
+	{
+		initBody_ += fmt::format("\t\t\tMessages.loginappMessages[{}] = Message.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
+	}
+	else if (componentType == BASEAPP_TYPE)
+	{
+		initBody_ += fmt::format("\t\t\tMessages.baseappMessages[{}] = Message.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
+	}
 
-	sourcefileBody_ += "\n\t}\n\n";
+	sourcefileBody_ += "\t\t}\n";
+
+	sourcefileBody_ += "\t}\n\n";
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEngineMessagesModuleEnd()
 {
+	sourcefileBody_ += fmt::format("\tpublic class {}\n\t{{\n", "Messages");
+
+	sourcefileBody_ += "\t\tpublic static Dictionary<MessageID, Message> loginappMessages = new Dictionary<MessageID, Message>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<MessageID, Message> baseappMessages = new Dictionary<MessageID, Message>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<MessageID, Message> clientMessages = new Dictionary<MessageID, Message>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<string, Message> messages = new Dictionary<string, Message>();\n";
+
+	sourcefileBody_ += "\n\t\tpublic static void clear()\n\t\t{\n";
+
+	sourcefileBody_ += "\t\t\tloginappMessages = new Dictionary<MessageID, Message>();\n";
+	sourcefileBody_ += "\t\t\tbaseappMessages = new Dictionary<MessageID, Message>();\n";
+	sourcefileBody_ += "\t\t\tclientMessages = new Dictionary<MessageID, Message>();\n";
+	sourcefileBody_ += "\t\t\tmessages = new Dictionary<string, Message>();\n";
+	sourcefileBody_ += "\n\t\t\tinit();";
+
+	sourcefileBody_ += "\n\t\t}\n\n";
+
+	sourcefileBody_ += "\n\t\tpublic static bool init()\n\t\t{\n";
+
+	sourcefileBody_ += initBody_;
+
+	sourcefileBody_ += "\n\t\t\treturn true;";
+	sourcefileBody_ += "\n\t\t}\n\n";
+
 	sourcefileBody_ += "\n}";
 	return true;
 }

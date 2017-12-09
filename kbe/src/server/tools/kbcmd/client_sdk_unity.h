@@ -164,7 +164,7 @@ public:
 	virtual bool writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody);
 
 protected:
-
+	std::string initBody_;
 };
 
 }
