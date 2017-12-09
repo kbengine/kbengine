@@ -277,7 +277,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 	sourcefileBody_ += "\t\t\tif(argtypes.Length <= 0)\n";
 	sourcefileBody_ += "\t\t\t\treturn new object[]{msgstream};\n\n";
 	sourcefileBody_ += "\t\t\tobject[] result = new object[argtypes.Length];\n\n";
-	sourcefileBody_ += "\t\t\tfor(int i=0; i<argtypes.Length; i++);\n";
+	sourcefileBody_ += "\t\t\tfor(int i=0; i<argtypes.Length; i++)\n";
 	sourcefileBody_ += "\t\t\t{\n";
 	sourcefileBody_ += "\t\t\t\tresult[i] = argtypes[i].createFromStream(msgstream);\n";
 	sourcefileBody_ += "\t\t\t}\n\n";
@@ -297,6 +297,9 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 {
 	sourcefileBody_ += fmt::format("\tpublic class Message_{} : Message\n\t{{\n", messageInfos.name);
 
+	sourcefileBody_ += fmt::format("\n\t\tpublic Message_{}(MessageID msgid, string msgname, Int16 length, sbyte argstype, List<Byte> msgargtypes):\n\t\t\tbase(msgid, msgname, length, argstype, msgargtypes)\n\t\t{{\n", messageInfos.name);
+	sourcefileBody_ += "\n\t\t}\n\n";
+
 	sourcefileBody_ += "\t\tpublic override void handleMessage(MemoryStream msgstream)\n";
 	sourcefileBody_ += "\t\t{\n";
 
@@ -305,13 +308,16 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 		initBody_ += fmt::format("\t\t\tMessages.messages[\"{}\"] = new Message_{}({}, \"{}\", 0, 0, ", messageInfos.name, messageInfos.name, messageInfos.id, messageInfos.name);
 		initBody_ += "new List<Byte>());\n";
 
-		if (messageInfos.argsType < 0)
+		if (componentType == CLIENT_TYPE)
 		{
-			sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}(msgstream);\n", messageInfos.name);
-		}
-		else
-		{
-			sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}();\n", messageInfos.name);
+			if (messageInfos.argsType < 0)
+			{
+				sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}(msgstream);\n", messageInfos.name);
+			}
+			else
+			{
+				sourcefileBody_ += fmt::format("\t\t\tKBEngineApp.app.{}();\n", messageInfos.name);
+			}
 		}
 	}
 	else
@@ -327,7 +333,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 
 			KBE_ASSERT(nativetype != "FIXED_DICT" && nativetype != "ARRAY" && nativetype != "PYTHON" && nativetype != "MAILBOX");
 
-			argsparse += fmt::format("\t\t\t{} arg{} = argtypes[{}].createFromStream(msgstream);\n", typeToType(nativetype), argindex, i);
+			argsparse += fmt::format("\t\t\t{} arg{} = ({})argtypes[{}].createFromStream(msgstream);\n", typeToType(nativetype), argindex, typeToType(nativetype), i);
 			giveargs += fmt::format("arg{}, ", argindex);
 			initBody_ += fmt::format("\t\t\t{}_argstypes.Add({});\n", messageInfos.name, (int)messageInfos.argsTypes[i]);
 		}
@@ -347,15 +353,15 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 
 	if (componentType == CLIENT_TYPE)
 	{
-		initBody_ += fmt::format("\t\t\tMessages.clientMessages[{}] = Message.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
+		initBody_ += fmt::format("\t\t\tMessages.clientMessages[{}] = Messages.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
 	}
 	else if (componentType == LOGINAPP_TYPE)
 	{
-		initBody_ += fmt::format("\t\t\tMessages.loginappMessages[{}] = Message.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
+		initBody_ += fmt::format("\t\t\tMessages.loginappMessages[{}] = Messages.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
 	}
 	else if (componentType == BASEAPP_TYPE)
 	{
-		initBody_ += fmt::format("\t\t\tMessages.baseappMessages[{}] = Message.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
+		initBody_ += fmt::format("\t\t\tMessages.baseappMessages[{}] = Messages.messages[\"{}\"];\n\n", messageInfos.id, messageInfos.name);
 	}
 
 	sourcefileBody_ += "\t\t}\n";
@@ -389,8 +395,8 @@ bool ClientSDKUnity::writeEngineMessagesModuleEnd()
 	sourcefileBody_ += initBody_;
 
 	sourcefileBody_ += "\n\t\t\treturn true;";
-	sourcefileBody_ += "\n\t\t}\n\n";
-
+	sourcefileBody_ += "\n\t\t}";
+	sourcefileBody_ += "\n\t}";
 	sourcefileBody_ += "\n}";
 	return true;
 }
@@ -671,7 +677,7 @@ bool ClientSDKUnity::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefMod
 
 	sourcefileBody_ += std::string("\t// defined in */scripts/entity_defs/") + pEntityScriptDefModule->getName() + ".def\n";
 
-	sourcefileBody_ += fmt::format("\tpublic abstract class {} : if_Entity_error_use______git_submodule_update_____kbengine_plugins_______open_this_file_and_I_will_tell_you\n\t{{\n", newModuleName);
+	sourcefileBody_ += fmt::format("\tpublic abstract class {} : Entity\n\t{{\n", newModuleName);
 	return true;
 }
 

@@ -34,11 +34,11 @@ const std::string & versionString()
 {
 	if(g_versionString.size() == 0)
 	{
-		char buf[ 256 ];
-		kbe_snprintf( buf, 256, "%d.%d.%d",
-				KBE_VERSION_MAJOR, KBE_VERSION_MINOR, KBE_VERSION_PATCH );
+		char buf[MAX_BUF];
+		kbe_snprintf(buf, MAX_BUF, "%d.%d.%d", KBE_VERSION_MAJOR, KBE_VERSION_MINOR, KBE_VERSION_PATCH);
 		g_versionString = buf;
 	}
+
 	return g_versionString;
 }
 

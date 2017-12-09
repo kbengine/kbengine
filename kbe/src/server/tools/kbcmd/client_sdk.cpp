@@ -29,6 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/datatype.h"
 #include "resmgr/resmgr.h"
 #include "server/common.h"
+#include "common/kbeversion.h"
 
 #include "client_lib/client_interface.h"
 #include "baseapp/baseapp_interface.h"
@@ -256,6 +257,11 @@ void ClientSDK::onCreateServerErrorDescrsModuleFileName()
 }
 
 //-------------------------------------------------------------------------------------
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <ostream>
+#include <cstdlib>
 bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 {
 	wchar_t* wpath = strutil::char2wchar(path.c_str());
@@ -325,7 +331,20 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 
 		std::ifstream input(currpath.c_str(), std::ios::binary);
 		std::ofstream output(currTargetFile.c_str(), std::ios::binary);
-		output << input.rdbuf();
+
+		std::stringstream ss;
+		std::string filebody;
+
+		ss << input.rdbuf();
+		filebody = ss.str();
+
+		strutil::kbe_replace(filebody, "${KBE_VERSION}", KBEVersion::versionString());
+		strutil::kbe_replace(filebody, "${KBE_SCRIPT_VERSION}", KBEVersion::scriptVersionString());
+		strutil::kbe_replace(filebody, "${KBE_SERVER_PROTO_MD5}", Network::MessageHandlers::getDigestStr());
+		strutil::kbe_replace(filebody, "${KBE_SERVER_ENTITYDEF_MD5}", EntityDef::md5().getDigestStr());
+
+		output << filebody;
+
 		output.close();
 		input.close();
 	}
