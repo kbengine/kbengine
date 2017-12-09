@@ -135,6 +135,7 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 {
 	Resmgr::getSingleton().initialize();
 	setEvns();
+	loadConfig();
 
 	DebugHelper::initialize(g_componentType);
 

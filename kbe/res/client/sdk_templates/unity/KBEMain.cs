@@ -16,10 +16,10 @@ public class KBEMain : MonoBehaviour
 	public DEBUGLEVEL debugLevel = DEBUGLEVEL.DEBUG;
 	public bool isMultiThreads = true;
 	public string ip = "127.0.0.1";
-	public int port = 20013;
+	public int port = @{KBE_LOGIN_PORT};
 	public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
 	public bool syncPlayer = true;
-	public int threadUpdateHZ = 10;
+	public int threadUpdateHZ = @{KBE_UPDATEHZ};
 	public int SEND_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public int RECV_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public bool useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};

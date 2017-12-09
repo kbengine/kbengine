@@ -11,7 +11,7 @@
     {
     	// 登录ip和端口
 		public string ip = "127.0.0.1";
-		public int port = 20013;
+		public int port = @{KBE_LOGIN_PORT};
 		
 		// 客户端类型
 		// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
@@ -40,7 +40,7 @@
 
 		// 只在多线程模式启用
 		// 线程主循环处理频率
-		public int threadUpdateHZ = 10;
+		public int threadUpdateHZ = @{KBE_UPDATEHZ};
 
 		public int getRecvBufferSize()
 		{

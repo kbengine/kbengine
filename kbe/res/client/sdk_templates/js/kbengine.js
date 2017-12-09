@@ -2337,8 +2337,8 @@ KBEngine.datatypes["BLOB"]		= new KBEngine.DATATYPE_BLOB();
 KBEngine.KBEngineArgs = function()
 {
 	this.ip = "127.0.0.1";
-	this.port = 20013;
-	this.updateHZ = 100;
+	this.port = @{KBE_USE_ALIAS_ENTITYID};
+	this.updateHZ = @{KBE_UPDATEHZ} * 10;
 	
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	this.clientType = 5;
