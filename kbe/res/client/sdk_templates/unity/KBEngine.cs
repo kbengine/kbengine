@@ -135,7 +135,7 @@
 			_args = args;
 			
 			EntityDef.init();
-			
+
         	initNetwork();
 
             // 注册事件
@@ -196,9 +196,9 @@
         
         public void resetMessages()
         {
-			_serverErrs.Clear ();
-			Messages.clear ();
-			EntityDef.clear ();
+			_serverErrs.Clear();
+			Messages.clear();
+			EntityDef.clear();
 			Entity.clear();
 			Dbg.DEBUG_MSG("KBEngine::resetMessages()");
         }
@@ -578,84 +578,6 @@
 			bundle.send(_networkInterface);
 			
 			_lastTickCBTime = System.DateTime.Now;
-		}
-		
-		/*
-			从二进制流创建entitydef支持的数据类型
-		*/
-		public void createDataTypeFromStreams(MemoryStream stream, bool canprint)
-		{
-			UInt16 aliassize = stream.readUint16();
-			Dbg.DEBUG_MSG("KBEngine::createDataTypeFromStreams: importAlias(size=" + aliassize + ")!");
-			
-			while(aliassize > 0)
-			{
-				aliassize--;
-				createDataTypeFromStream(stream, canprint);
-			};
-		
-			foreach(string datatype in EntityDef.datatypes.Keys)
-			{
-				if(EntityDef.datatypes[datatype] != null)
-				{
-					EntityDef.datatypes[datatype].bind();
-				}
-			}			
-		}
-			
-		public void createDataTypeFromStream(MemoryStream stream, bool canprint)
-		{
-			UInt16 utype = stream.readUint16();
-			string name = stream.readString();
-			string valname = stream.readString();
-
-			/* 有一些匿名类型，我们需要提供一个唯一名称放到datatypes中
-				如：
-				<onRemoveAvatar>
-					<Arg>	ARRAY <of> INT8 </of>		</Arg>
-				</onRemoveAvatar>				
-			*/
-			if(valname.Length == 0)
-				valname = "Null_" + utype;
-			
-			if(canprint)
-				Dbg.DEBUG_MSG("KBEngine::Client_onImportClientEntityDef: importAlias(" + name + ":" + valname + ":" + utype + ")!");
-			
-			if(name == "FIXED_DICT")
-			{
-				KBEDATATYPE_FIXED_DICT datatype = new KBEDATATYPE_FIXED_DICT();
-				Byte keysize = stream.readUint8();
-				datatype.implementedBy = stream.readString();
-					
-				while(keysize > 0)
-				{
-					keysize--;
-					
-					string keyname = stream.readString();
-					UInt16 keyutype = stream.readUint16();
-					datatype.dicttype[keyname] = keyutype;
-				};
-				
-				EntityDef.datatypes[valname] = datatype;
-			}
-			else if(name == "ARRAY")
-			{
-				UInt16 uitemtype = stream.readUint16();
-				KBEDATATYPE_ARRAY datatype = new KBEDATATYPE_ARRAY();
-				datatype.vtype = uitemtype;
-				EntityDef.datatypes[valname] = datatype;
-			}
-			else
-			{
-				KBEDATATYPE_BASE val = null;
-				EntityDef.datatypes.TryGetValue(name, out val);
-				EntityDef.datatypes[valname] = val;
-			}
-	
-			EntityDef.id2datatypes[utype] = EntityDef.datatypes[valname];
-			
-			// 将用户自定义的类型补充到映射表中
-			EntityDef.datatype2id[valname] = utype;
 		}
 
 		/*
