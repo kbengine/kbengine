@@ -1180,7 +1180,7 @@ KBEngine.messages["Baseapp_importClientMessages"] = new KBEngine.Message(207, "i
 KBEngine.messages["Baseapp_importClientEntityDef"] = new KBEngine.Message(208, "importClientEntityDef", 0, 0, new Array(), null);
 KBEngine.messages["onImportClientMessages"] = new KBEngine.Message(518, "onImportClientMessages", -1, -1, new Array(), null);
 
-KBEngine.bufferedCreateEntityMessage = {};
+KBEngine.bufferedCreateEntityMessages = {};
 
 /*-----------------------------------------------------------------------------------------
 												math
@@ -2426,10 +2426,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		// 版本信息
 		KBEngine.app.serverVersion = "";
 		KBEngine.app.serverScriptVersion = "";
-		KBEngine.app.serverProtocolMD5 = "";
-		KBEngine.app.serverEntityDefMD5 = "";
-		KBEngine.app.clientVersion = "1.1.0";
-		KBEngine.app.clientScriptVersion = "0.1.0";
+		KBEngine.app.serverProtocolMD5 = "${KBE_SERVER_PROTO_MD5}";
+		KBEngine.app.serverEntityDefMD5 = "${KBE_SERVER_ENTITYDEF_MD5}";
+		KBEngine.app.clientVersion = "${KBE_VERSION}";
+		KBEngine.app.clientScriptVersion = "${KBE_SCRIPT_VERSION}";
 		
 		// player的相关信息
 		KBEngine.app.entity_uuid = null;
@@ -3427,11 +3427,11 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			
 			KBEngine.app.entities[eid] = entity;
 			
-			var entityMessage = KBEngine.bufferedCreateEntityMessage[eid];
+			var entityMessage = KBEngine.bufferedCreateEntityMessages[eid];
 			if(entityMessage != undefined)
 			{
 				KBEngine.app.Client_onUpdatePropertys(entityMessage);
-				delete KBEngine.bufferedCreateEntityMessage[eid];
+				delete KBEngine.bufferedCreateEntityMessages[eid];
 			}
 				
 			entity.__init__();
@@ -3442,11 +3442,11 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		else
 		{
-			var entityMessage = KBEngine.bufferedCreateEntityMessage[eid];
+			var entityMessage = KBEngine.bufferedCreateEntityMessages[eid];
 			if(entityMessage != undefined)
 			{
 				KBEngine.app.Client_onUpdatePropertys(entityMessage);
-				delete KBEngine.bufferedCreateEntityMessage[eid];
+				delete KBEngine.bufferedCreateEntityMessages[eid];
 			}
 		}
 	}
@@ -3480,7 +3480,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		if(entity == undefined)
 		{
-			var entityMessage = KBEngine.bufferedCreateEntityMessage[eid];
+			var entityMessage = KBEngine.bufferedCreateEntityMessages[eid];
 			if(entityMessage != undefined)
 			{
 				KBEngine.ERROR_MSG("KBEngineApp::Client_onUpdatePropertys: entity(" + eid + ") not found!");
@@ -3490,7 +3490,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			var stream1 = new KBEngine.MemoryStream(stream.buffer);
 			stream1.wpos = stream.wpos;
 			stream1.rpos = stream.rpos - 4;
-			KBEngine.bufferedCreateEntityMessage[eid] = stream1;
+			KBEngine.bufferedCreateEntityMessages[eid] = stream1;
 			return;
 		}
 		
@@ -3611,7 +3611,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var entity = KBEngine.app.entities[eid];
 		if(entity == undefined)
 		{
-			entityMessage = KBEngine.bufferedCreateEntityMessage[eid];
+			entityMessage = KBEngine.bufferedCreateEntityMessages[eid];
 			if(entityMessage == undefined)
 			{
 				KBEngine.ERROR_MSG("KBEngineApp::Client_onEntityEnterWorld: entity(" + eid + ") not found!");
@@ -3634,7 +3634,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			KBEngine.app.entities[eid] = entity;
 			
 			KBEngine.app.Client_onUpdatePropertys(entityMessage);
-			delete KBEngine.bufferedCreateEntityMessage[eid];
+			delete KBEngine.bufferedCreateEntityMessages[eid];
 			
 			entity.isOnGround = isOnGround > 0;
 			entity.__init__();

@@ -40,8 +40,8 @@ KBEngineApp::KBEngineApp() :
 	clientVersion_(TEXT("")),
 	serverScriptVersion_(TEXT("")),
 	clientScriptVersion_(TEXT("")),
-	serverProtocolMD5_(TEXT("")),
-	serverEntitydefMD5_(TEXT("")),
+	serverProtocolMD5_(TEXT("${KBE_SERVER_PROTO_MD5}")),
+	serverEntitydefMD5_(TEXT("${KBE_SERVER_ENTITYDEF_MD5}")),
 	persistentInfos_(NULL),
 	entity_uuid_(0),
 	entity_id_(0),
@@ -51,7 +51,7 @@ KBEngineApp::KBEngineApp() :
 	spacedatas_(),
 	entities_(),
 	entityIDAliasIDList_(),
-	bufferedCreateEntityMessage_(),
+	bufferedCreateEntityMessages_(),
 	lastTickTime_(0.0),
 	lastTickCBTime_(0.0),
 	lastUpdateToServerTime_(0.0),
@@ -79,8 +79,8 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	clientVersion_(TEXT("")),
 	serverScriptVersion_(TEXT("")),
 	clientScriptVersion_(TEXT("")),
-	serverProtocolMD5_(TEXT("")),
-	serverEntitydefMD5_(TEXT("")),
+	serverProtocolMD5_(TEXT("${KBE_SERVER_PROTO_MD5}")),
+	serverEntitydefMD5_(TEXT("${KBE_SERVER_ENTITYDEF_MD5}")),
 	persistentInfos_(NULL),
 	entity_uuid_(0),
 	entity_id_(0),
@@ -90,7 +90,7 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	spacedatas_(),
 	entities_(),
 	entityIDAliasIDList_(),
-	bufferedCreateEntityMessage_(),
+	bufferedCreateEntityMessages_(),
 	lastTickTime_(0.0),
 	lastTickCBTime_(0.0),
 	lastUpdateToServerTime_(0.0),
@@ -225,16 +225,16 @@ void KBEngineApp::reset()
 	serverdatas_.Empty();
 
 	serverVersion_ = TEXT("");
-	clientVersion_ = TEXT("1.1.0");
+	clientVersion_ = TEXT("${KBE_VERSION}");
 	serverScriptVersion_ = TEXT("");
-	clientScriptVersion_ = TEXT("0.1.0");
+	clientScriptVersion_ = TEXT("${KBE_SCRIPT_VERSION}");
 
 	entity_uuid_ = 0;
 	entity_id_ = 0;
 	entity_type_ = TEXT("");
 
 	entityIDAliasIDList_.Empty();
-	bufferedCreateEntityMessage_.Empty();
+	bufferedCreateEntityMessages_.Empty();
 
 	lastTickTime_ = getTimeSeconds();
 	lastTickCBTime_ = getTimeSeconds();
@@ -852,12 +852,12 @@ void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& en
 
 		entities_.Add(eid, pEntity);
 
-		MemoryStream** entityMessageFind = bufferedCreateEntityMessage_.Find(eid);
+		MemoryStream** entityMessageFind = bufferedCreateEntityMessages_.Find(eid);
 		if (entityMessageFind)
 		{
 			MemoryStream* entityMessage = *entityMessageFind;
 			Client_onUpdatePropertys(*entityMessage);
-			bufferedCreateEntityMessage_.Remove(eid);
+			bufferedCreateEntityMessages_.Remove(eid);
 			MemoryStream::reclaimObject(entityMessage);
 		}
 
@@ -869,12 +869,12 @@ void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& en
 	}
 	else
 	{
-		MemoryStream** entityMessageFind = bufferedCreateEntityMessage_.Find(eid);
+		MemoryStream** entityMessageFind = bufferedCreateEntityMessages_.Find(eid);
 		if (entityMessageFind)
 		{
 			MemoryStream* entityMessage = *entityMessageFind;
 			Client_onUpdatePropertys(*entityMessage);
-			bufferedCreateEntityMessage_.Remove(eid);
+			bufferedCreateEntityMessages_.Remove(eid);
 			MemoryStream::reclaimObject(entityMessage);
 		}
 	}
@@ -930,7 +930,7 @@ void KBEngineApp::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& stream)
 
 	if (!pEntityFind)
 	{
-		MemoryStream** entityMessageFind = bufferedCreateEntityMessage_.Find(eid);
+		MemoryStream** entityMessageFind = bufferedCreateEntityMessages_.Find(eid);
 		if (entityMessageFind)
 		{
 			ERROR_MSG("KBEngineApp::onUpdatePropertys_(): entity(%d) not found!", eid);
@@ -940,7 +940,7 @@ void KBEngineApp::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& stream)
 		MemoryStream* stream1 = MemoryStream::createObject();
 		stream1->append(stream);
 		stream1->rpos(stream.rpos() - 4);
-		bufferedCreateEntityMessage_.Add(eid, stream1);
+		bufferedCreateEntityMessages_.Add(eid, stream1);
 		return;
 	}
 	
@@ -2051,7 +2051,7 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 
 	if (!pEntityFind)
 	{
-		MemoryStream** entityMessageFind = bufferedCreateEntityMessage_.Find(eid);
+		MemoryStream** entityMessageFind = bufferedCreateEntityMessages_.Find(eid);
 		if (!entityMessageFind)
 		{
 			ERROR_MSG("KBEngineApp::Client_onEntityEnterWorld(): entity(%d) not found!", eid);
@@ -2085,7 +2085,7 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 
 		Client_onUpdatePropertys(*(*entityMessageFind));
 		MemoryStream::reclaimObject((*entityMessageFind));
-		bufferedCreateEntityMessage_.Remove(eid);
+		bufferedCreateEntityMessages_.Remove(eid);
 
 		pEntity->isOnGround(isOnGround > 0);
 		pEntity->set_direction(pEntity->direction);

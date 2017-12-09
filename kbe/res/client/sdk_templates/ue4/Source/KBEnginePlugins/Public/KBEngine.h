@@ -470,7 +470,7 @@ protected:
 
 	// 在玩家AOI范围小于256个实体时我们可以通过一字节索引来找到entity
 	TArray<ENTITY_ID> entityIDAliasIDList_;
-	TMap<ENTITY_ID, MemoryStream*> bufferedCreateEntityMessage_;
+	TMap<ENTITY_ID, MemoryStream*> bufferedCreateEntityMessages_;
 
 	// 所有服务端错误码对应的错误描述
 	static ServerErrorDescrs serverErrs_;
