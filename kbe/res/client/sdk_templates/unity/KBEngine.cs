@@ -58,15 +58,6 @@
 		
         public string username = "kbengine";
         public string password = "123456";
-        
-        // 是否正在加载本地消息协议
-        private static bool loadingLocalMessages_ = false;
-        
-        // 消息协议是否已经导入了
-		private static bool loginappMessageImported_ = false;
-		private static bool baseappMessageImported_ = false;
-		private static bool entitydefImported_ = false;
-		private static bool isImportServerErrorsDescr_ = false;
 		
 		// 服务端分配的baseapp地址
 		public string baseappIP = "";
@@ -112,10 +103,10 @@
 		
 		// 在玩家AOI范围小于256个实体时我们可以通过一字节索引来找到entity
 		private List<Int32> _entityIDAliasIDList = new List<Int32>();
-		private Dictionary<Int32, MemoryStream> _bufferedCreateEntityMessage = new Dictionary<Int32, MemoryStream>(); 
+		private Dictionary<Int32, MemoryStream> _bufferedCreateEntityMessages = new Dictionary<Int32, MemoryStream>(); 
 		
 		// 所有服务端错误码对应的错误描述
-		public static ServerErrorDescrs serverErrs = new ServerErrorDescrs(); 
+		private ServerErrorDescrs _serverErrs = new ServerErrorDescrs(); 
 		
 		private System.DateTime _lastTickTime = System.DateTime.Now;
 		private System.DateTime _lastTickCBTime = System.DateTime.Now;
@@ -125,9 +116,6 @@
 		public UInt32 spaceID = 0;
 		public string spaceResPath = "";
 		public bool isLoadedGeometry = false;
-		
-		// entityDef管理模块
-		public static EntityDef entityDef = new EntityDef();
 		
 		// 按照标准，每个客户端部分都应该包含这个属性
 		public const string component = "client"; 
@@ -145,6 +133,8 @@
 		public virtual bool initialize(KBEngineArgs args)
 		{
 			_args = args;
+			
+			EntityDef.init();
 			
         	initNetwork();
 
@@ -206,12 +196,7 @@
         
         public void resetMessages()
         {
-	        loadingLocalMessages_ = false;
-			loginappMessageImported_ = false;
-			baseappMessageImported_ = false;
-			entitydefImported_ = false;
-			isImportServerErrorsDescr_ = false;
-			serverErrs.Clear ();
+			_serverErrs.Clear ();
 			Messages.clear ();
 			EntityDef.clear ();
 			Entity.clear();
@@ -300,9 +285,6 @@
 			if(_networkInterface == null || _networkInterface.connected == false)
 				return;
 
-			if(!loginappMessageImported_ && !baseappMessageImported_)
-				return;
-			
 			TimeSpan span = DateTime.Now - _lastTickTime;
 			
 			// 更新玩家的位置与朝向到服务端
@@ -681,7 +663,7 @@
 		*/
 		public string serverErr(UInt16 id)
 		{
-			return serverErrs.serverErrStr(id);
+			return _serverErrs.serverErrStr(id);
 		}
 		
 		public void onOpenLoginapp_resetpassword()
@@ -954,7 +936,7 @@
 				{
 					Client_onUpdatePropertys(entityMessage);
 					_bufferedCreateEntityMessages.Remove(eid);
-					entityMessages.reclaimObject();
+					entityMessage.reclaimObject();
 				}
 				
 				entity.__init__();
@@ -972,7 +954,7 @@
 				{
 					Client_onUpdatePropertys(entityMessage);
 					_bufferedCreateEntityMessages.Remove(eid);
-					entityMessages.reclaimObject();
+					entityMessage.reclaimObject();
 				}
 			}
 		}
@@ -1053,7 +1035,7 @@
 				stream1.wpos = stream.wpos;
 				stream1.rpos = stream.rpos - 4;
 				Array.Copy(stream.data(), stream1.data(), stream.data().Length);
-				_bufferedCreateEntityMessage[eid] = stream1;
+				_bufferedCreateEntityMessages[eid] = stream1;
 				return;
 			}
 			
@@ -1220,7 +1202,7 @@
 				
 				Client_onUpdatePropertys(entityMessage);
 				_bufferedCreateEntityMessages.Remove(eid);
-				entityMessages.reclaimObject();
+				entityMessage.reclaimObject();
 				
 				entity.isOnGround = isOnGround > 0;
 				entity.set_direction(entity.getDefinedProperty("direction"));

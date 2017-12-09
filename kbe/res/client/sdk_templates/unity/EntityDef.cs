@@ -34,8 +34,9 @@
 			bindMessageDataType();
 		}
 
-		public EntityDef()
+		public static void init()
 		{
+			clear();
 			initDataType();
 			bindMessageDataType();
 		}
