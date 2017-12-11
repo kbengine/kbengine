@@ -485,6 +485,7 @@ bool Machine::findBroadcastInterface()
 	}
 	
 	sockaddr_in	sin;
+	memset(&sin, 0, sizeof(sin));
 
 	if(bhandler.receive(NULL, &sin))
 	{
@@ -537,7 +538,7 @@ bool Machine::initNetwork()
 	{
 		ERROR_MSG("Machine::initNetwork: Failed to determine default broadcast interface. "
 				"Make sure that your broadcast route is set correctly. "
-				"e.g. /sbin/ip route add broadcast 255.255.255.255 dev eth0\n" );
+				"e.g. /sbin/ip route add broadcast 255.255.255.255 dev eth0, eth0 is internalInterface!\n" );
 
 		return false;
 	}
