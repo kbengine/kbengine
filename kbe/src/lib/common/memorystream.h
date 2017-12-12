@@ -93,6 +93,7 @@ public:
 	virtual void onReclaimObject();
 
     const static size_t DEFAULT_SIZE = 0x100;
+	const static size_t MAX_SIZE = 10000000;
 
     MemoryStream(): rpos_(0), wpos_(0)
     {
@@ -570,7 +571,7 @@ public:
         if (!cnt)
             return;
 
-        assert(size() < 10000000);
+        assert(size() < MAX_SIZE);
 
         if (data_.size() < wpos_ + cnt)
             data_.resize(wpos_ + cnt);
