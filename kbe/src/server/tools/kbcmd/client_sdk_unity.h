@@ -41,6 +41,7 @@ public:
 	virtual void onCreateTypeFileName();
 	virtual void onCreateServerErrorDescrsModuleFileName();
 	virtual void onCreateEngineMessagesModuleFileName();
+	virtual void onCreateEntityDefsModuleFileName();
 
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
@@ -49,6 +50,13 @@ public:
 	virtual bool writeEngineMessagesModuleBegin();
 	virtual bool writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType);
 	virtual bool writeEngineMessagesModuleEnd();
+
+	virtual bool writeEntityDefModuleType(const DataType* pDataType);
+	virtual bool writeEntityDefsModuleBegin();
+	virtual bool writeEntityDefsModuleEnd();
+	virtual bool writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr);
+	virtual bool writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
 
 	virtual std::string typeToType(const std::string& type);
 

@@ -305,7 +305,9 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 
 	if (messageInfos.argsTypes.size() == 0)
 	{
-		initBody_ += fmt::format("\t\t\tMessages.messages[\"{}\"] = new Message_{}({}, \"{}\", 0, 0, ", messageInfos.name, messageInfos.name, messageInfos.id, messageInfos.name);
+		initBody_ += fmt::format("\t\t\tMessages.messages[\"{}\"] = new Message_{}({}, \"{}\", {}, {}, ", 
+			messageInfos.name, messageInfos.name, messageInfos.id, messageInfos.name, messageInfos.msgLen, (int)messageInfos.argsType);
+
 		initBody_ += "new List<Byte>());\n";
 
 		if (componentType == CLIENT_TYPE)
@@ -341,8 +343,8 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 		if (giveargs.size() > 0)
 			giveargs.erase(giveargs.size() - 2, 2);
 
-		initBody_ += fmt::format("\t\t\tMessages.messages[\"{}\"] = new Message_{}({}, \"{}\", 0, 0, {}_argstypes);\n", 
-			messageInfos.name, messageInfos.name, messageInfos.id, messageInfos.name, messageInfos.name);
+		initBody_ += fmt::format("\t\t\tMessages.messages[\"{}\"] = new Message_{}({}, \"{}\", {}, {}, {}_argstypes);\n", 
+			messageInfos.name, messageInfos.name, messageInfos.id, messageInfos.name, messageInfos.msgLen, (int)messageInfos.argsType, messageInfos.name);
 		
 		if (componentType == CLIENT_TYPE)
 		{
@@ -398,6 +400,386 @@ bool ClientSDKUnity::writeEngineMessagesModuleEnd()
 	sourcefileBody_ += "\n\t\t}";
 	sourcefileBody_ += "\n\t}";
 	sourcefileBody_ += "\n}";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDKUnity::onCreateEntityDefsModuleFileName()
+{
+	sourcefileName_ = "EntityDef.cs";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefsModuleBegin()
+{
+	initBody_ = "";
+	sourcefileBody_ = headerBody;
+	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", "");
+
+	sourcefileBody_ += "namespace KBEngine\n{\n";
+	sourcefileBody_ += "\tusing UnityEngine;\n";
+	sourcefileBody_ += "\tusing System;\n";
+	sourcefileBody_ += "\tusing System.Collections;\n";
+	sourcefileBody_ += "\tusing System.Collections.Generic;\n\n";
+
+	sourcefileBody_ += fmt::format("\tpublic class {}\n\t{{\n", "EntityDef");
+
+	sourcefileBody_ += "\t\tpublic static Dictionary<string, UInt16> datatype2id = new Dictionary<string, UInt16>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<string, KBEDATATYPE_BASE> datatypes = new Dictionary<string, KBEDATATYPE_BASE>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<UInt16, KBEDATATYPE_BASE> id2datatypes = new Dictionary<UInt16, KBEDATATYPE_BASE>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<string, Int32> entityclass = new Dictionary<string, Int32>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<string, ScriptModule> moduledefs = new Dictionary<string, ScriptModule>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<UInt16, ScriptModule> idmoduledefs = new Dictionary<UInt16, ScriptModule>();\n";
+
+	sourcefileBody_ += "\n\t\tpublic static bool init()\n\t\t{\n";
+	sourcefileBody_ += "\t\t\tinitDataType();\n";
+	sourcefileBody_ += "\t\t\tbindMessageDataType();\n";
+	sourcefileBody_ += "\t\t\tupdateTypes();\n";
+	sourcefileBody_ += "\t\t\tinitScriptModules();\n";
+	sourcefileBody_ += "\t\t\treturn true;\n";
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\n\t\tpublic static bool reset()\n\t\t{\n";
+	sourcefileBody_ += "\t\t\tclear();\n";
+	sourcefileBody_ += "\t\t\tinitDataType();\n";
+	sourcefileBody_ += "\t\t\tbindMessageDataType();\n";
+	sourcefileBody_ += "\t\t\treturn true;\n";
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic static void clear()\n";
+	sourcefileBody_ += "\t\t{\n";
+	sourcefileBody_ += "\t\t\tdatatype2id.Clear();\n";
+	sourcefileBody_ += "\t\t\tdatatypes.Clear();\n";
+	sourcefileBody_ += "\t\t\tid2datatypes.Clear();\n";
+	sourcefileBody_ += "\t\t\tentityclass.Clear();\n";
+	sourcefileBody_ += "\t\t\tmoduledefs.Clear();\n";
+	sourcefileBody_ += "\t\t\tidmoduledefs.Clear();\n";
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic static void initDataType()\n";
+	sourcefileBody_ += "\t\t{\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT8\"] = new KBEDATATYPE_UINT8();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT16\"] = new KBEDATATYPE_UINT16();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT32\"] = new KBEDATATYPE_UINT32();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT64\"] = new KBEDATATYPE_UINT64();\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT8\"] = new KBEDATATYPE_INT8();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT16\"] = new KBEDATATYPE_INT16();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT32\"] = new KBEDATATYPE_INT32();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT64\"] = new KBEDATATYPE_INT64();\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatypes[\"FLOAT\"] = new KBEDATATYPE_FLOAT();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"DOUBLE\"] = new KBEDATATYPE_DOUBLE();\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatypes[\"STRING\"] = new KBEDATATYPE_STRING();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR2\"] = new KBEDATATYPE_VECTOR2();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR3\"] = new KBEDATATYPE_VECTOR3();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR4\"] = new KBEDATATYPE_VECTOR4();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"PYTHON\"] = new KBEDATATYPE_PYTHON();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UNICODE\"] = new KBEDATATYPE_UNICODE();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"MAILBOX\"] = new KBEDATATYPE_MAILBOX();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"BLOB\"] = new KBEDATATYPE_BLOB();\n";
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic static void bindMessageDataType()\n";
+	sourcefileBody_ += "\t\t{\n";
+	sourcefileBody_ += "\t\t\tif(datatype2id.Count > 0)\n";
+	sourcefileBody_ += "\t\t\t\treturn;\n\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"STRING\"] = 1;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"STD::STRING\"] = 1;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[1] = datatypes[\"STRING\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT8\"] = 2;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"BOOL\"] = 2;\n\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"DATATYPE\"] = 2;\n\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"CHAR\"] = 2;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"DETAIL_TYPE\"] = 2;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"MAIL_TYPE\"] = 2;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[2] = datatypes[\"UINT8\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT16\"] = 3;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UNSIGNED SHORT\"] = 3;\n\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"SERVER_ERROR_CODE\"] = 3;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_TYPE\"] = 3;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_PROPERTY_UID\"] = 3;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_METHOD_UID\"] = 3;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_SCRIPT_UID\"] = 3;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"DATATYPE_UID\"] = 3;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[3] = datatypes[\"UINT16\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT32\"] = 4;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT\"] = 4;\n\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UNSIGNED INT\"] = 4;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"ARRAYSIZE\"] = 4;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"SPACE_ID\"] = 4;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"GAME_TIME\"] = 4;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"TIMER_ID\"] = 4;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[4] = datatypes[\"UINT32\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT64\"] = 5;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"DBID\"] = 5;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"COMPONENT_ID\"] = 5;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[5] = datatypes[\"UINT64\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"INT8\"] = 6;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"COMPONENT_ORDER\"] = 6;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[6] = datatypes[\"INT8\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"INT16\"] = 7;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"SHORT\"] = 7;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[7] = datatypes[\"INT16\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"INT32\"] = 8;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"INT\"] = 8;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_ID\"] = 8;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"CALLBACK_ID\"] = 8;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"COMPONENT_TYPE\"] = 8;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[8] = datatypes[\"INT32\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"INT64\"] = 9;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[9] = datatypes[\"INT64\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"PYTHON\"] = 10;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"PY_DICT\"] = 10;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"PY_TUPLE\"] = 10;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"PY_LIST\"] = 10;\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"MAILBOX\"] = 10;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[10] = datatypes[\"PYTHON\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"BLOB\"] = 11;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[11] = datatypes[\"BLOB\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"UNICODE\"] = 12;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[12] = datatypes[\"UNICODE\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"FLOAT\"] = 13;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[13] = datatypes[\"FLOAT\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"DOUBLE\"] = 14;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[14] = datatypes[\"DOUBLE\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"VECTOR2\"] = 15;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[15] = datatypes[\"VECTOR2\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"VECTOR3\"] = 16;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[16] = datatypes[\"VECTOR3\"];\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatype2id[\"VECTOR4\"] = 17;\n";
+	sourcefileBody_ += "\t\t\tid2datatypes[17] = datatypes[\"VECTOR4\"];\n\n";
+
+	sourcefileBody_ += "\t\t\t// Dynamic binding\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"FIXED_DICT\"] = 18;\n";
+	sourcefileBody_ += "\t\t\t//id2datatypes[18] = datatypes[\"FIXED_DICT\"];\n\n";
+
+	sourcefileBody_ += "\t\t\t// Dynamic binding\n";
+	sourcefileBody_ += "\t\t\tdatatype2id[\"ARRAY\"] = 19;\n";
+	sourcefileBody_ += "\t\t\t//id2datatypes[19] = datatypes[\"ARRAY\"];\n";
+
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic static void initScriptModules()\n";
+	sourcefileBody_ += "\t\t{\n";
+	
+	
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefsModuleEnd()
+{
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic static void updateTypes()\n";
+	sourcefileBody_ += "\t\t{\n";
+
+	const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
+	DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
+	for (; dtiter != dataTypes.end(); ++dtiter)
+	{
+		const DataType* datatype = dtiter->second;
+
+		if (!writeEntityDefModuleType(datatype))
+			return false;
+	}
+
+	sourcefileBody_ += "\t\t\tforeach(string datatypeStr in EntityDef.datatypes.Keys)\n\t\t\t{\n";
+	sourcefileBody_ += "\t\t\t\tKBEDATATYPE_BASE dataType = EntityDef.datatypes[datatypeStr];\n";
+	sourcefileBody_ += "\t\t\t\tif(dataType != null)\n\t\t\t\t{\n";
+	sourcefileBody_ += "\t\t\t\t\tdataType.bind();\n\t\t\t\t}\n\t\t\t}\n";
+
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t}\n\n\n}";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
+{
+	uint16 typeID = datatype2id(pDataType->getName());
+	if (typeID == 0)
+		typeID = pDataType->id();
+
+	sourcefileBody_ += fmt::format("\t\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\t\tUInt16 utype = {};\n", typeID);
+	sourcefileBody_ += fmt::format("\t\t\t\tstring valname = \"{}\";\n", (strlen(pDataType->aliasName()) > 0 ? pDataType->aliasName() : fmt::format("Null_{}", typeID)));
+
+	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
+	{
+		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
+
+		FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
+
+		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_FIXED_DICT datatype = new KBEDATATYPE_FIXED_DICT();\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tdatatype.implementedBy = \"{}\";\n", dictdatatype->moduleName());
+
+		FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
+		for (; keyiter != keys.end(); ++keyiter)
+		{
+			typeID = datatype2id(keyiter->second->dataType->getName());
+			if (typeID == 0)
+				typeID = pDataType->id();
+
+			sourcefileBody_ += fmt::format("\t\t\t\tdatatype.dicttype[\"{}\"] = (UInt16){};\n", keyiter->first, typeID);
+		}
+
+		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[valname] = datatype;\n");
+	}
+	else if (strcmp(pDataType->getName(), "ARRAY") == 0)
+	{
+		typeID = datatype2id(const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->getName());
+		if (typeID == 0)
+			typeID = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->id();
+
+		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_ARRAY datatype = new KBEDATATYPE_ARRAY();\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tdatatype.vtype = (UInt16){};\n", typeID);
+		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[valname] = datatype;\n");
+	}
+	else
+	{
+		sourcefileBody_ += fmt::format("\t\t\t\tstring name = \"{}\";\n", pDataType->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_BASE val = null;\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes.TryGetValue(name, out val);\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[valname] = val;\n");
+	}
+
+	sourcefileBody_ += fmt::format("\n\t\t\t\tEntityDef.id2datatypes[utype] = EntityDef.datatypes[valname];\n");
+	sourcefileBody_ += fmt::format("\n\t\t\t\tEntityDef.datatype2id[valname] = utype;\n");
+	sourcefileBody_ += fmt::format("\t\t\t}}\n\n");
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule)
+{
+	sourcefileBody_ += fmt::format("\t\t\tScriptModule p{}Module = new ScriptModule(\"{}\");\n", pScriptDefModule->getName(), pScriptDefModule->getName());
+	sourcefileBody_ += fmt::format("\t\t\tEntityDef.moduledefs[\"{}\"] = p{}Module;\n", pScriptDefModule->getName(), pScriptDefModule->getName());
+	sourcefileBody_ += fmt::format("\t\t\tEntityDef.idmoduledefs[{}] = p{}Module;\n\n", pScriptDefModule->getUType(), pScriptDefModule->getName());
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr)
+{
+	sourcefileBody_ += fmt::format("\t\t\tList<KBEDATATYPE_BASE> p{}_{}_args = new List<KBEDATATYPE_BASE>();\n", pScriptDefModule->getName(), pDescr->getName());
+
+	const std::vector<DataType*>& args = pDescr->getArgTypes();
+	std::vector<DataType*>::const_iterator argiter = args.begin();
+	for (; argiter != args.end(); ++argiter)
+	{
+		uint16 typeID = datatype2id((*argiter)->getName());
+		if (typeID == 0)
+			typeID = (*argiter)->id();
+
+		sourcefileBody_ += fmt::format("\t\t\tp{}_{}_args.Add(EntityDef.id2datatypes[{}]);\n\n", pScriptDefModule->getName(), pDescr->getName(), typeID);
+	}
+
+	sourcefileBody_ += fmt::format("\t\t\tMethod p{}_{} = new Method();\n", pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.name = \"{}\";\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.methodUtype = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getUType());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.aliasID = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->aliasID());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.args = p{}_{}_args;\n\n", pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+	sourcefileBody_ += fmt::format("\t\t\tSystem.Reflection.MethodInfo p{}_{}Handler = null;\n", pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tif(p{}Module.script != null)\n\t\t\t{{\n", pScriptDefModule->getName());
+	sourcefileBody_ += fmt::format("\t\t\t\ttry {{\n\t\t\t\t\tp{}_{}Handler = p{}Module.script.GetMethod(\"{}\");\n\t\t\t\t}}\n\t\t\t\tcatch (Exception e)\n\t\t\t\t{{\n",
+		pScriptDefModule->getName(), pDescr->getName()
+		, pScriptDefModule->getName(), pDescr->getName());
+
+	sourcefileBody_ += fmt::format("\t\t\t\t\tstring err = \"EntityDef::initScriptModules: {}.{}(), error=\" + e.ToString();\n\t\t\t\t\tthrow new Exception(err);\n\t\t\t\t}}\n\t\t\t}}\n",
+		pScriptDefModule->getName(), pDescr->getName());
+
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.handler = p{}_{}Handler;\n", pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+	sourcefileBody_ += fmt::format("\t\t\tp{}Module.methods[\"{}\"] = p{}_{}; \n\n",
+		pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+	if (pDescr->aliasID() != -1)
+	{
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = true;\n", pScriptDefModule->getName());
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.idmethods[(UInt16)p{}_{}.aliasID] = p{}_{};\n\n",
+			pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+	}
+	else
+	{
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = false;\n", pScriptDefModule->getName());
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.idmethods[p{}_{}.methodUtype] = p{}_{};\n\n",
+			pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+	}
+
+	sourcefileBody_ += fmt::format("\t\t\t//Dbg.DEBUG_MSG(\"EntityDef::initScriptModules: add({}), method({} / {}).\");\n\n",
+		pScriptDefModule->getName(), pDescr->getName(), pDescr->getUType());
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
+{
+	sourcefileBody_ += fmt::format("\t\t\tSystem.Reflection.MethodInfo p{}_{}Setmethod = null;\n", pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tif(p{}Module.script != null)\n\t\t\t{{\n", pScriptDefModule->getName());
+	sourcefileBody_ += fmt::format("\t\t\t\ttry {{\n\t\t\t\t\tp{}_{}Setmethod = p{}Module.script.GetMethod(\"set_{}\");\n\t\t\t\t}}\n\t\t\t\tcatch (Exception e)\n\t\t\t\t{{\n", 
+		pScriptDefModule->getName(), pDescr->getName()
+		, pScriptDefModule->getName(), pDescr->getName());
+
+	sourcefileBody_ += fmt::format("\t\t\t\t\tstring err = \"EntityDef::initScriptModules: {}.set_{}, error=\" + e.ToString();\n\t\t\t\t\tthrow new Exception(err);\n\t\t\t\t}}\n\t\t\t}}\n", 
+		pScriptDefModule->getName(), pDescr->getName());
+
+	uint16 typeID = datatype2id(pDescr->getDataType()->getName());
+	if (typeID == 0)
+		typeID = pDescr->getDataType()->id();
+
+	sourcefileBody_ += fmt::format("\t\t\tProperty p{}_{} = new Property();\n", pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.name = \"{}\";\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.utype = EntityDef.id2datatypes[{}];\n", pScriptDefModule->getName(), pDescr->getName(), typeID);
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.properUtype = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getUType());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.properFlags = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getFlags());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.aliasID = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->aliasID());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.defaultValStr = \"{}\";\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getDefaultValStr());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.setmethod = p{}_{}Setmethod;\n", pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.val = p{}_{}.utype.parseDefaultValStr(p{}_{}.defaultValStr);\n", 
+		pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+	sourcefileBody_ += fmt::format("\t\t\tp{}Module.propertys[\"{}\"] = p{}_{}; \n\n", 
+		pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+	if (pDescr->aliasID() != -1)
+	{
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.usePropertyDescrAlias = true;\n", pScriptDefModule->getName());
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.idpropertys[(UInt16)p{}_{}.aliasID] = p{}_{};\n\n",
+			pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+	}
+	else
+	{
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.usePropertyDescrAlias = false;\n", pScriptDefModule->getName());
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.idpropertys[p{}_{}.properUtype] = p{}_{};\n\n",
+			pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+	}
+
+	sourcefileBody_ += fmt::format("\t\t\t//Dbg.DEBUG_MSG(\"EntityDef::initScriptModules: add({}), property({} / {}).\");\n\n",
+		pScriptDefModule->getName(), pDescr->getName(), pDescr->getUType());
+
 	return true;
 }
 

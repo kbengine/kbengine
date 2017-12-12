@@ -51,6 +51,7 @@ public:
 	virtual void onCreateEntityModuleFileName(const std::string& moduleName);
 	virtual void onCreateServerErrorDescrsModuleFileName();
 	virtual void onCreateEngineMessagesModuleFileName();
+	virtual void onCreateEntityDefsModuleFileName();
 
 	virtual bool copyPluginsSourceToPath(const std::string& path);
 
@@ -63,6 +64,15 @@ public:
 	virtual bool writeEngineMessagesModuleBegin();
 	virtual bool writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType);
 	virtual bool writeEngineMessagesModuleEnd();
+
+	bool writeEntityDefsModule();
+	virtual bool writeEntityDefsModuleBegin();
+	virtual bool writeEntityDefsModuleEnd();
+	bool writeEntityDefModule(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityDefModuleType(const DataType* pDataType);
+	virtual bool writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr);
+	virtual bool writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
 
 	virtual bool writeTypes();
 	virtual bool writeTypesBegin();

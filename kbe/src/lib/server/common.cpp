@@ -75,8 +75,6 @@ uint16 datatype2id(std::string datatype)
 		return 18;
 	else if(datatype == "ARRAY")
 		return 19;
-	else
-		assert(false);
 
 	return 0;
 }
@@ -151,7 +149,7 @@ std::string datatype2nativetype(uint16 datatype)
 		return "ARRAY";
 		break;
 	default:
-		KBE_ASSERT(false);
+		break;
 	};
 
 	return "";

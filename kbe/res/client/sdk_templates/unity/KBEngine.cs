@@ -198,7 +198,8 @@
         {
 			_serverErrs.Clear();
 			Messages.clear();
-			EntityDef.clear();
+			EntityDef.reset();
+			
 			Entity.clear();
 			Dbg.DEBUG_MSG("KBEngine::resetMessages()");
         }

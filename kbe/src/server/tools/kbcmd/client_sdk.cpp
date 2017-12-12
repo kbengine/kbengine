@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/common.h"
 #include "server/serverconfig.h"
 #include "common/kbeversion.h"
+#include "network/fixed_messages.h"
 
 #include "client_lib/client_interface.h"
 #include "baseapp/baseapp_interface.h"
@@ -232,6 +233,9 @@ bool ClientSDK::create(const std::string& path)
 	if (!writeTypes())
 		return false;
 
+	if (!writeEntityDefsModule())
+		return false;
+
 	const EntityDef::SCRIPT_MODULES& scriptModules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator moduleIter = scriptModules.begin();
 	for (; moduleIter != scriptModules.end(); ++moduleIter)
@@ -258,11 +262,6 @@ void ClientSDK::onCreateServerErrorDescrsModuleFileName()
 }
 
 //-------------------------------------------------------------------------------------
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <ostream>
-#include <cstdlib>
 bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 {
 	wchar_t* wpath = strutil::char2wchar(path.c_str());
@@ -572,6 +571,160 @@ bool ClientSDK::writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& me
 bool ClientSDK::writeEngineMessagesModuleEnd()
 {
 	ERROR_MSG(fmt::format("ClientSDK::writeEngineMessagesModuleEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDK::onCreateEntityDefsModuleFileName()
+{
+	sourcefileName_ = "EntityDef.unknown";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModule()
+{
+	sourcefileName_ = sourcefileBody_ = "";
+	onCreateEntityDefsModuleFileName();
+
+	DEBUG_MSG(fmt::format("ClientSDK::writeEntityDefsModule(): {}/{}\n",
+		basepath_, sourcefileName_));
+
+	if (!writeEntityDefsModuleBegin())
+		return false;
+
+	const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
+	EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
+	for (; iter != modules.end(); ++iter)
+	{
+		if (!iter->get()->hasClient())
+			continue;
+
+		if (!writeEntityDefModule(iter->get()))
+			return false;
+	}
+
+	onCreateEntityDefsModuleFileName();
+	return writeEntityDefsModuleEnd() && saveFile();
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefModuleType(const DataType* pDataType)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefModuleType: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModuleBegin()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModuleEnd()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefModule(ScriptDefModule* pScriptDefModule)
+{
+	if (!writeEntityDefScriptModule(pScriptDefModule))
+		return false;
+
+	const ScriptDefModule::PROPERTYDESCRIPTION_MAP& propers = pScriptDefModule->getClientPropertyDescriptions();
+	const ScriptDefModule::METHODDESCRIPTION_MAP& methods = pScriptDefModule->getClientMethodDescriptions();
+	const ScriptDefModule::METHODDESCRIPTION_MAP& methods1 = pScriptDefModule->getBaseExposedMethodDescriptions();
+	const ScriptDefModule::METHODDESCRIPTION_MAP& methods2 = pScriptDefModule->getCellExposedMethodDescriptions();
+
+	//(*pBundleImportEntityDefDatas_) << iter->get()->getName() << iter->get()->getUType() << size << size1 << size2 << size3;
+
+	ENTITY_PROPERTY_UID posuid = 0;
+	if (posuid == 0)
+	{
+		posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+		Network::FixedMessages::MSGInfo* msgInfo =
+			Network::FixedMessages::getSingleton().isFixed("Property::position");
+
+		if (msgInfo != NULL)
+			posuid = msgInfo->msgid;
+	}
+
+	PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	if (pScriptDefModule->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
+
+	if (!writeEntityDefPropertyDescr(pScriptDefModule, &positionDescription))
+		return false;
+
+
+	ENTITY_PROPERTY_UID diruid = 0;
+	if (diruid == 0)
+	{
+		diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+		Network::FixedMessages::MSGInfo* msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");
+		if (msgInfo != NULL)
+			diruid = msgInfo->msgid;
+	}
+
+	PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	if (pScriptDefModule->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
+
+	if (!writeEntityDefPropertyDescr(pScriptDefModule, &directionDescription))
+		return false;
+
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
+	for (; piter != propers.end(); ++piter)
+	{
+		if (!writeEntityDefPropertyDescr(pScriptDefModule, piter->second))
+			return false;
+	}
+
+	ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
+	for (; miter != methods.end(); ++miter)
+	{
+		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second))
+			return false;
+	}
+
+	miter = methods1.begin();
+	for (; miter != methods1.end(); ++miter)
+	{
+		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second))
+			return false;
+	}
+
+	miter = methods2.begin();
+	for (; miter != methods2.end(); ++miter)
+	{
+		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second))
+			return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefScriptModule: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefMethodDescr: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefMethodDescr: Not Implemented!\n"));
 	return false;
 }
 
@@ -1052,7 +1205,7 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 
 		if (argsBody.size() > 0)
 		{
-			argsBody.erase(argsBody.size() - 2, 1);
+			argsBody.erase(argsBody.size() - 2, 2);
 		}
 
 		strutil::kbe_replace(sourcefileBody_, "#REPLACE#", argsBody);
