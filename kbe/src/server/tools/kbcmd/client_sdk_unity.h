@@ -55,7 +55,7 @@ public:
 	virtual bool writeEntityDefsModuleBegin();
 	virtual bool writeEntityDefsModuleEnd();
 	virtual bool writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr);
+	virtual bool writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType);
 	virtual bool writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
 
 	virtual std::string typeToType(const std::string& type);

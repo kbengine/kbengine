@@ -680,7 +680,7 @@ bool ClientSDKUnity::writeEntityDefScriptModule(ScriptDefModule* pScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr)
+bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
 	sourcefileBody_ += fmt::format("\t\t\tList<KBEDATATYPE_BASE> p{}_{}_args = new List<KBEDATATYPE_BASE>();\n", pScriptDefModule->getName(), pDescr->getName());
 
@@ -717,15 +717,41 @@ bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule
 
 	if (pDescr->aliasID() != -1)
 	{
-		sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = true;\n", pScriptDefModule->getName());
-		sourcefileBody_ += fmt::format("\t\t\tp{}Module.idmethods[(UInt16)p{}_{}.aliasID] = p{}_{};\n\n",
-			pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+		if (componentType == CLIENT_TYPE)
+		{
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = true;\n", pScriptDefModule->getName());
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.idmethods[(UInt16)p{}_{}.aliasID] = p{}_{};\n\n",
+				pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+		}
+		else
+		{
+			KBE_ASSERT(false);
+		}
 	}
 	else
 	{
-		sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = false;\n", pScriptDefModule->getName());
-		sourcefileBody_ += fmt::format("\t\t\tp{}Module.idmethods[p{}_{}.methodUtype] = p{}_{};\n\n",
-			pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+		if (componentType == CLIENT_TYPE)
+		{
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = false;\n", pScriptDefModule->getName());
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.idmethods[p{}_{}.methodUtype] = p{}_{};\n\n",
+				pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+		} 
+		if (componentType == BASEAPP_TYPE)
+		{
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.base_methods[\"{}\"] = p{}_{};\n\n",
+				pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.idbase_methods[p{}_{}.methodUtype] = p{}_{};\n\n",
+				pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+		}
+		else
+		{
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.cell_methods[\"{}\"] = p{}_{};\n\n",
+				pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+			sourcefileBody_ += fmt::format("\t\t\tp{}Module.idcell_methods[p{}_{}.methodUtype] = p{}_{};\n\n",
+				pScriptDefModule->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+		}
 	}
 
 	sourcefileBody_ += fmt::format("\t\t\t//Dbg.DEBUG_MSG(\"EntityDef::initScriptModules: add({}), method({} / {}).\");\n\n",

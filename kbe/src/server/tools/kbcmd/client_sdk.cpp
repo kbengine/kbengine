@@ -686,21 +686,21 @@ bool ClientSDK::writeEntityDefModule(ScriptDefModule* pScriptDefModule)
 	ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
 	for (; miter != methods.end(); ++miter)
 	{
-		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second))
+		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second, CLIENT_TYPE))
 			return false;
 	}
 
 	miter = methods1.begin();
 	for (; miter != methods1.end(); ++miter)
 	{
-		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second))
+		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second, BASEAPP_TYPE))
 			return false;
 	}
 
 	miter = methods2.begin();
 	for (; miter != methods2.end(); ++miter)
 	{
-		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second))
+		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second, CELLAPP_TYPE))
 			return false;
 	}
 
@@ -715,7 +715,7 @@ bool ClientSDK::writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr)
+bool ClientSDK::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
 	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefMethodDescr: Not Implemented!\n"));
 	return false;

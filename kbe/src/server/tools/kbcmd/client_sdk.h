@@ -71,7 +71,7 @@ public:
 	bool writeEntityDefModule(ScriptDefModule* pScriptDefModule);
 	virtual bool writeEntityDefModuleType(const DataType* pDataType);
 	virtual bool writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr);
+	virtual bool writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType);
 	virtual bool writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
 
 	virtual bool writeTypes();
