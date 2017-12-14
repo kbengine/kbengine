@@ -1180,7 +1180,7 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 					return false;
 				}
 
-				argsBody += fmt::format("{} param{}, ", argsTypeBody, i++);
+				argsBody += fmt::format("{} arg{}, ", argsTypeBody, i++);
 			}
 			else if (pDataType->type() == DATA_TYPE_FIXEDDICT)
 			{
@@ -1192,7 +1192,7 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 					return false;
 				}
 
-				argsBody += fmt::format("{} param{}, ", argsTypeBody, i++);
+				argsBody += fmt::format("{} arg{}, ", argsTypeBody, i++);
 			}
 			else if (pDataType->type() != DATA_TYPE_DIGIT)
 			{
@@ -1202,11 +1202,11 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 					return false;
 				}
 
-				argsBody += fmt::format("{} param{}, ", argsTypeBody, i++);
+				argsBody += fmt::format("{} arg{}, ", argsTypeBody, i++);
 			}
 			else
 			{
-				argsBody += fmt::format("{} param{}, ", typeToType(pDataType->getName()), i++);
+				argsBody += fmt::format("{} arg{}, ", typeToType(pDataType->getName()), i++);
 			}
 		}
 

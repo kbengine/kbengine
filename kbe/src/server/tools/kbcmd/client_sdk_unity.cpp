@@ -1118,7 +1118,7 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 		std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
 		std::vector<DataType*>::iterator iter = argTypes.begin();
 
-		int i = 0;
+		int i = 1;
 		std::string argsStr;
 
 		for (; iter != argTypes.end(); ++iter)
@@ -1129,12 +1129,16 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			if (typeID == 0)
 				typeID = pDataType->id();
 
+			argsStr += fmt::format("{}_arg{}, ", pMethodDescription->getName(), i);
+
 			std::string nativetype = datatype2nativetype(typeID);
 			if (nativetype != "FIXED_DICT" && nativetype != "ARRAY")
-				argsStr += fmt::format("({})method.args[{}].createFromStream(stream), ", typeToType(nativetype), i);
+				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ({})method.args[{}].createFromStream(stream);\n",
+					typeToType(nativetype), pMethodDescription->getName(), i, typeToType(nativetype), (i - 1));
 			else
-				argsStr += fmt::format("({})method.args[{}].createFromStream(stream), ", pDataType->aliasName(), i);
-			
+				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ({})method.args[{}].createFromStream(stream);\n",
+					pDataType->aliasName(), pMethodDescription->getName(), i, pDataType->aliasName(), (i - 1));
+
 			++i;
 		}
 
