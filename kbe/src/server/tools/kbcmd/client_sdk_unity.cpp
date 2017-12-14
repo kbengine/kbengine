@@ -618,7 +618,7 @@ bool ClientSDKUnity::writeEntityDefsModuleEnd()
 bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 {
 	uint16 typeID = datatype2id(pDataType->getName());
-	if (typeID == 0)
+	if (typeID == 0 || strcmp(pDataType->getName(), "FIXED_DICT") == 0 || strcmp(pDataType->getName(), "ARRAY") == 0)
 		typeID = pDataType->id();
 
 	sourcefileBody_ += fmt::format("\t\t\t{{\n");
@@ -638,7 +638,7 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 		for (; keyiter != keys.end(); ++keyiter)
 		{
 			typeID = datatype2id(keyiter->second->dataType->getName());
-			if (typeID == 0)
+			if (typeID == 0 || strcmp(keyiter->second->dataType->getName(), "FIXED_DICT") == 0 || strcmp(keyiter->second->dataType->getName(), "ARRAY") == 0)
 				typeID = pDataType->id();
 
 			sourcefileBody_ += fmt::format("\t\t\t\tdatatype.dicttype[\"{}\"] = (UInt16){};\n", keyiter->first, typeID);
@@ -649,7 +649,8 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 	else if (strcmp(pDataType->getName(), "ARRAY") == 0)
 	{
 		typeID = datatype2id(const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->getName());
-		if (typeID == 0)
+		if (typeID == 0 || strcmp(const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->getName(), "FIXED_DICT") == 0 || 
+			strcmp(const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->getName(), "ARRAY") == 0)
 			typeID = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->id();
 
 		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_ARRAY datatype = new KBEDATATYPE_ARRAY();\n");
