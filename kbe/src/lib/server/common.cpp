@@ -75,7 +75,7 @@ uint16 datatype2id(std::string datatype)
 		return 18;
 	else if (datatype == "ARRAY")
 		return 19;
-	else if (datatype == "KBE_TYPE_MAX")
+	else if (datatype == "KBE_DATATYPE2ID_MAX")
 		return KBE_DATATYPE2ID_MAX;
 
 	return 0;
