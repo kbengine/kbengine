@@ -34,47 +34,49 @@ int32 secondsToTicks(float seconds, int lowerBound)
 uint16 datatype2id(std::string datatype)
 {
 	std::transform(datatype.begin(), datatype.end(), datatype.begin(), toupper);	
-	if(datatype == "STRING" || datatype == "STD::STRING")
+	if (datatype == "STRING" || datatype == "STD::STRING")
 		return 1;
-	else if(datatype == "UINT8" || datatype == "BOOL" || datatype == "DATATYPE" || datatype == "CHAR" || datatype == "DETAIL_TYPE" ||
+	else if (datatype == "UINT8" || datatype == "BOOL" || datatype == "DATATYPE" || datatype == "CHAR" || datatype == "DETAIL_TYPE" ||
 		datatype == "MAIL_TYPE")
 		return 2;
-	else if(datatype == "UINT16" || datatype == "UNSIGNED SHORT" || datatype == "SERVER_ERROR_CODE" || datatype == "ENTITY_TYPE" ||
+	else if (datatype == "UINT16" || datatype == "UNSIGNED SHORT" || datatype == "SERVER_ERROR_CODE" || datatype == "ENTITY_TYPE" ||
 		datatype == "ENTITY_PROPERTY_UID" || datatype == "ENTITY_METHOD_UID" || datatype == "ENTITY_SCRIPT_UID" || datatype == "DATATYPE_UID")
 		return 3;
-	else if(datatype == "UINT32" || datatype == "UINT" || datatype == "UNSIGNED INT" || datatype == "ARRAYSIZE" || datatype == "SPACE_ID" || datatype == "GAME_TIME" ||
+	else if (datatype == "UINT32" || datatype == "UINT" || datatype == "UNSIGNED INT" || datatype == "ARRAYSIZE" || datatype == "SPACE_ID" || datatype == "GAME_TIME" ||
 		datatype == "TIMER_ID")
 		return 4;
-	else if(datatype == "UINT64" || datatype == "DBID" || datatype == "COMPONENT_ID")
+	else if (datatype == "UINT64" || datatype == "DBID" || datatype == "COMPONENT_ID")
 		return 5;
-	else if(datatype == "INT8" || datatype == "COMPONENT_ORDER")
+	else if (datatype == "INT8" || datatype == "COMPONENT_ORDER")
 		return 6;
-	else if(datatype == "INT16" || datatype == "SHORT")
+	else if (datatype == "INT16" || datatype == "SHORT")
 		return 7;
-	else if(datatype == "INT32" || datatype == "INT" || datatype == "ENTITY_ID" || datatype == "CALLBACK_ID" || datatype == "COMPONENT_TYPE")
+	else if (datatype == "INT32" || datatype == "INT" || datatype == "ENTITY_ID" || datatype == "CALLBACK_ID" || datatype == "COMPONENT_TYPE")
 		return 8;
-	else if(datatype == "INT64")
+	else if (datatype == "INT64")
 		return 9;
-	else if(datatype == "PYTHON" || datatype == "PY_DICT" || datatype == "PY_TUPLE" || datatype == "PY_LIST" || datatype == "MAILBOX")
+	else if (datatype == "PYTHON" || datatype == "PY_DICT" || datatype == "PY_TUPLE" || datatype == "PY_LIST" || datatype == "MAILBOX")
 		return 10;
-	else if(datatype == "BLOB")
+	else if (datatype == "BLOB")
 		return 11;
-	else if(datatype == "UNICODE")
+	else if (datatype == "UNICODE")
 		return 12;
-	else if(datatype == "FLOAT")
+	else if (datatype == "FLOAT")
 		return 13;
-	else if(datatype == "DOUBLE")
+	else if (datatype == "DOUBLE")
 		return 14;
-	else if(datatype == "VECTOR2")
+	else if (datatype == "VECTOR2")
 		return 15;
-	else if(datatype == "VECTOR3")
+	else if (datatype == "VECTOR3")
 		return 16;
-	else if(datatype == "VECTOR4")
+	else if (datatype == "VECTOR4")
 		return 17;
-	else if(datatype == "FIXED_DICT")
+	else if (datatype == "FIXED_DICT")
 		return 18;
-	else if(datatype == "ARRAY")
+	else if (datatype == "ARRAY")
 		return 19;
+	else if (datatype == "KBE_TYPE_MAX")
+		return KBE_DATATYPE2ID_MAX;
 
 	return 0;
 }
