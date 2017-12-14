@@ -40,13 +40,6 @@
 		
 		// __init__调用之后设置为true
 		public bool inited = false;
-        
-		// entityDef属性，服务端同步过来后存储在这里
-		private Dictionary<string, Property> defpropertys_ = 
-			new Dictionary<string, Property>();
-
-		private Dictionary<UInt16, Property> iddefpropertys_ = 
-			new Dictionary<UInt16, Property>();
 
 		public static void clear()
 		{
@@ -54,20 +47,6 @@
 
 		public Entity()
 		{
-			foreach(Property e in EntityDef.moduledefs[GetType().Name].propertys.Values)
-			{
-				Property newp = new Property();
-				newp.name = e.name;
-				newp.utype = e.utype;
-				newp.properUtype = e.properUtype;
-				newp.properFlags = e.properFlags;
-				newp.aliasID = e.aliasID;
-				newp.defaultValStr = e.defaultValStr;
-				newp.setmethod = e.setmethod;
-				newp.val = newp.utype.parseDefaultValStr(newp.defaultValStr);
-				defpropertys_.Add(e.name, newp);
-				iddefpropertys_.Add(e.properUtype, newp);
-			}
 		}
 		
 		public virtual void onDestroy ()
@@ -79,48 +58,15 @@
 			return id == KBEngineApp.app.entity_id;
 		}
 		
-		public void addDefinedProperty(string name, object v)
+		public virtual void onRemoteMethodCall(Method method, MemoryStream stream)
 		{
-			Property newp = new Property();
-			newp.name = name;
-			newp.properUtype = 0;
-			newp.val = v;
-			newp.setmethod = null;
-			defpropertys_.Add(name, newp);
+
 		}
 
-		public object getDefinedProperty(string name)
+		public virtual void onUpdatePropertys(Property prop, MemoryStream stream)
 		{
-			Property obj = null;
-			if(!defpropertys_.TryGetValue(name, out obj))
-			{
-				return null;
-			}
-		
-			return defpropertys_[name].val;
 		}
-		
-		public void setDefinedProperty(string name, object val)
-		{
-			defpropertys_[name].val = val;
-		}
-		
-		public object getDefinedPropertyByUType(UInt16 utype)
-		{
-			Property obj = null;
-			if(!iddefpropertys_.TryGetValue(utype, out obj))
-			{
-				return null;
-			}
-			
-			return iddefpropertys_[utype].val;
-		}
-		
-		public void setDefinedPropertyByUType(UInt16 utype, object val)
-		{
-			iddefpropertys_[utype].val = val;
-		}
-		
+
 		/*
 			KBEngine的实体构造函数，与服务器脚本对应。
 			存在于这样的构造函数是因为KBE需要创建好实体并将属性等数据填充好才能告诉脚本层初始化
@@ -130,7 +76,7 @@
 		}
 		
 		public virtual void callPropertysSetMethods()
-		{
+		{/* 
 			foreach(Property prop in iddefpropertys_.Values)
 			{
 				object oldval = getDefinedPropertyByUType(prop.properUtype);
@@ -161,7 +107,7 @@
 				{
 					//Dbg.DEBUG_MSG(className + "::callPropertysSetMethods(" + prop.name + ") not found set_*"); 
 				}
-			}
+			}*/
 		}
 		
 		public void baseCall(string methodname, params object[] arguments)
@@ -368,11 +314,9 @@
 		{
 		}
 		
-		public virtual void set_position(object old)
+		public virtual void onPositionChanged(Vector3 oldValue)
 		{
-			Vector3 v = (Vector3)getDefinedProperty("position");
-			position = v;
-			//Dbg.DEBUG_MSG(className + "::set_position: " + old + " => " + v); 
+			//Dbg.DEBUG_MSG(className + "::set_position: " + oldValue + " => " + v); 
 			
 			if(isPlayer())
 				KBEngineApp.app.entityServerPos(position);
@@ -385,15 +329,13 @@
 		{
 		}
 		
-		public virtual void set_direction(object old)
+		public virtual void onDirectionChanged(Vector3 oldValue)
 		{
-			Vector3 v = (Vector3)getDefinedProperty("direction");
+			direction.x = direction.x * 360 / ((float)System.Math.PI * 2);
+			direction.y = direction.y * 360 / ((float)System.Math.PI * 2);
+			direction.z = direction.z * 360 / ((float)System.Math.PI * 2);
 			
-			direction.x = v.x * 360 / ((float)System.Math.PI * 2);
-			direction.y = v.y * 360 / ((float)System.Math.PI * 2);
-			direction.z = v.z * 360 / ((float)System.Math.PI * 2);
-			
-			//Dbg.DEBUG_MSG(className + "::set_direction: " + old + " => " + v); 
+			//Dbg.DEBUG_MSG(className + "::set_direction: " + oldValue + " => " + v); 
 			
 			if(inWorld)
 				Event.fireOut("set_direction", new object[]{this});

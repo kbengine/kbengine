@@ -95,6 +95,7 @@ public:
 
 	virtual bool writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule);
 	virtual bool writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule);
+	virtual bool writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule);
 
 	virtual bool writeEntityProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);

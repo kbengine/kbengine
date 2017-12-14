@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/property.h"
 #include "entitydef/method.h"
 #include "entitydef/datatype.h"
+#include "network/fixed_messages.h"
 
 namespace KBEngine {	
 
@@ -573,6 +574,40 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	sourcefileBody_ += fmt::format("\n\t{}(){}\n\t{{\n\t}}\n", newModuleName, initBody_);
 	sourcefileBody_ += fmt::format("\n\tvirtual ~{}()\n\t{{\n\t}}\n\n", newModuleName);
 	sourcefileBody_ += "\n};\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule)
+{
+	sourcefileBody_ += fmt::format("\n\t\tvirtual void onRemoteMethodCall(Method* pMethod, MemoryStream* pMemoryStream)\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\tswitch(methodUtype)\n\t\t\t{{\n");
+
+	ScriptDefModule::METHODDESCRIPTION_MAP& clientMethods = pEntityScriptDefModule->getClientMethodDescriptions();
+	ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = clientMethods.begin();
+	for (; methodIter != clientMethods.end(); ++methodIter)
+	{
+		MethodDescription* pMethodDescription = methodIter->second;
+
+
+		sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pMethodDescription->getUType());
+		sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+
+		std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
+		std::vector<DataType*>::iterator iter = argTypes.begin();
+
+		int i = 1;
+
+		for (; iter != argTypes.end(); ++iter)
+		{
+			DataType* pDataType = (*iter);
+		}
+	}
+
+	sourcefileBody_ += fmt::format("\t\t\t\tdefault:\n");
+	sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+	sourcefileBody_ += fmt::format("\t\t\t}};\n");
+	sourcefileBody_ += "\t\t}\n";
 	return true;
 }
 

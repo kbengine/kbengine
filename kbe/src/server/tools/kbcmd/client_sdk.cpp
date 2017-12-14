@@ -956,13 +956,15 @@ bool ClientSDK::writeTypes()
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeTypesBegin()
 {
-	return true;
+	ERROR_MSG(fmt::format("ClientSDK::writeTypesBegin: Not Implemented!\n"));
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeTypesEnd()
 {
-	return true;
+	ERROR_MSG(fmt::format("ClientSDK::writeTypesEnd: Not Implemented!\n"));
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -983,6 +985,9 @@ bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 	if (!writeEntityMethods(pEntityScriptDefModule, pEntityScriptDefModule))
 		return false;
 
+	if (!writeEntityProcessMessagesMethod(pEntityScriptDefModule))
+		return false;
+	
 	if (!writeEntityModuleEnd(pEntityScriptDefModule))
 		return false;
 
@@ -992,13 +997,15 @@ bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule)
 {
-	return true;
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityModuleBegin: Not Implemented!\n"));
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 {
-	return true;
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityModuleEnd: Not Implemented!\n"));
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1139,7 +1146,7 @@ bool ClientSDK::writeEntityProperty(ScriptDefModule* pEntityScriptDefModule,
 bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule)
 {
-	sourcefileBody_ += "\n\n";
+	sourcefileBody_ += "\n";
 
 	ScriptDefModule::METHODDESCRIPTION_MAP& clientMethods = pCurrScriptDefModule->getClientMethodDescriptions();
 	ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = clientMethods.begin();
@@ -1217,12 +1224,14 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityMethodArgs_ARRAY: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody)
 {
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityMethodArgs_Const_Ref: Not Implemented!\n"));
 	return false;
 }
 
@@ -1230,6 +1239,14 @@ bool ClientSDK::writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string
 bool ClientSDK::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, MethodDescription* pMethodDescription, const char* fillString)
 {
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityMethod: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityProcessMessagesMethod: Not Implemented!\n"));
 	return false;
 }
 

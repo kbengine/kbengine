@@ -342,6 +342,8 @@ public:
 	virtual bool writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName);
 	virtual bool writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody);
 
+	virtual bool writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule);
+
 	static ClientSDK* createClientSDK(const std::string& type);
 
 protected:

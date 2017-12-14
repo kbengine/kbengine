@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/property.h"
 #include "entitydef/method.h"
 #include "entitydef/datatype.h"
+#include "network/fixed_messages.h"
 
 namespace KBEngine {	
 
@@ -763,14 +764,17 @@ bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
 {
+	std::string eventName = pDescr->getName();
+	eventName[0] = std::toupper(eventName[0]);
+
 	sourcefileBody_ += fmt::format("\t\t\tSystem.Reflection.MethodInfo p{}_{}Setmethod = null;\n", pScriptDefModule->getName(), pDescr->getName());
 	sourcefileBody_ += fmt::format("\t\t\tif(p{}Module.script != null)\n\t\t\t{{\n", pScriptDefModule->getName());
-	sourcefileBody_ += fmt::format("\t\t\t\ttry {{\n\t\t\t\t\tp{}_{}Setmethod = p{}Module.script.GetMethod(\"set_{}\");\n\t\t\t\t}}\n\t\t\t\tcatch (Exception e)\n\t\t\t\t{{\n", 
+	sourcefileBody_ += fmt::format("\t\t\t\ttry {{\n\t\t\t\t\tp{}_{}Setmethod = p{}Module.script.GetMethod(\"on{}Changed\");\n\t\t\t\t}}\n\t\t\t\tcatch (Exception e)\n\t\t\t\t{{\n", 
 		pScriptDefModule->getName(), pDescr->getName()
-		, pScriptDefModule->getName(), pDescr->getName());
+		, pScriptDefModule->getName(), eventName);
 
-	sourcefileBody_ += fmt::format("\t\t\t\t\tstring err = \"EntityDef::initScriptModules: {}.set_{}, error=\" + e.ToString();\n\t\t\t\t\tthrow new Exception(err);\n\t\t\t\t}}\n\t\t\t}}\n", 
-		pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\t\t\tstring err = \"EntityDef::initScriptModules: {}.on{}Changed, error=\" + e.ToString();\n\t\t\t\t\tthrow new Exception(err);\n\t\t\t\t}}\n\t\t\t}}\n", 
+		pScriptDefModule->getName(), eventName);
 
 	uint16 typeID = datatype2id(pDescr->getDataType()->getName());
 	if (typeID == 0)
@@ -1097,12 +1101,149 @@ bool ClientSDKUnity::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule)
+{
+	// 处理方法
+	sourcefileBody_ += fmt::format("\n\t\tpublic override void onRemoteMethodCall(Method method, MemoryStream stream)\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\tswitch(method.methodUtype)\n\t\t\t{{\n");
+
+	ScriptDefModule::METHODDESCRIPTION_MAP& clientMethods = pEntityScriptDefModule->getClientMethodDescriptions();
+	ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = clientMethods.begin();
+	for (; methodIter != clientMethods.end(); ++methodIter)
+	{
+		MethodDescription* pMethodDescription = methodIter->second;
+
+		sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pMethodDescription->getUType());
+		
+		std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
+		std::vector<DataType*>::iterator iter = argTypes.begin();
+
+		int i = 0;
+		std::string argsStr;
+
+		for (; iter != argTypes.end(); ++iter)
+		{
+			DataType* pDataType = (*iter);
+
+			uint16 typeID = datatype2id(pDataType->getName());
+			if (typeID == 0)
+				typeID = pDataType->id();
+
+			std::string nativetype = datatype2nativetype(typeID);
+			if (nativetype != "FIXED_DICT" && nativetype != "ARRAY")
+				argsStr += fmt::format("({})method.args[{}].createFromStream(stream), ", typeToType(nativetype), i);
+			else
+				argsStr += fmt::format("({})method.args[{}].createFromStream(stream), ", pDataType->aliasName(), i);
+			
+			++i;
+		}
+
+		if (argsStr.size() > 0)
+			argsStr.erase(argsStr.size() - 2, 2);
+
+		sourcefileBody_ += fmt::format("\t\t\t\t\t{}({});\n", pMethodDescription->getName(), argsStr);
+		sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+	}
+
+	sourcefileBody_ += fmt::format("\t\t\t\tdefault:\n");
+	sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+	sourcefileBody_ += fmt::format("\t\t\t}};\n");
+	sourcefileBody_ += "\t\t}\n";
+
+	// 处理属性
+	ENTITY_PROPERTY_UID posuid = 0;
+	if (posuid == 0)
+	{
+		posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
+		Network::FixedMessages::MSGInfo* msgInfo =
+			Network::FixedMessages::getSingleton().isFixed("Property::position");
+
+		if (msgInfo != NULL)
+			posuid = msgInfo->msgid;
+	}
+
+	PropertyDescription positionDescription(posuid, "VECTOR3", "position", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	if (pEntityScriptDefModule->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
+		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
+
+	ENTITY_PROPERTY_UID diruid = 0;
+	if (diruid == 0)
+	{
+		diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
+		Network::FixedMessages::MSGInfo* msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::direction");
+		if (msgInfo != NULL)
+			diruid = msgInfo->msgid;
+	}
+
+	PropertyDescription directionDescription(diruid, "VECTOR3", "direction", ED_FLAG_ALL_CLIENTS, true, DataTypes::getDataType("VECTOR3"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	if (pEntityScriptDefModule->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
+		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
+
+	sourcefileBody_ += fmt::format("\n\t\tpublic override void onUpdatePropertys(Property prop, MemoryStream stream)\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\tswitch(prop.properUtype)\n\t\t\t{{\n");
+
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+	clientPropertys[positionDescription.getName()] = &positionDescription;
+	clientPropertys[directionDescription.getName()] = &directionDescription;
+
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+	for (; propIter != clientPropertys.end(); ++propIter)
+	{
+		PropertyDescription* pPropertyDescription = propIter->second;
+
+		std::string typestr;
+
+		if (std::string("position") == pPropertyDescription->getName() ||
+			std::string("direction") == pPropertyDescription->getName())
+		{
+#ifdef CLIENT_NO_FLOAT
+			typestr = "Vector3Int";
+#else
+			typestr = "Vector3";
+#endif
+		}
+		else
+		{
+			std::string findstr = fmt::format(" {} = ", pPropertyDescription->getName());
+			std::string::size_type fpos2 = sourcefileBody_.find(findstr);
+			std::string::size_type fpos1 = sourcefileBody_.rfind(" ", fpos2 - 1);
+			typestr.assign(sourcefileBody_.begin() + fpos1 + 1, sourcefileBody_.begin() + fpos2);
+		}
+
+		sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pPropertyDescription->getUType());
+		sourcefileBody_ += fmt::format("\t\t\t\t\t{} oldval_{} = {};\n", typestr, pPropertyDescription->getName(), pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\t\t{} = ({})prop.utype.createFromStream(stream);\n", pPropertyDescription->getName(), typestr);
+
+		std::string name = pPropertyDescription->getName();
+		name[0] = std::toupper(name[0]);
+		sourcefileBody_ += fmt::format("\t\t\t\t\tif(prop.isBase())\n\t\t\t\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\t\tif(inited)\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\t\t}}\n\t\t\t\t\telse\n\t\t\t\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\t\tif(inWorld)\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\t\t}}\n\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+	}
+
+	sourcefileBody_ += fmt::format("\t\t\t\tdefault:\n");
+	sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+	sourcefileBody_ += fmt::format("\t\t\t}};\n");
+	sourcefileBody_ += "\t\t}\n";
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic SByte {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(SByte oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1113,6 +1254,9 @@ bool ClientSDKUnity::writeEntityProperty_INT16(ScriptDefModule* pEntityScriptDef
 	sourcefileBody_ += fmt::format("\t\tpublic Int16 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Int16 oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1123,6 +1267,9 @@ bool ClientSDKUnity::writeEntityProperty_INT32(ScriptDefModule* pEntityScriptDef
 	sourcefileBody_ += fmt::format("\t\tpublic Int32 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Int32 oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1133,6 +1280,9 @@ bool ClientSDKUnity::writeEntityProperty_INT64(ScriptDefModule* pEntityScriptDef
 	sourcefileBody_ += fmt::format("\t\tpublic Int64 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Int64 oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1143,6 +1293,9 @@ bool ClientSDKUnity::writeEntityProperty_UINT8(ScriptDefModule* pEntityScriptDef
 	sourcefileBody_ += fmt::format("\t\tpublic Byte {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Byte oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1153,6 +1306,9 @@ bool ClientSDKUnity::writeEntityProperty_UINT16(ScriptDefModule* pEntityScriptDe
 	sourcefileBody_ += fmt::format("\t\tpublic UInt16 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(UInt16 oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1163,6 +1319,9 @@ bool ClientSDKUnity::writeEntityProperty_UINT32(ScriptDefModule* pEntityScriptDe
 	sourcefileBody_ += fmt::format("\t\tpublic UInt32 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(UInt32 oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1173,6 +1332,9 @@ bool ClientSDKUnity::writeEntityProperty_UINT64(ScriptDefModule* pEntityScriptDe
 	sourcefileBody_ += fmt::format("\t\tpublic UInt64 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(UInt64 oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1183,6 +1345,9 @@ bool ClientSDKUnity::writeEntityProperty_FLOAT(ScriptDefModule* pEntityScriptDef
 	sourcefileBody_ += fmt::format("\t\tpublic float {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0f"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(float oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1193,6 +1358,9 @@ bool ClientSDKUnity::writeEntityProperty_DOUBLE(ScriptDefModule* pEntityScriptDe
 	sourcefileBody_ += fmt::format("\t\tpublic double {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0d"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(double oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1203,6 +1371,9 @@ bool ClientSDKUnity::writeEntityProperty_STRING(ScriptDefModule* pEntityScriptDe
 	sourcefileBody_ += fmt::format("\t\tpublic string {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "\"\""));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(string oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1213,6 +1384,9 @@ bool ClientSDKUnity::writeEntityProperty_UNICODE(ScriptDefModule* pEntityScriptD
 	sourcefileBody_ += fmt::format("\t\tpublic string {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "\"\""));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(string oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1255,6 +1429,9 @@ bool ClientSDKUnity::writeEntityProperty_BLOB(ScriptDefModule* pEntityScriptDefM
 	sourcefileBody_ += fmt::format("\t\tpublic byte[] {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new byte[0]"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(byte[] oldValue) {{}}\n", name);
 	return true;
 }
 
@@ -1264,12 +1441,27 @@ bool ClientSDKUnity::writeEntityProperty_ARRAY(ScriptDefModule* pEntityScriptDef
 {
 	if (std::string("ARRAY") == pPropertyDescription->getDataTypeName())
 	{
-		return writeTypeItemType_ARRAY(pPropertyDescription->getName(), pPropertyDescription->getDataType()->aliasName(), pPropertyDescription->getDataType());
+		std::string s = sourcefileBody_;
+		sourcefileBody_ = "";
+
+		bool ret = writeTypeItemType_ARRAY(pPropertyDescription->getName(), pPropertyDescription->getDataType()->aliasName(), pPropertyDescription->getDataType());
+		std::vector<std::string> values;
+		values = KBEngine::strutil::kbe_splits(sourcefileBody_, " ");
+		sourcefileBody_ = s + sourcefileBody_;
+
+		std::string name = pPropertyDescription->getName();
+		name[0] = std::toupper(name[0]);
+		sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed({} oldValue) {{}}\n", name, values[1]);
+		return ret;
 	}
 	else
 	{
 		sourcefileBody_ += fmt::format("\t\tpublic {} {} = new {}();\n", pPropertyDescription->getDataTypeName(), pPropertyDescription->getName(),
 			pPropertyDescription->getDataTypeName());
+
+		std::string name = pPropertyDescription->getName();
+		name[0] = std::toupper(name[0]);
+		sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed({} oldValue) {{}}\n", name, pPropertyDescription->getDataTypeName());
 	}
 
 	return true;
@@ -1282,6 +1474,9 @@ bool ClientSDKUnity::writeEntityProperty_FIXED_DICT(ScriptDefModule* pEntityScri
 	sourcefileBody_ += fmt::format("\t\tpublic {} {} = new {}();\n", pPropertyDescription->getDataTypeName(), pPropertyDescription->getName(),
 		pPropertyDescription->getDataTypeName());
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed({} oldValue) {{}}\n", name, pPropertyDescription->getDataTypeName());
 	return true;
 }
 
@@ -1292,9 +1487,17 @@ bool ClientSDKUnity::writeEntityProperty_VECTOR2(ScriptDefModule* pEntityScriptD
 #ifdef CLIENT_NO_FLOAT
 	sourcefileBody_ += fmt::format("\t\tpublic Vector2Int {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new Vector2Int(0, 0)"));
+
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Vector2Int oldValue) {{}}\n", name);
 #else
 	sourcefileBody_ += fmt::format("\t\tpublic Vector2 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new Vector2(0f, 0f)"));
+
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Vector2 oldValue) {{}}\n", name);
 #endif
 
 	return true;
@@ -1307,9 +1510,17 @@ bool ClientSDKUnity::writeEntityProperty_VECTOR3(ScriptDefModule* pEntityScriptD
 #ifdef CLIENT_NO_FLOAT
 	sourcefileBody_ += fmt::format("\t\tpublic Vector3Int {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new Vector3Int(0, 0, 0)"));
+
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Vector3Int oldValue) {{}}\n", name);
 #else
 	sourcefileBody_ += fmt::format("\t\tpublic Vector3 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new Vector3(0f, 0f, 0f)"));
+
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Vector3 oldValue) {{}}\n", name);
 #endif
 
 	return true;
@@ -1322,9 +1533,17 @@ bool ClientSDKUnity::writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptD
 #ifdef CLIENT_NO_FLOAT
 	sourcefileBody_ += fmt::format("\t\tpublic Vector4Int {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new Vector4Int(0, 0, 0, 0)"));
+
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Vector4Int oldValue) {{}}\n", name);
 #else
 	sourcefileBody_ += fmt::format("\t\tpublic Vector4 {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new Vector4(0f, 0f, 0f, 0f)"));
+
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(Vector4 oldValue) {{}}\n", name);
 #endif
 
 	return true;
@@ -1337,6 +1556,9 @@ bool ClientSDKUnity::writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptD
 	sourcefileBody_ += fmt::format("\t\tpublic byte[] {} = {};\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "new byte[0]"));
 
+	std::string name = pPropertyDescription->getName();
+	name[0] = std::toupper(name[0]);
+	sourcefileBody_ += fmt::format("\t\tpublic virtual void on{}Changed(byte[] oldValue) {{}}\n", name);
 	return true;
 }
 

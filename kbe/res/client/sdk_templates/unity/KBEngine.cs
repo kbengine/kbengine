@@ -979,29 +979,10 @@
 				}
 			
 				Property propertydata = pdatas[utype];
-				utype = propertydata.properUtype;
-				System.Reflection.MethodInfo setmethod = propertydata.setmethod;
-
-				object val = propertydata.utype.createFromStream(stream);
-				object oldval = entity.getDefinedPropertyByUType(utype);
+				entity.onUpdatePropertys(propertydata, stream);
 
 				 // Dbg.DEBUG_MSG("KBEngine::Client_onUpdatePropertys: " + entity.className + "(id=" + eid  + " " + 
 				 // propertydata.name + "=" + val + "), hasSetMethod=" + setmethod + "!");
-			
-				entity.setDefinedPropertyByUType(utype, val);
-				if(setmethod != null)
-				{
-					if(propertydata.isBase())
-					{
-						if(entity.inited)
-							setmethod.Invoke(entity, new object[]{oldval});
-					}
-					else
-					{
-						if(entity.inWorld)
-							setmethod.Invoke(entity, new object[]{oldval});
-					}
-				}
 			}
 		}
 
@@ -1034,38 +1015,28 @@
 			}
 			
 			UInt16 methodUtype = 0;
+			ScriptModule sm = EntityDef.moduledefs[entity.className];
 
-			if(EntityDef.moduledefs[entity.className].useMethodDescrAlias)
+			if(sm.useMethodDescrAlias)
 				methodUtype = stream.readUint8();
 			else
 				methodUtype = stream.readUint16();
 			
-			Method methoddata = EntityDef.moduledefs[entity.className].idmethods[methodUtype];
-			
-			// Dbg.DEBUG_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.className + "." + methoddata.name);
-			
-			object[] args = new object[methoddata.args.Count];
-	
-			for(int i=0; i<methoddata.args.Count; i++)
-			{
-				args[i] = methoddata.args[i].createFromStream(stream);
-			}
+			Method methoddata = null;
 			
 			try
 			{
-				methoddata.handler.Invoke(entity, args);
+				methoddata = sm.idmethods[methodUtype];
 			}
             catch (Exception e)
             {
-            	if(methoddata.handler != null)
-            	{
-					Dbg.ERROR_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.className + "(" + eid + "), callMethod(" + entity.className + "." + methoddata.name + ") is error!\nerror=" + e.ToString());
-				}
-				else
-				{
-					Dbg.ERROR_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.className + "(" + eid + "), not found method(" + entity.className + "." + methoddata.name + ")!\nerror=" + e.ToString());
-				}
+				Dbg.ERROR_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.className + "(" + eid + "), methodUtype(" + methodUtype + ")!\nerror=" + e.ToString());
+				return;
             }
+			
+			// Dbg.DEBUG_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.className + "." + methoddata.name);
+			
+			entity.onRemoteMethodCall(methoddata, stream);
 		}
 
 		/*
@@ -1128,8 +1099,8 @@
 				entityMessage.reclaimObject();
 				
 				entity.isOnGround = isOnGround > 0;
-				entity.set_direction(entity.getDefinedProperty("direction"));
-				entity.set_position(entity.getDefinedProperty("position"));
+				entity.onDirectionChanged(entity.direction);
+				entity.onPositionChanged(entity.position);
 								
 				entity.__init__();
 				entity.inited = true;
@@ -1155,8 +1126,8 @@
 					entity.cellMailbox.className = entityType;
 					entity.cellMailbox.type = Mailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL;
 					
-					entity.set_direction(entity.getDefinedProperty("direction"));
-					entity.set_position(entity.getDefinedProperty("position"));					
+					entity.onDirectionChanged(entity.direction);
+					entity.onPositionChanged(entity.position);				
 
 					_entityServerPos = entity.position;
 					entity.isOnGround = isOnGround > 0;
@@ -1641,6 +1612,9 @@
 				return;
 			}
 			
+			Vector3 old_position = new Vector3(entity.position.x, entity.position.y, entity.position.z);
+			Vector3 old_direction = new Vector3(entity.direction.x, entity.direction.y, entity.direction.z);
+
 			entity.position.x = stream.readFloat();
 			entity.position.y = stream.readFloat();
 			entity.position.z = stream.readFloat();
@@ -1648,28 +1622,12 @@
 			entity.direction.x = stream.readFloat();
 			entity.direction.y = stream.readFloat();
 			entity.direction.z = stream.readFloat();
-			
-			Vector3 position = (Vector3)entity.getDefinedProperty("position");
-			Vector3 direction = (Vector3)entity.getDefinedProperty("direction");
-			Vector3 old_position = new Vector3(position.x, position.y, position.z);
-			Vector3 old_direction = new Vector3(direction.x, direction.y, direction.z);
-			
-			position.x = entity.position.x;
-			position.y = entity.position.y;
-			position.z = entity.position.z;
-			
-			direction.x = entity.direction.x;
-			direction.y = entity.direction.y;
-			direction.z = entity.direction.z;
-			
-			entity.setDefinedProperty("position", position);
-			entity.setDefinedProperty("direction", direction);
-			
+
 			entity._entityLastLocalPos = entity.position;
 			entity._entityLastLocalDir = entity.direction;
 			
-			entity.set_direction(old_direction);
-			entity.set_position(old_position);
+			entity.onDirectionChanged(old_direction);
+			entity.onPositionChanged(old_position);		
 		}
 		
 		public void Client_onUpdateData_ypr(MemoryStream stream)
