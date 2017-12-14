@@ -691,7 +691,7 @@ bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule
 	for (; argiter != args.end(); ++argiter)
 	{
 		uint16 typeID = datatype2id((*argiter)->getName());
-		if (typeID == 0)
+		if (typeID == 0 || strcmp((*argiter)->getName(), "FIXED_DICT") == 0 || strcmp((*argiter)->getName(), "ARRAY") == 0)
 			typeID = (*argiter)->id();
 
 		sourcefileBody_ += fmt::format("\t\t\tp{}_{}_args.Add(EntityDef.id2datatypes[{}]);\n\n", pScriptDefModule->getName(), pDescr->getName(), typeID);
@@ -778,7 +778,7 @@ bool ClientSDKUnity::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModu
 		pScriptDefModule->getName(), eventName);
 
 	uint16 typeID = datatype2id(pDescr->getDataType()->getName());
-	if (typeID == 0)
+	if (typeID == 0 || strcmp(pDescr->getDataType()->getName(), "FIXED_DICT") == 0 || strcmp(pDescr->getDataType()->getName(), "ARRAY") == 0)
 		typeID = pDescr->getDataType()->id();
 
 	sourcefileBody_ += fmt::format("\t\t\tProperty p{}_{} = new Property();\n", pScriptDefModule->getName(), pDescr->getName());
@@ -1127,13 +1127,13 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			DataType* pDataType = (*iter);
 
 			uint16 typeID = datatype2id(pDataType->getName());
-			if (typeID == 0)
+			if (typeID == 0 || strcmp(pDataType->getName(), "FIXED_DICT") == 0 || strcmp(pDataType->getName(), "ARRAY") == 0)
 				typeID = pDataType->id();
 
 			argsStr += fmt::format("{}_arg{}, ", pMethodDescription->getName(), i);
 
 			std::string nativetype = datatype2nativetype(typeID);
-			if (nativetype != "FIXED_DICT" && nativetype != "ARRAY")
+			if (strcmp(pDataType->getName(), "FIXED_DICT") != 0 && strcmp(pDataType->getName(), "ARRAY") != 0)
 				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ({})method.args[{}].createFromStream(stream);\n",
 					typeToType(nativetype), pMethodDescription->getName(), i, typeToType(nativetype), (i - 1));
 			else
@@ -1236,6 +1236,51 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 	sourcefileBody_ += fmt::format("\t\t\t}};\n");
 	sourcefileBody_ += "\t\t}\n";
 
+	// ¥¶¿Ì Ù–‘callPropertysSetMethods
+	sourcefileBody_ += fmt::format("\n\t\tpublic override void callPropertysSetMethods()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\tScriptModule sm = EntityDef.moduledefs[className];\n");
+	sourcefileBody_ += fmt::format("\t\t\tDictionary<UInt16, Property> pdatas = sm.idpropertys;\n\n");
+	
+	propIter = clientPropertys.begin();
+	for (; propIter != clientPropertys.end(); ++propIter)
+	{
+		PropertyDescription* pPropertyDescription = propIter->second;
+
+		std::string typestr;
+
+		if (std::string("position") == pPropertyDescription->getName() ||
+			std::string("direction") == pPropertyDescription->getName())
+		{
+#ifdef CLIENT_NO_FLOAT
+			typestr = "Vector3Int";
+#else
+			typestr = "Vector3";
+#endif
+		}
+		else
+		{
+			std::string findstr = fmt::format(" {} = ", pPropertyDescription->getName());
+			std::string::size_type fpos2 = sourcefileBody_.find(findstr);
+			std::string::size_type fpos1 = sourcefileBody_.rfind(" ", fpos2 - 1);
+			typestr.assign(sourcefileBody_.begin() + fpos1 + 1, sourcefileBody_.begin() + fpos2);
+		}
+
+		sourcefileBody_ += fmt::format("\t\t\t{} oldval_{} = {};\n", typestr, pPropertyDescription->getName(), pPropertyDescription->getName());
+
+		std::string name = pPropertyDescription->getName();
+		name[0] = std::toupper(name[0]);
+		sourcefileBody_ += fmt::format("\t\t\tProperty prop_{} = pdatas[{}];\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
+		sourcefileBody_ += fmt::format("\t\t\tif(prop_{}.isBase())\n\t\t\t{{\n", pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\tif(inited && !inWorld)\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t}}\n\t\t\telse\n\t\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tif(inWorld)\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\tif(!prop_{}.isOwnerOnly() && isPlayer())\n", pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t}}\n\n");
+	}
+
+	sourcefileBody_ += "\t\t}\n";
 	return true;
 }
 
