@@ -596,11 +596,11 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 		std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
 		std::vector<DataType*>::iterator iter = argTypes.begin();
 
-		int i = 1;
+		//int i = 1;
 
 		for (; iter != argTypes.end(); ++iter)
 		{
-			DataType* pDataType = (*iter);
+		//	DataType* pDataType = (*iter);
 		}
 	}
 
