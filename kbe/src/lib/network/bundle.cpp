@@ -425,7 +425,7 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 	if (currMsgLength >= MemoryStream::MAX_SIZE)
 	{
 		DebugHelper::getSingleton().set_errorcolor();
-		printf("%s", fmt::format("ERROR: Bundle::debugCurrentMessages(): is too big, size=%d\n", currMsgLength));
+		printf("%s", fmt::format("ERROR: Bundle::debugCurrentMessages(): is too big, size=%d\n", currMsgLength).c_str());
 		DebugHelper::getSingleton().set_normalcolor();
 		
 		return;
