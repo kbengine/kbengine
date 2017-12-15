@@ -281,30 +281,37 @@ std::string MessageHandlers::getDigestStr()
 
 		{
 			TiXmlNode *rootNode = NULL;
-			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
 
-			if (xml->isGood())
+			FILE* f = Resmgr::getSingleton().openRes("server/server_errors.xml");
+
+			if (f)
 			{
-				rootNode = xml->getRootNode();
-				if (rootNode)
+				fclose(f);
+
+				SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+				if (xml->isGood())
 				{
-
-					XML_FOR_BEGIN(rootNode)
+					rootNode = xml->getRootNode();
+					if (rootNode)
 					{
-						TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
-						TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+						XML_FOR_BEGIN(rootNode)
+						{
+							TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+							TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
 
-						int32 val1 = xml->getValInt(node);
-						md5.append((void*)&val1, sizeof(int32));
+							int32 val1 = xml->getValInt(node);
+							md5.append((void*)&val1, sizeof(int32));
 
-						std::string val2 = xml->getKey(rootNode);
-						md5.append((void*)val2.c_str(), val2.size());
+							std::string val2 = xml->getKey(rootNode);
+							md5.append((void*)val2.c_str(), val2.size());
 
-						std::string val3 = xml->getVal(node1);
-						md5.append((void*)val3.c_str(), val3.size());
-						isize++;
+							std::string val3 = xml->getVal(node1);
+							md5.append((void*)val3.c_str(), val3.size());
+							isize++;
+						}
+						XML_FOR_END(rootNode);
 					}
-					XML_FOR_END(rootNode);
 				}
 			}
 

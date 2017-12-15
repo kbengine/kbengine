@@ -386,21 +386,27 @@ bool ClientSDK::writeServerErrorDescrsModule()
 
 	{
 		TiXmlNode *rootNode = NULL;
-		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
 
-		if (xml->isGood())
+		FILE* f = Resmgr::getSingleton().openRes("server/server_errors.xml");
+
+		if (f)
 		{
+			fclose(f);
+			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
 
-			rootNode = xml->getRootNode();
-			if (rootNode)
+			if (xml->isGood())
 			{
-				XML_FOR_BEGIN(rootNode)
+				rootNode = xml->getRootNode();
+				if (rootNode)
 				{
-					TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
-					TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
-					errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+					XML_FOR_BEGIN(rootNode)
+					{
+						TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+						TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+						errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+					}
+					XML_FOR_END(rootNode);
 				}
-				XML_FOR_END(rootNode);
 			}
 		}
 	}

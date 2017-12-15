@@ -619,7 +619,10 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 {
 	uint16 typeID = datatype2id(pDataType->getName());
 	if (typeID == 0 || strcmp(pDataType->getName(), "FIXED_DICT") == 0 || strcmp(pDataType->getName(), "ARRAY") == 0)
+	{
 		typeID = pDataType->id();
+		KBE_ASSERT(typeID > datatype2id("KBE_DATATYPE2ID_MAX"));
+	}
 
 	sourcefileBody_ += fmt::format("\t\t\t{{\n");
 	sourcefileBody_ += fmt::format("\t\t\t\tUInt16 utype = {};\n", typeID);
