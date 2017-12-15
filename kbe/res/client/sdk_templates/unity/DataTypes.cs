@@ -13,18 +13,6 @@
 	*/
 	public class KBEDATATYPE_BASE
 	{
-		public static bool isNumeric(object v)
-		{
-		    return v is sbyte || v is byte ||
-		        v is short || v is ushort ||
-		        v is int || v is uint ||
-		        v is long || v is ulong ||
-		        v is char || v is decimal || v is float ||
-		        v is double || v is Int16 || v is Int64 ||
-				v is UInt16 || v is UInt64 || 
-				v is Boolean || v is bool;
-		}
-		
 		public static float KBE_FLT_MAX = float.MaxValue;
 		
 		public virtual void bind()
@@ -72,7 +60,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);
@@ -101,7 +89,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);
@@ -130,7 +118,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);
@@ -159,7 +147,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);
@@ -188,7 +176,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);
@@ -217,7 +205,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);
@@ -246,7 +234,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);
@@ -275,7 +263,7 @@
 		
 		public override bool isSameType(object v)
 		{
-			if (!KBEDATATYPE_BASE.isNumeric (v))
+			if (!KBEMath.isNumeric (v))
 				return false;
 
 			decimal v1 = Convert.ToDecimal (v);

@@ -160,6 +160,21 @@ inline bool almostEqual(float f1, float f2, float epsilon)
 	return FMath::Abs(f1 - f2) < epsilon;
 }
 
+inline bool isNumeric(KBVar& v)
+{
+	return v.GetType() == EKBVarTypes::Bool || 
+		v.GetType() == EKBVarTypes::Double ||
+		v.GetType() == EKBVarTypes::Float ||
+		v.GetType() == EKBVarTypes::Int8 ||
+		v.GetType() == EKBVarTypes::Int16 ||
+		v.GetType() == EKBVarTypes::Int32 ||
+		v.GetType() == EKBVarTypes::Int64 ||
+		v.GetType() == EKBVarTypes::UInt8 ||
+		v.GetType() == EKBVarTypes::UInt16 ||
+		v.GetType() == EKBVarTypes::UInt32 ||
+		v.GetType() == EKBVarTypes::UInt64;
+}
+
 // UE4的尺度单位转化为米
 #define UE4_SCALE_UNIT_TO_METER 100.f
 
