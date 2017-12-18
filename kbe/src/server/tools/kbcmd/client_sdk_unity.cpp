@@ -611,7 +611,9 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 
 	sourcefileBody_ += fmt::format("\t\t\t{{\n");
 	sourcefileBody_ += fmt::format("\t\t\t\tUInt16 utype = {};\n", typeID);
-	sourcefileBody_ += fmt::format("\t\t\t\tstring valname = \"{}\";\n", (strlen(pDataType->aliasName()) > 0 ? pDataType->aliasName() : fmt::format("Null_{}", typeID)));
+
+	std::string typeName = (strlen(pDataType->aliasName()) > 0 ? pDataType->aliasName() : fmt::format("Null_{}", typeID));
+	sourcefileBody_ += fmt::format("\t\t\t\tstring typeName = \"{}\";\n", typeName);
 
 	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
 	{
@@ -632,7 +634,7 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 			sourcefileBody_ += fmt::format("\t\t\t\tdatatype.dicttype[\"{}\"] = (UInt16){};\n", keyiter->first, typeID);
 		}
 
-		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[valname] = datatype;\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = datatype;\n");
 	}
 	else if (strcmp(pDataType->getName(), "ARRAY") == 0)
 	{
@@ -643,18 +645,18 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 
 		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_ARRAY datatype = new KBEDATATYPE_ARRAY();\n");
 		sourcefileBody_ += fmt::format("\t\t\t\tdatatype.vtype = (UInt16){};\n", typeID);
-		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[valname] = datatype;\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = datatype;\n");
 	}
 	else
 	{
 		sourcefileBody_ += fmt::format("\t\t\t\tstring name = \"{}\";\n", pDataType->getName());
 		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_BASE val = null;\n");
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes.TryGetValue(name, out val);\n");
-		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[valname] = val;\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = val;\n");
 	}
 
-	sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.id2datatypes[utype] = EntityDef.datatypes[valname];\n");
-	sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatype2id[valname] = utype;\n");
+	sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.id2datatypes[utype] = EntityDef.datatypes[typeName];\n");
+	sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatype2id[typeName] = utype;\n");
 	sourcefileBody_ += fmt::format("\t\t\t}}\n\n");
 
 	return true;
