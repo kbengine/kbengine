@@ -11,6 +11,8 @@ namespace KBEngine
 */
 public class KBEMath 
 {
+	public static float KBE_FLT_MAX = float.MaxValue;
+	
 	public static float int82angle(SByte angle, bool half)
 	{
 		float halfv = 128f;

@@ -1638,7 +1638,7 @@
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, y, p, r, -1);
+			_updateVolatileData(eid, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, y, p, r, -1);
 		}
 		
 		public void Client_onUpdateData_yp(MemoryStream stream)
@@ -1648,7 +1648,7 @@
 			SByte y = stream.readInt8();
 			SByte p = stream.readInt8();
 			
-			_updateVolatileData(eid, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, y, p, KBEDATATYPE_BASE.KBE_FLT_MAX, -1);
+			_updateVolatileData(eid, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, y, p, KBEMath.KBE_FLT_MAX, -1);
 		}
 		
 		public void Client_onUpdateData_yr(MemoryStream stream)
@@ -1658,7 +1658,7 @@
 			SByte y = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, y, KBEDATATYPE_BASE.KBE_FLT_MAX, r, -1);
+			_updateVolatileData(eid, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, y, KBEMath.KBE_FLT_MAX, r, -1);
 		}
 		
 		public void Client_onUpdateData_pr(MemoryStream stream)
@@ -1668,7 +1668,7 @@
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, p, r, -1);
+			_updateVolatileData(eid, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, p, r, -1);
 		}
 		
 		public void Client_onUpdateData_y(MemoryStream stream)
@@ -1677,7 +1677,7 @@
 			
 			SByte y = stream.readInt8();
 			
-			_updateVolatileData(eid, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, y, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, -1);
+			_updateVolatileData(eid, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, y, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, -1);
 		}
 		
 		public void Client_onUpdateData_p(MemoryStream stream)
@@ -1686,7 +1686,7 @@
 			
 			SByte p = stream.readInt8();
 			
-			_updateVolatileData(eid, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, p, KBEDATATYPE_BASE.KBE_FLT_MAX, -1);
+			_updateVolatileData(eid, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, p, KBEMath.KBE_FLT_MAX, -1);
 		}
 		
 		public void Client_onUpdateData_r(MemoryStream stream)
@@ -1695,7 +1695,7 @@
 			
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, r, -1);
+			_updateVolatileData(eid, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, r, -1);
 		}
 		
 		public void Client_onUpdateData_xz(MemoryStream stream)
@@ -1704,7 +1704,7 @@
 			
 			Vector2 xz = stream.readPackXZ();
 			
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, 1);
 		}
 		
 		public void Client_onUpdateData_xz_ypr(MemoryStream stream)
@@ -1717,7 +1717,7 @@
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], y, p, r, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], y, p, r, 1);
 		}
 		
 		public void Client_onUpdateData_xz_yp(MemoryStream stream)
@@ -1729,7 +1729,7 @@
 			SByte y = stream.readInt8();
 			SByte p = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], y, p, KBEDATATYPE_BASE.KBE_FLT_MAX, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], y, p, KBEMath.KBE_FLT_MAX, 1);
 		}
 		
 		public void Client_onUpdateData_xz_yr(MemoryStream stream)
@@ -1741,7 +1741,7 @@
 			SByte y = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], y, KBEDATATYPE_BASE.KBE_FLT_MAX, r, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], y, KBEMath.KBE_FLT_MAX, r, 1);
 		}
 		
 		public void Client_onUpdateData_xz_pr(MemoryStream stream)
@@ -1753,7 +1753,7 @@
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, p, r, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], KBEMath.KBE_FLT_MAX, p, r, 1);
 		}
 		
 		public void Client_onUpdateData_xz_y(MemoryStream stream)
@@ -1761,7 +1761,7 @@
 			Int32 eid = getAoiEntityIDFromStream(stream);
 			Vector2 xz = stream.readPackXZ();
 			SByte yaw = stream.readInt8();
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], yaw, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], yaw, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, 1);
 		}
 		
 		public void Client_onUpdateData_xz_p(MemoryStream stream)
@@ -1772,7 +1772,7 @@
 	
 			SByte p = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, p, KBEDATATYPE_BASE.KBE_FLT_MAX, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], KBEMath.KBE_FLT_MAX, p, KBEMath.KBE_FLT_MAX, 1);
 		}
 		
 		public void Client_onUpdateData_xz_r(MemoryStream stream)
@@ -1783,7 +1783,7 @@
 	
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], KBEDATATYPE_BASE.KBE_FLT_MAX, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, r, 1);
+			_updateVolatileData(eid, xz[0], KBEMath.KBE_FLT_MAX, xz[1], KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, r, 1);
 		}
 		
 		public void Client_onUpdateData_xyz(MemoryStream stream)
@@ -1793,7 +1793,7 @@
 			Vector2 xz = stream.readPackXZ();
 			float y = stream.readPackY();
 			
-			_updateVolatileData(eid, xz[0], y, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, 0);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, 0);
 		}
 		
 		public void Client_onUpdateData_xyz_ypr(MemoryStream stream)
@@ -1820,7 +1820,7 @@
 			SByte yaw = stream.readInt8();
 			SByte p = stream.readInt8();
 
-			_updateVolatileData(eid, xz[0], y, xz[1], yaw, p, KBEDATATYPE_BASE.KBE_FLT_MAX, 0);
+			_updateVolatileData(eid, xz[0], y, xz[1], yaw, p, KBEMath.KBE_FLT_MAX, 0);
 		}
 		
 		public void Client_onUpdateData_xyz_yr(MemoryStream stream)
@@ -1833,7 +1833,7 @@
 			SByte yaw = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEDATATYPE_BASE.KBE_FLT_MAX, r, 0);
+			_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEMath.KBE_FLT_MAX, r, 0);
 		}
 		
 		public void Client_onUpdateData_xyz_pr(MemoryStream stream)
@@ -1846,7 +1846,7 @@
 			SByte p = stream.readInt8();
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], y, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, p, r, 0);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBEMath.KBE_FLT_MAX, p, r, 0);
 		}
 		
 		public void Client_onUpdateData_xyz_y(MemoryStream stream)
@@ -1857,7 +1857,7 @@
 			float y = stream.readPackY();
 			
 			SByte yaw = stream.readInt8();
-			_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, 0);
+			_updateVolatileData(eid, xz[0], y, xz[1], yaw, KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, 0);
 		}
 		
 		public void Client_onUpdateData_xyz_p(MemoryStream stream)
@@ -1869,7 +1869,7 @@
 			
 			SByte p = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], y, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, p, KBEDATATYPE_BASE.KBE_FLT_MAX, 0);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBEMath.KBE_FLT_MAX, p, KBEMath.KBE_FLT_MAX, 0);
 		}
 		
 		public void Client_onUpdateData_xyz_r(MemoryStream stream)
@@ -1881,7 +1881,7 @@
 			
 			SByte r = stream.readInt8();
 			
-			_updateVolatileData(eid, xz[0], y, xz[1], KBEDATATYPE_BASE.KBE_FLT_MAX, KBEDATATYPE_BASE.KBE_FLT_MAX, r, 0);
+			_updateVolatileData(eid, xz[0], y, xz[1], KBEMath.KBE_FLT_MAX, KBEMath.KBE_FLT_MAX, r, 0);
 		}
 		
 		private void _updateVolatileData(Int32 entityID, float x, float y, float z, float yaw, float pitch, float roll, sbyte isOnGround)
@@ -1905,19 +1905,19 @@
 		
 			bool changeDirection = false;
 			
-			if(roll != KBEDATATYPE_BASE.KBE_FLT_MAX)
+			if(roll != KBEMath.KBE_FLT_MAX)
 			{
 				changeDirection = true;
 				entity.direction.x = KBEMath.int82angle((SByte)roll, false) * 360 / ((float)System.Math.PI * 2);
 			}
 
-			if(pitch != KBEDATATYPE_BASE.KBE_FLT_MAX)
+			if(pitch != KBEMath.KBE_FLT_MAX)
 			{
 				changeDirection = true;
 				entity.direction.y = KBEMath.int82angle((SByte)pitch, false) * 360 / ((float)System.Math.PI * 2);
 			}
 			
-			if(yaw != KBEDATATYPE_BASE.KBE_FLT_MAX)
+			if(yaw != KBEMath.KBE_FLT_MAX)
 			{
 				changeDirection = true;
 				entity.direction.z = KBEMath.int82angle((SByte)yaw, false) * 360 / ((float)System.Math.PI * 2);
@@ -1930,10 +1930,10 @@
 				done = true;
 			}
 			
-	            bool positionChanged = x != KBEDATATYPE_BASE.KBE_FLT_MAX || y != KBEDATATYPE_BASE.KBE_FLT_MAX || z != KBEDATATYPE_BASE.KBE_FLT_MAX;
-	            if (x == KBEDATATYPE_BASE.KBE_FLT_MAX) x = 0.0f;
-	            if (y == KBEDATATYPE_BASE.KBE_FLT_MAX) y = 0.0f;
-	            if (z == KBEDATATYPE_BASE.KBE_FLT_MAX) z = 0.0f;
+	            bool positionChanged = x != KBEMath.KBE_FLT_MAX || y != KBEMath.KBE_FLT_MAX || z != KBEMath.KBE_FLT_MAX;
+	            if (x == KBEMath.KBE_FLT_MAX) x = 0.0f;
+	            if (y == KBEMath.KBE_FLT_MAX) y = 0.0f;
+	            if (z == KBEMath.KBE_FLT_MAX) z = 0.0f;
             
 			if(positionChanged)
 			{

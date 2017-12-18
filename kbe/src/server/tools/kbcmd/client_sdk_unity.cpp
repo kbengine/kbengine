@@ -250,7 +250,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 	sourcefileBody_ += "\t\tpublic MessageID id = 0;\n";
 	sourcefileBody_ += "\t\tpublic string name;\n";
 	sourcefileBody_ += "\t\tpublic Int16 msglen = -1;\n";
-	sourcefileBody_ += "\t\tpublic KBEDATATYPE_BASE[] argtypes = null;\n";
+	sourcefileBody_ += "\t\tpublic List<Byte> argtypes = null;\n";
 	sourcefileBody_ += "\t\tpublic sbyte argsType = 0;\n";
 
 	sourcefileBody_ += "\n\t\tpublic Message(MessageID msgid, string msgname, Int16 length, sbyte argstype, List<Byte> msgargtypes)\n\t\t{\n";
@@ -259,31 +259,12 @@ bool ClientSDKUnity::writeEngineMessagesModuleBegin()
 	sourcefileBody_ += "\t\t\tmsglen = length;\n";
 	sourcefileBody_ += "\t\t\targsType = argstype;\n\n";
 
-	sourcefileBody_ += "\t\t\targtypes = new KBEDATATYPE_BASE[msgargtypes.Count];\n";
-	sourcefileBody_ += "\t\t\tfor(int i=0; i<msgargtypes.Count; i++)\n";
-	sourcefileBody_ += "\t\t\t{\n";
-	sourcefileBody_ += "\t\t\t\tif(!EntityDef.id2datatypes.TryGetValue(msgargtypes[i], out argtypes[i]))\n";
-	sourcefileBody_ += "\t\t\t\t{\n";
-	sourcefileBody_ += "\t\t\t\t\tDbg.ERROR_MSG(\"Message::Message() : argtype(\" + msgargtypes[i] + \") is not found!\");\n";
-	sourcefileBody_ += "\t\t\t\t}\n";
-	sourcefileBody_ += "\t\t\t}\n\n";
+	sourcefileBody_ += "\t\t\targtypes = msgargtypes;\n";
 
 	sourcefileBody_ += "\t\t\t// Dbg.DEBUG_MSG(string.Format(\"Message::Message() : ({ 0 } / {1} / {2})!\", \n";
 	sourcefileBody_ += "\t\t\t//\t\tmsgname, msgid, msglen));";
 
 	sourcefileBody_ += "\n\t\t}\n\n";
-
-	sourcefileBody_ += "\t\tpublic virtual object[] createFromStream(MemoryStream msgstream)\n";
-	sourcefileBody_ += "\t\t{\n";
-	sourcefileBody_ += "\t\t\tif(argtypes.Length <= 0)\n";
-	sourcefileBody_ += "\t\t\t\treturn new object[]{msgstream};\n\n";
-	sourcefileBody_ += "\t\t\tobject[] result = new object[argtypes.Length];\n\n";
-	sourcefileBody_ += "\t\t\tfor(int i=0; i<argtypes.Length; i++)\n";
-	sourcefileBody_ += "\t\t\t{\n";
-	sourcefileBody_ += "\t\t\t\tresult[i] = argtypes[i].createFromStream(msgstream);\n";
-	sourcefileBody_ += "\t\t\t}\n\n";
-	sourcefileBody_ += "\t\t\treturn result;\n";
-	sourcefileBody_ += "\t\t}\n\n";
 
 	sourcefileBody_ += "\t\tpublic virtual void handleMessage(MemoryStream msgstream)\n";
 	sourcefileBody_ += "\t\t{\n";
@@ -336,7 +317,11 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 
 			KBE_ASSERT(nativetype != "FIXED_DICT" && nativetype != "ARRAY" && nativetype != "PYTHON" && nativetype != "MAILBOX");
 
-			argsparse += fmt::format("\t\t\t{} arg{} = ({})argtypes[{}].createFromStream(msgstream);\n", typeToType(nativetype), argindex, typeToType(nativetype), i);
+			std::string readName = nativetype;
+			std::transform(readName.begin(), readName.end(), readName.begin(), tolower);
+			readName[0] = std::toupper(readName[0]);
+
+			argsparse += fmt::format("\t\t\t{} arg{} = msgstream.read{}();\n", typeToType(nativetype), argindex, readName);
 			giveargs += fmt::format("arg{}, ", argindex);
 			initBody_ += fmt::format("\t\t\t{}_argstypes.Add({});\n", messageInfos.name, (int)messageInfos.argsTypes[i]);
 		}
@@ -668,8 +653,8 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[valname] = val;\n");
 	}
 
-	sourcefileBody_ += fmt::format("\n\t\t\t\tEntityDef.id2datatypes[utype] = EntityDef.datatypes[valname];\n");
-	sourcefileBody_ += fmt::format("\n\t\t\t\tEntityDef.datatype2id[valname] = utype;\n");
+	sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.id2datatypes[utype] = EntityDef.datatypes[valname];\n");
+	sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatype2id[valname] = utype;\n");
 	sourcefileBody_ += fmt::format("\t\t\t}}\n\n");
 
 	return true;
@@ -697,27 +682,16 @@ bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule
 		if (typeID == 0 || strcmp((*argiter)->getName(), "FIXED_DICT") == 0 || strcmp((*argiter)->getName(), "ARRAY") == 0)
 			typeID = (*argiter)->id();
 
-		sourcefileBody_ += fmt::format("\t\t\tp{}_{}_args.Add(EntityDef.id2datatypes[{}]);\n\n", pScriptDefModule->getName(), pDescr->getName(), typeID);
+		sourcefileBody_ += fmt::format("\t\t\tp{}_{}_args.Add(EntityDef.id2datatypes[{}]);\n", pScriptDefModule->getName(), pDescr->getName(), typeID);
 	}
 
-	sourcefileBody_ += fmt::format("\t\t\tMethod p{}_{} = new Method();\n", pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\n\t\t\tMethod p{}_{} = new Method();\n", pScriptDefModule->getName(), pDescr->getName());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.name = \"{}\";\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getName());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.methodUtype = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getUType());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.aliasID = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->aliasID());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.args = p{}_{}_args;\n\n", pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
 
-	sourcefileBody_ += fmt::format("\t\t\tSystem.Reflection.MethodInfo p{}_{}Handler = null;\n", pScriptDefModule->getName(), pDescr->getName());
-	sourcefileBody_ += fmt::format("\t\t\tif(p{}Module.script != null)\n\t\t\t{{\n", pScriptDefModule->getName());
-	sourcefileBody_ += fmt::format("\t\t\t\ttry {{\n\t\t\t\t\tp{}_{}Handler = p{}Module.script.GetMethod(\"{}\");\n\t\t\t\t}}\n\t\t\t\tcatch (Exception e)\n\t\t\t\t{{\n",
-		pScriptDefModule->getName(), pDescr->getName()
-		, pScriptDefModule->getName(), pDescr->getName());
-
-	sourcefileBody_ += fmt::format("\t\t\t\t\tstring err = \"EntityDef::initScriptModules: {}.{}(), error=\" + e.ToString();\n\t\t\t\t\tthrow new Exception(err);\n\t\t\t\t}}\n\t\t\t}}\n",
-		pScriptDefModule->getName(), pDescr->getName());
-
-	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.handler = p{}_{}Handler;\n", pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
-
-	sourcefileBody_ += fmt::format("\t\t\tp{}Module.methods[\"{}\"] = p{}_{}; \n\n",
+	sourcefileBody_ += fmt::format("\t\t\tp{}Module.methods[\"{}\"] = p{}_{}; \n",
 		pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
 
 	if (pDescr->aliasID() != -1)
@@ -768,18 +742,6 @@ bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
 {
-	std::string eventName = pDescr->getName();
-	eventName[0] = std::toupper(eventName[0]);
-
-	sourcefileBody_ += fmt::format("\t\t\tSystem.Reflection.MethodInfo p{}_{}Setmethod = null;\n", pScriptDefModule->getName(), pDescr->getName());
-	sourcefileBody_ += fmt::format("\t\t\tif(p{}Module.script != null)\n\t\t\t{{\n", pScriptDefModule->getName());
-	sourcefileBody_ += fmt::format("\t\t\t\ttry {{\n\t\t\t\t\tp{}_{}Setmethod = p{}Module.script.GetMethod(\"on{}Changed\");\n\t\t\t\t}}\n\t\t\t\tcatch (Exception e)\n\t\t\t\t{{\n", 
-		pScriptDefModule->getName(), pDescr->getName()
-		, pScriptDefModule->getName(), eventName);
-
-	sourcefileBody_ += fmt::format("\t\t\t\t\tstring err = \"EntityDef::initScriptModules: {}.on{}Changed, error=\" + e.ToString();\n\t\t\t\t\tthrow new Exception(err);\n\t\t\t\t}}\n\t\t\t}}\n", 
-		pScriptDefModule->getName(), eventName);
-
 	uint16 typeID = datatype2id(pDescr->getDataType()->getName());
 	if (typeID == 0 || strcmp(pDescr->getDataType()->getName(), "FIXED_DICT") == 0 || strcmp(pDescr->getDataType()->getName(), "ARRAY") == 0)
 		typeID = pDescr->getDataType()->id();
@@ -791,8 +753,7 @@ bool ClientSDKUnity::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModu
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.properFlags = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getFlags());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.aliasID = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->aliasID());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.defaultValStr = \"{}\";\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getDefaultValStr());
-	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.setmethod = p{}_{}Setmethod;\n", pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
-	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.val = p{}_{}.utype.parseDefaultValStr(p{}_{}.defaultValStr);\n", 
+	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.defaultVal = p{}_{}.utype.parseDefaultValStr(p{}_{}.defaultValStr);\n", 
 		pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
 
 	sourcefileBody_ += fmt::format("\t\t\tp{}Module.propertys[\"{}\"] = p{}_{}; \n\n", 
@@ -1135,10 +1096,17 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 
 			argsStr += fmt::format("{}_arg{}, ", pMethodDescription->getName(), i);
 
+			std::string readName = datatype2nativetype(pDataType->getName());
+			if (readName.size() > 0)
+			{
+				std::transform(readName.begin(), readName.end(), readName.begin(), tolower);
+				readName[0] = std::toupper(readName[0]);
+			}
+
 			std::string nativetype = datatype2nativetype(typeID);
 			if (strcmp(pDataType->getName(), "FIXED_DICT") != 0 && strcmp(pDataType->getName(), "ARRAY") != 0)
-				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ({})method.args[{}].createFromStream(stream);\n",
-					typeToType(nativetype), pMethodDescription->getName(), i, typeToType(nativetype), (i - 1));
+				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = stream.read{}();\n",
+					typeToType(nativetype), pMethodDescription->getName(), i, readName);
 			else
 				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ({})method.args[{}].createFromStream(stream);\n",
 					pDataType->aliasName(), pMethodDescription->getName(), i, pDataType->aliasName(), (i - 1));
@@ -1220,17 +1188,32 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 
 		sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pPropertyDescription->getUType());
 		sourcefileBody_ += fmt::format("\t\t\t\t\t{} oldval_{} = {};\n", typestr, pPropertyDescription->getName(), pPropertyDescription->getName());
-		sourcefileBody_ += fmt::format("\t\t\t\t\t{} = ({})prop.utype.createFromStream(stream);\n", pPropertyDescription->getName(), typestr);
+
+		std::string readName = datatype2nativetype(pPropertyDescription->getDataType()->getName());
+		if (readName.size() > 0)
+		{
+			std::transform(readName.begin(), readName.end(), readName.begin(), tolower);
+			readName[0] = std::toupper(readName[0]);
+		}
+		else
+		{
+			KBE_ASSERT(false);
+		}
+
+		if (pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDDICT || pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
+			readName = pPropertyDescription->getDataType()->aliasName();
+
+		sourcefileBody_ += fmt::format("\t\t\t\t\t{} = stream.read{}();\n", pPropertyDescription->getName(), readName);
 
 		std::string name = pPropertyDescription->getName();
 		name[0] = std::toupper(name[0]);
-		sourcefileBody_ += fmt::format("\t\t\t\t\tif(prop.isBase())\n\t\t\t\t\t{{\n");
+		sourcefileBody_ += fmt::format("\n\t\t\t\t\tif(prop.isBase())\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\t\tif(inited)\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
-		sourcefileBody_ += fmt::format("\t\t\t\t\t}}\n\t\t\t\t\telse\n\t\t\t\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\telse\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\t\tif(inWorld)\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
-		sourcefileBody_ += fmt::format("\t\t\t\t\t}}\n\n");
+		sourcefileBody_ += fmt::format("\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
 	}
 
@@ -1272,7 +1255,10 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 
 		std::string name = pPropertyDescription->getName();
 		name[0] = std::toupper(name[0]);
-		sourcefileBody_ += fmt::format("\t\t\tProperty prop_{} = pdatas[{}];\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
+
+		sourcefileBody_ += fmt::format("\t\t\tProperty prop_{} = pdatas[{}];\n", pPropertyDescription->getName(), (pEntityScriptDefModule->usePropertyDescrAlias() ? 
+			pPropertyDescription->aliasID() : pPropertyDescription->getUType()));
+
 		sourcefileBody_ += fmt::format("\t\t\tif(prop_{}.isBase())\n\t\t\t{{\n", pPropertyDescription->getName());
 		sourcefileBody_ += fmt::format("\t\t\t\tif(inited && !inWorld)\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());

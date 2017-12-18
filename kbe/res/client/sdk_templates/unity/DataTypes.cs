@@ -13,8 +13,6 @@
 	*/
 	public class KBEDATATYPE_BASE
 	{
-		public static float KBE_FLT_MAX = float.MaxValue;
-		
 		public virtual void bind()
 		{
 		}
@@ -542,7 +540,7 @@
 			while(size > 0)
 			{
 				size--;
-				datas.Add(((KBEDATATYPE_BASE)vtype).createFromStream(stream));
+		//		datas.Add(((KBEDATATYPE_BASE)vtype).createFromStream(stream));
 			};
 			
 			return datas;
@@ -553,7 +551,7 @@
 			stream.writeUint32((UInt32)((List<object>)v).Count);
 			for(int i=0; i<((List<object>)v).Count; i++)
 			{
-				((KBEDATATYPE_BASE)vtype).addToStream(stream, ((List<object>)v)[i]);
+		//		((KBEDATATYPE_BASE)vtype).addToStream(stream, ((List<object>)v)[i]);
 			}
 		}
 		
@@ -615,7 +613,7 @@
 			Dictionary<string, object> datas = new Dictionary<string, object>();
 			foreach(string itemkey in dicttype.Keys)
 			{
-				datas[itemkey] = ((KBEDATATYPE_BASE)dicttype[itemkey]).createFromStream(stream);
+			//	datas[itemkey] = ((KBEDATATYPE_BASE)dicttype[itemkey]).createFromStream(stream);
 			}
 			
 			return datas;
@@ -625,7 +623,7 @@
 		{
 			foreach(string itemkey in dicttype.Keys)
 			{
-				((KBEDATATYPE_BASE)dicttype[itemkey]).addToStream(stream, ((Dictionary<string, object>)v)[itemkey]);
+		//		((KBEDATATYPE_BASE)dicttype[itemkey]).addToStream(stream, ((Dictionary<string, object>)v)[itemkey]);
 			}
 		}
 		

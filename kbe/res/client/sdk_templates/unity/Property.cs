@@ -29,9 +29,7 @@
 		public Int16 aliasID = -1;
 		
 		public string defaultValStr = "";
-		public System.Reflection.MethodInfo setmethod = null;
-		
-		public object val = null;
+		public object defaultVal = null;
 		
 		public Property()
 		{
