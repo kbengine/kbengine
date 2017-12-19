@@ -732,6 +732,25 @@ bool Witness::update()
 	if(!pChannel)
 		return true;
 
+	Py_INCREF(pEntity_);
+
+	static bool notificationScriptBegin = PyObject_HasAttrString(pEntity_, "onUpdateBegin") > 0;
+	if (notificationScriptBegin)
+	{
+		PyObject* pyResult = PyObject_CallMethod(pEntity_,
+			const_cast<char*>("onUpdateBegin"),
+			const_cast<char*>(""));
+
+		if (pyResult != NULL)
+		{
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+	}
+
 	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
@@ -861,6 +880,24 @@ bool Witness::update()
 		}
 	}
 
+	static bool notificationScriptEnd = PyObject_HasAttrString(pEntity_, "onUpdateEnd") > 0;
+	if (notificationScriptEnd)
+	{
+		PyObject* pyResult = PyObject_CallMethod(pEntity_,
+			const_cast<char*>("onUpdateEnd"),
+			const_cast<char*>(""));
+
+		if (pyResult != NULL)
+		{
+			Py_DECREF(pyResult);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+	}
+
+	Py_DECREF(pEntity_);
 	return true;
 }
 
