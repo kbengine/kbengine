@@ -693,7 +693,7 @@ bool EntityDef::loadDefPropertys(const std::string& moduleName,
 				if(strType == "ARRAY")
 				{
 					FixedArrayType* dataType1 = new FixedArrayType();
-					if(dataType1->initialize(xml, typeNode))
+					if(dataType1->initialize(xml, typeNode, moduleName + "_" + name))
 						dataType = dataType1;
 					else
 						return false;
@@ -909,7 +909,7 @@ bool EntityDef::loadDefCellMethods(const std::string& moduleName,
 						if(strType == "ARRAY")
 						{
 							FixedArrayType* dataType1 = new FixedArrayType();
-							if(dataType1->initialize(xml, typeNode))
+							if(dataType1->initialize(xml, typeNode, moduleName + "_" + name))
 								dataType = dataType1;
 						}
 						else
@@ -1052,7 +1052,7 @@ bool EntityDef::loadDefBaseMethods(const std::string& moduleName, XML* xml,
 						if(strType == "ARRAY")
 						{
 							FixedArrayType* dataType1 = new FixedArrayType();
-							if(dataType1->initialize(xml, typeNode))
+							if(dataType1->initialize(xml, typeNode, moduleName + "_" + name))
 								dataType = dataType1;
 						}
 						else
@@ -1191,7 +1191,7 @@ bool EntityDef::loadDefClientMethods(const std::string& moduleName, XML* xml,
 						if(strType == "ARRAY")
 						{
 							FixedArrayType* dataType1 = new FixedArrayType();
-							if(dataType1->initialize(xml, typeNode))
+							if(dataType1->initialize(xml, typeNode, moduleName + "_" + name))
 								dataType = dataType1;
 						}
 						else
@@ -1385,8 +1385,8 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: class {} does not have method[{}].\n",
-					moduleName.c_str(), iter->first.c_str()));
+			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: class {} does not have method[{}], defined in {}.def!\n",
+				moduleName.c_str(), iter->first.c_str(), moduleName));
 
 			return false;
 		}

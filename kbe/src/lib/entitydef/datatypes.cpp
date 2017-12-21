@@ -121,7 +121,7 @@ bool DataTypes::loadTypes(std::string& file)
 			{
 				FixedDictType* fixedDict = new FixedDictType;
 				
-				if(fixedDict->initialize(xml.get(), childNode))
+				if(fixedDict->initialize(xml.get(), childNode, aliasName))
 				{
 					addDataType(aliasName, fixedDict);
 				}
@@ -138,7 +138,7 @@ bool DataTypes::loadTypes(std::string& file)
 			{
 				FixedArrayType* fixedArray = new FixedArrayType;
 				
-				if(fixedArray->initialize(xml.get(), childNode))
+				if(fixedArray->initialize(xml.get(), childNode, aliasName))
 				{
 					addDataType(aliasName, fixedArray);
 				}

@@ -662,7 +662,7 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	bool initialize(XML* xml, TiXmlNode* node);
+	bool initialize(XML* xml, TiXmlNode* node, const std::string& parentName);
 
 	const char* getName(void) const{ return "ARRAY";}
 
@@ -717,7 +717,7 @@ public:
 	PyObject* createFromStreamEx(MemoryStream* mstream, bool onlyPersistents);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
-	bool initialize(XML* xml, TiXmlNode* node);
+	bool initialize(XML* xml, TiXmlNode* node, std::string& parentName);
 	
 	/**	
 		当传入的这个pyobj并不是当前类型时则按照当前类型创建出一个obj
