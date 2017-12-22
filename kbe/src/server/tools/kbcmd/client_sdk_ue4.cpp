@@ -161,6 +161,43 @@ std::string ClientSDKUE4::typeToType(const std::string& type)
 }
 
 //-------------------------------------------------------------------------------------
+bool ClientSDKUE4::getArrayType(DataType* pDataType, std::string& outstr)
+{
+	if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
+	{
+		FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
+
+		// 如果元素又是数组
+		if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
+		{
+			if (outstr.size() > 0)
+				strutil::kbe_replace(outstr, pDataType->aliasName(), fmt::format("TArray<{}>", pFixedArrayType->getDataType()->aliasName()));
+			else
+				outstr = fmt::format("TArray<{}>", pFixedArrayType->getDataType()->aliasName());
+
+			return getArrayType(pFixedArrayType->getDataType(), outstr);
+		}
+		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
+		{
+			if (outstr.size() > 0)
+				strutil::kbe_replace(outstr, pDataType->aliasName(), pFixedArrayType->getDataType()->aliasName());
+			else
+				outstr = pFixedArrayType->getDataType()->aliasName();
+		}
+		else
+		{
+			if (outstr.size() > 0)
+				strutil::kbe_replace(outstr, pDataType->aliasName(), typeToType(pFixedArrayType->getDataType()->getName()));
+			else
+				outstr = typeToType(pFixedArrayType->getDataType()->getName());
+		}
+	}
+
+	outstr = fmt::format("TArray<{}>", outstr);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 void ClientSDKUE4::onCreateTypeFileName()
 {
 	sourcefileName_ = "KBETypes.h";
@@ -186,6 +223,20 @@ void ClientSDKUE4::onCreateEngineMessagesModuleFileName()
 	sourcefileName_ = "Messages.h";
 
 	currpath_ = basepath_ + "Source/KBEnginePlugins/Public/";
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDKUE4::onCreateDefsCustomTypesModuleFileName()
+{
+	sourcefileName_ = "CustomDataTypes.h";
+
+	currpath_ = basepath_ + "Source/KBEnginePlugins/Public/";
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDKUE4::onCreateEntityDefsModuleFileName()
+{
+	sourcefileName_ = "EntityDef.h";
 }
 
 //-------------------------------------------------------------------------------------
@@ -309,6 +360,35 @@ bool ClientSDKUE4::writeTypeEnd(std::string typeName, FixedArrayType* pDataType)
 	sourcefileBody_ += fmt::format("\n\t{}(){}\n\t{{\n\t}}\n", typeName, initBody_);
 	sourcefileBody_ += "\n};\n\n";
 	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeTypeBegin(std::string typeName, DataType* pDataType)
+{
+	initBody_ = "";
+	sourcefileBody_ += fmt::format("class {}\n{{\npublic:\n", typeName);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeTypeEnd(std::string typeName, DataType* pDataType)
+{
+	if (initBody_.size() > 0)
+	{
+		initBody_ = std::string(":\n") + initBody_;
+		initBody_.erase(initBody_.size() - 2);
+	}
+
+	sourcefileBody_ += fmt::format("\n\t{}(){}\n\t{{\n\t}}\n", typeName, initBody_);
+	sourcefileBody_ += "\n};\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUE4::writeTypeItemType_AliasName(const std::string& itemName, const std::string& childItemName)
+{
+	ERROR_MSG("ClientSDKUE4::writeTypeItemType_AliasName(): nonsupport!\n");
+	return false;
 }
 
 //-------------------------------------------------------------------------------------
@@ -446,39 +526,9 @@ bool ClientSDKUE4::writeTypeItemType_BLOB(const std::string& itemName, const std
 //-------------------------------------------------------------------------------------
 bool ClientSDKUE4::writeTypeItemType_ARRAY(const std::string& itemName, const std::string& childItemName, DataType* pDataType)
 {
-	std::string new_childItemName = childItemName;
-
-	if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
-	{
-		FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
-
-		// 如果元素又是数组
-		if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pDataType->aliasName(), fmt::format("TArray<{}>", pFixedArrayType->getDataType()->aliasName()));
-			else
-				new_childItemName = fmt::format("TArray<{}>", pFixedArrayType->getDataType()->aliasName());
-
-			return writeTypeItemType_ARRAY(itemName, new_childItemName, pFixedArrayType->getDataType());
-		}
-		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pDataType->aliasName(), pFixedArrayType->getDataType()->aliasName());
-			else
-				new_childItemName = pFixedArrayType->getDataType()->aliasName();
-		}
-		else
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pDataType->aliasName(), typeToType(pFixedArrayType->getDataType()->getName()));
-			else
-				new_childItemName = typeToType(pFixedArrayType->getDataType()->getName());
-		}
-	}
-
-	sourcefileBody_ += fmt::format("\tTArray<{}> {};\n", new_childItemName, itemName, new_childItemName);
+	std::string typeStr;
+	getArrayType(pDataType, typeStr);
+	sourcefileBody_ += fmt::format("\t{} {};\n", typeStr, itemName);
 	initBody_ += fmt::format("\t{}({}),\n", itemName, "");
 	return true;
 }
@@ -848,39 +898,9 @@ bool ClientSDKUE4::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 //-------------------------------------------------------------------------------------
 bool ClientSDKUE4::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
-	std::string new_childItemName = childItemName;
-
-	if (pFixedArrayType->type() == DATA_TYPE_FIXEDARRAY)
-	{
-		// 如果元素又是数组
-		if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
-		{
-			FixedArrayType* pChildFixedArrayType = static_cast<FixedArrayType*>(pFixedArrayType->getDataType());
-
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), fmt::format("TArray<{}>", pChildFixedArrayType->aliasName()));
-			else
-				new_childItemName = fmt::format("TArray<{}>", pChildFixedArrayType->aliasName());
-
-			return writeEntityMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
-		}
-		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), pFixedArrayType->getDataType()->aliasName());
-			else
-				new_childItemName = pFixedArrayType->getDataType()->aliasName();
-		}
-		else
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), typeToType(pFixedArrayType->getDataType()->getName()));
-			else
-				new_childItemName = typeToType(pFixedArrayType->getDataType()->getName());
-		}
-	}
-
-	stackArgsTypeBody += fmt::format("const TArray<{}>&", new_childItemName);
+	std::string typeStr;
+	getArrayType(pFixedArrayType, typeStr);
+	stackArgsTypeBody += fmt::format("const {}&", typeStr);
 	return true;
 }
 

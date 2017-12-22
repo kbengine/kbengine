@@ -41,6 +41,8 @@ public:
 	virtual void onCreateTypeFileName();
 	virtual void onCreateServerErrorDescrsModuleFileName();
 	virtual void onCreateEngineMessagesModuleFileName();
+	virtual void onCreateEntityDefsModuleFileName();
+	virtual void onCreateDefsCustomTypesModuleFileName();
 
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
@@ -52,6 +54,7 @@ public:
 	virtual bool writeEngineMessagesModuleEnd();
 
 	virtual std::string typeToType(const std::string& type);
+	virtual bool getArrayType(DataType* pDataType, std::string& outstr);
 
 	virtual bool writeTypesBegin();
 	virtual bool writeTypesEnd();
@@ -59,9 +62,13 @@ public:
 	virtual bool writeTypeBegin(std::string typeName, FixedDictType* pDataType);
 	virtual bool writeTypeEnd(std::string typeName, FixedDictType* pDataType);
 
+	virtual bool writeTypeBegin(std::string typeName, DataType* pDataType);
+	virtual bool writeTypeEnd(std::string typeName, DataType* pDataType);
+
 	virtual bool writeTypeBegin(std::string typeName, FixedArrayType* pDataType, const std::string& parentClass);
 	virtual bool writeTypeEnd(std::string typeName, FixedArrayType* pDataType);
 
+	virtual bool writeTypeItemType_AliasName(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_INT8(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_INT16(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_INT32(const std::string& itemName, const std::string& childItemName);

@@ -185,6 +185,12 @@ void ClientSDKUnity::onCreateEngineMessagesModuleFileName()
 }
 
 //-------------------------------------------------------------------------------------
+void ClientSDKUnity::onCreateDefsCustomTypesModuleFileName()
+{
+	sourcefileName_ = "CustomDataTypes.cs";
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeServerErrorDescrsModuleBegin()
 {
 	sourcefileBody_ = headerBody;
@@ -411,25 +417,21 @@ bool ClientSDKUnity::writeEntityDefsModuleBegin()
 	sourcefileBody_ += fmt::format("\tpublic class {}\n\t{{\n", "EntityDef");
 
 	sourcefileBody_ += "\t\tpublic static Dictionary<string, UInt16> datatype2id = new Dictionary<string, UInt16>();\n";
-	sourcefileBody_ += "\t\tpublic static Dictionary<string, KBEDATATYPE_BASE> datatypes = new Dictionary<string, KBEDATATYPE_BASE>();\n";
-	sourcefileBody_ += "\t\tpublic static Dictionary<UInt16, KBEDATATYPE_BASE> id2datatypes = new Dictionary<UInt16, KBEDATATYPE_BASE>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<string, DATATYPE_BASE> datatypes = new Dictionary<string, DATATYPE_BASE>();\n";
+	sourcefileBody_ += "\t\tpublic static Dictionary<UInt16, DATATYPE_BASE> id2datatypes = new Dictionary<UInt16, DATATYPE_BASE>();\n";
 	sourcefileBody_ += "\t\tpublic static Dictionary<string, Int32> entityclass = new Dictionary<string, Int32>();\n";
 	sourcefileBody_ += "\t\tpublic static Dictionary<string, ScriptModule> moduledefs = new Dictionary<string, ScriptModule>();\n";
 	sourcefileBody_ += "\t\tpublic static Dictionary<UInt16, ScriptModule> idmoduledefs = new Dictionary<UInt16, ScriptModule>();\n";
 
 	sourcefileBody_ += "\n\t\tpublic static bool init()\n\t\t{\n";
-	sourcefileBody_ += "\t\t\tinitDataType();\n";
-	sourcefileBody_ += "\t\t\tbindMessageDataType();\n";
-	sourcefileBody_ += "\t\t\tupdateTypes();\n";
+	sourcefileBody_ += "\t\t\tinitDefTypes();\n";
 	sourcefileBody_ += "\t\t\tinitScriptModules();\n";
 	sourcefileBody_ += "\t\t\treturn true;\n";
 	sourcefileBody_ += "\t\t}\n\n";
 
-	sourcefileBody_ += "\n\t\tpublic static bool reset()\n\t\t{\n";
+	sourcefileBody_ += "\t\tpublic static bool reset()\n\t\t{\n";
 	sourcefileBody_ += "\t\t\tclear();\n";
-	sourcefileBody_ += "\t\t\tinitDataType();\n";
-	sourcefileBody_ += "\t\t\tbindMessageDataType();\n";
-	sourcefileBody_ += "\t\t\treturn true;\n";
+	sourcefileBody_ += "\t\t\treturn init();\n";
 	sourcefileBody_ += "\t\t}\n\n";
 
 	sourcefileBody_ += "\t\tpublic static void clear()\n";
@@ -441,166 +443,53 @@ bool ClientSDKUnity::writeEntityDefsModuleBegin()
 	sourcefileBody_ += "\t\t\tmoduledefs.Clear();\n";
 	sourcefileBody_ += "\t\t\tidmoduledefs.Clear();\n";
 	sourcefileBody_ += "\t\t}\n\n";
-
-	sourcefileBody_ += "\t\tpublic static void initDataType()\n";
-	sourcefileBody_ += "\t\t{\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"UINT8\"] = new KBEDATATYPE_UINT8();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"UINT16\"] = new KBEDATATYPE_UINT16();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"UINT32\"] = new KBEDATATYPE_UINT32();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"UINT64\"] = new KBEDATATYPE_UINT64();\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatypes[\"INT8\"] = new KBEDATATYPE_INT8();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"INT16\"] = new KBEDATATYPE_INT16();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"INT32\"] = new KBEDATATYPE_INT32();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"INT64\"] = new KBEDATATYPE_INT64();\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatypes[\"FLOAT\"] = new KBEDATATYPE_FLOAT();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"DOUBLE\"] = new KBEDATATYPE_DOUBLE();\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatypes[\"STRING\"] = new KBEDATATYPE_STRING();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR2\"] = new KBEDATATYPE_VECTOR2();\n\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR3\"] = new KBEDATATYPE_VECTOR3();\n\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR4\"] = new KBEDATATYPE_VECTOR4();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"PYTHON\"] = new KBEDATATYPE_PYTHON();\n\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"UNICODE\"] = new KBEDATATYPE_UNICODE();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"MAILBOX\"] = new KBEDATATYPE_MAILBOX();\n\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"BLOB\"] = new KBEDATATYPE_BLOB();\n";
-	sourcefileBody_ += "\t\t}\n\n";
-
-	sourcefileBody_ += "\t\tpublic static void bindMessageDataType()\n";
-	sourcefileBody_ += "\t\t{\n";
-	sourcefileBody_ += "\t\t\tif(datatype2id.Count > 0)\n";
-	sourcefileBody_ += "\t\t\t\treturn;\n\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"STRING\"] = 1;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"STD::STRING\"] = 1;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[1] = datatypes[\"STRING\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT8\"] = 2;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"BOOL\"] = 2;\n\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"DATATYPE\"] = 2;\n\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"CHAR\"] = 2;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"DETAIL_TYPE\"] = 2;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"MAIL_TYPE\"] = 2;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[2] = datatypes[\"UINT8\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT16\"] = 3;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UNSIGNED SHORT\"] = 3;\n\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"SERVER_ERROR_CODE\"] = 3;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_TYPE\"] = 3;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_PROPERTY_UID\"] = 3;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_METHOD_UID\"] = 3;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_SCRIPT_UID\"] = 3;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"DATATYPE_UID\"] = 3;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[3] = datatypes[\"UINT16\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT32\"] = 4;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT\"] = 4;\n\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UNSIGNED INT\"] = 4;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"ARRAYSIZE\"] = 4;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"SPACE_ID\"] = 4;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"GAME_TIME\"] = 4;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"TIMER_ID\"] = 4;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[4] = datatypes[\"UINT32\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UINT64\"] = 5;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"DBID\"] = 5;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"COMPONENT_ID\"] = 5;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[5] = datatypes[\"UINT64\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"INT8\"] = 6;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"COMPONENT_ORDER\"] = 6;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[6] = datatypes[\"INT8\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"INT16\"] = 7;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"SHORT\"] = 7;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[7] = datatypes[\"INT16\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"INT32\"] = 8;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"INT\"] = 8;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"ENTITY_ID\"] = 8;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"CALLBACK_ID\"] = 8;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"COMPONENT_TYPE\"] = 8;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[8] = datatypes[\"INT32\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"INT64\"] = 9;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[9] = datatypes[\"INT64\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"PYTHON\"] = 10;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"PY_DICT\"] = 10;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"PY_TUPLE\"] = 10;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"PY_LIST\"] = 10;\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"MAILBOX\"] = 10;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[10] = datatypes[\"PYTHON\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"BLOB\"] = 11;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[11] = datatypes[\"BLOB\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"UNICODE\"] = 12;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[12] = datatypes[\"UNICODE\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"FLOAT\"] = 13;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[13] = datatypes[\"FLOAT\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"DOUBLE\"] = 14;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[14] = datatypes[\"DOUBLE\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"VECTOR2\"] = 15;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[15] = datatypes[\"VECTOR2\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"VECTOR3\"] = 16;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[16] = datatypes[\"VECTOR3\"];\n\n";
-
-	sourcefileBody_ += "\t\t\tdatatype2id[\"VECTOR4\"] = 17;\n";
-	sourcefileBody_ += "\t\t\tid2datatypes[17] = datatypes[\"VECTOR4\"];\n\n";
-
-	sourcefileBody_ += "\t\t\t// Dynamic binding\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"FIXED_DICT\"] = 18;\n";
-	sourcefileBody_ += "\t\t\t//id2datatypes[18] = datatypes[\"FIXED_DICT\"];\n\n";
-
-	sourcefileBody_ += "\t\t\t// Dynamic binding\n";
-	sourcefileBody_ += "\t\t\tdatatype2id[\"ARRAY\"] = 19;\n";
-	sourcefileBody_ += "\t\t\t//id2datatypes[19] = datatypes[\"ARRAY\"];\n";
-
-	sourcefileBody_ += "\t\t}\n\n";
-
-	sourcefileBody_ += "\t\tpublic static void initScriptModules()\n";
-	sourcefileBody_ += "\t\t{\n";
-	
-	
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityDefsModuleEnd()
 {
-	sourcefileBody_ += "\t\t}\n\n";
-
-	sourcefileBody_ += "\t\tpublic static void updateTypes()\n";
-	sourcefileBody_ += "\t\t{\n";
-
-	const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
-	DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
-	for (; dtiter != dataTypes.end(); ++dtiter)
-	{
-		const DataType* datatype = dtiter->second;
-
-		if (!writeEntityDefModuleType(datatype))
-			return false;
-	}
-
-	sourcefileBody_ += "\t\t\tforeach(string datatypeStr in EntityDef.datatypes.Keys)\n\t\t\t{\n";
-	sourcefileBody_ += "\t\t\t\tKBEDATATYPE_BASE dataType = EntityDef.datatypes[datatypeStr];\n";
-	sourcefileBody_ += "\t\t\t\tif(dataType != null)\n\t\t\t\t{\n";
-	sourcefileBody_ += "\t\t\t\t\tdataType.bind();\n\t\t\t\t}\n\t\t\t}\n";
-
-	sourcefileBody_ += "\t\t}\n\n";
-
 	sourcefileBody_ += "\t}\n\n\n}";
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
+bool ClientSDKUnity::writeEntityDefsModuleInitScriptBegin()
+{
+	sourcefileBody_ += "\t\tpublic static void initScriptModules()\n";
+	sourcefileBody_ += "\t\t{\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefsModuleInitScriptEnd()
+{
+	sourcefileBody_ += "\t\t}\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefsModuleInitDefTypesBegin()
+{
+	sourcefileBody_ += "\t\tpublic static void initDefTypes()\n";
+	sourcefileBody_ += "\t\t{\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefsModuleInitDefTypesEnd()
+{
+	sourcefileBody_ += "\t\t\tforeach(string datatypeStr in EntityDef.datatypes.Keys)\n\t\t\t{\n";
+	sourcefileBody_ += "\t\t\t\tDATATYPE_BASE dataType = EntityDef.datatypes[datatypeStr];\n";
+	sourcefileBody_ += "\t\t\t\tif(dataType != null)\n\t\t\t\t{\n";
+	sourcefileBody_ += "\t\t\t\t\tdataType.bind();\n\t\t\t\t}\n\t\t\t}\n";
+
+	sourcefileBody_ += "\t\t}\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefsModuleInitDefType(const DataType* pDataType)
 {
 	uint16 typeID = datatype2id(pDataType->getName());
 	if (typeID == 0 || strcmp(pDataType->getName(), "FIXED_DICT") == 0 || strcmp(pDataType->getName(), "ARRAY") == 0)
@@ -609,11 +498,17 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 		KBE_ASSERT(typeID > datatype2id("KBE_DATATYPE2ID_MAX"));
 	}
 
+	static std::map< int, std::string > type2name;
+
 	sourcefileBody_ += fmt::format("\t\t\t{{\n");
 	sourcefileBody_ += fmt::format("\t\t\t\tUInt16 utype = {};\n", typeID);
 
-	std::string typeName = (strlen(pDataType->aliasName()) > 0 ? pDataType->aliasName() : fmt::format("Null_{}", typeID));
+	std::string typeName = (strlen(pDataType->aliasName()) > 0 ? pDataType->aliasName() : fmt::format("AnonymousArray_{}", typeID));
 	sourcefileBody_ += fmt::format("\t\t\t\tstring typeName = \"{}\";\n", typeName);
+
+	std::map< int, std::string >::iterator iter = type2name.find(typeID);
+	if(iter == type2name.end())
+		type2name[typeID] = (strlen(pDataType->getName()) > 0 ? pDataType->getName() : typeName);
 
 	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
 	{
@@ -621,7 +516,7 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 
 		FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
 
-		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_FIXED_DICT datatype = new KBEDATATYPE_FIXED_DICT();\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_FIXED_DICT datatype = new DATATYPE_FIXED_DICT();\n");
 		sourcefileBody_ += fmt::format("\t\t\t\tdatatype.implementedBy = \"{}\";\n", dictdatatype->moduleName());
 
 		FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
@@ -638,19 +533,21 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 	}
 	else if (strcmp(pDataType->getName(), "ARRAY") == 0)
 	{
-		typeID = datatype2id(const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->getName());
-		if (typeID == 0 || strcmp(const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->getName(), "FIXED_DICT") == 0 || 
-			strcmp(const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->getName(), "ARRAY") == 0)
-			typeID = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType))->getDataType()->id();
+		FixedArrayType* pFixedArrayType = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType));
+		typeID = datatype2id(pFixedArrayType->getDataType()->getName());
 
-		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_ARRAY datatype = new KBEDATATYPE_ARRAY();\n");
+		if (typeID == 0 || strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0 ||
+			strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0)
+			typeID = pFixedArrayType->getDataType()->id();
+
+		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_ARRAY datatype = new DATATYPE_ARRAY();\n");
 		sourcefileBody_ += fmt::format("\t\t\t\tdatatype.vtype = (UInt16){};\n", typeID);
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = datatype;\n");
 	}
 	else
 	{
 		sourcefileBody_ += fmt::format("\t\t\t\tstring name = \"{}\";\n", pDataType->getName());
-		sourcefileBody_ += fmt::format("\t\t\t\tKBEDATATYPE_BASE val = null;\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_BASE val = null;\n");
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes.TryGetValue(name, out val);\n");
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = val;\n");
 	}
@@ -663,7 +560,436 @@ bool ClientSDKUnity::writeEntityDefModuleType(const DataType* pDataType)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule)
+bool ClientSDKUnity::writeCustomDataTypesBegin()
+{
+	initBody_ = "";
+	sourcefileBody_ = headerBody;
+	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", "");
+
+	sourcefileBody_ += "namespace KBEngine\n{\n";
+	sourcefileBody_ += "\tusing UnityEngine;\n";
+	sourcefileBody_ += "\tusing System;\n";
+	sourcefileBody_ += "\tusing System.Collections;\n";
+	sourcefileBody_ += "\tusing System.Collections.Generic;\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeCustomDataTypesEnd()
+{
+	sourcefileBody_ += "\n}";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::createArrayChildClass(DataType* pDataType, const std::string& className, const std::string& tabs)
+{
+	sourcefileBody_ += fmt::format("{}public class DATATYPE_{} : DATATYPE_BASE\n{}{{\n", tabs, className, tabs);
+
+	uint16 typeID = datatype2id(pDataType->getName());
+	if (typeID == 0 || strcmp(pDataType->getName(), "FIXED_DICT") == 0 || strcmp(pDataType->getName(), "ARRAY") == 0)
+	{
+		typeID = pDataType->id();
+		KBE_ASSERT(typeID > datatype2id("KBE_DATATYPE2ID_MAX"));
+	}
+
+	std::string readName;
+	std::string typeName = (strlen(pDataType->aliasName()) > 0 ? pDataType->aliasName() : fmt::format("AnonymousArray_{}", typeID));
+
+	bool isFixedType = strcmp(pDataType->getName(), "FIXED_DICT") == 0 ||
+		strcmp(pDataType->getName(), "ARRAY") == 0;
+
+	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
+	{
+		readName = fmt::format("itemType.createFromStreamEx(stream)");
+
+		sourcefileBody_ += fmt::format("{}\tprivate DATATYPE_{} itemType = new DATATYPE_{}();\n\n",
+			tabs, pDataType->aliasName(), pDataType->aliasName());
+
+		sourcefileBody_ += fmt::format("{}\tpublic List<{}> createFromStreamEx(MemoryStream stream)\n{}\t{{\n", tabs, typeName, tabs);
+		sourcefileBody_ += fmt::format("{}\t\tUInt32 size = stream.readUint32();\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\tList<{}> datas = new List<{}>();\n\n", tabs, typeName, typeName);
+		sourcefileBody_ += fmt::format("{}\t\twhile(size > 0)\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t\t--size;\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t\tdatas.Add({});\n", tabs, readName);
+		sourcefileBody_ += fmt::format("{}\t\t}};\n\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\treturn datas;\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t}}\n\n", tabs);
+
+
+		sourcefileBody_ += fmt::format("{}\tpublic void addToStreamEx(Bundle stream, List<{}> v)\n{}\t{{\n", tabs, typeName, tabs);
+		sourcefileBody_ += fmt::format("{}\t\tstream.writeUint32((UInt32)v.Count);\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\tfor(int i=0; i<v.Count; ++i)\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
+
+		std::string writeName;
+		if (isFixedType)
+		{
+			writeName = fmt::format("itemType.addToStream(stream, v[i])");
+		}
+		else
+		{
+			writeName = datatype2nativetype(pDataType->getName());
+			std::transform(writeName.begin(), writeName.end(), writeName.begin(), tolower);
+			writeName[0] = std::toupper(writeName[0]);
+			writeName = fmt::format("stream.write{}(v[i])", writeName);
+		}
+
+		sourcefileBody_ += fmt::format("{}\t\t\t{};\n", tabs, writeName);
+		sourcefileBody_ += fmt::format("{}\t\t}};\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t}}\n", tabs);
+	}
+	else if (strcmp(pDataType->getName(), "ARRAY") == 0)
+	{
+		FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
+
+		std::string className = typeName;
+		typeName = "";
+		getArrayType(pFixedArrayType, typeName);
+		typeName = fmt::format("List<{}>", typeName);
+		readName = fmt::format("itemType.createFromStreamEx(stream)");
+
+		std::string childClassName = className + "_ChildArray";
+		sourcefileBody_ += fmt::format("{}\tprivate DATATYPE_{} itemType = new DATATYPE_{}();\n\n",
+			tabs, childClassName, childClassName);
+
+		if (!createArrayChildClass(pFixedArrayType->getDataType(), childClassName, tabs + "\t"))
+			return false;
+
+		sourcefileBody_ += fmt::format("{}\tpublic {} createFromStreamEx(MemoryStream stream)\n{}\t{{\n", tabs, typeName, tabs);
+		sourcefileBody_ += fmt::format("{}\t\tUInt32 size = stream.readUint32();\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t{} datas = new {}();\n\n", tabs, typeName, typeName);
+		sourcefileBody_ += fmt::format("{}\t\twhile(size > 0)\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t\t--size;\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t\tdatas.Add({});\n", tabs, readName);
+		sourcefileBody_ += fmt::format("{}\t\t}};\n\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\treturn datas;\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t}}\n\n", tabs);
+
+
+		sourcefileBody_ += fmt::format("{}\tpublic void addToStreamEx(Bundle stream, {} v)\n{}\t{{\n", tabs, typeName, tabs);
+		sourcefileBody_ += fmt::format("{}\t\tstream.writeUint32((UInt32)v.Count);\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\tfor(int i=0; i<v.Count; ++i)\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
+
+		std::string writeName;
+		if (isFixedType)
+		{
+			writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+		}
+		else
+		{
+			writeName = datatype2nativetype(pDataType->getName());
+			std::transform(writeName.begin(), writeName.end(), writeName.begin(), tolower);
+			writeName[0] = std::toupper(writeName[0]);
+			writeName = fmt::format("stream.write{}(v[i])", writeName);
+		}
+
+		sourcefileBody_ += fmt::format("{}\t\t\t{};\n", tabs, writeName);
+		sourcefileBody_ += fmt::format("{}\t\t}};\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t}}\n", tabs);
+	}
+	else
+	{
+		readName = datatype2nativetype(pDataType->getName());
+		typeName = typeToType(readName);
+		std::transform(readName.begin(), readName.end(), readName.begin(), tolower);
+		readName[0] = std::toupper(readName[0]);
+		readName = fmt::format("stream.read{}()", readName);
+
+		sourcefileBody_ += fmt::format("{}\tpublic List<{}> createFromStreamEx(MemoryStream stream)\n{}\t{{\n", tabs, typeName, tabs);
+		sourcefileBody_ += fmt::format("{}\t\tUInt32 size = stream.readUint32();\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\tList<{}> datas = new List<{}>();\n\n", tabs, typeName, typeName);
+		sourcefileBody_ += fmt::format("{}\t\twhile(size > 0)\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t\t--size;\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t\tdatas.Add({});\n", tabs, readName);
+		sourcefileBody_ += fmt::format("{}\t\t}};\n\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\treturn datas;\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t}}\n\n", tabs);
+
+		sourcefileBody_ += fmt::format("{}\tpublic void addToStreamEx(Bundle stream, List<{}> v)\n{}\t{{\n", tabs, typeName, tabs);
+		sourcefileBody_ += fmt::format("{}\t\tstream.writeUint32((UInt32)v.Count);\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\tfor(int i=0; i<v.Count; ++i)\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
+
+		std::string writeName;
+		writeName = datatype2nativetype(pDataType->getName());
+		std::transform(writeName.begin(), writeName.end(), writeName.begin(), tolower);
+		writeName[0] = std::toupper(writeName[0]);
+		writeName = fmt::format("stream.write{}(v[i])", writeName);
+
+		sourcefileBody_ += fmt::format("{}\t\t\t{};\n", tabs, writeName);
+		sourcefileBody_ += fmt::format("{}\t\t}};\n", tabs);
+		sourcefileBody_ += fmt::format("{}\t}}\n", tabs);
+	}
+
+	sourcefileBody_ += fmt::format("{}}}\n\n", tabs);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
+{
+	uint16 typeID = datatype2id(pDataType->getName());
+	if (typeID == 0 || strcmp(pDataType->getName(), "FIXED_DICT") == 0 || strcmp(pDataType->getName(), "ARRAY") == 0)
+	{
+		typeID = pDataType->id();
+		KBE_ASSERT(typeID > datatype2id("KBE_DATATYPE2ID_MAX"));
+	}
+
+	static std::map< int, std::string > type2name;
+
+	std::string typeName = (strlen(pDataType->aliasName()) > 0 ? pDataType->aliasName() : fmt::format("AnonymousArray_{}", typeID));
+
+	std::map< int, std::string >::iterator iter = type2name.find(typeID);
+	if (iter == type2name.end())
+		type2name[typeID] = (strlen(pDataType->getName()) > 0 ? pDataType->getName() : typeName);
+
+	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
+	{
+		sourcefileBody_ += fmt::format("\n\n\tpublic class DATATYPE_{} : DATATYPE_BASE\n\t{{\n", typeName);
+
+		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
+
+		// 先创建属性
+		{
+			FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
+			FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
+			for (; keyiter != keys.end(); ++keyiter)
+			{
+				DataType* pKeyDataType = keyiter->second->dataType;
+				if (strcmp(pKeyDataType->getName(), "FIXED_DICT") == 0)
+				{
+					sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} {}_DataType = new DATATYPE_{}();\n",
+						pKeyDataType->aliasName(), keyiter->first, pKeyDataType->aliasName());
+				}
+				else if (strcmp(pKeyDataType->getName(), "ARRAY") == 0)
+				{
+					FixedArrayType* pFixedArrayType = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pKeyDataType));
+
+					std::string className = pKeyDataType->aliasName();
+
+					sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} {}_DataType = new DATATYPE_{}();\n\n",
+						className + "_ChildArray", keyiter->first, className + "_ChildArray");
+
+					createArrayChildClass(pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+				}
+				else
+				{
+				}
+			}
+		}
+
+		// 创建createFromStreamEx方法
+		{
+			sourcefileBody_ += fmt::format("\t\tpublic {} createFromStreamEx(MemoryStream stream)\n\t\t{{\n", typeName);
+
+			sourcefileBody_ += fmt::format("\t\t\t{} datas = new {}();\n", typeName, typeName);
+
+			FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
+			FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
+			for (; keyiter != keys.end(); ++keyiter)
+			{
+				DataType* pKeyDataType = keyiter->second->dataType;
+				if (strcmp(pKeyDataType->getName(), "FIXED_DICT") == 0)
+				{
+					sourcefileBody_ += fmt::format("\t\t\tdatas.{} = {}_DataType.createFromStreamEx(stream);\n", keyiter->first, keyiter->first);
+				}
+				else if (strcmp(pKeyDataType->getName(), "ARRAY") == 0)
+				{
+					sourcefileBody_ += fmt::format("\t\t\tdatas.{} = {}_DataType.createFromStreamEx(stream);\n", keyiter->first, keyiter->first);
+				}
+				else
+				{
+					std::string readName = datatype2nativetype(pKeyDataType->getName());
+					std::transform(readName.begin(), readName.end(), readName.begin(), tolower);
+					readName[0] = std::toupper(readName[0]);
+					readName = fmt::format("stream.read{}()", readName);
+
+					sourcefileBody_ += fmt::format("\t\t\tdatas.{} = {};\n", keyiter->first, readName);
+				}
+			}
+
+			sourcefileBody_ += fmt::format("\t\t\treturn datas;\n");
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+		}
+
+		// 创建addToStreamEx方法
+		{
+			sourcefileBody_ += fmt::format("\t\tpublic void addToStreamEx(Bundle stream, {} v)\n\t\t{{\n", typeName);
+
+			FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
+			FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
+			for (; keyiter != keys.end(); ++keyiter)
+			{
+				DataType* pKeyDataType = keyiter->second->dataType;
+				if (strcmp(pKeyDataType->getName(), "FIXED_DICT") == 0)
+				{
+					sourcefileBody_ += fmt::format("\t\t\t{}_DataType.addToStreamEx(stream, v.{});\n", keyiter->first, keyiter->first);
+				}
+				else if (strcmp(pKeyDataType->getName(), "ARRAY") == 0)
+				{
+					sourcefileBody_ += fmt::format("\t\t\t{}_DataType.addToStreamEx(stream, v.{});\n", keyiter->first, keyiter->first);
+				}
+				else
+				{
+					std::string writeName = datatype2nativetype(pKeyDataType->getName());
+					std::transform(writeName.begin(), writeName.end(), writeName.begin(), tolower);
+					writeName[0] = std::toupper(writeName[0]);
+
+					sourcefileBody_ += fmt::format("\t\t\tstream.write{}(v.{});\n", writeName, keyiter->first);
+				}
+			}
+
+			sourcefileBody_ += fmt::format("\t\t}}\n");
+		}
+
+		sourcefileBody_ += fmt::format("\t}}\n\n");
+
+	}
+	else if (strcmp(pDataType->getName(), "ARRAY") == 0)
+	{
+		FixedArrayType* pFixedArrayType = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType));
+		typeID = datatype2id(pFixedArrayType->getDataType()->getName());
+
+		if (typeID == 0 || strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0 ||
+			strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0)
+			typeID = pFixedArrayType->getDataType()->id();
+
+		std::string itemTypeName = typeToType(type2name[typeID]);
+		if (itemTypeName == "")
+		{
+			itemTypeName = pFixedArrayType->getDataType()->aliasName();
+		}
+
+		std::string className = typeName;
+
+		typeName = "";
+		getArrayType(pFixedArrayType, typeName);
+
+		std::string readName;
+		sourcefileBody_ += fmt::format("\n\n\tpublic class DATATYPE_{} : DATATYPE_BASE\n\t{{\n", className);
+
+		bool isFixedType = strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0 ||
+		strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0;
+
+		if (strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0)
+		{
+			readName = fmt::format("itemType.createFromStreamEx(stream)", readName);
+
+			sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} itemType = new DATATYPE_{}();\n\n",
+			pFixedArrayType->getDataType()->aliasName(), pFixedArrayType->getDataType()->aliasName());
+
+			sourcefileBody_ += fmt::format("\t\tpublic {} createFromStreamEx(MemoryStream stream)\n\t\t{{\n", typeName);
+			sourcefileBody_ += fmt::format("\t\t\tUInt32 size = stream.readUint32();\n");
+			sourcefileBody_ += fmt::format("\t\t\t{} datas = new {}();\n\n", typeName, typeName);
+			sourcefileBody_ += fmt::format("\t\t\twhile(size > 0)\n");
+			sourcefileBody_ += fmt::format("\t\t\t{{\n");
+			sourcefileBody_ += fmt::format("\t\t\t\t--size;\n");
+			sourcefileBody_ += fmt::format("\t\t\t\tdatas.Add({});\n", readName);
+			sourcefileBody_ += fmt::format("\t\t\t}};\n\n");
+			sourcefileBody_ += fmt::format("\t\t\treturn datas;\n");
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+
+			sourcefileBody_ += fmt::format("\t\tpublic void addToStreamEx(Bundle stream, {} v)\n\t\t{{\n", typeName);
+			sourcefileBody_ += fmt::format("\t\t\tstream.writeUint32((UInt32)v.Count);\n");
+			sourcefileBody_ += fmt::format("\t\t\tfor(int i=0; i<v.Count; ++i)\n");
+			sourcefileBody_ += fmt::format("\t\t\t{{\n");
+
+			std::string writeName;
+			if (isFixedType)
+			{
+				writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+			}
+			else
+			{
+				writeName = datatype2nativetype(pFixedArrayType->getDataType()->getName());
+				std::transform(writeName.begin(), writeName.end(), writeName.begin(), tolower);
+				writeName[0] = std::toupper(writeName[0]);
+				writeName = fmt::format("stream.write{}(v[i])", writeName);
+			}
+
+			sourcefileBody_ += fmt::format("\t\t\t\t{};\n", writeName);
+			sourcefileBody_ += fmt::format("\t\t\t}};\n");
+			sourcefileBody_ += fmt::format("\t\t}}\n");
+
+			sourcefileBody_ += fmt::format("\t}}\n\n");
+		}
+		else if (strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0)
+		{
+			readName = fmt::format("itemType.createFromStreamEx(stream)", readName);
+
+			sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} itemType = new DATATYPE_{}();\n\n",
+				className + "_ChildArray", className + "_ChildArray");
+
+			createArrayChildClass(pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+
+			sourcefileBody_ += fmt::format("\t\tpublic {} createFromStreamEx(MemoryStream stream)\n\t\t{{\n", typeName);
+			sourcefileBody_ += fmt::format("\t\t\treturn {};\n", readName);
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+
+			sourcefileBody_ += fmt::format("\t\tpublic void addToStreamEx(Bundle stream, {} v)\n\t\t{{\n", typeName);
+			std::string writeName = fmt::format("itemType.addToStream(stream, v)", writeName);
+			sourcefileBody_ += fmt::format("\t\t\t{};\n", writeName);
+			sourcefileBody_ += fmt::format("\t\t}}\n");
+
+			sourcefileBody_ += fmt::format("\t}}\n\n");
+		}
+		else
+		{
+			readName = datatype2nativetype(pFixedArrayType->getDataType()->getName());
+			std::transform(readName.begin(), readName.end(), readName.begin(), tolower);
+			readName[0] = std::toupper(readName[0]);
+			readName = fmt::format("stream.read{}()", readName);
+
+			sourcefileBody_ += fmt::format("\t\tpublic {} createFromStreamEx(MemoryStream stream)\n\t\t{{\n", typeName);
+			sourcefileBody_ += fmt::format("\t\t\tUInt32 size = stream.readUint32();\n");
+			sourcefileBody_ += fmt::format("\t\t\t{} datas = new {}();\n\n", typeName, typeName);
+			sourcefileBody_ += fmt::format("\t\t\twhile(size > 0)\n");
+			sourcefileBody_ += fmt::format("\t\t\t{{\n");
+			sourcefileBody_ += fmt::format("\t\t\t\t--size;\n");
+			sourcefileBody_ += fmt::format("\t\t\t\tdatas.Add({});\n", readName);
+			sourcefileBody_ += fmt::format("\t\t\t}};\n\n");
+			sourcefileBody_ += fmt::format("\t\t\treturn datas;\n");
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+
+			sourcefileBody_ += fmt::format("\t\tpublic void addToStreamEx(Bundle stream, {} v)\n\t\t{{\n", typeName);
+			sourcefileBody_ += fmt::format("\t\t\tstream.writeUint32((UInt32)v.Count);\n");
+			sourcefileBody_ += fmt::format("\t\t\tfor(int i=0; i<v.Count; ++i)\n");
+			sourcefileBody_ += fmt::format("\t\t\t{{\n");
+
+			std::string writeName;
+			if (isFixedType)
+			{
+				writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+			}
+			else
+			{
+				writeName = datatype2nativetype(pFixedArrayType->getDataType()->getName());
+				std::transform(writeName.begin(), writeName.end(), writeName.begin(), tolower);
+				writeName[0] = std::toupper(writeName[0]);
+				writeName = fmt::format("stream.write{}(v[i])", writeName);
+			}
+
+			sourcefileBody_ += fmt::format("\t\t\t\t{};\n", writeName);
+			sourcefileBody_ += fmt::format("\t\t\t}};\n");
+			sourcefileBody_ += fmt::format("\t\t}}\n");
+
+			sourcefileBody_ += fmt::format("\t}}\n\n");
+		}
+	}
+	else
+	{
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileBody_ += fmt::format("\t\t\tScriptModule p{}Module = new ScriptModule(\"{}\");\n", pScriptDefModule->getName(), pScriptDefModule->getName());
 	sourcefileBody_ += fmt::format("\t\t\tEntityDef.moduledefs[\"{}\"] = p{}Module;\n", pScriptDefModule->getName(), pScriptDefModule->getName());
@@ -672,9 +998,9 @@ bool ClientSDKUnity::writeEntityDefScriptModule(ScriptDefModule* pScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
+bool ClientSDKUnity::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
-	sourcefileBody_ += fmt::format("\t\t\tList<KBEDATATYPE_BASE> p{}_{}_args = new List<KBEDATATYPE_BASE>();\n", pScriptDefModule->getName(), pDescr->getName());
+	sourcefileBody_ += fmt::format("\t\t\tList<DATATYPE_BASE> p{}_{}_args = new List<DATATYPE_BASE>();\n", pScriptDefModule->getName(), pDescr->getName());
 
 	const std::vector<DataType*>& args = pDescr->getArgTypes();
 	std::vector<DataType*>::const_iterator argiter = args.begin();
@@ -742,21 +1068,52 @@ bool ClientSDKUnity::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
+bool ClientSDKUnity::writeEntityDefsModuleInitScript_PropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
 {
 	uint16 typeID = datatype2id(pDescr->getDataType()->getName());
-	if (typeID == 0 || strcmp(pDescr->getDataType()->getName(), "FIXED_DICT") == 0 || strcmp(pDescr->getDataType()->getName(), "ARRAY") == 0)
+	bool isFixedType = strcmp(pDescr->getDataType()->getName(), "FIXED_DICT") == 0 || strcmp(pDescr->getDataType()->getName(), "ARRAY") == 0;
+
+	if (typeID == 0 || isFixedType)
 		typeID = pDescr->getDataType()->id();
 
 	sourcefileBody_ += fmt::format("\t\t\tProperty p{}_{} = new Property();\n", pScriptDefModule->getName(), pDescr->getName());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.name = \"{}\";\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getName());
-	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.utype = EntityDef.id2datatypes[{}];\n", pScriptDefModule->getName(), pDescr->getName(), typeID);
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.properUtype = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getUType());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.properFlags = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getFlags());
 	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.aliasID = {};\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->aliasID());
-	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.defaultValStr = \"{}\";\n", pScriptDefModule->getName(), pDescr->getName(), pDescr->getDefaultValStr());
-	sourcefileBody_ += fmt::format("\t\t\tp{}_{}.defaultVal = p{}_{}.utype.parseDefaultValStr(p{}_{}.defaultValStr);\n", 
-		pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+
+	if (isFixedType)
+	{
+		sourcefileBody_ += fmt::format("\t\t\tp{}_{}.defaultVal = EntityDef.id2datatypes[{}].parseDefaultValStr(\"{}\");\n",
+			pScriptDefModule->getName(), pDescr->getName(), typeID, pDescr->getDefaultValStr());
+	}
+	else
+	{
+		std::string readName = typeToType(datatype2nativetype(typeID));
+
+		if (readName == "Vector2" || readName == "Vector3" || readName == "Vector4")
+		{
+			sourcefileBody_ += fmt::format("\t\t\t{} {}_{}_defval = new {}();\n", readName, pScriptDefModule->getName(),
+				pDescr->getName(), readName);
+		}
+		else if (readName == "string")
+		{
+			sourcefileBody_ += fmt::format("\t\t\t{} {}_{}_defval = \"\";\n", readName, pScriptDefModule->getName(),
+				pDescr->getName());
+		}
+		else if (readName == "PYTHON" || readName == "PY_DICT" || readName == "PY_TUPLE" || readName == "PY_LIST" || readName == "byte[]")
+		{
+			sourcefileBody_ += fmt::format("\t\t\tbyte[] {}_{}_defval = new byte[0];\n", pScriptDefModule->getName(),
+				pDescr->getName());
+		}
+		else
+		{
+			sourcefileBody_ += fmt::format("\t\t\t{} {}_{}_defval;\n\t\t\t{}.TryParse(\"{}\", out {}_{}_defval);\n", readName, pScriptDefModule->getName(),
+				pDescr->getName(), readName, pDescr->getDefaultValStr(), pScriptDefModule->getName(), pDescr->getName());
+		}
+
+		sourcefileBody_ += fmt::format("\t\t\tp{}_{}.defaultVal = {}_{}_defval;\n", pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
+	}
 
 	sourcefileBody_ += fmt::format("\t\t\tp{}Module.propertys[\"{}\"] = p{}_{}; \n\n", 
 		pScriptDefModule->getName(), pDescr->getName(), pScriptDefModule->getName(), pDescr->getName());
@@ -828,6 +1185,112 @@ bool ClientSDKUnity::writeTypeBegin(std::string typeName, FixedArrayType* pDataT
 bool ClientSDKUnity::writeTypeEnd(std::string typeName, FixedArrayType* pDataType)
 {
 	sourcefileBody_ += "\n\t}\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeTypeBegin(std::string typeName, DataType* pDataType)
+{
+	sourcefileBody_ += fmt::format("\tpublic struct {}\n\t{{\n", typeName);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeTypeEnd(std::string typeName, DataType* pDataType)
+{
+	sourcefileBody_ += "\t}\n\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeTypeItemType_AliasName(const std::string& itemName, const std::string& childItemName)
+{
+	if (childItemName == "UINT8" || childItemName == "UINT16" || childItemName == "UINT32" || childItemName == "UINT64" || 
+		childItemName == "INT8" || childItemName == "INT16" || childItemName == "INT32" || childItemName == "INT64" || 
+		childItemName == "FLOAT" || childItemName == "DOUBLE")
+	{
+		std::string ntype = typeToType(childItemName);
+		sourcefileBody_ += fmt::format("\t\t{} value;\n\n", ntype);
+		sourcefileBody_ += fmt::format("\t\t{}({} value)\n\t\t{{\n", itemName, ntype);
+		sourcefileBody_ += fmt::format("\t\t\tthis.value = value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", ntype, itemName);
+		sourcefileBody_ += fmt::format("\t\t\treturn value.value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}(int value)\n\t\t{{\n", itemName);
+		sourcefileBody_ += fmt::format("\t\t\t{} tvalue = ({})value;\n\t\t\treturn new {}(tvalue);\n\t\t}}\n\n", ntype, ntype, itemName);
+
+		sourcefileBody_ += fmt::format("\t\tpublic static {} MaxValue\n\t\t{{\n", ntype);
+		sourcefileBody_ += fmt::format("\t\t\tget\n\t\t\t{{\n\t\t\t\treturn {}.MaxValue;\n\t\t\t}}\n\t\t}}\n\n", ntype);
+
+		sourcefileBody_ += fmt::format("\t\tpublic static {} MinValue\n\t\t{{\n", ntype);
+		sourcefileBody_ += fmt::format("\t\t\tget\n\t\t\t{{\n\t\t\t\treturn {}.MinValue;\n\t\t\t}}\n\t\t}}\n", ntype);
+	}
+	else if (childItemName == "STRING" || childItemName == "UNICODE")
+	{
+		std::string ntype = typeToType(childItemName);
+		sourcefileBody_ += fmt::format("\t\t{} value;\n\n", ntype);
+		sourcefileBody_ += fmt::format("\t\t{}({} value)\n\t\t{{\n", itemName, ntype);
+		sourcefileBody_ += fmt::format("\t\t\tthis.value = value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", ntype, itemName);
+		sourcefileBody_ += fmt::format("\t\t\treturn value.value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", itemName, ntype);
+		sourcefileBody_ += fmt::format("\t\t\t{} tvalue = ({})value;\n\t\t\treturn new {}(tvalue);\n\t\t}}\n", ntype, ntype, itemName);
+	}
+	else if (childItemName == "PYTHON" || childItemName == "PY_DICT" || childItemName == "PY_TUPLE" || 
+		childItemName == "PY_LIST" || childItemName == "MAILBOX" || childItemName == "BLOB")
+	{
+		std::string ntype = "byte[]";
+		sourcefileBody_ += fmt::format("\t\t{} value;\n\n", ntype);
+		sourcefileBody_ += fmt::format("\t\t{}({} value)\n\t\t{{\n", itemName, ntype);
+		sourcefileBody_ += fmt::format("\t\t\tthis.value = value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", ntype, itemName);
+		sourcefileBody_ += fmt::format("\t\t\treturn value.value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}(byte[] value)\n\t\t{{\n", itemName);
+		sourcefileBody_ += fmt::format("\t\t\t{} tvalue = ({})value;\n\t\t\treturn new {}(tvalue);\n\t\t}}\n\n", ntype, ntype, itemName);
+
+		sourcefileBody_ += fmt::format("\t\tpublic Byte this[int ID]\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\tget {{ return value[ID]; }}\n\t\t\tset {{ this.value[ID] = value; }}\n\t\t}}\n");
+	}
+	else if (childItemName == "VECTOR2" || childItemName == "VECTOR3" || childItemName == "VECTOR4")
+	{
+		std::string ntype = typeToType(childItemName);
+		sourcefileBody_ += fmt::format("\t\t{} value;\n\n", ntype);
+		sourcefileBody_ += fmt::format("\t\t{}({} value)\n\t\t{{\n", itemName, ntype);
+		sourcefileBody_ += fmt::format("\t\t\tthis.value = value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", ntype, itemName);
+		sourcefileBody_ += fmt::format("\t\t\treturn value.value;\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", itemName, ntype);
+		sourcefileBody_ += fmt::format("\t\t\t{} tvalue = ({})value;\n\t\t\treturn new {}(tvalue);\n\t\t}}\n\n", ntype, ntype, itemName);
+
+		sourcefileBody_ += fmt::format("\t\tpublic float x\n\t\t{{\n", ntype, itemName);
+		sourcefileBody_ += fmt::format("\t\t\tget {{ return value.x; }}\n\t\t\tset {{ this.value.x = value; }}\n\t\t}}\n\n");
+
+		sourcefileBody_ += fmt::format("\t\tpublic float y\n\t\t{{\n", ntype, itemName);
+		sourcefileBody_ += fmt::format("\t\t\tget {{ return value.y; }}\n\t\t\tset {{ this.value.y = value; }}\n\t\t}}\n\n");
+
+		if (ntype == "Vector3")
+		{
+			sourcefileBody_ += fmt::format("\t\tpublic float z\n\t\t{{\n", ntype, itemName);
+			sourcefileBody_ += fmt::format("\t\t\tget {{ return value.z; }}\n\t\t\tset {{ this.value.z = value; }}\n\t\t}}\n\n");
+		}
+
+		if (ntype == "Vector4")
+		{
+			sourcefileBody_ += fmt::format("\t\tpublic float z\n\t\t{{\n", ntype, itemName);
+			sourcefileBody_ += fmt::format("\t\t\tget {{ return value.z; }}\n\t\t\tset {{ this.value.z = value; }}\n\t\t}}\n\n");
+
+			sourcefileBody_ += fmt::format("\t\tpublic float w\n\t\t{{\n", ntype, itemName);
+			sourcefileBody_ += fmt::format("\t\t\tget {{ return value.w; }}\n\t\t\tset {{ this.value.w = value; }}\n\t\t}}\n");
+		}
+	}
+
 	return true;
 }
 
@@ -953,39 +1416,9 @@ bool ClientSDKUnity::writeTypeItemType_BLOB(const std::string& itemName, const s
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeTypeItemType_ARRAY(const std::string& itemName, const std::string& childItemName, DataType* pDataType)
 {
-	std::string new_childItemName = childItemName;
-
-	if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
-	{
-		FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
-
-		// 如果元素又是数组
-		if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pDataType->aliasName(), fmt::format("List<{}>", pFixedArrayType->getDataType()->aliasName()));
-			else
-				new_childItemName = fmt::format("List<{}>", pFixedArrayType->getDataType()->aliasName());
-
-			return writeTypeItemType_ARRAY(itemName, new_childItemName, pFixedArrayType->getDataType());
-		}
-		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pDataType->aliasName(), pFixedArrayType->getDataType()->aliasName());
-			else
-				new_childItemName = pFixedArrayType->getDataType()->aliasName();
-		}
-		else
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pDataType->aliasName(), typeToType(pFixedArrayType->getDataType()->getName()));
-			else
-				new_childItemName = typeToType(pFixedArrayType->getDataType()->getName());
-		}
-	}
-
-	sourcefileBody_ += fmt::format("\t\tpublic List<{}> {} = new List<{}>();\n", new_childItemName, itemName, new_childItemName);
+	std::string typeStr;
+	getArrayType(pDataType, typeStr);
+	sourcefileBody_ += fmt::format("\t\tpublic {} {} = new {}();\n", typeStr, itemName, typeStr);
 	return true;
 }
 
@@ -1068,6 +1501,43 @@ bool ClientSDKUnity::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModul
 }
 
 //-------------------------------------------------------------------------------------
+bool ClientSDKUnity::getArrayType(DataType* pDataType, std::string& outstr)
+{
+	if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
+	{
+		FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
+
+		// 如果元素又是数组
+		if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
+		{
+			if (outstr.size() > 0)
+				strutil::kbe_replace(outstr, pDataType->aliasName(), fmt::format("List<{}>", pFixedArrayType->getDataType()->aliasName()));
+			else
+				outstr = fmt::format("List<{}>", pFixedArrayType->getDataType()->aliasName());
+
+			return getArrayType(pFixedArrayType->getDataType(), outstr);
+		}
+		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
+		{
+			if (outstr.size() > 0)
+				strutil::kbe_replace(outstr, pDataType->aliasName(), pFixedArrayType->getDataType()->aliasName());
+			else
+				outstr = pFixedArrayType->getDataType()->aliasName();
+		}
+		else
+		{
+			if (outstr.size() > 0)
+				strutil::kbe_replace(outstr, pDataType->aliasName(), typeToType(pFixedArrayType->getDataType()->getName()));
+			else
+				outstr = typeToType(pFixedArrayType->getDataType()->getName());
+		}
+	}
+
+	outstr = fmt::format("List<{}>", outstr);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule)
 {
 	// 处理方法
@@ -1106,12 +1576,33 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			}
 
 			std::string nativetype = datatype2nativetype(typeID);
-			if (strcmp(pDataType->getName(), "FIXED_DICT") != 0 && strcmp(pDataType->getName(), "ARRAY") != 0)
+			if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
+			{
+				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ((DATATYPE_{})method.args[{}]).createFromStreamEx(stream);\n",
+					pDataType->aliasName(), pMethodDescription->getName(), i, pDataType->aliasName(), (i - 1));
+			}
+			else if(strcmp(pDataType->getName(), "ARRAY") == 0)
+			{
+				std::string typestr;
+				getArrayType(pDataType, typestr);
+
+				if (strlen(pDataType->aliasName()) > 0)
+				{
+					sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ((DATATYPE_{})method.args[{}]).createFromStreamEx(stream);\n",
+						pDataType->aliasName(), pMethodDescription->getName(), i, pDataType->aliasName(), (i - 1));
+				}
+				else
+				{
+					FixedArrayType* pFixedArrayType = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType));
+					sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ((DATATYPE_AnonymousArray_{})method.args[{}]).createFromStreamEx(stream);\n",
+						typestr, pMethodDescription->getName(), i, typeID, (i - 1));
+				}
+			}
+			else
+			{
 				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = stream.read{}();\n",
 					typeToType(nativetype), pMethodDescription->getName(), i, readName);
-			else
-				sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ({})method.args[{}].createFromStream(stream);\n",
-					pDataType->aliasName(), pMethodDescription->getName(), i, pDataType->aliasName(), (i - 1));
+			}
 
 			++i;
 		}
@@ -1202,10 +1693,30 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			KBE_ASSERT(false);
 		}
 
-		if (pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDDICT || pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
-			readName = pPropertyDescription->getDataType()->aliasName();
+		if (pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDDICT)
+		{
+			readName = fmt::format("((DATATYPE_{})EntityDef.id2datatypes[{}]).createFromStreamEx(stream)", 
+				pPropertyDescription->getName(), pPropertyDescription->getDataType()->id());
+		}
+		else if (pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
+		{
+			if (strlen(pPropertyDescription->getDataType()->aliasName()) > 0)
+			{
+				readName = fmt::format("((DATATYPE_{})EntityDef.id2datatypes[{}]).createFromStreamEx(stream)", 
+					pPropertyDescription->getDataType()->aliasName(), pPropertyDescription->getDataType()->id());
+			}
+			else
+			{
+				readName = fmt::format("((DATATYPE_AnonymousArray_{})EntityDef.id2datatypes[{}]).createFromStreamEx(stream)", 
+					pPropertyDescription->getDataType()->id(), pPropertyDescription->getDataType()->id());
+			}
+		}
+		else
+		{
+			readName = fmt::format("stream.read{}()", readName);
+		}
 
-		sourcefileBody_ += fmt::format("\t\t\t\t\t{} = stream.read{}();\n", pPropertyDescription->getName(), readName);
+		sourcefileBody_ += fmt::format("\t\t\t\t\t{} = {};\n", pPropertyDescription->getName(), readName);
 
 		std::string name = pPropertyDescription->getName();
 		name[0] = std::toupper(name[0]);
@@ -1614,39 +2125,18 @@ bool ClientSDKUnity::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
-	std::string new_childItemName = childItemName;
-
-	if (pFixedArrayType->type() == DATA_TYPE_FIXEDARRAY)
+	// 对于匿名数组需要解析，否则直接填类型名称
+	if (childItemName.size() == 0)
 	{
-		// 如果元素又是数组
-		if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
-		{
-			FixedArrayType* pChildFixedArrayType = static_cast<FixedArrayType*>(pFixedArrayType->getDataType());
-
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), fmt::format("List<{}>", pChildFixedArrayType->aliasName()));
-			else
-				new_childItemName = fmt::format("List<{}>", pChildFixedArrayType->aliasName());
-
-			return writeEntityMethodArgs_ARRAY(pChildFixedArrayType, stackArgsTypeBody, new_childItemName);
-		}
-		else if (pFixedArrayType->getDataType()->type() == DATA_TYPE_FIXEDDICT)
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), pFixedArrayType->getDataType()->aliasName());
-			else
-				new_childItemName = pFixedArrayType->getDataType()->aliasName();
-		}
-		else
-		{
-			if (new_childItemName.size() > 0)
-				strutil::kbe_replace(new_childItemName, pFixedArrayType->aliasName(), typeToType(pFixedArrayType->getDataType()->getName()));
-			else
-				new_childItemName = typeToType(pFixedArrayType->getDataType()->getName());
-		}
+		std::string typeStr;
+		getArrayType(pFixedArrayType, typeStr);
+		stackArgsTypeBody += typeStr;
+	}
+	else
+	{
+		stackArgsTypeBody += childItemName;
 	}
 
-	stackArgsTypeBody += fmt::format("List<{}>", new_childItemName);
 	return true;
 }
 
