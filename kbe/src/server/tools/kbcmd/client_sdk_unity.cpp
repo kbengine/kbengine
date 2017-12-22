@@ -582,7 +582,7 @@ bool ClientSDKUnity::writeCustomDataTypesEnd()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::createArrayChildClass(DataType* pDataType, const std::string& className, const std::string& tabs)
+bool ClientSDKUnity::createArrayChildClass(DataType* pRootDataType, DataType* pDataType, const std::string& className, const std::string& tabs, int numLayer)
 {
 	sourcefileBody_ += fmt::format("{}public class DATATYPE_{} : DATATYPE_BASE\n{}{{\n", tabs, className, tabs);
 
@@ -644,17 +644,37 @@ bool ClientSDKUnity::createArrayChildClass(DataType* pDataType, const std::strin
 	{
 		FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
 
-		std::string className = typeName;
-		typeName = "";
-		getArrayType(pFixedArrayType, typeName);
-		typeName = fmt::format("List<{}>", typeName);
+		std::string classNameStr = typeName;
+		
+		// 如果是非匿名的数组，则第一层解析应该直接设置为有名字的类别
+		// 否则设置为系统List类别
+		if (numLayer == 1)
+		{
+			if (strlen(pRootDataType->aliasName()) == 0 || pRootDataType->aliasName()[0] == '_')
+			{
+				typeName = "";
+				getArrayType(pFixedArrayType, typeName);
+				typeName = fmt::format("List<{}>", typeName);
+			}
+			else
+			{
+				typeName = pRootDataType->aliasName();
+			}
+		}
+		else
+		{
+			typeName = "";
+			getArrayType(pFixedArrayType, typeName);
+			typeName = fmt::format("List<{}>", typeName);
+		}
+
 		readName = fmt::format("itemType.createFromStreamEx(stream)");
 
-		std::string childClassName = className + "_ChildArray";
+		std::string childClassName = classNameStr + "_ChildArray";
 		sourcefileBody_ += fmt::format("{}\tprivate DATATYPE_{} itemType = new DATATYPE_{}();\n\n",
 			tabs, childClassName, childClassName);
 
-		if (!createArrayChildClass(pFixedArrayType->getDataType(), childClassName, tabs + "\t"))
+		if (!createArrayChildClass(pRootDataType, pFixedArrayType->getDataType(), childClassName, tabs + "\t", numLayer + 1))
 			return false;
 
 		sourcefileBody_ += fmt::format("{}\tpublic {} createFromStreamEx(MemoryStream stream)\n{}\t{{\n", tabs, typeName, tabs);
@@ -775,7 +795,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 					sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} {}_DataType = new DATATYPE_{}();\n\n",
 						className + "_ChildArray", keyiter->first, className + "_ChildArray");
 
-					createArrayChildClass(pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+					createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
 				}
 				else
 				{
@@ -867,8 +887,11 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 
 		std::string className = typeName;
 
-		typeName = "";
-		getArrayType(pFixedArrayType, typeName);
+		if (strlen(pFixedArrayType->aliasName()) == 0 || pFixedArrayType->aliasName()[0] == '_')
+		{
+			typeName = "";
+			getArrayType(pFixedArrayType, typeName);
+		}
 
 		std::string readName;
 		sourcefileBody_ += fmt::format("\n\n\tpublic class DATATYPE_{} : DATATYPE_BASE\n\t{{\n", className);
@@ -925,7 +948,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 			sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} itemType = new DATATYPE_{}();\n\n",
 				className + "_ChildArray", className + "_ChildArray");
 
-			createArrayChildClass(pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+			createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
 
 			sourcefileBody_ += fmt::format("\t\tpublic {} createFromStreamEx(MemoryStream stream)\n\t\t{{\n", typeName);
 			sourcefileBody_ += fmt::format("\t\t\treturn {};\n", readName);
@@ -2126,7 +2149,7 @@ bool ClientSDKUnity::writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,
 bool ClientSDKUnity::writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName)
 {
 	// 对于匿名数组需要解析，否则直接填类型名称
-	if (childItemName.size() == 0)
+	if (childItemName.size() == 0 || childItemName[0] == '_')
 	{
 		std::string typeStr;
 		getArrayType(pFixedArrayType, typeStr);

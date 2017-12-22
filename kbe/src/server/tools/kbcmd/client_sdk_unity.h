@@ -69,7 +69,7 @@ public:
 
 	virtual std::string typeToType(const std::string& type);
 	virtual bool getArrayType(DataType* pDataType, std::string& outstr);
-	bool createArrayChildClass(DataType* pDataType, const std::string& className, const std::string& tabs);
+	bool createArrayChildClass(DataType* pRootDataType, DataType* pDataType, const std::string& className, const std::string& tabs, int numLayer = 1);
 
 	virtual bool writeTypesBegin();
 	virtual bool writeTypesEnd();
