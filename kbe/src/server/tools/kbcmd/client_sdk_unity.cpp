@@ -516,19 +516,7 @@ bool ClientSDKUnity::writeEntityDefsModuleInitDefType(const DataType* pDataType)
 
 		FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
 
-		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_FIXED_DICT datatype = new DATATYPE_FIXED_DICT();\n");
-		sourcefileBody_ += fmt::format("\t\t\t\tdatatype.implementedBy = \"{}\";\n", dictdatatype->moduleName());
-
-		FixedDictType::FIXEDDICT_KEYTYPE_MAP::const_iterator keyiter = keys.begin();
-		for (; keyiter != keys.end(); ++keyiter)
-		{
-			typeID = datatype2id(keyiter->second->dataType->getName());
-			if (typeID == 0 || strcmp(keyiter->second->dataType->getName(), "FIXED_DICT") == 0 || strcmp(keyiter->second->dataType->getName(), "ARRAY") == 0)
-				typeID = pDataType->id();
-
-			sourcefileBody_ += fmt::format("\t\t\t\tdatatype.dicttype[\"{}\"] = (UInt16){};\n", keyiter->first, typeID);
-		}
-
+		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_{} datatype = new DATATYPE_{}();\n", typeName, typeName);
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = datatype;\n");
 	}
 	else if (strcmp(pDataType->getName(), "ARRAY") == 0)
@@ -540,8 +528,7 @@ bool ClientSDKUnity::writeEntityDefsModuleInitDefType(const DataType* pDataType)
 			strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0)
 			typeID = pFixedArrayType->getDataType()->id();
 
-		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_ARRAY datatype = new DATATYPE_ARRAY();\n");
-		sourcefileBody_ += fmt::format("\t\t\t\tdatatype.vtype = (UInt16){};\n", typeID);
+		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_{} datatype = new DATATYPE_{}();\n", typeName, typeName);
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = datatype;\n");
 	}
 	else
