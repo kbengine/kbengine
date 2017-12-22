@@ -1719,7 +1719,7 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 		if (pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDDICT)
 		{
 			readName = fmt::format("((DATATYPE_{})EntityDef.id2datatypes[{}]).createFromStreamEx(stream)", 
-				pPropertyDescription->getName(), pPropertyDescription->getDataType()->id());
+				pPropertyDescription->getDataType()->aliasName(), pPropertyDescription->getDataType()->id());
 		}
 		else if (pPropertyDescription->getDataType()->type() == DATA_TYPE_FIXEDARRAY)
 		{
