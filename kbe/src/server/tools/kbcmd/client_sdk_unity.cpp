@@ -512,8 +512,6 @@ bool ClientSDKUnity::writeEntityDefsModuleInitDefType(const DataType* pDataType)
 
 	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
 	{
-		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
-
 		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_{} datatype = new DATATYPE_{}();\n", typeName, typeName);
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = datatype;\n");
 	}
