@@ -514,8 +514,6 @@ bool ClientSDKUnity::writeEntityDefsModuleInitDefType(const DataType* pDataType)
 	{
 		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
 
-		FixedDictType::FIXEDDICT_KEYTYPE_MAP& keys = dictdatatype->getKeyTypes();
-
 		sourcefileBody_ += fmt::format("\t\t\t\tDATATYPE_{} datatype = new DATATYPE_{}();\n", typeName, typeName);
 		sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatypes[typeName] = datatype;\n");
 	}
@@ -1603,7 +1601,6 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 				}
 				else
 				{
-					FixedArrayType* pFixedArrayType = const_cast<FixedArrayType*>(static_cast<const FixedArrayType*>(pDataType));
 					sourcefileBody_ += fmt::format("\t\t\t\t\t{} {}_arg{} = ((DATATYPE_AnonymousArray_{})method.args[{}]).createFromStreamEx(stream);\n",
 						typestr, pMethodDescription->getName(), i, typeID, (i - 1));
 				}
