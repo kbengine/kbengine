@@ -43,6 +43,7 @@ public:
 	virtual void onCreateEngineMessagesModuleFileName();
 	virtual void onCreateEntityDefsModuleFileName();
 	virtual void onCreateDefsCustomTypesModuleFileName();
+	virtual void onEntityMailboxModuleFileName(const std::string& moduleName);
 
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
@@ -67,9 +68,17 @@ public:
 	virtual bool writeCustomDataTypesEnd();
 	virtual bool writeCustomDataType(const DataType* pDataType);
 
+	virtual bool writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
+
 	virtual std::string typeToType(const std::string& type);
 	virtual bool getArrayType(DataType* pDataType, std::string& outstr);
-	bool createArrayChildClass(DataType* pRootDataType, DataType* pDataType, const std::string& className, const std::string& tabs, int numLayer = 1);
+	virtual bool createArrayChildClass(DataType* pRootDataType, DataType* pDataType, const std::string& className, const std::string& tabs, int numLayer = 1);
 
 	virtual bool writeTypesBegin();
 	virtual bool writeTypesEnd();

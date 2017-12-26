@@ -247,6 +247,9 @@ bool ClientSDK::create(const std::string& path)
 
 		if (!writeEntityModule(pScriptDefModule))
 			return false;
+
+		if (!writeEntityMailBox(pScriptDefModule))
+			return false;
 	}
 
 	return true;
@@ -711,6 +714,22 @@ bool ClientSDK::writeEntityDefsModuleInitScript(ScriptDefModule* pScriptDefModul
 	if (!writeEntityDefsModuleInitScript_PropertyDescr(pScriptDefModule, &directionDescription))
 		return false;
 
+	ENTITY_PROPERTY_UID spaceuid = 0;
+	if (spaceuid == 0)
+	{
+		spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+		Network::FixedMessages::MSGInfo* msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		if (msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+	}
+
+	PropertyDescription spaceDescription(spaceuid, "UINT32", "spaceID", ED_FLAG_OWN_CLIENT, true, DataTypes::getDataType("UINT32"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	if (pScriptDefModule->usePropertyDescrAlias() && spaceDescription.aliasID() == -1)
+		spaceDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_SPACEID);
+
+	if (!writeEntityDefsModuleInitScript_PropertyDescr(pScriptDefModule, &spaceDescription))
+		return false;
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 	for (; piter != propers.end(); ++piter)
 	{
@@ -807,16 +826,278 @@ bool ClientSDK::writeEntityDefsModuleInitDefTypes()
 }
 
 //-------------------------------------------------------------------------------------
+void ClientSDK::onEntityMailboxModuleFileName(const std::string& moduleName)
+{
+	sourcefileName_ = std::string("EntityMailbox") + moduleName + ".unknown";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
+{
+	sourcefileName_ = sourcefileBody_ = "";
+	onEntityMailboxModuleFileName(pScriptDefModule->getName());
+
+	if (!writeEntityMailBoxBegin(pScriptDefModule))
+		return false;
+
+	std::string newModuleName;
+
+	// ÏÈÐ´BaseMailbox
+	if(!writeEntityBaseMailBoxBegin(pScriptDefModule))
+		return false;
+
+	{
+		ScriptDefModule::METHODDESCRIPTION_MAP& scriptMethods = pScriptDefModule->getBaseMethodDescriptions();
+		ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = scriptMethods.begin();
+		for (; methodIter != scriptMethods.end(); ++methodIter)
+		{
+			MethodDescription* pMethodDescription = methodIter->second;
+
+			if (!pMethodDescription->isExposed())
+				continue;
+
+			if (!writeEntityMailBoxMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
+				return false;
+
+			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT(fpos != std::string::npos);
+
+			fpos = sourcefileBody_.find("#REPLACE_FILLARGS2#");
+			KBE_ASSERT(fpos != std::string::npos);
+
+			std::string argsBody1 = "";
+			std::string argsBody2 = "";
+
+			std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
+			std::vector<DataType*>::iterator iter = argTypes.begin();
+
+			int i = 1;
+
+			for (; iter != argTypes.end(); ++iter)
+			{
+				DataType* pDataType = (*iter);
+
+				argsBody2 += fmt::format("arg{}, ", i);
+
+				if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
+				{
+					FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
+
+					std::string argsTypeBody;
+					if (!writeEntityMethodArgs_ARRAY(pFixedArrayType, argsTypeBody, pFixedArrayType->aliasName()))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() == DATA_TYPE_FIXEDDICT)
+				{
+					FixedDictType* pFixedDictType = static_cast<FixedDictType*>(pDataType);
+
+					std::string argsTypeBody = typeToType(pFixedDictType->aliasName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() != DATA_TYPE_DIGIT)
+				{
+					std::string argsTypeBody = typeToType(pDataType->getName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else
+				{
+					argsBody1 += fmt::format("{} arg{}, ", typeToType(pDataType->getName()), i++);
+				}
+			}
+
+			if (argsBody1.size() > 0)
+			{
+				argsBody1.erase(argsBody1.size() - 2, 2);
+				argsBody2.erase(argsBody2.size() - 2, 2);
+
+				argsBody2 = std::string(", ") + argsBody2;
+			}
+
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+		}
+	}
+
+	if (!writeEntityBaseMailBoxEnd(pScriptDefModule))
+		return false;
+
+	sourcefileBody_ += fmt::format("\n");
+
+	// ÔÙÐ´CellMailbox
+	if (!writeEntityCellMailBoxBegin(pScriptDefModule))
+		return false;
+
+	{
+		ScriptDefModule::METHODDESCRIPTION_MAP& scriptMethods = pScriptDefModule->getCellMethodDescriptions();
+		ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = scriptMethods.begin();
+		for (; methodIter != scriptMethods.end(); ++methodIter)
+		{
+			MethodDescription* pMethodDescription = methodIter->second;
+
+			if (!pMethodDescription->isExposed())
+				continue;
+
+			if (!writeEntityMailBoxMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
+				return false;
+
+			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT(fpos != std::string::npos);
+
+			fpos = sourcefileBody_.find("#REPLACE_FILLARGS2#");
+			KBE_ASSERT(fpos != std::string::npos);
+
+			std::string argsBody1 = "";
+			std::string argsBody2 = "";
+
+			std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
+			std::vector<DataType*>::iterator iter = argTypes.begin();
+
+			int i = 1;
+
+			for (; iter != argTypes.end(); ++iter)
+			{
+				DataType* pDataType = (*iter);
+
+				argsBody2 += fmt::format("arg{}, ", i);
+
+				if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
+				{
+					FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
+
+					std::string argsTypeBody;
+					if (!writeEntityMethodArgs_ARRAY(pFixedArrayType, argsTypeBody, pFixedArrayType->aliasName()))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() == DATA_TYPE_FIXEDDICT)
+				{
+					FixedDictType* pFixedDictType = static_cast<FixedDictType*>(pDataType);
+
+					std::string argsTypeBody = typeToType(pFixedDictType->aliasName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() != DATA_TYPE_DIGIT)
+				{
+					std::string argsTypeBody = typeToType(pDataType->getName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else
+				{
+					argsBody1 += fmt::format("{} arg{}, ", typeToType(pDataType->getName()), i++);
+				}
+			}
+
+			if (argsBody1.size() > 0)
+			{
+				argsBody1.erase(argsBody1.size() - 2, 2);
+				argsBody2.erase(argsBody2.size() - 2, 2);
+
+				argsBody2 = std::string(", ") + argsBody2;
+			}
+
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+		}
+	}
+
+	if (!writeEntityCellMailBoxEnd(pScriptDefModule))
+		return false;
+
+	if (!writeEntityMailBoxEnd(pScriptDefModule))
+		return false;
+
+	return saveFile();
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityMailBoxMethod: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityMailBoxBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityMailBoxEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityBaseMailBoxBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityBaseMailBoxEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCellMailBoxBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCellMailBoxEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientSDK::writeCustomDataTypesBegin()
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitDefType: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeCustomDataTypesBegin: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeCustomDataTypesEnd()
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitDefType: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeCustomDataTypesEnd: Not Implemented!\n"));
 	return false;
 }
 

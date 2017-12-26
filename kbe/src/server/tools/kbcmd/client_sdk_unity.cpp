@@ -424,6 +424,7 @@ bool ClientSDKUnity::writeEntityDefsModuleBegin()
 	sourcefileBody_ += "\t\tpublic static Dictionary<UInt16, ScriptModule> idmoduledefs = new Dictionary<UInt16, ScriptModule>();\n";
 
 	sourcefileBody_ += "\n\t\tpublic static bool init()\n\t\t{\n";
+	sourcefileBody_ += "\t\t\tinitDataTypes();\n";
 	sourcefileBody_ += "\t\t\tinitDefTypes();\n";
 	sourcefileBody_ += "\t\t\tinitScriptModules();\n";
 	sourcefileBody_ += "\t\t\treturn true;\n";
@@ -442,6 +443,31 @@ bool ClientSDKUnity::writeEntityDefsModuleBegin()
 	sourcefileBody_ += "\t\t\tentityclass.Clear();\n";
 	sourcefileBody_ += "\t\t\tmoduledefs.Clear();\n";
 	sourcefileBody_ += "\t\t\tidmoduledefs.Clear();\n";
+	sourcefileBody_ += "\t\t}\n\n";
+
+	sourcefileBody_ += "\t\tpublic static void initDataTypes()\n";
+	sourcefileBody_ += "\t\t{\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT8\"] = new DATATYPE_UINT8();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT16\"] = new DATATYPE_UINT16();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT32\"] = new DATATYPE_UINT32();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UINT64\"] = new DATATYPE_UINT64();\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT8\"] = new DATATYPE_INT8();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT16\"] = new DATATYPE_INT16();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT32\"] = new DATATYPE_INT32();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"INT64\"] = new DATATYPE_INT64();\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatypes[\"FLOAT\"] = new DATATYPE_FLOAT();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"DOUBLE\"] = new DATATYPE_DOUBLE();\n\n";
+
+	sourcefileBody_ += "\t\t\tdatatypes[\"STRING\"] = new DATATYPE_STRING();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR2\"] = new DATATYPE_VECTOR2();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR3\"] = new DATATYPE_VECTOR3();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR4\"] = new DATATYPE_VECTOR4();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"PYTHON\"] = new DATATYPE_PYTHON();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"UNICODE\"] = new DATATYPE_UNICODE();\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"MAILBOX\"] = new DATATYPE_MAILBOX();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"BLOB\"] = new DATATYPE_BLOB();\n";
 	sourcefileBody_ += "\t\t}\n\n";
 	return true;
 }
@@ -539,6 +565,97 @@ bool ClientSDKUnity::writeEntityDefsModuleInitDefType(const DataType* pDataType)
 	sourcefileBody_ += fmt::format("\t\t\t\tEntityDef.datatype2id[typeName] = utype;\n");
 	sourcefileBody_ += fmt::format("\t\t\t}}\n\n");
 
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDKUnity::onEntityMailboxModuleFileName(const std::string& moduleName)
+{
+	sourcefileName_ = std::string("EntityMailbox") + moduleName + moduleSuffix + ".cs";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule)
+{
+	sourcefileBody_ = headerBody;
+	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", fmt::format("\t\n",
+		sourcefileName_));
+
+	sourcefileBody_ += "namespace KBEngine\n{\n";
+	sourcefileBody_ += "\tusing UnityEngine;\n";
+	sourcefileBody_ += "\tusing System;\n";
+	sourcefileBody_ += "\tusing System.Collections;\n";
+	sourcefileBody_ += "\tusing System.Collections.Generic;\n\n";
+
+	sourcefileBody_ += std::string("\t// defined in */scripts/entity_defs/") + pScriptDefModule->getName() + ".def\n";
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule)
+{
+	sourcefileBody_ += fmt::format("\t}}\n");
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+{
+	sourcefileBody_ += fmt::format("\t\tpublic void {}({}) \n\t\t{{\n", pMethodDescription->getName(), fillString1);
+
+	sourcefileBody_ += fmt::format("\t\t\tEntity entity = KBEngineApp.app.findEntity(id);\n");
+
+	if (CELLAPP_TYPE == componentType)
+	{
+		sourcefileBody_ += fmt::format("\t\t\tentity.cellCall(\"{}\"{});\n", pMethodDescription->getName(), fillString2);
+	}
+	else
+	{
+		sourcefileBody_ += fmt::format("\t\t\tentity.baseCall(\"{}\"{});\n", pMethodDescription->getName(), fillString2);
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule)
+{
+	std::string newModuleName;
+
+	newModuleName = std::string("EntityBaseMailbox_") + std::string(pScriptDefModule->getName()) + moduleSuffix;
+	sourcefileBody_ += fmt::format("\tpublic class {} : EntityMailbox\n\t{{\n", newModuleName);
+
+	sourcefileBody_ += fmt::format("\t\tpublic {}() : base()\n\t\t{{\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\t\ttype = MAILBOX_TYPE.MAILBOX_TYPE_BASE;\n");
+	sourcefileBody_ += fmt::format("\t\t}}\n\n");
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule)
+{
+	sourcefileBody_ += fmt::format("\t}}\n");
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule)
+{
+	std::string newModuleName;
+
+	newModuleName = std::string("EntityCellMailbox_") + std::string(pScriptDefModule->getName()) + moduleSuffix;
+	sourcefileBody_ += fmt::format("\tpublic class {} : EntityMailbox\n\t{{\n", newModuleName);
+
+	sourcefileBody_ += fmt::format("\t\tpublic {}() : base()\n\t\t{{\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\t\ttype = MAILBOX_TYPE.MAILBOX_TYPE_CELL;\n");
+	sourcefileBody_ += fmt::format("\t\t}}\n\n");
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule)
+{
+	sourcefileBody_ += fmt::format("\t}}\n");
 	return true;
 }
 
@@ -1496,6 +1613,10 @@ bool ClientSDKUnity::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefMod
 	sourcefileBody_ += std::string("\t// defined in */scripts/entity_defs/") + pEntityScriptDefModule->getName() + ".def\n";
 
 	sourcefileBody_ += fmt::format("\tpublic abstract class {} : Entity\n\t{{\n", newModuleName);
+
+	// 写mailbox属性
+	sourcefileBody_ += fmt::format("\t\tpublic EntityBaseMailbox_{} baseMailbox = null;\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\tpublic EntityCellMailbox_{} cellMailbox = null;\n\n", newModuleName);
 	return true;
 }
 
@@ -1546,6 +1667,33 @@ bool ClientSDKUnity::getArrayType(DataType* pDataType, std::string& outstr)
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule)
 {
+	// mailbox
+	std::string newModuleName = fmt::format("{}{}", pEntityScriptDefModule->getName(), moduleSuffix);
+
+	sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetBase()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\tbaseMailbox = new EntityBaseMailbox_{}();\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\t\tbaseMailbox.id = id;\n");
+	sourcefileBody_ += fmt::format("\t\t\tbaseMailbox.className = className;\n");
+	sourcefileBody_ += "\t\t}\n";
+
+	sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetCell()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\tcellMailbox = new EntityCellMailbox_{}();\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\t\tcellMailbox.id = id;\n");
+	sourcefileBody_ += fmt::format("\t\t\tcellMailbox.className = className;\n");
+	sourcefileBody_ += "\t\t}\n";
+
+	sourcefileBody_ += fmt::format("\n\t\tpublic override void onLoseCell()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\tcellMailbox = null;\n");
+	sourcefileBody_ += "\t\t}\n";
+
+	sourcefileBody_ += fmt::format("\n\t\tpublic override EntityMailbox getBaseMailbox()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\treturn baseMailbox;\n");
+	sourcefileBody_ += "\t\t}\n";
+
+	sourcefileBody_ += fmt::format("\n\t\tpublic override EntityMailbox getCellMailbox()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\treturn cellMailbox;\n");
+	sourcefileBody_ += "\t\t}\n";
+
 	// 处理方法
 	sourcefileBody_ += fmt::format("\n\t\tpublic override void onRemoteMethodCall(Method method, MemoryStream stream)\n\t\t{{\n");
 	sourcefileBody_ += fmt::format("\t\t\tswitch(method.methodUtype)\n\t\t\t{{\n");
@@ -1653,12 +1801,26 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 	if (pEntityScriptDefModule->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
+	ENTITY_PROPERTY_UID spaceuid = 0;
+	if (spaceuid == 0)
+	{
+		spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+		Network::FixedMessages::MSGInfo* msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		if (msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+	}
+
+	PropertyDescription spaceDescription(spaceuid, "UINT32", "spaceID", ED_FLAG_OWN_CLIENT, true, DataTypes::getDataType("UINT32"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	if (pEntityScriptDefModule->usePropertyDescrAlias() && spaceDescription.aliasID() == -1)
+		spaceDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_SPACEID);
+
 	sourcefileBody_ += fmt::format("\n\t\tpublic override void onUpdatePropertys(Property prop, MemoryStream stream)\n\t\t{{\n");
 	sourcefileBody_ += fmt::format("\t\t\tswitch(prop.properUtype)\n\t\t\t{{\n");
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 	clientPropertys[positionDescription.getName()] = &positionDescription;
 	clientPropertys[directionDescription.getName()] = &directionDescription;
+	clientPropertys[spaceDescription.getName()] = &spaceDescription;
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
 	for (; propIter != clientPropertys.end(); ++propIter)
@@ -1678,10 +1840,21 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 		}
 		else
 		{
-			std::string findstr = fmt::format(" {} = ", pPropertyDescription->getName());
-			std::string::size_type fpos2 = sourcefileBody_.find(findstr);
-			std::string::size_type fpos1 = sourcefileBody_.rfind(" ", fpos2 - 1);
-			typestr.assign(sourcefileBody_.begin() + fpos1 + 1, sourcefileBody_.begin() + fpos2);
+			if (std::string("spaceID") == pPropertyDescription->getName())
+			{
+				sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pPropertyDescription->getUType());
+				sourcefileBody_ += fmt::format("\t\t\t\t\tUInt32 spaceID = stream.readUint32();\n");
+				sourcefileBody_ += fmt::format("\t\t\t\t\tspaceID = 0;\n");
+				sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+				continue;
+			}
+			else
+			{
+				std::string findstr = fmt::format(" {} = ", pPropertyDescription->getName());
+				std::string::size_type fpos2 = sourcefileBody_.find(findstr);
+				std::string::size_type fpos1 = sourcefileBody_.rfind(" ", fpos2 - 1);
+				typestr.assign(sourcefileBody_.begin() + fpos1 + 1, sourcefileBody_.begin() + fpos2);
+			}
 		}
 
 		sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pPropertyDescription->getUType());
@@ -1752,6 +1925,9 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 
 		std::string typestr;
 
+		if (std::string("spaceID") == pPropertyDescription->getName())
+			continue;
+
 		if (std::string("position") == pPropertyDescription->getName() ||
 			std::string("direction") == pPropertyDescription->getName())
 		{
@@ -1788,6 +1964,7 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 	}
 
 	sourcefileBody_ += "\t\t}\n";
+
 	return true;
 }
 

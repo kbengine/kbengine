@@ -837,18 +837,14 @@
 					return;
 				}
 				
-				Type runclass = module.script;
+				Type runclass = module.entityScript;
 				if(runclass == null)
 					return;
 				
 				Entity entity = (Entity)Activator.CreateInstance(runclass);
 				entity.id = eid;
 				entity.className = entityType;
-				
-				entity.baseMailbox = new Mailbox();
-				entity.baseMailbox.id = eid;
-				entity.baseMailbox.className = entityType;
-				entity.baseMailbox.type = Mailbox.MAILBOX_TYPE.MAILBOX_TYPE_BASE;
+				entity.onGetBase();
 
 				entities[eid] = entity;
 				
@@ -1079,19 +1075,15 @@
 					Dbg.ERROR_MSG("KBEngine::Client_onEntityEnterWorld: not found module(" + entityType + ")!");
 				}
 				
-				Type runclass = module.script;
+				Type runclass = module.entityScript;
 				if(runclass == null)
 					return;
 				
 				entity = (Entity)Activator.CreateInstance(runclass);
 				entity.id = eid;
 				entity.className = entityType;
-				
-				entity.cellMailbox = new Mailbox();
-				entity.cellMailbox.id = eid;
-				entity.cellMailbox.className = entityType;
-				entity.cellMailbox.type = Mailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL;
-				
+				entity.onGetCell();
+
 				entities[eid] = entity;
 				
 				Client_onUpdatePropertys(entityMessage);
@@ -1121,10 +1113,7 @@
 					clearEntities(false);
 					entities[entity.id] = entity;
 				
-					entity.cellMailbox = new Mailbox();
-					entity.cellMailbox.id = eid;
-					entity.cellMailbox.className = entityType;
-					entity.cellMailbox.type = Mailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL;
+					entity.onGetCell();
 					
 					entity.onDirectionChanged(entity.direction);
 					entity.onPositionChanged(entity.position);				
@@ -1168,7 +1157,7 @@
 			if(entity_id == eid)
 			{
 				clearSpace(false);
-				entity.cellMailbox = null;
+				entity.onLoseCell();
 			}
 			else
 			{

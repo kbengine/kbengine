@@ -10,7 +10,7 @@
 		关于Mailbox请参考API手册中对它的描述
 		https://github.com/kbengine/kbengine/tree/master/docs/api
 	*/
-    public class Mailbox 
+    public class EntityMailbox 
     {
     	// Mailbox的类别
 		public enum MAILBOX_TYPE
@@ -23,25 +23,22 @@
 		public string className = "";
 		public MAILBOX_TYPE type = MAILBOX_TYPE.MAILBOX_TYPE_CELL;
 		
-		private NetworkInterface networkInterface_;
-		
 		public Bundle bundle = null;
 		
-		public Mailbox()
+		public EntityMailbox()
 		{
-			networkInterface_ = KBEngineApp.app.networkInterface();
 		}
 		
 		public virtual void __init__()
 		{
 		}
 		
-		bool isBase()
+		public virtual bool isBase()
 		{
 			return type == MAILBOX_TYPE.MAILBOX_TYPE_BASE;
 		}
 	
-		bool isCell()
+		public virtual bool isCell()
 		{
 			return type == MAILBOX_TYPE.MAILBOX_TYPE_CELL;
 		}
@@ -54,7 +51,7 @@
 			if(bundle == null)
 				bundle = Bundle.createObject();
 			
-			if(type == Mailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL)
+			if(type == EntityMailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL)
 				bundle.newMessage(Messages.messages["Baseapp_onRemoteCallCellMethodFromClient"]);
 			else
 				bundle.newMessage(Messages.messages["Base_onRemoteMethodCall"]);
@@ -72,7 +69,7 @@
 			if(inbundle == null)
 				inbundle = bundle;
 			
-			inbundle.send(networkInterface_);
+			inbundle.send(KBEngineApp.app.networkInterface());
 			
 			if(inbundle == bundle)
 				bundle = null;

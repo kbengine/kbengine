@@ -53,6 +53,7 @@ public:
 	virtual void onCreateEngineMessagesModuleFileName();
 	virtual void onCreateEntityDefsModuleFileName();
 	virtual void onCreateDefsCustomTypesModuleFileName();
+	virtual void onEntityMailboxModuleFileName(const std::string& moduleName);
 
 	virtual bool copyPluginsSourceToPath(const std::string& path);
 
@@ -76,6 +77,15 @@ public:
 	virtual bool writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModule* pScriptDefModule);
 	virtual bool writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType);
 	virtual bool writeEntityDefsModuleInitScript_PropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
+
+	bool writeEntityMailBox(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
 
 	virtual bool writeEntityDefsModuleInitDefTypesBegin();
 	virtual bool writeEntityDefsModuleInitDefTypesEnd();
@@ -101,11 +111,18 @@ public:
 	virtual bool writeTypeBegin(std::string typeName, FixedArrayType* pDataType, const std::string& parentClass) { return false; }
 	virtual bool writeTypeEnd(std::string typeName, FixedArrayType* pDataType) { return false; }
 
-	virtual std::string typeToType(const std::string& type) {
+	virtual std::string typeToType(const std::string& type) 
+	{
 		return "unknown";
 	}
 
-	virtual bool getArrayType(DataType* pDataType, std::string& outstr) {
+	virtual bool getArrayType(DataType* pDataType, std::string& outstr) 
+	{
+		return false;
+	}
+
+	virtual bool createArrayChildClass(DataType* pRootDataType, DataType* pDataType, const std::string& className, const std::string& tabs, int numLayer = 1)
+	{
 		return false;
 	}
 

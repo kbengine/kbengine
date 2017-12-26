@@ -26,8 +26,8 @@
 		
 		public object renderObj = null;
 		
-		public Mailbox baseMailbox = null;
-		public Mailbox cellMailbox = null;
+		//public EntityMailbox baseMailbox = null;
+		//public EntityMailbox cellMailbox = null;
 		
 		// enterworld之后设置为true
 		public bool inWorld = false;
@@ -67,6 +67,33 @@
 		{
 		}
 
+		public virtual void onGetBase()
+		{
+			// 动态生成
+		}
+
+		public virtual void onGetCell()
+		{
+			// 动态生成
+		}
+
+		public virtual void onLoseCell()
+		{
+			// 动态生成
+		}
+
+		public virtual EntityMailbox getBaseMailbox()
+		{
+			// 动态生成
+			return null;
+		}
+
+		public virtual EntityMailbox getCellMailbox()
+		{
+			// 动态生成
+			return null;
+		}
+
 		/*
 			KBEngine的实体构造函数，与服务器脚本对应。
 			存在于这样的构造函数是因为KBE需要创建好实体并将属性等数据填充好才能告诉脚本层初始化
@@ -76,38 +103,8 @@
 		}
 		
 		public virtual void callPropertysSetMethods()
-		{/* 
-			foreach(Property prop in iddefpropertys_.Values)
-			{
-				object oldval = getDefinedPropertyByUType(prop.properUtype);
-				System.Reflection.MethodInfo setmethod = prop.setmethod;
-				
-				if(setmethod != null)
-				{
-					if(prop.isBase())
-					{
-						if(inited && !inWorld)
-						{
-							//Dbg.DEBUG_MSG(className + "::callPropertysSetMethods(" + prop.name + ")"); 
-							setmethod.Invoke(this, new object[]{oldval});
-						}
-					}
-					else
-					{
-						if(inWorld)
-						{
-							if(prop.isOwnerOnly() && !isPlayer())
-								continue;
-
-							setmethod.Invoke(this, new object[]{oldval});
-						}
-					}
-				}
-				else
-				{
-					//Dbg.DEBUG_MSG(className + "::callPropertysSetMethods(" + prop.name + ") not found set_*"); 
-				}
-			}*/
+		{
+			// 动态生成
 		}
 		
 		public void baseCall(string methodname, params object[] arguments)
@@ -140,6 +137,8 @@
 				return;
 			}
 			
+			EntityMailbox baseMailbox = getBaseMailbox();
+
 			baseMailbox.newMail();
 			baseMailbox.bundle.writeUint16(methodID);
 			
@@ -197,6 +196,8 @@
 				return;
 			}
 			
+			EntityMailbox cellMailbox = getCellMailbox();
+
 			if(cellMailbox == null)
 			{
 				Dbg.ERROR_MSG(className + "::cellCall(" + methodname + "): no cell!");  
