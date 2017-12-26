@@ -563,6 +563,7 @@ public:
 	virtual ~PyDictType();	
 
 	bool isSameType(PyObject* pyValue);
+	virtual PyObject* createFromStream(MemoryStream* mstream);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -579,6 +580,7 @@ public:
 	virtual ~PyTupleType();	
 
 	bool isSameType(PyObject* pyValue);
+	virtual PyObject* createFromStream(MemoryStream* mstream);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
@@ -595,6 +597,7 @@ public:
 	virtual ~PyListType();	
 
 	bool isSameType(PyObject* pyValue);
+	virtual PyObject* createFromStream(MemoryStream* mstream);
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 

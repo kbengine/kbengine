@@ -1141,6 +1141,10 @@ PyObject* PythonType::createFromStream(MemoryStream* mstream)
 {
 	std::string datas = "";
 	mstream->readBlob(datas);
+
+	if (datas.size() == 0)
+		Py_RETURN_NONE;
+
 	return script::Pickler::unpickle(datas);
 }
 
@@ -1189,6 +1193,18 @@ PyObject* PyDictType::parseDefaultStr(std::string defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* PyDictType::createFromStream(MemoryStream* mstream)
+{
+	std::string datas = "";
+	mstream->readBlob(datas);
+
+	if (datas.size() == 0)
+		return PyDict_New();
+
+	return script::Pickler::unpickle(datas);
+}
+
+//-------------------------------------------------------------------------------------
 PyTupleType::PyTupleType(DATATYPE_UID did):
 PythonType(did)
 {
@@ -1233,6 +1249,18 @@ PyObject* PyTupleType::parseDefaultStr(std::string defaultVal)
 }
 
 //-------------------------------------------------------------------------------------
+PyObject* PyTupleType::createFromStream(MemoryStream* mstream)
+{
+	std::string datas = "";
+	mstream->readBlob(datas);
+
+	if (datas.size() == 0)
+		return PyTuple_New(0);
+
+	return script::Pickler::unpickle(datas);
+}
+
+//-------------------------------------------------------------------------------------
 PyListType::PyListType(DATATYPE_UID did):
 PythonType(did)
 {
@@ -1274,6 +1302,18 @@ PyObject* PyListType::parseDefaultStr(std::string defaultVal)
 		Py_DECREF(pyVal);
 
 	return PyList_New(0);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* PyListType::createFromStream(MemoryStream* mstream)
+{
+	std::string datas = "";
+	mstream->readBlob(datas);
+
+	if (datas.size() == 0)
+		return PyList_New(0);
+
+	return script::Pickler::unpickle(datas);
 }
 
 //-------------------------------------------------------------------------------------

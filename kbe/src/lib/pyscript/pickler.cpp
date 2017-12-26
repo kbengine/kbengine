@@ -171,6 +171,7 @@ PyObject* Pickler::unpickle(const std::string& str)
 			else
 				buff += fmt::format("\\x{:02x}", (uchar)str[i]);
 		}
+
 		ERROR_MSG(fmt::format("Pickler::unpickle: failed to unpickle[{}] len={}.\n",
 			buff, str.length()));
 	}
