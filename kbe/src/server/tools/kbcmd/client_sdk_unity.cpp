@@ -1935,13 +1935,13 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 
 		std::string name = pPropertyDescription->getName();
 		name[0] = std::toupper(name[0]);
-		sourcefileBody_ += fmt::format("\n\t\t\t\t\tif(prop.isBase())\n");
+		sourcefileBody_ += fmt::format("\n\t\t\t\t\tif(prop.isBase())\n\t\t\t\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\t\tif(inited)\n");
-		sourcefileBody_ += fmt::format("\t\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
-		sourcefileBody_ += fmt::format("\t\t\t\t\telse\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\t\t\ton{}Changed(oldval_{});\n\t\t\t\t\t}}\n", name, pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\t\telse\n\t\t\t\t\t{{\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\t\tif(inWorld)\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
-		sourcefileBody_ += fmt::format("\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\t}}\n\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
 	}
 

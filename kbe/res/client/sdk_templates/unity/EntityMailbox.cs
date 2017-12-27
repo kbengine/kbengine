@@ -51,7 +51,7 @@
 			if(bundle == null)
 				bundle = Bundle.createObject();
 			
-			if(type == EntityMailbox.MAILBOX_TYPE.MAILBOX_TYPE_CELL)
+			if(isCell())
 				bundle.newMessage(Messages.messages["Baseapp_onRemoteCallCellMethodFromClient"]);
 			else
 				bundle.newMessage(Messages.messages["Base_onRemoteMethodCall"]);
@@ -91,10 +91,14 @@
 			}
 				
 			Method method = null;
-			if(!module.base_methods.TryGetValue(methodName, out method))
+
+			if(isCell())
 			{
-				Dbg.ERROR_MSG(className + "::newMail(" + methodName + "), not found method!");  
-				return null;
+				method = module.cell_methods[methodName];
+			}
+			else
+			{
+				method = module.base_methods[methodName];
 			}
 
 			UInt16 methodID = method.methodUtype;
