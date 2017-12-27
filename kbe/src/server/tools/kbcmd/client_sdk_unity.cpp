@@ -1994,10 +1994,10 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 		sourcefileBody_ += fmt::format("\t\t\t\tif(inited && !inWorld)\n");
 		sourcefileBody_ += fmt::format("\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
 		sourcefileBody_ += fmt::format("\t\t\t}}\n\t\t\telse\n\t\t\t{{\n");
-		sourcefileBody_ += fmt::format("\t\t\t\tif(inWorld)\n");
-		sourcefileBody_ += fmt::format("\t\t\t\t\tif(!prop_{}.isOwnerOnly() && isPlayer())\n", pPropertyDescription->getName());
-		sourcefileBody_ += fmt::format("\t\t\t\t\t\ton{}Changed(oldval_{});\n", name, pPropertyDescription->getName());
-		sourcefileBody_ += fmt::format("\t\t\t}}\n\n");
+		sourcefileBody_ += fmt::format("\t\t\t\tif(inWorld)\n\t\t\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\t\t\tif(prop_{}.isOwnerOnly() && !isPlayer())\n\t\t\t\t\t{{\n\t\t\t\t\t}}\n\t\t\t\t\telse\n\t\t\t\t\t{{\n", pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\t\t\ton{}Changed(oldval_{});\n\t\t\t\t\t}}\n", name, pPropertyDescription->getName());
+		sourcefileBody_ += fmt::format("\t\t\t\t}}\n\t\t\t}}\n\n");
 	}
 
 	sourcefileBody_ += "\t\t}\n";
