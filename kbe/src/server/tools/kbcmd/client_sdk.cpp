@@ -862,9 +862,6 @@ bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
 			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
 			KBE_ASSERT(fpos != std::string::npos);
 
-			fpos = sourcefileBody_.find("#REPLACE_FILLARGS2#");
-			KBE_ASSERT(fpos != std::string::npos);
-
 			std::string argsBody1 = "";
 			std::string argsBody2 = "";
 
@@ -956,9 +953,6 @@ bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
 				return false;
 
 			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
-			KBE_ASSERT(fpos != std::string::npos);
-
-			fpos = sourcefileBody_.find("#REPLACE_FILLARGS2#");
 			KBE_ASSERT(fpos != std::string::npos);
 
 			std::string argsBody1 = "";

@@ -601,19 +601,56 @@ bool ClientSDKUnity::writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule)
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
 {
-	sourcefileBody_ += fmt::format("\t\tpublic void {}({}) \n\t\t{{\n", pMethodDescription->getName(), fillString1);
+	sourcefileBody_ += fmt::format("\t\tpublic void {}({})\n\t\t{{\n", pMethodDescription->getName(), fillString1);
 
-	sourcefileBody_ += fmt::format("\t\t\tEntity entity = KBEngineApp.app.findEntity(id);\n");
+	sourcefileBody_ += fmt::format("\t\t\tBundle bundle = newMail(\"{}\");\n", pMethodDescription->getName());
+	sourcefileBody_ += fmt::format("\t\t\tif(bundle == null)\n");
+	sourcefileBody_ += fmt::format("\t\t\t\treturn;\n\n");
 
-	if (CELLAPP_TYPE == componentType)
+	std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
+	std::vector<DataType*>::iterator iter = argTypes.begin();
+
+	std::string writeName;
+
+	int i = 1;
+
+	for (; iter != argTypes.end(); ++iter)
 	{
-		sourcefileBody_ += fmt::format("\t\t\tentity.cellCall(\"{}\"{});\n", pMethodDescription->getName(), fillString2);
-	}
-	else
-	{
-		sourcefileBody_ += fmt::format("\t\t\tentity.baseCall(\"{}\"{});\n", pMethodDescription->getName(), fillString2);
+		DataType* pDataType = (*iter);
+
+		if (pDataType->type() == DATA_TYPE_FIXEDDICT)
+		{
+			writeName = fmt::format("((DATATYPE_{})EntityDef.id2datatypes[{}]).addToStreamEx(bundle, arg{})",
+				pDataType->aliasName(), pDataType->id(), i);
+		}
+		else if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
+		{
+			if (strlen(pDataType->aliasName()) > 0)
+			{
+				writeName = fmt::format("((DATATYPE_{})EntityDef.id2datatypes[{}]).addToStreamEx(bundle, arg{})",
+					pDataType->aliasName(), pDataType->id(), i);
+			}
+			else
+			{
+				writeName = fmt::format("((DATATYPE_AnonymousArray_{})EntityDef.id2datatypes[{}]).addToStreamEx(bundle, arg{})",
+					pDataType->id(), pDataType->id(), i);
+			}
+		}
+		else
+		{
+			writeName = datatype2nativetype(pDataType->getName());
+			std::transform(writeName.begin(), writeName.end(), writeName.begin(), tolower);
+			writeName[0] = std::toupper(writeName[0]);
+
+			writeName = fmt::format("bundle.write{}(arg{})", writeName, i);
+		}
+
+		sourcefileBody_ += fmt::format("\t\t\t{};\n", writeName);
+
+		i++;
 	}
 
+	sourcefileBody_ += fmt::format("\t\t\tpostMail(null);\n");
 	return true;
 }
 

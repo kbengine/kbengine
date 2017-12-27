@@ -74,6 +74,35 @@
 			if(inbundle == bundle)
 				bundle = null;
 		}
+
+		public Bundle newMail(string methodName)
+		{			
+			if(KBEngineApp.app.currserver == "loginapp")
+			{
+				Dbg.ERROR_MSG(className + "::newMail(" + methodName + "), currserver=!" + KBEngineApp.app.currserver);  
+				return null;
+			}
+
+			ScriptModule module = null;
+			if(!EntityDef.moduledefs.TryGetValue(className, out module))
+			{
+				Dbg.ERROR_MSG(className + "::newMail: entity-module(" + className + ") error, can not find from EntityDef.moduledefs");
+				return null;
+			}
+				
+			Method method = null;
+			if(!module.base_methods.TryGetValue(methodName, out method))
+			{
+				Dbg.ERROR_MSG(className + "::newMail(" + methodName + "), not found method!");  
+				return null;
+			}
+
+			UInt16 methodID = method.methodUtype;
+
+			newMail();
+			bundle.writeUint16(methodID);
+			return bundle;
+		}
     }
     
 } 
