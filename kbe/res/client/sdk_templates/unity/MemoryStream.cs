@@ -312,6 +312,27 @@
 			datas_[wpos++] = 0;
 		}
 
+		public void writeVector2(Vector2 v)
+		{
+			writeFloat(v.x);
+			writeFloat(v.y);
+		}
+
+		public void writeVector3(Vector3 v)
+		{
+			writeFloat(v.x);
+			writeFloat(v.y);
+			writeFloat(v.z);
+		}
+
+		public void writeVector4(Vector4 v)
+		{
+			writeFloat(v.x);
+			writeFloat(v.y);
+			writeFloat(v.z);
+			writeFloat(v.w);
+		}
+
 		//---------------------------------------------------------------------------------
 		public void append(byte[] datas, UInt32 offset, UInt32 size)
 		{

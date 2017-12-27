@@ -603,8 +603,8 @@ bool ClientSDKUnity::writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule,
 {
 	sourcefileBody_ += fmt::format("\t\tpublic void {}({})\n\t\t{{\n", pMethodDescription->getName(), fillString1);
 
-	sourcefileBody_ += fmt::format("\t\t\tBundle bundle = newMail(\"{}\");\n", pMethodDescription->getName());
-	sourcefileBody_ += fmt::format("\t\t\tif(bundle == null)\n");
+	sourcefileBody_ += fmt::format("\t\t\tBundle pBundle = newMail(\"{}\");\n", pMethodDescription->getName());
+	sourcefileBody_ += fmt::format("\t\t\tif(pBundle == null)\n");
 	sourcefileBody_ += fmt::format("\t\t\t\treturn;\n\n");
 
 	std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();

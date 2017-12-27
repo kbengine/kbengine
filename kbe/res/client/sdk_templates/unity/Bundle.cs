@@ -208,7 +208,7 @@
 
 		public void writeUnicode(string v)
 		{
-			writeString(v);
+			writeBlob(System.Text.Encoding.UTF8.GetBytes((string)v));
 		}
 		
 		public void writeBlob(byte[] v)
@@ -224,17 +224,20 @@
 
 		public void writeVector2(Vector2 v)
 		{
-			writeVector2(v);
+			checkStream(8);
+			stream.writeVector2(v);
 		}
 
 		public void writeVector3(Vector3 v)
 		{
-			writeVector3(v);
+			checkStream(12);
+			stream.writeVector3(v);
 		}
 
 		public void writeVector4(Vector4 v)
 		{
-			writeVector4(v);
+			checkStream(16);
+			stream.writeVector4(v);
 		}
     }
 } 
