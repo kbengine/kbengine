@@ -60,7 +60,6 @@
 		
 		public virtual void onRemoteMethodCall(Method method, MemoryStream stream)
 		{
-
 		}
 
 		public virtual void onUpdatePropertys(Property prop, MemoryStream stream)
