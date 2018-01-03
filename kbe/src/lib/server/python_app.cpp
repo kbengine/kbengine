@@ -37,6 +37,7 @@ public:
 		pyCallback_(callback),
 		scriptTimers_(scriptTimers)
 	{
+		Py_INCREF(pyCallback_);
 	}
 
 	~ScriptTimerHandler()
@@ -765,7 +766,6 @@ PyObject* PythonApp::__py_addTimer(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	Py_INCREF(pyCallback);
 	return PyLong_FromLong(id);
 }
 
