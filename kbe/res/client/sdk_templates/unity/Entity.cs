@@ -60,10 +60,12 @@
 		
 		public virtual void onRemoteMethodCall(Method method, MemoryStream stream)
 		{
+			// 动态生成
 		}
 
 		public virtual void onUpdatePropertys(Property prop, MemoryStream stream)
 		{
+			// 动态生成
 		}
 
 		public virtual void onGetBase()
