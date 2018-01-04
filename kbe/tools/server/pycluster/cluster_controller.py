@@ -350,7 +350,7 @@ class ClusterLogWatchHandler(ClusterControllerHandler):
 		if receiveLogCB is None:
 			self.watcher.receiveLog(onReceivedLog, True)
 		else:
-			self.watcher.receiveLog(onRecreceiveLogCBeivedLog, True)
+			self.watcher.receiveLog(receiveLogCB, True)
 
 class ClusterSendLogHandler(ClusterControllerHandler):
 	"""
