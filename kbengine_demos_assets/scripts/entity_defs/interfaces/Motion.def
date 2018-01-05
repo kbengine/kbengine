@@ -1,0 +1,31 @@
+<root>
+	<Interfaces>
+	</Interfaces>
+
+	<Properties>
+		<moveSpeed>
+			<Type>			UINT8			</Type> <!-- 使用时要缩放10倍, 最高25.5米每秒 -->
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		50			</Default>
+		</moveSpeed>
+
+		<isMoving>
+			<Type>			BOOL			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</isMoving>
+
+		<nextMoveTime>
+			<Type>			UINT32			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</nextMoveTime>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>
+

@@ -1,0 +1,81 @@
+<root>
+	<Volatile>
+		<position/>
+		<!--<position> 0 </position> Don't update-->
+		<yaw/>
+		<!--<pitch> 20 </pitch>-->
+		<pitch/>
+		<roll/>
+
+		<!-- 优化VolatileInfo，关于VolatileInfo可以参考API文档，优化后服务器在确定实体在地面时（navigate）将不同步实体的Y坐标，客户端需要判断实体isOnGround，如果实体在地面则需要做贴地计算。
+			在高层建筑内寻路可能需要关闭优化，让服务器同步Y，这样才能精确计算上下层位置。
+			(不填默认为true)
+		-->
+		<optimized> true </optimized>
+	</Volatile>
+
+	<Interfaces>
+		<Interface>	GameObject		</Interface>
+		<Interface>	State			</Interface>
+		<Interface>	Flags			</Interface>
+		<Interface>	Motion			</Interface>
+		<Interface>	SkillBox		</Interface>
+		<Interface>	Combat		</Interface>
+		<Interface>	Spell			</Interface>
+		<Interface>	Teleport		</Interface>
+		<Interface>	Dialog			</Interface>
+	</Interfaces>
+
+	<Properties>
+		<roleType>
+			<Type>	UINT8						</Type>
+			<Flags>	BASE						</Flags>
+			<Persistent>	true						</Persistent>
+		</roleType>
+
+		<level>
+			<Utype>	41002						</Utype>
+			<Type>	UINT16					</Type>
+			<Flags>	CELL_PUBLIC_AND_OWN			</Flags>
+			<Persistent>	true						</Persistent>
+		</level>
+		
+		<!--
+		<playerName>
+			<Type>	UNICODE					</Type>
+			<Flags>	ALL_CLIENTS					</Flags>
+			<Persistent>	true						</Persistent>
+			<Index> 	UNIQUE 					</Index> 属性的索引类别，UNIQUE, INDEX，分别对应唯一索引、普通索引
+			<DatabaseLength> 32						</DatabaseLength>
+		</playerName>
+		-->
+
+		<own_val>
+			<Type>	UINT16					</Type>
+			<Flags>	OWN_CLIENT					</Flags>
+		</own_val>
+	</Properties>
+
+	<BaseMethods>
+		<createCell>
+			<Arg>		MAILBOX					</Arg>
+		</createCell>
+	</BaseMethods>
+
+	<CellMethods>
+		<relive>
+			<Exposed/>
+			<Arg>		UINT8						</Arg>
+		</relive>
+
+		<jump>
+			<Exposed/>
+		</jump>
+	</CellMethods>
+
+	<ClientMethods>
+		<onJump>
+		</onJump>
+	</ClientMethods>
+</root>
+
