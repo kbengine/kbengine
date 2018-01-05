@@ -1,0 +1,58 @@
+<root>
+	<Properties>
+		<name>
+			<Type>			UNICODE			</Type>
+			<Utype> 		41003			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Persistent>		true			</Persistent>
+			<DetailLevel>		MEDIUM			</DetailLevel>
+		</name>
+
+		<uid>
+			<Type>			UINT32			</Type>
+			<Utype> 		41004			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		0			</Default>
+			<Persistent>		true			</Persistent>
+		</uid>
+
+		<dbid>
+			<Type>			DBID			</Type>
+			<Flags>			CELL_PUBLIC		</Flags>
+			<Default>		0			</Default>
+			<Persistent>		true			</Persistent>
+		</dbid>
+
+		<utype>
+			<Type>			UINT32			</Type>
+			<Utype> 		41005			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		0			</Default>
+			<Persistent>		true			</Persistent>
+		</utype>
+
+		<modelID>
+			<Type>			UINT32			</Type>
+			<Utype> 		41006			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		0			</Default>
+		</modelID>
+
+		<modelScale>
+			<Type>			UINT8			</Type>
+			<Utype> 		41007			</Utype>
+			<Flags>			ALL_CLIENTS		</Flags>
+			<Default>		30			</Default>
+		</modelScale>
+
+		<persistentMapping>
+			<Type>			PY_DICT		</Type>
+			<Flags>		BASE		</Flags>
+			<Persistent>	true		</Persistent>
+		</persistentMapping>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+</root>
+

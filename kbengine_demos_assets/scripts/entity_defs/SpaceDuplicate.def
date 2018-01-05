@@ -1,0 +1,16 @@
+<root>
+	<Parent>	Space	</Parent>
+	
+	<Interfaces>
+	</Interfaces>
+
+	<Properties>
+	</Properties>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+</root>
+

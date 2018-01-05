@@ -1,0 +1,14 @@
+<root>
+	<Properties>
+		<flags>
+			<Type>		INT32				</Type>
+			<Flags>		CELL_PUBLIC			</Flags>
+		</flags>
+	</Properties>
+
+	<CellMethods> 
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>

@@ -1,0 +1,31 @@
+<root>
+	<Interfaces>
+	</Interfaces>
+
+	<Properties>
+		<targetID>
+			<Type>			ENTITY_ID		</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</targetID>
+
+		<heartBeatTimerID>
+			<Type>			UINT32			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</heartBeatTimerID>
+
+		<territoryControllerID>
+			<Type>			UINT32			</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</territoryControllerID>
+	</Properties>
+
+	<CellMethods>
+	</CellMethods>
+
+	<ClientMethods>
+	</ClientMethods>
+</root>
+

@@ -1,0 +1,42 @@
+<root>
+	<Properties>
+		<skills>
+			<Type>			ARRAY <of> SKILLID </of>	</Type>
+			<Flags>			CELL_PRIVATE			</Flags>
+			<Persistent>		true				</Persistent>
+		</skills>
+
+	</Properties>
+
+	<CellMethods>
+		<addSkill>
+			<Arg>		SKILLID		</Arg>
+		</addSkill>
+
+		<removeSkill>
+			<Arg>		SKILLID		</Arg>
+		</removeSkill>
+
+		<requestPull>
+			<Exposed/>
+		</requestPull>
+
+		<useTargetSkill>
+			<Exposed/>
+			<Utype> 11001 </Utype>
+			<Arg>		SKILLID		</Arg>
+			<Arg>		ENTITY_ID	</Arg>
+		</useTargetSkill>
+	</CellMethods>
+
+	<ClientMethods>
+		<onAddSkill>
+			<Arg>		SKILLID		</Arg>
+		</onAddSkill>
+
+		<onRemoveSkill>
+			<Arg>		SKILLID		</Arg>
+		</onRemoveSkill>
+	</ClientMethods>
+</root>
+

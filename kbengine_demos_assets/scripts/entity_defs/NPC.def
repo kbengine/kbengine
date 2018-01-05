@@ -1,0 +1,23 @@
+<root>
+	<Volatile>
+		<position/>
+		<yaw/>
+		<!--<pitch> 20 </pitch>-->
+	</Volatile>
+
+	<Interfaces>
+		<Interface>	GameObject		</Interface>
+		<Interface>	NPCObject		</Interface>
+		<Interface>	Motion			</Interface>
+	</Interfaces>
+
+	<Properties>
+	</Properties>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+</root>
+

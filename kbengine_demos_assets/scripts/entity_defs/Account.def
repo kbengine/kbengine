@@ -1,0 +1,86 @@
+<root>
+	<Properties>
+		<characters>
+			<Type>			AVATAR_INFOS_LIST		</Type>
+			<Flags>			BASE				</Flags>
+			<Default>						</Default>
+			<Persistent>		true				</Persistent>
+		</characters>
+
+		<lastSelCharacter>
+			<Type>			DBID				</Type>
+			<Flags>			BASE_AND_CLIENT			</Flags>
+			<Default>		0				</Default>
+			<Persistent>		true				</Persistent>
+		</lastSelCharacter>
+		
+		<activeCharacter>
+			<Type>			MAILBOX				</Type>
+			<Flags>			BASE				</Flags>
+		</activeCharacter>
+		
+		<lastClientIpAddr>
+			<Type>			UINT32				</Type>
+			<Flags>			BASE				</Flags>
+			<Default>		0				</Default>
+		</lastClientIpAddr>
+	</Properties>
+
+	<ClientMethods>
+		<onReqAvatarList>
+			<!-- http://www.kbengine.org/cn/docs/programming/entitydef.html 
+				Utype参数是可选的
+				属性的自定义协议ID，如果客户端不使用KBE配套的SDK来开发，客户端需要开发跟KBE对接的协议,
+				开发者可以定义属性的ID便于识别，c++协议层使用一个uint16来描述，如果不定义ID则引擎会使用
+				自身规则所生成的协议ID, 这个ID必须所有def文件中唯一
+				这里只是一个演示，demo客户端并没有用到
+			-->
+			<Utype> 10003 </Utype> 
+			<Arg>	AVATAR_INFOS_LIST	</Arg>
+		</onReqAvatarList>
+
+		<onCreateAvatarResult>
+			<Utype> 10005		</Utype>
+			<Arg>	UINT8 		</Arg>
+			<Arg>	AVATAR_INFOS 	</Arg>
+		</onCreateAvatarResult>
+
+		<onRemoveAvatar>
+			<Arg>	DBID		</Arg>
+		</onRemoveAvatar>
+	</ClientMethods>
+
+	<BaseMethods>
+		<reqAvatarList>
+			<Exposed/>
+			<Utype> 10001 </Utype>
+		</reqAvatarList>
+
+		<reqCreateAvatar>
+			<Exposed/>
+			<Utype> 10002 </Utype>
+			<Arg>	UINT8	</Arg>	<!-- roleType -->
+			<Arg>	UNICODE	</Arg>	<!-- name -->
+		</reqCreateAvatar>
+
+		<selectAvatarGame>
+			<Exposed/>
+			<Utype> 10004 </Utype>
+			<Arg>	DBID	</Arg>	<!-- dbid -->
+		</selectAvatarGame>
+
+		<reqRemoveAvatar>
+			<Exposed/>
+			<Arg>	UNICODE	</Arg>	<!-- name --> 
+		</reqRemoveAvatar>
+
+		<reqRemoveAvatarDBID>
+			<Exposed/>
+			<Arg>	DBID		</Arg>	<!-- dbid --> 
+		</reqRemoveAvatarDBID>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+
+</root>

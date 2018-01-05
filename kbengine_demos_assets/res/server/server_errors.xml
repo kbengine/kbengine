@@ -1,0 +1,14 @@
+<root>
+	<!-- 错误码类别为:uint16 -->
+	<!--
+		个性化服务端配置({assets}/res/server/server_errors.xml)
+
+		如果你需要改变引擎默认设置, 请在({assets}/res/server/server_errors.xml)中覆盖kbe/res/server/server_errors_defaults.xml的对应参数来修改, 
+		这样的好处是不会破坏引擎的默认设置，在你更新引擎时也不会产生冲突，以及在多个逻辑项目时不会影响到其他的项目设置。
+		详细说明请参考：http://kbengine.org/cn/docs/configuration/kbengine.html
+	-->
+	<SUCCESS>
+		<id>0</id>
+		<descr>	成功。</descr>
+	</SUCCESS>
+</root>

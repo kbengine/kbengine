@@ -1,0 +1,37 @@
+<root>
+	<Interfaces>
+		<Interface> 			CombatPropertys			</Interface>
+	</Interfaces>
+
+	<Properties>
+		<enemyLog>
+			<Type>			ENTITYID_LIST		</Type>
+			<Flags>			CELL_PRIVATE		</Flags>
+			<Default>		0			</Default>
+		</enemyLog>
+	</Properties>
+
+	<CellMethods>
+		<recvDamage>
+			<Arg>	ENTITY_ID									</Arg>
+			<Arg>	SKILLID										</Arg>
+			<Arg>	DAMAGE_TYPE									</Arg>
+			<Arg>	HP										</Arg>
+		</recvDamage>
+
+		<addEnemy>
+			<Arg>	ENTITY_ID									</Arg>
+			<Arg>	ENMITY										</Arg>
+		</addEnemy>
+	</CellMethods>
+
+	<ClientMethods>
+		<recvDamage>
+			<Arg>	ENTITY_ID									</Arg>
+			<Arg>	SKILLID										</Arg>
+			<Arg>	DAMAGE_TYPE									</Arg>
+			<Arg>	HP										</Arg>
+		</recvDamage>
+	</ClientMethods>
+</root>
+
