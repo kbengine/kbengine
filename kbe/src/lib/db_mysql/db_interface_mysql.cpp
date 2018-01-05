@@ -346,7 +346,7 @@ bool DBInterfaceMysql::createDatabaseIfNotExist()
 //-------------------------------------------------------------------------------------
 bool DBInterfaceMysql::checkErrors()
 {
-	std::string querycmd = fmt::format("SHOW TABLES LIKE \"" ENTITY_TABLE_PERFIX "_{}\"", DBUtil::accountScriptName());
+	std::string querycmd = fmt::format("SHOW TABLES LIKE '" ENTITY_TABLE_PERFIX "_{}'", DBUtil::accountScriptName());
 	if(!query(querycmd.c_str(), querycmd.size(), true))
 	{
 		ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query is error!\n", querycmd));
