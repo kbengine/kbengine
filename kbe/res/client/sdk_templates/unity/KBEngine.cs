@@ -1947,6 +1947,8 @@
 		
 		public void Client_onStreamDataRecv(MemoryStream stream)
 		{
+			// Int16 resID = stream.readInt16();
+			// byte[] datas = stream.readBlob();
 		}
 		
 		public void Client_onStreamDataCompleted(Int16 id)
