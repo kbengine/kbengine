@@ -100,6 +100,9 @@ public:
 	bool isOnInitCallPropertysSetMethods;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	int serverHeartbeatTick;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	int SEND_BUFFER_MAX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
