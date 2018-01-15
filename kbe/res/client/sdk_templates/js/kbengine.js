@@ -2339,7 +2339,8 @@ KBEngine.KBEngineArgs = function()
 	this.ip = "127.0.0.1";
 	this.port = @{KBE_USE_ALIAS_ENTITYID};
 	this.updateHZ = @{KBE_UPDATEHZ} * 10;
-	
+	this.serverHeartbeatTick = 15;
+
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	this.clientType = 5;
 
@@ -2614,7 +2615,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			return;
 
 		var dateObject = new Date();
-		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > 15)
+		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > KBEngine.app.args.serverHeartbeatTick)
 		{
 			// 如果心跳回调接收时间小于心跳发送时间，说明没有收到回调
 			// 此时应该通知客户端掉线了
