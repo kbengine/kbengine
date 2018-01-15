@@ -1879,10 +1879,9 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 		{
 			if (std::string("spaceID") == pPropertyDescription->getName())
 			{
-				sourcefileBody_ += fmt::format("\t\t\t\tcase {}:\n", pPropertyDescription->getUType());
-				sourcefileBody_ += fmt::format("\t\t\t\t\tUInt32 spaceID = stream.readUint32();\n");
-				sourcefileBody_ += fmt::format("\t\t\t\t\tspaceID = 0;\n");
-				sourcefileBody_ += fmt::format("\t\t\t\t\tbreak;\n");
+				sourcefileBody_ += fmt::format("\t\t\t\t\tcase {}:\n", pPropertyDescription->getUType());
+				sourcefileBody_ += fmt::format("\t\t\t\t\t\tstream.readUint32();\n");
+				sourcefileBody_ += fmt::format("\t\t\t\t\t\tbreak;\n");
 				continue;
 			}
 			else
