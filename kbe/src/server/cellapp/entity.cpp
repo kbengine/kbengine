@@ -60,9 +60,9 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 ENTITY_METHOD_DECLARE_BEGIN(Cellapp, Entity)
-SCRIPT_METHOD_DECLARE("setAoiRadius",				pySetAoiRadius,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("getAoiRadius",				pyGetAoiRadius,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("getAoiHystArea",				pyGetAoiHystArea,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("setViewRadius",				pySetViewRadius,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getViewRadius",				pyGetViewRadius,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("getViewHystArea",			pyGetViewHystArea,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("isReal",						pyIsReal,						METH_VARARGS,				0)	
 SCRIPT_METHOD_DECLARE("addProximity",				pyAddProximity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("addYawRotator",				pyAddYawRotator,				METH_VARARGS,				0)
@@ -76,10 +76,10 @@ SCRIPT_METHOD_DECLARE("moveToPoint",				pyMoveToPoint,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("moveToEntity",				pyMoveToEntity,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("accelerate",					pyAccelerate,					METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("entitiesInRange",			pyEntitiesInRange,				METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("entitiesInAOI",				pyEntitiesInAOI,				METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("entitiesInView",				pyEntitiesInView,				METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("teleport",					pyTeleport,						METH_VARARGS,				0)
 SCRIPT_METHOD_DECLARE("destroySpace",				pyDestroySpace,					METH_VARARGS,				0)
-SCRIPT_METHOD_DECLARE("debugAOI",					pyDebugAOI,						METH_VARARGS,				0)
+SCRIPT_METHOD_DECLARE("debugView",					pyDebugView,						METH_VARARGS,				0)
 ENTITY_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
@@ -256,7 +256,7 @@ void Entity::onDestroy(bool callScript)
 	// 在进程强制关闭时这里可能不为0
 	//KBE_ASSERT(spaceID() == 0);
 
-	// 此时不应该还有witnesses，否则为AOI BUG
+	// 此时不应该还有witnesses，否则为View BUG
 	if (witnesses_count_ > 0)
 	{
 		ERROR_MSG(fmt::format("{}::onDestroy(): id={}, witnesses_count({}/{}) != 0, isReal={}, spaceID={}, position=({},{},{})\n", 
@@ -270,17 +270,17 @@ void Entity::onDestroy(bool callScript)
 
 			if (ent)
 			{
-				bool inTargetAOI = false;
+				bool inTargetView = false;
 
 				if (ent->pWitness())
 				{
-					Witness::AOI_ENTITIES::iterator aoi_iter = ent->pWitness()->aoiEntities().begin();
-					for (; aoi_iter != ent->pWitness()->aoiEntities().end(); ++aoi_iter)
+					Witness::VIEW_ENTITIES::iterator view_iter = ent->pWitness()->viewEntities().begin();
+					for (; view_iter != ent->pWitness()->viewEntities().end(); ++view_iter)
 					{
-						if ((*aoi_iter)->pEntity() == this)
+						if ((*view_iter)->pEntity() == this)
 						{
-							inTargetAOI = true;
-							ent->pWitness()->_onLeaveAOI((*aoi_iter));
+							inTargetView = true;
+							ent->pWitness()->_onLeaveView((*view_iter));
 							break;
 						}
 					}
@@ -290,8 +290,8 @@ void Entity::onDestroy(bool callScript)
 					ent->delWitnessed(this);
 				}
 				
-				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetAOI={}, spaceID={}, position=({},{},{})\n", 
-					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetAOI, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
+				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetView={}, spaceID={}, position=({},{},{})\n", 
+					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetView, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
 			}
 			else
 			{
@@ -736,7 +736,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 
 			// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
 			// 又如自己的entity还未在目标客户端上创建
-			if(!pEntity->pWitness()->entityInAOI(id()))
+			if(!pEntity->pWitness()->entityInView(id()))
 				continue;
 
 			const Position3D& targetPos = pEntity->position();
@@ -748,10 +748,10 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 				NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 				
 				int ialiasID = -1;
-				const Network::MessageHandler& msgHandler = pEntity->pWitness()->getAOIEntityMessageHandler(ClientInterface::onUpdatePropertys, 
+				const Network::MessageHandler& msgHandler = pEntity->pWitness()->getViewEntityMessageHandler(ClientInterface::onUpdatePropertys, 
 					ClientInterface::onUpdatePropertysOptimized, id(), ialiasID);
 				
-				ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, msgHandler, aOIEntityMessage);
+				ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, msgHandler, viewEntityMessage);
 				
 				if(ialiasID != -1)
 				{
@@ -776,7 +776,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, Py
 					propertyDescription->getName(), 
 					pSendBundle->currMsgLength());
 
-				ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, aOIEntityMessage);
+				ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, msgHandler, viewEntityMessage);
 
 				pEntity->pWitness()->sendToClient(ClientInterface::onUpdatePropertysOptimized, pSendBundle);
 			}
@@ -1356,7 +1356,7 @@ PyObject* Entity::pyHasWitness()
 void Entity::restoreProximitys()
 {
 	if(this->pWitness())
-		this->pWitness()->installAOITrigger();
+		this->pWitness()->installViewTrigger();
 
 	Controllers::CONTROLLERS_MAP& objects = pControllers_->objects();
 	Controllers::CONTROLLERS_MAP::iterator iter = objects.begin();
@@ -1572,11 +1572,11 @@ void Entity::onLeaveTrapID(ENTITY_ID entityID, float range_xz, float range_y, ui
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEnteredAoI(Entity* entity)
+void Entity::onEnteredView(Entity* entity)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	bufferOrExeCallback(const_cast<char*>("onEnteredAoI"),
+	bufferOrExeCallback(const_cast<char*>("onEnteredView"),
 		Py_BuildValue(const_cast<char*>("(O)"), entity));
 }
 
@@ -1899,8 +1899,8 @@ void Entity::onGetWitness(bool fromBase)
 			*/
 			pWitness_->onAttach(this);
 
-			// AOI中的实体也需要重置，重新同步给客户端
-			pWitness_->resetAOIEntities();
+			// View中的实体也需要重置，重新同步给客户端
+			pWitness_->resetViewEntities();
 		}
 	}
 
@@ -2185,61 +2185,61 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-int32 Entity::setAoiRadius(float radius, float hyst)
+int32 Entity::setViewRadius(float radius, float hyst)
 {
 	if(pWitness_)
 	{
-		pWitness_->setAoiRadius(radius, hyst);
+		pWitness_->setViewRadius(radius, hyst);
 		return 1;
 	}
 
-	PyErr_Format(PyExc_AssertionError, "%s::setAoiRadius: did not get witness.", scriptName());
+	PyErr_Format(PyExc_AssertionError, "%s::setViewRadius: did not get witness.", scriptName());
 	PyErr_PrintEx(0);
 	return -1;
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pySetAoiRadius(float radius, float hyst)
+PyObject* Entity::pySetViewRadius(float radius, float hyst)
 {
 	if(!isReal())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::setAoiRadius: not is real entity(%d).", 
+		PyErr_Format(PyExc_AssertionError, "%s::setViewRadius: not is real entity(%d).", 
 			scriptName(), id());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	return PyLong_FromLong(setAoiRadius(radius, hyst));
+	return PyLong_FromLong(setViewRadius(radius, hyst));
 }
 
 //-------------------------------------------------------------------------------------
-float Entity::getAoiRadius(void) const
+float Entity::getViewRadius(void) const
 {
 	if(pWitness_)
-		return pWitness_->aoiRadius();
+		return pWitness_->viewRadius();
 		
 	return 0.0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetAoiRadius()
+PyObject* Entity::pyGetViewRadius()
 {
-	return PyFloat_FromDouble(getAoiRadius());
+	return PyFloat_FromDouble(getViewRadius());
 }
 
 //-------------------------------------------------------------------------------------
-float Entity::getAoiHystArea(void) const
+float Entity::getViewHystArea(void) const
 {
 	if(pWitness_)
-		return pWitness_->aoiHysteresisArea();
+		return pWitness_->viewHysteresisArea();
 		
 	return 0.0; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetAoiHystArea()
+PyObject* Entity::pyGetViewHystArea()
 {
-	return PyFloat_FromDouble(getAoiHystArea());
+	return PyFloat_FromDouble(getViewHystArea());
 }
 
 //-------------------------------------------------------------------------------------
@@ -2792,17 +2792,17 @@ void Entity::onTurn(uint32 controllerId, PyObject* userarg)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::debugAOI()
+void Entity::debugView()
 {
 	if(pWitness_ == NULL)
 	{
-		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} has no witness!", scriptName(), this->id()));
+		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugView: {} has no witness!", scriptName(), this->id()));
 		return;
 	}
 	
 	int pending = 0;
-	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
-	for (; iter != pWitness_->aoiEntities().end(); ++iter)
+	Witness::VIEW_ENTITIES::iterator iter = pWitness_->viewEntities().begin();
+	for (; iter != pWitness_->viewEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 
@@ -2813,11 +2813,11 @@ void Entity::debugAOI()
 		}
 	}
 
-	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugAOI: {} size={}, Seen={}, Pending={}, aoiRadius={}, aoiHyst={}", scriptName(), this->id(), 
-		pWitness_->aoiEntitiesMap().size(), pWitness_->aoiEntitiesMap().size() - pending, pending, pWitness_->aoiRadius(), pWitness_->aoiHysteresisArea()));
+	Cellapp::getSingleton().getScript().pyPrint(fmt::format("{}::debugView: {} size={}, Seen={}, Pending={}, viewRadius={}, viewHyst={}", scriptName(), this->id(), 
+		pWitness_->viewEntitiesMap().size(), pWitness_->viewEntitiesMap().size() - pending, pending, pWitness_->viewRadius(), pWitness_->viewHysteresisArea()));
 
-	iter = pWitness_->aoiEntities().begin();
-	for(; iter != pWitness_->aoiEntities().end(); ++iter)
+	iter = pWitness_->viewEntities().begin();
+	for(; iter != pWitness_->viewEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 		Position3D epos;
@@ -2830,7 +2830,7 @@ void Entity::debugAOI()
 			dist = KBEVec3Length(&distvec);
 		}
 
-		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{7}::debugAOI: {0} {1}({2}), position({3}.{4}.{5}), dist={6}, Seen={8}", 
+		Cellapp::getSingleton().getScript().pyPrint(fmt::format("{7}::debugView: {0} {1}({2}), position({3}.{4}.{5}), dist={6}, Seen={8}", 
 			this->id(), 
 			(pEntity != NULL ? pEntity->scriptName() : "unknown"),
 			(*iter)->id(),
@@ -2841,11 +2841,11 @@ void Entity::debugAOI()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyDebugAOI()
+PyObject* Entity::pyDebugView()
 {
 	if(!isReal())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: not is real entity(%d).", 
+		PyErr_Format(PyExc_AssertionError, "%s::debugView: not is real entity(%d).", 
 			scriptName(), id());
 		PyErr_PrintEx(0);
 		return 0;
@@ -2853,22 +2853,22 @@ PyObject* Entity::pyDebugAOI()
 
 	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::debugAOI: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::debugView: %d is destroyed!\n",		
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	debugAOI();
+	debugView();
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyEntitiesInAOI()
+PyObject* Entity::pyEntitiesInView()
 {
 	if(!isReal())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: not is real entity(%d).", 
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInView: not is real entity(%d).", 
 			scriptName(), id());
 		PyErr_PrintEx(0);
 		return 0;
@@ -2876,7 +2876,7 @@ PyObject* Entity::pyEntitiesInAOI()
 
 	if(this->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: %d is destroyed!\n",		
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInView: %d is destroyed!\n",		
 			scriptName(), id());		
 		PyErr_PrintEx(0);
 		return 0;
@@ -2884,16 +2884,16 @@ PyObject* Entity::pyEntitiesInAOI()
 
 	if (!pWitness_)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::entitiesInAOI: %d has no witness!\n",
+		PyErr_Format(PyExc_AssertionError, "%s::entitiesInView: %d has no witness!\n",
 			scriptName(), id());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	int calcSize = 0;
-	Witness::AOI_ENTITIES::iterator iter = pWitness_->aoiEntities().begin();
+	Witness::VIEW_ENTITIES::iterator iter = pWitness_->viewEntities().begin();
 	
-	for(; iter != pWitness_->aoiEntities().end(); ++iter)
+	for(; iter != pWitness_->viewEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 
@@ -2905,10 +2905,10 @@ PyObject* Entity::pyEntitiesInAOI()
 	
 	PyObject* pyList = PyList_New(calcSize);
 	
-	iter = pWitness_->aoiEntities().begin();
+	iter = pWitness_->viewEntities().begin();
 		
 	int i = 0;
-	for(; iter != pWitness_->aoiEntities().end(); ++iter)
+	for(; iter != pWitness_->viewEntities().end(); ++iter)
 	{
 		Entity* pEntity = (*iter)->pEntity();
 
@@ -3449,7 +3449,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 
 		// 这个可能性是存在的，例如数据来源于createWitnessFromStream()
 		// 又如自己的entity还未在目标客户端上创建
-		if (!pEntity->pWitness()->entityInAOI(id()))
+		if (!pEntity->pWitness()->entityInView(id()))
 			continue;
 
 		// 通知位置强制改变
@@ -3930,23 +3930,23 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 
 			if (ent)
 			{
-				bool inTargetAOI = false;
+				bool inTargetView = false;
 
 				if (ent->pWitness())
 				{
-					Witness::AOI_ENTITIES::iterator aoi_iter = ent->pWitness()->aoiEntities().begin();
-					for (; aoi_iter != ent->pWitness()->aoiEntities().end(); ++aoi_iter)
+					Witness::VIEW_ENTITIES::iterator view_iter = ent->pWitness()->viewEntities().begin();
+					for (; view_iter != ent->pWitness()->viewEntities().end(); ++view_iter)
 					{
-						if ((*aoi_iter)->pEntity() == this)
+						if ((*view_iter)->pEntity() == this)
 						{
-							inTargetAOI = true;
+							inTargetView = true;
 							break;
 						}
 					}
 				}
 
-				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetAOI={}, spaceID={}, position=({},{},{})\n",
-					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetAOI, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
+				ERROR_MSG(fmt::format("\t=>witnessed={}({}), isDestroyed={}, isReal={}, inTargetView={}, spaceID={}, position=({},{},{})\n",
+					ent->scriptName(), (*it), ent->isDestroyed(), ent->isReal(), inTargetView, ent->spaceID(), ent->position().x, ent->position().y, ent->position().z));
 			}
 			else
 			{

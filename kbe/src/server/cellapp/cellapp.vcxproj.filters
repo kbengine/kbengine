@@ -21,9 +21,6 @@
     <ClCompile Include="all_clients.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="aoi_trigger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cell.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -153,12 +150,12 @@
     <ClCompile Include="space_viewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="view_trigger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="all_clients.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="aoi_trigger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cell.h">
@@ -287,12 +284,12 @@
     <ClInclude Include="space_viewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="view_trigger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="aoi_trigger.inl">
-      <Filter>Inline Files</Filter>
-    </None>
     <None Include="range_trigger_node.inl">
       <Filter>Inline Files</Filter>
     </None>
@@ -312,6 +309,9 @@
       <Filter>Inline Files</Filter>
     </None>
     <None Include="witness.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="view_trigger.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

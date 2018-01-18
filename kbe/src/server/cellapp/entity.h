@@ -269,20 +269,20 @@ public:
 	void onRestore();
 
 	/**
-		脚本调试aoi
+		脚本调试view
 	*/
-	void debugAOI();
-	DECLARE_PY_MOTHOD_ARG0(pyDebugAOI);
+	void debugView();
+	DECLARE_PY_MOTHOD_ARG0(pyDebugView);
 
 	/** 
-		当前entity设置自身的Aoi半径范围 
+		当前entity设置自身的View半径范围 
 	*/
-	int32 setAoiRadius(float radius, float hyst);
-	float getAoiRadius(void) const;
-	float getAoiHystArea(void) const;
-	DECLARE_PY_MOTHOD_ARG2(pySetAoiRadius, float, float);
-	DECLARE_PY_MOTHOD_ARG0(pyGetAoiRadius);
-	DECLARE_PY_MOTHOD_ARG0(pyGetAoiHystArea);
+	int32 setViewRadius(float radius, float hyst);
+	float getViewRadius(void) const;
+	float getViewHystArea(void) const;
+	DECLARE_PY_MOTHOD_ARG2(pySetViewRadius, float, float);
+	DECLARE_PY_MOTHOD_ARG0(pyGetViewRadius);
+	DECLARE_PY_MOTHOD_ARG0(pyGetViewHystArea);
 
 	/** 
 		当前entity是否为real 
@@ -366,9 +366,9 @@ public:
 	static PyObject* __py_pyEntitiesInRange(PyObject* self, PyObject* args);
 
 	/** 
-		脚本请求获得AOI范围内的entities 
+		脚本请求获得View范围内的entities 
 	*/
-	DECLARE_PY_MOTHOD_ARG0(pyEntitiesInAOI);
+	DECLARE_PY_MOTHOD_ARG0(pyEntitiesInView);
 
 	/**
 		设置获取是否自动备份
@@ -483,9 +483,9 @@ public:
 							uint32 controllerID, int32 userarg);
 
 	/** 
-		一个entity进入了AOI区域
+		一个entity进入了View区域
 	*/
-	void onEnteredAoI(Entity* entity);
+	void onEnteredView(Entity* entity);
 
 	/** 
 		停止任何移动行为

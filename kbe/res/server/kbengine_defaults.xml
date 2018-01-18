@@ -399,16 +399,16 @@
 		-->
 		<entryScriptFile> kbemain </entryScriptFile>
 		
-		<!-- 默认AOI半径, 脚本中可以改变它 
-			(Default AOI radius, the script can change it)
+		<!-- 默认View半径, 脚本中可以改变它 
+			(Default View radius, the script can change it)
 		-->
-		<defaultAoIRadius>			
+		<defaultViewRadius>			
 			<radius> 80.0 </radius>
 			<hysteresisArea> 5.0 </hysteresisArea>
-		</defaultAoIRadius>
+		</defaultViewRadius>
 		
-		<!-- 优化EntityID，AOI范围内实体数小于255个, EntityID传输到client时使用1字节别名ID 
-			（Optimization EntityID，AOI the Entity is less than 255, 
+		<!-- 优化EntityID，View范围内实体数小于255个, EntityID传输到client时使用1字节别名ID 
+			（Optimization EntityID，View the Entity is less than 255, 
 			use an aliasID(1byte) transmitted to the client)
 		-->
 		<aliasEntityID> true </aliasEntityID>
@@ -458,16 +458,16 @@
 		-->
 		<ghostUpdateHertz> 30 </ghostUpdateHertz>		<!-- Type: Integer -->
 		
-		<!-- 是否使用坐标系统, 如果设置为false， 那么AOI、Trap、 Move等功能将不可用 
+		<!-- 是否使用坐标系统, 如果设置为false， 那么View、Trap、 Move等功能将不可用 
 			(Whether the use of coordinate-system, if is false, 
-			AOI, Trap, Move and other functions will not be available)
+			View, Trap, Move and other functions will not be available)
 		-->
 		<coordinate_system> 
 			<enable> true </enable>
 			
-			<!-- 是否管理y轴? 注：管理y轴，则AOI、Trap等功能有了高度，当space内的实体较少时比较好用，
+			<!-- 是否管理y轴? 注：管理y轴，则View、Trap等功能有了高度，当space内的实体较少时比较好用，
 				否则y轴的管理会带来一些消耗 
-				(is maintenance Y axis? Note: Management y axis, AOI、Trap and other functions with the height,
+				(is maintenance Y axis? Note: Management y axis, View、Trap and other functions with the height,
 				When the entity space within little more useful when, Otherwise, 
 				the management of the y-axis will produce some consumption
 				-->

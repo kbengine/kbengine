@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity.h"	
 #include "profile.h"
 #include "cellapp.h"
-#include "aoi_trigger.h"
+#include "view_trigger.h"
 #include "network/channel.h"	
 #include "network/bundle.h"
 #include "network/network_stats.h"
@@ -53,13 +53,13 @@ namespace KBEngine{
 //-------------------------------------------------------------------------------------
 Witness::Witness():
 pEntity_(NULL),
-aoiRadius_(0.0f),
-aoiHysteresisArea_(5.0f),
-pAOITrigger_(NULL),
-pAOIHysteresisAreaTrigger_(NULL),
-aoiEntities_(),
-aoiEntities_map_(),
-clientAOISize_(0)
+viewRadius_(0.0f),
+viewHysteresisArea_(5.0f),
+pViewTrigger_(NULL),
+pViewHysteresisAreaTrigger_(NULL),
+viewEntities_(),
+viewEntities_map_(),
+clientViewSize_(0)
 {
 	updatableName = "Witness";
 }
@@ -68,8 +68,8 @@ clientAOISize_(0)
 Witness::~Witness()
 {
 	pEntity_ = NULL;
-	SAFE_RELEASE(pAOITrigger_);
-	SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
+	SAFE_RELEASE(pViewTrigger_);
+	SAFE_RELEASE(pViewHysteresisAreaTrigger_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -77,35 +77,35 @@ void Witness::addToStream(KBEngine::MemoryStream& s)
 {
 	/**
 	 * @TODO(phw): 注释下面的原始代码，简单修正如下的问题：
-	 * 想象一下：A、B、C三个玩家互相能看见对方，那么它们的aoiEntities_里面必须会互相记录着对方的entityID，
+	 * 想象一下：A、B、C三个玩家互相能看见对方，那么它们的viewEntities_里面必须会互相记录着对方的entityID，
 	 * 那么假如三个玩家都在同一时间传送到另一个cellapp的地图的同一点上，
 	 * 这时三个玩家还原的时候都会为另两个玩家生成一个flags_ == ENTITYREF_FLAG_UNKONWN的EntityRef实例，
-	 * 把它们记录在自己的aoiEntities_，
+	 * 把它们记录在自己的viewEntities_，
 	 * 但是，Witness::update()并没有针对flags_ == ENTITYREF_FLAG_UNKONWN的情况做特殊处理——把玩家entity数据发送给客户端，
 	 * 所以进入了默认的updateVolatileData()流程，
 	 * 使得客户端在没有别的玩家entity的情况下就收到了别的玩家的坐标更新的信息，导致客户端错误发生。
 	
-	s << aoiRadius_ << aoiHysteresisArea_ << clientAOISize_;	
+	s << viewRadius_ << viewHysteresisArea_ << clientViewSize_;	
 	
-	uint32 size = aoiEntitiesmap_.size();
+	uint32 size = viewEntitiesmap_.size();
 	s << size;
 
-	EntityRef::AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); ++iter)
+	EntityRef::VIEW_ENTITIES::iterator iter = viewEntities_.begin();
+	for(; iter != viewEntities_.end(); ++iter)
 	{
 		(*iter)->addToStream(s);
 	}
 	*/
 
 	// 当前这么做能解决问题，但是在space多cell分割的情况下将会出现问题
-	s << aoiRadius_ << aoiHysteresisArea_ << (uint16)0;	
-	s << (uint32)0; // aoiEntities_map_.size();
+	s << viewRadius_ << viewHysteresisArea_ << (uint16)0;	
+	s << (uint32)0; // viewEntities_map_.size();
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::createFromStream(KBEngine::MemoryStream& s)
 {
-	s >> aoiRadius_ >> aoiHysteresisArea_ >> clientAOISize_;
+	s >> viewRadius_ >> viewHysteresisArea_ >> clientViewSize_;
 
 	uint32 size;
 	s >> size;
@@ -114,12 +114,12 @@ void Witness::createFromStream(KBEngine::MemoryStream& s)
 	{
 		EntityRef* pEntityRef = EntityRef::createPoolObject();
 		pEntityRef->createFromStream(s);
-		aoiEntities_.push_back(pEntityRef);
-		aoiEntities_map_[pEntityRef->id()] = pEntityRef;
+		viewEntities_.push_back(pEntityRef);
+		viewEntities_map_[pEntityRef->id()] = pEntityRef;
 		pEntityRef->aliasID(i);
 	}
 
-	setAoiRadius(aoiRadius_, aoiHysteresisArea_);
+	setViewRadius(viewRadius_, viewHysteresisArea_);
 
 	lastBasePos_.z = -FLT_MAX;
 	lastBaseDir_.yaw(-FLT_MAX);
@@ -139,9 +139,9 @@ void Witness::attach(Entity* pEntity)
 
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
 	{
-		// 初始化默认AOI范围
+		// 初始化默认View范围
 		ENGINE_COMPONENT_INFO& ecinfo = ServerConfig::getSingleton().getCellApp();
-		setAoiRadius(ecinfo.defaultAoIRadius, ecinfo.defaultAoIHysteresisArea);
+		setViewRadius(ecinfo.defaultViewRadius, ecinfo.defaultViewHysteresisArea);
 	}
 
 	Cellapp::getSingleton().addUpdatable(this);
@@ -210,10 +210,10 @@ void Witness::detach(Entity* pEntity)
 void Witness::clear(Entity* pEntity)
 {
 	KBE_ASSERT(pEntity == pEntity_);
-	uninstallAOITrigger();
+	uninstallViewTrigger();
 
-	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); ++iter)
+	VIEW_ENTITIES::iterator iter = viewEntities_.begin();
+	for(; iter != viewEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
 		{
@@ -224,18 +224,18 @@ void Witness::clear(Entity* pEntity)
 	}
 	
 	pEntity_ = NULL;
-	aoiRadius_ = 0.0f;
-	aoiHysteresisArea_ = 5.0f;
-	clientAOISize_ = 0;
+	viewRadius_ = 0.0f;
+	viewHysteresisArea_ = 5.0f;
+	clientViewSize_ = 0;
 
 	// 不需要销毁，后面还可以重用
-	// 此处销毁可能会产生错误，因为enteraoi过程中可能导致实体销毁
-	// 在pAOITrigger_流程没走完之前这里销毁了pAOITrigger_就crash
-	//SAFE_RELEASE(pAOITrigger_);
-	//SAFE_RELEASE(pAOIHysteresisAreaTrigger_);
+	// 此处销毁可能会产生错误，因为enterView过程中可能导致实体销毁
+	// 在pViewTrigger_流程没走完之前这里销毁了pViewTrigger_就crash
+	//SAFE_RELEASE(pViewTrigger_);
+	//SAFE_RELEASE(pViewHysteresisAreaTrigger_);
 
-	aoiEntities_.clear();
-	aoiEntities_map_.clear();
+	viewEntities_.clear();
+	viewEntities_map_.clear();
 
 	Cellapp::getSingleton().removeUpdatable(this);
 }
@@ -292,102 +292,102 @@ const Direction3D& Witness::baseDir()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::setAoiRadius(float radius, float hyst)
+void Witness::setViewRadius(float radius, float hyst)
 {
 	if(!g_kbeSrvConfig.getCellApp().use_coordinate_system)
 		return;
 
-	aoiRadius_ = radius;
-	aoiHysteresisArea_ = hyst;
+	viewRadius_ = radius;
+	viewHysteresisArea_ = hyst;
 
 	// 由于位置同步使用了相对位置压缩传输，可用范围为-512~512之间，因此超过范围将出现同步错误
 	// 这里做一个限制，如果需要过大的数值客户端应该调整坐标单位比例，将其放大使用。
 	// 参考: MemoryStream::appendPackXZ
-	if(aoiRadius_ + aoiHysteresisArea_ > 512)
+	if(viewRadius_ + viewHysteresisArea_ > 512)
 	{
-		aoiRadius_ = 512 - 5.0f;
-		aoiHysteresisArea_ = 5.0f;
+		viewRadius_ = 512 - 5.0f;
+		viewHysteresisArea_ = 5.0f;
 		
-		ERROR_MSG(fmt::format("Witness::setAoiRadius({}): AOI the size({}) of more than 512!\n", 
-			pEntity_->id(), (aoiRadius_ + aoiHysteresisArea_)));
+		ERROR_MSG(fmt::format("Witness::setViewRadius({}): View the size({}) of more than 512!\n", 
+			pEntity_->id(), (viewRadius_ + viewHysteresisArea_)));
 		
 		return;
 	}
 
-	if (aoiRadius_ > 0.f && pEntity_)
+	if (viewRadius_ > 0.f && pEntity_)
 	{
-		if (pAOITrigger_ == NULL)
+		if (pViewTrigger_ == NULL)
 		{
-			pAOITrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), aoiRadius_, aoiRadius_);
+			pViewTrigger_ = new ViewTrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(), viewRadius_, viewRadius_);
 
 			// 如果实体已经在场景中，那么需要安装
 			if (((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-				pAOITrigger_->install();
+				pViewTrigger_->install();
 		}
 		else
 		{
-			pAOITrigger_->update(aoiRadius_, aoiRadius_);
+			pViewTrigger_->update(viewRadius_, viewRadius_);
 
 			// 如果实体已经在场景中，那么需要安装
-			if (!pAOITrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-				pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
+			if (!pViewTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+				pViewTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 		}
 
-		if (aoiHysteresisArea_ > 0.01f && pEntity_/*上面update流程可能导致销毁 */)
+		if (viewHysteresisArea_ > 0.01f && pEntity_/*上面update流程可能导致销毁 */)
 		{
-			if (pAOIHysteresisAreaTrigger_ == NULL)
+			if (pViewHysteresisAreaTrigger_ == NULL)
 			{
-				pAOIHysteresisAreaTrigger_ = new AOITrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
-					aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+				pViewHysteresisAreaTrigger_ = new ViewTrigger((CoordinateNode*)pEntity_->pEntityCoordinateNode(),
+					viewHysteresisArea_ + viewRadius_, viewHysteresisArea_ + viewRadius_);
 
 				if (((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-					pAOIHysteresisAreaTrigger_->install();
+					pViewHysteresisAreaTrigger_->install();
 			}
 			else
 			{
-				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+				pViewHysteresisAreaTrigger_->update(viewHysteresisArea_ + viewRadius_, viewHysteresisArea_ + viewRadius_);
 
 				// 如果实体已经在场景中，那么需要安装
-				if (!pAOIHysteresisAreaTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
-					pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
+				if (!pViewHysteresisAreaTrigger_->isInstalled() && ((CoordinateNode*)pEntity_->pEntityCoordinateNode())->pCoordinateSystem())
+					pViewHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 			}
 		}
 		else
 		{
-			// 注意：此处如果不销毁pAOIHysteresisAreaTrigger_则必须是update
-			// 因为离开AOI的判断如果pAOIHysteresisAreaTrigger_存在，那么必须出了pAOIHysteresisAreaTrigger_才算出AOI
-			if (pAOIHysteresisAreaTrigger_)
-				pAOIHysteresisAreaTrigger_->update(aoiHysteresisArea_ + aoiRadius_, aoiHysteresisArea_ + aoiRadius_);
+			// 注意：此处如果不销毁pViewHysteresisAreaTrigger_则必须是update
+			// 因为离开View的判断如果pViewHysteresisAreaTrigger_存在，那么必须出了pViewHysteresisAreaTrigger_才算出View
+			if (pViewHysteresisAreaTrigger_)
+				pViewHysteresisAreaTrigger_->update(viewHysteresisArea_ + viewRadius_, viewHysteresisArea_ + viewRadius_);
 		}
 	}
 	else
 	{
-		uninstallAOITrigger();
+		uninstallViewTrigger();
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
+void Witness::onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity)
 {
 	// 如果进入的是Hysteresis区域，那么不产生作用
-	 if (pAOIHysteresisAreaTrigger_ == pAOITrigger)
+	 if (pViewHysteresisAreaTrigger_ == pViewTrigger)
 		return;
 
 	// 先增加一个引用，避免实体在回调中被销毁造成后续判断出错
 	Py_INCREF(pEntity);
 
-	// 在onEnteredAoI和addWitnessed可能导致自己销毁然后
+	// 在onEnteredView和addWitnessed可能导致自己销毁然后
 	// pEntity_将被设置为NULL，后面没有机会DECREF
 	Entity* pSelfEntity = pEntity_;
 	Py_INCREF(pSelfEntity);
 
-	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
-	if (iter != aoiEntities_map_.end())
+	VIEW_ENTITIES_MAP::iterator iter = viewEntities_map_.find(pEntity->id());
+	if (iter != viewEntities_map_.end())
 	{
 		EntityRef* pEntityRef = iter->second;
 		if ((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
-			//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
+			//DEBUG_MSG(fmt::format("Witness::onEnterView: {} entity={}\n", 
 			//	pEntity_->id(), pEntity->id()));
 
 			// 如果flags是ENTITYREF_FLAG_LEAVE_CLIENT_PENDING | ENTITYREF_FLAG_NORMAL状态那么我们
@@ -400,7 +400,7 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 
 			pEntityRef->pEntity(pEntity);
 			pEntity->addWitnessed(pEntity_);
-			pSelfEntity->onEnteredAoI(pEntity);
+			pSelfEntity->onEnteredView(pEntity);
 		}
 
 		Py_DECREF(pEntity);
@@ -408,47 +408,47 @@ void Witness::onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity)
 		return;
 	}
 
-	//DEBUG_MSG(fmt::format("Witness::onEnterAOI: {} entity={}\n", 
+	//DEBUG_MSG(fmt::format("Witness::onEnterView: {} entity={}\n", 
 	//	pEntity_->id(), pEntity->id()));
 	
 	EntityRef* pEntityRef = EntityRef::createPoolObject();
 	pEntityRef->pEntity(pEntity);
 	pEntityRef->flags(pEntityRef->flags() | ENTITYREF_FLAG_ENTER_CLIENT_PENDING);
-	aoiEntities_.push_back(pEntityRef);
-	aoiEntities_map_[pEntityRef->id()] = pEntityRef;
-	pEntityRef->aliasID(aoiEntities_map_.size() - 1);
+	viewEntities_.push_back(pEntityRef);
+	viewEntities_map_[pEntityRef->id()] = pEntityRef;
+	pEntityRef->aliasID(viewEntities_map_.size() - 1);
 	
 	pEntity->addWitnessed(pEntity_);
-	pSelfEntity->onEnteredAoI(pEntity);
+	pSelfEntity->onEnteredView(pEntity);
 
 	Py_DECREF(pEntity);
 	Py_DECREF(pSelfEntity);
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::onLeaveAOI(AOITrigger* pAOITrigger, Entity* pEntity)
+void Witness::onLeaveView(ViewTrigger* pViewTrigger, Entity* pEntity)
 {
-	// 如果设置过Hysteresis区域，那么离开Hysteresis区域才算离开AOI
-	if (pAOIHysteresisAreaTrigger_ && pAOIHysteresisAreaTrigger_ != pAOITrigger)
+	// 如果设置过Hysteresis区域，那么离开Hysteresis区域才算离开View
+	if (pViewHysteresisAreaTrigger_ && pViewHysteresisAreaTrigger_ != pViewTrigger)
 		return;
 
-	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(pEntity->id());
-	if (iter == aoiEntities_map_.end())
+	VIEW_ENTITIES_MAP::iterator iter = viewEntities_map_.find(pEntity->id());
+	if (iter == viewEntities_map_.end())
 		return;
 
-	_onLeaveAOI(iter->second);
+	_onLeaveView(iter->second);
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_onLeaveAOI(EntityRef* pEntityRef)
+void Witness::_onLeaveView(EntityRef* pEntityRef)
 {
-	//DEBUG_MSG(fmt::format("Witness::onLeaveAOI: {} entity={}\n", 
+	//DEBUG_MSG(fmt::format("Witness::onLeaveView: {} entity={}\n", 
 	//	pEntity_->id(), pEntityRef->id()));
 
 	// 这里不delete， 我们需要待update将此行为更新至客户端时再进行
 	//EntityRef::reclaimPoolObject((*iter));
-	//aoiEntities_.erase(iter);
-	//aoiEntities_map_.erase(iter);
+	//viewEntities_.erase(iter);
+	//viewEntities_map_.erase(iter);
 
 	pEntityRef->flags(((pEntityRef->flags() | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) & ~(ENTITYREF_FLAG_ENTER_CLIENT_PENDING)));
 
@@ -459,17 +459,17 @@ void Witness::_onLeaveAOI(EntityRef* pEntityRef)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::resetAOIEntities()
+void Witness::resetViewEntities()
 {
-	clientAOISize_ = 0;
-	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); )
+	clientViewSize_ = 0;
+	VIEW_ENTITIES::iterator iter = viewEntities_.begin();
+	for(; iter != viewEntities_.end(); )
 	{
 		if(((*iter)->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 		{
-			aoiEntities_map_.erase((*iter)->id());
+			viewEntities_map_.erase((*iter)->id());
 			EntityRef::reclaimPoolObject((*iter));
-			iter = aoiEntities_.erase(iter);
+			iter = viewEntities_.erase(iter);
 			continue;
 		}
 
@@ -508,13 +508,13 @@ void Witness::onEnterSpace(Space* pSpace)
 	// 发送消息并清理
 	pEntity_->clientMailbox()->postMail(pSendBundle);
 
-	installAOITrigger();
+	installViewTrigger();
 }
 
 //-------------------------------------------------------------------------------------
 void Witness::onLeaveSpace(Space* pSpace)
 {
-	uninstallAOITrigger();
+	uninstallViewTrigger();
 
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity_->id(), (*pSendBundle));
@@ -527,8 +527,8 @@ void Witness::onLeaveSpace(Space* pSpace)
 	lastBasePos_.z = -FLT_MAX;
 	lastBaseDir_.yaw(-FLT_MAX);
 
-	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); ++iter)
+	VIEW_ENTITIES::iterator iter = viewEntities_.begin();
+	for(; iter != viewEntities_.end(); ++iter)
 	{
 		if((*iter)->pEntity())
 		{
@@ -538,51 +538,51 @@ void Witness::onLeaveSpace(Space* pSpace)
 		EntityRef::reclaimPoolObject((*iter));
 	}
 
-	aoiEntities_.clear();
-	aoiEntities_map_.clear();
+	viewEntities_.clear();
+	viewEntities_map_.clear();
 
-	clientAOISize_ = 0;
+	clientViewSize_ = 0;
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::installAOITrigger()
+void Witness::installViewTrigger()
 {
-	if (pAOITrigger_)
+	if (pViewTrigger_)
 	{
-		// 在设置AOI半径为0后掉线重登陆会出现这种情况
-		if (aoiRadius_ <= 0.f)
+		// 在设置View半径为0后掉线重登陆会出现这种情况
+		if (viewRadius_ <= 0.f)
 			return;
 
-		// 必须先安装pAOIHysteresisAreaTrigger_，否则一些极端情况会出现错误的结果
-		// 例如：一个Avatar正好进入到世界此时正在安装AOI触发器，而安装过程中这个实体onWitnessed触发导致自身被销毁了
-		// 由于AOI触发器并未完全安装完毕导致触发器的节点old_xx等都为-FLT_MAX，所以该实体在离开坐标管理器时Avatar的AOI触发器判断错误
-		// 如果先安装pAOIHysteresisAreaTrigger_则不会触发实体进入AOI事件，这样在安装pAOITrigger_时触发事件导致上面出现的问题时也能之前捕获离开事件了
-		if (pAOIHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)
-			pAOIHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
+		// 必须先安装pViewHysteresisAreaTrigger_，否则一些极端情况会出现错误的结果
+		// 例如：一个Avatar正好进入到世界此时正在安装View触发器，而安装过程中这个实体onWitnessed触发导致自身被销毁了
+		// 由于View触发器并未完全安装完毕导致触发器的节点old_xx等都为-FLT_MAX，所以该实体在离开坐标管理器时Avatar的View触发器判断错误
+		// 如果先安装pViewHysteresisAreaTrigger_则不会触发实体进入View事件，这样在安装pViewTrigger_时触发事件导致上面出现的问题时也能之前捕获离开事件了
+		if (pViewHysteresisAreaTrigger_ && pEntity_/*上面流程可能导致销毁 */)
+			pViewHysteresisAreaTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 
 		if (pEntity_/*上面流程可能导致销毁 */)
-			pAOITrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
+			pViewTrigger_->reinstall((CoordinateNode*)pEntity_->pEntityCoordinateNode());
 	}
 	else
 	{
-		KBE_ASSERT(pAOIHysteresisAreaTrigger_ == NULL);
+		KBE_ASSERT(pViewHysteresisAreaTrigger_ == NULL);
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::uninstallAOITrigger()
+void Witness::uninstallViewTrigger()
 {
-	if (pAOITrigger_)
-		pAOITrigger_->uninstall();
+	if (pViewTrigger_)
+		pViewTrigger_->uninstall();
 
-	if (pAOIHysteresisAreaTrigger_)
-		pAOIHysteresisAreaTrigger_->uninstall();
+	if (pViewHysteresisAreaTrigger_)
+		pViewHysteresisAreaTrigger_->uninstall();
 
-	// 通知所有实体离开AOI
-	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for (; iter != aoiEntities_.end(); ++iter)
+	// 通知所有实体离开View
+	VIEW_ENTITIES::iterator iter = viewEntities_.begin();
+	for (; iter != viewEntities_.end(); ++iter)
 	{
-		_onLeaveAOI((*iter));
+		_onLeaveView((*iter));
 	}
 }
 
@@ -615,7 +615,7 @@ Network::Channel* Witness::pChannel()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEntityRef)
+void Witness::_addViewEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEntityRef)
 {
 	if(!EntityDef::entityAliasID())
 	{
@@ -624,8 +624,8 @@ void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnti
 	else
 	{
 		// 注意：不可在该模块外部使用，否则可能出现客户端表找不到entityID的情况
-		// clientAOISize_需要实体真正同步到客户端时才会增加
-		if(clientAOISize_ > 255)
+		// clientViewSize_需要实体真正同步到客户端时才会增加
+		if(clientViewSize_ > 255)
 		{
 			(*pBundle) << pEntityRef->id();
 		}
@@ -645,7 +645,7 @@ void Witness::_addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnti
 }
 
 //-------------------------------------------------------------------------------------
-const Network::MessageHandler& Witness::getAOIEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
+const Network::MessageHandler& Witness::getViewEntityMessageHandler(const Network::MessageHandler& normalMsgHandler,
 	const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID, int& ialiasID)
 {
 	ialiasID = -1;
@@ -655,7 +655,7 @@ const Network::MessageHandler& Witness::getAOIEntityMessageHandler(const Network
 	}
 	else
 	{
-		if (clientAOISize_ > 255)
+		if (clientViewSize_ > 255)
 		{
 			return normalMsgHandler;
 		}
@@ -680,8 +680,8 @@ const Network::MessageHandler& Witness::getAOIEntityMessageHandler(const Network
 //-------------------------------------------------------------------------------------
 bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 {
-	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(id);
-	if (iter == aoiEntities_map_.end())
+	VIEW_ENTITIES_MAP::iterator iter = viewEntities_map_.find(id);
+	if (iter == viewEntities_map_.end())
 	{
 		aliasID = 0;
 		return false;
@@ -709,8 +709,8 @@ bool Witness::entityID2AliasID(ENTITY_ID id, uint8& aliasID)
 void Witness::updateEntitiesAliasID()
 {
 	int n = 0;
-	AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-	for(; iter != aoiEntities_.end(); ++iter)
+	VIEW_ENTITIES::iterator iter = viewEntities_.begin();
+	for(; iter != viewEntities_.end(); ++iter)
 	{
 		EntityRef* pEntityRef = (*iter);
 		pEntityRef->aliasID(n++);
@@ -751,7 +751,7 @@ bool Witness::update()
 		}
 	}
 
-	if (aoiEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
+	if (viewEntities_map_.size() > 0 || pEntity_->isControlledNotSelfClient())
 	{
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		
@@ -762,22 +762,22 @@ bool Witness::update()
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity_->id(), (*pSendBundle));
 		addBaseDataToStream(pSendBundle);
 
-		AOI_ENTITIES::iterator iter = aoiEntities_.begin();
-		for(; iter != aoiEntities_.end(); )
+		VIEW_ENTITIES::iterator iter = viewEntities_.begin();
+		for(; iter != viewEntities_.end(); )
 		{
 			EntityRef* pEntityRef = (*iter);
 			
 			if((pEntityRef->flags() & ENTITYREF_FLAG_ENTER_CLIENT_PENDING) > 0)
 			{
-				// 这里使用id查找一下， 避免entity在进入AOI时的回调里被意外销毁
+				// 这里使用id查找一下， 避免entity在进入View时的回调里被意外销毁
 				Entity* otherEntity = Cellapp::getSingleton().findEntity(pEntityRef->id());
 				if(otherEntity == NULL)
 				{
 					pEntityRef->pEntity(NULL);
-					_onLeaveAOI(pEntityRef);
-					aoiEntities_map_.erase(pEntityRef->id());
+					_onLeaveView(pEntityRef);
+					viewEntities_map_.erase(pEntityRef->id());
 					EntityRef::reclaimPoolObject(pEntityRef);
-					iter = aoiEntities_.erase(iter);
+					iter = viewEntities_.erase(iter);
 					updateEntitiesAliasID();
 					continue;
 				}
@@ -804,9 +804,9 @@ bool Witness::update()
 
 				pEntityRef->flags(ENTITYREF_FLAG_NORMAL);
 
-				KBE_ASSERT(clientAOISize_ != 65535);
+				KBE_ASSERT(clientViewSize_ != 65535);
 
-				++clientAOISize_;
+				++clientViewSize_;
 			}
 			else if((pEntityRef->flags() & ENTITYREF_FLAG_LEAVE_CLIENT_PENDING) > 0)
 			{
@@ -815,16 +815,16 @@ bool Witness::update()
 				if((pEntityRef->flags() & ENTITYREF_FLAG_NORMAL) > 0)
 				{
 					ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
-					_addAOIEntityIDToBundle(pSendBundle, pEntityRef);
+					_addViewEntityIDToBundle(pSendBundle, pEntityRef);
 					ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorldOptimized, leaveWorld);
 					
-					KBE_ASSERT(clientAOISize_ > 0);
-					--clientAOISize_;
+					KBE_ASSERT(clientViewSize_ > 0);
+					--clientViewSize_;
 				}
 
-				aoiEntities_map_.erase(pEntityRef->id());
+				viewEntities_map_.erase(pEntityRef->id());
 				EntityRef::reclaimPoolObject(pEntityRef);
-				iter = aoiEntities_.erase(iter);
+				iter = viewEntities_.erase(iter);
 				updateEntitiesAliasID();
 				continue;
 			}
@@ -833,11 +833,11 @@ bool Witness::update()
 				Entity* otherEntity = pEntityRef->pEntity();
 				if(otherEntity == NULL)
 				{
-					aoiEntities_map_.erase(pEntityRef->id());
+					viewEntities_map_.erase(pEntityRef->id());
 					EntityRef::reclaimPoolObject(pEntityRef);
-					iter = aoiEntities_.erase(iter);
-					KBE_ASSERT(clientAOISize_ > 0);
-					--clientAOISize_;
+					iter = viewEntities_.erase(iter);
+					KBE_ASSERT(clientViewSize_ > 0);
+					--clientViewSize_;
 					updateEntitiesAliasID();
 					continue;
 				}
@@ -957,7 +957,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz, update);
 		}
@@ -967,7 +967,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			Position3D relativePos = otherEntity->position() - this->pEntity()->position();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xyz, update);
@@ -978,7 +978,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_y, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_y, update);
 		}
@@ -988,7 +988,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_r, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			(*pForwardBundle) << angle2int8(dir.roll());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_r, update);
 		}
@@ -998,7 +998,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_p, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			(*pForwardBundle) << angle2int8(dir.pitch());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_p, update);
 		}
@@ -1008,7 +1008,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_ypr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			(*pForwardBundle) << angle2int8(dir.pitch());
 			(*pForwardBundle) << angle2int8(dir.roll());
@@ -1020,7 +1020,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_yp, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			(*pForwardBundle) << angle2int8(dir.pitch());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_yp, update);
@@ -1031,7 +1031,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_yr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			(*pForwardBundle) << angle2int8(dir.roll());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_yr, update);
@@ -1042,7 +1042,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_pr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			(*pForwardBundle) << angle2int8(dir.pitch());
 			(*pForwardBundle) << angle2int8(dir.roll());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_pr, update);
@@ -1054,7 +1054,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz_y, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_y, update);
@@ -1066,7 +1066,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz_p, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			(*pForwardBundle) << angle2int8(dir.pitch());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_p, update);
@@ -1078,7 +1078,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz_r, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			(*pForwardBundle) << angle2int8(dir.roll());
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pForwardBundle, ClientInterface::onUpdateData_xz_r, update);
@@ -1090,7 +1090,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz_yr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			(*pForwardBundle) << angle2int8(dir.roll());
@@ -1103,7 +1103,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz_yp, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			(*pForwardBundle) << angle2int8(dir.pitch());
@@ -1116,7 +1116,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz_pr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			(*pForwardBundle) << angle2int8(dir.pitch());
 			(*pForwardBundle) << angle2int8(dir.roll());
@@ -1129,7 +1129,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xz_ypr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			(*pForwardBundle) << angle2int8(dir.yaw());
 			(*pForwardBundle) << angle2int8(dir.pitch());
@@ -1143,7 +1143,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz_y, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			(*pForwardBundle) << angle2int8(dir.yaw());
@@ -1156,7 +1156,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz_p, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			(*pForwardBundle) << angle2int8(dir.pitch());
@@ -1169,7 +1169,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz_r, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			(*pForwardBundle) << angle2int8(dir.roll());
@@ -1182,7 +1182,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz_yr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			(*pForwardBundle) << angle2int8(dir.yaw());
@@ -1196,7 +1196,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz_yp, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			(*pForwardBundle) << angle2int8(dir.yaw());
@@ -1210,7 +1210,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz_pr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			(*pForwardBundle) << angle2int8(dir.pitch());
@@ -1224,7 +1224,7 @@ void Witness::addUpdateToStream(Network::Bundle* pForwardBundle, uint32 flags, E
 			const Direction3D& dir = otherEntity->direction();
 
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pForwardBundle, ClientInterface::onUpdateData_xyz_ypr, update);
-			_addAOIEntityIDToBundle(pForwardBundle, pEntityRef);
+			_addViewEntityIDToBundle(pForwardBundle, pEntityRef);
 			pForwardBundle->appendPackXZ(relativePos.x, relativePos.z);
 			pForwardBundle->appendPackY(relativePos.y);
 			(*pForwardBundle) << angle2int8(dir.yaw());

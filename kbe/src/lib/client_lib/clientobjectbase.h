@@ -365,9 +365,9 @@ public:
 	ENTITY_ID getTargetID() const{ return targetID_; }
 	virtual void onTargetChanged(){}
 
-	ENTITY_ID getAoiEntityID(ENTITY_ID id);
-	ENTITY_ID getAoiEntityIDFromStream(MemoryStream& s);
-	ENTITY_ID getAoiEntityIDByAliasID(uint8 id);
+	ENTITY_ID getViewEntityID(ENTITY_ID id);
+	ENTITY_ID getViewEntityIDFromStream(MemoryStream& s);
+	ENTITY_ID getViewEntityIDByAliasID(uint8 id);
 
 	/** 
 		space相关操作接口

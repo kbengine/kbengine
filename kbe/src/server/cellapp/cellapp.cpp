@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.h"
 #include "witness.h"
 #include "coordinate_node.h"
-#include "aoi_trigger.h"
+#include "view_trigger.h"
 #include "watch_obj_pools.h"
 #include "cellapp_interface.h"
 #include "entity_remotemethod.h"

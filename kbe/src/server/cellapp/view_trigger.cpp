@@ -19,30 +19,30 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "witness.h"
 #include "entity.h"
-#include "aoi_trigger.h"
+#include "view_trigger.h"
 #include "entity_coordinate_node.h"
 
 #ifndef CODE_INLINE
-#include "aoi_trigger.inl"
+#include "view_trigger.inl"
 #endif
 
 namespace KBEngine{	
 
 
 //-------------------------------------------------------------------------------------
-AOITrigger::AOITrigger(CoordinateNode* origin, float xz, float y):
+ViewTrigger::ViewTrigger(CoordinateNode* origin, float xz, float y):
 RangeTrigger(origin, xz, y),
 pWitness_(static_cast<EntityCoordinateNode*>(origin)->pEntity()->pWitness())
 {
 }
 
 //-------------------------------------------------------------------------------------
-AOITrigger::~AOITrigger()
+ViewTrigger::~ViewTrigger()
 {
 }
 
 //-------------------------------------------------------------------------------------
-void AOITrigger::onEnter(CoordinateNode * pNode)
+void ViewTrigger::onEnter(CoordinateNode * pNode)
 {
 	if((pNode->flags() & COORDINATE_NODE_FLAG_ENTITY) <= 0)
 		return;
@@ -52,11 +52,11 @@ void AOITrigger::onEnter(CoordinateNode * pNode)
 	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onEnterAOI(this, pEntity);
+	pWitness_->onEnterView(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------
-void AOITrigger::onLeave(CoordinateNode * pNode)
+void ViewTrigger::onLeave(CoordinateNode * pNode)
 {
 	if((pNode->flags() & COORDINATE_NODE_FLAG_ENTITY) <= 0)
 		return;
@@ -66,7 +66,7 @@ void AOITrigger::onLeave(CoordinateNode * pNode)
 	if(!pEntity->pScriptModule()->hasClient())
 		return;
 
-	pWitness_->onLeaveAOI(this, pEntity);
+	pWitness_->onLeaveView(this, pEntity);
 }
 
 //-------------------------------------------------------------------------------------

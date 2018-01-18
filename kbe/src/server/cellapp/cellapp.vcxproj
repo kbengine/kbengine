@@ -210,7 +210,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="all_clients.cpp" />
-    <ClCompile Include="aoi_trigger.cpp" />
+    <ClCompile Include="view_trigger.cpp" />
     <ClCompile Include="cell.cpp" />
     <ClCompile Include="cellapp.cpp" />
     <ClCompile Include="cellapp_interface.cpp" />
@@ -256,7 +256,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="all_clients.h" />
-    <ClInclude Include="aoi_trigger.h" />
+    <ClInclude Include="view_trigger.h" />
     <ClInclude Include="cell.h" />
     <ClInclude Include="cellapp.h" />
     <ClInclude Include="cellapp_interface.h" />
@@ -301,7 +301,7 @@
     <ClInclude Include="witnessed_timeout_handler.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="aoi_trigger.inl" />
+    <None Include="view_trigger.inl" />
     <None Include="coordinate_node.inl" />
     <None Include="coordinate_system.inl" />
     <None Include="entity.inl" />

@@ -240,17 +240,17 @@ public:
 	void Client_onStreamDataCompleted(int16 id);
 
 	/*
-		服务端通知一个实体进入了世界(如果实体是当前玩家则玩家第一次在一个space中创建了， 如果是其他实体则是其他实体进入了玩家的AOI)
+		服务端通知一个实体进入了世界(如果实体是当前玩家则玩家第一次在一个space中创建了， 如果是其他实体则是其他实体进入了玩家的View)
 	*/
 	void Client_onEntityEnterWorld(MemoryStream& stream);
 
 	/*
-		服务端使用优化的方式通知一个实体离开了世界(如果实体是当前玩家则玩家离开了space， 如果是其他实体则是其他实体离开了玩家的AOI)
+		服务端使用优化的方式通知一个实体离开了世界(如果实体是当前玩家则玩家离开了space， 如果是其他实体则是其他实体离开了玩家的View)
 	*/
 	void Client_onEntityLeaveWorldOptimized(MemoryStream& stream);
 
 	/*
-		服务端通知一个实体离开了世界(如果实体是当前玩家则玩家离开了space， 如果是其他实体则是其他实体离开了玩家的AOI)
+		服务端通知一个实体离开了世界(如果实体是当前玩家则玩家离开了space， 如果是其他实体则是其他实体离开了玩家的View)
 	*/
 	void Client_onEntityLeaveWorld(ENTITY_ID eid);
 
@@ -345,9 +345,9 @@ private:
 	void onConnectTo_loginapp_create_callback(FString ip, uint16 port, bool success);
 
 	/*
-		通过流数据获得AOI实体的ID
+		通过流数据获得View实体的ID
 	*/
-	ENTITY_ID getAoiEntityIDFromStream(MemoryStream& stream);
+	ENTITY_ID getViewEntityIDFromStream(MemoryStream& stream);
 
 	/*
 	服务端更新实体属性数据
@@ -471,7 +471,7 @@ protected:
 	// https://github.com/kbengine/kbengine/tree/master/docs/api
 	ENTITIES_MAP entities_;
 
-	// 在玩家AOI范围小于256个实体时我们可以通过一字节索引来找到entity
+	// 在玩家View范围小于256个实体时我们可以通过一字节索引来找到entity
 	TArray<ENTITY_ID> entityIDAliasIDList_;
 	TMap<ENTITY_ID, MemoryStream*> bufferedCreateEntityMessages_;
 

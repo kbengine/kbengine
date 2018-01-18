@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_AOI_TRIGGER_H
-#define KBE_AOI_TRIGGER_H
+#ifndef KBE_VIEW_TRIGGER_H
+#define KBE_VIEW_TRIGGER_H
 
 #include "range_trigger.h"
 
@@ -27,11 +27,11 @@ namespace KBEngine{
 
 class Witness;
 
-class AOITrigger : public RangeTrigger
+class ViewTrigger : public RangeTrigger
 {
 public:
-	AOITrigger(CoordinateNode* origin, float xz = 0.0f, float y = 0.0f);
-	virtual ~AOITrigger();
+	ViewTrigger(CoordinateNode* origin, float xz = 0.0f, float y = 0.0f);
+	virtual ~ViewTrigger();
 	
 	/**
 		某个节点进入或者离开了rangeTrigger
@@ -48,6 +48,6 @@ protected:
 }
 
 #ifdef CODE_INLINE
-#include "aoi_trigger.inl"
+#include "view_trigger.inl"
 #endif
 #endif
