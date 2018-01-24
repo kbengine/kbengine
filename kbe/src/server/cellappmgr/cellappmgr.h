@@ -71,7 +71,7 @@ public:
 	/** 网络接口
 		baseEntity请求创建在一个新的space中
 	*/
-	void reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s);
+	void reqCreateCellEntityInNewSpace(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
 		baseEntity请求创建在一个新的space中

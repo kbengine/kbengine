@@ -33,11 +33,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-class FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp : public ForwardMessageOverHandler
+class FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp : public ForwardMessageOverHandler
 {
 public:
-	FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params);
-	~FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp();
+	FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params);
+	~FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp();
 
 	virtual void process();
 

@@ -216,7 +216,7 @@ public:
 	/** 
 		创建一个cellEntity在一个新的space上 
 	*/
-	DECLARE_PY_MOTHOD_ARG1(createInNewSpace, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG1(createCellEntityInNewSpace, PyObject_ptr);
 
 	/** 网络接口
 		客户端直接发送消息给cell实体

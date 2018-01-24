@@ -29,8 +29,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::
-FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params) :
+FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp::
+FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp(Entity* e, SPACE_ID spaceID, PyObject* params) :
 _e(e),
 _spaceID(spaceID),
 _params(params)
@@ -38,14 +38,14 @@ _params(params)
 }
 
 //-------------------------------------------------------------------------------------
-FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::~FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp()
+FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp::~FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp()
 {
 	if (_params)
 		Py_XDECREF(_params);
 }
 
 //-------------------------------------------------------------------------------------
-void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
+void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp::process()
 {
 	KBE_ASSERT(_e != NULL);
 	

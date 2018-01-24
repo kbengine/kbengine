@@ -861,7 +861,7 @@ void Cellapp::onBroadcastCellAppDataChanged(Network::Channel* pChannel, KBEngine
 }
 
 //-------------------------------------------------------------------------------------
-void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	std::string entityType;
 	ENTITY_ID entitycallEntityID;
@@ -875,7 +875,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 	s >> componentID;
 	s >> hasClient;
 
-	// DEBUG_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
+	// DEBUG_MSG("Cellapp::onCreateCellEntityInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), entitycallEntityID, componentID);
 
 	Space* space = Spaces::createNewSpace(spaceID, entityType);
@@ -888,7 +888,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		{
 			s.done();
 
-			ERROR_MSG("Cellapp::onCreateInNewSpaceFromBaseapp: createEntity error!\n");
+			ERROR_MSG("Cellapp::onCreateCellEntityInNewSpaceFromBaseapp: createEntity error!\n");
 
 			/* 目前来说除非内存或者系统问题，否则不会出现这个错误
 			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -925,14 +925,14 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		{
 			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			ForwardItem* pFI = new ForwardItem();
-			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID, cellData);
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp(e, spaceID, cellData);
 			//Py_XDECREF(cellData);
 			pFI->pBundle = pBundle;
 			(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 			BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), entitycallEntityID, componentID_, spaceID);
 			forward_messagebuffer_.push(componentID, pFI);
 			
-			WARNING_MSG(fmt::format("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp({}), message is buffered.\n",
+			WARNING_MSG(fmt::format("Cellapp::onCreateCellEntityInNewSpaceFromBaseapp: not found baseapp({}), message is buffered.\n",
 				componentID));
 			
 			return;
@@ -963,7 +963,7 @@ void Cellapp::onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine
 		return;
 	}
 	
-	ERROR_MSG(fmt::format("Cellapp::onCreateInNewSpaceFromBaseapp: not found baseapp[{}], entityID={}, spaceID={}.\n",
+	ERROR_MSG(fmt::format("Cellapp::onCreateCellEntityInNewSpaceFromBaseapp: not found baseapp[{}], entityID={}, spaceID={}.\n",
 		componentID, entitycallEntityID, spaceID));
 }
 
@@ -1023,7 +1023,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		{
 			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 			ForwardItem* pFI = new ForwardItem();
-			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp(e, spaceID, cellData);
+			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp(e, spaceID, cellData);
 			//Py_XDECREF(cellData);
 			pFI->pBundle = pBundle;
 			(*pBundle).newMessage(BaseappInterface::onEntityGetCell);

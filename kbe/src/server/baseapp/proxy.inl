@@ -71,9 +71,9 @@ INLINE const Network::Address& Proxy::addr() const
 	return addr_; 
 }
 
-INLINE bool Proxy::entitiesEnabled() const
-{ 
-	return entitiesEnabled_;
+INLINE bool Proxy::clientEnabled() const
+{
+	return clientEnabled_;
 }
 
 }

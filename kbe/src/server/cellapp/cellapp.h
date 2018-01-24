@@ -122,7 +122,7 @@ public:
 	/** 网络接口
 		baseEntity请求创建在一个新的space中
 	*/
-	void onCreateInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		baseEntity请求创建在一个新的space中

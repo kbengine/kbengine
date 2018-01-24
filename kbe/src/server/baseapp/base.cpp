@@ -40,7 +40,7 @@ namespace KBEngine{
 
 ENTITY_METHOD_DECLARE_BEGIN(Baseapp, Base)
 SCRIPT_METHOD_DECLARE("createCellEntity",				createCellEntity,				METH_VARARGS,			0)
-SCRIPT_METHOD_DECLARE("createInNewSpace",				createInNewSpace,				METH_VARARGS,			0)
+SCRIPT_METHOD_DECLARE("createCellEntityInNewSpace",		createCellEntityInNewSpace,		METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("destroyCellEntity",				pyDestroyCellEntity,			METH_VARARGS,			0)
 SCRIPT_METHOD_DECLARE("teleport",						pyTeleport,						METH_VARARGS,			0)
 ENTITY_METHOD_DECLARE_END()
@@ -1316,11 +1316,11 @@ void Base::restoreCell(EntityCallAbstract* cellEntityCall)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Base::createInNewSpace(PyObject* args)
+PyObject* Base::createCellEntityInNewSpace(PyObject* args)
 {
 	if(isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d is destroyed!\n",
+		PyErr_Format(PyExc_AssertionError, "%s::createCellEntityInNewSpace: %d is destroyed!\n",
 			scriptName(), id());
 		PyErr_PrintEx(0);
 		return 0;
@@ -1328,7 +1328,7 @@ PyObject* Base::createInNewSpace(PyObject* args)
 
 	if(createdSpace_ || this->cellEntityCall() != NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d in space!\n", 
+		PyErr_Format(PyExc_AssertionError, "%s::createCellEntityInNewSpace: %d in space!\n", 
 			scriptName(), id());
 
 		PyErr_PrintEx(0);
@@ -1336,7 +1336,7 @@ PyObject* Base::createInNewSpace(PyObject* args)
 	}
 
 	createdSpace_ = true;
-	Baseapp::getSingleton().createInNewSpace(this, args);
+	Baseapp::getSingleton().createCellEntityInNewSpace(this, args);
 	S_Return;
 }
 

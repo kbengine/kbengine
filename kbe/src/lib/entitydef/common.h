@@ -155,7 +155,7 @@ const char ENTITY_LIMITED_PROPERTYS[][34] =
 	"__ACCOUNT_NAME__",
 	"__ACCOUNT_PASSWORD__",
 	"clientAddr",
-	"entitiesEnabled",
+	"clientEnabled",
 	"hasClient",
 	"roundTripTime",
 	"timeSinceHeardFromClient",

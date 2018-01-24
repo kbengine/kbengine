@@ -91,13 +91,13 @@ public:
 	/** 
 		实体是否可用
 	*/
-	INLINE bool entitiesEnabled() const;
-	DECLARE_PY_GET_MOTHOD(pyGetEntitiesEnabled);
+	INLINE bool clientEnabled() const;
+	DECLARE_PY_GET_MOTHOD(pyGetClientEnabled);
 
 	/**
 		这个entity被激活了, 在客户端初始化好对应的entity后， 这个方法被调用
 	*/
-	void onEntitiesEnabled(void);
+	void onClientEnabled(void);
 	
 	/**
 		一个数据下载任务完成
@@ -196,7 +196,7 @@ protected:
 	Network::Address addr_;
 	DataDownloads dataDownloads_;
 
-	bool entitiesEnabled_;
+	bool clientEnabled_;
 
 	// 限制客户端每秒所能使用的带宽
 	int32 bandwidthPerSecond_;

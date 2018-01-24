@@ -53,7 +53,7 @@ SCRIPT_GET_DECLARE("roundTripTime",						pyGetRoundTripTime,				0,						0)
 SCRIPT_GET_DECLARE("timeSinceHeardFromClient",			pyGetTimeSinceHeardFromClient,	0,						0)	
 SCRIPT_GET_DECLARE("clientAddr",						pyClientAddr,					0,						0)	
 SCRIPT_GET_DECLARE("hasClient",							pyHasClient,					0,						0)	
-SCRIPT_GET_DECLARE("entitiesEnabled",					pyGetEntitiesEnabled,			0,						0)	
+SCRIPT_GET_DECLARE("clientEnabled",						pyGetClientEnabled,				0,						0)	
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
@@ -63,7 +63,7 @@ Base(id, pScriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Network::Address::NONE),
 dataDownloads_(),
-entitiesEnabled_(false),
+clientEnabled_(false),
 bandwidthPerSecond_(0),
 encryptionKey(),
 pProxyForwarder_(NULL),
@@ -176,11 +176,11 @@ void Proxy::initClientCellPropertys()
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onEntitiesEnabled(void)
+void Proxy::onClientEnabled(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	entitiesEnabled_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEntitiesEnabled"));
+	clientEnabled_ = true;
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientEnabled"));
 }
 
 //-------------------------------------------------------------------------------------
@@ -228,7 +228,7 @@ void Proxy::onClientDeath(void)
 	clientEntityCall(NULL);
 	addr(Network::Address::NONE);
 
-	entitiesEnabled_ = false;
+	clientEnabled_ = false;
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
 }
 
@@ -389,7 +389,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		sendToClient(ClientInterface::onEntityDestroyed, pBundle);
 
 		// 将控制权交换
-		entitiesEnabled_ = false;
+		clientEnabled_ = false;
 		clientEntityCall()->addr(Network::Address::NONE);
 		Py_DECREF(clientEntityCall());
 		proxy->setClientType(this->getClientType());
@@ -536,7 +536,7 @@ PyObject* Proxy::pyClientAddr()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Proxy::pyGetEntitiesEnabled()
+PyObject* Proxy::pyGetClientEnabled()
 { 
 	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
@@ -546,7 +546,7 @@ PyObject* Proxy::pyGetEntitiesEnabled()
 		return 0;																				
 	}
 
-	if(this->entitiesEnabled())
+	if(this->clientEnabled())
 	{
 		Py_RETURN_TRUE;
 	}

@@ -2355,12 +2355,12 @@ void Baseapp::onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel*
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
+void Baseapp::createCellEntityInNewSpace(Base* base, PyObject* pyCellappIndex)
 {
 	ScriptDefModule* pScriptModule = base->pScriptModule();
 	if (!pScriptModule || !pScriptModule->hasCell())
 	{
-		ERROR_MSG(fmt::format("{}::createInNewSpace: cannot find the cellapp script({})!\n",
+		ERROR_MSG(fmt::format("{}::createCellEntityInNewSpace: cannot find the cellapp script({})!\n",
 			pScriptModule->getName(), pScriptModule->getName()));
 
 		return;
@@ -2379,7 +2379,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
-	(*pBundle).newMessage(CellappmgrInterface::reqCreateInNewSpace);
+	(*pBundle).newMessage(CellappmgrInterface::reqCreateCellEntityInNewSpace);
 
 	(*pBundle) << entityType;
 	(*pBundle) << id;
@@ -2404,7 +2404,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 		}
 		else
 		{
-			ERROR_MSG("Baseapp::createInNewSpace: cellappmgr channel is NULL.\n");
+			ERROR_MSG("Baseapp::createCellEntityInNewSpace: cellappmgr channel is NULL.\n");
 			Network::Bundle::reclaimPoolObject(pBundle);
 		}
 		
@@ -2412,7 +2412,7 @@ void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 	}
 
 	Network::Bundle::reclaimPoolObject(pBundle);
-	ERROR_MSG("Baseapp::createInNewSpace: not found cellappmgr.\n");
+	ERROR_MSG("Baseapp::createCellEntityInNewSpace: not found cellappmgr.\n");
 }
 
 //-------------------------------------------------------------------------------------
@@ -3059,7 +3059,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
 	//if(!reload)
-	base->onEntitiesEnabled();
+	base->onClientEnabled();
 	Py_DECREF(base);
 	return true;
 }
@@ -3909,7 +3909,7 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 	createClientProxies(proxy, true);
 	proxy->onGetWitness();
 	Py_DECREF(proxy);
-	// proxy->onEntitiesEnabled();
+	// proxy->onClientEnabled();
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(ClientInterface::onReloginBaseappSuccessfully);
