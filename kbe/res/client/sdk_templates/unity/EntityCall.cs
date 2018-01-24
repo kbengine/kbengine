@@ -6,26 +6,26 @@
 	using System.Collections.Generic;
 	
 	/*
-		实体的Mailbox
-		关于Mailbox请参考API手册中对它的描述
+		实体的EntityCall
+		关于EntityCall请参考API手册中对它的描述
 		https://github.com/kbengine/kbengine/tree/master/docs/api
 	*/
-    public class EntityMailbox 
+    public class EntityCall 
     {
-    	// Mailbox的类别
-		public enum MAILBOX_TYPE
+    	// EntityCall的类别
+		public enum ENTITYCALL_TYPE
 		{
-			MAILBOX_TYPE_CELL = 0,		// CELL_MAILBOX
-			MAILBOX_TYPE_BASE = 1		// BASE_MAILBOX
+			ENTITYCALL_TYPE_CELL = 0,		// CELL_ENTITYCALL_TYPE
+			ENTITYCALL_TYPE_BASE = 1		// BASE_ENTITYCALL_TYPE
 		}
 		
     	public Int32 id = 0;
 		public string className = "";
-		public MAILBOX_TYPE type = MAILBOX_TYPE.MAILBOX_TYPE_CELL;
+		public ENTITYCALL_TYPE type = ENTITYCALL_TYPE.ENTITYCALL_TYPE_CELL;
 		
 		public Bundle bundle = null;
 		
-		public EntityMailbox()
+		public EntityCall()
 		{
 		}
 		
@@ -35,18 +35,18 @@
 		
 		public virtual bool isBase()
 		{
-			return type == MAILBOX_TYPE.MAILBOX_TYPE_BASE;
+			return type == ENTITYCALL_TYPE.ENTITYCALL_TYPE_BASE;
 		}
 	
 		public virtual bool isCell()
 		{
-			return type == MAILBOX_TYPE.MAILBOX_TYPE_CELL;
+			return type == ENTITYCALL_TYPE.ENTITYCALL_TYPE_CELL;
 		}
 		
 		/*
 			创建新的mail
 		*/
-		public Bundle newMail()
+		public Bundle newCall()
 		{  
 			if(bundle == null)
 				bundle = Bundle.createObject();
@@ -64,7 +64,7 @@
 		/*
 			向服务端发送这个mail
 		*/
-		public void postMail(Bundle inbundle)
+		public void sendCall(Bundle inbundle)
 		{
 			if(inbundle == null)
 				inbundle = bundle;
@@ -75,18 +75,18 @@
 				bundle = null;
 		}
 
-		public Bundle newMail(string methodName)
+		public Bundle newCall(string methodName)
 		{			
 			if(KBEngineApp.app.currserver == "loginapp")
 			{
-				Dbg.ERROR_MSG(className + "::newMail(" + methodName + "), currserver=!" + KBEngineApp.app.currserver);  
+				Dbg.ERROR_MSG(className + "::newCall(" + methodName + "), currserver=!" + KBEngineApp.app.currserver);  
 				return null;
 			}
 
 			ScriptModule module = null;
 			if(!EntityDef.moduledefs.TryGetValue(className, out module))
 			{
-				Dbg.ERROR_MSG(className + "::newMail: entity-module(" + className + ") error, can not find from EntityDef.moduledefs");
+				Dbg.ERROR_MSG(className + "::newCall: entity-module(" + className + ") error, can not find from EntityDef.moduledefs");
 				return null;
 			}
 				
@@ -103,7 +103,7 @@
 
 			UInt16 methodID = method.methodUtype;
 
-			newMail();
+			newCall();
 			bundle.writeUint16(methodID);
 			return bundle;
 		}

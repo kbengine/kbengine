@@ -10,7 +10,7 @@
 #include "ScriptModule.h"
 #include "Property.h"
 #include "Method.h"
-#include "Mailbox.h"
+#include "EntityCall.h"
 #include "Regex.h"
 #include "KBDebug.h"
 
@@ -846,11 +846,11 @@ void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& en
 		pEntity->id(eid);
 		pEntity->className(entityType);
 
-		Mailbox* baseMB = new Mailbox();
+		EntityCall* baseMB = new EntityCall();
 		pEntity->base(baseMB);
 		baseMB->id = eid;
 		baseMB->className = entityType;
-		baseMB->type = Mailbox::MAILBOX_TYPE_BASE;
+		baseMB->type = EntityCall::ENTITY_CALL_TYPE_BASE;
 
 		entities_.Add(eid, pEntity);
 
@@ -2077,11 +2077,11 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 		pEntity->id(eid);
 		pEntity->className(entityType);
 
-		Mailbox* cellMB = new Mailbox();
+		EntityCall* cellMB = new EntityCall();
 		pEntity->cell(cellMB);
 		cellMB->id = eid;
 		cellMB->className = entityType;
-		cellMB->type = Mailbox::MAILBOX_TYPE_CELL;
+		cellMB->type = EntityCall::ENTITY_CALL_TYPE_CELL;
 
 		entities_.Add(eid, pEntity);
 
@@ -2114,11 +2114,11 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 			clearEntities(false);
 			entities_.Add(pEntity->id(), pEntity);
 
-			Mailbox* cellMB = new Mailbox();
+			EntityCall* cellMB = new EntityCall();
 			pEntity->cell(cellMB);
 			cellMB->id = eid;
 			cellMB->className = entityType;
-			cellMB->type = Mailbox::MAILBOX_TYPE_CELL;
+			cellMB->type = EntityCall::ENTITY_CALL_TYPE_CELL;
 
 			pEntity->set_direction(pEntity->direction);
 			pEntity->set_position(pEntity->position);

@@ -5,7 +5,7 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
-class Mailbox;
+class EntityCall;
 
 
 /*
@@ -70,17 +70,17 @@ public:
 		id_ = v;
 	}
 
-	Mailbox* base() const {
+	EntityCall* base() const {
 		return base_;
 	}
 
-	void base(Mailbox* v);
+	void base(EntityCall* v);
 
-	Mailbox* cell() const {
+	EntityCall* cell() const {
 		return cell_;
 	}
 
-	void cell(Mailbox* v);
+	void cell(EntityCall* v);
 
 	float velocity() const {
 		return velocity_;
@@ -204,8 +204,8 @@ protected:
 
 	bool isOnGround_;
 
-	Mailbox* base_;
-	Mailbox* cell_;
+	EntityCall* base_;
+	EntityCall* cell_;
 
 	// enterworld之后设置为true
 	bool inWorld_;

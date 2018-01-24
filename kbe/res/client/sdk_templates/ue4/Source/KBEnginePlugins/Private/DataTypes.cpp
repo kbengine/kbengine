@@ -384,25 +384,25 @@ bool KBEDATATYPE_UNICODE::isSameType(KBVar& v)
 		|| v.GetType() == EKBVarTypes::Ansichar;
 }
 
-KBVar* KBEDATATYPE_MAILBOX::createFromStream(MemoryStream& stream)
+KBVar* KBEDATATYPE_ENTITYCALL::createFromStream(MemoryStream& stream)
 {
 	TArray<uint8> val;
 	stream.readBlob(val);
 	return new KBVar(val);
 }
 
-void KBEDATATYPE_MAILBOX::addToStream(Bundle& stream, KBVar& v)
+void KBEDATATYPE_ENTITYCALL::addToStream(Bundle& stream, KBVar& v)
 {
 	TArray<uint8> val = v;
 	stream.appendBlob(val);
 }
 
-KBVar* KBEDATATYPE_MAILBOX::parseDefaultValStr(const FString& v)
+KBVar* KBEDATATYPE_ENTITYCALL::parseDefaultValStr(const FString& v)
 {
 	return new KBVar(TArray<uint8>());
 }
 
-bool KBEDATATYPE_MAILBOX::isSameType(KBVar& v)
+bool KBEDATATYPE_ENTITYCALL::isSameType(KBVar& v)
 {
 	return v.GetType() == EKBVarTypes::ByteArray;
 }

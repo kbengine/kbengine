@@ -909,7 +909,7 @@ KBEngine.mappingDataType = function(writer, argType)
 	KBEngine.datatype2id["DATATYPE"] = 2;
 	KBEngine.datatype2id["CHAR"] = 2;
 	KBEngine.datatype2id["DETAIL_TYPE"] = 2;
-	KBEngine.datatype2id["MAIL_TYPE"] = 2;
+	KBEngine.datatype2id["ENTITYCALL_TYPE"] = 2;
 
 	KBEngine.datatype2id["UINT16"] = 3;
 	KBEngine.datatype2id["UNSIGNED SHORT"] = 3;
@@ -950,7 +950,7 @@ KBEngine.mappingDataType = function(writer, argType)
 	KBEngine.datatype2id["PY_DICT"] = 10;
 	KBEngine.datatype2id["PY_TUPLE"] = 10;
 	KBEngine.datatype2id["PY_LIST"] = 10;
-	KBEngine.datatype2id["MAILBOX"] = 10;
+	KBEngine.datatype2id["ENTITYCALL"] = 10;
 
 	KBEngine.datatype2id["BLOB"] = 11;
 
@@ -1353,7 +1353,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.base.newMail();
+		this.base.newCall();
 		this.base.bundle.writeUint16(methodID);
 		
 		try
@@ -1378,7 +1378,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.base.postMail();
+		this.base.sendCall();
 	},
 	
 	cellCall : function()
@@ -1412,7 +1412,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.cell.newMail();
+		this.cell.newCall();
 		this.cell.bundle.writeUint16(methodID);
 		
 		try
@@ -1437,7 +1437,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.cell.postMail();
+		this.cell.sendCall();
 	},
 	
 	enterWorld : function()
@@ -1517,36 +1517,36 @@ KBEngine.Entity = KBEngine.Class.extend(
 });
 
 /*-----------------------------------------------------------------------------------------
-												mailbox
+												EntityCall
 -----------------------------------------------------------------------------------------*/
-KBEngine.MAILBOX_TYPE_CELL = 0;
-KBEngine.MAILBOX_TYPE_BASE = 1;
+KBEngine.ENTITY_CALL_TYPE_CELL = 0;
+KBEngine.ENTITY_CALL_TYPE_BASE = 1;
 
-KBEngine.Mailbox = function()
+KBEngine.EntityCall = function()
 {
 	this.id = 0;
 	this.className = "";
-	this.type = KBEngine.MAILBOX_TYPE_CELL;
+	this.type = KBEngine.ENTITY_CALL_TYPE_CELL;
 	this.networkInterface = KBEngine.app;
 	
 	this.bundle = null;
 	
 	this.isBase = function()
 	{
-		return this.type == KBEngine.MAILBOX_TYPE_BASE;
+		return this.type == KBEngine.ENTITY_CALL_TYPE_BASE;
 	}
 
 	this.isCell = function()
 	{
-		return this.type == KBEngine.MAILBOX_TYPE_CELL;
+		return this.type == KBEngine.ENTITY_CALL_TYPE_CELL;
 	}
 	
-	this.newMail = function()
+	this.newCall = function()
 	{  
 		if(this.bundle == null)
 			this.bundle = new KBEngine.Bundle();
 		
-		if(this.type == KBEngine.MAILBOX_TYPE_CELL)
+		if(this.type == KBEngine.ENTITY_CALL_TYPE_CELL)
 			this.bundle.newMessage(KBEngine.messages.Baseapp_onRemoteCallCellMethodFromClient);
 		else
 			this.bundle.newMessage(KBEngine.messages.Base_onRemoteMethodCall);
@@ -1556,7 +1556,7 @@ KBEngine.Mailbox = function()
 		return this.bundle;
 	}
 	
-	this.postMail = function(bundle)
+	this.sendCall = function(bundle)
 	{
 		if(bundle == undefined)
 			bundle = this.bundle;
@@ -2148,7 +2148,7 @@ KBEngine.DATATYPE_UNICODE = function()
 	}
 }
 
-KBEngine.DATATYPE_MAILBOX = function()
+KBEngine.DATATYPE_ENTITYCALL = function()
 {
 	this.bind = function()
 	{
@@ -2328,7 +2328,7 @@ KBEngine.datatypes["VECTOR3"]	= new KBEngine.DATATYPE_VECTOR3;
 KBEngine.datatypes["VECTOR4"]	= new KBEngine.DATATYPE_VECTOR4;
 KBEngine.datatypes["PYTHON"]	= new KBEngine.DATATYPE_PYTHON();
 KBEngine.datatypes["UNICODE"]	= new KBEngine.DATATYPE_UNICODE();
-KBEngine.datatypes["MAILBOX"]	= new KBEngine.DATATYPE_MAILBOX();
+KBEngine.datatypes["ENTITYCALL"]= new KBEngine.DATATYPE_ENTITYCALL();
 KBEngine.datatypes["BLOB"]		= new KBEngine.DATATYPE_BLOB();
 
 /*-----------------------------------------------------------------------------------------
@@ -3424,10 +3424,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			entity.id = eid;
 			entity.className = entityType;
 			
-			entity.base = new KBEngine.Mailbox();
+			entity.base = new KBEngine.EntityCall();
 			entity.base.id = eid;
 			entity.base.className = entityType;
-			entity.base.type = KBEngine.MAILBOX_TYPE_BASE;
+			entity.base.type = KBEngine.ENTITY_CALL_TYPE_BASE;
 			
 			KBEngine.app.entities[eid] = entity;
 			
@@ -3630,10 +3630,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			entity.id = eid;
 			entity.className = entityType;
 			
-			entity.cell = new KBEngine.Mailbox();
+			entity.cell = new KBEngine.EntityCall();
 			entity.cell.id = eid;
 			entity.cell.className = entityType;
-			entity.cell.type = KBEngine.MAILBOX_TYPE_CELL;
+			entity.cell.type = KBEngine.ENTITY_CALL_TYPE_CELL;
 			
 			KBEngine.app.entities[eid] = entity;
 			
@@ -3656,10 +3656,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		{
 			if(!entity.inWorld)
 			{
-				entity.cell = new KBEngine.Mailbox();
+				entity.cell = new KBEngine.EntityCall();
 				entity.cell.id = eid;
 				entity.cell.className = entityType;
-				entity.cell.type = KBEngine.MAILBOX_TYPE_CELL;
+				entity.cell.type = KBEngine.ENTITY_CALL_TYPE_CELL;
 
 				// 安全起见， 这里清空一下
 				// 如果服务端上使用giveClientTo切换控制权

@@ -1,28 +1,28 @@
 
-#include "Mailbox.h"
+#include "EntityCall.h"
 #include "Bundle.h"
 #include "KBEngine.h"
 #include "Message.h"
 #include "KBDebug.h"
 
-Mailbox::Mailbox():
+EntityCall::EntityCall():
 	id(0),
 	className(),
-	type(MAILBOX_TYPE_CELL),
+	type(ENTITY_CALL_TYPE_CELL),
 	pBundle(NULL)
 {
 }
 
-Mailbox::~Mailbox()
+EntityCall::~EntityCall()
 {
 }
 
-Bundle* Mailbox::newMail()
+Bundle* EntityCall::newCall()
 {
 	if (!pBundle)
 		pBundle = Bundle::createObject();
 
-	if (type == MAILBOX_TYPE_CELL)
+	if (type == ENTITY_CALL_TYPE_CELL)
 		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_onRemoteCallCellMethodFromClient"]));
 	else
 		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Base_onRemoteMethodCall"]));
@@ -31,7 +31,7 @@ Bundle* Mailbox::newMail()
 	return pBundle;
 }
 
-void Mailbox::postMail(Bundle* inBundle)
+void EntityCall::sendCall(Bundle* inBundle)
 {
 	if (!inBundle)
 		inBundle = pBundle;

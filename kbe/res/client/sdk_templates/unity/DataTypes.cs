@@ -473,7 +473,7 @@
 		}
 	}
 	
-	public class DATATYPE_MAILBOX : DATATYPE_BASE
+	public class DATATYPE_ENTITYCALL : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
