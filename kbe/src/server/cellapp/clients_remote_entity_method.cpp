@@ -74,10 +74,10 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 
 	Entity* pEntity = Cellapp::getSingleton().findEntity(id_);
 	if(pEntity == NULL || /*pEntity->pWitness() == NULL ||*/
-		pEntity->isDestroyed() /*|| pEntity->clientMailbox() == NULL*/)
+		pEntity->isDestroyed() /*|| pEntity->clientEntityCall() == NULL*/)
 	{
 		//WARNING_MSG(fmt::format("EntityRemoteMethod::callClientMethod: not found entity({}).\n", 
-		//	mailbox->id()));
+		//	entitycall->id()));
 
 		S_Return;
 	}
@@ -96,17 +96,17 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
 
-		if((!otherClients_ && (pEntity->pWitness() && (pEntity->clientMailbox()))))
+		if((!otherClients_ && (pEntity->pWitness() && (pEntity->clientEntityCall()))))
 		{
 			Network::Bundle* pSendBundle = NULL;
-			Network::Channel* pChannel = pEntity->clientMailbox()->getChannel();
+			Network::Channel* pChannel = pEntity->clientEntityCall()->getChannel();
 
 			if (!pChannel)
 				pSendBundle = Network::Bundle::createPoolObject();
 			else
 				pSendBundle = pChannel->createSendBundle();
 
-			pEntity->clientMailbox()->newMail((*pSendBundle));
+			pEntity->clientEntityCall()->newCall((*pSendBundle));
 
 			if(mstream->wpos() > 0)
 				(*pSendBundle).append(mstream->data(), (int)mstream->wpos());
@@ -142,7 +142,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				pSendBundle->currMsgLength(),
 				"::");
 
-			//mailbox->postMail((*pBundle));
+			//entitycall->sendCall((*pBundle));
 			pEntity->pWitness()->sendToClient(ClientInterface::onRemoteMethodCall, pSendBundle);
 		}
 
@@ -154,11 +154,11 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			if(pViewEntity == NULL || pViewEntity->pWitness() == NULL || pViewEntity->isDestroyed())
 				continue;
 			
-			EntityMailbox* mailbox = pViewEntity->clientMailbox();
-			if(mailbox == NULL)
+			EntityCall* entitycall = pViewEntity->clientEntityCall();
+			if(entitycall == NULL)
 				continue;
 
-			Network::Channel* pChannel = mailbox->getChannel();
+			Network::Channel* pChannel = entitycall->getChannel();
 			if(pChannel == NULL)
 				continue;
 

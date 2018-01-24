@@ -248,7 +248,7 @@ public:
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 
 	*/
-	void createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base);
+	void createCellEntity(EntityCallAbstract* createToCellEntityCall, Base* base);
 	
 	/** 网络接口
 		createCellEntity失败的回调。
@@ -331,10 +331,10 @@ public:
 	void onClientEntityEnterWorld(Proxy* base, COMPONENT_ID componentID);
 
 	/** 网络接口
-		entity收到一封mail, 由某个app上的mailbox发起(只限与服务器内部使用， 客户端的mailbox调用方法走
+		entity收到远程call请求, 由某个app上的entityCall发起(只限与服务器内部使用， 客户端的entitycall调用方法走
 		onRemoteCellMethodCallFromClient)
 	*/
-	void onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 	
 	/** 网络接口
 		client访问entity的cell方法
@@ -407,9 +407,9 @@ public:
 	void onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
-		hook mailboxcall
+		hook entitycall call
 	*/
-	RemoteEntityMethod* createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox);
+	RemoteEntityMethod* createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCall* pEntityCall);
 
 	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
@@ -472,7 +472,7 @@ public:
 	/**
 		通过dbid从数据库中删除一个实体
 
-		从数据库删除实体， 如果实体不在线则可以直接删除回调返回true， 如果在线则回调返回的是entity的mailbox， 其他任何原因都返回false.
+		从数据库删除实体， 如果实体不在线则可以直接删除回调返回true， 如果在线则回调返回的是entity的entitycall， 其他任何原因都返回false.
 	*/
 	static PyObject* __py_deleteBaseByDBID(PyObject* self, PyObject* args);
 
@@ -484,12 +484,12 @@ public:
 	/**
 		通过dbid查询一个实体是否从数据库检出
 
-		如果实体在线回调返回basemailbox，如果实体不在线则回调返回true，其他任何原因都返回false.
+		如果实体在线回调返回baseentitycall，如果实体不在线则回调返回true，其他任何原因都返回false.
 	*/
 	static PyObject* __py_lookUpBaseByDBID(PyObject* self, PyObject* args);
 
 	/** 网络接口
-		如果实体在线回调返回basemailbox，如果实体不在线则回调返回true，其他任何原因都返回false.
+		如果实体在线回调返回baseentitycall，如果实体不在线则回调返回true，其他任何原因都返回false.
 	*/
 	void lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 

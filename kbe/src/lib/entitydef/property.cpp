@@ -61,8 +61,8 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 {
 	dataType_->incRef();
 
-	// mailbox 无法保存
-	if(isPersistent && strcmp(dataType_->getName(), "MAILBOX") == 0)
+	// entitycall 无法保存
+	if(isPersistent && strcmp(dataType_->getName(), "ENTITYCALL") == 0)
 	{
 		isPersistent_ = false;
 	}

@@ -133,7 +133,7 @@ public:
 	static bool convertPyObjectToVector3(Vector3& v, PyObject* obj);
 
 	/** 
-		设置mailbox的__getEntityFunc函数地址 
+		设置entitycall的__getEntityFunc函数地址 
 	*/
 	void setPYVector3ChangedCallback(PYVector3ChangedCallback* func){ 
 		_pyVector3ChangedCallback = func; 

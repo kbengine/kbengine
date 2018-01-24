@@ -67,7 +67,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateInNewSpaceFromBaseapp::process()
 	// Ìí¼Óµ½space
 	space->addEntityToNode(_e);
 
-	if (_e->clientMailbox())
+	if (_e->clientEntityCall())
 	{
 		_e->onGetWitness();
 	}

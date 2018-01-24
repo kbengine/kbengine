@@ -30,7 +30,7 @@ INLINE bool Entity::isWitnessed(void) const
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::hasWitness(void) const
 { 
-	return pWitness_ != NULL &&  clientMailbox_ != NULL; 
+	return pWitness_ != NULL &&  clientEntityCall_ != NULL; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -98,27 +98,27 @@ INLINE Position3D& Entity::position()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::baseMailbox() const
+INLINE EntityCall* Entity::baseEntityCall() const
 { 
-	return baseMailbox_; 
+	return baseEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::baseMailbox(EntityMailbox* mailbox)
+INLINE void Entity::baseEntityCall(EntityCall* entitycall)
 { 
-	baseMailbox_ = mailbox; 
+	baseEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::clientMailbox(EntityMailbox* mailbox)
+INLINE void Entity::clientEntityCall(EntityCall* entitycall)
 {
-	clientMailbox_ = mailbox; 
+	clientEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::clientMailbox() const
+INLINE EntityCall* Entity::clientEntityCall() const
 { 
-	return clientMailbox_; 
+	return clientEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -260,18 +260,18 @@ INLINE bool Entity::isControlledNotSelfClient() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::controlledBy() const
+INLINE EntityCall* Entity::controlledBy() const
 {
 	return controlledBy_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::controlledBy(EntityMailbox* baseMailbox)
+INLINE void Entity::controlledBy(EntityCall* baseEntityCall)
 {
 	if (controlledBy_)
 		Py_DECREF(controlledBy_);
 
-	controlledBy_ = baseMailbox;
+	controlledBy_ = baseEntityCall;
 
 	if (controlledBy_)
 		Py_INCREF(controlledBy_);

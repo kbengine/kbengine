@@ -745,9 +745,9 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		return new EntityTableItemMysql_VECTOR4("float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 #endif
-	else if(type == "MAILBOX")
+	else if(type == "ENTITYCALL")
 	{
-		return new EntityTableItemMysql_MAILBOX("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_ENTITYCALL("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 
 	KBE_ASSERT(false && "not found type.\n");
@@ -1176,23 +1176,23 @@ void EntityTableItemMysql_VECTOR4::getReadSqlItem(mysql::DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_MAILBOX::syncToDB(DBInterface* pdbi, void* pData)
+bool EntityTableItemMysql_ENTITYCALL::syncToDB(DBInterface* pdbi, void* pData)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_ENTITYCALL::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
+void EntityTableItemMysql_ENTITYCALL::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getReadSqlItem(mysql::DBContext& context)
+void EntityTableItemMysql_ENTITYCALL::getReadSqlItem(mysql::DBContext& context)
 {
 }
 

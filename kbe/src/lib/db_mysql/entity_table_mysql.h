@@ -375,18 +375,18 @@ protected:
 	char db_item_names_[4][MAX_BUF];
 };
 
-class EntityTableItemMysql_MAILBOX : public EntityTableItemMysqlBase
+class EntityTableItemMysql_ENTITYCALL : public EntityTableItemMysqlBase
 {
 public:
-	EntityTableItemMysql_MAILBOX(std::string itemDBType, 
+	EntityTableItemMysql_ENTITYCALL(std::string itemDBType, 
 		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype):
 	  EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype)
 	  {
 	  }
 
-	virtual ~EntityTableItemMysql_MAILBOX(){};
+	virtual ~EntityTableItemMysql_ENTITYCALL(){};
 
-	uint8 type() const{ return TABLE_ITEM_TYPE_MAILBOX; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_ENTITYCALL; }
 
 	/**
 		同步entity表到数据库中

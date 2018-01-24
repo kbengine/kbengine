@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef.h"
 #include "fixeddict.h"
 #include "fixedarray.h"
-#include "entity_mailbox.h"
+#include "entity_call.h"
 #include "scriptdef_module.h"
 #include "pyscript/vector2.h"
 #include "pyscript/vector3.h"
@@ -1378,26 +1378,26 @@ PyObject* BlobType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-MailboxType::MailboxType(DATATYPE_UID did):
+EntityCallType::EntityCallType(DATATYPE_UID did):
 DataType(did)
 {
 }
 
 //-------------------------------------------------------------------------------------
-MailboxType::~MailboxType()
+EntityCallType::~EntityCallType()
 {
 }
 
 //-------------------------------------------------------------------------------------
-bool MailboxType::isSameType(PyObject* pyValue)
+bool EntityCallType::isSameType(PyObject* pyValue)
 {
 	if(pyValue == NULL)
 	{
-		OUT_TYPE_ERROR("MAILBOX");
+		OUT_TYPE_ERROR("ENTITYCALL");
 		return false;
 	}
 
-	if(!(PyObject_TypeCheck(pyValue, EntityMailbox::getScriptType()) || pyValue == Py_None))
+	if(!(PyObject_TypeCheck(pyValue, EntityCall::getScriptType()) || pyValue == Py_None))
 	{
 		PyTypeObject* type = script::ScriptObject::getScriptObjectType("Entity");
 		if(type == NULL)
@@ -1405,13 +1405,13 @@ bool MailboxType::isSameType(PyObject* pyValue)
 			type = script::ScriptObject::getScriptObjectType("Base");
 			if(type && !(PyObject_IsInstance(pyValue, (PyObject *)type)))
 			{
-				OUT_TYPE_ERROR("MAILBOX");
+				OUT_TYPE_ERROR("ENTITYCALL");
 				return false;
 			}
 		}
 		else if(!(PyObject_IsInstance(pyValue, (PyObject *)type)))
 		{
-			OUT_TYPE_ERROR("MAILBOX");
+			OUT_TYPE_ERROR("ENTITYCALL");
 			return false;
 		}
 	}
@@ -1420,13 +1420,13 @@ bool MailboxType::isSameType(PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* MailboxType::parseDefaultStr(std::string defaultVal)
+PyObject* EntityCallType::parseDefaultStr(std::string defaultVal)
 {
 	Py_RETURN_NONE;
 }
 
 //-------------------------------------------------------------------------------------
-void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
+void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	COMPONENT_ID cid = 0;
 	ENTITY_ID id = 0;
@@ -1459,7 +1459,7 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					}
 					else
 					{
-						// 某些情况下会为NULL， 例如：使用了weakproxy，而mailbox已经变为NULL了
+						// 某些情况下会为NULL， 例如：使用了weakproxy，而entitycall已经变为NULL了
 						SCRIPT_ERROR_CHECK();
 						id = 0;
 						cid = 0;
@@ -1469,11 +1469,11 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					cid = g_componentID;
 
 					if(g_componentType == BASEAPP_TYPE)
-						type = (uint16)MAILBOX_TYPE_BASE;
+						type = (uint16)ENTITY_CALL_TYPE_BASE;
 					else if(g_componentType == CELLAPP_TYPE)
-						type = (uint16)MAILBOX_TYPE_CELL;
+						type = (uint16)ENTITY_CALL_TYPE_CELL;
 					else
-						type = (uint16)MAILBOX_TYPE_CLIENT;
+						type = (uint16)ENTITY_CALL_TYPE_CLIENT;
 
 					PyObject* pyClass = PyObject_GetAttrString(pyValue, "__class__");
 					PyObject* pyClassName = PyObject_GetAttrString(pyClass, "__name__");
@@ -1493,14 +1493,14 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 			}
 		}
 		
-		// 只能是mailbox
+		// 只能是entitycall
 		if(id == 0)
 		{
-			EntityMailboxAbstract* pEntityMailboxAbstract = static_cast<EntityMailboxAbstract*>(pyValue);
-			cid = pEntityMailboxAbstract->componentID();
-			id = pEntityMailboxAbstract->id();
-			type = static_cast<int16>(pEntityMailboxAbstract->type());;
-			utype = pEntityMailboxAbstract->utype();
+			EntityCallAbstract* pEntityCallAbstract = static_cast<EntityCallAbstract*>(pyValue);
+			cid = pEntityCallAbstract->componentID();
+			id = pEntityCallAbstract->id();
+			type = static_cast<int16>(pEntityCallAbstract->type());;
+			utype = pEntityCallAbstract->utype();
 		}
 	}
 
@@ -1511,7 +1511,7 @@ void MailboxType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* MailboxType::createFromStream(MemoryStream* mstream)
+PyObject* EntityCallType::createFromStream(MemoryStream* mstream)
 {
 	if(mstream)
 	{
@@ -1525,15 +1525,15 @@ PyObject* MailboxType::createFromStream(MemoryStream* mstream)
 		// 允许传输Py_None
 		if(id > 0)
 		{
-			PyObject* entity = EntityMailbox::tryGetEntity(cid, id);
+			PyObject* entity = EntityCall::tryGetEntity(cid, id);
 			if(entity != NULL)
 			{
 				Py_INCREF(entity);
 				return entity;
 			}
 
-			return new EntityMailbox(EntityDef::findScriptModule(utype), NULL, cid, 
-							id, (ENTITY_MAILBOX_TYPE)type);
+			return new EntityCall(EntityDef::findScriptModule(utype), NULL, cid, 
+							id, (ENTITY_CALL_TYPE)type);
 		}
 	}
 
@@ -1934,7 +1934,7 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
 
-					if(dataType->getDataType()->type() == DATA_TYPE_MAILBOX)
+					if(dataType->getDataType()->type() == DATA_TYPE_ENTITYCALL)
 					{
 						persistent = false;
 					}
@@ -1969,7 +1969,7 @@ bool FixedDictType::initialize(XML* xml, TiXmlNode* node, std::string& parentNam
 					keyTypes_.push_back(std::pair< std::string, DictItemDataTypePtr >(typeName, pDictItemDataType));
 					dataType->incRef();
 					
-					if(dataType->type() == DATA_TYPE_MAILBOX)
+					if(dataType->type() == DATA_TYPE_ENTITYCALL)
 					{
 						persistent = false;
 					}

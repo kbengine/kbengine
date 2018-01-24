@@ -175,8 +175,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 从dbmgr获取到账号Entity信息
 	BASEAPP_MESSAGE_DECLARE_STREAM(onQueryAccountCBFromDbmgr,						NETWORK_VARIABLE_MESSAGE)
 
-	// entity收到一封mail, 由某个app上的mailbox发起
-	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityMail,									NETWORK_VARIABLE_MESSAGE)
+	// entity收到远程call请求, 由某个app上的entitycall发起
+	BASEAPP_MESSAGE_DECLARE_STREAM(onEntityCall,									NETWORK_VARIABLE_MESSAGE)
 	
 	// client访问entity的cell方法
 	BASEAPP_MESSAGE_EXPOSED(onRemoteCallCellMethodFromClient)

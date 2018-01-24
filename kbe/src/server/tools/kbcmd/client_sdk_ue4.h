@@ -91,7 +91,7 @@ public:
 	virtual bool writeTypeItemType_VECTOR2(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_VECTOR3(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_VECTOR4(const std::string& itemName, const std::string& childItemName);
-	virtual bool writeTypeItemType_MAILBOX(const std::string& itemName, const std::string& childItemName);
+	virtual bool writeTypeItemType_ENTITYCALL(const std::string& itemName, const std::string& childItemName);
 
 	virtual bool writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule);
 	virtual bool writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule);
@@ -163,7 +163,7 @@ public:
 	virtual bool writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 
-	virtual bool writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+	virtual bool writeEntityProperty_ENTITYCALL(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 
 	virtual bool writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,

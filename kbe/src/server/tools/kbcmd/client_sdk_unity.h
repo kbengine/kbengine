@@ -43,7 +43,7 @@ public:
 	virtual void onCreateEngineMessagesModuleFileName();
 	virtual void onCreateEntityDefsModuleFileName();
 	virtual void onCreateDefsCustomTypesModuleFileName();
-	virtual void onEntityMailboxModuleFileName(const std::string& moduleName);
+	virtual void onEntityCallModuleFileName(const std::string& moduleName);
 
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
@@ -68,13 +68,13 @@ public:
 	virtual bool writeCustomDataTypesEnd();
 	virtual bool writeCustomDataType(const DataType* pDataType);
 
-	virtual bool writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
+	virtual bool writeEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
 
 	virtual std::string typeToType(const std::string& type);
 	virtual bool getArrayType(DataType* pDataType, std::string& outstr);
@@ -115,7 +115,7 @@ public:
 	virtual bool writeTypeItemType_VECTOR2(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_VECTOR3(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_VECTOR4(const std::string& itemName, const std::string& childItemName);
-	virtual bool writeTypeItemType_MAILBOX(const std::string& itemName, const std::string& childItemName);
+	virtual bool writeTypeItemType_ENTITYCALL(const std::string& itemName, const std::string& childItemName);
 
 	virtual bool writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule);
 	virtual bool writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule);
@@ -191,7 +191,7 @@ public:
 	virtual bool writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 
-	virtual bool writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+	virtual bool writeEntityProperty_ENTITYCALL(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 
 	virtual bool writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,

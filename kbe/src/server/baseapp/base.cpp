@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "profile.h"
 #include "base_messages_forward_handler.h"
 #include "pyscript/py_gc.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "network/channel.h"	
 #include "network/fixed_messages.h"
 #include "client_lib/client_interface.h"
@@ -49,8 +49,8 @@ SCRIPT_MEMBER_DECLARE_BEGIN(Base)
 SCRIPT_MEMBER_DECLARE_END()
 
 ENTITY_GETSET_DECLARE_BEGIN(Base)
-SCRIPT_GET_DECLARE("cell",								pyGetCellMailbox,				0,								0)	
-SCRIPT_GET_DECLARE("client",							pyGetClientMailbox,				0,								0)	
+SCRIPT_GET_DECLARE("cell",								pyGetCellEntityCall,			0,								0)	
+SCRIPT_GET_DECLARE("client",							pyGetClientEntityCall,			0,								0)	
 SCRIPT_GET_DECLARE("databaseID",						pyGetDBID,						0,								0)	
 SCRIPT_GET_DECLARE("databaseInterfaceName",				pyGetDBInterfaceName,			0,								0)
 SCRIPT_GETSET_DECLARE("shouldAutoBackup",				pyGetShouldAutoBackup,			pySetShouldAutoBackup,			0,		0)
@@ -63,8 +63,8 @@ Base::Base(ENTITY_ID id, const ScriptDefModule* pScriptModule,
 		   PyTypeObject* pyType, bool isInitialised):
 ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Base),
-clientMailbox_(NULL),
-cellMailbox_(NULL),
+clientEntityCall_(NULL),
+cellEntityCall_(NULL),
 cellDataDict_(NULL),
 hasDB_(false),
 DBID_(0),
@@ -90,8 +90,8 @@ dbInterfaceIndex_(0)
 Base::~Base()
 {
 	ENTITY_DECONSTRUCTION(Base);
-	S_RELEASE(clientMailbox_);
-	S_RELEASE(cellMailbox_);
+	S_RELEASE(clientEntityCall_);
+	S_RELEASE(cellEntityCall_);
 	S_RELEASE(cellDataDict_);
 	SAFE_RELEASE(pBufferedSendToClientMessages_);
 
@@ -113,7 +113,7 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 	
 	uint32 flags = propertyDescription->getFlags();
 
-	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientMailbox_ == NULL)
+	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientEntityCall_ == NULL)
 		return;
 
 	// 创建一个需要广播的模板流
@@ -136,7 +136,7 @@ void Base::onDefDataChanged(const PropertyDescription* propertyDescription,
 		propertyDescription->getName(), 
 		pBundle->currMsgLength());
 
-	// 按照当前的设计来说，有clientMailbox_必定是proxy
+	// 按照当前的设计来说，有clientEntityCall_必定是proxy
 	// 至于为何跑到base里来和python本身是C语言实现有关
 	static_cast<Proxy*>(this)->sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 	MemoryStream::reclaimPoolObject(mstream);
@@ -160,9 +160,9 @@ void Base::onDestroy(bool callScript)
 	
 	eraseEntityLog();
 
-	// 按照当前的设计来说，有clientMailbox_必定是proxy
+	// 按照当前的设计来说，有clientEntityCall_必定是proxy
 	// 至于为何跑到base里来和python本身是C语言实现有关
-	if(clientMailbox_)
+	if(clientEntityCall_)
 		static_cast<Proxy*>(this)->kick();
 }
 
@@ -448,13 +448,13 @@ PyObject* Base::createCellDataDict(uint32 flags)
 //-------------------------------------------------------------------------------------
 void Base::sendToCellapp(Network::Bundle* pBundle)
 {
-	if (!cellMailbox_)
+	if (!cellEntityCall_)
 	{
 		ERROR_MSG(fmt::format("{}::sendToCellapp: no cell! entityID={}\n", this->scriptName(), id()));
 		return;
 	}
 
-	sendToCellapp(cellMailbox_->getChannel(), pBundle);
+	sendToCellapp(cellEntityCall_->getChannel(), pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -491,7 +491,7 @@ bool Base::destroyCellEntity(void)
 		return false;																					
 	}
 
-	if(cellMailbox_  == NULL || cellMailbox_->getChannel() == NULL)
+	if(cellEntityCall_  == NULL || cellEntityCall_->getChannel() == NULL)
 	{
 		isArchiveing_ = false;
 		return false;
@@ -507,7 +507,7 @@ bool Base::destroyCellEntity(void)
 //-------------------------------------------------------------------------------------
 PyObject* Base::pyDestroyCellEntity()
 {
-	if(cellMailbox_ == NULL) 
+	if(cellEntityCall_ == NULL) 
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::destroyCellEntity: id:%i no cell! creatingCell=%s\n", 
 			this->scriptName(), this->id(),
@@ -550,7 +550,7 @@ PyObject* Base::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject * 
 		return NULL;
 	}
 
-	if(pobj->creatingCell() || pobj->cellMailbox() != NULL) 
+	if(pobj->creatingCell() || pobj->cellEntityCall() != NULL) 
 	{
 		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell! creatingCell=%s\n", 
 			pobj->scriptName(), pobj->id(),
@@ -669,7 +669,7 @@ PyObject* Base::onScriptGetAttribute(PyObject* attr)
 }	
 
 //-------------------------------------------------------------------------------------
-PyObject* Base::pyGetCellMailbox()
+PyObject* Base::pyGetCellEntityCall()
 { 
 	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
@@ -679,12 +679,12 @@ PyObject* Base::pyGetCellMailbox()
 		return 0;																					
 	}
 
-	EntityMailbox* mailbox = cellMailbox();
-	if(mailbox == NULL)
+	EntityCall* entitycall = cellEntityCall();
+	if(entitycall == NULL)
 		S_Return;
 
-	Py_INCREF(mailbox);
-	return mailbox; 
+	Py_INCREF(entitycall);
+	return entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -719,7 +719,7 @@ PyObject* Base::pyGetDBInterfaceName()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Base::pyGetClientMailbox()
+PyObject* Base::pyGetClientEntityCall()
 {
 	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
@@ -729,12 +729,12 @@ PyObject* Base::pyGetClientMailbox()
 		return 0;																				
 	}
 
-	EntityMailbox* mailbox = clientMailbox();
-	if(mailbox == NULL)
+	EntityCall* entitycall = clientEntityCall();
+	if(entitycall == NULL)
 		S_Return;
 
-	Py_INCREF(mailbox);
-	return mailbox; 
+	Py_INCREF(entitycall);
+	return entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -904,8 +904,8 @@ void Base::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 	destroyCellData();
 	
 	// 回调给脚本，获得了cell
-	if(cellMailbox_ == NULL)
-		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
+	if(cellEntityCall_ == NULL)
+		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITY_CALL_TYPE_CELL);
 
 	if(!inRestore_)
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
@@ -927,7 +927,7 @@ void Base::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	S_RELEASE(cellMailbox_);
+	S_RELEASE(cellEntityCall_);
 
 	isArchiveing_ = false;
 	isGetingCellData_ = false;
@@ -957,7 +957,7 @@ void Base::reqBackupCellData()
 	if(isGetingCellData_)
 		return;
 
-	EntityMailbox* mb = this->cellMailbox();
+	EntityCall* mb = this->cellEntityCall();
 	if(mb == NULL)
 		return;
 
@@ -1078,7 +1078,7 @@ void Base::writeToDB(void* data, void* extra1, void* extra2)
 	// creatingCell_ 此时可能正在创建cell
 	// 不过我们在此假设在cell未创建完成的时候base这个接口被调用
 	// 写入数据库的是该entity的初始值， 并不影响
-	if(this->cellMailbox() == NULL) 
+	if(this->cellEntityCall() == NULL) 
 	{
 		onCellWriteToDBCompleted(callbackID, shouldAutoLoad, -1);
 	}
@@ -1208,10 +1208,10 @@ void Base::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad,
 		uint32 ip = 0;
 		uint16 port = 0;
 		
-		if(this->clientMailbox())
+		if(this->clientEntityCall())
 		{
-			ip = this->clientMailbox()->addr().ip;
-			port = this->clientMailbox()->addr().port;
+			ip = this->clientEntityCall()->addr().ip;
+			port = this->clientEntityCall()->addr().port;
 		}
 
 		(*pBundle) << ip;
@@ -1264,7 +1264,7 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 		return 0;
 	}
 
-	if(creatingCell_ || this->cellMailbox())
+	if(creatingCell_ || this->cellEntityCall())
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::createCellEntity: %d has a cell!\n", 
 			scriptName(), id());
@@ -1273,19 +1273,19 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 		return 0;
 	}
 
-	if(!PyObject_TypeCheck(pyobj, EntityMailbox::getScriptType()))
+	if(!PyObject_TypeCheck(pyobj, EntityCall::getScriptType()))
 	{
-		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellMailbox!", 
+		PyErr_Format(PyExc_TypeError, "create %s arg1 is not cellEntityCall!", 
 			this->scriptName());
 
 		PyErr_PrintEx(0);
 		return 0;
 	}
 	
-	EntityMailboxAbstract* cellMailbox = static_cast<EntityMailboxAbstract*>(pyobj);
-	if(cellMailbox->type() != MAILBOX_TYPE_CELL)
+	EntityCallAbstract* cellEntityCall = static_cast<EntityCallAbstract*>(pyobj);
+	if(cellEntityCall->type() != ENTITY_CALL_TYPE_CELL)
 	{
-		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellMailbox!", 
+		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellEntityCall!", 
 			this->scriptName());
 
 		PyErr_PrintEx(0);
@@ -1293,12 +1293,12 @@ PyObject* Base::createCellEntity(PyObject* pyobj)
 	}
 	
 	creatingCell_ = true;
-	Baseapp::getSingleton().createCellEntity(cellMailbox, this);
+	Baseapp::getSingleton().createCellEntity(cellEntityCall, this);
 	S_Return;
 }
 
 //-------------------------------------------------------------------------------------
-void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
+void Base::restoreCell(EntityCallAbstract* cellEntityCall)
 {
 	if(creatingCell_ || inRestore_) return;
 
@@ -1311,7 +1311,7 @@ void Base::restoreCell(EntityMailboxAbstract* cellMailbox)
 	}
 	else
 	{
-		Baseapp::getSingleton().createCellEntity(cellMailbox, this);
+		Baseapp::getSingleton().createCellEntity(cellEntityCall, this);
 	}
 }
 
@@ -1326,7 +1326,7 @@ PyObject* Base::createInNewSpace(PyObject* args)
 		return 0;
 	}	
 
-	if(createdSpace_ || this->cellMailbox() != NULL)
+	if(createdSpace_ || this->cellEntityCall() != NULL)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::createInNewSpace: %d in space!\n", 
 			scriptName(), id());
@@ -1351,7 +1351,7 @@ void Base::forwardEntityMessageToCellappFromClient(Network::Channel* pChannel, M
 		return;
 	}
 
-	EntityMailbox* mb = this->cellMailbox();
+	EntityCall* mb = this->cellEntityCall();
 	if(mb == NULL)
 		return;
 
@@ -1375,7 +1375,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		return 0;
 	}	
 
-	if(this->cellMailbox() == NULL)
+	if(this->cellEntityCall() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d no has cell!\n", 
 			scriptName(), id());
@@ -1393,11 +1393,11 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		return 0;
 	}
 
-	bool isMailbox = PyObject_TypeCheck(baseEntityMB, EntityMailbox::getScriptType());
-	bool isEntity = !isMailbox && (PyObject_TypeCheck(baseEntityMB, Base::getScriptType())
+	bool isEntityCall = PyObject_TypeCheck(baseEntityMB, EntityCall::getScriptType());
+	bool isEntity = !isEntityCall && (PyObject_TypeCheck(baseEntityMB, Base::getScriptType())
 		|| PyObject_TypeCheck(baseEntityMB, Proxy::getScriptType()));
 
-	if(!isMailbox && !isEntity)
+	if(!isEntityCall && !isEntity)
 	{
 		PyErr_Format(PyExc_AssertionError, "%s::teleport: %d invalid baseEntityMB!\n", 
 			scriptName(), id());
@@ -1408,14 +1408,14 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 
 	ENTITY_ID eid = 0;
 
-	// 如果不是mailbox则是本地base
-	if(isMailbox)
+	// 如果不是entitycall则是本地base
+	if(isEntityCall)
 	{
-		EntityMailbox* mb = static_cast<EntityMailbox*>(baseEntityMB);
+		EntityCall* mb = static_cast<EntityCall*>(baseEntityMB);
 
-		if(mb->type() != MAILBOX_TYPE_BASE && mb->type() != MAILBOX_TYPE_CELL_VIA_BASE)
+		if(mb->type() != ENTITY_CALL_TYPE_BASE && mb->type() != ENTITY_CALL_TYPE_CELL_VIA_BASE)
 		{
-			PyErr_Format(PyExc_AssertionError, "%s::teleport: %d baseEntityMB is not baseMailbox!\n", 
+			PyErr_Format(PyExc_AssertionError, "%s::teleport: %d baseEntityMB is not baseEntityCall!\n", 
 				scriptName(), id());
 
 			PyErr_PrintEx(0);
@@ -1429,9 +1429,9 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		(*pBundle) << eid;
 
 		BaseappInterface::reqTeleportOtherArgs3::staticAddToBundle((*pBundle), this->id(), 
-			this->cellMailbox()->componentID(), g_componentID);
+			this->cellEntityCall()->componentID(), g_componentID);
 
-		mb->postMail(pBundle);
+		mb->sendCall(pBundle);
 	}
 	else
 	{
@@ -1439,7 +1439,7 @@ PyObject* Base::pyTeleport(PyObject* baseEntityMB)
 		if(!base->isDestroyed())
 		{
 			base->reqTeleportOther(NULL, this->id(), 
-				this->cellMailbox()->componentID(), g_componentID);
+				this->cellEntityCall()->componentID(), g_componentID);
 		}
 		else
 		{
@@ -1500,9 +1500,9 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	DEBUG_MSG(fmt::format("{2}::reqTeleportOther: reqTeleportEntityID={0}, reqTeleportEntityCellAppID={1}.\n",
 		reqTeleportEntityID, reqTeleportEntityCellAppID, this->scriptName()));
 
-	if(this->cellMailbox() == NULL || this->cellMailbox()->getChannel() == NULL)
+	if(this->cellEntityCall() == NULL || this->cellEntityCall()->getChannel() == NULL)
 	{
-		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, cellMailbox is NULL, "
+		ERROR_MSG(fmt::format("{}::reqTeleportOther: {}, teleport error, cellEntityCall is NULL, "
 			"reqTeleportEntityID={}, reqTeleportEntityCellAppID={}.\n",
 			this->scriptName(), this->id(), reqTeleportEntityID, reqTeleportEntityCellAppID));
 
@@ -1532,7 +1532,7 @@ void Base::reqTeleportOther(Network::Channel* pChannel, ENTITY_ID reqTeleportEnt
 	(*pBundle).newMessage(CellappInterface::teleportFromBaseapp);
 	(*pBundle) << reqTeleportEntityID;
 
-	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle((*pBundle), this->cellMailbox()->componentID(), 
+	CellappInterface::teleportFromBaseappArgs3::staticAddToBundle((*pBundle), this->cellEntityCall()->componentID(), 
 		this->id(), reqTeleportEntityBaseAppID);
 	
 	sendToCellapp(cinfos->pChannel, pBundle);
@@ -1602,8 +1602,8 @@ void Base::onMigrationCellappOver(COMPONENT_ID targetCellAppID)
 	}
 	
 	// 改变cell的指向到新的cellapp
-	if(this->cellMailbox())
-		this->cellMailbox()->componentID(targetCellAppID);
+	if(this->cellEntityCall())
+		this->cellEntityCall()->componentID(targetCellAppID);
 }
 
 //-------------------------------------------------------------------------------------

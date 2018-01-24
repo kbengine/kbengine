@@ -92,9 +92,9 @@ public:
 	bool run(void);
 
 	/**
-		由mailbox来尝试获取一个channel的实例
+		由entitycall来尝试获取一个channel的实例
 	*/
-	virtual Network::Channel* findChannelByMailbox(EntityMailbox& mailbox);
+	virtual Network::Channel* findChannelByEntityCall(EntityCall& entitycall);
 
 	/** 网络接口
 		某个app请求查看该app

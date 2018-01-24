@@ -152,7 +152,7 @@ std::string ClientSDKUE4::typeToType(const std::string& type)
 		return "FVector4";
 	}
 #endif
-	else if (type == "MAILBOX")
+	else if (type == "ENTITYCALL")
 	{
 		return "TArray<uint8>";
 	}
@@ -581,7 +581,7 @@ bool ClientSDKUE4::writeTypeItemType_VECTOR4(const std::string& itemName, const 
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeTypeItemType_MAILBOX(const std::string& itemName, const std::string& childItemName)
+bool ClientSDKUE4::writeTypeItemType_ENTITYCALL(const std::string& itemName, const std::string& childItemName)
 {
 	sourcefileBody_ += fmt::format("\tTArray<uint8> {};\n", itemName);
 	initBody_ += fmt::format("\t{}({}),\n", itemName, "");
@@ -879,7 +879,7 @@ bool ClientSDKUE4::writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptDef
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUE4::writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUE4::writeEntityProperty_ENTITYCALL(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\tTArray<uint8> {};\n", pPropertyDescription->getName());

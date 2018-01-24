@@ -113,7 +113,7 @@ bool BaseMessagesForwardCellappHandler::process()
 		return false;
 	}
 
-	if(pBase_->cellMailbox() == NULL || pBase_->cellMailbox()->getChannel() == NULL)
+	if(pBase_->cellEntityCall() == NULL || pBase_->cellEntityCall()->getChannel() == NULL)
 	{
 		WARNING_MSG(fmt::format("BaseMessagesForwardCellappHandler::process(): no cell! size={}, entityID={}\n", 
 			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
@@ -226,7 +226,7 @@ bool BaseMessagesForwardClientHandler::process()
 		return false;
 	}
 
-	if(pBase_->clientMailbox() == NULL || pBase_->clientMailbox()->getChannel() == NULL)
+	if(pBase_->clientEntityCall() == NULL || pBase_->clientEntityCall()->getChannel() == NULL)
 	{
 		WARNING_MSG(fmt::format("BaseMessagesForwardClientHandler::process(): no client! size={}, entityID={}\n", 
 			bufferedSendToClientMessages_.size(), (pBase_ ? pBase_->id() : 0)));

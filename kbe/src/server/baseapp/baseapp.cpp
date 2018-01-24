@@ -193,11 +193,11 @@ Baseapp::Baseapp(Network::EventDispatcher& dispatcher,
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappInterface::messageHandlers;
 
-	// hook mailboxcall
-	static EntityMailbox::MailboxCallHookFunc mailboxCallHookFunc = std::tr1::bind(&Baseapp::createMailboxCallEntityRemoteMethod, this, 
+	// hook entitycall
+	static EntityCall::EntityCallCallHookFunc entityCallHookFunc = std::tr1::bind(&Baseapp::createEntityCallCallEntityRemoteMethod, this, 
 		std::tr1::placeholders::_1, std::tr1::placeholders::_2);
 
-	EntityMailbox::setMailboxCallHookFunc(&mailboxCallHookFunc);
+	EntityCall::setEntityCallCallHookFunc(&entityCallHookFunc);
 }
 
 //-------------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ Baseapp::~Baseapp()
 	// 不需要主动释放
 	pInitProgressHandler_ = NULL;
 
-	EntityMailbox::resetCallHooks();
+	EntityCall::resetCallHooks();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -314,7 +314,7 @@ void Baseapp::onShutdown(bool first)
 			for(; iter != entities.end(); ++iter)
 			{
 				//if(static_cast<Base*>(iter->second.get())->hasDB() && 
-				//	static_cast<Base*>(iter->second.get())->cellMailbox() == NULL)
+				//	static_cast<Base*>(iter->second.get())->cellEntityCall() == NULL)
 				{
 					vecs.push_back(static_cast<Base*>(iter->second.get())->id());
 
@@ -647,11 +647,11 @@ void Baseapp::onCellAppDeath(Network::Channel * pChannel)
 	{
 		Base* pBase = static_cast<Base*>(iter->second.get());
 		
-		EntityMailbox* cell = pBase->cellMailbox();
+		EntityCall* cell = pBase->cellEntityCall();
 		if(cell && cell->componentID() == pChannel->componentID())
 		{
 			S_RELEASE(cell);
-			pBase->cellMailbox(NULL);
+			pBase->cellEntityCall(NULL);
 			pBase->installCellDataAttr(pBase->getCellData());
 			pBase->onCellAppDeath();
 			pRestoreEntityHandler->pushEntity(pBase->id());
@@ -937,20 +937,20 @@ PyObject* Baseapp::__py_createBaseAnywhere(PyObject* self, PyObject* args)
 PyObject* Baseapp::__py_createBaseRemotely(PyObject* self, PyObject* args)
 {
 	int argCount = (int)PyTuple_Size(args);
-	PyObject* params = NULL, *pyCallback = NULL, *pyMailbox = NULL;
+	PyObject* params = NULL, *pyCallback = NULL, *pyEntityCall = NULL;
 	char* entityType = NULL;
 	int ret = -1;
 
 	switch (argCount)
 	{
 	case 4:
-		ret = PyArg_ParseTuple(args, "s|O|O|O", &entityType, &params, &pyMailbox, &pyCallback);
+		ret = PyArg_ParseTuple(args, "s|O|O|O", &entityType, &params, &pyEntityCall, &pyCallback);
 		break;
 	case 3:
-		ret = PyArg_ParseTuple(args, "s|O|O", &entityType, &pyMailbox, &params);
+		ret = PyArg_ParseTuple(args, "s|O|O", &entityType, &pyEntityCall, &params);
 		break;
 	default:
-		ret = PyArg_ParseTuple(args, "s|O", &entityType, &pyMailbox);
+		ret = PyArg_ParseTuple(args, "s|O", &entityType, &pyEntityCall);
 	};
 
 	if (entityType == NULL || ret == -1)
@@ -970,26 +970,26 @@ PyObject* Baseapp::__py_createBaseRemotely(PyObject* self, PyObject* args)
 	if (!PyCallable_Check(pyCallback))
 		pyCallback = NULL;
 
-	if (pyMailbox == NULL || !PyObject_TypeCheck(pyMailbox, EntityMailbox::getScriptType()))
+	if (pyEntityCall == NULL || !PyObject_TypeCheck(pyEntityCall, EntityCall::getScriptType()))
 	{
-		PyErr_Format(PyExc_TypeError, "create %s arg2 is not baseMailbox!",
+		PyErr_Format(PyExc_TypeError, "create %s arg2 is not baseEntityCall!",
 			entityType);
 
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	EntityMailboxAbstract* baseMailbox = static_cast<EntityMailboxAbstract*>(pyMailbox);
-	if (baseMailbox->type() != MAILBOX_TYPE_BASE)
+	EntityCallAbstract* baseEntityCall = static_cast<EntityCallAbstract*>(pyEntityCall);
+	if (baseEntityCall->type() != ENTITY_CALL_TYPE_BASE)
 	{
-		PyErr_Format(PyExc_TypeError, "create %s args2 not is a direct baseMailbox!",
+		PyErr_Format(PyExc_TypeError, "create %s args2 not is a direct baseEntityCall!",
 			entityType);
 
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	Baseapp::getSingleton().createBaseRemotely(entityType, baseMailbox->componentID(), params, pyCallback);
+	Baseapp::getSingleton().createBaseRemotely(entityType, baseEntityCall->componentID(), params, pyCallback);
 	S_Return;
 }
 
@@ -1237,8 +1237,8 @@ void Baseapp::onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine:
 					// 这种情况通常是异步的环境中从db查询到已经检出，但等回调时可能实体已经销毁了而造成的
 					if(wasActiveCID != g_componentID)
 					{
-						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-							NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+						baseRef = static_cast<PyObject*>(new EntityCall(EntityDef::findScriptModule(entityType.c_str()), 
+							NULL, wasActiveCID, wasActiveEntityID, ENTITY_CALL_TYPE_BASE));
 					}
 					else
 					{
@@ -1625,8 +1625,8 @@ void Baseapp::onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, K
 					// 这种情况通常是异步的环境中从db查询到已经检出，但等回调时可能实体已经销毁了而造成的
 					if(wasActiveCID != g_componentID)
 					{
-						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-							NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+						baseRef = static_cast<PyObject*>(new EntityCall(EntityDef::findScriptModule(entityType.c_str()), 
+							NULL, wasActiveCID, wasActiveEntityID, ENTITY_CALL_TYPE_BASE));
 					}
 					else
 					{
@@ -1842,7 +1842,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 			}
 			else
 			{
-				PyObject* mb = static_cast<PyObject*>(new EntityMailbox(sm, NULL, createByBaseappID, createdEntityID, MAILBOX_TYPE_BASE));
+				PyObject* mb = static_cast<PyObject*>(new EntityCall(sm, NULL, createByBaseappID, createdEntityID, ENTITY_CALL_TYPE_BASE));
 				pyResult = PyObject_CallFunction(pyfunc.get(), 
 												const_cast<char*>("OKi"), 
 												mb, dbid, 0);
@@ -1866,7 +1866,7 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 PyObject* Baseapp::__py_createBaseRemotelyFromDBID(PyObject* self, PyObject* args)
 {
 	int argCount = (int)PyTuple_Size(args);
-	PyObject* pyCallback = NULL, *pyMailbox = NULL;
+	PyObject* pyCallback = NULL, *pyEntityCall = NULL;
 	wchar_t* wEntityType = NULL;
 	char* entityType = NULL;
 	int ret = -1;
@@ -1879,17 +1879,17 @@ PyObject* Baseapp::__py_createBaseRemotelyFromDBID(PyObject* self, PyObject* arg
 	{
 		case 5:
 		{
-			ret = PyArg_ParseTuple(args, "O|K|O|O|O", &pyEntityType, &dbid, &pyMailbox, &pyCallback, &pyDBInterfaceName);
+			ret = PyArg_ParseTuple(args, "O|K|O|O|O", &pyEntityType, &dbid, &pyEntityCall, &pyCallback, &pyDBInterfaceName);
 			break;
 		}
 		case 4:
 		{
-				ret = PyArg_ParseTuple(args, "O|K|O|O", &pyEntityType, &dbid, &pyMailbox, &pyCallback);
+				ret = PyArg_ParseTuple(args, "O|K|O|O", &pyEntityType, &dbid, &pyEntityCall, &pyCallback);
 				break;
 		}
 		case 3:
 		{
-				ret = PyArg_ParseTuple(args, "O|K|O", &pyEntityType, &dbid, &pyMailbox);
+				ret = PyArg_ParseTuple(args, "O|K|O", &pyEntityType, &dbid, &pyEntityCall);
 				break;
 		}
 		default:
@@ -1990,26 +1990,26 @@ PyObject* Baseapp::__py_createBaseRemotelyFromDBID(PyObject* self, PyObject* arg
 		return NULL;
 	}
 
-	if (pyMailbox == NULL || !PyObject_TypeCheck(pyMailbox, EntityMailbox::getScriptType()))
+	if (pyEntityCall == NULL || !PyObject_TypeCheck(pyEntityCall, EntityCall::getScriptType()))
 	{
-		PyErr_Format(PyExc_TypeError, "create %s arg2 is not baseMailbox!",
+		PyErr_Format(PyExc_TypeError, "create %s arg2 is not baseEntityCall!",
 			entityType);
 
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	EntityMailboxAbstract* baseMailbox = static_cast<EntityMailboxAbstract*>(pyMailbox);
-	if (baseMailbox->type() != MAILBOX_TYPE_BASE)
+	EntityCallAbstract* baseEntityCall = static_cast<EntityCallAbstract*>(pyEntityCall);
+	if (baseEntityCall->type() != ENTITY_CALL_TYPE_BASE)
 	{
-		PyErr_Format(PyExc_TypeError, "create %s args2 not is a direct baseMailbox!",
+		PyErr_Format(PyExc_TypeError, "create %s args2 not is a direct baseEntityCall!",
 			entityType);
 
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	Baseapp::getSingleton().createBaseRemotelyFromDBID(entityType, dbid, baseMailbox->componentID(), pyCallback, dbInterfaceName);
+	Baseapp::getSingleton().createBaseRemotelyFromDBID(entityType, dbid, baseEntityCall->componentID(), pyCallback, dbInterfaceName);
 
 	free(entityType);
 	S_Return;
@@ -2117,8 +2117,8 @@ void Baseapp::onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, K
 					// 这种情况通常是异步的环境中从db查询到已经检出，但等回调时可能实体已经销毁了而造成的
 					if(wasActiveCID != g_componentID)
 					{
-						baseRef = static_cast<PyObject*>(new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-							NULL, wasActiveCID, wasActiveEntityID, MAILBOX_TYPE_BASE));
+						baseRef = static_cast<PyObject*>(new EntityCall(EntityDef::findScriptModule(entityType.c_str()), 
+							NULL, wasActiveCID, wasActiveEntityID, ENTITY_CALL_TYPE_BASE));
 					}
 					else
 					{
@@ -2334,7 +2334,7 @@ void Baseapp::onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel*
 			}
 			else
 			{
-				PyObject* mb = static_cast<PyObject*>(new EntityMailbox(sm, NULL, createByBaseappID, createdEntityID, MAILBOX_TYPE_BASE));
+				PyObject* mb = static_cast<PyObject*>(new EntityCall(sm, NULL, createByBaseappID, createdEntityID, ENTITY_CALL_TYPE_BASE));
 				pyResult = PyObject_CallFunction(pyfunc.get(), 
 												const_cast<char*>("OKi"), 
 												mb, dbid, 0);
@@ -2386,8 +2386,8 @@ void Baseapp::createInNewSpace(Base* base, PyObject* pyCellappIndex)
 	(*pBundle) << cellappIndex;
 	(*pBundle) << componentID_;
 
-	EntityMailbox* clientMailbox = base->clientMailbox();
-	bool hasClient = (clientMailbox != NULL);
+	EntityCall* clientEntityCall = base->clientEntityCall();
+	bool hasClient = (clientEntityCall != NULL);
 	(*pBundle) << hasClient;
 
 	MemoryStream* s = MemoryStream::createPoolObject();
@@ -2430,8 +2430,8 @@ void Baseapp::restoreSpaceInCell(Base* base)
 	(*pBundle) << componentID_;
 	(*pBundle) << base->spaceID();
 
-	EntityMailbox* clientMailbox = base->clientMailbox();
-	bool hasClient = (clientMailbox != NULL);
+	EntityCall* clientEntityCall = base->clientEntityCall();
+	bool hasClient = (clientEntityCall != NULL);
 	(*pBundle) << hasClient;
 
 	MemoryStream* s = MemoryStream::createPoolObject();
@@ -2625,10 +2625,10 @@ void Baseapp::_onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK
 			return;
 		}
 		
-		// 如果entity属于另一个baseapp创建则设置它的mailbox
+		// 如果entity属于另一个baseapp创建则设置它的entitycall
 		Network::Channel* pOtherBaseappChannel = Components::getSingleton().findComponent(componentID)->pChannel;
 		KBE_ASSERT(pOtherBaseappChannel != NULL);
-		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
+		PyObject* mb = static_cast<EntityCall*>(new EntityCall(sm, NULL, componentID, eid, ENTITY_CALL_TYPE_BASE));
 		PyTuple_SET_ITEM(pyargs, 0, mb);
 		
 		if(pyCallback != NULL)
@@ -2859,10 +2859,10 @@ void Baseapp::_onCreateBaseRemotelyCallback(Network::Channel* pChannel, CALLBACK
 			return;
 		}
 
-		// 如果entity属于另一个baseapp创建则设置它的mailbox
+		// 如果entity属于另一个baseapp创建则设置它的entitycall
 		Network::Channel* pOtherBaseappChannel = Components::getSingleton().findComponent(componentID)->pChannel;
 		KBE_ASSERT(pOtherBaseappChannel != NULL);
-		PyObject* mb = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, componentID, eid, MAILBOX_TYPE_BASE));
+		PyObject* mb = static_cast<EntityCall*>(new EntityCall(sm, NULL, componentID, eid, ENTITY_CALL_TYPE_BASE));
 		PyTuple_SET_ITEM(pyargs, 0, mb);
 
 		if (pyCallback != NULL)
@@ -2924,9 +2924,9 @@ void Baseapp::_onCreateBaseRemotelyCallback(Network::Channel* pChannel, CALLBACK
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base* base)
+void Baseapp::createCellEntity(EntityCallAbstract* createToCellEntityCall, Base* base)
 {
-	if(base->cellMailbox())
+	if(base->cellEntityCall())
 	{
 		ERROR_MSG(fmt::format("Baseapp::createCellEntity: {} {} has a cell!\n",
 			base->scriptName(), base->id()));
@@ -2940,10 +2940,10 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	ENTITY_ID id = base->id();
 	std::string entityType = base->ob_type->tp_name;
 
-	EntityMailbox* clientMailbox = base->clientMailbox();
-	bool hasClient = (clientMailbox != NULL);
+	EntityCall* clientEntityCall = base->clientEntityCall();
+	bool hasClient = (clientEntityCall != NULL);
 	
-	(*pBundle) << createToCellMailbox->id();				// 在这个mailbox所在的cellspace上创建
+	(*pBundle) << createToCellEntityCall->id();				// 在这个entitycall所在的cellspace上创建
 	(*pBundle) << entityType;
 	(*pBundle) << id;
 	(*pBundle) << componentID_;
@@ -2955,18 +2955,18 @@ void Baseapp::createCellEntity(EntityMailboxAbstract* createToCellMailbox, Base*
 	(*pBundle).append(*s);
 	MemoryStream::reclaimPoolObject(s);
 	
-	if(createToCellMailbox->getChannel() == NULL)
+	if(createToCellEntityCall->getChannel() == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::createCellEntity: not found cellapp(createToCellMailbox:"
+		ERROR_MSG(fmt::format("Baseapp::createCellEntity: not found cellapp(createToCellEntityCall:"
 			"componentID={}, entityID={}), create error!\n",
-			createToCellMailbox->componentID(), createToCellMailbox->id()));
+			createToCellEntityCall->componentID(), createToCellEntityCall->id()));
 
 		base->onCreateCellFailure();
 		Network::Bundle::reclaimPoolObject(pBundle);
 		return;
 	}
 
-	createToCellMailbox->getChannel()->send(pBundle);
+	createToCellEntityCall->getChannel()->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -3014,7 +3014,7 @@ void Baseapp::onEntityGetCell(Network::Channel* pChannel, ENTITY_ID id,
 		base->spaceID(spaceID);
 
 	// 如果是有客户端的entity则需要告知客户端， 自身entity已经进入世界了。
-	if(base->clientMailbox() != NULL)
+	if(base->clientEntityCall() != NULL)
 	{
 		onClientEntityEnterWorld(static_cast<Proxy*>(base), componentID);
 	}
@@ -3037,7 +3037,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	Py_INCREF(base);
 	
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
-	Network::Channel* pChannel = base->clientMailbox()->getChannel();
+	Network::Channel* pChannel = base->clientEntityCall()->getChannel();
 	pChannel->proxyID(base->id());
 	base->addr(pChannel->addr());
 
@@ -3054,7 +3054,7 @@ bool Baseapp::createClientProxies(Proxy* base, bool reload)
 	(*pBundle) << base->rndUUID();
 	(*pBundle) << base->id();
 	(*pBundle) << base->ob_type->tp_name;
-	//base->clientMailbox()->postMail((*pBundle));
+	//base->clientEntityCall()->sendCall((*pBundle));
 	base->sendToClient(ClientInterface::onCreatedProxies, pBundle);
 
 	// 本应该由客户端告知已经创建好entity后调用这个接口。
@@ -3779,10 +3779,10 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 		switch(ret)
 		{
 		case LOG_ON_ACCEPT:
-			if(base->clientMailbox() != NULL)
+			if(base->clientEntityCall() != NULL)
 			{
 				// 通告在别处登录
-				Network::Channel* pOldClientChannel = base->clientMailbox()->getChannel();
+				Network::Channel* pOldClientChannel = base->clientEntityCall()->getChannel();
 				if(pOldClientChannel != NULL)
 				{
 					INFO_MSG(fmt::format("Baseapp::loginBaseapp: script LOG_ON_ACCEPT. oldClientChannel={}\n",
@@ -3795,7 +3795,7 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 					INFO_MSG("Baseapp::loginBaseapp: script LOG_ON_ACCEPT.\n");
 				}
 				
-				base->clientMailbox()->addr(pChannel->addr());
+				base->clientEntityCall()->addr(pChannel->addr());
 				base->addr(pChannel->addr());
 				base->setClientType(ptinfos->ctype);
 				base->setLoginDatas(ptinfos->datas);
@@ -3804,17 +3804,17 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 			}
 			else
 			{
-				// 创建entity的客户端mailbox
-				EntityMailbox* entityClientMailbox = new EntityMailbox(base->pScriptModule(), 
-					&pChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
+				// 创建entity的客户端entitycall
+				EntityCall* entityClientEntityCall = new EntityCall(base->pScriptModule(), 
+					&pChannel->addr(), 0, base->id(), ENTITY_CALL_TYPE_CLIENT);
 
-				base->clientMailbox(entityClientMailbox);
+				base->clientEntityCall(entityClientEntityCall);
 				base->addr(pChannel->addr());
 				base->setClientType(ptinfos->ctype);
 				base->setLoginDatas(ptinfos->datas);
 
 				// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
-				entityClientMailbox->getChannel()->proxyID(base->id());
+				entityClientEntityCall->getChannel()->proxyID(base->id());
 				createClientProxies(base, true);
 				base->onGetWitness();
 			}
@@ -3870,13 +3870,13 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 		return;
 	}
 
-	EntityMailbox* entityClientMailbox = proxy->clientMailbox();
-	if(entityClientMailbox != NULL)
+	EntityCall* entityClientEntityCall = proxy->clientEntityCall();
+	if(entityClientEntityCall != NULL)
 	{
-		Network::Channel* pMBChannel = entityClientMailbox->getChannel();
+		Network::Channel* pMBChannel = entityClientEntityCall->getChannel();
 
 		WARNING_MSG(fmt::format("Baseapp::reloginBaseapp: accountName={}, key={}, "
-			"entityID={}, ClientMailbox({}) is exist, will be kicked out!\n",
+			"entityID={}, ClientEntityCall({}) is exist, will be kicked out!\n",
 			accountName, key, entityID, 
 			(pMBChannel ? pMBChannel->c_str() : "unknown")));
 		
@@ -3886,15 +3886,15 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 			pMBChannel->condemn();
 		}
 
-		entityClientMailbox->addr(pChannel->addr());
+		entityClientEntityCall->addr(pChannel->addr());
 	}
 	else
 	{
-		// 创建entity的客户端mailbox
-		entityClientMailbox = new EntityMailbox(proxy->pScriptModule(), 
-			&pChannel->addr(), 0, proxy->id(), MAILBOX_TYPE_CLIENT);
+		// 创建entity的客户端entitycall
+		entityClientEntityCall = new EntityCall(proxy->pScriptModule(), 
+			&pChannel->addr(), 0, proxy->id(), ENTITY_CALL_TYPE_CLIENT);
 
-		proxy->clientMailbox(entityClientMailbox);
+		proxy->clientEntityCall(entityClientEntityCall);
 	}
 
 	// 将通道代理的关系与该entity绑定， 在后面通信中可提供身份合法性识别
@@ -4016,11 +4016,11 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 
 	if(pClientChannel != NULL)
 	{
-		// 创建entity的客户端mailbox
-		EntityMailbox* entityClientMailbox = new EntityMailbox(base->pScriptModule(), 
-			&pClientChannel->addr(), 0, base->id(), MAILBOX_TYPE_CLIENT);
+		// 创建entity的客户端entitycall
+		EntityCall* entityClientEntityCall = new EntityCall(base->pScriptModule(), 
+			&pClientChannel->addr(), 0, base->id(), ENTITY_CALL_TYPE_CLIENT);
 
-		base->clientMailbox(entityClientMailbox);
+		base->clientEntityCall(entityClientEntityCall);
 		base->addr(pClientChannel->addr());
 
 		createClientProxies(base);
@@ -4100,8 +4100,8 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 		return;
 	}
 
-	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->clientMailbox());
-	if(mailbox == NULL)
+	EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(base->clientEntityCall());
+	if(entitycall == NULL)
 	{
 		if(s.length() > 0)
 		{
@@ -4128,13 +4128,13 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 				if(isprint)
 				{
 					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"error(not found clientMailbox)! entityID({}), {}(msgid={}).\n", 
+						"error(not found clientEntityCall)! entityID({}), {}(msgid={}).\n", 
 						eid,(pMessageHandler == NULL ? "unknown" : pMessageHandler->name), fmsgid));
 				}
 				else
 				{
 					ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
-						"error(not found clientMailbox)! entityID({}).\n",
+						"error(not found clientEntityCall)! entityID({}).\n",
 						eid));
 				}
 			}
@@ -4142,7 +4142,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 			{
 				/*
 				ERROR_MSG(fmt::format("Baseapp::forwardMessageToClientFromCellapp: "
-					"error(not found clientMailbox)! entityID({}).\n",
+					"error(not found clientEntityCall)! entityID({}).\n",
 					eid));
 				*/
 			}
@@ -4157,7 +4157,7 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 
 	BaseMessagesForwardClientHandler* pBufferedSendToClientMessages = base->pBufferedSendToClientMessages();
 
-	Network::Channel* pClientChannel = mailbox->getChannel();
+	Network::Channel* pClientChannel = entitycall->getChannel();
 	Network::Bundle* pSendBundle = NULL;
 	
 	static Network::MessageHandler* pMessageHandler = NULL;
@@ -4228,11 +4228,11 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 		return;
 	}
 
-	EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->cellMailbox());
-	if(mailbox == NULL)
+	EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(base->cellEntityCall());
+	if(entitycall == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::forwardMessageToCellappFromCellapp: "
-			"error(not found cellMailbox)! entityID={}.\n", 
+			"error(not found cellEntityCall)! entityID={}.\n", 
 			eid));
 
 		s.done();
@@ -4242,7 +4242,7 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 	if(s.length() <= 0)
 		return;
 
-	Network::Channel* pClientChannel = mailbox->getChannel();
+	Network::Channel* pClientChannel = entitycall->getChannel();
 	Network::Bundle* pSendBundle = NULL;
 	
 	if(!pChannel)
@@ -4284,13 +4284,13 @@ void Baseapp::forwardMessageToCellappFromCellapp(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* Baseapp::createMailboxCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityMailbox* pMailbox)
+RemoteEntityMethod* Baseapp::createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCall* pEntityCall)
 {
-	return new BaseRemoteMethod(pMethodDescription, pMailbox);
+	return new BaseRemoteMethod(pMethodDescription, pEntityCall);
 }
 
 //-------------------------------------------------------------------------------------
-void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Baseapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	if(pChannel->isExternal())
 		return;
@@ -4298,66 +4298,66 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	ENTITY_ID eid;
 	s >> eid;
 
-	ENTITY_MAILBOX_TYPE	mailtype;
-	s >> mailtype;
+	ENTITY_CALL_TYPE	calltype;
+	s >> calltype;
 
 	// 在本地区尝试查找该收件人信息， 看收件人是否属于本区域
 	Base* base = pEntities_->find(eid);
 	if(base == NULL)
 	{
-		WARNING_MSG(fmt::format("Baseapp::onEntityMail: entityID {} not found.\n", eid));
+		WARNING_MSG(fmt::format("Baseapp::onEntityCall: entityID {} not found.\n", eid));
 		s.done();
 		return;
 	}
 	
 
-	switch(mailtype)
+	switch(calltype)
 	{
 		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
-		case MAILBOX_TYPE_BASE:		
+		case ENTITY_CALL_TYPE_BASE:		
 			base->onRemoteMethodCall(pChannel, s);
 			break;
 
 		// entity.cell.base.xxx
-		case MAILBOX_TYPE_CELL_VIA_BASE: 
+		case ENTITY_CALL_TYPE_CELL_VIA_BASE: 
 			{
-				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->cellMailbox());
-				if(mailbox == NULL)
+				EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(base->cellEntityCall());
+				if(entitycall == NULL)
 				{
-					WARNING_MSG(fmt::format("Baseapp::onEntityMail: not found cellMailbox! "
-						"mailboxType={}, entityID={}.\n", mailtype, eid));
+					WARNING_MSG(fmt::format("Baseapp::onEntityCall: not found cellEntityCall! "
+						"entityCallType={}, entityID={}.\n", calltype, eid));
 
 					break;
 				}
 				
-				Network::Channel* pChannel = mailbox->getChannel();
+				Network::Channel* pChannel = entitycall->getChannel();
 				if (pChannel)
 				{
 					Network::Bundle* pBundle = pChannel->createSendBundle();
-					mailbox->newMail(*pBundle);
+					entitycall->newCall(*pBundle);
 					pBundle->append(s);
 					pChannel->send(pBundle);
 				}
 			}
 			break;
 
-		case MAILBOX_TYPE_CLIENT_VIA_BASE: // entity.base.client
+		case ENTITY_CALL_TYPE_CLIENT_VIA_BASE: // entity.base.client
 			{
-				EntityMailboxAbstract* mailbox = static_cast<EntityMailboxAbstract*>(base->clientMailbox());
-				if(mailbox == NULL)
+				EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(base->clientEntityCall());
+				if(entitycall == NULL)
 				{
-					WARNING_MSG(fmt::format("Baseapp::onEntityMail: not found clientMailbox! "
-						"mailboxType={}, entityID={}.\n", 
-						mailtype, eid));
+					WARNING_MSG(fmt::format("Baseapp::onEntityCall: not found clientEntityCall! "
+						"entityCallType={}, entityID={}.\n", 
+						calltype, eid));
 
 					break;
 				}
 				
-				Network::Channel* pChannel = mailbox->getChannel();
+				Network::Channel* pChannel = entitycall->getChannel();
 				if (pChannel)
 				{
 					Network::Bundle* pBundle = pChannel->createSendBundle();
-					mailbox->newMail(*pBundle);
+					entitycall->newCall(*pBundle);
 					pBundle->append(s);
 
 					if(Network::g_trace_packet > 0 && s.length() >= sizeof(ENTITY_METHOD_UID))
@@ -4365,7 +4365,7 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 						ENTITY_METHOD_UID utype = 0;
 						s >> utype;
 
-						DEBUG_MSG(fmt::format("Baseapp::onEntityMail: onRemoteMethodCall(entityID={}, method={}).\n",
+						DEBUG_MSG(fmt::format("Baseapp::onEntityCall: onRemoteMethodCall(entityID={}, method={}).\n",
 							eid, utype));
 					}
 
@@ -4376,8 +4376,8 @@ void Baseapp::onEntityMail(Network::Channel* pChannel, KBEngine::MemoryStream& s
 
 		default:
 			{
-				ERROR_MSG(fmt::format("Baseapp::onEntityMail: mailboxType {} error! must a baseType. entityID={}.\n",
-					mailtype, eid));
+				ERROR_MSG(fmt::format("Baseapp::onEntityCall: entityCallType {} error! must a baseType. entityID={}.\n",
+					calltype, eid));
 			}
 	};
 
@@ -4407,7 +4407,7 @@ void Baseapp::onRemoteCallCellMethodFromClient(Network::Channel* pChannel, KBEng
 	KBEngine::Proxy* e = static_cast<KBEngine::Proxy*>
 			(KBEngine::Baseapp::getSingleton().findEntity(srcEntityID));		
 
-	if(e == NULL || e->cellMailbox() == NULL)
+	if(e == NULL || e->cellEntityCall() == NULL)
 	{
 		WARNING_MSG(fmt::format("Baseapp::onRemoteCallCellMethodFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
@@ -4460,7 +4460,7 @@ void Baseapp::onUpdateDataFromClient(Network::Channel* pChannel, KBEngine::Memor
 	KBEngine::Proxy* e = static_cast<KBEngine::Proxy*>
 			(KBEngine::Baseapp::getSingleton().findEntity(srcEntityID));	
 
-	if(e == NULL || e->cellMailbox() == NULL)
+	if(e == NULL || e->cellEntityCall() == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClient: {} {} no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
@@ -4507,7 +4507,7 @@ void Baseapp::onUpdateDataFromClientForControlledEntity(Network::Channel* pChann
 	KBEngine::Proxy* e = static_cast<KBEngine::Proxy*>
 			(KBEngine::Baseapp::getSingleton().findEntity(srcEntityID));	
 
-	if(e == NULL || e->cellMailbox() == NULL)
+	if(e == NULL || e->cellEntityCall() == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onUpdateDataFromClientForControlledEntity: {} {} has no cell.\n",
 			(e == NULL ? "unknown" : e->scriptName()), srcEntityID));
@@ -5102,7 +5102,7 @@ void Baseapp::deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 
 	if(callbackID > 0)
 	{
-		// true or false or mailbox
+		// true or false or entitycall
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
 		{
@@ -5122,7 +5122,7 @@ void Baseapp::deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 				}
 				else
 				{
-					pyval = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, entityInAppID, entityID, MAILBOX_TYPE_BASE));
+					pyval = static_cast<EntityCall*>(new EntityCall(sm, NULL, entityInAppID, entityID, ENTITY_CALL_TYPE_BASE));
 				}
 			}
 			else
@@ -5283,7 +5283,7 @@ void Baseapp::lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 
 	if(callbackID > 0)
 	{
-		// true or false or mailbox
+		// true or false or entitycall
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
 		{
@@ -5299,7 +5299,7 @@ void Baseapp::lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStr
 				}
 				else
 				{
-					pyval = static_cast<EntityMailbox*>(new EntityMailbox(sm, NULL, entityInAppID, entityID, MAILBOX_TYPE_BASE));
+					pyval = static_cast<EntityCall*>(new EntityCall(sm, NULL, entityInAppID, entityID, ENTITY_CALL_TYPE_BASE));
 				}
 			}
 			else if(success)
@@ -5416,7 +5416,7 @@ void Baseapp::onReqAccountBindEmailCBFromDBMgr(Network::Channel* pChannel, ENTIT
 	if (failedcode != SERVER_SUCCESS)
 	{
 		Base* base = pEntities_->find(entityID);
-		if (base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
+		if (base == NULL || base->clientEntityCall() == NULL || base->clientEntityCall()->getChannel() == NULL)
 		{
 			ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromDBMgr: entity:{}, channel is NULL.\n", entityID));
 			return;
@@ -5425,7 +5425,7 @@ void Baseapp::onReqAccountBindEmailCBFromDBMgr(Network::Channel* pChannel, ENTIT
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
 		(*pBundle) << failedcode;
-		base->clientMailbox()->getChannel()->send(pBundle);
+		base->clientEntityCall()->getChannel()->send(pBundle);
 	}
 	else
 	{
@@ -5465,7 +5465,7 @@ void Baseapp::onReqAccountBindEmailCBFromBaseappmgr(Network::Channel* pChannel, 
 	}
 
 	Base* base = pEntities_->find(entityID);
-	if (base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
+	if (base == NULL || base->clientEntityCall() == NULL || base->clientEntityCall()->getChannel() == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onReqAccountBindEmailCBFromBaseappmgr: entity:{}, channel is NULL.\n", entityID));
 		return;
@@ -5474,7 +5474,7 @@ void Baseapp::onReqAccountBindEmailCBFromBaseappmgr(Network::Channel* pChannel, 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(ClientInterface::onReqAccountBindEmailCB);
 	(*pBundle) << failedcode;
-	base->clientMailbox()->getChannel()->send(pBundle);
+	base->clientEntityCall()->getChannel()->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -5547,7 +5547,7 @@ void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID en
 		accountName, entityID, failedcode));
 
 	Base* base = pEntities_->find(entityID);
-	if(base == NULL || base->clientMailbox() == NULL || base->clientMailbox()->getChannel() == NULL)
+	if(base == NULL || base->clientEntityCall() == NULL || base->clientEntityCall()->getChannel() == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseapp::onReqAccountNewPasswordCB: entity:{}, channel is NULL.\n", entityID));
 		return;
@@ -5556,7 +5556,7 @@ void Baseapp::onReqAccountNewPasswordCB(Network::Channel* pChannel, ENTITY_ID en
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(ClientInterface::onReqAccountNewPasswordCB);
 	(*pBundle) << failedcode;
-	base->clientMailbox()->getChannel()->send(pBundle);
+	base->clientEntityCall()->getChannel()->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------

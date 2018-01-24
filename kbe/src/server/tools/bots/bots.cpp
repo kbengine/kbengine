@@ -302,13 +302,13 @@ void Bots::handleGameTick()
 }
 
 //-------------------------------------------------------------------------------------
-Network::Channel* Bots::findChannelByMailbox(EntityMailbox& mailbox)
+Network::Channel* Bots::findChannelByEntityCall(EntityCall& entitycall)
 {
-	int32 appID = (int32)mailbox.componentID();
+	int32 appID = (int32)entitycall.componentID();
 	ClientObject* pClient = findClientByAppID(appID);
 
 	if(pClient)
-		return pClient->findChannelByMailbox(mailbox);
+		return pClient->findChannelByEntityCall(entitycall);
 
 	return NULL;
 }

@@ -124,8 +124,8 @@ NETWORK_INTERFACE_DECLARE_BEGIN(CellappInterface)
 									COMPONENT_TYPE,							componentType, 
 									COMPONENT_ID,							componentID)
 
-	// entity收到一封mail, 由某个app上的mailbox发起
-	CELLAPP_MESSAGE_DECLARE_STREAM(onEntityMail,							NETWORK_VARIABLE_MESSAGE)
+	// entity收到远程call请求, 由某个app上的entitycall发起
+	CELLAPP_MESSAGE_DECLARE_STREAM(onEntityCall,							NETWORK_VARIABLE_MESSAGE)
 
 	// client访问entity的cell方法
 	CELLAPP_MESSAGE_DECLARE_STREAM(onRemoteCallMethodFromClient,			NETWORK_VARIABLE_MESSAGE)

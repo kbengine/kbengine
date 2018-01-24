@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "clientobjectbase.h"
 #include "moveto_point_handler.h"	
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "network/channel.h"	
 #include "network/bundle.h"	
 #include "network/fixed_messages.h"
@@ -51,9 +51,9 @@ SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
 CLIENT_ENTITY_GETSET_DECLARE_BEGIN(Entity)
-SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
-SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
-SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
+SCRIPT_GET_DECLARE("base",							pyGetBaseEntityCall,			0,					0)
+SCRIPT_GET_DECLARE("cell",							pyGetCellEntityCall,			0,					0)
+SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp,					0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("velocity",					pyGetMoveSpeed,					pySetMoveSpeed,		0,		0)
@@ -61,11 +61,11 @@ CLIENT_ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityMailbox* base, EntityMailbox* cell):
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityCall* base, EntityCall* cell):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
-cellMailbox_(cell),
-baseMailbox_(base),
+cellEntityCall_(cell),
+baseEntityCall_(base),
 position_(),
 serverPosition_(),
 direction_(),
@@ -89,8 +89,8 @@ Entity::~Entity()
 {
 	enterworld_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
-	S_RELEASE(cellMailbox_);
-	S_RELEASE(baseMailbox_);
+	S_RELEASE(cellEntityCall_);
+	S_RELEASE(baseEntityCall_);
 
 	script::PyGC::decTracing("Entity");
 	
@@ -112,25 +112,25 @@ void Entity::pClientApp(ClientObjectBase* p)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetBaseMailbox()
+PyObject* Entity::pyGetBaseEntityCall()
 { 
-	EntityMailbox* mailbox = baseMailbox();
-	if(mailbox == NULL)
+	EntityCall* entitycall = baseEntityCall();
+	if(entitycall == NULL)
 		S_Return;
 
-	Py_INCREF(mailbox);
-	return mailbox; 
+	Py_INCREF(entitycall);
+	return entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetCellMailbox()
+PyObject* Entity::pyGetCellEntityCall()
 { 
-	EntityMailbox* mailbox = cellMailbox();
-	if(mailbox == NULL)
+	EntityCall* entitycall = cellEntityCall();
+	if(entitycall == NULL)
 		S_Return;
 
-	Py_INCREF(mailbox);
-	return mailbox; 
+	Py_INCREF(entitycall);
+	return entitycall; 
 }
 
 //-------------------------------------------------------------------------------------

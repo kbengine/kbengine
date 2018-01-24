@@ -28,7 +28,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/common.h"
 #include "common/smartpointer.h"
 #include "helper/debug_helper.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "pyscript/math.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/datatypes.h"	
@@ -48,7 +48,7 @@ namespace KBEngine{
 
 class Chunk;
 class Entity;
-class EntityMailbox;
+class EntityCall;
 class Cellapp;
 class Witness;
 class AllClients;
@@ -130,15 +130,15 @@ public:
 
 public:
 	/** 
-		mailbox section
+		entitycall section
 	*/
-	INLINE EntityMailbox* baseMailbox() const;
-	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
-	INLINE void baseMailbox(EntityMailbox* mailbox);
+	INLINE EntityCall* baseEntityCall() const;
+	DECLARE_PY_GET_MOTHOD(pyGetBaseEntityCall);
+	INLINE void baseEntityCall(EntityCall* entitycall);
 	
-	INLINE EntityMailbox* clientMailbox() const;
-	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
-	INLINE void clientMailbox(EntityMailbox* mailbox);
+	INLINE EntityCall* clientEntityCall() const;
+	DECLARE_PY_GET_MOTHOD(pyGetClientEntityCall);
+	INLINE void clientEntityCall(EntityCall* entitycall);
 
 	/**
 		all_clients
@@ -158,11 +158,11 @@ public:
 		脚本获取controlledBy属性
 	*/
 	INLINE bool isControlledNotSelfClient() const;
-	INLINE EntityMailbox* controlledBy() const;
-	INLINE void controlledBy(EntityMailbox* baseMailbox);
+	INLINE EntityCall* controlledBy() const;
+	INLINE void controlledBy(EntityCall* baseEntityCall);
 	DECLARE_PY_GETSET_MOTHOD(pyGetControlledBy, pySetControlledBy);
-	bool setControlledBy(EntityMailbox* baseMailbox);
-	void sendControlledByStatusMessage(EntityMailbox* baseMailbox, int8 isControlled);
+	bool setControlledBy(EntityCall* baseEntityCall);
+	void sendControlledByStatusMessage(EntityCall* baseEntityCall, int8 isControlled);
 
 	/** 
 		脚本获取和设置entity的position 
@@ -236,8 +236,8 @@ public:
 	void teleport(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
 	void teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3D& dir);
 	void teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir);
-	void teleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir);
-	void onTeleportRefMailbox(EntityMailbox* nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void teleportRefEntityCall(EntityCall* nearbyMBRef, Position3D& pos, Direction3D& dir);
+	void onTeleportRefEntityCall(EntityCall* nearbyMBRef, Position3D& pos, Direction3D& dir);
 
 	/**
 		传送成功和失败相关回调
@@ -630,18 +630,18 @@ private:
 	static int32											_scriptCallbacksBufferCount;
 
 protected:
-	// 这个entity的客户端部分的mailbox
-	EntityMailbox*											clientMailbox_;
+	// 这个entity的客户端部分的entitycall
+	EntityCall*												clientEntityCall_;
 
-	// 这个entity的baseapp部分的mailbox
-	EntityMailbox*											baseMailbox_;
+	// 这个entity的baseapp部分的entitycall
+	EntityCall*												baseEntityCall_;
 
 	/** 这个entity的坐标和朝向当前受谁的客户端控制
 	    null表示没有客户端在控制（即系统控制），
-	    否则指向控制这个entity的对象的baseMailbox_，
+	    否则指向控制这个entity的对象的baseEntityCall_，
 		玩家自己控制自己则Entity.controlledBy = self.base
 	*/
-	EntityMailbox *											controlledBy_;
+	EntityCall *											controlledBy_;
 
 	// 如果一个entity为ghost，那么entity会存在一个源cell的指向
 	COMPONENT_ID											realCell_;

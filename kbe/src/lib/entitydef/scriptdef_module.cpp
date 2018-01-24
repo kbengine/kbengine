@@ -24,7 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatypes.h"
 #include "common.h"
 #include "common/smartpointer.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "resmgr/resmgr.h"
 #include "pyscript/script.h"
 #include "server/serverconfig.h"

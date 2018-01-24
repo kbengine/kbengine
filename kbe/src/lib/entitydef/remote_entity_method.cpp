@@ -38,18 +38,18 @@ SCRIPT_INIT(RemoteEntityMethod, tp_call, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod::RemoteEntityMethod(MethodDescription* methodDescription, 
-	EntityMailboxAbstract* mailbox, PyTypeObject* pyType):
+	EntityCallAbstract* entitycall, PyTypeObject* pyType):
 script::ScriptObject((pyType == NULL ? getScriptType() : pyType), false),
 methodDescription_(methodDescription),
-pMailbox_(mailbox)
+pEntityCall_(entitycall)
 {
-	Py_INCREF(pMailbox_);
+	Py_INCREF(pEntityCall_);
 }
 
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod::~RemoteEntityMethod()
 {
-	Py_DECREF(pMailbox_);
+	Py_DECREF(pEntityCall_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -64,12 +64,12 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 {	
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
-	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
+	EntityCallAbstract* entitycall = rmethod->getEntityCall();
 	// DEBUG_MSG(fmt::format("RemoteEntityMethod::tp_call:{}.\n"), methodDescription->getName()));
 
 	if(methodDescription->checkArgs(args))
 	{
-		Network::Channel* pChannel = mailbox->getChannel();
+		Network::Channel* pChannel = entitycall->getChannel();
 		Network::Bundle* pSendBundle = NULL;
 
 		if (!pChannel)
@@ -77,7 +77,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		else
 			pSendBundle = pChannel->createSendBundle();
 
-		mailbox->newMail((*pSendBundle));
+		entitycall->newCall((*pSendBundle));
 
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
@@ -85,7 +85,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		if(mstream.wpos() > 0)
 			(*pSendBundle).append(mstream.data(), mstream.wpos());
 
-		mailbox->postMail(pSendBundle);
+		entitycall->sendCall(pSendBundle);
 	}
 	else
 	{

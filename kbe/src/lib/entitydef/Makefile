@@ -6,9 +6,9 @@ SRCS =				\
 	datatype		\
 	datatypes		\
 	detaillevel		\
-	entity_mailbox		\
+	entity_call		\
 	entitydef		\
-	entitymailboxabstract	\
+	entitycallabstract	\
 	fixeddict		\
 	method			\
 	property		\

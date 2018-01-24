@@ -117,27 +117,27 @@ INLINE ClientObjectBase* Entity::pClientApp() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::baseMailbox() const
+INLINE EntityCall* Entity::baseEntityCall() const
 { 
-	return baseMailbox_; 
+	return baseEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::cellMailbox(EntityMailbox* mailbox)
+INLINE void Entity::cellEntityCall(EntityCall* entitycall)
 { 
-	cellMailbox_ = mailbox; 
+	cellEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::cellMailbox() const
+INLINE EntityCall* Entity::cellEntityCall() const
 { 
-	return cellMailbox_; 
+	return cellEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::baseMailbox(EntityMailbox* mailbox)
+INLINE void Entity::baseEntityCall(EntityCall* entitycall)
 { 
-	baseMailbox_ = mailbox; 
+	baseEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------

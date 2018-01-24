@@ -19,7 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#include "entitymailboxabstract.h"
+#include "entitycallabstract.h"
 #include "pyscript/pickler.h"
 #include "helper/debug_helper.h"
 #include "network/packet.h"
@@ -32,31 +32,31 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../server/cellapp/cellapp_interface.h"
 
 #ifndef CODE_INLINE
-#include "entitymailboxabstract.inl"
+#include "entitycallabstract.inl"
 #endif
 
 namespace KBEngine{
 
 
-SCRIPT_METHOD_DECLARE_BEGIN(EntityMailboxAbstract)
+SCRIPT_METHOD_DECLARE_BEGIN(EntityCallAbstract)
 SCRIPT_METHOD_DECLARE("__reduce_ex__",				reduce_ex__,			METH_VARARGS,		0)
 SCRIPT_METHOD_DECLARE_END()
 
-SCRIPT_MEMBER_DECLARE_BEGIN(EntityMailboxAbstract)
+SCRIPT_MEMBER_DECLARE_BEGIN(EntityCallAbstract)
 SCRIPT_MEMBER_DECLARE_END()
 
-SCRIPT_GETSET_DECLARE_BEGIN(EntityMailboxAbstract)
+SCRIPT_GETSET_DECLARE_BEGIN(EntityCallAbstract)
 SCRIPT_GET_DECLARE("id",							pyGetID,				0,					0)	
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(EntityMailboxAbstract, 0, 0, 0, 0, 0)		
+SCRIPT_INIT(EntityCallAbstract, 0, 0, 0, 0, 0)		
 
 //-------------------------------------------------------------------------------------
-EntityMailboxAbstract::EntityMailboxAbstract(PyTypeObject* scriptType, 
+EntityCallAbstract::EntityCallAbstract(PyTypeObject* scriptType, 
 											const Network::Address* pAddr, 
 											COMPONENT_ID componentID, 
 											ENTITY_ID eid, 
 											uint16 utype, 
-											ENTITY_MAILBOX_TYPE type):
+											ENTITY_CALL_TYPE type):
 ScriptObject(scriptType, false),
 componentID_(componentID),
 addr_((pAddr == NULL) ? Network::Address::NONE : *pAddr),
@@ -67,14 +67,14 @@ utype_(utype)
 }
 
 //-------------------------------------------------------------------------------------
-EntityMailboxAbstract::~EntityMailboxAbstract()
+EntityCallAbstract::~EntityCallAbstract()
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
+void EntityCallAbstract::newCall(Network::Bundle& bundle)
 {
-	// 如果是server端的mailbox
+	// 如果是server端的entitycall
 	if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 	{
 		// 如果ID为0，则这是一个客户端组件，否则为服务端。
@@ -88,19 +88,19 @@ void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
 
 			if(cinfos != NULL)
 			{
-				// 找到对应的组件投递过去， 如果这个mailbox还需要中转比如 e.base.cell ， 则由baseapp转往cellapp
+				// 找到对应的组件投递过去， 如果这个entitycall还需要中转比如 e.base.cell ， 则由baseapp转往cellapp
 				if(cinfos->componentType == BASEAPP_TYPE)
 				{
-					bundle.newMessage(BaseappInterface::onEntityMail);
+					bundle.newMessage(BaseappInterface::onEntityCall);
 				}
 				else
 				{
-					bundle.newMessage(CellappInterface::onEntityMail);
+					bundle.newMessage(CellappInterface::onEntityCall);
 				}
 			}
 			else
 			{
-				ERROR_MSG(fmt::format("EntityMailboxAbstract::newMail: not found component({}), entityID({})!\n",
+				ERROR_MSG(fmt::format("EntityCallAbstract::newCall: not found component({}), entityID({})!\n",
 					componentID_, id_));
 			}
 		}
@@ -113,13 +113,13 @@ void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
 	}
 	else
 	{
-		// 如果是客户端上的mailbox调用服务端方法只存在调用cell或者base
+		// 如果是客户端上的entitycall调用服务端方法只存在调用cell或者base
 		switch(type_)
 		{
-		case MAILBOX_TYPE_BASE:
+		case ENTITY_CALL_TYPE_BASE:
 			bundle.newMessage(BaseappInterface::onRemoteMethodCall);
 			break;
-		case MAILBOX_TYPE_CELL:
+		case ENTITY_CALL_TYPE_CELL:
 			bundle.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
 			break;
 		default:
@@ -132,7 +132,7 @@ void EntityMailboxAbstract::newMail(Network::Bundle& bundle)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
+bool EntityCallAbstract::sendCall(Network::Bundle* pBundle)
 {
 	KBE_ASSERT(Components::getSingleton().pNetworkInterface() != NULL);
 	Network::Channel* pChannel = getChannel();
@@ -144,7 +144,7 @@ bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("EntityMailboxAbstract::postMail: invalid channel({}), entityID({})!\n",
+		ERROR_MSG(fmt::format("EntityCallAbstract::sendCall: invalid channel({}), entityID({})!\n",
 			addr_.c_str(), id_));
 	}
 
@@ -153,20 +153,20 @@ bool EntityMailboxAbstract::postMail(Network::Bundle* pBundle)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* protocol)
+PyObject* EntityCallAbstract::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 {
-	EntityMailboxAbstract* emailbox = static_cast<EntityMailboxAbstract*>(self);
+	EntityCallAbstract* eentitycall = static_cast<EntityCallAbstract*>(self);
 	
 	PyObject* args = PyTuple_New(2);
-	PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("Mailbox");
+	PyObject* unpickleMethod = script::Pickler::getUnpickleFunc("EntityCall");
 	PyTuple_SET_ITEM(args, 0, unpickleMethod);
 	
 	PyObject* args1 = PyTuple_New(4);
-	PyTuple_SET_ITEM(args1, 0, PyLong_FromLong(emailbox->id()));
-	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(emailbox->componentID()));
-	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(emailbox->utype()));
+	PyTuple_SET_ITEM(args1, 0, PyLong_FromLong(eentitycall->id()));
+	PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(eentitycall->componentID()));
+	PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(eentitycall->utype()));
 
-	int16 mbType = static_cast<int16>(emailbox->type());
+	int16 mbType = static_cast<int16>(eentitycall->type());
 	
 	PyTuple_SET_ITEM(args1, 3, PyLong_FromLong(mbType));
 	PyTuple_SET_ITEM(args, 1, args1);
@@ -179,7 +179,7 @@ PyObject* EntityMailboxAbstract::__py_reduce_ex__(PyObject* self, PyObject* prot
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* EntityMailboxAbstract::pyGetID()
+PyObject* EntityCallAbstract::pyGetID()
 { 
 	return PyLong_FromLong(id()); 
 }

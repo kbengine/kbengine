@@ -175,7 +175,7 @@ void Witness::onAttach(Entity* pEntity)
 		(*pSendBundle) << pEntity_->isOnGround();
 
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterWorld, entityEnterWorld);
-	pEntity_->clientMailbox()->postMail(pSendBundle);
+	pEntity_->clientEntityCall()->sendCall(pSendBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ void Witness::detach(Entity* pEntity)
 	//DEBUG_MSG(fmt::format("Witness::detach: {}({}).\n", 
 	//	pEntity->scriptName(), pEntity->id()));
 
-	EntityMailbox* pClientMB = pEntity_->clientMailbox();
+	EntityCall* pClientMB = pEntity_->clientEntityCall();
 	if(pClientMB)
 	{
 		Network::Channel* pChannel = pClientMB->getChannel();
@@ -199,7 +199,7 @@ void Witness::detach(Entity* pEntity)
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onEntityLeaveWorld, entityLeaveWorld);
 			(*pSendBundle) << pEntity->id();
 			ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveWorld, entityLeaveWorld);
-			pClientMB->postMail(pSendBundle);
+			pClientMB->sendCall(pSendBundle);
 		}
 	}
 
@@ -506,7 +506,7 @@ void Witness::onEnterSpace(Space* pSpace)
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityEnterSpace, entityEnterSpace);
 
 	// 发送消息并清理
-	pEntity_->clientMailbox()->postMail(pSendBundle);
+	pEntity_->clientEntityCall()->sendCall(pSendBundle);
 
 	installViewTrigger();
 }
@@ -522,7 +522,7 @@ void Witness::onLeaveSpace(Space* pSpace)
 	ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
 	(*pSendBundle) << pEntity_->id();
 	ENTITY_MESSAGE_FORWARD_CLIENT_END(pSendBundle, ClientInterface::onEntityLeaveSpace, entityLeaveSpace);
-	pEntity_->clientMailbox()->postMail(pSendBundle);
+	pEntity_->clientEntityCall()->sendCall(pSendBundle);
 
 	lastBasePos_.z = -FLT_MAX;
 	lastBaseDir_.yaw(-FLT_MAX);
@@ -603,7 +603,7 @@ Network::Channel* Witness::pChannel()
 	if(pEntity_ == NULL)
 		return NULL;
 
-	EntityMailbox* clientMB = pEntity_->clientMailbox();
+	EntityCall* clientMB = pEntity_->clientEntityCall();
 	if(!clientMB)
 		return NULL;
 
@@ -725,10 +725,10 @@ bool Witness::update()
 {
 	SCOPED_PROFILE(CLIENT_UPDATE_PROFILE);
 
-	if(pEntity_ == NULL || !pEntity_->clientMailbox())
+	if(pEntity_ == NULL || !pEntity_->clientEntityCall())
 		return true;
 
-	Network::Channel* pChannel = pEntity_->clientMailbox()->getChannel();
+	Network::Channel* pChannel = pEntity_->clientEntityCall()->getChannel();
 	if(!pChannel)
 		return true;
 

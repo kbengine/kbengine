@@ -31,7 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatypes.h"
 #include "helper/debug_helper.h"
 #include "network/packet.h"
-#include "entitymailboxabstract.h"
+#include "entitycallabstract.h"
 #include "pyscript/scriptobject.h"	
 
 
@@ -46,7 +46,7 @@ class RemoteEntityMethod : public script::ScriptObject
 		
 public:	
 	RemoteEntityMethod(MethodDescription* methodDescription, 
-						EntityMailboxAbstract* mailbox, PyTypeObject* pyType = NULL);
+						EntityCallAbstract* entitycall, PyTypeObject* pyType = NULL);
 	
 	virtual ~RemoteEntityMethod();
 
@@ -60,14 +60,14 @@ public:
 	static PyObject* tp_call(PyObject* self, 
 			PyObject* args, PyObject* kwds);
 
-	EntityMailboxAbstract* getMailbox(void) const 
+	EntityCallAbstract* getEntityCall(void) const
 	{
-		return pMailbox_; 
+		return pEntityCall_;
 	}
 	
 protected:	
 	MethodDescription*		methodDescription_;					// 这个方法的描述
-	EntityMailboxAbstract*	pMailbox_;							// 这个方法所属的mailbox
+	EntityCallAbstract*		pEntityCall_;						// 这个方法所属的entitycall
 };
 }
 

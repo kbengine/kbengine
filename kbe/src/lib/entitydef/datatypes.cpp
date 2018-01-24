@@ -56,30 +56,30 @@ void DataTypes::finalise(void)
 bool DataTypes::initialize(std::string file)
 {
 	// 初始化一些基础类别
-	addDataType("UINT8",	new IntType<uint8>);
-	addDataType("UINT16",	new IntType<uint16>);
-	addDataType("UINT64",	new UInt64Type);
-	addDataType("UINT32",	new UInt32Type);
+	addDataType("UINT8",		new IntType<uint8>);
+	addDataType("UINT16",		new IntType<uint16>);
+	addDataType("UINT64",		new UInt64Type);
+	addDataType("UINT32",		new UInt32Type);
 
-	addDataType("INT8",		new IntType<int8>);
-	addDataType("INT16",	new IntType<int16>);
-	addDataType("INT32",	new IntType<int32>);
-	addDataType("INT64",	new Int64Type);
+	addDataType("INT8",			new IntType<int8>);
+	addDataType("INT16",		new IntType<int16>);
+	addDataType("INT32",		new IntType<int32>);
+	addDataType("INT64",		new Int64Type);
 
-	addDataType("STRING",	new StringType);
-	addDataType("UNICODE",	new UnicodeType);
-	addDataType("FLOAT",	new FloatType);
-	addDataType("DOUBLE",	new DoubleType);
-	addDataType("PYTHON",	new PythonType);
-	addDataType("PY_DICT",	new PyDictType);
-	addDataType("PY_TUPLE",	new PyTupleType);
-	addDataType("PY_LIST",	new PyListType);
-	addDataType("MAILBOX",	new MailboxType);
-	addDataType("BLOB",		new BlobType);
+	addDataType("STRING",		new StringType);
+	addDataType("UNICODE",		new UnicodeType);
+	addDataType("FLOAT",		new FloatType);
+	addDataType("DOUBLE",		new DoubleType);
+	addDataType("PYTHON",		new PythonType);
+	addDataType("PY_DICT",		new PyDictType);
+	addDataType("PY_TUPLE",		new PyTupleType);
+	addDataType("PY_LIST",		new PyListType);
+	addDataType("ENTITYCALL",	new EntityCallType);
+	addDataType("BLOB",			new BlobType);
 
-	addDataType("VECTOR2",	new Vector2Type);
-	addDataType("VECTOR3",	new Vector3Type);
-	addDataType("VECTOR4",	new Vector4Type);
+	addDataType("VECTOR2",		new Vector2Type);
+	addDataType("VECTOR3",		new Vector3Type);
+	addDataType("VECTOR4",		new Vector4Type);
 	return loadTypes(file);
 }
 

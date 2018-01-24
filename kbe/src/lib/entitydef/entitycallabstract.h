@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_ENTITY_MAILBOX_BASE_H
-#define KBE_ENTITY_MAILBOX_BASE_H
+#ifndef KBE_ENTITY_CALL_BASE_H
+#define KBE_ENTITY_CALL_BASE_H
 	
 #include "common/common.h"
 //#include "network/channel.h"
@@ -36,19 +36,19 @@ class Channel;
 class Bundle;
 }
 
-class EntityMailboxAbstract : public script::ScriptObject
+class EntityCallAbstract : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(EntityMailboxAbstract, ScriptObject)
+	INSTANCE_SCRIPT_HREADER(EntityCallAbstract, ScriptObject)
 public:
-	EntityMailboxAbstract(PyTypeObject* scriptType, 
+	EntityCallAbstract(PyTypeObject* scriptType, 
 		const Network::Address* pAddr, 
 		COMPONENT_ID componentID, 
 		ENTITY_ID eid, 
 		uint16 utype, 
-		ENTITY_MAILBOX_TYPE type);
+		ENTITY_CALL_TYPE type);
 	
-	virtual ~EntityMailboxAbstract();
+	virtual ~EntityCallAbstract();
 
 	/** 
 		获取entityID 
@@ -77,7 +77,7 @@ public:
 	/** 
 		获得type 
 	*/
-	INLINE ENTITY_MAILBOX_TYPE type(void) const;
+	INLINE ENTITY_CALL_TYPE type(void) const;
 
 	/** 
 		支持pickler 方法 
@@ -86,9 +86,9 @@ public:
 	
 	virtual Network::Channel* getChannel(void) = 0;
 
-	virtual bool postMail(Network::Bundle* pBundle);
+	virtual bool sendCall(Network::Bundle* pBundle);
 
-	virtual void newMail(Network::Bundle& bundle);
+	virtual void newCall(Network::Bundle& bundle);
 	
 	const Network::Address& addr() const{ return addr_; }
 	void addr(const Network::Address& saddr){ addr_ = saddr; }
@@ -104,14 +104,14 @@ public:
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	Network::Address						addr_;					// 频道地址
-	ENTITY_MAILBOX_TYPE						type_;					// 该mailbox的类型
+	ENTITY_CALL_TYPE						type_;					// 该entityCall的类型
 	ENTITY_ID								id_;					// entityID
-	ENTITY_SCRIPT_UID						utype_;					// entity的utype  按照entities.xml中的定义顺序
+	ENTITY_SCRIPT_UID						utype_;					// entity的utype按照entities.xml中的定义顺序
 };
 
 }
 
 #ifdef CODE_INLINE
-#include "entitymailboxabstract.inl"
+#include "entitycallabstract.inl"
 #endif
-#endif // KBE_ENTITY_MAILBOX_BASE_H
+#endif // KBE_ENTITY_CALL_BASE_H

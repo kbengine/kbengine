@@ -152,7 +152,7 @@ std::string ClientSDKUnity::typeToType(const std::string& type)
 		return "Vector4";
 	}
 #endif
-	else if (type == "MAILBOX")
+	else if (type == "ENTITYCALL")
 	{
 		return "byte[]";
 	}
@@ -321,7 +321,7 @@ bool ClientSDKUnity::writeEngineMessagesModuleMessage(Network::ExposedMessageInf
 			int argindex = (i + 1);
 			std::string nativetype = datatype2nativetype(messageInfos.argsTypes[i]);
 
-			KBE_ASSERT(nativetype != "FIXED_DICT" && nativetype != "ARRAY" && nativetype != "PYTHON" && nativetype != "MAILBOX");
+			KBE_ASSERT(nativetype != "FIXED_DICT" && nativetype != "ARRAY" && nativetype != "PYTHON" && nativetype != "ENTITYCALL");
 
 			std::string readName = nativetype;
 			std::transform(readName.begin(), readName.end(), readName.begin(), tolower);
@@ -466,7 +466,7 @@ bool ClientSDKUnity::writeEntityDefsModuleBegin()
 	sourcefileBody_ += "\t\t\tdatatypes[\"VECTOR4\"] = new DATATYPE_VECTOR4();\n";
 	sourcefileBody_ += "\t\t\tdatatypes[\"PYTHON\"] = new DATATYPE_PYTHON();\n\n";
 	sourcefileBody_ += "\t\t\tdatatypes[\"UNICODE\"] = new DATATYPE_UNICODE();\n";
-	sourcefileBody_ += "\t\t\tdatatypes[\"MAILBOX\"] = new DATATYPE_MAILBOX();\n\n";
+	sourcefileBody_ += "\t\t\tdatatypes[\"ENTITYCALL\"] = new DATATYPE_ENTITYCALL();\n\n";
 	sourcefileBody_ += "\t\t\tdatatypes[\"BLOB\"] = new DATATYPE_BLOB();\n";
 	sourcefileBody_ += "\t\t}\n\n";
 	return true;
@@ -569,13 +569,13 @@ bool ClientSDKUnity::writeEntityDefsModuleInitDefType(const DataType* pDataType)
 }
 
 //-------------------------------------------------------------------------------------
-void ClientSDKUnity::onEntityMailboxModuleFileName(const std::string& moduleName)
+void ClientSDKUnity::onEntityCallModuleFileName(const std::string& moduleName)
 {
-	sourcefileName_ = std::string("EntityMailbox") + moduleName + moduleSuffix + ".cs";
+	sourcefileName_ = std::string("EntityCall") + moduleName + moduleSuffix + ".cs";
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule)
+bool ClientSDKUnity::writeEntityCallBegin(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileBody_ = headerBody;
 	strutil::kbe_replace(sourcefileBody_, "#REPLACE#", fmt::format("\t\n",
@@ -592,18 +592,18 @@ bool ClientSDKUnity::writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule)
+bool ClientSDKUnity::writeEntityCallEnd(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileBody_ += fmt::format("\t}}\n");
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+bool ClientSDKUnity::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic void {}({})\n\t\t{{\n", pMethodDescription->getName(), fillString1);
 
-	sourcefileBody_ += fmt::format("\t\t\tBundle pBundle = newMail(\"{}\");\n", pMethodDescription->getName());
+	sourcefileBody_ += fmt::format("\t\t\tBundle pBundle = newCall(\"{}\");\n", pMethodDescription->getName());
 	sourcefileBody_ += fmt::format("\t\t\tif(pBundle == null)\n");
 	sourcefileBody_ += fmt::format("\t\t\t\treturn;\n\n");
 
@@ -650,47 +650,47 @@ bool ClientSDKUnity::writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule,
 		i++;
 	}
 
-	sourcefileBody_ += fmt::format("\t\t\tpostMail(null);\n");
+	sourcefileBody_ += fmt::format("\t\t\tsendCall(null);\n");
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule)
+bool ClientSDKUnity::writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule)
 {
 	std::string newModuleName;
 
-	newModuleName = std::string("EntityBaseMailbox_") + std::string(pScriptDefModule->getName()) + moduleSuffix;
-	sourcefileBody_ += fmt::format("\tpublic class {} : EntityMailbox\n\t{{\n", newModuleName);
+	newModuleName = std::string("EntityBaseEntityCall_") + std::string(pScriptDefModule->getName()) + moduleSuffix;
+	sourcefileBody_ += fmt::format("\tpublic class {} : EntityCall\n\t{{\n", newModuleName);
 
 	sourcefileBody_ += fmt::format("\t\tpublic {}() : base()\n\t\t{{\n", newModuleName);
-	sourcefileBody_ += fmt::format("\t\t\ttype = MAILBOX_TYPE.MAILBOX_TYPE_BASE;\n");
+	sourcefileBody_ += fmt::format("\t\t\ttype = ENTITYCALL_TYPE.ENTITYCALL_TYPE_BASE;\n");
 	sourcefileBody_ += fmt::format("\t\t}}\n\n");
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule)
+bool ClientSDKUnity::writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileBody_ += fmt::format("\t}}\n");
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule)
+bool ClientSDKUnity::writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule)
 {
 	std::string newModuleName;
 
-	newModuleName = std::string("EntityCellMailbox_") + std::string(pScriptDefModule->getName()) + moduleSuffix;
-	sourcefileBody_ += fmt::format("\tpublic class {} : EntityMailbox\n\t{{\n", newModuleName);
+	newModuleName = std::string("EntityCellEntityCall_") + std::string(pScriptDefModule->getName()) + moduleSuffix;
+	sourcefileBody_ += fmt::format("\tpublic class {} : EntityCall\n\t{{\n", newModuleName);
 
 	sourcefileBody_ += fmt::format("\t\tpublic {}() : base()\n\t\t{{\n", newModuleName);
-	sourcefileBody_ += fmt::format("\t\t\ttype = MAILBOX_TYPE.MAILBOX_TYPE_CELL;\n");
+	sourcefileBody_ += fmt::format("\t\t\ttype = ENTITYCALL_TYPE.ENTITYCALL_TYPE_CELL;\n");
 	sourcefileBody_ += fmt::format("\t\t}}\n\n");
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule)
+bool ClientSDKUnity::writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileBody_ += fmt::format("\t}}\n");
 	return true;
@@ -1400,7 +1400,7 @@ bool ClientSDKUnity::writeTypeItemType_AliasName(const std::string& itemName, co
 		sourcefileBody_ += fmt::format("\t\t\t{} tvalue = ({})value;\n\t\t\treturn new {}(tvalue);\n\t\t}}\n", ntype, ntype, itemName);
 	}
 	else if (childItemName == "PYTHON" || childItemName == "PY_DICT" || childItemName == "PY_TUPLE" || 
-		childItemName == "PY_LIST" || childItemName == "MAILBOX" || childItemName == "BLOB")
+		childItemName == "PY_LIST" || childItemName == "ENTITYCALL" || childItemName == "BLOB")
 	{
 		std::string ntype = "byte[]";
 		sourcefileBody_ += fmt::format("\t\t{} value;\n\n", ntype);
@@ -1626,7 +1626,7 @@ bool ClientSDKUnity::writeTypeItemType_VECTOR4(const std::string& itemName, cons
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeTypeItemType_MAILBOX(const std::string& itemName, const std::string& childItemName)
+bool ClientSDKUnity::writeTypeItemType_ENTITYCALL(const std::string& itemName, const std::string& childItemName)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic byte[] {} = new byte[0];\n", itemName);
 	return true;
@@ -1652,8 +1652,8 @@ bool ClientSDKUnity::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefMod
 	sourcefileBody_ += fmt::format("\tpublic abstract class {} : Entity\n\t{{\n", newModuleName);
 
 	// 写mailbox属性
-	sourcefileBody_ += fmt::format("\t\tpublic EntityBaseMailbox_{} baseMailbox = null;\n", newModuleName);
-	sourcefileBody_ += fmt::format("\t\tpublic EntityCellMailbox_{} cellMailbox = null;\n\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\tpublic EntityBaseEntityCall_{} baseEntityCall = null;\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\tpublic EntityCellEntityCall_{} cellEntityCall = null;\n\n", newModuleName);
 	return true;
 }
 
@@ -1704,31 +1704,31 @@ bool ClientSDKUnity::getArrayType(DataType* pDataType, std::string& outstr)
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule)
 {
-	// mailbox
+	// EntityCall
 	std::string newModuleName = fmt::format("{}{}", pEntityScriptDefModule->getName(), moduleSuffix);
 
 	sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetBase()\n\t\t{{\n");
-	sourcefileBody_ += fmt::format("\t\t\tbaseMailbox = new EntityBaseMailbox_{}();\n", newModuleName);
-	sourcefileBody_ += fmt::format("\t\t\tbaseMailbox.id = id;\n");
-	sourcefileBody_ += fmt::format("\t\t\tbaseMailbox.className = className;\n");
+	sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall = new EntityBaseEntityCall_{}();\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall.id = id;\n");
+	sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall.className = className;\n");
 	sourcefileBody_ += "\t\t}\n";
 
 	sourcefileBody_ += fmt::format("\n\t\tpublic override void onGetCell()\n\t\t{{\n");
-	sourcefileBody_ += fmt::format("\t\t\tcellMailbox = new EntityCellMailbox_{}();\n", newModuleName);
-	sourcefileBody_ += fmt::format("\t\t\tcellMailbox.id = id;\n");
-	sourcefileBody_ += fmt::format("\t\t\tcellMailbox.className = className;\n");
+	sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = new EntityCellEntityCall_{}();\n", newModuleName);
+	sourcefileBody_ += fmt::format("\t\t\tcellEntityCall.id = id;\n");
+	sourcefileBody_ += fmt::format("\t\t\tcellEntityCall.className = className;\n");
 	sourcefileBody_ += "\t\t}\n";
 
 	sourcefileBody_ += fmt::format("\n\t\tpublic override void onLoseCell()\n\t\t{{\n");
-	sourcefileBody_ += fmt::format("\t\t\tcellMailbox = null;\n");
+	sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = null;\n");
 	sourcefileBody_ += "\t\t}\n";
 
-	sourcefileBody_ += fmt::format("\n\t\tpublic override EntityMailbox getBaseMailbox()\n\t\t{{\n");
-	sourcefileBody_ += fmt::format("\t\t\treturn baseMailbox;\n");
+	sourcefileBody_ += fmt::format("\n\t\tpublic override EntityCall getBaseEntityCall()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\treturn baseEntityCall;\n");
 	sourcefileBody_ += "\t\t}\n";
 
-	sourcefileBody_ += fmt::format("\n\t\tpublic override EntityMailbox getCellMailbox()\n\t\t{{\n");
-	sourcefileBody_ += fmt::format("\t\t\treturn cellMailbox;\n");
+	sourcefileBody_ += fmt::format("\n\t\tpublic override EntityCall getCellEntityCall()\n\t\t{{\n");
+	sourcefileBody_ += fmt::format("\t\t\treturn cellEntityCall;\n");
 	sourcefileBody_ += "\t\t}\n";
 
 	// 处理方法
@@ -2320,7 +2320,7 @@ bool ClientSDKUnity::writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptD
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+bool ClientSDKUnity::writeEntityProperty_ENTITYCALL(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic byte[] {} = {};\n", pPropertyDescription->getName(),

@@ -53,7 +53,7 @@ public:
 	virtual void onCreateEngineMessagesModuleFileName();
 	virtual void onCreateEntityDefsModuleFileName();
 	virtual void onCreateDefsCustomTypesModuleFileName();
-	virtual void onEntityMailboxModuleFileName(const std::string& moduleName);
+	virtual void onEntityCallModuleFileName(const std::string& moduleName);
 
 	virtual bool copyPluginsSourceToPath(const std::string& path);
 
@@ -78,14 +78,14 @@ public:
 	virtual bool writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType);
 	virtual bool writeEntityDefsModuleInitScript_PropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
 
-	bool writeEntityMailBox(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
+	bool writeEntityCall(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
 
 	virtual bool writeEntityDefsModuleInitDefTypesBegin();
 	virtual bool writeEntityDefsModuleInitDefTypesEnd();
@@ -236,7 +236,7 @@ public:
 		return false;
 	}
 
-	virtual bool writeTypeItemType_MAILBOX(const std::string& itemName, const std::string& childItemName)
+	virtual bool writeTypeItemType_ENTITYCALL(const std::string& itemName, const std::string& childItemName)
 	{
 		return false;
 	}
@@ -368,7 +368,7 @@ public:
 		return false;
 	}
 
-	virtual bool writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+	virtual bool writeEntityProperty_ENTITYCALL(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription) {
 		return false;
 	}

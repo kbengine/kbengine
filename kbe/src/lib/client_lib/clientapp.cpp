@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet_sender.h"
 #include "network/tcp_packet_receiver.h"
 #include "thread/threadpool.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "entitydef/entitydef.h"
 #include "server/components.h"
 #include "server/serverconfig.h"
@@ -75,8 +75,8 @@ state_(C_STATE_INIT)
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
-	// 初始化mailbox模块获取channel函数地址
-	EntityMailbox::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByMailbox, this, 
+	// 初始化entitycall模块获取channel函数地址
+	EntityCall::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByEntityCall, this, 
 		std::tr1::placeholders::_1));
 
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
@@ -87,7 +87,7 @@ state_(C_STATE_INIT)
 //-------------------------------------------------------------------------------------
 ClientApp::~ClientApp()
 {
-	EntityMailbox::resetCallHooks();
+	EntityCall::resetCallHooks();
 	SAFE_RELEASE(pBlowfishFilter_);
 }
 

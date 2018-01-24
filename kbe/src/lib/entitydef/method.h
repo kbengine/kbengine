@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatypes.h"
 #include "helper/debug_helper.h"
 #include "network/packet.h"
-#include "entitymailboxabstract.h"
+#include "entitycallabstract.h"
 #include "pyscript/scriptobject.h"	
 
 

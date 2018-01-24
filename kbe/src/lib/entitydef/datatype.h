@@ -626,12 +626,12 @@ public:
 	virtual DATATYPE type() const{ return DATA_TYPE_BLOB; }
 };
 
-class MailboxType : public DataType
+class EntityCallType : public DataType
 {
 protected:
 public:	
-	MailboxType(DATATYPE_UID did = 0);
-	virtual ~MailboxType();	
+	EntityCallType(DATATYPE_UID did = 0);
+	virtual ~EntityCallType();	
 
 	bool isSameType(PyObject* pyValue);
 
@@ -641,9 +641,9 @@ public:
 
 	PyObject* parseDefaultStr(std::string defaultVal);
 
-	const char* getName(void) const{ return "MAILBOX";}
+	const char* getName(void) const{ return "ENTITYCALL";}
 
-	virtual DATATYPE type() const{ return DATA_TYPE_MAILBOX; }
+	virtual DATATYPE type() const{ return DATA_TYPE_ENTITYCALL; }
 };
 
 class FixedArrayType : public DataType

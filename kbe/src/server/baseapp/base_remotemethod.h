@@ -34,7 +34,7 @@ class BaseRemoteMethod : public RemoteEntityMethod
 	INSTANCE_SCRIPT_HREADER(BaseRemoteMethod, RemoteEntityMethod)	
 public:
 	BaseRemoteMethod(MethodDescription* methodDescription, 
-						EntityMailboxAbstract* mailbox);
+						EntityCallAbstract* entitycall);
 
 	~BaseRemoteMethod();
 

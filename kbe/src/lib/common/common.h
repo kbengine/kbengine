@@ -68,20 +68,20 @@ enum ACCOUNT_FLAGS
 	ACCOUNT_FLAG_NOT_ACTIVATED = 0x000000002
 };
 
-/** entity的mailbox类别 */
-enum ENTITY_MAILBOX_TYPE
+/** entity的entityCall类别 */
+enum ENTITY_CALL_TYPE
 {
-	MAILBOX_TYPE_CELL												= 0,
-	MAILBOX_TYPE_BASE												= 1,
-	MAILBOX_TYPE_CLIENT												= 2,
-	MAILBOX_TYPE_CELL_VIA_BASE										= 3,
-	MAILBOX_TYPE_BASE_VIA_CELL										= 4,
-	MAILBOX_TYPE_CLIENT_VIA_CELL									= 5,
-	MAILBOX_TYPE_CLIENT_VIA_BASE									= 6,
+	ENTITY_CALL_TYPE_CELL												= 0,
+	ENTITY_CALL_TYPE_BASE												= 1,
+	ENTITY_CALL_TYPE_CLIENT												= 2,
+	ENTITY_CALL_TYPE_CELL_VIA_BASE										= 3,
+	ENTITY_CALL_TYPE_BASE_VIA_CELL										= 4,
+	ENTITY_CALL_TYPE_CLIENT_VIA_CELL									= 5,
+	ENTITY_CALL_TYPE_CLIENT_VIA_BASE									= 6,
 };
 
-/** mailbox的类别对换为字符串名称 严格和ENTITY_MAILBOX_TYPE索引匹配 */
-const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] = 
+/** entityCall的类别对换为字符串名称 严格和ENTITY_CALL_TYPE索引匹配 */
+const char ENTITY_CALL_TYPE_TO_NAME_TABLE[][8] = 
 {
 	"cell",
 	"base",
@@ -92,8 +92,8 @@ const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE[][8] =
 	"client",
 };
 
-/** mailbox的类别对换为字符串名称 严格和ENTITY_MAILBOX_TYPE索引匹配 */
-const char ENTITY_MAILBOX_TYPE_TO_NAME_TABLE_EX[][14] =
+/** entityCall的类别对换为字符串名称 严格和ENTITY_CALL_TYPE索引匹配 */
+const char ENTITY_CALL_TYPE_TO_NAME_TABLE_EX[][14] =
 {
 	"cell",
 	"base",

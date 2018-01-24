@@ -21,7 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp.h"
 #include "restore_entity_handler.h"
 #include "server/components.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "entitydef/entitydef.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
@@ -178,7 +178,7 @@ bool RestoreEntityHandler::process()
 				}
 				else
 				{
-					if(pBase->cellMailbox() == NULL)
+					if(pBase->cellEntityCall() == NULL)
 					{
 						return true;
 					}
@@ -223,7 +223,7 @@ bool RestoreEntityHandler::process()
 				if(!destroyed)
 				{
 					utype = pBase->pScriptModule()->getUType();
-					cellappID = pBase->cellMailbox()->componentID();
+					cellappID = pBase->cellEntityCall()->componentID();
 				}
 
 				spaceIDs_.erase(std::remove(spaceIDs_.begin(), spaceIDs_.end(), spaceID), spaceIDs_.end());
@@ -276,7 +276,7 @@ bool RestoreEntityHandler::process()
 				return true;
 			}
 
-			if(pBase->cellMailbox() != NULL)
+			if(pBase->cellEntityCall() != NULL)
 			{
 				if(!data.processed)
 				{
@@ -292,34 +292,34 @@ bool RestoreEntityHandler::process()
 				{
 					data.creatingCell = true;
 					
-					EntityMailboxAbstract* cellMailbox = NULL;
+					EntityCallAbstract* cellEntityCall = NULL;
 					std::vector<RestoreData>::iterator restoreSpacesIter = restoreSpaces_.begin();
 					for(; restoreSpacesIter != restoreSpaces_.end(); ++restoreSpacesIter)
 					{
 						Base* pSpace = Baseapp::getSingleton().findEntity((*restoreSpacesIter).id);
 						if(pSpace && pBase->spaceID() == pSpace->spaceID())
 						{
-							cellMailbox = pSpace->cellMailbox();
+							cellEntityCall = pSpace->cellEntityCall();
 							break;
 						}
 					}
 					
-					if(cellMailbox == NULL)
+					if(cellEntityCall == NULL)
 					{
 						restoreSpacesIter = otherRestoredSpaces_.begin();
 						for(; restoreSpacesIter != otherRestoredSpaces_.end(); ++restoreSpacesIter)
 						{
 							if(pBase->spaceID() == (*restoreSpacesIter).spaceID && (*restoreSpacesIter).cell)
 							{
-								cellMailbox = (*restoreSpacesIter).cell;
+								cellEntityCall = (*restoreSpacesIter).cell;
 								break;
 							}
 						}
 					}
 
-					if(cellMailbox)
+					if(cellEntityCall)
 					{
-						pBase->restoreCell(cellMailbox);
+						pBase->restoreCell(cellEntityCall);
 					}
 					else
 					{
@@ -394,7 +394,7 @@ void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID basea
 		else
 		{
 			if(!destroyed)
-				data.cell = new EntityMailbox(sm, NULL, cellappID, spaceEntityID, MAILBOX_TYPE_CELL);
+				data.cell = new EntityCall(sm, NULL, cellappID, spaceEntityID, ENTITY_CALL_TYPE_CELL);
 		}
 	}
 

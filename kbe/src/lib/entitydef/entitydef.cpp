@@ -27,7 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "resmgr/resmgr.h"
 #include "common/smartpointer.h"
 #include "entitydef/volatileinfo.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 
 #ifndef CODE_INLINE
 #include "entitydef.inl"
@@ -1612,7 +1612,7 @@ bool EntityDef::installScript(PyObject* mod)
 	script::PyMemoryStream::installScript(NULL);
 	APPEND_SCRIPT_MODULE_METHOD(mod, MemoryStream, script::PyMemoryStream::py_new, METH_VARARGS, 0);
 
-	EntityMailbox::installScript(NULL);
+	EntityCall::installScript(NULL);
 	FixedArray::installScript(NULL);
 	FixedDict::installScript(NULL);
 	VolatileInfo::installScript(NULL);
@@ -1627,7 +1627,7 @@ bool EntityDef::uninstallScript()
 	if(_isInit)
 	{
 		script::PyMemoryStream::uninstallScript();
-		EntityMailbox::uninstallScript();
+		EntityCall::uninstallScript();
 		FixedArray::uninstallScript();
 		FixedDict::uninstallScript();
 		VolatileInfo::uninstallScript();

@@ -26,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/timer.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "pyscript/math.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/datatypes.h"	
@@ -36,7 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/script_timers.h"	
 	
 namespace KBEngine{
-class EntityMailbox;
+class EntityCall;
 class ClientObjectBase;
 
 namespace Network
@@ -54,7 +54,7 @@ class Entity : public script::ScriptObject
 	ENTITY_HEADER(Entity)
 		
 public:
-	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityMailbox* base, EntityMailbox* cell);
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityCall* base, EntityCall* cell);
 	~Entity();
 	
 	/** 
@@ -64,15 +64,15 @@ public:
 			PyObject* pyData);
 	
 	/** 
-		mailbox section
+		entitycall section
 	*/
-	INLINE EntityMailbox* baseMailbox() const;
-	DECLARE_PY_GET_MOTHOD(pyGetBaseMailbox);
-	INLINE void baseMailbox(EntityMailbox* mailbox);
+	INLINE EntityCall* baseEntityCall() const;
+	DECLARE_PY_GET_MOTHOD(pyGetBaseEntityCall);
+	INLINE void baseEntityCall(EntityCall* entitycall);
 	
-	INLINE EntityMailbox* cellMailbox() const;
-	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
-	INLINE void cellMailbox(EntityMailbox* mailbox);
+	INLINE EntityCall* cellEntityCall() const;
+	DECLARE_PY_GET_MOTHOD(pyGetCellEntityCall);
+	INLINE void cellEntityCall(EntityCall* entitycall);
 
 	/** 
 		脚本获取和设置entity的position 
@@ -195,8 +195,8 @@ public:
     void onControlled(bool p_controlled);
 
 protected:
-	EntityMailbox*							cellMailbox_;						// 这个entity的cell-mailbox
-	EntityMailbox*							baseMailbox_;						// 这个entity的base-mailbox
+	EntityCall*								cellEntityCall_;					// 这个entity的cell-entitycall
+	EntityCall*								baseEntityCall_;					// 这个entity的base-entitycall
 
 	Position3D								position_, serverPosition_;			// entity的当前位置
 	Direction3D								direction_;							// entity的当前方向

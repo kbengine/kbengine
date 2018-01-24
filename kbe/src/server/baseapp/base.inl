@@ -22,27 +22,27 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Base::cellMailbox(void) const
+INLINE EntityCall* Base::cellEntityCall(void) const
 {
-	return cellMailbox_;
+	return cellEntityCall_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::cellMailbox(EntityMailbox* mailbox)
+INLINE void Base::cellEntityCall(EntityCall* entitycall)
 {
-	cellMailbox_ = mailbox;
+	cellEntityCall_ = entitycall;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Base::clientMailbox() const
+INLINE EntityCall* Base::clientEntityCall() const
 { 
-	return clientMailbox_; 
+	return clientEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::clientMailbox(EntityMailbox* mailbox)
+INLINE void Base::clientEntityCall(EntityCall* entitycall)
 { 
-	clientMailbox_ = mailbox; 
+	clientEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------

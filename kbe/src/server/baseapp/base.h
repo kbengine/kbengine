@@ -36,7 +36,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 	
 namespace KBEngine{
 
-class EntityMailbox;
+class EntityCall;
 class BaseMessagesForwardCellappHandler;
 class BaseMessagesForwardClientHandler;
 
@@ -88,22 +88,22 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyBase);
 	
 	/** 
-		脚本获取mailbox 
+		脚本获取entitycall 
 	*/
-	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
+	DECLARE_PY_GET_MOTHOD(pyGetCellEntityCall);
 
-	EntityMailbox* cellMailbox(void) const;
+	EntityCall* cellEntityCall(void) const;
 
-	void cellMailbox(EntityMailbox* mailbox);
+	void cellEntityCall(EntityCall* entitycall);
 	
 	/** 
-		脚本获取mailbox 
+		脚本获取entitycall 
 	*/
-	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
+	DECLARE_PY_GET_MOTHOD(pyGetClientEntityCall);
 
-	EntityMailbox* clientMailbox() const;
+	EntityCall* clientEntityCall() const;
 
-	void clientMailbox(EntityMailbox* mailbox);
+	void clientEntityCall(EntityCall* entitycall);
 
 	/**
 		是否创建过space
@@ -210,7 +210,7 @@ public:
 	/** 
 		为一个baseEntity在指定的cell上还原一个cellEntity 
 	*/
-	void restoreCell(EntityMailboxAbstract* cellMailbox);
+	void restoreCell(EntityCallAbstract* cellEntityCall);
 	INLINE bool inRestore();
 
 	/** 
@@ -300,9 +300,9 @@ protected:
 	void eraseEntityLog();
 
 protected:
-	// 这个entity的客户端mailbox cellapp mailbox
-	EntityMailbox*							clientMailbox_;
-	EntityMailbox*							cellMailbox_;
+	// 这个entity的客户端entitycall cellapp entitycall
+	EntityCall*								clientEntityCall_;
+	EntityCall*								cellEntityCall_;
 
 	// entity创建后，在cell部分未创建时，将一些cell属性数据保存在这里
 	PyObject*								cellDataDict_;

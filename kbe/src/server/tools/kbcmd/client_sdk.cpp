@@ -248,7 +248,7 @@ bool ClientSDK::create(const std::string& path)
 		if (!writeEntityModule(pScriptDefModule))
 			return false;
 
-		if (!writeEntityMailBox(pScriptDefModule))
+		if (!writeEntityCall(pScriptDefModule))
 			return false;
 	}
 
@@ -826,24 +826,24 @@ bool ClientSDK::writeEntityDefsModuleInitDefTypes()
 }
 
 //-------------------------------------------------------------------------------------
-void ClientSDK::onEntityMailboxModuleFileName(const std::string& moduleName)
+void ClientSDK::onEntityCallModuleFileName(const std::string& moduleName)
 {
-	sourcefileName_ = std::string("EntityMailbox") + moduleName + ".unknown";
+	sourcefileName_ = std::string("EntityCall") + moduleName + ".unknown";
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileName_ = sourcefileBody_ = "";
-	onEntityMailboxModuleFileName(pScriptDefModule->getName());
+	onEntityCallModuleFileName(pScriptDefModule->getName());
 
-	if (!writeEntityMailBoxBegin(pScriptDefModule))
+	if (!writeEntityCallBegin(pScriptDefModule))
 		return false;
 
 	std::string newModuleName;
 
-	// 先写BaseMailbox
-	if(!writeEntityBaseMailBoxBegin(pScriptDefModule))
+	// 先写BaseEntityCall
+	if(!writeBaseEntityCallBegin(pScriptDefModule))
 		return false;
 
 	{
@@ -856,7 +856,7 @@ bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
 			if (!pMethodDescription->isExposed())
 				continue;
 
-			if (!writeEntityMailBoxMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
+			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
 				return false;
 
 			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
@@ -930,13 +930,13 @@ bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
 		}
 	}
 
-	if (!writeEntityBaseMailBoxEnd(pScriptDefModule))
+	if (!writeBaseEntityCallEnd(pScriptDefModule))
 		return false;
 
 	sourcefileBody_ += fmt::format("\n");
 
-	// 再写CellMailbox
-	if (!writeEntityCellMailBoxBegin(pScriptDefModule))
+	// 再写CellEntityCall
+	if (!writeCellEntityCallBegin(pScriptDefModule))
 		return false;
 
 	{
@@ -949,7 +949,7 @@ bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
 			if (!pMethodDescription->isExposed())
 				continue;
 
-			if (!writeEntityMailBoxMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
+			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
 				return false;
 
 			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
@@ -1023,61 +1023,61 @@ bool ClientSDK::writeEntityMailBox(ScriptDefModule* pScriptDefModule)
 		}
 	}
 
-	if (!writeEntityCellMailBoxEnd(pScriptDefModule))
+	if (!writeCellEntityCallEnd(pScriptDefModule))
 		return false;
 
-	if (!writeEntityMailBoxEnd(pScriptDefModule))
+	if (!writeEntityCallEnd(pScriptDefModule))
 		return false;
 
 	return saveFile();
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityMailBoxMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+bool ClientSDK::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityMailBoxMethod: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethod: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityMailBoxBegin(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeEntityCallBegin(ScriptDefModule* pScriptDefModule)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityMailBoxBegin: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallBegin: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityMailBoxEnd(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeEntityCallEnd(ScriptDefModule* pScriptDefModule)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityMailBoxEnd: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallEnd: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityBaseMailBoxBegin(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityBaseMailBoxBegin: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeBaseEntityCallBegin: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityBaseMailBoxEnd(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityBaseMailBoxEnd: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeBaseEntityCallEnd: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityCellMailBoxBegin(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityCellMailBoxBegin: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeCellEntityCallBegin: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityCellMailBoxEnd(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityCellMailBoxEnd: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeCellEntityCallEnd: Not Implemented!\n"));
 	return false;
 }
 
@@ -1295,9 +1295,9 @@ bool ClientSDK::writeTypes()
 						return false;
 				}
 #endif
-				else if (type == "MAILBOX")
+				else if (type == "ENTITYCALL")
 				{
-					if (!writeTypeItemType_MAILBOX(itemTypeName, itemTypeAliasName))
+					if (!writeTypeItemType_ENTITYCALL(itemTypeName, itemTypeAliasName))
 						return false;
 				}
 			}
@@ -1536,9 +1536,9 @@ bool ClientSDK::writeEntityProperty(ScriptDefModule* pEntityScriptDefModule,
 		return writeEntityProperty_VECTOR4(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 #endif
-	else if (type == "MAILBOX")
+	else if (type == "ENTITYCALL")
 	{
-		return writeEntityProperty_MAILBOX(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_ENTITYCALL(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 
 	assert(false);
