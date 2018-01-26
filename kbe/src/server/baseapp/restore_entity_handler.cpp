@@ -326,7 +326,7 @@ bool RestoreEntityHandler::process()
 						ENTITY_ID delID = pEntity->id();
 
 						pEntity->destroy();
-						WARNING_MSG(fmt::format("RestoreEntityHandler::process({}): not fount spaceCell, killed base({})!", 
+						WARNING_MSG(fmt::format("RestoreEntityHandler::process({}): not fount spaceCell, killed pEntity({})!", 
 							cellappID_, delID));
 
 						if(Baseapp::getSingleton().findEntity(delID) == NULL)

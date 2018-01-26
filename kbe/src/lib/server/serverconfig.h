@@ -224,7 +224,7 @@ typedef struct EngineComponentInfo
 	std::string telnet_passwd;
 	std::string telnet_deflayer;
 
-	uint32 perSecsDestroyEntitySize;						// 每秒销毁base|entity数量
+	uint32 perSecsDestroyEntitySize;						// 每秒销毁entity数量
 
 	uint64 respool_timeout;
 	uint32 respool_buffersize;

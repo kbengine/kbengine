@@ -137,7 +137,7 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription,
 		pBundle->currMsgLength());
 
 	// 按照当前的设计来说，有clientEntityCall_必定是proxy
-	// 至于为何跑到base里来和python本身是C语言实现有关
+	// 至于为何跑到baseEntity里来和python本身是C语言实现有关
 	static_cast<Proxy*>(this)->sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 	MemoryStream::reclaimPoolObject(mstream);
 }
@@ -161,7 +161,7 @@ void Entity::onDestroy(bool callScript)
 	eraseEntityLog();
 
 	// 按照当前的设计来说，有clientEntityCall_必定是proxy
-	// 至于为何跑到base里来和python本身是C语言实现有关
+	// 至于为何跑到baseEntity里来和python本身是C语言实现有关
 	if(clientEntityCall_)
 		static_cast<Proxy*>(this)->kick();
 }
@@ -1408,7 +1408,7 @@ PyObject* Entity::pyTeleport(PyObject* baseEntityMB)
 
 	ENTITY_ID eid = 0;
 
-	// 如果不是entitycall则是本地base
+	// 如果不是entitycall则是本地baseEntity
 	if(isEntityCall)
 	{
 		EntityCall* mb = static_cast<EntityCall*>(baseEntityMB);

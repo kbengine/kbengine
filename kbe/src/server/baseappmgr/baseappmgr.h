@@ -127,7 +127,7 @@ public:
 		更新baseapp情况。
 	*/
 	void updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
-								ENTITY_ID numBases, ENTITY_ID numProxices, float load, uint32 flags);
+								ENTITY_ID numEntitys, ENTITY_ID numProxices, float load, uint32 flags);
 
 	/** 网络接口
 		baseapp同步自己的初始化信息

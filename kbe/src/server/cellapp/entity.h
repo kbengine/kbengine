@@ -225,7 +225,7 @@ public:
 		entity传送
 		@cellAppID: 要传送到的目的cellappID
 		@targetEntityID：要传送到这个entity的space中
-		@sourceBaseAppID: 有可能是由某个baseapp上的base请求teleport的， 如果为0则为cellEntity发起
+		@sourceBaseAppID: 有可能是由某个baseapp上的entity请求teleport的， 如果为0则为cellEntity发起
 	*/
 	void teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID);
 
@@ -610,7 +610,7 @@ public:
 
 private:
 	/** 
-		发送teleport结果到base端
+		发送teleport结果到baseEntity端
 	*/
 	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, 
 		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);

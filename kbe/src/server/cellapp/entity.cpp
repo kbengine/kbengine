@@ -1050,7 +1050,7 @@ void Entity::backupCellData()
 
 	if(baseEntityCall_ != NULL)
 	{
-		// 将当前的cell部分数据打包 一起发送给base部分备份
+		// 将当前的cell部分数据打包一起发送给base部分备份
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;

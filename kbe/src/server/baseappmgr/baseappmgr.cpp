@@ -276,13 +276,13 @@ uint32 Baseappmgr::numLoadBalancingApp()
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
-							ENTITY_ID numBases, ENTITY_ID numProxices, float load, uint32 flags)
+							ENTITY_ID numEntitys, ENTITY_ID numProxices, float load, uint32 flags)
 {
 	Baseapp& baseapp = baseapps_[componentID];
 	
 	baseapp.load(load);
 	baseapp.numProxices(numProxices);
-	baseapp.numBases(numBases);
+	baseapp.numEntitys(numEntitys);
 	baseapp.flags(flags);
 	
 	updateBestBaseapp();

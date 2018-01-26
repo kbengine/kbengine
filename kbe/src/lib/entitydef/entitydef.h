@@ -128,7 +128,7 @@ public:
 	static bool isLoadScriptModule(ScriptDefModule* pScriptModule);
 
 	/** 
-		根据当前组件类别设置是否有cell 或者base 
+		根据当前组件类别设置是否有cell或者base 
 	*/
 	static void setScriptModuleHasComponentEntity(ScriptDefModule* pScriptModule, bool has);
 

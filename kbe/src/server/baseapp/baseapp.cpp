@@ -1828,17 +1828,17 @@ void Baseapp::onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel*
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
 		{
-			Entity* pbase = this->findEntity(createdEntityID);
+			Entity* pEntity = this->findEntity(createdEntityID);
 
 			PyObject* pyResult = NULL;
 			
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-			if(pbase)
+			if(pEntity)
 			{
 				pyResult = PyObject_CallFunction(pyfunc.get(), 
 												const_cast<char*>("OKi"), 
-												pbase, dbid, 0);
+												pEntity, dbid, 0);
 			}
 			else
 			{
@@ -2320,17 +2320,17 @@ void Baseapp::onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel*
 		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
 		if(pyfunc != NULL)
 		{
-			Entity* pbase = this->findEntity(createdEntityID);
+			Entity* pEntity = this->findEntity(createdEntityID);
 
 			PyObject* pyResult = NULL;
 			
 			SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-			if(pbase)
+			if(pEntity)
 			{
 				pyResult = PyObject_CallFunction(pyfunc.get(), 
 												const_cast<char*>("OKi"), 
-												pbase, dbid, 0);
+												pEntity, dbid, 0);
 			}
 			else
 			{
@@ -3984,7 +3984,7 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 
 	if(!pEntity)
 	{
-		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: create {} is failed! error(base == NULL)\n",
+		ERROR_MSG(fmt::format("Baseapp::onQueryAccountCBFromDbmgr: create {} is failed! error(baseEntity == NULL)\n",
 			accountName.c_str()));
 		
 		s.done();
@@ -4531,21 +4531,21 @@ void Baseapp::onBackupEntityCellData(Network::Channel* pChannel, KBEngine::Memor
 	if(pChannel->isExternal())
 		return;
 
-	ENTITY_ID baseID = 0;
-	s >> baseID;
+	ENTITY_ID entityID = 0;
+	s >> entityID;
 
-	Entity* pEntity = this->findEntity(baseID);
+	Entity* pEntity = this->findEntity(entityID);
 
 	if(pEntity)
 	{
 		INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), {} bytes.\n",
-			pEntity->scriptName(), baseID, s.length()));
+			pEntity->scriptName(), entityID, s.length()));
 
 		pEntity->onBackupCellData(pChannel, s);
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Baseapp::onBackupEntityCellData: not found entityID={}\n", baseID));
+		ERROR_MSG(fmt::format("Baseapp::onBackupEntityCellData: not found entityID={}\n", entityID));
 		s.done();
 	}
 }
@@ -4556,30 +4556,30 @@ void Baseapp::onCellWriteToDBCompleted(Network::Channel* pChannel, KBEngine::Mem
 	if(pChannel->isExternal())
 		return;
 
-	ENTITY_ID baseID = 0;
+	ENTITY_ID entityID = 0;
 	CALLBACK_ID callbackID = 0;
 	int8 shouldAutoLoad = -1;
 	int dbInterfaceIndex = -1;
 
-	s >> baseID;
+	s >> entityID;
 	s >> callbackID;
 	s >> shouldAutoLoad;
 	s >> dbInterfaceIndex;
 
-	Entity* pEntity = this->findEntity(baseID);
+	Entity* pEntity = this->findEntity(entityID);
 
 	if(pEntity)
 	{
 
 		INFO_MSG(fmt::format("Baseapp::onCellWriteToDBCompleted: {}({}).\n",
-			pEntity->scriptName(), baseID));
+			pEntity->scriptName(), entityID));
 
 		pEntity->onCellWriteToDBCompleted(callbackID, shouldAutoLoad, dbInterfaceIndex);
 	}
 	else
 	{
 		ERROR_MSG(fmt::format("Baseapp::onCellWriteToDBCompleted: not found entityID={}\n",
-			baseID));
+			entityID));
 	}
 }
 
