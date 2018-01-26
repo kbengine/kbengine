@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_PROXY_H
 #define KBE_PROXY_H
 	
-#include "base.h"
+#include "entity.h"
 #include "data_downloads.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
@@ -43,10 +43,10 @@ class ProxyForwarder;
 #define LOG_ON_ACCEPT  1
 #define LOG_ON_WAIT_FOR_DESTROY 2
 
-class Proxy : public Base
+class Proxy : public Entity
 {
 	/** 子类化将一些py操作填充进派生类 */
-	BASE_SCRIPT_HREADER(Proxy, Base)	
+	BASE_SCRIPT_HREADER(Proxy, Entity)
 
 public:
 	Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule);

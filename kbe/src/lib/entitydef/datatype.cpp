@@ -1400,16 +1400,7 @@ bool EntityCallType::isSameType(PyObject* pyValue)
 	if(!(PyObject_TypeCheck(pyValue, EntityCall::getScriptType()) || pyValue == Py_None))
 	{
 		PyTypeObject* type = script::ScriptObject::getScriptObjectType("Entity");
-		if(type == NULL)
-		{
-			type = script::ScriptObject::getScriptObjectType("Base");
-			if(type && !(PyObject_IsInstance(pyValue, (PyObject *)type)))
-			{
-				OUT_TYPE_ERROR("ENTITYCALL");
-				return false;
-			}
-		}
-		else if(!(PyObject_IsInstance(pyValue, (PyObject *)type)))
+		if(!type || !(PyObject_IsInstance(pyValue, (PyObject *)type)))
 		{
 			OUT_TYPE_ERROR("ENTITYCALL");
 			return false;
@@ -1433,44 +1424,25 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	uint16 type = 0;
 	ENTITY_SCRIPT_UID utype;
 
-	const char types[2][10] = {
-		"Entity",
-		"Base"
-	};
-
 	if(pyValue != Py_None)
 	{
-		for(int i=0; i<2; ++i)
+		PyTypeObject* stype = script::ScriptObject::getScriptObjectType("Entity");
 		{
-			PyTypeObject* stype = script::ScriptObject::getScriptObjectType(types[i]);
+			// 是否是一个entity?
+			if(stype && PyObject_IsInstance(pyValue, (PyObject *)stype))
 			{
-				if(stype == NULL)
-					continue;
+				PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
 
-				// 是否是一个entity?
-				if(PyObject_IsInstance(pyValue, (PyObject *)stype))
+				if (pyid)
 				{
-					PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
-
-					if (pyid)
-					{
-						id = PyLong_AsLong(pyid);
-						Py_DECREF(pyid);
-					}
-					else
-					{
-						// 某些情况下会为NULL， 例如：使用了weakproxy，而entitycall已经变为NULL了
-						SCRIPT_ERROR_CHECK();
-						id = 0;
-						cid = 0;
-						break;
-					}
+					id = PyLong_AsLong(pyid);
+					Py_DECREF(pyid);
 
 					cid = g_componentID;
 
-					if(g_componentType == BASEAPP_TYPE)
+					if (g_componentType == BASEAPP_TYPE)
 						type = (uint16)ENTITY_CALL_TYPE_BASE;
-					else if(g_componentType == CELLAPP_TYPE)
+					else if (g_componentType == CELLAPP_TYPE)
 						type = (uint16)ENTITY_CALL_TYPE_CELL;
 					else
 						type = (uint16)ENTITY_CALL_TYPE_CLIENT;
@@ -1488,7 +1460,13 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					free(ccattr);
 
 					utype = pScriptDefModule->getUType();
-					break;
+				}
+				else
+				{
+					// 某些情况下会为NULL， 例如：使用了weakproxy，而entitycall已经变为NULL了
+					SCRIPT_ERROR_CHECK();
+					id = 0;
+					cid = 0;
 				}
 			}
 		}

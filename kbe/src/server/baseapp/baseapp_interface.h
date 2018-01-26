@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "baseapp.h"
 #endif
 #include "baseapp_interface_macros.h"
-#include "base_interface_macros.h"
+#include "entity_interface_macros.h"
 #include "proxy_interface_macros.h"
 #include "network/interface_defs.h"
 #include "server/server_errors.h"
@@ -310,40 +310,40 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	// 请求强制杀死当前app
 	BASEAPP_MESSAGE_DECLARE_STREAM(reqKillServer,									NETWORK_VARIABLE_MESSAGE)
 
-	//--------------------------------------------Base----------------------------------------------------------
+	//--------------------------------------------Entity----------------------------------------------------------
 	// 远程呼叫entity方法
-	BASE_MESSAGE_EXPOSED(onRemoteMethodCall)
-	BASE_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,									NETWORK_VARIABLE_MESSAGE)
+	ENTITY_MESSAGE_EXPOSED(onRemoteMethodCall)
+	ENTITY_MESSAGE_DECLARE_STREAM(onRemoteMethodCall,								NETWORK_VARIABLE_MESSAGE)
 
 	// cellapp通报该entity的cell部分销毁或者丢失
-	BASE_MESSAGE_DECLARE_STREAM(onLoseCell,											NETWORK_VARIABLE_MESSAGE)
+	ENTITY_MESSAGE_DECLARE_STREAM(onLoseCell,										NETWORK_VARIABLE_MESSAGE)
 
 	// 客户端直接发送消息给cell实体
-	BASE_MESSAGE_EXPOSED(forwardEntityMessageToCellappFromClient)
-	BASE_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,			NETWORK_VARIABLE_MESSAGE)
+	ENTITY_MESSAGE_EXPOSED(forwardEntityMessageToCellappFromClient)
+	ENTITY_MESSAGE_DECLARE_STREAM(forwardEntityMessageToCellappFromClient,			NETWORK_VARIABLE_MESSAGE)
 	
 	// 某个entity请求teleport到本entity的space上
-	BASE_MESSAGE_DECLARE_ARGS3(reqTeleportOther,									NETWORK_FIXED_MESSAGE,
+	ENTITY_MESSAGE_DECLARE_ARGS3(reqTeleportOther,									NETWORK_FIXED_MESSAGE,
 								ENTITY_ID,											reqTeleportEntityID,
 								COMPONENT_ID,										reqTeleportEntityAppID,
 								COMPONENT_ID,										reqTeleportEntityBaseAppID)
 
 	// 某个entity请求teleport后的回调结果
-	BASE_MESSAGE_DECLARE_ARGS2(onTeleportCB,										NETWORK_FIXED_MESSAGE,
+	ENTITY_MESSAGE_DECLARE_ARGS2(onTeleportCB,										NETWORK_FIXED_MESSAGE,
 								SPACE_ID,											spaceID,
 								bool,												fromCellTeleport)
 
 	// 某个entity请求teleport后的回调结果
-	BASE_MESSAGE_DECLARE_ARGS1(onGetDBID,											NETWORK_FIXED_MESSAGE,
+	ENTITY_MESSAGE_DECLARE_ARGS1(onGetDBID,											NETWORK_FIXED_MESSAGE,
 								DBID,												dbid)
 
 	// entity请求迁移到另一个cellapp上的space过程开始
-	BASE_MESSAGE_DECLARE_ARGS2(onMigrationCellappStart,								NETWORK_FIXED_MESSAGE,
+	ENTITY_MESSAGE_DECLARE_ARGS2(onMigrationCellappStart,							NETWORK_FIXED_MESSAGE,
 								COMPONENT_ID,										sourceCellAppID,
 								COMPONENT_ID,										targetCellAppID)
 		
 	// entity请求迁移到另一个cellapp上的space过程结束
-	BASE_MESSAGE_DECLARE_ARGS2(onMigrationCellappEnd,								NETWORK_FIXED_MESSAGE,
+	ENTITY_MESSAGE_DECLARE_ARGS2(onMigrationCellappEnd,								NETWORK_FIXED_MESSAGE,
 								COMPONENT_ID,										sourceCellAppID,
 								COMPONENT_ID,										targetCellAppID)
 

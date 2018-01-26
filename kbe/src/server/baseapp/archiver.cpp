@@ -20,7 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "baseapp.h"
 #include "archiver.h"
-#include "base.h"
+#include "entity.h"
 
 namespace KBEngine{	
 
@@ -61,22 +61,22 @@ void Archiver::tick()
 
 	for (int i = startIndex; i < endIndex; ++i)
 	{
-		Base * pBase = Baseapp::getSingleton().findEntity(arEntityIDs_[i]);
+		Entity * pEntity = Baseapp::getSingleton().findEntity(arEntityIDs_[i]);
 		
-		if(pBase && pBase->hasDB())
+		if(pEntity && pEntity->hasDB())
 		{
-			this->archive(*pBase);
+			this->archive(*pEntity);
 		}
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void Archiver::archive(Base& base)
+void Archiver::archive(Entity& entity)
 {
-	base.writeToDB(NULL, NULL, NULL);
+	entity.writeToDB(NULL, NULL, NULL);
 
-	if(base.shouldAutoArchive() == KBE_NEXT_ONLY)
-		base.shouldAutoArchive(0);
+	if(entity.shouldAutoArchive() == KBE_NEXT_ONLY)
+		entity.shouldAutoArchive(0);
 }
 
 //-------------------------------------------------------------------------------------
@@ -85,13 +85,13 @@ void Archiver::createArchiveTable()
 	archiveIndex_ = 0;
 	arEntityIDs_.clear();
 
-	Entities<Base>::ENTITYS_MAP::const_iterator iter = Baseapp::getSingleton().pEntities()->getEntities().begin();
+	Entities<Entity>::ENTITYS_MAP::const_iterator iter = Baseapp::getSingleton().pEntities()->getEntities().begin();
 
 	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); ++iter)
 	{
-		Base* pBase = static_cast<Base*>(iter->second.get());
+		Entity* pEntity = static_cast<Entity*>(iter->second.get());
 
-		if(pBase->hasDB() && pBase->shouldAutoArchive() > 0)
+		if(pEntity->hasDB() && pEntity->shouldAutoArchive() > 0)
 		{
 			arEntityIDs_.push_back(iter->first);
 		}

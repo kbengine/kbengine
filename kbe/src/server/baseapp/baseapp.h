@@ -23,7 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_BASEAPP_H
 	
 // common include	
-#include "base.h"
+#include "entity.h"
 #include "proxy.h"
 #include "profile.h"
 #include "server/entity_app.h"
@@ -52,7 +52,7 @@ class TelnetServer;
 class RestoreEntityHandler;
 class InitProgressHandler;
 
-class Baseapp :	public EntityApp<Base>, 
+class Baseapp :	public EntityApp<Entity>, 
 				public Singleton<Baseapp>
 {
 public:
@@ -132,7 +132,7 @@ public:
 	/** 
 		创建了一个entity回调
 	*/
-	virtual Base* onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
+	virtual Entity* onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
 	/** 
 		创建一个entity 
@@ -147,12 +147,12 @@ public:
 	/**
 		创建一个新的space 
 	*/
-	void createCellEntityInNewSpace(Base* base, PyObject* pyCellappIndex);
+	void createCellEntityInNewSpace(Entity* pEntity, PyObject* pyCellappIndex);
 
 	/**
 		恢复一个space 
 	*/
-	void restoreSpaceInCell(Base* base);
+	void restoreSpaceInCell(Entity* pEntity);
 
 	/** 
 		在一个负载较低的baseapp上创建一个baseEntity 
@@ -248,7 +248,7 @@ public:
 	/** 
 		为一个baseEntity在指定的cell上创建一个cellEntity 
 	*/
-	void createCellEntity(EntityCallAbstract* createToCellEntityCall, Base* base);
+	void createCellEntity(EntityCallAbstract* createToCellEntityCall, Entity* pEntity);
 	
 	/** 网络接口
 		createCellEntity失败的回调。
@@ -263,7 +263,7 @@ public:
 	/** 
 		通知客户端创建一个proxy对应的实体 
 	*/
-	bool createClientProxies(Proxy* base, bool reload = false);
+	bool createClientProxies(Proxy* pEntity, bool reload = false);
 
 	/** 
 		向dbmgr请求执行一个数据库命令
@@ -328,7 +328,7 @@ public:
 	/**
 		客户端自身进入世界了
 	*/
-	void onClientEntityEnterWorld(Proxy* base, COMPONENT_ID componentID);
+	void onClientEntityEnterWorld(Proxy* pEntity, COMPONENT_ID componentID);
 
 	/** 网络接口
 		entity收到远程call请求, 由某个app上的entityCall发起(只限与服务器内部使用， 客户端的entitycall调用方法走

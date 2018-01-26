@@ -20,8 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#ifndef KBE_BASE_H
-#define KBE_BASE_H
+#ifndef KBE_BASE_ENTITY_H
+#define KBE_BASE_ENTITY_H
 	
 #include "profile.h"
 #include "common/common.h"
@@ -37,7 +37,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 class EntityCall;
-class BaseMessagesForwardCellappHandler;
+class EntityMessagesForwardCellappHandler;
 class BaseMessagesForwardClientHandler;
 
 namespace Network
@@ -46,15 +46,15 @@ class Channel;
 }
 
 
-class Base : public script::ScriptObject
+class Entity : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
-	BASE_SCRIPT_HREADER(Base, ScriptObject)	
-	ENTITY_HEADER(Base)
+	BASE_SCRIPT_HREADER(Entity, ScriptObject)
+	ENTITY_HEADER(Entity)
 public:
-	Base(ENTITY_ID id, const ScriptDefModule* pScriptModule, 
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule,
 		PyTypeObject* pyType = getScriptType(), bool isInitialised = true);
-	~Base();
+	~Entity();
 
 	/** 
 		是否存储数据库 
@@ -349,7 +349,7 @@ protected:
 
 
 #ifdef CODE_INLINE
-#include "base.inl"
+#include "entity.inl"
 #endif
 
-#endif // KBE_BASE_H
+#endif // KBE_BASE_ENTITY_H

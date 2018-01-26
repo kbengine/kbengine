@@ -41,7 +41,8 @@ public:
 	
 	void tick();
 	void createArchiveTable();
-	void archive(Base& base);
+	void archive(Entity& entity);
+
 private:
 	int						archiveIndex_;
 	std::vector<ENTITY_ID> 	arEntityIDs_;

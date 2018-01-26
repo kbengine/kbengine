@@ -20,12 +20,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #if defined(DEFINE_IN_INTERFACE)
-	#undef KBE_BASE_INTERFACE_MACRO_H
+	#undef KBE_BASE_ENTITY_INTERFACE_MACRO_H
 #endif
 
 
-#ifndef KBE_BASE_INTERFACE_MACRO_H
-#define KBE_BASE_INTERFACE_MACRO_H
+#ifndef KBE_BASE_ENTITY_INTERFACE_MACRO_H
+#define KBE_BASE_ENTITY_INTERFACE_MACRO_H
 
 // common include	
 #include "network/interface_defs.h"
@@ -41,13 +41,13 @@ namespace KBEngine{
 	BASE消息宏，  参数为流， 需要自己解开
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef BASE_MESSAGE_HANDLER_STREAM
+	#undef ENTITY_MESSAGE_HANDLER_STREAM
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
-#define BASE_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##BaseMessagehandler_stream::handle(Network::Channel* pChannel,	\
+#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
+	void NAME##EntityMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 			ENTITY_ID eid;														\
@@ -64,7 +64,7 @@ namespace KBEngine{
 				return;															\
 			}																	\
 																				\
-			KBEngine::Base* e =													\
+			KBEngine::Entity* e =												\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			if(e)																\
 			{																	\
@@ -77,26 +77,26 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type() const	\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type() const\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
-#define BASE_MESSAGE_HANDLER_STREAM(NAME)										\
-	void NAME##BaseMessagehandler_stream::handle(Network::Channel* pChannel,	\
+#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
+	void NAME##EntityMessagehandler_stream::handle(Network::Channel* pChannel,	\
 													KBEngine::MemoryStream& s)	\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler_stream::type() const	\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler_stream::type() const\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
-#define BASE_MESSAGE_HANDLER_STREAM(NAME)										\
-	class NAME##BaseMessagehandler_stream : public Network::MessageHandler		\
+#define ENTITY_MESSAGE_HANDLER_STREAM(NAME)										\
+	class NAME##EntityMessagehandler_stream : public Network::MessageHandler	\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -106,23 +106,23 @@ namespace KBEngine{
 
 #endif
 
-#define BASE_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)							\
-	BASE_MESSAGE_HANDLER_STREAM(NAME)											\
-	NETWORK_MESSAGE_DECLARE_STREAM(Base, NAME,									\
-				NAME##BaseMessagehandler_stream, MSG_LENGTH)					\
+#define ENTITY_MESSAGE_DECLARE_STREAM(NAME, MSG_LENGTH)							\
+	ENTITY_MESSAGE_HANDLER_STREAM(NAME)											\
+	NETWORK_MESSAGE_DECLARE_STREAM(Entity, NAME,								\
+				NAME##EntityMessagehandler_stream, MSG_LENGTH)					\
 																				\
 
 /**
-	Base消息宏，  只有零个参数的消息
+	Entity消息宏，  只有零个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef BASE_MESSAGE_HANDLER_ARGS0
+	#undef ENTITY_MESSAGE_HANDLER_ARGS0
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
-#define BASE_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##BaseMessagehandler0::handle(Network::Channel* pChannel,			\
+#define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##EntityMessagehandler0::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -139,7 +139,7 @@ namespace KBEngine{
 				return;															\
 			}																	\
 																				\
-			KBEngine::Base* e =													\
+			KBEngine::Entity* e =												\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			if(e)																\
 			{																	\
@@ -152,26 +152,26 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler0::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler0::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
-#define BASE_MESSAGE_HANDLER_ARGS0(NAME)										\
-	void NAME##BaseMessagehandler0::handle(Network::Channel* pChannel,			\
+#define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
+	void NAME##EntityMessagehandler0::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler0::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler0::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
-#define BASE_MESSAGE_HANDLER_ARGS0(NAME)										\
-	class NAME##BaseMessagehandler0 : public Network::MessageHandler			\
+#define ENTITY_MESSAGE_HANDLER_ARGS0(NAME)										\
+	class NAME##EntityMessagehandler0 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -181,23 +181,23 @@ namespace KBEngine{
 
 #endif
 
-#define BASE_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
-	BASE_MESSAGE_HANDLER_ARGS0(NAME)											\
-	NETWORK_MESSAGE_DECLARE_ARGS0(Base, NAME,									\
-				NAME##BaseMessagehandler0, MSG_LENGTH)							\
+#define ENTITY_MESSAGE_DECLARE_ARGS0(NAME, MSG_LENGTH)							\
+	ENTITY_MESSAGE_HANDLER_ARGS0(NAME)											\
+	NETWORK_MESSAGE_DECLARE_ARGS0(Entity, NAME,									\
+				NAME##EntityMessagehandler0, MSG_LENGTH)						\
 																				\
 
 /**
-	Base消息宏，  只有一个参数的消息
+	Entity消息宏，  只有一个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef BASE_MESSAGE_HANDLER_ARGS1
+	#undef ENTITY_MESSAGE_HANDLER_ARGS1
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
-#define BASE_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	void NAME##BaseMessagehandler1::handle(Network::Channel* pChannel,			\
+#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	void NAME##EntityMessagehandler1::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -214,7 +214,7 @@ namespace KBEngine{
 				return;															\
 			}																	\
 																				\
-			KBEngine::Base* e =													\
+			KBEngine::Entity* e =												\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
 			s >> ARG_NAME1;														\
@@ -229,26 +229,26 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler1::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler1::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
-#define BASE_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	void NAME##BaseMessagehandler1::handle(Network::Channel* pChannel,			\
+#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	void NAME##EntityMessagehandler1::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler1::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler1::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
-#define BASE_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
-	class NAME##BaseMessagehandler1 : public Network::MessageHandler			\
+#define ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)				\
+	class NAME##EntityMessagehandler1 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -258,24 +258,24 @@ namespace KBEngine{
 
 #endif
 
-#define BASE_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)		\
-	BASE_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)						\
-	NETWORK_MESSAGE_DECLARE_ARGS1(Base, NAME,									\
-				NAME##BaseMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+#define ENTITY_MESSAGE_DECLARE_ARGS1(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
+	ENTITY_MESSAGE_HANDLER_ARGS1(NAME, ARG_TYPE1, ARG_NAME1)					\
+	NETWORK_MESSAGE_DECLARE_ARGS1(Entity, NAME,									\
+				NAME##EntityMessagehandler1, MSG_LENGTH, ARG_TYPE1, ARG_NAME1)	\
 																				\
 
 /**
-	Base消息宏，  只有二个参数的消息
+	Entity消息宏，  只有二个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef BASE_MESSAGE_HANDLER_ARGS2
+	#undef ENTITY_MESSAGE_HANDLER_ARGS2
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
-#define BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2)					\
-	void NAME##BaseMessagehandler2::handle(Network::Channel* pChannel,			\
+	void NAME##EntityMessagehandler2::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -292,7 +292,7 @@ namespace KBEngine{
 				return;															\
 			}																	\
 																				\
-			KBEngine::Base* e =													\
+			KBEngine::Entity* e =												\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
 			ARG_TYPE2 ARG_NAME2;												\
@@ -308,28 +308,28 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler2::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler2::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
-#define BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2)					\
-	void NAME##BaseMessagehandler2::handle(Network::Channel* pChannel,			\
+	void NAME##EntityMessagehandler2::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler2::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler2::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
-#define BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2)					\
-	class NAME##BaseMessagehandler2 : public Network::MessageHandler			\
+	class NAME##EntityMessagehandler2 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -339,30 +339,30 @@ namespace KBEngine{
 
 #endif
 
-#define BASE_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,		\
+#define ENTITY_MESSAGE_DECLARE_ARGS2(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 										ARG_TYPE2, ARG_NAME2)					\
-	BASE_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,						\
+	ENTITY_MESSAGE_HANDLER_ARGS2(NAME, ARG_TYPE1, ARG_NAME1,					\
 										ARG_TYPE2, ARG_NAME2)					\
-	NETWORK_MESSAGE_DECLARE_ARGS2(Base, NAME,									\
-				NAME##BaseMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS2(Entity, NAME,									\
+				NAME##EntityMessagehandler2, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 										ARG_TYPE2, ARG_NAME2)					\
 																				\
 
 
 
 /**
-	Base消息宏，  只有三个参数的消息
+	Entity消息宏，  只有三个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef BASE_MESSAGE_HANDLER_ARGS3
+	#undef ENTITY_MESSAGE_HANDLER_ARGS3
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
-#define BASE_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3)					\
-	void NAME##BaseMessagehandler3::handle(Network::Channel* pChannel,			\
+	void NAME##EntityMessagehandler3::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -379,7 +379,7 @@ namespace KBEngine{
 				return;															\
 			}																	\
 																				\
-			KBEngine::Base* e =													\
+			KBEngine::Entity* e =												\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
 			ARG_TYPE2 ARG_NAME2;												\
@@ -396,30 +396,30 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler3::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler3::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
-#define BASE_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3)					\
-	void NAME##BaseMessagehandler3::handle(Network::Channel* pChannel,			\
+	void NAME##EntityMessagehandler3::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler3::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler3::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
-#define BASE_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3)					\
-	class NAME##BaseMessagehandler3 : public Network::MessageHandler			\
+	class NAME##EntityMessagehandler3 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -429,32 +429,32 @@ namespace KBEngine{
 
 #endif
 
-#define BASE_MESSAGE_DECLARE_ARGS3(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,		\
+#define ENTITY_MESSAGE_DECLARE_ARGS3(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3)					\
-	BASE_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,						\
+	ENTITY_MESSAGE_HANDLER_ARGS3(NAME, ARG_TYPE1, ARG_NAME1,					\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3)					\
-	NETWORK_MESSAGE_DECLARE_ARGS3(Base, NAME,									\
-				NAME##BaseMessagehandler3, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS3(Entity, NAME,									\
+				NAME##EntityMessagehandler3, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3)					\
 																				\
 
 /**
-	Base消息宏，  只有四个参数的消息
+	Entity消息宏，  只有四个参数的消息
 */
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
-	#undef BASE_MESSAGE_HANDLER_ARGS4
+	#undef ENTITY_MESSAGE_HANDLER_ARGS4
 #endif
 
 #if defined(DEFINE_IN_INTERFACE)
 #if defined(BASEAPP)
-#define BASE_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3,					\
 										ARG_TYPE4, ARG_NAME4)					\
-	void NAME##BaseMessagehandler4::handle(Network::Channel* pChannel,			\
+	void NAME##EntityMessagehandler4::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 			ENTITY_ID eid;														\
@@ -471,7 +471,7 @@ namespace KBEngine{
 				return;															\
 			}																	\
 																				\
-			KBEngine::Base* e =													\
+			KBEngine::Entity* e =												\
 					KBEngine::Baseapp::getSingleton().findEntity(eid);			\
 			ARG_TYPE1 ARG_NAME1;												\
 			ARG_TYPE2 ARG_NAME2;												\
@@ -489,32 +489,32 @@ namespace KBEngine{
 					eid));														\
 			}																	\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler4::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler4::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 
 #else
-#define BASE_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3,					\
 										ARG_TYPE4, ARG_NAME4)					\
-	void NAME##BaseMessagehandler4::handle(Network::Channel* pChannel,			\
+	void NAME##EntityMessagehandler4::handle(Network::Channel* pChannel,		\
 											KBEngine::MemoryStream& s)			\
 	{																			\
 	}																			\
-	Network::NETWORK_MESSAGE_TYPE NAME##BaseMessagehandler4::type() const		\
+	Network::NETWORK_MESSAGE_TYPE NAME##EntityMessagehandler4::type() const		\
 	{																			\
 		return Network::NETWORK_MESSAGE_TYPE_ENTITY;							\
 	}																			\
 		
 #endif
 #else
-#define BASE_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,					\
+#define ENTITY_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,				\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3,					\
 										ARG_TYPE4, ARG_NAME4)					\
-	class NAME##BaseMessagehandler4 : public Network::MessageHandler			\
+	class NAME##EntityMessagehandler4 : public Network::MessageHandler			\
 	{																			\
 	public:																		\
 		virtual void handle(Network::Channel* pChannel,							\
@@ -524,16 +524,16 @@ namespace KBEngine{
 
 #endif
 
-#define BASE_MESSAGE_DECLARE_ARGS4(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,		\
+#define ENTITY_MESSAGE_DECLARE_ARGS4(NAME, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3,					\
 										ARG_TYPE4, ARG_NAME4)					\
-	BASE_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,						\
+	ENTITY_MESSAGE_HANDLER_ARGS4(NAME, ARG_TYPE1, ARG_NAME1,					\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3,					\
 										ARG_TYPE4, ARG_NAME4)					\
-	NETWORK_MESSAGE_DECLARE_ARGS4(Base, NAME,									\
-				NAME##BaseMessagehandler4, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
+	NETWORK_MESSAGE_DECLARE_ARGS4(Entity, NAME,									\
+				NAME##EntityMessagehandler4, MSG_LENGTH, ARG_TYPE1, ARG_NAME1,	\
 										ARG_TYPE2, ARG_NAME2,					\
 										ARG_TYPE3, ARG_NAME3,					\
 										ARG_TYPE4, ARG_NAME4)					\
@@ -542,4 +542,4 @@ namespace KBEngine{
 
 }
 
-#endif // KBE_BASE_INTERFACE_MACRO_H
+#endif // KBE_BASE_ENTITY_INTERFACE_MACRO_H

@@ -330,7 +330,7 @@ public:																										\
 																											\
 		if(PyObject_SetAttrString(this, "__class__", (PyObject*)pScriptModule_->getScriptType()) == -1)		\
 		{																									\
-			WARNING_MSG(fmt::format("Base::reload: "														\
+			WARNING_MSG(fmt::format("Entity::reload: "														\
 				"{} {} could not change __class__ to new class!\n",											\
 				pScriptModule_->getName(), id_));															\
 			PyErr_Print();																					\

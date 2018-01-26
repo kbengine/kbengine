@@ -25,9 +25,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		标识该回调的唯一id， 外部可以通过该id来触发这个回调。
 		
 	用法:
-	typedef CallbackMgr<std::tr1::function<void(Base*, int64, bool)>> CALLBACK_MGR;
+	typedef CallbackMgr<std::tr1::function<void(Entity*, int64, bool)>> CALLBACK_MGR;
 	CALLBACK_MGR callbackMgr;
-	void xxx(Base*, int64, bool){}
+	void xxx(Entity*, int64, bool){}
 	CALLBACK_ID callbackID = callbackMgr.save(&xxx); // 可以使用bind来绑定一个类成员函数
 */
 

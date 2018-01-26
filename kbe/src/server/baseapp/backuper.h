@@ -43,7 +43,8 @@ public:
 
 	void createBackupTable();
 
-	bool backup(Base& base, MemoryStream& s);
+	bool backup(Entity& entity, MemoryStream& s);
+
 private:
 	// 在此列表中的entity将进行备份操作
 	std::vector<ENTITY_ID>		backupEntityIDs_;

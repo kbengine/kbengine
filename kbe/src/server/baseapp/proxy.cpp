@@ -59,7 +59,7 @@ BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)
 	
 //-------------------------------------------------------------------------------------
 Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule):
-Base(id, pScriptModule, getScriptType(), true),
+Entity(id, pScriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Network::Address::NONE),
 dataDownloads_(),

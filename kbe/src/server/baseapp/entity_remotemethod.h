@@ -28,15 +28,15 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-class BaseRemoteMethod : public RemoteEntityMethod
+class EntityRemoteMethod : public RemoteEntityMethod
 {
 	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(BaseRemoteMethod, RemoteEntityMethod)	
+	INSTANCE_SCRIPT_HREADER(EntityRemoteMethod, RemoteEntityMethod)	
 public:
-	BaseRemoteMethod(MethodDescription* methodDescription, 
+	EntityRemoteMethod(MethodDescription* methodDescription, 
 						EntityCallAbstract* entitycall);
 
-	~BaseRemoteMethod();
+	~EntityRemoteMethod();
 
 	static PyObject* tp_call(PyObject* self, 
 			PyObject* args, PyObject* kwds);

@@ -22,61 +22,61 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-INLINE EntityCall* Base::cellEntityCall(void) const
+INLINE EntityCall* Entity::cellEntityCall(void) const
 {
 	return cellEntityCall_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::cellEntityCall(EntityCall* entitycall)
+INLINE void Entity::cellEntityCall(EntityCall* entitycall)
 {
 	cellEntityCall_ = entitycall;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityCall* Base::clientEntityCall() const
+INLINE EntityCall* Entity::clientEntityCall() const
 { 
 	return clientEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::clientEntityCall(EntityCall* entitycall)
+INLINE void Entity::clientEntityCall(EntityCall* entitycall)
 { 
 	clientEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE PyObject* Base::getCellData(void) const
+INLINE PyObject* Entity::getCellData(void) const
 { 
 	return cellDataDict_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::creatingCell(void) const
+INLINE bool Entity::creatingCell(void) const
 { 
 	return creatingCell_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::hasDB() const 
+INLINE bool Entity::hasDB() const 
 {
 	return hasDB_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::hasDB(bool has) 
+INLINE void Entity::hasDB(bool has) 
 {
 	hasDB_ = has; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE DBID Base::dbid() const
+INLINE DBID Entity::dbid() const
 {
 	return DBID_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::dbid(uint16 dbInterfaceIndex, DBID id)
+INLINE void Entity::dbid(uint16 dbInterfaceIndex, DBID id)
 {
 	DBID_ = id;
 	dbInterfaceIndex_ = dbInterfaceIndex;
@@ -86,62 +86,62 @@ INLINE void Base::dbid(uint16 dbInterfaceIndex, DBID id)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::isCreatedSpace()
+INLINE bool Entity::isCreatedSpace()
 {
 	return createdSpace_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::inRestore()
+INLINE bool Entity::inRestore()
 {
 	return inRestore_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE int8 Base::shouldAutoArchive() const
+INLINE int8 Entity::shouldAutoArchive() const
 {
 	return shouldAutoArchive_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::shouldAutoArchive(int8 v)
+INLINE void Entity::shouldAutoArchive(int8 v)
 {
 	shouldAutoArchive_ = v;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE int8 Base::shouldAutoBackup() const
+INLINE int8 Entity::shouldAutoBackup() const
 {
 	return shouldAutoBackup_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::shouldAutoBackup(int8 v)
+INLINE void Entity::shouldAutoBackup(int8 v)
 {
 	shouldAutoBackup_ = v;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::setDirty(bool dirty)
+INLINE void Entity::setDirty(bool dirty)
 {
 	isDirty_ = dirty;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::isDirty() const
+INLINE bool Entity::isDirty() const
 {
 	return isDirty_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE uint16 Base::dbInterfaceIndex() const
+INLINE uint16 Entity::dbInterfaceIndex() const
 {
 	
 	return dbInterfaceIndex_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE BaseMessagesForwardClientHandler* Base::pBufferedSendToClientMessages()
+INLINE BaseMessagesForwardClientHandler* Entity::pBufferedSendToClientMessages()
 {
 	return pBufferedSendToClientMessages_;
 }
