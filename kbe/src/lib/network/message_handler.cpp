@@ -114,6 +114,7 @@ bool MessageHandlers::initializeWatcher()
 		if (fpos != std::string::npos)
 		{
 			sname = name() + "::" + sname;
+			strutil::kbe_replace(sname, "Interface::", "::");
 		}
 
 		char buf[MAX_BUF * 2];
