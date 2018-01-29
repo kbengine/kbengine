@@ -224,7 +224,9 @@ EventProfileHandler::~EventProfileHandler()
 	KBE_ASSERT(eventProfileHandlers_[removeHandle_] == this);
 	EventProfileHandler* pBack = eventProfileHandlers_.back();
 	eventProfileHandlers_[removeHandle_] = pBack;
-	eventProfileHandlers_.resize(eventProfileHandlers_.size() - 1);
+
+	if(eventProfileHandlers_.size() > 0)
+		eventProfileHandlers_.resize(eventProfileHandlers_.size() - 1);
 }
 
 //-------------------------------------------------------------------------------------
