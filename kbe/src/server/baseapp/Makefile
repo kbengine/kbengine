@@ -1,15 +1,15 @@
 BIN  = baseapp
 SRCS =						\
 	archiver				\
-	base					\
+	entity					\
 	baseapp					\
 	baseapp_interface			\
 	backuper				\
-	base_messages_forward_handler		\
+	entity_messages_forward_handler		\
 	data_download				\
 	data_downloads				\
 	entity_autoloader			\
-	base_remotemethod			\
+	entity_remotemethod			\
 	forward_message_over_handler		\
 	initprogress_handler			\
 	restore_entity_handler			\
