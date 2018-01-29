@@ -4404,14 +4404,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onStreamDataStarted = function(id, datasize, descr)
 	{
+		KBEngine.Event.fire("onStreamDataStarted", id, datasize, descr);
 	}
 	
 	this.Client_onStreamDataRecv = function(stream)
 	{
+		var id = stream.readUint16();
+		var data = stream.readBlob();
+		KBEngine.Event.fire("onStreamDataRecv", id, data);
 	}
 	
 	this.Client_onStreamDataCompleted = function(id)
 	{
+		KBEngine.Event.fire("onStreamDataCompleted", id);
 	}
 	
 	this.Client_onReqAccountResetPasswordCB = function(failedcode)
