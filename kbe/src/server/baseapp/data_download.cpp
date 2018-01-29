@@ -63,10 +63,12 @@ bool DataDownload::send(const Network::MessageHandler& msgHandler, Network::Bund
 {
 	Proxy* proxy = static_cast<Proxy*>(Baseapp::getSingleton().findEntity(entityID_));
 	
-	if(proxy){
+	if(proxy)
+	{
 		proxy->sendToClient(msgHandler, pBundle);
 	}
-	else{
+	else
+	{
 		Network::Bundle::reclaimPoolObject(pBundle);
 		return false;
 	}
