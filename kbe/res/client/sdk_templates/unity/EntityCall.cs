@@ -54,7 +54,7 @@
 			if(isCell())
 				bundle.newMessage(Messages.messages["Baseapp_onRemoteCallCellMethodFromClient"]);
 			else
-				bundle.newMessage(Messages.messages["Base_onRemoteMethodCall"]);
+				bundle.newMessage(Messages.messages["Entity_onRemoteMethodCall"]);
 	
 			bundle.writeInt32(this.id);
 			

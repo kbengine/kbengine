@@ -1549,7 +1549,7 @@ KBEngine.EntityCall = function()
 		if(this.type == KBEngine.ENTITY_CALL_TYPE_CELL)
 			this.bundle.newMessage(KBEngine.messages.Baseapp_onRemoteCallCellMethodFromClient);
 		else
-			this.bundle.newMessage(KBEngine.messages.Base_onRemoteMethodCall);
+			this.bundle.newMessage(KBEngine.messages.Entity_onRemoteMethodCall);
 
 		this.bundle.writeInt32(this.id);
 		
