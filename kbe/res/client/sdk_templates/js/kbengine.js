@@ -909,7 +909,7 @@ KBEngine.mappingDataType = function(writer, argType)
 	KBEngine.datatype2id["DATATYPE"] = 2;
 	KBEngine.datatype2id["CHAR"] = 2;
 	KBEngine.datatype2id["DETAIL_TYPE"] = 2;
-	KBEngine.datatype2id["ENTITYCALL_TYPE"] = 2;
+	KBEngine.datatype2id["ENTITYCALL_CALL_TYPE"] = 2;
 
 	KBEngine.datatype2id["UINT16"] = 3;
 	KBEngine.datatype2id["UNSIGNED SHORT"] = 3;

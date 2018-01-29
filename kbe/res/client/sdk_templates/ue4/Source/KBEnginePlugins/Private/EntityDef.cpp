@@ -85,7 +85,7 @@ void EntityDef::bindMessageDataType()
 	datatype2id.Add(TEXT("DATATYPE"), 2);
 	datatype2id.Add(TEXT("CHAR"), 2);
 	datatype2id.Add(TEXT("DETAIL_TYPE"), 2);
-	datatype2id.Add(TEXT("ENTITYCALL_TYPE"), 2);
+	datatype2id.Add(TEXT("ENTITYCALL_CALL_TYPE"), 2);
 
 	id2datatypes.Add(2, datatypes["UINT8"]);
 
