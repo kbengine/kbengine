@@ -823,7 +823,7 @@ void Dbmgr::entityAutoLoad(Network::Channel* pChannel, KBEngine::MemoryStream& s
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::deleteBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Dbmgr::deleteEntityByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	COMPONENT_ID componentID;
 	ENTITY_SCRIPT_UID sid;
@@ -835,11 +835,11 @@ void Dbmgr::deleteBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream&
 	KBE_ASSERT(entityDBID > 0);
 
 	DBUtil::pThreadPool(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex))->
-		addTask(new DBTaskDeleteBaseByDBID(pChannel->addr(), componentID, entityDBID, callbackID, sid));
+		addTask(new DBTaskDeleteEntityByDBID(pChannel->addr(), componentID, entityDBID, callbackID, sid));
 }
 
 //-------------------------------------------------------------------------------------
-void Dbmgr::lookUpBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+void Dbmgr::lookUpEntityByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
 	COMPONENT_ID componentID;
 	ENTITY_SCRIPT_UID sid;
@@ -851,7 +851,7 @@ void Dbmgr::lookUpBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream&
 	KBE_ASSERT(entityDBID > 0);
 
 	DBUtil::pThreadPool(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex))->
-		addTask(new DBTaskLookUpBaseByDBID(pChannel->addr(), componentID, entityDBID, callbackID, sid));
+		addTask(new DBTaskLookUpEntityByDBID(pChannel->addr(), componentID, entityDBID, callbackID, sid));
 }
 
 //-------------------------------------------------------------------------------------

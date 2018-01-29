@@ -59,7 +59,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	MethodDescription* methodDescription = rmethod->getDescription();
 	EntityCallAbstract* entitycall = rmethod->getEntityCall();
 
-	if (!entitycall->isClient() || entitycall->type() == ENTITY_CALL_TYPE_CLIENT_VIA_CELL /* 需要先经过cell */ )
+	if (!entitycall->isClient() || entitycall->type() == ENTITYCALL_TYPE_CLIENT_VIA_CELL /* 需要先经过cell */ )
 	{
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}

@@ -394,7 +394,7 @@ void RestoreEntityHandler::onRestoreSpaceCellFromOtherBaseapp(COMPONENT_ID basea
 		else
 		{
 			if(!destroyed)
-				data.cell = new EntityCall(sm, NULL, cellappID, spaceEntityID, ENTITY_CALL_TYPE_CELL);
+				data.cell = new EntityCall(sm, NULL, cellappID, spaceEntityID, ENTITYCALL_TYPE_CELL);
 		}
 	}
 

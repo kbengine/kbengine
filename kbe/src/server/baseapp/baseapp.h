@@ -137,12 +137,12 @@ public:
 	/** 
 		创建一个entity 
 	*/
-	static PyObject* __py_createBase(PyObject* self, PyObject* args);
-	static PyObject* __py_createBaseAnywhere(PyObject* self, PyObject* args);
-	static PyObject* __py_createBaseRemotely(PyObject* self, PyObject* args);
-	static PyObject* __py_createBaseFromDBID(PyObject* self, PyObject* args);
-	static PyObject* __py_createBaseAnywhereFromDBID(PyObject* self, PyObject* args);
-	static PyObject* __py_createBaseRemotelyFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createEntity(PyObject* self, PyObject* args);
+	static PyObject* __py_createEntityAnywhere(PyObject* self, PyObject* args);
+	static PyObject* __py_createEntityRemotely(PyObject* self, PyObject* args);
+	static PyObject* __py_createEntityFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createEntityAnywhereFromDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_createEntityRemotelyFromDBID(PyObject* self, PyObject* args);
 	
 	/**
 		创建一个新的space 
@@ -157,92 +157,92 @@ public:
 	/** 
 		在一个负载较低的baseapp上创建一个baseEntity 
 	*/
-	void createBaseAnywhere(const char* entityType, PyObject* params, PyObject* pyCallback);
+	void createEntityAnywhere(const char* entityType, PyObject* params, PyObject* pyCallback);
 
-	/** 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行 
+	/** 收到baseappmgr决定将某个baseapp要求createEntityAnywhere的请求在本baseapp上执行 
 		@param entityType	: entity的类别， entities.xml中的定义的。
 		@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
 		@param componentID	: 请求创建entity的baseapp的组件ID
 	*/
-	void onCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
+	void onCreateEntityAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
-	baseapp 的createBaseAnywhere的回调
+	baseapp 的createEntityAnywhere的回调
 	*/
-	void onCreateBaseAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
-	void _onCreateBaseAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+	void onCreateEntityAnywhereCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateEntityAnywhereCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
 		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
 	/**
 	在一个负载较低的baseapp上创建一个baseEntity
 	*/
-	void createBaseRemotely(const char* entityType, COMPONENT_ID componentID, PyObject* params, PyObject* pyCallback);
+	void createEntityRemotely(const char* entityType, COMPONENT_ID componentID, PyObject* params, PyObject* pyCallback);
 
-	/** 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行
+	/** 收到baseappmgr决定将某个baseapp要求createEntityAnywhere的请求在本baseapp上执行
 	@param entityType	: entity的类别， entities.xml中的定义的。
 	@param strInitData	: 这个entity被创建后应该给他初始化的一些数据， 需要使用pickle.loads解包.
 	@param componentID	: 请求创建entity的baseapp的组件ID
 	*/
-	void onCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s);
+	void onCreateEntityRemotely(Network::Channel* pChannel, MemoryStream& s);
 
 	/**
-	baseapp 的createBaseAnywhere的回调
+	baseapp 的createEntityAnywhere的回调
 	*/
-	void onCreateBaseRemotelyCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
-	void _onCreateBaseRemotelyCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
+	void onCreateEntityRemotelyCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void _onCreateEntityRemotelyCallback(Network::Channel* pChannel, CALLBACK_ID callbackID,
 		std::string& entityType, ENTITY_ID eid, COMPONENT_ID componentID);
 
 	/** 
 		从db获取信息创建一个entity
 	*/
-	void createBaseFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
+	void createEntityFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
 
 	/** 网络接口
-		createBaseFromDBID的回调。
+		createEntityFromDBID的回调。
 	*/
-	void onCreateBaseFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateEntityFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 
 		从db获取信息创建一个entity
 	*/
-	void createBaseAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
+	void createEntityAnywhereFromDBID(const char* entityType, DBID dbid, PyObject* pyCallback, const std::string& dbInterfaceName);
 
 	/** 网络接口
-		createBaseAnywhereFromDBID的回调。
+		createEntityAnywhereFromDBID的回调。
 	*/
 	// 从baseappmgr查询用于创建实体的组件id回调
-	void onGetCreateBaseAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onGetCreateEntityAnywhereFromDBIDBestBaseappID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
-		createBaseAnywhereFromDBID的回调。
+		createEntityAnywhereFromDBID的回调。
 	*/
 	// 从数据库来的回调
-	void onCreateBaseAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateEntityAnywhereFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	// 请求在这个进程上创建这个entity
-	void createBaseAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void createEntityAnywhereFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	// 创建完毕后的回调
-	void onCreateBaseAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
+	void onCreateEntityAnywhereFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID, 
 							std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 	
 	/**
 	从db获取信息创建一个entity
 	*/
-	void createBaseRemotelyFromDBID(const char* entityType, DBID dbid, COMPONENT_ID createToComponentID, 
+	void createEntityRemotelyFromDBID(const char* entityType, DBID dbid, COMPONENT_ID createToComponentID, 
 		PyObject* pyCallback, const std::string& dbInterfaceName);
 
 	/** 网络接口
-	createBaseRemotelyFromDBID的回调。
+	createEntityRemotelyFromDBID的回调。
 	*/
 	// 从数据库来的回调
-	void onCreateBaseRemotelyFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void onCreateEntityRemotelyFromDBIDCallback(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	// 请求在这个进程上创建这个entity
-	void createBaseRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void createEntityRemotelyFromDBIDOtherBaseapp(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	// 创建完毕后的回调
-	void onCreateBaseRemotelyFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID,
+	void onCreateEntityRemotelyFromDBIDOtherBaseappCallback(Network::Channel* pChannel, COMPONENT_ID createByBaseappID,
 		std::string entityType, ENTITY_ID createdEntityID, CALLBACK_ID callbackID, DBID dbid);
 
 	/** 
@@ -474,24 +474,24 @@ public:
 
 		从数据库删除实体， 如果实体不在线则可以直接删除回调返回true， 如果在线则回调返回的是entity的entitycall， 其他任何原因都返回false.
 	*/
-	static PyObject* __py_deleteBaseByDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_deleteEntityByDBID(PyObject* self, PyObject* args);
 
 	/** 网络接口
 		通过dbid从数据库中删除一个实体的回调
 	*/
-	void deleteBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void deleteEntityByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
 		通过dbid查询一个实体是否从数据库检出
 
 		如果实体在线回调返回baseentitycall，如果实体不在线则回调返回true，其他任何原因都返回false.
 	*/
-	static PyObject* __py_lookUpBaseByDBID(PyObject* self, PyObject* args);
+	static PyObject* __py_lookUpEntityByDBID(PyObject* self, PyObject* args);
 
 	/** 网络接口
 		如果实体在线回调返回baseentitycall，如果实体不在线则回调返回true，其他任何原因都返回false.
 	*/
-	void lookUpBaseByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void lookUpEntityByDBIDCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		请求绑定email

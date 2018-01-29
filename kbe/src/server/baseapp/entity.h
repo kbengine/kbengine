@@ -83,11 +83,6 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyCellEntity);
 	
 	/** 
-		脚本请求销毁base实体 
-	*/
-	DECLARE_PY_MOTHOD_ARG0(pyDestroyBase);
-	
-	/** 
 		脚本获取entitycall 
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetCellEntityCall);

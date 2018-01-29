@@ -130,17 +130,17 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_EXPOSED(onClientActiveTick)
 	BASEAPP_MESSAGE_DECLARE_ARGS0(onClientActiveTick,								NETWORK_FIXED_MESSAGE)
 
-	// 收到baseappmgr决定将某个baseapp要求createBaseAnywhere的请求在本baseapp上执行 
-	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhere,							NETWORK_VARIABLE_MESSAGE)
+	// 收到baseappmgr决定将某个baseapp要求createEntityAnywhere的请求在本baseapp上执行 
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateEntityAnywhere,							NETWORK_VARIABLE_MESSAGE)
 
-	// createBaseAnywhere成功之后回调消息到发起层createBaseAnywhere的baseapp的entity。
-	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereCallback,					NETWORK_FIXED_MESSAGE)
+	// createEntityAnywhere成功之后回调消息到发起层createEntityAnywhere的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateEntityAnywhereCallback,					NETWORK_FIXED_MESSAGE)
 
-	// createBaseRemotely成功之后回调消息到发起层createBaseRemotely的baseapp的entity。
-	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotely,							NETWORK_FIXED_MESSAGE)
+	// createEntityRemotely成功之后回调消息到发起层createEntityRemotely的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateEntityRemotely,							NETWORK_FIXED_MESSAGE)
 
-	// createBaseRemotely成功之后回调消息到发起层createBaseRemotely的baseapp的entity。
-	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotelyCallback,					 NETWORK_FIXED_MESSAGE)
+	// createEntityRemotely成功之后回调消息到发起层createEntityRemotely的baseapp的entity。
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateEntityRemotelyCallback,					 NETWORK_FIXED_MESSAGE)
 
 	// createCellEntity的cell实体创建成功回调。
 	BASEAPP_MESSAGE_DECLARE_ARGS3(onEntityGetCell,									NETWORK_FIXED_MESSAGE,
@@ -214,34 +214,34 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 									CALLBACK_ID,									callbackID,
 									bool,											success)
 
-	// createBaseFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseFromDBIDCallback,					NETWORK_FIXED_MESSAGE)
+	// createEntityFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateEntityFromDBIDCallback,					NETWORK_FIXED_MESSAGE)
 
-	// createBaseAnywhereFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_STREAM(onGetCreateBaseAnywhereFromDBIDBestBaseappID,	NETWORK_FIXED_MESSAGE)
+	// createEntityAnywhereFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onGetCreateEntityAnywhereFromDBIDBestBaseappID,	NETWORK_FIXED_MESSAGE)
 
-	// createBaseAnywhereFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseAnywhereFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
+	// createEntityAnywhereFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateEntityAnywhereFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
 
-	// createBaseAnywhereFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_STREAM(createBaseAnywhereFromDBIDOtherBaseapp,			NETWORK_FIXED_MESSAGE)
+	// createEntityAnywhereFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(createEntityAnywhereFromDBIDOtherBaseapp,		NETWORK_FIXED_MESSAGE)
 
-	// createBaseAnywhereFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateBaseAnywhereFromDBIDOtherBaseappCallback,	NETWORK_VARIABLE_MESSAGE,
+	// createEntityAnywhereFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateEntityAnywhereFromDBIDOtherBaseappCallback,NETWORK_VARIABLE_MESSAGE,
 									COMPONENT_ID,									createByBaseappID,
 									std::string,									entityType,
 									ENTITY_ID,										createdEntityID,
 									CALLBACK_ID,									callbackID,
 									DBID,											dbid)
 
-	// createBaseRemotelyFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateBaseRemotelyFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
+	// createEntityRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(onCreateEntityRemotelyFromDBIDCallback,			NETWORK_FIXED_MESSAGE)
 
-	// createBaseRemotelyFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_STREAM(createBaseRemotelyFromDBIDOtherBaseapp,			NETWORK_FIXED_MESSAGE)
+	// createEntityRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(createEntityRemotelyFromDBIDOtherBaseapp,		NETWORK_FIXED_MESSAGE)
 
-	// createBaseRemotelyFromDBID的回调
-	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateBaseRemotelyFromDBIDOtherBaseappCallback,	NETWORK_VARIABLE_MESSAGE,
+	// createEntityRemotelyFromDBID的回调
+	BASEAPP_MESSAGE_DECLARE_ARGS5(onCreateEntityRemotelyFromDBIDOtherBaseappCallback,NETWORK_VARIABLE_MESSAGE,
 									COMPONENT_ID,									createByBaseappID,
 									std::string,									entityType,
 									ENTITY_ID,										createdEntityID,
@@ -258,10 +258,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappInterface)
 	BASEAPP_MESSAGE_DECLARE_STREAM(startProfile,									NETWORK_VARIABLE_MESSAGE)
 
 	// 请求从数据库删除实体
-	BASEAPP_MESSAGE_DECLARE_STREAM(deleteBaseByDBIDCB,								NETWORK_VARIABLE_MESSAGE)
+	BASEAPP_MESSAGE_DECLARE_STREAM(deleteEntityByDBIDCB,							NETWORK_VARIABLE_MESSAGE)
 	
-	// lookUpBaseByDBID的回调
-	BASEAPP_MESSAGE_DECLARE_STREAM(lookUpBaseByDBIDCB,								NETWORK_VARIABLE_MESSAGE)
+	// lookUpEntityByDBID的回调
+	BASEAPP_MESSAGE_DECLARE_STREAM(lookUpEntityByDBIDCB,							NETWORK_VARIABLE_MESSAGE)
 
 	// 某个baseapp上的space恢复了cell， 判断当前baseapp是否有相关entity需要恢复cell
 	BASEAPP_MESSAGE_DECLARE_STREAM(onRestoreSpaceCellFromOtherBaseapp,				NETWORK_VARIABLE_MESSAGE)

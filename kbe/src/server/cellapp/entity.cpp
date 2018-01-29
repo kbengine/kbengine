@@ -3822,7 +3822,7 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	// 设置entity的baseEntityCall
 	if(baseEntityCallComponentID > 0)
-		baseEntityCall(new EntityCall(pScriptModule(), NULL, baseEntityCallComponentID, id_, ENTITY_CALL_TYPE_BASE));
+		baseEntityCall(new EntityCall(pScriptModule(), NULL, baseEntityCallComponentID, id_, ENTITYCALL_TYPE_BASE));
 
 	// 如果传送前的控制者是系统或自己的客户端，则继续保持
 	// 如果是其它客户端在控制，则尝试恢复控制关系，如果无法恢复，则重置

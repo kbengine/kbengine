@@ -23,7 +23,7 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 Baseapp::Baseapp():
-numBases_(0),
+numEntitys_(0),
 numProxices_(0),
 load_(0.f),
 isDestroyed_(false),

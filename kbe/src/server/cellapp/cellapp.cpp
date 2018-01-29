@@ -902,7 +902,7 @@ void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseEntityCall
-		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITY_CALL_TYPE_BASE);
+		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITYCALL_TYPE_BASE);
 		e->baseEntityCall(entitycall);
 		
 		if (hasClient)
@@ -1000,7 +1000,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseEntityCall
-		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITY_CALL_TYPE_BASE);
+		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITYCALL_TYPE_BASE);
 		e->baseEntityCall(entitycall);
 		
 		if (hasClient)
@@ -1170,7 +1170,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		}
 
 		// 设置entity的baseEntityCall
-		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entityID, ENTITY_CALL_TYPE_BASE);
+		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entityID, ENTITYCALL_TYPE_BASE);
 		e->baseEntityCall(entitycall);
 		
 		cellData = e->createCellDataFromStream(pCellData);
@@ -1248,14 +1248,14 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	ENTITY_ID eid;
 	s >> eid;
 
-	ENTITY_CALL_TYPE	calltype;
+	ENTITYCALL_TYPE	calltype;
 	s >> calltype;
 
 	// 在本地区尝试查找该收件人信息， 看收件人是否属于本区域
 	Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
 	{
-		if(calltype == ENTITY_CALL_TYPE_CELL)
+		if(calltype == ENTITYCALL_TYPE_CELL)
 		{
 			GhostManager* gm = Cellapp::getSingleton().pGhostManager();
 			COMPONENT_ID cellID = gm->getRoute(eid);
@@ -1279,7 +1279,7 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	switch(calltype)
 	{
 		// 本组件是cellapp，那么确认邮件的目的地是这里， 那么执行最终操作
-		case ENTITY_CALL_TYPE_CELL:	
+		case ENTITYCALL_TYPE_CELL:	
 			{
 				if(!entity->isReal())
 				{
@@ -1302,7 +1302,7 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 			break;
 
 		// entity.base.cell.xxx
-		case ENTITY_CALL_TYPE_BASE_VIA_CELL: 
+		case ENTITYCALL_TYPE_BASE_VIA_CELL: 
 			{
 				EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(entity->baseEntityCall());
 				if(entitycall == NULL)
@@ -1325,7 +1325,7 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 			break;
 		
 		// entity.cell.client
-		case ENTITY_CALL_TYPE_CLIENT_VIA_CELL: 
+		case ENTITYCALL_TYPE_CLIENT_VIA_CELL: 
 			{
 				EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(entity->clientEntityCall());
 				if(entitycall == NULL)

@@ -237,7 +237,7 @@ void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID
 {	
 	// 回调给脚本，获得了cell
 	if(cellEntityCall_ == NULL)
-		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITY_CALL_TYPE_CELL);
+		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITYCALL_TYPE_CELL);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -406,7 +406,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 void Proxy::onGiveClientTo(Network::Channel* lpChannel)
 {
 	clientEntityCall(new EntityCall(this->pScriptModule_, 
-		&lpChannel->addr(), 0, id_, ENTITY_CALL_TYPE_CLIENT));
+		&lpChannel->addr(), 0, id_, ENTITYCALL_TYPE_CLIENT));
 
 	addr(lpChannel->addr());
 	Baseapp::getSingleton().createClientProxies(this);

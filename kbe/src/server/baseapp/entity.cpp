@@ -905,7 +905,7 @@ void Entity::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 	
 	// 回调给脚本，获得了cell
 	if(cellEntityCall_ == NULL)
-		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITY_CALL_TYPE_CELL);
+		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITYCALL_TYPE_CELL);
 
 	if(!inRestore_)
 		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
@@ -1283,7 +1283,7 @@ PyObject* Entity::createCellEntity(PyObject* pyobj)
 	}
 	
 	EntityCallAbstract* cellEntityCall = static_cast<EntityCallAbstract*>(pyobj);
-	if(cellEntityCall->type() != ENTITY_CALL_TYPE_CELL)
+	if(cellEntityCall->type() != ENTITYCALL_TYPE_CELL)
 	{
 		PyErr_Format(PyExc_TypeError, "create %s args1 not is a direct cellEntityCall!", 
 			this->scriptName());
@@ -1413,7 +1413,7 @@ PyObject* Entity::pyTeleport(PyObject* baseEntityMB)
 	{
 		EntityCall* mb = static_cast<EntityCall*>(baseEntityMB);
 
-		if(mb->type() != ENTITY_CALL_TYPE_BASE && mb->type() != ENTITY_CALL_TYPE_CELL_VIA_BASE)
+		if(mb->type() != ENTITYCALL_TYPE_BASE && mb->type() != ENTITYCALL_TYPE_CELL_VIA_BASE)
 		{
 			PyErr_Format(PyExc_AssertionError, "%s::teleport: %d baseEntityMB is not baseEntityCall!\n", 
 				scriptName(), id());

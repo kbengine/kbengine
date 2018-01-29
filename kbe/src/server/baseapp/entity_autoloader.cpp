@@ -119,7 +119,7 @@ void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, M
 		}
 		else
 		{
-			Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL, 
+			Baseapp::getSingleton().createEntityAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL, 
 				g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex));
 		}
 	}
