@@ -52,7 +52,7 @@ SCRIPT_INIT(EntityCall, 0, 0, 0, 0, 0)
 EntityCall::EntityCall(ScriptDefModule* pScriptModule, 
 							 const Network::Address* pAddr, 
 							 COMPONENT_ID componentID, 
-ENTITY_ID eid, ENTITY_CALL_TYPE type):
+ENTITY_ID eid, ENTITYCALL_TYPE type):
 EntityCallAbstract(getScriptType(),
 					  pAddr, 
 					  componentID, 
@@ -110,25 +110,25 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 
 	switch(type_)
 	{
-	case ENTITY_CALL_TYPE_CELL:
+	case ENTITYCALL_TYPE_CELL:
 		pMethodDescription = pScriptModule_->findCellMethodDescription(ccattr);
 		break;
-	case ENTITY_CALL_TYPE_BASE:
+	case ENTITYCALL_TYPE_BASE:
 		pMethodDescription = pScriptModule_->findBaseMethodDescription(ccattr);
 		break;
-	case ENTITY_CALL_TYPE_CLIENT:
+	case ENTITYCALL_TYPE_CLIENT:
 		pMethodDescription = pScriptModule_->findClientMethodDescription(ccattr);
 		break;
-	case ENTITY_CALL_TYPE_CELL_VIA_BASE:
+	case ENTITYCALL_TYPE_CELL_VIA_BASE:
 		pMethodDescription = pScriptModule_->findCellMethodDescription(ccattr);
 		break;
-	case ENTITY_CALL_TYPE_BASE_VIA_CELL:
+	case ENTITYCALL_TYPE_BASE_VIA_CELL:
 		pMethodDescription = pScriptModule_->findBaseMethodDescription(ccattr);
 		break;
-	case ENTITY_CALL_TYPE_CLIENT_VIA_CELL:
+	case ENTITYCALL_TYPE_CLIENT_VIA_CELL:
 		pMethodDescription = pScriptModule_->findClientMethodDescription(ccattr);
 		break;
-	case ENTITY_CALL_TYPE_CLIENT_VIA_BASE:
+	case ENTITYCALL_TYPE_CLIENT_VIA_BASE:
 		pMethodDescription = pScriptModule_->findClientMethodDescription(ccattr);
 		break;
 	default:
@@ -149,30 +149,30 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 	}
 
 	// 首先要求名称不能为自己  比如：自身是一个cell， 不能使用cell.cell
-	if(strcmp(ccattr, ENTITY_CALL_TYPE_TO_NAME_TABLE[type_]) != 0)
+	if(strcmp(ccattr, ENTITYCALL_TYPE_TO_NAME_TABLE[type_]) != 0)
 	{
 		int8 mbtype = -1;
 
 		if(strcmp(ccattr, "cell") == 0)
 		{
-			if(type_ == ENTITY_CALL_TYPE_BASE_VIA_CELL)
-				mbtype = ENTITY_CALL_TYPE_CELL;
+			if(type_ == ENTITYCALL_TYPE_BASE_VIA_CELL)
+				mbtype = ENTITYCALL_TYPE_CELL;
 			else
-				mbtype = ENTITY_CALL_TYPE_CELL_VIA_BASE;
+				mbtype = ENTITYCALL_TYPE_CELL_VIA_BASE;
 		}
 		else if(strcmp(ccattr, "base") == 0)
 		{
-			if(type_ == ENTITY_CALL_TYPE_CELL_VIA_BASE)
-				mbtype = ENTITY_CALL_TYPE_BASE;
+			if(type_ == ENTITYCALL_TYPE_CELL_VIA_BASE)
+				mbtype = ENTITYCALL_TYPE_BASE;
 			else
-				mbtype = ENTITY_CALL_TYPE_BASE_VIA_CELL;
+				mbtype = ENTITYCALL_TYPE_BASE_VIA_CELL;
 		}
 		else if(strcmp(ccattr, "client") == 0)
 		{
-			if(type_ == ENTITY_CALL_TYPE_BASE)
-				mbtype = ENTITY_CALL_TYPE_CLIENT_VIA_BASE;
-			else if(type_ == ENTITY_CALL_TYPE_CELL)
-				mbtype = ENTITY_CALL_TYPE_CLIENT_VIA_CELL;
+			if(type_ == ENTITYCALL_TYPE_BASE)
+				mbtype = ENTITYCALL_TYPE_CLIENT_VIA_BASE;
+			else if(type_ == ENTITYCALL_TYPE_CELL)
+				mbtype = ENTITYCALL_TYPE_CLIENT_VIA_CELL;
 		}
 		
 		if(mbtype != -1)
@@ -182,7 +182,7 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 			{
 				return new EntityCall(pScriptModule_, &addr_, componentID_, 
-					id_, (ENTITY_CALL_TYPE)mbtype);
+					id_, (ENTITYCALL_TYPE)mbtype);
 			}
 			else
 			{
@@ -208,13 +208,13 @@ PyObject* EntityCall::tp_repr()
 void EntityCall::c_str(char* s, size_t size)
 {
 	const char * entitycallName =
-		(type_ == ENTITY_CALL_TYPE_CELL)				? "Cell" :
-		(type_ == ENTITY_CALL_TYPE_BASE)				? "Base" :
-		(type_ == ENTITY_CALL_TYPE_CLIENT)				? "Client" :
-		(type_ == ENTITY_CALL_TYPE_BASE_VIA_CELL)		? "BaseViaCell" :
-		(type_ == ENTITY_CALL_TYPE_CLIENT_VIA_CELL)		? "ClientViaCell" :
-		(type_ == ENTITY_CALL_TYPE_CELL_VIA_BASE)		? "CellViaBase" :
-		(type_ == ENTITY_CALL_TYPE_CLIENT_VIA_BASE)		? "ClientViaBase" : "???";
+		(type_ == ENTITYCALL_TYPE_CELL)					? "Cell" :
+		(type_ == ENTITYCALL_TYPE_BASE)					? "Base" :
+		(type_ == ENTITYCALL_TYPE_CLIENT)				? "Client" :
+		(type_ == ENTITYCALL_TYPE_BASE_VIA_CELL)		? "BaseViaCell" :
+		(type_ == ENTITYCALL_TYPE_CLIENT_VIA_CELL)		? "ClientViaCell" :
+		(type_ == ENTITYCALL_TYPE_CELL_VIA_BASE)		? "CellViaBase" :
+		(type_ == ENTITYCALL_TYPE_CLIENT_VIA_BASE)		? "ClientViaBase" : "???";
 	
 	Network::Channel* pChannel = getChannel();
 
@@ -264,7 +264,7 @@ PyObject* EntityCall::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	// COMPONENT_TYPE componentType = ENTITY_CALL_COMPONENT_TYPE_MAPPING[(ENTITY_CALL_TYPE)type];
+	// COMPONENT_TYPE componentType = ENTITY_CALL_COMPONENT_TYPE_MAPPING[(ENTITYCALL_TYPE)type];
 	
 	PyObject* entity = tryGetEntity(componentID, eid);
 	if(entity != NULL)
@@ -273,7 +273,7 @@ PyObject* EntityCall::__unpickle__(PyObject* self, PyObject* args)
 		return entity;
 	}
 
-	return new EntityCall(sm, NULL, componentID, eid, (ENTITY_CALL_TYPE)type);
+	return new EntityCall(sm, NULL, componentID, eid, (ENTITYCALL_TYPE)type);
 }
 
 //-------------------------------------------------------------------------------------

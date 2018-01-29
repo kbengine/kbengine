@@ -122,7 +122,7 @@ class MessageHandlers
 public:
 	static Network::MessageHandlers* pMainMessageHandlers;
 	typedef std::map<MessageID, MessageHandler*> MessageHandlerMap;
-	MessageHandlers();
+	MessageHandlers(const std::string& name);
 	~MessageHandlers();
 	
 	MessageHandler* add(std::string ihName, MessageArgs* args, int32 msgLen, 
@@ -143,11 +143,16 @@ public:
 
 	static std::string getDigestStr();
 
+	std::string name() const {
+		return name_;
+	}
+
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;
 
 	std::vector< std::string > exposedMessages_;
+	std::string name_;
 };
 
 }

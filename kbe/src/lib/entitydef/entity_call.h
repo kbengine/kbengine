@@ -53,7 +53,7 @@ public:
 	typedef std::tr1::function<Network::Channel* (EntityCall&)> FindChannelFunc;
 
 	EntityCall(ScriptDefModule* pScriptModule, const Network::Address* pAddr, COMPONENT_ID componentID, 
-		ENTITY_ID eid, ENTITY_CALL_TYPE type);
+		ENTITY_ID eid, ENTITYCALL_TYPE type);
 
 	~EntityCall();
 	

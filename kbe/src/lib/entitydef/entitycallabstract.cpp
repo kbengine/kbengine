@@ -56,7 +56,7 @@ EntityCallAbstract::EntityCallAbstract(PyTypeObject* scriptType,
 											COMPONENT_ID componentID, 
 											ENTITY_ID eid, 
 											uint16 utype, 
-											ENTITY_CALL_TYPE type):
+											ENTITYCALL_TYPE type):
 ScriptObject(scriptType, false),
 componentID_(componentID),
 addr_((pAddr == NULL) ? Network::Address::NONE : *pAddr),
@@ -116,10 +116,10 @@ void EntityCallAbstract::newCall(Network::Bundle& bundle)
 		// 如果是客户端上的entitycall调用服务端方法只存在调用cell或者base
 		switch(type_)
 		{
-		case ENTITY_CALL_TYPE_BASE:
+		case ENTITYCALL_TYPE_BASE:
 			bundle.newMessage(BaseappInterface::onRemoteMethodCall);
 			break;
-		case ENTITY_CALL_TYPE_CELL:
+		case ENTITYCALL_TYPE_CELL:
 			bundle.newMessage(BaseappInterface::onRemoteCallCellMethodFromClient);
 			break;
 		default:

@@ -24,44 +24,44 @@ namespace KBEngine {
 //-------------------------------------------------------------------------------------
 INLINE bool EntityCallAbstract::isClient() const
 {
-	return type_ == ENTITY_CALL_TYPE_CLIENT || type_ == ENTITY_CALL_TYPE_CLIENT_VIA_CELL
-		|| type_ == ENTITY_CALL_TYPE_CLIENT_VIA_BASE;
+	return type_ == ENTITYCALL_TYPE_CLIENT || type_ == ENTITYCALL_TYPE_CLIENT_VIA_CELL
+		|| type_ == ENTITYCALL_TYPE_CLIENT_VIA_BASE;
 }
 
 //-------------------------------------------------------------------------------------
 INLINE bool EntityCallAbstract::isCell() const
 {
-	return type_ == ENTITY_CALL_TYPE_CELL || type_ == ENTITY_CALL_TYPE_CELL_VIA_BASE;
+	return type_ == ENTITYCALL_TYPE_CELL || type_ == ENTITYCALL_TYPE_CELL_VIA_BASE;
 }
 
 //-------------------------------------------------------------------------------------
 INLINE bool EntityCallAbstract::isCellReal() const
 {
-	return type_ == ENTITY_CALL_TYPE_CELL;
+	return type_ == ENTITYCALL_TYPE_CELL;
 }
 
 //-------------------------------------------------------------------------------------
 INLINE bool EntityCallAbstract::isBase() const
 {
-	return type_ == ENTITY_CALL_TYPE_BASE || type_ == ENTITY_CALL_TYPE_BASE_VIA_CELL;
+	return type_ == ENTITYCALL_TYPE_BASE || type_ == ENTITYCALL_TYPE_BASE_VIA_CELL;
 }
 
 //-------------------------------------------------------------------------------------
 INLINE bool EntityCallAbstract::isBaseReal() const
 {
-	return type_ == ENTITY_CALL_TYPE_BASE;
+	return type_ == ENTITYCALL_TYPE_BASE;
 }
 
 //-------------------------------------------------------------------------------------
 INLINE bool EntityCallAbstract::isCellViaBase() const
 {
-	return type_ == ENTITY_CALL_TYPE_CELL_VIA_BASE;
+	return type_ == ENTITYCALL_TYPE_CELL_VIA_BASE;
 }
 
 //-------------------------------------------------------------------------------------
 INLINE bool EntityCallAbstract::isBaseViaCell() const
 {
-	return type_ == ENTITY_CALL_TYPE_BASE_VIA_CELL;
+	return type_ == ENTITYCALL_TYPE_BASE_VIA_CELL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ INLINE ENTITY_SCRIPT_UID EntityCallAbstract::utype(void) const {
 }
 
 //-------------------------------------------------------------------------------------
-INLINE ENTITY_CALL_TYPE EntityCallAbstract::type(void) const {
+INLINE ENTITYCALL_TYPE EntityCallAbstract::type(void) const {
 	return type_; 
 }
 	

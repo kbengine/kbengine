@@ -1429,7 +1429,7 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 		PyTypeObject* stype = script::ScriptObject::getScriptObjectType("Entity");
 		{
 			// 是否是一个entity?
-			if(stype && PyObject_IsInstance(pyValue, (PyObject *)stype))
+			if(PyObject_IsInstance(pyValue, (PyObject *)stype))
 			{
 				PyObject* pyid = PyObject_GetAttrString(pyValue, "id");
 
@@ -1441,11 +1441,11 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					cid = g_componentID;
 
 					if (g_componentType == BASEAPP_TYPE)
-						type = (uint16)ENTITY_CALL_TYPE_BASE;
+						type = (uint16)ENTITYCALL_TYPE_BASE;
 					else if (g_componentType == CELLAPP_TYPE)
-						type = (uint16)ENTITY_CALL_TYPE_CELL;
+						type = (uint16)ENTITYCALL_TYPE_CELL;
 					else
-						type = (uint16)ENTITY_CALL_TYPE_CLIENT;
+						type = (uint16)ENTITYCALL_TYPE_CLIENT;
 
 					PyObject* pyClass = PyObject_GetAttrString(pyValue, "__class__");
 					PyObject* pyClassName = PyObject_GetAttrString(pyClass, "__name__");
@@ -1511,7 +1511,7 @@ PyObject* EntityCallType::createFromStream(MemoryStream* mstream)
 			}
 
 			return new EntityCall(EntityDef::findScriptModule(utype), NULL, cid, 
-							id, (ENTITY_CALL_TYPE)type);
+							id, (ENTITYCALL_TYPE)type);
 		}
 	}
 

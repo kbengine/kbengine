@@ -504,9 +504,9 @@ public:																										\
 		PyTuple_SET_ITEM(args1, 1, PyLong_FromUnsignedLongLong(g_componentID));								\
 		PyTuple_SET_ITEM(args1, 2, PyLong_FromUnsignedLong(entity->pScriptModule()->getUType()));			\
 		if(g_componentType == BASEAPP_TYPE)																	\
-			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(ENTITY_CALL_TYPE_BASE));						\
+			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(ENTITYCALL_TYPE_BASE));						\
 		else																								\
-			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(ENTITY_CALL_TYPE_CELL));						\
+			PyTuple_SET_ITEM(args1, 3, PyLong_FromUnsignedLong(ENTITYCALL_TYPE_CELL));						\
 		PyTuple_SET_ITEM(args, 1, args1);																	\
 																											\
 		if(unpickleMethod == NULL){																			\

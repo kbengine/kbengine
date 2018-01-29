@@ -46,7 +46,7 @@ public:
 		COMPONENT_ID componentID, 
 		ENTITY_ID eid, 
 		uint16 utype, 
-		ENTITY_CALL_TYPE type);
+		ENTITYCALL_TYPE type);
 	
 	virtual ~EntityCallAbstract();
 
@@ -77,7 +77,7 @@ public:
 	/** 
 		获得type 
 	*/
-	INLINE ENTITY_CALL_TYPE type(void) const;
+	INLINE ENTITYCALL_TYPE type(void) const;
 
 	/** 
 		支持pickler 方法 
@@ -104,7 +104,7 @@ public:
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	Network::Address						addr_;					// 频道地址
-	ENTITY_CALL_TYPE						type_;					// 该entityCall的类型
+	ENTITYCALL_TYPE							type_;					// 该entityCall的类型
 	ENTITY_ID								id_;					// entityID
 	ENTITY_SCRIPT_UID						utype_;					// entity的utype按照entities.xml中的定义顺序
 };

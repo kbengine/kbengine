@@ -223,7 +223,7 @@ public:
         return *this;
     }
 
-    MemoryStream &operator<<(ENTITY_CALL_TYPE value)
+    MemoryStream &operator<<(ENTITYCALL_TYPE value)
     {
         append<int32>(value);
         return *this;
@@ -337,9 +337,9 @@ public:
         return *this;
     }
 
-    MemoryStream &operator>>(ENTITY_CALL_TYPE &value)
+    MemoryStream &operator>>(ENTITYCALL_TYPE &value)
     {
-        value = static_cast<ENTITY_CALL_TYPE>(read<int32>());
+        value = static_cast<ENTITYCALL_TYPE>(read<int32>());
         return *this;
     }
 

@@ -69,19 +69,19 @@ enum ACCOUNT_FLAGS
 };
 
 /** entity的entityCall类别 */
-enum ENTITY_CALL_TYPE
+enum ENTITYCALL_TYPE
 {
-	ENTITY_CALL_TYPE_CELL												= 0,
-	ENTITY_CALL_TYPE_BASE												= 1,
-	ENTITY_CALL_TYPE_CLIENT												= 2,
-	ENTITY_CALL_TYPE_CELL_VIA_BASE										= 3,
-	ENTITY_CALL_TYPE_BASE_VIA_CELL										= 4,
-	ENTITY_CALL_TYPE_CLIENT_VIA_CELL									= 5,
-	ENTITY_CALL_TYPE_CLIENT_VIA_BASE									= 6,
+	ENTITYCALL_TYPE_CELL												= 0,
+	ENTITYCALL_TYPE_BASE												= 1,
+	ENTITYCALL_TYPE_CLIENT												= 2,
+	ENTITYCALL_TYPE_CELL_VIA_BASE										= 3,
+	ENTITYCALL_TYPE_BASE_VIA_CELL										= 4,
+	ENTITYCALL_TYPE_CLIENT_VIA_CELL										= 5,
+	ENTITYCALL_TYPE_CLIENT_VIA_BASE										= 6,
 };
 
-/** entityCall的类别对换为字符串名称 严格和ENTITY_CALL_TYPE索引匹配 */
-const char ENTITY_CALL_TYPE_TO_NAME_TABLE[][8] = 
+/** entityCall的类别对换为字符串名称 严格和ENTITYCALL_TYPE索引匹配 */
+const char ENTITYCALL_TYPE_TO_NAME_TABLE[][8] = 
 {
 	"cell",
 	"base",
@@ -92,8 +92,8 @@ const char ENTITY_CALL_TYPE_TO_NAME_TABLE[][8] =
 	"client",
 };
 
-/** entityCall的类别对换为字符串名称 严格和ENTITY_CALL_TYPE索引匹配 */
-const char ENTITY_CALL_TYPE_TO_NAME_TABLE_EX[][14] =
+/** entityCall的类别对换为字符串名称 严格和ENTITYCALL_TYPE索引匹配 */
+const char ENTITYCALL_TYPE_TO_NAME_TABLE_EX[][14] =
 {
 	"cell",
 	"base",

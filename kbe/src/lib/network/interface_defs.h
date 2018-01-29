@@ -129,7 +129,7 @@ namespace Network
 #define NETWORK_INTERFACE_DECLARE_BEGIN(INAME) 						\
 	namespace INAME													\
 {																	\
-		Network::MessageHandlers messageHandlers;					\
+		Network::MessageHandlers messageHandlers(#INAME);			\
 			
 #endif
 

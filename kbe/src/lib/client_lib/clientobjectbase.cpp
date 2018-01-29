@@ -782,7 +782,7 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 
 		// 设置entity的baseEntityCall
 		EntityCall* entitycall = new EntityCall(EntityDef::findScriptModule(entityType.c_str()), 
-			NULL, appID(), eid, ENTITY_CALL_TYPE_BASE);
+			NULL, appID(), eid, ENTITYCALL_TYPE_BASE);
 
 		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, entitycall, NULL);
 		KBE_ASSERT(pEntity != NULL);
@@ -855,7 +855,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			
 			// 设置entity的cellEntityCall
 			EntityCall* entitycall = new EntityCall(EntityDef::findScriptModule(sm->getName()), 
-				NULL, appID(), eid, ENTITY_CALL_TYPE_CELL);
+				NULL, appID(), eid, ENTITYCALL_TYPE_CELL);
 
 			entity = createEntity(sm->getName(), NULL, false, eid, true, NULL, entitycall);
 			KBE_ASSERT(entity != NULL);
@@ -898,7 +898,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 
 			// 设置entity的cellEntityCall
 			EntityCall* entitycall = new EntityCall(entity->pScriptModule(), 
-				NULL, appID(), eid, ENTITY_CALL_TYPE_CELL);
+				NULL, appID(), eid, ENTITYCALL_TYPE_CELL);
 
 			entity->cellEntityCall(entitycall);
 

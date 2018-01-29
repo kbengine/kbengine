@@ -37,7 +37,7 @@ uint16 datatype2id(std::string datatype)
 	if (datatype == "STRING" || datatype == "STD::STRING")
 		return 1;
 	else if (datatype == "UINT8" || datatype == "BOOL" || datatype == "DATATYPE" || datatype == "CHAR" || datatype == "DETAIL_TYPE" ||
-		datatype == "ENTITYCALL_TYPE")
+		datatype == "ENTITYCALL_CALL_TYPE")
 		return 2;
 	else if (datatype == "UINT16" || datatype == "UNSIGNED SHORT" || datatype == "SERVER_ERROR_CODE" || datatype == "ENTITY_TYPE" ||
 		datatype == "ENTITY_PROPERTY_UID" || datatype == "ENTITY_METHOD_UID" || datatype == "ENTITY_SCRIPT_UID" || datatype == "DATATYPE_UID")

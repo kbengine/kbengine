@@ -72,7 +72,7 @@ enum EntityDataFlagRelation
 	ENTITY_CELLAPP_ANDA_CLIENT_DATA_FLAGS							= ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT,
 };
 
-/** entityCall类别所对应的组件类别映射，  这个表的索引个严格匹配ENTITY_CALL_TYPE的值 */
+/** entityCall类别所对应的组件类别映射，  这个表的索引个严格匹配ENTITYCALL_TYPE的值 */
 const COMPONENT_TYPE ENTITY_CALL_COMPONENT_TYPE_MAPPING[] = 
 {
 	CELLAPP_TYPE,
