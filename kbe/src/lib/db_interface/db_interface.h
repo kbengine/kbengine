@@ -163,7 +163,7 @@ protected:
 	uint32 db_port_;										// 数据库的端口
 	char db_ip_[MAX_IP];									// 数据库的ip地址
 	char db_username_[MAX_BUF];								// 数据库的用户名
-	char db_password_[MAX_BUF];								// 数据库的密码
+	char db_password_[MAX_BUF * 10];						// 数据库的密码
 	char db_name_[MAX_BUF];									// 数据库名
 	uint16 db_numConnections_;								// 数据库最大连接
 	std::string lastquery_;									// 最后一次查询描述
