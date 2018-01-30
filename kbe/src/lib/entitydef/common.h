@@ -73,7 +73,7 @@ enum EntityDataFlagRelation
 };
 
 /** entityCall类别所对应的组件类别映射，  这个表的索引个严格匹配ENTITYCALL_TYPE的值 */
-const COMPONENT_TYPE ENTITY_CALL_COMPONENT_TYPE_MAPPING[] = 
+const COMPONENT_TYPE ENTITYCALL_COMPONENT_TYPE_MAPPING[] = 
 {
 	CELLAPP_TYPE,
 	BASEAPP_TYPE,

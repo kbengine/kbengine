@@ -19,8 +19,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_ENTITY_CALL_BASE_H
-#define KBE_ENTITY_CALL_BASE_H
+#ifndef KBE_ENTITYCALL_BASE_H
+#define KBE_ENTITYCALL_BASE_H
 	
 #include "common/common.h"
 //#include "network/channel.h"
@@ -114,4 +114,4 @@ protected:
 #ifdef CODE_INLINE
 #include "entitycallabstract.inl"
 #endif
-#endif // KBE_ENTITY_CALL_BASE_H
+#endif // KBE_ENTITYCALL_BASE_H

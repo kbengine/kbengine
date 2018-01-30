@@ -220,7 +220,7 @@ void EntityCall::c_str(char* s, size_t size)
 
 	kbe_snprintf(s, size, "%s id:%d, utype:%u, component=%s[%" PRIu64 "], addr: %s.", 
 		entitycallName, id_,  utype_,
-		COMPONENT_NAME_EX(ENTITY_CALL_COMPONENT_TYPE_MAPPING[type_]), 
+		COMPONENT_NAME_EX(ENTITYCALL_COMPONENT_TYPE_MAPPING[type_]), 
 		componentID_, (pChannel && pChannel->pEndPoint()) ? pChannel->addr().c_str() : "None");
 }
 
@@ -264,7 +264,7 @@ PyObject* EntityCall::__unpickle__(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	// COMPONENT_TYPE componentType = ENTITY_CALL_COMPONENT_TYPE_MAPPING[(ENTITYCALL_TYPE)type];
+	// COMPONENT_TYPE componentType = ENTITYCALL_COMPONENT_TYPE_MAPPING[(ENTITYCALL_TYPE)type];
 	
 	PyObject* entity = tryGetEntity(componentID, eid);
 	if(entity != NULL)
