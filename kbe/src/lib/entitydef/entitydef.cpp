@@ -575,19 +575,50 @@ bool EntityDef::loadAllDefDescriptions(const std::string& moduleName,
 bool EntityDef::validDefPropertyName(ScriptDefModule* pScriptModule, const std::string& name)
 {
 	int i = 0;
-	while(true)
+
+	while (true)
 	{
 		std::string limited = ENTITY_LIMITED_PROPERTYS[i];
 
-		if(limited == "")
+		if (limited == "")
 			break;
 
-		if(name == limited)
+		if (name == limited)
 			return false;
 
 		++i;
 	};
 
+	PyObject* pyKBEModule =
+		PyImport_ImportModule(const_cast<char*>("KBEngine"));
+
+	PyObject* pyEntityModule =
+		PyObject_GetAttrString(pyKBEModule, const_cast<char *>("Entity"));
+
+	Py_DECREF(pyKBEModule);
+
+	if (pyEntityModule != NULL)
+	{
+		PyObject* pyEntityAttr =
+			PyObject_GetAttrString(pyEntityModule, const_cast<char *>(name.c_str()));
+
+		if (pyEntityAttr != NULL)
+		{
+			Py_DECREF(pyEntityAttr);
+			Py_DECREF(pyEntityModule);
+			return false;
+		}
+		else
+		{
+			PyErr_Clear();
+		}
+	}
+	else
+	{
+		PyErr_Clear();
+	}
+
+	Py_XDECREF(pyEntityModule);
 	return true;
 }
 
@@ -1388,6 +1419,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 			ERROR_MSG(fmt::format("EntityDef::checkDefMethod: class {} does not have method[{}], defined in {}.def!\n",
 				moduleName.c_str(), iter->first.c_str(), moduleName));
 
+			PyErr_Clear();
 			return false;
 		}
 	}
