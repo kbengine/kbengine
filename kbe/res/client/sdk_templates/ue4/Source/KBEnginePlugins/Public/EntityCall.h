@@ -19,19 +19,19 @@ public:
 
 	enum ENTITYCALL_TYPE
 	{
-		ENTITY_CALL_TYPE_CELL = 0,		// CELL_ENTITYCALL
-		ENTITY_CALL_TYPE_BASE = 1		// BASE_ENTITYCALL
+		ENTITYCALL_TYPE_CELL = 0,		// CELL_ENTITYCALL
+		ENTITYCALL_TYPE_BASE = 1		// BASE_ENTITYCALL
 	};
 
 public:
 	bool isBase()
 	{
-		return type == ENTITY_CALL_TYPE_BASE;
+		return type == ENTITYCALL_TYPE_BASE;
 	}
 
 	bool isCell()
 	{
-		return type == ENTITY_CALL_TYPE_CELL;
+		return type == ENTITYCALL_TYPE_CELL;
 	}
 
 	/*

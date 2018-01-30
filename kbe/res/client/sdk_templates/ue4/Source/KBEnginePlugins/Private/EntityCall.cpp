@@ -8,7 +8,7 @@
 EntityCall::EntityCall():
 	id(0),
 	className(),
-	type(ENTITY_CALL_TYPE_CELL),
+	type(ENTITYCALL_TYPE_CELL),
 	pBundle(NULL)
 {
 }
@@ -22,7 +22,7 @@ Bundle* EntityCall::newCall()
 	if (!pBundle)
 		pBundle = Bundle::createObject();
 
-	if (type == ENTITY_CALL_TYPE_CELL)
+	if (type == ENTITYCALL_TYPE_CELL)
 		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_onRemoteCallCellMethodFromClient"]));
 	else
 		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Entity_onRemoteMethodCall"]));

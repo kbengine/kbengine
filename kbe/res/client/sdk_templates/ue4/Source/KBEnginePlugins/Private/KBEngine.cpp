@@ -850,7 +850,7 @@ void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& en
 		pEntity->base(baseMB);
 		baseMB->id = eid;
 		baseMB->className = entityType;
-		baseMB->type = EntityCall::ENTITY_CALL_TYPE_BASE;
+		baseMB->type = EntityCall::ENTITYCALL_TYPE_BASE;
 
 		entities_.Add(eid, pEntity);
 
@@ -2096,7 +2096,7 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 		pEntity->cell(cellMB);
 		cellMB->id = eid;
 		cellMB->className = entityType;
-		cellMB->type = EntityCall::ENTITY_CALL_TYPE_CELL;
+		cellMB->type = EntityCall::ENTITYCALL_TYPE_CELL;
 
 		entities_.Add(eid, pEntity);
 
@@ -2133,7 +2133,7 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 			pEntity->cell(cellMB);
 			cellMB->id = eid;
 			cellMB->className = entityType;
-			cellMB->type = EntityCall::ENTITY_CALL_TYPE_CELL;
+			cellMB->type = EntityCall::ENTITYCALL_TYPE_CELL;
 
 			pEntity->set_direction(pEntity->direction);
 			pEntity->set_position(pEntity->position);

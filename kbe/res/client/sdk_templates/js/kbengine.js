@@ -1519,26 +1519,26 @@ KBEngine.Entity = KBEngine.Class.extend(
 /*-----------------------------------------------------------------------------------------
 												EntityCall
 -----------------------------------------------------------------------------------------*/
-KBEngine.ENTITY_CALL_TYPE_CELL = 0;
-KBEngine.ENTITY_CALL_TYPE_BASE = 1;
+KBEngine.ENTITYCALL_TYPE_CELL = 0;
+KBEngine.ENTITYCALL_TYPE_BASE = 1;
 
 KBEngine.EntityCall = function()
 {
 	this.id = 0;
 	this.className = "";
-	this.type = KBEngine.ENTITY_CALL_TYPE_CELL;
+	this.type = KBEngine.ENTITYCALL_TYPE_CELL;
 	this.networkInterface = KBEngine.app;
 	
 	this.bundle = null;
 	
 	this.isBase = function()
 	{
-		return this.type == KBEngine.ENTITY_CALL_TYPE_BASE;
+		return this.type == KBEngine.ENTITYCALL_TYPE_BASE;
 	}
 
 	this.isCell = function()
 	{
-		return this.type == KBEngine.ENTITY_CALL_TYPE_CELL;
+		return this.type == KBEngine.ENTITYCALL_TYPE_CELL;
 	}
 	
 	this.newCall = function()
@@ -1546,7 +1546,7 @@ KBEngine.EntityCall = function()
 		if(this.bundle == null)
 			this.bundle = new KBEngine.Bundle();
 		
-		if(this.type == KBEngine.ENTITY_CALL_TYPE_CELL)
+		if(this.type == KBEngine.ENTITYCALL_TYPE_CELL)
 			this.bundle.newMessage(KBEngine.messages.Baseapp_onRemoteCallCellMethodFromClient);
 		else
 			this.bundle.newMessage(KBEngine.messages.Entity_onRemoteMethodCall);
@@ -3427,7 +3427,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			entity.base = new KBEngine.EntityCall();
 			entity.base.id = eid;
 			entity.base.className = entityType;
-			entity.base.type = KBEngine.ENTITY_CALL_TYPE_BASE;
+			entity.base.type = KBEngine.ENTITYCALL_TYPE_BASE;
 			
 			KBEngine.app.entities[eid] = entity;
 			
@@ -3633,7 +3633,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			entity.cell = new KBEngine.EntityCall();
 			entity.cell.id = eid;
 			entity.cell.className = entityType;
-			entity.cell.type = KBEngine.ENTITY_CALL_TYPE_CELL;
+			entity.cell.type = KBEngine.ENTITYCALL_TYPE_CELL;
 			
 			KBEngine.app.entities[eid] = entity;
 			
@@ -3659,7 +3659,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				entity.cell = new KBEngine.EntityCall();
 				entity.cell.id = eid;
 				entity.cell.className = entityType;
-				entity.cell.type = KBEngine.ENTITY_CALL_TYPE_CELL;
+				entity.cell.type = KBEngine.ENTITYCALL_TYPE_CELL;
 
 				// 安全起见， 这里清空一下
 				// 如果服务端上使用giveClientTo切换控制权
