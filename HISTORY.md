@@ -1,3 +1,19 @@
+###v1.1.3
+
+	2018/1/31
+
+	新增与改善：
+		将AOI概念调整为View概念以适合更普遍的游戏(#545)
+		调整mailbox概念, 改名为entityCall(#546)
+		Entityy.onEntititesEnabled改为onClientEnabled，onEntitites名称有歧义且不能描述实际作用(#548)
+		KBEngine.createInNewSpace改为createCellEntityInNewSpace(#548)
+		KBEngine.Base改名为KBEngine.Entity(#549)
+		支持GCC7.x以上版本编译(#552)
+		防止用户定义的属性名称与API冲突(#556)
+		更新API文档。
+
+
+
 ###v1.1.2
 
 	2018/1/15
