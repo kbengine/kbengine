@@ -30,7 +30,7 @@ ifndef NO_USE_LOG4CXX
 endif
 
 #HAS_PCH = 1
-CPPFLAGS += -DKBE_CLIENT_TEMPLATES
+CPPFLAGS += -DKBE_CMD
 
 ifndef KBE_ROOT
 export KBE_ROOT := $(subst /kbe/src/server/tools/$(BIN),,$(CURDIR))
