@@ -24,7 +24,7 @@ typedef TArray<KBVar> KB_ARRAY;
 #define KBE_FLT_MAX FLT_MAX
 
 /** 安全的释放一个指针内存 */
-#define KBE_SAFE_RELEASE(i)								\
+#define KBE_SAFE_RELEASE(i)									\
 	if (i)													\
 		{													\
 			delete i;										\
@@ -32,7 +32,7 @@ typedef TArray<KBVar> KB_ARRAY;
 		}
 
 /** 安全的释放一个指针数组内存 */
-#define KBE_SAFE_RELEASE_ARRAY(i)						\
+#define KBE_SAFE_RELEASE_ARRAY(i)							\
 	if (i)													\
 		{													\
 			delete[] i;										\
