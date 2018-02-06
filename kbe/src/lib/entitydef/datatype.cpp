@@ -510,7 +510,7 @@ PyObject* FloatType::createFromStream(MemoryStream* mstream)
 
 	if (PyErr_Occurred()) 
 	{
-		PyErr_Format(PyExc_TypeError, "UInt32Type::createFromStream: errval=%f, default return is 0", val);
+		PyErr_Format(PyExc_TypeError, "FloatType::createFromStream: errval=%f, default return is 0", val);
 		PyErr_PrintEx(0);
 		S_RELEASE(pyval);
 		return PyFloat_FromDouble(0);

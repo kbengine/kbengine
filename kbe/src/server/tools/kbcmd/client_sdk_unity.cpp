@@ -1541,29 +1541,25 @@ bool ClientSDKUnity::writeTypeItemType_UNICODE(const std::string& itemName, cons
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeTypeItemType_PYTHON(const std::string& itemName, const std::string& childItemName)
 {
-	ERROR_MSG("ClientSDKUnity::writeTypeItemType_PYTHON(): nonsupport!\n");
-	return false;
+	return writeTypeItemType_BLOB(itemName, childItemName);
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeTypeItemType_PY_DICT(const std::string& itemName, const std::string& childItemName)
 {
-	ERROR_MSG("ClientSDKUnity::writeTypeItemType_PY_DICT(): nonsupport!\n");
-	return false;
+	return writeTypeItemType_BLOB(itemName, childItemName);
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeTypeItemType_PY_TUPLE(const std::string& itemName, const std::string& childItemName)
 {
-	ERROR_MSG("ClientSDKUnity::writeTypeItemType_PY_TUPLE(): nonsupport!\n");
-	return false;
+	return writeTypeItemType_BLOB(itemName, childItemName);
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeTypeItemType_PY_LIST(const std::string& itemName, const std::string& childItemName)
 {
-	ERROR_MSG("ClientSDKUnity::writeTypeItemType_PY_LIST(): nonsupport!\n");
-	return false;
+	return writeTypeItemType_BLOB(itemName, childItemName);
 }
 
 //-------------------------------------------------------------------------------------
