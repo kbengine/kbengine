@@ -115,10 +115,10 @@ public:
 	std::string getPyUserScriptsPath();
 
 	/**
-		获得用户级脚本目录
+		获得用户级库目录
 		assets\\*
 	*/
-	std::string getPyUserScriptsPath();
+	std::string getPyUserAssetsPath();
 
 	ResourceObjectPtr openResource(const char* res, const char* model, 
 		uint32 flags = RESOURCE_NORMAL);
