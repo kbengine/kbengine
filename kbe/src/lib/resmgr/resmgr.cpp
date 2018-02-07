@@ -538,6 +538,21 @@ std::string Resmgr::getPyUserScriptsPath()
 }
 
 //-------------------------------------------------------------------------------------
+std::string Resmgr::getPyUserAssetsPath()
+{
+	static std::string path = "";
+
+	if (path == "")
+	{
+		path = getPyUserScriptsPath();
+		strutil::kbe_replace(path, "/scripts", "");
+		strutil::kbe_replace(path, "\\scripts", "");
+	}
+
+	return path;
+}
+
+//-------------------------------------------------------------------------------------
 ResourceObjectPtr Resmgr::openResource(const char* res, const char* model, uint32 flags)
 {
 	std::string respath = matchRes(res);
