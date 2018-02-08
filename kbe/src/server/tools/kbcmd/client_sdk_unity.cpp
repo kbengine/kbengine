@@ -743,9 +743,27 @@ bool ClientSDKUnity::createArrayChildClass(DataType* pRootDataType, DataType* pD
 		sourcefileBody_ += fmt::format("{}\tprivate DATATYPE_{} itemType = new DATATYPE_{}();\n\n",
 			tabs, pDataType->aliasName(), pDataType->aliasName());
 
-		sourcefileBody_ += fmt::format("{}\tpublic List<{}> createFromStreamEx(MemoryStream stream)\n{}\t{{\n", tabs, typeName, tabs);
+		// 如果是非匿名的数组，则第一层解析应该直接设置为有名字的类别
+		// 否则设置为系统List类别
+		if (numLayer == 1)
+		{
+			if (strlen(pRootDataType->aliasName()) == 0 || pRootDataType->aliasName()[0] == '_')
+			{
+				typeName = fmt::format("List<{}>", typeName);
+			}
+			else
+			{
+				typeName = pRootDataType->aliasName();
+			}
+		}
+		else
+		{
+			typeName = fmt::format("List<{}>", typeName);
+		}
+
+		sourcefileBody_ += fmt::format("{}\tpublic {} createFromStreamEx(MemoryStream stream)\n{}\t{{\n", tabs, typeName, tabs);
 		sourcefileBody_ += fmt::format("{}\t\tUInt32 size = stream.readUint32();\n", tabs);
-		sourcefileBody_ += fmt::format("{}\t\tList<{}> datas = new List<{}>();\n\n", tabs, typeName, typeName);
+		sourcefileBody_ += fmt::format("{}\t\t{} datas = new {}();\n\n", tabs, typeName, typeName);
 		sourcefileBody_ += fmt::format("{}\t\twhile(size > 0)\n", tabs);
 		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
 		sourcefileBody_ += fmt::format("{}\t\t\t--size;\n", tabs);
@@ -755,7 +773,7 @@ bool ClientSDKUnity::createArrayChildClass(DataType* pRootDataType, DataType* pD
 		sourcefileBody_ += fmt::format("{}\t}}\n\n", tabs);
 
 
-		sourcefileBody_ += fmt::format("{}\tpublic void addToStreamEx(Bundle stream, List<{}> v)\n{}\t{{\n", tabs, typeName, tabs);
+		sourcefileBody_ += fmt::format("{}\tpublic void addToStreamEx(Bundle stream, {} v)\n{}\t{{\n", tabs, typeName, tabs);
 		sourcefileBody_ += fmt::format("{}\t\tstream.writeUint32((UInt32)v.Count);\n", tabs);
 		sourcefileBody_ += fmt::format("{}\t\tfor(int i=0; i<v.Count; ++i)\n", tabs);
 		sourcefileBody_ += fmt::format("{}\t\t{{\n", tabs);
@@ -1573,7 +1591,16 @@ bool ClientSDKUnity::writeTypeItemType_BLOB(const std::string& itemName, const s
 bool ClientSDKUnity::writeTypeItemType_ARRAY(const std::string& itemName, const std::string& childItemName, DataType* pDataType)
 {
 	std::string typeStr;
-	getArrayType(pDataType, typeStr);
+
+	if (childItemName.size() == 0 || childItemName[0] == '_')
+	{
+		getArrayType(pDataType, typeStr);
+	}
+	else
+	{
+		typeStr = childItemName;
+	}
+
 	sourcefileBody_ += fmt::format("\t\tpublic {} {} = new {}();\n", typeStr, itemName, typeStr);
 	return true;
 }
