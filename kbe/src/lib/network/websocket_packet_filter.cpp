@@ -233,7 +233,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 					msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME ||
 					msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE()! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE({})! addr={}!\n",
 					(int)msg_frameType_, pChannel_->c_str()));
 
 				this->pChannel_->condemn();
