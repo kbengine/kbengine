@@ -1422,7 +1422,7 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 	COMPONENT_ID cid = 0;
 	ENTITY_ID id = 0;
 	uint16 type = 0;
-	ENTITY_SCRIPT_UID utype;
+	ENTITY_SCRIPT_UID utype = 0;
 
 	if(pyValue != Py_None)
 	{
