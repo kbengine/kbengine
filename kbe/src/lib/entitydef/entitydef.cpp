@@ -442,12 +442,16 @@ bool EntityDef::loadInterfaces(const std::string& defFilePath,
 
 	XML_FOR_BEGIN(implementsNode)
 	{
-		if (defxml->getKey(implementsNode) != "Interface")
+		if (defxml->getKey(implementsNode) != "Interface" || defxml->getKey(implementsNode) != "Type")
 			continue;
 
 		TiXmlNode* interfaceNode = defxml->enterNode(implementsNode, "Interface");
 		if (!interfaceNode)
-			continue;
+		{
+			interfaceNode = defxml->enterNode(implementsNode, "Type");
+			if(!interfaceNode)
+				continue;
+		}
 
 		std::string interfaceName = defxml->getKey(interfaceNode);
 		std::string interfacefile = defFilePath + "interfaces/" + interfaceName + ".def";
