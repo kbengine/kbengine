@@ -228,7 +228,7 @@ void Logger::onShutdownBegin()
 	if (getEntryScript().get())
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-		SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoggerAppShutDown"));
+		SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoggerAppShutDown"), false);
 	}
 }
 

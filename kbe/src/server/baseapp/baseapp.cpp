@@ -282,7 +282,7 @@ void Baseapp::onShutdownBegin()
 	// 通知脚本
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
-		const_cast<char*>("i"), 0);
+		const_cast<char*>("i"), 0, false);
 
 	pRestoreEntityHandlers_.clear();
 }
@@ -297,7 +297,7 @@ void Baseapp::onShutdown(bool first)
 		// 通知脚本
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
-			const_cast<char*>("i"), 1);
+			const_cast<char*>("i"), 1, false);
 	}
 
 	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
@@ -344,7 +344,7 @@ void Baseapp::onShutdownEnd()
 	// 通知脚本
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppShutDown"), 
-		const_cast<char*>("i"), 2);
+		const_cast<char*>("i"), 2, false);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -3540,7 +3540,7 @@ void Baseapp::onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine
 
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onBaseAppDataDel"), 
-				const_cast<char*>("O"), pyKey);
+				const_cast<char*>("O"), pyKey, false);
 		}
 	}
 	else
@@ -3559,7 +3559,7 @@ void Baseapp::onBroadcastBaseAppDataChanged(Network::Channel* pChannel, KBEngine
 
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onBaseAppData"), 
-				const_cast<char*>("OO"), pyKey, pyValue);
+				const_cast<char*>("OO"), pyKey, pyValue, false);
 		}
 
 		Py_DECREF(pyValue);

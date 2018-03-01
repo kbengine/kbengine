@@ -180,7 +180,7 @@ void Proxy::onClientEnabled(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	clientEnabled_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientEnabled"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientEnabled"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -192,7 +192,8 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("sks"), 
 		addr, 
 		port,
-		password
+		password,
+		false
 	);
 	
 	int32 ret = LOG_ON_REJECT;
@@ -229,7 +230,7 @@ void Proxy::onClientDeath(void)
 	addr(Network::Address::NONE);
 
 	clientEnabled_ = false;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -241,7 +242,7 @@ void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -301,7 +302,7 @@ void Proxy::onGiveClientToFailure()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGiveClientToFailure"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGiveClientToFailure"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -831,7 +832,7 @@ void Proxy::onStreamComplete(int16 id, bool success)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onStreamComplete"), 
-		const_cast<char*>("hO"), id, success ? Py_True : Py_False);
+		const_cast<char*>("hO"), id, success ? Py_True : Py_False, false);
 }
 
 //-------------------------------------------------------------------------------------

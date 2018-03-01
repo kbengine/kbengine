@@ -150,7 +150,7 @@ void Entity::onDestroy(bool callScript)
 	if(callScript)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"), false);
 	}
 
 	if(this->hasDB())
@@ -803,7 +803,7 @@ void Entity::onCreateCellFailure(void)
 	creatingCell_ = false;
 	isGetingCellData_ = false;
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onCreateCellFailure"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onCreateCellFailure"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -908,7 +908,7 @@ void Entity::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITYCALL_TYPE_CELL);
 
 	if(!inRestore_)
-		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"));
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -916,7 +916,7 @@ void Entity::onClientDeath()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -933,7 +933,7 @@ void Entity::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 	isGetingCellData_ = false;
 	createdSpace_ = false;
 	
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -944,7 +944,7 @@ void Entity::onRestore()
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"), false);
 
 	inRestore_ = false;
 	isArchiveing_ = false;
@@ -1154,7 +1154,7 @@ void Entity::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoa
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"), false);
 
 	if (dbInterfaceIndex >= 0)
 		dbInterfaceIndex_ = dbInterfaceIndex;
@@ -1234,7 +1234,7 @@ void Entity::onWriteToDB()
 		cd = Py_None;
 
 	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWriteToDB"), 
-		const_cast<char*>("O"), cd);
+		const_cast<char*>("O"), cd, false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1478,7 +1478,7 @@ void Entity::onTeleportFailure()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1487,7 +1487,7 @@ void Entity::onTeleportSuccess(SPACE_ID spaceID)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	this->spaceID(spaceID);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"), false);
 }
 
 //-------------------------------------------------------------------------------------

@@ -338,7 +338,7 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			setname += pPropertyDescription->getName();
 
 			SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()),
-				const_cast<char*>("O"), pyOld);
+				const_cast<char*>("O"), pyOld, false);
 		}
 
 		Py_DECREF(pyobj);
@@ -468,7 +468,7 @@ void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterworld_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -477,7 +477,7 @@ void Entity::onLeaveWorld()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterworld_ = false;
 	spaceID(0);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -485,7 +485,7 @@ void Entity::onEnterSpace()
 {
 	this->stopMove();
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -493,7 +493,7 @@ void Entity::onLeaveSpace()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	spaceID(0);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"), false);
 	this->stopMove();
 }
 
@@ -541,7 +541,7 @@ void Entity::onBecomePlayer()
 	}
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomePlayer"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomePlayer"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -551,7 +551,7 @@ void Entity::onBecomeNonPlayer()
 		return;
 	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomeNonPlayer"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomeNonPlayer"), false);
 
 	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->pScriptModule_->getScriptType());
 	SCRIPT_ERROR_CHECK();
@@ -634,7 +634,7 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 	AUTO_SCOPED_PROFILE("onMove");
 
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+		const_cast<char*>("IO"), controllerId, userarg, false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -647,7 +647,7 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+		const_cast<char*>("IO"), controllerId, userarg, false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -660,7 +660,7 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+		const_cast<char*>("IO"), controllerId, userarg, false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -777,7 +777,7 @@ void Entity::callPropertysSetMethods()
 			setname += iter->second->getName();
 
 			SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()),
-				const_cast<char*>("O"), pyOld);
+				const_cast<char*>("O"), pyOld, false);
 		}
 
 		Py_DECREF(pyOld);
@@ -805,7 +805,7 @@ void Entity::onControlled(bool p_controlled)
     isControlled_ = p_controlled;
 
     PyObject *pyval = p_controlled ? Py_True : Py_False;
-    SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onControlled"), const_cast<char*>("O"), pyval);
+    SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onControlled"), const_cast<char*>("O"), pyval, false);
 }
 
 //-------------------------------------------------------------------------------------

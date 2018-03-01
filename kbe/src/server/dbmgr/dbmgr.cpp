@@ -169,7 +169,7 @@ void Dbmgr::onShutdownBegin()
 
 	// Í¨Öª½Å±¾
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onDBMgrShutDown"));
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onDBMgrShutDown"), false);
 }
 
 //-------------------------------------------------------------------------------------	

@@ -92,7 +92,7 @@ void Interfaces::onShutdownBegin()
 
 	// Í¨Öª½Å±¾
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onInterfaceAppShutDown"));
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onInterfaceAppShutDown"), false);
 }
 
 //-------------------------------------------------------------------------------------	

@@ -1332,7 +1332,7 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 			// 通知脚本
 			// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onGlobalDataDel"), 
-				const_cast<char*>("O"), pyKey);
+				const_cast<char*>("O"), pyKey, false);
 		}
 	}
 	else
@@ -1350,7 +1350,7 @@ void EntityApp<E>::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEn
 			// 通知脚本
 			// SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onGlobalData"), 
-				const_cast<char*>("OO"), pyKey, pyValue);
+				const_cast<char*>("OO"), pyKey, pyValue, false);
 		}
 
 		Py_DECREF(pyValue);

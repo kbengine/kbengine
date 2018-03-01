@@ -213,7 +213,7 @@ void Entity::onDestroy(bool callScript)
 	if(callScript && isReal())
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"));
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"), false);
 		
 		// 如果不通知脚本， 那么也不会产生这个回调
 		// 通常销毁一个entity不通知脚本可能是迁移或者传送造成的
@@ -389,7 +389,7 @@ void Entity::destroySpace()
 void Entity::onSpaceGone()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onSpaceGone"));	
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onSpaceGone"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1144,7 +1144,7 @@ void Entity::onWriteToDB()
 	DEBUG_MSG(fmt::format("{}::onWriteToDB(): {}.\n", 
 		this->scriptName(), this->id()));
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"), false);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1305,7 +1305,7 @@ void Entity::delWitnessed(Entity* entity)
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 		SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onLoseControlledBy"),
-			const_cast<char*>("i"), entity->id());
+			const_cast<char*>("i"), entity->id(), false);
 	}
 
 	// 延时执行
@@ -1918,7 +1918,7 @@ void Entity::onGetWitness(bool fromBase)
 	
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"));
+		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetWitness"), false);
 	}
 	
 	// 如果一个实体已经有cell的情况下giveToClient，那么需要将最新的客户端属性值更新到客户端
@@ -1978,7 +1978,7 @@ void Entity::onLoseWitness(Network::Channel* pChannel)
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseWitness"));
+	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseWitness"), false);
 }
 
 //-------------------------------------------------------------------------------------

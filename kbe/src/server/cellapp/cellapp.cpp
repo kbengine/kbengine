@@ -831,7 +831,7 @@ void Cellapp::onBroadcastCellAppDataChanged(Network::Channel* pChannel, KBEngine
 
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS1(getEntryScript().get(), const_cast<char*>("onCellAppDataDel"), 
-				const_cast<char*>("O"), pyKey);
+				const_cast<char*>("O"), pyKey, false);
 		}
 	}
 	else
@@ -851,7 +851,7 @@ void Cellapp::onBroadcastCellAppDataChanged(Network::Channel* pChannel, KBEngine
 
 			// 通知脚本
 			SCRIPT_OBJECT_CALL_ARGS2(getEntryScript().get(), const_cast<char*>("onCellAppData"), 
-				const_cast<char*>("OO"), pyKey, pyValue);
+				const_cast<char*>("OO"), pyKey, pyValue, false);
 		}
 
 		Py_DECREF(pyValue);
