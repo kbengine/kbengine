@@ -1246,7 +1246,7 @@ public:																										\
 		{																									\
 			PyObject* pyObj = PyTuple_New(founds.size());													\
 																											\
-			for (int i = 0; i < founds.size(); ++i)															\
+			for (int i = 0; i < (int)founds.size(); ++i)													\
 			{																								\
 				PyTuple_SetItem(pyObj, i, founds[i]);														\
 			}																								\
