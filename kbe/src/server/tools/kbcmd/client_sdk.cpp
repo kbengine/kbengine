@@ -1420,17 +1420,8 @@ bool ClientSDK::writeEntityPropertys(ScriptDefModule* pEntityScriptDefModule,
 	for (; propIter != clientPropertys.end(); ++propIter)
 	{
 		PropertyDescription* pPropertyDescription = propIter->second;
-
-		if (pPropertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
-		{
-			if (!writeEntityPropertyComponent(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
-				return false;
-		}
-		else
-		{
-			if (!writeEntityProperty(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
-				return false;
-		}
+		if (!writeEntityProperty(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
+			return false;
 	}
 
 	return true;

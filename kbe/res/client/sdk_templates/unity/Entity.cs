@@ -58,12 +58,12 @@
 			return id == KBEngineApp.app.entity_id;
 		}
 		
-		public virtual void onRemoteMethodCall(MemoryStream stream)
+		public virtual void onRemoteMethodCall(Method method, MemoryStream stream)
 		{
 			// 动态生成
 		}
 
-		public virtual void onUpdatePropertys(MemoryStream stream)
+		public virtual void onUpdatePropertys(Property prop, MemoryStream stream)
 		{
 			// 动态生成
 		}
@@ -141,7 +141,6 @@
 			EntityCall baseEntityCall = getBaseEntityCall();
 
 			baseEntityCall.newCall();
-			baseEntityCall.bundle.writeUint16(0);
 			baseEntityCall.bundle.writeUint16(methodID);
 			
 			try
@@ -207,7 +206,6 @@
 			}
 			
 			cellEntityCall.newCall();
-			cellEntityCall.bundle.writeUint16(0);
 			cellEntityCall.bundle.writeUint16(methodID);
 				
 			try

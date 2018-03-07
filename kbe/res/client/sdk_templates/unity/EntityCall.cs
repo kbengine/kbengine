@@ -10,7 +10,7 @@
 		关于EntityCall请参考API手册中对它的描述
 		https://github.com/kbengine/kbengine/tree/master/docs/api
 	*/
-    public class EntityCall
+    public class EntityCall 
     {
     	// EntityCall的类别
 		public enum ENTITYCALL_TYPE
@@ -25,10 +25,8 @@
 		
 		public Bundle bundle = null;
 		
-		public EntityCall(Int32 eid, string ename)
+		public EntityCall()
 		{
-			id = eid;
-			className = ename;
 		}
 		
 		public virtual void __init__()
@@ -77,7 +75,7 @@
 				bundle = null;
 		}
 
-		public Bundle newCall(string methodName, UInt16 EntitycomponentPropertyID = 0)
+		public Bundle newCall(string methodName)
 		{			
 			if(KBEngineApp.app.currserver == "loginapp")
 			{
@@ -106,8 +104,6 @@
 			UInt16 methodID = method.methodUtype;
 
 			newCall();
-			
-			bundle.writeUint16(EntitycomponentPropertyID);
 			bundle.writeUint16(methodID);
 			return bundle;
 		}

@@ -32,13 +32,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.h"	
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/entity_macro.h"	
-#include "entitydef/entity_component.h"
 #include "server/script_timers.h"		
 	
 namespace KBEngine{
 
 class EntityCall;
-class EntityComponent;
 class EntityMessagesForwardCellappHandler;
 class BaseMessagesForwardClientHandler;
 
@@ -85,22 +83,22 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyCellEntity);
 	
 	/** 
-		脚本获取entityCall 
+		脚本获取entitycall 
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetCellEntityCall);
 
 	EntityCall* cellEntityCall(void) const;
 
-	void cellEntityCall(EntityCall* entityCall);
+	void cellEntityCall(EntityCall* entitycall);
 	
 	/** 
-		脚本获取entityCall 
+		脚本获取entitycall 
 	*/
 	DECLARE_PY_GET_MOTHOD(pyGetClientEntityCall);
 
 	EntityCall* clientEntityCall() const;
 
-	void clientEntityCall(EntityCall* entityCall);
+	void clientEntityCall(EntityCall* entitycall);
 
 	/**
 		是否创建过space
@@ -288,7 +286,7 @@ protected:
 	/** 
 		定义属性数据被改变了 
 	*/
-	void onDefDataChanged(EntityComponent* pEntityComponent, const PropertyDescription* propertyDescription,
+	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
 
 	/**
@@ -297,7 +295,7 @@ protected:
 	void eraseEntityLog();
 
 protected:
-	// 这个entity的客户端entityCall cellapp entityCall
+	// 这个entity的客户端entitycall cellapp entitycall
 	EntityCall*								clientEntityCall_;
 	EntityCall*								cellEntityCall_;
 

@@ -212,7 +212,7 @@ public:
 	/**
 		hook entitycallcall
 	*/
-	RemoteEntityMethod* createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCallAbstract* pEntityCall);
+	RemoteEntityMethod* createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCall* pEntityCall);
 
 	/** 网络接口
 		某个app请求查看该app

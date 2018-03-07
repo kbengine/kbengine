@@ -92,14 +92,9 @@ public:
 	bool run(void);
 
 	/**
-		由entityCall来尝试获取一个channel的实例
+		由entitycall来尝试获取一个channel的实例
 	*/
-	virtual Network::Channel* findChannelByEntityCall(EntityCallAbstract& entityCall);
-
-	/**
-	通过entity的ID尝试寻找它的实例
-	*/
-	virtual PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
+	virtual Network::Channel* findChannelByEntityCall(EntityCall& entitycall);
 
 	/** 网络接口
 		某个app请求查看该app

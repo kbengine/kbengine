@@ -41,8 +41,8 @@ SCRIPT_INIT(EntityRemoteMethod, tp_call, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 EntityRemoteMethod::EntityRemoteMethod(MethodDescription* methodDescription, 
-						EntityCallAbstract* entityCall):
-RemoteEntityMethod(methodDescription, entityCall, getScriptType())
+						EntityCallAbstract* entitycall):
+RemoteEntityMethod(methodDescription, entitycall, getScriptType())
 {
 }
 
@@ -57,18 +57,18 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 {	
 	EntityRemoteMethod* rmethod = static_cast<EntityRemoteMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
-	EntityCallAbstract* entityCall = rmethod->getEntityCall();
+	EntityCallAbstract* entitycall = rmethod->getEntityCall();
 
-	if (!entityCall->isClient() || entityCall->type() == ENTITYCALL_TYPE_CLIENT_VIA_CELL /* 需要先经过cell */ )
+	if (!entitycall->isClient() || entitycall->type() == ENTITYCALL_TYPE_CLIENT_VIA_CELL /* 需要先经过cell */ )
 	{
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
 
-	Entity* pEntity = Baseapp::getSingleton().findEntity(entityCall->id());
+	Entity* pEntity = Baseapp::getSingleton().findEntity(entitycall->id());
 	if(pEntity == NULL)
 	{
 		//WARNING_MSG(fmt::format("EntityRemoteMethod::callClientMethod: not found entity({}).\n",
-		//	entityCall->id()));
+		//	entitycall->id()));
 
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
@@ -77,7 +77,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	if(methodDescription->checkArgs(args))
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		entityCall->newCall((*pBundle));
+		entitycall->newCall((*pBundle));
 
 		MemoryStream* mstream = MemoryStream::createPoolObject();
 		methodDescription->addToStream(mstream, args);
