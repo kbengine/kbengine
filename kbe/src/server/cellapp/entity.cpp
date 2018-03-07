@@ -4400,7 +4400,7 @@ void Entity::addEventsToStream(KBEngine::MemoryStream& s)
 void Entity::createEventsFromStream(KBEngine::MemoryStream& s)
 {
 	ENTITY_EVENTS& eventsMap = events();
-	events().clear();
+	eventsMap.clear();
 
 	int eventNameSize;
 	s >> eventNameSize;
