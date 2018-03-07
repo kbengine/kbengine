@@ -61,7 +61,7 @@ void Archiver::tick()
 
 	for (int i = startIndex; i < endIndex; ++i)
 	{
-		Entity * pEntity = Baseapp::getSingleton().findEntity(arEntityIDs_[i]);
+		Entity* pEntity = Baseapp::getSingleton().findEntity(arEntityIDs_[i]);
 		
 		if(pEntity && pEntity->hasDB())
 		{

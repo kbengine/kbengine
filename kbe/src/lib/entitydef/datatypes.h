@@ -52,8 +52,8 @@ public:
 	static bool addDataType(DATATYPE_UID uid, DataType* dataType);
 	static void delDataType(std::string name);
 
-	static DataType* getDataType(std::string name);
-	static DataType* getDataType(const char* name);
+	static DataType* getDataType(std::string name, bool notFoundOutError = true);
+	static DataType* getDataType(const char* name, bool notFoundOutError = true);
 	static DataType* getDataType(DATATYPE_UID uid);
 
 	static bool loadTypes(std::string& file);

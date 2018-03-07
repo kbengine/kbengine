@@ -6,16 +6,17 @@ SRCS =						\
 	cells					\
 	cellapp					\
 	cellapp_interface		\
-	clients_remote_entity_method	\
+	clients_remote_entity_method		\
 	controller				\
 	controllers				\
 	client_entity			\
 	client_entity_method	\
-	forward_message_over_handler	\
+	forward_message_over_handler		\
 	entity					\
 	entityref				\
 	entity_remotemethod		\
 	entity_coordinate_node	\
+	entity_component		\
 	ghost_manager			\
 	history_event			\
 	initprogress_handler	\

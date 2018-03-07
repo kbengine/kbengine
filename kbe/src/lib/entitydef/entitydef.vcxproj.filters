@@ -54,10 +54,16 @@
     <ClCompile Include="volatileinfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="entity_component.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="entity_call.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="entitycallabstract.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_component_call.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,10 +113,16 @@
     <ClInclude Include="entity_garbages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="entity_component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="entitycallabstract.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="entity_call.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_component_call.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -131,7 +143,13 @@
     <None Include="scriptdef_module.inl">
       <Filter>Inline Files</Filter>
     </None>
+    <None Include="entity_component.inl">
+      <Filter>Inline Files</Filter>
+    </None>
     <None Include="entitycallabstract.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entity_component_call.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

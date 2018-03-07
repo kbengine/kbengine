@@ -10,10 +10,10 @@ SRCS =				\
 	strutil			\
 	kbeversion		\
 	kbekey			\
-	md5			\
+	md5				\
 	sha1			\
 	base64			\
-	rsa			\
+	rsa				\
 	memorystream
 
 ifndef KBE_ROOT

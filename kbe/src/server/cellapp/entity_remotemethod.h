@@ -34,7 +34,7 @@ class EntityRemoteMethod : public RemoteEntityMethod
 	INSTANCE_SCRIPT_HREADER(EntityRemoteMethod, RemoteEntityMethod)	
 public:
 	EntityRemoteMethod(MethodDescription* methodDescription, 
-						EntityCallAbstract* entitycall);
+						EntityCallAbstract* entityCall);
 
 	~EntityRemoteMethod();
 

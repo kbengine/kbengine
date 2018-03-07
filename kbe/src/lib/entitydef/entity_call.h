@@ -27,31 +27,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/scriptobject.h"
 
 	
-#ifdef KBE_SERVER
-#include "server/components.h"
-#endif
-
-	
 namespace KBEngine{
 
-namespace Network
-{
-class Channel;
-}
-
-class ScriptDefModule;
-class RemoteEntityMethod;
-class MethodDescription;
 
 class EntityCall : public EntityCallAbstract
 {
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(EntityCall, EntityCallAbstract)
 public:
-	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* pMethodDescription, EntityCall* pEntityCall)> EntityCallCallHookFunc;
-	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
-	typedef std::tr1::function<Network::Channel* (EntityCall&)> FindChannelFunc;
-
 	EntityCall(ScriptDefModule* pScriptModule, const Network::Address* pAddr, COMPONENT_ID componentID, 
 		ENTITY_ID eid, ENTITYCALL_TYPE type);
 
@@ -80,53 +63,19 @@ public:
 	*/
 	static void onInstallScript(PyObject* mod);
 
-	/** 
-		通过entity的ID尝试寻找它的实例
-	*/
-	static PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
-
-	/** 
-		设置entityCall的__getEntityFunc函数地址 
-	*/
-	static void setGetEntityFunc(GetEntityFunc func){ 
-		__getEntityFunc = func; 
-	};
-
-	/** 
-		设置entityCall的__findChannelFunc函数地址 
-	*/
-	static void setFindChannelFunc(FindChannelFunc func){ 
-		__findChannelFunc = func; 
-	};
-
-	/** 
-		设置entityCall的__hookCallFunc函数地址 
-	*/
-	static void setEntityCallCallHookFunc(EntityCallCallHookFunc* pFunc) {
-		__hookCallFuncPtr = pFunc; 
-	};
-
-	static void resetCallHooks() {
-		__hookCallFuncPtr = NULL;
-		__findChannelFunc = FindChannelFunc();
-		__getEntityFunc = GetEntityFunc();
-	}
-
 	virtual RemoteEntityMethod* createRemoteMethod(MethodDescription* pMethodDescription);
-
-	virtual Network::Channel* getChannel(void);
 
 	void reload();
 
 	typedef std::vector<EntityCall*> ENTITYCALLS;
 	static ENTITYCALLS entityCalls;
 	
-private:
-	// 获得一个entity的实体的函数地址
-	static GetEntityFunc					__getEntityFunc;
-	static EntityCallCallHookFunc*			__hookCallFuncPtr;
-	static FindChannelFunc					__findChannelFunc;
+	ScriptDefModule* pScriptModule() {
+		return pScriptModule_;
+	}
 	
+	virtual void newCall(Network::Bundle& bundle);
+
 protected:
 	std::string								scriptModuleName_;
 

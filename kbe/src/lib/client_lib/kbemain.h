@@ -32,6 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/py_gc.h"
 #include "resmgr/resmgr.h"
 #include "client_lib/config.h"
+#include "entitydef/entity_component.h"
 
 namespace KBEngine{
 
@@ -121,6 +122,7 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 
 	EntityDef::installScript(script.getModule());
 	client::Entity::installScript(script.getModule());
+	EntityComponent::installScript(script.getModule());
 	Entities<client::Entity>::installScript(NULL);
 	EntityGarbages<client::Entity>::installScript(NULL);
 	return ret;
@@ -131,6 +133,7 @@ inline bool uninstallPyScript(KBEngine::script::Script& script)
 	// script::PyGC::set_debug(script::PyGC::DEBUG_STATS|script::PyGC::DEBUG_LEAK);
 	// script::PyGC::collect();
 	client::Entity::uninstallScript();
+	EntityComponent::uninstallScript();
 	Entities<client::Entity>::uninstallScript();
 	EntityGarbages<client::Entity>::uninstallScript();
 	EntityDef::uninstallScript();

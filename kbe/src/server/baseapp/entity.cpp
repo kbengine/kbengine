@@ -24,6 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entity_messages_forward_handler.h"
 #include "pyscript/py_gc.h"
 #include "entitydef/entity_call.h"
+#include "entitydef/entity_component.h"
+#include "entitydef/entitydef.h"
 #include "network/channel.h"	
 #include "network/fixed_messages.h"
 #include "client_lib/client_interface.h"
@@ -59,7 +61,7 @@ ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule,
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, 
 		   PyTypeObject* pyType, bool isInitialised):
 ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Entity),
@@ -102,7 +104,7 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
-void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, 
+void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyDescription* propertyDescription,
 		PyObject* pyData)
 {
 	if(initing())
@@ -112,6 +114,14 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription,
 		setDirty();
 	
 	uint32 flags = propertyDescription->getFlags();
+	ENTITY_PROPERTY_UID componentPropertyUID = 0;
+	int8 componentPropertyAliasID = 0;
+
+	if (pEntityComponent)
+	{
+		componentPropertyUID = (pEntityComponent ? pEntityComponent->pPropertyDescription()->getUType() : (ENTITY_PROPERTY_UID)0);
+		componentPropertyAliasID = (pEntityComponent ? pEntityComponent->pPropertyDescription()->aliasIDAsUint8() : 0);
+	}
 
 	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientEntityCall_ == NULL)
 		return;
@@ -125,10 +135,16 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription,
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 	(*pBundle) << id();
 
-	if(pScriptModule_->usePropertyDescrAlias())
+	if (pScriptModule_->usePropertyDescrAlias())
+	{
+		(*pBundle) << componentPropertyAliasID;
 		(*pBundle) << propertyDescription->aliasIDAsUint8();
+	}
 	else
+	{
+		(*pBundle) << componentPropertyUID;
 		(*pBundle) << propertyDescription->getUType();
+	}
 
 	pBundle->append(*mstream);
 	
@@ -150,7 +166,7 @@ void Entity::onDestroy(bool callScript)
 	if(callScript)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onDestroy"), false);
+		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onDestroy"), false));
 	}
 
 	if(this->hasDB())
@@ -247,6 +263,8 @@ void Entity::createCellData(void)
 		return;
 	}
 	
+	EntityDef::context().currComponentType = CELLAPP_TYPE;
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
 	for(; iter != propertyDescrs.end(); ++iter)
@@ -256,7 +274,13 @@ void Entity::createCellData(void)
 		
 		if(dataType)
 		{
-			PyObject* pyObj = propertyDescription->newDefaultVal();
+			PyObject* pyObj = NULL;
+			
+			if (dataType->type() != DATA_TYPE_ENTITY_COMPONENT)
+				pyObj = propertyDescription->newDefaultVal();
+			else
+				pyObj = ((EntityComponentType*)dataType)->createCellData();
+
 			PyDict_SetItemString(cellDataDict_, propertyDescription->getName(), pyObj);
 			Py_DECREF(pyObj);
 		}
@@ -268,7 +292,7 @@ void Entity::createCellData(void)
 		
 		SCRIPT_ERROR_CHECK();
 	}
-	
+
 	// 初始化cellEntity的位置和方向变量
 	PyObject* position = PyTuple_New(3);
 	PyTuple_SET_ITEM(position, 0, PyFloat_FromDouble(0.0));
@@ -290,12 +314,17 @@ void Entity::createCellData(void)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
+void Entity::addCellDataToStream(COMPONENT_TYPE sendTo, uint32 flags, MemoryStream* s, bool useAliasID)
 {
 	addPositionAndDirectionToStream(*s, useAliasID);
 
 	if (!cellDataDict_)
 		return;
+
+	if(sendTo != CLIENT_TYPE)
+		EntityDef::context().currComponentType = CELLAPP_TYPE;
+	else
+		EntityDef::context().currComponentType = CLIENT_TYPE;
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptModule_->getCellPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
@@ -309,25 +338,35 @@ void Entity::addCellDataToStream(uint32 flags, MemoryStream* s, bool useAliasID)
 
 			if(useAliasID && pScriptModule_->usePropertyDescrAlias())
 			{
+				(*s) << (uint8)0;
 				(*s) << propertyDescription->aliasIDAsUint8();
 			}
 			else
 			{
+				(*s) << (ENTITY_PROPERTY_UID)0;
 				(*s) << propertyDescription->getUType();
 			}
 
-			if(!propertyDescription->getDataType()->isSameType(pyVal))
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
 			{
-				ERROR_MSG(fmt::format("{}::addCellDataToStream: {}({}) not is ({})!\n", this->scriptName(), 
-					propertyDescription->getName(), (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
-				
-				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
-				propertyDescription->getDataType()->addToStream(s, pydefval);
-				Py_DECREF(pydefval);
+				EntityComponentType* pEntityComponentType = (EntityComponentType*)propertyDescription->getDataType();
+				pEntityComponentType->addCellDataToStream(s, flags, pyVal, this->id(), propertyDescription, sendTo, true);
 			}
 			else
 			{
-				propertyDescription->getDataType()->addToStream(s, pyVal);
+				if (!propertyDescription->getDataType()->isSameType(pyVal))
+				{
+					ERROR_MSG(fmt::format("{}::addCellDataToStream: {}({}) not is ({})!\n", this->scriptName(),
+						propertyDescription->getName(), (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
+
+					PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
+					propertyDescription->getDataType()->addToStream(s, pydefval);
+					Py_DECREF(pydefval);
+				}
+				else
+				{
+					propertyDescription->getDataType()->addToStream(s, pyVal);
+				}
 			}
 
 			if (PyErr_Occurred())
@@ -371,17 +410,18 @@ void Entity::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 		{
 			PyObject *key = PyUnicode_FromString(attrname);
 
-			if(cellDataDict_ != NULL && PyDict_Contains(cellDataDict_, key) > 0)
+			if(propertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT /* 如果是组件类型，应该先从实体自身找到这个组件属性 */
+				&& cellDataDict_ != NULL && PyDict_Contains(cellDataDict_, key) > 0)
 			{
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
-				if(!propertyDescription->getDataType()->isSameType(pyVal))
+				if(!propertyDescription->isSamePersistentType(pyVal))
 				{
 					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
 				{
-					(*s) << propertyDescription->getUType();
+					(*s) << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
 					log.push_back(propertyDescription->getUType());
 					propertyDescription->addPersistentToStream(s, pyVal);
 					DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
@@ -390,14 +430,14 @@ void Entity::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			else if(PyDict_Contains(pydict, key) > 0)
 			{
 				PyObject* pyVal = PyDict_GetItem(pydict, key);
-				if(!propertyDescription->getDataType()->isSameType(pyVal))
+				if(!propertyDescription->isSamePersistentType(pyVal))
 				{
 					CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
 						this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 				}
 				else
 				{
-	    			(*s) << propertyDescription->getUType();
+	    			(*s) << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
 					log.push_back(propertyDescription->getUType());
 	    			propertyDescription->addPersistentToStream(s, pyVal);
 					DEBUG_PERSISTENT_PROPERTY("addBasePersistentsDataToStream", attrname);
@@ -405,12 +445,31 @@ void Entity::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			}
 			else
 			{
-				WARNING_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent({}), use default values!\n",
-					this->scriptName(), this->id(), attrname));
+				if (propertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				{
+					WARNING_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent({}), use default values!\n",
+						this->scriptName(), this->id(), attrname));
 
-				(*s) << propertyDescription->getUType();
-				log.push_back(propertyDescription->getUType());
-				propertyDescription->addPersistentToStream(s, NULL);
+					(*s) << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
+					log.push_back(propertyDescription->getUType());
+					propertyDescription->addPersistentToStream(s, NULL);
+				}
+				else
+				{
+					PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
+					if (!propertyDescription->isSamePersistentType(pyVal))
+					{
+						CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
+							this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
+					}
+					else
+					{
+						(*s) << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
+						log.push_back(propertyDescription->getUType());
+						propertyDescription->addPersistentToStream(s, pyVal);
+						DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
+					}
+				}
 			}
 
 			Py_DECREF(key);
@@ -679,12 +738,12 @@ PyObject* Entity::pyGetCellEntityCall()
 		return 0;																					
 	}
 
-	EntityCall* entitycall = cellEntityCall();
-	if(entitycall == NULL)
+	EntityCall* entityCall = cellEntityCall();
+	if(entityCall == NULL)
 		S_Return;
 
-	Py_INCREF(entitycall);
-	return entitycall; 
+	Py_INCREF(entityCall);
+	return entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -729,12 +788,12 @@ PyObject* Entity::pyGetClientEntityCall()
 		return 0;																				
 	}
 
-	EntityCall* entitycall = clientEntityCall();
-	if(entitycall == NULL)
+	EntityCall* entityCall = clientEntityCall();
+	if(entityCall == NULL)
 		S_Return;
 
-	Py_INCREF(entitycall);
-	return entitycall; 
+	Py_INCREF(entityCall);
+	return entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -803,7 +862,7 @@ void Entity::onCreateCellFailure(void)
 	creatingCell_ = false;
 	isGetingCellData_ = false;
 
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onCreateCellFailure"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onCreateCellFailure"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -820,15 +879,44 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		return;																							
 	}
 
+	ENTITY_PROPERTY_UID componentPropertyUID = 0;
+	s >> componentPropertyUID;
+
 	ENTITY_METHOD_UID utype = 0;
 	s >> utype;
 	
-	MethodDescription* pMethodDescription = pScriptModule_->findBaseMethodDescription(utype);
+	ScriptDefModule* pScriptModule = pScriptModule_;
+	PyObject* pyCallObject = this;
+
+	PropertyDescription* pComponentPropertyDescription = NULL;
+	if (componentPropertyUID > 0)
+	{
+		pComponentPropertyDescription = pScriptModule_->findBasePropertyDescription(componentPropertyUID);
+
+		if (pComponentPropertyDescription && pComponentPropertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+		{
+			pScriptModule = static_cast<EntityComponentType*>(pComponentPropertyDescription->getDataType())->pScriptDefModule();
+
+			pyCallObject = PyObject_GetAttrString(this, const_cast<char*>
+				(pComponentPropertyDescription->getName()));
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found EntityComponent({3}). utype={0}, methodName=unknown, callerID:{1}.\n"
+				, utype, id_, this->scriptName(), (componentPropertyUID)));
+		}
+	}
+
+	MethodDescription* pMethodDescription = pScriptModule->findBaseMethodDescription(utype);
 	if(pMethodDescription == NULL)
 	{
-		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, methodName=unknown, callerID:{1}.\n", 
-			utype, id_, this->scriptName()));
+		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found {3}method. utype={0}, methodName=unknown, callerID:{1}.\n", 
+			utype, id_, this->scriptName(), 
+			(pComponentPropertyDescription ? (std::string("component[") + std::string(pScriptModule->getName()) + "] ") : "")));
 		
+		if (pyCallObject != static_cast<PyObject*>(this))
+			Py_DECREF(pyCallObject);
+
 		s.done();
 		return;
 	}
@@ -839,8 +927,12 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		ENTITY_ID srcEntityID = pChannel->proxyID();
 		if (srcEntityID <= 0 || srcEntityID != this->id())
 		{
-			WARNING_MSG(fmt::format("{2}::onRemoteMethodCall({3}): srcEntityID:{0} != thisEntityID:{1}.\n",
-				srcEntityID, this->id(), this->scriptName(), pMethodDescription->getName()));
+			WARNING_MSG(fmt::format("{2}::onRemoteMethodCall({3}): srcEntityID:{0} != thisEntityID:{1}! {4}\n",
+				srcEntityID, this->id(), this->scriptName(), pMethodDescription->getName(), 
+				(pComponentPropertyDescription ? (std::string(pScriptModule->getName()) + "::") + pMethodDescription->getName() : "")));
+
+			if (pyCallObject != static_cast<PyObject*>(this))
+				Py_DECREF(pyCallObject);
 
 			s.done();
 			return;
@@ -848,8 +940,12 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 
 		if(!pMethodDescription->isExposed())
 		{
-			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! srcEntityID:{1}.\n",
-				pMethodDescription->getName(), srcEntityID, this->scriptName()));
+			ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: {0} not is exposed, call is illegal! srcEntityID:{1}! {3}\n",
+				pMethodDescription->getName(), srcEntityID, this->scriptName(), 
+				(pComponentPropertyDescription ? (std::string(pScriptModule->getName()) + "::") + pMethodDescription->getName() : "")));
+
+			if (pyCallObject != static_cast<PyObject*>(this))
+				Py_DECREF(pyCallObject);
 
 			s.done();
 			return;
@@ -858,12 +954,14 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n", 
-			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName()));
+		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{4}{1}(utype={2}).\n", 
+			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName(),
+			(pComponentPropertyDescription ? (std::string(pScriptModule->getName()) + "::") : "")));
 	}
 
-	pMethodDescription->currCallerID(this->id());
-	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
+	EntityDef::context().currEntityID = this->id();
+
+	PyObject* pyFunc = PyObject_GetAttrString(pyCallObject, const_cast<char*>
 						(pMethodDescription->getName()));
 
 	if(pMethodDescription != NULL)
@@ -888,6 +986,9 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	}
 	
 	Py_XDECREF(pyFunc);
+
+	if (pyCallObject != static_cast<PyObject*>(this))
+		Py_DECREF(pyCallObject);
 }
 
 //-------------------------------------------------------------------------------------
@@ -907,16 +1008,17 @@ void Entity::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 	if(cellEntityCall_ == NULL)
 		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITYCALL_TYPE_CELL);
 
-	if(!inRestore_)
-		SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGetCell"), false);
+	if (!inRestore_)
+	{
+		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGetCell"), false));
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onClientDeath()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientDeath"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -933,7 +1035,7 @@ void Entity::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 	isGetingCellData_ = false;
 	createdSpace_ = false;
 	
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLoseCell"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLoseCell"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -943,8 +1045,7 @@ void Entity::onRestore()
 		return;
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onRestore"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onRestore"), false));
 
 	inRestore_ = false;
 	isArchiveing_ = false;
@@ -1153,8 +1254,7 @@ void Entity::onWriteToDBCallback(ENTITY_ID eid,
 void Entity::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoad, int dbInterfaceIndex)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onPreArchive"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onPreArchive"), false));
 
 	if (dbInterfaceIndex >= 0)
 		dbInterfaceIndex_ = dbInterfaceIndex;
@@ -1233,8 +1333,7 @@ void Entity::onWriteToDB()
 	if (!cd)
 		cd = Py_None;
 
-	SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onWriteToDB"), 
-		const_cast<char*>("O"), cd, false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS1(pyTempObj, const_cast<char*>("onWriteToDB"), const_cast<char*>("O"), cd, false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1408,7 +1507,7 @@ PyObject* Entity::pyTeleport(PyObject* baseEntityMB)
 
 	ENTITY_ID eid = 0;
 
-	// 如果不是entitycall则是本地baseEntity
+	// 如果不是entityCall则是本地base
 	if(isEntityCall)
 	{
 		EntityCall* mb = static_cast<EntityCall*>(baseEntityMB);
@@ -1438,7 +1537,7 @@ PyObject* Entity::pyTeleport(PyObject* baseEntityMB)
 		Entity* pEntity = static_cast<Entity*>(baseEntityMB);
 		if(!pEntity->isDestroyed())
 		{
-			pEntity->reqTeleportOther(NULL, this->id(),
+			pEntity->reqTeleportOther(NULL, this->id(), 
 				this->cellEntityCall()->componentID(), g_componentID);
 		}
 		else
@@ -1477,8 +1576,7 @@ void Entity::onTeleportCB(Network::Channel* pChannel, SPACE_ID spaceID, bool fro
 void Entity::onTeleportFailure()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportFailure"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onTeleportFailure"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1487,7 +1585,7 @@ void Entity::onTeleportSuccess(SPACE_ID spaceID)
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
 	this->spaceID(spaceID);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onTeleportSuccess"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onTeleportSuccess"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1630,13 +1728,8 @@ void Entity::onTimer(ScriptID timerID, int useraAgs)
 {
 	SCOPED_PROFILE(ONTIMER_PROFILE);
 	
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),
-		const_cast<char*>("Ii"), timerID, useraAgs);
-
-	if (pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onTimer"),
+		const_cast<char*>("Ii"), timerID, useraAgs, false));
 }
 
 //-------------------------------------------------------------------------------------

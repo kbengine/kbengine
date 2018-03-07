@@ -86,8 +86,6 @@ public:
 	*/
 	PyObject* call(PyObject* func, PyObject* args);	
 
-	INLINE void currCallerID(ENTITY_ID eid);
-
 	INLINE COMPONENT_ID domain() const;
 
 	INLINE bool isClient() const;
@@ -113,8 +111,6 @@ protected:
 	std::vector<DataType*>					argTypes_;									// 这个属性的参数类别列表
 
 	bool									isExposed_;									// 是否是一个暴露方法
-
-	ENTITY_ID								currCallerID_;								// 当前调用这个方法的调用者ID, 提供暴露方法调用时给脚本判断调用源防止作弊
 
 	int16									aliasID_;									// 别名id， 当暴露的方法或者广播的属性总个数小于255时， 我们不使用utype而使用1字节的aliasID来传输
 };

@@ -46,11 +46,6 @@ INLINE std::vector<DataType*>& MethodDescription::getArgTypes(void)
 	return argTypes_; 
 }
 
-INLINE void MethodDescription::currCallerID(ENTITY_ID eid)
-{ 
-	currCallerID_ = eid; 
-}
-
 INLINE int16 MethodDescription::aliasID() const 
 { 
 	return aliasID_; 

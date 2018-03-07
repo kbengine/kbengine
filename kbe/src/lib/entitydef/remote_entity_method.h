@@ -46,7 +46,7 @@ class RemoteEntityMethod : public script::ScriptObject
 		
 public:	
 	RemoteEntityMethod(MethodDescription* methodDescription, 
-						EntityCallAbstract* entitycall, PyTypeObject* pyType = NULL);
+						EntityCallAbstract* entityCall, PyTypeObject* pyType = NULL);
 	
 	virtual ~RemoteEntityMethod();
 
@@ -60,14 +60,14 @@ public:
 	static PyObject* tp_call(PyObject* self, 
 			PyObject* args, PyObject* kwds);
 
-	EntityCallAbstract* getEntityCall(void) const
+	EntityCallAbstract* getEntityCall(void) const 
 	{
-		return pEntityCall_;
+		return pEntityCall_; 
 	}
 	
 protected:	
 	MethodDescription*		methodDescription_;					// 这个方法的描述
-	EntityCallAbstract*		pEntityCall_;						// 这个方法所属的entitycall
+	EntityCallAbstract*		pEntityCall_;						// 这个方法所属的entityCall
 };
 }
 

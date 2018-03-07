@@ -244,24 +244,32 @@ void DataTypes::delDataType(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-DataType* DataTypes::getDataType(std::string name)
+DataType* DataTypes::getDataType(std::string name, bool notFoundOutError)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name.c_str()));
+	if (notFoundOutError)
+	{
+		ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name.c_str()));
+	}
+
 	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
-DataType* DataTypes::getDataType(const char* name)
+DataType* DataTypes::getDataType(const char* name, bool notFoundOutError)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name));
+	if (notFoundOutError)
+	{
+		ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name));
+	}
+
 	return NULL;
 }
 

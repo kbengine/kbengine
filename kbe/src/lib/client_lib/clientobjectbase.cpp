@@ -230,9 +230,21 @@ bool ClientObjectBase::destroyEntity(ENTITY_ID entityID, bool callScript)
 }
 
 //-------------------------------------------------------------------------------------	
-Network::Channel* ClientObjectBase::findChannelByEntityCall(EntityCall& entitycall)
+Network::Channel* ClientObjectBase::findChannelByEntityCall(EntityCallAbstract& entityCall)
 {
 	return pServerChannel_;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::tryGetEntity(COMPONENT_ID componentID, ENTITY_ID eid)
+{
+	client::Entity* entity = pEntities_->find(eid);
+	if (entity == NULL) {
+		ERROR_MSG(fmt::format("ClientObjectBase::tryGetEntity: can't found entity:{}.\n", eid));
+		return NULL;
+	}
+
+	return entity;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -317,6 +329,10 @@ client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject*
 	EntityCall* base, EntityCall* cell)
 {
 	KBE_ASSERT(eid > 0);
+
+	EntityDef::context().currClientappID = appID();
+	EntityDef::context().currEntityID = eid;
+	EntityDef::context().currComponentType = CLIENT_TYPE;
 
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
@@ -781,10 +797,10 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 			name_, rndUUID, eid, entityType));
 
 		// 设置entity的baseEntityCall
-		EntityCall* entitycall = new EntityCall(EntityDef::findScriptModule(entityType.c_str()), 
+		EntityCall* entityCall = new EntityCall(EntityDef::findScriptModule(entityType.c_str()), 
 			NULL, appID(), eid, ENTITYCALL_TYPE_BASE);
 
-		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, entitycall, NULL);
+		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, entityCall, NULL);
 		KBE_ASSERT(pEntity != NULL);
 
 		if(hasBufferedMessage)
@@ -854,10 +870,10 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			KBE_ASSERT(sm);
 			
 			// 设置entity的cellEntityCall
-			EntityCall* entitycall = new EntityCall(EntityDef::findScriptModule(sm->getName()), 
+			EntityCall* entityCall = new EntityCall(EntityDef::findScriptModule(sm->getName()), 
 				NULL, appID(), eid, ENTITYCALL_TYPE_CELL);
 
-			entity = createEntity(sm->getName(), NULL, false, eid, true, NULL, entitycall);
+			entity = createEntity(sm->getName(), NULL, false, eid, true, NULL, entityCall);
 			KBE_ASSERT(entity != NULL);
 
 			// 先更新属性再初始化脚本
@@ -897,10 +913,10 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			KBE_ASSERT(entity->cellEntityCall() == NULL);
 
 			// 设置entity的cellEntityCall
-			EntityCall* entitycall = new EntityCall(entity->pScriptModule(), 
+			EntityCall* entityCall = new EntityCall(entity->pScriptModule(), 
 				NULL, appID(), eid, ENTITYCALL_TYPE_CELL);
 
-			entity->cellEntityCall(entitycall);
+			entity->cellEntityCall(entityCall);
 
 			// 安全起见， 这里清空一下
 			// 如果服务端上使用giveClientTo切换控制权

@@ -210,6 +210,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="all_clients.cpp" />
+    <ClCompile Include="entity_component.cpp" />
     <ClCompile Include="view_trigger.cpp" />
     <ClCompile Include="cell.cpp" />
     <ClCompile Include="cellapp.cpp" />

@@ -1,11 +1,12 @@
 BIN  = kbcmd
-SRCS =						\
-	client_sdk		\
+SRCS =					\
+	client_sdk			\
 	client_sdk_unity	\
-	client_sdk_ue4	\
-	kbcmd		\
-	kbcmd_interface	\
-	profile					\
+	client_sdk_ue4		\
+	entity_component	\
+	kbcmd				\
+	kbcmd_interface		\
+	profile				\
 	main
 
 ASMS =

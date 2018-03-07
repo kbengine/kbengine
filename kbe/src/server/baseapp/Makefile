@@ -2,21 +2,22 @@ BIN  = baseapp
 SRCS =						\
 	archiver				\
 	entity					\
+	entity_component		\
 	baseapp					\
-	baseapp_interface			\
+	baseapp_interface		\
 	backuper				\
 	entity_messages_forward_handler		\
-	data_download				\
-	data_downloads				\
-	entity_autoloader			\
-	entity_remotemethod			\
+	data_download			\
+	data_downloads			\
+	entity_autoloader		\
+	entity_remotemethod		\
 	forward_message_over_handler		\
-	initprogress_handler			\
-	restore_entity_handler			\
+	initprogress_handler				\
+	restore_entity_handler				\
 	sync_entitystreamtemplate_handler	\
 	main					\
 	proxy					\
-	proxy_forwarder				\
+	proxy_forwarder			\
 	profile
 
 ASMS =
