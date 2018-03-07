@@ -11,7 +11,7 @@
 		entitydef所支持的基本数据类型
 		改模块中的类抽象出了所有的支持类型并提供了这些类型的数据序列化成二进制数据与反序列化操作（主要用于网络通讯的打包与解包）
 	*/
-	public class KBEDATATYPE_BASE
+	public class DATATYPE_BASE
 	{
 		public virtual void bind()
 		{
@@ -37,7 +37,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_INT8 : KBEDATATYPE_BASE
+	public class DATATYPE_INT8 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -66,7 +66,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_INT16 : KBEDATATYPE_BASE
+	public class DATATYPE_INT16 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -95,7 +95,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_INT32 : KBEDATATYPE_BASE
+	public class DATATYPE_INT32 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -124,7 +124,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_INT64 : KBEDATATYPE_BASE
+	public class DATATYPE_INT64 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -153,7 +153,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_UINT8 : KBEDATATYPE_BASE
+	public class DATATYPE_UINT8 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -182,7 +182,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_UINT16 : KBEDATATYPE_BASE
+	public class DATATYPE_UINT16 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -211,7 +211,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_UINT32 : KBEDATATYPE_BASE
+	public class DATATYPE_UINT32 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -240,7 +240,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_UINT64 : KBEDATATYPE_BASE
+	public class DATATYPE_UINT64 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -269,7 +269,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_FLOAT : KBEDATATYPE_BASE
+	public class DATATYPE_FLOAT : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -299,7 +299,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_DOUBLE : KBEDATATYPE_BASE
+	public class DATATYPE_DOUBLE : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -329,7 +329,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_STRING : KBEDATATYPE_BASE
+	public class DATATYPE_STRING : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -352,7 +352,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_VECTOR2 : KBEDATATYPE_BASE
+	public class DATATYPE_VECTOR2 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -376,7 +376,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_VECTOR3 : KBEDATATYPE_BASE
+	public class DATATYPE_VECTOR3 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -401,7 +401,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_VECTOR4 : KBEDATATYPE_BASE
+	public class DATATYPE_VECTOR4 : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -427,7 +427,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_PYTHON : KBEDATATYPE_BASE
+	public class DATATYPE_PYTHON : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -450,7 +450,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_UNICODE : KBEDATATYPE_BASE
+	public class DATATYPE_UNICODE : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -473,7 +473,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_MAILBOX : KBEDATATYPE_BASE
+	public class DATATYPE_ENTITYCALL : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -496,7 +496,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_BLOB : KBEDATATYPE_BASE
+	public class DATATYPE_BLOB : DATATYPE_BASE
 	{
 		public override object createFromStream(MemoryStream stream)
 		{
@@ -519,14 +519,14 @@
 		}
 	}
 	
-	public class KBEDATATYPE_ARRAY : KBEDATATYPE_BASE
+	public class DATATYPE_ARRAY : DATATYPE_BASE
 	{
 		public object vtype;
 		
 		public override void bind()
 		{
-			if(vtype.GetType ().BaseType.ToString() == "KBEngine.KBEDATATYPE_BASE")
-				((KBEDATATYPE_BASE)vtype).bind();
+			if(vtype.GetType ().BaseType.ToString() == "KBEngine.DATATYPE_BASE")
+				((DATATYPE_BASE)vtype).bind();
 			else
 				if(EntityDef.id2datatypes.ContainsKey((UInt16)vtype))
 					vtype = EntityDef.id2datatypes[(UInt16)vtype];
@@ -540,7 +540,7 @@
 			while(size > 0)
 			{
 				size--;
-		//		datas.Add(((KBEDATATYPE_BASE)vtype).createFromStream(stream));
+		//		datas.Add(((DATATYPE_BASE)vtype).createFromStream(stream));
 			};
 			
 			return datas;
@@ -551,7 +551,7 @@
 			stream.writeUint32((UInt32)((List<object>)v).Count);
 			for(int i=0; i<((List<object>)v).Count; i++)
 			{
-		//		((KBEDATATYPE_BASE)vtype).addToStream(stream, ((List<object>)v)[i]);
+		//		((DATATYPE_BASE)vtype).addToStream(stream, ((List<object>)v)[i]);
 			}
 		}
 		
@@ -562,9 +562,9 @@
 		
 		public override bool isSameType(object v)
 		{
-			if(vtype.GetType ().BaseType.ToString() != "KBEngine.KBEDATATYPE_BASE")
+			if(vtype.GetType ().BaseType.ToString() != "KBEngine.DATATYPE_BASE")
 			{
-				Dbg.ERROR_MSG(string.Format("KBEDATATYPE_ARRAY::isSameType: has not bind! baseType={0}", 
+				Dbg.ERROR_MSG(string.Format("DATATYPE_ARRAY::isSameType: has not bind! baseType={0}", 
 					vtype.GetType ().BaseType.ToString()));
 				return false;
 			}
@@ -576,7 +576,7 @@
 			
 			for(int i=0; i<((List<object>)v).Count; i++)
 			{
-				if(!((KBEDATATYPE_BASE)vtype).isSameType(((List<object>)v)[i]))
+				if(!((DATATYPE_BASE)vtype).isSameType(((List<object>)v)[i]))
 				{
 					return false;
 				}
@@ -586,7 +586,7 @@
 		}
 	}
 	
-	public class KBEDATATYPE_FIXED_DICT : KBEDATATYPE_BASE
+	public class DATATYPE_FIXED_DICT : DATATYPE_BASE
 	{
 		public string implementedBy = "";
 		public Dictionary<string, object> dicttype = new Dictionary<string, object>();
@@ -600,8 +600,8 @@
 			{
 				object type = dicttype[itemkey];
 				
-				if(type.GetType ().BaseType.ToString() == "KBEngine.KBEDATATYPE_BASE")
-					((KBEDATATYPE_BASE)type).bind();
+				if(type.GetType ().BaseType.ToString() == "KBEngine.DATATYPE_BASE")
+					((DATATYPE_BASE)type).bind();
 				else
 					if(EntityDef.id2datatypes.ContainsKey((UInt16)type))
 						dicttype[itemkey] = EntityDef.id2datatypes[(UInt16)type];
@@ -613,7 +613,7 @@
 			Dictionary<string, object> datas = new Dictionary<string, object>();
 			foreach(string itemkey in dicttype.Keys)
 			{
-			//	datas[itemkey] = ((KBEDATATYPE_BASE)dicttype[itemkey]).createFromStream(stream);
+			//	datas[itemkey] = ((DATATYPE_BASE)dicttype[itemkey]).createFromStream(stream);
 			}
 			
 			return datas;
@@ -623,7 +623,7 @@
 		{
 			foreach(string itemkey in dicttype.Keys)
 			{
-		//		((KBEDATATYPE_BASE)dicttype[itemkey]).addToStream(stream, ((Dictionary<string, object>)v)[itemkey]);
+		//		((DATATYPE_BASE)dicttype[itemkey]).addToStream(stream, ((Dictionary<string, object>)v)[itemkey]);
 			}
 		}
 		
@@ -632,7 +632,7 @@
 			Dictionary<string, object> datas = new Dictionary<string, object>();
 			foreach(string itemkey in dicttype.Keys)
 			{
-				datas[itemkey] = ((KBEDATATYPE_BASE)dicttype[itemkey]).parseDefaultValStr("");
+				datas[itemkey] = ((DATATYPE_BASE)dicttype[itemkey]).parseDefaultValStr("");
 			}
 			
 			return datas;
@@ -648,7 +648,7 @@
 				object value;
 				if(((Dictionary<string, object>)v).TryGetValue(item.Key, out value))
 				{
-					if(!((KBEDATATYPE_BASE)item.Value).isSameType(value))
+					if(!((DATATYPE_BASE)item.Value).isSameType(value))
 					{
 						return false;
 					}

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,8 @@ querying_(false)
 		EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
 		for (; iter != modules.end(); ++iter)
 		{
-			entityTypes_[entityTypes_.size() - 1].push_back((*iter)->getUType());
+			if((*iter)->isPersistent())
+				entityTypes_[entityTypes_.size() - 1].push_back((*iter)->getUType());
 		}
 	}
 }
@@ -119,7 +120,7 @@ void EntityAutoLoader::onEntityAutoLoadCBFromDBMgr(Network::Channel* pChannel, M
 		}
 		else
 		{
-			Baseapp::getSingleton().createBaseAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL, 
+			Baseapp::getSingleton().createEntityAnywhereFromDBID(EntityDef::findScriptModule(entityType)->getName(), dbid, NULL, 
 				g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex));
 		}
 	}

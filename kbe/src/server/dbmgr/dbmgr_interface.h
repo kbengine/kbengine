@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -129,10 +129,10 @@ NETWORK_INTERFACE_DECLARE_BEGIN(DbmgrInterface)
 	DBMGR_MESSAGE_DECLARE_STREAM(removeEntity,						NETWORK_VARIABLE_MESSAGE)
 
 	// 请求从数据库删除实体
-	DBMGR_MESSAGE_DECLARE_STREAM(deleteBaseByDBID,					NETWORK_VARIABLE_MESSAGE)
+	DBMGR_MESSAGE_DECLARE_STREAM(deleteEntityByDBID,				NETWORK_VARIABLE_MESSAGE)
 
 	// 通过dbid查询一个实体是否从数据库检出
-	DBMGR_MESSAGE_DECLARE_STREAM(lookUpBaseByDBID,					NETWORK_VARIABLE_MESSAGE)
+	DBMGR_MESSAGE_DECLARE_STREAM(lookUpEntityByDBID,				NETWORK_VARIABLE_MESSAGE)
 
 	// 请求关闭服务器
 	DBMGR_MESSAGE_DECLARE_STREAM(reqCloseServer,					NETWORK_VARIABLE_MESSAGE)

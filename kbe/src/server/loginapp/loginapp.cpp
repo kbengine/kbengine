@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -75,7 +75,7 @@ void Loginapp::onShutdownBegin()
 	
 	// Í¨Öª½Å±¾
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoginAppShutDown"));
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoginAppShutDown"), false);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -456,7 +456,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
         user_name = regex_replace(accountName, _g_mail_pattern, std::string("$1") );
         domain_name = regex_replace(accountName, _g_mail_pattern, std::string("$2") );
 		*/
-		WARNING_MSG(fmt::format("Loginapp::_createAccount: invalid mail={}\n", 
+		WARNING_MSG(fmt::format("Loginapp::_createAccount: invalid email={}\n", 
 			accountName));
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();

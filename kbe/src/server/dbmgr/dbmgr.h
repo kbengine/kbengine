@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -167,12 +167,12 @@ public:
 	/** 网络接口
 		通过dbid从数据库中删除一个实体的回调
 	*/
-	void deleteBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void deleteEntityByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		通过dbid查询一个实体是否从数据库检出
 	*/
-	void lookUpBaseByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+	void lookUpEntityByDBID(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/** 网络接口
 		请求从db获取entity的所有数据

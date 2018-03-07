@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -171,6 +171,7 @@ PyObject* Pickler::unpickle(const std::string& str)
 			else
 				buff += fmt::format("\\x{:02x}", (uchar)str[i]);
 		}
+
 		ERROR_MSG(fmt::format("Pickler::unpickle: failed to unpickle[{}] len={}.\n",
 			buff, str.length()));
 	}

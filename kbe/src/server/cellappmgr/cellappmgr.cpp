@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -324,7 +324,7 @@ uint32 Cellappmgr::numLoadBalancingApp()
 }
 
 //-------------------------------------------------------------------------------------
-void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s) 
+void Cellappmgr::reqCreateCellEntityInNewSpace(Network::Channel* pChannel, MemoryStream& s) 
 {
 	std::string entityType;
 	ENTITY_ID id;
@@ -345,7 +345,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	static SPACE_ID spaceID = 1;
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(CellappInterface::onCreateInNewSpaceFromBaseapp);
+	(*pBundle).newMessage(CellappInterface::onCreateCellEntityInNewSpaceFromBaseapp);
 	(*pBundle) << entityType;
 	(*pBundle) << id;
 	(*pBundle) << spaceID++;
@@ -369,7 +369,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 		}
 		else if (bestCellappID_ == 0 && numLoadBalancingApp() == 0)
 		{
-			ERROR_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: Unable to allocate cellapp for load balancing! entityType={}, entityID={}, componentID={}, cellappSize={}.\n",
+			ERROR_MSG(fmt::format("Cellappmgr::reqCreateCellEntityInNewSpace: Unable to allocate cellapp for load balancing! entityType={}, entityID={}, componentID={}, cellappSize={}.\n",
 				entityType, id, componentID, cellappSize));
 		}
 	}
@@ -380,7 +380,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 
 	if (cinfos == NULL || cinfos->pChannel == NULL || cinfos->state != COMPONENT_STATE_RUN)
 	{
-		WARNING_MSG("Cellappmgr::reqCreateInNewSpace: not found cellapp, message is buffered.\n");
+		WARNING_MSG("Cellappmgr::reqCreateCellEntityInNewSpace: not found cellapp, message is buffered.\n");
 
 		ForwardItem* pFI = new AppForwardItem();
 		pFI->pHandler = NULL;
@@ -399,7 +399,7 @@ void Cellappmgr::reqCreateInNewSpace(Network::Channel* pChannel, MemoryStream& s
 	}
 
 	std::map< COMPONENT_ID, Cellapp >::iterator cellapp_iter = cellapps_.find(bestCellappID_);
-	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
+	DEBUG_MSG(fmt::format("Cellappmgr::reqCreateCellEntityInNewSpace: entityType={}, entityID={}, componentID={}, cellapp(cid={}, load={}, numEntities={}).\n",
 		entityType, id, componentID, bestCellappID_, cellapp_iter->second.load(), cellapp_iter->second.numEntities()));
 
 	// 预先将实体数量增加

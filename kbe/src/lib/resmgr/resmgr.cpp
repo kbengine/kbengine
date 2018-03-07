@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -532,6 +532,21 @@ std::string Resmgr::getPyUserScriptsPath()
 			else if(respaths_.size() > 0)
 				path = respaths_[0];
 		}
+	}
+
+	return path;
+}
+
+//-------------------------------------------------------------------------------------
+std::string Resmgr::getPyUserAssetsPath()
+{
+	static std::string path = "";
+
+	if (path == "")
+	{
+		path = getPyUserScriptsPath();
+		strutil::kbe_replace(path, "/scripts", "");
+		strutil::kbe_replace(path, "\\scripts", "");
 	}
 
 	return path;

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -672,7 +672,7 @@ namespace KBEngine{ namespace script{
 //-----------------------------------------------------------------------------------------------------------
 /** 定义宏用于安全的调用一个对象的方法
 */
-#define SCRIPT_OBJECT_CALL_ARGS0(OBJ, METHOT_NAME)														\
+#define SCRIPT_OBJECT_CALL_ARGS0(OBJ, METHOT_NAME, GETERROR)											\
 {																										\
 	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
@@ -680,20 +680,23 @@ namespace KBEngine{ namespace script{
 	}																									\
 	else																								\
 	{																									\
-		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), (METHOT_NAME), 									\
+															const_cast<char*>(""));						\
+		if(pyResult != NULL) {																			\
+			Py_DECREF(pyResult);																		\
+		}																								\
+		else																							\
 		{																								\
-			PyObject* pyResult = PyObject_CallMethod((OBJ), (METHOT_NAME), 								\
-																const_cast<char*>(""));					\
-			if(pyResult != NULL)																		\
-				Py_DECREF(pyResult);																	\
-			else																						\
+			if (GETERROR)																				\
 				PyErr_PrintEx(0);																		\
+			else																						\
+				PyErr_Clear();																			\
 		}																								\
 	}																									\
 }																										\
 			
 			
-#define SCRIPT_OBJECT_CALL_ARGS1(OBJ, METHOT_NAME, FORMAT, ARG1)										\
+#define SCRIPT_OBJECT_CALL_ARGS1(OBJ, METHOT_NAME, FORMAT, ARG1, GETERROR)								\
 {																										\
 	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
@@ -701,23 +704,27 @@ namespace KBEngine{ namespace script{
 	}																									\
 	else																								\
 	{																									\
-		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1)													\
+													);													\
+																										\
+		if(pyResult != NULL) {																			\
+			Py_DECREF(pyResult);																		\
+		}																								\
+		else																							\
 		{																								\
-			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
-													(METHOT_NAME), 										\
-													(FORMAT),											\
-													(ARG1)												\
-														);												\
-			if(pyResult != NULL)																		\
-				Py_DECREF(pyResult);																	\
-			else																						\
+			if (GETERROR)																				\
 				PyErr_PrintEx(0);																		\
+			else																						\
+				PyErr_Clear();																			\
 		}																								\
 	}																									\
 }																										\
 			
 			
-#define SCRIPT_OBJECT_CALL_ARGS2(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2)									\
+#define SCRIPT_OBJECT_CALL_ARGS2(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, GETERROR)						\
 {																										\
 	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
@@ -725,24 +732,28 @@ namespace KBEngine{ namespace script{
 	}																									\
 	else																								\
 	{																									\
-		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2)													\
+													);													\
+																										\
+		if(pyResult != NULL) {																			\
+			Py_DECREF(pyResult);																		\
+		}																								\
+		else																							\
 		{																								\
-			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
-													(METHOT_NAME), 										\
-													(FORMAT),											\
-													(ARG1),												\
-													(ARG2)												\
-														);												\
-			if(pyResult != NULL)																		\
-				Py_DECREF(pyResult);																	\
-			else																						\
+			if (GETERROR)																				\
 				PyErr_PrintEx(0);																		\
+			else																						\
+				PyErr_Clear();																			\
 		}																								\
 	}																									\
 }																										\
 
 
-#define SCRIPT_OBJECT_CALL_ARGS3(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3)							\
+#define SCRIPT_OBJECT_CALL_ARGS3(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, GETERROR)					\
 {																										\
 	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
@@ -750,25 +761,29 @@ namespace KBEngine{ namespace script{
 	}																									\
 	else																								\
 	{																									\
-		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2),													\
+												(ARG3)													\
+													);													\
+																										\
+		if(pyResult != NULL) {																			\
+			Py_DECREF(pyResult);																		\
+		}																								\
+		else																							\
 		{																								\
-			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
-													(METHOT_NAME), 										\
-													(FORMAT),											\
-													(ARG1),												\
-													(ARG2),												\
-													(ARG3)												\
-														);												\
-			if(pyResult != NULL)																		\
-				Py_DECREF(pyResult);																	\
-			else																						\
+			if (GETERROR)																				\
 				PyErr_PrintEx(0);																		\
+			else																						\
+				PyErr_Clear();																			\
 		}																								\
 	}																									\
 }																										\
 
 
-#define SCRIPT_OBJECT_CALL_ARGS4(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4)						\
+#define SCRIPT_OBJECT_CALL_ARGS4(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4, GETERROR)			\
 {																										\
 	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
@@ -776,26 +791,29 @@ namespace KBEngine{ namespace script{
 	}																									\
 	else																								\
 	{																									\
-		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
-		{																								\
-			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
-													(METHOT_NAME), 										\
-													(FORMAT),											\
-													(ARG1),												\
-													(ARG2),												\
-													(ARG3),												\
-													(ARG4)												\
-														);												\
-			if(pyResult != NULL)																		\
-				Py_DECREF(pyResult);																	\
-			else																						\
-				PyErr_PrintEx(0);																		\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2),													\
+												(ARG3),													\
+												(ARG4)													\
+													);													\
+																										\
+		if(pyResult != NULL) {																			\
+			Py_DECREF(pyResult);																		\
 		}																								\
-	}																									\
+		else																							\
+		{																								\
+			if (GETERROR)																				\
+				PyErr_PrintEx(0);																		\
+			else																						\
+				PyErr_Clear();																			\
+		}																								\
 }																										\
 
 
-#define SCRIPT_OBJECT_CALL_ARGS5(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4, ARG5)				\
+#define SCRIPT_OBJECT_CALL_ARGS5(OBJ, METHOT_NAME, FORMAT, ARG1, ARG2, ARG3, ARG4, ARG5, GETERROR)		\
 {																										\
 	if(static_cast<PyObject*>(OBJ) == NULL)																\
 	{																									\
@@ -803,21 +821,25 @@ namespace KBEngine{ namespace script{
 	}																									\
 	else																								\
 	{																									\
-		if(PyObject_HasAttrString(OBJ, METHOT_NAME))													\
+		PyObject* pyResult = PyObject_CallMethod((OBJ), 												\
+												(METHOT_NAME), 											\
+												(FORMAT),												\
+												(ARG1),													\
+												(ARG2),													\
+												(ARG3),													\
+												(ARG4),													\
+												(ARG5)													\
+													);													\
+																										\
+		if(pyResult != NULL) {																			\
+			Py_DECREF(pyResult);																		\
+		}																								\
+		else																							\
 		{																								\
-			PyObject* pyResult = PyObject_CallMethod((OBJ), 											\
-													(METHOT_NAME), 										\
-													(FORMAT),											\
-													(ARG1),												\
-													(ARG2),												\
-													(ARG3),												\
-													(ARG4),												\
-													(ARG5)												\
-														);												\
-			if(pyResult != NULL)																		\
-				Py_DECREF(pyResult);																	\
-			else																						\
+			if (GETERROR)																				\
 				PyErr_PrintEx(0);																		\
+			else																						\
+				PyErr_Clear();																			\
 		}																								\
 	}																									\
 }																										\

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -22,61 +22,61 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Base::cellMailbox(void) const
+INLINE EntityCall* Entity::cellEntityCall(void) const
 {
-	return cellMailbox_;
+	return cellEntityCall_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::cellMailbox(EntityMailbox* mailbox)
+INLINE void Entity::cellEntityCall(EntityCall* entityCall)
 {
-	cellMailbox_ = mailbox;
+	cellEntityCall_ = entityCall;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Base::clientMailbox() const
+INLINE EntityCall* Entity::clientEntityCall() const
 { 
-	return clientMailbox_; 
+	return clientEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::clientMailbox(EntityMailbox* mailbox)
+INLINE void Entity::clientEntityCall(EntityCall* entityCall)
 { 
-	clientMailbox_ = mailbox; 
+	clientEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE PyObject* Base::getCellData(void) const
+INLINE PyObject* Entity::getCellData(void) const
 { 
 	return cellDataDict_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::creatingCell(void) const
+INLINE bool Entity::creatingCell(void) const
 { 
 	return creatingCell_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::hasDB() const 
+INLINE bool Entity::hasDB() const 
 {
 	return hasDB_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::hasDB(bool has) 
+INLINE void Entity::hasDB(bool has) 
 {
 	hasDB_ = has; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE DBID Base::dbid() const
+INLINE DBID Entity::dbid() const
 {
 	return DBID_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::dbid(uint16 dbInterfaceIndex, DBID id)
+INLINE void Entity::dbid(uint16 dbInterfaceIndex, DBID id)
 {
 	DBID_ = id;
 	dbInterfaceIndex_ = dbInterfaceIndex;
@@ -86,62 +86,62 @@ INLINE void Base::dbid(uint16 dbInterfaceIndex, DBID id)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::isCreatedSpace()
+INLINE bool Entity::isCreatedSpace()
 {
 	return createdSpace_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::inRestore()
+INLINE bool Entity::inRestore()
 {
 	return inRestore_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE int8 Base::shouldAutoArchive() const
+INLINE int8 Entity::shouldAutoArchive() const
 {
 	return shouldAutoArchive_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::shouldAutoArchive(int8 v)
+INLINE void Entity::shouldAutoArchive(int8 v)
 {
 	shouldAutoArchive_ = v;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE int8 Base::shouldAutoBackup() const
+INLINE int8 Entity::shouldAutoBackup() const
 {
 	return shouldAutoBackup_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::shouldAutoBackup(int8 v)
+INLINE void Entity::shouldAutoBackup(int8 v)
 {
 	shouldAutoBackup_ = v;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Base::setDirty(bool dirty)
+INLINE void Entity::setDirty(bool dirty)
 {
 	isDirty_ = dirty;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Base::isDirty() const
+INLINE bool Entity::isDirty() const
 {
 	return isDirty_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE uint16 Base::dbInterfaceIndex() const
+INLINE uint16 Entity::dbInterfaceIndex() const
 {
 	
 	return dbInterfaceIndex_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE BaseMessagesForwardClientHandler* Base::pBufferedSendToClientMessages()
+INLINE BaseMessagesForwardClientHandler* Entity::pBufferedSendToClientMessages()
 {
 	return pBufferedSendToClientMessages_;
 }

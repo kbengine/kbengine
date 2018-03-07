@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@ namespace Network
 
 class Entity;
 class MemoryStream;
-class AOITrigger;
+class ViewTrigger;
 class Space;
 
 /** 观察者信息结构 */
@@ -73,14 +73,14 @@ struct WitnessInfo
 };
 
 /**
-	这个模块用来监视我们感兴趣的entity数据， 如：aoi， 属性更新， 调用entity的方法
+	这个模块用来监视我们感兴趣的entity数据， 如：view， 属性更新， 调用entity的方法
 	并将其传输给监视者。
 */
 class Witness : public PoolObject, public Updatable
 {
 public:
-	typedef std::list<EntityRef*> AOI_ENTITIES;
-	typedef std::map<ENTITY_ID, EntityRef*> AOI_ENTITIES_MAP;
+	typedef std::list<EntityRef*> VIEW_ENTITIES;
+	typedef std::map<ENTITY_ID, EntityRef*> VIEW_ENTITIES_MAP;
 
 	Witness();
 	~Witness();
@@ -104,9 +104,9 @@ public:
 	virtual size_t getPoolObjectBytes()
 	{
 		size_t bytes = sizeof(pEntity_)
-		 + sizeof(aoiRadius_) + sizeof(aoiHysteresisArea_)
-		 + sizeof(pAOITrigger_) + sizeof(pAOIHysteresisAreaTrigger_) + sizeof(clientAOISize_)
-		 + sizeof(lastBasePos_) + (sizeof(EntityRef*) * aoiEntities_map_.size());
+		 + sizeof(viewRadius_) + sizeof(viewHysteresisArea_)
+		 + sizeof(pViewTrigger_) + sizeof(pViewHysteresisAreaTrigger_) + sizeof(clientViewSize_)
+		 + sizeof(lastBasePos_) + (sizeof(EntityRef*) * viewEntities_map_.size());
 
 		return bytes;
 	}
@@ -119,10 +119,10 @@ public:
 	void clear(Entity* pEntity);
 	void onAttach(Entity* pEntity);
 
-	void setAoiRadius(float radius, float hyst = 5.0f);
+	void setViewRadius(float radius, float hyst = 5.0f);
 	
-	INLINE float aoiRadius() const;
-	INLINE float aoiHysteresisArea() const;
+	INLINE float viewRadius() const;
+	INLINE float viewHysteresisArea() const;
 
 	typedef std::vector<Network::Bundle*> Bundles;
 	bool pushBundle(Network::Bundle* pBundle);
@@ -142,9 +142,9 @@ public:
 	void onEnterSpace(Space* pSpace);
 	void onLeaveSpace(Space* pSpace);
 
-	void onEnterAOI(AOITrigger* pAOITrigger, Entity* pEntity);
-	void onLeaveAOI(AOITrigger* pAOITrigger, Entity* pEntity);
-	void _onLeaveAOI(EntityRef* pEntityRef);
+	void onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity);
+	void onLeaveView(ViewTrigger* pViewTrigger, Entity* pEntity);
+	void _onLeaveView(EntityRef* pEntityRef);
 
 	/**
 		获得实体本次同步Volatile数据的标记
@@ -152,7 +152,7 @@ public:
 	uint32 getEntityVolatileDataUpdateFlags(Entity* otherEntity);
 	
 
-	const Network::MessageHandler& getAOIEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
+	const Network::MessageHandler& getViewEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
 											   const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID, int& ialiasID);
 
 	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID);
@@ -173,55 +173,55 @@ public:
 	bool sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
 	Network::Channel* pChannel();
 		
-	INLINE AOI_ENTITIES_MAP& aoiEntitiesMap();
-	INLINE AOI_ENTITIES& aoiEntities();
+	INLINE VIEW_ENTITIES_MAP& viewEntitiesMap();
+	INLINE VIEW_ENTITIES& viewEntities();
 
-	/** 获得aoientity的引用 */
-	INLINE EntityRef* getAOIEntityRef(ENTITY_ID entityID);
+	/** 获得viewentity的引用 */
+	INLINE EntityRef* getViewEntityRef(ENTITY_ID entityID);
 
-	/** entityID是否在aoi内 */
-	INLINE bool entityInAOI(ENTITY_ID entityID);
+	/** entityID是否在view内 */
+	INLINE bool entityInView(ENTITY_ID entityID);
 
-	INLINE AOITrigger* pAOITrigger();
-	INLINE AOITrigger* pAOIHysteresisAreaTrigger();
+	INLINE ViewTrigger* pViewTrigger();
+	INLINE ViewTrigger* pViewHysteresisAreaTrigger();
 	
-	void installAOITrigger();
-	void uninstallAOITrigger();
+	void installViewTrigger();
+	void uninstallViewTrigger();
 
 	/**
-		重置AOI范围内的entities， 使其同步状态恢复到最初未同步的状态
+		重置View范围内的entities， 使其同步状态恢复到最初未同步的状态
 	*/
-	void resetAOIEntities();
+	void resetViewEntities();
 
 private:
 	/**
-		如果aoi中entity数量小于256则只发送索引位置
+		如果view中entity数量小于256则只发送索引位置
 	*/
-	INLINE void _addAOIEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEntityRef);
+	INLINE void _addViewEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEntityRef);
 	
 	/**
-		当update执行时aoi列表有改变的时候需要更新entityRef的aliasID
+		当update执行时view列表有改变的时候需要更新entityRef的aliasID
 	*/
 	void updateEntitiesAliasID();
 		
 private:
 	Entity*									pEntity_;
 
-	// 当前entity的aoi半径
-	float									aoiRadius_;
-	// 当前entityAoi的一个滞后范围
-	float									aoiHysteresisArea_;
+	// 当前entity的view半径
+	float									viewRadius_;
+	// 当前entityView的一个滞后范围
+	float									viewHysteresisArea_;
 
-	AOITrigger*								pAOITrigger_;
-	AOITrigger*								pAOIHysteresisAreaTrigger_;
+	ViewTrigger*							pViewTrigger_;
+	ViewTrigger*							pViewHysteresisAreaTrigger_;
 
-	AOI_ENTITIES							aoiEntities_;
-	AOI_ENTITIES_MAP						aoiEntities_map_;
+	VIEW_ENTITIES							viewEntities_;
+	VIEW_ENTITIES_MAP						viewEntities_map_;
 
 	Position3D								lastBasePos_;
 	Direction3D								lastBaseDir_;
 
-	uint16									clientAOISize_;
+	uint16									clientViewSize_;
 };
 
 }

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -169,7 +169,13 @@ INLINE const char* ScriptDefModule::getName()
 //-------------------------------------------------------------------------------------
 INLINE bool ScriptDefModule::isPersistent() const
 {
-	return persistentPropertyDescr_uidmap_.size() > 0;
+	return persistent_ && persistentPropertyDescr_uidmap_.size() > 0;
+}
+
+//-------------------------------------------------------------------------------------
+INLINE void ScriptDefModule::isPersistent(bool v)
+{
+	persistent_ = v;
 }
 
 //-------------------------------------------------------------------------------------

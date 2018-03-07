@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -366,18 +366,18 @@ protected:
 	char db_item_names_[4][MAX_BUF];
 };
 
-class EntityTableItemRedis_MAILBOX : public EntityTableItemRedisBase
+class EntityTableItemRedis_ENTITYCALL : public EntityTableItemRedisBase
 {
 public:
-	EntityTableItemRedis_MAILBOX(std::string itemDBType, 
+	EntityTableItemRedis_ENTITYCALL(std::string itemDBType, 
 		uint32 datalength, uint32 flags):
 	  EntityTableItemRedisBase(itemDBType, datalength, flags)
 	  {
 	  }
 
-	virtual ~EntityTableItemRedis_MAILBOX(){};
+	virtual ~EntityTableItemRedis_ENTITYCALL(){};
 
-	uint8 type() const{ return TABLE_ITEM_TYPE_MAILBOX; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_ENTITYCALL; }
 
 	/**
 		同步entity表到数据库中

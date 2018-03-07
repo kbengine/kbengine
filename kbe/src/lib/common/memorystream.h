@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -223,7 +223,7 @@ public:
         return *this;
     }
 
-    MemoryStream &operator<<(ENTITY_MAILBOX_TYPE value)
+    MemoryStream &operator<<(ENTITYCALL_TYPE value)
     {
         append<int32>(value);
         return *this;
@@ -337,9 +337,9 @@ public:
         return *this;
     }
 
-    MemoryStream &operator>>(ENTITY_MAILBOX_TYPE &value)
+    MemoryStream &operator>>(ENTITYCALL_TYPE &value)
     {
-        value = static_cast<ENTITY_MAILBOX_TYPE>(read<int32>());
+        value = static_cast<ENTITYCALL_TYPE>(read<int32>());
         return *this;
     }
 

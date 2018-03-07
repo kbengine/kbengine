@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -20,22 +20,22 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "proxy.h"
 #include "baseapp.h"
-#include "base_messages_forward_handler.h"
+#include "entity_messages_forward_handler.h"
 #include "network/bundle.h"
 #include "network/channel.h"
 
 namespace KBEngine{	
 
 //-------------------------------------------------------------------------------------
-BaseMessagesForwardCellappHandler::BaseMessagesForwardCellappHandler(Base* pBase):
+EntityMessagesForwardCellappHandler::EntityMessagesForwardCellappHandler(Entity* pEntity):
 Task(),
-pBase_(pBase),
+pEntity_(pEntity),
 completed_(false),
 startForward_(false),
 createTime_(0)
 {
-	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::BaseMessagesForwardCellappHandler() : entityID({})!\n", 
-		(pBase_ ? pBase_->id() : 0)));
+	DEBUG_MSG(fmt::format("EntityMessagesForwardCellappHandler::EntityMessagesForwardCellappHandler() : entityID({})!\n", 
+		(pEntity_ ? pEntity_->id() : 0)));
 	
 	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
 
@@ -43,10 +43,10 @@ createTime_(0)
 }
 
 //-------------------------------------------------------------------------------------
-BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler()
+EntityMessagesForwardCellappHandler::~EntityMessagesForwardCellappHandler()
 {
-	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler(): size({}), entityID({})!\n", 
-		bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+	DEBUG_MSG(fmt::format("EntityMessagesForwardCellappHandler::~EntityMessagesForwardCellappHandler(): size({}), entityID({})!\n", 
+		bufferedSendToCellappMessages_.size(), (pEntity_ ? pEntity_->id() : 0)));
 
 	if(!completed_)
 		Baseapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
@@ -61,7 +61,7 @@ BaseMessagesForwardCellappHandler::~BaseMessagesForwardCellappHandler()
 }
 
 //-------------------------------------------------------------------------------------
-void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
+void EntityMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 {
 	bufferedSendToCellappMessages_.push_back(pBundle);
 	
@@ -69,36 +69,36 @@ void BaseMessagesForwardCellappHandler::pushMessages(Network::Bundle* pBundle)
 
 	if(msgsize > 4096 && msgsize <= 8192)
 	{
-		WARNING_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 4096! entityID={}\n", 
-			msgsize, (pBase_ ? pBase_->id() : 0)));
+		WARNING_MSG(fmt::format("EntityMessagesForwardCellappHandler::pushMessages(): size({}) > 4096! entityID={}\n", 
+			msgsize, (pEntity_ ? pEntity_->id() : 0)));
 	}
 	else if(msgsize > 8192)
 	{
-		ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::pushMessages(): size({}) > 8192! entityID={}\n", 
-			msgsize, (pBase_ ? pBase_->id() : 0)));
+		ERROR_MSG(fmt::format("EntityMessagesForwardCellappHandler::pushMessages(): size({}) > 8192! entityID={}\n", 
+			msgsize, (pEntity_ ? pEntity_->id() : 0)));
 		
 		startForward();
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void BaseMessagesForwardCellappHandler::startForward()
+void EntityMessagesForwardCellappHandler::startForward()
 {
 	startForward_ = true;
 
-	DEBUG_MSG(fmt::format("BaseMessagesForwardCellappHandler::startForward(): size({}), entityID({})!\n", 
-		bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+	DEBUG_MSG(fmt::format("EntityMessagesForwardCellappHandler::startForward(): size({}), entityID({})!\n", 
+		bufferedSendToCellappMessages_.size(), (pEntity_ ? pEntity_->id() : 0)));
 }
 
 //-------------------------------------------------------------------------------------
-bool BaseMessagesForwardCellappHandler::process()
+bool EntityMessagesForwardCellappHandler::process()
 {
 	if (!startForward_)
 	{
 		if (timestamp() - createTime_ >= uint64(5 * stampsPerSecond()))
 		{
-			ERROR_MSG(fmt::format("BaseMessagesForwardCellappHandler::process(): Wait for a timeout({}s)! size={}, entityID={}\n",
-				((timestamp() - createTime_) / stampsPerSecond()), bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+			ERROR_MSG(fmt::format("EntityMessagesForwardCellappHandler::process(): Wait for a timeout({}s)! size={}, entityID={}\n",
+				((timestamp() - createTime_) / stampsPerSecond()), bufferedSendToCellappMessages_.size(), (pEntity_ ? pEntity_->id() : 0)));
 
 			startForward_ = true;
 		}
@@ -109,17 +109,17 @@ bool BaseMessagesForwardCellappHandler::process()
 	if(bufferedSendToCellappMessages_.size() == 0)
 	{
 		completed_ = true;
-		pBase_->onBufferedForwardToCellappMessagesOver();
+		pEntity_->onBufferedForwardToCellappMessagesOver();
 		return false;
 	}
 
-	if(pBase_->cellMailbox() == NULL || pBase_->cellMailbox()->getChannel() == NULL)
+	if(pEntity_->cellEntityCall() == NULL || pEntity_->cellEntityCall()->getChannel() == NULL)
 	{
-		WARNING_MSG(fmt::format("BaseMessagesForwardCellappHandler::process(): no cell! size={}, entityID={}\n", 
-			bufferedSendToCellappMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+		WARNING_MSG(fmt::format("EntityMessagesForwardCellappHandler::process(): no cell! size={}, entityID={}\n", 
+			bufferedSendToCellappMessages_.size(), (pEntity_ ? pEntity_->id() : 0)));
 		
 		completed_ = true;
-		pBase_->onBufferedForwardToCellappMessagesOver();
+		pEntity_->onBufferedForwardToCellappMessagesOver();
 		return false;
 	}
 
@@ -131,7 +131,7 @@ bool BaseMessagesForwardCellappHandler::process()
 		Network::Bundle* pBundle = (*iter); 
 		remainPacketSize -= pBundle->packetsLength();
 		iter = bufferedSendToCellappMessages_.erase(iter);
-		pBase_->sendToCellapp(pBundle);
+		pEntity_->sendToCellapp(pBundle);
 
 		if(remainPacketSize <= 0)
 			return true;
@@ -141,16 +141,16 @@ bool BaseMessagesForwardCellappHandler::process()
 }
 
 //-------------------------------------------------------------------------------------
-BaseMessagesForwardClientHandler::BaseMessagesForwardClientHandler(Base* pBase, COMPONENT_ID cellappID):
+BaseMessagesForwardClientHandler::BaseMessagesForwardClientHandler(Entity* pEntity, COMPONENT_ID cellappID):
 Task(),
-pBase_(pBase),
+pEntity_(pEntity),
 completed_(false),
 startForward_(false),
 cellappID_(cellappID),
 createTime_(0)
 {
 	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::BaseMessagesForwardClientHandler() : cellappID({}), entityID({})!\n", 
-		cellappID_, (pBase_ ? pBase_->id() : 0)));
+		cellappID_, (pEntity_ ? pEntity_->id() : 0)));
 	
 	Baseapp::getSingleton().networkInterface().dispatcher().addTask(this);
 
@@ -161,7 +161,7 @@ createTime_(0)
 BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler()
 {
 	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::~BaseMessagesForwardClientHandler(): size({}), cellappID({}), entityID({})!\n", 
-		bufferedSendToClientMessages_.size(), cellappID_, (pBase_ ? pBase_->id() : 0)));
+		bufferedSendToClientMessages_.size(), cellappID_, (pEntity_ ? pEntity_->id() : 0)));
 
 	if(!completed_)
 		Baseapp::getSingleton().networkInterface().dispatcher().cancelTask(this);
@@ -185,12 +185,12 @@ void BaseMessagesForwardClientHandler::pushMessages(Network::Bundle* pBundle)
 	if(msgsize > 4096 && msgsize <= 10240)
 	{
 		WARNING_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 4096! cellappID={}, entityID={}\n", 
-			msgsize, cellappID_, (pBase_ ? pBase_->id() : 0)));
+			msgsize, cellappID_, (pEntity_ ? pEntity_->id() : 0)));
 	}
 	else if(msgsize > 10240)
 	{
 		ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::pushMessages(): size({}) > 10240! cellappID={}, entityID={}\n", 
-			msgsize, cellappID_, (pBase_ ? pBase_->id() : 0)));
+			msgsize, cellappID_, (pEntity_ ? pEntity_->id() : 0)));
 	}
 }
 
@@ -200,7 +200,7 @@ void BaseMessagesForwardClientHandler::startForward()
 	startForward_ = true;
 
 	DEBUG_MSG(fmt::format("BaseMessagesForwardClientHandler::startForward(): size({}), cellappID({}), entityID({})!\n", 
-		bufferedSendToClientMessages_.size(), cellappID_, (pBase_ ? pBase_->id() : 0)));
+		bufferedSendToClientMessages_.size(), cellappID_, (pEntity_ ? pEntity_->id() : 0)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ bool BaseMessagesForwardClientHandler::process()
 		if (timestamp() - createTime_ >= uint64(300 * stampsPerSecond()))
 		{
 			ERROR_MSG(fmt::format("BaseMessagesForwardClientHandler::process(): Wait for a timeout({}s)! size={}, entityID={}\n",
-				((timestamp() - createTime_) / stampsPerSecond()), bufferedSendToClientMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+				((timestamp() - createTime_) / stampsPerSecond()), bufferedSendToClientMessages_.size(), (pEntity_ ? pEntity_->id() : 0)));
 
 			startForward_ = true;
 		}
@@ -222,17 +222,17 @@ bool BaseMessagesForwardClientHandler::process()
 	if(bufferedSendToClientMessages_.size() == 0)
 	{
 		completed_ = true;
-		pBase_->onBufferedForwardToClientMessagesOver();
+		pEntity_->onBufferedForwardToClientMessagesOver();
 		return false;
 	}
 
-	if(pBase_->clientMailbox() == NULL || pBase_->clientMailbox()->getChannel() == NULL)
+	if(pEntity_->clientEntityCall() == NULL || pEntity_->clientEntityCall()->getChannel() == NULL)
 	{
 		WARNING_MSG(fmt::format("BaseMessagesForwardClientHandler::process(): no client! size={}, entityID={}\n", 
-			bufferedSendToClientMessages_.size(), (pBase_ ? pBase_->id() : 0)));
+			bufferedSendToClientMessages_.size(), (pEntity_ ? pEntity_->id() : 0)));
 		
 		completed_ = true;
-		pBase_->onBufferedForwardToClientMessagesOver();
+		pEntity_->onBufferedForwardToClientMessagesOver();
 		return false;
 	}
 
@@ -244,7 +244,7 @@ bool BaseMessagesForwardClientHandler::process()
 		Network::Bundle* pBundle = (*iter); 
 		remainPacketSize -= pBundle->packetsLength();
 		iter = bufferedSendToClientMessages_.erase(iter);
-		static_cast<Proxy*>(pBase_)->sendToClient(pBundle);
+		static_cast<Proxy*>(pEntity_)->sendToClient(pBundle);
 
 		if(remainPacketSize <= 0)
 			return true;

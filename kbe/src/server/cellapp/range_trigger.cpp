@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -74,12 +74,12 @@ bool RangeTrigger::install()
 	origin_->pCoordinateSystem()->insert(negativeBoundary_);
 	
 	/*
-	注意：此处必须是先安装negativeBoundary_再安装positiveBoundary_，如果调换顺序则会导致AOI的BUG，例如：在一个实体enterAoi触发时销毁了进入AOI的实体
-	此时实体销毁时并未触发离开AOI事件，而未触发AOI事件导致其他实体的AOI列表中引用的该销毁的实体是一个无效指针。
+	注意：此处必须是先安装negativeBoundary_再安装positiveBoundary_，如果调换顺序则会导致View的BUG，例如：在一个实体enterView触发时销毁了进入View的实体
+	此时实体销毁时并未触发离开View事件，而未触发View事件导致其他实体的View列表中引用的该销毁的实体是一个无效指针。
 
 	原因如下：
-	由于总是优先安装在positiveBoundary_，而边界在安装过程中导致另一个实体进入AOI了， 然后他在这个过程中可能销毁了， 而另一个边界negativeBoundary_还没有安装， 
-	而节点删除时会设置节点的xx为-FLT_MAX，让其向negativeBoundary_方向离开，所以positiveBoundary_不能检查到这个边界也就不会触发AOI离开事件。
+	由于总是优先安装在positiveBoundary_，而边界在安装过程中导致另一个实体进入View了， 然后他在这个过程中可能销毁了， 而另一个边界negativeBoundary_还没有安装， 
+	而节点删除时会设置节点的xx为-FLT_MAX，让其向negativeBoundary_方向离开，所以positiveBoundary_不能检查到这个边界也就不会触发View离开事件。
 	*/
 	negativeBoundary_->old_xx(-FLT_MAX);
 	negativeBoundary_->old_yy(-FLT_MAX);

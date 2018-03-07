@@ -371,7 +371,9 @@ public:
 	{
 		check(sizeof(T) <= length());
 
-		T val = *((T *)(data() + pos));
+		T val;
+		memcpy((void*)&val, (data() + pos), sizeof(T));
+
 		EndianConvert(val);
 		return val;
 	}

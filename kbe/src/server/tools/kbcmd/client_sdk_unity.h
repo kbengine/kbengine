@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,8 @@ public:
 	virtual void onCreateServerErrorDescrsModuleFileName();
 	virtual void onCreateEngineMessagesModuleFileName();
 	virtual void onCreateEntityDefsModuleFileName();
+	virtual void onCreateDefsCustomTypesModuleFileName();
+	virtual void onEntityCallModuleFileName(const std::string& moduleName);
 
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
@@ -51,14 +53,32 @@ public:
 	virtual bool writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType);
 	virtual bool writeEngineMessagesModuleEnd();
 
-	virtual bool writeEntityDefModuleType(const DataType* pDataType);
 	virtual bool writeEntityDefsModuleBegin();
 	virtual bool writeEntityDefsModuleEnd();
-	virtual bool writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType);
-	virtual bool writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
+
+	virtual bool writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType);
+	virtual bool writeEntityDefsModuleInitScript_PropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
+
+	virtual bool writeEntityDefsModuleInitDefType(const DataType* pDataType);
+	virtual bool writeEntityDefsModuleInitDefTypesBegin();
+	virtual bool writeEntityDefsModuleInitDefTypesEnd();
+
+	virtual bool writeCustomDataTypesBegin();
+	virtual bool writeCustomDataTypesEnd();
+	virtual bool writeCustomDataType(const DataType* pDataType);
+
+	virtual bool writeEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
 
 	virtual std::string typeToType(const std::string& type);
+	virtual bool getArrayType(DataType* pDataType, std::string& outstr);
+	virtual bool createArrayChildClass(DataType* pRootDataType, DataType* pDataType, const std::string& className, const std::string& tabs, int numLayer = 1);
 
 	virtual bool writeTypesBegin();
 	virtual bool writeTypesEnd();
@@ -66,9 +86,13 @@ public:
 	virtual bool writeTypeBegin(std::string typeName, FixedDictType* pDataType);
 	virtual bool writeTypeEnd(std::string typeName, FixedDictType* pDataType);
 
+	virtual bool writeTypeBegin(std::string typeName, DataType* pDataType);
+	virtual bool writeTypeEnd(std::string typeName, DataType* pDataType);
+
 	virtual bool writeTypeBegin(std::string typeName, FixedArrayType* pDataType, const std::string& parentClass);
 	virtual bool writeTypeEnd(std::string typeName, FixedArrayType* pDataType);
 
+	virtual bool writeTypeItemType_AliasName(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_INT8(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_INT16(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_INT32(const std::string& itemName, const std::string& childItemName);
@@ -91,11 +115,18 @@ public:
 	virtual bool writeTypeItemType_VECTOR2(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_VECTOR3(const std::string& itemName, const std::string& childItemName);
 	virtual bool writeTypeItemType_VECTOR4(const std::string& itemName, const std::string& childItemName);
-	virtual bool writeTypeItemType_MAILBOX(const std::string& itemName, const std::string& childItemName);
+	virtual bool writeTypeItemType_ENTITYCALL(const std::string& itemName, const std::string& childItemName);
 
 	virtual bool writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule);
 	virtual bool writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule);
+
+	virtual bool writeEntityDefsModuleInitScriptBegin();
+	virtual bool writeEntityDefsModuleInitScriptEnd();
+
 	virtual bool writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule);
+
+	virtual bool writeEntityPropertyComponent(ScriptDefModule* pEntityScriptDefModule,
+		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 
 	virtual bool writeEntityProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
@@ -163,7 +194,7 @@ public:
 	virtual bool writeEntityProperty_VECTOR4(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 
-	virtual bool writeEntityProperty_MAILBOX(ScriptDefModule* pEntityScriptDefModule,
+	virtual bool writeEntityProperty_ENTITYCALL(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 
 	virtual bool writeEntityMethod(ScriptDefModule* pEntityScriptDefModule,

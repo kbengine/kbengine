@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -141,7 +141,7 @@ bool EntityTables::load(DBInterface* pdbi)
 		ScriptDefModule* pSM = (*iter).get();
 		EntityTable* pEtable = pdbi->createEntityTable(this);
 
-		if(!pEtable)
+		if(!pEtable || !pSM->isPersistent())
 			continue;
 
 		if (!pEtable->initialize(pSM, pSM->getName()))

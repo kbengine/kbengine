@@ -73,7 +73,7 @@
 
 namespace KBEngine{
 namespace ConsoleInterface{
-	Network::MessageHandlers messageHandlers;
+	Network::MessageHandlers messageHandlers("ConsoleInterface");
 }
 }
 

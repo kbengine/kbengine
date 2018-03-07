@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -48,8 +48,9 @@ class MemoryStream;
 #define TABLE_ITEM_TYPE_VECTOR3		7
 #define TABLE_ITEM_TYPE_VECTOR4		8
 #define TABLE_ITEM_TYPE_UNICODE		9
-#define TABLE_ITEM_TYPE_MAILBOX		10
+#define TABLE_ITEM_TYPE_ENTITYCALL	10
 #define TABLE_ITEM_TYPE_PYTHON		11
+#define TABLE_ITEM_TYPE_COMPONENT	12
 
 #define KBE_TABLE_PERFIX						"kbe"
 #define ENTITY_TABLE_PERFIX						"tbl"

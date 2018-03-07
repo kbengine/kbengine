@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatypes.h"
 #include "entitydef.h"
 #include "property.h"
+#include "entity_component.h"
 #include "pyscript/vector2.h"
 #include "pyscript/vector3.h"
 #include "pyscript/vector4.h"
@@ -61,8 +62,8 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 {
 	dataType_->incRef();
 
-	// mailbox 无法保存
-	if(isPersistent && strcmp(dataType_->getName(), "MAILBOX") == 0)
+	// entityCall 无法保存
+	if(isPersistent && strcmp(dataType_->getName(), "ENTITYCALL") == 0)
 	{
 		isPersistent_ = false;
 	}
@@ -93,6 +94,18 @@ PropertyDescription::PropertyDescription(ENTITY_PROPERTY_UID utype,
 PropertyDescription::~PropertyDescription()
 {
 	dataType_->decRef();
+}
+
+//-------------------------------------------------------------------------------------
+bool PropertyDescription::isSameType(PyObject* pyValue)
+{
+	return dataType_->isSameType(pyValue);
+}
+
+//-------------------------------------------------------------------------------------
+bool PropertyDescription::isSamePersistentType(PyObject* pyValue)
+{
+	return dataType_->isSameType(pyValue);
 }
 
 //-------------------------------------------------------------------------------------
@@ -136,15 +149,15 @@ PyObject* PropertyDescription::createFromPersistentStream(MemoryStream* mstream)
 
 //-------------------------------------------------------------------------------------
 PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID utype, 
-															std::string& dataTypeName, 
-															std::string& name, 
+															const std::string& dataTypeName, 
+															const std::string& name, 
 															uint32 flags, 
 															bool isPersistent, 
 															DataType* dataType, 
 															bool isIdentifier, 
 															std::string indexType,
 															uint32 databaseLength, 
-															std::string& defaultStr, 
+															const std::string& defaultStr,
 															DETAIL_TYPE detailLevel)
 {
 	PropertyDescription* propertyDescription = NULL;
@@ -184,6 +197,13 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 														dataType, isIdentifier, indexType, databaseLength, 
 														defaultStr, detailLevel, 4);
 	}
+	else if (dataTypeName == "EntityComponent" ||
+		strcmp(dataType->getName(), "EntityComponent") == 0)
+	{
+		propertyDescription = new EntityComponentDescription(utype, dataTypeName, name, flags, isPersistent,
+			dataType, isIdentifier, indexType, databaseLength,
+			defaultStr, detailLevel);
+	}
 	else
 	{
 		propertyDescription = new PropertyDescription(utype, dataTypeName, name, flags, isPersistent, 
@@ -195,7 +215,7 @@ PropertyDescription* PropertyDescription::createDescription(ENTITY_PROPERTY_UID 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* PropertyDescription::newDefaultVal(void)
+PyObject* PropertyDescription::newDefaultVal()
 {
 	return dataType_->parseDefaultStr(defaultValStr_);
 }
@@ -436,5 +456,78 @@ PyObject* VectorDescription::onSetValue(PyObject* parentObj, PyObject* value)
 	return NULL;	
 }
 
+//-------------------------------------------------------------------------------------
+EntityComponentDescription::EntityComponentDescription(ENTITY_PROPERTY_UID utype,
+	std::string dataTypeName,
+	std::string name,
+	uint32 flags,
+	bool isPersistent,
+	DataType* dataType,
+	bool isIdentifier,
+	std::string indexType,
+	uint32 databaseLength,
+	std::string defaultStr,
+	DETAIL_TYPE detailLevel) :
+	PropertyDescription(utype, dataTypeName, name, flags, isPersistent,
+		dataType, isIdentifier, indexType, databaseLength, defaultStr, detailLevel)
+{
+}
 
+//-------------------------------------------------------------------------------------
+EntityComponentDescription::~EntityComponentDescription()
+{
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponentDescription::newDefaultVal()
+{
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PropertyDescription::newDefaultVal());
+	pEntityComponent->pPropertyDescription(this);
+	return pEntityComponent;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponentDescription::onSetValue(PyObject* parentObj, PyObject* value)
+{
+	return PropertyDescription::onSetValue(parentObj, value);
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityComponentDescription::isSamePersistentType(PyObject* pyValue)
+{
+	return ((EntityComponentType*)dataType_)->isSamePersistentType(pyValue);
+}
+
+//-------------------------------------------------------------------------------------
+void EntityComponentDescription::addPersistentToStream(MemoryStream* mstream, PyObject* pyValue)
+{
+	// 允许使用默认值来创建一个流
+	if (pyValue == NULL)
+	{
+		pyValue = newDefaultVal();
+		((EntityComponentType*)dataType_)->addPersistentToStream(mstream, pyValue);
+		Py_DECREF(pyValue);
+		return;
+	}
+
+	((EntityComponentType*)dataType_)->addPersistentToStream(mstream, pyValue);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponentDescription::createFromPersistentStream(MemoryStream* mstream)
+{
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(static_cast<EntityComponentType*>(dataType_)->createFromPersistentStream(mstream));
+	pEntityComponent->pPropertyDescription(this);
+	return pEntityComponent;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponentDescription::createFromStream(MemoryStream* mstream)
+{
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PropertyDescription::createFromStream(mstream));
+	pEntityComponent->pPropertyDescription(this);
+	return pEntityComponent;
+}
+
+//-------------------------------------------------------------------------------------
 }

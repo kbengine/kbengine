@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -56,30 +56,30 @@ void DataTypes::finalise(void)
 bool DataTypes::initialize(std::string file)
 {
 	// 初始化一些基础类别
-	addDataType("UINT8",	new IntType<uint8>);
-	addDataType("UINT16",	new IntType<uint16>);
-	addDataType("UINT64",	new UInt64Type);
-	addDataType("UINT32",	new UInt32Type);
+	addDataType("UINT8",		new IntType<uint8>);
+	addDataType("UINT16",		new IntType<uint16>);
+	addDataType("UINT64",		new UInt64Type);
+	addDataType("UINT32",		new UInt32Type);
 
-	addDataType("INT8",		new IntType<int8>);
-	addDataType("INT16",	new IntType<int16>);
-	addDataType("INT32",	new IntType<int32>);
-	addDataType("INT64",	new Int64Type);
+	addDataType("INT8",			new IntType<int8>);
+	addDataType("INT16",		new IntType<int16>);
+	addDataType("INT32",		new IntType<int32>);
+	addDataType("INT64",		new Int64Type);
 
-	addDataType("STRING",	new StringType);
-	addDataType("UNICODE",	new UnicodeType);
-	addDataType("FLOAT",	new FloatType);
-	addDataType("DOUBLE",	new DoubleType);
-	addDataType("PYTHON",	new PythonType);
-	addDataType("PY_DICT",	new PyDictType);
-	addDataType("PY_TUPLE",	new PyTupleType);
-	addDataType("PY_LIST",	new PyListType);
-	addDataType("MAILBOX",	new MailboxType);
-	addDataType("BLOB",		new BlobType);
+	addDataType("STRING",		new StringType);
+	addDataType("UNICODE",		new UnicodeType);
+	addDataType("FLOAT",		new FloatType);
+	addDataType("DOUBLE",		new DoubleType);
+	addDataType("PYTHON",		new PythonType);
+	addDataType("PY_DICT",		new PyDictType);
+	addDataType("PY_TUPLE",		new PyTupleType);
+	addDataType("PY_LIST",		new PyListType);
+	addDataType("ENTITYCALL",	new EntityCallType);
+	addDataType("BLOB",			new BlobType);
 
-	addDataType("VECTOR2",	new Vector2Type);
-	addDataType("VECTOR3",	new Vector3Type);
-	addDataType("VECTOR4",	new Vector4Type);
+	addDataType("VECTOR2",		new Vector2Type);
+	addDataType("VECTOR3",		new Vector3Type);
+	addDataType("VECTOR4",		new Vector4Type);
 	return loadTypes(file);
 }
 
@@ -121,7 +121,7 @@ bool DataTypes::loadTypes(std::string& file)
 			{
 				FixedDictType* fixedDict = new FixedDictType;
 				
-				if(fixedDict->initialize(xml.get(), childNode))
+				if(fixedDict->initialize(xml.get(), childNode, aliasName))
 				{
 					addDataType(aliasName, fixedDict);
 				}
@@ -138,7 +138,7 @@ bool DataTypes::loadTypes(std::string& file)
 			{
 				FixedArrayType* fixedArray = new FixedArrayType;
 				
-				if(fixedArray->initialize(xml.get(), childNode))
+				if(fixedArray->initialize(xml.get(), childNode, aliasName))
 				{
 					addDataType(aliasName, fixedArray);
 				}
@@ -244,24 +244,32 @@ void DataTypes::delDataType(std::string name)
 }
 
 //-------------------------------------------------------------------------------------
-DataType* DataTypes::getDataType(std::string name)
+DataType* DataTypes::getDataType(std::string name, bool notFoundOutError)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name.c_str()));
+	if (notFoundOutError)
+	{
+		ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name.c_str()));
+	}
+
 	return NULL;
 }
 
 //-------------------------------------------------------------------------------------
-DataType* DataTypes::getDataType(const char* name)
+DataType* DataTypes::getDataType(const char* name, bool notFoundOutError)
 {
 	DATATYPE_MAP::iterator iter = dataTypes_.find(name);
 	if (iter != dataTypes_.end()) 
 		return iter->second.get();
 
-	ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name));
+	if (notFoundOutError)
+	{
+		ERROR_MSG(fmt::format("DataTypes::getDataType:not found type {}.\n", name));
+	}
+
 	return NULL;
 }
 

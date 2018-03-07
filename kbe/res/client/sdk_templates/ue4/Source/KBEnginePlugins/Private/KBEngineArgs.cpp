@@ -9,6 +9,7 @@ KBEngineArgs::KBEngineArgs():
 	syncPlayer(true),
 	useAliasEntityID(true),
 	isOnInitCallPropertysSetMethods(true),
+	serverHeartbeatTick(15),
 	SEND_BUFFER_MAX(TCP_PACKET_MAX),
 	RECV_BUFFER_MAX(TCP_PACKET_MAX)
 {

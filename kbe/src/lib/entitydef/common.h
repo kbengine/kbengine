@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -72,8 +72,8 @@ enum EntityDataFlagRelation
 	ENTITY_CELLAPP_ANDA_CLIENT_DATA_FLAGS							= ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT,
 };
 
-/** mailbox类别所对应的组件类别映射，  这个表的索引个严格匹配ENTITY_MAILBOX_TYPE的值 */
-const COMPONENT_TYPE ENTITY_MAILBOX_COMPONENT_TYPE_MAPPING[] = 
+/** entityCall类别所对应的组件类别映射，  这个表的索引个严格匹配ENTITYCALL_TYPE的值 */
+const COMPONENT_TYPE ENTITYCALL_COMPONENT_TYPE_MAPPING[] = 
 {
 	CELLAPP_TYPE,
 	BASEAPP_TYPE,
@@ -97,25 +97,28 @@ extern ENTITYFLAGMAP g_entityFlagMapping;										// entity 的flag字符串映射表
 typedef uint16 ENTITY_PROPERTY_UID;
 typedef uint16 ENTITY_METHOD_UID;
 typedef uint16 ENTITY_SCRIPT_UID;
+typedef uint16 ENTITY_COMPONENT_UID;
 typedef uint16 DATATYPE_UID;
 typedef uint8  DATATYPE;
 typedef uint8  ENTITY_DEF_ALIASID;
+typedef uint8  ENTITY_COMPONENT_ALIASID;
 
-#define DATA_TYPE_UNKONWN		0
-#define DATA_TYPE_FIXEDARRAY	1
-#define DATA_TYPE_FIXEDDICT		2
-#define DATA_TYPE_STRING		3
-#define DATA_TYPE_DIGIT			4
-#define DATA_TYPE_BLOB			5
-#define DATA_TYPE_PYTHON		6
-#define DATA_TYPE_VECTOR2		7
-#define DATA_TYPE_VECTOR3		8
-#define DATA_TYPE_VECTOR4		9
-#define DATA_TYPE_UNICODE		10
-#define DATA_TYPE_MAILBOX		11
-#define DATA_TYPE_PYDICT		12
-#define DATA_TYPE_PYTUPLE		13
-#define DATA_TYPE_PYLIST		14
+#define DATA_TYPE_UNKONWN				0
+#define DATA_TYPE_FIXEDARRAY			1
+#define DATA_TYPE_FIXEDDICT				2
+#define DATA_TYPE_STRING				3
+#define DATA_TYPE_DIGIT					4
+#define DATA_TYPE_BLOB					5
+#define DATA_TYPE_PYTHON				6
+#define DATA_TYPE_VECTOR2				7
+#define DATA_TYPE_VECTOR3				8
+#define DATA_TYPE_VECTOR4				9
+#define DATA_TYPE_UNICODE				10
+#define DATA_TYPE_ENTITYCALL			11
+#define DATA_TYPE_PYDICT				12
+#define DATA_TYPE_PYTUPLE				13
+#define DATA_TYPE_PYLIST				14
+#define DATA_TYPE_ENTITY_COMPONENT		15
 
 // 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_UTYPE
@@ -128,10 +131,11 @@ enum ENTITY_BASE_PROPERTY_UTYPE
 // 对entity的一些系统级别的可变属性进行编号以便网络传输时进行辨别
 enum ENTITY_BASE_PROPERTY_ALIASID
 {
-	ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ				= 0,
-	ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW	= 1,
-	ENTITY_BASE_PROPERTY_ALIASID_SPACEID					= 2,
-	ENTITY_BASE_PROPERTY_ALIASID_MAX						= 3,
+	ENTITY_BASE_PROPERTY_ALIASID_NULL						= 0,
+	ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ				= 1,
+	ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW	= 2,
+	ENTITY_BASE_PROPERTY_ALIASID_SPACEID					= 3,
+	ENTITY_BASE_PROPERTY_ALIASID_MAX						= 4,
 };
 
 // 被限制的系统属性，def中不允许定义
@@ -155,7 +159,7 @@ const char ENTITY_LIMITED_PROPERTYS[][34] =
 	"__ACCOUNT_NAME__",
 	"__ACCOUNT_PASSWORD__",
 	"clientAddr",
-	"entitiesEnabled",
+	"clientEnabled",
 	"hasClient",
 	"roundTripTime",
 	"timeSinceHeardFromClient",

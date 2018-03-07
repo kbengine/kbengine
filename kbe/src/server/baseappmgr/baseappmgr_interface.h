@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -73,19 +73,19 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									COMPONENT_ID,										componentID)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhere,							NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityAnywhere,							NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseRemotely,							NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityRemotely,							NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中，查询当前最好的组件ID
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhereFromDBIDQueryBestBaseappID, NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityAnywhereFromDBIDQueryBestBaseappID,NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhereFromDBID,					NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityAnywhereFromDBID,					NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseRemotelyFromDBID,					NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityRemotelyFromDBID,					NETWORK_VARIABLE_MESSAGE)
 	
 	// 消息转发， 由某个app想通过本app将消息转发给某个app。	
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,									NETWORK_VARIABLE_MESSAGE)

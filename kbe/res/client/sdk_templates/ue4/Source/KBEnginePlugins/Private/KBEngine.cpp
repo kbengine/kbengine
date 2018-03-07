@@ -10,7 +10,7 @@
 #include "ScriptModule.h"
 #include "Property.h"
 #include "Method.h"
-#include "Mailbox.h"
+#include "EntityCall.h"
 #include "Regex.h"
 #include "KBDebug.h"
 
@@ -305,7 +305,7 @@ void KBEngineApp::sendTick()
 	// 更新玩家的位置与朝向到服务端
 	updatePlayerToServer();
 
-	if (span > 15)
+	if (span > pArgs_->serverHeartbeatTick)
 	{
 		span = lastTickCBTime_ - lastTickTime_;
 
@@ -846,11 +846,11 @@ void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& en
 		pEntity->id(eid);
 		pEntity->className(entityType);
 
-		Mailbox* baseMB = new Mailbox();
+		EntityCall* baseMB = new EntityCall();
 		pEntity->base(baseMB);
 		baseMB->id = eid;
 		baseMB->className = entityType;
-		baseMB->type = Mailbox::MAILBOX_TYPE_BASE;
+		baseMB->type = EntityCall::ENTITYCALL_TYPE_BASE;
 
 		entities_.Add(eid, pEntity);
 
@@ -882,7 +882,7 @@ void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& en
 	}
 }
 
-ENTITY_ID KBEngineApp::getAoiEntityIDFromStream(MemoryStream& stream)
+ENTITY_ID KBEngineApp::getViewEntityIDFromStream(MemoryStream& stream)
 {
 	ENTITY_ID id = 0;
 
@@ -915,7 +915,7 @@ ENTITY_ID KBEngineApp::getAoiEntityIDFromStream(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdatePropertysOptimized(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 	onUpdatePropertys_(eid, stream);
 }
 
@@ -1907,7 +1907,7 @@ void KBEngineApp::Client_onReqAccountNewPasswordCB(uint16 failcode)
 
 void KBEngineApp::Client_onRemoteMethodCallOptimized(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 	onRemoteMethodCall_(eid, stream);
 }
 
@@ -2008,14 +2008,29 @@ void KBEngineApp::Client_onControlEntity(ENTITY_ID eid, int8 isControlled)
 
 void KBEngineApp::Client_onStreamDataStarted(int16 id, uint32 datasize, FString descr)
 {
+	UKBEventData_onStreamDataStarted* pEventData = NewObject<UKBEventData_onStreamDataStarted>();
+	pEventData->resID = id;
+	pEventData->dataSize = datasize;
+	pEventData->dataDescr = descr;
+	KBENGINE_EVENT_FIRE("onStreamDataStarted", pEventData);
 }
 
 void KBEngineApp::Client_onStreamDataRecv(MemoryStream& stream)
 {
+	UKBEventData_onStreamDataRecv* pEventData = NewObject<UKBEventData_onStreamDataRecv>();
+
+	uint16 id = stream.read<uint16>();
+	pEventData->resID = id;
+	stream.readBlob(pEventData->data);
+
+	KBENGINE_EVENT_FIRE("onStreamDataRecv", pEventData);
 }
 
 void KBEngineApp::Client_onStreamDataCompleted(int16 id)
 {
+	UKBEventData_onStreamDataCompleted* pEventData = NewObject<UKBEventData_onStreamDataCompleted>();
+	pEventData->resID = id;
+	KBENGINE_EVENT_FIRE("onStreamDataCompleted", pEventData);
 }
 
 void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
@@ -2077,11 +2092,11 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 		pEntity->id(eid);
 		pEntity->className(entityType);
 
-		Mailbox* cellMB = new Mailbox();
+		EntityCall* cellMB = new EntityCall();
 		pEntity->cell(cellMB);
 		cellMB->id = eid;
 		cellMB->className = entityType;
-		cellMB->type = Mailbox::MAILBOX_TYPE_CELL;
+		cellMB->type = EntityCall::ENTITYCALL_TYPE_CELL;
 
 		entities_.Add(eid, pEntity);
 
@@ -2114,11 +2129,11 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 			clearEntities(false);
 			entities_.Add(pEntity->id(), pEntity);
 
-			Mailbox* cellMB = new Mailbox();
+			EntityCall* cellMB = new EntityCall();
 			pEntity->cell(cellMB);
 			cellMB->id = eid;
 			cellMB->className = entityType;
-			cellMB->type = Mailbox::MAILBOX_TYPE_CELL;
+			cellMB->type = EntityCall::ENTITYCALL_TYPE_CELL;
 
 			pEntity->set_direction(pEntity->direction);
 			pEntity->set_position(pEntity->position);
@@ -2136,7 +2151,7 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 
 void KBEngineApp::Client_onEntityLeaveWorldOptimized(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 	Client_onEntityLeaveWorld(eid);
 }
 
@@ -2280,7 +2295,7 @@ void KBEngineApp::Client_onUpdateBaseDir(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	Entity** pEntityFind = entities_.Find(eid);
 
@@ -2326,7 +2341,7 @@ void KBEngineApp::Client_onSetEntityPosAndDir(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_ypr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	int8 y = stream.read<int8>();
 	int8 p = stream.read<int8>();
@@ -2337,7 +2352,7 @@ void KBEngineApp::Client_onUpdateData_ypr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_yp(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	int8 y = stream.read<int8>();
 	int8 p = stream.read<int8>();
@@ -2347,7 +2362,7 @@ void KBEngineApp::Client_onUpdateData_yp(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_yr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	int8 y = stream.read<int8>();
 	int8 r = stream.read<int8>();
@@ -2357,7 +2372,7 @@ void KBEngineApp::Client_onUpdateData_yr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_pr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	int8 p = stream.read<int8>();
 	int8 r = stream.read<int8>();
@@ -2367,7 +2382,7 @@ void KBEngineApp::Client_onUpdateData_pr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_y(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	int8 y = stream.read<int8>();
 
@@ -2376,7 +2391,7 @@ void KBEngineApp::Client_onUpdateData_y(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_p(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	int8 p = stream.read<int8>();
 
@@ -2385,7 +2400,7 @@ void KBEngineApp::Client_onUpdateData_p(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_r(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	int8 r = stream.read<int8>();
 
@@ -2394,7 +2409,7 @@ void KBEngineApp::Client_onUpdateData_r(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2404,7 +2419,7 @@ void KBEngineApp::Client_onUpdateData_xz(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz_ypr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2418,7 +2433,7 @@ void KBEngineApp::Client_onUpdateData_xz_ypr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz_yp(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2431,7 +2446,7 @@ void KBEngineApp::Client_onUpdateData_xz_yp(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz_yr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2444,7 +2459,7 @@ void KBEngineApp::Client_onUpdateData_xz_yr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz_pr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2457,7 +2472,7 @@ void KBEngineApp::Client_onUpdateData_xz_pr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz_y(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2469,7 +2484,7 @@ void KBEngineApp::Client_onUpdateData_xz_y(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz_p(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2481,7 +2496,7 @@ void KBEngineApp::Client_onUpdateData_xz_p(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xz_r(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2493,7 +2508,7 @@ void KBEngineApp::Client_onUpdateData_xz_r(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2504,7 +2519,7 @@ void KBEngineApp::Client_onUpdateData_xyz(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz_ypr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2519,7 +2534,7 @@ void KBEngineApp::Client_onUpdateData_xyz_ypr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz_yp(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2533,7 +2548,7 @@ void KBEngineApp::Client_onUpdateData_xyz_yp(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz_yr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2547,7 +2562,7 @@ void KBEngineApp::Client_onUpdateData_xyz_yr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz_pr(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2561,7 +2576,7 @@ void KBEngineApp::Client_onUpdateData_xyz_pr(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz_y(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2574,7 +2589,7 @@ void KBEngineApp::Client_onUpdateData_xyz_y(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz_p(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);
@@ -2587,7 +2602,7 @@ void KBEngineApp::Client_onUpdateData_xyz_p(MemoryStream& stream)
 
 void KBEngineApp::Client_onUpdateData_xyz_r(MemoryStream& stream)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(stream);
+	ENTITY_ID eid = getViewEntityIDFromStream(stream);
 
 	FVector xz;
 	stream.readPackXZ(xz.X, xz.Z);

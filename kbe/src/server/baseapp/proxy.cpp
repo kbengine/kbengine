@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -53,17 +53,17 @@ SCRIPT_GET_DECLARE("roundTripTime",						pyGetRoundTripTime,				0,						0)
 SCRIPT_GET_DECLARE("timeSinceHeardFromClient",			pyGetTimeSinceHeardFromClient,	0,						0)	
 SCRIPT_GET_DECLARE("clientAddr",						pyClientAddr,					0,						0)	
 SCRIPT_GET_DECLARE("hasClient",							pyHasClient,					0,						0)	
-SCRIPT_GET_DECLARE("entitiesEnabled",					pyGetEntitiesEnabled,			0,						0)	
+SCRIPT_GET_DECLARE("clientEnabled",						pyGetClientEnabled,				0,						0)	
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Proxy, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
 Proxy::Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule):
-Base(id, pScriptModule, getScriptType(), true),
+Entity(id, pScriptModule, getScriptType(), true),
 rndUUID_(KBEngine::genUUID64()),
 addr_(Network::Address::NONE),
 dataDownloads_(),
-entitiesEnabled_(false),
+clientEnabled_(false),
 bandwidthPerSecond_(0),
 encryptionKey(),
 pProxyForwarder_(NULL),
@@ -116,7 +116,7 @@ void Proxy::kick()
 //-------------------------------------------------------------------------------------
 void Proxy::initClientBasePropertys()
 {
-	if(clientMailbox() == NULL)
+	if(clientEntityCall() == NULL)
 		return;
 
 	MemoryStream* s1 = MemoryStream::createPoolObject();
@@ -129,7 +129,7 @@ void Proxy::initClientBasePropertys()
 		(*pBundle) << this->id();
 		(*pBundle).append(*s1);
 		sendToClient(ClientInterface::onUpdatePropertys, pBundle);
-		//clientMailbox()->postMail((*pBundle));
+		//clientEntityCall()->sendCall((*pBundle));
 	}
 
 	MemoryStream::reclaimPoolObject(s1);
@@ -138,7 +138,7 @@ void Proxy::initClientBasePropertys()
 //-------------------------------------------------------------------------------------
 void Proxy::initClientCellPropertys()
 {
-	if(clientMailbox() == NULL)
+	if(clientEntityCall() == NULL)
 		return;
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -158,35 +158,37 @@ void Proxy::initClientCellPropertys()
 	if(pScriptModule()->usePropertyDescrAlias())
 	{
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
-		(*pBundle) << aliasID << this->spaceID();
+		(*pBundle) << (uint8)0 << aliasID << this->spaceID();
 	}
 	else
 	{
-		(*pBundle) << spaceuid << this->spaceID();
+		(*pBundle) << (ENTITY_PROPERTY_UID)0 << spaceuid << this->spaceID();
 	}
 
 	MemoryStream* s = MemoryStream::createPoolObject();
 
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
+	addCellDataToStream(CLIENT_TYPE, ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
 	(*pBundle).append(*s);
 	MemoryStream::reclaimPoolObject(s);
-	//clientMailbox()->postMail((*pBundle));
+	//clientEntityCall()->sendCall((*pBundle));
 	sendToClient(ClientInterface::onUpdatePropertys, pBundle);
 }
 
 //-------------------------------------------------------------------------------------
-void Proxy::onEntitiesEnabled(void)
+void Proxy::onClientEnabled(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	entitiesEnabled_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEntitiesEnabled"));
+	clientEnabled_ = true;
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientEnabled"), false));
 }
 
 //-------------------------------------------------------------------------------------
 int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+	Py_INCREF(this);
 
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("sks"), 
@@ -205,13 +207,21 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 	else
 		SCRIPT_ERROR_CHECK();
 
+	CALL_ENTITY_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS3(pyTempObj, const_cast<char*>("onLogOnAttempt"),
+		const_cast<char*>("sks"),
+		addr,
+		port,
+		password,
+		false));
+
+	Py_DECREF(this);
 	return ret;
 }
 
 //-------------------------------------------------------------------------------------
 void Proxy::onClientDeath(void)
 {
-	if(clientMailbox() == NULL)
+	if(clientEntityCall() == NULL)
 	{
 		ERROR_MSG(fmt::format("{}::onClientDeath: {}, channel is null!\n", 
 			this->scriptName(), this->id()));
@@ -224,24 +234,23 @@ void Proxy::onClientDeath(void)
 	DEBUG_MSG(fmt::format("{}::onClientDeath: {}.\n", 
 		this->scriptName(), this->id()));
 
-	Py_DECREF(clientMailbox());
-	clientMailbox(NULL);
+	Py_DECREF(clientEntityCall());
+	clientEntityCall(NULL);
 	addr(Network::Address::NONE);
 
-	entitiesEnabled_ = false;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"));
+	clientEnabled_ = false;
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientDeath"), false));
 }
 
 //-------------------------------------------------------------------------------------
 void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 {	
 	// 回调给脚本，获得了cell
-	if(cellMailbox_ == NULL)
-		cellMailbox_ = new EntityMailbox(pScriptModule_, NULL, componentID, id_, MAILBOX_TYPE_CELL);
+	if(cellEntityCall_ == NULL)
+		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITYCALL_TYPE_CELL);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientGetCell"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -300,8 +309,7 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 void Proxy::onGiveClientToFailure()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGiveClientToFailure"));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGiveClientToFailure"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -319,7 +327,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		return;
 	}
 
-	if(clientMailbox_ == NULL || clientMailbox_->getChannel() == NULL)
+	if(clientEntityCall_ == NULL || clientEntityCall_->getChannel() == NULL)
 	{
 		char err[255];
 		kbe_snprintf(err, 255, "Proxy[%s]::giveClientTo: no has client.", scriptName());
@@ -329,7 +337,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 		return;
 	}
 
-	Network::Channel* lpChannel = clientMailbox_->getChannel();
+	Network::Channel* lpChannel = clientEntityCall_->getChannel();
 
 	if(proxy)
 	{
@@ -357,10 +365,10 @@ void Proxy::giveClientTo(Proxy* proxy)
 			return;
 		}
 
-		EntityMailbox* mb = proxy->clientMailbox();
+		EntityCall* mb = proxy->clientEntityCall();
 		if(mb != NULL)
 		{
-			ERROR_MSG(fmt::format("Proxy::giveClientTo: {}[{}] give client to {}[{}], {} has clientMailbox.\n", 
+			ERROR_MSG(fmt::format("Proxy::giveClientTo: {}[{}] give client to {}[{}], {} has clientEntityCall.\n", 
 					scriptName(),
 					id(),
 					proxy->scriptName(), 
@@ -371,7 +379,7 @@ void Proxy::giveClientTo(Proxy* proxy)
 			return;
 		}
 
-		if(cellMailbox())
+		if(cellEntityCall())
 		{
 			// 当前这个entity如果有cell，说明已经绑定了witness， 那么既然我们将控制权
 			// 交换给了另一个entity， 这个entity需要解绑定witness。
@@ -389,14 +397,14 @@ void Proxy::giveClientTo(Proxy* proxy)
 		sendToClient(ClientInterface::onEntityDestroyed, pBundle);
 
 		// 将控制权交换
-		entitiesEnabled_ = false;
-		clientMailbox()->addr(Network::Address::NONE);
-		Py_DECREF(clientMailbox());
+		clientEnabled_ = false;
+		clientEntityCall()->addr(Network::Address::NONE);
+		Py_DECREF(clientEntityCall());
 		proxy->setClientType(this->getClientType());
 		proxy->setLoginDatas(this->getLoginDatas());
 		this->setClientType(UNKNOWN_CLIENT_COMPONENT_TYPE);
 		this->setLoginDatas("");
-		clientMailbox(NULL);
+		clientEntityCall(NULL);
 		proxy->onGiveClientTo(lpChannel);
 		addr(Network::Address::NONE);
 	}
@@ -405,8 +413,8 @@ void Proxy::giveClientTo(Proxy* proxy)
 //-------------------------------------------------------------------------------------
 void Proxy::onGiveClientTo(Network::Channel* lpChannel)
 {
-	clientMailbox(new EntityMailbox(this->pScriptModule_, 
-		&lpChannel->addr(), 0, id_, MAILBOX_TYPE_CLIENT));
+	clientEntityCall(new EntityCall(this->pScriptModule_, 
+		&lpChannel->addr(), 0, id_, ENTITYCALL_TYPE_CLIENT));
 
 	addr(lpChannel->addr());
 	Baseapp::getSingleton().createClientProxies(this);
@@ -419,7 +427,7 @@ void Proxy::onGiveClientTo(Network::Channel* lpChannel)
 //-------------------------------------------------------------------------------------
 void Proxy::onGetWitness()
 {
-	if(cellMailbox())
+	if(cellEntityCall())
 	{
 		// 通知cell获得客户端
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -432,11 +440,11 @@ void Proxy::onGetWitness()
 //-------------------------------------------------------------------------------------
 double Proxy::getRoundTripTime() const
 {
-	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->pEndPoint() == NULL)
+	if(clientEntityCall() == NULL || clientEntityCall()->getChannel() == NULL || 
+		clientEntityCall()->getChannel()->pEndPoint() == NULL)
 		return 0.0;
 
-	return double(clientMailbox()->getChannel()->pEndPoint()->getRTT()) / 1000000.0;
+	return double(clientEntityCall()->getChannel()->pEndPoint()->getRTT()) / 1000000.0;
 }
 
 //-------------------------------------------------------------------------------------
@@ -456,11 +464,11 @@ PyObject* Proxy::pyGetRoundTripTime()
 //-------------------------------------------------------------------------------------
 double Proxy::getTimeSinceHeardFromClient() const
 {
-	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->pEndPoint() == NULL)
+	if(clientEntityCall() == NULL || clientEntityCall()->getChannel() == NULL || 
+		clientEntityCall()->getChannel()->pEndPoint() == NULL)
 		return DBL_MAX;
 
-	return double(timestamp() - clientMailbox()->getChannel()->lastReceivedTime()) / stampsPerSecondD();
+	return double(timestamp() - clientEntityCall()->getChannel()->lastReceivedTime()) / stampsPerSecondD();
 }
 
 //-------------------------------------------------------------------------------------
@@ -480,8 +488,8 @@ PyObject* Proxy::pyGetTimeSinceHeardFromClient()
 //-------------------------------------------------------------------------------------
 bool Proxy::hasClient() const
 {
-	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->pEndPoint() == NULL)
+	if(clientEntityCall() == NULL || clientEntityCall()->getChannel() == NULL || 
+		clientEntityCall()->getChannel()->pEndPoint() == NULL)
 		return false;
 
 	return true;
@@ -519,15 +527,15 @@ PyObject* Proxy::pyClientAddr()
 
 	PyObject* pyobj = PyTuple_New(2);
 
-	if(clientMailbox() == NULL || clientMailbox()->getChannel() == NULL || 
-		clientMailbox()->getChannel()->pEndPoint() == NULL)
+	if(clientEntityCall() == NULL || clientEntityCall()->getChannel() == NULL || 
+		clientEntityCall()->getChannel()->pEndPoint() == NULL)
 	{
 		PyTuple_SetItem(pyobj, 0, PyLong_FromLong(0));
 		PyTuple_SetItem(pyobj, 1, PyLong_FromLong(0));
 	}
 	else
 	{
-		const Network::Address& addr = clientMailbox()->getChannel()->pEndPoint()->addr();
+		const Network::Address& addr = clientEntityCall()->getChannel()->pEndPoint()->addr();
 		PyTuple_SetItem(pyobj, 0, PyLong_FromUnsignedLong(addr.ip));
 		PyTuple_SetItem(pyobj, 1, PyLong_FromUnsignedLong(addr.port));
 	}
@@ -536,7 +544,7 @@ PyObject* Proxy::pyClientAddr()
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Proxy::pyGetEntitiesEnabled()
+PyObject* Proxy::pyGetClientEnabled()
 { 
 	if (!hasFlags(ENTITY_FLAGS_DESTROYING) && isDestroyed())
 	{
@@ -546,7 +554,7 @@ PyObject* Proxy::pyGetEntitiesEnabled()
 		return 0;																				
 	}
 
-	if(this->entitiesEnabled())
+	if(this->clientEnabled())
 	{
 		Py_RETURN_TRUE;
 	}
@@ -560,7 +568,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Proxy* pobj = static_cast<Proxy*>(self);
 
-	if(pobj->clientMailbox() == NULL)
+	if(pobj->clientEntityCall() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError,
 						"Proxy::streamStringToClient: has no client.");
@@ -655,7 +663,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	uint16 currargsSize = PyTuple_Size(args);
 	Proxy* pobj = static_cast<Proxy*>(self);
 
-	if(pobj->clientMailbox() == NULL)
+	if(pobj->clientEntityCall() == NULL)
 	{
 		PyErr_Format(PyExc_AssertionError,
 						"Proxy::streamStringToClient: has no client.");
@@ -747,10 +755,10 @@ int16 Proxy::streamStringToClient(PyObjectPtr objptr,
 //-------------------------------------------------------------------------------------
 Network::Channel* Proxy::pChannel()
 {
-	if(!clientMailbox())
+	if(!clientEntityCall())
 		return NULL;
 
-	Network::Channel* pChannel = clientMailbox()->getChannel();
+	Network::Channel* pChannel = clientEntityCall()->getChannel();
 	if(!pChannel)
 		return NULL;
 	
@@ -760,10 +768,10 @@ Network::Channel* Proxy::pChannel()
 //-------------------------------------------------------------------------------------
 bool Proxy::pushBundle(Network::Bundle* pBundle)
 {
-	if(!clientMailbox())
+	if(!clientEntityCall())
 		return false;
 
-	Network::Channel* pChannel = clientMailbox()->getChannel();
+	Network::Channel* pChannel = clientEntityCall()->getChannel();
 	if(!pChannel)
 		return false;
 
@@ -800,10 +808,10 @@ bool Proxy::sendToClient(Network::Bundle* pBundle)
 //-------------------------------------------------------------------------------------
 bool Proxy::sendToClient(bool expectData)
 {
-	if(!clientMailbox())
+	if(!clientEntityCall())
 		return false;
 
-	Network::Channel* pChannel = clientMailbox()->getChannel();
+	Network::Channel* pChannel = clientEntityCall()->getChannel();
 	if(!pChannel)
 		return false;
 
@@ -829,9 +837,8 @@ bool Proxy::sendToClient(bool expectData)
 void Proxy::onStreamComplete(int16 id, bool success)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onStreamComplete"), 
-		const_cast<char*>("hO"), id, success ? Py_True : Py_False);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onStreamComplete"),
+		const_cast<char*>("hO"), id, success ? Py_True : Py_False, false));
 }
 
 //-------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_PROXY_H
 #define KBE_PROXY_H
 	
-#include "base.h"
+#include "entity.h"
 #include "data_downloads.h"
 #include "common/common.h"
 #include "helper/debug_helper.h"
@@ -43,10 +43,10 @@ class ProxyForwarder;
 #define LOG_ON_ACCEPT  1
 #define LOG_ON_WAIT_FOR_DESTROY 2
 
-class Proxy : public Base
+class Proxy : public Entity
 {
 	/** 子类化将一些py操作填充进派生类 */
-	BASE_SCRIPT_HREADER(Proxy, Base)	
+	BASE_SCRIPT_HREADER(Proxy, Entity)
 
 public:
 	Proxy(ENTITY_ID id, const ScriptDefModule* pScriptModule);
@@ -91,13 +91,13 @@ public:
 	/** 
 		实体是否可用
 	*/
-	INLINE bool entitiesEnabled() const;
-	DECLARE_PY_GET_MOTHOD(pyGetEntitiesEnabled);
+	INLINE bool clientEnabled() const;
+	DECLARE_PY_GET_MOTHOD(pyGetClientEnabled);
 
 	/**
 		这个entity被激活了, 在客户端初始化好对应的entity后， 这个方法被调用
 	*/
-	void onEntitiesEnabled(void);
+	void onClientEnabled(void);
 	
 	/**
 		一个数据下载任务完成
@@ -196,7 +196,7 @@ protected:
 	Network::Address addr_;
 	DataDownloads dataDownloads_;
 
-	bool entitiesEnabled_;
+	bool clientEnabled_;
 
 	// 限制客户端每秒所能使用的带宽
 	int32 bandwidthPerSecond_;

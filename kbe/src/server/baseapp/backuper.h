@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,8 @@ public:
 
 	void createBackupTable();
 
-	bool backup(Base& base, MemoryStream& s);
+	bool backup(Entity& entity, MemoryStream& s);
+
 private:
 	// 在此列表中的entity将进行备份操作
 	std::vector<ENTITY_ID>		backupEntityIDs_;

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -183,7 +183,7 @@ DBInterface* DBUtil::createInterface(const std::string& name, bool showinfo)
 	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", pDBInfo->db_ip);
 	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", pDBInfo->db_username);
 	dbinterface->db_numConnections_ = pDBInfo->db_numConnections;
-	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", pDBInfo->db_password);
+	kbe_snprintf(dbinterface->db_password_, MAX_BUF * 10, "%s", pDBInfo->db_password);
 
 	if (!dbinterface->attach(pDBInfo->db_name))
 	{

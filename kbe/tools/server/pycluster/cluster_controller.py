@@ -320,7 +320,7 @@ class ClusterLogWatchHandler(ClusterControllerHandler):
 		
 		self.watcher = LoggerWatcher()
 
-	def do(self):
+	def do(self, receiveLogCB = None):
 		self.queryAllInterfaces(MACHINES_ADDRESS, MACHINES_QUERY_ATTEMPT_COUNT, MACHINES_QUERY_WAIT_TIME)
 		
 		infos = self.getComponentInfos( LOGGER_TYPE )
@@ -347,8 +347,11 @@ class ClusterLogWatchHandler(ClusterControllerHandler):
 			for e in logs:
 				print( e )
 		
-		self.watcher.receiveLog(onReceivedLog, True)
-		
+		if receiveLogCB is None:
+			self.watcher.receiveLog(onReceivedLog, True)
+		else:
+			self.watcher.receiveLog(receiveLogCB, True)
+
 class ClusterSendLogHandler(ClusterControllerHandler):
 	"""
 	日志实时输出

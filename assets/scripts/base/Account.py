@@ -15,13 +15,13 @@ class Account(KBEngine.Proxy):
 		"""
 		DEBUG_MSG(id, userArg)
 		
-	def onEntitiesEnabled(self):
+	def onClientEnabled(self):
 		"""
 		KBEngine method.
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
+		INFO_MSG("account[%i] entities enable. entityCall:%s" % (self.id, self.client))
 			
 	def onLogOnAttempt(self, ip, port, password):
 		"""

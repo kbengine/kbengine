@@ -15,7 +15,7 @@ Usage
 		KBEngine.create(args);
 
 	2: Implment the KBE defined entity (including the client part)
-		See: kbengine\kbengine_demos_assets\scripts\entities.xml£¬hasClient="true" need to implment
+		See: kbengine\kbengine_demos_assets\scripts\entities.xml, hasClient="true" need to implment
 			<Account hasClient="true"></Account>
 			<Monster hasClient="true"></Monster>
 			<Gate hasClient="true"></Gate>
@@ -267,6 +267,31 @@ KBE-Plugin fire-out events(KBE => Unity):
 
 			Event-datas: 
 				No datas.
+
+	Download events:
+		onStreamDataStarted
+			Description: 
+				Start downloading data.
+
+			Event-datas: 
+				uint16: resouce id
+				uint32: data size
+				string: description
+
+		onStreamDataRecv
+			Description: 
+				Receive data.
+
+			Event-datas: 
+				uint16: resouce id
+				bytes: datas
+
+		onStreamDataCompleted
+			Description: 
+				The downloaded data is completed.
+
+			Event-datas: 
+				uint16: resouce id
 
 
 

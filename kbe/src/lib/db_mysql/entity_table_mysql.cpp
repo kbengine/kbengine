@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -745,9 +745,13 @@ EntityTableItem* EntityTableMysql::createItem(std::string type, std::string defa
 		return new EntityTableItemMysql_VECTOR4("float not null DEFAULT 0", 0, NOT_NULL_FLAG, FIELD_TYPE_FLOAT);
 	}
 #endif
-	else if(type == "MAILBOX")
+	else if(type == "ENTITYCALL")
 	{
-		return new EntityTableItemMysql_MAILBOX("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
+		return new EntityTableItemMysql_ENTITYCALL("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
+	}
+	else if (type == "ENTITY_COMPONENT")
+	{
+		return new EntityTableItemMysql_Component("blob", 0, BINARY_FLAG | BLOB_FLAG, FIELD_TYPE_BLOB);
 	}
 
 	KBE_ASSERT(false && "not found type.\n");
@@ -780,12 +784,13 @@ DBID EntityTableMysql::writeTable(DBInterface* pdbi, DBID dbid, int8 shouldAutoL
 	while(s->length() > 0)
 	{
 		ENTITY_PROPERTY_UID pid;
-		(*s) >> pid;
+		ENTITY_PROPERTY_UID child_pid;
+		(*s) >> pid >> child_pid;
 		
-		EntityTableItem* pTableItem = this->findItem(pid);
+		EntityTableItem* pTableItem = this->findItem(child_pid);
 		if(pTableItem == NULL)
 		{
-			ERROR_MSG(fmt::format("EntityTable::writeTable: not found item[{}].\n", pid));
+			ERROR_MSG(fmt::format("EntityTable::writeTable: not found item[{}].\n", child_pid));
 			return dbid;
 		}
 		
@@ -1176,23 +1181,23 @@ void EntityTableItemMysql_VECTOR4::getReadSqlItem(mysql::DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemMysql_MAILBOX::syncToDB(DBInterface* pdbi, void* pData)
+bool EntityTableItemMysql_ENTITYCALL::syncToDB(DBInterface* pdbi, void* pData)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
+void EntityTableItemMysql_ENTITYCALL::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
+void EntityTableItemMysql_ENTITYCALL::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemMysql_MAILBOX::getReadSqlItem(mysql::DBContext& context)
+void EntityTableItemMysql_ENTITYCALL::getReadSqlItem(mysql::DBContext& context)
 {
 }
 
@@ -1210,7 +1215,7 @@ bool EntityTableItemMysql_ARRAY::initialize(const PropertyDescription* pProperty
 	if(!ret)
 		return false;
 
-	// 创建子表
+	// 创建子表 
 	EntityTableMysql* pTable = new EntityTableMysql(this->pParentTable()->pEntityTables());
 
 	std::string tname = this->pParentTable()->tableName();
@@ -1482,6 +1487,122 @@ void EntityTableItemMysql_FIXED_DICT::init_db_item_name(const char* exstrFlag)
 			new_exstrFlag += fditer->first + "_";
 
 		static_cast<EntityTableItemMysqlBase*>(fditer->second.get())->init_db_item_name(new_exstrFlag.c_str());
+	}
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_Component::isSameKey(std::string key)
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_Component::initialize(const PropertyDescription* pPropertyDescription,
+	const DataType* pDataType, std::string name)
+{
+	bool ret = EntityTableItemMysqlBase::initialize(pPropertyDescription, pDataType, name);
+	if (!ret)
+		return false;
+
+	EntityComponentType* pEntityComponentType = const_cast<EntityComponentType*>(static_cast<const EntityComponentType*>(pDataType));
+	ScriptDefModule* pEntityComponentScriptDefModule = pEntityComponentType->pScriptDefModule();
+
+	EntityTableMysql* pparentTable = static_cast<EntityTableMysql*>(this->pParentTable());
+	EntityTableMysql* pTable = new EntityTableMysql(pparentTable->pEntityTables());
+
+	std::string tableName = std::string(pparentTable->tableName()) + "_" + name;
+
+	pTable->tableName(tableName);
+	pTable->isChild(true);
+
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = pEntityComponentScriptDefModule->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
+
+	for (; iter != pdescrsMap.end(); ++iter)
+	{
+		PropertyDescription* pdescrs = iter->second;
+
+		EntityTableItem* pETItem = pparentTable->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
+
+		pETItem->pParentTable(pparentTable);
+		pETItem->utype(pdescrs->getUType());
+		pETItem->tableName(pTable->tableName());
+		pETItem->pParentTableItem(this);
+
+		bool ret = pETItem->initialize(pdescrs, pdescrs->getDataType(), pdescrs->getName());
+
+		if (!ret)
+		{
+			delete pETItem;
+			return false;
+		}
+
+		pTable->addItem(pETItem);
+	}
+
+	pChildTable_ = pTable;
+	pTable->pEntityTables()->addTable(pTable);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EntityTableItemMysql_Component::syncToDB(DBInterface* pdbi, void* pData)
+{
+	// 所有的表都会在bool EntityTables::syncToDB(DBInterface* pdbi)中被同步（包括子表），因此无需再做一次同步
+	//if(pChildTable_)
+	//	return pChildTable_->syncToDB(pdbi);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_Component::addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID)
+{
+	if (pChildTable_)
+	{
+		mysql::DBContext::DB_RW_CONTEXTS::iterator iter = context.optable.begin();
+		for (; iter != context.optable.end(); ++iter)
+		{
+			if (pChildTable_->tableName() == iter->first)
+			{
+				std::vector<DBID>& dbids = iter->second->dbids[resultDBID];
+
+				if (dbids.size() > 0)
+				{
+					// 理论上一定是不会大于1个的
+					KBE_ASSERT(dbids.size() == 1);
+					static_cast<EntityTableMysql*>(pChildTable_)->addToStream(s, *iter->second.get(), dbids[0]);
+				}
+
+				return;
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_Component::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context)
+{
+	if (pChildTable_)
+	{
+		static_cast<EntityTableMysql*>(pChildTable_)->getWriteSqlItem(pdbi, s, context);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_Component::getReadSqlItem(mysql::DBContext& context)
+{
+	if (pChildTable_)
+	{
+		static_cast<EntityTableMysql*>(pChildTable_)->getReadSqlItem(context);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityTableItemMysql_Component::init_db_item_name(const char* exstrFlag)
+{
+	if (pChildTable_)
+	{
+		static_cast<EntityTableMysql*>(pChildTable_)->init_db_item_name();
 	}
 }
 

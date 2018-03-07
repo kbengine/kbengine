@@ -20,18 +20,19 @@ public class KBEMain : MonoBehaviour
 	public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
 	public bool syncPlayer = true;
 	public int threadUpdateHZ = @{KBE_UPDATEHZ};
+	public int serverHeartbeatTick = 15;
 	public int SEND_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public int RECV_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public bool useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	public bool isOnInitCallPropertysSetMethods = true;
 
-	void Awake() 
+	protected virtual void Awake() 
 	 {
 		DontDestroyOnLoad(transform.gameObject);
 	 }
  
 	// Use this for initialization
-	void Start () 
+	protected virtual void Start () 
 	{
 		MonoBehaviour.print("clientapp::start()");
 		installEvents();
@@ -55,6 +56,7 @@ public class KBEMain : MonoBehaviour
 		args.clientType = clientType;
 		args.syncPlayer = syncPlayer;
 		args.threadUpdateHZ = threadUpdateHZ;
+		args.serverHeartbeatTick = serverHeartbeatTick;
 		args.useAliasEntityID = useAliasEntityID;
 		args.isOnInitCallPropertysSetMethods = isOnInitCallPropertysSetMethods;
 
@@ -69,7 +71,7 @@ public class KBEMain : MonoBehaviour
 			gameapp = new KBEngineApp(args);
 	}
 	
-	void OnDestroy()
+	protected virtual void OnDestroy()
 	{
 		MonoBehaviour.print("clientapp::OnDestroy(): begin");
         if (KBEngineApp.app != null)
@@ -80,7 +82,7 @@ public class KBEMain : MonoBehaviour
 		MonoBehaviour.print("clientapp::OnDestroy(): end");
 	}
 	
-	void FixedUpdate () 
+	protected virtual void FixedUpdate () 
 	{
 		KBEUpdate();
 	}

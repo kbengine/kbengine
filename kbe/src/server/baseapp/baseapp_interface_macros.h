@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ namespace KBEngine{
 #if defined(NETWORK_INTERFACE_DECLARE_BEGIN)
 	#undef BASEAPP_MESSAGE_HANDLER_STREAM
 	#undef BASEAPP_MESSAGE_EXPOSED
-	#undef BASE_MESSAGE_EXPOSED
+	#undef ENTITY_MESSAGE_EXPOSED
 	#undef PROXY_MESSAGE_EXPOSED
 #endif
 
@@ -51,8 +51,8 @@ namespace KBEngine{
 #define BASEAPP_MESSAGE_EXPOSED(NAME)											\
 	NETWORK_MESSAGE_EXPOSED(Baseapp, NAME)										\
 
-#define BASE_MESSAGE_EXPOSED(NAME)												\
-	NETWORK_MESSAGE_EXPOSED(Base, NAME)											\
+#define ENTITY_MESSAGE_EXPOSED(NAME)											\
+	NETWORK_MESSAGE_EXPOSED(Entity, NAME)										\
 
 #define PROXY_MESSAGE_EXPOSED(NAME)												\
 	NETWORK_MESSAGE_EXPOSED(Proxy, NAME)										\

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -34,22 +34,22 @@ INLINE void Witness::pEntity(Entity* pEntity)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Witness::aoiRadius() const
+INLINE float Witness::viewRadius() const
 { 
-	return aoiRadius_; 
+	return viewRadius_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE float Witness::aoiHysteresisArea() const
+INLINE float Witness::viewHysteresisArea() const
 { 
-	return aoiHysteresisArea_; 
+	return viewHysteresisArea_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityRef* Witness::getAOIEntityRef(ENTITY_ID entityID)
+INLINE EntityRef* Witness::getViewEntityRef(ENTITY_ID entityID)
 {
-	AOI_ENTITIES_MAP::iterator iter = aoiEntities_map_.find(entityID);
-	if(iter != aoiEntities_map_.end())
+	VIEW_ENTITIES_MAP::iterator iter = viewEntities_map_.find(entityID);
+	if(iter != viewEntities_map_.end())
 	{
 		return iter->second;
 	}
@@ -58,9 +58,9 @@ INLINE EntityRef* Witness::getAOIEntityRef(ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE bool Witness::entityInAOI(ENTITY_ID entityID)
+INLINE bool Witness::entityInView(ENTITY_ID entityID)
 {
-	EntityRef* pEntityRef = getAOIEntityRef(entityID);
+	EntityRef* pEntityRef = getViewEntityRef(entityID);
 
 	if(pEntityRef == NULL || pEntityRef->pEntity() == NULL || pEntityRef->flags() == ENTITYREF_FLAG_UNKONWN || 
 		(pEntityRef->flags() & (ENTITYREF_FLAG_ENTER_CLIENT_PENDING | ENTITYREF_FLAG_LEAVE_CLIENT_PENDING)) > 0)
@@ -70,27 +70,27 @@ INLINE bool Witness::entityInAOI(ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE AOITrigger* Witness::pAOITrigger()
+INLINE ViewTrigger* Witness::pViewTrigger()
 {
-	return pAOITrigger_;
+	return pViewTrigger_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE AOITrigger* Witness::pAOIHysteresisAreaTrigger()
+INLINE ViewTrigger* Witness::pViewHysteresisAreaTrigger()
 {
-	return pAOIHysteresisAreaTrigger_;
+	return pViewHysteresisAreaTrigger_;
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Witness::AOI_ENTITIES_MAP& Witness::aoiEntitiesMap()
+INLINE Witness::VIEW_ENTITIES_MAP& Witness::viewEntitiesMap()
 { 
-	return aoiEntities_map_; 
+	return viewEntities_map_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE Witness::AOI_ENTITIES& Witness::aoiEntities()
+INLINE Witness::VIEW_ENTITIES& Witness::viewEntities()
 {
-	return aoiEntities_;
+	return viewEntities_;
 }
 
 //-------------------------------------------------------------------------------------

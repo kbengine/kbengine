@@ -4,7 +4,7 @@
 #include "DataTypes.h"
 #include "Method.h"
 #include "ScriptModule.h"
-#include "Mailbox.h"
+#include "EntityCall.h"
 #include "Bundle.h"
 #include "EntityDef.h"
 #include "Property.h"
@@ -278,7 +278,7 @@ bool Entity::isPlayer()
 	return id() == KBEngineApp::getSingleton().entity_id();
 }
 
-void Entity::base(Mailbox* v)
+void Entity::base(EntityCall* v)
 {
 	if (base_)
 		delete base_;
@@ -286,7 +286,7 @@ void Entity::base(Mailbox* v)
 	base_ = v;
 }
 
-void Entity::cell(Mailbox* v)
+void Entity::cell(EntityCall* v)
 {
 	if (cell_)
 		delete cell_;
@@ -847,7 +847,7 @@ void Entity::baseCall(FString methodName, const TArray<KBVar*>& arguments)
 		return;
 	}
 
-	base_->newMail();
+	base_->newCall();
 	(*base_->pBundle) << methodID;
 
 	for (int32 i = 0; i<args.Num(); ++i)
@@ -867,7 +867,7 @@ void Entity::baseCall(FString methodName, const TArray<KBVar*>& arguments)
 		}
 	}
 
-	base_->postMail(NULL);
+	base_->sendCall(NULL);
 }
 
 void Entity::cellCall(FString methodName, KBVar arg1)
@@ -1255,7 +1255,7 @@ void Entity::cellCall(FString methodName, const TArray<KBVar*>& arguments)
 		return;
 	}
 
-	cell_->newMail();
+	cell_->newCall();
 	(*cell_->pBundle) << methodID;
 
 	for (int32 i = 0; i<args.Num(); ++i)
@@ -1275,6 +1275,6 @@ void Entity::cellCall(FString methodName, const TArray<KBVar*>& arguments)
 		}
 	}
 
-	cell_->postMail(NULL);
+	cell_->sendCall(NULL);
 }
 

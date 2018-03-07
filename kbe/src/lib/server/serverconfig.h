@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -159,8 +159,8 @@ typedef struct EngineComponentInfo
 	
 	char entryScriptFile[MAX_NAME];							// 组件的入口脚本文件
 	char dbAccountEntityScriptType[MAX_NAME];				// 数据库帐号脚本类别
-	float defaultAoIRadius;									// 配置在cellapp节点中的player的aoi半径大小
-	float defaultAoIHysteresisArea;							// 配置在cellapp节点中的player的aoi的滞后范围
+	float defaultViewRadius;								// 配置在cellapp节点中的player的view半径大小
+	float defaultViewHysteresisArea;						// 配置在cellapp节点中的player的view的滞后范围
 	uint16 witness_timeout;									// 观察者默认超时时间(秒)
 	const Network::Address* externalAddr;					// 外部地址
 	const Network::Address* internalAddr;					// 内部地址
@@ -170,11 +170,11 @@ typedef struct EngineComponentInfo
 	uint16 ghostingMaxPerCheck;								// 每秒检查ghost次数
 	uint16 ghostUpdateHertz;								// ghost更新hz
 	
-	bool use_coordinate_system;								// 是否使用坐标系统 如果为false， aoi,trap, move等功能将不再维护
-	bool coordinateSystem_hasY;								// 范围管理器是管理Y轴， 注：有y轴则aoi、trap等功能有了高度， 但y轴的管理会带来一定的消耗
+	bool use_coordinate_system;								// 是否使用坐标系统 如果为false, view, trap, move等功能将不再维护
+	bool coordinateSystem_hasY;								// 范围管理器是管理Y轴， 注：有y轴则view、trap等功能有了高度， 但y轴的管理会带来一定的消耗
 	uint16 entity_posdir_additional_updates;				// 实体位置停止发生改变后，引擎继续向客户端更新tick次的位置信息，为0则总是更新。
 
-	bool aliasEntityID;										// 优化EntityID，aoi范围内小于255个EntityID, 传输到client时使用1字节伪ID 
+	bool aliasEntityID;										// 优化EntityID，view范围内小于255个EntityID, 传输到client时使用1字节伪ID 
 	bool entitydefAliasID;									// 优化entity属性和方法广播时占用的带宽，entity客户端属性或者客户端不超过255个时， 方法uid和属性uid传输到client时使用1字节别名ID
 
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
@@ -224,7 +224,7 @@ typedef struct EngineComponentInfo
 	std::string telnet_passwd;
 	std::string telnet_deflayer;
 
-	uint32 perSecsDestroyEntitySize;						// 每秒销毁base|entity数量
+	uint32 perSecsDestroyEntitySize;						// 每秒销毁entity数量
 
 	uint64 respool_timeout;
 	uint32 respool_buffersize;

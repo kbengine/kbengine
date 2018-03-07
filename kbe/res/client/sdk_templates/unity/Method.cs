@@ -15,7 +15,7 @@
 		public string name = "";
     	public UInt16 methodUtype = 0;
     	public Int16 aliasID = -1;
-		public List<KBEDATATYPE_BASE> args = new List<KBEDATATYPE_BASE>();
+		public List<DATATYPE_BASE> args = null;
 		
 		public Method()
 		{

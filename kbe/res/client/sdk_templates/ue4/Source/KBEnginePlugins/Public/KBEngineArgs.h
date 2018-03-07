@@ -33,6 +33,9 @@ public:
 	bool useAliasEntityID;
 	bool isOnInitCallPropertysSetMethods;
 
+	// 心跳频率（tick数）
+	int serverHeartbeatTick;
+
 	// 发送缓冲大小
 	MessageLengthEx SEND_BUFFER_MAX;
 

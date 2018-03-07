@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +41,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/profiler.h"
 #include "helper/profile_handler.h"
 #include "pyscript/pyprofile_handler.h"
+#include "entitydef/entity_component.h"
 
 #include "../../../server/baseapp/baseapp_interface.h"
 #include "../../../server/loginapp/loginapp_interface.h"
@@ -62,6 +63,10 @@ pCreateAndLoginHandler_(NULL),
 pEventPoller_(Network::EventPoller::create()),
 pTelnetServer_(NULL)
 {
+	// 初始化EntityDef模块获取entity实体函数地址
+	EntityDef::setGetEntityFunc(std::tr1::bind(&Bots::tryGetEntity, this,
+		std::tr1::placeholders::_1, std::tr1::placeholders::_2));
+
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BotsInterface::messageHandlers;
 	Components::getSingleton().initialize(&ninterface, componentType, componentID);
 }
@@ -219,6 +224,7 @@ bool Bots::installPyModules()
 	}
 
 	registerScript(client::Entity::getScriptType());
+	registerScript(EntityComponent::getScriptType());
 
 	// 安装入口模块
 	PyObject *entryScriptFileName = PyUnicode_FromString(g_kbeSrvConfig.getBots().entryScriptFile);
@@ -302,13 +308,24 @@ void Bots::handleGameTick()
 }
 
 //-------------------------------------------------------------------------------------
-Network::Channel* Bots::findChannelByMailbox(EntityMailbox& mailbox)
+Network::Channel* Bots::findChannelByEntityCall(EntityCallAbstract& entityCall)
 {
-	int32 appID = (int32)mailbox.componentID();
+	int32 appID = (int32)entityCall.componentID();
 	ClientObject* pClient = findClientByAppID(appID);
 
 	if(pClient)
-		return pClient->findChannelByMailbox(mailbox);
+		return pClient->findChannelByEntityCall(entityCall);
+
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Bots::tryGetEntity(COMPONENT_ID componentID, ENTITY_ID eid)
+{
+	ClientObject* pClient = findClientByAppID(componentID);
+
+	if (pClient)
+		return pClient->tryGetEntity(componentID, eid);
 
 	return NULL;
 }

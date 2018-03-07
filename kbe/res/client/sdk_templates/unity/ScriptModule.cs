@@ -27,7 +27,7 @@
 		public Dictionary<UInt16, Method> idbase_methods = new Dictionary<UInt16, Method>();
 		public Dictionary<UInt16, Method> idcell_methods = new Dictionary<UInt16, Method>();
 
-		public Type script = null;
+		public Type entityScript = null;
 
 		public ScriptModule(string modulename)
 		{
@@ -35,20 +35,20 @@
 
 			foreach (System.Reflection.Assembly ass in AppDomain.CurrentDomain.GetAssemblies()) 
 			{
-				script = ass.GetType ("KBEngine." + modulename);
-				if(script == null)
+				entityScript = ass.GetType("KBEngine." + modulename);
+				if(entityScript == null)
 				{
-					script = ass.GetType (modulename);
+					entityScript = ass.GetType(modulename);
 				}
 
-				if(script != null)
+				if(entityScript != null)
 					break;
 			}
 
 			usePropertyDescrAlias = false;
 			useMethodDescrAlias = false;
 
-			if(script == null)
+			if(entityScript == null)
 				Dbg.ERROR_MSG("can't load(KBEngine." + modulename + ")!");
 		}
     }

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -133,7 +133,7 @@ public:
 	static bool convertPyObjectToVector3(Vector3& v, PyObject* obj);
 
 	/** 
-		设置mailbox的__getEntityFunc函数地址 
+		设置entityCall的__getEntityFunc函数地址 
 	*/
 	void setPYVector3ChangedCallback(PYVector3ChangedCallback* func){ 
 		_pyVector3ChangedCallback = func; 

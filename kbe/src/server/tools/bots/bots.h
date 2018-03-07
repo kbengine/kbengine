@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -92,9 +92,14 @@ public:
 	bool run(void);
 
 	/**
-		由mailbox来尝试获取一个channel的实例
+		由entityCall来尝试获取一个channel的实例
 	*/
-	virtual Network::Channel* findChannelByMailbox(EntityMailbox& mailbox);
+	virtual Network::Channel* findChannelByEntityCall(EntityCallAbstract& entityCall);
+
+	/**
+	通过entity的ID尝试寻找它的实例
+	*/
+	virtual PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 网络接口
 		某个app请求查看该app

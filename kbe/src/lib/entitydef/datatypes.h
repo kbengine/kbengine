@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -52,8 +52,8 @@ public:
 	static bool addDataType(DATATYPE_UID uid, DataType* dataType);
 	static void delDataType(std::string name);
 
-	static DataType* getDataType(std::string name);
-	static DataType* getDataType(const char* name);
+	static DataType* getDataType(std::string name, bool notFoundOutError = true);
+	static DataType* getDataType(const char* name, bool notFoundOutError = true);
 	static DataType* getDataType(DATATYPE_UID uid);
 
 	static bool loadTypes(std::string& file);

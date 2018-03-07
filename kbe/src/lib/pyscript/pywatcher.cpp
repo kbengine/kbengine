@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -97,7 +97,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 
 	if(!PyCallable_Check(pyObj))
 	{
-		PyErr_Format(PyExc_Exception, "Baseapp::createBase: args3 is error! "
+		PyErr_Format(PyExc_Exception, "Baseapp::addWatcher: args3 is error! "
 			"arg=pyCallable.\n");
 		PyErr_PrintEx(0);
 		return NULL;
@@ -107,7 +107,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 	if(!pyObj1)
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_Exception, "Baseapp::createBase: return is error for args3! "
+		PyErr_Format(PyExc_Exception, "Baseapp::addWatcher: return is error for args3! "
 			"arg=pyCallable.\n");
 		PyErr_PrintEx(0);
 		return NULL;

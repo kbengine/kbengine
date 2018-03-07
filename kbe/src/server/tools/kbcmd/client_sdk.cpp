@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -236,6 +236,9 @@ bool ClientSDK::create(const std::string& path)
 	if (!writeEntityDefsModule())
 		return false;
 
+	if (!writeCustomDataTypes())
+		return false;
+	
 	const EntityDef::SCRIPT_MODULES& scriptModules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator moduleIter = scriptModules.begin();
 	for (; moduleIter != scriptModules.end(); ++moduleIter)
@@ -243,6 +246,9 @@ bool ClientSDK::create(const std::string& path)
 		ScriptDefModule* pScriptDefModule = (*moduleIter).get();
 
 		if (!writeEntityModule(pScriptDefModule))
+			return false;
+
+		if (!writeEntityCall(pScriptDefModule))
 			return false;
 	}
 
@@ -587,6 +593,12 @@ void ClientSDK::onCreateEntityDefsModuleFileName()
 }
 
 //-------------------------------------------------------------------------------------
+void ClientSDK::onCreateDefsCustomTypesModuleFileName()
+{
+	sourcefileName_ = "CustomDataTypes.unknown";
+}
+
+//-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityDefsModule()
 {
 	sourcefileName_ = sourcefileBody_ = "";
@@ -598,6 +610,9 @@ bool ClientSDK::writeEntityDefsModule()
 	if (!writeEntityDefsModuleBegin())
 		return false;
 
+	if (!writeEntityDefsModuleInitScriptBegin())
+		return false;
+
 	const EntityDef::SCRIPT_MODULES& modules = EntityDef::getScriptModules();
 	EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
 	for (; iter != modules.end(); ++iter)
@@ -605,18 +620,35 @@ bool ClientSDK::writeEntityDefsModule()
 		if (!iter->get()->hasClient())
 			continue;
 
-		if (!writeEntityDefModule(iter->get()))
+		if (!writeEntityDefsModuleInitScript(iter->get()))
 			return false;
 	}
 
+	if (!writeEntityDefsModuleInitScriptEnd())
+		return false;
+
+	if(!writeEntityDefsModuleInitDefTypes())
+		return false;
+
 	onCreateEntityDefsModuleFileName();
-	return writeEntityDefsModuleEnd() && saveFile();
+
+	if (!writeEntityDefsModuleEnd())
+		return false;
+
+	return saveFile();
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityDefModuleType(const DataType* pDataType)
+bool ClientSDK::writeEntityDefsModuleInitScriptBegin()
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefModuleType: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitScriptBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModuleInitScriptEnd()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitScriptEnd: Not Implemented!\n"));
 	return false;
 }
 
@@ -635,9 +667,9 @@ bool ClientSDK::writeEntityDefsModuleEnd()
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityDefModule(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeEntityDefsModuleInitScript(ScriptDefModule* pScriptDefModule)
 {
-	if (!writeEntityDefScriptModule(pScriptDefModule))
+	if (!writeEntityDefsModuleInitScript_ScriptModule(pScriptDefModule))
 		return false;
 
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP& propers = pScriptDefModule->getClientPropertyDescriptions();
@@ -662,7 +694,7 @@ bool ClientSDK::writeEntityDefModule(ScriptDefModule* pScriptDefModule)
 	if (pScriptDefModule->usePropertyDescrAlias() && positionDescription.aliasID() == -1)
 		positionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ);
 
-	if (!writeEntityDefPropertyDescr(pScriptDefModule, &positionDescription))
+	if (!writeEntityDefsModuleInitScript_PropertyDescr(pScriptDefModule, &positionDescription))
 		return false;
 
 
@@ -679,34 +711,50 @@ bool ClientSDK::writeEntityDefModule(ScriptDefModule* pScriptDefModule)
 	if (pScriptDefModule->usePropertyDescrAlias() && directionDescription.aliasID() == -1)
 		directionDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW);
 
-	if (!writeEntityDefPropertyDescr(pScriptDefModule, &directionDescription))
+	if (!writeEntityDefsModuleInitScript_PropertyDescr(pScriptDefModule, &directionDescription))
+		return false;
+
+	ENTITY_PROPERTY_UID spaceuid = 0;
+	if (spaceuid == 0)
+	{
+		spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
+		Network::FixedMessages::MSGInfo* msgInfo = Network::FixedMessages::getSingleton().isFixed("Property::spaceID");
+		if (msgInfo != NULL)
+			spaceuid = msgInfo->msgid;
+	}
+
+	PropertyDescription spaceDescription(spaceuid, "UINT32", "spaceID", ED_FLAG_OWN_CLIENT, true, DataTypes::getDataType("UINT32"), false, "", 0, "", DETAIL_LEVEL_FAR);
+	if (pScriptDefModule->usePropertyDescrAlias() && spaceDescription.aliasID() == -1)
+		spaceDescription.aliasID(ENTITY_BASE_PROPERTY_ALIASID_SPACEID);
+
+	if (!writeEntityDefsModuleInitScript_PropertyDescr(pScriptDefModule, &spaceDescription))
 		return false;
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator piter = propers.begin();
 	for (; piter != propers.end(); ++piter)
 	{
-		if (!writeEntityDefPropertyDescr(pScriptDefModule, piter->second))
+		if (!writeEntityDefsModuleInitScript_PropertyDescr(pScriptDefModule, piter->second))
 			return false;
 	}
 
 	ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
 	for (; miter != methods.end(); ++miter)
 	{
-		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second, CLIENT_TYPE))
+		if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, miter->second, CLIENT_TYPE))
 			return false;
 	}
 
 	miter = methods1.begin();
 	for (; miter != methods1.end(); ++miter)
 	{
-		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second, BASEAPP_TYPE))
+		if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, miter->second, BASEAPP_TYPE))
 			return false;
 	}
 
 	miter = methods2.begin();
 	for (; miter != methods2.end(); ++miter)
 	{
-		if (!writeEntityDefMethodDescr(pScriptDefModule, miter->second, CELLAPP_TYPE))
+		if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, miter->second, CELLAPP_TYPE))
 			return false;
 	}
 
@@ -714,23 +762,369 @@ bool ClientSDK::writeEntityDefModule(ScriptDefModule* pScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityDefScriptModule(ScriptDefModule* pScriptDefModule)
+bool ClientSDK::writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModule* pScriptDefModule)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefScriptModule: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitScript_ScriptModule: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityDefMethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
+bool ClientSDK::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefMethodDescr: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitScript_MethodDescr: Not Implemented!\n"));
 	return false;
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityDefPropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
+bool ClientSDK::writeEntityDefsModuleInitScript_PropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefMethodDescr: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitScript_PropertyDescr: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModuleInitDefTypesBegin()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitDefTypesBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModuleInitDefTypesEnd()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitDefTypesEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModuleInitDefType(const DataType* pDataType)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityDefsModuleInitDefType: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityDefsModuleInitDefTypes()
+{
+	if (!writeEntityDefsModuleInitDefTypesBegin())
+		return false;
+
+	const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
+	DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
+	for (; dtiter != dataTypes.end(); ++dtiter)
+	{
+		const DataType* datatype = dtiter->second;
+
+		if (datatype->aliasName()[0] == '_')
+			continue;
+
+		if (!writeEntityDefsModuleInitDefType(datatype))
+			return false;
+	}
+
+	return writeEntityDefsModuleInitDefTypesEnd();
+}
+
+//-------------------------------------------------------------------------------------
+void ClientSDK::onEntityCallModuleFileName(const std::string& moduleName)
+{
+	sourcefileName_ = std::string("EntityCall") + moduleName + ".unknown";
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
+{
+	sourcefileName_ = sourcefileBody_ = "";
+	onEntityCallModuleFileName(pScriptDefModule->getName());
+
+	if (!writeEntityCallBegin(pScriptDefModule))
+		return false;
+
+	std::string newModuleName;
+
+	// ÏÈÐ´BaseEntityCall
+	if(!writeBaseEntityCallBegin(pScriptDefModule))
+		return false;
+
+	{
+		ScriptDefModule::METHODDESCRIPTION_MAP& scriptMethods = pScriptDefModule->getBaseMethodDescriptions();
+		ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = scriptMethods.begin();
+		for (; methodIter != scriptMethods.end(); ++methodIter)
+		{
+			MethodDescription* pMethodDescription = methodIter->second;
+
+			if (!pMethodDescription->isExposed())
+				continue;
+
+			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
+				return false;
+
+			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT(fpos != std::string::npos);
+
+			std::string argsBody1 = "";
+			std::string argsBody2 = "";
+
+			std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
+			std::vector<DataType*>::iterator iter = argTypes.begin();
+
+			int i = 1;
+
+			for (; iter != argTypes.end(); ++iter)
+			{
+				DataType* pDataType = (*iter);
+
+				argsBody2 += fmt::format("arg{}, ", i);
+
+				if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
+				{
+					FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
+
+					std::string argsTypeBody;
+					if (!writeEntityMethodArgs_ARRAY(pFixedArrayType, argsTypeBody, pFixedArrayType->aliasName()))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() == DATA_TYPE_FIXEDDICT)
+				{
+					FixedDictType* pFixedDictType = static_cast<FixedDictType*>(pDataType);
+
+					std::string argsTypeBody = typeToType(pFixedDictType->aliasName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() != DATA_TYPE_DIGIT)
+				{
+					std::string argsTypeBody = typeToType(pDataType->getName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else
+				{
+					argsBody1 += fmt::format("{} arg{}, ", typeToType(pDataType->getName()), i++);
+				}
+			}
+
+			if (argsBody1.size() > 0)
+			{
+				argsBody1.erase(argsBody1.size() - 2, 2);
+				argsBody2.erase(argsBody2.size() - 2, 2);
+
+				argsBody2 = std::string(", ") + argsBody2;
+			}
+
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+		}
+	}
+
+	if (!writeBaseEntityCallEnd(pScriptDefModule))
+		return false;
+
+	sourcefileBody_ += fmt::format("\n");
+
+	// ÔÙÐ´CellEntityCall
+	if (!writeCellEntityCallBegin(pScriptDefModule))
+		return false;
+
+	{
+		ScriptDefModule::METHODDESCRIPTION_MAP& scriptMethods = pScriptDefModule->getCellMethodDescriptions();
+		ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = scriptMethods.begin();
+		for (; methodIter != scriptMethods.end(); ++methodIter)
+		{
+			MethodDescription* pMethodDescription = methodIter->second;
+
+			if (!pMethodDescription->isExposed())
+				continue;
+
+			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
+				return false;
+
+			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT(fpos != std::string::npos);
+
+			std::string argsBody1 = "";
+			std::string argsBody2 = "";
+
+			std::vector<DataType*>& argTypes = pMethodDescription->getArgTypes();
+			std::vector<DataType*>::iterator iter = argTypes.begin();
+
+			int i = 1;
+
+			for (; iter != argTypes.end(); ++iter)
+			{
+				DataType* pDataType = (*iter);
+
+				argsBody2 += fmt::format("arg{}, ", i);
+
+				if (pDataType->type() == DATA_TYPE_FIXEDARRAY)
+				{
+					FixedArrayType* pFixedArrayType = static_cast<FixedArrayType*>(pDataType);
+
+					std::string argsTypeBody;
+					if (!writeEntityMethodArgs_ARRAY(pFixedArrayType, argsTypeBody, pFixedArrayType->aliasName()))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() == DATA_TYPE_FIXEDDICT)
+				{
+					FixedDictType* pFixedDictType = static_cast<FixedDictType*>(pDataType);
+
+					std::string argsTypeBody = typeToType(pFixedDictType->aliasName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else if (pDataType->type() != DATA_TYPE_DIGIT)
+				{
+					std::string argsTypeBody = typeToType(pDataType->getName());
+					if (!writeEntityMethodArgs_Const_Ref(pDataType, argsTypeBody))
+					{
+						return false;
+					}
+
+					argsBody1 += fmt::format("{} arg{}, ", argsTypeBody, i++);
+				}
+				else
+				{
+					argsBody1 += fmt::format("{} arg{}, ", typeToType(pDataType->getName()), i++);
+				}
+			}
+
+			if (argsBody1.size() > 0)
+			{
+				argsBody1.erase(argsBody1.size() - 2, 2);
+				argsBody2.erase(argsBody2.size() - 2, 2);
+
+				argsBody2 = std::string(", ") + argsBody2;
+			}
+
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
+			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+		}
+	}
+
+	if (!writeCellEntityCallEnd(pScriptDefModule))
+		return false;
+
+	if (!writeEntityCallEnd(pScriptDefModule))
+		return false;
+
+	return saveFile();
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethod: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCallBegin(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCallEnd(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeBaseEntityCallBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeBaseEntityCallEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeCellEntityCallBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeCellEntityCallEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeCustomDataTypesBegin()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeCustomDataTypesBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeCustomDataTypesEnd()
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeCustomDataTypesEnd: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeCustomDataTypes()
+{
+	sourcefileName_ = sourcefileBody_ = "";
+	onCreateDefsCustomTypesModuleFileName();
+
+	if (!writeCustomDataTypesBegin())
+		return false;
+
+	const DataTypes::UID_DATATYPE_MAP& dataTypes = DataTypes::uid_dataTypes();
+	DataTypes::UID_DATATYPE_MAP::const_iterator dtiter = dataTypes.begin();
+	for (; dtiter != dataTypes.end(); ++dtiter)
+	{
+		const DataType* datatype = dtiter->second;
+
+		if (datatype->aliasName()[0] == '_')
+			continue;
+
+		if (!writeCustomDataType(datatype))
+			return false;
+	}
+
+	onCreateDefsCustomTypesModuleFileName();
+	return writeCustomDataTypesEnd() && saveFile();
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeCustomDataType(const DataType* pDataType)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeCustomDataType: Not Implemented!\n"));
 	return false;
 }
 
@@ -744,8 +1138,6 @@ bool ClientSDK::writeTypes()
 		return false;
 
 	const DataTypes::DATATYPE_MAP& dataTypes = DataTypes::dataTypes();
-	
-
 	const DataTypes::DATATYPE_ORDERS& dataTypesOrders = DataTypes::dataTypesOrders();
 	DataTypes::DATATYPE_ORDERS::const_iterator oiter = dataTypesOrders.begin();
 
@@ -903,9 +1295,9 @@ bool ClientSDK::writeTypes()
 						return false;
 				}
 #endif
-				else if (type == "MAILBOX")
+				else if (type == "ENTITYCALL")
 				{
-					if (!writeTypeItemType_MAILBOX(itemTypeName, itemTypeAliasName))
+					if (!writeTypeItemType_ENTITYCALL(itemTypeName, itemTypeAliasName))
 						return false;
 				}
 			}
@@ -923,33 +1315,38 @@ bool ClientSDK::writeTypes()
 			std::string type = pFixedArrayType->getDataType()->getName();
 			std::string itemTypeAliasName = pFixedArrayType->getDataType()->aliasName();
 
-			if (type != "ARRAY" && type != "FIXED_DICT")
-			{
-				std::string newType = typeToType(type);
-				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", newType);
-
-				std::string::size_type fpos = sourcefileBody_.find("#REPLACE#");
-				KBE_ASSERT(fpos == std::string::npos);
-			}
-
 			if (type == "ARRAY")
 			{
-				if (!writeTypeItemType_ARRAY(typeName, itemTypeAliasName, pFixedArrayType->getDataType()))
-					return false;
+				std::string newType;
+				getArrayType(pFixedArrayType->getDataType(), newType);
+				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", newType);
 			}
 			else if (type == "FIXED_DICT")
 			{
-				if (!writeTypeItemType_FIXED_DICT(typeName, itemTypeAliasName, pFixedArrayType->getDataType()))
-					return false;
+				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", itemTypeAliasName);
+			}
+			else
+			{
+				std::string newType = typeToType(type);
+				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", newType);
 			}
 
-			strutil::kbe_replace(sourcefileBody_, "#REPLACE#", "object");
+			std::string::size_type fpos = sourcefileBody_.find("#REPLACE#");
+			KBE_ASSERT(fpos == std::string::npos);
 
 			if (!writeTypeEnd(typeName, pFixedArrayType))
 				return false;
 		}
 		else
 		{
+			if (!writeTypeBegin(typeName, pDataType))
+				return false;
+
+			if(!writeTypeItemType_AliasName(typeName, pDataType->getName()))
+				return false;
+
+			if (!writeTypeEnd(typeName, pDataType))
+				return false;
 		}
 	}
 
@@ -1023,8 +1420,17 @@ bool ClientSDK::writeEntityPropertys(ScriptDefModule* pEntityScriptDefModule,
 	for (; propIter != clientPropertys.end(); ++propIter)
 	{
 		PropertyDescription* pPropertyDescription = propIter->second;
-		if (!writeEntityProperty(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
-			return false;
+
+		if (pPropertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+		{
+			if (!writeEntityPropertyComponent(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
+				return false;
+		}
+		else
+		{
+			if (!writeEntityProperty(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription))
+				return false;
+		}
 	}
 
 	return true;
@@ -1139,9 +1545,9 @@ bool ClientSDK::writeEntityProperty(ScriptDefModule* pEntityScriptDefModule,
 		return writeEntityProperty_VECTOR4(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 #endif
-	else if (type == "MAILBOX")
+	else if (type == "ENTITYCALL")
 	{
-		return writeEntityProperty_MAILBOX(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
+		return writeEntityProperty_ENTITYCALL(pEntityScriptDefModule, pCurrScriptDefModule, pPropertyDescription);
 	}
 
 	assert(false);

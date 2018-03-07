@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -247,7 +247,7 @@ public:
         return *this;
     }
 
-    Bundle &operator<<(ENTITY_MAILBOX_TYPE value)
+    Bundle &operator<<(ENTITYCALL_TYPE value)
     {
 		onPacketAppend(sizeof(int32));
         (*pCurrPacket_) << value;
@@ -540,7 +540,7 @@ public:
         PACKET_OUT_VALUE(value, sizeof(int32/*²Î¿¼MemoryStream*/));
     }
 
-    Bundle &operator>>(ENTITY_MAILBOX_TYPE &value)
+    Bundle &operator>>(ENTITYCALL_TYPE &value)
     {
         PACKET_OUT_VALUE(value, sizeof(int32/*²Î¿¼MemoryStream*/));
     }

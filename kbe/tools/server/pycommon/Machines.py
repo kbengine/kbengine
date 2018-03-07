@@ -29,7 +29,7 @@ class ComponentInfo( object ):
 	def initFromStream( self, streamStr ):
 		"""
 		"""
-		self.entities = 0    # KBEngine.Entity或KBEngine.Base数量
+		self.entities = 0    # KBEngine.Entity数量
 		self.clients = 0     # 客户端数量
 		self.proxies = 0     # KBEngine.Proxy实例数量
 		self.consolePort = 0 # 控制台端口

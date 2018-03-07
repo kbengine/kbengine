@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,16 +19,24 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_ENTITY_MAILBOX_BASE_H
-#define KBE_ENTITY_MAILBOX_BASE_H
+#ifndef KBE_ENTITYCALL_BASE_H
+#define KBE_ENTITYCALL_BASE_H
 	
 #include "common/common.h"
 //#include "network/channel.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/common.h"
 #include "network/address.h"
-	
+
+#ifdef KBE_SERVER
+#include "server/components.h"
+#endif
+
 namespace KBEngine{
+
+class ScriptDefModule;
+class RemoteEntityMethod;
+class MethodDescription;
 
 namespace Network
 {
@@ -36,19 +44,51 @@ class Channel;
 class Bundle;
 }
 
-class EntityMailboxAbstract : public script::ScriptObject
+class EntityCallAbstract : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
-	INSTANCE_SCRIPT_HREADER(EntityMailboxAbstract, ScriptObject)
+	INSTANCE_SCRIPT_HREADER(EntityCallAbstract, ScriptObject)
 public:
-	EntityMailboxAbstract(PyTypeObject* scriptType, 
+	EntityCallAbstract(PyTypeObject* scriptType, 
 		const Network::Address* pAddr, 
 		COMPONENT_ID componentID, 
 		ENTITY_ID eid, 
 		uint16 utype, 
-		ENTITY_MAILBOX_TYPE type);
+		ENTITYCALL_TYPE type);
 	
-	virtual ~EntityMailboxAbstract();
+	virtual ~EntityCallAbstract();
+
+	typedef std::tr1::function<RemoteEntityMethod* (MethodDescription* pMethodDescription, EntityCallAbstract* pEntityCall)> EntityCallCallHookFunc;
+	typedef std::tr1::function<Network::Channel* (EntityCallAbstract&)> FindChannelFunc;
+
+	enum ENTITYCALL_CLASS
+	{
+		ENTITYCALL_CLASS_ENTITY,
+		ENTITYCALL_CLASS_ENTITY_COMPONENT,
+	};
+
+	/**
+		设置entityCall的__findChannelFunc函数地址
+	*/
+	static void setFindChannelFunc(FindChannelFunc func) {
+		__findChannelFunc = func;
+	};
+
+	/**
+		设置entityCall的__hookCallFunc函数地址
+	*/
+	static void setEntityCallCallHookFunc(EntityCallCallHookFunc* pFunc) {
+		__hookCallFuncPtr = pFunc;
+	};
+
+	static void resetCallHooks() {
+		__hookCallFuncPtr = NULL;
+		__findChannelFunc = FindChannelFunc();
+	}
+
+	virtual ENTITYCALL_CLASS entitycallClass() const {
+		return ENTITYCALL_CLASS_ENTITY;
+	}
 
 	/** 
 		获取entityID 
@@ -77,19 +117,20 @@ public:
 	/** 
 		获得type 
 	*/
-	INLINE ENTITY_MAILBOX_TYPE type(void) const;
+	INLINE ENTITYCALL_TYPE type(void) const;
 
 	/** 
 		支持pickler 方法 
 	*/
 	static PyObject* __py_reduce_ex__(PyObject* self, PyObject* protocol);
 	
-	virtual Network::Channel* getChannel(void) = 0;
+	virtual Network::Channel* getChannel(void);
 
-	virtual bool postMail(Network::Bundle* pBundle);
+	virtual bool sendCall(Network::Bundle* pBundle);
 
-	virtual void newMail(Network::Bundle& bundle);
-	
+	virtual void newCall_(Network::Bundle& bundle);
+	virtual void newCall(Network::Bundle& bundle);
+
 	const Network::Address& addr() const{ return addr_; }
 	void addr(const Network::Address& saddr){ addr_ = saddr; }
 
@@ -104,14 +145,18 @@ public:
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	Network::Address						addr_;					// 频道地址
-	ENTITY_MAILBOX_TYPE						type_;					// 该mailbox的类型
+	ENTITYCALL_TYPE							type_;					// 该entityCall的类型
 	ENTITY_ID								id_;					// entityID
-	ENTITY_SCRIPT_UID						utype_;					// entity的utype  按照entities.xml中的定义顺序
+	ENTITY_SCRIPT_UID						utype_;					// entity的utype按照entities.xml中的定义顺序
+
+	static EntityCallCallHookFunc*			__hookCallFuncPtr;
+	static FindChannelFunc					__findChannelFunc;
 };
 
 }
 
 #ifdef CODE_INLINE
-#include "entitymailboxabstract.inl"
+#include "entitycallabstract.inl"
 #endif
-#endif // KBE_ENTITY_MAILBOX_BASE_H
+#endif // KBE_ENTITYCALL_BASE_H
+ 

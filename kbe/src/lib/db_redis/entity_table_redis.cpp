@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -324,9 +324,9 @@ EntityTableItem* EntityTableRedis::createItem(std::string type, std::string defa
 		return new EntityTableItemRedis_VECTOR4("float not null DEFAULT 0", 0, 0);
 	}
 #endif
-	else if(type == "MAILBOX")
+	else if(type == "ENTITYCALL")
 	{
-		return new EntityTableItemRedis_MAILBOX("blob", 0, 0);
+		return new EntityTableItemRedis_ENTITYCALL("blob", 0, 0);
 	}
 
 	KBE_ASSERT(false && "not found type.\n");
@@ -467,23 +467,23 @@ void EntityTableItemRedis_VECTOR4::getReadSqlItem(redis::DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemRedis_MAILBOX::syncToDB(DBInterface* pdbi, void* pData)
+bool EntityTableItemRedis_ENTITYCALL::syncToDB(DBInterface* pdbi, void* pData)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemRedis_MAILBOX::addToStream(MemoryStream* s, redis::DBContext& context, DBID resultDBID)
+void EntityTableItemRedis_ENTITYCALL::addToStream(MemoryStream* s, redis::DBContext& context, DBID resultDBID)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemRedis_MAILBOX::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, redis::DBContext& context)
+void EntityTableItemRedis_ENTITYCALL::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, redis::DBContext& context)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemRedis_MAILBOX::getReadSqlItem(redis::DBContext& context)
+void EntityTableItemRedis_ENTITYCALL::getReadSqlItem(redis::DBContext& context)
 {
 }
 

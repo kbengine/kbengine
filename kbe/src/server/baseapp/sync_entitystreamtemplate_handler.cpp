@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,7 @@ networkInterface_(networkInterface)
 		for(; iter != propertyDescrs.end(); ++iter)
 		{
 			PropertyDescription* propertyDescription = iter->second;
-			accountDefMemoryStream << propertyDescription->getUType();
+			accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
 			propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 		}
 	}
@@ -111,7 +111,7 @@ bool SyncEntityStreamTemplateHandler::process()
 	for(; iter != propertyDescrs.end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
-		accountDefMemoryStream << propertyDescription->getUType();
+		accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
 		propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 	}
 

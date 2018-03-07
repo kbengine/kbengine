@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,13 +19,16 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
+#include "entitydef/entity_component.h"
+
 namespace KBEngine{
 
-//-------------------------------------------------------------------------------------
-INLINE Witness* AOITrigger::pWitness() const
-{
-	return pWitness_;
-}
+SCRIPT_GETSET_DECLARE_BEGIN(EntityComponent)
+SCRIPT_GET_DECLARE("ownerID",						pyGetOwnerID,			0,					0)
+SCRIPT_GET_DECLARE("owner",							pyGetOwner,				0,					0)
+SCRIPT_GET_DECLARE("name",							pyName,					0,					0)
+SCRIPT_GET_DECLARE("isDestroyed",					pyIsDestroyed,			0,					0)
+SCRIPT_GETSET_DECLARE_END()
+BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
 
-//-------------------------------------------------------------------------------------
 }

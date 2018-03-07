@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -37,6 +37,7 @@ public:
 		pyCallback_(callback),
 		scriptTimers_(scriptTimers)
 	{
+		Py_INCREF(pyCallback_);
 	}
 
 	~ScriptTimerHandler()
@@ -765,7 +766,6 @@ PyObject* PythonApp::__py_addTimer(PyObject* self, PyObject* args)
 		S_Return;
 	}
 
-	Py_INCREF(pyCallback);
 	return PyLong_FromLong(id);
 }
 

@@ -909,7 +909,7 @@ KBEngine.mappingDataType = function(writer, argType)
 	KBEngine.datatype2id["DATATYPE"] = 2;
 	KBEngine.datatype2id["CHAR"] = 2;
 	KBEngine.datatype2id["DETAIL_TYPE"] = 2;
-	KBEngine.datatype2id["MAIL_TYPE"] = 2;
+	KBEngine.datatype2id["ENTITYCALL_CALL_TYPE"] = 2;
 
 	KBEngine.datatype2id["UINT16"] = 3;
 	KBEngine.datatype2id["UNSIGNED SHORT"] = 3;
@@ -950,7 +950,7 @@ KBEngine.mappingDataType = function(writer, argType)
 	KBEngine.datatype2id["PY_DICT"] = 10;
 	KBEngine.datatype2id["PY_TUPLE"] = 10;
 	KBEngine.datatype2id["PY_LIST"] = 10;
-	KBEngine.datatype2id["MAILBOX"] = 10;
+	KBEngine.datatype2id["ENTITYCALL"] = 10;
 
 	KBEngine.datatype2id["BLOB"] = 11;
 
@@ -1353,7 +1353,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.base.newMail();
+		this.base.newCall();
 		this.base.bundle.writeUint16(methodID);
 		
 		try
@@ -1378,7 +1378,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.base.postMail();
+		this.base.sendCall();
 	},
 	
 	cellCall : function()
@@ -1412,7 +1412,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.cell.newMail();
+		this.cell.newCall();
 		this.cell.bundle.writeUint16(methodID);
 		
 		try
@@ -1437,7 +1437,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			return;
 		}
 		
-		this.cell.postMail();
+		this.cell.sendCall();
 	},
 	
 	enterWorld : function()
@@ -1517,46 +1517,46 @@ KBEngine.Entity = KBEngine.Class.extend(
 });
 
 /*-----------------------------------------------------------------------------------------
-												mailbox
+												EntityCall
 -----------------------------------------------------------------------------------------*/
-KBEngine.MAILBOX_TYPE_CELL = 0;
-KBEngine.MAILBOX_TYPE_BASE = 1;
+KBEngine.ENTITYCALL_TYPE_CELL = 0;
+KBEngine.ENTITYCALL_TYPE_BASE = 1;
 
-KBEngine.Mailbox = function()
+KBEngine.EntityCall = function()
 {
 	this.id = 0;
 	this.className = "";
-	this.type = KBEngine.MAILBOX_TYPE_CELL;
+	this.type = KBEngine.ENTITYCALL_TYPE_CELL;
 	this.networkInterface = KBEngine.app;
 	
 	this.bundle = null;
 	
 	this.isBase = function()
 	{
-		return this.type == KBEngine.MAILBOX_TYPE_BASE;
+		return this.type == KBEngine.ENTITYCALL_TYPE_BASE;
 	}
 
 	this.isCell = function()
 	{
-		return this.type == KBEngine.MAILBOX_TYPE_CELL;
+		return this.type == KBEngine.ENTITYCALL_TYPE_CELL;
 	}
 	
-	this.newMail = function()
+	this.newCall = function()
 	{  
 		if(this.bundle == null)
 			this.bundle = new KBEngine.Bundle();
 		
-		if(this.type == KBEngine.MAILBOX_TYPE_CELL)
+		if(this.type == KBEngine.ENTITYCALL_TYPE_CELL)
 			this.bundle.newMessage(KBEngine.messages.Baseapp_onRemoteCallCellMethodFromClient);
 		else
-			this.bundle.newMessage(KBEngine.messages.Base_onRemoteMethodCall);
+			this.bundle.newMessage(KBEngine.messages.Entity_onRemoteMethodCall);
 
 		this.bundle.writeInt32(this.id);
 		
 		return this.bundle;
 	}
 	
-	this.postMail = function(bundle)
+	this.sendCall = function(bundle)
 	{
 		if(bundle == undefined)
 			bundle = this.bundle;
@@ -2148,7 +2148,7 @@ KBEngine.DATATYPE_UNICODE = function()
 	}
 }
 
-KBEngine.DATATYPE_MAILBOX = function()
+KBEngine.DATATYPE_ENTITYCALL = function()
 {
 	this.bind = function()
 	{
@@ -2328,7 +2328,7 @@ KBEngine.datatypes["VECTOR3"]	= new KBEngine.DATATYPE_VECTOR3;
 KBEngine.datatypes["VECTOR4"]	= new KBEngine.DATATYPE_VECTOR4;
 KBEngine.datatypes["PYTHON"]	= new KBEngine.DATATYPE_PYTHON();
 KBEngine.datatypes["UNICODE"]	= new KBEngine.DATATYPE_UNICODE();
-KBEngine.datatypes["MAILBOX"]	= new KBEngine.DATATYPE_MAILBOX();
+KBEngine.datatypes["ENTITYCALL"]= new KBEngine.DATATYPE_ENTITYCALL();
 KBEngine.datatypes["BLOB"]		= new KBEngine.DATATYPE_BLOB();
 
 /*-----------------------------------------------------------------------------------------
@@ -2339,7 +2339,8 @@ KBEngine.KBEngineArgs = function()
 	this.ip = "127.0.0.1";
 	this.port = @{KBE_USE_ALIAS_ENTITYID};
 	this.updateHZ = @{KBE_UPDATEHZ} * 10;
-	
+	this.serverHeartbeatTick = 15;
+
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	this.clientType = 5;
 
@@ -2614,7 +2615,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			return;
 
 		var dateObject = new Date();
-		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > 15)
+		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > KBEngine.app.args.serverHeartbeatTick)
 		{
 			// 如果心跳回调接收时间小于心跳发送时间，说明没有收到回调
 			// 此时应该通知客户端掉线了
@@ -3423,10 +3424,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			entity.id = eid;
 			entity.className = entityType;
 			
-			entity.base = new KBEngine.Mailbox();
+			entity.base = new KBEngine.EntityCall();
 			entity.base.id = eid;
 			entity.base.className = entityType;
-			entity.base.type = KBEngine.MAILBOX_TYPE_BASE;
+			entity.base.type = KBEngine.ENTITYCALL_TYPE_BASE;
 			
 			KBEngine.app.entities[eid] = entity;
 			
@@ -3454,7 +3455,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 	}
 	
-	this.getAoiEntityIDFromStream = function(stream)
+	this.getViewEntityIDFromStream = function(stream)
 	{
 		var id = 0;
 		if(KBEngine.app.entityIDAliasIDList.Length > 255)
@@ -3535,7 +3536,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 	this.Client_onUpdatePropertysOptimized = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		KBEngine.app.onUpdatePropertys_(eid, stream);
 	}
 	
@@ -3581,7 +3582,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onRemoteMethodCallOptimized = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		KBEngine.app.onRemoteMethodCall_(eid, stream);
 	}
 	
@@ -3629,10 +3630,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			entity.id = eid;
 			entity.className = entityType;
 			
-			entity.cell = new KBEngine.Mailbox();
+			entity.cell = new KBEngine.EntityCall();
 			entity.cell.id = eid;
 			entity.cell.className = entityType;
-			entity.cell.type = KBEngine.MAILBOX_TYPE_CELL;
+			entity.cell.type = KBEngine.ENTITYCALL_TYPE_CELL;
 			
 			KBEngine.app.entities[eid] = entity;
 			
@@ -3655,10 +3656,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		{
 			if(!entity.inWorld)
 			{
-				entity.cell = new KBEngine.Mailbox();
+				entity.cell = new KBEngine.EntityCall();
 				entity.cell.id = eid;
 				entity.cell.className = entityType;
-				entity.cell.type = KBEngine.MAILBOX_TYPE_CELL;
+				entity.cell.type = KBEngine.ENTITYCALL_TYPE_CELL;
 
 				// 安全起见， 这里清空一下
 				// 如果服务端上使用giveClientTo切换控制权
@@ -3686,7 +3687,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 	this.Client_onEntityLeaveWorldOptimized = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		KBEngine.app.Client_onEntityLeaveWorld(eid);
 	}
 	
@@ -4038,7 +4039,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		var entity = KBEngine.app.entities[eid];
 		if(entity == undefined)
 		{
@@ -4078,7 +4079,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_ypr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var y = stream.readInt8();
 		var p = stream.readInt8();
@@ -4089,7 +4090,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_yp = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var y = stream.readInt8();
 		var p = stream.readInt8();
@@ -4099,7 +4100,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_yr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var y = stream.readInt8();
 		var r = stream.readInt8();
@@ -4109,7 +4110,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_pr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var p = stream.readInt8();
 		var r = stream.readInt8();
@@ -4119,7 +4120,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_y = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var y = stream.readInt8();
 		
@@ -4128,7 +4129,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_p = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var p = stream.readInt8();
 		
@@ -4137,7 +4138,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_r = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var r = stream.readInt8();
 		
@@ -4146,7 +4147,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		
@@ -4155,7 +4156,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz_ypr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -4168,7 +4169,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz_yp = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -4180,7 +4181,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz_yr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -4192,7 +4193,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz_pr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -4204,7 +4205,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz_y = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -4215,7 +4216,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz_p = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -4226,7 +4227,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xz_r = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 
@@ -4237,7 +4238,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4247,7 +4248,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz_ypr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4261,7 +4262,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz_yp = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4274,7 +4275,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz_yr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4287,7 +4288,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz_pr = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4300,7 +4301,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz_y = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4312,7 +4313,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz_p = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4324,7 +4325,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onUpdateData_xyz_r = function(stream)
 	{
-		var eid = KBEngine.app.getAoiEntityIDFromStream(stream);
+		var eid = KBEngine.app.getViewEntityIDFromStream(stream);
 		
 		var xz = stream.readPackXZ();
 		var y = stream.readPackY();
@@ -4403,14 +4404,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onStreamDataStarted = function(id, datasize, descr)
 	{
+		KBEngine.Event.fire("onStreamDataStarted", id, datasize, descr);
 	}
 	
 	this.Client_onStreamDataRecv = function(stream)
 	{
+		var id = stream.readUint16();
+		var data = stream.readBlob();
+		KBEngine.Event.fire("onStreamDataRecv", id, data);
 	}
 	
 	this.Client_onStreamDataCompleted = function(id)
 	{
+		KBEngine.Event.fire("onStreamDataCompleted", id);
 	}
 	
 	this.Client_onReqAccountResetPasswordCB = function(failedcode)

@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -122,7 +122,7 @@ class MessageHandlers
 public:
 	static Network::MessageHandlers* pMainMessageHandlers;
 	typedef std::map<MessageID, MessageHandler*> MessageHandlerMap;
-	MessageHandlers();
+	MessageHandlers(const std::string& name);
 	~MessageHandlers();
 	
 	MessageHandler* add(std::string ihName, MessageArgs* args, int32 msgLen, 
@@ -143,11 +143,16 @@ public:
 
 	static std::string getDigestStr();
 
+	std::string name() const {
+		return name_;
+	}
+
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;
 
 	std::vector< std::string > exposedMessages_;
+	std::string name_;
 };
 
 }

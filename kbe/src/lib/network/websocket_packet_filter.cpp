@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -233,7 +233,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 					msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME ||
 					msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE()! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE({})! addr={}!\n",
 					(int)msg_frameType_, pChannel_->c_str()));
 
 				this->pChannel_->condemn();

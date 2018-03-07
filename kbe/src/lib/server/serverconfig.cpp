@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -442,17 +442,17 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(node != NULL)
 			strncpy((char*)&_cellAppInfo.entryScriptFile, xml->getValStr(node).c_str(), MAX_NAME);
 		
-		TiXmlNode* aoiNode = xml->enterNode(rootNode, "defaultAoIRadius");
-		if(aoiNode != NULL)
+		TiXmlNode* viewNode = xml->enterNode(rootNode, "defaultViewRadius");
+		if(viewNode != NULL)
 		{
 			node = NULL;
-			node = xml->enterNode(aoiNode, "radius");
+			node = xml->enterNode(viewNode, "radius");
 			if(node != NULL)
-				_cellAppInfo.defaultAoIRadius = float(xml->getValFloat(node));
+				_cellAppInfo.defaultViewRadius = float(xml->getValFloat(node));
 					
-			node = xml->enterNode(aoiNode, "hysteresisArea");
+			node = xml->enterNode(viewNode, "hysteresisArea");
 			if(node != NULL)
-				_cellAppInfo.defaultAoIHysteresisArea = float(xml->getValFloat(node));
+				_cellAppInfo.defaultViewHysteresisArea = float(xml->getValFloat(node));
 		}
 			
 		node = xml->enterNode(rootNode, "ids");
@@ -1509,8 +1509,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 		{
 			INFO_MSG("server-configs:\n");
 			INFO_MSG(fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
-			INFO_MSG(fmt::format("\tdefaultAoIRadius : {}\n", info.defaultAoIRadius));
-			INFO_MSG(fmt::format("\tdefaultAoIHysteresisArea : {}\n", info.defaultAoIHysteresisArea));
+			INFO_MSG(fmt::format("\tdefaultViewRadius : {}\n", info.defaultViewRadius));
+			INFO_MSG(fmt::format("\tdefaultViewHysteresisArea : {}\n", info.defaultViewHysteresisArea));
 			INFO_MSG(fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
 			INFO_MSG(fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			//INFO_MSG(fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));
@@ -1518,8 +1518,8 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 
 			infostr += "server-configs:\n";
 			infostr += (fmt::format("\tgameUpdateHertz : {}\n", gameUpdateHertz()));
-			infostr += (fmt::format("\tdefaultAoIRadius : {}\n", info.defaultAoIRadius));
-			infostr += (fmt::format("\tdefaultAoIHysteresisArea : {}\n", info.defaultAoIHysteresisArea));
+			infostr += (fmt::format("\tdefaultViewRadius : {}\n", info.defaultViewRadius));
+			infostr += (fmt::format("\tdefaultViewHysteresisArea : {}\n", info.defaultViewHysteresisArea));
 			infostr += (fmt::format("\tentryScriptFile : {}\n", info.entryScriptFile));
 			infostr += (fmt::format("\tinternalAddr : {}\n", internalAddr.c_str()));
 			//infostr += (fmt::format("\texternalAddr : {}\n", externalAddr.c_str()));

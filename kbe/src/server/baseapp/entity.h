@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#ifndef KBE_BASE_H
-#define KBE_BASE_H
+#ifndef KBE_BASE_ENTITY_H
+#define KBE_BASE_ENTITY_H
 	
 #include "profile.h"
 #include "common/common.h"
@@ -32,12 +32,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.h"	
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/entity_macro.h"	
+#include "entitydef/entity_component.h"
 #include "server/script_timers.h"		
 	
 namespace KBEngine{
 
-class EntityMailbox;
-class BaseMessagesForwardCellappHandler;
+class EntityCall;
+class EntityComponent;
+class EntityMessagesForwardCellappHandler;
 class BaseMessagesForwardClientHandler;
 
 namespace Network
@@ -46,15 +48,15 @@ class Channel;
 }
 
 
-class Base : public script::ScriptObject
+class Entity : public script::ScriptObject
 {
 	/** 子类化 将一些py操作填充进派生类 */
-	BASE_SCRIPT_HREADER(Base, ScriptObject)	
-	ENTITY_HEADER(Base)
+	BASE_SCRIPT_HREADER(Entity, ScriptObject)
+	ENTITY_HEADER(Entity)
 public:
-	Base(ENTITY_ID id, const ScriptDefModule* pScriptModule, 
+	Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule,
 		PyTypeObject* pyType = getScriptType(), bool isInitialised = true);
-	~Base();
+	~Entity();
 
 	/** 
 		是否存储数据库 
@@ -83,27 +85,22 @@ public:
 	DECLARE_PY_MOTHOD_ARG0(pyDestroyCellEntity);
 	
 	/** 
-		脚本请求销毁base实体 
+		脚本获取entityCall 
 	*/
-	DECLARE_PY_MOTHOD_ARG0(pyDestroyBase);
+	DECLARE_PY_GET_MOTHOD(pyGetCellEntityCall);
+
+	EntityCall* cellEntityCall(void) const;
+
+	void cellEntityCall(EntityCall* entityCall);
 	
 	/** 
-		脚本获取mailbox 
+		脚本获取entityCall 
 	*/
-	DECLARE_PY_GET_MOTHOD(pyGetCellMailbox);
+	DECLARE_PY_GET_MOTHOD(pyGetClientEntityCall);
 
-	EntityMailbox* cellMailbox(void) const;
+	EntityCall* clientEntityCall() const;
 
-	void cellMailbox(EntityMailbox* mailbox);
-	
-	/** 
-		脚本获取mailbox 
-	*/
-	DECLARE_PY_GET_MOTHOD(pyGetClientMailbox);
-
-	EntityMailbox* clientMailbox() const;
-
-	void clientMailbox(EntityMailbox* mailbox);
+	void clientEntityCall(EntityCall* entityCall);
 
 	/**
 		是否创建过space
@@ -210,13 +207,13 @@ public:
 	/** 
 		为一个baseEntity在指定的cell上还原一个cellEntity 
 	*/
-	void restoreCell(EntityMailboxAbstract* cellMailbox);
+	void restoreCell(EntityCallAbstract* cellEntityCall);
 	INLINE bool inRestore();
 
 	/** 
 		创建一个cellEntity在一个新的space上 
 	*/
-	DECLARE_PY_MOTHOD_ARG1(createInNewSpace, PyObject_ptr);
+	DECLARE_PY_MOTHOD_ARG1(createCellEntityInNewSpace, PyObject_ptr);
 
 	/** 网络接口
 		客户端直接发送消息给cell实体
@@ -291,7 +288,7 @@ protected:
 	/** 
 		定义属性数据被改变了 
 	*/
-	void onDefDataChanged(const PropertyDescription* propertyDescription, 
+	void onDefDataChanged(EntityComponent* pEntityComponent, const PropertyDescription* propertyDescription,
 			PyObject* pyData);
 
 	/**
@@ -300,9 +297,9 @@ protected:
 	void eraseEntityLog();
 
 protected:
-	// 这个entity的客户端mailbox cellapp mailbox
-	EntityMailbox*							clientMailbox_;
-	EntityMailbox*							cellMailbox_;
+	// 这个entity的客户端entityCall cellapp entityCall
+	EntityCall*								clientEntityCall_;
+	EntityCall*								cellEntityCall_;
 
 	// entity创建后，在cell部分未创建时，将一些cell属性数据保存在这里
 	PyObject*								cellDataDict_;
@@ -349,7 +346,7 @@ protected:
 
 
 #ifdef CODE_INLINE
-#include "base.inl"
+#include "entity.inl"
 #endif
 
-#endif // KBE_BASE_H
+#endif // KBE_BASE_ENTITY_H

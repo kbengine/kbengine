@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "clientobjectbase.h"
 #include "moveto_point_handler.h"	
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
+#include "entitydef/entity_component.h"
 #include "network/channel.h"	
 #include "network/bundle.h"	
 #include "network/fixed_messages.h"
@@ -51,9 +52,9 @@ SCRIPT_MEMBER_DECLARE_BEGIN(Entity)
 SCRIPT_MEMBER_DECLARE_END()
 
 CLIENT_ENTITY_GETSET_DECLARE_BEGIN(Entity)
-SCRIPT_GET_DECLARE("base",							pyGetBaseMailbox,				0,					0)
-SCRIPT_GET_DECLARE("cell",							pyGetCellMailbox,				0,					0)
-SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp	,				0,					0)
+SCRIPT_GET_DECLARE("base",							pyGetBaseEntityCall,			0,					0)
+SCRIPT_GET_DECLARE("cell",							pyGetCellEntityCall,			0,					0)
+SCRIPT_GET_DECLARE("clientapp",						pyGetClientApp,					0,					0)
 SCRIPT_GETSET_DECLARE("position",					pyGetPosition,					pySetPosition,		0,		0)
 SCRIPT_GETSET_DECLARE("direction",					pyGetDirection,					pySetDirection,		0,		0)
 SCRIPT_GETSET_DECLARE("velocity",					pyGetMoveSpeed,					pySetMoveSpeed,		0,		0)
@@ -61,11 +62,11 @@ CLIENT_ENTITY_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(Entity, 0, 0, 0, 0, 0)	
 	
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityMailbox* base, EntityMailbox* cell):
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule, EntityCall* base, EntityCall* cell):
 ScriptObject(getScriptType(), true),
 ENTITY_CONSTRUCTION(Entity),
-cellMailbox_(cell),
-baseMailbox_(base),
+cellEntityCall_(cell),
+baseEntityCall_(base),
 position_(),
 serverPosition_(),
 direction_(),
@@ -89,8 +90,8 @@ Entity::~Entity()
 {
 	enterworld_ = false;
 	ENTITY_DECONSTRUCTION(Entity);
-	S_RELEASE(cellMailbox_);
-	S_RELEASE(baseMailbox_);
+	S_RELEASE(cellEntityCall_);
+	S_RELEASE(baseEntityCall_);
 
 	script::PyGC::decTracing("Entity");
 	
@@ -112,25 +113,25 @@ void Entity::pClientApp(ClientObjectBase* p)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetBaseMailbox()
+PyObject* Entity::pyGetBaseEntityCall()
 { 
-	EntityMailbox* mailbox = baseMailbox();
-	if(mailbox == NULL)
+	EntityCall* entityCall = baseEntityCall();
+	if(entityCall == NULL)
 		S_Return;
 
-	Py_INCREF(mailbox);
-	return mailbox; 
+	Py_INCREF(entityCall);
+	return entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyGetCellMailbox()
+PyObject* Entity::pyGetCellEntityCall()
 { 
-	EntityMailbox* mailbox = cellMailbox();
-	if(mailbox == NULL)
+	EntityCall* entityCall = cellEntityCall();
+	if(entityCall == NULL)
 		S_Return;
 
-	Py_INCREF(mailbox);
-	return mailbox; 
+	Py_INCREF(entityCall);
+	return entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -152,7 +153,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 }	
 
 //-------------------------------------------------------------------------------------
-void Entity::onDefDataChanged(const PropertyDescription* propertyDescription, PyObject* pyData)
+void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 }
 
@@ -162,18 +163,52 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	ENTITY_METHOD_UID utype = 0;
 	
 	MethodDescription* pMethodDescription = NULL;
-	
-	if(pScriptModule_->useMethodDescrAlias())
+	ScriptDefModule* pScriptModule = pScriptModule_;
+	PropertyDescription* pComponentPropertyDescription = NULL;
+
+	if (pScriptModule->usePropertyDescrAlias())
+	{
+		uint8 componentPropertyAliasID;
+		s >> componentPropertyAliasID;
+
+		if (componentPropertyAliasID > 0)
+		{
+			pComponentPropertyDescription = pScriptModule_->findAliasPropertyDescription(componentPropertyAliasID);
+		}
+	}
+	else
+	{
+		ENTITY_PROPERTY_UID componentPropertyUID = 0;
+		if (componentPropertyUID > 0)
+		{
+			pComponentPropertyDescription = pScriptModule_->findClientPropertyDescription(componentPropertyUID);
+		}
+	}
+
+	PyObject* pyCallObject = this;
+
+	if (pComponentPropertyDescription)
+	{
+		DataType* pDataType = pComponentPropertyDescription->getDataType();
+		KBE_ASSERT(pDataType->type() == DATA_TYPE_ENTITY_COMPONENT);
+
+		pScriptModule = static_cast<EntityComponentType*>(pDataType)->pScriptDefModule();
+
+		pyCallObject = PyObject_GetAttrString(this, const_cast<char*>
+			(pComponentPropertyDescription->getName()));
+	}
+
+	if(pScriptModule->useMethodDescrAlias())
 	{
 		ENTITY_DEF_ALIASID aliasID;
 		s >> aliasID;
-		pMethodDescription = pScriptModule_->findAliasMethodDescription(aliasID);
+		pMethodDescription = pScriptModule->findAliasMethodDescription(aliasID);
 		utype = aliasID;
 	}
 	else
 	{
 		s >> utype;
-		pMethodDescription = pScriptModule_->findClientMethodDescription(utype);
+		pMethodDescription = pScriptModule->findClientMethodDescription(utype);
 	}
 
 	if(pMethodDescription == NULL)
@@ -181,16 +216,20 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 		ERROR_MSG(fmt::format("{2}::onRemoteMethodCall: can't found method. utype={0}, methodName=unknown, callerID:{1}.\n", 
 			utype, id_, this->scriptName()));
 
+		if (pyCallObject != static_cast<PyObject*>(this))
+			Py_DECREF(pyCallObject);
+
 		return;
 	}
 
 	if(g_debugEntity)
 	{
-		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{1}(utype={2}).\n", 
-			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName()));
+		DEBUG_MSG(fmt::format("{3}::onRemoteMethodCall: {0}, {3}::{4}{1}(utype={2}).\n", 
+			id_, (pMethodDescription ? pMethodDescription->getName() : "unknown"), utype, this->scriptName(),
+			(pComponentPropertyDescription ? (std::string(pScriptModule->getName()) + "::") : "")));
 	}
 
-	PyObject* pyFunc = PyObject_GetAttrString(this, const_cast<char*>
+	PyObject* pyFunc = PyObject_GetAttrString(pyCallObject, const_cast<char*>
 						(pMethodDescription->getName()));
 
 	if(pMethodDescription != NULL)
@@ -215,12 +254,21 @@ void Entity::onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s)
 	}
 	
 	Py_XDECREF(pyFunc);
+
+	if (pyCallObject != static_cast<PyObject*>(this))
+		Py_DECREF(pyCallObject);
+
 	SCRIPT_ERROR_CHECK();
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onUpdatePropertys(MemoryStream& s)
 {
+	// 由于在属性更新过程中可能产生新的组件属性，需要在此设置
+	EntityDef::context().currClientappID = pClientApp_->appID();
+	EntityDef::context().currEntityID = id();
+	EntityDef::context().currComponentType = CLIENT_TYPE;
+
 	ENTITY_PROPERTY_UID posuid = ENTITY_BASE_PROPERTY_UTYPE_POSITION_XYZ;
 	ENTITY_PROPERTY_UID diruid = ENTITY_BASE_PROPERTY_UTYPE_DIRECTION_ROLL_PITCH_YAW;
 	ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
@@ -251,85 +299,127 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 	while(s.length() > 0)
 	{
 		ENTITY_PROPERTY_UID uid;
+		ENTITY_PROPERTY_UID child_uid;
+
 		uint8 aliasID = 0;
+		uint8 child_aliasID = 0;
+		PropertyDescription* pPropertyDescription = NULL;
+		PyObject* setToObj = this;
 
 		if(pScriptModule_->usePropertyDescrAlias())
 		{
+			// 父属性ID
 			s >> aliasID;
+			s >> child_aliasID;
 			uid = aliasID;
+			child_uid = child_aliasID;
 		}
 		else
 		{
+			// 父属性ID
 			s >> uid;
+			s >> child_uid;
 		}
 
 		// 如果是位置或者朝向信息则
-		if(uid == posuid)
+		if (uid == 0)
 		{
-			Position3D pos;
+			if (child_uid == posuid)
+			{
+				Position3D pos;
 
 #ifdef CLIENT_NO_FLOAT		
-			int32 x, y, z;
-			s >> x >> y >> z;
+				int32 x, y, z;
+				s >> x >> y >> z;
 
-			pos.x = (float)x;
-			pos.y = (float)y;
-			pos.z = (float)z;
+				pos.x = (float)x;
+				pos.y = (float)y;
+				pos.z = (float)z;
 #else
-			s >> pos.x >> pos.y >> pos.z;
+				s >> pos.x >> pos.y >> pos.z;
 #endif
-			position(pos);
-            clientPos(pos);
-			continue;
-		}
-		else if(uid == diruid)
-		{
-			Direction3D dir;
+				position(pos);
+				clientPos(pos);
+				continue;
+			}
+			else if (child_uid == diruid)
+			{
+				Direction3D dir;
 
 #ifdef CLIENT_NO_FLOAT		
-			int32 x, y, z;
-			s >> x >> y >> z;
+				int32 x, y, z;
+				s >> x >> y >> z;
 
-			dir.roll((float)x);
-			dir.pitch((float)y);
-			dir.yaw((float)z);
+				dir.roll((float)x);
+				dir.pitch((float)y);
+				dir.yaw((float)z);
 #else
-			float yaw, pitch, roll;
-			s >> roll >> pitch >> yaw;
-			dir.yaw(yaw);
-			dir.pitch(pitch);
-			dir.roll(roll);
+				float yaw, pitch, roll;
+				s >> roll >> pitch >> yaw;
+				dir.yaw(yaw);
+				dir.pitch(pitch);
+				dir.roll(roll);
 #endif
 
-			direction(dir);
-            clientDir(dir);
-			continue;
-		}
-		else if(uid == spaceuid)
-		{
-			SPACE_ID ispaceID;
-			s >> ispaceID;
-			spaceID(ispaceID);
-			continue;
-		}
+				direction(dir);
+				clientDir(dir);
+				continue;
+			}
+			else if (child_uid == spaceuid)
+			{
+				SPACE_ID ispaceID;
+				s >> ispaceID;
+				spaceID(ispaceID);
+				continue;
+			}
 
-		PropertyDescription* pPropertyDescription = NULL;
-		
-		if(pScriptModule_->usePropertyDescrAlias())
-			pPropertyDescription = pScriptModule()->findAliasPropertyDescription(aliasID);
+			if (pScriptModule_->usePropertyDescrAlias())
+				pPropertyDescription = pScriptModule()->findAliasPropertyDescription(child_aliasID);
+			else
+				pPropertyDescription = pScriptModule()->findClientPropertyDescription(child_uid);
+		}
 		else
-			pPropertyDescription = pScriptModule()->findClientPropertyDescription(uid);
+		{
+			// 先得到父属性找到属性名称
+			if (pScriptModule_->usePropertyDescrAlias())
+				pPropertyDescription = pScriptModule()->findAliasPropertyDescription(aliasID);
+			else
+				pPropertyDescription = pScriptModule()->findClientPropertyDescription(uid);
+
+			// 然后得到组件属性，再从其中找到子属性
+			EntityComponent* pEntityComponent = static_cast<EntityComponent*>(PyObject_GetAttrString(this, pPropertyDescription->getName()));
+			if (!pEntityComponent)
+			{
+				SCRIPT_ERROR_CHECK();
+			}
+			else
+			{
+				pPropertyDescription = pEntityComponent->getProperty(child_uid);
+				setToObj = pEntityComponent;
+			}
+		}
 
 		if(pPropertyDescription == NULL)
 		{
 			ERROR_MSG(fmt::format("Entity::onUpdatePropertys: not found {}\n", uid));
+
+			if (setToObj != static_cast<PyObject*>(this))
+				Py_DECREF(setToObj);
+
 			return;
 		}
 
 		PyObject* pyobj = pPropertyDescription->createFromStream(&s);
 
-		PyObject* pyOld = PyObject_GetAttrString(this, pPropertyDescription->getName());
-		PyObject_SetAttrString(this, pPropertyDescription->getName(), pyobj);
+		PyObject* pyOld = PyObject_GetAttrString(setToObj, pPropertyDescription->getName());
+		if (!pyOld)
+		{
+			SCRIPT_ERROR_CHECK();
+			pyOld = Py_None;
+			Py_INCREF(pyOld);
+		}
+
+		PyObject_SetAttrString(setToObj, pPropertyDescription->getName(), pyobj);
 
 		bool willCallScript = pPropertyDescription->hasBase() ? inited_ : enterworld_;
 		if (willCallScript)
@@ -337,12 +427,16 @@ void Entity::onUpdatePropertys(MemoryStream& s)
 			std::string setname = "set_";
 			setname += pPropertyDescription->getName();
 
-			SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()),
-				const_cast<char*>("O"), pyOld);
+			SCRIPT_OBJECT_CALL_ARGS1(setToObj, const_cast<char*>(setname.c_str()),
+				const_cast<char*>("O"), pyOld, false);
 		}
 
 		Py_DECREF(pyobj);
 		Py_DECREF(pyOld);
+
+		if(setToObj != static_cast<PyObject*>(this))
+			Py_DECREF(setToObj);
+
 		SCRIPT_ERROR_CHECK();
 	}
 }
@@ -468,7 +562,8 @@ void Entity::onEnterWorld()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterworld_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterWorld"));
+
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onEnterWorld"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -477,7 +572,8 @@ void Entity::onLeaveWorld()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterworld_ = false;
 	spaceID(0);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveWorld"));
+
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLeaveWorld"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -485,7 +581,7 @@ void Entity::onEnterSpace()
 {
 	this->stopMove();
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onEnterSpace"));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onEnterSpace"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -493,7 +589,9 @@ void Entity::onLeaveSpace()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	spaceID(0);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onLeaveSpace"));
+
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLeaveSpace"), false));
+
 	this->stopMove();
 }
 
@@ -504,7 +602,7 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID)
+void Entity::addCellDataToStream(COMPONENT_TYPE sendTo, uint32 flags, MemoryStream* mstream, bool useAliasID)
 {
 }
 
@@ -541,7 +639,7 @@ void Entity::onBecomePlayer()
 	}
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomePlayer"));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onBecomePlayer"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -551,7 +649,7 @@ void Entity::onBecomeNonPlayer()
 		return;
 	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onBecomeNonPlayer"));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onBecomeNonPlayer"), false));
 
 	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->pScriptModule_->getScriptType());
 	SCRIPT_ERROR_CHECK();
@@ -632,9 +730,8 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 		return;
 
 	AUTO_SCOPED_PROFILE("onMove");
-
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMove"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onMove"),
+		const_cast<char*>("IO"), controllerId, userarg, false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -646,8 +743,8 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 	stopMove();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveOver"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onMoveOver"),
+		const_cast<char*>("IO"), controllerId, userarg, false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -659,8 +756,8 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 	stopMove();
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onMoveFailure"), 
-		const_cast<char*>("IO"), controllerId, userarg);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onMoveFailure"),
+		const_cast<char*>("IO"), controllerId, userarg, false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -777,7 +874,7 @@ void Entity::callPropertysSetMethods()
 			setname += iter->second->getName();
 
 			SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>(setname.c_str()),
-				const_cast<char*>("O"), pyOld);
+				const_cast<char*>("O"), pyOld, false);
 		}
 
 		Py_DECREF(pyOld);
@@ -789,14 +886,8 @@ void Entity::callPropertysSetMethods()
 void Entity::onTimer(ScriptID timerID, int useraAgs)
 {
 	SCOPED_PROFILE(ONTIMER_PROFILE);
-	
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onTimer"),
-		const_cast<char*>("Ii"), timerID, useraAgs);
-
-	if (pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onTimer"),
+		const_cast<char*>("Ii"), timerID, useraAgs, false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -805,7 +896,9 @@ void Entity::onControlled(bool p_controlled)
     isControlled_ = p_controlled;
 
     PyObject *pyval = p_controlled ? Py_True : Py_False;
-    SCRIPT_OBJECT_CALL_ARGS1(this, const_cast<char*>("onControlled"), const_cast<char*>("O"), pyval);
+
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS1(pyTempObj, const_cast<char*>("onControlled"),
+		const_cast<char*>("O"), pyval, false));
 }
 
 //-------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
-class Mailbox;
+class EntityCall;
 
 
 /*
@@ -70,17 +70,17 @@ public:
 		id_ = v;
 	}
 
-	Mailbox* base() const {
+	EntityCall* base() const {
 		return base_;
 	}
 
-	void base(Mailbox* v);
+	void base(EntityCall* v);
 
-	Mailbox* cell() const {
+	EntityCall* cell() const {
 		return cell_;
 	}
 
-	void cell(Mailbox* v);
+	void cell(EntityCall* v);
 
 	float velocity() const {
 		return velocity_;
@@ -204,8 +204,8 @@ protected:
 
 	bool isOnGround_;
 
-	Mailbox* base_;
-	Mailbox* cell_;
+	EntityCall* base_;
+	EntityCall* cell_;
 
 	// enterworld之后设置为true
 	bool inWorld_;
@@ -690,6 +690,27 @@ public:
 		ENTITYDEF_DECLARE_##module18 (ENTITY_SCRIPTMODULE_NAME) \
 		ENTITYDEF_DECLARE_##module19 (ENTITY_SCRIPTMODULE_NAME) \
 		ENTITYDEF_DECLARE_##module20 (ENTITY_SCRIPTMODULE_NAME)
+
+// 注册定义的实体类，当实体类没有继承任何def中的类时使用该宏
+#define ENTITYDEF_CLASS_NO_DEFPARENT_REGISTER(ENTITY_SCRIPTMODULE_NAME)	\
+	ENTITYDEF_DECLARE_Entity(ENTITY_SCRIPTMODULE_NAME)	\
+	ENTITYDEF_DECLARE_##ENTITY_SCRIPTMODULE_NAME(ENTITY_SCRIPTMODULE_NAME)	\
+	class _##ENTITY_SCRIPTMODULE_NAME##Creator : public EntityCreator {	\
+		public:	\
+			_##ENTITY_SCRIPTMODULE_NAME##Creator(const FString& scriptName):	\
+			EntityCreator(scriptName)	\
+			{	\
+			}	\
+			virtual ~_##ENTITY_SCRIPTMODULE_NAME##Creator()	\
+			{	\
+			}	\
+			virtual Entity* create() override	\
+			{	\
+				return (Entity*)(new ENTITY_SCRIPTMODULE_NAME());	\
+			}	\
+	};\
+	_##ENTITY_SCRIPTMODULE_NAME##Creator g_##ENTITY_SCRIPTMODULE_NAME##Creator(FString(TEXT(#ENTITY_SCRIPTMODULE_NAME)));	\
+
 
 // 注册定义的实体类
 #define ENTITYDEF_CLASS_REGISTER(ENTITY_SCRIPTMODULE_NAME, .../*The name of the parent classes*/)	\

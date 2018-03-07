@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -117,27 +117,27 @@ INLINE ClientObjectBase* Entity::pClientApp() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::baseMailbox() const
+INLINE EntityCall* Entity::baseEntityCall() const
 { 
-	return baseMailbox_; 
+	return baseEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::cellMailbox(EntityMailbox* mailbox)
+INLINE void Entity::cellEntityCall(EntityCall* entityCall)
 { 
-	cellMailbox_ = mailbox; 
+	cellEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::cellMailbox() const
+INLINE EntityCall* Entity::cellEntityCall() const
 { 
-	return cellMailbox_; 
+	return cellEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::baseMailbox(EntityMailbox* mailbox)
+INLINE void Entity::baseEntityCall(EntityCall* entityCall)
 { 
-	baseMailbox_ = mailbox; 
+	baseEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------

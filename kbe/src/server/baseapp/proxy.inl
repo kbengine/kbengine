@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -71,9 +71,9 @@ INLINE const Network::Address& Proxy::addr() const
 	return addr_; 
 }
 
-INLINE bool Proxy::entitiesEnabled() const
-{ 
-	return entitiesEnabled_;
+INLINE bool Proxy::clientEnabled() const
+{
+	return clientEnabled_;
 }
 
 }

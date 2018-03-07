@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -38,10 +38,11 @@ std::vector<MessageHandlers*>* g_pMessageHandlers;
 static Network::FixedMessages* g_fm;
 
 //-------------------------------------------------------------------------------------
-MessageHandlers::MessageHandlers():
+MessageHandlers::MessageHandlers(const std::string& name):
 msgHandlers_(),
 msgID_(1),
-exposedMessages_()
+exposedMessages_(),
+name_(name)
 {
 	g_fm = Network::FixedMessages::getSingletonPtr();
 	if(g_fm == NULL)
@@ -107,29 +108,38 @@ bool MessageHandlers::initializeWatcher()
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); ++iter)
 	{
+		std::string sname = iter->second->name;
+		std::string::size_type fpos = iter->second->name.find("Entity::");
+
+		if (fpos != std::string::npos)
+		{
+			sname = name() + "::" + sname;
+			strutil::kbe_replace(sname, "Interface::", "::");
+		}
+
 		char buf[MAX_BUF * 2];
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/id", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/id", sname.c_str());
 		WATCH_OBJECT(buf, iter->second->msgID);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/len", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/len", sname.c_str());
 		WATCH_OBJECT(buf, iter->second->msgLen);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentCount", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendcount);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentAvgSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendavgsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvCount", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvAvgSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvavgsize);
 	}
 

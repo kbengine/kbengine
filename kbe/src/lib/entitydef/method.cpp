@@ -2,7 +2,7 @@
 This source file is part of KBEngine
 For the latest info, see http://www.kbengine.org/
 
-Copyright (c) 2008-2017 KBEngine.
+Copyright (c) 2008-2018 KBEngine.
 
 KBEngine is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,6 @@ name_(name),
 utype_(utype),
 argTypes_(),
 isExposed_(isExposed),
-currCallerID_(0),
 aliasID_(-1)
 {
 	MethodDescription::methodDescriptionCount_++;
@@ -166,7 +165,8 @@ void MethodDescription::addToStream(MemoryStream* mstream, PyObject* args)
 
 	// 将utype放进去，方便对端识别这个方法
 	// 这里如果aliasID_大于0则采用一个优化的办法， 使用1字节传输
-	if(aliasID_ < 0)
+	// 注意：在加载def时指定了客户端方法才设置aliasID，因此服务器内部不使用aliasID
+	if(aliasID_ <= 0)
 	{
 		(*mstream) << utype_;
 	}
@@ -203,8 +203,8 @@ PyObject* MethodDescription::createFromStream(MemoryStream* mstream)
 		pyArgsTuple = PyTuple_New(argSize + offset);
 
 		// 设置一个调用者ID提供给脚本判断来源是否正确
-		KBE_ASSERT(currCallerID_ > 0);
-		PyTuple_SET_ITEM(pyArgsTuple, 0, PyLong_FromLong(currCallerID_));
+		KBE_ASSERT(EntityDef::context().currEntityID > 0);
+		PyTuple_SET_ITEM(pyArgsTuple, 0, PyLong_FromLong(EntityDef::context().currEntityID));
 	}
 	else
 		pyArgsTuple = PyTuple_New(argSize);

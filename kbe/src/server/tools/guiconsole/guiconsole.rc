@@ -163,7 +163,7 @@ BEGIN
     LTEXT           "==>",IDC_STATIC,317,193,17,8
     PUSHBUTTON      "Add",IDC_ADD_IPMAPPING,252,207,60,14
     PUSHBUTTON      "Del",IDC_DEL_IPMAPPING,339,208,50,14
-    LTEXT           "The meaning can be referenced by the kbengine_defs-> externalAddress option. LAN IP is mapped to Internet IP, converted to Internet IP connection servers.",IDC_STATIC,215,20,223,31
+    LTEXT           "The meaning can be referenced by the kbengine_defaults-> externalAddress option. LAN IP is mapped to Internet IP, converted to Internet IP connection servers.",IDC_STATIC,215,20,223,31
 END
 
 IDD_GRAPHS DIALOGEX 0, 0, 316, 180
