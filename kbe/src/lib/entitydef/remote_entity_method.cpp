@@ -38,10 +38,10 @@ SCRIPT_INIT(RemoteEntityMethod, tp_call, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod::RemoteEntityMethod(MethodDescription* methodDescription, 
-	EntityCallAbstract* entitycall, PyTypeObject* pyType):
+	EntityCallAbstract* entityCall, PyTypeObject* pyType):
 script::ScriptObject((pyType == NULL ? getScriptType() : pyType), false),
 methodDescription_(methodDescription),
-pEntityCall_(entitycall)
+pEntityCall_(entityCall)
 {
 	Py_INCREF(pEntityCall_);
 }
@@ -64,12 +64,12 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 {	
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
-	EntityCallAbstract* entitycall = rmethod->getEntityCall();
+	EntityCallAbstract* entityCall = rmethod->getEntityCall();
 	// DEBUG_MSG(fmt::format("RemoteEntityMethod::tp_call:{}.\n"), methodDescription->getName()));
 
 	if(methodDescription->checkArgs(args))
 	{
-		Network::Channel* pChannel = entitycall->getChannel();
+		Network::Channel* pChannel = entityCall->getChannel();
 		Network::Bundle* pSendBundle = NULL;
 
 		if (!pChannel)
@@ -77,7 +77,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		else
 			pSendBundle = pChannel->createSendBundle();
 
-		entitycall->newCall((*pSendBundle));
+		entityCall->newCall((*pSendBundle));
 
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
@@ -85,7 +85,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		if(mstream.wpos() > 0)
 			(*pSendBundle).append(mstream.data(), mstream.wpos());
 
-		entitycall->sendCall(pSendBundle);
+		entityCall->sendCall(pSendBundle);
 	}
 	else
 	{

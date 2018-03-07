@@ -50,7 +50,38 @@ class Channel;
 class Bundle;
 }
 
+class AllClients;
 class ScriptDefModule;
+class PropertyDescription;
+
+class AllClientsComponent : public script::ScriptObject
+{
+	/** 子类化 将一些py操作填充进派生类 */
+	INSTANCE_SCRIPT_HREADER(AllClientsComponent, ScriptObject)
+public:
+	AllClientsComponent(PropertyDescription* pComponentPropertyDescription, AllClients* pAllClients);
+
+	~AllClientsComponent();
+
+	/**
+	脚本请求获取属性或者方法
+	*/
+	PyObject* onScriptGetAttribute(PyObject* attr);
+
+	/**
+	获得对象的描述
+	*/
+	PyObject* tp_repr();
+	PyObject* tp_str();
+
+	void c_str(char* s, size_t size);
+
+	ScriptDefModule* pComponentScriptDefModule();
+
+protected:
+	AllClients* pAllClients_;
+	PropertyDescription* pComponentPropertyDescription_;
+};
 
 class AllClients : public script::ScriptObject
 {
@@ -85,6 +116,10 @@ public:
 
 	void setScriptModule(const ScriptDefModule*	pScriptModule){ 
 		pScriptModule_ = pScriptModule; 
+	}
+
+	bool isOtherClients() const {
+		return otherClients_;
 	}
 
 protected:

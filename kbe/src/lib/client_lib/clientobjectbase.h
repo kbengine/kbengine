@@ -42,6 +42,7 @@ class Entity;
 }
 
 class EntityCall;
+class EntityCallAbstract;
 
 namespace Network
 {
@@ -136,9 +137,14 @@ public:
 	ENTITY_ID readEntityIDFromStream(MemoryStream& s);
 
 	/**
-		由entitycall来尝试获取一个channel的实例
+		由entityCall来尝试获取一个channel的实例
 	*/
-	virtual Network::Channel* findChannelByEntityCall(EntityCall& entitycall);
+	virtual Network::Channel* findChannelByEntityCall(EntityCallAbstract& entityCall);
+
+	/**
+		通过entity的ID尝试寻找它的实例
+	*/
+	virtual PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 网络接口
 		客户端与服务端第一次建立交互, 服务端返回

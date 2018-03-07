@@ -152,7 +152,7 @@ public:
 	uint32 getEntityVolatileDataUpdateFlags(Entity* otherEntity);
 	
 
-	const Network::MessageHandler& getViewEntityMessageHandler(const Network::MessageHandler& normalMsgHandler,
+	const Network::MessageHandler& getViewEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
 											   const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID, int& ialiasID);
 
 	bool entityID2AliasID(ENTITY_ID id, uint8& aliasID);
@@ -209,7 +209,7 @@ private:
 
 	// 当前entity的view半径
 	float									viewRadius_;
-	// 当前entityview的一个滞后范围
+	// 当前entityView的一个滞后范围
 	float									viewHysteresisArea_;
 
 	ViewTrigger*							pViewTrigger_;

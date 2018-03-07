@@ -52,7 +52,39 @@ class Channel;
 class Bundle;
 }
 
+class ClientEntity;
 class ScriptDefModule;
+class PropertyDescription;
+
+class ClientEntityComponent : public script::ScriptObject
+{
+	/** 子类化 将一些py操作填充进派生类 */
+	INSTANCE_SCRIPT_HREADER(ClientEntityComponent, ScriptObject)
+public:
+	ClientEntityComponent(PropertyDescription* pComponentPropertyDescription, ClientEntity* pClientEntity);
+
+	~ClientEntityComponent();
+
+	ScriptDefModule* pComponentScriptDefModule();
+
+	/**
+		脚本请求获取属性或者方法
+	*/
+	PyObject* onScriptGetAttribute(PyObject* attr);
+
+	/**
+		获得对象的描述
+	*/
+	PyObject* tp_repr();
+	PyObject* tp_str();
+
+	void c_str(char* s, size_t size);
+
+protected:
+	ClientEntity*							pClientEntity_;
+	PropertyDescription*					pComponentPropertyDescription_;
+
+};
 
 class ClientEntity : public script::ScriptObject
 {
@@ -75,6 +107,14 @@ public:
 	PyObject* tp_str();
 	
 	void c_str(char* s, size_t size);
+
+	ENTITY_ID srcEntityID() const {
+		return srcEntityID_;
+	}
+
+	ENTITY_ID clientEntityID() const {
+		return clientEntityID_;
+	}
 
 protected:
 	ENTITY_ID								srcEntityID_;						// srcEntityID_

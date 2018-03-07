@@ -74,7 +74,8 @@ public:
 		获取属性的标志 cell_public等 
 	*/
 	INLINE uint32 getFlags(void) const;
-	
+	INLINE void setFlags(uint32 flags);
+
 	/** 
 		获取属性名称 
 	*/
@@ -122,7 +123,7 @@ public:
 	/** 
 		获取这个属性描述在def文件中被定义的默认值 
 	*/
-	PyObject* newDefaultVal(void);
+	virtual PyObject* newDefaultVal(void);
 	
 	/** 
 		获得属性描述的总数量 
@@ -134,15 +135,15 @@ public:
 		根据类型产生一个描述实例 
 	*/
 	static PropertyDescription* createDescription(ENTITY_PROPERTY_UID utype, 
-		std::string& dataTypeName, 
-		std::string& name,
+		const std::string& dataTypeName,
+		const std::string& name,
 		uint32 flags, 
 		bool isPersistent, 
 		DataType* dataType, 
 		bool isIdentifier, 
 		std::string indexType,
 		uint32 databaseLength,
-		std::string& defaultStr, 
+		const std::string& defaultStr,
 		DETAIL_TYPE detailLevel);
 	
 	/** 
@@ -153,6 +154,9 @@ public:
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromStream(MemoryStream* mstream);
 	virtual PyObject* parseDefaultStr(const std::string& defaultVal);
+
+	virtual bool isSameType(PyObject* pyValue);
+	virtual bool isSamePersistentType(PyObject* pyValue);
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
@@ -261,6 +265,42 @@ public:
 	
 protected:	
 	uint8 elemCount_;
+};
+
+class EntityComponentDescription : public PropertyDescription
+{
+public:
+	EntityComponentDescription(ENTITY_PROPERTY_UID utype,
+		std::string dataTypeName,
+		std::string name,
+		uint32 flags,
+		bool isPersistent,
+		DataType* dataType,
+		bool isIdentifier,
+		std::string indexType,
+		uint32 databaseLength,
+		std::string defaultStr,
+		DETAIL_TYPE detailLevel);
+
+	virtual ~EntityComponentDescription();
+
+	/**
+		脚本请求设置这个属性的值
+	*/
+	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
+
+	virtual bool isSamePersistentType(PyObject* pyValue);
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+
+	virtual PyObject* createFromStream(MemoryStream* mstream);
+
+	/**
+		获取这个属性描述在def文件中被定义的默认值
+	*/
+	virtual PyObject* newDefaultVal(void);
+
+protected:
 };
 
 }

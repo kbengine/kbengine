@@ -497,6 +497,51 @@ protected:
 };
 
 
+class EntityTableItemMysql_Component : public EntityTableItemMysqlBase
+{
+public:
+	EntityTableItemMysql_Component(std::string itemDBType,
+		uint32 datalength, uint32 flags, enum_field_types mysqlItemtype) :
+		EntityTableItemMysqlBase(itemDBType, datalength, flags, mysqlItemtype),
+		pChildTable_(NULL)
+	{
+	}
+
+	virtual ~EntityTableItemMysql_Component() {};
+
+	virtual bool isSameKey(std::string key);
+
+	/**
+		初始化
+	*/
+	virtual bool initialize(const PropertyDescription* pPropertyDescription,
+		const DataType* pDataType, std::string name);
+
+	uint8 type() const { return TABLE_ITEM_TYPE_COMPONENT; }
+
+	/**
+		同步entity表到数据库中
+	*/
+	virtual bool syncToDB(DBInterface* pdbi, void* pData = NULL);
+
+	/**
+		获取某个表所有的数据放到流中
+	*/
+	void addToStream(MemoryStream* s, mysql::DBContext& context, DBID resultDBID);
+
+	/**
+		获取需要存储的表名， 字段名和转换为sql存储时的字符串值
+	*/
+	virtual void getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, mysql::DBContext& context);
+	virtual void getReadSqlItem(mysql::DBContext& context);
+
+	virtual void init_db_item_name(const char* exstrFlag = "");
+
+protected:
+	EntityTable* pChildTable_;
+};
+
+
 /*
 	维护entity在数据库中的表
 */

@@ -44,6 +44,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/entitydef.h"
 #include "entitydef/entities.h"
 #include "entitydef/entity_call.h"
+#include "entitydef/entity_component.h"
 #include "entitydef/scriptdef_module.h"
 #include "network/message_handler.h"
 #include "resmgr/resmgr.h"
@@ -92,15 +93,15 @@ public:
 	virtual bool destroyEntity(ENTITY_ID entityID, bool callScript);
 
 	/**
-		由entitycall来尝试获取一个entity的实例
+		由entityCall等来尝试获取一个entity的实例
 		因为这个组件上不一定存在这个entity。
 	*/
-	PyObject* tryGetEntityByEntityCall(COMPONENT_ID componentID, ENTITY_ID eid);
+	PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID eid);
 
 	/**
-		由entitycall来尝试获取一个channel的实例
+		由entityCall来尝试获取一个channel的实例
 	*/
-	Network::Channel* findChannelByEntityCall(EntityCall& entitycall);
+	Network::Channel* findChannelByEntityCall(EntityCallAbstract& entityCall);
 
 	KBEngine::script::Script& getScript(){ return script_; }
 	PyObjectPtr getEntryScript(){ return entryScript_; }
@@ -278,12 +279,12 @@ load_(0.f)
 	ScriptTimers::initialize(*this);
 	idClient_.pApp(this);
 
-	// 初始化entitycall模块获取entity实体函数地址
-	EntityCall::setGetEntityFunc(std::tr1::bind(&EntityApp<E>::tryGetEntityByEntityCall, this, 
+	// 初始化EntityDef模块获取entity实体函数地址
+	EntityDef::setGetEntityFunc(std::tr1::bind(&EntityApp<E>::tryGetEntity, this,
 		std::tr1::placeholders::_1, std::tr1::placeholders::_2));
 
-	// 初始化entitycall模块获取channel函数地址
-	EntityCall::setFindChannelFunc(std::tr1::bind(&EntityApp<E>::findChannelByEntityCall, this, 
+	// 初始化entityCall模块获取channel函数地址
+	EntityCallAbstract::setFindChannelFunc(std::tr1::bind(&EntityApp<E>::findChannelByEntityCall, this,
 		std::tr1::placeholders::_1));
 }
 
@@ -412,7 +413,7 @@ bool EntityApp<E>::installPyScript()
 	pyPaths += user_scripts_path + L"data;";
 	pyPaths += user_scripts_path + L"user_type;";
 
-	switch (componentType_)
+	switch(componentType_)
 	{
 	case BASEAPP_TYPE:
 		pyPaths += user_scripts_path + L"server_common;";
@@ -646,6 +647,8 @@ E* EntityApp<E>::createEntity(const char* entityType, PyObject* params,
 	if(id <= 0)
 		id = idClient_.alloc();
 	
+	EntityDef::context().currEntityID = id;
+
 	E* entity = onCreateEntity(obj, sm, id);
 
 	if(initProperty)
@@ -701,14 +704,14 @@ void EntityApp<E>::onSignalled(int sigNum)
 }
 
 template<class E>
-PyObject* EntityApp<E>::tryGetEntityByEntityCall(COMPONENT_ID componentID, ENTITY_ID eid)
+PyObject* EntityApp<E>::tryGetEntity(COMPONENT_ID componentID, ENTITY_ID eid)
 {
 	if(componentID != componentID_)
 		return NULL;
 	
 	E* entity = pEntities_->find(eid);
 	if(entity == NULL){
-		ERROR_MSG(fmt::format("EntityApp::tryGetEntityByEntityCall: can't found entity:{}.\n", eid));
+		ERROR_MSG(fmt::format("EntityApp::tryGetEntity: can't found entity:{}.\n", eid));
 		return NULL;
 	}
 
@@ -716,20 +719,20 @@ PyObject* EntityApp<E>::tryGetEntityByEntityCall(COMPONENT_ID componentID, ENTIT
 }
 
 template<class E>
-Network::Channel* EntityApp<E>::findChannelByEntityCall(EntityCall& entitycall)
+Network::Channel* EntityApp<E>::findChannelByEntityCall(EntityCallAbstract& entityCall)
 {
 	// 如果组件ID大于0则查找组件
-	if(entitycall.componentID() > 0)
+	if(entityCall.componentID() > 0)
 	{
 		Components::ComponentInfos* cinfos = 
-			Components::getSingleton().findComponent(entitycall.componentID());
+			Components::getSingleton().findComponent(entityCall.componentID());
 
 		if(cinfos != NULL && cinfos->pChannel != NULL)
 			return cinfos->pChannel; 
 	}
 	else
 	{
-		return Components::getSingleton().pNetworkInterface()->findChannel(entitycall.addr());
+		return Components::getSingleton().pNetworkInterface()->findChannel(entityCall.addr());
 	}
 
 	return NULL;
@@ -1483,6 +1486,12 @@ void EntityApp<E>::onReloadScript(bool fullReload)
 	for(; iter != EntityCall::entityCalls.end(); ++iter)
 	{
 		(*iter)->reload();
+	}
+
+	EntityComponent::ENTITY_COMPONENTS::iterator iter1 = EntityComponent::entity_components.begin();
+	for (; iter1 != EntityComponent::entity_components.end(); ++iter1)
+	{
+		(*iter1)->reload();
 	}
 }
 

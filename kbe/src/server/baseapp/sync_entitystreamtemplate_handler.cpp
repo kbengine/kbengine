@@ -57,7 +57,7 @@ networkInterface_(networkInterface)
 		for(; iter != propertyDescrs.end(); ++iter)
 		{
 			PropertyDescription* propertyDescription = iter->second;
-			accountDefMemoryStream << propertyDescription->getUType();
+			accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
 			propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 		}
 	}
@@ -111,7 +111,7 @@ bool SyncEntityStreamTemplateHandler::process()
 	for(; iter != propertyDescrs.end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
-		accountDefMemoryStream << propertyDescription->getUType();
+		accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
 		propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 	}
 

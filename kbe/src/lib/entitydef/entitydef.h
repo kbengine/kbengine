@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "method.h"	
 #include "property.h"
+#include "entity_call.h"
 #include "math/math.h"
 #include "pyscript/scriptobject.h"
 #include "xml/xml.h"	
@@ -48,6 +49,9 @@ public:
 	typedef std::vector<ScriptDefModulePtr> SCRIPT_MODULES;	
 	typedef std::map<std::string, ENTITY_SCRIPT_UID> SCRIPT_MODULE_UID_MAP;	
 
+	typedef std::tr1::function<PyObject* (COMPONENT_ID componentID, ENTITY_ID& eid)> GetEntityFunc;
+	typedef std::tr1::function<Network::Channel* (EntityCall&)> FindChannelFunc;
+
 	EntityDef();
 	~EntityDef();
 	
@@ -61,10 +65,25 @@ public:
 
 	static void reload(bool fullReload);
 
+	/**
+		通过entity的ID尝试寻找它的实例
+	*/
+	static PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
+
+	/**
+		设置entityCall的__getEntityFunc函数地址
+	*/
+	static void setGetEntityFunc(GetEntityFunc func) {
+		__getEntityFunc = func;
+	};
+
 	/** 
 		加载相关描述
 	*/
-	static bool loadAllScriptModules(std::string entitiesPath, 
+	static bool loadAllEntityScriptModules(std::string entitiesPath, 
+		std::vector<PyTypeObject*>& scriptBaseTypes);
+
+	static bool loadAllComponentScriptModules(std::string entitiesPath,
 		std::vector<PyTypeObject*>& scriptBaseTypes);
 
 	static bool loadAllDefDescriptions(const std::string& moduleName, 
@@ -76,6 +95,9 @@ public:
 		XML* xml, 
 		TiXmlNode* defPropertyNode, 
 		ScriptDefModule* pScriptModule);
+
+	static bool calcDefPropertyUType(const std::string& moduleName, 
+		const std::string& name, int iUtype, ScriptDefModule* pScriptModule, ENTITY_PROPERTY_UID& outUtype);
 
 	static bool loadDefCellMethods(const std::string& moduleName, 
 		XML* xml, 
@@ -96,7 +118,26 @@ public:
 		const std::string& moduleName, 
 		XML* defxml, 
 		TiXmlNode* defNode, 
+		ScriptDefModule* pScriptModule, bool ignoreComponents = false);
+
+	static bool loadComponents(const std::string& defFilePath,
+		const std::string& moduleName,
+		XML* defxml,
+		TiXmlNode* defNode,
 		ScriptDefModule* pScriptModule);
+
+	static PropertyDescription* addComponentProperty(ENTITY_PROPERTY_UID utype,
+		const std::string& componentTypeName,
+		const std::string& componentName,
+		uint32 flags,
+		bool isPersistent,
+		bool isIdentifier,
+		std::string indexType,
+		uint32 databaseLength,
+		const std::string& defaultStr,
+		DETAIL_TYPE detailLevel,
+		ScriptDefModule* pScriptModule,
+		ScriptDefModule* pCompScriptDefModule);
 
 	static bool loadParentClass(const std::string& defFilePath, 
 		const std::string& moduleName, 
@@ -122,13 +163,15 @@ public:
 		TiXmlNode* defNode, 
 		ScriptDefModule* pScriptModule);
 
+	static PyObject* loadScriptModule(std::string moduleName);
+
 	/** 
 		是否加载这个脚本模块 
 	*/
 	static bool isLoadScriptModule(ScriptDefModule* pScriptModule);
 
 	/** 
-		根据当前组件类别设置是否有cell或者base 
+		根据当前组件类别设置是否有cell 或者base 
 	*/
 	static void setScriptModuleHasComponentEntity(ScriptDefModule* pScriptModule, bool has);
 
@@ -146,9 +189,9 @@ public:
 	/** 
 		通过标记来寻找到对应的脚本模块对象 
 	*/
-	static ScriptDefModule* findScriptModule(ENTITY_SCRIPT_UID utype);
-	static ScriptDefModule* findScriptModule(const char* scriptName);
-	static ScriptDefModule* findOldScriptModule(const char* scriptName);
+	static ScriptDefModule* findScriptModule(ENTITY_SCRIPT_UID utype, bool notFoundOutErr = true);
+	static ScriptDefModule* findScriptModule(const char* scriptName, bool notFoundOutErr = true);
+	static ScriptDefModule* findOldScriptModule(const char* scriptName, bool notFoundOutErr = true);
 
 	static bool installScript(PyObject* mod);
 	static bool uninstallScript();
@@ -186,6 +229,24 @@ public:
 		return __entitydefAliasID && __scriptModules.size() <= 255; 
 	}
 
+	struct Context
+	{
+		Context()
+		{
+			currEntityID = 0;
+			currClientappID = 0;
+			currComponentType = UNKNOWN_COMPONENT_TYPE;
+		}
+
+		ENTITY_ID currEntityID;
+		COMPONENT_TYPE currComponentType;
+		int32 currClientappID;
+	};
+
+	static Context& context() {
+		return __context;
+	}
+
 private:
 	static SCRIPT_MODULES __scriptModules;										// 所有的扩展脚本模块都存储在这里
 	static SCRIPT_MODULES __oldScriptModules;									// reload时旧的模块会放到这里用于判断
@@ -203,6 +264,11 @@ private:
 
 	static bool __entityAliasID;												// 优化EntityID，view范围内小于255个EntityID, 传输到client时使用1字节伪ID 
 	static bool __entitydefAliasID;												// 优化entity属性和方法广播时占用的带宽，entity客户端属性或者客户端不超过255个时， 方法uid和属性uid传输到client时使用1字节别名ID
+													
+	static GetEntityFunc __getEntityFunc;										// 获得一个entity的实体的函数地址
+
+	// 设置当前操作的一些上下文
+	static Context __context;
 };
 
 }

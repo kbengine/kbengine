@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_VIEW_TRIGGER_H
-#define KBE_VIEW_TRIGGER_H
+#ifndef KBE_View_TRIGGER_H
+#define KBE_View_TRIGGER_H
 
 #include "range_trigger.h"
 

@@ -211,6 +211,7 @@
     <ClCompile Include="client_sdk.cpp" />
     <ClCompile Include="client_sdk_ue4.cpp" />
     <ClCompile Include="client_sdk_unity.cpp" />
+    <ClCompile Include="entity_component.cpp" />
     <ClCompile Include="kbcmd.cpp" />
     <ClCompile Include="kbcmd_interface.cpp" />
     <ClCompile Include="main.cpp" />

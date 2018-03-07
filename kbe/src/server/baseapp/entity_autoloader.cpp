@@ -51,7 +51,8 @@ querying_(false)
 		EntityDef::SCRIPT_MODULES::const_iterator iter = modules.begin();
 		for (; iter != modules.end(); ++iter)
 		{
-			entityTypes_[entityTypes_.size() - 1].push_back((*iter)->getUType());
+			if((*iter)->isPersistent())
+				entityTypes_[entityTypes_.size() - 1].push_back((*iter)->getUType());
 		}
 	}
 }

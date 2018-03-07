@@ -52,7 +52,7 @@ class TelnetServer;
 class RestoreEntityHandler;
 class InitProgressHandler;
 
-class Baseapp :	public EntityApp<Entity>, 
+class Baseapp :	public EntityApp<Entity>,
 				public Singleton<Baseapp>
 {
 public:
@@ -407,9 +407,9 @@ public:
 	void onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
 
 	/**
-		hook entitycall call
+		hook entitycallcall
 	*/
-	RemoteEntityMethod* createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCall* pEntityCall);
+	RemoteEntityMethod* createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCallAbstract* pEntityCall);
 
 	virtual void onHello(Network::Channel* pChannel, 
 		const std::string& verInfo, 
@@ -472,7 +472,7 @@ public:
 	/**
 		通过dbid从数据库中删除一个实体
 
-		从数据库删除实体， 如果实体不在线则可以直接删除回调返回true， 如果在线则回调返回的是entity的entitycall， 其他任何原因都返回false.
+		从数据库删除实体， 如果实体不在线则可以直接删除回调返回true， 如果在线则回调返回的是entity的entityCall， 其他任何原因都返回false.
 	*/
 	static PyObject* __py_deleteEntityByDBID(PyObject* self, PyObject* args);
 

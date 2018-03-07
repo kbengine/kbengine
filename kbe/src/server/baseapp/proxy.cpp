@@ -158,17 +158,17 @@ void Proxy::initClientCellPropertys()
 	if(pScriptModule()->usePropertyDescrAlias())
 	{
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_SPACEID;
-		(*pBundle) << aliasID << this->spaceID();
+		(*pBundle) << (uint8)0 << aliasID << this->spaceID();
 	}
 	else
 	{
-		(*pBundle) << spaceuid << this->spaceID();
+		(*pBundle) << (ENTITY_PROPERTY_UID)0 << spaceuid << this->spaceID();
 	}
 
 	MemoryStream* s = MemoryStream::createPoolObject();
 
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
-	addCellDataToStream(ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
+	addCellDataToStream(CLIENT_TYPE, ED_FLAG_ALL_CLIENTS|ED_FLAG_CELL_PUBLIC_AND_OWN|ED_FLAG_OWN_CLIENT, s, true);
 	(*pBundle).append(*s);
 	MemoryStream::reclaimPoolObject(s);
 	//clientEntityCall()->sendCall((*pBundle));
@@ -180,7 +180,7 @@ void Proxy::onClientEnabled(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	clientEnabled_ = true;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientEnabled"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientEnabled"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -188,12 +188,13 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
+	Py_INCREF(this);
+
 	PyObject* pyResult = PyObject_CallMethod(this, 
 		const_cast<char*>("onLogOnAttempt"), const_cast<char*>("sks"), 
 		addr, 
 		port,
-		password,
-		false
+		password
 	);
 	
 	int32 ret = LOG_ON_REJECT;
@@ -206,6 +207,14 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 	else
 		SCRIPT_ERROR_CHECK();
 
+	CALL_ENTITY_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS3(pyTempObj, const_cast<char*>("onLogOnAttempt"),
+		const_cast<char*>("sks"),
+		addr,
+		port,
+		password,
+		false));
+
+	Py_DECREF(this);
 	return ret;
 }
 
@@ -230,7 +239,7 @@ void Proxy::onClientDeath(void)
 	addr(Network::Address::NONE);
 
 	clientEnabled_ = false;
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientDeath"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientDeath"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -241,8 +250,7 @@ void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID
 		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITYCALL_TYPE_CELL);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onClientGetCell"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientGetCell"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -301,8 +309,7 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 void Proxy::onGiveClientToFailure()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onGiveClientToFailure"), false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGiveClientToFailure"), false));
 }
 
 //-------------------------------------------------------------------------------------
@@ -830,9 +837,8 @@ bool Proxy::sendToClient(bool expectData)
 void Proxy::onStreamComplete(int16 id, bool success)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-
-	SCRIPT_OBJECT_CALL_ARGS2(this, const_cast<char*>("onStreamComplete"), 
-		const_cast<char*>("hO"), id, success ? Py_True : Py_False, false);
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onStreamComplete"),
+		const_cast<char*>("hO"), id, success ? Py_True : Py_False, false));
 }
 
 //-------------------------------------------------------------------------------------

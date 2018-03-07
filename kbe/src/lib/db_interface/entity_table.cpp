@@ -141,7 +141,7 @@ bool EntityTables::load(DBInterface* pdbi)
 		ScriptDefModule* pSM = (*iter).get();
 		EntityTable* pEtable = pdbi->createEntityTable(this);
 
-		if(!pEtable)
+		if(!pEtable || !pSM->isPersistent())
 			continue;
 
 		if (!pEtable->initialize(pSM, pSM->getName()))

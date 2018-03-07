@@ -50,6 +50,7 @@ class MemoryStream;
 #define TABLE_ITEM_TYPE_UNICODE		9
 #define TABLE_ITEM_TYPE_ENTITYCALL	10
 #define TABLE_ITEM_TYPE_PYTHON		11
+#define TABLE_ITEM_TYPE_COMPONENT	12
 
 #define KBE_TABLE_PERFIX						"kbe"
 #define ENTITY_TABLE_PERFIX						"tbl"

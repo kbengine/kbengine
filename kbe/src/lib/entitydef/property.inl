@@ -41,6 +41,11 @@ INLINE uint32 PropertyDescription::getFlags(void) const
 	return flags_; 
 };
 
+INLINE void PropertyDescription::setFlags(uint32 flags)
+{
+	flags_ = flags;
+}
+
 INLINE const char* PropertyDescription::getName(void) const
 { 
 	return name_.c_str(); 

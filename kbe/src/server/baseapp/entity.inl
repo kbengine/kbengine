@@ -28,9 +28,9 @@ INLINE EntityCall* Entity::cellEntityCall(void) const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::cellEntityCall(EntityCall* entitycall)
+INLINE void Entity::cellEntityCall(EntityCall* entityCall)
 {
-	cellEntityCall_ = entitycall;
+	cellEntityCall_ = entityCall;
 }
 
 //-------------------------------------------------------------------------------------
@@ -40,9 +40,9 @@ INLINE EntityCall* Entity::clientEntityCall() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::clientEntityCall(EntityCall* entitycall)
+INLINE void Entity::clientEntityCall(EntityCall* entityCall)
 { 
-	clientEntityCall_ = entitycall; 
+	clientEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------

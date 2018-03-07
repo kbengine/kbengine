@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet_receiver.h"
 #include "thread/threadpool.h"
 #include "entitydef/entity_call.h"
+#include "entitydef/entity_component.h"
 #include "entitydef/entitydef.h"
 #include "server/components.h"
 #include "server/serverconfig.h"
@@ -75,8 +76,8 @@ state_(C_STATE_INIT)
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 
-	// 初始化entitycall模块获取channel函数地址
-	EntityCall::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByEntityCall, this, 
+	// 初始化entityCall模块获取channel函数地址
+	EntityCallAbstract::setFindChannelFunc(std::tr1::bind(&ClientApp::findChannelByEntityCall, this,
 		std::tr1::placeholders::_1));
 
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &ClientInterface::messageHandlers;
@@ -87,7 +88,7 @@ state_(C_STATE_INIT)
 //-------------------------------------------------------------------------------------
 ClientApp::~ClientApp()
 {
-	EntityCall::resetCallHooks();
+	EntityCallAbstract::resetCallHooks();
 	SAFE_RELEASE(pBlowfishFilter_);
 }
 
@@ -251,6 +252,7 @@ bool ClientApp::uninstallPyScript()
 bool ClientApp::installPyModules()
 {
 	registerScript(client::Entity::getScriptType());
+	registerScript(EntityComponent::getScriptType());
 	onInstallPyModules();
 
 	// 注册设置脚本输出类型

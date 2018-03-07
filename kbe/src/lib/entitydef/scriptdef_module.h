@@ -48,10 +48,20 @@ class ScriptDefModule : public RefCountable
 public:
 	typedef std::map<std::string, PropertyDescription*> PROPERTYDESCRIPTION_MAP;
 	typedef std::map<std::string, MethodDescription*> METHODDESCRIPTION_MAP;
+	typedef std::map<std::string, ScriptDefModule*> COMPONENTDESCRIPTION_MAP;
+	typedef std::map<std::string, PropertyDescription*> COMPONENTPROPERTYDESCRIPTION_MAP;
+
 	typedef std::map<ENTITY_PROPERTY_UID, PropertyDescription*> PROPERTYDESCRIPTION_UIDMAP;
 	typedef std::map<ENTITY_METHOD_UID, MethodDescription*> METHODDESCRIPTION_UIDMAP;
+	typedef std::map<ENTITY_COMPONENT_UID, ScriptDefModule*> COMPONENTDESCRIPTION_UIDMAP;
+
 	typedef std::map<ENTITY_DEF_ALIASID, PropertyDescription*> PROPERTYDESCRIPTION_ALIASMAP;
 	typedef std::map<ENTITY_DEF_ALIASID, MethodDescription*> METHODDESCRIPTION_ALIASMAP;
+	typedef std::map<ENTITY_COMPONENT_ALIASID, ScriptDefModule*> COMPONENTDESCRIPTION_ALIASMAP;
+	
+	typedef std::map<ENTITY_COMPONENT_UID, ENTITY_COMPONENT_ALIASID> COMPONENTDESCRIPTION_TYPE2ALIASMAP;
+
+	typedef std::vector<ScriptDefModule*> COMPONENTDESCRIPTIONS;
 
 	ScriptDefModule(std::string name, ENTITY_SCRIPT_UID utype);
 	~ScriptDefModule();
@@ -88,6 +98,7 @@ public:
 	PropertyDescription* findClientPropertyDescription(const char* attrName);
 	PropertyDescription* findPersistentPropertyDescription(const char* attrName);
 	PropertyDescription* findPropertyDescription(const char* attrName, COMPONENT_TYPE componentType);
+	PropertyDescription* findComponentPropertyDescription(const char* attrName);
 
 	PropertyDescription* findCellPropertyDescription(ENTITY_PROPERTY_UID utype);
 	PropertyDescription* findBasePropertyDescription(ENTITY_PROPERTY_UID utype);
@@ -136,7 +147,9 @@ public:
 
 	bool hasPropertyName(const std::string& name);
 	bool hasMethodName(const std::string& name);
-	
+	bool hasComponentName(const std::string& name);
+	bool hasName(const std::string& name);
+
 	INLINE METHODDESCRIPTION_MAP& getBaseExposedMethodDescriptions(void);
 	INLINE METHODDESCRIPTION_MAP& getCellExposedMethodDescriptions(void);
 
@@ -145,12 +158,32 @@ public:
 	void autoMatchCompOwn();
 
 	INLINE bool isPersistent() const;
+	INLINE void isPersistent(bool v);
 
 	void c_str();
 
 	INLINE bool usePropertyDescrAlias() const;
 	INLINE bool useMethodDescrAlias() const;
 	
+	bool addComponentDescription(const char* compName,
+		ScriptDefModule* compDescription);
+
+	ScriptDefModule* findComponentDescription(const char* compName);
+	ScriptDefModule* findComponentDescription(ENTITY_PROPERTY_UID utype);
+	ScriptDefModule* findComponentDescription(ENTITY_COMPONENT_ALIASID aliasID);
+
+	ScriptDefModule::COMPONENTDESCRIPTION_MAP& getComponentDescrs() {
+		return componentDescr_;
+	}
+
+	bool isComponentModule() const {
+		return isComponentModule_;
+	}
+
+	void isComponentModule(bool v) {
+		isComponentModule_ = v;
+	}
+
 protected:
 	// ½Å±¾Àà±ð
 	PyTypeObject*						scriptType_;
@@ -211,6 +244,16 @@ protected:
 
 	bool								usePropertyDescrAlias_;
 	bool								useMethodDescrAlias_;
+	bool								useComponentDescrAlias_;
+
+	COMPONENTDESCRIPTION_UIDMAP			componentDescr_uidmap_;
+	COMPONENTDESCRIPTIONS				componentDescrVec_;
+	COMPONENTDESCRIPTION_MAP			componentDescr_;
+	COMPONENTPROPERTYDESCRIPTION_MAP	componentPropertyDescr_;
+
+	bool								persistent_;
+
+	bool								isComponentModule_;
 };
 
 

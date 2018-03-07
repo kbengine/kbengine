@@ -104,15 +104,15 @@ INLINE EntityCall* Entity::baseEntityCall() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::baseEntityCall(EntityCall* entitycall)
+INLINE void Entity::baseEntityCall(EntityCall* entityCall)
 { 
-	baseEntityCall_ = entitycall; 
+	baseEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::clientEntityCall(EntityCall* entitycall)
+INLINE void Entity::clientEntityCall(EntityCall* entityCall)
 {
-	clientEntityCall_ = entitycall; 
+	clientEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------

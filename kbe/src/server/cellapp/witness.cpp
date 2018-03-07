@@ -229,7 +229,7 @@ void Witness::clear(Entity* pEntity)
 	clientViewSize_ = 0;
 
 	// 不需要销毁，后面还可以重用
-	// 此处销毁可能会产生错误，因为enterView过程中可能导致实体销毁
+	// 此处销毁可能会产生错误，因为enterview过程中可能导致实体销毁
 	// 在pViewTrigger_流程没走完之前这里销毁了pViewTrigger_就crash
 	//SAFE_RELEASE(pViewTrigger_);
 	//SAFE_RELEASE(pViewHysteresisAreaTrigger_);
@@ -376,7 +376,7 @@ void Witness::onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity)
 	// 先增加一个引用，避免实体在回调中被销毁造成后续判断出错
 	Py_INCREF(pEntity);
 
-	// 在onEnteredView和addWitnessed可能导致自己销毁然后
+	// 在onEnteredview和addWitnessed可能导致自己销毁然后
 	// pEntity_将被设置为NULL，后面没有机会DECREF
 	Entity* pSelfEntity = pEntity_;
 	Py_INCREF(pSelfEntity);
@@ -645,7 +645,7 @@ void Witness::_addViewEntityIDToBundle(Network::Bundle* pBundle, EntityRef* pEnt
 }
 
 //-------------------------------------------------------------------------------------
-const Network::MessageHandler& Witness::getViewEntityMessageHandler(const Network::MessageHandler& normalMsgHandler,
+const Network::MessageHandler& Witness::getViewEntityMessageHandler(const Network::MessageHandler& normalMsgHandler, 
 	const Network::MessageHandler& optimizedMsgHandler, ENTITY_ID entityID, int& ialiasID)
 {
 	ialiasID = -1;

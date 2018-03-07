@@ -216,6 +216,7 @@
     <ClCompile Include="archiver.cpp" />
     <ClCompile Include="backuper.cpp" />
     <ClCompile Include="entity.cpp" />
+    <ClCompile Include="entity_component.cpp" />
     <ClCompile Include="entity_messages_forward_handler.cpp" />
     <ClCompile Include="entity_remotemethod.cpp" />
     <ClCompile Include="baseapp.cpp" />
