@@ -1283,9 +1283,6 @@ bool Entity::bufferOrExeCallback(const char * funcName, PyObject * funcArgs, boo
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
 		for (; comps_iter != componentDescrs.end(); ++comps_iter)
 		{
-			if (!comps_iter->second->hasBase())
-				continue;
-
 			PyObject* pyTempObj = PyObject_GetAttrString(this, comps_iter->first.c_str());
 			if (pyTempObj)
 			{
@@ -1363,9 +1360,6 @@ void Entity::bufferCallback(bool enable)
 				ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
 				for (; comps_iter != componentDescrs.end(); ++comps_iter)
 				{
-					if (!comps_iter->second->hasBase())
-						continue;
-
 					PyObject* pyTempObj = PyObject_GetAttrString(pBufferedScriptCall->entityPtr.get(), comps_iter->first.c_str());
 					if (pyTempObj)
 					{

@@ -29,7 +29,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine {
 
-	// 调用所有组件的方法
+// 调用所有组件的方法
 #define CALL_ENTITY_AND_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)													\
 {																												\
 	Py_INCREF(ENTITYOBJ);																						\
@@ -46,9 +46,6 @@ namespace KBEngine {
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();				\
 		for (; comps_iter != componentDescrs.end(); ++comps_iter)												\
 		{																										\
-			if (!comps_iter->second->hasBase())																	\
-				continue;																						\
-																												\
 			PyObject* pyTempObj = PyObject_GetAttrString(ENTITYOBJ, comps_iter->first.c_str());					\
 			if (pyTempObj)																						\
 			{																									\
