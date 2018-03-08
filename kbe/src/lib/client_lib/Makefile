@@ -1,16 +1,15 @@
 LIB =	client_lib
 
-SRCS =					\
+SRCS =				\
 	client_interface	\
-	clientapp			\
+	clientapp		\
 	clientobjectbase	\
-	config				\
+	config			\
 	script_callbacks	\
-	entity				\
+	entity			\
 	entity_aspect		\
-	entity_component	\
-	event				\
-	moveto_point_handler\
+	event			\
+	moveto_point_handler	\
 	profile
 
 ifndef KBE_ROOT

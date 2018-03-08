@@ -255,11 +255,6 @@ public:
 	virtual bool writeEntityPropertys(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule);
 
-	virtual bool writeEntityPropertyComponent(ScriptDefModule* pEntityScriptDefModule,
-		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription) {
-		return false;
-	}
-
 	virtual bool writeEntityProperty(ScriptDefModule* pEntityScriptDefModule,
 		ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription);
 

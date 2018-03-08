@@ -71,17 +71,17 @@ Cellapp::Cellapp(Network::EventDispatcher& dispatcher,
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappInterface::messageHandlers;
 
-	// hook entitycallcall
-	static EntityCallAbstract::EntityCallCallHookFunc entitycallCallHookFunc = std::tr1::bind(&Cellapp::createEntityCallCallEntityRemoteMethod, this,
+	// hook entitycall
+	static EntityCall::EntityCallCallHookFunc entityCallCallHookFunc = std::tr1::bind(&Cellapp::createEntityCallCallEntityRemoteMethod, this,
 		std::tr1::placeholders::_1, std::tr1::placeholders::_2);
 
-	EntityCallAbstract::setEntityCallCallHookFunc(&entitycallCallHookFunc);
+	EntityCall::setEntityCallCallHookFunc(&entityCallCallHookFunc);
 }
 
 //-------------------------------------------------------------------------------------
 Cellapp::~Cellapp()
 {
-	EntityCallAbstract::resetCallHooks();
+	EntityCall::resetCallHooks();
 }
 
 //-------------------------------------------------------------------------------------	
@@ -161,12 +161,10 @@ bool Cellapp::initializeWatcher()
 bool Cellapp::installPyModules()
 {
 	Entity::installScript(getScript().getModule());
-	EntityComponent::installScript(getScript().getModule());
 	GlobalDataClient::installScript(getScript().getModule());
 
 	registerScript(Entity::getScriptType());
-	registerScript(EntityComponent::getScriptType());
-
+	
 	// 将app标记注册到脚本
 	std::map<uint32, std::string> flagsmaps = createAppFlagsMaps();
 	std::map<uint32, std::string>::iterator fiter = flagsmaps.begin();
@@ -226,7 +224,6 @@ bool Cellapp::uninstallPyModules()
 	S_RELEASE(pCellAppData_); 
 
 	Entity::uninstallScript();
-	EntityComponent::uninstallScript();
 	GlobalDataClient::uninstallScript();
 	return EntityApp<Entity>::uninstallPyModules();
 }
@@ -905,8 +902,8 @@ void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseEntityCall
-		EntityCall* entityCall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITYCALL_TYPE_BASE);
-		e->baseEntityCall(entityCall);
+		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITYCALL_TYPE_BASE);
+		e->baseEntityCall(entitycall);
 		
 		if (hasClient)
 		{
@@ -1003,8 +1000,8 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 		PyObject* cellData = e->createCellDataFromStream(&s);
 
 		// 设置entity的baseEntityCall
-		EntityCall* entityCall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITYCALL_TYPE_BASE);
-		e->baseEntityCall(entityCall);
+		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entitycallEntityID, ENTITYCALL_TYPE_BASE);
+		e->baseEntityCall(entitycall);
 		
 		if (hasClient)
 		{
@@ -1173,11 +1170,10 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		}
 
 		// 设置entity的baseEntityCall
-		EntityCall* entityCall = new EntityCall(e->pScriptModule(), NULL, componentID, entityID, ENTITYCALL_TYPE_BASE);
-		e->baseEntityCall(entityCall);
+		EntityCall* entitycall = new EntityCall(e->pScriptModule(), NULL, componentID, entityID, ENTITYCALL_TYPE_BASE);
+		e->baseEntityCall(entitycall);
 		
 		cellData = e->createCellDataFromStream(pCellData);
-
 		e->createNamespace(cellData);
 
 		if(hasClient)
@@ -1241,7 +1237,7 @@ void Cellapp::onDestroyCellEntityFromBaseapp(Network::Channel* pChannel, ENTITY_
 }
 
 //-------------------------------------------------------------------------------------
-RemoteEntityMethod* Cellapp::createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCallAbstract* pEntityCall)
+RemoteEntityMethod* Cellapp::createEntityCallCallEntityRemoteMethod(MethodDescription* pMethodDescription, EntityCall* pEntityCall)
 {
 	return new EntityRemoteMethod(pMethodDescription, pEntityCall);
 }
@@ -1252,7 +1248,7 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 	ENTITY_ID eid;
 	s >> eid;
 
-	ENTITYCALL_TYPE calltype;
+	ENTITYCALL_TYPE	calltype;
 	s >> calltype;
 
 	// 在本地区尝试查找该收件人信息， 看收件人是否属于本区域
@@ -1308,20 +1304,20 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		// entity.base.cell.xxx
 		case ENTITYCALL_TYPE_BASE_VIA_CELL: 
 			{
-				EntityCallAbstract* entityCall = static_cast<EntityCallAbstract*>(entity->baseEntityCall());
-				if(entityCall == NULL)
-				{
-					WARNING_MSG(fmt::format("Cellapp::onEntityCall: not found baseEntityCall! entitycallType={}, entityID={}.\n",
+				EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(entity->baseEntityCall());
+				if(entitycall == NULL)
+				{ 
+					WARNING_MSG(fmt::format("Cellapp::onEntityCall: not found baseEntityCall! entityCallType={}, entityID={}.\n",
 						calltype, eid));
 
 					break;
 				}
 				
-				Network::Channel* pChannel = entityCall->getChannel();
+				Network::Channel* pChannel = entitycall->getChannel();
 				if (pChannel)
 				{
 					Network::Bundle* pBundle = pChannel->createSendBundle();
-					entityCall->newCall_(*pBundle);
+					entitycall->newCall(*pBundle);
 					pBundle->append(s);
 					pChannel->send(pBundle);
 				}
@@ -1331,20 +1327,20 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		// entity.cell.client
 		case ENTITYCALL_TYPE_CLIENT_VIA_CELL: 
 			{
-				EntityCallAbstract* entityCall = static_cast<EntityCallAbstract*>(entity->clientEntityCall());
-				if(entityCall == NULL)
+				EntityCallAbstract* entitycall = static_cast<EntityCallAbstract*>(entity->clientEntityCall());
+				if(entitycall == NULL)
 				{
-					WARNING_MSG(fmt::format("Cellapp::onEntityCall: not found clientEntityCall! entitycallType={}, entityID={}.\n",
+					WARNING_MSG(fmt::format("Cellapp::onEntityCall: not found clientEntityCall! entityCallType={}, entityID={}.\n",
 						calltype, eid));
 
 					break;
 				}
 				
-				Network::Channel* pChannel = entityCall->getChannel();
+				Network::Channel* pChannel = entitycall->getChannel();
 				if (pChannel)
 				{
 					Network::Bundle* pBundle = pChannel->createSendBundle();
-					entityCall->newCall_(*pBundle);
+					entitycall->newCall(*pBundle);
 					pBundle->append(s);
 					pChannel->send(pBundle);
 				}
@@ -1352,7 +1348,7 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 			break;
 		default:
 			{
-				ERROR_MSG(fmt::format("Cellapp::onEntityCall: entitycallType {} is error! must a cellType. entityID={}.\n",
+				ERROR_MSG(fmt::format("Cellapp::onEntityCall: entityCallType {} is error! must a cellType. entityID={}.\n",
 					calltype, eid));
 			}
 	};

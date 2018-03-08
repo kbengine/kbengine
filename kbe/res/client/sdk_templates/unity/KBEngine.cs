@@ -958,7 +958,28 @@
 				return;
 			}
 			
-			entity.onUpdatePropertys(stream);
+			ScriptModule sm = EntityDef.moduledefs[entity.className];
+			Dictionary<UInt16, Property> pdatas = sm.idpropertys;
+
+			while(stream.length() > 0)
+			{
+				UInt16 utype = 0;
+				
+				if(sm.usePropertyDescrAlias)
+				{
+					utype = stream.readUint8();
+				}
+				else
+				{
+					utype = stream.readUint16();
+				}
+			
+				Property propertydata = pdatas[utype];
+				entity.onUpdatePropertys(propertydata, stream);
+
+				 // Dbg.DEBUG_MSG("KBEngine::Client_onUpdatePropertys: " + entity.className + "(id=" + eid  + " " + 
+				 // propertydata.name + "=" + val + "), hasSetMethod=" + setmethod + "!");
+			}
 		}
 
 		/*
@@ -989,7 +1010,29 @@
 				return;
 			}
 			
-			entity.onRemoteMethodCall(stream);
+			UInt16 methodUtype = 0;
+			ScriptModule sm = EntityDef.moduledefs[entity.className];
+
+			if(sm.useMethodDescrAlias)
+				methodUtype = stream.readUint8();
+			else
+				methodUtype = stream.readUint16();
+			
+			Method methoddata = null;
+			
+			try
+			{
+				methoddata = sm.idmethods[methodUtype];
+			}
+            catch (Exception e)
+            {
+				Dbg.ERROR_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.className + "(" + eid + "), methodUtype(" + methodUtype + ")!\nerror=" + e.ToString());
+				return;
+            }
+			
+			// Dbg.DEBUG_MSG("KBEngine::Client_onRemoteMethodCall: " + entity.className + "." + methoddata.name);
+			
+			entity.onRemoteMethodCall(methoddata, stream);
 		}
 
 		/*

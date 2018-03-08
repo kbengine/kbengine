@@ -27,56 +27,47 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 
-#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																						\
-	ENTITY_CPP_IMPL(APP, CLASS)																										\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																								\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",					reduce_ex__,						METH_VARARGS,					0)	\
-	SCRIPT_METHOD_DECLARE("__getDEP__",						pyGetDatachangeEventPtr,			METH_VARARGS,					0)	\
-	SCRIPT_METHOD_DECLARE("addTimer",						pyAddTimer,							METH_VARARGS,					0)	\
-	SCRIPT_METHOD_DECLARE("delTimer",						pyDelTimer,							METH_VARARGS,					0)	\
-	SCRIPT_METHOD_DECLARE("writeToDB",						pyWriteToDB,						METH_VARARGS,					0)	\
-	SCRIPT_METHOD_DECLARE("destroy",						pyDestroyEntity,					METH_VARARGS | METH_KEYWORDS,	0)	\
-	SCRIPT_METHOD_DECLARE("registerEvent",					pyRegisterEvent,					METH_VARARGS | METH_KEYWORDS,	0)	\
-	SCRIPT_METHOD_DECLARE("deregisterEvent",				pyDeregisterEvent,					METH_VARARGS | METH_KEYWORDS,	0)	\
-	SCRIPT_METHOD_DECLARE("fireEvent",						pyFireEvent,						METH_VARARGS | METH_KEYWORDS,	0)	\
-	SCRIPT_METHOD_DECLARE("getComponent",					pyGetComponent,						METH_VARARGS | METH_KEYWORDS,	0)	\
+#define ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																\
+	ENTITY_CPP_IMPL(APP, CLASS)																				\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("addTimer",		pyAddTimer,						METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("delTimer",		pyDelTimer,						METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("writeToDB",		pyWriteToDB,					METH_VARARGS,				0)	\
+	SCRIPT_METHOD_DECLARE("destroy",		pyDestroyEntity,				METH_VARARGS | METH_KEYWORDS,0)	\
 
 	
-#define ENTITY_METHOD_DECLARE_END()																									\
-	SCRIPT_METHOD_DECLARE_END()																										\
+#define ENTITY_METHOD_DECLARE_END()																			\
+	SCRIPT_METHOD_DECLARE_END()																				\
 
 
-#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																							\
-	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																								\
-	SCRIPT_GET_DECLARE("id",								pyGetID,							0,								0)	\
-	SCRIPT_GET_DECLARE("isDestroyed",						pyGetIsDestroyed,					0,								0)	\
-	SCRIPT_GET_DECLARE("className",							pyGetClassName,						0,								0)	\
+#define ENTITY_GETSET_DECLARE_BEGIN(CLASS)																	\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
+	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
 
 
-#define ENTITY_GETSET_DECLARE_END()																									\
-	SCRIPT_GETSET_DECLARE_END()																										\
+#define ENTITY_GETSET_DECLARE_END()																			\
+	SCRIPT_GETSET_DECLARE_END()																				\
 
 
-#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)																				\
-	ENTITY_CPP_IMPL(APP, CLASS)																										\
-	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																								\
-	SCRIPT_METHOD_DECLARE("__reduce_ex__",					reduce_ex__,						METH_VARARGS,					0)	\
-	SCRIPT_METHOD_DECLARE("__getDEP__",						pyGetDatachangeEventPtr,			METH_VARARGS,					0)	\
-	SCRIPT_METHOD_DECLARE("registerEvent",					pyRegisterEvent,					METH_VARARGS | METH_KEYWORDS,	0)	\
-	SCRIPT_METHOD_DECLARE("deregisterEvent",				pyDeregisterEvent,					METH_VARARGS | METH_KEYWORDS,	0)	\
-	SCRIPT_METHOD_DECLARE("fireEvent",						pyFireEvent,						METH_VARARGS | METH_KEYWORDS,	0)	\
+#define CLIENT_ENTITY_METHOD_DECLARE_BEGIN(APP, CLASS)														\
+	ENTITY_CPP_IMPL(APP, CLASS)																				\
+	SCRIPT_METHOD_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_METHOD_DECLARE("__reduce_ex__",	reduce_ex__,					METH_VARARGS,			0)		\
 
 	
-#define CLIENT_ENTITY_METHOD_DECLARE_END()																							\
-	SCRIPT_METHOD_DECLARE_END()																										\
+#define CLIENT_ENTITY_METHOD_DECLARE_END()																	\
+	SCRIPT_METHOD_DECLARE_END()																				\
 
 
-#define CLIENT_ENTITY_GETSET_DECLARE_BEGIN(CLASS)																					\
-	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																								\
-	SCRIPT_GET_DECLARE("id",								pyGetID,							0,								0)	\
-	SCRIPT_GET_DECLARE("spaceID",							pyGetSpaceID,						0,								0)	\
-	SCRIPT_GET_DECLARE("isDestroyed",						pyGetIsDestroyed,					0,								0)	\
-	SCRIPT_GET_DECLARE("className",							pyGetClassName,						0,								0)	\
+#define CLIENT_ENTITY_GETSET_DECLARE_BEGIN(CLASS)															\
+	SCRIPT_GETSET_DECLARE_BEGIN(CLASS)																		\
+	SCRIPT_GET_DECLARE("id",				pyGetID,						0,						0)		\
+	SCRIPT_GET_DECLARE("spaceID",			pyGetSpaceID,					0,						0)		\
+	SCRIPT_GET_DECLARE("isDestroyed",		pyGetIsDestroyed,				0,						0)		\
+	SCRIPT_GET_DECLARE("className",			pyGetClassName,					0,						0)		\
 
 
 #define CLIENT_ENTITY_GETSET_DECLARE_END()																	\
@@ -89,13 +80,13 @@ namespace KBEngine{
 		int32 y = (int32)pos.y;																				\
 		int32 z = (int32)pos.z;																				\
 																											\
-		s << (ENTITY_PROPERTY_UID)0 << posuid << x << y << z;												\
+		s << posuid << x << y << z;																			\
 																											\
 		x = (int32)dir.x;																					\
 		y = (int32)dir.y;																					\
 		z = (int32)dir.z;																					\
 																											\
-		s << (ENTITY_PROPERTY_UID)0 << diruid << x << y << z;												\
+		s << diruid << x << y << z;																			\
 
 
 	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
@@ -104,14 +95,14 @@ namespace KBEngine{
 		int32 z = (int32)pos.z;																				\
 																											\
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
-		s << (uint8)0 << aliasID << x << y << z;															\
+		s << aliasID << x << y << z;																		\
 																											\
 		x = (int32)dir.x;																					\
 		y = (int32)dir.y;																					\
 		z = (int32)dir.z;																					\
 																											\
 		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
-		s << (uint8)0 << aliasID << x << y << z;															\
+		s << aliasID << x << y << z;																		\
 
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
@@ -121,13 +112,13 @@ namespace KBEngine{
 		int32 z = 0;																						\
 		ENTITY_PROPERTY_UID uid;																			\
 																											\
-		s >> uid >> uid >> x >> y >> z;																		\
+		s >> uid >> x >> y >> z;																			\
 																											\
 		pos.x = float(x);																					\
 		pos.y = float(y);																					\
 		pos.z = float(z);																					\
 																											\
-		s >> uid >> uid >> x >> y >> z;																		\
+		s >> uid >> x >> y >> z;																			\
 		dir.x = float(x);																					\
 		dir.y = float(y);																					\
 		dir.z = float(z);																					\
@@ -136,22 +127,22 @@ namespace KBEngine{
 
 #else																									
 	#define ADD_POS_DIR_TO_STREAM(s, pos, dir)																\
-		s << (ENTITY_PROPERTY_UID)0 << posuid << pos.x << pos.y << pos.z;									\
-		s << (ENTITY_PROPERTY_UID)0 << diruid << dir.x << dir.y << dir.z;									\
+		s << posuid << pos.x << pos.y << pos.z;																\
+		s << diruid << dir.x << dir.y << dir.z;																\
 
 
 	#define ADD_POS_DIR_TO_STREAM_ALIASID(s, pos, dir)														\
 		uint8 aliasID = ENTITY_BASE_PROPERTY_ALIASID_POSITION_XYZ;											\
-		s << (uint8)0 << aliasID << pos.x << pos.y << pos.z;												\
+		s << aliasID << pos.x << pos.y << pos.z;															\
 		aliasID = ENTITY_BASE_PROPERTY_ALIASID_DIRECTION_ROLL_PITCH_YAW;									\
-		s << (uint8)0 << aliasID << dir.x << dir.y << dir.z;												\
+		s << aliasID << dir.x << dir.y << dir.z;															\
 	
 
 	#define STREAM_TO_POS_DIR(s, pos, dir)																	\
 	{																										\
 		ENTITY_PROPERTY_UID uid;																			\
-		s >> uid >> uid >> pos.x >> pos.y >> pos.z;															\
-		s >> uid >> uid >> dir.x >> dir.y >> dir.z;															\
+		s >> uid >> pos.x >> pos.y >> pos.z;																\
+		s >> uid >> dir.x >> dir.y >> dir.z;																\
 	}																										\
 
 
@@ -294,56 +285,22 @@ namespace KBEngine{
 #define ENTITY_FLAGS_TELEPORT_STOP		0x00000008
 
 #define ENTITY_HEADER(CLASS)																				\
-public:																										\
-	typedef KBEUnordered_map< std::string, std::vector<PyObjectPtr> > ENTITY_EVENTS;						\
 protected:																									\
-	ENTITY_ID													id_;										\
-	ScriptDefModule*											pScriptModule_;								\
-	const ScriptDefModule::PROPERTYDESCRIPTION_MAP*				pPropertyDescrs_;							\
-	SPACE_ID													spaceID_;									\
-	ScriptTimers												scriptTimers_;								\
-	PY_CALLBACKMGR												pyCallbackMgr_;								\
-	bool														isDestroyed_;								\
-	uint32														flags_;										\
-	ENTITY_EVENTS												events_;									\
+	ENTITY_ID										id_;													\
+	ScriptDefModule*								pScriptModule_;											\
+	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs_;										\
+	SPACE_ID										spaceID_;												\
+	ScriptTimers									scriptTimers_;											\
+	PY_CALLBACKMGR									pyCallbackMgr_;											\
+	bool											isDestroyed_;											\
+	uint32											flags_;													\
 public:																										\
-																											\
 	bool initing() const{ return hasFlags(ENTITY_FLAGS_INITING); }											\
 																											\
 	void initializeScript()																					\
 	{																										\
 		removeFlags(ENTITY_FLAGS_INITING);																	\
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);																	\
-																											\
-		const ScriptDefModule::COMPONENTDESCRIPTION_MAP* pComponentDescrs =									\
-			&pScriptModule_->getComponentDescrs();															\
-																											\
-		ScriptDefModule::COMPONENTDESCRIPTION_MAP::const_iterator iter1 = pComponentDescrs->begin();		\
-		for (; iter1 != pComponentDescrs->end(); ++iter1)													\
-		{																									\
-			PyObject* pComponentProperty = PyObject_GetAttrString(this, iter1->first.c_str());				\
-			if(pComponentProperty)																			\
-			{																								\
-				if(PyObject_TypeCheck(pComponentProperty, EntityComponent::getScriptType()))				\
-				{																							\
-					EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pComponentProperty);	\
-					pEntityComponent->initializeScript();													\
-				}																							\
-				else																						\
-				{																							\
-					PyErr_Format(PyExc_AssertionError, "%s.%s is not property of EntityComponent!",			\
-						scriptName(), iter1->first.c_str());												\
-					PyErr_PrintEx(0);																		\
-				}																							\
-																											\
-				Py_DECREF(pComponentProperty);																\
-			}																								\
-			else																							\
-			{																								\
-				PyErr_Clear();																				\
-			}																								\
-		}																									\
-																											\
 		if(PyObject_HasAttrString(this, "__init__"))														\
 		{																									\
 			PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("__init__"),					\
@@ -352,32 +309,6 @@ public:																										\
 				Py_DECREF(pyResult);																		\
 			else																							\
 				SCRIPT_ERROR_CHECK();																		\
-		}																									\
-																											\
-		iter1 = pComponentDescrs->begin();																	\
-		for (; iter1 != pComponentDescrs->end(); ++iter1)													\
-		{																									\
-			PyObject* pComponentProperty = PyObject_GetAttrString(this, iter1->first.c_str());				\
-			if(pComponentProperty)																			\
-			{																								\
-				if(PyObject_TypeCheck(pComponentProperty, EntityComponent::getScriptType()))				\
-				{																							\
-					EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pComponentProperty);	\
-					pEntityComponent->onAttached();															\
-				}																							\
-				else																						\
-				{																							\
-					PyErr_Format(PyExc_AssertionError, "%s.%s is not property of EntityComponent!",			\
-						scriptName(), iter1->first.c_str());												\
-					PyErr_PrintEx(0);																		\
-				}																							\
-																											\
-				Py_DECREF(pComponentProperty);																\
-			}																								\
-			else																							\
-			{																								\
-				PyErr_Clear();																				\
-			}																								\
 		}																									\
 	}																										\
 																											\
@@ -422,86 +353,35 @@ public:																										\
 			return;																							\
 		}																									\
 																											\
-		EntityDef::context().currComponentType = g_componentType;											\
-		EntityDef::context().currEntityID = id();															\
-																											\
 		Py_ssize_t pos = 0;																					\
 		PyObject *key, *value;																				\
 		PyObject* cellDataDict = PyObject_GetAttrString(this, "cellData");									\
-																											\
 		if(cellDataDict == NULL)																			\
-		{																									\
 			PyErr_Clear();																					\
-			EntityComponent::convertDictDataToEntityComponent(id(), pScriptModule_, dictData);				\
-		}																									\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
 		{																									\
 			DEBUG_CREATE_ENTITY_NAMESPACE																	\
 			if(PyObject_HasAttr(this, key) > 0)																\
 			{																								\
-				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);			\
-				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);							\
-				PyMem_Free(PyUnicode_AsWideCharStringRet0);													\
-																											\
-				PropertyDescription* pCompPropertyDescription =												\
-					pScriptModule_->findComponentPropertyDescription(ccattr);								\
-																											\
-				if (pCompPropertyDescription)																\
-				{																							\
-					if(PyDict_Check(value) /* createDictDataFromPersistentStream 流程导致非字典 */)			\
-					{																						\
-						EntityComponent* pEntityComponent = (EntityComponent*)PyObject_GetAttr(this, key);	\
-						pEntityComponent->updateFromDict(value);											\
-						Py_DECREF(pEntityComponent);														\
-					}																						\
-					else																					\
-					{																						\
-						PyObject_SetAttr(this, key, value);													\
-					}																						\
-				}																							\
-				else																						\
-				{																							\
-					PyObject_SetAttr(this, key, value);														\
-				}																							\
-																											\
-				free(ccattr);																				\
+				PyObject_SetAttr(this, key, value);															\
 				continue;																					\
 			}																								\
 																											\
 			if(cellDataDict != NULL && PyDict_Contains(cellDataDict, key) > 0)								\
-			{																								\
-				PyObject* pyVal = PyDict_GetItem(cellDataDict, key);										\
-				if (PyDict_Check(pyVal))																	\
-				{																							\
-					if (0 != PyDict_Update(pyVal, value) /* EntityComponent required */)					\
-					{																						\
-						SCRIPT_ERROR_CHECK();																\
-						KBE_ASSERT(false);																	\
-					}																						\
-				}																							\
-				else																						\
-				{																							\
-					PyDict_SetItem(cellDataDict, key, value);												\
-				}																							\
-			}																								\
+    			PyDict_SetItem(cellDataDict, key, value);													\
 			else																							\
 				PyObject_SetAttr(this, key, value);															\
 		}																									\
 																											\
 		SCRIPT_ERROR_CHECK();																				\
-																											\
 		Py_XDECREF(cellDataDict);																			\
 	}																										\
 																											\
-	void addCellDataToStream(COMPONENT_TYPE sendTo, uint32 flags,											\
-										MemoryStream* mstream, bool useAliasID = false);					\
+	void addCellDataToStream(uint32 flags, MemoryStream* mstream, bool useAliasID = false);					\
 																											\
 	PyObject* createCellDataFromStream(MemoryStream* mstream)												\
 	{																										\
-		EntityDef::context().currComponentType = CELLAPP_TYPE;												\
-		EntityDef::context().currEntityID = id();															\
-																											\
 		PyObject* cellData = PyDict_New();																	\
 		ENTITY_PROPERTY_UID uid;																			\
 		Vector3 pos, dir;																					\
@@ -515,7 +395,7 @@ public:																										\
 																											\
 		while(mstream->length() > 0 && count < propertyDescrs.size())										\
 		{																									\
-			(*mstream) >> uid /* 父属性 */ >> uid;															\
+			(*mstream) >> uid;																				\
 			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\
 			if(iter == propertyDescrs.end())																\
 			{																								\
@@ -523,15 +403,7 @@ public:																										\
 				break;																						\
 			}																								\
 																											\
-			PyObject* pyobj = NULL;																			\
-			if (iter->second->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)							\
-			{																								\
-				pyobj = ((EntityComponentType*)iter->second->getDataType())->createCellDataFromStream(mstream);\
-			}																								\
-			else																							\
-			{																								\
-				pyobj = iter->second->createFromStream(mstream);											\
-			}																								\
+			PyObject* pyobj = iter->second->createFromStream(mstream);										\
 																											\
 			if(pyobj == NULL)																				\
 			{																								\
@@ -554,9 +426,6 @@ public:																										\
 																											\
 	void addCellDataToStreamByDetailLevel(int8 detailLevel, MemoryStream* mstream, bool useAliasID = false)	\
 	{																										\
-		EntityDef::context().currComponentType = CELLAPP_TYPE;												\
-		EntityDef::context().currEntityID = id();															\
-																											\
 		PyObject* cellData = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
@@ -585,9 +454,6 @@ public:																										\
 																											\
 	void addClientDataToStream(MemoryStream* s, bool otherClient = false)									\
 	{																										\
-		EntityDef::context().currComponentType = CLIENT_TYPE;												\
-		EntityDef::context().currEntityID = id();															\
-																											\
 		PyObject* pydict = PyObject_GetAttrString(this, "__dict__");										\
 																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs =											\
@@ -608,12 +474,10 @@ public:																										\
 			{																								\
 				if(pScriptModule()->usePropertyDescrAlias())												\
 				{																							\
-					(*s) << (uint8)0;																		\
 	    			(*s) << propertyDescription->aliasIDAsUint8();											\
 				}																							\
 				else																						\
 				{																							\
-					(*s) << (ENTITY_PROPERTY_UID)0;															\
 	    			(*s) << propertyDescription->getUType();												\
 				}																							\
 																											\
@@ -727,6 +591,7 @@ public:																										\
 																											\
 		if(pPropertyDescrs_)																				\
 		{																									\
+																											\
 			ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs_->find(ccattr);	\
 			if(iter != pPropertyDescrs_->end())																\
 			{																								\
@@ -790,10 +655,10 @@ public:																										\
 					Py_ssize_t ob_refcnt = value->ob_refcnt;												\
 					PyObject* pySetObj = propertyDescription->onSetValue(this, value);						\
 																											\
-					/* 如果def属性数据有改变， 那么可能需要广播 */												\
+					/* 如果def属性数据有改变， 那么可能需要广播 */											\
 					if(pySetObj != NULL)																	\
 					{																						\
-						onDefDataChanged(NULL, propertyDescription, pySetObj);								\
+						onDefDataChanged(propertyDescription, pySetObj);									\
 						if(pySetObj == value && pySetObj->ob_refcnt - ob_refcnt > 1)						\
 							Py_DECREF(pySetObj);															\
 					}																						\
@@ -1008,12 +873,9 @@ public:																										\
 		{																									\
 			isDestroyed_ = true;																			\
 			addFlags(ENTITY_FLAGS_DESTROYING);																\
-			EntityComponent::onEntityDestroy(this, pScriptModule_, callScript, true);						\
 			onDestroy(callScript);																			\
 			scriptTimers_.cancelAll();																		\
 			removeFlags(ENTITY_FLAGS_DESTROYING);															\
-			EntityComponent::onEntityDestroy(this, pScriptModule_, callScript, false);						\
-			events_.clear();																				\
 			Py_DECREF(this);																				\
 		}																									\
 	}																										\
@@ -1029,276 +891,6 @@ public:																										\
 	DECLARE_PY_GET_MOTHOD(pyGetClassName);																	\
 																											\
 	void initProperty(bool isReload = false);																\
-																											\
-	static PyObject* __py_pyGetDatachangeEventPtr(PyObject* self, PyObject* args)							\
-	{																										\
-		CLASS* pobj = static_cast<CLASS*>(self);															\
-		static EntityComponent::OnDataChangedEvent dataChangedEvent;										\
-			dataChangedEvent = std::tr1::bind(&CLASS::onDefDataChanged, pobj,								\
-			std::tr1::placeholders::_1, std::tr1::placeholders::_2, std::tr1::placeholders::_3);			\
-		return PyLong_FromVoidPtr((void*)&dataChangedEvent);												\
-	}																										\
-																											\
-	ENTITY_EVENTS& events() { return events_; }																\
-																											\
-	bool registerEvent(const std::string& evnName, PyObject* pyCallback)									\
-	{																										\
-		ENTITY_DESTROYED_CHECK(return false, "registerEvent", this);										\
-																											\
-		if (!PyCallable_Check(pyCallback))																	\
-		{																									\
-			PyErr_Format(PyExc_TypeError, #CLASS"::registerEvent: '%.200s' object is not callable! eventName=%s",\
-				(pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str());						\
-			PyErr_PrintEx(0);																				\
-			return false;																					\
-		}																									\
-																											\
-		std::vector<PyObjectPtr>& evnVecs = events_[evnName];												\
-		std::vector<PyObjectPtr>::iterator iter = evnVecs.begin();											\
-		for(; iter != evnVecs.end(); ++iter)																\
-		{																									\
-			if((*iter).get() == pyCallback)																	\
-			{																								\
-				PyErr_Format(PyExc_TypeError, #CLASS"::registerEvent: This callable('%.200s') has been registered! eventName=%s",\
-					(pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str());					\
-				PyErr_PrintEx(0);																			\
-				return false;																				\
-			}																								\
-		}																									\
-																											\
-		events_[evnName].push_back(pyCallback);																\
-        return true;                                                                                        \
-	}																										\
-																											\
-	void fireEvent(const std::string& evnName, PyObject* pyArgs = NULL)										\
-	{																										\
-		ENTITY_DESTROYED_CHECK(return, "fireEvent", this);													\
-																											\
-		std::vector<PyObjectPtr>& evnVecs = events_[evnName];												\
-		std::vector<PyObjectPtr>::iterator iter = evnVecs.begin();											\
-		for(; iter != evnVecs.end(); ++iter)																\
-		{																									\
-			PyObject* pyResult = NULL;																		\
-			if (pyArgs == NULL)																				\
-			{																								\
-				pyResult = PyObject_CallObject((*iter).get(), NULL);										\
-			}																								\
-			else																							\
-			{																								\
-				pyResult = PyObject_CallObject((*iter).get(), pyArgs);										\
-			}																								\
-																											\
-			if(pyResult == NULL)																			\
-			{																								\
-				SCRIPT_ERROR_CHECK();																		\
-			}																								\
-			else																							\
-			{																								\
-				Py_DECREF(pyResult);																		\
-			}																								\
-		}																									\
-	}																										\
-																											\
-	bool deregisterEvent(const std::string& evnName, PyObject* pyCallback)									\
-	{																										\
-		std::vector<PyObjectPtr>& evnVecs = events_[evnName];												\
-		std::vector<PyObjectPtr>::iterator iter = evnVecs.begin();											\
-		for(; iter != evnVecs.end(); ++iter)																\
-		{																									\
-			if((*iter).get() == pyCallback)																	\
-			{																								\
-				evnVecs.erase(iter);																		\
-				return true;																				\
-			}																								\
-		}																									\
-																											\
-		return false;																						\
-	}																										\
-																											\
-    static PyObject* __py_pyRegisterEvent(PyObject* self, PyObject* args)									\
-	{																										\
-		uint16 currargsSize = (uint16)PyTuple_Size(args);													\
-		CLASS* pobj = static_cast<CLASS*>(self);															\
-																											\
-		if(currargsSize != 2)																				\
-		{																									\
-			PyErr_Format(PyExc_AssertionError,																\
-							"%s::registerEvent: args require %d args, gived %d!\n",							\
-							pobj->scriptName(), 1, currargsSize);											\
-																											\
-			PyErr_PrintEx(0);																				\
-			Py_RETURN_FALSE;																				\
-		}																									\
-																											\
-		const char* eventName;																				\
-		PyObject* pycallback = NULL;																		\
-		if(PyArg_ParseTuple(args, "sO", &eventName, &pycallback) == -1)										\
-		{																									\
-			PyErr_Format(PyExc_AssertionError, "%s::registerEvent:: args error!", pobj->scriptName());		\
-			PyErr_PrintEx(0);																				\
-			pycallback = NULL;																				\
-			Py_RETURN_FALSE;																				\
-		}																									\
-																											\
-		return PyBool_FromLong(pobj->registerEvent(eventName, pycallback));									\
-	}																										\
-																											\
-    static PyObject* __py_pyDeregisterEvent(PyObject* self, PyObject* args)									\
-	{																										\
-		uint16 currargsSize = (uint16)PyTuple_Size(args);													\
-		CLASS* pobj = static_cast<CLASS*>(self);															\
-																											\
-		if(currargsSize != 2)																				\
-		{																									\
-			PyErr_Format(PyExc_AssertionError,																\
-							"%s::deregisterEvent: args require %d args, gived %d!\n",						\
-							pobj->scriptName(), 1, currargsSize);											\
-																											\
-			PyErr_PrintEx(0);																				\
-			Py_RETURN_FALSE;																				\
-		}																									\
-																											\
-		const char* eventName;																				\
-		PyObject* pycallback = NULL;																		\
-		if(PyArg_ParseTuple(args, "sO", &eventName, &pycallback) == -1)										\
-		{																									\
-			PyErr_Format(PyExc_AssertionError, "%s::deregisterEvent:: args error!", pobj->scriptName());	\
-			PyErr_PrintEx(0);																				\
-			pycallback = NULL;																				\
-			Py_RETURN_FALSE;																				\
-		}																									\
-																											\
-		return PyBool_FromLong(pobj->deregisterEvent(eventName, pycallback));								\
-	}																										\
-																											\
-    static PyObject* __py_pyFireEvent(PyObject* self, PyObject* args)										\
-	{																										\
-		uint16 currargsSize = (uint16)PyTuple_Size(args);													\
-		CLASS* pobj = static_cast<CLASS*>(self);															\
-																											\
-		if(currargsSize == 0)																				\
-		{																									\
-			PyErr_Format(PyExc_AssertionError,																\
-							"%s::fireEvent: args require %d args, gived %d!\n",								\
-							pobj->scriptName(), 1, currargsSize);											\
-																											\
-			PyErr_PrintEx(0);																				\
-			Py_RETURN_FALSE;																				\
-		}																									\
-																											\
-		char* eventName;																					\
-		if(currargsSize == 1)																				\
-		{																									\
-			if(PyArg_ParseTuple(args, "s", &eventName) == -1)												\
-			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error!", pobj->scriptName());		\
-				PyErr_PrintEx(0);																			\
-				Py_RETURN_FALSE;																			\
-			}																								\
-																											\
-			pobj->fireEvent(eventName);																		\
-		}																									\
-		else if(currargsSize == 2)																			\
-		{																									\
-			PyObject* pyobj = NULL;																			\
-			if (PyArg_ParseTuple(args, "sO", &eventName, &pyobj) == -1)										\
-			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error!", pobj->scriptName());		\
-				PyErr_PrintEx(0);																			\
-				Py_RETURN_FALSE;																			\
-			}																								\
-																											\
-			PyObject* pyargs = PyTuple_New(1);																\
-			Py_INCREF(pyobj);																				\
-			PyTuple_SET_ITEM(pyargs, 0, pyobj);																\
-			pobj->fireEvent(eventName, pyargs);																\
-			Py_DECREF(pyargs);																				\
-		}																									\
-		else																								\
-		{																									\
-			PyObject* pyEvnName = PyTuple_GET_ITEM(args, 0);												\
-			wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEvnName, NULL);			\
-			eventName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);								\
-			PyMem_Free(PyUnicode_AsWideCharStringRet0);														\
-																											\
-			PyObject* pyargs = PyTuple_GetSlice(args, 1, currargsSize);										\
-			pobj->fireEvent(eventName, pyargs);																\
-			Py_DECREF(pyargs);																				\
-			free(eventName);																				\
-		}																									\
-																											\
-		Py_RETURN_TRUE;																						\
-	}																										\
-																											\
-	PyObject* pyGetComponent(const std::string& componentName, bool all)									\
-	{																										\
-		std::vector<EntityComponent*> founds =																\
-			EntityComponent::getComponents(componentName, this, pScriptModule_);							\
-																											\
-		if (!all)																							\
-		{																									\
-			if(founds.size() > 0)																			\
-				return founds[0];																			\
-																											\
-			Py_RETURN_NONE;																					\
-		}																									\
-		else																								\
-		{																									\
-			PyObject* pyObj = PyTuple_New(founds.size());													\
-																											\
-			for (int i = 0; i < (int)founds.size(); ++i)													\
-			{																								\
-				PyTuple_SetItem(pyObj, i, founds[i]);														\
-			}																								\
-																											\
-			return pyObj;																					\
-		}																									\
-																											\
-        return NULL;																						\
-	}																										\
-																											\
-    static PyObject* __py_pyGetComponent(PyObject* self, PyObject* args)									\
-	{																										\
-		uint16 currargsSize = (uint16)PyTuple_Size(args);													\
-		CLASS* pobj = static_cast<CLASS*>(self);															\
-																											\
-		if(currargsSize == 0 || currargsSize > 2)															\
-		{																									\
-			PyErr_Format(PyExc_AssertionError,																\
-							"%s::getComponent: args require 1-2 args, gived %d!\n",							\
-							pobj->scriptName(), currargsSize);												\
-																											\
-			PyErr_PrintEx(0);																				\
-			Py_RETURN_NONE;																					\
-		}																									\
-																											\
-		char* componentName;																				\
-		if(currargsSize == 1)																				\
-		{																									\
-			if(PyArg_ParseTuple(args, "s", &componentName) == -1)											\
-			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: args error!", pobj->scriptName());	\
-				PyErr_PrintEx(0);																			\
-				Py_RETURN_NONE;																				\
-			}																								\
-																											\
-			return pobj->pyGetComponent(componentName, false);												\
-		}																									\
-		else if(currargsSize == 2)																			\
-		{																									\
-			PyObject* pyobj = NULL;																			\
-			if (PyArg_ParseTuple(args, "sO", &componentName, &pyobj) == -1)									\
-			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: args error!", pobj->scriptName());	\
-				PyErr_PrintEx(0);																			\
-				Py_RETURN_FALSE;																			\
-			}																								\
-																											\
-			return pobj->pyGetComponent(componentName, (pyobj == Py_True));									\
-		}																									\
-																											\
-		Py_RETURN_NONE;																						\
-	}																										\
 
 
 #define ENTITY_CPP_IMPL(APP, CLASS)																			\
@@ -1443,13 +1035,11 @@ public:																										\
 			Py_XDECREF(pyPos);																				\
 			Py_XDECREF(pyDir);																				\
 		}																									\
+																											\
 	}																										\
 																											\
 	void CLASS::initProperty(bool isReload)																	\
 	{																										\
-		EntityDef::context().currComponentType = g_componentType;											\
-		EntityDef::context().currEntityID = id();															\
-																											\
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP* oldpropers = NULL;										\
 		if(isReload)																						\
 		{																									\
@@ -1492,7 +1082,7 @@ public:																										\
 							propertyDescription->getName(), defObj);										\
 				Py_DECREF(defObj);																			\
 																											\
-				/* DEBUG_MSG(fmt::format(#CLASS"::"#CLASS": added [{}] property ref={}.\n",					\
+				/* DEBUG_MSG(fmt::format(#CLASS"::"#CLASS": added [{}] property ref={}.\n",
 								propertyDescription->getName(), defObj->ob_refcnt));*/						\
 			}																								\
 			else																							\
@@ -1502,41 +1092,7 @@ public:																										\
 			}																								\
 		}																									\
 																											\
-		/* 由于组件初始化时会自动initProperty，所以只有重加载时需要显示的去调用组件的initProperty */				\
-		if(isReload)																						\
-		{																									\
-			const ScriptDefModule::COMPONENTDESCRIPTION_MAP* pComponentDescrs =								\
-				&pScriptModule_->getComponentDescrs();														\
-																											\
-			ScriptDefModule::COMPONENTDESCRIPTION_MAP::const_iterator iter1 = pComponentDescrs->begin();	\
-			for (; iter1 != pComponentDescrs->end(); ++iter1)												\
-			{																								\
-				PyObject* pComponentProperty = PyObject_GetAttrString(this, iter1->first.c_str());			\
-				if(pComponentProperty)																		\
-				{																							\
-					if(PyObject_TypeCheck(pComponentProperty, EntityComponent::getScriptType()))			\
-					{																						\
-						EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pComponentProperty);\
-						pEntityComponent->initProperty();													\
-					}																						\
-					else																					\
-					{																						\
-						PyErr_Format(PyExc_AssertionError, "%s.%s is not property of EntityComponent!",		\
-							scriptName(), iter1->first.c_str());											\
-						PyErr_PrintEx(0);																	\
-					}																						\
-																											\
-					Py_DECREF(pComponentProperty);															\
-				}																							\
-				else																						\
-				{																							\
-					PyErr_Clear();																			\
-				}																							\
-			}																								\
-		}																									\
 	}																										\
-																											\
-
 
 
 #define ENTITY_CONSTRUCTION(CLASS)																			\

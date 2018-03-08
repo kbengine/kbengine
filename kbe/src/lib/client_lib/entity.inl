@@ -123,9 +123,9 @@ INLINE EntityCall* Entity::baseEntityCall() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::cellEntityCall(EntityCall* entityCall)
+INLINE void Entity::cellEntityCall(EntityCall* entitycall)
 { 
-	cellEntityCall_ = entityCall; 
+	cellEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -135,9 +135,9 @@ INLINE EntityCall* Entity::cellEntityCall() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::baseEntityCall(EntityCall* entityCall)
+INLINE void Entity::baseEntityCall(EntityCall* entitycall)
 { 
-	baseEntityCall_ = entityCall; 
+	baseEntityCall_ = entitycall; 
 }
 
 //-------------------------------------------------------------------------------------

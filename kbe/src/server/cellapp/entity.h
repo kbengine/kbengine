@@ -21,13 +21,14 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KBE_ENTITY_H
 #define KBE_ENTITY_H
 	
+// common include
+//#include "entitymovecontroller.h"
 #include "profile.h"
 #include "common/timer.h"
 #include "common/common.h"
 #include "common/smartpointer.h"
 #include "helper/debug_helper.h"
 #include "entitydef/entity_call.h"
-#include "entitydef/entity_component.h"
 #include "pyscript/math.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/datatypes.h"	
@@ -35,13 +36,19 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/entity_macro.h"	
 #include "server/script_timers.h"	
+
+//#define NDEBUG
+// windows include	
+#if KBE_PLATFORM == PLATFORM_WIN32
+#else
+// linux include
+#endif
 	
 namespace KBEngine{
 
 class Chunk;
 class Entity;
 class EntityCall;
-class EntityComponent;
 class Cellapp;
 class Witness;
 class AllClients;
@@ -112,7 +119,7 @@ public:
 	/** 
 		定义属性数据被改变了 
 	*/
-	void onDefDataChanged(EntityComponent* pEntityComponent, const PropertyDescription* propertyDescription,
+	void onDefDataChanged(const PropertyDescription* propertyDescription, 
 			PyObject* pyData);
 	
 	/** 
@@ -123,15 +130,15 @@ public:
 
 public:
 	/** 
-		entityCall section
+		entitycall section
 	*/
 	INLINE EntityCall* baseEntityCall() const;
 	DECLARE_PY_GET_MOTHOD(pyGetBaseEntityCall);
-	INLINE void baseEntityCall(EntityCall* entityCall);
+	INLINE void baseEntityCall(EntityCall* entitycall);
 	
 	INLINE EntityCall* clientEntityCall() const;
 	DECLARE_PY_GET_MOTHOD(pyGetClientEntityCall);
-	INLINE void clientEntityCall(EntityCall* entityCall);
+	INLINE void clientEntityCall(EntityCall* entitycall);
 
 	/**
 		all_clients
@@ -218,7 +225,7 @@ public:
 		entity传送
 		@cellAppID: 要传送到的目的cellappID
 		@targetEntityID：要传送到这个entity的space中
-		@sourceBaseAppID: 有可能是由某个baseapp上的base请求teleport的， 如果为0则为cellEntity发起
+		@sourceBaseAppID: 有可能是由某个baseapp上的entity请求teleport的， 如果为0则为cellEntity发起
 	*/
 	void teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAppID, ENTITY_ID targetEntityID, COMPONENT_ID sourceBaseAppID);
 
@@ -375,8 +382,7 @@ public:
 	*/
 	void onRemoteMethodCall(Network::Channel* pChannel, MemoryStream& s);
 	void onRemoteCallMethodFromClient(Network::Channel* pChannel, ENTITY_ID srcEntityID, MemoryStream& s);
-	void onRemoteMethodCall_(PropertyDescription* pComponentPropertyDescription, 
-		MethodDescription* pMethodDescription, ENTITY_ID srcEntityID, MemoryStream& s);
+	void onRemoteMethodCall_(MethodDescription* pMethodDescription, ENTITY_ID srcEntityID, MemoryStream& s);
 
 	/**
 		观察者
@@ -441,7 +447,7 @@ public:
 	DECLARE_PY_MOTHOD_ARG3(pyAddProximity, float, float, int32);
 
 	/** 
-		调用客户端实体的方法  
+		添加一个范围触发器  
 	*/
 	DECLARE_PY_MOTHOD_ARG1(pyClientEntity, ENTITY_ID);
 
@@ -579,9 +585,6 @@ public:
 	void addMovementHandlerToStream(KBEngine::MemoryStream& s);
 	void createMovementHandlerFromStream(KBEngine::MemoryStream& s);
 	
-	void addEventsToStream(KBEngine::MemoryStream& s);
-	void createEventsFromStream(KBEngine::MemoryStream& s);
-
 	/** 
 		获得实体控制器管理器
 	*/
@@ -607,7 +610,7 @@ public:
 
 private:
 	/** 
-		发送teleport结果到base端
+		发送teleport结果到baseEntity端
 	*/
 	void _sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sourceBaseAppID, 
 		SPACE_ID spaceID, SPACE_ID lastSpaceID, bool fromCellTeleport);
@@ -619,7 +622,6 @@ private:
 		PyObject *		pyCallable;
 		// 可以为NULL， NULL说明没有参数
 		PyObject *		pyFuncArgs;
-		const char*		funcName;
 	};
 
 	typedef std::list<BufferedScriptCall*>					BufferedScriptCallArray;
@@ -628,10 +630,10 @@ private:
 	static int32											_scriptCallbacksBufferCount;
 
 protected:
-	// 这个entity的客户端部分的entityCall
+	// 这个entity的客户端部分的entitycall
 	EntityCall*												clientEntityCall_;
 
-	// 这个entity的baseapp部分的entityCall
+	// 这个entity的baseapp部分的entitycall
 	EntityCall*												baseEntityCall_;
 
 	/** 这个entity的坐标和朝向当前受谁的客户端控制
