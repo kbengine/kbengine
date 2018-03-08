@@ -46,6 +46,22 @@ namespace KBEngine {
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();				\
 		for (; comps_iter != componentDescrs.end(); ++comps_iter)												\
 		{																										\
+			if(g_componentType == BASEAPP_TYPE)																	\
+			{																									\
+				if (!comps_iter->second->hasBase())																\
+					continue;																					\
+			}																									\
+			else if (g_componentType == CELLAPP_TYPE)															\
+			{																									\
+				if (!comps_iter->second->hasCell())																\
+					continue;																					\
+			}																									\
+			else																								\
+			{																									\
+				if (!comps_iter->second->hasClient())															\
+					continue;																					\
+			}																									\
+																												\
 			PyObject* pyTempObj = PyObject_GetAttrString(ENTITYOBJ, comps_iter->first.c_str());					\
 			if (pyTempObj)																						\
 			{																									\
