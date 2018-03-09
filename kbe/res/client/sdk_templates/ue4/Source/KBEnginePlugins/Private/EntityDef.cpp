@@ -22,8 +22,16 @@ void EntityDef::initialize()
 
 void EntityDef::clear()
 {
+	TArray<KBEDATATYPE_BASE*> deleted_datatypes;
 	for (auto& item : EntityDef::datatypes)
+	{
+		int32 idx = deleted_datatypes.Find(item.Value);
+		if (idx != INDEX_NONE)
+			continue;
+
+		deleted_datatypes.Add(item.Value);
 		delete item.Value;
+	}
 
 	for (auto& item : EntityDef::moduledefs)
 		delete item.Value;
