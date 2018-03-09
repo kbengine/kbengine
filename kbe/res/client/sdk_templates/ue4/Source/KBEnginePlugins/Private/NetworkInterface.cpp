@@ -162,7 +162,7 @@ void NetworkInterface::tickConnecting()
 	{
 		// 如果连接超时则回调失败
 		double currTime = getTimeSeconds();
-		if (currTime - startTime_ > 3)
+		if (state == SCS_ConnectionError || currTime - startTime_ > 30)
 		{
 			ERROR_MSG("NetworkInterface::tickConnecting(): connect to %s:%d timeout!", *connectIP_, connectPort_);
 			connectCB_->onConnectCallback(connectIP_, connectPort_, false, connectUserdata_);
