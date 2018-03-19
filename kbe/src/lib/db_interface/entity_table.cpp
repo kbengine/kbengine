@@ -141,8 +141,13 @@ bool EntityTables::load(DBInterface* pdbi)
 		ScriptDefModule* pSM = (*iter).get();
 		EntityTable* pEtable = pdbi->createEntityTable(this);
 
-		if(!pEtable || !pSM->isPersistent())
+		if (!pEtable || (!pSM->isPersistent() && strcmp(pSM->getName(), DBUtil::accountScriptName()) != 0))
+		{
+			WARNING_MSG(fmt::format("EntityTables::load: {} has no archived properties and does not create an entity({}) table\n", 
+				pSM->getName(), pSM->getName()));
+
 			continue;
+		}
 
 		if (!pEtable->initialize(pSM, pSM->getName()))
 		{
