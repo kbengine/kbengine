@@ -63,6 +63,7 @@ pTCPPacketReceiverEx_(NULL)
 	name_ = name;
 	typeClient_ = CLIENT_TYPE_BOTS;
 	clientDatas_ = "bots";
+	password_ = ServerConfig::getSingleton().getBots().bots_account_passwd;
 }
 
 //-------------------------------------------------------------------------------------

@@ -215,6 +215,7 @@ typedef struct EngineComponentInfo
 
 	std::string bots_account_name_prefix;					// 机器人账号名称的前缀
 	uint32 bots_account_name_suffix_inc;					// 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增
+	std::string bots_account_passwd;						// 机器人账号的密码
 
 	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
 
