@@ -169,7 +169,7 @@ INLINE const char* ScriptDefModule::getName()
 //-------------------------------------------------------------------------------------
 INLINE bool ScriptDefModule::isPersistent() const
 {
-	return persistent_ && persistentPropertyDescr_uidmap_.size() > 0;
+	return persistent_;
 }
 
 //-------------------------------------------------------------------------------------
