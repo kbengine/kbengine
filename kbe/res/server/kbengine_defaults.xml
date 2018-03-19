@@ -801,6 +801,8 @@
 				(The account name suffix, 0 is the use of random number, Otherwise, use account_name_suffix_inc and increasing.)
 			-->
 			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
+
+			<account_password> pwd123456 </account_password>
 		</account_infos>
 		
 		<!-- Telnet服务, 如果端口被占用则向后尝试51001.. 

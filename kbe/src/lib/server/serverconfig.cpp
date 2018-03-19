@@ -1225,6 +1225,12 @@ bool ServerConfig::loadConfig(std::string fileName)
 			{
 				_botsInfo.bots_account_name_suffix_inc = xml->getValInt(childnode);
 			}
+
+			childnode = xml->enterNode(node, "account_password");
+			if (childnode)
+			{
+				_botsInfo.bots_account_passwd = xml->getValStr(childnode);
+			}
 		}
 
 		node = xml->enterNode(rootNode, "SOMAXCONN");
