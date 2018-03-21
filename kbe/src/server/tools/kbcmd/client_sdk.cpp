@@ -110,7 +110,9 @@ ClientSDK::ClientSDK():
 	basepath_(),
 	currpath_(),
 	sourcefileBody_(),
-	sourcefileName_()
+	sourcefileName_(),
+	headerfileName_(),
+	headerfileBody_()
 {
 
 }
@@ -148,7 +150,8 @@ bool ClientSDK::good() const
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateEntityModuleFileName(const std::string& moduleName)
 {
-	sourcefileName_ = moduleName + ".unknown";
+	sourcefileName_ = moduleName + ".source";
+	headerfileName_ = moduleName + ".header";
 }
 
 //-------------------------------------------------------------------------------------
@@ -161,7 +164,7 @@ bool ClientSDK::saveFile()
 	}
 
 	std::string path = currpath_ + sourcefileName_;
-	
+
 	DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 		path));
 
@@ -184,7 +187,42 @@ bool ClientSDK::saveFile()
 		return false;
 	}
 
-	if(fclose(fp))
+	if (fclose(fp))
+	{
+		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
+			path));
+
+		return false;
+	}
+
+	if (headerfileName_.size() == 0)
+		return true;
+
+	path = currpath_ + headerfileName_;
+
+	DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
+		path));
+
+	fp = fopen(path.c_str(), "w");
+
+	if (NULL == fp)
+	{
+		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
+			path));
+
+		return false;
+	}
+
+	written = fwrite(headerfileBody_.c_str(), 1, headerfileBody_.size(), fp);
+	if (written != (int)headerfileBody_.size())
+	{
+		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
+			path));
+
+		return false;
+	}
+
+	if (fclose(fp))
 	{
 		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
 			path));
@@ -259,12 +297,14 @@ bool ClientSDK::create(const std::string& path)
 void ClientSDK::onCreateTypeFileName()
 {
 	sourcefileName_ = "KBEType.unknown";
+	headerfileName_ = ""; 
 }
 
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateServerErrorDescrsModuleFileName()
 {
 	sourcefileName_ = "ServerErrDescrs.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
@@ -418,6 +458,8 @@ bool ClientSDK::writeServerErrorDescrsModule()
 	}
 
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateServerErrorDescrsModuleFileName();
 
 	DEBUG_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModule(): {}/{}\n",
@@ -465,12 +507,15 @@ bool ClientSDK::writeServerErrorDescrsModuleEnd()
 void ClientSDK::onCreateEngineMessagesModuleFileName()
 {
 	sourcefileName_ = "Messages.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEngineMessagesModule()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateEngineMessagesModuleFileName();
 
 	DEBUG_MSG(fmt::format("ClientSDK::writeEngineMessagesModule(): {}/{}\n",
@@ -590,18 +635,22 @@ bool ClientSDK::writeEngineMessagesModuleEnd()
 void ClientSDK::onCreateEntityDefsModuleFileName()
 {
 	sourcefileName_ = "EntityDef.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateDefsCustomTypesModuleFileName()
 {
 	sourcefileName_ = "CustomDataTypes.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityDefsModule()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateEntityDefsModuleFileName();
 
 	DEBUG_MSG(fmt::format("ClientSDK::writeEntityDefsModule(): {}/{}\n",
@@ -829,12 +878,15 @@ bool ClientSDK::writeEntityDefsModuleInitDefTypes()
 void ClientSDK::onEntityCallModuleFileName(const std::string& moduleName)
 {
 	sourcefileName_ = std::string("EntityCall") + moduleName + ".unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onEntityCallModuleFileName(pScriptDefModule->getName());
 
 	if (!writeEntityCallBegin(pScriptDefModule))
@@ -1099,6 +1151,8 @@ bool ClientSDK::writeCustomDataTypesEnd()
 bool ClientSDK::writeCustomDataTypes()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateDefsCustomTypesModuleFileName();
 
 	if (!writeCustomDataTypesBegin())
@@ -1132,6 +1186,8 @@ bool ClientSDK::writeCustomDataType(const DataType* pDataType)
 bool ClientSDK::writeTypes()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateTypeFileName();
 
 	if (!writeTypesBegin())
@@ -1377,6 +1433,8 @@ bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 		currpath_, pEntityScriptDefModule->getName()));
 
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateEntityModuleFileName(pEntityScriptDefModule->getName());
 
 	if (!writeEntityModuleBegin(pEntityScriptDefModule))
