@@ -737,7 +737,7 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 {
-	DEBUG_MSG(fmt::format("Dbmgr::reqCreateAccount: {}.\n", registerName_.c_str()));
+	DEBUG_MSG(fmt::format("Dbmgr::reqCreateAccount: {}, success={}.\n", registerName_.c_str(), success_));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
