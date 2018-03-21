@@ -108,7 +108,8 @@ int CreatDir(const char *pDir)
 //-------------------------------------------------------------------------------------
 ClientSDK::ClientSDK():
 	basepath_(),
-	currpath_(),
+	currSourcePath_(),
+	currHeaderPath_(),
 	sourcefileBody_(),
 	sourcefileName_(),
 	headerfileName_(),
@@ -157,17 +158,17 @@ void ClientSDK::onCreateEntityModuleFileName(const std::string& moduleName)
 //-------------------------------------------------------------------------------------
 bool ClientSDK::saveFile()
 {
-	if (CreatDir(currpath_.c_str()) == -1)
-	{
-		ERROR_MSG(fmt::format("creating directory error! path={}\n", currpath_));
-		return false;
-	}
-
 	bool done = false;
 
 	if (sourcefileName_.size() > 0)
 	{
-		std::string path = currpath_ + sourcefileName_;
+		if (CreatDir(currSourcePath_.c_str()) == -1)
+		{
+			ERROR_MSG(fmt::format("creating directory error! path={}\n", currSourcePath_));
+			return false;
+		}
+
+		std::string path = currSourcePath_ + sourcefileName_;
 
 		DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 			path));
@@ -204,7 +205,13 @@ bool ClientSDK::saveFile()
 
 	if (headerfileName_.size() > 0)
 	{
-		std::string path = currpath_ + headerfileName_;
+		if (CreatDir(currHeaderPath_.c_str()) == -1)
+		{
+			ERROR_MSG(fmt::format("creating directory error! path={}\n", currHeaderPath_));
+			return false;
+		}
+
+		std::string path = currHeaderPath_ + headerfileName_;
 
 		DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 			path));
@@ -254,7 +261,7 @@ bool ClientSDK::create(const std::string& path)
 		basepath_ += "\\";
 #endif
 
-	currpath_ = basepath_;
+	currHeaderPath_ = currSourcePath_ = basepath_;
 
 	std::string findpath = "client/sdk_templates/" + name();
 
@@ -1439,7 +1446,7 @@ bool ClientSDK::writeTypesEnd()
 bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 {
 	DEBUG_MSG(fmt::format("ClientSDK::writeEntityModule(): {}/{}\n",
-		currpath_, pEntityScriptDefModule->getName()));
+		currSourcePath_, pEntityScriptDefModule->getName()));
 
 	sourcefileName_ = sourcefileBody_ = "";
 	headerfileName_ = headerfileBody_ = "";
