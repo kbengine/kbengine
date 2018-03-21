@@ -163,74 +163,83 @@ bool ClientSDK::saveFile()
 		return false;
 	}
 
-	std::string path = currpath_ + sourcefileName_;
+	bool done = false;
 
-	DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
-		path));
-
-	FILE *fp = fopen(path.c_str(), "w");
-
-	if (NULL == fp)
+	if (sourcefileName_.size() > 0)
 	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
+		std::string path = currpath_ + sourcefileName_;
+
+		DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 			path));
 
-		return false;
+		FILE *fp = fopen(path.c_str(), "w");
+
+		if (NULL == fp)
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
+				path));
+
+			return false;
+		}
+
+		int written = fwrite(sourcefileBody_.c_str(), 1, sourcefileBody_.size(), fp);
+		if (written != (int)sourcefileBody_.size())
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
+				path));
+
+			return false;
+		}
+
+		if (fclose(fp))
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
+				path));
+
+			return false;
+		}
+
+		done = true;
 	}
 
-	int written = fwrite(sourcefileBody_.c_str(), 1, sourcefileBody_.size(), fp);
-	if (written != (int)sourcefileBody_.size())
+	if (headerfileName_.size() > 0)
 	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
+		std::string path = currpath_ + headerfileName_;
+
+		DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 			path));
 
-		return false;
+		FILE *fp = fopen(path.c_str(), "w");
+
+		if (NULL == fp)
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
+				path));
+
+			return false;
+		}
+
+		int written = fwrite(headerfileBody_.c_str(), 1, headerfileBody_.size(), fp);
+		if (written != (int)headerfileBody_.size())
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
+				path));
+
+			return false;
+		}
+
+		if (fclose(fp))
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
+				path));
+
+			return false;
+		}
+
+		done = true;
 	}
 
-	if (fclose(fp))
-	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
-			path));
-
-		return false;
-	}
-
-	if (headerfileName_.size() == 0)
-		return true;
-
-	path = currpath_ + headerfileName_;
-
-	DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
-		path));
-
-	fp = fopen(path.c_str(), "w");
-
-	if (NULL == fp)
-	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
-			path));
-
-		return false;
-	}
-
-	written = fwrite(headerfileBody_.c_str(), 1, headerfileBody_.size(), fp);
-	if (written != (int)headerfileBody_.size())
-	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
-			path));
-
-		return false;
-	}
-
-	if (fclose(fp))
-	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
-			path));
-
-		return false;
-	}
-
-	return true;
+	return done;
 }
 
 //-------------------------------------------------------------------------------------
