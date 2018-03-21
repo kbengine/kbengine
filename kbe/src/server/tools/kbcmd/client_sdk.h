@@ -390,6 +390,8 @@ protected:
 	std::string basepath_, currpath_;
 	std::string sourcefileBody_;
 	std::string sourcefileName_;
+	std::string headerfileName_;
+	std::string headerfileBody_;
 };
 
 }
