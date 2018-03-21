@@ -214,7 +214,7 @@ void ClientSDKUE4::onCreateServerErrorDescrsModuleFileName()
 {
 	sourcefileName_ = "ServerErrorDescrs.h";
 
-	currpath_ = basepath_ + "Source/KBEnginePlugins/Public/";
+	currSourcePath_ = basepath_ + "Source/KBEnginePlugins/Public/";
 }
 
 //-------------------------------------------------------------------------------------
@@ -222,7 +222,7 @@ void ClientSDKUE4::onCreateEngineMessagesModuleFileName()
 {
 	sourcefileName_ = "Messages.h";
 
-	currpath_ = basepath_ + "Source/KBEnginePlugins/Public/";
+	currSourcePath_ = basepath_ + "Source/KBEnginePlugins/Public/";
 }
 
 //-------------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ void ClientSDKUE4::onCreateDefsCustomTypesModuleFileName()
 {
 	sourcefileName_ = "CustomDataTypes.h";
 
-	currpath_ = basepath_ + "Source/KBEnginePlugins/Public/";
+	currSourcePath_ = basepath_ + "Source/KBEnginePlugins/Public/";
 }
 
 //-------------------------------------------------------------------------------------
