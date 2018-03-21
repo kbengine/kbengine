@@ -927,8 +927,9 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
 				return false;
 
-			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
-			KBE_ASSERT(fpos != std::string::npos);
+			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE_FILLARGS1#");
+			std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT((fHeaderPos != std::string::npos) || (fSourcePos != std::string::npos));
 
 			std::string argsBody1 = "";
 			std::string argsBody2 = "";
@@ -992,8 +993,11 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 				argsBody2 = std::string(", ") + argsBody2;
 			}
 
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS2#", argsBody2);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
+			headerfileBody_ += fmt::format("\t\t}}\n\n");
 			sourcefileBody_ += fmt::format("\t\t}}\n\n");
 		}
 	}
@@ -1001,6 +1005,7 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 	if (!writeBaseEntityCallEnd(pScriptDefModule))
 		return false;
 
+	headerfileBody_ += fmt::format("\n");
 	sourcefileBody_ += fmt::format("\n");
 
 	// ÔÙÐ´CellEntityCall
@@ -1020,8 +1025,9 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
 				return false;
 
-			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
-			KBE_ASSERT(fpos != std::string::npos);
+			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE_FILLARGS1#");
+			std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT((fHeaderPos != std::string::npos) || (fSourcePos != std::string::npos));
 
 			std::string argsBody1 = "";
 			std::string argsBody2 = "";
@@ -1085,8 +1091,11 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 				argsBody2 = std::string(", ") + argsBody2;
 			}
 
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS2#", argsBody2);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
+			headerfileBody_ += fmt::format("\t\t}}\n\n");
 			sourcefileBody_ += fmt::format("\t\t}}\n\n");
 		}
 	}
@@ -1391,20 +1400,24 @@ bool ClientSDK::writeTypes()
 			{
 				std::string newType;
 				getArrayType(pFixedArrayType->getDataType(), newType);
+				strutil::kbe_replace(headerfileBody_, "#REPLACE#", newType);
 				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", newType);
 			}
 			else if (type == "FIXED_DICT")
 			{
+				strutil::kbe_replace(headerfileBody_, "#REPLACE#", itemTypeAliasName);
 				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", itemTypeAliasName);
 			}
 			else
 			{
 				std::string newType = typeToType(type);
+				strutil::kbe_replace(headerfileBody_, "#REPLACE#", newType);
 				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", newType);
 			}
 
-			std::string::size_type fpos = sourcefileBody_.find("#REPLACE#");
-			KBE_ASSERT(fpos == std::string::npos);
+			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE#");
+			std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE#");
+			KBE_ASSERT((fHeaderPos == std::string::npos) || (fSourcePos == std::string::npos));
 
 			if (!writeTypeEnd(typeName, pFixedArrayType))
 				return false;
@@ -1624,6 +1637,7 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule)
 {
 	sourcefileBody_ += "\n";
+	headerfileBody_ += "\n";
 
 	ScriptDefModule::METHODDESCRIPTION_MAP& clientMethods = pCurrScriptDefModule->getClientMethodDescriptions();
 	ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = clientMethods.begin();
@@ -1633,8 +1647,9 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 		if (!writeEntityMethod(pEntityScriptDefModule, pCurrScriptDefModule, pMethodDescription, "#REPLACE#"))
 			return false;
 
-		std::string::size_type fpos = sourcefileBody_.find("#REPLACE#");
-		KBE_ASSERT(fpos != std::string::npos);
+		std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE#");
+		std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE#");
+		KBE_ASSERT((fHeaderPos != std::string::npos) || (fSourcePos != std::string::npos));
 
 		std::string argsBody = "";
 
@@ -1692,6 +1707,7 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 			argsBody.erase(argsBody.size() - 2, 2);
 		}
 
+		strutil::kbe_replace(headerfileBody_, "#REPLACE#", argsBody);
 		strutil::kbe_replace(sourcefileBody_, "#REPLACE#", argsBody);
 	}
 
