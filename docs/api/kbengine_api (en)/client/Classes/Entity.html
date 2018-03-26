@@ -1,0 +1,327 @@
+<html>
+<head>
+<title>Entity - KBEngine client</title>
+<link href="../../style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr><td align=left style="background:#708090"> <font size=15 color=#ffffff> KBEngine </font></td></tr>
+</table> <hr>
+<h1>Entity class</h1>
+
+<p style="text-align: center;"><span class="module_h1">[
+<a href="../Modules/KBEngine.html" class="module_h1">KBEngine module</a>]</span></p>
+
+<p>Entity is part of the <a href="../Modules/KBEngine.html">KBEngine</a> 
+module. <a href="#detailed_description">More...</a></p><p></p>
+<pre>import KBEngine</pre>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'functions' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">Member functions</a></h2>
+<table id="functions" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr><td>
+<span class="function_list">def <a href="#baseCall" class="function_list" >baseCall</a>( self, methodName, methodArgs ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#cellCall" class="function_list" >cellCall</a>( self, methodName, methodArgs ):</span>
+</td></tr>
+
+</table>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'callbacks' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">Callbacks</a></h2>
+<table id="callbacks" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr><td>
+<span class="function_list">def <a href="#onDestroy" class="function_list" >onDestroy</a>( self ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onEnterWorld" class="function_list" >onEnterWorld</a>( self ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onLeaveWorld" class="function_list" >onLeaveWorld</a>( self ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onEnterSpace" class="function_list" >onEnterSpace</a>( self ):</span>
+</td></tr>
+
+<tr><td>
+<span class="function_list">def <a href="#onLeaveSpace" class="function_list" >onLeaveSpace</a>( self ):</span>
+</td></tr>
+</table>
+
+<h2><a href="#" onClick="obj=document.getElementById( 'attributes' );vis = (obj.style.display == 'none') ? 'block' : 'none'; obj.style.display = vis; return false;" class="h2">Attributes</a></h2>
+<table id="attributes" cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><a href="#direction" class="attribute_list" >direction</a></td><td>&nbsp; Tuple of 3 floats as (roll, pitch, yaw)
+</td></tr>
+
+<tr valign=top><td><a href="#id" class="attribute_list" >id</a></td><td>&nbsp; Read-only Integer
+</td></tr>
+
+<tr valign=top><td><a href="#position" class="attribute_list" >position</a></td><td>&nbsp; <a href=../../keywords.html#vector3>Vector3</a>
+</td></tr>
+
+<tr valign=top><td><a href="#spaceID" class="attribute_list" >spaceID</a></td><td>&nbsp; Read-only uint32
+</td></tr>
+
+<tr valign=top><td><a href="#isOnGround" class="attribute_list" >isOnGround</a></td><td>&nbsp; Read-only bool
+</td></tr>
+
+<tr valign=top><td><a href="#inWorld" class="attribute_list" >inWorld</a></td><td>&nbsp; Read-only bool
+</td></tr>
+
+<tr valign=top><td><a href="#className" class="attribute_list" >className</a></td><td>&nbsp; Read-only string
+</td></tr>
+
+</table>
+
+<hr>
+<a name="detailed_description"></a><h2>A detailed description</h2>
+Instances of class <a href=../../keywords.html#entity>Entity</a> represent 
+game objects on the client.
+<br><br>
+
+<br><br>
+An <a href=../../keywords.html#entity>Entity</a> can access its equivalent 
+entity in the base and cell applications via <a href=../../keywords.html#EntityCall>ENTITYCALL</a>.
+This requires a set of remotely-invoked functions (specified in the entity's .def file).
+
+<hr>
+<h2>Member function documentation</h2>
+
+<a name="baseCall"></a><p class="function_definition">
+<span class="function_definition">def baseCall( <i>self, methodName, methodArgs</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>Function description:</b><br><br>
+The method to call the base part of the entity.<br>
+Note: the entity must have a base part on the server side. Only client 
+entities controlled by the client can access this method.
+<br><br>
+
+Example:<br>
+js plugin: entity.baseCall("reqCreateAvatar", roleType, name);<br>
+c# plugin: entity.baseCall("reqCreateAvatar", new object[]{roleType, name});
+</div>
+
+<p>
+<span class="function_parameter">parameters:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>methodName</i></span></td><td><span class="function_parameter_description">
+string, method name.
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>methodArgs</i></span></td><td><span class="function_parameter_description">
+objects, method parameter list.
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">return:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+Because it is a remote call, it is not possible to block waiting for a 
+return, so there is no return value.
+</td></tr>
+</table>
+</p>
+
+
+
+<a name="cellCall"></a><p class="function_definition">
+<span class="function_definition">def cellCall( <i>self, methodName, methodArgs</i> ):</span>
+</p>
+
+<div class="function_description">
+<b>Function description:</b><br><br>
+The method to call the cell part of this entity.<br>
+Note: The entity must have a cell part on the server. Only client entities 
+controlled by the client can access this method.
+<br><br>
+
+Example:<br>
+js plugin: entity.cellCall("xxx", roleType, name);<br>
+c# plugin: entity.cellCall("xxx", new object[]{roleType, name});
+</div>
+
+<p>
+<span class="function_parameter">parameters:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+
+<tr valign=top><td><span class="function_parameter_name"><i>methodName</i></span></td><td><span class="function_parameter_description">
+string, method name.
+</span></td></tr>
+
+<tr valign=top><td><span class="function_parameter_name"><i>methodArgs</i></span></td><td><span class="function_parameter_description">
+objects, method parameter list.
+</span></td></tr>
+
+</table>
+</p>
+
+<p>
+<span class="function_return">return:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>
+	Because it is a remote call, it is not possible to block waiting for a 
+	return, so there is no return value.
+</td></tr>
+</table>
+</p>
+
+
+
+
+
+<hr>
+<h2>Callback function documentation</h2>
+
+
+<a name="onDestroy"></a><p class="function_definition">
+<span class="function_definition">def onDestroy( <i>self</i> ):</span>
+</p>
+
+<div class="function_description">Called when the entity is destroyed
+</div>
+
+
+<a name="onEnterWorld"></a><p class="function_definition">
+<span class="function_definition">def onEnterWorld( <i>self</i> ):</span>
+</p>
+
+<div class="function_description">
+	If the entity is not client-controlled, it indicates that the 
+	entity has entered the view scope of the client-controlled entity on the 
+	server, at which point the client can see the entity. <br>
+	If the entity is client controlled, it indicates that the entity 
+	has created a cell on the server and entered the Space.
+</div>
+
+
+
+<a name="onLeaveWorld"></a><p class="function_definition">
+<span class="function_definition">def onLeaveWorld( <i>self</i> ):</span>
+</p>
+
+<div class="function_description">
+	If the entity is not client-controlled, it indicates that the entity has 
+	left the view scope of the client-controlled entity on the server side, 
+	and the client cannot see this entity at this time.<br>
+	If the entity is client controlled, it indicates that the entity has 
+	already destroyed the cell on the server and left the Space.
+</div>
+
+
+
+<a name="onEnterSpace"></a><p class="function_definition">
+<span class="function_definition">def onEnterSpace( <i>self</i> ):</span>
+</p>
+
+<div class="function_description">
+	The client-controlled entity enters a new space.
+</div>
+
+
+
+<a name="onLeaveSpace"></a><p class="function_definition">
+<span class="function_definition">def onLeaveSpace( <i>self</i> ):</span>
+</p>
+
+<div class="function_description">
+	The client-controlled entity leaves the current space.
+</div>
+
+
+
+<hr>
+<h2>Attribute documentation</h2>
+
+<a name="className"></a><p class="attribute_definition">
+<span class="attribute_definition">className</span>
+</p>
+
+<div class="attribute_description">The class name of the entity.
+</div>
+
+<p>
+<span class="attribute_type">Type:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>Read-only, string
+</td></tr>
+</table>
+</p>
+
+
+
+<a name="position"></a><p class="attribute_definition">
+<span class="attribute_definition">position</span>
+</p>
+
+<div class="attribute_description">
+	The coordinates (x,y,z) of this entity in world space.
+	The data is synchronized from the server to the client.
+	<br><br>
+</div>
+
+<p>
+<span class="attribute_type">Type:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td><a href=../../keywords.html#vector3>Vector3</a>
+</td></tr>
+</table>
+</p>
+
+
+<a name="direction"></a><p class="attribute_definition">
+<span class="attribute_definition">direction</span>
+</p>
+
+<div class="attribute_description">
+	This attribute describes the orientation of the <a href=../../keywords.html#entity>Entity</a> 
+	in world space. Data is synchronized from the server to the client.
+</div>
+
+<p>
+<span class="attribute_type">Type:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>Vector3, which contains (roll, pitch, yaw) in radians.
+</td></tr>
+</table>
+</p>
+
+
+<a name="isOnGround"></a><p class="attribute_definition">
+<span class="attribute_definition">isOnGround</span>
+</p>
+
+<div class="attribute_description">
+	If the value of this attribute is True, the <a href=../../keywords.html#entity>Entity</a>
+	is on the ground, otherwise it is False.<br>
+	If it is a client-controlled entity, this attribute will be synchronized 
+	to the server when changed, and other entities will be synchronized 
+	to the client by the server. The client can determine this value to 
+	avoid the overhead of accuracy.
+</div>
+
+<p>
+<span class="attribute_type">Type:</span>
+<table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
+<tr><td>Read-write, bool
+</td></tr>
+</table>
+</p>
+
+
+
+<hr>
+<p class="copyrightFooter">Copyright KBEngine</p>
+</body>
+</html>
