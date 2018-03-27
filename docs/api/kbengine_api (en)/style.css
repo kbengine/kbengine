@@ -1,0 +1,51 @@
+A.toc_heading       {color:#883333;font-family:Arial;font-size:10pt;font-weight:bold;text-decoration:none;}
+A.toc_heading:hover {text-decoration:underline;}
+A.toc_entry         {color:#3333FF;font-family:Arial;font-size:10pt;font-weight:normal;margin-left:10px;}
+
+BODY,DIV, TABLE, TR, TD { background:white; font-family:Arial; font-size:9.0pt; }
+
+.function_list        {color:#000000;}
+a.function_list       {color:#3333FF;font-weight:bold;text-decoration:none;}
+a.function_list:hover {background-color:#DDDDFF;}
+
+.function_definition, .attribute_definition {color:#000000;font-weight:bold; background-color:#bbbbbb; width:100%}
+
+.function_parameter, .function_return, .function_parameter_name, .attribute_type {color:#000000;font-weight:bold;}
+
+.function_description, .attribute_description {color:#000000;}
+
+.enumeration_list {color:#000000;}
+A.enumeration_list {color:#3333FF;font-weight:bold;text-decoration:none;}
+A.enumeration_list:hover { background-color:#DDDDFF;}
+
+.attribute_list, .class_list               { color:#000000; }
+A.attribute_list, A.class_list             { color:#3333FF; font-weight:bold; text-decoration:none;}
+A.attribute_list:hover, A.class_list:hover { background-color:#DDDDFF;}
+
+.module_h1        { color:#000000; font-size:13.0pt; font-weight:bold;}
+A.module_h1       { color:#3333FF; font-size:13pt; font-weight:bold; text-decoration:none;}
+A.module_h1:hover { background-color:#DDDDFF;}
+
+.argument { color:#883333; }
+
+H1 {margin-left:00.0pt;margin-top:05.0pt;margin-bottom:12.0pt;font-size:13.0pt;font-family:Arial;padding-left:2pt;padding-top:4pt;padding-bottom:4pt;color:white;background:#708090;}
+
+A.H2 { color:white; font-family:Arial; font-size:11pt;}
+A.H2:hover { text-background:#DDDDFF;}
+
+H2 {margin-left:00.0pt;margin-top:12.0pt;margin-bottom:12.0pt;font-size:11.0pt;font-family:Arial;padding-left:2pt;padding-top:2pt;padding-bottom:2pt;color:white;background:#aaaaaa;}
+H3 {margin-left:00.0pt;margin-top:12.0pt;margin-bottom:03.0pt;font-size:09.0pt;font-family:Arial;padding-left:2pt;padding-top:2pt;padding-bottom:2pt;color:white;background:darkgray;}
+H4 {margin-left:00.0pt;margin-top:12.0pt;margin-bottom:03.0pt;font-size:09.0pt;font-family:Arial;padding-left:2pt;padding-top:2pt;padding-bottom:2pt;color:white;background:silver;font-style:oblique}
+
+P { background:white; font-family:Arial; font-size:9.0pt; }
+
+A       { color:#3333FF; font-weight:bold; text-decoration:none;}
+A:hover { background-color:#DDDDFF;}
+
+/* Copyright Info */
+p.copyrightFooter { text-align:right; background:#708090; color:white; }
+DIV.releaseDate   { font-size:9.0pt; font-weight:bold;      color:#006699; margin-top:30pt; margin-bottom:0pt; }
+DIV.softwareInfo  { font-size:9.0pt; font-weight:bold;      color:#006699; margin-top:10pt; margin-bottom:0pt; }
+DIV.bigworldInfo  { font-size:9.0pt; font-weight:bold;      color:#006699; margin-top:10pt; margin-bottom:0pt; }
+DIV.periodInfo    { font-size:9.0pt; font-weight:normal;    color:#006699; margin-top:10pt; margin-bottom:0pt; }
+DIV.legal         { font-size:8.0pt; font-weight:normal;    color:#006699; margin-top:05pt;                    }
