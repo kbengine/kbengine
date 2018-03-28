@@ -820,7 +820,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 
 	// 生成激活码并存储激活码到数据库
 	// 发送smtp邮件到邮箱， 用户点击确认后即可激活
-	getdatas_ = genmail_code(password_);
+	std::string codestr = genmail_code(password_);
 	KBEEmailVerificationTable* pTable1 = static_cast<KBEEmailVerificationTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_email_verification"));
 	KBE_ASSERT(pTable1);
 	
@@ -842,6 +842,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	}
 
 	password_ = KBE_MD5::getDigest(password_.data(), (int)password_.length());
+	getdatas_ = codestr;
 
 	success_ = pTable1->logAccount(pdbi_, (int8)KBEEmailVerificationTable::V_TYPE_CREATEACCOUNT, 
 		registerName_, password_, getdatas_);
