@@ -846,7 +846,7 @@ bool ClientSDKUnity::createArrayChildClass(DataType* pRootDataType, DataType* pD
 		std::string writeName;
 		if (isFixedType)
 		{
-			writeName = fmt::format("itemType.addToStream(stream, v[i])");
+			writeName = fmt::format("itemType.addToStreamEx(stream, v[i])");
 		}
 		else
 		{
@@ -917,7 +917,7 @@ bool ClientSDKUnity::createArrayChildClass(DataType* pRootDataType, DataType* pD
 		std::string writeName;
 		if (isFixedType)
 		{
-			writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+			writeName = fmt::format("itemType.addToStreamEx(stream, v[i])", writeName);
 		}
 		else
 		{
@@ -1145,7 +1145,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 			std::string writeName;
 			if (isFixedType)
 			{
-				writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+				writeName = fmt::format("itemType.addToStreamEx(stream, v[i])", writeName);
 			}
 			else
 			{
@@ -1175,7 +1175,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 			sourcefileBody_ += fmt::format("\t\t}}\n\n");
 
 			sourcefileBody_ += fmt::format("\t\tpublic void addToStreamEx(Bundle stream, {} v)\n\t\t{{\n", typeName);
-			std::string writeName = fmt::format("itemType.addToStream(stream, v)", writeName);
+			std::string writeName = fmt::format("itemType.addToStreamEx(stream, v)", writeName);
 			sourcefileBody_ += fmt::format("\t\t\t{};\n", writeName);
 			sourcefileBody_ += fmt::format("\t\t}}\n");
 
@@ -1207,7 +1207,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 			std::string writeName;
 			if (isFixedType)
 			{
-				writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+				writeName = fmt::format("itemType.addToStreamEx(stream, v[i])", writeName);
 			}
 			else
 			{
