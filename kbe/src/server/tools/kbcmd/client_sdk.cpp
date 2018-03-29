@@ -924,7 +924,7 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			if (!pMethodDescription->isExposed())
 				continue;
 
-			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
+			if (!writeEntityCallMethodBegin(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
 				return false;
 
 			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE_FILLARGS1#");
@@ -997,8 +997,9 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS2#", argsBody2);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
-			headerfileBody_ += fmt::format("\t\t}}\n\n");
-			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+
+			if (!writeEntityCallMethodEnd(pScriptDefModule, pMethodDescription))
+				return false;
 		}
 	}
 
@@ -1022,7 +1023,7 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			if (!pMethodDescription->isExposed())
 				continue;
 
-			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
+			if (!writeEntityCallMethodBegin(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
 				return false;
 
 			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE_FILLARGS1#");
@@ -1095,8 +1096,9 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS2#", argsBody2);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
-			headerfileBody_ += fmt::format("\t\t}}\n\n");
-			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+
+			if (!writeEntityCallMethodEnd(pScriptDefModule, pMethodDescription))
+				return false;
 		}
 	}
 
@@ -1110,9 +1112,16 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+bool ClientSDK::writeEntityCallMethodBegin(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethod: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethodBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCallMethodEnd(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethodEnd: Not Implemented!\n"));
 	return false;
 }
 

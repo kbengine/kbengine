@@ -599,7 +599,7 @@ bool ClientSDKUnity::writeEntityCallEnd(ScriptDefModule* pScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+bool ClientSDKUnity::writeEntityCallMethodBegin(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic void {}({})\n\t\t{{\n", pMethodDescription->getName(), fillString1);
 
@@ -651,6 +651,13 @@ bool ClientSDKUnity::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, Me
 	}
 
 	sourcefileBody_ += fmt::format("\t\t\tsendCall(null);\n");
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityCallMethodEnd(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription)
+{
+	sourcefileBody_ += fmt::format("\t\t}}\n\n");
 	return true;
 }
 
@@ -781,7 +788,7 @@ bool ClientSDKUnity::createArrayChildClass(DataType* pRootDataType, DataType* pD
 		std::string writeName;
 		if (isFixedType)
 		{
-			writeName = fmt::format("itemType.addToStream(stream, v[i])");
+			writeName = fmt::format("itemType.addToStreamEx(stream, v[i])");
 		}
 		else
 		{
@@ -852,7 +859,7 @@ bool ClientSDKUnity::createArrayChildClass(DataType* pRootDataType, DataType* pD
 		std::string writeName;
 		if (isFixedType)
 		{
-			writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+			writeName = fmt::format("itemType.addToStreamEx(stream, v[i])", writeName);
 		}
 		else
 		{
@@ -1080,7 +1087,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 			std::string writeName;
 			if (isFixedType)
 			{
-				writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+				writeName = fmt::format("itemType.addToStreamEx(stream, v[i])", writeName);
 			}
 			else
 			{
@@ -1110,7 +1117,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 			sourcefileBody_ += fmt::format("\t\t}}\n\n");
 
 			sourcefileBody_ += fmt::format("\t\tpublic void addToStreamEx(Bundle stream, {} v)\n\t\t{{\n", typeName);
-			std::string writeName = fmt::format("itemType.addToStream(stream, v)", writeName);
+			std::string writeName = fmt::format("itemType.addToStreamEx(stream, v)", writeName);
 			sourcefileBody_ += fmt::format("\t\t\t{};\n", writeName);
 			sourcefileBody_ += fmt::format("\t\t}}\n");
 
@@ -1142,7 +1149,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 			std::string writeName;
 			if (isFixedType)
 			{
-				writeName = fmt::format("itemType.addToStream(stream, v[i])", writeName);
+				writeName = fmt::format("itemType.addToStreamEx(stream, v[i])", writeName);
 			}
 			else
 			{
@@ -1674,7 +1681,7 @@ bool ClientSDKUnity::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefMod
 
 	sourcefileBody_ += fmt::format("\tpublic abstract class {} : Entity\n\t{{\n", newModuleName);
 
-	// –¥mailbox Ù–‘
+	// –¥entityCall Ù–‘
 	sourcefileBody_ += fmt::format("\t\tpublic EntityBaseEntityCall_{} baseEntityCall = null;\n", newModuleName);
 	sourcefileBody_ += fmt::format("\t\tpublic EntityCellEntityCall_{} cellEntityCall = null;\n\n", newModuleName);
 	return true;
