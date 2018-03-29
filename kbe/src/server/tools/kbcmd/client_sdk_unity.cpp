@@ -599,7 +599,7 @@ bool ClientSDKUnity::writeEntityCallEnd(ScriptDefModule* pScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDKUnity::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+bool ClientSDKUnity::writeEntityCallMethodBegin(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic void {}({})\n\t\t{{\n", pMethodDescription->getName(), fillString1);
 
@@ -651,6 +651,13 @@ bool ClientSDKUnity::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, Me
 	}
 
 	sourcefileBody_ += fmt::format("\t\t\tsendCall(null);\n");
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDKUnity::writeEntityCallMethodEnd(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription)
+{
+	sourcefileBody_ += fmt::format("\t\t}}\n\n");
 	return true;
 }
 
