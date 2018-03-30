@@ -2,10 +2,11 @@
 #include "KBEngine.h"
 #include "KBEngineArgs.h"
 #include "Entity.h"
+#include "EntityDef.h"
+#include "Messages.h"
 #include "NetworkInterface.h"
 #include "Bundle.h"
 #include "MemoryStream.h"
-#include "PersistentInfos.h"
 #include "DataTypes.h"
 #include "ScriptModule.h"
 #include "Property.h"
@@ -13,16 +14,9 @@
 #include "EntityCall.h"
 #include "Regex.h"
 #include "KBDebug.h"
+#include "KBEvent.h"
 
 ServerErrorDescrs KBEngineApp::serverErrs_;
-
-bool KBEngineApp::loadingLocalMessages_ = false;
-
-
-bool KBEngineApp::loginappMessageImported_ = false;
-bool KBEngineApp::baseappMessageImported_ = false;
-bool KBEngineApp::entitydefImported_ = false;
-bool KBEngineApp::isImportServerErrorsDescr_ = false;
 
 KBEngineApp::KBEngineApp() :
 	pArgs_(NULL),
@@ -42,7 +36,6 @@ KBEngineApp::KBEngineApp() :
 	clientScriptVersion_(TEXT("")),
 	serverProtocolMD5_(TEXT("@{KBE_SERVER_PROTO_MD5}")),
 	serverEntitydefMD5_(TEXT("@{KBE_SERVER_ENTITYDEF_MD5}")),
-	persistentInfos_(NULL),
 	entity_uuid_(0),
 	entity_id_(0),
 	entity_type_(TEXT("")),
@@ -82,7 +75,6 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	clientScriptVersion_(TEXT("")),
 	serverProtocolMD5_(TEXT("@{KBE_SERVER_PROTO_MD5}")),
 	serverEntitydefMD5_(TEXT("@{KBE_SERVER_ENTITYDEF_MD5}")),
-	persistentInfos_(NULL),
 	entity_uuid_(0),
 	entity_id_(0),
 	entity_type_(TEXT("")),
@@ -127,13 +119,6 @@ bool KBEngineApp::initialize(KBEngineArgs* pArgs)
 		return false;
 
 	EntityDef::initialize();
-
-	// 允许持久化KBE(例如:协议，entitydef等)
-	if (pArgs->persistentDataPath != TEXT(""))
-	{
-		KBE_SAFE_RELEASE(persistentInfos_);
-		persistentInfos_ = new PersistentInfos(pArgs->persistentDataPath);
-	}
 
 	// 注册事件
 	installEvents();
@@ -195,20 +180,13 @@ void KBEngineApp::destroy()
 
 	KBE_SAFE_RELEASE(pArgs_);
 	KBE_SAFE_RELEASE(pNetworkInterface_);
-	KBE_SAFE_RELEASE(persistentInfos_);
 }
 
 void KBEngineApp::resetMessages()
 {
-	loadingLocalMessages_ = false;
-	loginappMessageImported_ = false;
-	baseappMessageImported_ = false;
-	entitydefImported_ = false;
-	isImportServerErrorsDescr_ = false;
-
 	serverErrs_.Clear();
 
-	Messages::getSingleton().clear();
+	Messages::clear();
 	EntityDef::clear();
 	Entity::clear();
 
@@ -256,6 +234,7 @@ bool KBEngineApp::initNetwork()
 	if (pNetworkInterface_)
 		delete pNetworkInterface_;
 
+	Messages::initialize();
 	pNetworkInterface_ = new NetworkInterface();
 	return true;
 }
@@ -297,9 +276,6 @@ void KBEngineApp::sendTick()
 	if (!pNetworkInterface_ || !pNetworkInterface_->valid())
 		return;
 
-	if (!loginappMessageImported_ && !baseappMessageImported_)
-		return;
-
 	double span = getTimeSeconds() - lastTickTime_;
 
 	// 更新玩家的位置与朝向到服务端
@@ -318,8 +294,8 @@ void KBEngineApp::sendTick()
 			return;
 		}
 
-		Message** Loginapp_onClientActiveTickMsgFind = Messages::getSingleton().messages.Find("Loginapp_onClientActiveTick");
-		Message** Baseapp_onClientActiveTickMsgFind = Messages::getSingleton().messages.Find("Baseapp_onClientActiveTick");
+		Message** Loginapp_onClientActiveTickMsgFind = Messages::messages.Find("Loginapp_onClientActiveTick");
+		Message** Baseapp_onClientActiveTickMsgFind = Messages::messages.Find("Baseapp_onClientActiveTick");
 
 		if (currserver_ == TEXT("loginapp"))
 		{
@@ -391,7 +367,7 @@ void KBEngineApp::updatePlayerToServer()
 		pPlayerEntity->entityLastLocalDir = direction;
 
 		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_onUpdateDataFromClient"]));
+		pBundle->newMessage(Messages::messages[TEXT("Baseapp_onUpdateDataFromClient"]));
 		(*pBundle) << position.X;
 		(*pBundle) << position.Y;
 		(*pBundle) << position.Z;
@@ -422,7 +398,7 @@ void KBEngineApp::updatePlayerToServer()
 			pEntity->entityLastLocalDir = e_direction;
 
 			Bundle* pBundle = Bundle::createObject();
-			pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_onUpdateDataFromClientForControlledEntity"]));
+			pBundle->newMessage(Messages::messages[TEXT("Baseapp_onUpdateDataFromClientForControlledEntity"]));
 			(*pBundle) << pEntity->id();
 			(*pBundle) << e_position.X;
 			(*pBundle) << e_position.Y;
@@ -450,9 +426,9 @@ void KBEngineApp::hello()
 {
 	Bundle* pBundle = Bundle::createObject();
 	if (currserver_ == TEXT("loginapp"))
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_hello")]);
+		pBundle->newMessage(Messages::messages[TEXT("Loginapp_hello")]);
 	else
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_hello")]);
+		pBundle->newMessage(Messages::messages[TEXT("Baseapp_hello")]);
 
 	(*pBundle) << clientVersion_;
 	(*pBundle) << clientScriptVersion_;
@@ -495,9 +471,6 @@ void KBEngineApp::Client_onVersionNotMatch(MemoryStream& stream)
 	pEventData->clientVersion = clientVersion_;
 	pEventData->serverVersion = serverVersion_;
 	KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
-
-	if (persistentInfos_)
-		persistentInfos_->onVersionNotMatch(clientVersion_, serverVersion_);
 }
 
 void KBEngineApp::Client_onScriptVersionNotMatch(MemoryStream& stream)
@@ -510,9 +483,6 @@ void KBEngineApp::Client_onScriptVersionNotMatch(MemoryStream& stream)
 	pEventData->clientScriptVersion = clientScriptVersion_;
 	pEventData->serverScriptVersion = serverScriptVersion_;
 	KBENGINE_EVENT_FIRE("onScriptVersionNotMatch", pEventData);
-
-	if (persistentInfos_)
-		persistentInfos_->onScriptVersionNotMatch(clientScriptVersion_, serverScriptVersion_);
 }
 
 void KBEngineApp::Client_onKicked(uint16 failedcode)
@@ -525,42 +495,8 @@ void KBEngineApp::Client_onKicked(uint16 failedcode)
 	KBENGINE_EVENT_FIRE("onKicked", pEventData);
 }
 
-void KBEngineApp::Client_onImportServerErrorsDescr(MemoryStream& stream)
-{
-	TArray<uint8> datas;
-	datas.SetNumUninitialized(stream.length());
-	memcpy(datas.GetData(), stream.data() + stream.rpos(), stream.length());
-
-	onImportServerErrorsDescr(stream);
-
-	if (persistentInfos_)
-		persistentInfos_->onImportServerErrorsDescr(datas);
-}
-
-void KBEngineApp::onImportServerErrorsDescr(MemoryStream& stream)
-{
-	uint16 size = 0;
-	stream >> size;
-
-	while (size > 0)
-	{
-		size -= 1;
-
-		FKServerErr e;
-		e.id = stream.read<uint16>();
-		stream.readUTF8String(e.name);
-		stream.readUTF8String(e.descr);
-
-	
-
-		DEBUG_MSG("KBEngineApp::onImportServerErrorsDescr(): id=%d, name=%s, descr=%s", e.id, *e.name, *e.descr);
-	}
-}
-
 void KBEngineApp::onServerDigest()
 {
-	if (persistentInfos_)
-		persistentInfos_->onServerDigest(currserver_, serverProtocolMD5_, serverEntitydefMD5_);
 }
 
 void KBEngineApp::onConnectCallback(FString ip, uint16 port, bool success, int userdata)
@@ -628,7 +564,7 @@ void KBEngineApp::login_loginapp(bool noconnect)
 	{
 		INFO_MSG("KBEngineApp::login_loginapp(): send login! username=%s", *username_);
 		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_login"]));
+		pBundle->newMessage(Messages::messages[TEXT("Loginapp_login"]));
 		(*pBundle) << (uint8)pArgs_->clientType;
 		pBundle->appendBlob(clientdatas_);
 		(*pBundle) << username_;
@@ -656,22 +592,7 @@ void KBEngineApp::onConnectTo_loginapp_login_callback(FString ip, uint16 port, b
 void KBEngineApp::onLogin_loginapp()
 {
 	lastTickCBTime_ = getTimeSeconds();
-
-	if (!loginappMessageImported_)
-	{
-		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_importClientMessages"]));
-		pBundle->send(pNetworkInterface_);
-
-		DEBUG_MSG("KBEngineApp::onLogin_loginapp(): send importClientMessages ...");
-
-		UKBEventData_Loginapp_importClientMessages* pEventData = NewObject<UKBEventData_Loginapp_importClientMessages>();
-		KBENGINE_EVENT_FIRE("Loginapp_importClientMessages", pEventData);
-	}
-	else
-	{
-		onImportClientMessagesCompleted();
-	}
+	login_loginapp(false);
 }
 
 void KBEngineApp::Client_onLoginFailed(MemoryStream& stream)
@@ -716,7 +637,7 @@ void KBEngineApp::login_baseapp(bool noconnect)
 	else
 	{
 		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_loginBaseapp"]));
+		pBundle->newMessage(Messages::messages[TEXT("Baseapp_loginBaseapp"]));
 		(*pBundle) << username_;
 		(*pBundle) << password_;
 		pBundle->send(pNetworkInterface_);
@@ -744,19 +665,7 @@ void KBEngineApp::onConnectTo_baseapp_callback(FString ip, uint16 port, bool suc
 void KBEngineApp::onLogin_baseapp()
 {
 	lastTickCBTime_ = getTimeSeconds();
-
-	if (!baseappMessageImported_)
-	{
-		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_importClientMessages"]));
-		pBundle->send(pNetworkInterface_);
-		DEBUG_MSG("KBEngineApp::onLogin_baseapp(): send importClientMessages ...");
-		KBENGINE_EVENT_FIRE("Baseapp_importClientMessages", NewObject<UKBEventData_Baseapp_importClientMessages>());
-	}
-	else
-	{
-		onImportClientMessagesCompleted();
-	}
+	login_baseapp(false);
 }
 
 void KBEngineApp::reloginBaseapp()
@@ -781,7 +690,7 @@ void KBEngineApp::onReloginTo_baseapp_callback(FString ip, uint16 port, bool suc
 	INFO_MSG("KBEngineApp::onReloginTo_baseapp_callback(): connect %s:%d is success!", *ip, port);
 
 	Bundle* pBundle = Bundle::createObject();
-	pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_reloginBaseapp"]));
+	pBundle->newMessage(Messages::messages[TEXT("Baseapp_reloginBaseapp"]));
 	(*pBundle) << username_;
 	(*pBundle) << password_;
 	(*pBundle) << entity_uuid_;
@@ -838,19 +747,10 @@ void KBEngineApp::Client_onCreatedProxies(uint64 rndUUID, int32 eid, FString& en
 
 		ScriptModule* pModule = *pModuleFind;
 
-		EntityCreator* pEntityCreator = pModule->pEntityCreator;
-		if (!pEntityCreator)
-			return;
-
-		Entity* pEntity = pEntityCreator->create();
+		Entity* pEntity = pModule->createEntity();
 		pEntity->id(eid);
 		pEntity->className(entityType);
-
-		EntityCall* baseMB = new EntityCall();
-		pEntity->base(baseMB);
-		baseMB->id = eid;
-		baseMB->className = entityType;
-		baseMB->type = EntityCall::ENTITYCALL_TYPE_BASE;
+		pEntity->onGetBase();
 
 		entities_.Add(eid, pEntity);
 
@@ -971,44 +871,11 @@ void KBEngineApp::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& stream)
 			utype = stream.read<uint16>();
 		}
 
-		Property* propertydata = pdatas[utype];
-		utype = propertydata->properUtype;
-		EntityDefMethodHandle* pSetMethod = propertydata->pSetMethod;
+		Property* pProperty = pdatas[utype];
+		pEntity->onUpdatePropertys(pProperty, stream);
 
-		KBVar* val = propertydata->pUtype->createFromStream(stream);
 		// DEBUG_MSG("KBEngineApp::onUpdatePropertys_(): entity.className + "(id=" + eid  + " " + 
 		// propertydata.name + "=" + val->c_str() + "), hasSetMethod=" + setmethod + "!");
-
-		EntityDefPropertyHandle* pEntityDefPropertyHandle = EntityDefPropertyHandles::find(pEntity->className(), propertydata->name);
-		if (!pEntityDefPropertyHandle)
-		{
-			SCREEN_ERROR_MSG("KBEngineApp::onUpdatePropertys_(): %s(%d) not found property(%s), update error! Please register with ENTITYDEF_PROPERTY_REGISTER(XXX, %s) in (%s, %s).cpp",
-				*pEntity->className(), eid, *propertydata->name,
-				*propertydata->name, *pEntity->className(), *sm->pEntityCreator->parentClasses());
-
-			delete val;
-			continue;
-		}
-
-		KBVar* oldval = pEntityDefPropertyHandle->getPropertyValue(pEntity);
-		pEntityDefPropertyHandle->setPropertyValue(pEntity, val);
-
-		if (pSetMethod)
-		{
-			if (propertydata->isBase())
-			{
-				if (pEntity->inited())
-					pSetMethod->callMethod(pEntity, *oldval);
-			}
-			else
-			{
-				if (pEntity->inWorld())
-					pSetMethod->callMethod(pEntity, *oldval);
-			}
-		}
-
-		delete oldval;
-		delete val;
 	}
 }
 
@@ -1159,538 +1026,6 @@ FString KBEngineApp::getSpaceData(const FString& key)
 	return (*valFind);
 }
 
-void KBEngineApp::onImportClientMessagesCompleted()
-{
-	DEBUG_MSG("KBEngineApp::onImportClientMessagesCompleted(): successfully! currserver=%s, currstate=%s", *currserver_, *currstate_);
-
-	if (currserver_ == TEXT("loginapp"))
-	{
-		if (!isImportServerErrorsDescr_ && !loadingLocalMessages_)
-		{
-			DEBUG_MSG("KBEngineApp::onImportClientMessagesCompleted(): send importServerErrorsDescr!");
-			isImportServerErrorsDescr_ = true;
-			Bundle* pBundle = Bundle::createObject();
-			pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_importServerErrorsDescr"]));
-			pBundle->send(pNetworkInterface_);
-		}
-
-		if (currstate_ == TEXT("login"))
-		{
-			login_loginapp(false);
-		}
-		else if (currstate_ == TEXT("autoimport"))
-		{
-		}
-		else if (currstate_ == TEXT("resetpassword"))
-		{
-			resetpassword_loginapp(false);
-		}
-		else if (currstate_ == TEXT("createAccount"))
-		{
-			createAccount_loginapp(false);
-		}
-		else {
-		}
-
-		loginappMessageImported_ = true;
-	}
-	else
-	{
-		baseappMessageImported_ = true;
-
-		if (!entitydefImported_ && !loadingLocalMessages_)
-		{
-			DEBUG_MSG("KBEngineApp::onImportClientMessagesCompleted(): send importEntityDef(%d) ...", entitydefImported_);
-			Bundle* pBundle = Bundle::createObject();
-			pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_importClientEntityDef"]));
-			pBundle->send(pNetworkInterface_);
-			KBENGINE_EVENT_FIRE("Baseapp_importClientEntityDef", NewObject<UKBEventData_Baseapp_importClientEntityDef>());
-		}
-		else
-		{
-			onImportEntityDefCompleted();
-		}
-	}
-}
-
-void KBEngineApp::createDataTypeFromStreams(MemoryStream& stream, bool canprint)
-{
-	uint16 aliassize = 0;
-	stream >> aliassize;
-
-	DEBUG_MSG("KBEngineApp::createDataTypeFromStreams(): importAlias(size=%d)!", aliassize);
-
-	while (aliassize > 0)
-	{
-		aliassize--;
-		createDataTypeFromStream(stream, canprint);
-	};
-
-	for (auto& item : EntityDef::datatypes)
-	{
-		if (item.Value)
-		{
-			item.Value->bind();
-		}
-	}
-}
-
-void KBEngineApp::createDataTypeFromStream(MemoryStream& stream, bool canprint)
-{
-	uint16 utype = 0;
-	stream >> utype;
-
-	FString name;
-	stream >> name;
-
-	FString valname;
-	stream >> valname;
-
-	/* 有一些匿名类型，我们需要提供一个唯一名称放到datatypes中
-		如：
-		<onRemoveAvatar>
-		<Arg>	ARRAY <of> INT8 </of>		</Arg>
-		</onRemoveAvatar>
-	*/
-	if (valname.Len() == 0)
-		valname = FString::Printf(TEXT("Null_%d"), (int)utype);
-
-	if (canprint)
-		DEBUG_MSG("KBEngineApp::createDataTypeFromStream(): importAlias(%s:%s:%d)!", *name, *valname, utype);
-
-	if (name == TEXT("FIXED_DICT"))
-	{
-		KBEDATATYPE_FIXED_DICT* datatype = new KBEDATATYPE_FIXED_DICT();
-		uint8 keysize;
-		stream >> keysize;
-
-		stream >> datatype->implementedBy;
-
-		while (keysize > 0)
-		{
-			keysize--;
-
-			FString keyname;
-			stream >> keyname;
-
-			uint16 keyutype;
-			stream >> keyutype;
-
-			datatype->dicttype_map.Add(keyname, keyutype);
-		};
-
-		EntityDef::datatypes.Add(valname, datatype);
-	}
-	else if (name == TEXT("ARRAY"))
-	{
-		uint16 uitemtype;
-		stream >> uitemtype;
-
-		KBEDATATYPE_ARRAY* datatype = new KBEDATATYPE_ARRAY();
-		datatype->tmpset_uitemtype = (int)uitemtype;
-		EntityDef::datatypes.Add(valname, datatype);
-	}
-	else
-	{
-		// 可能会重复向map添加基本类型， 此时需要过滤掉
-		//if (EntityDef::datatypes.Contains(valname))
-		//	return;
-
-		KBEDATATYPE_BASE* val = NULL;
-		if (EntityDef::datatypes.Contains(name))
-			val = EntityDef::datatypes[name];
-
-		EntityDef::datatypes.Add(valname, val);
-	}
-
-	// 可能会重复向map添加基本类型， 此时需要过滤掉
-	//if (EntityDef::id2datatypes.Contains(utype))
-	//	return;
-
-	EntityDef::id2datatypes.Add(utype, EntityDef::datatypes[valname]);
-
-	// 将用户自定义的类型补充到映射表中
-	EntityDef::datatype2id.Add(valname, utype);
-
-}
-
-void KBEngineApp::Client_onImportClientEntityDef(MemoryStream& stream)
-{
-	TArray<uint8> datas;
-	datas.SetNumUninitialized(stream.length());
-	memcpy(datas.GetData(), stream.data() + stream.rpos(), stream.length());
-
-	onImportClientEntityDef(stream);
-
-	if (persistentInfos_)
-		persistentInfos_->onImportClientEntityDef(datas);
-}
-
-void KBEngineApp::onImportClientEntityDef(MemoryStream& stream)
-{
-	createDataTypeFromStreams(stream, true);
-
-	while (stream.length() > 0)
-	{
-		FString scriptmodule_name;
-		stream >> scriptmodule_name;
-
-		uint16 scriptUtype;
-		stream >> scriptUtype;
-
-		uint16 propertysize;
-		stream >> propertysize;
-
-		uint16 methodsize;
-		stream >> methodsize;
-
-		uint16 base_methodsize;
-		stream >> base_methodsize;
-
-		uint16 cell_methodsize;
-		stream >> cell_methodsize;
-
-		DEBUG_MSG("KBEngineApp::onImportClientEntityDef(): import(%s), propertys(%d), "
-			"clientMethods(%d), baseMethods(%d), cellMethods(%d)!", *scriptmodule_name,
-			propertysize, methodsize, base_methodsize, cell_methodsize);
-
-		ScriptModule* module = new ScriptModule(scriptmodule_name);
-		EntityDef::moduledefs.Add(scriptmodule_name, module);
-		EntityDef::idmoduledefs.Add(scriptUtype, module);
-
-		EntityCreator* pEntityCreator = module->pEntityCreator;
-
-		while (propertysize > 0)
-		{
-			propertysize--;
-
-			uint16 properUtype;
-			stream >> properUtype;
-
-			uint32 properFlags;
-			stream >> properFlags;
-
-			int16 paliasID;
-			stream >> paliasID;
-
-			FString pname;
-			stream >> pname;
-
-			FString defaultValStr;
-			stream >> defaultValStr;
-
-			uint16 iutype;
-			stream >> iutype;
-			KBEDATATYPE_BASE* utype = EntityDef::id2datatypes[iutype];
-
-			EntityDefMethodHandle* pEntityDefMethodHandle = NULL;
-
-			if (pEntityCreator)
-				pEntityDefMethodHandle = EntityDefMethodHandles::find(scriptmodule_name, FString::Printf(TEXT("set_%s"), *pname));
-
-			Property* savedata = new Property();
-			savedata->name = pname;
-			savedata->pUtype = utype;
-			savedata->properUtype = properUtype;
-			savedata->properFlags = properFlags;
-			savedata->aliasID = paliasID;
-			savedata->defaultValStr = defaultValStr;
-			savedata->pSetMethod = pEntityDefMethodHandle;
-			savedata->pdefaultVal = savedata->pUtype->parseDefaultValStr(savedata->defaultValStr);
-
-			module->propertys.Add(pname, savedata);
-
-			if (paliasID != -1)
-			{
-				module->usePropertyDescrAlias = true;
-				module->idpropertys.Add(paliasID, savedata);
-			}
-			else
-			{
-				module->usePropertyDescrAlias = false;
-				module->idpropertys.Add(properUtype, savedata);
-			}
-
-			DEBUG_MSG("KBEngineApp::onImportClientEntityDef(): add(%s), property(%s/%d), hasSetMethod=%s.", *scriptmodule_name, *pname, 
-				properUtype, (savedata->pSetMethod ? TEXT("true") : TEXT("false")));
-		};
-
-		while (methodsize > 0)
-		{
-			methodsize--;
-
-			uint16 methodUtype;
-			stream >> methodUtype;
-
-			int16 ialiasID;
-			stream >> ialiasID;
-
-			FString name;
-			stream >> name;
-
-			uint8 argssize;
-			stream >> argssize;
-
-			TArray<KBEDATATYPE_BASE*> args;
-
-			while (argssize > 0)
-			{
-				argssize--;
-				uint16 tmpType;
-				stream >> tmpType;
-				args.Add(EntityDef::id2datatypes[tmpType]);
-			};
-
-			Method* savedata = new Method();
-			savedata->name = name;
-			savedata->methodUtype = methodUtype;
-			savedata->aliasID = ialiasID;
-			savedata->args = args;
-
-			if (pEntityCreator)
-				savedata->pEntityDefMethodHandle = EntityDefMethodHandles::find(scriptmodule_name, name);
-
-			module->methods.Add(name, savedata);
-
-			if (ialiasID != -1)
-			{
-				module->useMethodDescrAlias = true;
-				module->idmethods.Add(ialiasID, savedata);
-			}
-			else
-			{
-				module->useMethodDescrAlias = false;
-				module->idmethods.Add(methodUtype, savedata);
-			}
-
-			DEBUG_MSG("KBEngineApp::onImportClientEntityDef(): add(%s), method(%s).", *scriptmodule_name, *name);
-		};
-
-		while (base_methodsize > 0)
-		{
-			base_methodsize--;
-
-			uint16 methodUtype;
-			stream >> methodUtype;
-
-			int16 ialiasID;
-			stream >> ialiasID;
-
-			FString name;
-			stream >> name;
-
-			uint8 argssize;
-			stream >> argssize;
-
-			TArray<KBEDATATYPE_BASE*> args;
-
-			while (argssize > 0)
-			{
-				argssize--;
-				uint16 tmpType;
-				stream >> tmpType;
-				args.Add(EntityDef::id2datatypes[tmpType]);
-			};
-
-			Method* savedata = new Method();
-			savedata->name = name;
-			savedata->methodUtype = methodUtype;
-			savedata->aliasID = ialiasID;
-			savedata->args = args;
-
-			module->base_methods.Add(name, savedata);
-			module->idbase_methods.Add(methodUtype, savedata);
-
-			DEBUG_MSG("KBEngineApp::onImportClientEntityDef(): add(%s), base_method(%s).", *scriptmodule_name, *name);
-		};
-
-		while (cell_methodsize > 0)
-		{
-			cell_methodsize--;
-
-			uint16 methodUtype;
-			stream >> methodUtype;
-
-			int16 ialiasID;
-			stream >> ialiasID;
-
-			FString name;
-			stream >> name;
-
-			uint8 argssize;
-			stream >> argssize;
-
-			TArray<KBEDATATYPE_BASE*> args;
-
-			while (argssize > 0)
-			{
-				argssize--;
-				uint16 tmpType;
-				stream >> tmpType;
-				args.Add(EntityDef::id2datatypes[tmpType]);
-			};
-
-			Method* savedata = new Method();
-			savedata->name = name;
-			savedata->methodUtype = methodUtype;
-			savedata->aliasID = ialiasID;
-			savedata->args = args;
-
-			module->cell_methods.Add(name, savedata);
-			module->idcell_methods.Add(methodUtype, savedata);
-
-			DEBUG_MSG("KBEngineApp::onImportClientEntityDef(): add(%s), cell_method(%s).", *scriptmodule_name, *name);
-		};
-
-		if (!pEntityCreator)
-		{
-			SCREEN_ERROR_MSG("KBEngineApp::onImportClientEntityDef(): ScriptModule(%s) not found!", *scriptmodule_name);
-		}
-
-		for(auto& e : module->methods)
-		{
-			FString name = e.Key;
-			
-			if (pEntityCreator && !EntityDefMethodHandles::find(scriptmodule_name, name))
-			{
-				SCREEN_WARNING_MSG("KBEngineApp::onImportClientEntityDef(): %s:: method(%s) no implement!", *scriptmodule_name, *name);
-			}
-		};
-	};
-
-	onImportEntityDefCompleted();
-}
-
-void KBEngineApp::onImportEntityDefCompleted()
-{
-	DEBUG_MSG("KBEngineApp::onImportEntityDefCompleted(): successfully!");
-	entitydefImported_ = true;
-
-	if (!loadingLocalMessages_)
-		login_baseapp(false);
-}
-
-void KBEngineApp::Client_onImportClientMessages(MemoryStream& stream)
-{
-	TArray<uint8> datas;
-	datas.SetNumUninitialized(stream.length());
-	memcpy(datas.GetData(), stream.data() + stream.rpos(), stream.length());
-
-	onImportClientMessages(stream);
-
-	if (persistentInfos_)
-		persistentInfos_->onImportClientMessages(currserver_, datas);
-}
-
-void KBEngineApp::onImportClientMessages(MemoryStream& stream)
-{
-	uint16 msgcount = 0;
-	stream >> msgcount;
-
-	DEBUG_MSG("KBEngineApp::onImportClientMessages(): start currserver=%s(msgsize=%d)...", *currserver_, msgcount);
-
-	while (msgcount > 0)
-	{
-		msgcount--;
-
-		MessageID msgid = 0;
-		stream >> msgid;
-
-		int16 msglen = 0;
-		stream >> msglen;
-
-		FString msgname;
-		stream >> msgname;
-		
-		int8 argstype = 0;
-		stream >> argstype;
-
-		uint8 argsize = 0;
-		stream >> argsize;
-
-		TArray<uint8> argstypes;
-
-		for (uint8 i = 0; i<argsize; i++)
-		{
-			uint8 v = 0;
-			stream >> v;
-			argstypes.Add(v);
-		}
-
-		Message* handler = Messages::getSingleton().findMessage(msgname);
-		bool isClientMethod = msgname.Contains(TEXT("Client_"), ESearchCase::CaseSensitive, ESearchDir::FromEnd);
-
-		if (isClientMethod)
-		{
-			if (handler == NULL)
-			{
-				SCREEN_WARNING_MSG("KBEngineApp::onImportClientMessages(): currserver[%s]: interface(%s/%d/%d) no implement!",
-					*currserver_, *msgname, msgid, msglen);
-			}
-			else
-			{
-				DEBUG_MSG("KBEngineApp::onImportClientMessages(): imported(%s/%d/%d) successfully!", 
-					*msgname, msgid, msglen);
-			}
-		}
-
-		if (handler)
-		{
-			FString old_cstr = handler->c_str();
-			handler->id = msgid;
-			handler->msglen = msglen;
-
-			// 因为握手类ID一开始临时设置为负数， 所以需要重新以正确的ID添加到列表
-			if (isClientMethod)
-				Messages::getSingleton().add(handler, msgid, msgname, msglen);
-
-			if (handler->id <= 0)
-			{
-				DEBUG_MSG("KBEngineApp::onImportClientMessages(): currserver[%s]: refreshed(%s => %s)!",
-					*currserver_, *old_cstr, *handler->c_str());
-			}
-		}
-		else
-		{
-			if (msgname != TEXT(""))
-			{
-				Messages::getSingleton().messages.Add(msgname, new Message(msgid, msgname, msglen));
-
-				if(!isClientMethod)
-					DEBUG_MSG("KBEngineApp::onImportClientMessages(): currserver[%s]: imported(%s/%d/%d) successfully!",
-						*currserver_, *msgname, msgid, msglen);
-
-				if (isClientMethod)
-				{
-					Messages::getSingleton().clientMessages.Add(msgid, Messages::getSingleton().messages[msgname]);
-				}
-				else
-				{
-					if (currserver_ == TEXT("loginapp"))
-						Messages::getSingleton().loginappMessages.Add(msgid, Messages::getSingleton().messages[msgname]);
-					else
-						Messages::getSingleton().baseappMessages.Add(msgid, Messages::getSingleton().messages[msgname]);
-				}
-			}
-			else
-			{
-				Message* msg = new Message(msgid, msgname, msglen);
-
-				if(!isClientMethod)
-					DEBUG_MSG("KBEngineApp::onImportClientMessages(): currserver[%s]: imported(%s/%d/%d) successfully!",
-						*currserver_, *msgname, msgid, msglen);
-
-				if (currserver_ == TEXT("loginapp"))
-					Messages::getSingleton().loginappMessages.Add(msgid, msg);
-				else
-					Messages::getSingleton().baseappMessages.Add(msgid, msg);
-			}
-		}
-	};
-
-	onImportClientMessagesCompleted();
-}
-
 void KBEngineApp::resetPassword(const FString& username)
 {
 	username_ = username;
@@ -1708,7 +1043,7 @@ void KBEngineApp::resetpassword_loginapp(bool noconnect)
 	{
 		INFO_MSG("KBEngineApp::resetpassword_loginapp(): send resetpassword! username=%s", *username_);
 		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_reqAccountResetPassword"]));
+		pBundle->newMessage(Messages::messages[TEXT("Loginapp_reqAccountResetPassword"]));
 		(*pBundle) << username_;
 		pBundle->send(pNetworkInterface_);
 	}
@@ -1721,17 +1056,7 @@ void KBEngineApp::onOpenLoginapp_resetpassword()
 	currstate_ = "resetpassword";
 	lastTickCBTime_ = getTimeSeconds();
 
-	if (!loginappMessageImported_)
-	{
-		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_importClientMessages"]));
-		pBundle->send(pNetworkInterface_);
-		DEBUG_MSG("KBEngineApp::onOpenLoginapp_resetpassword(): send importClientMessages ...");
-	}
-	else
-	{
-		onImportClientMessagesCompleted();
-	}
+	resetpassword_loginapp(false);
 }
 
 void KBEngineApp::onConnectTo_resetpassword_callback(FString ip, uint16 port, bool success)
@@ -1793,7 +1118,7 @@ void KBEngineApp::createAccount_loginapp(bool noconnect)
 	{
 		INFO_MSG("KBEngineApp::createAccount_loginapp(): send create! username=%s", *username_);
 		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_reqCreateAccount"]));
+		pBundle->newMessage(Messages::messages[TEXT("Loginapp_reqCreateAccount"]));
 		(*pBundle) << username_;
 		(*pBundle) << password_;
 		pBundle->appendBlob(clientdatas_);
@@ -1809,17 +1134,7 @@ void KBEngineApp::onOpenLoginapp_createAccount()
 	currstate_ = TEXT("createAccount");
 	lastTickCBTime_ = getTimeSeconds();
 
-	if (!loginappMessageImported_)
-	{
-		Bundle* pBundle = Bundle::createObject();
-		pBundle->newMessage(Messages::getSingleton().messages[TEXT("Loginapp_importClientMessages"]));
-		pBundle->send(pNetworkInterface_);
-		DEBUG_MSG("KBEngineApp::onOpenLoginapp_createAccount(): send importClientMessages ...");
-	}
-	else
-	{
-		onImportClientMessagesCompleted();
-	}
+	createAccount_loginapp(false);
 }
 
 void KBEngineApp::onConnectTo_loginapp_create_callback(FString ip, uint16 port, bool success)
@@ -1864,7 +1179,7 @@ void KBEngineApp::bindAccountEmail(const FString& emailAddress)
 {
 	INFO_MSG("KBEngineApp::bindAccountEmail(): send bindAccountEmail! username=%s", *username_);
 	Bundle* pBundle = Bundle::createObject();
-	pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_reqAccountBindEmail"]));
+	pBundle->newMessage(Messages::messages[TEXT("Baseapp_reqAccountBindEmail"]));
 	(*pBundle) << entity_id_;
 	(*pBundle) << password_;
 	(*pBundle) << emailAddress;
@@ -1886,7 +1201,7 @@ void KBEngineApp::newPassword(const FString& old_password, const FString& new_pa
 {
 	INFO_MSG("KBEngineApp::newPassword(): send newPassword! username=%s", *username_);
 	Bundle* pBundle = Bundle::createObject();
-	pBundle->newMessage(Messages::getSingleton().messages[TEXT("Baseapp_reqAccountNewPassword"]));
+	pBundle->newMessage(Messages::messages[TEXT("Baseapp_reqAccountNewPassword"]));
 	(*pBundle) << entity_id_;
 	(*pBundle) << password_;
 	(*pBundle) << old_password;
@@ -1947,28 +1262,7 @@ void KBEngineApp::onRemoteMethodCall_(ENTITY_ID eid, MemoryStream& stream)
 		methodUtype = stream.read<uint16>();
 
 	Method* pMethodData = pModule->idmethods[methodUtype];
-
-	TArray<KBVar*> args;
-	for (int i = 0; i<pMethodData->args.Num(); ++i)
-	{
-		KBVar* pVar = pMethodData->args[i]->createFromStream(stream);
-		args.Add(pVar);
-	}
-
-	if (pMethodData->pEntityDefMethodHandle)
-	{
-		pMethodData->pEntityDefMethodHandle->callMethod(pEntity, args);
-	}
-	else
-	{
-		SCREEN_ERROR_MSG("KBEngineApp::onRemoteMethodCall_(): %s(%d), not found method(%s.%s), update error! Please register with ENTITYDEF_METHOD_ARGS*_REGISTER(XXX, %s) in (%s, %s).cpp",
-			*pEntity->className(), eid, *pEntity->className(), *pMethodData->name,
-			*pMethodData->name, *pEntity->className(),
-			*pModule->pEntityCreator->parentClasses());
-	}
-
-	for (auto& item : args)
-		delete item;
+	pEntity->onRemoteMethodCall(pMethodData, stream);
 }
 
 void KBEngineApp::Client_onControlEntity(ENTITY_ID eid, int8 isControlled)
@@ -2084,19 +1378,10 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 
 		ScriptModule* pModule = *pScriptModuleFind;
 
-		EntityCreator* pEntityCreator = pModule->pEntityCreator;
-		if (!pEntityCreator)
-			return;
-
-		Entity* pEntity = pEntityCreator->create();
+		Entity* pEntity = pModule->createEntity();
 		pEntity->id(eid);
 		pEntity->className(entityType);
-
-		EntityCall* cellMB = new EntityCall();
-		pEntity->cell(cellMB);
-		cellMB->id = eid;
-		cellMB->className = entityType;
-		cellMB->type = EntityCall::ENTITYCALL_TYPE_CELL;
+		pEntity->onGetCell();
 
 		entities_.Add(eid, pEntity);
 
@@ -2105,8 +1390,8 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 		bufferedCreateEntityMessages_.Remove(eid);
 
 		pEntity->isOnGround(isOnGround > 0);
-		pEntity->set_direction(pEntity->direction);
-		pEntity->set_position(pEntity->position);
+		pEntity->onDirectionChanged(pEntity->direction);
+		pEntity->onPositionChanged(pEntity->position);
 
 		pEntity->__init__();
 		pEntity->inited(true);
@@ -2129,14 +1414,10 @@ void KBEngineApp::Client_onEntityEnterWorld(MemoryStream& stream)
 			clearEntities(false);
 			entities_.Add(pEntity->id(), pEntity);
 
-			EntityCall* cellMB = new EntityCall();
-			pEntity->cell(cellMB);
-			cellMB->id = eid;
-			cellMB->className = entityType;
-			cellMB->type = EntityCall::ENTITYCALL_TYPE_CELL;
+			pEntity->onGetCell();
 
-			pEntity->set_direction(pEntity->direction);
-			pEntity->set_position(pEntity->position);
+			pEntity->onDirectionChanged(pEntity->direction);
+			pEntity->onPositionChanged(pEntity->position);
 
 			entityServerPos_ = pEntity->position;
 			pEntity->isOnGround(isOnGround > 0);
@@ -2173,7 +1454,7 @@ void KBEngineApp::Client_onEntityLeaveWorld(ENTITY_ID eid)
 	if (entity_id_ == eid)
 	{
 		clearSpace(false);
-		pEntity->cell(NULL);
+		pEntity->onLoseCell();
 	}
 	else
 	{
@@ -2335,8 +1616,8 @@ void KBEngineApp::Client_onSetEntityPosAndDir(MemoryStream& stream)
 	entity.entityLastLocalPos = entity.position;
 	entity.entityLastLocalDir = entity.direction;
 
-	entity.set_direction(old_direction);
-	entity.set_position(old_position);
+	entity.onDirectionChanged(old_direction);
+	entity.onPositionChanged(old_position);	
 }
 
 void KBEngineApp::Client_onUpdateData_ypr(MemoryStream& stream)

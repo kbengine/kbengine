@@ -1,12 +1,11 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
-
 #include "KBECommon.h"
 
 class Property;
 class Method;
-class EntityCreator;
+class Entity;
 
 /*
 	一个entitydef中定义的脚本模块的描述类
@@ -15,8 +14,10 @@ class EntityCreator;
 class KBENGINEPLUGINS_API ScriptModule
 {
 public:
-	ScriptModule(const FString& moduleName);
+	ScriptModule(const FString& moduleName, int type);
 	virtual ~ScriptModule();
+
+	Entity* createEntity();
 
 public:
 	FString name;
@@ -34,5 +35,5 @@ public:
 	TMap<uint16, Method*> idbase_methods;
 	TMap<uint16, Method*> idcell_methods;
 
-	EntityCreator* pEntityCreator;
+	uint16 utype;
 };

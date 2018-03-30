@@ -38,6 +38,7 @@ public:
 		创建新的call
 	*/
 	Bundle* newCall();
+	Bundle* newCall(const FString& methodName);
 
 	/*
 		向服务端发送这个call

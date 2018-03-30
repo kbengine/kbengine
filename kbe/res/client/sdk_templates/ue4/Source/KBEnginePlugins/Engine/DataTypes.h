@@ -5,20 +5,21 @@
 #include "KBECommon.h"
 #include "KBVar.h"
 
+class Bundle;
 class MemoryStream;
 
 /*
 	entitydef所支持的基本数据类型
 	改模块中的类抽象出了所有的支持类型并提供了这些类型的数据序列化成二进制数据与反序列化操作（主要用于网络通讯的打包与解包）
 */
-class KBENGINEPLUGINS_API KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_BASE
 {
 public:
-		KBEDATATYPE_BASE()
+		DATATYPE_BASE()
 		{
 		}
 		
-		virtual ~KBEDATATYPE_BASE()
+		virtual ~DATATYPE_BASE()
 		{
 		}
 
@@ -53,7 +54,7 @@ protected:
 
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_INT8 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_INT8 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -68,7 +69,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_INT16 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_INT16 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -83,7 +84,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_INT32 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_INT32 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -98,7 +99,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_INT64 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_INT64 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -113,7 +114,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_UINT8 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_UINT8 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -128,7 +129,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_UINT16 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_UINT16 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -143,7 +144,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_UINT32 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_UINT32 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -158,7 +159,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_UINT64 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_UINT64 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -173,7 +174,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_FLOAT : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_FLOAT : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -188,7 +189,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_DOUBLE : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_DOUBLE : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -203,7 +204,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_STRING : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_STRING : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -218,7 +219,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_VECTOR2 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_VECTOR2 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -233,7 +234,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_VECTOR3 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_VECTOR3 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -248,7 +249,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_VECTOR4 : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_VECTOR4 : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -263,7 +264,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_PYTHON : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_PYTHON : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -278,7 +279,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_UNICODE : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_UNICODE : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -293,7 +294,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_ENTITYCALL : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_ENTITYCALL : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -308,7 +309,7 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_BLOB : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_BLOB : public DATATYPE_BASE
 {
 public:
 	virtual KBVar* createFromStream(MemoryStream& stream) override;
@@ -323,10 +324,10 @@ public:
 	}
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_ARRAY : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_ARRAY : public DATATYPE_BASE
 {
 public:
-	KBEDATATYPE_ARRAY() :
+	DATATYPE_ARRAY() :
 		vtype(NULL),
 		tmpset_uitemtype(-1)
 	{
@@ -347,14 +348,14 @@ public:
 	}
 
 public:
-	KBEDATATYPE_BASE* vtype;
+	DATATYPE_BASE* vtype;
 	int tmpset_uitemtype;
 };
 
-class KBENGINEPLUGINS_API KBEDATATYPE_FIXED_DICT : public KBEDATATYPE_BASE
+class KBENGINEPLUGINS_API DATATYPE_FIXED_DICT : public DATATYPE_BASE
 {
 public:
-	KBEDATATYPE_FIXED_DICT() :
+	DATATYPE_FIXED_DICT() :
 		implementedBy(),
 		dicttype(),
 		dicttype_map()
@@ -377,7 +378,7 @@ public:
 
 public:
 	FString implementedBy;
-	TMap<FString, KBEDATATYPE_BASE*> dicttype;
+	TMap<FString, DATATYPE_BASE*> dicttype;
 	TMap<FString, uint16> dicttype_map;
 };
 

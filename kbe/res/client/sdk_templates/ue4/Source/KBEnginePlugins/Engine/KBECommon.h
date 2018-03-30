@@ -4,6 +4,8 @@
 #pragma once
 
 #include "KBVar.h"
+#include "EngineGlobals.h"
+#include "Engine/Engine.h"
 #include "GameFramework/Actor.h"
 #include "KBECommon.generated.h"
 

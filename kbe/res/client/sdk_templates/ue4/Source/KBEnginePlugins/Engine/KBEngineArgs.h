@@ -25,10 +25,6 @@ public:
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	EKCLIENT_TYPE clientType;
 
-	// 持久化插件信息， 例如：从服务端导入的协议可以持久化到本地，下次登录版本不发生改变
-	// 可以直接从本地加载来提供登录速度
-	FString persistentDataPath = "";
-
 	bool syncPlayer;
 	bool useAliasEntityID;
 	bool isOnInitCallPropertysSetMethods;

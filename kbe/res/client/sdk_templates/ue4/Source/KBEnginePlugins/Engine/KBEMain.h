@@ -107,9 +107,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	int RECV_BUFFER_MAX;
-
-	// 持久化插件信息， 例如：从服务端导入的协议可以持久化到本地，下次登录版本不发生改变
-	// 可以直接从本地加载来提供登录速度
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
-	FString persistentDataPath;
 };
