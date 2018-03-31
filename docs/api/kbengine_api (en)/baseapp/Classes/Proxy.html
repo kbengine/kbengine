@@ -94,7 +94,7 @@
 <hr>
 <a name="detailed_description"></a><h2>A detailed description</h2>
 A <a href="Proxy.html">Proxy</a> is a special type of <a href="Entity.html">Entity</a>. 
-It inherits from Entity and has an associated client. By itself, it is a 
+It inherits from <a href="Entity.html">Entity</a> and has an associated client. By itself, it is a 
 proxy client entity that handles all server-to-client updates. Cannot 
 create <a href="Proxy.html">Proxy</a> class objects directly script.
 
@@ -158,7 +158,7 @@ system through the interfaces process.
 <tr><td>
 tuple, a tuple of 2 elements (login data bytes, registration data bytes), 
 the first element is the datas parameter passed in when the client invokes 
-the login, and the second element is the client's call registration. 
+the login, and the second element is passed in when the client registers. 
 Since they can store arbitrary binary data, they all exist as bytes.
 </td></tr>
 </table>

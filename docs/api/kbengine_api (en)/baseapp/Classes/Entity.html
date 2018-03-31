@@ -130,12 +130,11 @@ function (as well as functions prefixed by createEntity).
 An <a href="Entity.html">Entity</a> can also be remotely created using the <a href="../../cellapp/index.html">Cellapp</a> 
 function <a href="../Modules/KBEngine.html">KBEngine</a>.<a href=../../cellapp/Modules/KBEngine.html#createEntityOnBaseApp>createEntityOnBaseApp</a>.
 <br><br>
-An <a href="Entity.html">Entity</a> can be an activity of <a href=../../keywords.html#cell>cells</a> 
-linked to an entity which can also be used in a suitable <a href=../../keywords.html#cell>cell</a>
-to create an associated entity on. This class allows you to create and 
-destroy entities on the <a href=../../keywords.html#cell>cell</a> or 
-register a timer on the base entity or access the contact information 
-for this object.<br>
+A base <a href="Entity.html">Entity</a> can be linked to an active <a href=../../keywords.html#cell>cell</a> 
+entity and can be used to create an associated <a href=../../keywords.html#cell>cell</a> entity. 
+This class allows you to create and destroy <a href=../../keywords.html#cell>cell</a> 
+entities, register a timer on the base entity, or access the contact 
+information for this object.<br>
 You can also access a <a href="../../keywords.html#EntityCall">CellEntityCall</a> 
 through which this base entity can communicate with its <a href=../../keywords.html#cell>cell</a> 
 entity (the associated <a href=../../keywords.html#cell>cell</a> entity 
@@ -277,7 +276,7 @@ The information used to create the cell entity is stored in the entity's attribu
 <table border=0 cellpadding=0 cellspacing=3 style="margin-left: 20px;">
 
 <tr valign=top><td><span class="function_parameter_name"><i>cellappIndex</i></span></td><td><span class="function_parameter_description">
-integer, if it is either None or 0, a cellap is dynamically selected by 
+integer, if it is either None or 0, a cellapp is dynamically selected by 
 the engine load balancer. If it is greater than 0, a space is created in 
 the specified cellapp<br>
 Example: If you expect to open four cellapps, then the cellappIndex needs 
