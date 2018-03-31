@@ -4,14 +4,18 @@ kbengine_unity3d_plugins
 Usage
 ---------------------
 
-	1: Create clientapp.cs
+	1: Generate client plugins through projects
+		1: Double click to run kbengine\*assets\gensdk.bat
+		2: Copy kbengine_unity3d_plugins to {ProjectName}\Assets\Plugins
+		
+	2: Create clientapp.cs
 		using KBEngine;
 		public class clientapp : KBEMain 
 		{
 		}
 
-	2: Implment the KBE defined entity (including the client part)
-		See: kbengine\kbengine_demos_assets\scripts\entities.xml��hasClient="true" need to implment
+	3: Implment the KBE defined entity (including the client part)
+		See: kbengine\kbengine_demos_assets\scripts\entities.xml->hasClient="true" need to implment
 			<Account hasClient="true"></Account>
 			<Monster hasClient="true"></Monster>
 			<Gate hasClient="true"></Gate>
@@ -26,10 +30,10 @@ Usage
 			}
 
 		Call entity server method
-			entity.baseCall("base_func", 1, "arg2", "argN")
-			entity.cellCall("cell_func", 1, "arg2", "argN")
+			Account.cs: baseEntityCall.reqAvatarList();
+			Avatar.cs: cellEntityCall.relive(reliveType);
 
-	3: Monitor KBE-plugins event
+	4: Monitor KBE-plugins event
 		For example:
 			public class UI : MonoBehaviour
 			{
@@ -44,7 +48,7 @@ Usage
 				}
 			}
 
-	4: Fire events to the KBE-plugins
+	5: Fire events to the KBE-plugins
 		For example:
 			KBEngine.Event.fireIn("login", "stringAccount", "stringPasswd", System.Text.Encoding.UTF8.GetBytes("kbengine_unity3d_demo"));
 
