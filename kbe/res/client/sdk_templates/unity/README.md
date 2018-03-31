@@ -6,7 +6,7 @@ Usage
 
 	1: Generate client plugins through projects
 		1: Double click to run kbengine\*assets\gensdk.bat
-		2: Copy kbengine_unity3d_plugins to {ProjectName}\Assets\Plugins
+		2: Copy kbengine_unity3d_plugins to {UnityProjectName}\Assets\Plugins
 		
 	2: Create clientapp.cs
 		using KBEngine;

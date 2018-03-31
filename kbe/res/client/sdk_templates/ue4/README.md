@@ -6,7 +6,7 @@ Usage
 
 	1: Generate client plugins through projects
 		1: Double click to run kbengine\*assets\gensdk.bat
-		2: Copy kbengine_ue4_plugins to {ProjectName}\Plugins
+		2: Copy kbengine_ue4_plugins to {UE4ProjectName}\Plugins
 
 	2: Add "KBEnginePlugins" to *.Build.cs
 		{ProjectName}\Source\{ProjectName}\{ProjectName}.Build.cs
