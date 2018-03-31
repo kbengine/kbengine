@@ -4,32 +4,36 @@ kbengine_ue4_plugins
 Usage
 ---------------------
 
-	1: add "KBEnginePlugins" to *.Build.cs
+	1: Generate client plugins through projects
+		1: Double click to run kbengine\*assets\gensdk.bat
+		2: Copy kbengine_ue4_plugins to {ProjectName}\Plugins
+
+	2: Add "KBEnginePlugins" to *.Build.cs
 		{ProjectName}\Source\{ProjectName}\{ProjectName}.Build.cs
 			PublicDependencyModuleNames.AddRange(new string[] { ..., "KBEnginePlugins" });
 
-	2: Create clientapp Blueprint
+	3: Create clientapp Blueprint
 		1: Add KBEMain Component(Reference: https://github.com/kbengine/kbengine_ue4_demo/blob/master/Content/ClientApp.uasset).
-		2: Set the parameters of the component.
+		2: Set the component.
 
-	3: Implment the KBE defined entity (including the client part)
-		See: kbengine\kbengine_demos_assets\scripts\entities.xml��hasClient="true" need to implment
+	4: Implment the KBE defined entity (including the client part, KBEnginePlugins\Source\KBEnginePlugins\Scripts\*)
+		See: kbengine\kbengine_demos_assets\scripts\entities.xml->hasClient="true" need to implment
 			<Account hasClient="true"></Account>
 			<Monster hasClient="true"></Monster>
 			<Gate hasClient="true"></Gate>
 			<Space/>
 
-			class Account : public Entity
+			class Account : public AccountBase
 			{
 				// entity initialization
 				virtual void __init__() override
 				{
 				}
 			}
-
+			
 		Call entity server method
-			entity.baseCall("base_func", 1, "arg2", "argN")
-			entity.cellCall("cell_func", 1, "arg2", "argN")
+			Account.cpp: pBaseEntityCall->reqAvatarList();
+			Avatar.cpp: pCellEntityCall->relive(reliveType);
 
 	4: Monitor KBE-plugins event
 		For example:
