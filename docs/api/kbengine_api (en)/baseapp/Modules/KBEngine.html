@@ -422,7 +422,7 @@ This method should be preferred over <a href="KBEngine.html">KBEngine</a>.<a hre
 so the server has the flexibility to choose a suitable <a href="../index.html">Baseapp</a> 
 to create an entity.
 <br><br>
-The function parameters need to provide the type of created, and there is 
+The function parameters need to provide the type of entity created, and there is 
 also a Python dictionary as a parameter to initialize the entities value.
 <br><br>
 The Python dictionary does not require the user to provide all of the 
@@ -497,7 +497,9 @@ Create a new <a href="../Classes/Entity.html">Entity</a> on the specified
 baseapp through the baseMB parameter.
 <br><br>
 <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createEntityLocally>createEntityAnywhere</a> 
-should be preferred. 
+should be preferred over this method to allow the server to decide which is the most suitable 
+<a href="../index.html">Baseapp</a> to create the entity on for load balancing purposes.
+
 <br><br>
 The function parameters need to provide the type of the created entity, 
 and there is also a Python dictionary as a parameter to initialize the 
@@ -763,16 +765,30 @@ through the callback.
 
 <div class="function_description">
 <b>Function description:</b><br><br>
-Create a new <a href="../Classes/Entity.html">Entity</a>.<br>
+Create a new <a href="../Classes/Entity.html">Entity</a>. 
 The function parameters need to provide the type of the created entity, 
 and there is also an optional Python dictionary as paramater to initialize 
 the entity's values.
 <br><br>
 The Python dictionary does not require the user to provide all of the properties, and the default values provided by the entity definition file  ".def" are defaults.
 <br><br>
-<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createEntityAnywhere>createEntityAnywhere</a> 
-should be preferred over this method, so the server can flexibly create 
-entities on the most suitable <a href="../index.html">Baseapp</a>.
+<a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createEntityLocally>createEntityAnywhere</a> 
+should be preferred over this method to allow the server to decide which is the most suitable 
+<a href="../index.html">Baseapp</a> to create the entity on for load balancing purposes.
+<br><br>
+It should be noted that this method returns the entity instantly without 
+a callback, and is also guaranteed to return a direct reference to the <a href=../Classes/Entity.html>Entity</a> object, 
+rather than its <a href=../../keywords.html#EntityCall>EntityCall</a>. 
+It is suitable to use this method over <a href="KBEngine.html">KBEngine</a>.<a href=KBEngine.html#createEntityAnywhere>createEntityAnywhere</a> 
+when you need to manage the entities life cycle (such as control when 
+destroy is called on the entity) or access the entities attributes from 
+the creating entity, because as described in the <a href=../../keywords.html#EntityCall>EntityCall</a> 
+documentation, it is not possible to access attributes or call methods not 
+listed in the entity's def file using the <a href=../../keywords.html#EntityCall>EntityCall</a>. 
+This method is also necessary to use when you need a direct reference to an entity 
+(as it's not possible to get one on a different baseapp). Many functions take 
+an EntityCall as a parameter, but some require a direct reference to the 
+entity (such as <a href=../Classes/Proxy.html>Proxy</a>.<a href=../Classes/Proxy.html#giveClientTo>giveClientTo</a>).
 <br><br>
 Example:<br>
 <pre>

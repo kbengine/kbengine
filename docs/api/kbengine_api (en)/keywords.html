@@ -19,8 +19,8 @@
 
 <div class="function_description">
 <br><br>
-This is the conventional means of remote interaction between the script layer and the entity 
-(other references: <a href=cellapp/Classes/Entity.html#allClients>allClients</a>,
+This is the conventional means of remote interaction between entities in
+the script layer. (other references: <a href=cellapp/Classes/Entity.html#allClients>allClients</a>,
 <a href=cellapp/Classes/Entity.html#otherClients>otherClients</a>,
 <a href=cellapp/Classes/Entity.html#clientEntity>clientEntity</a>).
 
@@ -29,13 +29,15 @@ This is the conventional means of remote interaction between the script layer an
 The EntityCall object is very simple to implement in the underlying C++, it contains only the ID of the entity, 
 the address of the destination, the entity type, and type of EntityCall.
 
-When the user requests a remote interaction, 
-the bottom layer first finds the description of the entity definition through the entity type, 
+When a remote call is requested by the user, 
+the engine first finds a description of the entity definition through the entity type, 
 and checks the data input by the user against the description of the entity definition. 
 If the check is legal, then the data is packaged and sent to the destination 
 according to the protocol.
 <br><br>
-Note: EntityCall can only call methods declared in its corresponding def file, and cannot access entity attributes and any other information.
+Note: An EntityCall can only be used to call methods declared in its corresponding 
+def file. It cannot call any of KBEngine's basic Entity class functions or 
+access entity attributes.
 
 <br><br>
 An Entity can contain up to three parts:<br>
