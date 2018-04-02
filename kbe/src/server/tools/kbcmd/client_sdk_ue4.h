@@ -43,6 +43,7 @@ public:
 	virtual void onCreateEngineMessagesModuleFileName();
 	virtual void onCreateEntityDefsModuleFileName();
 	virtual void onCreateDefsCustomTypesModuleFileName();
+	virtual void onEntityCallModuleFileName(const std::string& moduleName);
 
 	virtual bool writeServerErrorDescrsModuleBegin();
 	virtual bool writeServerErrorDescrsModuleErrDescr(int errorID, const std::string& errname, const std::string& errdescr);
@@ -53,8 +54,34 @@ public:
 	virtual bool writeEngineMessagesModuleMessage(Network::ExposedMessageInfo& messageInfos, COMPONENT_TYPE componentType);
 	virtual bool writeEngineMessagesModuleEnd();
 
+	virtual bool writeEntityDefsModuleBegin();
+	virtual bool writeEntityDefsModuleEnd();
+
+	virtual bool writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType);
+	virtual bool writeEntityDefsModuleInitScript_PropertyDescr(ScriptDefModule* pScriptDefModule, PropertyDescription* pDescr);
+
+	virtual bool writeEntityDefsModuleInitDefType(const DataType* pDataType);
+	virtual bool writeEntityDefsModuleInitDefTypesBegin();
+	virtual bool writeEntityDefsModuleInitDefTypesEnd();
+
+	virtual bool writeCustomDataTypesBegin();
+	virtual bool writeCustomDataTypesEnd();
+	virtual bool writeCustomDataType(const DataType* pDataType);
+
+	virtual bool writeEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule);
+	virtual bool writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule);
+	virtual bool writeEntityCallMethodBegin(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, 
+		const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
+	virtual bool writeEntityCallMethodEnd(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription);
+
 	virtual std::string typeToType(const std::string& type);
 	virtual bool getArrayType(DataType* pDataType, std::string& outstr);
+	virtual bool createArrayChildClass(DataType* pRootDataType, DataType* pDataType, const std::string& className, const std::string& tabs, int numLayer = 1);
 
 	virtual bool writeTypesBegin();
 	virtual bool writeTypesEnd();
@@ -95,6 +122,10 @@ public:
 
 	virtual bool writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModule);
 	virtual bool writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule);
+
+	virtual bool writeEntityDefsModuleInitScriptBegin();
+	virtual bool writeEntityDefsModuleInitScriptEnd();
+
 	virtual bool writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScriptDefModule);
 
 	virtual bool writeEntityProperty_INT8(ScriptDefModule* pEntityScriptDefModule,
@@ -172,8 +203,25 @@ public:
 	virtual bool writeEntityMethodArgs_ARRAY(FixedArrayType* pFixedArrayType, std::string& stackArgsTypeBody, const std::string& childItemName);
 	virtual bool writeEntityMethodArgs_Const_Ref(DataType* pDataType, std::string& stackArgsTypeBody);
 
+	void changeContextToHeader() {
+		contextHeader_ = true;
+	}
+
+	void changeContextToSource() {
+		contextHeader_ = false;
+	}
+
+	bool isContextToHeader() {
+		return contextHeader_;
+	}
+
+	std::string& fileBody() {
+		return isContextToHeader() ? headerfileBody_ : sourcefileBody_;
+	}
+
 protected:
 	std::string initBody_;
+	bool contextHeader_;
 };
 
 }

@@ -151,8 +151,8 @@ bool ClientSDK::good() const
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateEntityModuleFileName(const std::string& moduleName)
 {
-	sourcefileName_ = moduleName + ".source";
-	headerfileName_ = moduleName + ".header";
+	sourcefileName_ = moduleName + ".unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
@@ -249,7 +249,6 @@ bool ClientSDK::saveFile()
 	return done;
 }
 
-
 //-------------------------------------------------------------------------------------
 bool ClientSDK::create(const std::string& path)
 {
@@ -314,7 +313,7 @@ bool ClientSDK::create(const std::string& path)
 void ClientSDK::onCreateTypeFileName()
 {
 	sourcefileName_ = "KBEType.unknown";
-	headerfileName_ = ""; 
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
