@@ -77,7 +77,7 @@
 				bundle = null;
 		}
 
-		public Bundle newCall(string methodName, UInt16 EntitycomponentPropertyID = 0)
+		public Bundle newCall(string methodName, UInt16 entitycomponentPropertyID = 0)
 		{			
 			if(KBEngineApp.app.currserver == "loginapp")
 			{
@@ -107,7 +107,7 @@
 
 			newCall();
 			
-			bundle.writeUint16(EntitycomponentPropertyID);
+			bundle.writeUint16(entitycomponentPropertyID);
 			bundle.writeUint16(methodID);
 			return bundle;
 		}
