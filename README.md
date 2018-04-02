@@ -45,15 +45,17 @@ KBEngine
 ## What is KBEngine?
 
 	An open source MMOG server engine. 
-	Just use the Python script to be able to complete any game logic simply and efficiently (can hotfix).
-	Using the client plug-in can be quickly combined with (Unity3D, UE4, OGRE, HTML5, etc.) to form a complete client.
+	Just use Python scripting to be able to complete any game logic simply and efficiently (supports hotfixing).
+	Various KBEngine plugins can be quickly combined with (Unity3D, OGRE, Cocos2d-x, HTML5, etc.) technology to 
+	form a complete game client.
 
-	Engine written in C++, developers do not need to re-implement some common server-side technology,
-	allows developers to concentrate on the game logic development, quickly create a variety of games.
+	The engine is written in C++, and saves developers from having to re-implement common server-side 
+	technology, allowing them to concentrate on game logic development, to quickly create a variety of games.
 
-	(Frequently asked load-limit, KBEngine is designed to be multi-process distributed dynamic load balancing scheme, 
-	in theory only need to expand hardware can increase load-limit, the single machine load-limit 
-	depends on complexity of logic of the game itself.)
+	(Because it is often asked what the upper limit of the load is that KBEngine can handle, the underlying 
+	architecture has been designed as a multi-process distributed dynamic load balancing solution. In theory, 
+	by continuously expanding the hardware, the upper limit of the load can also be continuously increased. 
+	The upper limit of the capacity of a single machine depends on the complexity of the game logic itself.)
 
 
 ## Acknowledgements(alphabetical)

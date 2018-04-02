@@ -19,8 +19,8 @@
 
 <div class="function_description">
 <br><br>
-This is the conventional means of remote interaction between the script layer and the entity 
-(other references: <a href=cellapp/Classes/Entity.html#allClients>allClients</a>,
+This is the conventional means of remote interaction between entities in
+the script layer. (other references: <a href=cellapp/Classes/Entity.html#allClients>allClients</a>,
 <a href=cellapp/Classes/Entity.html#otherClients>otherClients</a>,
 <a href=cellapp/Classes/Entity.html#clientEntity>clientEntity</a>).
 
@@ -29,22 +29,24 @@ This is the conventional means of remote interaction between the script layer an
 The EntityCall object is very simple to implement in the underlying C++, it contains only the ID of the entity, 
 the address of the destination, the entity type, and type of EntityCall.
 
-When the user requests a remote interaction, 
-the bottom layer first finds the description of the entity definition through the entity type, 
+When a remote call is requested by the user, 
+the engine first finds a description of the entity definition through the entity type, 
 and checks the data input by the user against the description of the entity definition. 
 If the check is legal, then the data is packaged and sent to the destination 
 according to the protocol.
 <br><br>
-Note: EntityCall can only call methods declared in its corresponding def file, and cannot access entity attributes and any other information.
+Note: An EntityCall can only be used to call methods declared in its corresponding 
+def file. It cannot call any of KBEngine's basic Entity class functions or 
+access entity attributes.
 
 <br><br>
 An Entity can contain up to three parts:<br>
-<b>client</b>: When an entity includes a client part (usually a 
+<b>Client</b>: When an entity includes a client part (usually a 
 player), the entity's client (EntityCall) property can be accessed on the 
 server side.<br>
-<b>base</b>: When an entity includes a baseapp part, the base (EntityCall) 
+<b>Base</b>: When an entity includes a baseapp part, the base (EntityCall) 
 attribute of the entity can be accessed in a non-current baseapp.<br>
-<b>cell</b>: When an entity includes a cellapp part, the cell (EntityCall) 
+<b>Cell</b>: When an entity includes a cellapp part, the cell (EntityCall) 
 attribute of the entity can be accessed in a non-current cellapp.<br>
 
 <br>
@@ -138,7 +140,7 @@ to the order.
 <br><br>
 Server-side default configuration, where users can modify all component
 configurations such as <a href=cellapp/index.html>cellapp</a>, 
-<a href=baseapp/index.html>baseapp</a>, and loginapp
+<a href=baseapp/index.html>baseapp</a>, and <a href=loginapp/index.html>loginapp</a>.
 
 <br><br>
 Note: You may often need to upgrade the engine. Modifying directly may 
@@ -162,7 +164,7 @@ parts you want to modify according to the format in xml.
 <br><br>
 Server configuration file, where users can modify all component configurations 
 such as <a href=cellapp/index.html>cellapp</a>,
-<a href=baseapp/index.html>baseapp</a>, and loginapp.<br>
+<a href=baseapp/index.html>baseapp</a>, and <a href=loginapp/index.html>loginapp</a>.<br>
 For details, please refer to <a href=#kbengine_defaults.xml>kbengine_defaults.xml</a>
 </div>
 
@@ -186,7 +188,7 @@ When should you define an entity? See <a href=http://www.kbengine.org/docs/progr
 <div class="function_description">
 <br><br>
 Each client entity connected to the server will have a View. It allows 
-the client entity to communicate the events in its View to its own client.<br>
+the client entity to communicate events in its View to its own client.<br>
 View is related to space, and each View can be set to an independent size 
 range.
 <br><br>
@@ -196,7 +198,7 @@ necessarily need to be bound to the concept of physical space (except
 also be considered to be in a logical space.
 <br><br>
 Events include: entity movement, property change of client broadcast type, 
-death destruction, and so on.
+destruction on death, and so on.
 
 </div>
 
@@ -208,7 +210,7 @@ death destruction, and so on.
 
 <div class="function_description">
 <br><br>
-Eyewitness.<br>
+Eyewitness.<br> 
 Only Witnesses bound to <a href=#cell>cell</a> entity Views take effect. 
 In other words, Witness is a <a href=#cell>cell</a> proxy of the client. 
 The cellapp continuously synchronizes the information in the View to the 
@@ -226,7 +228,7 @@ its behavior.<br>
 
 <div class="function_description">
 <br><br>
-Space, KBEngine allocates a space on the cellapp, which is isolated 
+A space KBEngine allocates on the cellapp, which is isolated 
 from other spaces. Views, traps, entity collisions, etc. only interact with each 
 other in the current space. The space is defined by the user. It can be 
 a scene, copy, room...
@@ -357,7 +359,6 @@ Example in script: import Math v = Math.Vector3()
 <br></br>
 <hr></hr>
 
-<hr>
 <p class="copyrightFooter">Copyright KBEngine</p>
 </body>
 </html>
