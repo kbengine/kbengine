@@ -50,6 +50,80 @@ public:
 	void appendBlob(const TArray<uint8>& datas);
 	void appendUTF8String(const FString& str);
 
+	void writeInt8(int8 v)
+	{
+		(*this) << v;
+	}
+
+	void writeInt16(int16 v)
+	{
+		(*this) << v;
+	}
+		
+	void writeInt32(int32 v)
+	{
+		(*this) << v;
+	}
+
+	void writeInt64(int64 v)
+	{
+		(*this) << v;
+	}
+	
+	void writeUint8(uint8 v)
+	{
+		(*this) << v;
+	}
+
+	void writeUint16(uint16 v)
+	{
+		(*this) << v;
+	}
+		
+	void writeUint32(uint32 v)
+	{
+		(*this) << v;
+	}
+
+	void writeUint64(uint64 v)
+	{
+		(*this) << v;
+	}
+	
+	void writeFloat(float v)
+	{
+		(*this) << v;
+	}
+
+	void writeDouble(double v)
+	{
+		(*this) << v;
+	}
+	
+	void writeString(const FString& v)
+	{
+		(*this) << v;
+	}
+
+	void writeUnicode(const FString& v)
+	{
+		appendUTF8String(v);
+	}
+	
+	void writeBlob(const TArray<uint8>& v)
+	{
+		appendBlob(v);
+	}
+
+	void writePython(const TArray<uint8>& v)
+	{
+		appendBlob(v);
+	}
+
+	void writeVector2(const FVector2D& v);
+	void writeVector3(const FVector& v);
+	void writeVector4(const FVector4& v);
+
 protected:
 	MemoryStream* pCurrPacket_;
 	TArray<MemoryStream*> streams_;

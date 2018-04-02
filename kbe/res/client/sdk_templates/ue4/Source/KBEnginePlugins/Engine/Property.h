@@ -4,6 +4,8 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
+class DATATYPE_BASE;
+
 /*
 	抽象出一个entitydef中定义的属性
 	该模块描述了属性的id以及数据类型等信息
@@ -34,14 +36,12 @@ public:
 
 public:
 	FString name;
-	KBEDATATYPE_BASE* pUtype;
+	DATATYPE_BASE* pUtype;
 	uint16 properUtype;
 	uint32 properFlags;
 	int16 aliasID;
 
 	FString defaultValStr;
-	KBVar* pdefaultVal;
-
-	EntityDefMethodHandle* pSetMethod;
+	KBVar* pDefaultVal;
 
 };

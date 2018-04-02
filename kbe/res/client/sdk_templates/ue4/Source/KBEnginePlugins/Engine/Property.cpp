@@ -9,12 +9,11 @@ Property::Property():
 	properFlags(0),
 	aliasID(-1),
 	defaultValStr(TEXT("")),
-	pdefaultVal(NULL),
-	pSetMethod(NULL)
+	pDefaultVal(NULL)
 {
 }
 
 Property::~Property()
 {
-	KBE_SAFE_RELEASE(pdefaultVal);
+	KBE_SAFE_RELEASE(pDefaultVal);
 }

@@ -10,7 +10,6 @@ class KBEngineArgs;
 class Entity;
 class NetworkInterface;
 class MemoryStream;
-class PersistentInfos;
 
 /*
 	这是KBEngine插件的核心模块
@@ -73,6 +72,30 @@ public:
 
 	Entity* player();
 	Entity* findEntity(int32 entityID);
+
+	/*
+		服务端错误描述导入了
+	*/
+	void Client_onImportServerErrorsDescr(MemoryStream& stream)
+	{
+		// 无需实现，已由插件生成静态代码
+	}
+
+	/*
+		从服务端返回的二进制流导入客户端消息协议
+	*/
+	void Client_onImportClientMessages(MemoryStream& stream)
+	{
+		// 无需实现，已由插件生成静态代码
+	}
+
+	/*
+		从服务端返回的二进制流导入客户端消息协议
+	*/
+	void Client_onImportClientEntityDef(MemoryStream& stream)
+	{
+		// 无需实现，已由插件生成静态代码
+	}
 
 	/**
 		插件的主循环处理函数
@@ -162,18 +185,6 @@ public:
 		被服务端踢出
 	*/
 	void Client_onKicked(uint16 failedcode);
-
-	/*
-	从服务端返回的二进制流导入客户端消息协议
-	*/
-	void Client_onImportClientMessages(MemoryStream& stream);
-
-	/*
-		服务端错误描述导入了
-	*/
-	void Client_onImportServerErrorsDescr(MemoryStream& stream);
-
-	void Client_onImportClientEntityDef(MemoryStream& stream);
 
 	/*
 		服务器心跳回调
@@ -326,18 +337,6 @@ private:
 
 	void addSpaceGeometryMapping(uint32 uspaceID, const FString& respath);
 
-	/*
-		从二进制流导入消息协议完毕了
-	*/
-	void onImportClientMessagesCompleted();
-	void onImportEntityDefCompleted();
-	void onImportClientMessages(MemoryStream& stream);
-	void onImportServerErrorsDescr(MemoryStream& stream);
-
-	void createDataTypeFromStreams(MemoryStream& stream, bool canprint);
-	void createDataTypeFromStream(MemoryStream& stream, bool canprint);
-	void onImportClientEntityDef(MemoryStream& stream);
-
 	void resetpassword_loginapp(bool noconnect);
 
 	void createAccount_loginapp(bool noconnect);
@@ -413,15 +412,6 @@ protected:
 	FString username_;
 	FString password_;
 
-	// 是否正在加载本地消息协议
-	static bool loadingLocalMessages_;
-
-	// 消息协议是否已经导入了
-	static bool loginappMessageImported_;
-	static bool baseappMessageImported_;
-	static bool entitydefImported_;
-	static bool isImportServerErrorsDescr_;
-
 	// 服务端分配的baseapp地址
 	FString baseappIP_;
 	uint16 baseappPort_;
@@ -445,10 +435,6 @@ protected:
 	FString clientScriptVersion_;
 	FString serverProtocolMD5_;
 	FString serverEntitydefMD5_;
-
-	// 持久化插件信息， 例如：从服务端导入的协议可以持久化到本地，下次登录版本不发生改变
-	// 可以直接从本地加载来提供登录速度
-	PersistentInfos* persistentInfos_;
 
 	// 当前玩家的实体id与实体类别
 	uint64 entity_uuid_;

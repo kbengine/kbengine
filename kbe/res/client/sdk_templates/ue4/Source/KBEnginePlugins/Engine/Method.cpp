@@ -7,12 +7,10 @@ Method::Method():
 	name(TEXT("")),
 	methodUtype(0),
 	aliasID(-1),
-	args(),
-	pEntityDefMethodHandle(NULL)
+	args()
 {
 }
 
 Method::~Method()
 {
-	KBE_SAFE_RELEASE(pEntityDefMethodHandle);
 }

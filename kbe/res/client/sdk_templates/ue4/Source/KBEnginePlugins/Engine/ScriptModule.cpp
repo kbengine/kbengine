@@ -3,9 +3,10 @@
 #include "Method.h"
 #include "Property.h"
 #include "Entity.h"
+#include "EntityDef.h"
 #include "KBDebug.h"
 
-ScriptModule::ScriptModule(const FString& moduleName):
+ScriptModule::ScriptModule(const FString& moduleName, int type):
 	name(moduleName),
 	usePropertyDescrAlias(false),
 	useMethodDescrAlias(false),
@@ -17,13 +18,15 @@ ScriptModule::ScriptModule(const FString& moduleName):
 	idmethods(),
 	idbase_methods(),
 	idcell_methods(),
-	pEntityCreator(NULL)
+	utype(type)
 {
-	pEntityCreator = EntityFactory::findCreator(moduleName);
-	if (!pEntityCreator)
-		SCREEN_ERROR_MSG("ScriptModule::ScriptModule(): can't load scriptSodule(KBEngine.%s)!", *moduleName);
 }
 
 ScriptModule::~ScriptModule()
 {
+}
+
+Entity* ScriptModule::createEntity()
+{
+	return EntityDef::createEntity(utype);
 }

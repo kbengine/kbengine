@@ -4,7 +4,7 @@
 #include "KBVar.h"
 #include "KBECommon.h"
 
-class KBEDATATYPE_BASE;
+class DATATYPE_BASE;
 
 /*
 	实体定义的方法模块
@@ -22,6 +22,5 @@ public:
 	uint16 methodUtype;
 	int16 aliasID;
 
-	TArray<KBEDATATYPE_BASE*> args;
-	EntityDefMethodHandle* pEntityDefMethodHandle;
+	TArray<DATATYPE_BASE*> args;
 };

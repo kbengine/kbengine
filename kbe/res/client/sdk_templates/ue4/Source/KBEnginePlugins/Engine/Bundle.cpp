@@ -1,7 +1,7 @@
 
 #include "Bundle.h"
 #include "MemoryStream.h"
-#include "Message.h"
+#include "Messages.h"
 #include "NetworkInterface.h"
 #include "KBDebug.h"
 
@@ -249,4 +249,22 @@ void Bundle::appendUTF8String(const FString& str)
 	checkStream(len);
 
 	(*pCurrPacket_).appendUTF8String(str);
+}
+
+void Bundle::writeVector2(const FVector2D& v)
+{
+	checkStream(8);
+	(*pCurrPacket_).writeVector2(v);
+}
+
+void Bundle::writeVector3(const FVector& v)
+{
+	checkStream(12);
+	(*pCurrPacket_).writeVector3(v);
+}
+
+void Bundle::writeVector4(const FVector4& v)
+{
+	checkStream(16);
+	(*pCurrPacket_).writeVector4(v);
 }

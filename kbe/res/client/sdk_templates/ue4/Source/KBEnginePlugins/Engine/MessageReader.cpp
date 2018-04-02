@@ -1,6 +1,8 @@
 
 #include "MessageReader.h"
+#include "Messages.h"
 #include "KBDebug.h"
+#include "MemoryStream.h"
 
 MessageReader::MessageReader():
 	msgid_(0),
@@ -34,7 +36,7 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 				(*pMemoryStream_) >> msgid_;
 				pMemoryStream_->clear(false);
 
-				Message* pMsg = Messages::getSingleton().findClientMessage(msgid_);
+				Message* pMsg = Messages::findClientMessage(msgid_);
 				if (pMsg == NULL)
 				{
 					SCREEN_ERROR_MSG("MessageReader::process(): not found Message(%d)!", msgid_);
@@ -49,7 +51,7 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 				else if (pMsg->msglen == 0)
 				{
 					// 如果是0个参数的消息，那么没有后续内容可读了，处理本条消息并且直接跳到下一条消息
-					pMsg->handle(*pMemoryStream_);
+					pMsg->handleMessage(*pMemoryStream_);
 
 					state_ = READ_STATE_MSGID;
 					expectSize_ = 2;
@@ -130,7 +132,7 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 				totallen += expectSize_;
 				length -= expectSize_;
 
-				Message* pMsg = Messages::getSingleton().findClientMessage(msgid_);
+				Message* pMsg = Messages::findClientMessage(msgid_);
 
 				if (pMsg == NULL)
 				{
@@ -138,7 +140,7 @@ void MessageReader::process(const uint8* datas, MessageLengthEx offset, MessageL
 					break;
 				}
 
-				pMsg->handle(*pMemoryStream_);
+				pMsg->handleMessage(*pMemoryStream_);
 
 				pMemoryStream_->clear(false);
 

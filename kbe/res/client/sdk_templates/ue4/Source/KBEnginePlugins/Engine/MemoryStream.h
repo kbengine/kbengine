@@ -3,6 +3,7 @@
 #pragma once
 
 #include "KBECommon.h"
+#include "KBDebug.h"
 #include "Runtime/Core/Public/GenericPlatform/GenericPlatformProperties.h"
 
 namespace MemoryStreamConverter
@@ -386,6 +387,63 @@ public:
 		rpos_ += len;
 	}
 
+	int8 readInt8()
+	{
+		return read<int8>();
+	}
+
+	int16 readInt16()
+	{
+		return read<int16>();
+	}
+		
+	int32 readInt32()
+	{
+		return read<int32>();
+	}
+
+	int64 readInt64()
+	{
+		return read<int64>();
+	}
+	
+	uint8 readUint8()
+	{
+		return read<uint8>();
+	}
+
+	uint16 readUint16()
+	{
+		return read<uint16>();
+	}
+
+	uint32 readUint32()
+	{
+		return read<uint32>();
+	}
+	
+	uint64 readUint64()
+	{
+		return read<uint64>();
+	}
+	
+	float readFloat()
+	{
+		return read<float>();
+	}
+
+	double readDouble()
+	{
+		return read<double>();
+	}
+	
+	TArray<uint8> readBlob()
+	{
+		TArray<uint8> datas;
+		readBlob(datas);
+		return datas;
+	}
+
 	uint32 readBlob(TArray<uint8>& datas)
 	{
 		if (length() <= 0)
@@ -419,6 +477,40 @@ public:
 
 		str = FString(UTF8_TO_TCHAR(datas.GetData()));
 		return rsize;
+	}
+
+	FString readUnicode()
+	{
+		FString str;
+		readUTF8String(str);
+		return str;
+	}
+	
+	FString readString()
+	{
+		FString str;
+		(*this) >> str;
+		return str;
+	}
+
+	FVector2D readVector2()
+	{
+		return FVector2D(readFloat(), readFloat());
+	}
+
+	FVector readVector3()
+	{
+		return FVector(readFloat(), readFloat(), readFloat());
+	}
+
+	FVector4 readVector4()
+	{
+		return FVector4(readFloat(), readFloat(), readFloat(), readFloat());
+	}
+
+	TArray<uint8> readPython()
+	{
+		return readBlob();
 	}
 
 	void readPackXYZ(float& x, float&y, float& z, float minf = -256.f)
@@ -641,6 +733,93 @@ public:
 		data |= ((yPackData.uv >> 16) & 0x8000);
 
 		(*this) << data;
+	}
+
+	void writeInt8(int8 v)
+	{
+		(*this) << v;
+	}
+	
+	void writeInt16(int16 v)
+	{	
+		(*this) << v;
+	}
+			
+	void writeInt32(int32 v)
+	{
+		(*this) << v;
+	}
+	
+	void writeInt64(int64 v)
+	{
+		(*this) << v;
+	}
+	
+	void writeUint8(uint8 v)
+	{
+		(*this) << v;
+	}
+	
+	void writeUint16(uint16 v)
+	{
+		(*this) << v;
+	}
+			
+	void writeUint32(uint32 v)
+	{
+		(*this) << v;
+	}
+	
+	void writeUint64(uint64 v)
+	{
+		(*this) << v;
+	}
+		
+	void writeFloat(float v)
+	{
+		(*this) << v;
+	}
+	
+	void writeDouble(double v)
+	{
+		(*this) << v;
+	}
+	
+	void writeBlob(const TArray<uint8>& datas)
+	{
+		appendBlob(datas);
+	}
+		
+	void writeString(const FString& v)
+	{
+		if(v.Len() > (int32)space())
+		{
+			ERROR_MSG("MemoryStream::writeString: no free!");
+			return;
+		}
+
+		(*this) << v;
+	}
+
+	void writeVector2(const FVector2D& v)
+	{
+		writeFloat(v.X);
+		writeFloat(v.Y);
+	}
+
+	void writeVector3(const FVector& v)
+	{
+		writeFloat(v.X);
+		writeFloat(v.Y);
+		writeFloat(v.Z);
+	}
+
+	void writeVector4(const FVector4& v)
+	{
+		writeFloat(v.X);
+		writeFloat(v.Y);
+		writeFloat(v.Z);
+		writeFloat(v.W);
 	}
 
 	/** 输出流数据 */

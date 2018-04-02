@@ -27,7 +27,6 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 	serverHeartbeatTick = 15;
 	SEND_BUFFER_MAX = TCP_PACKET_MAX;
 	RECV_BUFFER_MAX = TCP_PACKET_MAX;
-	persistentDataPath = TEXT("");
 }
 
 void UKBEMain::InitializeComponent()
@@ -55,7 +54,6 @@ void UKBEMain::BeginPlay()
 	pArgs->serverHeartbeatTick = serverHeartbeatTick;
 	pArgs->SEND_BUFFER_MAX = SEND_BUFFER_MAX;
 	pArgs->RECV_BUFFER_MAX = RECV_BUFFER_MAX;
-	pArgs->persistentDataPath = persistentDataPath;
 
 	if (!KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
