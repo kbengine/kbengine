@@ -1,13 +1,16 @@
 
 #include "EntityCall.h"
+#include "EntityDef.h"
 #include "Bundle.h"
 #include "KBEngine.h"
 #include "Messages.h"
 #include "KBDebug.h"
+#include "Method.h"
+#include "ScriptModule.h"
 
-EntityCall::EntityCall():
-	id(0),
-	className(),
+EntityCall::EntityCall(int32 eid, const FString& ename):
+	id(eid),
+	className(ename),
 	type(ENTITYCALL_TYPE_CELL),
 	pBundle(NULL)
 {
@@ -31,7 +34,7 @@ Bundle* EntityCall::newCall()
 	return pBundle;
 }
 
-Bundle* EntityCall::newCall(const FString& methodName)
+Bundle* EntityCall::newCall(const FString& methodName, uint16 entitycomponentPropertyID)
 {
 	if(KBEngineApp::getSingleton().currserver() == TEXT("loginapp"))
 	{
@@ -61,6 +64,7 @@ Bundle* EntityCall::newCall(const FString& methodName)
 	uint16 methodID = pMethod->methodUtype;
 
 	newCall();
+	pBundle->writeUint16(entitycomponentPropertyID);
 	pBundle->writeUint16(methodID);
 	return pBundle;
 }

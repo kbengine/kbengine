@@ -848,35 +848,7 @@ void KBEngineApp::onUpdatePropertys_(ENTITY_ID eid, MemoryStream& stream)
 	
 	Entity* pEntity = *pEntityFind;
 
-	ScriptModule** smFind = EntityDef::moduledefs.Find(pEntity->className());
-	if (!smFind)
-	{
-		ERROR_MSG("KBEngineApp::onUpdatePropertys_(): ScriptModule(%s) not found!", *pEntity->className());
-		return;
-	}
-
-	ScriptModule* sm = *smFind;
-	TMap<uint16, Property*>& pdatas = sm->idpropertys;
-
-	while (stream.length() > 0)
-	{
-		uint16 utype = 0;
-
-		if (sm->usePropertyDescrAlias)
-		{
-			utype = stream.read<uint8>();
-		}
-		else
-		{
-			utype = stream.read<uint16>();
-		}
-
-		Property* pProperty = pdatas[utype];
-		pEntity->onUpdatePropertys(pProperty, stream);
-
-		// DEBUG_MSG("KBEngineApp::onUpdatePropertys_(): entity.className + "(id=" + eid  + " " + 
-		// propertydata.name + "=" + val->c_str() + "), hasSetMethod=" + setmethod + "!");
-	}
+	pEntity->onUpdatePropertys(stream);
 }
 
 void KBEngineApp::Client_onEntityDestroyed(int32 eid)
@@ -1244,25 +1216,7 @@ void KBEngineApp::onRemoteMethodCall_(ENTITY_ID eid, MemoryStream& stream)
 	}
 
 	Entity* pEntity = *pEntityFind;
-
-	uint16 methodUtype = 0;
-
-	ScriptModule** pModuleFind = EntityDef::moduledefs.Find(pEntity->className());
-	if (!pModuleFind)
-	{
-		SCREEN_ERROR_MSG("KBEngineApp::onRemoteMethodCall_(): not found ScriptModule(%s)!", *pEntity->className());
-		return;
-	}
-
-	ScriptModule* pModule = *pModuleFind;
-
-	if (pModule->useMethodDescrAlias)
-		methodUtype = stream.read<uint8>();
-	else
-		methodUtype = stream.read<uint16>();
-
-	Method* pMethodData = pModule->idmethods[methodUtype];
-	pEntity->onRemoteMethodCall(pMethodData, stream);
+	pEntity->onRemoteMethodCall(stream);
 }
 
 void KBEngineApp::Client_onControlEntity(ENTITY_ID eid, int8 isControlled)

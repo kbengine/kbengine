@@ -14,7 +14,7 @@ class Bundle;
 class KBENGINEPLUGINS_API EntityCall
 {
 public:
-	EntityCall();
+	EntityCall(int32 eid, const FString& ename);
 	virtual ~EntityCall();
 
 	enum ENTITYCALL_TYPE
@@ -38,7 +38,7 @@ public:
 		创建新的call
 	*/
 	Bundle* newCall();
-	Bundle* newCall(const FString& methodName);
+	Bundle* newCall(const FString& methodName, uint16 entitycomponentPropertyID = 0);
 
 	/*
 		向服务端发送这个call

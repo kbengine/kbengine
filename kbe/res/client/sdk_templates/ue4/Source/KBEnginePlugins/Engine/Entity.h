@@ -131,12 +131,12 @@ public:
 		return NULL;
 	}
 
-	virtual void onRemoteMethodCall(Method* pMethod, MemoryStream& stream)
+	virtual void onRemoteMethodCall(MemoryStream& stream)
 	{
 		// 动态生成
 	}
 
-	virtual void onUpdatePropertys(Property* pProp, MemoryStream& stream)
+	virtual void onUpdatePropertys(MemoryStream& stream)
 	{
 		// 动态生成
 	}
