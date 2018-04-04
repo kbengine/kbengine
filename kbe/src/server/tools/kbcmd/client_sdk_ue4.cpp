@@ -970,7 +970,7 @@ bool ClientSDKUE4::writeBaseEntityCallBegin(ScriptDefModule* pScriptDefModule)
 			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
 				continue;
 
-			EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+			//EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
 
 			fileBody() += fmt::format("\tif({})\n\t\tdelete {};\n\n", pPropertyDescription->getName(), pPropertyDescription->getName());
 		}
@@ -1056,7 +1056,7 @@ bool ClientSDKUE4::writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule)
 			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
 				continue;
 
-			EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+			//EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
 
 			fileBody() += fmt::format("\tif({})\n\t\tdelete {};\n\n", pPropertyDescription->getName(), pPropertyDescription->getName());
 		}
