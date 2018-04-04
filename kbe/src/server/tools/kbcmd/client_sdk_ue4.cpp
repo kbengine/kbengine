@@ -2196,6 +2196,24 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 
 	changeContextToSource();
 	fileBody() += fmt::format("\n{}::{}(){}\n{{\n", newModuleName, newModuleName, initBody_);
+
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			//EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+			fileBody() += fmt::format("\t{}->pOwner = this;\n", pPropertyDescription->getName());
+			fileBody() += fmt::format("\t{}->ownerID = id_;\n\n", pPropertyDescription->getName());
+		}
+	}
+
 	fileBody() += fmt::format("}}\n");
 	
 	fileBody() += fmt::format("\n{}::~{}()\n{{\n", newModuleName, newModuleName);
@@ -2371,7 +2389,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 			fileBody() += fmt::format("\tMethod* pMethod = sm->idmethods[methodUtype];\n\n");
 		}
 
-		fileBody() += fmt::format("\tswitch(methodUtype)\n\t{{\n");
+		fileBody() += fmt::format("\tswitch(pMethod->methodUtype)\n\t{{\n");
 
 		ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = clientMethods.begin();
 		for (; methodIter != clientMethods.end(); ++methodIter)
@@ -2510,9 +2528,14 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 	else
 		fileBody() += fmt::format("\nvoid {}::onUpdatePropertys(MemoryStream& stream)\n{{\n", newModuleName);
 
-	fileBody() += fmt::format("\tScriptModule* sm = *EntityDef::moduledefs.Find(\"{}\");\n", pEntityScriptDefModule->getName());
+	fileBody() += fmt::format("\tScriptModule* sm = *EntityDef::moduledefs.Find(\"{}\");\n\n", pEntityScriptDefModule->getName());
 
-	fileBody() += fmt::format("\twhile(stream.length() > 0)\n\t{{\n\t\tuint16 componentPropertyUType = 0;\n");
+	if (pEntityScriptDefModule->isComponentModule())
+		sourcefileBody_ += fmt::format("\twhile(stream.length() > 0 && maxCount-- != 0)\n\t{{\n");
+	else
+		sourcefileBody_ += fmt::format("\twhile(stream.length() > 0)\n\t{{\n");
+
+	fileBody() += fmt::format("\t\tuint16 componentPropertyUType = 0;\n");
 
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
@@ -2537,7 +2560,6 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 		fileBody() += fmt::format("\t\t}}\n\t\telse\n\t\t{{\n");
 		fileBody() += fmt::format("\t\t\tcomponentPropertyUType = stream.readUint16();\n");
 		fileBody() += fmt::format("\t\t\tproperUtype = stream.read<uint16>();\n\t\t}}\n\n");
-		fileBody() += fmt::format("\t\tProperty* pProp = sm->idpropertys[properUtype];\n\n");
 
 		fileBody() += fmt::format("\t\tif(componentPropertyUType > 0)\n\t\t{{\n");
 		if (entityComponentSize > 0)
@@ -2569,10 +2591,22 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 		fileBody() += fmt::format("\n\t\t\treturn;\n");
 		fileBody() += fmt::format("\t\t}}\n\n");
+
+		fileBody() += fmt::format("\t\tProperty* pProp = sm->idpropertys[properUtype];\n\n");
 	}
 	else
 	{
 		fileBody() += fmt::format("\t\tuint16 properUtype = propUtype;\n\n");
+
+		fileBody() += fmt::format("\t\tif (properUtype == 0)\n\t\t{{\n");
+		fileBody() += fmt::format("\t\t\tif (sm->usePropertyDescrAlias)\n\t\t\t{{\n");
+		fileBody() += fmt::format("\t\t\t\tcomponentPropertyUType = stream.readUint8();\n");
+		fileBody() += fmt::format("\t\t\t\tproperUtype = stream.read<uint8>();\n");
+		fileBody() += fmt::format("\t\t\t}}\n\t\t\telse\n\t\t\t{{\n");
+		fileBody() += fmt::format("\t\t\t\tcomponentPropertyUType = stream.readUint16();\n");
+		fileBody() += fmt::format("\t\t\t\tproperUtype = stream.read<uint16>();\n\t\t\t}}\n");
+		fileBody() += fmt::format("\t\t}}\n\n");
+
 		fileBody() += fmt::format("\t\tProperty* pProp = sm->idpropertys[properUtype];\n\n");
 	}
 
@@ -2580,7 +2614,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	if (clientPropertys.size() > 0)
 	{
-		fileBody() += fmt::format("\t\tswitch(properUtype)\n\t\t{{\n");
+		fileBody() += fmt::format("\t\tswitch(pProp->properUtype)\n\t\t{{\n");
 
 		if (!pEntityScriptDefModule->isComponentModule())
 		{
