@@ -3,70 +3,67 @@ var KBEngine = KBEngine || {};
 /*-----------------------------------------------------------------------------------------
 					    	JavaScript Inheritance
 -----------------------------------------------------------------------------------------*/
-/* Simple JavaScript Inheritance
- * By John Resig http://ejohn.org/
+/* Simple JavaScript Inheritance for ES 5.1
+ * based on http://ejohn.org/blog/simple-javascript-inheritance/
+ *  (inspired by base2 and Prototype)
  * MIT Licensed.
  */
+
+// The base Class implementation (does nothing)
 KBEngine.Class = function(){};
-KBEngine.Class.extend = function (prop) {
-    var _super = this.prototype;
+// Create a new Class that inherits from this class
+KBEngine.Class.extend = function(props) {
+	var _super = this.prototype;
+    var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+	// Set up the prototype to inherit from the base class
+	// (but without running the ctor constructor)
+	var proto = Object.create(_super);
 
-    // Instantiate a base class (but only create the instance,
-    // don't run the init constructor)
-    initializing = true;
-    var prototype = Object.create(_super);
-    initializing = false;
-    fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+	// Copy the properties over onto the new prototype
+	for (var name in props) {
+		// Check if we're overwriting an existing function
+		proto[name] = typeof props[name] === "function" &&
+		typeof _super[name] == "function" && fnTest.test(props[name])
+			? (function(name, fn){
+				return function() {
+					var tmp = this._super;
 
-    // Copy the properties over onto the new prototype
-    for (var name in prop) {
-        // Check if we're overwriting an existing function
-        prototype[name] = typeof prop[name] == "function" &&
-            typeof _super[name] == "function" && fnTest.test(prop[name]) ?
-            (function (name, fn) {
-                return function () {
-                    var tmp = this._super;
+					// Add a new ._super() method that is the same method
+					// but on the super-class
+					this._super = _super[name];
 
-                    // Add a new ._super() method that is the same method
-                    // but on the super-class
-                    this._super = _super[name];
+					// The method only need to be bound temporarily, so we
+					// remove it when we're done executing
+					var ret = fn.apply(this, arguments);
+					this._super = tmp;
 
-                    // The method only need to be bound temporarily, so we
-                    // remove it when we're done executing
-                    var ret = fn.apply(this, arguments);
-                    this._super = tmp;
+					return ret;
+				};
+			})(name, props[name])
+			: props[name];
+	}
 
-                    return ret;
-                };
-            })(name, prop[name]) :
-            prop[name];
-    }
+	// The new constructor
+	var newClass = typeof proto.ctor === "function"
+		? proto.hasOwnProperty("ctor")
+			? proto.ctor // All construction is actually done in the ctor method
+			: function SubClass(){ _super.ctor.apply(this, arguments); }
+		: function EmptyClass(){};
 
-    // The dummy class constructor
-    function Class() {
-        // All construction is actually done in the init method
-        if (!initializing) {
-            if (!this.ctor) {
-                if (this.__nativeObj)
-                    KBEngine.INFO_MSG("No ctor function found!");
-            }
-            else {
-                this.ctor.apply(this, arguments);
-            }
-        }
-    }
+	// Populate our constructed prototype object
+	newClass.prototype = proto;
 
-    // Populate our constructed prototype object
-    Class.prototype = prototype;
+	// Enforce the constructor to be what we expect
+	proto.constructor = newClass;
 
-    // Enforce the constructor to be what we expect
-    Class.prototype.constructor = Class;
+	// And make this class extendable
+	newClass.extend = KBEngine.Class.extend;
 
-    // And make this class extendable
-    Class.extend = arguments.callee;
-
-    return Class;
+	return newClass;
 };
+
+// export
+window.Class = KBEngine.Class;
 
 /*-----------------------------------------------------------------------------------------
 												global
@@ -288,7 +285,7 @@ KBEngine.Event = function()
 	
 	this.deregister = function(evtName, classinst)
 	{
-		for(itemkey in this._events)
+		for(var itemkey in this._events)
 		{
 			var evtlst = this._events[itemkey];
 			while(true)
@@ -497,7 +494,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 
 	this.readBlob = function()
 	{
-		size = this.readUint32();
+		var size = this.readUint32();
 		var buf = new Uint8Array(this.buffer, this.rpos, size);
 		this.rpos += size;
 		return buf;
@@ -567,7 +564,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		
 	this.writeInt32 = function(v)
 	{
-		for(i=0; i<4; i++)
+		for(var i=0; i<4; i++)
 			this.writeInt8(v >> i * 8 & 0xff);
 	}
 
@@ -592,7 +589,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		
 	this.writeUint32 = function(v)
 	{
-		for(i=0; i<4; i++)
+		for(var i=0; i<4; i++)
 			this.writeUint8(v >> i * 8 & 0xff);
 	}
 
@@ -642,7 +639,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 
 	this.writeBlob = function(v)
 	{
-		size = v.length;
+		var size = v.length;
 		if(size + 4> this.space())
 		{
 			KBEngine.ERROR_MSG("memorystream::writeBlob: no free!");
@@ -654,14 +651,14 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		
 		if(typeof(v) == "string")
 		{
-			for(i=0; i<size; i++)
+			for(var i=0; i<size; i++)
 			{
 				buf[i] = v.charCodeAt(i);
 			}
 		}
 		else
 		{
-			for(i=0; i<size; i++)
+			for(var i=0; i<size; i++)
 			{
 				buf[i] = v[i];
 			}
@@ -680,7 +677,7 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		
 		var buf = new Uint8Array(this.buffer, this.wpos);
 		var i = 0;
-		for(idx=0; idx<v.length; idx++)
+		for(var idx=0; idx<v.length; idx++)
 		{
 			buf[i++] = v.charCodeAt(idx);
 		}
@@ -796,10 +793,10 @@ KBEngine.Bundle = function()
 	{
 		this.fini(true);
 		
-		for(i=0; i<this.memorystreams.length; i++)
+		for(var i=0; i<this.memorystreams.length; i++)
 		{
-			stream = this.memorystreams[i];
-			network.send(stream.getbuffer());
+			var tmpStream = this.memorystreams[i];
+			network.send(tmpStream.getbuffer());
 		}
 		
 		this.memorystreams = new Array();
@@ -1125,7 +1122,7 @@ KBEngine.Message = function(id, name, length, argstype, args, handler)
 	this.argsType = argstype;
 	
 	// 绑定执行
-	for(i=0; i<args.length; i++)
+	for(var i=0; i<args.length; i++)
 	{
 		args[i] = KBEngine.bindReader(args[i]);
 	}
@@ -1139,7 +1136,7 @@ KBEngine.Message = function(id, name, length, argstype, args, handler)
 			return msgstream;
 		
 		var result = new Array(this.args.length);
-		for(i=0; i<this.args.length; i++)
+		for(var i=0; i<this.args.length; i++)
 		{
 			result[i] = this.args[i].call(msgstream);
 		}
@@ -1274,7 +1271,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 	callPropertysSetMethods : function()
 	{
 		var currModule = KBEngine.moduledefs[this.className];
-		for(name in currModule.propertys)
+		for(var name in currModule.propertys)
 		{
 			var propertydata = currModule.propertys[name];
 			var properUtype = propertydata[0];
@@ -2262,7 +2259,7 @@ KBEngine.DATATYPE_FIXED_DICT = function()
 	
 	this.bind = function()
 	{
-		for(itemkey in this.dicttype)
+		for(var itemkey in this.dicttype)
 		{
 			var utype = this.dicttype[itemkey];
 			
@@ -2274,7 +2271,7 @@ KBEngine.DATATYPE_FIXED_DICT = function()
 	this.createFromStream = function(stream)
 	{
 		var datas = {};
-		for(itemkey in this.dicttype)
+		for(var itemkey in this.dicttype)
 		{
 			datas[itemkey] = this.dicttype[itemkey].createFromStream(stream);
 		}
@@ -2284,7 +2281,7 @@ KBEngine.DATATYPE_FIXED_DICT = function()
 	
 	this.addToStream = function(stream, v)
 	{
-		for(itemkey in this.dicttype)
+		for(var itemkey in this.dicttype)
 		{
 			this.dicttype[itemkey].addToStream(stream, v[itemkey]);
 		}
@@ -2297,7 +2294,7 @@ KBEngine.DATATYPE_FIXED_DICT = function()
 	
 	this.isSameType = function(v)
 	{
-		for(itemkey in this.dicttype)
+		for(var itemkey in this.dicttype)
 		{
 			if(!this.dicttype[itemkey].isSameType(v[itemkey]))
 			{
@@ -2796,7 +2793,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			KBEngine.app.createDataTypeFromStream(stream, canprint);
 		};	
 		
-		for(datatype in KBEngine.datatypes)
+		for(var datatype in KBEngine.datatypes)
 		{
 			if(KBEngine.datatypes[datatype] != undefined)
 			{
@@ -2886,7 +2883,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			var self_propertys = currModuleDefs["propertys"];
 			var self_methods = currModuleDefs["methods"];
 			var self_base_methods = currModuleDefs["base_methods"];
-			var self_cell_methods= currModuleDefs["cell_methods"];
+			var self_cell_methods = currModuleDefs["cell_methods"];
 			
 			try
 			{
@@ -3006,6 +3003,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				KBEngine.INFO_MSG("KBEngineApp::Client_onImportClientEntityDef: add(" + scriptmodule_name + "), cell_method(" + name + ").");
 			};
 			
+			var defmethod;
+
 			try
 			{
 				defmethod = eval("KBEngine." + scriptmodule_name);
@@ -3016,7 +3015,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				defmethod = undefined;
 			}
 			
-			for(name in currModuleDefs.propertys)
+			for(var name in currModuleDefs.propertys)
 			{
 				var infos = currModuleDefs.propertys[name];
 				var properUtype = infos[0];
@@ -3029,7 +3028,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 					defmethod.prototype[name] = utype.parseDefaultValStr(defaultValStr);
 			};
 
-			for(name in currModuleDefs.methods)
+			for(var name in currModuleDefs.methods)
 			{
 				var infos = currModuleDefs.methods[name];
 				var properUtype = infos[0];
@@ -4484,3 +4483,4 @@ KBEngine.destroy = function()
 	KBEngine.app = undefined;
 }
 
+module.exports = KBEngine;
