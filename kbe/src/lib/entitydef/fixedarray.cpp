@@ -41,7 +41,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(FixedArray)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(FixedArray, 0, &Sequence::seqMethods, 0, 0, 0)	
+SCRIPT_INIT(FixedArray, 0, &Sequence::seqMethods, &Sequence::seqMapping, 0, 0)
 	
 //-------------------------------------------------------------------------------------
 FixedArray::FixedArray(DataType* dataType):
