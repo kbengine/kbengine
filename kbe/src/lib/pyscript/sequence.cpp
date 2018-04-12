@@ -202,10 +202,7 @@ PyObject* Sequence::seq_subscript(PyObject* self, PyObject* item)
 		return seq_item(self, i);
 	}
 	else if (PySlice_Check(item)) {
-		Py_ssize_t start, stop, step, slicelength, cur, i;
-		PyObject* result;
-		PyObject* it;
-		PyObject **src, **dest;
+		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx(item, Py_SIZE(self),
 			&start, &stop, &step, &slicelength) < 0) {
