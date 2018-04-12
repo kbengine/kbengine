@@ -32,6 +32,8 @@ class Sequence : public ScriptObject
 	INSTANCE_SCRIPT_HREADER(Sequence, ScriptObject)
 public:	
 	static PySequenceMethods seqMethods;
+	static PyMappingMethods seqMapping;
+
 	Sequence(PyTypeObject* pyType, bool isInitialised = false);
 	virtual ~Sequence();
 	
@@ -46,6 +48,8 @@ public:
 	static PyObject* seq_inplace_concat(PyObject* self, PyObject* oterSeq);
 	static PyObject* seq_inplace_repeat(PyObject * self, Py_ssize_t n);
 	
+	static PyObject* seq_subscript(PyObject* self, PyObject* item);
+
 	INLINE int length(void) const;
 	INLINE std::vector<PyObject*>& getValues(void);
 
