@@ -158,26 +158,24 @@ void SignalHandlers::onSignalled(int sigNum)
 //-------------------------------------------------------------------------------------	
 bool SignalHandlers::process()
 {
-	if(signalledVec_.size() > 0)
+	while(signalledVec_.size() > 0)
 	{
 		std::vector<int>::iterator iter = signalledVec_.begin();
-		for(; iter != signalledVec_.end(); ++iter)
+
+		int sigNum = (*iter);
+		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
+		if(iter1 == singnalHandlerMap_.end())
 		{
-			int sigNum = (*iter);
-			SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
-			if(iter1 == singnalHandlerMap_.end())
-			{
-				DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n", 
-					SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
+			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n", 
+				SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
 
-				continue;
-			}
-			
-			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL2NAMES(sigNum)));
-				iter1->second->onSignalled(sigNum);
+			signalledVec_.erase(signalledVec_.begin());
+			continue;
 		}
-
-		signalledVec_.clear();
+			
+		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL2NAMES(sigNum)));
+		iter1->second->onSignalled(sigNum);
+		signalledVec_.erase(signalledVec_.begin());
 	}
 
 	return true;
