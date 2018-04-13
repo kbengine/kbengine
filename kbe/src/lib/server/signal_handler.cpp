@@ -173,7 +173,7 @@ bool SignalHandlers::process()
 			continue;
 		}
 
-		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL2NAMES(sigNum)));
+		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle. singnalHandlerMap({})\n", SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
 		iter1->second->onSignalled(sigNum);
 		signalledVec_.erase(signalledVec_.begin());
 	}
