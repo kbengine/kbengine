@@ -160,9 +160,7 @@ bool SignalHandlers::process()
 {
 	while(signalledVec_.size() > 0)
 	{
-		std::vector<int>::iterator iter = signalledVec_.begin();
-
-		int sigNum = (*iter);
+		int sigNum = (*signalledVec_.begin());
 		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
 		if(iter1 == singnalHandlerMap_.end())
 		{
@@ -173,7 +171,7 @@ bool SignalHandlers::process()
 			continue;
 		}
 			
-		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL2NAMES(sigNum)));
+		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle. singnalHandlerMap({})\n", SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
 		iter1->second->onSignalled(sigNum);
 		signalledVec_.erase(signalledVec_.begin());
 	}

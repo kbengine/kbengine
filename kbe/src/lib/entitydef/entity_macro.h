@@ -519,7 +519,7 @@ public:																										\
 			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\
 			if(iter == propertyDescrs.end())																\
 			{																								\
-				ERROR_MSG(fmt::format(#CLASS"::createCellDataFromStream: not found uid({})\n", uid));		\
+				ERROR_MSG(fmt::format("{}::createCellDataFromStream: not found uid({})! entityID={}\n", scriptName(), uid, id()));	\
 				break;																						\
 			}																								\
 																											\
@@ -1047,8 +1047,8 @@ public:																										\
 																											\
 		if (!PyCallable_Check(pyCallback))																	\
 		{																									\
-			PyErr_Format(PyExc_TypeError, #CLASS"::registerEvent: '%.200s' object is not callable! eventName=%s",\
-				(pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str());						\
+			PyErr_Format(PyExc_TypeError, "{}::registerEvent: '%.200s' object is not callable! eventName=%s, entityID={}",\
+				scriptName(), (pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str(), id());		\
 			PyErr_PrintEx(0);																				\
 			return false;																					\
 		}																									\
@@ -1059,8 +1059,8 @@ public:																										\
 		{																									\
 			if((*iter).get() == pyCallback)																	\
 			{																								\
-				PyErr_Format(PyExc_TypeError, #CLASS"::registerEvent: This callable('%.200s') has been registered! eventName=%s",\
-					(pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str());					\
+				PyErr_Format(PyExc_TypeError, "{}::registerEvent: This callable('%.200s') has been registered! eventName=%s, entityID={}",\
+					scriptName(), (pyCallback ? pyCallback->ob_type->tp_name : "NULL"), evnName.c_str(), id());	\
 				PyErr_PrintEx(0);																			\
 				return false;																				\
 			}																								\
@@ -1191,7 +1191,7 @@ public:																										\
 		{																									\
 			if(PyArg_ParseTuple(args, "s", &eventName) == -1)												\
 			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error!", pobj->scriptName());		\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error! entityID={}", pobj->scriptName(), pobj->id());		\
 				PyErr_PrintEx(0);																			\
 				Py_RETURN_FALSE;																			\
 			}																								\
@@ -1203,7 +1203,7 @@ public:																										\
 			PyObject* pyobj = NULL;																			\
 			if (PyArg_ParseTuple(args, "sO", &eventName, &pyobj) == -1)										\
 			{																								\
-				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error!", pobj->scriptName());		\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error! entityID={}", pobj->scriptName(), pobj->id());		\
 				PyErr_PrintEx(0);																			\
 				Py_RETURN_FALSE;																			\
 			}																								\
@@ -1497,8 +1497,8 @@ public:																										\
 			}																								\
 			else																							\
 			{																								\
-				ERROR_MSG(fmt::format(#CLASS"::initProperty: {} dataType is NULL.\n",						\
-					propertyDescription->getName()));														\
+				ERROR_MSG(fmt::format("{}::initProperty: {} dataType is NULL£¡ entityID={}\n",				\
+					scriptName(), propertyDescription->getName(), id()));									\
 			}																								\
 		}																									\
 																											\
