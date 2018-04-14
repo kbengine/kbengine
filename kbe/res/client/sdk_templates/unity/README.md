@@ -33,6 +33,8 @@ Usage
 			Account.cs: baseEntityCall.reqAvatarList();
 			Avatar.cs: cellEntityCall.relive(reliveType);
 
+		Reference: https://github.com/kbengine/kbengine/issues/532
+
 	4: Monitor KBE-plugins event
 		For example:
 			public class UI : MonoBehaviour

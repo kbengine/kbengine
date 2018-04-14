@@ -34,6 +34,8 @@ Usage
 			entity.baseCall("base_func", 1, "arg2", "argN")
 			entity.cellCall("cell_func", 1, "arg2", "argN")
 
+		Reference: https://github.com/kbengine/kbengine/issues/532
+
 	3: Monitor KBE-plugins event
 		For example:
 			var StartSceneLayer = Class.extend({
