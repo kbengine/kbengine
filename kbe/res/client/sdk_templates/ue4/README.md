@@ -35,6 +35,8 @@ Usage
 			Account.cpp: pBaseEntityCall->reqAvatarList();
 			Avatar.cpp: pCellEntityCall->relive(reliveType);
 
+		Reference: https://github.com/kbengine/kbengine/issues/532
+
 	4: Monitor KBE-plugins event
 		For example:
 			class KBENGINE_UE4_DEMO_API AGameModeLogin : public AGameMode

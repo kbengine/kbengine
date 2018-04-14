@@ -21,7 +21,7 @@ Usage
 			<Gate hasClient="true"></Gate>
 			<Space/>
 
-			KBEngine.Account = KBEngine.Entity.extend(
+			KBEngine.Account = KBEngine.AccountBase.extend(
 			{
 				// entity initialization
 				__init__ : function()
@@ -33,6 +33,8 @@ Usage
 		Call entity server method
 			entity.baseCall("base_func", 1, "arg2", "argN")
 			entity.cellCall("cell_func", 1, "arg2", "argN")
+
+		Reference: https://github.com/kbengine/kbengine/issues/532
 
 	3: Monitor KBE-plugins event
 		For example:

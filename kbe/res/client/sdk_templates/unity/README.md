@@ -21,7 +21,7 @@ Usage
 			<Gate hasClient="true"></Gate>
 			<Space/>
 
-			public class Account : KBEngine.Entity 
+			public class Account : AccountBase
 			{
 				// entity initialization
 				public override void __init__()
@@ -32,6 +32,8 @@ Usage
 		Call entity server method
 			Account.cs: baseEntityCall.reqAvatarList();
 			Avatar.cs: cellEntityCall.relive(reliveType);
+
+		Reference: https://github.com/kbengine/kbengine/issues/532
 
 	4: Monitor KBE-plugins event
 		For example:
