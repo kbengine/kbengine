@@ -79,7 +79,7 @@ std::string SIGNAL2NAMES(int signum)
 
 void signalHandler(int signum)
 {
-	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL2NAMES(signum)));
+	printf("SignalHandlers: receive sigNum %d.\n", signum);
 	g_signalHandlers.onSignalled(signum);
 };
 
@@ -153,6 +153,7 @@ void SignalHandlers::clear()
 //-------------------------------------------------------------------------------------	
 void SignalHandlers::onSignalled(int sigNum)
 {
+	// ²»Òª·ÖÅäÄÚ´æ
 	KBE_ASSERT(wpos_ != 0XFF);
 	signalledArray_[wpos_++] = sigNum;
 }
@@ -160,12 +161,13 @@ void SignalHandlers::onSignalled(int sigNum)
 //-------------------------------------------------------------------------------------	
 bool SignalHandlers::process()
 {
-	if(wpos_ == 0)
+	if (wpos_ == 0)
 		return true;
 
 	DEBUG_MSG(fmt::format("SignalHandlers::process: rpos={}, wpos={}.\n", rpos_, wpos_));
 
 #if KBE_PLATFORM != PLATFORM_WIN32
+	/*
 	sigset_t mask, old_mask;
 	sigemptyset(&mask);
 	sigemptyset(&old_mask);
@@ -174,11 +176,18 @@ bool SignalHandlers::process()
 
 	// ÆÁ±ÎÐÅºÅ
 	sigprocmask(SIG_BLOCK, &mask, &old_mask);
+	*/
 #endif
 
 	while (rpos_ < wpos_)
 	{
 		int sigNum = signalledArray_[rpos_++];
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+		//if (SIGALRM == sigNum)
+		//	continue;
+#endif
+
 		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
 		if (iter1 == singnalHandlerMap_.end())
 		{
@@ -197,6 +206,7 @@ bool SignalHandlers::process()
 
 #if KBE_PLATFORM != PLATFORM_WIN32
 	// »Ö¸´ÆÁ±Î
+	/*
 	sigprocmask(SIG_SETMASK, &old_mask, NULL);
 
 	addSignal(SIGALRM, NULL);
@@ -214,6 +224,7 @@ bool SignalHandlers::process()
 	sigsuspend(&mask);
 
 	delSignal(SIGALRM);
+	*/
 #endif
 
 	return true;
