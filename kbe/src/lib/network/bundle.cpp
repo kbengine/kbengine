@@ -68,7 +68,7 @@ void Bundle::destroyObjPool()
 //-------------------------------------------------------------------------------------
 size_t Bundle::getPoolObjectBytes()
 {
-	size_t bytes = sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + 
+	size_t bytes = sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + sizeof(pCurrPacket_) + sizeof(packetMaxSize_) +
 		sizeof(currMsgLengthPos_) + sizeof(currMsgHandlerLength_) + sizeof(currMsgLength_) + 
 		sizeof(currMsgPacketCount_) + sizeof(currMsgID_) + sizeof(numMessages_) + sizeof(pChannel_)
 		+ (packets_.size() * sizeof(Packet*));

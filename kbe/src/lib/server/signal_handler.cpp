@@ -79,15 +79,16 @@ std::string SIGNAL2NAMES(int signum)
 
 void signalHandler(int signum)
 {
-	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL2NAMES(signum)));
+	printf("SignalHandlers: receive sigNum %d.\n", signum);
 	g_signalHandlers.onSignalled(signum);
 };
 
 //-------------------------------------------------------------------------------------
 SignalHandlers::SignalHandlers():
 singnalHandlerMap_(),
-signalledVec_(),
-papp_(NULL)
+papp_(NULL),
+rpos_(0),
+wpos_(0)
 {
 }
 
@@ -152,31 +153,79 @@ void SignalHandlers::clear()
 //-------------------------------------------------------------------------------------	
 void SignalHandlers::onSignalled(int sigNum)
 {
-	signalledVec_.push_back(sigNum);
+	// 不要分配内存
+	KBE_ASSERT(wpos_ != 0XFF);
+	signalledArray_[wpos_++] = sigNum;
 }
 
 //-------------------------------------------------------------------------------------	
 bool SignalHandlers::process()
 {
-	while (signalledVec_.size() > 0)
-	{
-		std::vector<int>::iterator iter = signalledVec_.begin();
+	if (wpos_ == 0)
+		return true;
 
-		int sigNum = (*iter);
+	DEBUG_MSG(fmt::format("SignalHandlers::process: rpos={}, wpos={}.\n", rpos_, wpos_));
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	/*
+	sigset_t mask, old_mask;
+	sigemptyset(&mask);
+	sigemptyset(&old_mask);
+
+	sigfillset(&mask);
+
+	// 屏蔽信号
+	sigprocmask(SIG_BLOCK, &mask, &old_mask);
+	*/
+#endif
+
+	while (rpos_ < wpos_)
+	{
+		int sigNum = signalledArray_[rpos_++];
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+		//if (SIGALRM == sigNum)
+		//	continue;
+#endif
+
 		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
 		if (iter1 == singnalHandlerMap_.end())
 		{
 			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n",
 				SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
 
-			signalledVec_.erase(signalledVec_.begin());
 			continue;
 		}
 
 		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle. singnalHandlerMap({})\n", SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
 		iter1->second->onSignalled(sigNum);
-		signalledVec_.erase(signalledVec_.begin());
 	}
+
+	rpos_ = 0;
+	wpos_ = 0;
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	// 恢复屏蔽
+	/*
+	sigprocmask(SIG_SETMASK, &old_mask, NULL);
+
+	addSignal(SIGALRM, NULL);
+
+	// Get the current signal mask
+	sigprocmask(0, NULL, &mask);
+
+	// Unblock SIGALRM
+	sigdelset(&mask, SIGALRM);
+
+	// Wait with this mask
+	ualarm(1, 0);
+
+	// 让期间错过的信号重新触发
+	sigsuspend(&mask);
+
+	delSignal(SIGALRM);
+	*/
+#endif
 
 	return true;
 }
