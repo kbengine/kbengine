@@ -62,7 +62,7 @@ private:
 	
 	ServerApp* papp_;
 	uint8 rpos_, wpos_;
-	uint8 signalledArray_[256];
+	int signalledArray_[256];
 
 };
 
