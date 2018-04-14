@@ -2142,7 +2142,7 @@ bool ClientSDKUnity::writeEntityProperty_UINT64(ScriptDefModule* pEntityScriptDe
 bool ClientSDKUnity::writeEntityProperty_FLOAT(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
-	sourcefileBody_ += fmt::format("\t\tpublic float {} = {};\n", pPropertyDescription->getName(),
+	sourcefileBody_ += fmt::format("\t\tpublic float {} = {}f;\n", pPropertyDescription->getName(),
 		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0f"));
 
 	std::string name = pPropertyDescription->getName();
