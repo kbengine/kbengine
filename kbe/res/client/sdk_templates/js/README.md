@@ -21,7 +21,7 @@ Usage
 			<Gate hasClient="true"></Gate>
 			<Space/>
 
-			KBEngine.Account = KBEngine.Entity.extend(
+			KBEngine.Account = KBEngine.AccountBase.extend(
 			{
 				// entity initialization
 				__init__ : function()
