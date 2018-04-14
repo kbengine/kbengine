@@ -153,7 +153,7 @@ void SignalHandlers::clear()
 //-------------------------------------------------------------------------------------	
 void SignalHandlers::onSignalled(int sigNum)
 {
-	KBE_ASSERT(wpos_ == 255);
+	KBE_ASSERT(wpos_ != 0XFF);
 	signalledArray_[wpos_++] = sigNum;
 }
 
