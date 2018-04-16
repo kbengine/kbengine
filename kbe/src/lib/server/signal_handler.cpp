@@ -167,7 +167,10 @@ bool SignalHandlers::process()
 	DEBUG_MSG(fmt::format("SignalHandlers::process: rpos={}, wpos={}.\n", rpos_, wpos_));
 
 #if KBE_PLATFORM != PLATFORM_WIN32
-	/*
+	/* 如果信号有瞬时超过255触发需求，可以打开注释，将会屏蔽所有信号等执行完毕之后再执行期间触发的信号，将signalledArray_改为信号集类型
+	if (wpos_ == 1 && signalledArray_[0] == SIGALRM)
+		return true;
+
 	sigset_t mask, old_mask;
 	sigemptyset(&mask);
 	sigemptyset(&old_mask);
