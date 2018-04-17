@@ -50,7 +50,7 @@ template<typename T> struct TKBVariantTraits
 	static int32 GetType()
 	{
 		static_assert(!sizeof(T), "KBVar trait must be specialized for this type.");
-		return EVariantTypes::Empty;
+		return (int32)EVariantTypes::Empty;
 	}
 };
 
