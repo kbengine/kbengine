@@ -3,6 +3,7 @@
 #pragma once
 #include "Math/RandomStream.h"
 #include "Misc/NetworkGuid.h"
+#include "Misc/Variant.h"
 #include "Serialization/MemoryWriter.h"
 #include "Serialization/MemoryReader.h"
 
