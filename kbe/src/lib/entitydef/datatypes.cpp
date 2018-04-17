@@ -111,6 +111,7 @@ bool DataTypes::loadTypes(std::string& file)
 		{
 			ERROR_MSG(fmt::format("DataTypes::loadTypes: Not allowed to use the prefix \"_\"! aliasName={}\n",
 				aliasName.c_str()));
+
 			return false;
 		}
 
