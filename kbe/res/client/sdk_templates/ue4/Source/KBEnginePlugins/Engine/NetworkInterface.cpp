@@ -62,20 +62,28 @@ bool NetworkInterface::connectTo(const FString& addr, uint16 port, InterfaceConn
 
 	reset();
 
-	auto resolveInfo = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetHostByName(TCHAR_TO_ANSI(*addr));
-	while (!resolveInfo->IsComplete());
-
 	FIPv4Address ip;
+	uint32 OutIP = 0;
 
-	if (resolveInfo->GetErrorCode() != 0)
+	if (!FIPv4Address::Parse(addr, ip))
 	{
-		ERROR_MSG("NetworkInterface::connectTo(): GetHostByName(%s) error, code=%d", *addr, resolveInfo->GetErrorCode());
-		return false;
+		auto resolveInfo = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetHostByName(TCHAR_TO_ANSI(*addr));
+		while (!resolveInfo->IsComplete());
+
+		if (resolveInfo->GetErrorCode() != 0)
+		{
+			ERROR_MSG("NetworkInterface::connectTo(): GetHostByName(%s) error, code=%d", *addr, resolveInfo->GetErrorCode());
+			return false;
+		}
+
+		resolveInfo->GetResolvedAddress().GetIp(OutIP);
+	}
+	else
+	{
+		OutIP = ip.Value;
 	}
 
 	TSharedRef<FInternetAddr> internetAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
-	uint32 OutIP = 0;
-	resolveInfo->GetResolvedAddress().GetIp(OutIP);
 	internetAddr->SetIp(OutIP);
 	internetAddr->SetPort(port);
 
