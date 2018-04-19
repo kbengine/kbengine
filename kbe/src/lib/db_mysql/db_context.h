@@ -89,8 +89,7 @@ public:
 	bool isEmpty;
 	
 	std::map<DBID, std::vector<DBID> > dbids;
-	std::vector< std::string >results;
-	std::vector< std::string >::size_type readresultIdx;
+	std::map<DBID, std::pair< std::vector<std::string>::size_type, std::vector<std::string> > > results;
 
 private:
 
