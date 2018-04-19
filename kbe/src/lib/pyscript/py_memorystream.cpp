@@ -484,7 +484,7 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 		}
 		else if(strcmp(type, "INT64") == 0)
 		{
-			int8 v;
+			int64 v;
 			pyobj->stream() >> v;
 			return PyLong_FromLongLong(v);
 		}
