@@ -1706,7 +1706,7 @@ bool ClientSDKUnity::writeTypeItemType_VECTOR3(const std::string& itemName, cons
 #ifdef CLIENT_NO_FLOAT
 	sourcefileBody_ += fmt::format("\t\tpublic Vector3Int {} = new Vector3Int(0, 0, 0);\n", itemName);
 #else
-	sourcefileBody_ += fmt::format("\t\tpublic Vector3 {} = new Vector2(0f, 0f, 0f);\n", itemName);
+	sourcefileBody_ += fmt::format("\t\tpublic Vector3 {} = new Vector3(0f, 0f, 0f);\n", itemName);
 #endif
 
 	return true;
