@@ -45,6 +45,10 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <cctype>
 #include <iterator>
 #include "common/strutil.h"
+#include <climits>
+#include "uuid.h"
+
+
 // windows include	
 #if defined( __WIN32__ ) || defined( WIN32 ) || defined( _WIN32 )
 #pragma warning(disable:4996)
@@ -55,7 +59,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h> 
 //#define FD_SETSIZE 1024
 #ifndef WIN32_LEAN_AND_MEAN 
-#include <winsock2.h>		// ±ØĞëÔÚwindows.hÖ®Ç°°üº¬£¬ ·ñÔòÍøÂçÄ£¿é±àÒë»á³ö´í
+#include <winsock2.h>		// å¿…é¡»åœ¨windows.hä¹‹å‰åŒ…å«ï¼Œ å¦åˆ™ç½‘ç»œæ¨¡å—ç¼–è¯‘ä¼šå‡ºé”™
 #include <mswsock.h> 
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -109,11 +113,11 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define SIGSYS	32
 #endif
 
-/** ¶¨ÒåÒıÇæÃû×Ö¿Õ¼ä */
+/** å®šä¹‰å¼•æ“åå­—ç©ºé—´ */
 namespace KBEngine
 { 
 
-/** ¶¨ÒåÒıÇæ×Ö½ÚĞò */
+/** å®šä¹‰å¼•æ“å­—èŠ‚åº */
 #define KBENGINE_LITTLE_ENDIAN							0
 #define KBENGINE_BIG_ENDIAN								1
 #if !defined(KBENGINE_ENDIAN)
@@ -211,7 +215,7 @@ namespace KBEngine
 #endif
 
 /*---------------------------------------------------------------------------------
-	ÀàĞÍ¶¨Òå
+	ç±»å‹å®šä¹‰
 ---------------------------------------------------------------------------------*/
 #ifndef TCHAR
 #ifdef _UNICODE
@@ -232,6 +236,12 @@ typedef unsigned long											ulong;
 
 #define KBEShared_ptr											std::tr1::shared_ptr
 #define KBEUnordered_map										std::tr1::unordered_map
+
+typedef unsigned char byte;
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+#include <objbase.h>
+#endif
 
 /* Use correct types for x64 platforms, too */
 #if KBE_COMPILER != COMPILER_GNU
@@ -327,22 +337,22 @@ typedef uint32													uintptr;
 #define PRAppID													PRIu64
 #define PRDBID													PRIu64
 
-typedef uint16													ENTITY_TYPE;											// entityµÄÀà±ğÀàĞÍ¶¨ÒåÖ§³Ö0-65535¸öÀà±ğ
-typedef int32													ENTITY_ID;												// entityIDµÄÀàĞÍ
-typedef uint32													SPACE_ID;												// Ò»¸öspaceµÄid
-typedef uint32													CALLBACK_ID;											// Ò»¸öcallbackÓÉCallbackMgr·ÖÅäµÄid
-typedef uint64													COMPONENT_ID;											// Ò»¸ö·şÎñÆ÷×é¼şµÄid
-typedef int32													COMPONENT_ORDER;										// Ò»¸ö×é¼şµÄÆô¶¯Ë³Ğò
-typedef int32													COMPONENT_GUS;											// Ò»¸ö×é¼şµÄgenuuid_sections²úÉúËæ»úÊıµÄÇø¼ä¶Î
-typedef	uint32													TIMER_ID;												// Ò»¸ötimerµÄidÀàĞÍ
-typedef uint8													ENTITYCALL_CALL_TYPE;									// entityCall ËùÍ¶µİµÄcallÀà±ğµÄÀà±ğ
+typedef uint16													ENTITY_TYPE;											// entityçš„ç±»åˆ«ç±»å‹å®šä¹‰æ”¯æŒ0-65535ä¸ªç±»åˆ«
+typedef int32													ENTITY_ID;												// entityIDçš„ç±»å‹
+typedef uint32													SPACE_ID;												// ä¸€ä¸ªspaceçš„id
+typedef uint32													CALLBACK_ID;											// ä¸€ä¸ªcallbackç”±CallbackMgråˆ†é…çš„id
+typedef uint64													COMPONENT_ID;											// ä¸€ä¸ªæœåŠ¡å™¨ç»„ä»¶çš„id
+typedef int32													COMPONENT_ORDER;										// ä¸€ä¸ªç»„ä»¶çš„å¯åŠ¨é¡ºåº
+typedef int32													COMPONENT_GUS;											// ä¸€ä¸ªç»„ä»¶çš„genuuid_sectionsäº§ç”Ÿéšæœºæ•°çš„åŒºé—´æ®µ
+typedef	uint32													TIMER_ID;												// ä¸€ä¸ªtimerçš„idç±»å‹
+typedef uint8													ENTITYCALL_CALL_TYPE;									// entityCall æ‰€æŠ•é€’çš„callç±»åˆ«çš„ç±»åˆ«
 typedef uint32													GAME_TIME;
 typedef uint32													GameTime;
 typedef int32													ScriptID;
-typedef uint32													ArraySize;												// ÈÎºÎÊı×éµÄ´óĞ¡¶¼ÓÃÕâ¸öÃèÊö
-typedef uint64													DBID;													// Ò»¸öÔÚÊı¾İ¿âÖĞµÄË÷ÒıÓÃÀ´µ±×öÄ³ID
+typedef uint32													ArraySize;												// ä»»ä½•æ•°ç»„çš„å¤§å°éƒ½ç”¨è¿™ä¸ªæè¿°
+typedef uint64													DBID;													// ä¸€ä¸ªåœ¨æ•°æ®åº“ä¸­çš„ç´¢å¼•ç”¨æ¥å½“åšæŸID
 typedef uint32													CELL_ID;
-typedef KBEUnordered_map< std::string, std::string >			SPACE_DATA;												// spaceÖĞ´æ´¢µÄÊı¾İ
+typedef KBEUnordered_map< std::string, std::string >			SPACE_DATA;												// spaceä¸­å­˜å‚¨çš„æ•°æ®
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	#define IFNAMSIZ											16
@@ -373,7 +383,7 @@ typedef KBEUnordered_map< std::string, std::string >			SPACE_DATA;												//
 #endif
 
 /*---------------------------------------------------------------------------------
-	¶¨»á¶àÖÖÆ½Ì¨ÉÏµÄ¶àÏß³ÌÏà¹Ø
+	å®šä¼šå¤šç§å¹³å°ä¸Šçš„å¤šçº¿ç¨‹ç›¸å…³
 ---------------------------------------------------------------------------------*/
 #if KBE_PLATFORM == PLATFORM_WIN32
 	#define THREAD_ID											HANDLE
@@ -400,7 +410,7 @@ typedef KBEUnordered_map< std::string, std::string >			SPACE_DATA;												//
 #endif
 
 /*---------------------------------------------------------------------------------
-	¿çÆ½Ì¨ºê¶¨Òå
+	è·¨å¹³å°å®å®šä¹‰
 ---------------------------------------------------------------------------------*/
 #if 0
 #define ARRAYCLR(v)					memset((v), 0x0, sizeof(v))
@@ -496,23 +506,23 @@ inline const T & max( const T & a, const T & b )
 
 #endif
 
-// ËùÓĞÃû³Æ×Ö·û´®µÄ×î´ó³¤¶È
+// æ‰€æœ‰åç§°å­—ç¬¦ä¸²çš„æœ€å¤§é•¿åº¦
 #define MAX_NAME 256	
 
-// ip×Ö·û´®µÄ×î´ó³¤¶È
+// ipå­—ç¬¦ä¸²çš„æœ€å¤§é•¿åº¦
 #define MAX_IP 256
 
-// ³£¹æµÄbuf³¤¶È
+// å¸¸è§„çš„bufé•¿åº¦
 #define MAX_BUF 256
 
-// ³£¹æµÄbuf³¤¶È
+// å¸¸è§„çš„bufé•¿åº¦
 #define SQL_BUF 65535
 
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif
 
-// »ñµÃÏµÍ³²úÉúµÄ×îºóÒ»´Î´íÎóÃèÊö
+// è·å¾—ç³»ç»Ÿäº§ç”Ÿçš„æœ€åä¸€æ¬¡é”™è¯¯æè¿°
 inline char* kbe_strerror(int ierrorno = 0)
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -551,7 +561,7 @@ inline int kbe_lasterror()
 #endif
 }
 
-/** »ñÈ¡ÓÃ»§UID */
+/** è·å–ç”¨æˆ·UID */
 inline int32 getUserUID()
 {
 	static int32 iuid = 0;
@@ -580,7 +590,7 @@ inline int32 getUserUID()
 	return iuid;
 }
 
-/** »ñÈ¡ÓÃ»§Ãû */
+/** è·å–ç”¨æˆ·å */
 inline const char * getUsername()
 {
 #if KBE_PLATFORM == PLATFORM_WIN32
@@ -598,7 +608,7 @@ inline const char * getUsername()
 
 		if(outsize == 0)
 		{
-			// ¿ÉÄÜÊÇÖĞÎÄÃû£¬²»Ö§³ÖÖĞÎÄÃû³Æ
+			// å¯èƒ½æ˜¯ä¸­æ–‡åï¼Œä¸æ”¯æŒä¸­æ–‡åç§°
 			strcpy(username, "error_name");
 		}
 	}
@@ -610,7 +620,7 @@ inline const char * getUsername()
 #endif
 }
 
-/** »ñÈ¡½ø³ÌID */
+/** è·å–è¿›ç¨‹ID */
 inline int32 getProcessPID()
 {
 #if KBE_PLATFORM != PLATFORM_WIN32
@@ -620,11 +630,11 @@ inline int32 getProcessPID()
 #endif
 }
 
-/** »ñÈ¡ÏµÍ³Ê±¼ä(¾«È·µ½ºÁÃë) */
+/** è·å–ç³»ç»Ÿæ—¶é—´(ç²¾ç¡®åˆ°æ¯«ç§’) */
 #if KBE_PLATFORM == PLATFORM_WIN32
 	inline uint32 getSystemTime() 
 	{ 
-		// ×¢ÒâÕâ¸öº¯ÊıwindowsÉÏÖ»ÄÜÕıÈ·Î¬³Ö49Ìì¡£
+		// æ³¨æ„è¿™ä¸ªå‡½æ•°windowsä¸Šåªèƒ½æ­£ç¡®ç»´æŒ49å¤©ã€‚
 		return ::GetTickCount(); 
 	};
 #else
@@ -637,10 +647,10 @@ inline int32 getProcessPID()
 	};
 #endif
 
-/** »ñÈ¡2¸öÏµÍ³Ê±¼ä²î */
+/** è·å–2ä¸ªç³»ç»Ÿæ—¶é—´å·® */
 inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 {
-    // ·ÀÖ¹getSystemTime()Òç³öµÄÇé¿ö
+    // é˜²æ­¢getSystemTime()æº¢å‡ºçš„æƒ…å†µ
     if (oldTime > newTime)
     {
         return (uint32)((int64)0xFFFFFFFF + 1 - (int64)oldTime) + newTime;
@@ -649,15 +659,135 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 	return newTime - oldTime;
 }
 
-/* ²úÉúÒ»¸ö64Î»µÄuuid 
+/* äº§ç”Ÿä¸€ä¸ª64ä½çš„uuid 
 */
 extern COMPONENT_ORDER g_componentGlobalOrder;
 extern COMPONENT_ORDER g_componentGroupOrder;
 
 extern COMPONENT_GUS g_genuuid_sections;
 
+
+
+inline byte* genUUID()
+{
+#if KBE_PLATFORM == PLATFORM_WIN32
+	GUID newId; 
+	CoCreateGuid(&newId); 
+	byte* uid = new byte[16]
+	{  
+		(unsigned char)((newId.Data1 >> 24) & 0xFF),  
+		(unsigned char)((newId.Data1 >> 16) & 0xFF),  
+		(unsigned char)((newId.Data1 >> 8) & 0xFF),  
+		(unsigned char)((newId.Data1) & 0xff),  
+		(unsigned char)((newId.Data2 >> 8) & 0xFF),  
+		(unsigned char)((newId.Data2) & 0xff), 
+		(unsigned char)((newId.Data3 >> 8) & 0xFF), 
+		(unsigned char)((newId.Data3) & 0xFF),  
+		(unsigned char)newId.Data4[0], 
+		(unsigned char)newId.Data4[1], 
+		(unsigned char)newId.Data4[2], 
+		(unsigned char)newId.Data4[3], 
+		(unsigned char)newId.Data4[4], 
+		(unsigned char)newId.Data4[5], 
+		(unsigned char)newId.Data4[6], 
+		(unsigned char)newId.Data4[7] 
+	}; 
+	return uid;
+#else 
+	byte* uid = new byte[16];
+    uuid_generate(*(uuid_t*)uid);
+    return uid;
+#endif
+}
+
+
+/*
+ .netçš„GUID byte orderï¼Œè¿™ä¸ªå¯ä»¥å’ŒWindowså¹³å°æ ¼å¼ä¿æŒä¸€è‡´
+ typedef struct _GUID {
+ DWORD Data1; //little endian
+ WORD  Data2; //little endian
+ WORD  Data3; //little endian
+ BYTE  Data4[8]; //direct bytes
+ } GUID;
+ */
+
+//#define NO_DOTNET_GUID
+//#define NO_FAST_GUID
+
+inline byte* make_dotnet_guid(unsigned char* guid_bytes)
+{
+    byte *repr = new byte[16];
+    
+    for(int i=0; i<4; ++i)
+        repr[i] = guid_bytes[3-i];
+    for(int i=0; i<2; ++i)
+        repr[i+4] = guid_bytes[5-i];
+    for(int i=0; i<2; ++i)
+        repr[i+6] = guid_bytes[7-i];
+    memcpy(repr+8, guid_bytes+8, 8);
+    
+    return repr;
+}
+
+inline uint64 gen_longuid()
+{ 
+#ifndef NO_DOTNET_GUID
+	byte* baseUid = genUUID();
+    byte* uid_bytes = make_dotnet_guid(genUUID());
+	delete [] baseUid;
+#else
+    byte* uid_bytes = genUUID();
+#endif
+    
+    byte buffer[8];
+    memcpy(buffer, uid_bytes, 8);
+    uint64 long1 = *((uint64*)buffer);
+    memcpy(buffer, uid_bytes+8, 8);
+    uint64 long2 = *((uint64*)buffer);
+    
+    uint64 m = 0xc6a4a7935bd1e995;
+    uint64 h = m >> 4;
+    int r = 47;
+    
+    uint64 k = long1;
+    
+    k *= m;
+    k ^= k >> r;
+    k *= m;
+    
+    h ^= k;
+    h *= m;
+    
+    k = long2;
+    
+    k *= m;
+    k ^= k >> r;
+    k *= m;
+    
+    h ^= k;
+    h *= m;
+    
+    h ^= h >> r;
+    h *= m;
+    h ^= h >> r;
+    
+    delete [] uid_bytes;
+    
+    return h;
+}
+
+inline uint64 genLongGUID64()
+{
+    uint64 newID;
+    while((newID = gen_longuid()) > ULLONG_MAX / 2);
+    return newID;
+}
+
 inline uint64 genUUID64()
 {
+#ifdef NO_FAST_GUID
+	return genLongGUID64();
+#else
 	static uint64 tv = (uint64)(time(NULL));
 	uint64 now = (uint64)(time(NULL));
 
@@ -668,10 +798,15 @@ inline uint64 genUUID64()
 		tv = now;
 		lastNum = 0;
 	}
+
+	if(lastNum >= 65535)
+	{
+		return genLongGUID64();
+	}
 	
 	if(g_genuuid_sections <= 0)
 	{
-		// Ê±¼ä´Á32Î»£¬Ëæ»úÊı16Î»£¬16Î»µü´úÊı£¨×î´óÎª65535-1£©
+		// æ—¶é—´æˆ³32ä½ï¼Œéšæœºæ•°16ä½ï¼Œ16ä½è¿­ä»£æ•°ï¼ˆæœ€å¤§ä¸º65535-1ï¼‰
 		static uint32 rnd = 0;
 		if(rnd == 0)
 		{
@@ -685,16 +820,17 @@ inline uint64 genUUID64()
 	}
 	else
 	{
-		// Ê±¼ä´Á32Î»£¬app×éID16Î»£¬16Î»µü´úÊı£¨×î´óÎª65535-1£©
+		// æ—¶é—´æˆ³32ä½ï¼Œappç»„ID16ä½ï¼Œ16ä½è¿­ä»£æ•°ï¼ˆæœ€å¤§ä¸º65535-1ï¼‰
 		static uint32 sections = g_genuuid_sections << 16;
 		
 		assert(lastNum < 65535 && "genUUID64(): overflow!");
 		
 		return (tv << 32) | sections | lastNum++;
 	}
+#endif
 }
 
-/** sleep ¿çÆ½Ì¨ */
+/** sleep è·¨å¹³å° */
 #if KBE_PLATFORM == PLATFORM_WIN32
 	inline void sleep(uint32 ms)
 	{ 
@@ -710,21 +846,21 @@ inline uint64 genUUID64()
 	}	
 #endif
 
-/** ÅĞ¶ÏÆ½Ì¨ÊÇ·ñÎªĞ¡¶Ë×Ö½ÚĞò */
+/** åˆ¤æ–­å¹³å°æ˜¯å¦ä¸ºå°ç«¯å­—èŠ‚åº */
 inline bool isPlatformLittleEndian()
 {
    int n = 1;
    return *((char*)&n) ? true : false;
 }
 
-/** ÉèÖÃ»·¾³±äÁ¿ */
+/** è®¾ç½®ç¯å¢ƒå˜é‡ */
 #if KBE_PLATFORM == PLATFORM_WIN32
 	inline void setenv(const std::string& name, const std::string& value, int overwrite)
 	{
 		_putenv_s(name.c_str(), value.c_str());
 	}
 #else
-	// LinuxÏÂÃæÖ±½ÓÊ¹ÓÃsetenv
+	// Linuxä¸‹é¢ç›´æ¥ä½¿ç”¨setenv
 #endif
 
 }
