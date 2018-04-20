@@ -77,6 +77,9 @@ int CreatDir(const char *pDir)
 	{
 		if (pszDir[i] == '\\' || pszDir[i] == '/')
 		{
+			if (i == 0)
+				continue;
+
 			pszDir[i] = '\0';
 
 			//如果不存在,创建  
@@ -86,9 +89,17 @@ int CreatDir(const char *pDir)
 				iRet = KBE_MKDIR(pszDir);
 				if (iRet != 0)
 				{
+					ERROR_MSG(fmt::format("CreatDir(): KBE_MKDIR [{}] error! iRet={}\n",
+						pszDir, iRet));
+
 					free(pszDir);
 					return -1;
 				}
+			}
+			else
+			{
+				ERROR_MSG(fmt::format("CreatDir(): KBE_ACCESS [{}] error! iRet={}\n",
+					pszDir, iRet));
 			}
 
 			//支持linux,将所有\换成/  
@@ -99,8 +110,14 @@ int CreatDir(const char *pDir)
 	if (iLen > 0 && KBE_ACCESS(pszDir, 0) != 0)
 	{
 		iRet = KBE_MKDIR(pszDir);
+
+		if (iRet != 0)
+		{
+			ERROR_MSG(fmt::format("CreatDir(): KBE_MKDIR [{}] error! iRet={}\n",
+				pszDir, iRet));
+		}
 	}
-	
+
 	free(pszDir);
 	return iRet;
 }
