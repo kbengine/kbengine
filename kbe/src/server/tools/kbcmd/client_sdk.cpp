@@ -96,11 +96,6 @@ int CreatDir(const char *pDir)
 					return -1;
 				}
 			}
-			else
-			{
-				ERROR_MSG(fmt::format("CreatDir(): KBE_ACCESS [{}] error! iRet={}\n",
-					pszDir, iRet));
-			}
 
 			//支持linux,将所有\换成/  
 			pszDir[i] = '/';
