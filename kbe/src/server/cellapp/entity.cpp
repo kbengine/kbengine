@@ -1438,6 +1438,14 @@ PyObject* Entity::pyClientEntity(ENTITY_ID entityID)
 		return 0;
 	}
 
+	if (entityID == id())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: call your own method using entity.client! id=%d\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	return new ClientEntity(id(), entityID);
 }
 
