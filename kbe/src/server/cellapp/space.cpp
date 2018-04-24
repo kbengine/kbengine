@@ -240,7 +240,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 	Space* space = Spaces::findSpace(spaceID);
 	if(space == NULL)
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) not found!", 
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: spaceID error! spaceID=%u respath=%s",
 			spaceID, path);
 
 		PyErr_PrintEx(0);
@@ -251,7 +251,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 
 	if (Resmgr::getSingleton().matchPath(path).size() == 0)
 	{
-		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: (spaceID=%u respath=%s) path error!",
+		PyErr_Format(PyExc_AssertionError, "KBEngine::addSpaceGeometryMapping: path error! spaceID=%u respath=%s",
 			spaceID, path);
 
 		PyErr_PrintEx(0);
