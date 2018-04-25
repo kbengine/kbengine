@@ -52,7 +52,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_MKDIR(a) _mkdir((a))  
 #else
 #define KBE_ACCESS access  
-#define KBE_MKDIR(a) mkdir((a),0755)  
+#define KBE_MKDIR(a) KBE_UNIX_MKDIR((a))  
+
+int KBE_UNIX_MKDIR(const char* a)
+{
+	umask(0);
+	return mkdir((a), 0755);
+}
 #endif  
 
 namespace KBEngine {	
