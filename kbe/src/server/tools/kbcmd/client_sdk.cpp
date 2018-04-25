@@ -273,11 +273,7 @@ bool ClientSDK::create(const std::string& path)
 	basepath_ = path;
 
 	if (basepath_[basepath_.size() - 1] != '\\' && basepath_[basepath_.size() - 1] != '/')
-#ifdef _WIN32  
 		basepath_ += "/";
-#else
-		basepath_ += "\\";
-#endif
 
 	currHeaderPath_ = currSourcePath_ = basepath_;
 
