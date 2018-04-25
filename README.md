@@ -22,6 +22,7 @@ KBEngine
 	UE4		: https://github.com/kbengine/kbengine_ue4_demo/releases/latest
 	Ogre		: https://github.com/kbengine/kbengine_ogre_demo/releases/latest
 	Cocos2d_js	: https://github.com/kbengine/kbengine_cocos2d_js_demo/releases/latest
+	Godot Engine	: https://github.com/krogank9/kbe_godot_demo/releases/latest
 
 
 ## Docs
