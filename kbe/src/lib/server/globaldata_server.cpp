@@ -1,4 +1,4 @@
-// Copyright 2008-2018 Yolo Technogies, Inc. All Rights Reserved. https://www.comblockengine.com
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 #include "globaldata_server.h"
 #include "components.h"
 #include "network/channel.h"

@@ -1,4 +1,4 @@
-// Copyright 2008-2018 Yolo Technogies, Inc. All Rights Reserved. https://www.comblockengine.com
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef _SCRIPT_VECTOR4_H
 #define _SCRIPT_VECTOR4_H

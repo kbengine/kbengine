@@ -1,4 +1,4 @@
-// Copyright 2008-2018 Yolo Technogies, Inc. All Rights Reserved. https://www.comblockengine.com
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 // logger需要增加吞吐量
 #define PACKET_MAX_SIZE_TCP 65535

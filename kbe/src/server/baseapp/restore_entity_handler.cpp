@@ -1,4 +1,4 @@
-// Copyright 2008-2018 Yolo Technogies, Inc. All Rights Reserved. https://www.comblockengine.com
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 #include "entity.h"
 #include "baseapp.h"
 #include "restore_entity_handler.h"

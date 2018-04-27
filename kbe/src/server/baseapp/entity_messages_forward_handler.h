@@ -1,4 +1,4 @@
-// Copyright 2008-2018 Yolo Technogies, Inc. All Rights Reserved. https://www.comblockengine.com
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_BASE_ENTITY_MESSAGES_FORWARD_HANDLER_H
 #define KBE_BASE_ENTITY_MESSAGES_FORWARD_HANDLER_H
