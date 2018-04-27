@@ -9,7 +9,6 @@ branches:
 #  - stable
 before_install:
    - sudo apt-get update
-   - python -m ensurepip --upgrade --user
    - pip install flake8
 before_script:
    # stop the build if there are Python syntax errors or undefined names
