@@ -19,14 +19,24 @@ namespace KBEngine {
 		Py_INCREF(ENTITYOBJ);																					\
 		PyObject* pyTempObj = ENTITYOBJ;																		\
 		CALLCODE;																								\
-		CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);														\
+		_CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);													\
 		Py_DECREF(ENTITYOBJ);																					\
 	}																											\
 }																												\
 
 
 #define CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)														\
+{																												\
 	{																											\
+		bool GETERR = true;																						\
+		_CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);													\
+	}																											\
+}																												\
+
+
+#define _CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)														\
+	{																											\
+		GETERR = false;																							\
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pScriptModule_->getComponentDescrs();		\
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();				\
 		for (; comps_iter != componentDescrs.end(); ++comps_iter)												\
@@ -47,7 +57,6 @@ namespace KBEngine {
 					continue;																					\
 			}																									\
 																												\
-			bool GETERR = false;																				\
 			PyObject* pyTempObj = PyObject_GetAttrString(ENTITYOBJ, comps_iter->first.c_str());					\
 			if (pyTempObj)																						\
 			{																									\
