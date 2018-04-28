@@ -26,16 +26,8 @@ namespace KBEngine {
 
 
 #define CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)														\
-{																												\
 	{																											\
 		bool GETERR = true;																						\
-		_CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);													\
-	}																											\
-}																												\
-
-
-#define _CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)														\
-	{																											\
 		GETERR = false;																							\
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pScriptModule_->getComponentDescrs();		\
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();				\

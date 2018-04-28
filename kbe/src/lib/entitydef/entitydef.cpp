@@ -145,12 +145,18 @@ bool EntityDef::initialize(std::vector<PyTypeObject*>& scriptBaseTypes,
 
 	__entitiesPath = Resmgr::getSingleton().getPyUserScriptsPath();
 
+	g_entityFlagMapping["CELL"]									= ED_FLAG_CELL_PUBLIC;
+	g_entityFlagMapping["CELL_AND_CLIENT"]						= ED_FLAG_CELL_PUBLIC_AND_OWN;
+	g_entityFlagMapping["CELL_AND_CLIENTS"]						= ED_FLAG_ALL_CLIENTS;
+	g_entityFlagMapping["CELL_AND_OTHER_CLIENTS"]				= ED_FLAG_OTHER_CLIENTS;
+	g_entityFlagMapping["BASE_AND_CLIENT"]						= ED_FLAG_BASE_AND_CLIENT;
+	g_entityFlagMapping["BASE"]									= ED_FLAG_BASE;
+
 	g_entityFlagMapping["CELL_PUBLIC"]							= ED_FLAG_CELL_PUBLIC;
 	g_entityFlagMapping["CELL_PRIVATE"]							= ED_FLAG_CELL_PRIVATE;
 	g_entityFlagMapping["ALL_CLIENTS"]							= ED_FLAG_ALL_CLIENTS;
 	g_entityFlagMapping["CELL_PUBLIC_AND_OWN"]					= ED_FLAG_CELL_PUBLIC_AND_OWN;
-	g_entityFlagMapping["BASE_AND_CLIENT"]						= ED_FLAG_BASE_AND_CLIENT;
-	g_entityFlagMapping["BASE"]									= ED_FLAG_BASE;
+
 	g_entityFlagMapping["OTHER_CLIENTS"]						= ED_FLAG_OTHER_CLIENTS;
 	g_entityFlagMapping["OWN_CLIENT"]							= ED_FLAG_OWN_CLIENT;
 
