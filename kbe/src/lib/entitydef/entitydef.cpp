@@ -650,7 +650,7 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 		}
 
 		// 遍历所有的interface， 并将他们的方法和属性加入到模块中
-		if (!loadInterfaces(defFilePath, componentTypeName, componentXml.get(), componentRootNode, pCompScriptDefModule, false))
+		if (!loadInterfaces(defFilePath, componentTypeName, componentXml.get(), componentRootNode, pCompScriptDefModule, true))
 		{
 			ERROR_MSG(fmt::format("EntityDef::loadComponents: failed to load component:{} interface.\n",
 				componentTypeName.c_str()));
