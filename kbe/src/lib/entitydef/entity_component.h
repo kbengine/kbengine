@@ -14,11 +14,14 @@ namespace KBEngine {
 // 调用所有组件的方法
 #define CALL_ENTITY_AND_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)													\
 {																												\
-	Py_INCREF(ENTITYOBJ);																						\
-	PyObject* pyTempObj = ENTITYOBJ;																			\
-	CALLCODE;																									\
-	CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);															\
-	Py_DECREF(ENTITYOBJ);																						\
+	{																											\
+		bool GETERR = true;																						\
+		Py_INCREF(ENTITYOBJ);																					\
+		PyObject* pyTempObj = ENTITYOBJ;																		\
+		CALLCODE;																								\
+		CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);														\
+		Py_DECREF(ENTITYOBJ);																					\
+	}																											\
 }																												\
 
 
@@ -44,6 +47,7 @@ namespace KBEngine {
 					continue;																					\
 			}																									\
 																												\
+			bool GETERR = false;																				\
 			PyObject* pyTempObj = PyObject_GetAttrString(ENTITYOBJ, comps_iter->first.c_str());					\
 			if (pyTempObj)																						\
 			{																									\

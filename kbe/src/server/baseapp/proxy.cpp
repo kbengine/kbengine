@@ -162,7 +162,7 @@ void Proxy::onClientEnabled(void)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	clientEnabled_ = true;
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientEnabled"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientEnabled"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -221,7 +221,7 @@ void Proxy::onClientDeath(void)
 	addr(Network::Address::NONE);
 
 	clientEnabled_ = false;
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientDeath"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientDeath"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -232,7 +232,7 @@ void Proxy::onClientGetCell(Network::Channel* pChannel, COMPONENT_ID componentID
 		cellEntityCall_ = new EntityCall(pScriptModule_, NULL, componentID, id_, ENTITYCALL_TYPE_CELL);
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientGetCell"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onClientGetCell"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -291,7 +291,7 @@ PyObject* Proxy::pyGiveClientTo(PyObject* pyOterProxy)
 void Proxy::onGiveClientToFailure()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGiveClientToFailure"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGiveClientToFailure"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -820,7 +820,7 @@ void Proxy::onStreamComplete(int16 id, bool success)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onStreamComplete"),
-		const_cast<char*>("hO"), id, success ? Py_True : Py_False, false));
+		const_cast<char*>("hO"), id, success ? Py_True : Py_False, GETERR));
 }
 
 //-------------------------------------------------------------------------------------
