@@ -151,6 +151,10 @@ ifndef DISABLE_WATCHERS
 CPPFLAGS += -DENABLE_WATCHERS
 endif
 
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/uuid
+LIBUUID_LIB=$(LIBDIR)/libuuid.a
+LDLIBS += -luuid
+
 ifdef USE_PYTHON
 USE_KBE_PYTHON = 1
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/python/Include
