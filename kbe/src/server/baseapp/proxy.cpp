@@ -194,7 +194,7 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 		addr,
 		port,
 		password,
-		false));
+		GETERR));
 
 	Py_DECREF(this);
 	return ret;
