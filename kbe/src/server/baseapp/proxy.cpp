@@ -189,7 +189,6 @@ int32 Proxy::onLogOnAttempt(const char* addr, uint32 port, const char* password)
 	else
 		SCRIPT_ERROR_CHECK();
 
-	bool GETERR = false;
 	CALL_ENTITY_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS3(pyTempObj, const_cast<char*>("onLogOnAttempt"),
 		const_cast<char*>("sks"),
 		addr,
