@@ -53,6 +53,8 @@ private:
 		ScriptTimers* scriptTimers = &pEntity_->scriptTimers();
 		int id = ScriptTimersUtil::getIDForHandle(scriptTimers, handle);
 
+		KBE_ASSERT(id > 0);
+
 		PyObject* pyobj = PyObject_GetAttrString(pEntity_, "createToCellappIndex");
 		PyObject* pyretobj = pEntity_->createCellEntityInNewSpace(pyobj);
 		Py_XDECREF(pyretobj);
