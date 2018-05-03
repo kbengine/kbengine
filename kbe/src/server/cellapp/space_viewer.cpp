@@ -2,7 +2,7 @@
 
 
 #include "cellapp.h"
-#include "space.h"	
+#include "spacememory.h"	
 #include "entity.h"
 #include "space_viewer.h"
 #include "network/network_interface.h"
@@ -211,7 +211,7 @@ void SpaceViewer::updateClient()
 	if (spaceID_ == 0)
 		return;
 
-	Space* space = Spaces::findSpace(spaceID_);
+	SpaceMemory* space = SpaceMemorys::findSpace(spaceID_);
 	if (space == NULL || !space->isGood())
 	{
 		return;

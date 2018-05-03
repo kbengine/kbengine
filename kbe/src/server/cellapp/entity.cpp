@@ -5,7 +5,7 @@
 #include "entity.h"
 #include "witness.h"	
 #include "profile.h"
-#include "space.h"
+#include "spacememory.h"
 #include "range_trigger.h"
 #include "all_clients.h"
 #include "client_entity.h"
@@ -92,8 +92,9 @@ int32 Entity::_scriptCallbacksBufferCount = 0;
 int32 Entity::_scriptCallbacksBufferNum = 0;
 
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule):
-ScriptObject(getScriptType(), true),
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule,
+	PyTypeObject* pyType, bool isInitialised) :
+ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Entity),
 clientEntityCall_(NULL),
 baseEntityCall_(NULL),
@@ -167,6 +168,12 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
+void Entity::onInitializeScript()
+{
+
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::installCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 {
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
@@ -225,7 +232,7 @@ void Entity::onDestroy(bool callScript)
 	}
 
 	// 将entity从场景中剔除
-	Space* space = Spaces::findSpace(this->spaceID());
+	SpaceMemory* space = SpaceMemorys::findSpace(this->spaceID());
 	if(space)
 	{
 		space->removeEntity(this);
@@ -365,7 +372,7 @@ void Entity::destroySpace()
 	if(spaceID() == 0)
 		return;
 
-	Spaces::destroySpace(spaceID(), this->id());
+	SpaceMemorys::destroySpace(spaceID(), this->id());
 }
 
 //-------------------------------------------------------------------------------------
@@ -2065,7 +2072,7 @@ void Entity::onGetWitness(bool fromBase)
 	// 防止自己在一些脚本回调中被销毁，这里对自己做一次引用
 	Py_INCREF(this);
 
-	Space* space = Spaces::findSpace(this->spaceID());
+	SpaceMemory* space = SpaceMemorys::findSpace(this->spaceID());
 	if(space && space->isGood())
 	{
 		space->onEntityAttachWitness(this);
@@ -2440,7 +2447,7 @@ bool Entity::canNavigate()
 	if(spaceID() <= 0)
 		return false;
 
-	Space* pSpace = Spaces::findSpace(spaceID());
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
 		return false;
 
@@ -2453,7 +2460,7 @@ bool Entity::canNavigate()
 //-------------------------------------------------------------------------------------
 bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer )
 {
-	Space* pSpace = Spaces::findSpace(spaceID());
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
 	{
 		ERROR_MSG(fmt::format("Entity::navigatePathPoints(): not found space({}), entityID({})!\n",
@@ -2612,7 +2619,7 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float d
 bool Entity::getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos,
 	float maxRadius, uint32 maxPoints, int8 layer)
 {
-	Space* pSpace = Spaces::findSpace(spaceID());
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
 	{
 		ERROR_MSG(fmt::format("Entity::getRandomPoints(): not found space({}), entityID({})!\n",
@@ -3295,7 +3302,7 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 		// 如果是不同space跳转
 		if(spaceID != this->spaceID())
 		{
-			Space* space = Spaces::findSpace(spaceID);
+			SpaceMemory* space = SpaceMemorys::findSpace(spaceID);
 			if(space == NULL || !space->isGood())
 			{
 				ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found space({}).\n",
@@ -3305,7 +3312,7 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 				return;
 			}
 			
-			Space* currspace = Spaces::findSpace(this->spaceID());
+			SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
 			currspace->removeEntity(this);
 			space->addEntityAndEnterWorld(this);
 			_sendBaseTeleportResult(this->id(), sourceBaseAppID, spaceID, lastSpaceID, false);
@@ -3339,7 +3346,7 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 		return 0;
 	}
 
-	Space* currspace = Spaces::findSpace(this->spaceID());
+	SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
 	if(currspace == NULL || !currspace->isGood())
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d, current space has been destroyed!\n", scriptName(), id());
@@ -3434,8 +3441,8 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 	else
 	{
 		// 否则为当前cellapp上的space， 那么我们也能够直接执行操作
-		Space* currspace = Spaces::findSpace(this->spaceID());
-		Space* space = Spaces::findSpace(spaceID);
+		SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
+		SpaceMemory* space = SpaceMemorys::findSpace(spaceID);
 
 		// 如果要跳转的space不存在或者引用的entity是这个space的创建者且已经销毁， 那么都应该是跳转失败
 		if(space == NULL || !space->isGood() || entity->isDestroyed())
@@ -3566,7 +3573,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 	SPACE_ID lastSpaceID = this->spaceID();
 
 	// 先要从CoordinateSystem中删除entity节点
-	Space* currspace = Spaces::findSpace(this->spaceID());
+	SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
 	this->uninstallCoordinateNodes(currspace->pCoordinateSystem());
 
 	// 此时不会扰动ranglist
@@ -3732,7 +3739,7 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEnterSpace(Space* pSpace)
+void Entity::onEnterSpace(SpaceMemory* pSpace)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -3740,7 +3747,7 @@ void Entity::onEnterSpace(Space* pSpace)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveSpace(Space* pSpace)
+void Entity::onLeaveSpace(SpaceMemory* pSpace)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 

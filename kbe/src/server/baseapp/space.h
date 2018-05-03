@@ -36,8 +36,14 @@ class Space : public Entity
 public:
 	Space(ENTITY_ID id, const ScriptDefModule* pScriptModule);
 	~Space();
-	
+
+	int createToCellappIndex() const { return createToCellappIndex_; }
+	void createToCellappIndex(int v) { createToCellappIndex_ = v; }
+	DECLARE_PY_GETSET_MOTHOD(pyGetCreateToCellappIndex, pySetCreateToCellappIndex);
+
 protected:
+	uint32 createToCellappIndex_;
+
 };
 
 }

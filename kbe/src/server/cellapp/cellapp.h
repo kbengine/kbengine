@@ -4,7 +4,7 @@
 #define KBE_CELLAPP_H
 
 #include "entity.h"
-#include "spaces.h"
+#include "spacememorys.h"
 #include "cells.h"
 #include "space_viewer.h"
 #include "updatables.h"
@@ -71,6 +71,11 @@ public:
 							std::string& username, 
 							COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
+
+	/**
+		创建了一个entity回调
+	*/
+	virtual Entity* onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
 	/**  
 		创建一个entity 
@@ -234,7 +239,7 @@ public:
 	void pGhostManager(GhostManager* v){ pGhostManager_ = v; }
 	GhostManager* pGhostManager() const{ return pGhostManager_; }
 
-	ArraySize spaceSize() const { return (ArraySize)Spaces::size(); }
+	ArraySize spaceSize() const { return (ArraySize)SpaceMemorys::size(); }
 
 	/** 
 		射线 

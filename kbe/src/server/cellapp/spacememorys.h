@@ -1,30 +1,30 @@
 // Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
-#ifndef KBE_SPACEMANAGER_H
-#define KBE_SPACEMANAGER_H
+#ifndef KBE_SPACEMEMORYS_H
+#define KBE_SPACEMEMORYS_H
 
 #include "helper/debug_helper.h"
 #include "common/common.h"
 #include "common/singleton.h"
 #include "updatable.h"
-#include "space.h"
+#include "spacememory.h"
 
 namespace KBEngine{
 
-class Spaces
+class SpaceMemorys
 {
 public:
-	Spaces();
-	~Spaces();
+	SpaceMemorys();
+	~SpaceMemorys();
 	
 	static void finalise();
 
-	typedef std::map<SPACE_ID, KBEShared_ptr<Space> > SPACES;
+	typedef std::map<SPACE_ID, KBEShared_ptr<SpaceMemory> > SPACEMEMORYS;
 
 	/** 
 		创建一个新的space 
 	*/
-	static Space* createNewSpace(SPACE_ID spaceID, const std::string& scriptModuleName);
+	static SpaceMemory* createNewSpace(SPACE_ID spaceID, const std::string& scriptModuleName);
 	
 	/**
 		销毁一个space
@@ -34,7 +34,7 @@ public:
 	/** 
 		寻找一个指定space 
 	*/
-	static Space* findSpace(SPACE_ID spaceID);
+	static SpaceMemory* findSpace(SPACE_ID spaceID);
 	
 	/** 
 		更新所有的space 
@@ -44,7 +44,7 @@ public:
 	static size_t size(){ return spaces_.size(); }
 
 protected:
-	static SPACES spaces_;
+	static SPACEMEMORYS spaces_;
 };
 
 }

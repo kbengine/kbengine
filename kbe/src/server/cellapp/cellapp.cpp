@@ -3,6 +3,7 @@
 
 #include "cellapp.h"
 #include "space.h"
+#include "spacememory.h"
 #include "profile.h"
 #include "witness.h"
 #include "coordinate_node.h"
@@ -125,7 +126,7 @@ void Cellapp::onShutdown(bool first)
 	// 如果count等于perSecsDestroyEntitySize说明上面已经没有可处理的东西了
 	// 剩下的应该都是space，可以开始销毁了
 	if(count == g_serverConfig.getCellApp().perSecsDestroyEntitySize)
-		Spaces::finalise();
+		SpaceMemorys::finalise();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -143,6 +144,7 @@ bool Cellapp::initializeWatcher()
 bool Cellapp::installPyModules()
 {
 	Entity::installScript(getScript().getModule());
+	Space::installScript(getScript().getModule());
 	EntityComponent::installScript(getScript().getModule());
 	GlobalDataClient::installScript(getScript().getModule());
 
@@ -169,11 +171,11 @@ bool Cellapp::installPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		registerWriteFileDescriptor,	PyFileDescriptor::__py_registerWriteFileDescriptor,		METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deregisterReadFileDescriptor,	PyFileDescriptor::__py_deregisterReadFileDescriptor,	METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		deregisterWriteFileDescriptor,	PyFileDescriptor::__py_deregisterWriteFileDescriptor,	METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		Space::__py_AddSpaceGeometryMapping,					METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		Space::__py_GetSpaceGeometryMapping,					METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		setSpaceData,					Space::__py_SetSpaceData,								METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceData,					Space::__py_GetSpaceData,								METH_VARARGS,			0);
-	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		delSpaceData,					Space::__py_DelSpaceData,								METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		addSpaceGeometryMapping,		SpaceMemory::__py_AddSpaceGeometryMapping,				METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceGeometryMapping,		SpaceMemory::__py_GetSpaceGeometryMapping,				METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		setSpaceData,					SpaceMemory::__py_SetSpaceData,							METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		getSpaceData,					SpaceMemory::__py_GetSpaceData,							METH_VARARGS,			0);
+	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		delSpaceData,					SpaceMemory::__py_DelSpaceData,							METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		isShuttingDown,					__py_isShuttingDown,									METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		address,						__py_address,											METH_VARARGS,			0);
 	APPEND_SCRIPT_MODULE_METHOD(getScript().getModule(),		raycast,						__py_raycast,											METH_VARARGS,			0);
@@ -250,7 +252,7 @@ void Cellapp::handleGameTick()
 	EntityApp<Entity>::handleGameTick();
 
 	updatables_.update();
-	Spaces::update();
+	SpaceMemorys::update();
 }
 
 //-------------------------------------------------------------------------------------
@@ -303,7 +305,7 @@ void Cellapp::finalise()
 		SAFE_RELEASE(pTelnetServer_);
 	}
 
-	Spaces::finalise();
+	SpaceMemorys::finalise();
 	Navigation::getSingleton().finalise();
 	forward_messagebuffer_.clear();
 	updatables_.clear();
@@ -428,6 +430,17 @@ void Cellapp::onUpdateLoad()
 }
 
 //-------------------------------------------------------------------------------------
+Entity* Cellapp::onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid)
+{
+	if (PyType_IsSubtype(sm->getScriptType(), Space::getScriptType()))
+	{
+		return new(pyEntity) Space(eid, sm);
+	}
+
+	return EntityApp<Entity>::onCreateEntity(pyEntity, sm, eid);
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 {
 	PyObject* params = NULL;
@@ -450,7 +463,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	Space* space = Spaces::findSpace(spaceID);
+	SpaceMemory* space = SpaceMemorys::findSpace(spaceID);
 	if(space == NULL || !space->isGood())
 	{
 		PyErr_Format(PyExc_TypeError, "KBEngine::createEntity: spaceID %ld not found.", spaceID);
@@ -863,7 +876,7 @@ void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel
 	// DEBUG_MSG("Cellapp::onCreateCellEntityInNewSpaceFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), entitycallEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID, entityType);
+	SpaceMemory* space = SpaceMemorys::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity
@@ -970,7 +983,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 	// DEBUG_MSG("Cellapp::onRestoreSpaceInCellFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), entitycallEntityID, componentID);
 
-	Space* space = Spaces::createNewSpace(spaceID, entityType);
+	SpaceMemory* space = SpaceMemorys::createNewSpace(spaceID, entityType);
 	if(space != NULL)
 	{
 		// 创建entity
@@ -1133,7 +1146,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	//DEBUG_MSG("Cellapp::onCreateCellEntityFromBaseapp: spaceID=%u, entityType=%s, entityID=%d, componentID=%"PRAppID".\n", 
 	//	spaceID, entityType.c_str(), entityID, componentID);
 
-	Space* space = Spaces::findSpace(spaceID);
+	SpaceMemory* space = SpaceMemorys::findSpace(spaceID);
 	if(space != NULL && space->isGood())
 	{
 		// 告知baseapp， entity的cell创建了
@@ -1700,7 +1713,7 @@ void Cellapp::lookApp(Network::Channel* pChannel)
 	int8 istate = int8(state);
 	(*pBundle) << istate;
 	(*pBundle) << this->entitiesSize();
-	(*pBundle) << (int32)Spaces::size();
+	(*pBundle) << (int32)SpaceMemorys::size();
 
 	uint32 port = 0;
 	if(pTelnetServer_)
@@ -1807,7 +1820,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		return;
 	}
 
-	Space* space = Spaces::findSpace(refEntity->spaceID());
+	SpaceMemory* space = SpaceMemorys::findSpace(refEntity->spaceID());
 	if (space == NULL || !space->isGood())
 	{
 		s.rpos((int)rpos);
@@ -2005,7 +2018,7 @@ void Cellapp::reqTeleportToCellAppOver(Network::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 int Cellapp::raycast(SPACE_ID spaceID, int layer, const Position3D& start, const Position3D& end, std::vector<Position3D>& hitPos)
 {
-	Space* pSpace = Spaces::findSpace(spaceID);
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID);
 	if(pSpace == NULL)
 	{
 		ERROR_MSG(fmt::format("Cellapp::raycast: not found space({})!\n", 

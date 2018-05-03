@@ -135,6 +135,12 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 }	
 
 //-------------------------------------------------------------------------------------
+void Entity::onInitializeScript()
+{
+
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyDescription* propertyDescription, PyObject* pyData)
 {
 }

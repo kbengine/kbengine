@@ -81,6 +81,9 @@
     <ClCompile Include="entity_component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="space.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="archiver.h">
@@ -143,6 +146,9 @@
     <ClInclude Include="entity_remotemethod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="space.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -150,6 +156,9 @@
       <Filter>Inline Files</Filter>
     </None>
     <None Include="entity.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="space.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

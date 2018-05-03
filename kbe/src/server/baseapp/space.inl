@@ -19,32 +19,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-#ifndef KBE_SPACE_ENTITY_H
-#define KBE_SPACE_ENTITY_H
-	
-#include "entity.h"
-#include "common/common.h"
-#include "helper/debug_helper.h"
-	
-namespace KBEngine{
+namespace KBEngine { 
 
-class Space : public Entity
-{
-	/** 子类化将一些py操作填充进派生类 */
-	BASE_SCRIPT_HREADER(Space, Entity)
-
-public:
-	Space(ENTITY_ID id, const ScriptDefModule* pScriptModule);
-	~Space();
-	
-protected:
-};
 
 }
-
-
-#ifdef CODE_INLINE
-#include "space.inl"
-#endif
-
-#endif // KBE_SPACE_ENTITY_H

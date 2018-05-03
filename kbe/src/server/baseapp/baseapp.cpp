@@ -3,6 +3,7 @@
 
 #include "baseapp.h"
 #include "proxy.h"
+#include "space.h"
 #include "entity.h"
 #include "baseapp_interface.h"
 #include "entity_remotemethod.h"
@@ -353,6 +354,7 @@ bool Baseapp::installPyModules()
 {
 	Entity::installScript(getScript().getModule());
 	Proxy::installScript(getScript().getModule());
+	Space::installScript(getScript().getModule());
 	EntityComponent::installScript(getScript().getModule());
 	GlobalDataClient::installScript(getScript().getModule());
 
@@ -851,6 +853,10 @@ Entity* Baseapp::onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_
 	if(PyType_IsSubtype(sm->getScriptType(), Proxy::getScriptType()))
 	{
 		return new(pyEntity) Proxy(eid, sm);
+	}
+	else if (PyType_IsSubtype(sm->getScriptType(), Space::getScriptType()))
+	{
+		return new(pyEntity) Space(eid, sm);
 	}
 
 	return EntityApp<Entity>::onCreateEntity(pyEntity, sm, eid);

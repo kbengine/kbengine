@@ -463,7 +463,7 @@ void Witness::resetViewEntities()
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::onEnterSpace(Space* pSpace)
+void Witness::onEnterSpace(SpaceMemory* pSpace)
 {
 	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity_->id(), (*pSendBundle));
@@ -494,7 +494,7 @@ void Witness::onEnterSpace(Space* pSpace)
 }
 
 //-------------------------------------------------------------------------------------
-void Witness::onLeaveSpace(Space* pSpace)
+void Witness::onLeaveSpace(SpaceMemory* pSpace)
 {
 	uninstallViewTrigger();
 

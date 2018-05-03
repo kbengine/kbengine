@@ -292,6 +292,7 @@ public:																										\
 																											\
 	bool initing() const{ return hasFlags(ENTITY_FLAGS_INITING); }											\
 																											\
+	void onInitializeScript();																				\
 	void initializeScript()																					\
 	{																										\
 		removeFlags(ENTITY_FLAGS_INITING);																	\
@@ -361,6 +362,8 @@ public:																										\
 				PyErr_Clear();																				\
 			}																								\
 		}																									\
+																											\
+		onInitializeScript();																				\
 	}																										\
 																											\
 	void initializeEntity(PyObject* dictData)																\

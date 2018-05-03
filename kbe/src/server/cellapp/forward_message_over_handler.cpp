@@ -5,8 +5,8 @@
 #include "entitydef/entities.h"
 #include "common/memorystream.h"
 #include "entity.h"
-#include "space.h"
-#include "spaces.h"
+#include "spacememory.h"
+#include "spacememorys.h"
 
 namespace KBEngine{	
 
@@ -31,7 +31,7 @@ void FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp::pr
 {
 	KBE_ASSERT(_e != NULL);
 	
-	Space* space = Spaces::findSpace(_spaceID);
+	SpaceMemory* space = SpaceMemorys::findSpace(_spaceID);
 	
 	if(space == NULL || !space->isGood())
 	{

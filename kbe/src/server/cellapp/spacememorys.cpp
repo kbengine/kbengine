@@ -1,27 +1,27 @@
 // Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
-#include "spaces.h"	
+#include "spacememorys.h"	
 namespace KBEngine{	
-Spaces::SPACES Spaces::spaces_;
+SpaceMemorys::SPACEMEMORYS SpaceMemorys::spaces_;
 
 //-------------------------------------------------------------------------------------
-Spaces::Spaces()
+SpaceMemorys::SpaceMemorys()
 {
 }
 
 //-------------------------------------------------------------------------------------
-Spaces::~Spaces()
+SpaceMemorys::~SpaceMemorys()
 {
 }
 
 //-------------------------------------------------------------------------------------
-void Spaces::finalise()
+void SpaceMemorys::finalise()
 {
-	Spaces::SPACES spaces = spaces_;
+	SpaceMemorys::SPACEMEMORYS spaces = spaces_;
 	while (spaces.size() > 0)
 	{
-		SPACES::iterator iter = spaces.begin();
-		KBEShared_ptr<Space> pSpace = iter->second;
+		SPACEMEMORYS::iterator iter = spaces.begin();
+		KBEShared_ptr<SpaceMemory> pSpace = iter->second;
 		spaces.erase(iter++);
 		pSpace->destroy(0, false);
 	}
@@ -30,16 +30,16 @@ void Spaces::finalise()
 }
 
 //-------------------------------------------------------------------------------------
-Space* Spaces::createNewSpace(SPACE_ID spaceID, const std::string& scriptModuleName)
+SpaceMemory* SpaceMemorys::createNewSpace(SPACE_ID spaceID, const std::string& scriptModuleName)
 {
-	SPACES::iterator iter = spaces_.find(spaceID);
+	SPACEMEMORYS::iterator iter = spaces_.find(spaceID);
 	if(iter != spaces_.end())
 	{
 		ERROR_MSG(fmt::format("Spaces::createNewSpace: space {} is exist! scriptModuleName={}\n", spaceID, scriptModuleName));
 		return NULL;
 	}
 	
-	Space* space = new Space(spaceID, scriptModuleName);
+	SpaceMemory* space = new SpaceMemory(spaceID, scriptModuleName);
 	spaces_[spaceID].reset(space);
 	
 	DEBUG_MSG(fmt::format("Spaces::createNewSpace: new space({}) {}.\n", scriptModuleName, spaceID));
@@ -47,11 +47,11 @@ Space* Spaces::createNewSpace(SPACE_ID spaceID, const std::string& scriptModuleN
 }
 
 //-------------------------------------------------------------------------------------
-bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
+bool SpaceMemorys::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 {
 	INFO_MSG(fmt::format("Spaces::destroySpace: {}.\n", spaceID));
 
-	Space* pSpace = Spaces::findSpace(spaceID);
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID);
 	if(!pSpace)
 		return true;
 	
@@ -70,9 +70,9 @@ bool Spaces::destroySpace(SPACE_ID spaceID, ENTITY_ID entityID)
 }
 
 //-------------------------------------------------------------------------------------
-Space* Spaces::findSpace(SPACE_ID spaceID)
+SpaceMemory* SpaceMemorys::findSpace(SPACE_ID spaceID)
 {
-	SPACES::iterator iter = spaces_.find(spaceID);
+	SPACEMEMORYS::iterator iter = spaces_.find(spaceID);
 	if(iter != spaces_.end())
 		return iter->second.get();
 	
@@ -80,9 +80,9 @@ Space* Spaces::findSpace(SPACE_ID spaceID)
 }
 
 //-------------------------------------------------------------------------------------
-void Spaces::update()
+void SpaceMemorys::update()
 {
-	SPACES::iterator iter = spaces_.begin();
+	SPACEMEMORYS::iterator iter = spaces_.begin();
 
 	for(; iter != spaces_.end(); )
 	{

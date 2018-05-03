@@ -29,7 +29,7 @@ namespace Network
 class Entity;
 class MemoryStream;
 class ViewTrigger;
-class Space;
+class SpaceMemory;
 
 /** 观察者信息结构 */
 struct WitnessInfo
@@ -121,8 +121,8 @@ public:
 
 	bool update();
 	
-	void onEnterSpace(Space* pSpace);
-	void onLeaveSpace(Space* pSpace);
+	void onEnterSpace(SpaceMemory* pSpace);
+	void onLeaveSpace(SpaceMemory* pSpace);
 
 	void onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity);
 	void onLeaveView(ViewTrigger* pViewTrigger, Entity* pEntity);
