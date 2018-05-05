@@ -16,10 +16,11 @@ before_install:
    - python3 --version ; pip3 --version ; sudo pip3 install --upgrade pip ; pip3 --version
    - sudo pip3 install flake8
 before_script:
+   - EXCLUDE=kbe/src/lib/python,kbe/res/scripts/common/Lib,kbe/src/lib/dependencies/jemalloc/scripts,kbe/tools/server/webconsole/six.py
    # stop the build if there are Python syntax errors or undefined names
-   - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
+   - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics --exclude=$EXCLUDE
    # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-   - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+   - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=$EXCLUDE
 notifications:
   recipients:
     - kbesrv@gmail.com
