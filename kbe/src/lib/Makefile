@@ -20,6 +20,7 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
+	cd dependencies/jemalloc && $(MAKE) $@ && if ! test -e ../../../libs/libjemalloc.a; then \cp -f "./lib/libjemalloc.a" "../../../libs"; fi
 	cd dependencies/openssl && $(MAKE) $@ && if ! test -e ../../../libs/libssl.a; then \cp -f "libssl.a" "../../../libs"; fi && if ! test -e ../../../libs/libcrypto.a; then \cp -f "libcrypto.a" "../../../libs"; fi
 	cd dependencies/hiredis && $(MAKE) $@
 	cd dependencies/zip && $(MAKE) $@
@@ -28,7 +29,6 @@ all install clean full:
 	cd dependencies/sigar/linux && $(MAKE) $@
 	cd dependencies/tmxparser && $(MAKE) $@
 	cd dependencies/jwsmtp/jwsmtp/jwsmtp && $(MAKE) $@
-	cd dependencies/jemalloc && $(MAKE) $@
 	cd dependencies/apr && $(MAKE) $@ && if ! test -e ../../../libs/libapr-1.a; then \cp -f ".libs/libapr-1.a" "../../../libs"; fi
 	cd dependencies/expat && $(MAKE) $@ && if ! test -e ../../../libs/libexpat.a; then \cp -f "./.libs/libexpat.a" "../../../libs"; fi
 	cd dependencies/apr-util && $(MAKE) $@ && if ! test -e ../../../libs/libaprutil-1.a; then \cp -f ".libs/libaprutil-1.a" "../../../libs"; fi
