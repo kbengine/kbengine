@@ -29,7 +29,12 @@ else:
 	
 	if platform.system() == 'Windows':
 		import _winreg as winreg
-            
+
+try:
+    raw_input          # Python 2
+except NameError:
+    raw_input = input  # Python 3
+
 # Sources and binary releases
 source_url = "https://github.com/kbengine/kbengine/releases/latest"
 bin_zip_url = "https://sourceforge.net/projects/kbengine/files/bin/latest.zip/download"
@@ -151,9 +156,6 @@ def WARING_MSG(msg):
 	print('WARING: ' + msg)
 
 def getInput(s):
-	if sys.hexversion >= 0x03000000:
-		return input(s)
-	
 	return raw_input(s)
 	
 def echoKBEEnvironment():

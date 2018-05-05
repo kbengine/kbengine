@@ -105,7 +105,7 @@ class Machines:
 			try:
 				if type(self.username) is unicode:
 					self.username = username.encode( "utf-8" )
-			except:
+			except NameError:
 				pass
 		
 		self.startListen()
@@ -371,4 +371,3 @@ class Machines:
 		获取某一类型的组件信息
 		"""
 		return self.interfaces.get( componentType, [] )
-

@@ -12,11 +12,11 @@ try:
 	bytes
 	try:
 		unicode
-	except:
+	except NameError:
 		unicode = str
 	NULL_TERMINATOR = "\0".encode()
 	NULL_BYTES = "".encode()
-except:
+except NameError:
 	bytes = str
 	NULL_TERMINATOR = "\0"
 	NULL_BYTES = ""
