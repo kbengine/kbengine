@@ -2742,7 +2742,7 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, floa
 
 //-------------------------------------------------------------------------------------
 uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, PyObject* userData, 
-						 bool faceMovement, bool moveVertically)
+						 bool faceMovement, bool moveVertically, const Position3D& offsetPos)
 {
 	stopMove();
 
@@ -2751,7 +2751,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, 
 	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToEntityHandler(p, targetID, velocity, distance,
-		faceMovement, moveVertically, userData);
+		faceMovement, moveVertically, userData, offsetPos);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -2761,26 +2761,61 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float distance, PyObject_ptr userData,
-								 int32 faceMovement, int32 moveVertically)
+PyObject* Entity::__py_pyMoveToEntity(PyObject* self, PyObject* args)
 {
-	if(!isReal())
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+
+	if (!pobj->isReal())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: not is real entity(%d).", 
-			scriptName(), id());
+		PyErr_Format(PyExc_AssertionError, "%s::MoveToEntity: not is real entity(%d).",
+			pobj->scriptName(), pobj->id());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	if(this->isDestroyed())
+	if (pobj->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: %d is destroyed!\n",		
-			scriptName(), id());		
+		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: %d is destroyed!\n",
+			pobj->scriptName(), pobj->id());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	return PyLong_FromLong(moveToEntity(targetID, velocity, distance, userData, faceMovement > 0, moveVertically > 0));
+	ENTITY_ID targetID = 0;
+	float velocity = 0.0, distance = 0.0;
+	PyObject* userData = NULL, *pyOffset = NULL;
+	int32 faceMovement = 0, moveVertically = 0;
+
+	if (currargsSize == 6)
+	{
+		if (PyArg_ParseTuple(args, "iffOii", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "%s::moveToEntity: args error! entity(%d)",
+				pobj->scriptName(), pobj->id());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else if (currargsSize == 7)
+	{
+		if (PyArg_ParseTuple(args, "iffOiiO", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically, &pyOffset) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "%s::moveToEntity: args error! entity(%d)",
+				pobj->scriptName(), pobj->id());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
+	Position3D offsetPos;
+	if (pyOffset && pyOffset != Py_None)
+	{
+		// 将坐标信息提取出来
+		script::ScriptVector3::convertPyObjectToVector3(offsetPos, pyOffset);
+	}
+
+	return PyLong_FromLong(pobj->moveToEntity(targetID, velocity, distance, userData, faceMovement > 0, moveVertically > 0, offsetPos));
 }
 
 //-------------------------------------------------------------------------------------
