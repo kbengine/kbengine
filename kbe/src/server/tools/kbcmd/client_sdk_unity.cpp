@@ -955,15 +955,23 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 
 					std::string className = pKeyDataType->aliasName();
 
-					sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} {}_DataType = new DATATYPE_{}();\n\n",
-						className + "_ChildArray", keyiter->first, className + "_ChildArray");
-
-					std::map<std::string, std::string>::iterator findChildClassNameIter = allClassName.find(className + "_ChildArray");
-
-					if (findChildClassNameIter == allClassName.end())
+					if (strlen(pFixedArrayType->aliasName()) == 0 || pFixedArrayType->aliasName()[0] == '_')
 					{
-						allClassName[className + "_ChildArray"] = typeName;
-						createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+						sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} {}_DataType = new DATATYPE_{}();\n\n",
+							className + "_ChildArray", keyiter->first, className + "_ChildArray");
+
+						std::map<std::string, std::string>::iterator findChildClassNameIter = allClassName.find(className + "_ChildArray");
+
+						if (findChildClassNameIter == allClassName.end())
+						{
+							allClassName[className + "_ChildArray"] = typeName;
+							createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+						}
+					}
+					else
+					{
+						sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} {}_DataType = new DATATYPE_{}();\n\n",
+							className, keyiter->first, className);
 					}
 				}
 				else
