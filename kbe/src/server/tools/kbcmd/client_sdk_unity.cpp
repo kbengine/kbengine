@@ -933,6 +933,7 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
 	{
 		sourcefileBody_ += fmt::format("\n\n\tpublic class DATATYPE_{} : DATATYPE_BASE\n\t{{\n", typeName);
+		std::map<std::string, std::string> allClassName;
 
 		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
 
@@ -957,7 +958,13 @@ bool ClientSDKUnity::writeCustomDataType(const DataType* pDataType)
 					sourcefileBody_ += fmt::format("\t\tprivate DATATYPE_{} {}_DataType = new DATATYPE_{}();\n\n",
 						className + "_ChildArray", keyiter->first, className + "_ChildArray");
 
-					createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+					std::map<std::string, std::string>::iterator findChildClassNameIter = allClassName.find(className + "_ChildArray");
+
+					if (findChildClassNameIter == allClassName.end())
+					{
+						allClassName[className + "_ChildArray"] = typeName;
+						createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t\t");
+					}
 				}
 				else
 				{

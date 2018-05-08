@@ -1162,6 +1162,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 	if (strcmp(pDataType->getName(), "FIXED_DICT") == 0)
 	{
 		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\npublic:\n", typeName);
+		std::map<std::string, std::string> allClassName;
 
 		FixedDictType* dictdatatype = const_cast<FixedDictType*>(static_cast<const FixedDictType*>(pDataType));
 
@@ -1183,7 +1184,13 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 
 					std::string className = pKeyDataType->aliasName();
 
-					createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t");
+					std::map<std::string, std::string>::iterator findChildClassNameIter = allClassName.find(className + "_ChildArray");
+
+					if (findChildClassNameIter == allClassName.end())
+					{
+						allClassName[className + "_ChildArray"] = typeName;
+						createArrayChildClass(pFixedArrayType, pFixedArrayType->getDataType(), className + "_ChildArray", "\t");
+					}
 
 					fileBody() += fmt::format("\tDATATYPE_{} {}_DataType;\n\n",
 						className + "_ChildArray", keyiter->first, className + "_ChildArray");
