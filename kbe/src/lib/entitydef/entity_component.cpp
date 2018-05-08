@@ -697,16 +697,19 @@ bool EntityComponent::isSamePersistentType(PyObject* pyValue)
 
 		if (g_componentType == BASEAPP_TYPE)
 		{
-			PyObject* cellDataDict = PyObject_GetAttrString(owner(), "cellData");
-			if (!cellDataDict)
+			if (pPropertyDescription_->hasCell())
 			{
-				PyErr_Clear();
-			}
-			else
-			{
-				cellComponentPart = PyDict_GetItemString(cellDataDict, pPropertyDescription_->getName());
-				Py_DECREF(cellDataDict);
-				Py_INCREF(cellComponentPart);
+				PyObject* cellDataDict = PyObject_GetAttrString(owner(), "cellData");
+				if (!cellDataDict)
+				{
+					PyErr_Clear();
+				}
+				else
+				{
+					cellComponentPart = PyDict_GetItemString(cellDataDict, pPropertyDescription_->getName());
+					Py_DECREF(cellDataDict);
+					Py_INCREF(cellComponentPart);
+				}
 			}
 
 			if (componentType_ == BASEAPP_TYPE)
@@ -857,16 +860,19 @@ void EntityComponent::addPersistentToStream(MemoryStream* mstream, PyObject* pyV
 
 		if (g_componentType == BASEAPP_TYPE)
 		{
-			PyObject* cellDataDict = PyObject_GetAttrString(owner(), "cellData");
-			if (!cellDataDict)
+			if (pPropertyDescription_->hasCell())
 			{
-				PyErr_Clear();
-			}
-			else
-			{
-				cellComponentPart = PyDict_GetItemString(cellDataDict, pPropertyDescription_->getName());
-				Py_DECREF(cellDataDict);
-				Py_INCREF(cellComponentPart);
+				PyObject* cellDataDict = PyObject_GetAttrString(owner(), "cellData");
+				if (!cellDataDict)
+				{
+					PyErr_Clear();
+				}
+				else
+				{
+					cellComponentPart = PyDict_GetItemString(cellDataDict, pPropertyDescription_->getName());
+					Py_DECREF(cellDataDict);
+					Py_INCREF(cellComponentPart);
+				}
 			}
 
 			if (componentType_ == BASEAPP_TYPE)

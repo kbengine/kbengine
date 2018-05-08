@@ -568,7 +568,7 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 
 		// 产生一个属性描述实例
 		ENTITY_PROPERTY_UID			futype = 0;
-		uint32						flags = ENTITY_BASE_DATA_FLAGS | ENTITY_CELL_DATA_FLAGS | ENTITY_CLIENT_DATA_FLAGS;
+		uint32						flags = ED_FLAG_BASE | ED_FLAG_CELL_PUBLIC | ENTITY_CLIENT_DATA_FLAGS;
 		bool						isPersistent = true;
 		bool						isIdentifier = false;		// 是否是一个索引键
 		uint32						databaseLength = 0;			// 这个属性在数据库中的长度
@@ -608,25 +608,28 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 			pCompScriptDefModule->isComponentModule(true);
 
 			EntityDef::__scriptModules.push_back(pCompScriptDefModule);
-
-			pPropertyDescription = addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
-				indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
 		}
 		else
 		{
+			flags = ED_FLAG_UNKOWN;
+
+			if (pCompScriptDefModule->hasBase())
+				flags |= ED_FLAG_BASE;
+
+			if (pCompScriptDefModule->hasCell())
+				flags |= ED_FLAG_CELL_PUBLIC;
+
+			if (pCompScriptDefModule->hasClient())
+			{
+				if (pCompScriptDefModule->hasBase())
+					flags |= ED_FLAG_BASE_AND_CLIENT;
+				else
+					flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
+			}
+
 			pPropertyDescription = addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
 				indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
 
-			if (!pCompScriptDefModule->hasBase())
-				flags &= ~ENTITY_BASE_DATA_FLAGS;
-
-			if (!pCompScriptDefModule->hasCell())
-				flags &= ~ENTITY_CELL_DATA_FLAGS;
-
-			if (!pCompScriptDefModule->hasClient())
-				flags &= ~ENTITY_CLIENT_DATA_FLAGS;
-
-			pPropertyDescription->setFlags(flags);
 			pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);
 			continue;
 		}
@@ -664,16 +667,25 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 			return false;
 		}
 		
-		if (!pCompScriptDefModule->hasBase())
-			flags &= ~ENTITY_BASE_DATA_FLAGS;
+		flags = ED_FLAG_UNKOWN;
 
-		if (!pCompScriptDefModule->hasCell())
-			flags &= ~ENTITY_CELL_DATA_FLAGS;
+		if (pCompScriptDefModule->hasBase())
+			flags |= ED_FLAG_BASE;
 
-		if (!pCompScriptDefModule->hasClient())
-			flags &= ~ENTITY_CLIENT_DATA_FLAGS;
+		if (pCompScriptDefModule->hasCell())
+			flags |= ED_FLAG_CELL_PUBLIC;
 
-		pPropertyDescription->setFlags(flags);
+		if (pCompScriptDefModule->hasClient())
+		{
+			if (pCompScriptDefModule->hasBase())
+				flags |= ED_FLAG_BASE_AND_CLIENT;
+			
+			if (pCompScriptDefModule->hasCell())
+				flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
+		}
+
+		pPropertyDescription = addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
+			indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
 
 		pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);
 	}
