@@ -598,8 +598,6 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 		// 查找是否有这个模块，如果有说明已经加载过相关描述，这里无需再次加载
 		ScriptDefModule* pCompScriptDefModule = findScriptModule(componentTypeName.c_str(), false);
 
-		PropertyDescription* pPropertyDescription = NULL;
-
 		if (!pCompScriptDefModule)
 		{
 			__scriptTypeMappingUType[componentTypeName] = g_scriptUtype;
@@ -627,7 +625,7 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 					flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
 			}
 
-			pPropertyDescription = addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
+			addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
 				indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
 
 			pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);
@@ -684,7 +682,7 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 				flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
 		}
 
-		pPropertyDescription = addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
+		addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
 			indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
 
 		pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);

@@ -107,8 +107,21 @@ void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyD
 
 	if (pEntityComponent)
 	{
-		componentPropertyUID = (pEntityComponent ? pEntityComponent->pPropertyDescription()->getUType() : (ENTITY_PROPERTY_UID)0);
-		componentPropertyAliasID = (pEntityComponent ? pEntityComponent->pPropertyDescription()->aliasIDAsUint8() : 0);
+		PropertyDescription* pComponentPropertyDescription = pEntityComponent->pPropertyDescription();
+
+		if (pComponentPropertyDescription)
+		{
+			componentPropertyUID = pComponentPropertyDescription->getUType();
+			componentPropertyAliasID = pComponentPropertyDescription->aliasIDAsUint8();
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("{}::onDefDataChanged: EntityComponent({}) not found pComponentPropertyDescription!\n",
+				pScriptModule_->getName(), pEntityComponent->pComponentScriptDefModuleDescrs()->getName()));
+
+			KBE_ASSERT(false);
+			return;
+		}
 	}
 
 	if((flags & ED_FLAG_BASE_AND_CLIENT) <= 0 || clientEntityCall_ == NULL)
