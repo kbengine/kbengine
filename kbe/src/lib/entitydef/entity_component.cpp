@@ -1352,28 +1352,37 @@ void EntityComponent::convertDictDataToEntityComponent(ENTITY_ID entityID, Scrip
 	for (; comps_iter != componentDescrs.end(); ++comps_iter)
 	{
 		PyObject* pyObj = PyDict_GetItemString(cellData, comps_iter->first.c_str());
-		if (pyObj && PyDict_Check(pyObj))
+		if (!pyObj || !PyDict_Check(pyObj))
 		{
-			KBE_ASSERT(EntityDef::context().currEntityID > 0);
+			// 由于存在一种情况， 组件def中没有内容， 但有cell脚本，此时baseapp上无法判断他是否有cell属性，所以写celldata时没有数据写入
+			if (g_componentType == BASEAPP_TYPE)
+			{
+				SCRIPT_ERROR_CHECK();
+				continue;
+			}
+			else
+			{
+				PyErr_Clear();
+			}
+		}
 
-			PyObject* pyobj = comps_iter->second->createObject();
+		KBE_ASSERT(EntityDef::context().currEntityID > 0);
 
-			// 执行Entity的构造函数
-			PyObject* pyEntityComponent = new(pyobj) EntityComponent(entityID, comps_iter->second, g_componentType);
+		PyObject* pyobj = comps_iter->second->createObject();
 
-			EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyEntityComponent);
+		// 执行Entity的构造函数
+		PyObject* pyEntityComponent = new(pyobj) EntityComponent(entityID, comps_iter->second, g_componentType);
+
+		EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyEntityComponent);
+
+		if(pyObj)
 			pEntityComponent->createFromDict(pyObj);
 
-			PropertyDescription* pPropertyDescription = pEntityScriptDescrs->findCellPropertyDescription(comps_iter->first.c_str());
-			KBE_ASSERT(pPropertyDescription);
-			pEntityComponent->pPropertyDescription(pPropertyDescription);
-			PyDict_SetItemString(cellData, comps_iter->first.c_str(), pEntityComponent);
-			Py_DECREF(pEntityComponent);
-		}
-		else
-		{
-			SCRIPT_ERROR_CHECK();
-		}
+		PropertyDescription* pPropertyDescription = pEntityScriptDescrs->findCellPropertyDescription(comps_iter->first.c_str());
+		KBE_ASSERT(pPropertyDescription);
+		pEntityComponent->pPropertyDescription(pPropertyDescription);
+		PyDict_SetItemString(cellData, comps_iter->first.c_str(), pEntityComponent);
+		Py_DECREF(pEntityComponent);
 	}
 }
 

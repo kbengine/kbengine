@@ -106,7 +106,7 @@ public:
 
 	bool addPropertyDescription(const char* attrName, 
 									PropertyDescription* propertyDescription, 
-									COMPONENT_TYPE componentType);
+									COMPONENT_TYPE componentType, bool ignoreConflict = false);
 
 	
 	MethodDescription* findCellMethodDescription(const char* attrName);

@@ -486,9 +486,9 @@ void ScriptDefModule::autoMatchCompOwn()
 //-------------------------------------------------------------------------------------
 bool ScriptDefModule::addPropertyDescription(const char* attrName, 
 										  PropertyDescription* propertyDescription, 
-										  COMPONENT_TYPE componentType)
+										  COMPONENT_TYPE componentType, bool ignoreConflict)
 {
-	if(hasMethodName(attrName))
+	if(!ignoreConflict && hasMethodName(attrName))
 	{
 		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: There is a method[{}] name conflict! componentType={}.\n",
 			attrName, componentType));
@@ -496,7 +496,7 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 		return false;
 	}
 	
-	if (hasComponentName(attrName))
+	if (!ignoreConflict && hasComponentName(attrName))
 	{
 		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: There is a component[{}] name conflict!\n",
 			attrName));

@@ -50,6 +50,8 @@ ENTITY_SCRIPT_UID g_scriptUtype = 1;
 // 获得某个entity的函数地址
 EntityDef::GetEntityFunc EntityDef::__getEntityFunc;
 
+static std::map<std::string, std::vector<PropertyDescription*> > g_logComponentPropertys;
+
 //-------------------------------------------------------------------------------------
 EntityDef::EntityDef()
 {
@@ -625,8 +627,8 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 					flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
 			}
 
-			addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
-				indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
+			g_logComponentPropertys[pScriptModule->getName()].push_back(addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
+				indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule));
 
 			pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);
 			continue;
@@ -682,8 +684,8 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 				flags |= (ED_FLAG_ALL_CLIENTS | ED_FLAG_CELL_PUBLIC_AND_OWN | ED_FLAG_OTHER_CLIENTS | ED_FLAG_OWN_CLIENT);
 		}
 
-		addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
-			indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule);
+		g_logComponentPropertys[pScriptModule->getName()].push_back(addComponentProperty(futype, componentTypeName, componentName, flags, isPersistent, isIdentifier,
+			indexType, databaseLength, defaultStr, detailLevel, pScriptModule, pCompScriptDefModule));
 
 		pScriptModule->addComponentDescription(componentName.c_str(), pCompScriptDefModule);
 	}
@@ -1870,6 +1872,45 @@ ERASE_PROPERTYS:
 
 		setScriptModuleHasComponentEntity(pScriptModule, true);
 
+		{
+			std::vector<ScriptDefModulePtr>::iterator entityScriptModuleIter = EntityDef::__scriptModules.begin();
+			for (; entityScriptModuleIter != EntityDef::__scriptModules.end(); ++entityScriptModuleIter)
+			{
+				std::vector<PropertyDescription*>& componentPropertys = g_logComponentPropertys[(*entityScriptModuleIter)->getName()];
+				std::vector<PropertyDescription*>::iterator componentPropertysIter = componentPropertys.begin();
+				for (; componentPropertysIter != componentPropertys.end(); ++componentPropertysIter)
+				{
+					PropertyDescription* pComponentPropertyDescription = (*componentPropertysIter);
+					ScriptDefModule* pCompScriptModule = static_cast<EntityComponentType*>(pComponentPropertyDescription->getDataType())->pScriptDefModule();
+
+					if (pCompScriptModule->getName() != componentScriptName)
+						continue;
+
+					uint32 pflags = pComponentPropertyDescription->getFlags();
+
+  					if (g_componentType == BASEAPP_TYPE)
+					{
+						pflags |= ENTITY_BASE_DATA_FLAGS;
+					}
+					else if (g_componentType == CELLAPP_TYPE)
+					{
+						pflags |= ENTITY_CELL_DATA_FLAGS;
+					}
+					else
+					{
+						pflags |= ENTITY_CLIENT_DATA_FLAGS;
+					}
+
+					pComponentPropertyDescription->setFlags(pflags);
+
+					if ((*entityScriptModuleIter)->findPropertyDescription(pComponentPropertyDescription->getName(), g_componentType) != pComponentPropertyDescription)
+					{
+						(*entityScriptModuleIter)->addPropertyDescription(pComponentPropertyDescription->getName(), pComponentPropertyDescription, g_componentType, true);
+					}
+				}
+			}
+		}
+
 		PyObject* pyClass =
 			PyObject_GetAttrString(pyModule, const_cast<char *>(componentScriptName.c_str()));
 
@@ -1932,6 +1973,7 @@ ERASE_PROPERTYS:
 		S_RELEASE(pyModule);
 	}
 
+	g_logComponentPropertys.clear();
 	return true;
 }
 

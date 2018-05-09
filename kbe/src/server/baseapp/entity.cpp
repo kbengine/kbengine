@@ -409,9 +409,18 @@ void Entity::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 		const char* attrname = propertyDescription->getName();
 		if(propertyDescription->isPersistent() && (flags & propertyDescription->getFlags()) > 0)
 		{
+			bool isComponent = propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT;
+			if (isComponent)
+			{
+				// 由于存在一种情况， 组件def中没有内容， 但有cell脚本，此时baseapp上无法判断他是否有cell属性，所以写celldata时没有数据写入
+				EntityComponentType* pEntityComponentType = (EntityComponentType*)propertyDescription->getDataType();
+				if (pEntityComponentType->pScriptDefModule()->getPropertyDescrs().size() == 0 && pEntityComponentType->pScriptDefModule()->getCellPropertyDescriptions().size() == 0)
+					continue;
+			}
+
 			PyObject *key = PyUnicode_FromString(attrname);
 
-			if(propertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT /* 如果是组件类型，应该先从实体自身找到这个组件属性 */
+			if(!isComponent /* 如果是组件类型，应该先从实体自身找到这个组件属性 */
 				&& cellDataDict_ != NULL && PyDict_Contains(cellDataDict_, key) > 0)
 			{
 				PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
@@ -446,7 +455,7 @@ void Entity::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 			}
 			else
 			{
-				if (propertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				if (!isComponent)
 				{
 					WARNING_MSG(fmt::format("{}::addPersistentsDataToStream: {} not found Persistent({}), use default values!\n",
 						this->scriptName(), this->id(), attrname));
