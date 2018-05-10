@@ -1115,11 +1115,19 @@ public:																										\
 			Py_RETURN_FALSE;																				\
 		}																									\
 																											\
-		const char* eventName;																				\
+		const char* eventName = NULL;																		\
 		PyObject* pycallback = NULL;																		\
 		if(PyArg_ParseTuple(args, "sO", &eventName, &pycallback) == -1)										\
 		{																									\
 			PyErr_Format(PyExc_AssertionError, "%s::registerEvent:: args error!", pobj->scriptName());		\
+			PyErr_PrintEx(0);																				\
+			pycallback = NULL;																				\
+			Py_RETURN_FALSE;																				\
+		}																									\
+																											\
+		if(!eventName)																						\
+		{																									\
+			PyErr_Format(PyExc_AssertionError, "%s::registerEvent:: eventName error!", pobj->scriptName());	\
 			PyErr_PrintEx(0);																				\
 			pycallback = NULL;																				\
 			Py_RETURN_FALSE;																				\
@@ -1143,11 +1151,19 @@ public:																										\
 			Py_RETURN_FALSE;																				\
 		}																									\
 																											\
-		const char* eventName;																				\
+		const char* eventName = NULL;																		\
 		PyObject* pycallback = NULL;																		\
 		if(PyArg_ParseTuple(args, "sO", &eventName, &pycallback) == -1)										\
 		{																									\
 			PyErr_Format(PyExc_AssertionError, "%s::deregisterEvent:: args error!", pobj->scriptName());	\
+			PyErr_PrintEx(0);																				\
+			pycallback = NULL;																				\
+			Py_RETURN_FALSE;																				\
+		}																									\
+																											\
+		if(!eventName)																						\
+		{																									\
+			PyErr_Format(PyExc_AssertionError, "%s::deregisterEvent:: eventName error!", pobj->scriptName());\
 			PyErr_PrintEx(0);																				\
 			pycallback = NULL;																				\
 			Py_RETURN_FALSE;																				\
@@ -1171,12 +1187,19 @@ public:																										\
 			Py_RETURN_FALSE;																				\
 		}																									\
 																											\
-		char* eventName;																					\
+		char* eventName = NULL;																				\
 		if(currargsSize == 1)																				\
 		{																									\
 			if(PyArg_ParseTuple(args, "s", &eventName) == -1)												\
 			{																								\
 				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: args error! entityID={}", pobj->scriptName(), pobj->id());		\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_FALSE;																			\
+			}																								\
+																											\
+			if(!eventName)																					\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: eventName error!", pobj->scriptName());	\
 				PyErr_PrintEx(0);																			\
 				Py_RETURN_FALSE;																			\
 			}																								\
@@ -1193,6 +1216,13 @@ public:																										\
 				Py_RETURN_FALSE;																			\
 			}																								\
 																											\
+			if(!eventName)																					\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: eventName error!", pobj->scriptName());	\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_FALSE;																			\
+			}																								\
+																											\
 			PyObject* pyargs = PyTuple_New(1);																\
 			Py_INCREF(pyobj);																				\
 			PyTuple_SET_ITEM(pyargs, 0, pyobj);																\
@@ -1202,6 +1232,14 @@ public:																										\
 		else																								\
 		{																									\
 			PyObject* pyEvnName = PyTuple_GET_ITEM(args, 0);												\
+																											\
+			if(!PyUnicode_Check(pyEvnName))																	\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::fireEvent:: eventName error!", pobj->scriptName());	\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_FALSE;																			\
+			}																								\
+																											\
 			wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEvnName, NULL);			\
 			eventName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);								\
 			PyMem_Free(PyUnicode_AsWideCharStringRet0);														\
@@ -1257,12 +1295,19 @@ public:																										\
 			Py_RETURN_NONE;																					\
 		}																									\
 																											\
-		char* componentName;																				\
+		char* componentName = NULL;																			\
 		if(currargsSize == 1)																				\
 		{																									\
 			if(PyArg_ParseTuple(args, "s", &componentName) == -1)											\
 			{																								\
 				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: args error!", pobj->scriptName());	\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_NONE;																				\
+			}																								\
+																											\
+			if(!componentName)																				\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: componentName error!", pobj->scriptName());\
 				PyErr_PrintEx(0);																			\
 				Py_RETURN_NONE;																				\
 			}																								\
@@ -1276,7 +1321,14 @@ public:																										\
 			{																								\
 				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: args error!", pobj->scriptName());	\
 				PyErr_PrintEx(0);																			\
-				Py_RETURN_FALSE;																			\
+				Py_RETURN_NONE;																				\
+			}																								\
+																											\
+			if(!componentName)																				\
+			{																								\
+				PyErr_Format(PyExc_AssertionError, "%s::getComponent:: componentName error!", pobj->scriptName());\
+				PyErr_PrintEx(0);																			\
+				Py_RETURN_NONE;																				\
 			}																								\
 																											\
 			return pobj->pyGetComponent(componentName, (pyobj == Py_True));									\
