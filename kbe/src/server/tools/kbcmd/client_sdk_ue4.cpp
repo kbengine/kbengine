@@ -2494,7 +2494,7 @@ bool ClientSDKUE4::writeEntityProperty_STRING(ScriptDefModule* pEntityScriptDefM
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	fileBody() += fmt::format("\tFString {};\n", pPropertyDescription->getName());
-	initBody_ += fmt::format("\t{}(TEXT({})),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "\"\""));
+	initBody_ += fmt::format("\t{}(TEXT(\"{}\")),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : ""));
 
 	std::string name = pPropertyDescription->getName();
 	name[0] = std::toupper(name[0]);
@@ -2507,7 +2507,7 @@ bool ClientSDKUE4::writeEntityProperty_UNICODE(ScriptDefModule* pEntityScriptDef
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	fileBody() += fmt::format("\tFString {};\n", pPropertyDescription->getName());
-	initBody_ += fmt::format("\t{}(TEXT({})),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "\"\""));
+	initBody_ += fmt::format("\t{}(TEXT(\"{}\")),\n", pPropertyDescription->getName(), (strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : ""));
 
 	std::string name = pPropertyDescription->getName();
 	name[0] = std::toupper(name[0]);
