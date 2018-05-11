@@ -75,7 +75,7 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 			{
 				pyVal = propertyDescription->createFromPersistentStream(&s);
 
-				if (!propertyDescription->getDataType()->isSameType(pyVal))
+				if (!propertyDescription->isSameType(pyVal))
 				{
 					if (pyVal)
 					{
@@ -85,7 +85,7 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 					ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: {}.{} error, set to default!\n",
 						entityType, attrname));
 
-					pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+					pyVal = propertyDescription->parseDefaultStr("");
 				}
 			}
 
@@ -136,7 +136,7 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 			ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: set({}.{}) to default!\n",
 				entityType, attrname));
 
-			PyObject* pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+			PyObject* pyVal = propertyDescription->parseDefaultStr("");
 
 			PyDict_SetItemString(pyDict, attrname, pyVal);
 			Py_DECREF(pyVal);

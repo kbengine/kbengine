@@ -282,6 +282,8 @@ public:
 	*/
 	virtual PyObject* newDefaultVal(void);
 
+	virtual PyObject* parseDefaultStr(const std::string& defaultVal);
+
 protected:
 };
 
