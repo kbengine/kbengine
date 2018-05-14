@@ -2710,7 +2710,10 @@ PyObject* EntityComponentType::createCellDataFromPersistentStream(MemoryStream* 
 		if (!propertyDescription->hasCell())
 			continue;
 
-		PyObject* pyobj = propertyDescription->createFromStream(mstream);
+		PyObject* pyobj = NULL;
+		
+		if(mstream)
+			propertyDescription->createFromStream(mstream);
 
 		if (pyobj == NULL)
 		{

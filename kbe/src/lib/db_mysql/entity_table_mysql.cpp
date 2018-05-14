@@ -1551,7 +1551,12 @@ void EntityTableItemMysql_Component::addToStream(MemoryStream* s, mysql::DBConte
 			{
 				std::vector<DBID>& dbids = iter->second->dbids[resultDBID];
 
-				if (dbids.size() > 0)
+				// 如果一个实体已经存档，开发中又对实体加入了组件，那么数据库中此时是没有数据的，加载实体时需要对这样的情况做一些判断
+				// 例如：实体加载时重新写入组件默认数据值
+				bool foundData = dbids.size() > 0;
+				(*s) << foundData;
+
+				if (foundData)
 				{
 					// 理论上一定是不会大于1个的
 					KBE_ASSERT(dbids.size() == 1);
