@@ -1853,6 +1853,7 @@ ERASE_PROPERTYS:
 								flags &= ~ENTITY_CLIENT_DATA_FLAGS;
 
 							compPropertyInter->second->setFlags(flags);
+							compPropertyInter->second->decRef();
 
 							propertyDescrs.erase(compPropertyInter++);
 							continue;
@@ -1902,6 +1903,16 @@ ERASE_PROPERTYS:
 					}
 
 					pComponentPropertyDescription->setFlags(pflags);
+					if (pComponentPropertyDescription->isPersistent() && pCompScriptModule->numPropertys() == 0)
+					{
+						pComponentPropertyDescription->isPersistent(false);
+
+						if ((*entityScriptModuleIter)->findPersistentPropertyDescription(pComponentPropertyDescription->getUType()))
+						{
+							(*entityScriptModuleIter)->getPersistentPropertyDescriptions().erase(pComponentPropertyDescription->getName());
+							(*entityScriptModuleIter)->getPersistentPropertyDescriptions_uidmap().erase(pComponentPropertyDescription->getUType());
+						}
+					}
 
 					if ((*entityScriptModuleIter)->findPropertyDescription(pComponentPropertyDescription->getName(), g_componentType) != pComponentPropertyDescription)
 					{

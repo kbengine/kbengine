@@ -72,8 +72,7 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 				bool hasComponentData = false;
 				EntityComponentType* pEntityComponentType = ((EntityComponentType*)propertyDescription->getDataType());
 
-				if(pEntityComponentType->pScriptDefModule()->numPropertys() > 0)
-					s >> hasComponentData;
+				s >> hasComponentData;
 
 				if (hasComponentData)
 				{

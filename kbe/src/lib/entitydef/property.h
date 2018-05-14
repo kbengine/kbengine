@@ -46,7 +46,8 @@ public:
 		是否是一个保存到数据库中的属性 
 	*/
 	INLINE bool isPersistent(void) const;
-	
+	INLINE void isPersistent(bool v);
+
 	/** 
 		获取这个属性的数据类别 
 	*/

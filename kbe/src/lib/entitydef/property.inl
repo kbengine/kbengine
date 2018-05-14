@@ -13,6 +13,11 @@ INLINE bool PropertyDescription::isPersistent(void) const
 	return isPersistent_; 
 };
 
+INLINE void PropertyDescription::isPersistent(bool v)
+{
+	isPersistent_ = v;
+}
+
 INLINE DataType* PropertyDescription::getDataType(void) const
 { 
 	return dataType_; 
