@@ -4074,11 +4074,11 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	removeFlags(ENTITY_FLAGS_INITING);
 	
-	createEventsFromStream(s);
 	createMovementHandlerFromStream(s);
 	createControllersFromStream(s);
 	createWitnessFromStream(s);
 	createTimersFromStream(s);
+	createEventsFromStream(s);
 
 	pyCallbackMgr_.createFromStream(s);
 	setDirty();
