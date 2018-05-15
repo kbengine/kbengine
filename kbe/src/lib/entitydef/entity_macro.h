@@ -496,9 +496,26 @@ public:																										\
 		ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP& propertyDescrs =										\
 								pScriptModule_->getCellPropertyDescriptions_uidmap();						\
 																											\
-		size_t count = 0;																					\
+		size_t count = propertyDescrs.size();																\
 																											\
-		while(mstream->length() > 0 && count < propertyDescrs.size())										\
+		{																									\
+			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.begin();			\
+			for(; iter != propertyDescrs.end(); ++iter)														\
+			{																								\
+				/* 由于存在一种情况， 组件def中没有内容， 但有cell脚本，此时baseapp上无法判断他是否有cell属性，所以写celldata时没有数据写入 */ \
+				if (iter->second->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)						\
+				{																							\
+					EntityComponentType* pEntityComponentType = (EntityComponentType*)iter->second->getDataType();	\
+					if (pEntityComponentType->pScriptDefModule()->getPropertyDescrs().size() == 0)			\
+					{																						\
+						--count;																			\
+						continue;																			\
+					}																						\
+				}																							\
+			}																								\
+		}																									\
+																											\
+		while(mstream->length() > 0 && count-- > 0)															\
 		{																									\
 			(*mstream) >> uid /* 父属性 */ >> uid;															\
 			ScriptDefModule::PROPERTYDESCRIPTION_UIDMAP::iterator iter = propertyDescrs.find(uid);			\
@@ -530,8 +547,6 @@ public:																										\
 				PyDict_SetItemString(cellData, iter->second->getName(), pyobj);								\
 				Py_DECREF(pyobj);																			\
 			}																								\
-																											\
-			++count;																						\
 		}																									\
 																											\
 		return cellData;																					\
