@@ -153,6 +153,12 @@ PyObject* EntityComponent::owner(bool attempt)
 //-------------------------------------------------------------------------------------
 void EntityComponent::updateOwner(ENTITY_ID id, PyObject* pOwner)
 {
+	if (pOwner == owner_)
+	{
+		KBE_ASSERT(ownerID_ == id);
+		return;
+	}
+
 	ownerID_ = id;
 	owner_ = pOwner;
 
