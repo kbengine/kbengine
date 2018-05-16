@@ -80,6 +80,7 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetOwnerID);
 
 	PyObject* owner(bool attempt = false);
+	void updateOwner(ENTITY_ID id, PyObject* pOwner);
 
 	DECLARE_PY_GET_MOTHOD(pyIsDestroyed);
 
@@ -185,7 +186,7 @@ public:
 	void createFromDict(PyObject* pyDict);
 	void updateFromDict(PyObject* pyDict);
 
-	static void convertDictDataToEntityComponent(ENTITY_ID entityID, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData);
+	static void convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData);
 	static std::vector<EntityComponent*> getComponents(const std::string& name, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs);
 
 	/**

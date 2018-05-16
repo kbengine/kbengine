@@ -151,6 +151,16 @@ PyObject* EntityComponent::owner(bool attempt)
 }
 
 //-------------------------------------------------------------------------------------
+void EntityComponent::updateOwner(ENTITY_ID id, PyObject* pOwner)
+{
+	ownerID_ = id;
+	owner_ = pOwner;
+
+	if (owner_)
+		Py_INCREF(owner_);
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* EntityComponent::pyGetOwner()
 {
 	PyObject* pyobj = owner();
@@ -1344,7 +1354,7 @@ void EntityComponent::updateFromDict(PyObject* pyDict)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityComponent::convertDictDataToEntityComponent(ENTITY_ID entityID, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData)
+void EntityComponent::convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData)
 {
 	ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pEntityScriptDescrs->getComponentDescrs();
 
@@ -1380,7 +1390,10 @@ void EntityComponent::convertDictDataToEntityComponent(ENTITY_ID entityID, Scrip
 
 		PropertyDescription* pPropertyDescription = pEntityScriptDescrs->findCellPropertyDescription(comps_iter->first.c_str());
 		KBE_ASSERT(pPropertyDescription);
+
 		pEntityComponent->pPropertyDescription(pPropertyDescription);
+		pEntityComponent->updateOwner(entityID, pEntity);
+
 		PyDict_SetItemString(cellData, comps_iter->first.c_str(), pEntityComponent);
 		Py_DECREF(pEntityComponent);
 	}

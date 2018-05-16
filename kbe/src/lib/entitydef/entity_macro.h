@@ -417,7 +417,7 @@ public:																										\
 		if(cellDataDict == NULL)																			\
 		{																									\
 			PyErr_Clear();																					\
-			EntityComponent::convertDictDataToEntityComponent(id(), pScriptModule_, dictData);				\
+			EntityComponent::convertDictDataToEntityComponent(id(), this, pScriptModule_, dictData);		\
 		}																									\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\
