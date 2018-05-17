@@ -1275,8 +1275,9 @@ PyObject* EntityComponent::createCellData()
 //-------------------------------------------------------------------------------------
 void EntityComponent::createFromDict(PyObject* pyDict)
 {
-	ENTITY_ID old_ownerID = ownerID_;
-	ownerID_ = 0;
+	// 设置为-1， 避免onScriptSetAttribute中尝试广播属性
+	ENTITY_ID oid = ownerID_;
+	ownerID_ = -1;
 
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs = pChildPropertyDescrs();
 
@@ -1312,7 +1313,7 @@ void EntityComponent::createFromDict(PyObject* pyDict)
 		}
 	}
 
-	ownerID_ = old_ownerID;
+	ownerID_ = oid;
 }
 
 //-------------------------------------------------------------------------------------
