@@ -403,6 +403,29 @@ PyObject* EntityComponent::onScriptGetAttribute(PyObject* attr)
 	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 	PyMem_Free(PyUnicode_AsWideCharStringRet0);
 
+	/*
+	// 如果是ghost调用def方法则需要rpc调用。
+	if (!isReal())
+	{
+		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule())->findCellMethodDescription(ccattr);
+
+		if (pMethodDescription)
+		{
+			free(ccattr);
+			return new RealEntityMethod(pMethodDescription, this);
+		}
+	}
+	else
+	{
+		// 如果访问了def持久化类容器属性
+		// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
+		PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pScriptModule())->findPersistentPropertyDescription(ccattr);
+		if (pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_CELL_DATA_FLAGS) > 0)
+		{
+			setDirty();
+		}
+	}
+	*/
 	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }
@@ -1252,6 +1275,9 @@ PyObject* EntityComponent::createCellData()
 //-------------------------------------------------------------------------------------
 void EntityComponent::createFromDict(PyObject* pyDict)
 {
+	ENTITY_ID old_ownerID = ownerID_;
+	ownerID_ = 0;
+
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs = pChildPropertyDescrs();
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs->begin();
@@ -1268,7 +1294,7 @@ void EntityComponent::createFromDict(PyObject* pyDict)
 				CRITICAL_MSG(fmt::format("EntityComponent::createFromDict: {} type(curr_py: {} != {}) error! name={}, utype={}, owner={}, ownerID={}, domain={}.\n",
 					propertyDescription->getName(), (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName(),
 					pComponentDescrs_ ? pComponentDescrs_->getName() : "", pComponentDescrs_ ? pComponentDescrs_->getUType() : 0,
-					owner()->ob_type->tp_name, ownerID(), COMPONENT_NAME_EX(componentType())));
+					(ownerID() > 0 ? owner()->ob_type->tp_name : "unknown"), ownerID(), COMPONENT_NAME_EX(componentType())));
 			}
 			else
 			{
@@ -1282,9 +1308,11 @@ void EntityComponent::createFromDict(PyObject* pyDict)
 
 			ERROR_MSG(fmt::format("EntityComponent::createFromDict: not found property({}), use default values! name={}, utype={}, owner={}, ownerID={}, domain={}.\n",
 				propertyDescription->getName(), pComponentDescrs_ ? pComponentDescrs_->getName() : "", pComponentDescrs_ ? pComponentDescrs_->getUType() : 0,
-				owner()->ob_type->tp_name, ownerID(), COMPONENT_NAME_EX(componentType())));
+				(ownerID() > 0 ? owner()->ob_type->tp_name : "unknown"), ownerID(), COMPONENT_NAME_EX(componentType())));
 		}
 	}
+
+	ownerID_ = old_ownerID;
 }
 
 //-------------------------------------------------------------------------------------
