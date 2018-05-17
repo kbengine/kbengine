@@ -1319,6 +1319,10 @@ void EntityComponent::createFromDict(PyObject* pyDict)
 //-------------------------------------------------------------------------------------
 void EntityComponent::updateFromDict(PyObject* pyDict) 
 {
+	// 设置为-1， 避免onScriptSetAttribute中尝试广播属性
+	ENTITY_ID oid = ownerID_;
+	ownerID_ = -1;
+
 	PyObject *key, *value;
 	Py_ssize_t pos = 0;
 
@@ -1386,6 +1390,8 @@ void EntityComponent::updateFromDict(PyObject* pyDict)
 	}
 
 	SCRIPT_ERROR_CHECK();
+
+	ownerID_ = oid;
 }
 
 //-------------------------------------------------------------------------------------
