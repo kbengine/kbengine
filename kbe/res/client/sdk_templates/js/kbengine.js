@@ -2820,7 +2820,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			</onRemoveAvatar>				
 		*/
 		if(valname.length == 0)
-			length = "Null_" + utype;
+			valname = "Null_" + utype;
 			
 		if(canprint)
 			KBEngine.INFO_MSG("KBEngineApp::Client_onImportClientEntityDef: importAlias(" + name + ":" + valname + ")!");
