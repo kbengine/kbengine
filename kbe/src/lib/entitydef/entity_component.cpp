@@ -397,40 +397,6 @@ void EntityComponent::onInstallScript(PyObject* mod)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* EntityComponent::onScriptGetAttribute(PyObject* attr)
-{
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
-
-	/*
-	// 如果是ghost调用def方法则需要rpc调用。
-	if (!isReal())
-	{
-		MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(pScriptModule())->findCellMethodDescription(ccattr);
-
-		if (pMethodDescription)
-		{
-			free(ccattr);
-			return new RealEntityMethod(pMethodDescription, this);
-		}
-	}
-	else
-	{
-		// 如果访问了def持久化类容器属性
-		// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
-		PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pScriptModule())->findPersistentPropertyDescription(ccattr);
-		if (pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_CELL_DATA_FLAGS) > 0)
-		{
-			setDirty();
-		}
-	}
-	*/
-	free(ccattr);
-	return ScriptObject::onScriptGetAttribute(attr);
-}
-
-//-------------------------------------------------------------------------------------
 int EntityComponent::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
 	DEBUG_OP_ATTRIBUTE("set", attr)

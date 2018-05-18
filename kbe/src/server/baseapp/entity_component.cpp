@@ -21,4 +21,10 @@ SCRIPT_GET_DECLARE("client",						pyGetClientEntityCall,	0,					0)
 SCRIPT_GETSET_DECLARE_END()
 BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
 
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponent::onScriptGetAttribute(PyObject* attr)
+{
+	return ScriptObject::onScriptGetAttribute(attr);
+}
+
 }
