@@ -5402,7 +5402,8 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(pEntity, "__ACCOUNT_NAME__");
 	if(py__ACCOUNT_NAME__ == NULL)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) not found __ACCOUNT_NAME__!\n", pEntity->scriptName(), entityID));
+		PyErr_Clear();
 		return;
 	}
 
@@ -5417,7 +5418,7 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 
 	if(accountName.size() == 0)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) __ACCOUNT_NAME__ is NULL!\n", pEntity->scriptName(), entityID));
 		return;
 	}
 
@@ -5547,7 +5548,8 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(pEntity, "__ACCOUNT_NAME__");
 	if(py__ACCOUNT_NAME__ == NULL)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: {}({}) not found __ACCOUNT_NAME__!\n", pEntity->scriptName(), entityID));
+		PyErr_Clear();
 		return;
 	}
 
@@ -5562,7 +5564,7 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 
 	if(accountName.size() == 0)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: {}({}) __ACCOUNT_NAME__ is NULL!\n", pEntity->scriptName(), entityID));
 		return;
 	}
 
