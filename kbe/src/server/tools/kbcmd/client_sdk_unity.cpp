@@ -1417,7 +1417,7 @@ bool ClientSDKUnity::writeTypeItemType_AliasName(const std::string& itemName, co
 		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", ntype, itemName);
 		sourcefileBody_ += fmt::format("\t\t\treturn value.value;\n\t\t}}\n\n");
 
-		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}(int value)\n\t\t{{\n", itemName);
+		sourcefileBody_ += fmt::format("\t\tpublic static implicit operator {}({} value)\n\t\t{{\n", itemName, ntype);
 		sourcefileBody_ += fmt::format("\t\t\t{} tvalue = ({})value;\n\t\t\treturn new {}(tvalue);\n\t\t}}\n\n", ntype, ntype, itemName);
 
 		sourcefileBody_ += fmt::format("\t\tpublic static {} MaxValue\n\t\t{{\n", ntype);
