@@ -3639,11 +3639,11 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	DBID										entityDBID;
 	uint32										flags;
 	uint64										deadline;
-	COMPONENT_TYPE								componentType;
+	int											clientType;
 	bool										forceInternalLogin;
 	bool										needCheckPassword;
 
-	s >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
+	s >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> clientType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -3671,7 +3671,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	ptinfos->entityDBID = entityDBID;
 	ptinfos->flags = flags;
 	ptinfos->deadline = deadline;
-	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)componentType;
+	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)clientType;
 	ptinfos->datas = datas;
 	ptinfos->needCheckPassword = needCheckPassword;
 	pendingLoginMgr_.add(ptinfos);
