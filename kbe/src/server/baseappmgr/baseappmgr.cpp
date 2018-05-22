@@ -594,11 +594,11 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	DBID entityDBID;
 	uint32 flags;
 	uint64 deadline;
-	COMPONENT_TYPE componentType;
+	int clientType;
 	bool forceInternalLogin;
 	bool needCheckPassword;
 
-	s >> loginName >> accountName >> password >> needCheckPassword >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
+	s >> loginName >> accountName >> password >> needCheckPassword >> entityDBID >> flags >> deadline >> clientType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
@@ -628,7 +628,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-		(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << componentType << forceInternalLogin;
+		(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << clientType << forceInternalLogin;
 		pBundle->appendBlob(datas);
 
 		int runstate = -1;
@@ -650,7 +650,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << componentType << forceInternalLogin;
+	(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << clientType << forceInternalLogin;
 	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 
@@ -673,11 +673,11 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	DBID entityDBID;
 	uint32 flags;
 	uint64 deadline;
-	COMPONENT_TYPE componentType;
+	int clientType;
 	bool forceInternalLogin;
 	bool needCheckPassword;
 
-	s >> componentID >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
+	s >> componentID >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> clientType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr:{0}, componentID={1}, entityID={2}.\n",
@@ -702,7 +702,7 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << needCheckPassword << entityID << entityDBID << flags << deadline << componentType << forceInternalLogin;
+	(*pBundle) << loginName << accountName << password << needCheckPassword << entityID << entityDBID << flags << deadline << clientType << forceInternalLogin;
 	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 }
