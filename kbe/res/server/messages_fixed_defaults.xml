@@ -125,7 +125,7 @@
 		<id>208</id>
 		<descr>客户端entitydef导出。</descr>
 	</Baseapp::importClientEntityDef>
-	
+
 	<Base::onRemoteMethodCall>
 		<id>301</id>
 		<descr>调用一个base远程方法。</descr>
@@ -459,6 +459,19 @@
 		<descr>查询cellapp中cell列表</descr>
 	</Cellapp::setSpaceViewer>
 
+	<Baseapp::onExecScriptCommand>
+		<id>55001</id>
+		<descr>console远程执行python语句。</descr>
+	</Baseapp::onExecScriptCommand>
 
+	<Cellapp::onExecScriptCommand>
+		<id>55002</id>
+		<descr>console远程执行python语句。</descr>
+	</Cellapp::onExecScriptCommand>
+
+	<Bots::onExecScriptCommand>
+		<id>55003</id>
+		<descr>console远程执行python语句。</descr>
+	</Bots::onExecScriptCommand>
 
 </root>
