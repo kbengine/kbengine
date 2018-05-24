@@ -274,7 +274,9 @@ public:
 
 	virtual bool isSamePersistentType(PyObject* pyValue);
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 
 	virtual PyObject* createFromStream(MemoryStream* mstream);
 

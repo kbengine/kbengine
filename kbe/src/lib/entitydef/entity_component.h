@@ -149,7 +149,8 @@ public:
 
 	bool isSamePersistentType(PyObject* pyValue);
 	void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
-	PyObject* createFromPersistentStream(MemoryStream* mstream);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 
 	PropertyDescription* getProperty(ENTITY_PROPERTY_UID child_uid);
 	
@@ -184,7 +185,7 @@ public:
 	PyObject* createCellData();
 
 	void createFromDict(PyObject* pyDict);
-	void updateFromDict(PyObject* pyDict);
+	void updateFromDict(PyObject* pOwner, PyObject* pyDict);
 
 	static void convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData);
 	static std::vector<EntityComponent*> getComponents(const std::string& name, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs);

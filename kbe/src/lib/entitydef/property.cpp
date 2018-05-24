@@ -496,9 +496,23 @@ void EntityComponentDescription::addPersistentToStream(MemoryStream* mstream, Py
 }
 
 //-------------------------------------------------------------------------------------
+void EntityComponentDescription::addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream)
+{
+	((EntityComponentType*)dataType_)->addPersistentToStreamTemplates(pScriptModule, mstream);
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* EntityComponentDescription::createFromPersistentStream(MemoryStream* mstream)
 {
-	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(static_cast<EntityComponentType*>(dataType_)->createFromPersistentStream(mstream));
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(static_cast<EntityComponentType*>(dataType_)->createFromPersistentStream(NULL, mstream));
+	pEntityComponent->pPropertyDescription(this);
+	return pEntityComponent;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* EntityComponentDescription::createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream)
+{
+	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(static_cast<EntityComponentType*>(dataType_)->createFromPersistentStream(pScriptModule, mstream));
 	pEntityComponent->pPropertyDescription(this);
 	return pEntityComponent;
 }

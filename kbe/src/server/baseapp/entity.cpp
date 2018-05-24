@@ -459,18 +459,22 @@ void Entity::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 				}
 				else
 				{
-					PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
-					if (!propertyDescription->isSamePersistentType(pyVal))
+					// 一些实体没有cell部分， 因此cell属性忽略
+					if (cellDataDict_)
 					{
-						CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
-							this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
-					}
-					else
-					{
-						(*s) << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
-						log.push_back(propertyDescription->getUType());
-						propertyDescription->addPersistentToStream(s, pyVal);
-						DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
+						PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
+						if (!propertyDescription->isSamePersistentType(pyVal))
+						{
+							CRITICAL_MSG(fmt::format("{}::addPersistentsDataToStream: {} persistent({}) type(curr_py: {} != {}) error.\n",
+								this->scriptName(), this->id(), attrname, (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
+						}
+						else
+						{
+							(*s) << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
+							log.push_back(propertyDescription->getUType());
+							propertyDescription->addPersistentToStream(s, pyVal);
+							DEBUG_PERSISTENT_PROPERTY("addCellPersistentsDataToStream", attrname);
+						}
 					}
 				}
 			}

@@ -69,6 +69,13 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 
 			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
 			{
+				// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+				if (!pScriptModule->hasCell())
+				{
+					if (!propertyDescription->hasBase())
+						continue;
+				}
+
 				bool hasComponentData = false;
 				EntityComponentType* pEntityComponentType = ((EntityComponentType*)propertyDescription->getDataType());
 
@@ -82,7 +89,7 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 					}
 					else
 					{
-						pyVal = propertyDescription->createFromPersistentStream(&s);
+						pyVal = ((EntityComponentDescription*)propertyDescription)->createFromPersistentStream(pScriptModule, &s);
 
 						if (!propertyDescription->isSameType(pyVal))
 						{

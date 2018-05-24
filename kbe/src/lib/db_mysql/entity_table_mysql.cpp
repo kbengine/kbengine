@@ -7,6 +7,7 @@
 #include "remove_entity_helper.h"
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/property.h"
+#include "entitydef/entitydef.h"
 #include "db_interface/db_interface.h"
 #include "db_interface/entity_table.h"
 #include "network/fixed_messages.h"
@@ -137,6 +138,13 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 	for(; iter != pdescrsMap.end(); ++iter)
 	{
 		PropertyDescription* pdescrs = iter->second;
+
+		// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+		if (!sm->hasCell())
+		{
+			if (pdescrs->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT && !pdescrs->hasBase())
+				continue;
+		}
 
 		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
 
@@ -1500,12 +1508,19 @@ bool EntityTableItemMysql_Component::initialize(const PropertyDescription* pProp
 	pTable->tableName(tableName);
 	pTable->isChild(true);
 
+	ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(pparentTable->tableName(), false);
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = pEntityComponentScriptDefModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
 
 	for (; iter != pdescrsMap.end(); ++iter)
 	{
 		PropertyDescription* pdescrs = iter->second;
+
+		if (!pScriptDefModule->hasCell() && pdescrs->hasCell() && !pdescrs->hasBase())
+		{
+			continue;
+		}
 
 		EntityTableItem* pETItem = pparentTable->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
 

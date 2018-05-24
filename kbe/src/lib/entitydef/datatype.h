@@ -769,11 +769,14 @@ public:
 
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addPersistentToStream(MemoryStream* mstream);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 	void addCellDataToStream(MemoryStream* mstream, uint32 flags, PyObject* pyValue, 
 		ENTITY_ID ownerID, PropertyDescription* parentPropertyDescription, COMPONENT_TYPE sendtoComponentType, bool checkValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createFromPersistentStream(MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptDefModule, MemoryStream* mstream);
+
 	PyObject* createCellData();
 	PyObject* createCellDataFromPersistentStream(MemoryStream* mstream);
 	PyObject* createCellDataFromStream(MemoryStream* mstream);

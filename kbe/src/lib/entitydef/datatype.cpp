@@ -2469,7 +2469,7 @@ void EntityComponentType::addPersistentToStream(MemoryStream* mstream, PyObject*
 					propertyDescription->getName(), pScriptDefModule_ ? pScriptDefModule_->getName() : "", pScriptDefModule_ ? pScriptDefModule_->getUType() : 0,
 					COMPONENT_NAME_EX(CELLAPP_TYPE)));
 
-				propertyDescription->addToStream(mstream, NULL);
+				propertyDescription->addPersistentToStream(mstream, NULL);
 			}
 		}
 
@@ -2480,6 +2480,41 @@ void EntityComponentType::addPersistentToStream(MemoryStream* mstream, PyObject*
 	pEntityComponent->addPersistentToStream(mstream, pyValue);
 }
 
+//-------------------------------------------------------------------------------------
+void EntityComponentType::addPersistentToStream(MemoryStream* mstream)
+{
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptDefModule_->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
+	for (; iter != propertyDescrs.end(); ++iter)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+
+		PyObject* pyDefVal = propertyDescription->newDefaultVal();
+		propertyDescription->getDataType()->addToStream(mstream, pyDefVal);
+		Py_DECREF(pyDefVal);
+	}
+}
+//-------------------------------------------------------------------------------------
+void EntityComponentType::addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream)
+{
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptDefModule_->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
+	for (; iter != propertyDescrs.end(); ++iter)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+
+		if (propertyDescription->hasCell())
+		{
+			// 一些实体没有cell部分， 因此cell属性忽略
+			if (!pScriptModule->hasCell())
+				continue;
+		}
+
+		propertyDescription->addPersistentToStream(mstream, NULL);
+	}
+}
 //-------------------------------------------------------------------------------------
 void EntityComponentType::addCellDataToStream(MemoryStream* mstream, uint32 flags, PyObject* pyValue, 
 	ENTITY_ID ownerID, PropertyDescription* parentPropertyDescription, COMPONENT_TYPE sendtoComponentType, bool checkValue)
@@ -2609,7 +2644,7 @@ PyObject* EntityComponentType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* EntityComponentType::createFromPersistentStream(MemoryStream* mstream)
+PyObject* EntityComponentType::createFromPersistentStream(ScriptDefModule* pScriptDefModule, MemoryStream* mstream)
 {
 	KBE_ASSERT(EntityDef::context().currEntityID > 0);
 
@@ -2619,7 +2654,7 @@ PyObject* EntityComponentType::createFromPersistentStream(MemoryStream* mstream)
 	PyObject* pyEntityComponent = new(pyobj) EntityComponent(EntityDef::context().currEntityID, pScriptDefModule_, EntityDef::context().currComponentType);
 
 	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyEntityComponent);
-	return pEntityComponent->createFromPersistentStream(mstream);
+	return pEntityComponent->createFromPersistentStream(pScriptDefModule, mstream);
 }
 
 //-------------------------------------------------------------------------------------

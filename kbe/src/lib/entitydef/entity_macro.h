@@ -437,7 +437,7 @@ public:																										\
 					if(PyDict_Check(value) /* createDictDataFromPersistentStream 流程导致非字典 */)			\
 					{																						\
 						EntityComponent* pEntityComponent = (EntityComponent*)PyObject_GetAttr(this, key);	\
-						pEntityComponent->updateFromDict(value);											\
+						pEntityComponent->updateFromDict(this, value);										\
 						Py_DECREF(pEntityComponent);														\
 					}																						\
 					else																					\
@@ -471,7 +471,25 @@ public:																										\
 				}																							\
 			}																								\
 			else																							\
+			{																								\
+				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);			\
+				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);							\
+				PyMem_Free(PyUnicode_AsWideCharStringRet0);													\
+																											\
+				PropertyDescription* pCompPropertyDescription =												\
+					pScriptModule_->findComponentPropertyDescription(ccattr);								\
+																											\
+				free(ccattr);																				\
+																											\
+				if (pCompPropertyDescription)																\
+				{																							\
+					/* 一般在base上可能放在cellData中是字典，而没有cell的实体需要pass这个设置 */				\
+					if(PyDict_Check(value))																	\
+						continue;																			\
+				}																							\
+																											\
 				PyObject_SetAttr(this, key, value);															\
+			}																								\
 		}																									\
 																											\
 		SCRIPT_ERROR_CHECK();																				\
