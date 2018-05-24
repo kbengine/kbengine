@@ -474,4 +474,44 @@
 		<descr>console远程执行python语句。</descr>
 	</Bots::onExecScriptCommand>
 
+
+	<Cellapp::onClientActiveTick>
+		<id>55101</id>
+		<descr>客户端的tick。</descr>
+	</Cellapp::onClientActiveTick>
+
+	<Cellappmgr::onClientActiveTick>
+		<id>55102</id>
+		<descr>客户端的tick。</descr>
+	</Cellappmgr::onClientActiveTick>
+
+	<Baseappmgr::onClientActiveTick>
+		<id>55103</id>
+		<descr>客户端的tick。</descr>
+	</Baseappmgr::onClientActiveTick>
+
+	<Logger::onClientActiveTick>
+		<id>55104</id>
+		<descr>客户端的tick。</descr>
+	</Logger::onClientActiveTick>
+
+	<Interfaces::onClientActiveTick>
+		<id>55105</id>
+		<descr>客户端的tick。</descr>
+	</Interfaces::onClientActiveTick>
+
+	<Dbmgr::onClientActiveTick>
+		<id>55106</id>
+		<descr>客户端的tick。</descr>
+	</Dbmgr::onClientActiveTick>
+
+	<Loginapp::onClientActiveTick>
+		<id>55107</id>
+		<descr>客户端的tick。</descr>
+	</Loginapp::onClientActiveTick>
+
+	<Bots::onClientActiveTick>
+		<id>55108</id>
+		<descr>客户端的tick。</descr>
+	</Bots::onClientActiveTick>
 </root>
