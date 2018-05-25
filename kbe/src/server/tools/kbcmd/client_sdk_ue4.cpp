@@ -101,19 +101,19 @@ std::string ClientSDKUE4::typeToType(const std::string& type)
 	}
 	else if (type == "PYTHON")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "PY_DICT")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "PY_TUPLE")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "PY_LIST")
 	{
-		return type;
+		return "TArray<uint8>";
 	}
 	else if (type == "BLOB")
 	{

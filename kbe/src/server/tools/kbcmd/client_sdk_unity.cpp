@@ -99,19 +99,19 @@ std::string ClientSDKUnity::typeToType(const std::string& type)
 	}
 	else if (type == "PYTHON")
 	{
-		return type;
+		return "byte[]";
 	}
 	else if (type == "PY_DICT")
 	{
-		return type;
+		return "byte[]";
 	}
 	else if (type == "PY_TUPLE")
 	{
-		return type;
+		return "byte[]";
 	}
 	else if (type == "PY_LIST")
 	{
-		return type;
+		return "byte[]";
 	}
 	else if (type == "BLOB")
 	{
