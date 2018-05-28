@@ -2060,7 +2060,7 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 	if (!pEntityScriptDefModule->isComponentModule())
 		initBody_ = "\tEntity(),\n\tpBaseEntityCall(NULL),\n\tpCellEntityCall(NULL),\n";
 	else
-		initBody_ = "\tEntityComponent(),\n";
+		initBody_ = "\tEntityComponent(),\n\tpBaseEntityCall(NULL),\n\tpCellEntityCall(NULL),\n";
 
 	fileBody() = headerBody;
 	strutil::kbe_replace(fileBody(), "#REPLACE#", fmt::format("\tPlease inherit this module, such as: (class {} : public {}{})\n",
@@ -2116,6 +2116,10 @@ bool ClientSDKUE4::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefModul
 	if (pEntityScriptDefModule->isComponentModule())
 	{
 		fileBody() += fmt::format("class KBENGINEPLUGINS_API {} : public EntityComponent\n{{\npublic:\n", newModuleName);
+
+		// Ð´entityCallÊôÐÔ
+		fileBody() += fmt::format("\tEntityBaseEntityCall_{}* pBaseEntityCall;\n", newModuleName);
+		fileBody() += fmt::format("\tEntityCellEntityCall_{}* pCellEntityCall;\n\n", newModuleName);
 
 		changeContextToSource();
 		fileBody() += fmt::format("#include \"{}.h\"\n", newModuleName);
@@ -2207,7 +2211,8 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 
 			//EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
 			fileBody() += fmt::format("\t{}->pOwner = this;\n", pPropertyDescription->getName());
-			fileBody() += fmt::format("\t{}->ownerID = id_;\n\n", pPropertyDescription->getName());
+			fileBody() += fmt::format("\t{}->ownerID = id_;\n", pPropertyDescription->getName());
+			fileBody() += fmt::format("\t{}->entityComponentPropertyID = {};\n\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
 		}
 	}
 
@@ -2215,14 +2220,9 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	
 	fileBody() += fmt::format("\n{}::~{}()\n{{\n", newModuleName, newModuleName);
 
+
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
-		fileBody() += fmt::format("\tif(pBaseEntityCall)\n");
-		fileBody() += fmt::format("\t\tdelete pBaseEntityCall;\n\n");
-
-		fileBody() += fmt::format("\tif(pCellEntityCall)\n");
-		fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
-
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
 		for (; propIter != clientPropertys.end(); ++propIter)
@@ -2237,6 +2237,12 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 			fileBody() += fmt::format("\t\tdelete {};\n\n", pPropertyDescription->getName());
 		}
 	}
+
+	fileBody() += fmt::format("\tif(pBaseEntityCall)\n");
+	fileBody() += fmt::format("\t\tdelete pBaseEntityCall;\n\n");
+
+	fileBody() += fmt::format("\tif(pCellEntityCall)\n");
+	fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
 
 	fileBody() += "}\n\n";
 
@@ -2256,6 +2262,19 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	// EntityCall
 	std::string newModuleName = fmt::format("{}{}", pEntityScriptDefModule->getName(), moduleSuffix);
+
+	if (pEntityScriptDefModule->isComponentModule())
+	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\n\tvoid createFromStream(MemoryStream& stream) override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::createFromStream(MemoryStream& stream)\n{{\n", newModuleName);
+		fileBody() += fmt::format("\tEntityComponent::createFromStream(stream);\n");
+		fileBody() += fmt::format("\tpBaseEntityCall = new EntityBaseEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		fileBody() += fmt::format("\tpCellEntityCall = new EntityCellEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		fileBody() += fmt::format("}}\n");
+	}
 
 	if (!pEntityScriptDefModule->isComponentModule())
 	{

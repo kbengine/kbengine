@@ -1748,6 +1748,10 @@ bool ClientSDKUnity::writeEntityModuleBegin(ScriptDefModule* pEntityScriptDefMod
 	if (pEntityScriptDefModule->isComponentModule())
 	{
 		sourcefileBody_ += fmt::format("\tpublic abstract class {} : EntityComponent\n\t{{\n", newModuleName);
+
+		// Ð´entityCallÊôÐÔ
+		sourcefileBody_ += fmt::format("\t\tpublic EntityBaseEntityCall_{} baseEntityCall = null;\n", newModuleName);
+		sourcefileBody_ += fmt::format("\t\tpublic EntityCellEntityCall_{} cellEntityCall = null;\n\n", newModuleName);
 	}
 	else
 	{
@@ -1816,6 +1820,15 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 	// entityCall
 	std::string newModuleName = fmt::format("{}{}", pEntityScriptDefModule->getName(), moduleSuffix);
 
+	if (pEntityScriptDefModule->isComponentModule())
+	{
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void createFromStream(MemoryStream stream)\n\t\t{{\n");
+		sourcefileBody_ += fmt::format("\t\t\tbase.createFromStream(stream);\n");
+		sourcefileBody_ += fmt::format("\t\t\tbaseEntityCall = new EntityBaseEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		sourcefileBody_ += fmt::format("\t\t\tcellEntityCall = new EntityCellEntityCall_{}(entityComponentPropertyID, ownerID);\n", newModuleName);
+		sourcefileBody_ += fmt::format("\t\t}}\n");
+	}
+
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
 		sourcefileBody_ += fmt::format("\n\t\tpublic {}()\n\t\t{{\n", newModuleName);
@@ -1835,6 +1848,7 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			sourcefileBody_ += fmt::format("\t\t\t\tif(entityComponentScript != null)\n\t\t\t\t{{\n");
 			sourcefileBody_ += fmt::format("\t\t\t\t\t{} = ({}{})Activator.CreateInstance(entityComponentScript);\n", pPropertyDescription->getName(), pEntityComponentType->pScriptDefModule()->getName(), moduleSuffix);
 			sourcefileBody_ += fmt::format("\t\t\t\t\t{}.owner = this;\n", pPropertyDescription->getName());
+			sourcefileBody_ += fmt::format("\t\t\t\t\t{}.entityComponentPropertyID = {};\n", pPropertyDescription->getName(), pPropertyDescription->getUType());
 			sourcefileBody_ += fmt::format("\t\t\t\t}}\n\t\t\t}}\n\n");
 
 			sourcefileBody_ += fmt::format("\t\t\tif({} == null)\n", pPropertyDescription->getName());
