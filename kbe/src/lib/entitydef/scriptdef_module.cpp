@@ -300,6 +300,27 @@ PyObject* ScriptDefModule::getInitDict(void)
 //-------------------------------------------------------------------------------------
 void ScriptDefModule::autoMatchCompOwn()
 {
+	if (isComponentModule())
+	{
+		std::string fmodule = "scripts/base/components/" + name_ + ".py";
+		std::string fmodule_pyc = fmodule + "c";
+		if (Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
+			Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
+		{
+			setBase(true);
+		}
+
+		fmodule = "scripts/cell/components/" + name_ + ".py";
+		fmodule_pyc = fmodule + "c";
+		if (Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
+			Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
+		{
+			setCell(true);
+		}
+
+		return;
+	}
+
 	/*
 		entity存在某部分(cell, base, client)的判定规则
 
