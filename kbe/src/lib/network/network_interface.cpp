@@ -48,16 +48,14 @@ NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
 	intEndpoint_(),
 	channelMap_(),
 	pDispatcher_(pDispatcher),
-	pExtensionData_(NULL),
 	pExtListenerReceiver_(NULL),
 	pIntListenerReceiver_(NULL),
 	pDelayedChannels_(new DelayedChannels()),
 	pChannelTimeOutHandler_(NULL),
 	pChannelDeregisterHandler_(NULL),
-	isExternal_(extlisteningPort_min != -1),
 	numExtChannels_(0)
 {
-	if(isExternal())
+	if(extlisteningPort_min != -1)
 	{
 		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
 

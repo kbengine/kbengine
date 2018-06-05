@@ -82,13 +82,8 @@ public:
 	/* 外部网点和内部网点 */
 	EndPoint & extEndpoint()				{ return extEndpoint_; }
 	EndPoint & intEndpoint()				{ return intEndpoint_; }
-	
-	bool isExternal() const				{ return isExternal_; }
 
 	const char * c_str() const { return extEndpoint_.c_str(); }
-
-	void * pExtensionData() const		{ return pExtensionData_; }
-	void pExtensionData(void * pData)	{ pExtensionData_ = pData; }
 	
 	const ChannelMap& channels(void) { return channelMap_; }
 		
@@ -96,7 +91,7 @@ public:
 	void sendIfDelayed(Channel & channel);
 	void delayedSend(Channel & channel);
 	
-	bool good() const{ return (!isExternal() || extEndpoint_.good()) && (intEndpoint_.good()); }
+	bool good() const{ return (!pExtListenerReceiver_ || extEndpoint_.good()) && (intEndpoint_.good()); }
 
 	void onChannelTimeOut(Channel * pChannel);
 	
@@ -118,8 +113,6 @@ private:
 	ChannelMap								channelMap_;
 
 	EventDispatcher *						pDispatcher_;
-
-	void *									pExtensionData_;
 	
 	ListenerReceiver *						pExtListenerReceiver_;
 	ListenerReceiver *						pIntListenerReceiver_;
@@ -128,8 +121,6 @@ private:
 	
 	ChannelTimeOutHandler *					pChannelTimeOutHandler_;	// 超时的通道可被这个句柄捕捉， 例如告知上层client断开
 	ChannelDeregisterHandler *				pChannelDeregisterHandler_;
-
-	const bool								isExternal_;
 
 	int32									numExtChannels_;
 };
