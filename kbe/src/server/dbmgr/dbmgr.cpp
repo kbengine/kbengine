@@ -402,6 +402,12 @@ void Dbmgr::finalise()
 	SAFE_RELEASE(pBaseAppData_);
 	SAFE_RELEASE(pCellAppData_);
 
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
 	DBUtil::finalise();
 	PythonApp::finalise();
 }

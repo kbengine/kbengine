@@ -190,6 +190,12 @@ void Loginapp::onInstallPyModules()
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
 	mainProcessTimer_.cancel();
 	PythonApp::finalise();
 }

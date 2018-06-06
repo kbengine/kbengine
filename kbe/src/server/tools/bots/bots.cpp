@@ -89,6 +89,7 @@ bool Bots::initializeEnd()
 {
 	pTelnetServer_ = new TelnetServer(&dispatcher(), &networkInterface());
 	pTelnetServer_->pScript(&getScript());
+
 	if(!pTelnetServer_->start(g_kbeSrvConfig.getBots().telnet_passwd, 
 		g_kbeSrvConfig.getBots().telnet_deflayer, 
 		g_kbeSrvConfig.getBots().telnet_port))
@@ -145,9 +146,11 @@ void Bots::finalise()
 	reqCreateAndLoginTotalCount_ = 0;
 	SAFE_RELEASE(pCreateAndLoginHandler_);
 	
-	if(pTelnetServer_)
+	if (pTelnetServer_)
+	{
 		pTelnetServer_->stop();
-	SAFE_RELEASE(pTelnetServer_);
+		SAFE_RELEASE(pTelnetServer_);
+	}
 
 	ClientApp::finalise();
 }
