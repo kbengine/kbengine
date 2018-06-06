@@ -169,6 +169,12 @@ bool Logger::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Logger::finalise()
 {
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
 	std::deque<LOG_ITEM*>::iterator iter = buffered_logs_.begin();
 	for(; iter != buffered_logs_.end(); ++iter)
 	{
