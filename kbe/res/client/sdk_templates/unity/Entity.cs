@@ -333,14 +333,19 @@
 		
 		public virtual void onDirectionChanged(Vector3 oldValue)
 		{
-			direction.x = direction.x * 360 / ((float)System.Math.PI * 2);
-			direction.y = direction.y * 360 / ((float)System.Math.PI * 2);
-			direction.z = direction.z * 360 / ((float)System.Math.PI * 2);
-			
 			//Dbg.DEBUG_MSG(className + "::set_direction: " + oldValue + " => " + v); 
 			
 			if(inWorld)
+			{
+				direction.x = direction.x * 360 / ((float)System.Math.PI * 2);
+				direction.y = direction.y * 360 / ((float)System.Math.PI * 2);
+				direction.z = direction.z * 360 / ((float)System.Math.PI * 2);
 				Event.fireOut("set_direction", new object[]{this});
+			}
+			else
+			{
+				direction = oldValue;
+			}
 		}
 
 		/// <summary>
