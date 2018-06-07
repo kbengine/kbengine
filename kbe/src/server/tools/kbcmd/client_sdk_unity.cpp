@@ -2434,7 +2434,7 @@ bool ClientSDKUnity::writeEntityProperty_FLOAT(ScriptDefModule* pEntityScriptDef
 	ScriptDefModule* pCurrScriptDefModule, PropertyDescription* pPropertyDescription)
 {
 	sourcefileBody_ += fmt::format("\t\tpublic float {} = {}f;\n", pPropertyDescription->getName(),
-		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0f"));
+		(strlen(pPropertyDescription->getDefaultValStr()) > 0 ? pPropertyDescription->getDefaultValStr() : "0"));
 
 	std::string name = pPropertyDescription->getName();
 	name[0] = std::toupper(name[0]);
