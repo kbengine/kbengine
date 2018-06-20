@@ -524,7 +524,7 @@ public:																										\
 				if (iter->second->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)						\
 				{																							\
 					EntityComponentType* pEntityComponentType = (EntityComponentType*)iter->second->getDataType();	\
-					if (pEntityComponentType->pScriptDefModule()->getPropertyDescrs().size() == 0)			\
+					if (pEntityComponentType->pScriptDefModule()->getCellPropertyDescriptions().size() == 0)\
 					{																						\
 						--count;																			\
 						continue;																			\
