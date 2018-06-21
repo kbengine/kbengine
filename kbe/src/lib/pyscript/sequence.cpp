@@ -452,6 +452,7 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 		values[szA + i] = pyTemp;
 	}
 
+	Py_INCREF(seq);
 	return seq;
 }
 
@@ -491,6 +492,7 @@ PyObject* Sequence::seq_inplace_repeat(PyObject* self, Py_ssize_t n)
 		}
 	}
 
+	Py_INCREF(seq);
 	return seq;
 }
 
