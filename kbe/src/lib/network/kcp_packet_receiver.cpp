@@ -107,7 +107,7 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 			}
 			else
 			{
-				if (bytes_recvd >= pRcvdUDPPacket->size())
+				if (bytes_recvd >= (int)pRcvdUDPPacket->size())
 				{
 					ERROR_MSG(fmt::format("KCPPacketReceiver::processPacket(): recvd_bytes({}) >= maxBuf({})! addr={}\n", bytes_recvd, pRcvdUDPPacket->size(), pChannel->c_str()));
 				}
