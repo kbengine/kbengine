@@ -135,7 +135,7 @@ public:
 		baseappmgr返回的登录网关地址
 	*/
 	void onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pChannel, std::string& loginName, 
-		std::string& accountName, std::string& addr, uint16 port);
+		std::string& accountName, std::string& addr, uint16 tcp_port, uint16 udp_port);
 
 
 	/** 网络接口

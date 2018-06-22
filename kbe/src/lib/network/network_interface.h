@@ -30,15 +30,16 @@ public:
 	typedef std::map<Address, Channel *>	ChannelMap;
 	
 	NetworkInterface(EventDispatcher * pDispatcher,
-		int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
+		int32 extlisteningTcpPort_min = -1, int32 extlisteningTcpPort_max = -1, int32 extlisteningUdpPort_min = -1, int32 extlisteningUdpPort_max = -1, const char * extlisteningInterface = "",
 		uint32 extrbuffer = 0, uint32 extwbuffer = 0, 
 		int32 intlisteningPort = 0, const char * intlisteningInterface = "",
 		uint32 intrbuffer = 0, uint32 intwbuffer = 0);
 
 	~NetworkInterface();
 
-	INLINE const Address & extaddr() const;
-	INLINE const Address & intaddr() const;
+	INLINE const Address & extTcpAddr() const;
+	INLINE const Address & extUdpAddr() const;
+	INLINE const Address & intTcpAddr() const;
 
 	bool initialize(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max,
 		const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR, uint32 rbuffer = 0, uint32 wbuffer = 0);
@@ -62,15 +63,10 @@ public:
 	EventDispatcher & dispatcher()		{ return *pDispatcher_; }
 
 	/* 外部网点和内部网点 */
-	EndPoint & extEndpoint()				{ return extEndpoint_; }
-	EndPoint & intEndpoint()				{ return intEndpoint_; }
-	
-	bool isExternal() const				{ return isExternal_; }
+	EndPoint & extEndpoint()				{ return extTcpEndpoint_; }
+	EndPoint & intEndpoint()				{ return intTcpEndpoint_; }
 
-	const char * c_str() const { return extEndpoint_.c_str(); }
-
-	void * pExtensionData() const		{ return pExtensionData_; }
-	void pExtensionData(void * pData)	{ pExtensionData_ = pData; }
+	const char * c_str() const { return extTcpEndpoint_.c_str(); }
 	
 	const ChannelMap& channels(void) { return channelMap_; }
 		
@@ -78,7 +74,7 @@ public:
 	void sendIfDelayed(Channel & channel);
 	void delayedSend(Channel & channel);
 	
-	bool good() const{ return (!isExternal() || extEndpoint_.good()) && (intEndpoint_.good()); }
+	bool good() const{ return (!pExtListenerReceiver_ || extTcpEndpoint_.good()) && (intTcpEndpoint_.good()); }
 
 	void onChannelTimeOut(Channel * pChannel);
 	
@@ -95,23 +91,20 @@ private:
 	void closeSocket();
 
 private:
-	EndPoint								extEndpoint_, intEndpoint_;
+	EndPoint								extTcpEndpoint_, extUdpEndpoint_, intTcpEndpoint_;
 
 	ChannelMap								channelMap_;
 
 	EventDispatcher *						pDispatcher_;
-
-	void *									pExtensionData_;
 	
 	ListenerReceiver *						pExtListenerReceiver_;
+	ListenerReceiver *						pExtUdpListenerReceiver_;
 	ListenerReceiver *						pIntListenerReceiver_;
 	
 	DelayedChannels * 						pDelayedChannels_;
 	
 	ChannelTimeOutHandler *					pChannelTimeOutHandler_;	// 超时的通道可被这个句柄捕捉， 例如告知上层client断开
 	ChannelDeregisterHandler *				pChannelDeregisterHandler_;
-
-	const bool								isExternal_;
 
 	int32									numExtChannels_;
 };

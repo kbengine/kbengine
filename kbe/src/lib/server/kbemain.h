@@ -101,8 +101,9 @@ inline void setEvns()
 
 template <class SERVER_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
-			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
-			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
+	int32 extlisteningTcpPort_min = -1, int32 extlisteningTcpPort_max = -1, 
+	int32 extlisteningUdpPort_min = -1, int32 extlisteningUdpPort_max = -1, const char * extlisteningInterface = "",
+	int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
 	setEvns();
 	startLeakDetection(componentType, g_componentID);
@@ -125,7 +126,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	Network::g_SOMAXCONN = g_kbeSrvConfig.tcp_SOMAXCONN(g_componentType);
 
 	Network::NetworkInterface networkInterface(&dispatcher, 
-		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 
+		extlisteningTcpPort_min, extlisteningTcpPort_max, extlisteningUdpPort_min, extlisteningUdpPort_max, extlisteningInterface,
 		channelCommon.extReadBufferSize, channelCommon.extWriteBufferSize,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface,
 		channelCommon.intReadBufferSize, channelCommon.intWriteBufferSize);
@@ -133,7 +134,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::getSingleton().pNetworkInterface(&networkInterface);
 
 	g_kbeSrvConfig.updateInfos(true, componentType, g_componentID, 
-			networkInterface.intaddr(), networkInterface.extaddr());
+			networkInterface.intTcpAddr(), networkInterface.extTcpAddr(), networkInterface.extUdpAddr());
 	
 	if(getUserUID() <= 0)
 	{

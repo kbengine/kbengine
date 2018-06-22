@@ -50,9 +50,10 @@ entityID_(0),
 spaceID_(0),
 dbid_(0),
 ip_(),
-port_(),
+tcp_port_(0),
+udp_port_(0),
 baseappIP_(),
-baseappPort_(),
+baseappPort_(0),
 lastSentActiveTickTime_(timestamp()),
 lastSentUpdateDataTime_(timestamp()),
 connectedBaseapp_(false),
@@ -124,7 +125,8 @@ void ClientObjectBase::reset(void)
 	dbid_ = 0;
 
 	ip_ = "";
-	port_ = 0;
+	tcp_port_ = 0;
+	udp_port_ = 0;
 
 	lastSentActiveTickTime_ = timestamp();
 	lastSentUpdateDataTime_ = timestamp();
@@ -508,7 +510,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	u_int32_t address;
 
 	Network::Address::string2ip(ip_.c_str(), address);
-	if(pEndpoint->connect(htons(port_), address) == -1)
+	if(pEndpoint->connect(htons(tcp_port_), address) == -1)
 	{
 		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
 			kbe_strerror()));
@@ -517,7 +519,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 		return NULL;
 	}
 
-	Network::Address addr(ip_.c_str(), port_);
+	Network::Address addr(ip_.c_str(), tcp_port_);
 	pEndpoint->addr(addr);
 
 	pServerChannel_->pEndPoint(pEndpoint);
@@ -690,17 +692,18 @@ void ClientObjectBase::onLoginSuccessfully(Network::Channel * pChannel, MemorySt
 
 	s >> accountName;
 	s >> ip_;
-	s >> port_;
+	s >> tcp_port_;
+	s >> udp_port_;
 	s.readBlob(serverDatas_);
 	
 	connectedBaseapp_ = false;
-	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}!\n", name_, ip_, port_));
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}|{}!\n", name_, ip_, tcp_port_, udp_port_));
 
 	EventData_LoginSuccess eventdata;
 	eventHandler_.fire(&eventdata);
 
 	baseappIP_ = ip_;
-	baseappPort_ = port_;
+	baseappPort_ = tcp_port_;
 }
 
 //-------------------------------------------------------------------------------------	

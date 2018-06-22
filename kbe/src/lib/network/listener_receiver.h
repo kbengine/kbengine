@@ -23,13 +23,13 @@ class ListenerReceiver : public InputNotificationHandler
 {
 public:
 	ListenerReceiver(EndPoint & endpoint, Channel::Traits traits, NetworkInterface & networkInterface);
-	~ListenerReceiver();
+	virtual ~ListenerReceiver();
 
-private:
-	virtual int handleInputNotification(int fd);
+protected:
+	virtual int handleInputNotification(int fd) = 0;
 	EventDispatcher & dispatcher();
 
-private:
+protected:
 	EndPoint & endpoint_;
 	Channel::Traits traits_;
 	NetworkInterface & networkInterface_;

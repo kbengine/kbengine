@@ -49,7 +49,6 @@ public:
 	{
 		pEndpoint_ = NULL;
 		pChannel_ = NULL;
-		pNetworkInterface_ = NULL;
 	}
 
 	virtual PacketReceiver::PACKET_RECEIVER_TYPE type() const

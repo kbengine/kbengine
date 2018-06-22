@@ -61,8 +61,9 @@
 		
 		// 服务端分配的baseapp地址
 		public string baseappIP = "";
-		public UInt16 baseappPort = 0;
-		
+		public UInt16 baseappTcpPort = 0;
+		public UInt16 baseappUdpPort = 0;
+
 		// 当前状态
 		public string currserver = "";
 		public string currstate = "";
@@ -510,7 +511,7 @@
 				
 				_networkInterface.reset();
 				_networkInterface = new NetworkInterface();
-				_networkInterface.connectTo(baseappIP, baseappPort, onConnectTo_baseapp_callback, null);
+				_networkInterface.connectTo(baseappIP, baseappTcpPort, onConnectTo_baseapp_callback, null);
 			}
 			else
 			{
@@ -556,7 +557,7 @@
 				return;
 
 			Event.fireAll("onReloginBaseapp", new object[]{});
-			_networkInterface.connectTo(baseappIP, baseappPort, onReConnectTo_baseapp_callback, null);
+			_networkInterface.connectTo(baseappIP, baseappTcpPort, onReConnectTo_baseapp_callback, null);
 		}
 
 		private void onReConnectTo_baseapp_callback(string ip, int port, bool success, object userData)
@@ -780,10 +781,11 @@
 			var accountName = stream.readString();
 			username = accountName;
 			baseappIP = stream.readString();
-			baseappPort = stream.readUint16();
-			
+			baseappTcpPort = stream.readUint16();
+			baseappUdpPort = stream.readUint16();
+
 			Dbg.DEBUG_MSG("KBEngine::Client_onLoginSuccessfully: accountName(" + accountName + "), addr(" + 
-					baseappIP + ":" + baseappPort + "), datas(" + _serverdatas.Length + ")!");
+					baseappIP + ":" + baseappTcpPort + "|" + baseappUdpPort + "), datas(" + _serverdatas.Length + ")!");
 			
 			_serverdatas = stream.readBlob();
 			login_baseapp(true);

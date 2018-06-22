@@ -17,6 +17,8 @@ socket_(-1)
 		address_.ip = networkAddr;
 		address_.port = networkPort;
 	}
+
+	isRefSocket_ = false;
 }
 
 INLINE EndPoint::EndPoint(Address address):
@@ -30,6 +32,8 @@ socket_(-1)
 	{
 		address_ = address;
 	}
+
+	isRefSocket_ = false;
 }
 
 INLINE EndPoint::~EndPoint()
@@ -197,6 +201,14 @@ INLINE int EndPoint::close()
 		return 0;
 	}
 
+	// UDP模式下， socket是服务器listen的fd
+	// socket为引用模式
+	if (isRefSocket_)
+	{
+		this->setFileDescriptor(-1);
+		return 0;
+	}
+
 #ifdef unix
 	int ret = ::close(socket_);
 #else
@@ -297,6 +309,17 @@ INLINE int EndPoint::sendto(void * gramData, int gramSize,
 	sin.sin_addr.s_addr = networkAddr;
 
 	return this->sendto(gramData, gramSize, sin);
+}
+
+INLINE int EndPoint::sendto(void * gramData, int gramSize)
+{
+	sockaddr_in	sin;
+	sin.sin_family = AF_INET;
+	sin.sin_port = address_.port;
+	sin.sin_addr.s_addr = address_.ip;
+
+	return ::sendto(socket_, (char*)gramData, gramSize,
+		0, (sockaddr*)&sin, sizeof(sin));
 }
 
 INLINE int EndPoint::sendto(void * gramData, int gramSize,

@@ -24,7 +24,8 @@ KBEngineApp::KBEngineApp() :
 	username_(TEXT("")),
 	password_(TEXT("")),
 	baseappIP_(TEXT("")),
-	baseappPort_(0),
+	baseappTcpPort_(0),
+	baseappUdpPort_(0),
 	currserver_(TEXT("")),
 	currstate_(TEXT("")),
 	serverdatas_(),
@@ -63,7 +64,8 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	username_(TEXT("")),
 	password_(TEXT("")),
 	baseappIP_(TEXT("")),
-	baseappPort_(0),
+	baseappTcpPort_(0),
+	baseappUdpPort_(0),
 	currserver_(TEXT("")),
 	currstate_(TEXT("")),
 	serverdatas_(),
@@ -614,10 +616,11 @@ void KBEngineApp::Client_onLoginSuccessfully(MemoryStream& stream)
 	stream >> accountName;
 	username_ = accountName;
 	stream >> baseappIP_;
-	stream >> baseappPort_;
+	stream >> baseappTcpPort_;
+	stream >> baseappUdpPort_;
 
 	DEBUG_MSG("KBEngineApp::Client_onLoginSuccessfully(): accountName(%s), addr("
-		 "%s:%d), datas(%d)!", *accountName, *baseappIP_, baseappPort_, serverdatas_.Num());
+		 "%s:%d:%d), datas(%d)!", *accountName, *baseappIP_, baseappTcpPort_, baseappUdpPort_, serverdatas_.Num());
 
 	stream.readBlob(serverdatas_);
 	login_baseapp(true);
@@ -632,7 +635,7 @@ void KBEngineApp::login_baseapp(bool noconnect)
 		pNetworkInterface_->destroy();
 		pNetworkInterface_ = NULL;
 		initNetwork();
-		pNetworkInterface_->connectTo(baseappIP_, baseappPort_, this, 2);
+		pNetworkInterface_->connectTo(baseappIP_, baseappTcpPort_, this, 2);
 	}
 	else
 	{
@@ -676,7 +679,7 @@ void KBEngineApp::reloginBaseapp()
 	UKBEventData_onReloginBaseapp* pEventData = NewObject<UKBEventData_onReloginBaseapp>();
 	KBENGINE_EVENT_FIRE("KBEngineApp::reloginBaseapp(): onReloginBaseapp", pEventData);
 
-	pNetworkInterface_->connectTo(baseappIP_, baseappPort_, this, 3);
+	pNetworkInterface_->connectTo(baseappIP_, baseappTcpPort_, this, 3);
 }
 
 void KBEngineApp::onReloginTo_baseapp_callback(FString ip, uint16 port, bool success)

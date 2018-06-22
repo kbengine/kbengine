@@ -419,7 +419,8 @@ protected:
 	DBID													dbid_;
 
 	std::string												ip_;
-	uint16													port_;
+	uint16													tcp_port_;
+	uint16													udp_port_;
 
 	std::string												baseappIP_;
 	uint16													baseappPort_;

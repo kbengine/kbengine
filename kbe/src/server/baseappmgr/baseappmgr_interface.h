@@ -76,11 +76,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(registerPendingAccountToBaseapp,					NETWORK_VARIABLE_MESSAGE)
 
 	// 获取到baseapp的地址。
-	BASEAPPMGR_MESSAGE_DECLARE_ARGS4(onPendingAccountGetBaseappAddr,					NETWORK_VARIABLE_MESSAGE,
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS5(onPendingAccountGetBaseappAddr,					NETWORK_VARIABLE_MESSAGE,
 									std::string,										loginName, 
 									std::string,										accountName,
 									std::string,										addr,
-									uint16,												port)
+									uint16,												tcp_port,
+									uint16,												udp_port)
 									
 	// 一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp
 	// 使其允许在此baseapp上登录。

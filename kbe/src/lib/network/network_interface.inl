@@ -5,14 +5,19 @@ namespace KBEngine {
 namespace Network
 {
 
-INLINE const Address & NetworkInterface::extaddr() const
+INLINE const Address & NetworkInterface::extTcpAddr() const
 {
-	return extEndpoint_.addr();
+	return extTcpEndpoint_.addr();
 }
 
-INLINE const Address & NetworkInterface::intaddr() const
+INLINE const Address & NetworkInterface::extUdpAddr() const
 {
-	return intEndpoint_.addr();
+	return extUdpEndpoint_.addr();
+}
+
+INLINE const Address & NetworkInterface::intTcpAddr() const
+{
+	return intTcpEndpoint_.addr();
 }
 
 INLINE int32 NetworkInterface::numExtChannels() const

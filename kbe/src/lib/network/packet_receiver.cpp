@@ -20,8 +20,7 @@ namespace Network
 //-------------------------------------------------------------------------------------
 PacketReceiver::PacketReceiver() :
 	pEndpoint_(NULL),
-	pChannel_(NULL),
-	pNetworkInterface_(NULL)
+	pChannel_(NULL)
 {
 }
 

@@ -53,10 +53,10 @@ void WebSocketPacketFilter::reset()
 }
 
 //-------------------------------------------------------------------------------------
-Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
+Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket, int userarg)
 {
 	if(pPacket->encrypted())
-		return PacketFilter::send(pChannel, sender, pPacket);
+		return PacketFilter::send(pChannel, sender, pPacket, userarg);
 
 	Bundle* pBundle = pPacket->pBundle();
 	TCPPacket* pRetTCPPacket = TCPPacket::createPoolObject();
@@ -105,7 +105,7 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 	TCPPacket::reclaimPoolObject(pRetTCPPacket);
 
 	pPacket->encrypted(true);
-	return PacketFilter::send(pChannel, sender, pPacket);
+	return PacketFilter::send(pChannel, sender, pPacket, userarg);
 }
 
 //-------------------------------------------------------------------------------------

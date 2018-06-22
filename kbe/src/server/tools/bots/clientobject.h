@@ -5,6 +5,8 @@
 
 #include "tcp_packet_receiver_ex.h"
 #include "tcp_packet_sender_ex.h"
+#include "kcp_packet_receiver_ex.h"
+#include "kcp_packet_sender_ex.h"
 #include "client_lib/entity.h"
 #include "client_lib/clientobjectbase.h"
 #include "network/encryption_filter.h"
@@ -100,6 +102,9 @@ protected:
 
 	Network::TCPPacketSenderEx* pTCPPacketSenderEx_;
 	Network::TCPPacketReceiverEx* pTCPPacketReceiverEx_;
+
+	Network::KCPPacketSenderEx* pKCPPacketSenderEx_;
+	Network::KCPPacketReceiverEx* pKCPPacketReceiverEx_;
 };
 
 

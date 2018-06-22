@@ -396,15 +396,15 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 		BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 			CELLAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			this->networkInterface().intaddr().ip, this->networkInterface().intaddr().port, 
-			this->networkInterface().extaddr().ip, this->networkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			this->networkInterface().intTcpAddr().ip, this->networkInterface().intTcpAddr().port,
+			this->networkInterface().extTcpAddr().ip, this->networkInterface().extTcpAddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	case CELLAPP_TYPE:
 		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 		CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(), 
 			CELLAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			this->networkInterface().intaddr().ip, this->networkInterface().intaddr().port, 
-			this->networkInterface().extaddr().ip, this->networkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			this->networkInterface().intTcpAddr().ip, this->networkInterface().intTcpAddr().port,
+			this->networkInterface().extTcpAddr().ip, this->networkInterface().extTcpAddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	default:
 		KBE_ASSERT(false && "no support!\n");

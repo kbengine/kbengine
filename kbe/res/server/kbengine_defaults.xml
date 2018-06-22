@@ -107,7 +107,7 @@
 			<external> 60.0 </external>
 		</timeout>
 		
-		<!-- socket读写缓冲大小 
+		<!-- TCP socket读写缓冲大小 
 			(socket send/recv buffer size)
 		-->
 		<readBufferSize> 
@@ -164,6 +164,34 @@
 				2: RSA (res\key\kbengine_private.key)
 		 -->
 		<encrypt_type> 1 </encrypt_type>
+
+		<reliableUDP>
+			<!-- Equivalent to TCP RCV_BUF, unit is the number of UDP-packages -->
+			<readPacketsQueueSize>
+				<internal>				1024		</internal>
+				<external>				128			</external>
+			</readPacketsQueueSize>
+
+			<!-- Equivalent to TCP SND_BU, unit is the number of UDP-packages -->
+			<writePacketsQueueSize>
+				<internal>				1024		</internal>
+				<external>				128			</external>
+			</writePacketsQueueSize>
+
+			<!-- internal update timer interval in millisec, 0 is default(100ms)  -->
+			<tickInterval>				10			</tickInterval>
+			<!-- Retransmission TimeOut(ms)  -->
+			<minRTO>					10			</minRTO>
+			<!-- ACK skipping times, 0 is default  -->
+			<missAcksResend>			2			</missAcksResend>
+			
+			<!-- change MTU size, 0 is default(1400) -->
+			<mtu>						0			</mtu>
+
+			<!-- false: disable congestion control -->
+			<congestionControl>			false		</congestionControl>
+			<nodelay>					true		</nodelay>
+		</reliableUDP>
 	</channelCommon> 
 	
 	<!-- 关服倒计时(秒) 
@@ -544,8 +572,10 @@
 		<!-- 暴露给客户端的端口范围
 			（Exposed to the client port range） 
 		-->
-		<externalPorts_min> 20015 </externalPorts_min>					<!-- Type: Integer -->
-		<externalPorts_max> 20019 </externalPorts_max>					<!-- Type: Integer -->
+		<externalTcpPorts_min> 20015 </externalTcpPorts_min>			<!-- Type: Integer -->
+		<externalTcpPorts_max> 20019 </externalTcpPorts_max>			<!-- Type: Integer -->
+		<externalUdpPorts_min> 20005 </externalUdpPorts_min>			<!-- Type: Integer -->
+		<externalUdpPorts_max> 20009 </externalUdpPorts_max>			<!-- Type: Integer -->
 
 		<!-- 自动存档的时间周期(秒)
 			（Automatic archiving time period(secs)） 
@@ -686,9 +716,11 @@
 		<!-- 暴露给客户端的端口范围
 			（Exposed to the client port range） 
 		-->
-		<externalPorts_min> 20013 </externalPorts_min>					<!-- Type: Integer -->
-		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
-		
+		<externalTcpPorts_min> 20013 </externalTcpPorts_min>			<!-- Type: Integer -->
+		<externalTcpPorts_max> 0 </externalTcpPorts_max>				<!-- Type: Integer -->
+		<externalUdpPorts_min> -1 </externalUdpPorts_min>				<!-- Type: Integer -->
+		<externalUdpPorts_max> -1 </externalUdpPorts_max>				<!-- Type: Integer -->
+
 		<!-- 加密登录信息
 			(The encrypted user login information)
 			
@@ -735,9 +767,11 @@
 		<!-- 暴露给客户端的端口范围
 			（Exposed to the tools port range） 
 		-->
-		<externalPorts_min> 20099 </externalPorts_min>					<!-- Type: Integer -->
-		<externalPorts_max> 0 </externalPorts_max>						<!-- Type: Integer -->
-		
+		<externalTcpPorts_min> 20099 </externalTcpPorts_min>			<!-- Type: Integer -->
+		<externalTcpPorts_max> 0 </externalTcpPorts_max>				<!-- Type: Integer -->
+		<externalUdpPorts_min> 0 </externalUdpPorts_min>				<!-- Type: Integer -->
+		<externalUdpPorts_max> 0 </externalUdpPorts_max>				<!-- Type: Integer -->
+
 		<!-- 服务组使用多台硬件组成网络，在某些网络环境由于路由器的设置不允许UDP广播造成跨物理机组网不成功时
 			可在此填入所有相关物理机的地址，引擎将会向具体的地址发送探测包来完成组网。
 			（When the network is composed of a plurality of hardware, the specific network address is detected.） 

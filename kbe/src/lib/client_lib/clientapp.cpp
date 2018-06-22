@@ -54,7 +54,6 @@ threadPool_(),
 entryScript_(),
 state_(C_STATE_INIT)
 {
-	networkInterface_.pExtensionData(this);
 	networkInterface_.pChannelTimeOutHandler(this);
 	networkInterface_.pChannelDeregisterHandler(this);
 

@@ -90,11 +90,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(LoginappInterface)
 	LOGINAPP_MESSAGE_DECLARE_STREAM(onLoginAccountQueryResultFromDbmgr,				NETWORK_VARIABLE_MESSAGE)
 
 	// baseappmgr返回的登录网关地址
-	LOGINAPP_MESSAGE_DECLARE_ARGS4(onLoginAccountQueryBaseappAddrFromBaseappmgr,	NETWORK_VARIABLE_MESSAGE,
+	LOGINAPP_MESSAGE_DECLARE_ARGS5(onLoginAccountQueryBaseappAddrFromBaseappmgr,	NETWORK_VARIABLE_MESSAGE,
 									std::string,									loginName, 
 									std::string,									accountName,
 									std::string,									addr,
-									uint16,											port)
+									uint16,											tcp_port,
+									uint16,											udp_port)
 
 	// 向dbmgr请求创建账号返回结果
 	LOGINAPP_MESSAGE_DECLARE_STREAM(onReqCreateAccountResult,						NETWORK_VARIABLE_MESSAGE)

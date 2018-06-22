@@ -65,6 +65,11 @@ UDPPacketReceiver::~UDPPacketReceiver()
 {
 }
 
+//-------------------------------------------------------------------------------------
+Channel* UDPPacketReceiver::findChannel(const Address& addr)
+{
+	return pNetworkInterface_->findChannel(addr);
+}
 
 //-------------------------------------------------------------------------------------
 bool UDPPacketReceiver::processRecv(bool expectingPacket)
@@ -80,19 +85,23 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 		return rstate == PacketReceiver::RECV_STATE_CONTINUE;
 	}
 	
-	Channel* pSrcChannel = pNetworkInterface_->findChannel(srcAddr);
+	Channel* pSrcChannel = findChannel(srcAddr);
 
 	if(pSrcChannel == NULL) 
 	{
 		EndPoint* pNewEndPoint = EndPoint::createPoolObject();
-		pNewEndPoint->addr(srcAddr.port, srcAddr.ip);
+		pNewEndPoint->addr(srcAddr);
+		pNewEndPoint->setSocketRef(pEndpoint_->socket());
 
 		pSrcChannel = Network::Channel::createPoolObject();
-		bool ret = pSrcChannel->initialize(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP);
+		bool ret = pSrcChannel->initialize(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP, protocolSubType());
 		if(!ret)
 		{
 			ERROR_MSG(fmt::format("UDPPacketReceiver::processRecv: initialize({}) is failed!\n",
 				pSrcChannel->c_str()));
+
+			if (pSrcChannel->pEndPoint() != pNewEndPoint)
+				EndPoint::reclaimPoolObject(pNewEndPoint);
 
 			pSrcChannel->destroy();
 			Network::Channel::reclaimPoolObject(pSrcChannel);
@@ -122,12 +131,18 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 		Network::Channel::reclaimPoolObject(pSrcChannel);
 		return false;
 	}
-
-	Reason ret = this->processPacket(pSrcChannel, pChannelReceiveWindow);
-
-	if(ret != REASON_SUCCESS)
-		this->dispatcher().errorReporter().reportException(ret, pEndpoint_->addr());
 	
+	return ((UDPPacketReceiver*)pSrcChannel->pPacketReceiver())->processRecv(pChannelReceiveWindow);
+}
+
+//-------------------------------------------------------------------------------------
+bool UDPPacketReceiver::processRecv(UDPPacket* pReceiveWindow)
+{
+	Reason ret = this->processPacket(getChannel(), pReceiveWindow);
+
+	if (ret != REASON_SUCCESS)
+		this->dispatcher().errorReporter().reportException(ret, pEndpoint_->addr());
+
 	return true;
 }
 

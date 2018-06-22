@@ -34,7 +34,7 @@ public:
 	
 	TCPPacketReceiver():PacketReceiver(){}
 	TCPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
-	~TCPPacketReceiver();
+	virtual ~TCPPacketReceiver();
 
 	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 

@@ -35,13 +35,18 @@ public:
 	
 	TCPPacketSender():PacketSender(){}
 	TCPPacketSender(EndPoint & endpoint, NetworkInterface & networkInterface);
-	~TCPPacketSender();
+	virtual ~TCPPacketSender();
 
 	virtual void onGetError(Channel* pChannel);
-	virtual bool processSend(Channel* pChannel);
+	virtual bool processSend(Channel* pChannel, int userarg);
+
+	virtual PacketSender::PACKET_SENDER_TYPE type() const
+	{
+		return TCP_PACKET_SENDER;
+	}
 
 protected:
-	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket);
+	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg);
 
 	uint8 sendfailCount_;
 };

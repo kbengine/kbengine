@@ -96,6 +96,8 @@ void EndPoint::onReclaimObject()
 #endif
 
 	address_ = Address::NONE;
+
+	isRefSocket_ = false;
 }
 
 //-------------------------------------------------------------------------------------

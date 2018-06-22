@@ -414,7 +414,8 @@ protected:
 
 	// 服务端分配的baseapp地址
 	FString baseappIP_;
-	uint16 baseappPort_;
+	uint16 baseappTcpPort_;
+	uint16 baseappUdpPort_;
 
 	// 当前状态
 	FString currserver_;

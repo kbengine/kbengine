@@ -2388,7 +2388,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	// 服务端分配的baseapp地址
 	this.baseappIP = "";
-	this.baseappPort = 0;
+	this.baseappTcpPort = 0;
+	this.baseappUdpPort = 0;
 
 	this.resetSocket = function()
 	{
@@ -3272,8 +3273,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(noconnect)
 		{
 			KBEngine.Event.fire("onLoginBaseapp");
-			KBEngine.INFO_MSG("KBEngineApp::login_baseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort + "!");
-			KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort);
+			KBEngine.INFO_MSG("KBEngineApp::login_baseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort + "!");
+			KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort);
 			
 			if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
 				KBEngine.app.socket.onopen = KBEngine.app.onOpenBaseapp;  
@@ -3295,8 +3296,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		KBEngine.app.resetSocket();
 		KBEngine.Event.fire("onReloginBaseapp");
-		KBEngine.INFO_MSG("KBEngineApp::reloginBaseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort + "!");
-		KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort);
+		KBEngine.INFO_MSG("KBEngineApp::reloginBaseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort + "!");
+		KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort);
 		
 		if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
 			KBEngine.app.socket.onopen = KBEngine.app.onReOpenBaseapp;  
@@ -3349,11 +3350,12 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var accountName = args.readString();
 		KBEngine.app.username = accountName;
 		KBEngine.app.baseappIp = args.readString();
-		KBEngine.app.baseappPort = args.readUint16();
+		KBEngine.app.baseappTcpPort = args.readUint16();
+		KBEngine.app.baseappUdpPort = args.readUint16();
 		KBEngine.app.serverdatas = args.readBlob();
 		
 		KBEngine.INFO_MSG("KBEngineApp::Client_onLoginSuccessfully: accountName(" + accountName + "), addr(" + 
-				KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort + "), datas(" + KBEngine.app.serverdatas.length + ")!");
+				KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort + ":" + KBEngine.app.baseappUdpPort + "), datas(" + KBEngine.app.serverdatas.length + ")!");
 		
 		KBEngine.app.disconnect();
 		KBEngine.app.login_baseapp(true);

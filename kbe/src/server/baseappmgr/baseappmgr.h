@@ -103,7 +103,7 @@ public:
 	*/
 	void onPendingAccountGetBaseappAddr(Network::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
-								  std::string& addr, uint16 port);
+								  std::string& addr, uint16 tcp_port, uint16 udp_port);
 
 	/** 网络接口
 		更新baseapp情况。
@@ -123,7 +123,7 @@ public:
 	*/
 	void sendAllocatedBaseappAddr(Network::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
-								  const std::string& addr, uint16 port);
+								  const std::string& addr, uint16 tcp_port, uint16 udp_port);
 
 	bool componentsReady();
 	bool componentReady(COMPONENT_ID cid);
