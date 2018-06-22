@@ -90,7 +90,7 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 		if (ikcp_input(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
 		{
 			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
-			return Reason::REASON_CHANNEL_LOST;
+			return REASON_CHANNEL_LOST;
 		}
 
 		RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
@@ -103,7 +103,7 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 			{
 				//WARNING_MSG(fmt::format("KCPPacketReceiver::processPacket(): recvd_bytes({}) <= 0! addr={}\n", bytes_recvd, pChannel->c_str()));
 				RECLAIM_PACKET(pRcvdUDPPacket->isTCPPacket(), pRcvdUDPPacket);
-				return Reason::REASON_SUCCESS;
+				return REASON_SUCCESS;
 			}
 			else
 			{
@@ -115,7 +115,7 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 				pRcvdUDPPacket->wpos(bytes_recvd);
 
 				Reason r = PacketReceiver::processPacket(pChannel, pRcvdUDPPacket);
-				if (r != Reason::REASON_SUCCESS)
+				if (r != REASON_SUCCESS)
 				{
 					RECLAIM_PACKET(pRcvdUDPPacket->isTCPPacket(), pRcvdUDPPacket);
 					return r;
@@ -128,7 +128,7 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 		return PacketReceiver::processPacket(pChannel, pPacket);
 	}
 
-	return Reason::REASON_SUCCESS;
+	return REASON_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------
