@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_MEMORYSTREAM_H
 #define KBE_MEMORYSTREAM_H
@@ -93,6 +75,7 @@ public:
 	virtual void onReclaimObject();
 
     const static size_t DEFAULT_SIZE = 0x100;
+	const static size_t MAX_SIZE = 10000000;
 
     MemoryStream(): rpos_(0), wpos_(0)
     {
@@ -222,7 +205,7 @@ public:
         return *this;
     }
 
-    MemoryStream &operator<<(ENTITY_MAILBOX_TYPE value)
+    MemoryStream &operator<<(ENTITYCALL_TYPE value)
     {
         append<int32>(value);
         return *this;
@@ -336,9 +319,9 @@ public:
         return *this;
     }
 
-    MemoryStream &operator>>(ENTITY_MAILBOX_TYPE &value)
+    MemoryStream &operator>>(ENTITYCALL_TYPE &value)
     {
-        value = static_cast<ENTITY_MAILBOX_TYPE>(read<int32>());
+        value = static_cast<ENTITYCALL_TYPE>(read<int32>());
         return *this;
     }
 
@@ -570,7 +553,7 @@ public:
         if (!cnt)
             return;
 
-        assert(size() < 10000000);
+        assert(size() < MAX_SIZE);
 
         if (data_.size() < wpos_ + cnt)
             data_.resize(wpos_ + cnt);

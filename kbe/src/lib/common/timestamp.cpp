@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "timestamp.h"
 #include "helper/debug_helper.h"
@@ -24,11 +6,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine{
 
 #define KBE_USE_RDTSC
+
 #ifdef KBE_USE_RDTSC
-KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
+	KBETimingMethod g_timingMethod = RDTSC_TIMING_METHOD;
 #else // KBE_USE_RDTSC
-const KBETimingMethod DEFAULT_TIMING_METHOD = GET_TIME_TIMING_METHOD;
-KBETimingMethod g_timingMethod = NO_TIMING_METHOD;
+	#define DEFAULT_TIMING_METHOD GET_TIME_TIMING_METHOD
+	KBETimingMethod g_timingMethod = NO_TIMING_METHOD;
 #endif // KBE_USE_RDTSC
 
 const char* getTimingMethodName()
@@ -106,7 +89,8 @@ static uint64 calcStampsPerSecond()
 
 #ifdef KBE_USE_RDTSC
 	return calcStampsPerSecond_rdtsc();
-#else // KBE_USE_RDTSC
+#else 
+
 	if (g_timingMethod == RDTSC_TIMING_METHOD)
 		return calcStampsPerSecond_rdtsc();
 	else if (g_timingMethod == GET_TIME_OF_DAY_TIMING_METHOD)
@@ -143,7 +127,8 @@ static uint64 calcStampsPerSecond()
 
 		return calcStampsPerSecond();
 	}
-#endif // KBE_USE_RDTSC
+
+#endif
 }
 
 
@@ -182,9 +167,9 @@ static uint64 calcStampsPerSecond()
 	LARGE_INTEGER	tvBefore,	tvAfter;
 	DWORD			tvSleep = 500;
 	uint64 stampBefore,	stampAfter;
-	
+
 	Sleep(100);
-	
+
 	QueryPerformanceCounter(&tvBefore);
 	QueryPerformanceCounter(&tvBefore);
 
@@ -223,8 +208,8 @@ static uint64 calcStampsPerSecond()
 
 
 /**
- *	每秒cpu所耗时间
- */
+ 每秒cpu所耗时间
+*/
 uint64 stampsPerSecond()
 {
 	static uint64 _stampsPerSecondCache = calcStampsPerSecond();
@@ -232,12 +217,14 @@ uint64 stampsPerSecond()
 }
 
 /**
- *	每秒cpu所耗时间 double版本
- */
+ 每秒cpu所耗时间 double版本
+*/
 double stampsPerSecondD()
 {
 	static double stampsPerSecondCacheD = double(stampsPerSecond());
 	return stampsPerSecondCacheD;
 }
+
 }
-/* timestamp.cpp */
+
+

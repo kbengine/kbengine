@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "message_handler.h"
@@ -38,16 +20,18 @@ std::vector<MessageHandlers*>* g_pMessageHandlers;
 static Network::FixedMessages* g_fm;
 
 //-------------------------------------------------------------------------------------
-MessageHandlers::MessageHandlers():
+MessageHandlers::MessageHandlers(const std::string& name):
 msgHandlers_(),
 msgID_(1),
-exposedMessages_()
+exposedMessages_(),
+name_(name)
 {
 	g_fm = Network::FixedMessages::getSingletonPtr();
 	if(g_fm == NULL)
 		g_fm = new Network::FixedMessages;
 
-	Network::FixedMessages::getSingleton().loadConfig("server/messages_fixed.xml");
+	Network::FixedMessages::getSingleton().loadConfig("server/messages_fixed_defaults.xml");
+	Network::FixedMessages::getSingleton().loadConfig("server/messages_fixed.xml", false);
 	messageHandlers().push_back(this);
 }
 
@@ -106,29 +90,38 @@ bool MessageHandlers::initializeWatcher()
 	MessageHandlerMap::iterator iter = msgHandlers_.begin();
 	for(; iter != msgHandlers_.end(); ++iter)
 	{
+		std::string sname = iter->second->name;
+		std::string::size_type fpos = iter->second->name.find("Entity::");
+
+		if (fpos != std::string::npos)
+		{
+			sname = name() + "::" + sname;
+			strutil::kbe_replace(sname, "Interface::", "::");
+		}
+
 		char buf[MAX_BUF * 2];
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/id", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/id", sname.c_str());
 		WATCH_OBJECT(buf, iter->second->msgID);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/len", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/len", sname.c_str());
 		WATCH_OBJECT(buf, iter->second->msgLen);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentCount", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendcount);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/sentAvgSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::sendavgsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvCount", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvCount", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvsize);
 
-		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvAvgSize", iter->second->name.c_str());
+		kbe_snprintf(buf, MAX_BUF * 2, "network/messages/%s/recvAvgSize", sname.c_str());
 		WATCH_OBJECT(buf, iter->second, &MessageHandler::recvavgsize);
 	}
 
@@ -233,49 +226,89 @@ MessageHandler* MessageHandlers::add(std::string ihName, MessageArgs* args,
 std::string MessageHandlers::getDigestStr()
 {
 	static KBE_MD5 md5;
+	int32 isize = 0;
 
 	if(!md5.isFinal())
 	{
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
-		TiXmlNode *rootNode = NULL;
-		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
-
-		if(!xml->isGood())
 		{
-			ERROR_MSG(fmt::format("MessageHandlers::getDigestStr(): load {} is failed!\n",
-				Resmgr::getSingleton().matchRes("server/server_errors.xml")));
+			TiXmlNode *rootNode = NULL;
+			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors_defaults.xml").c_str()));
 
-			return "";
+			if (!xml->isGood())
+			{
+				ERROR_MSG(fmt::format("MessageHandlers::getDigestStr(): load {} is failed!\n",
+					Resmgr::getSingleton().matchRes("server/server_errors_defaults.xml")));
+
+				return "";
+			}
+
+			rootNode = xml->getRootNode();
+			if (rootNode == NULL)
+			{
+				// root节点下没有子节点了
+				return "";
+			}
+
+			XML_FOR_BEGIN(rootNode)
+			{
+				TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+				TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+
+				int32 val1 = xml->getValInt(node);
+				md5.append((void*)&val1, sizeof(int32));
+
+				std::string val2 = xml->getKey(rootNode);
+				md5.append((void*)val2.c_str(), val2.size());
+
+				std::string val3 = xml->getVal(node1);
+				md5.append((void*)val3.c_str(), val3.size());
+				isize++;
+			}
+			XML_FOR_END(rootNode);
+
+			md5.append((void*)&isize, sizeof(int32));
 		}
 
-		int32 isize = 0;
-
-		rootNode = xml->getRootNode();
-		if(rootNode == NULL)
 		{
-			// root节点下没有子节点了
-			return "";
+			TiXmlNode *rootNode = NULL;
+
+			FILE* f = Resmgr::getSingleton().openRes("server/server_errors.xml");
+
+			if (f)
+			{
+				fclose(f);
+
+				SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+				if (xml->isGood())
+				{
+					rootNode = xml->getRootNode();
+					if (rootNode)
+					{
+						XML_FOR_BEGIN(rootNode)
+						{
+							TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+							TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+
+							int32 val1 = xml->getValInt(node);
+							md5.append((void*)&val1, sizeof(int32));
+
+							std::string val2 = xml->getKey(rootNode);
+							md5.append((void*)val2.c_str(), val2.size());
+
+							std::string val3 = xml->getVal(node1);
+							md5.append((void*)val3.c_str(), val3.size());
+							isize++;
+						}
+						XML_FOR_END(rootNode);
+					}
+				}
+			}
+
+			md5.append((void*)&isize, sizeof(int32));
 		}
-
-		XML_FOR_BEGIN(rootNode)
-		{
-			TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
-			TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
-
-			int32 val1 = xml->getValInt(node);
-			md5.append((void*)&val1, sizeof(int32));
-
-			std::string val2 = xml->getKey(rootNode);
-			md5.append((void*)val2.c_str(), val2.size());
-
-			std::string val3 = xml->getVal(node1);
-			md5.append((void*)val3.c_str(), val3.size());
-			isize++;
-		}
-		XML_FOR_END(rootNode);
-
-		md5.append((void*)&isize, sizeof(int32));
 
 		std::vector<MessageHandlers*>& msgHandlers = messageHandlers();
 		isize += msgHandlers.size();

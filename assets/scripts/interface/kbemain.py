@@ -11,17 +11,17 @@ interfaces进程主要处理KBEngine服务端与第三方平台的接入接出�
 1: 注册账号
 	当客户端请求注册账号后，请求会由loginapp转发到dbmgr，如果dbmgr挂接了interfaces，则dbmgr将请求转发至这里（KBEngine.onRequestCreateAccount）
 	此时脚本收到这个请求之后可以使用各种方式与第三方平台通信，可以使用python的http库也能直接使用socket，当与第三方平台交互完毕之后应该将
-	交互的结果返回给引擎层，KBEngine.createAccountResponse。
+	交互的结果返回给引擎baseapp层，通过KBEngine.createAccountResponse能够将信息推送到baseapp层。
 	
 2：账号登陆
 	当客户端请求登陆账号后，请求会由loginapp转发到dbmgr，如果dbmgr挂接了interfaces，则dbmgr将请求转发至这里（KBEngine.onRequestAccountLogin）
 	此时脚本收到这个请求之后可以使用各种方式与第三方平台通信，可以使用python的http库也能直接使用socket，当与第三方平台交互完毕之后应该将
-	交互的结果返回给引擎层，KBEngine.accountLoginResponse。
+	交互的结果返回给引擎baseapp层层，通过KBEngine.accountLoginResponse能够将信息推送到baseapp层。
 	
 3：充值计费
 	当baseapp上请求计费entity.charge()后，请求会由loginapp转发到dbmgr，如果dbmgr挂接了interfaces，则dbmgr将请求转发至这里（KBEngine.onRequestCharge）
 	此时脚本收到这个请求之后可以使用各种方式与第三方平台通信，可以使用python的http库也能直接使用socket，当与第三方平台交互完毕之后应该将
-	交互的结果返回给引擎层，KBEngine.chargeResponse。
+	交互的结果返回给引擎baseapp层，通过KBEngine.chargeResponse能够将信息推送到baseapp层entity.charge时给入的回调或者回调到onLoseChargeCB接口。
 	
 	某些平台要求客户端直接与平台请求计费，平台采用回调服务器的方式来完成请求， 参考“平台回调”。
 	

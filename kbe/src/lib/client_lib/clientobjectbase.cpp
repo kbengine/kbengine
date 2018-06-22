@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "entity.h"
 #include "config.h"
@@ -27,7 +9,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/common.h"
 #include "network/message_handler.h"
 #include "entitydef/scriptdef_module.h"
-#include "entitydef/entity_mailbox.h"
+#include "entitydef/entity_call.h"
 #include "entitydef/entitydef.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
@@ -42,6 +24,7 @@ SCRIPT_DIRECT_METHOD_DECLARE("cancelCallback",		__py_cancelCallback,		METH_VARAR
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcher",			__py_getWatcher,			METH_VARARGS,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("getWatcherDir",		__py_getWatcherDir,			METH_VARARGS,					0)
 SCRIPT_DIRECT_METHOD_DECLARE("disconnect",			__py_disconnect,			METH_VARARGS,					0)
+SCRIPT_DIRECT_METHOD_DECLARE("kbassert",			__py_assert,				METH_VARARGS,					0)
 SCRIPT_METHOD_DECLARE_END()
 
 SCRIPT_MEMBER_DECLARE_BEGIN(ClientObjectBase)
@@ -67,9 +50,10 @@ entityID_(0),
 spaceID_(0),
 dbid_(0),
 ip_(),
-port_(),
+tcp_port_(0),
+udp_port_(0),
 baseappIP_(),
-baseappPort_(),
+baseappPort_(0),
 lastSentActiveTickTime_(timestamp()),
 lastSentUpdateDataTime_(timestamp()),
 connectedBaseapp_(false),
@@ -92,7 +76,8 @@ targetID_(0),
 isLoadedGeometry_(false),
 timers_(),
 scriptCallbacks_(timers_),
-locktime_(0)
+locktime_(0),
+controlledEntities_()
 {
 	appID_ = g_appID++;
 
@@ -140,7 +125,8 @@ void ClientObjectBase::reset(void)
 	dbid_ = 0;
 
 	ip_ = "";
-	port_ = 0;
+	tcp_port_ = 0;
+	udp_port_ = 0;
 
 	lastSentActiveTickTime_ = timestamp();
 	lastSentUpdateDataTime_ = timestamp();
@@ -228,9 +214,21 @@ bool ClientObjectBase::destroyEntity(ENTITY_ID entityID, bool callScript)
 }
 
 //-------------------------------------------------------------------------------------	
-Network::Channel* ClientObjectBase::findChannelByMailbox(EntityMailbox& mailbox)
+Network::Channel* ClientObjectBase::findChannelByEntityCall(EntityCallAbstract& entityCall)
 {
 	return pServerChannel_;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::tryGetEntity(COMPONENT_ID componentID, ENTITY_ID eid)
+{
+	client::Entity* entity = pEntities_->find(eid);
+	if (entity == NULL) {
+		ERROR_MSG(fmt::format("ClientObjectBase::tryGetEntity: can't found entity:{}.\n", eid));
+		return NULL;
+	}
+
+	return entity;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -312,9 +310,13 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------	
 client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject* params,
 	bool isInitializeScript, ENTITY_ID eid, bool initProperty,
-	EntityMailbox* base, EntityMailbox* cell)
+	EntityCall* base, EntityCall* cell)
 {
 	KBE_ASSERT(eid > 0);
+
+	EntityDef::context().currClientappID = appID();
+	EntityDef::context().currEntityID = eid;
+	EntityDef::context().currComponentType = CLIENT_TYPE;
 
 	ScriptDefModule* sm = EntityDef::findScriptModule(entityType);
 	if(sm == NULL)
@@ -382,7 +384,7 @@ client::Entity* ClientObjectBase::createEntity(const char* entityType, PyObject*
 }
 
 //-------------------------------------------------------------------------------------
-ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
+ENTITY_ID ClientObjectBase::getViewEntityID(ENTITY_ID id)
 {
 	if(id <= 255 && EntityDef::entityAliasID() && pEntityIDAliasIDList_.size() <= 255)
 	{
@@ -393,7 +395,7 @@ ENTITY_ID ClientObjectBase::getAoiEntityID(ENTITY_ID id)
 }
 
 //-------------------------------------------------------------------------------------
-ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
+ENTITY_ID ClientObjectBase::getViewEntityIDFromStream(MemoryStream& s)
 {
 	ENTITY_ID id = 0;
 
@@ -425,7 +427,7 @@ ENTITY_ID ClientObjectBase::getAoiEntityIDFromStream(MemoryStream& s)
 }
 
 //-------------------------------------------------------------------------------------
-ENTITY_ID ClientObjectBase::getAoiEntityIDByAliasID(uint8 id)
+ENTITY_ID ClientObjectBase::getViewEntityIDByAliasID(uint8 id)
 {
 	return pEntityIDAliasIDList_[id];
 }
@@ -508,7 +510,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	u_int32_t address;
 
 	Network::Address::string2ip(ip_.c_str(), address);
-	if(pEndpoint->connect(htons(port_), address) == -1)
+	if(pEndpoint->connect(htons(tcp_port_), address) == -1)
 	{
 		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
 			kbe_strerror()));
@@ -517,7 +519,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 		return NULL;
 	}
 
-	Network::Address addr(ip_.c_str(), port_);
+	Network::Address addr(ip_.c_str(), tcp_port_);
 	pEndpoint->addr(addr);
 
 	pServerChannel_->pEndPoint(pEndpoint);
@@ -690,17 +692,18 @@ void ClientObjectBase::onLoginSuccessfully(Network::Channel * pChannel, MemorySt
 
 	s >> accountName;
 	s >> ip_;
-	s >> port_;
+	s >> tcp_port_;
+	s >> udp_port_;
 	s.readBlob(serverDatas_);
 	
 	connectedBaseapp_ = false;
-	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}!\n", name_, ip_, port_));
+	INFO_MSG(fmt::format("ClientObjectBase::onLoginSuccessfully: {} addr={}:{}|{}!\n", name_, ip_, tcp_port_, udp_port_));
 
 	EventData_LoginSuccess eventdata;
 	eventHandler_.fire(&eventdata);
 
 	baseappIP_ = ip_;
-	baseappPort_ = port_;
+	baseappPort_ = tcp_port_;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -778,11 +781,11 @@ void ClientObjectBase::onCreatedProxies(Network::Channel * pChannel, uint64 rndU
 		INFO_MSG(fmt::format("ClientObject::onCreatedProxies({}): rndUUID={} eid={} entityType={}!\n",
 			name_, rndUUID, eid, entityType));
 
-		// 设置entity的baseMailbox
-		EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(entityType.c_str()), 
-			NULL, appID(), eid, MAILBOX_TYPE_BASE);
+		// 设置entity的baseEntityCall
+		EntityCall* entityCall = new EntityCall(EntityDef::findScriptModule(entityType.c_str()), 
+			NULL, appID(), eid, ENTITYCALL_TYPE_BASE);
 
-		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, mailbox, NULL);
+		client::Entity* pEntity = createEntity(entityType.c_str(), NULL, !hasBufferedMessage, eid, true, entityCall, NULL);
 		KBE_ASSERT(pEntity != NULL);
 
 		if(hasBufferedMessage)
@@ -851,11 +854,11 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			ScriptDefModule* sm = EntityDef::findScriptModule(scriptType);
 			KBE_ASSERT(sm);
 			
-			// 设置entity的cellMailbox
-			EntityMailbox* mailbox = new EntityMailbox(EntityDef::findScriptModule(sm->getName()), 
-				NULL, appID(), eid, MAILBOX_TYPE_CELL);
+			// 设置entity的cellEntityCall
+			EntityCall* entityCall = new EntityCall(EntityDef::findScriptModule(sm->getName()), 
+				NULL, appID(), eid, ENTITYCALL_TYPE_CELL);
 
-			entity = createEntity(sm->getName(), NULL, false, eid, true, NULL, mailbox);
+			entity = createEntity(sm->getName(), NULL, false, eid, true, NULL, entityCall);
 			KBE_ASSERT(entity != NULL);
 
 			// 先更新属性再初始化脚本
@@ -892,13 +895,13 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 			DEBUG_MSG(fmt::format("ClientObjectBase::onPlayerEnterWorld: {}({}), isOnGround({}), appID({}).\n",
 				entity->scriptName(), eid, (int)isOnGround, appID()));
 
-			KBE_ASSERT(entity->cellMailbox() == NULL);
+			KBE_ASSERT(entity->cellEntityCall() == NULL);
 
-			// 设置entity的cellMailbox
-			EntityMailbox* mailbox = new EntityMailbox(entity->pScriptModule(), 
-				NULL, appID(), eid, MAILBOX_TYPE_CELL);
+			// 设置entity的cellEntityCall
+			EntityCall* entityCall = new EntityCall(entity->pScriptModule(), 
+				NULL, appID(), eid, ENTITYCALL_TYPE_CELL);
 
-			entity->cellMailbox(mailbox);
+			entity->cellEntityCall(entityCall);
 
 			// 安全起见， 这里清空一下
 			// 如果服务端上使用giveClientTo切换控制权
@@ -941,7 +944,7 @@ void ClientObjectBase::onEntityEnterWorld(Network::Channel * pChannel, MemoryStr
 //-------------------------------------------------------------------------------------	
 void ClientObjectBase::onEntityLeaveWorldOptimized(Network::Channel * pChannel, MemoryStream& s)
 {
-	onEntityLeaveWorld(pChannel, getAoiEntityIDFromStream(s));
+	onEntityLeaveWorld(pChannel, getViewEntityIDFromStream(s));
 }
 
 //-------------------------------------------------------------------------------------	
@@ -979,8 +982,8 @@ void ClientObjectBase::onEntityLeaveWorld(Network::Channel * pChannel, ENTITY_ID
 	{
 		clearSpace(false);
 
-		Py_DECREF(entity->cellMailbox());
-		entity->cellMailbox(NULL);
+		Py_DECREF(entity->cellEntityCall());
+		entity->cellEntityCall(NULL);
 	}
 }
 
@@ -1079,7 +1082,7 @@ void ClientObjectBase::onEntityDestroyed(Network::Channel * pChannel, ENTITY_ID 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onRemoteMethodCallOptimized(Network::Channel * pChannel, KBEngine::MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 	onRemoteMethodCall_(eid, s);
 }
 
@@ -1116,7 +1119,7 @@ void ClientObjectBase::onUpdatePropertys(Network::Channel * pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdatePropertysOptimized(Network::Channel * pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 	onUpdatePropertys_(eid, s);
 }
 
@@ -1184,7 +1187,7 @@ void ClientObjectBase::updatePlayerToServer()
 
 	client::Entity* pEntity = pEntities_->find(entityID_);
 	if(pEntity == NULL || !connectedBaseapp_ || 
-		pServerChannel_ == NULL || pEntity->cellMailbox() == NULL)
+        pServerChannel_ == NULL || pEntity->cellEntityCall() == NULL || pEntity->isControlled())
 		return;
 
 	Position3D& pos = pEntity->position();
@@ -1193,31 +1196,66 @@ void ClientObjectBase::updatePlayerToServer()
 	Position3D& clientPos = pEntity->clientPos();
 	Direction3D& clientDir = pEntity->clientDir();
 
-	bool dirNoChanged = almostEqual(dir.yaw(), clientDir.yaw()) && almostEqual(dir.pitch(), clientDir.pitch()) && almostEqual(dir.roll(), clientDir.roll());
+	bool dirChanged = !almostEqual(dir.yaw(), clientDir.yaw()) || !almostEqual(dir.pitch(), clientDir.pitch()) || !almostEqual(dir.roll(), clientDir.roll());
 	Vector3 movement = pos - clientPos;
+	bool posChanged =  KBEVec3Length(&movement) > 0.0004f;
 
-	bool posNoChanged =  KBEVec3Length(&movement) < 0.0004f;
+    if(posChanged || dirChanged)
+    {
+        Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+        (*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 
-	if(posNoChanged && dirNoChanged)
-		return;
+        pEntity->position(clientPos);
+        pEntity->direction(clientDir);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-	(*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
-	
-	pEntity->position(clientPos);
-	pEntity->direction(clientDir);
+        (*pBundle) << pos.x;
+        (*pBundle) << pos.y;
+        (*pBundle) << pos.z;
 
-	(*pBundle) << pos.x;
-	(*pBundle) << pos.y;
-	(*pBundle) << pos.z;
+        (*pBundle) << dir.roll();
+        (*pBundle) << dir.pitch();
+        (*pBundle) << dir.yaw();
 
-	(*pBundle) << dir.roll();
-	(*pBundle) << dir.pitch();
-	(*pBundle) << dir.yaw();
+        (*pBundle) << pEntity->isOnGround();
+        (*pBundle) << spaceID_;
+        pServerChannel_->send(pBundle);
+    }
 
-	(*pBundle) << pEntity->isOnGround();
-	(*pBundle) << spaceID_;
-	pServerChannel_->send(pBundle);
+    // 同步所有controlled entity的位置与朝向
+    std::list<client::Entity *>::iterator itr = controlledEntities_.begin();
+    for (; itr != controlledEntities_.end(); itr++)
+    {
+        client::Entity *entity = *itr;
+        
+        Position3D &temppos = entity->position();
+        Direction3D &tempdir = entity->direction();
+        Position3D &tempClientPos = entity->clientPos();
+        Direction3D &tempClientDir = entity->clientDir();
+
+        dirChanged = !almostEqual(tempdir.yaw(), tempClientDir.yaw()) || !almostEqual(tempdir.pitch(), tempClientDir.pitch()) || !almostEqual(tempdir.roll(), tempClientDir.roll());
+        movement = temppos - tempClientPos;
+        posChanged = KBEVec3Length(&movement) > 0.0004f;
+        if (posChanged || dirChanged)
+        {
+            entity->position(tempClientPos);
+            entity->direction(tempClientDir);
+
+            Network::Bundle *tempBundle = Network::Bundle::createPoolObject();
+            (*tempBundle).newMessage(BaseappInterface::onUpdateDataFromClientForControlledEntity);
+
+            (*tempBundle) << entity->id();
+            (*tempBundle) << temppos.x;
+            (*tempBundle) << temppos.y;
+            (*tempBundle) << temppos.z;
+            (*tempBundle) << tempdir.roll();
+            (*tempBundle) << tempdir.pitch();
+            (*tempBundle) << tempdir.yaw();
+            (*tempBundle) << entity->isOnGround();
+            (*tempBundle) << spaceID_;
+
+            pServerChannel_->send(tempBundle);
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1228,6 +1266,11 @@ void ClientObjectBase::onUpdateBasePos(Network::Channel* pChannel, float x, floa
 	{
 		pEntity->serverPosition(Position3D(x, y, z));
 	}
+
+    if(pEntity->isControlled())
+    {
+        pEntity->position(pEntity->serverPosition());
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1238,6 +1281,11 @@ void ClientObjectBase::onUpdateBasePosXZ(Network::Channel* pChannel, float x, fl
 	{
 		pEntity->serverPosition(Position3D(x, pEntity->serverPosition().y, z));
 	}
+
+    if (pEntity->isControlled())
+    {
+        pEntity->position(pEntity->serverPosition());
+    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -1247,9 +1295,19 @@ void ClientObjectBase::onUpdateBaseDir(Network::Channel* pChannel, MemoryStream&
 	s >> yaw >> pitch >> roll;
 
 	client::Entity* pEntity = pPlayer();
-	if (pEntity)
+	if (pEntity && pEntity->isControlled())
 	{
-		// @TODO(phw)：这里将来需要与controlledBy机制一起实现
+        Direction3D dir;
+        
+        if (yaw != FLT_MAX)
+            dir.yaw(yaw);
+        if (pitch != FLT_MAX)
+            dir.pitch(pitch);
+        if (roll != FLT_MAX)
+            dir.roll(roll);
+
+        if (yaw != FLT_MAX || pitch != FLT_MAX || roll != FLT_MAX)
+          pEntity->direction(dir);
 	}
 }
 
@@ -1300,7 +1358,7 @@ void ClientObjectBase::onSetEntityPosAndDir(Network::Channel* pChannel, MemorySt
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	client::Entity* entity = pEntities_->find(eid);
 	if(entity == NULL)
@@ -1313,7 +1371,7 @@ void ClientObjectBase::onUpdateData(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float y, p, r;
 
@@ -1334,7 +1392,7 @@ void ClientObjectBase::onUpdateData_ypr(Network::Channel* pChannel, MemoryStream
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float y, p;
 
@@ -1352,7 +1410,7 @@ void ClientObjectBase::onUpdateData_yp(Network::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float y, r;
 
@@ -1370,7 +1428,7 @@ void ClientObjectBase::onUpdateData_yr(Network::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float p, r;
 
@@ -1388,7 +1446,7 @@ void ClientObjectBase::onUpdateData_pr(Network::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float y;
 
@@ -1403,7 +1461,7 @@ void ClientObjectBase::onUpdateData_y(Network::Channel* pChannel, MemoryStream& 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float p;
 
@@ -1418,7 +1476,7 @@ void ClientObjectBase::onUpdateData_p(Network::Channel* pChannel, MemoryStream& 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float r;
 
@@ -1433,7 +1491,7 @@ void ClientObjectBase::onUpdateData_r(Network::Channel* pChannel, MemoryStream& 
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x,z;
 
@@ -1446,7 +1504,7 @@ void ClientObjectBase::onUpdateData_xz(Network::Channel* pChannel, MemoryStream&
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y, p, r;
 	
@@ -1469,7 +1527,7 @@ void ClientObjectBase::onUpdateData_xz_ypr(Network::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x,z, y, p;
 
@@ -1489,7 +1547,7 @@ void ClientObjectBase::onUpdateData_xz_yp(Network::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y,  r;
 	
@@ -1509,7 +1567,7 @@ void ClientObjectBase::onUpdateData_xz_yr(Network::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, p, r;
 	
@@ -1529,7 +1587,7 @@ void ClientObjectBase::onUpdateData_xz_pr(Network::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1546,7 +1604,7 @@ void ClientObjectBase::onUpdateData_xz_y(Network::Channel* pChannel, MemoryStrea
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, p;
 	
@@ -1563,7 +1621,7 @@ void ClientObjectBase::onUpdateData_xz_p(Network::Channel* pChannel, MemoryStrea
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, r;
 	
@@ -1580,7 +1638,7 @@ void ClientObjectBase::onUpdateData_xz_r(Network::Channel* pChannel, MemoryStrea
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1593,7 +1651,7 @@ void ClientObjectBase::onUpdateData_xyz(Network::Channel* pChannel, MemoryStream
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_ypr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1619,7 +1677,7 @@ void ClientObjectBase::onUpdateData_xyz_ypr(Network::Channel* pChannel, MemorySt
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_yp(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1642,7 +1700,7 @@ void ClientObjectBase::onUpdateData_xyz_yp(Network::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_yr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1665,7 +1723,7 @@ void ClientObjectBase::onUpdateData_xyz_yr(Network::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_pr(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1688,7 +1746,7 @@ void ClientObjectBase::onUpdateData_xyz_pr(Network::Channel* pChannel, MemoryStr
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1708,7 +1766,7 @@ void ClientObjectBase::onUpdateData_xyz_y(Network::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1728,7 +1786,7 @@ void ClientObjectBase::onUpdateData_xyz_p(Network::Channel* pChannel, MemoryStre
 //-------------------------------------------------------------------------------------
 void ClientObjectBase::onUpdateData_xyz_r(Network::Channel* pChannel, MemoryStream& s)
 {
-	ENTITY_ID eid = getAoiEntityIDFromStream(s);
+	ENTITY_ID eid = getViewEntityIDFromStream(s);
 
 	float x, z, y;
 	
@@ -1820,8 +1878,25 @@ void ClientObjectBase::onStreamDataCompleted(Network::Channel* pChannel, int16 i
 }
 
 //-------------------------------------------------------------------------------------
-void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled)
+void ClientObjectBase::onControlEntity(Network::Channel* pChannel, int32 eid, int8 p_isControlled)
 {
+    client::Entity* entity = pEntities()->find(eid);
+    if(entity == NULL)
+    {
+        ERROR_MSG(fmt::format("ClientObjectBase::onControlEntity:entity({}) not found.\n", eid));
+        return;
+    }
+
+    bool controlled = (p_isControlled != 0);
+    if (controlled == true)
+    {
+        if(eid != entityID())
+            controlledEntities_.push_back(entity);
+    }
+    else
+        controlledEntities_.remove(entity);
+
+    entity->onControlled(controlled);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2228,6 +2303,13 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 void ClientObjectBase::onAppActiveTickCB(Network::Channel* pChannel)
 {
 	pChannel->updateLastReceivedTime();
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* ClientObjectBase::__py_assert(PyObject* self, PyObject* args)
+{
+	KBE_ASSERT(false && "kbassert");
+	return NULL;
 }
 
 //-------------------------------------------------------------------------------------		

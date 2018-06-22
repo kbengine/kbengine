@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "signal_handler.h"
@@ -67,17 +49,28 @@ const char * SIGNAL_NAMES[] =
 
 SignalHandlers g_signalHandlers;
 
+std::string SIGNAL2NAMES(int signum)
+{
+	if (signum >= SIGMIN && signum <= SIGMAX)
+	{
+		return SIGNAL_NAMES[signum];
+	}
+
+	return fmt::format("unknown({})", signum);
+}
+
 void signalHandler(int signum)
 {
-	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL_NAMES[signum]));
+	printf("SignalHandlers: receive sigNum %d.\n", signum);
 	g_signalHandlers.onSignalled(signum);
 };
 
 //-------------------------------------------------------------------------------------
 SignalHandlers::SignalHandlers():
 singnalHandlerMap_(),
-signalledVec_(),
-papp_(NULL)
+papp_(NULL),
+rpos_(0),
+wpos_(0)
 {
 }
 
@@ -97,8 +90,10 @@ void SignalHandlers::attachApp(ServerApp* app)
 SignalHandler* SignalHandlers::addSignal(int sigNum, 
 	SignalHandler* pSignalHandler, int flags)
 {
-	SignalHandlerMap::iterator iter = singnalHandlerMap_.find(sigNum);
-	KBE_ASSERT(iter == singnalHandlerMap_.end());
+	// 允许被重置
+	// SignalHandlerMap::iterator iter = singnalHandlerMap_.find(sigNum);
+	// KBE_ASSERT(iter == singnalHandlerMap_.end());
+
 	singnalHandlerMap_[sigNum] = pSignalHandler;
 
 #if KBE_PLATFORM != PLATFORM_WIN32
@@ -140,32 +135,82 @@ void SignalHandlers::clear()
 //-------------------------------------------------------------------------------------	
 void SignalHandlers::onSignalled(int sigNum)
 {
-	signalledVec_.push_back(sigNum);
+	// 不要分配内存
+	KBE_ASSERT(wpos_ != 0XFF);
+	signalledArray_[wpos_++] = sigNum;
 }
 
 //-------------------------------------------------------------------------------------	
 bool SignalHandlers::process()
 {
-	if(signalledVec_.size() > 0)
+	if (wpos_ == 0)
+		return true;
+
+	DEBUG_MSG(fmt::format("SignalHandlers::process: rpos={}, wpos={}.\n", rpos_, wpos_));
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	/* 如果信号有瞬时超过255触发需求，可以打开注释，将会屏蔽所有信号等执行完毕之后再执行期间触发的信号，将signalledArray_改为信号集类型
+	if (wpos_ == 1 && signalledArray_[0] == SIGALRM)
+		return true;
+
+	sigset_t mask, old_mask;
+	sigemptyset(&mask);
+	sigemptyset(&old_mask);
+
+	sigfillset(&mask);
+
+	// 屏蔽信号
+	sigprocmask(SIG_BLOCK, &mask, &old_mask);
+	*/
+#endif
+
+	while (rpos_ < wpos_)
 	{
-		std::vector<int>::iterator iter = signalledVec_.begin();
-		for(; iter != signalledVec_.end(); ++iter)
+		int sigNum = signalledArray_[rpos_++];
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+		//if (SIGALRM == sigNum)
+		//	continue;
+#endif
+
+		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
+		if (iter1 == singnalHandlerMap_.end())
 		{
-			int sigNum = (*iter);
-			SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
-			if(iter1 == singnalHandlerMap_.end())
-			{
-				DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n", 
-					SIGNAL_NAMES[sigNum], singnalHandlerMap_.size()));
-				continue;
-			}
-			
-			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL_NAMES[sigNum]));
-				iter1->second->onSignalled(sigNum);
+			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n",
+				SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
+
+			continue;
 		}
 
-		signalledVec_.clear();
+		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle. singnalHandlerMap({})\n", SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
+		iter1->second->onSignalled(sigNum);
 	}
+
+	rpos_ = 0;
+	wpos_ = 0;
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	// 恢复屏蔽
+	/*
+	sigprocmask(SIG_SETMASK, &old_mask, NULL);
+
+	addSignal(SIGALRM, NULL);
+
+	// Get the current signal mask
+	sigprocmask(0, NULL, &mask);
+
+	// Unblock SIGALRM
+	sigdelset(&mask, SIGALRM);
+
+	// Wait with this mask
+	ualarm(1, 0);
+
+	// 让期间错过的信号重新触发
+	sigsuspend(&mask);
+
+	delSignal(SIGALRM);
+	*/
+#endif
 
 	return true;
 }

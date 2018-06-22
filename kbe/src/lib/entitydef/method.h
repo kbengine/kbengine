@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef KBENGINE_DEF_METHOD_H
@@ -32,7 +14,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "datatypes.h"
 #include "helper/debug_helper.h"
 #include "network/packet.h"
-#include "entitymailboxabstract.h"
+#include "entitycallabstract.h"
 #include "pyscript/scriptobject.h"	
 
 
@@ -86,8 +68,6 @@ public:
 	*/
 	PyObject* call(PyObject* func, PyObject* args);	
 
-	INLINE void currCallerID(ENTITY_ID eid);
-
 	INLINE COMPONENT_ID domain() const;
 
 	INLINE bool isClient() const;
@@ -113,8 +93,6 @@ protected:
 	std::vector<DataType*>					argTypes_;									// 这个属性的参数类别列表
 
 	bool									isExposed_;									// 是否是一个暴露方法
-
-	ENTITY_ID								currCallerID_;								// 当前调用这个方法的调用者ID, 提供暴露方法调用时给脚本判断调用源防止作弊
 
 	int16									aliasID_;									// 别名id， 当暴露的方法或者广播的属性总个数小于255时， 我们不使用utype而使用1字节的aliasID来传输
 };

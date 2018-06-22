@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_BASEAPPMGR_BASEAPP_H
 #define KBE_BASEAPPMGR_BASEAPP_H
@@ -33,8 +15,8 @@ public:
 	Baseapp();
 	virtual ~Baseapp();
 	
-	ENTITY_ID numBases() const { return numBases_; }
-	void numBases(ENTITY_ID num) { numBases_ = num; }
+	ENTITY_ID numEntitys() const { return numEntitys_; }
+	void numEntitys(ENTITY_ID num) { numEntitys_ = num; }
 	
 	ENTITY_ID numProxices() const { return numProxices_; }
 	void numProxices(ENTITY_ID num) { numProxices_ = num; }
@@ -49,14 +31,14 @@ public:
 	float initProgress() const{ return initProgress_; }
 	void initProgress(float v){ initProgress_ = v; }
 
-	ENTITY_ID numEntities() const { return numBases_ + numProxices_; }
-	void incNumEntities() { ++numBases_; }
+	ENTITY_ID numEntities() const { return numEntitys_ + numProxices_; }
+	void incNumEntities() { ++numEntitys_; }
 
 	uint32 flags() const { return flags_; }
 	void flags(uint32 v) { flags_ = v; }
 	
 protected:
-	ENTITY_ID numBases_;
+	ENTITY_ID numEntitys_;
 	ENTITY_ID numProxices_;
 	float load_;
 

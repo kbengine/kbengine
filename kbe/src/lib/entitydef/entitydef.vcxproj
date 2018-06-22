@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -29,23 +29,23 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -176,9 +176,11 @@
     <ClCompile Include="datatype.cpp" />
     <ClCompile Include="datatypes.cpp" />
     <ClCompile Include="detaillevel.cpp" />
-    <ClCompile Include="entity_mailbox.cpp" />
+    <ClCompile Include="entity_component.cpp" />
+    <ClCompile Include="entity_component_call.cpp" />
+    <ClCompile Include="entity_call.cpp" />
     <ClCompile Include="entitydef.cpp" />
-    <ClCompile Include="entitymailboxabstract.cpp" />
+    <ClCompile Include="entitycallabstract.cpp" />
     <ClCompile Include="fixedarray.cpp" />
     <ClCompile Include="fixeddict.cpp" />
     <ClCompile Include="method.cpp" />
@@ -193,11 +195,13 @@
     <ClInclude Include="datatypes.h" />
     <ClInclude Include="detaillevel.h" />
     <ClInclude Include="entities.h" />
+    <ClInclude Include="entity_component.h" />
+    <ClInclude Include="entity_component_call.h" />
     <ClInclude Include="entity_garbages.h" />
     <ClInclude Include="entity_macro.h" />
-    <ClInclude Include="entity_mailbox.h" />
+    <ClInclude Include="entity_call.h" />
     <ClInclude Include="entitydef.h" />
-    <ClInclude Include="entitymailboxabstract.h" />
+    <ClInclude Include="entitycallabstract.h" />
     <ClInclude Include="fixedarray.h" />
     <ClInclude Include="fixeddict.h" />
     <ClInclude Include="method.h" />
@@ -209,7 +213,9 @@
   <ItemGroup>
     <None Include="datatype.inl" />
     <None Include="entitydef.inl" />
-    <None Include="entitymailboxabstract.inl" />
+    <None Include="entitycallabstract.inl" />
+    <None Include="entity_component.inl" />
+    <None Include="entity_component_call.inl" />
     <None Include="method.inl" />
     <None Include="property.inl" />
     <None Include="ReadMe.txt" />

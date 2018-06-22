@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_ENTITY_TABLE_REDIS_H
 #define KBE_ENTITY_TABLE_REDIS_H
@@ -366,18 +348,18 @@ protected:
 	char db_item_names_[4][MAX_BUF];
 };
 
-class EntityTableItemRedis_MAILBOX : public EntityTableItemRedisBase
+class EntityTableItemRedis_ENTITYCALL : public EntityTableItemRedisBase
 {
 public:
-	EntityTableItemRedis_MAILBOX(std::string itemDBType, 
+	EntityTableItemRedis_ENTITYCALL(std::string itemDBType, 
 		uint32 datalength, uint32 flags):
 	  EntityTableItemRedisBase(itemDBType, datalength, flags)
 	  {
 	  }
 
-	virtual ~EntityTableItemRedis_MAILBOX(){};
+	virtual ~EntityTableItemRedis_ENTITYCALL(){};
 
-	uint8 type() const{ return TABLE_ITEM_TYPE_MAILBOX; }
+	uint8 type() const{ return TABLE_ITEM_TYPE_ENTITYCALL; }
 
 	/**
 		同步entity表到数据库中

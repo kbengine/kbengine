@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "websocket_packet_filter.h"
@@ -71,10 +53,10 @@ void WebSocketPacketFilter::reset()
 }
 
 //-------------------------------------------------------------------------------------
-Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
+Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket, int userarg)
 {
 	if(pPacket->encrypted())
-		return PacketFilter::send(pChannel, sender, pPacket);
+		return PacketFilter::send(pChannel, sender, pPacket, userarg);
 
 	Bundle* pBundle = pPacket->pBundle();
 	TCPPacket* pRetTCPPacket = TCPPacket::createPoolObject();
@@ -123,7 +105,7 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 	TCPPacket::reclaimPoolObject(pRetTCPPacket);
 
 	pPacket->encrypted(true);
-	return PacketFilter::send(pChannel, sender, pPacket);
+	return PacketFilter::send(pChannel, sender, pPacket, userarg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -233,7 +215,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 					msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME ||
 					msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE()! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE({})! addr={}!\n",
 					(int)msg_frameType_, pChannel_->c_str()));
 
 				this->pChannel_->condemn();

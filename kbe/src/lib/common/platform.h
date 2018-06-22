@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_PLATFORM_H
 #define KBE_PLATFORM_H
@@ -335,7 +317,7 @@ typedef uint64													COMPONENT_ID;											// 一个服务器组件的id
 typedef int32													COMPONENT_ORDER;										// 一个组件的启动顺序
 typedef int32													COMPONENT_GUS;											// 一个组件的genuuid_sections产生随机数的区间段
 typedef	uint32													TIMER_ID;												// 一个timer的id类型
-typedef uint8													MAIL_TYPE;												// mailbox 所投递的mail类别的类别
+typedef uint8													ENTITYCALL_CALL_TYPE;									// entityCall 所投递的call类别的类别
 typedef uint32													GAME_TIME;
 typedef uint32													GameTime;
 typedef int32													ScriptID;
@@ -505,6 +487,9 @@ inline const T & max( const T & a, const T & b )
 // 常规的buf长度
 #define MAX_BUF 256
 
+// 常规的buf长度
+#define SQL_BUF 65535
+
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif
@@ -646,6 +631,49 @@ inline uint32 getSystemTimeDiff(uint32 oldTime, uint32 newTime)
 	return newTime - oldTime;
 }
 
+/* get system time */
+inline void kbe_timeofday(long *sec, long *usec)
+{
+#if defined(__unix)
+	struct timeval time;
+	gettimeofday(&time, NULL);
+	if (sec) *sec = time.tv_sec;
+	if (usec) *usec = time.tv_usec;
+#else
+	static long mode = 0, addsec = 0;
+	BOOL retval;
+	static int64 freq = 1;
+	int64 qpc;
+	if (mode == 0) {
+		retval = QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+		freq = (freq == 0) ? 1 : freq;
+		retval = QueryPerformanceCounter((LARGE_INTEGER*)&qpc);
+		addsec = (long)time(NULL);
+		addsec = addsec - (long)((qpc / freq) & 0x7fffffff);
+		mode = 1;
+	}
+	retval = QueryPerformanceCounter((LARGE_INTEGER*)&qpc);
+	retval = retval * 2;
+	if (sec) *sec = (long)(qpc / freq) + addsec;
+	if (usec) *usec = (long)((qpc % freq) * 1000000 / freq);
+#endif
+}
+
+/* get clock in millisecond 64 */
+inline int64 kbe_clock64(void)
+{
+	long s, u;
+	int64 value;
+	kbe_timeofday(&s, &u);
+	value = ((int64)s) * 1000 + (u / 1000);
+	return value;
+}
+
+inline uint32 kbe_clock()
+{
+	return (uint32)(kbe_clock64() & 0xfffffffful);
+}
+
 /* 产生一个64位的uuid 
 */
 extern COMPONENT_ORDER g_componentGlobalOrder;
@@ -655,13 +683,8 @@ extern COMPONENT_GUS g_genuuid_sections;
 
 inline uint64 genUUID64()
 {
-#if KBE_PLATFORM == PLATFORM_WIN32
 	static uint64 tv = (uint64)(time(NULL));
 	uint64 now = (uint64)(time(NULL));
-#else
-	static uint64 tv = (uint64)(getSystemTime() * 0.001f);
-	uint64 now = (uint64)(getSystemTime() * 0.001f);
-#endif
 
 	static uint16 lastNum = 0;
 

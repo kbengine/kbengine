@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -29,23 +29,23 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -113,7 +113,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;tmxparser_d.lib;navigation_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;_ssl_d.pyd;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;tmxparser_d.lib;navigation_d.lib;_ssl_d.pyd;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat_d.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -140,7 +140,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>openssl_uptable.obj;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;tmxparser_d.lib;navigation_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openssl_uptable.obj;crypt32.lib;_ssl_d.pyd;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;expat_d.lib;tmxparser_d.lib;navigation_d.lib;_hashlib_d.pyd;pyexpat_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;server_d.lib;pyscript_d.lib;entitydef_d.lib;xml_d.lib;common_d.lib;helper_d.lib;math_d.lib;network_d.lib;thread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat_d.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -167,7 +167,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;tmxparser.lib;navigation.lib;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;_ssl.pyd;apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;tmxparser.lib;navigation.lib;_ssl.pyd;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -197,7 +197,7 @@
     <Link>
       <AdditionalOptions>/ignore:4049
 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>openssl_uptable.obj;apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;tmxparser.lib;navigation.lib;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openssl_uptable.obj;crypt32.lib;_ssl.pyd;apr-1.lib;aprutil-1.lib;log4cxx.lib;expat.lib;tmxparser.lib;navigation.lib;_hashlib.pyd;pyexpat.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;server.lib;pyscript.lib;entitydef.lib;xml.lib;common.lib;helper.lib;math.lib;network.lib;thread.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -210,7 +210,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c" />
     <ClCompile Include="all_clients.cpp" />
-    <ClCompile Include="aoi_trigger.cpp" />
+    <ClCompile Include="entity_component.cpp" />
+    <ClCompile Include="space.cpp" />
+    <ClCompile Include="view_trigger.cpp" />
     <ClCompile Include="cell.cpp" />
     <ClCompile Include="cellapp.cpp" />
     <ClCompile Include="cellapp_interface.cpp" />
@@ -243,8 +245,8 @@
     <ClCompile Include="range_trigger_node.cpp" />
     <ClCompile Include="real_entity_method.cpp" />
     <ClCompile Include="rotator_handler.cpp" />
-    <ClCompile Include="space.cpp" />
-    <ClCompile Include="spaces.cpp" />
+    <ClCompile Include="spacememory.cpp" />
+    <ClCompile Include="spacememorys.cpp" />
     <ClCompile Include="space_viewer.cpp" />
     <ClCompile Include="trap_trigger.cpp" />
     <ClCompile Include="turn_controller.cpp" />
@@ -256,7 +258,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="all_clients.h" />
-    <ClInclude Include="aoi_trigger.h" />
+    <ClInclude Include="space.h" />
+    <ClInclude Include="view_trigger.h" />
     <ClInclude Include="cell.h" />
     <ClInclude Include="cellapp.h" />
     <ClInclude Include="cellapp_interface.h" />
@@ -289,8 +292,8 @@
     <ClInclude Include="range_trigger_node.h" />
     <ClInclude Include="real_entity_method.h" />
     <ClInclude Include="rotator_handler.h" />
-    <ClInclude Include="space.h" />
-    <ClInclude Include="spaces.h" />
+    <ClInclude Include="spacememory.h" />
+    <ClInclude Include="spacememorys.h" />
     <ClInclude Include="space_viewer.h" />
     <ClInclude Include="trap_trigger.h" />
     <ClInclude Include="turn_controller.h" />
@@ -301,7 +304,8 @@
     <ClInclude Include="witnessed_timeout_handler.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="aoi_trigger.inl" />
+    <None Include="space.inl" />
+    <None Include="view_trigger.inl" />
     <None Include="coordinate_node.inl" />
     <None Include="coordinate_system.inl" />
     <None Include="entity.inl" />

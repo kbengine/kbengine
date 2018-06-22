@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef KBENGINE_CLIENTS_REMOTE_ENTITY_METHOD_H
@@ -46,7 +28,9 @@ class ClientsRemoteEntityMethod : public script::ScriptObject
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(ClientsRemoteEntityMethod, script::ScriptObject)	
 public:	
-	ClientsRemoteEntityMethod(MethodDescription* methodDescription, 
+	ClientsRemoteEntityMethod(PropertyDescription* pComponentPropertyDescription, 
+		const ScriptDefModule* pScriptModule, 
+		MethodDescription* methodDescription,
 		bool otherClients,
 		ENTITY_ID id);
 	
@@ -68,6 +52,9 @@ public:
 	PyObject* callmethod(PyObject* args, PyObject* kwds);
 
 protected:	
+	PropertyDescription*	pComponentPropertyDescription_;
+
+	const ScriptDefModule*	pScriptModule_;			// 该entity所使用的脚本模块对象
 	MethodDescription*		methodDescription_;		// 这个方法的描述
 
 	bool					otherClients_;			// 是否只是其他客户端， 不包括自己

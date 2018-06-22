@@ -24,12 +24,6 @@
     <ClCompile Include="backuper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="base.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="base_remotemethod.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="baseapp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,13 +63,25 @@
     <ClCompile Include="sync_entitystreamtemplate_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="base_messages_forward_handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="entity_autoloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\lib\dependencies\openssl\include\openssl\applink.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_messages_forward_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_remotemethod.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_component.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="space.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,15 +90,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="backuper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="base.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="base_interface_macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="base_remotemethod.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="baseapp.h">
@@ -134,19 +131,34 @@
     <ClInclude Include="sync_entitystreamtemplate_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base_messages_forward_handler.h">
+    <ClInclude Include="entity_autoloader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity_autoloader.h">
+    <ClInclude Include="entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_interface_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_messages_forward_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_remotemethod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="space.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="base.inl">
+    <None Include="proxy.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="proxy.inl">
+    <None Include="entity.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="space.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

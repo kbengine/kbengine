@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_DB_INTERFACE_H
 #define KBE_DB_INTERFACE_H
@@ -163,7 +145,7 @@ protected:
 	uint32 db_port_;										// 数据库的端口
 	char db_ip_[MAX_IP];									// 数据库的ip地址
 	char db_username_[MAX_BUF];								// 数据库的用户名
-	char db_password_[MAX_BUF];								// 数据库的密码
+	char db_password_[MAX_BUF * 10];						// 数据库的密码
 	char db_name_[MAX_BUF];									// 数据库名
 	uint16 db_numConnections_;								// 数据库最大连接
 	std::string lastquery_;									// 最后一次查询描述

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "entity_table_redis.h"
 #include "kbe_table_redis.h"
@@ -53,7 +35,6 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 	// 找到所有存储属性并且创建出所有的字段
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = sm->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
-	std::string hasUnique = "";
 
 	for(; iter != pdescrsMap.end(); ++iter)
 	{
@@ -73,8 +54,7 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 			return false;
 		}
 		
-		tableItems_[pETItem->utype()].reset(pETItem);
-		tableFixedOrderItems_.push_back(pETItem);
+		addItem(pETItem);
 	}
 
 	// 特殊处理， 数据库保存方向和位置
@@ -104,16 +84,14 @@ bool EntityTableRedis::initialize(ScriptDefModule* sm, std::string name)
 		pETItem->utype(posuid);
 		pETItem->tableName(this->tableName());
 		pETItem->itemName("position");
-		tableItems_[pETItem->utype()].reset(pETItem);
-		tableFixedOrderItems_.push_back(pETItem);
+		addItem(pETItem);
 
 		pETItem = this->createItem("VECTOR3", "");
 		pETItem->pParentTable(this);
 		pETItem->utype(diruid);
 		pETItem->tableName(this->tableName());
 		pETItem->itemName("direction");
-		tableItems_[pETItem->utype()].reset(pETItem);
-		tableFixedOrderItems_.push_back(pETItem);
+		addItem(pETItem);
 	}
 
 	init_db_item_name();
@@ -328,9 +306,9 @@ EntityTableItem* EntityTableRedis::createItem(std::string type, std::string defa
 		return new EntityTableItemRedis_VECTOR4("float not null DEFAULT 0", 0, 0);
 	}
 #endif
-	else if(type == "MAILBOX")
+	else if(type == "ENTITYCALL")
 	{
-		return new EntityTableItemRedis_MAILBOX("blob", 0, 0);
+		return new EntityTableItemRedis_ENTITYCALL("blob", 0, 0);
 	}
 
 	KBE_ASSERT(false && "not found type.\n");
@@ -471,23 +449,23 @@ void EntityTableItemRedis_VECTOR4::getReadSqlItem(redis::DBContext& context)
 }
 
 //-------------------------------------------------------------------------------------
-bool EntityTableItemRedis_MAILBOX::syncToDB(DBInterface* pdbi, void* pData)
+bool EntityTableItemRedis_ENTITYCALL::syncToDB(DBInterface* pdbi, void* pData)
 {
 	return true;
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemRedis_MAILBOX::addToStream(MemoryStream* s, redis::DBContext& context, DBID resultDBID)
+void EntityTableItemRedis_ENTITYCALL::addToStream(MemoryStream* s, redis::DBContext& context, DBID resultDBID)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemRedis_MAILBOX::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, redis::DBContext& context)
+void EntityTableItemRedis_ENTITYCALL::getWriteSqlItem(DBInterface* pdbi, MemoryStream* s, redis::DBContext& context)
 {
 }
 
 //-------------------------------------------------------------------------------------
-void EntityTableItemRedis_MAILBOX::getReadSqlItem(redis::DBContext& context)
+void EntityTableItemRedis_ENTITYCALL::getReadSqlItem(redis::DBContext& context)
 {
 }
 

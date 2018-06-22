@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_TIMESTAMP_H
 #define KBE_TIMESTAMP_H
@@ -91,7 +73,7 @@ inline uint64 timestamp()
 		return timestamp_rdtsc();
 	else if (g_timingMethod == GET_TIME_OF_DAY_TIMING_METHOD)
 		return timestamp_gettimeofday();
-	else //if (g_timingMethod == GET_TIME_TIMING_METHOD)
+	else // GET_TIME_TIMING_METHOD
 		return timestamp_gettime();
 
 #endif // KBE_USE_RDTSC
@@ -133,43 +115,50 @@ double stampsPerSecondD_rdtsc();
 uint64 stampsPerSecond_gettimeofday();
 double stampsPerSecondD_gettimeofday();
 
-inline double stampsToSeconds( uint64 stamps )
+inline double stampsToSeconds(uint64 stamps)
 {
-	return double( stamps )/stampsPerSecondD();
+	return double(stamps) / stampsPerSecondD();
 }
 
 // -----------------------------------------------------------------------------
 class TimeStamp
 {
 public:
-	TimeStamp( uint64 stamps = 0 ) : stamp_( stamps ) {}
+	TimeStamp(uint64 stamps = 0) : 
+		stamp_( stamps ) 
+	{
+	}
 
-	operator uint64 &()				{ return stamp_; }
-	operator uint64() const			{ return stamp_; }
+	operator uint64& ()	
+	{ 
+		return stamp_; 
+	}
+
+	operator uint64() const 
+	{ 
+		return stamp_; 
+	}
 	
-	inline uint64 stamp(){ return stamp_; }
+	inline uint64 stamp() { return stamp_; }
 
 	inline double inSeconds() const;
-	inline void setInSeconds( double seconds );
+	inline void setInSeconds(double seconds);
 
-	inline TimeStamp ageInStamps() const;
-	inline double ageInSeconds() const;
-
-	inline static double toSeconds( uint64 stamps );
+	inline static double toSeconds(uint64 stamps);
 	inline static TimeStamp fromSeconds( double seconds );
 
 	uint64	stamp_;
 };
 
 
-inline double TimeStamp::toSeconds( uint64 stamps )
+inline double TimeStamp::toSeconds(uint64 stamps)
 {
-	return double( stamps )/stampsPerSecondD();
+	return double(stamps) / stampsPerSecondD();
 }
 
-inline TimeStamp TimeStamp::fromSeconds( double seconds )
+inline TimeStamp TimeStamp::fromSeconds(double seconds)
 {
-	return uint64( seconds * stampsPerSecondD() );
+	return uint64(seconds * stampsPerSecondD());
 }
 
 inline double TimeStamp::inSeconds() const
@@ -177,20 +166,12 @@ inline double TimeStamp::inSeconds() const
 	return toSeconds( stamp_ );
 }
 
-inline void TimeStamp::setInSeconds( double seconds )
+inline void TimeStamp::setInSeconds(double seconds)
 {
-	stamp_ = fromSeconds( seconds );
+	stamp_ = fromSeconds(seconds);
 }
 
-inline TimeStamp TimeStamp::ageInStamps() const
-{
-	return timestamp() - stamp_;
-}
 
-inline double TimeStamp::ageInSeconds() const
-{
-	return toSeconds( this->ageInStamps() );
-}
 
 }
 

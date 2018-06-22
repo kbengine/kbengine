@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "baseapp.h"
 #include "backuper.h"
@@ -65,10 +47,10 @@ void Backuper::tick()
 	
 	while((numToBackUp > 0) && !backupEntityIDs_.empty())
 	{
-		Base * pBase = Baseapp::getSingleton().findEntity(backupEntityIDs_.back());
+		Entity * pEntity = Baseapp::getSingleton().findEntity(backupEntityIDs_.back());
 		backupEntityIDs_.pop_back();
 		
-		if (pBase && backup(*pBase, *s))
+		if (pEntity && backup(*pEntity, *s))
 		{
 			--numToBackUp;
 		}
@@ -80,13 +62,13 @@ void Backuper::tick()
 }
 
 //-------------------------------------------------------------------------------------
-bool Backuper::backup(Base& base, MemoryStream& s)
+bool Backuper::backup(Entity& entity, MemoryStream& s)
 {
 	// 这里开始将需要备份的数据写入流
-	base.writeBackupData(&s);
+	entity.writeBackupData(&s);
 
-	if(base.shouldAutoBackup() == KBE_NEXT_ONLY)
-		base.shouldAutoBackup(0);
+	if(entity.shouldAutoBackup() == KBE_NEXT_ONLY)
+		entity.shouldAutoBackup(0);
 
 	return true;
 }
@@ -96,13 +78,13 @@ void Backuper::createBackupTable()
 {
 	backupEntityIDs_.clear();
 
-	Entities<Base>::ENTITYS_MAP::const_iterator iter = Baseapp::getSingleton().pEntities()->getEntities().begin();
+	Entities<Entity>::ENTITYS_MAP::const_iterator iter = Baseapp::getSingleton().pEntities()->getEntities().begin();
 
 	for(; iter != Baseapp::getSingleton().pEntities()->getEntities().end(); ++iter)
 	{
-		Base* pBase = static_cast<Base*>(iter->second.get());
+		Entity* pEntity = static_cast<Entity*>(iter->second.get());
 
-		if(pBase->shouldAutoBackup() > 0)
+		if(pEntity->shouldAutoBackup() > 0)
 			backupEntityIDs_.push_back(iter->first);
 	}
 

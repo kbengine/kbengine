@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 namespace KBEngine{
@@ -117,27 +99,27 @@ INLINE ClientObjectBase* Entity::pClientApp() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::baseMailbox() const
+INLINE EntityCall* Entity::baseEntityCall() const
 { 
-	return baseMailbox_; 
+	return baseEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::cellMailbox(EntityMailbox* mailbox)
+INLINE void Entity::cellEntityCall(EntityCall* entityCall)
 { 
-	cellMailbox_ = mailbox; 
+	cellEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::cellMailbox() const
+INLINE EntityCall* Entity::cellEntityCall() const
 { 
-	return cellMailbox_; 
+	return cellEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::baseMailbox(EntityMailbox* mailbox)
+INLINE void Entity::baseEntityCall(EntityCall* entityCall)
 { 
-	baseMailbox_ = mailbox; 
+	baseEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------

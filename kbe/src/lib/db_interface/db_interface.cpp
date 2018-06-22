@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "db_interface.h"
@@ -183,7 +165,7 @@ DBInterface* DBUtil::createInterface(const std::string& name, bool showinfo)
 	kbe_snprintf(dbinterface->db_ip_, MAX_IP, "%s", pDBInfo->db_ip);
 	kbe_snprintf(dbinterface->db_username_, MAX_BUF, "%s", pDBInfo->db_username);
 	dbinterface->db_numConnections_ = pDBInfo->db_numConnections;
-	kbe_snprintf(dbinterface->db_password_, MAX_BUF, "%s", pDBInfo->db_password);
+	kbe_snprintf(dbinterface->db_password_, MAX_BUF * 10, "%s", pDBInfo->db_password);
 
 	if (!dbinterface->attach(pDBInfo->db_name))
 	{

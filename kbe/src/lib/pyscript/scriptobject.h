@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_SCRIPTOBJECT_H
 #define KBE_SCRIPTOBJECT_H
@@ -95,7 +77,7 @@ namespace KBEngine{ namespace script{
 
 																							
 #define SCRIPT_HREADER_BASE(CLASS, SUPERCLASS)												\
-	/* 当前脚本模块的类别 */																\
+	/* 当前脚本模块的类别 */																	\
 	static PyTypeObject _scriptType;														\
 	typedef CLASS ThisClass;																\
 																							\
@@ -140,11 +122,11 @@ namespace KBEngine{ namespace script{
 	}																						\
 																							\
 public:																						\
-	/* 最终将要被安装到脚本模块中的方法和成员存放列表*/										\
+	/* 最终将要被安装到脚本模块中的方法和成员存放列表*/											\
 	static PyMethodDef* _##CLASS##_lpScriptmethods;											\
 	static PyMemberDef* _##CLASS##_lpScriptmembers;											\
 	static PyGetSetDef* _##CLASS##_lpgetseters;												\
-	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */				\
+	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */					\
 	static PyMethodDef _##CLASS##_scriptMethods[];											\
 	static PyMemberDef _##CLASS##_scriptMembers[];											\
 	static PyGetSetDef _##CLASS##_scriptGetSeters[];										\

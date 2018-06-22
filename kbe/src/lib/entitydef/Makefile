@@ -6,14 +6,16 @@ SRCS =				\
 	datatype		\
 	datatypes		\
 	detaillevel		\
-	entity_mailbox		\
+	entity_component\
+	entity_component_call	\
+	entity_call		\
 	entitydef		\
-	entitymailboxabstract	\
+	entitycallabstract		\
 	fixeddict		\
 	method			\
 	property		\
 	remote_entity_method	\
-	scriptdef_module	\
+	scriptdef_module\
 	volatileinfo
 
 ifndef KBE_ROOT

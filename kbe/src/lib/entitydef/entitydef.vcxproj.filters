@@ -30,13 +30,7 @@
     <ClCompile Include="detaillevel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="entity_mailbox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="entitydef.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="entitymailboxabstract.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fixedarray.cpp">
@@ -60,6 +54,18 @@
     <ClCompile Include="volatileinfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="entity_component.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_call.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entitycallabstract.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_component_call.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">
@@ -80,13 +86,7 @@
     <ClInclude Include="entity_macro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entity_mailbox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="entitydef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="entitymailboxabstract.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fixedarray.h">
@@ -113,6 +113,18 @@
     <ClInclude Include="entity_garbages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="entity_component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entitycallabstract.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_call.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="entity_component_call.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -122,9 +134,6 @@
     <None Include="entitydef.inl">
       <Filter>Inline Files</Filter>
     </None>
-    <None Include="entitymailboxabstract.inl">
-      <Filter>Inline Files</Filter>
-    </None>
     <None Include="method.inl">
       <Filter>Inline Files</Filter>
     </None>
@@ -132,6 +141,15 @@
       <Filter>Inline Files</Filter>
     </None>
     <None Include="scriptdef_module.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entity_component.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entitycallabstract.inl">
+      <Filter>Inline Files</Filter>
+    </None>
+    <None Include="entity_component_call.inl">
       <Filter>Inline Files</Filter>
     </None>
   </ItemGroup>

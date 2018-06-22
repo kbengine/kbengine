@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef KBE_BASEAPPMGR_H
@@ -67,37 +49,37 @@ public:
 	void updateBestBaseapp();
 
 	/** 网络接口
-		baseapp::createBaseAnywhere查询当前最好的组件ID
+		baseapp::createEntityAnywhere查询当前最好的组件ID
 	*/
-	void reqCreateBaseAnywhereFromDBIDQueryBestBaseappID(Network::Channel* pChannel, MemoryStream& s);
+	void reqCreateEntityAnywhereFromDBIDQueryBestBaseappID(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-		收到baseapp::createBaseAnywhere请求在某个空闲的baseapp上创建一个baseEntity
+		收到baseapp::createEntityAnywhere请求在某个空闲的baseapp上创建一个baseEntity
 		@param sp: 这个数据包中存储的是 entityType	: entity的类别， entities.xml中的定义的。
 										strInitData	: 这个entity被创建后应该给他初始化的一些数据， 
 													  需要使用pickle.loads解包.
 										componentID	: 请求创建entity的baseapp的组件ID
 	*/
-	void reqCreateBaseAnywhere(Network::Channel* pChannel, MemoryStream& s);
+	void reqCreateEntityAnywhere(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-	收到baseapp::createBaseRemotely请求在某个空闲的baseapp上创建一个baseEntity
+	收到baseapp::createEntityRemotely请求在某个空闲的baseapp上创建一个baseEntity
 	@param sp: 这个数据包中存储的是 entityType	: entity的类别， entities.xml中的定义的。
 	strInitData	: 这个entity被创建后应该给他初始化的一些数据，
 	需要使用pickle.loads解包.
 	componentID	: 请求创建entity的baseapp的组件ID
 	*/
-	void reqCreateBaseRemotely(Network::Channel* pChannel, MemoryStream& s);
+	void reqCreateEntityRemotely(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-		收到baseapp::createBaseAnywhereFromDBID请求在某个空闲的baseapp上创建一个baseEntity
+		收到baseapp::createEntityAnywhereFromDBID请求在某个空闲的baseapp上创建一个baseEntity
 	*/
-	void reqCreateBaseAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s);
+	void reqCreateEntityAnywhereFromDBID(Network::Channel* pChannel, MemoryStream& s);
 
 	/** 网络接口
-		收到baseapp::createBaseRemotelyFromDBID请求在某个空闲的baseapp上创建一个baseEntity
+		收到baseapp::createEntityRemotelyFromDBID请求在某个空闲的baseapp上创建一个baseEntity
 	*/
-	void reqCreateBaseRemotelyFromDBID(Network::Channel* pChannel, MemoryStream& s);
+	void reqCreateEntityRemotelyFromDBID(Network::Channel* pChannel, MemoryStream& s);
 	
 	/** 网络接口
 		消息转发， 由某个app想通过本app将消息转发给某个app。
@@ -121,13 +103,13 @@ public:
 	*/
 	void onPendingAccountGetBaseappAddr(Network::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
-								  std::string& addr, uint16 port);
+								  std::string& addr, uint16 tcp_port, uint16 udp_port);
 
 	/** 网络接口
 		更新baseapp情况。
 	*/
 	void updateBaseapp(Network::Channel* pChannel, COMPONENT_ID componentID,
-								ENTITY_ID numBases, ENTITY_ID numProxices, float load, uint32 flags);
+								ENTITY_ID numEntitys, ENTITY_ID numProxices, float load, uint32 flags);
 
 	/** 网络接口
 		baseapp同步自己的初始化信息
@@ -141,7 +123,7 @@ public:
 	*/
 	void sendAllocatedBaseappAddr(Network::Channel* pChannel, 
 								  std::string& loginName, std::string& accountName, 
-								  const std::string& addr, uint16 port);
+								  const std::string& addr, uint16 tcp_port, uint16 udp_port);
 
 	bool componentsReady();
 	bool componentReady(COMPONENT_ID cid);

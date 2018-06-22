@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 	
 /*
@@ -25,9 +7,9 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 		标识该回调的唯一id， 外部可以通过该id来触发这个回调。
 		
 	用法:
-	typedef CallbackMgr<std::tr1::function<void(Base*, int64, bool)>> CALLBACK_MGR;
+	typedef CallbackMgr<std::tr1::function<void(Entity*, int64, bool)>> CALLBACK_MGR;
 	CALLBACK_MGR callbackMgr;
-	void xxx(Base*, int64, bool){}
+	void xxx(Entity*, int64, bool){}
 	CALLBACK_ID callbackID = callbackMgr.save(&xxx); // 可以使用bind来绑定一个类成员函数
 */
 
@@ -219,11 +201,17 @@ inline void CallbackMgr<PyObject*>::finalise()
 template<>
 inline bool CallbackMgr<PyObject*>::processTimeout(CALLBACK_ID cbID, PyObject* callback)
 {
-	std::string name = callback->ob_type->tp_name;
-	INFO_MSG(fmt::format("CallbackMgr::processTimeout: callbackID:{}, callback({}) timeout!\n", cbID , 
-		name));
+	PyObject* pystr = PyObject_Str(callback);
+	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr, NULL);
+	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	Py_DECREF(pystr);
+
+	INFO_MSG(fmt::format("CallbackMgr::processTimeout: callbackID:{}, callback({}) timeout!\n", cbID,
+		ccattr));
 
 	Py_DECREF(callback);
+	free(ccattr);
 	return true;
 }
 

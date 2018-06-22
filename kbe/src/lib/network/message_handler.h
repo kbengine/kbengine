@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_MESSAGE_HANDLER_H
 #define KBE_MESSAGE_HANDLER_H
@@ -122,7 +104,7 @@ class MessageHandlers
 public:
 	static Network::MessageHandlers* pMainMessageHandlers;
 	typedef std::map<MessageID, MessageHandler*> MessageHandlerMap;
-	MessageHandlers();
+	MessageHandlers(const std::string& name);
 	~MessageHandlers();
 	
 	MessageHandler* add(std::string ihName, MessageArgs* args, int32 msgLen, 
@@ -143,11 +125,16 @@ public:
 
 	static std::string getDigestStr();
 
+	std::string name() const {
+		return name_;
+	}
+
 private:
 	MessageHandlerMap msgHandlers_;
 	MessageID msgID_;
 
 	std::vector< std::string > exposedMessages_;
+	std::string name_;
 };
 
 }

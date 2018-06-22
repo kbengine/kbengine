@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "network_interface.h"
@@ -27,7 +9,8 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/address.h"
 #include "network/event_dispatcher.h"
 #include "network/packet_receiver.h"
-#include "network/listener_receiver.h"
+#include "network/listener_udp_receiver.h"
+#include "network/listener_tcp_receiver.h"
 #include "network/channel.h"
 #include "network/packet.h"
 #include "network/delayed_channels.h"
@@ -40,42 +23,59 @@ namespace Network
 
 //-------------------------------------------------------------------------------------
 NetworkInterface::NetworkInterface(Network::EventDispatcher * pDispatcher,
-		int32 extlisteningPort_min, int32 extlisteningPort_max, const char * extlisteningInterface,
+		int32 extlisteningTcpPort_min, int32 extlisteningTcpPort_max, int32 extlisteningUdpPort_min, int32 extlisteningUdpPort_max, const char * extlisteningInterface,
 		uint32 extrbuffer, uint32 extwbuffer,
 		int32 intlisteningPort, const char * intlisteningInterface,
 		uint32 intrbuffer, uint32 intwbuffer):
-	extEndpoint_(),
-	intEndpoint_(),
+	extTcpEndpoint_(),
+	extUdpEndpoint_(),
+	intTcpEndpoint_(),
 	channelMap_(),
 	pDispatcher_(pDispatcher),
-	pExtensionData_(NULL),
 	pExtListenerReceiver_(NULL),
+	pExtUdpListenerReceiver_(NULL),
 	pIntListenerReceiver_(NULL),
 	pDelayedChannels_(new DelayedChannels()),
 	pChannelTimeOutHandler_(NULL),
 	pChannelDeregisterHandler_(NULL),
-	isExternal_(extlisteningPort_min != -1),
 	numExtChannels_(0)
 {
-	if(isExternal())
+	if(extlisteningTcpPort_min != -1)
 	{
-		pExtListenerReceiver_ = new ListenerReceiver(extEndpoint_, Channel::EXTERNAL, *this);
-		this->recreateListeningSocket("EXTERNAL", htons(extlisteningPort_min), htons(extlisteningPort_max), 
-			extlisteningInterface, &extEndpoint_, pExtListenerReceiver_, extrbuffer, extwbuffer);
+		pExtListenerReceiver_ = new ListenerTcpReceiver(extTcpEndpoint_, Channel::EXTERNAL, *this);
+
+		this->initialize("EXTERNAL-TCP", htons(extlisteningTcpPort_min), htons(extlisteningTcpPort_max),
+			extlisteningInterface, &extTcpEndpoint_, pExtListenerReceiver_, extrbuffer, extwbuffer);
 
 		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
-		if(extlisteningPort_min != -1)
+		if(extlisteningTcpPort_min != -1)
 		{
-			KBE_ASSERT(extEndpoint_.good() && "Channel::EXTERNAL: no available port, "
+			KBE_ASSERT(extTcpEndpoint_.good() && "Channel::EXTERNAL-TCP: no available port, "
+				"please check for kbengine[_defs].xml!\n");
+		}
+	}
+
+	if (extlisteningUdpPort_min != -1)
+	{
+		pExtUdpListenerReceiver_ = new ListenerUdpReceiver(extUdpEndpoint_, Channel::EXTERNAL, *this);
+
+		this->initialize("EXTERNAL-UDP", htons(extlisteningUdpPort_min), htons(extlisteningUdpPort_max),
+			extlisteningInterface, &extUdpEndpoint_, pExtUdpListenerReceiver_, extrbuffer, extwbuffer);
+
+		// 如果配置了对外端口范围， 如果范围过小这里extEndpoint_可能没有端口可用了
+		if (extlisteningUdpPort_min != -1)
+		{
+			KBE_ASSERT(extTcpEndpoint_.good() && "Channel::EXTERNAL-UDP: no available udp-port, "
 				"please check for kbengine[_defs].xml!\n");
 		}
 	}
 
 	if(intlisteningPort != -1)
 	{
-		pIntListenerReceiver_ = new ListenerReceiver(intEndpoint_, Channel::INTERNAL, *this);
-		this->recreateListeningSocket("INTERNAL", intlisteningPort, intlisteningPort, 
-			intlisteningInterface, &intEndpoint_, pIntListenerReceiver_, intrbuffer, intwbuffer);
+		pIntListenerReceiver_ = new ListenerTcpReceiver(intTcpEndpoint_, Channel::INTERNAL, *this);
+
+		this->initialize("INTERNAL-TCP", intlisteningPort, intlisteningPort,
+			intlisteningInterface, &intTcpEndpoint_, pIntListenerReceiver_, intrbuffer, intwbuffer);
 	}
 
 	KBE_ASSERT(good() && "NetworkInterface::NetworkInterface: no available port, "
@@ -114,21 +114,27 @@ NetworkInterface::~NetworkInterface()
 //-------------------------------------------------------------------------------------
 void NetworkInterface::closeSocket()
 {
-	if (extEndpoint_.good())
+	if (extTcpEndpoint_.good())
 	{
-		this->dispatcher().deregisterReadFileDescriptor(extEndpoint_);
-		extEndpoint_.close();
+		this->dispatcher().deregisterReadFileDescriptor(extTcpEndpoint_);
+		extTcpEndpoint_.close();
 	}
 
-	if (intEndpoint_.good())
+	if (extUdpEndpoint_.good())
 	{
-		this->dispatcher().deregisterReadFileDescriptor(intEndpoint_);
-		intEndpoint_.close();
+		this->dispatcher().deregisterReadFileDescriptor(extUdpEndpoint_);
+		extUdpEndpoint_.close();
+	}
+
+	if (intTcpEndpoint_.good())
+	{
+		this->dispatcher().deregisterReadFileDescriptor(intTcpEndpoint_);
+		intTcpEndpoint_.close();
 	}
 }
 
 //-------------------------------------------------------------------------------------
-bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max, 
+bool NetworkInterface::initialize(const char* pEndPointName, uint16 listeningPort_min, uint16 listeningPort_max,
 										const char * listeningInterface, EndPoint* pEP, ListenerReceiver* pLR, uint32 rbuffer, 
 										uint32 wbuffer)
 {
@@ -144,10 +150,16 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	address.ip = 0;
 	address.port = 0;
 
-	pEP->socket(SOCK_STREAM);
+	bool isTCP = strstr(pEndPointName, "-TCP") != NULL;
+
+	if(isTCP)
+		pEP->socket(SOCK_STREAM);
+	else
+		pEP->socket(SOCK_DGRAM);
+
 	if (!pEP->good())
 	{
-		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): couldn't create a socket\n",
+		ERROR_MSG(fmt::format("NetworkInterface::initialize({}): couldn't create a socket\n",
 			pEndPointName));
 
 		return false;
@@ -169,16 +181,14 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 		char szIp[MAX_IP] = {0};
 		Address::ip2string(ifIPAddr, szIp);
 
-		INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Creating on interface '{}' (= {})\n",
+		INFO_MSG(fmt::format("NetworkInterface::initialize({}): Creating on interface '{}' (= {})\n",
 			pEndPointName, listeningInterface, szIp));
 	}
 
 	// 如果不为空又找不到那么警告用户错误的设置，同时我们采用默认的方式(绑定到INADDR_ANY)
 	else if (!listeningInterfaceEmpty)
 	{
-		WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Couldn't parse interface spec '{}' so using all interfaces\n",
+		WARNING_MSG(fmt::format("NetworkInterface::initialize({}): Couldn't parse interface spec '{}' so using all interfaces\n",
 			pEndPointName, listeningInterface));
 	}
 	
@@ -212,8 +222,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	// 如果无法绑定到合适的端口那么报错返回，进程将退出
 	if(!foundport)
 	{
-		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Couldn't bind the socket to {}:{} ({})\n",
+		ERROR_MSG(fmt::format("NetworkInterface::initialize({}): Couldn't bind the socket to {}:{} ({})\n",
 			pEndPointName, inet_ntoa((struct in_addr&)ifIPAddr), ntohs(listeningPort), kbe_strerror()));
 		
 		pEP->close();
@@ -233,15 +242,12 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 
 			char szIp[MAX_IP] = {0};
 			Address::ip2string(address.ip, szIp);
-			INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-					"bound to all interfaces with default route "
-					"interface on {} ( {} )\n",
+			INFO_MSG(fmt::format("NetworkInterface::initialize({}): bound to all interfaces with default route interface on {} ( {} )\n",
 				pEndPointName, szIp, address.c_str()));
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Couldn't determine ip addr of default interface\n", pEndPointName));
+			ERROR_MSG(fmt::format("NetworkInterface::initialize({}): Couldn't determine ip addr of default interface\n", pEndPointName));
 
 			pEP->close();
 			return false;
@@ -256,8 +262,7 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	{
 		if (!pEP->setBufferSize(SO_RCVBUF, rbuffer))
 		{
-			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Operating with a receive buffer of only {} bytes (instead of {})\n",
+			WARNING_MSG(fmt::format("NetworkInterface::initialize({}): Operating with a receive buffer of only {} bytes (instead of {})\n",
 				pEndPointName, pEP->getBufferSize(SO_RCVBUF), rbuffer));
 		}
 	}
@@ -265,27 +270,29 @@ bool NetworkInterface::recreateListeningSocket(const char* pEndPointName, uint16
 	{
 		if (!pEP->setBufferSize(SO_SNDBUF, wbuffer))
 		{
-			WARNING_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-				"Operating with a send buffer of only {} bytes (instead of {})\n",
+			WARNING_MSG(fmt::format("NetworkInterface::initialize({}): Operating with a send buffer of only {} bytes (instead of {})\n",
 				pEndPointName, pEP->getBufferSize(SO_SNDBUF), wbuffer));
 		}
 	}
 
+
 	int backlog = Network::g_SOMAXCONN;
-	if(backlog < 5)
+	if (backlog < 5)
 		backlog = 5;
 
-	if(pEP->listen(backlog) == -1)
+	if (isTCP)
 	{
-		ERROR_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): "
-			"listen to {} ({})\n",
-			pEndPointName, address.c_str(), kbe_strerror()));
+		if (pEP->listen(backlog) == -1)
+		{
+			ERROR_MSG(fmt::format("NetworkInterface::initialize({}): listen to {} ({})\n",
+				pEndPointName, address.c_str(), kbe_strerror()));
 
-		pEP->close();
-		return false;
+			pEP->close();
+			return false;
+		}
 	}
-	
-	INFO_MSG(fmt::format("NetworkInterface::recreateListeningSocket({}): address {}, SOMAXCONN={}.\n", 
+
+	INFO_MSG(fmt::format("NetworkInterface::initialize({}): address {}, SOMAXCONN={}.\n", 
 		pEndPointName, address.c_str(), backlog));
 
 	return true;
@@ -307,7 +314,7 @@ void NetworkInterface::sendIfDelayed(Channel & channel)
 void NetworkInterface::handleTimeout(TimerHandle handle, void * arg)
 {
 	INFO_MSG(fmt::format("NetworkInterface::handleTimeout: EXTERNAL({}), INTERNAL({}).\n", 
-		extaddr().c_str(), intaddr().c_str()));
+		extTcpAddr().c_str(), intTcpAddr().c_str()));
 }
 
 //-------------------------------------------------------------------------------------

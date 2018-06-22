@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #if defined(DEFINE_IN_INTERFACE)
@@ -73,19 +55,19 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 									COMPONENT_ID,										componentID)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhere,							NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityAnywhere,							NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseRemotely,							NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityRemotely,							NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中，查询当前最好的组件ID
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhereFromDBIDQueryBestBaseappID, NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityAnywhereFromDBIDQueryBestBaseappID,NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseAnywhereFromDBID,					NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityAnywhereFromDBID,					NETWORK_VARIABLE_MESSAGE)
 
 	// baseEntity请求创建在一个新的space中。
-	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateBaseRemotelyFromDBID,					NETWORK_VARIABLE_MESSAGE)
+	BASEAPPMGR_MESSAGE_DECLARE_STREAM(reqCreateEntityRemotelyFromDBID,					NETWORK_VARIABLE_MESSAGE)
 	
 	// 消息转发， 由某个app想通过本app将消息转发给某个app。	
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(forwardMessage,									NETWORK_VARIABLE_MESSAGE)
@@ -94,11 +76,12 @@ NETWORK_INTERFACE_DECLARE_BEGIN(BaseappmgrInterface)
 	BASEAPPMGR_MESSAGE_DECLARE_STREAM(registerPendingAccountToBaseapp,					NETWORK_VARIABLE_MESSAGE)
 
 	// 获取到baseapp的地址。
-	BASEAPPMGR_MESSAGE_DECLARE_ARGS4(onPendingAccountGetBaseappAddr,					NETWORK_VARIABLE_MESSAGE,
+	BASEAPPMGR_MESSAGE_DECLARE_ARGS5(onPendingAccountGetBaseappAddr,					NETWORK_VARIABLE_MESSAGE,
 									std::string,										loginName, 
 									std::string,										accountName,
 									std::string,										addr,
-									uint16,												port)
+									uint16,												tcp_port,
+									uint16,												udp_port)
 									
 	// 一个新登录的账号获得合法登入baseapp的权利， 现在需要将账号注册给指定的baseapp
 	// 使其允许在此baseapp上登录。

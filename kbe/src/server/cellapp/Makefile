@@ -1,43 +1,45 @@
 BIN  = cellapp
 SRCS =						\
 	all_clients				\
-	aoi_trigger				\
+	view_trigger			\
 	cell					\
 	cells					\
 	cellapp					\
-	cellapp_interface			\
+	cellapp_interface		\
 	clients_remote_entity_method		\
 	controller				\
 	controllers				\
-	client_entity				\
-	client_entity_method			\
+	client_entity			\
+	client_entity_method	\
 	forward_message_over_handler		\
 	entity					\
 	entityref				\
-	entity_remotemethod			\
-	entity_coordinate_node			\
-	ghost_manager				\
-	history_event				\
-	initprogress_handler			\
-	loadnavmesh_threadtasks		\
+	entity_remotemethod		\
+	entity_coordinate_node	\
+	entity_component		\
+	ghost_manager			\
+	history_event			\
+	initprogress_handler	\
+	loadnavmesh_threadtasks	\
 	main					\
 	space					\
-	spaces					\
-	space_viewer				\
+	spacememory				\
+	spacememorys			\
+	space_viewer			\
 	move_controller			\
-	moveto_entity_handler			\
-	moveto_point_handler			\
-	navigate_handler			\
+	moveto_entity_handler	\
+	moveto_point_handler	\
+	navigate_handler		\
 	profile					\
-	proximity_controller			\
+	proximity_controller	\
 	coordinate_node			\
-	coordinate_system			\
-	rotator_handler				\
-	range_trigger				\
-	range_trigger_node			\
-	real_entity_method			\
-	trap_trigger				\
-	turn_controller				\
+	coordinate_system		\
+	rotator_handler			\
+	range_trigger			\
+	range_trigger_node		\
+	real_entity_method		\
+	trap_trigger			\
+	turn_controller			\
 	updatable				\
 	updatables				\
 	watch_obj_pools			\
@@ -50,7 +52,7 @@ MY_LIBS =		\
 	entitydef	\
 	server		\
 	pyscript	\
-	network	\
+	network		\
 	navigation	\
 	thread
 	

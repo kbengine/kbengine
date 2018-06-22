@@ -1,0 +1,193 @@
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
+
+
+#include "udp_packet_sender.h"
+#ifndef CODE_INLINE
+#include "udp_packet_sender.inl"
+#endif
+
+#include "network/address.h"
+#include "network/bundle.h"
+#include "network/channel.h"
+#include "network/endpoint.h"
+#include "network/event_dispatcher.h"
+#include "network/network_interface.h"
+#include "network/event_poller.h"
+#include "network/error_reporter.h"
+#include "network/tcp_packet.h"
+#include "network/udp_packet.h"
+
+namespace KBEngine { 
+namespace Network
+{
+
+//-------------------------------------------------------------------------------------
+static ObjectPool<UDPPacketSender> _g_objPool("UDPPacketSender");
+ObjectPool<UDPPacketSender>& UDPPacketSender::ObjPool()
+{
+	return _g_objPool;
+}
+
+//-------------------------------------------------------------------------------------
+UDPPacketSender* UDPPacketSender::createPoolObject()
+{
+	return _g_objPool.createObject();
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacketSender::reclaimPoolObject(UDPPacketSender* obj)
+{
+	_g_objPool.reclaimObject(obj);
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacketSender::onReclaimObject()
+{
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacketSender::destroyObjPool()
+{
+	DEBUG_MSG(fmt::format("UDPPacketSender::destroyObjPool(): size {}.\n", 
+		_g_objPool.size()));
+
+	_g_objPool.destroy();
+}
+
+//-------------------------------------------------------------------------------------
+UDPPacketSender::SmartPoolObjectPtr UDPPacketSender::createSmartPoolObj()
+{
+	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacketSender>(ObjPool().createObject(), _g_objPool));
+}
+
+//-------------------------------------------------------------------------------------
+UDPPacketSender::UDPPacketSender(EndPoint & endpoint,
+	   NetworkInterface & networkInterface	) :
+	PacketSender(endpoint, networkInterface)
+{
+}
+
+//-------------------------------------------------------------------------------------
+UDPPacketSender::~UDPPacketSender()
+{
+	//DEBUG_MSG("UDPPacketSender::~UDPPacketSender()\n");
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacketSender::onGetError(Channel* pChannel)
+{
+	pChannel->condemn();
+	
+	// 此处不必立即销毁，可能导致bufferedReceives_内部遍历迭代器破坏
+	// 交给TCPPacketReceiver处理即可
+	//pChannel->networkInterface().deregisterChannel(pChannel);
+	//pChannel->destroy();
+}
+
+//-------------------------------------------------------------------------------------
+void UDPPacketSender::onSent(Packet* pPacket)
+{
+	RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
+}
+
+//-------------------------------------------------------------------------------------
+bool UDPPacketSender::processSend(Channel* pChannel, int userarg)
+{
+	KBE_ASSERT(pChannel != NULL);
+
+	if (pChannel->isCondemn())
+	{
+		return false;
+	}
+
+	uint8 sendfailCount = 0;
+	Channel::Bundles& bundles = pChannel->bundles();
+	Reason reason = REASON_SUCCESS;
+
+	Channel::Bundles::iterator iter = bundles.begin();
+	for (; iter != bundles.end(); ++iter)
+	{
+		Bundle::Packets& pakcets = (*iter)->packets();
+		Bundle::Packets::iterator iter1 = pakcets.begin();
+		for (; iter1 != pakcets.end(); ++iter1)
+		{
+			Packet* pPacket = (*iter1);
+			reason = processPacket(pChannel, pPacket, userarg);
+			if (reason != REASON_SUCCESS)
+				break;
+			else
+				onSent(pPacket);
+		}
+
+		if (reason == REASON_SUCCESS)
+		{
+			pakcets.clear();
+			Network::Bundle::reclaimPoolObject((*iter));
+			sendfailCount = 0;
+		}
+		else
+		{
+			pakcets.erase(pakcets.begin(), iter1);
+			bundles.erase(bundles.begin(), iter);
+
+			if (reason == REASON_RESOURCE_UNAVAILABLE)
+			{
+				/* 此处输出可能会造成debugHelper处死锁
+					WARNING_MSG(fmt::format("UDPPacketSender::processSend: "
+						"Transmit queue full, waiting for space(kbengine.xml->channelCommon->writeBufferSize->{})...\n",
+						(pChannel->isInternal() ? "internal" : "external")));
+				*/
+
+				// 连续超过10次则通知出错
+				if (++sendfailCount >= 10 && pChannel->isExternal())
+				{
+					onGetError(pChannel);
+
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(),
+						fmt::format("UDPPacketSender::processSend(sendfailCount({}) >= 10)", (int)sendfailCount).c_str());
+				}
+				else
+				{
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(),
+						fmt::format("UDPPacketSender::processSend({})", (int)sendfailCount).c_str());
+				}
+			}
+			else
+			{
+#ifdef unix
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend()",
+					fmt::format(", errno: {}", errno).c_str());
+#else
+				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend()",
+					fmt::format(", errno: {}", WSAGetLastError()).c_str());
+#endif
+				onGetError(pChannel);
+			}
+
+			return false;
+		}
+	}
+
+	bundles.clear();
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+Reason UDPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg)
+{
+	if(pChannel->isCondemn())
+	{
+		return REASON_CHANNEL_CONDEMN;
+	}
+
+	// sendto未实现
+	KBE_ASSERT(false);
+
+	return REASON_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------
+}
+}
+

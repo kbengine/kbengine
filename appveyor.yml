@@ -1,11 +1,16 @@
 shallow_clone: true
 
+branches:
+  only:
+    - master
+    - 1.x
+
 os:
-  - Visual Studio 2013
+  - Visual Studio 2015
 
 environment:
   matrix:
-  - TOOLSET: vs2013
+  - TOOLSET: vs2015
 
 build:
-  project: kbe/src/kbengine_vs120.sln
+  project: kbe/src/kbengine_vs140.sln

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "method.h"
@@ -38,18 +20,18 @@ SCRIPT_INIT(RemoteEntityMethod, tp_call, 0, 0, 0, 0)
 
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod::RemoteEntityMethod(MethodDescription* methodDescription, 
-	EntityMailboxAbstract* mailbox, PyTypeObject* pyType):
+	EntityCallAbstract* entityCall, PyTypeObject* pyType):
 script::ScriptObject((pyType == NULL ? getScriptType() : pyType), false),
 methodDescription_(methodDescription),
-pMailbox_(mailbox)
+pEntityCall_(entityCall)
 {
-	Py_INCREF(pMailbox_);
+	Py_INCREF(pEntityCall_);
 }
 
 //-------------------------------------------------------------------------------------
 RemoteEntityMethod::~RemoteEntityMethod()
 {
-	Py_DECREF(pMailbox_);
+	Py_DECREF(pEntityCall_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -64,12 +46,12 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 {	
 	RemoteEntityMethod* rmethod = static_cast<RemoteEntityMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
-	EntityMailboxAbstract* mailbox = rmethod->getMailbox();
+	EntityCallAbstract* entityCall = rmethod->getEntityCall();
 	// DEBUG_MSG(fmt::format("RemoteEntityMethod::tp_call:{}.\n"), methodDescription->getName()));
 
 	if(methodDescription->checkArgs(args))
 	{
-		Network::Channel* pChannel = mailbox->getChannel();
+		Network::Channel* pChannel = entityCall->getChannel();
 		Network::Bundle* pSendBundle = NULL;
 
 		if (!pChannel)
@@ -77,7 +59,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		else
 			pSendBundle = pChannel->createSendBundle();
 
-		mailbox->newMail((*pSendBundle));
+		entityCall->newCall((*pSendBundle));
 
 		MemoryStream mstream;
 		methodDescription->addToStream(&mstream, args);
@@ -85,7 +67,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		if(mstream.wpos() > 0)
 			(*pSendBundle).append(mstream.data(), mstream.wpos());
 
-		mailbox->postMail(pSendBundle);
+		entityCall->sendCall(pSendBundle);
 	}
 	else
 	{

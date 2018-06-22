@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "bundle.h"
@@ -68,7 +50,7 @@ void Bundle::destroyObjPool()
 //-------------------------------------------------------------------------------------
 size_t Bundle::getPoolObjectBytes()
 {
-	size_t bytes = sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + 
+	size_t bytes = sizeof(pCurrMsgHandler_) + sizeof(isTCPPacket_) + sizeof(pCurrPacket_) + sizeof(packetMaxSize_) +
 		sizeof(currMsgLengthPos_) + sizeof(currMsgHandlerLength_) + sizeof(currMsgLength_) + 
 		sizeof(currMsgPacketCount_) + sizeof(currMsgID_) + sizeof(numMessages_) + sizeof(pChannel_)
 		+ (packets_.size() * sizeof(Packet*));
@@ -422,6 +404,15 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 			currMsgLength += NETWORK_MESSAGE_LENGTH1_SIZE;
 	}
 	
+	if (currMsgLength >= MemoryStream::MAX_SIZE)
+	{
+		DebugHelper::getSingleton().set_errorcolor();
+		printf("%s", fmt::format("ERROR: Bundle::debugCurrentMessages(): is too big, size=%d\n", currMsgLength).c_str());
+		DebugHelper::getSingleton().set_normalcolor();
+		
+		return;
+	}
+
 	MemoryStream* pMemoryStream = MemoryStream::createPoolObject();
 	
 	// 通过消息长度找到消息头，然后将消息内容输出

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 namespace KBEngine{
@@ -30,7 +12,7 @@ INLINE bool Entity::isWitnessed(void) const
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::hasWitness(void) const
 { 
-	return pWitness_ != NULL &&  clientMailbox_ != NULL; 
+	return pWitness_ != NULL &&  clientEntityCall_ != NULL; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -98,27 +80,27 @@ INLINE Position3D& Entity::position()
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::baseMailbox() const
+INLINE EntityCall* Entity::baseEntityCall() const
 { 
-	return baseMailbox_; 
+	return baseEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::baseMailbox(EntityMailbox* mailbox)
+INLINE void Entity::baseEntityCall(EntityCall* entityCall)
 { 
-	baseMailbox_ = mailbox; 
+	baseEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::clientMailbox(EntityMailbox* mailbox)
+INLINE void Entity::clientEntityCall(EntityCall* entityCall)
 {
-	clientMailbox_ = mailbox; 
+	clientEntityCall_ = entityCall; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::clientMailbox() const
+INLINE EntityCall* Entity::clientEntityCall() const
 { 
-	return clientMailbox_; 
+	return clientEntityCall_; 
 }
 
 //-------------------------------------------------------------------------------------
@@ -260,18 +242,18 @@ INLINE bool Entity::isControlledNotSelfClient() const
 }
 
 //-------------------------------------------------------------------------------------
-INLINE EntityMailbox* Entity::controlledBy() const
+INLINE EntityCall* Entity::controlledBy() const
 {
 	return controlledBy_; 
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::controlledBy(EntityMailbox* baseMailbox)
+INLINE void Entity::controlledBy(EntityCall* baseEntityCall)
 {
 	if (controlledBy_)
 		Py_DECREF(controlledBy_);
 
-	controlledBy_ = baseMailbox;
+	controlledBy_ = baseEntityCall;
 
 	if (controlledBy_)
 		Py_INCREF(controlledBy_);

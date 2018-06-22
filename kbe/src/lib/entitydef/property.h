@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef KBENGINE_DEF_PROPERTY_H
@@ -64,7 +46,8 @@ public:
 		是否是一个保存到数据库中的属性 
 	*/
 	INLINE bool isPersistent(void) const;
-	
+	INLINE void isPersistent(bool v);
+
 	/** 
 		获取这个属性的数据类别 
 	*/
@@ -74,7 +57,8 @@ public:
 		获取属性的标志 cell_public等 
 	*/
 	INLINE uint32 getFlags(void) const;
-	
+	INLINE void setFlags(uint32 flags);
+
 	/** 
 		获取属性名称 
 	*/
@@ -122,7 +106,7 @@ public:
 	/** 
 		获取这个属性描述在def文件中被定义的默认值 
 	*/
-	PyObject* newDefaultVal(void);
+	virtual PyObject* newDefaultVal(void);
 	
 	/** 
 		获得属性描述的总数量 
@@ -134,15 +118,15 @@ public:
 		根据类型产生一个描述实例 
 	*/
 	static PropertyDescription* createDescription(ENTITY_PROPERTY_UID utype, 
-		std::string& dataTypeName, 
-		std::string& name,
+		const std::string& dataTypeName,
+		const std::string& name,
 		uint32 flags, 
 		bool isPersistent, 
 		DataType* dataType, 
 		bool isIdentifier, 
 		std::string indexType,
 		uint32 databaseLength,
-		std::string& defaultStr, 
+		const std::string& defaultStr,
 		DETAIL_TYPE detailLevel);
 	
 	/** 
@@ -153,6 +137,9 @@ public:
 	virtual void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromStream(MemoryStream* mstream);
 	virtual PyObject* parseDefaultStr(const std::string& defaultVal);
+
+	virtual bool isSameType(PyObject* pyValue);
+	virtual bool isSamePersistentType(PyObject* pyValue);
 
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
@@ -261,6 +248,46 @@ public:
 	
 protected:	
 	uint8 elemCount_;
+};
+
+class EntityComponentDescription : public PropertyDescription
+{
+public:
+	EntityComponentDescription(ENTITY_PROPERTY_UID utype,
+		std::string dataTypeName,
+		std::string name,
+		uint32 flags,
+		bool isPersistent,
+		DataType* dataType,
+		bool isIdentifier,
+		std::string indexType,
+		uint32 databaseLength,
+		std::string defaultStr,
+		DETAIL_TYPE detailLevel);
+
+	virtual ~EntityComponentDescription();
+
+	/**
+		脚本请求设置这个属性的值
+	*/
+	PyObject* onSetValue(PyObject* parentObj, PyObject* value);
+
+	virtual bool isSamePersistentType(PyObject* pyValue);
+	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
+	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream);
+
+	virtual PyObject* createFromStream(MemoryStream* mstream);
+
+	/**
+		获取这个属性描述在def文件中被定义的默认值
+	*/
+	virtual PyObject* newDefaultVal(void);
+
+	virtual PyObject* parseDefaultStr(const std::string& defaultVal);
+
+protected:
 };
 
 }

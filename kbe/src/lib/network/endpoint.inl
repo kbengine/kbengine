@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 namespace KBEngine { 
@@ -35,6 +17,8 @@ socket_(-1)
 		address_.ip = networkAddr;
 		address_.port = networkPort;
 	}
+
+	isRefSocket_ = false;
 }
 
 INLINE EndPoint::EndPoint(Address address):
@@ -48,6 +32,8 @@ socket_(-1)
 	{
 		address_ = address;
 	}
+
+	isRefSocket_ = false;
 }
 
 INLINE EndPoint::~EndPoint()
@@ -215,6 +201,14 @@ INLINE int EndPoint::close()
 		return 0;
 	}
 
+	// UDP模式下， socket是服务器listen的fd
+	// socket为引用模式
+	if (isRefSocket_)
+	{
+		this->setFileDescriptor(-1);
+		return 0;
+	}
+
 #ifdef unix
 	int ret = ::close(socket_);
 #else
@@ -315,6 +309,17 @@ INLINE int EndPoint::sendto(void * gramData, int gramSize,
 	sin.sin_addr.s_addr = networkAddr;
 
 	return this->sendto(gramData, gramSize, sin);
+}
+
+INLINE int EndPoint::sendto(void * gramData, int gramSize)
+{
+	sockaddr_in	sin;
+	sin.sin_family = AF_INET;
+	sin.sin_port = address_.port;
+	sin.sin_addr.s_addr = address_.ip;
+
+	return ::sendto(socket_, (char*)gramData, gramSize,
+		0, (sockaddr*)&sin, sizeof(sin));
 }
 
 INLINE int EndPoint::sendto(void * gramData, int gramSize,

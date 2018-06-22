@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef CLIENT_OBJECT_BASE_H
@@ -41,7 +23,8 @@ namespace client{
 class Entity;
 }
 
-class EntityMailbox;
+class EntityCall;
+class EntityCallAbstract;
 
 namespace Network
 {
@@ -72,7 +55,7 @@ public:
 	*/
 	client::Entity* createEntity(const char* entityType, PyObject* params,
 		bool isInitializeScript = true, ENTITY_ID eid = 0, bool initProperty = true, 
-		EntityMailbox* base = NULL, EntityMailbox* cell = NULL);
+		EntityCall* base = NULL, EntityCall* cell = NULL);
 
 	PY_CALLBACKMGR& callbackMgr(){ return pyCallbackMgr_; }	
 
@@ -136,9 +119,14 @@ public:
 	ENTITY_ID readEntityIDFromStream(MemoryStream& s);
 
 	/**
-		由mailbox来尝试获取一个channel的实例
+		由entityCall来尝试获取一个channel的实例
 	*/
-	virtual Network::Channel* findChannelByMailbox(EntityMailbox& mailbox);
+	virtual Network::Channel* findChannelByEntityCall(EntityCallAbstract& entityCall);
+
+	/**
+		通过entity的ID尝试寻找它的实例
+	*/
+	virtual PyObject* tryGetEntity(COMPONENT_ID componentID, ENTITY_ID entityID);
 
 	/** 网络接口
 		客户端与服务端第一次建立交互, 服务端返回
@@ -321,7 +309,7 @@ public:
 	/** 网络接口
 		服务器告诉客户端：你当前（取消）控制谁的位移同步
 	*/
-	virtual void onControlEntity(Network::Channel* pChannel, int32 entityID, int8 isControlled);
+	virtual void onControlEntity(Network::Channel* pChannel, int32 eid, int8 p_isControlled);
 
 	/** 网络接口
 		接收到ClientMessages(通常是web等才会应用到)
@@ -365,9 +353,9 @@ public:
 	ENTITY_ID getTargetID() const{ return targetID_; }
 	virtual void onTargetChanged(){}
 
-	ENTITY_ID getAoiEntityID(ENTITY_ID id);
-	ENTITY_ID getAoiEntityIDFromStream(MemoryStream& s);
-	ENTITY_ID getAoiEntityIDByAliasID(uint8 id);
+	ENTITY_ID getViewEntityID(ENTITY_ID id);
+	ENTITY_ID getViewEntityIDFromStream(MemoryStream& s);
+	ENTITY_ID getViewEntityIDByAliasID(uint8 id);
 
 	/** 
 		space相关操作接口
@@ -408,6 +396,11 @@ public:
 	*/
 	void onAppActiveTickCB(Network::Channel* pChannel);
 
+	/**
+		允许脚本assert底层
+	*/
+	static PyObject* __py_assert(PyObject* self, PyObject* args);
+
 protected:				
 	int32													appID_;
 
@@ -426,7 +419,8 @@ protected:
 	DBID													dbid_;
 
 	std::string												ip_;
-	uint16													port_;
+	uint16													tcp_port_;
+	uint16													udp_port_;
 
 	std::string												baseappIP_;
 	uint16													baseappPort_;
@@ -467,6 +461,9 @@ protected:
 	
 	// 用于重登陆网关时的key
 	uint64													rndUUID_; 
+
+    // 受本客户端控制的entity列表
+    std::list<client::Entity *>                             controlledEntities_;
 };
 
 

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2017 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "jwsmtp.h"
@@ -75,7 +57,7 @@ void Loginapp::onShutdownBegin()
 	
 	// 通知脚本
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoginAppShutDown"));
+	SCRIPT_OBJECT_CALL_ARGS0(getEntryScript().get(), const_cast<char*>("onLoginAppShutDown"), false);
 }
 
 //-------------------------------------------------------------------------------------	
@@ -208,6 +190,12 @@ void Loginapp::onInstallPyModules()
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
 	mainProcessTimer_.cancel();
 	PythonApp::finalise();
 }
@@ -456,7 +444,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
         user_name = regex_replace(accountName, _g_mail_pattern, std::string("$1") );
         domain_name = regex_replace(accountName, _g_mail_pattern, std::string("$2") );
 		*/
-		WARNING_MSG(fmt::format("Loginapp::_createAccount: invalid mail={}\n", 
+		WARNING_MSG(fmt::format("Loginapp::_createAccount: invalid email={}\n", 
 			accountName));
 
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -611,7 +599,7 @@ void Loginapp::onReqCreateMailAccountResult(Network::Channel* pChannel, MemorySt
 			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 			else
-				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 		}
 		else
 		{
@@ -767,7 +755,7 @@ void Loginapp::onReqAccountResetPasswordCB(Network::Channel* pChannel, std::stri
 			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 			else
-				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 		}
 		else
 		{
@@ -808,7 +796,7 @@ void Loginapp::onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pCha
 		if (strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 			http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 		else
-			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 	}
 	else
 	{
@@ -1136,6 +1124,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	DBID dbid;
 	uint32 flags;
 	uint64 deadline;
+	bool needCheckPassword = true;
 
 	s >> retcode;
 
@@ -1148,6 +1137,8 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	s >> accountName;
 
 	s >> password;
+	s >> needCheckPassword;
+
 	s >> componentID;
 	s >> entityID;
 	s >> dbid;
@@ -1232,7 +1223,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		(*pBundle) << componentID << loginName << accountName << password << entityID << dbid << flags << deadline << infos->ctype << infos->forceInternalLogin;
+		(*pBundle) << componentID << loginName << accountName << password << needCheckPassword << entityID << dbid << flags << deadline << (int)infos->ctype << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 		return;
@@ -1246,10 +1237,11 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		(*pBundle) << loginName;
 		(*pBundle) << accountName;
 		(*pBundle) << password;
+		(*pBundle) << needCheckPassword;
 		(*pBundle) << dbid;
 		(*pBundle) << flags;
 		(*pBundle) << deadline;
-		(*pBundle) << infos->ctype;
+		(*pBundle) << (int)infos->ctype;
 		(*pBundle) << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
@@ -1258,7 +1250,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 
 //-------------------------------------------------------------------------------------
 void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pChannel, std::string& loginName, 
-															std::string& accountName, std::string& addr, uint16 port)
+															std::string& accountName, std::string& addr, uint16 tcp_port, uint16 udp_port)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1272,7 +1264,7 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY, datas);
 	}
 
-	Network::Address address(addr, ntohs(port));
+	Network::Address address(addr, ntohs(tcp_port));
 
 	DEBUG_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={0}, addr={1}.\n", 
 		loginName, address.c_str()));
@@ -1293,10 +1285,14 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(ClientInterface::onLoginSuccessfully);
-	uint16 fport = ntohs(port);
+
+	uint16 f_tcp_port = ntohs(tcp_port);
+	uint16 f_udp_port = ntohs(udp_port);
+
 	(*pBundle) << accountName;
 	(*pBundle) << addr;
-	(*pBundle) << fport;
+	(*pBundle) << f_tcp_port;
+	(*pBundle) << f_udp_port;
 	(*pBundle).appendBlob(infos->datas);
 	pClientChannel->send(pBundle);
 
@@ -1458,31 +1454,60 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 	{
 		std::map<uint16, std::pair< std::string, std::string> > errsDescrs;
 
-		TiXmlNode *rootNode = NULL;
-		SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
-
-		if(!xml->isGood())
 		{
-			ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
-				"server/server_errors.xml"));
+			TiXmlNode *rootNode = NULL;
+			SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors_defaults.xml").c_str()));
 
-			return;
+			if (!xml->isGood())
+			{
+				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+					"server/server_errors_defaults.xml"));
+
+				return;
+			}
+
+			rootNode = xml->getRootNode();
+			if (rootNode == NULL)
+			{
+				// root节点下没有子节点了
+				return;
+			}
+
+			XML_FOR_BEGIN(rootNode)
+			{
+				TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+				TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+				errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+			}
+			XML_FOR_END(rootNode);
 		}
 
-		rootNode = xml->getRootNode();
-		if(rootNode == NULL)
 		{
-			// root节点下没有子节点了
-			return;
-		}
+			TiXmlNode *rootNode = NULL;
 
-		XML_FOR_BEGIN(rootNode)
-		{
-			TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
-			TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
-			errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+			FILE* f = Resmgr::getSingleton().openRes("server/server_errors.xml");
+
+			if (f)
+			{
+				fclose(f);
+				SmartPointer<XML> xml(new XML(Resmgr::getSingleton().matchRes("server/server_errors.xml").c_str()));
+
+				if (xml->isGood())
+				{
+					rootNode = xml->getRootNode();
+					if (rootNode)
+					{
+						XML_FOR_BEGIN(rootNode)
+						{
+							TiXmlNode* node = xml->enterNode(rootNode->FirstChild(), "id");
+							TiXmlNode* node1 = xml->enterNode(rootNode->FirstChild(), "descr");
+							errsDescrs[xml->getValInt(node)] = std::make_pair< std::string, std::string>(xml->getKey(rootNode), xml->getVal(node1));
+						}
+						XML_FOR_END(rootNode);
+					}
+				}
+			}
 		}
-		XML_FOR_END(rootNode);
 
 		bundle.newMessage(ClientInterface::onImportServerErrorsDescr);
 		std::map<uint16, std::pair< std::string, std::string> >::iterator iter = errsDescrs.begin();
