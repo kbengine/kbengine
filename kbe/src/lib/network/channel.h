@@ -215,10 +215,10 @@ public:
 	bool fina_kcp();
 
 	ProtocolType protocoltype() const { return protocoltype_; }
-	ProtocolSubType protocolSubtype() const { protocolSubtype_; }
+	ProtocolSubType protocolSubtype() const { return protocolSubtype_; }
 
 	void protocoltype(ProtocolType v) { protocoltype_ = v; }
-	void protocolSubtype(ProtocolSubType v) { protocolSubtype_; }
+	void protocolSubtype(ProtocolSubType v) { protocolSubtype_ = v; }
 
 private:
 	static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user);
