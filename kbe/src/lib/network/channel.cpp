@@ -343,7 +343,7 @@ bool Channel::init_kcp()
 	}
 	else
 	{
-		int mtu = PACKET_MAX_SIZE_UDP - 72;
+		uint32 mtu = PACKET_MAX_SIZE_UDP - 72;
 		if(pKCP_->mtu != mtu)
 			ikcp_setmtu(pKCP_, mtu);
 	}
