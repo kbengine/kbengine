@@ -100,7 +100,7 @@ Reason KCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket,
 	{
 		EndPoint* pEndpoint = pChannel->pEndPoint();
 		int retlen = pEndpoint->sendto((void*)(pPacket->data()), pPacket->length());
-		bool sentCompleted = retlen == pPacket->length();
+		bool sentCompleted = (retlen == (int)pPacket->length());
 
 		if (retlen > 0)
 		{
