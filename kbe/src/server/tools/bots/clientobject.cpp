@@ -252,8 +252,8 @@ bool ClientObject::initLoginBaseapp()
 				{
 					if (versionString != KBEVersion::versionString())
 					{
-						ERROR_MSG("ClientObject::initLogin: Version mismatch! {} != serverVersionString({})\n", 
-							KBEVersion::versionString(), versionString);
+						ERROR_MSG(fmt::format("ClientObject::initLogin: Version mismatch! {} != serverVersionString({})\n", 
+							KBEVersion::versionString(), versionString));
 
 						error_ = C_ERROR_INIT_NETWORK_FAILED;
 						return false;
@@ -272,8 +272,8 @@ bool ClientObject::initLoginBaseapp()
 
 					if (!pServerChannel_->init_kcp())
 					{
-						ERROR_MSG("ClientObject::initLogin: KCP error! channelID={}\n",
-							pServerChannel_->id());
+						ERROR_MSG(fmt::format("ClientObject::initLogin: KCP error! channelID={}\n",
+							pServerChannel_->id()));
 
 						error_ = C_ERROR_INIT_NETWORK_FAILED;
 						return false;
@@ -304,12 +304,12 @@ bool ClientObject::initLoginBaseapp()
 			else
 			{
 				Network::UDPPacket::reclaimPoolObject(pHelloAckUDPPacket);
-				ERROR_MSG("ClientObject::initLogin: recvfrom error({})\n", kbe_lasterror());
+				ERROR_MSG(fmt::format("ClientObject::initLogin: recvfrom error({})\n", kbe_lasterror()));
 			}
 		}
 		else
 		{
-			ERROR_MSG("ClientObject::initLogin: sendto error({})\n", kbe_lasterror());
+			ERROR_MSG(fmt::format("ClientObject::initLogin: sendto error({})\n", kbe_lasterror()));
 		}
 	}
 
