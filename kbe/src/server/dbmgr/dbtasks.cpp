@@ -653,8 +653,8 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	{
 		if(pdbi->getlasterror() > 0)
 		{
-			WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): queryAccount error: {}\n", 
-				pdbi->getstrerror()));
+			WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount({}): queryAccount error: {}\n", 
+				accountName, pdbi->getstrerror()));
 		}
 
 		return false;
@@ -676,9 +676,15 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 
 		entityDBID = EntityTables::findByInterfaceName(pdbi->name()).writeEntity(pdbi, 0, -1,
 				&copyAccountDefMemoryStream, pModule);
-	}
 
-	KBE_ASSERT(entityDBID > 0);
+		if (entityDBID <= 0)
+		{
+			WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount({}): writeEntity error: {}\n",
+				accountName, pdbi->getstrerror()));
+
+			return false;
+		}
+	}
 
 	info.name = accountName;
 	info.email = accountName + "@0.0";
