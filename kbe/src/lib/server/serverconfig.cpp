@@ -342,6 +342,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 		}
 
 		TiXmlNode* rudpChildnode = xml->enterNode(rootNode, "reliableUDP");
+		if(rudpChildnode)
 		{
 			childnode = xml->enterNode(rudpChildnode, "readPacketsQueueSize");
 			if (childnode)
