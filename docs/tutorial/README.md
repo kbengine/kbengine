@@ -1,1 +1,1 @@
-http://kbengine.org/docs
+http://kbengine.github.io/docs

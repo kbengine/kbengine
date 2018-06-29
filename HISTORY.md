@@ -661,7 +661,7 @@
 
 	    实体自动加载功能（用法见API手册，baseapp中writeToDB部分）
 	    onBaseAppReady、onReadyForLogin回调函数参数调整，改为bool（是否为第一个启动的baseapp）
-	    增加进程启动参数 --gus，详见：http://www.kbengine.org/cn/docs/startup_shutdown.html
+	    增加进程启动参数 --gus，详见：http://kbengine.github.io/cn/docs/startup_shutdown.html
 	    删除进程启动参数--grouporder与--globalorder，该值由程序内部自动产生，通过环境变量在脚本中可以获得KBE_COMPONENTID、KBE_BOOTIDX_GLOBAL、KBE_BOOTIDX_GROUP
 	    API文档完善
 

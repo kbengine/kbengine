@@ -3,7 +3,7 @@
 
 ##启动服务端
 
-使用固定参数来启动：(参数的意义:http://www.kbengine.org/cn/docs/startup_shutdown.html)
+使用固定参数来启动：(参数的意义:http://kbengine.github.io/cn/docs/startup_shutdown.html)
 	
 	Linux:
 		start_server.sh

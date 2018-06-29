@@ -22,7 +22,7 @@ public:
 	int port;
 
 	// 客户端类型
-	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
+	// Reference: http://kbengine.github.io/docs/programming/clientsdkprogramming.html, client types
 	EKCLIENT_TYPE clientType;
 
 	bool syncPlayer;

@@ -96,7 +96,7 @@ KBE-Plugin fire-out events(KBE => Unity):
 
 			Event-datas: 
 				uint16: retcode
-					http://kbengine.org/docs/configuration/server_errors.html
+					http://kbengine.github.io/docs/configuration/server_errors.html
 
 				bytes: datas
 					If you use third-party account system, the system may fill some of the third-party additional datas.
@@ -196,7 +196,7 @@ KBE-Plugin fire-out events(KBE => Unity):
 
 			Event-datas: 
 				uint16: retcode
-					http://kbengine.org/docs/configuration/server_errors.html
+					http://kbengine.github.io/docs/configuration/server_errors.html
 
 		onLoginFailed
 			Description: 
@@ -204,7 +204,7 @@ KBE-Plugin fire-out events(KBE => Unity):
 
 			Event-datas: 
 				uint16: retcode
-					http://kbengine.org/docs/configuration/server_errors.html
+					http://kbengine.github.io/docs/configuration/server_errors.html
 
 		onLoginBaseappFailed
 			Description: 
@@ -212,7 +212,7 @@ KBE-Plugin fire-out events(KBE => Unity):
 
 			Event-datas: 
 				uint16: retcode
-					http://kbengine.org/docs/configuration/server_errors.html
+					http://kbengine.github.io/docs/configuration/server_errors.html
 
 		onReloginBaseappFailed
 			Description: 
@@ -220,7 +220,7 @@ KBE-Plugin fire-out events(KBE => Unity):
 
 			Event-datas: 
 				uint16: retcode
-					http://kbengine.org/docs/configuration/server_errors.html
+					http://kbengine.github.io/docs/configuration/server_errors.html
 
 		onReloginBaseappSuccessfully
 			Description: 

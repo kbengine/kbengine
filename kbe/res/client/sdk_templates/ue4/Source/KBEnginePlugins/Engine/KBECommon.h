@@ -64,8 +64,8 @@ struct FKServerErr
 };
 
 // 客户端的类别
-// http://www.kbengine.org/docs/programming/clientsdkprogramming.html
-// http://www.kbengine.org/cn/docs/programming/clientsdkprogramming.html
+// http://kbengine.github.io/docs/programming/clientsdkprogramming.html
+// http://kbengine.github.io/cn/docs/programming/clientsdkprogramming.html
 UENUM(BlueprintType)
 enum class EKCLIENT_TYPE : uint8
 {

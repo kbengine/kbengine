@@ -14,7 +14,7 @@
 		public int port = @{KBE_LOGIN_PORT};
 		
 		// 客户端类型
-		// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
+		// Reference: http://kbengine.github.io/docs/programming/clientsdkprogramming.html, client types
 		public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
 		
 		// Allow synchronization role position information to the server

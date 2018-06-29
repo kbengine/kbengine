@@ -88,7 +88,7 @@ def hello():
 	OUT_MSG("#        Install, Uninstall, Check the version,                           #")
 	OUT_MSG("#        Environment settings, etc.                                       #")
 	OUT_MSG("#   homepage:                                                             #")
-	OUT_MSG("#         http://kbengine.org                                             #")
+	OUT_MSG("#         http://kbengine.github.io                                       #")
 	OUT_MSG("#   sources:                                                              #")
 	OUT_MSG("#         https://github.com/kbengine/kbengine/*/kbe/tools/server/install #")
 	OUT_MSG("###########################################################################")

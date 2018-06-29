@@ -1,8 +1,8 @@
 <root>
 	<!--
 		实体注册文件(<你的资产库>/scripts/entities.xml)
-		详细说明请参考：http://kbengine.org/cn/docs/configuration/entities.html
-					http://www.kbengine.org/cn/docs/programming/entitydef.html
+		详细说明请参考：http://kbengine.github.io/cn/docs/configuration/entities.html
+					http://kbengine.github.io/cn/docs/programming/entitydef.html
 	-->
 
 	<!-- <Avatar/> -->

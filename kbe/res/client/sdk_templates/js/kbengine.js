@@ -2343,7 +2343,7 @@ KBEngine.KBEngineArgs = function()
 	this.updateHZ = @{KBE_UPDATEHZ} * 10;
 	this.serverHeartbeatTick = 15;
 
-	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
+	// Reference: http://kbengine.github.io/docs/programming/clientsdkprogramming.html, client types
 	this.clientType = 5;
 
 	// 在Entity初始化时是否触发属性的set_*事件(callPropertysSetMethods)

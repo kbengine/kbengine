@@ -125,7 +125,7 @@ def getDefaultUID():
 		pass
 	
 	if uid == -1:
-		print("\n[ERROR]: UID is not set, The current is -1. Please refer to the http://kbengine.org/docs/installation.html " \
+		print("\n[ERROR]: UID is not set, The current is -1. Please refer to the http://kbengine.github.io/docs/installation.html " \
 			"environment variable settings, about UID!\n Or manually specifying the UID parameter.\n")
 
 	return uid
