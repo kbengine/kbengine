@@ -178,9 +178,9 @@
 				<external>				128			</external>
 			</writePacketsQueueSize>
 
-			<!-- internal update timer interval in millisec, 0 is default(100ms)  -->
+			<!-- internal update timer interval in millisec, 0 is default(100millisec)  -->
 			<tickInterval>				10			</tickInterval>
-			<!-- Retransmission TimeOut(ms)  -->
+			<!-- Retransmission TimeOut(millisec)  -->
 			<minRTO>					10			</minRTO>
 			<!-- ACK skipping times, 0 is default  -->
 			<missAcksResend>			2			</missAcksResend>
