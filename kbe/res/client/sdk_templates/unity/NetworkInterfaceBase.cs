@@ -18,15 +18,19 @@
 	/// 网络模块
 	/// 处理连接、收发数据
 	/// </summary>
-	public class NetworkInterface
+	public abstract class NetworkInterfaceBase
 	{
-		public delegate void AsyncConnectMethod(ConnectState state);
 		public const int TCP_PACKET_MAX = 1460;
+		public const int UDP_PACKET_MAX = 1472;
+		public const string UDP_HELLO = "62a559f3fa7748bc22f8e0766019d498";
+		public const string UDP_HELLO_ACK = "4387a8e683fafacc29c965a1c8435a8e";
+
+		public delegate void AsyncConnectMethod(ConnectState state);
 		public delegate void ConnectCallback(string ip, int port, bool success, object userData);
 
 		protected Socket _socket = null;
-		PacketReceiver _packetReceiver = null;
-		PacketSender _packetSender = null;
+		protected PacketReceiverBase _packetReceiver = null;
+		protected PacketSenderBase _packetSender = null;
 
 		public bool connected = false;
 		
@@ -38,18 +42,18 @@
 			public ConnectCallback connectCB = null;
 			public object userData = null;
 			public Socket socket = null;
-			public NetworkInterface networkInterface = null;
+			public NetworkInterfaceBase networkInterface = null;
 			public string error = "";
 		}
 		
-		public NetworkInterface()
+		public NetworkInterfaceBase()
 		{
 			reset();
 		}
 
-		~NetworkInterface()
+		~NetworkInterfaceBase()
 		{
-			Dbg.DEBUG_MSG("NetworkInterface::~NetworkInterface(), destructed!!!");
+			Dbg.DEBUG_MSG("NetworkInterfaceBase::~NetworkInterfaceBase(), destructed!!!");
 			reset();
 		}
 
@@ -58,21 +62,22 @@
 			return _socket;
 		}
 		
-		public void reset()
+		public virtual void reset()
 		{
-			if(valid())
-			{
-				Dbg.DEBUG_MSG(string.Format("NetworkInterface::reset(), close socket from '{0}'", _socket.RemoteEndPoint.ToString()));
-         	   _socket.Close(0);
-			}
-			_socket = null;
 			_packetReceiver = null;
 			_packetSender = null;
 			connected = false;
+
+			if(_socket != null)
+			{
+				Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::reset(), close socket from '{0}'", _socket.RemoteEndPoint.ToString()));
+				_socket.Close(0);
+				_socket = null;
+			}
 		}
 		
 
-        public void close()
+        public virtual void close()
         {
            if(_socket != null)
 			{
@@ -85,11 +90,21 @@
             connected = false;
         }
 
-		public virtual PacketReceiver packetReceiver()
+		protected abstract PacketReceiverBase createPacketReceiver();
+		protected abstract PacketSenderBase createPacketSender();
+		protected abstract Socket createSocket();
+		protected abstract void onAsyncConnect(ConnectState state);
+
+		public virtual PacketReceiverBase packetReceiver()
 		{
 			return _packetReceiver;
 		}
-		
+
+		public virtual PacketSenderBase PacketSender()
+		{
+			return _packetSender;
+		}
+
 		public virtual bool valid()
 		{
 			return ((_socket != null) && (_socket.Connected == true));
@@ -102,15 +117,15 @@
 			bool success = (state.error == "" && valid());
 			if (success)
 			{
-				Dbg.DEBUG_MSG(string.Format("NetworkInterface::_onConnectionState(), connect to {0} is success!", state.socket.RemoteEndPoint.ToString()));
-				_packetReceiver = new PacketReceiver(this);
+				Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::_onConnectionState(), connect to {0} is success!", state.socket.RemoteEndPoint.ToString()));
+				_packetReceiver = createPacketReceiver();
 				_packetReceiver.startRecv();
 				connected = true;
 			}
 			else
 			{
 				reset();
-				Dbg.ERROR_MSG(string.Format("NetworkInterface::_onConnectionState(), connect error! ip: {0}:{1}, err: {2}", state.connectIP, state.connectPort, state.error));
+				Dbg.ERROR_MSG(string.Format("NetworkInterfaceBase::_onConnectionState(), connect error! ip: {0}:{1}, err: {2}", state.connectIP, state.connectPort, state.error));
 			}
 
 			Event.fireAll("onConnectionState", new object[] { success });
@@ -145,16 +160,13 @@
 		/// </summary>
 		private void _asyncConnect(ConnectState state)
 		{
-			Dbg.DEBUG_MSG(string.Format("NetWorkInterface::_asyncConnect(), will connect to '{0}:{1}' ...", state.connectIP, state.connectPort));
-			try
-			{
-				state.socket.Connect(state.connectIP, state.connectPort);
-			}
-			catch (Exception e)
-			{
-				Dbg.ERROR_MSG(string.Format("NetWorkInterface::_asyncConnect(), connect to '{0}:{1}' fault! error = '{2}'", state.connectIP, state.connectPort, e));
-				state.error = e.ToString();
-			}
+			Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::_asyncConnect(), will connect to '{0}:{1}' ...", state.connectIP, state.connectPort));
+			onAsyncConnect(state);
+		}
+
+		protected virtual void onAsyncConnectCB(ConnectState state)
+		{
+
 		}
 
 		/// <summary>
@@ -165,8 +177,9 @@
 			ConnectState state = (ConnectState)ar.AsyncState;
 			AsyncResult result = (AsyncResult)ar;
 			AsyncConnectMethod caller = (AsyncConnectMethod)result.AsyncDelegate;
+			onAsyncConnectCB(state);
 
-			Dbg.DEBUG_MSG(string.Format("NetWorkInterface::_asyncConnectCB(), connect to '{0}:{1}' finish. error = '{2}'", state.connectIP, state.connectPort, state.error));
+			Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::_asyncConnectCB(), connect to '{0}:{1}' finish. error = '{2}'", state.connectIP, state.connectPort, state.error));
 
 			// Call EndInvoke to retrieve the results.
 			caller.EndInvoke(ar);
@@ -184,12 +197,7 @@
 				ip = ipHost.AddressList[0].ToString();
 			}
 
-			// Security.PrefetchSocketPolicy(ip, 843);
-			_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-			_socket.SetSocketOption(System.Net.Sockets.SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, KBEngineApp.app.getInitArgs().getRecvBufferSize() * 2);
-			_socket.SetSocketOption(System.Net.Sockets.SocketOptionLevel.Socket, SocketOptionName.SendBuffer, KBEngineApp.app.getInitArgs().getSendBufferSize() * 2);
-			_socket.NoDelay = true;
-			//_socket.Blocking = false;
+			_socket = createSocket();
 
 			ConnectState state = new ConnectState();
 			state.connectIP = ip;
@@ -209,7 +217,7 @@
 			v.BeginInvoke(state, new AsyncCallback(this._asyncConnectCB), state);
 		}
 
-		public bool send(MemoryStream stream)
+		public virtual bool send(MemoryStream stream)
 		{
 			if (!valid())
 			{
@@ -217,12 +225,12 @@
 			}
 
 			if (_packetSender == null)
-				_packetSender = new PacketSender(this);
+				_packetSender = createPacketSender();
 
 			return _packetSender.send(stream);
 		}
 
-		public void process()
+		public virtual void process()
 		{
 			if (!valid())
 				return;

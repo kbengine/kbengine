@@ -21,8 +21,10 @@ public class KBEMain : MonoBehaviour
 	public bool syncPlayer = true;
 	public int threadUpdateHZ = @{KBE_UPDATEHZ};
 	public int serverHeartbeatTick = 15;
-	public int SEND_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
-	public int RECV_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
+	public int TCP_SEND_BUFFER_MAX = (int)KBEngine.NetworkInterfaceBase.TCP_PACKET_MAX;
+	public int TCP_RECV_BUFFER_MAX = (int)KBEngine.NetworkInterfaceBase.TCP_PACKET_MAX;
+	public int UDP_SEND_BUFFER_MAX = (int)KBEngine.NetworkInterfaceBase.UDP_PACKET_MAX;
+	public int UDP_RECV_BUFFER_MAX = (int)KBEngine.NetworkInterfaceBase.UDP_PACKET_MAX;
 	public bool useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	public bool isOnInitCallPropertysSetMethods = true;
 
@@ -60,9 +62,11 @@ public class KBEMain : MonoBehaviour
 		args.useAliasEntityID = useAliasEntityID;
 		args.isOnInitCallPropertysSetMethods = isOnInitCallPropertysSetMethods;
 
-		args.SEND_BUFFER_MAX = (UInt32)SEND_BUFFER_MAX;
-		args.RECV_BUFFER_MAX = (UInt32)RECV_BUFFER_MAX;
-		
+		args.TCP_SEND_BUFFER_MAX = (UInt32)TCP_SEND_BUFFER_MAX;
+		args.TCP_RECV_BUFFER_MAX = (UInt32)TCP_RECV_BUFFER_MAX;
+		args.UDP_SEND_BUFFER_MAX = (UInt32)UDP_SEND_BUFFER_MAX;
+		args.UDP_RECV_BUFFER_MAX = (UInt32)UDP_RECV_BUFFER_MAX;
+
 		args.isMultiThreads = isMultiThreads;
 		
 		if(isMultiThreads)

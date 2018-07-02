@@ -25,7 +25,7 @@
 	public class KBEngineApp
 	{
 		public static KBEngineApp app = null;
-		private NetworkInterface _networkInterface = null;
+		private NetworkInterfaceBase _networkInterface = null;
         
         KBEngineArgs _args = null;
         
@@ -148,7 +148,7 @@
 		void initNetwork()
 		{
 			Messages.init();
-        	_networkInterface = new NetworkInterface();
+			_networkInterface = new NetworkInterfaceTCP();
 		}
 		
 		void installEvents()
@@ -180,7 +180,7 @@
         	KBEngineApp.app = null;
         }
         
-        public NetworkInterface networkInterface()
+        public NetworkInterfaceBase networkInterface()
         {
         	return _networkInterface;
         }
@@ -235,7 +235,7 @@
 			if (_networkInterface != null)
 				_networkInterface.reset();
 
-			_networkInterface = new NetworkInterface();
+			_networkInterface = new NetworkInterfaceTCP();
 			
 			_spacedatas.Clear();
 		}
@@ -274,7 +274,7 @@
 			return null;
 		}
 
-		public void _closeNetwork(NetworkInterface networkInterface)
+		public void _closeNetwork(NetworkInterfaceBase networkInterface)
 		{
 			networkInterface.close();
 		}
@@ -510,8 +510,17 @@
 				Event.fireOut("onLoginBaseapp", new object[]{});
 				
 				_networkInterface.reset();
-				_networkInterface = new NetworkInterface();
-				_networkInterface.connectTo(baseappIP, baseappTcpPort, onConnectTo_baseapp_callback, null);
+
+				if(baseappUdpPort == 0)
+				{
+					_networkInterface = new NetworkInterfaceTCP();
+					_networkInterface.connectTo(baseappIP, baseappTcpPort, onConnectTo_baseapp_callback, null);
+				}
+				else
+				{
+					_networkInterface = new NetworkInterfaceKCP();
+					_networkInterface.connectTo(baseappIP, baseappUdpPort, onConnectTo_baseapp_callback, null);
+				}
 			}
 			else
 			{
@@ -955,7 +964,7 @@
 				MemoryStream stream1 = MemoryStream.createObject();
 				stream1.wpos = stream.wpos;
 				stream1.rpos = stream.rpos - 4;
-				Array.Copy(stream.data(), stream1.data(), stream.data().Length);
+				Array.Copy(stream.data(), stream1.data(), stream.wpos);
 				_bufferedCreateEntityMessages[eid] = stream1;
 				return;
 			}

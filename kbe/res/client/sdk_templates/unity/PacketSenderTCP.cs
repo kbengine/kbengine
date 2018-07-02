@@ -17,49 +17,29 @@
 		包发送模块(与服务端网络部分的名称对应)
 		处理网络数据的发送
 	*/
-    public class PacketSender 
+    public class PacketSenderTCP : PacketSenderBase
     {
-    		public delegate void AsyncSendMethod();
-
 		private byte[] _buffer;
 
 		int _wpos = 0;				// 写入的数据位置
 		int _spos = 0;				// 发送完毕的数据位置
 		int _sending = 0;
 		
-		private NetworkInterface _networkInterface = null;
-		AsyncCallback _asyncCallback = null;
-		AsyncSendMethod _asyncSendMethod;
-		
-        public PacketSender(NetworkInterface networkInterface)
+        public PacketSenderTCP(NetworkInterfaceBase networkInterface) : base(networkInterface)
         {
-        	_init(networkInterface);
-        }
+        	_buffer = new byte[KBEngineApp.app.getInitArgs().TCP_SEND_BUFFER_MAX];
 
-		~PacketSender()
-		{
-			Dbg.DEBUG_MSG("PacketSender::~PacketSender(), destroyed!");
-		}
-
-		void _init(NetworkInterface networkInterface)
-		{
-			_networkInterface = networkInterface;
-			
-			_buffer = new byte[KBEngineApp.app.getInitArgs().SEND_BUFFER_MAX];
-			_asyncSendMethod = new AsyncSendMethod(this._asyncSend);
-			_asyncCallback = new AsyncCallback(_onSent);
-			
 			_wpos = 0; 
 			_spos = 0;
 			_sending = 0;
-		}
+        }
 
-		public NetworkInterface networkInterface()
+		~PacketSenderTCP()
 		{
-			return _networkInterface;
+			Dbg.DEBUG_MSG("PacketSenderTCP::~PacketSenderTCP(), destroyed!");
 		}
 
-		public bool send(MemoryStream stream)
+		public override bool send(MemoryStream stream)
 		{
 			int dataLength = (int)stream.length();
 			if (dataLength <= 0)
@@ -86,7 +66,7 @@
 
 			if (dataLength > space)
 			{
-				Dbg.ERROR_MSG("PacketSender::send(): no space, Please adjust 'SEND_BUFFER_MAX'! data(" + dataLength 
+				Dbg.ERROR_MSG("PacketSenderTCP::send(): no space, Please adjust 'SEND_BUFFER_MAX'! data(" + dataLength 
 					+ ") > space(" + space + "), wpos=" + _wpos + ", spos=" + t_spos);
 				
 				return false;
@@ -114,18 +94,11 @@
 			return true;
 		}
 
-		void _startSend()
-		{
-			// 由于socket用的是非阻塞式，因此在这里不能直接使用socket.send()方法
-			// 必须放到另一个线程中去做
-			_asyncSendMethod.BeginInvoke(_asyncCallback, null);
-		}
-
-		void _asyncSend()
+		protected override void _asyncSend()
 		{
 			if (_networkInterface == null || !_networkInterface.valid())
 			{
-				Dbg.WARNING_MSG("PacketSender::_asyncSend(): network interface invalid!");
+				Dbg.WARNING_MSG("PacketSenderTCP::_asyncSend(): network interface invalid!");
 				return;
 			}
 
@@ -148,7 +121,7 @@
 				}
 				catch (SocketException se)
 				{
-					Dbg.ERROR_MSG(string.Format("PacketSender::_asyncSend(): send data error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
+					Dbg.ERROR_MSG(string.Format("PacketSenderTCP::_asyncSend(): send data error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
 					Event.fireIn("_closeNetwork", new object[] { _networkInterface });
 					return;
 				}
@@ -162,13 +135,6 @@
 					return;
 				}
 			}
-		}
-		
-		private static void _onSent(IAsyncResult ar)
-		{
-			AsyncResult result = (AsyncResult)ar;
-			AsyncSendMethod caller = (AsyncSendMethod)result.AsyncDelegate;
-			caller.EndInvoke(ar);
 		}
 	}
 } 

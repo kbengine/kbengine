@@ -17,13 +17,8 @@
 		包接收模块(与服务端网络部分的名称对应)
 		处理网络数据的接收
 	*/
-	public class PacketReceiver
+	public class PacketReceiverTCP : PacketReceiverBase
 	{
-		public delegate void AsyncReceiveMethod(); 
-
-		private MessageReader messageReader = null;
-		private NetworkInterface _networkInterface = null;
-
 		private byte[] _buffer;
 
 		// socket向缓冲区写的起始位置
@@ -32,42 +27,30 @@
 		// 主线程读取数据的起始位置
 		int _rpos = 0;
 
-		public PacketReceiver(NetworkInterface networkInterface)
+		public PacketReceiverTCP(NetworkInterfaceBase networkInterface) : base(networkInterface) 
 		{
-			_init(networkInterface);
+			_buffer = new byte[KBEngineApp.app.getInitArgs().TCP_RECV_BUFFER_MAX];
+			_messageReader = new MessageReaderTCP();
 		}
 
-		~PacketReceiver()
+		~PacketReceiverTCP()
 		{
-			Dbg.DEBUG_MSG("PacketReceiver::~PacketReceiver(), destroyed!");
+			Dbg.DEBUG_MSG("PacketReceiverTCP::~PacketReceiverTCP(), destroyed!");
 		}
 
-		void _init(NetworkInterface networkInterface)
-		{
-			_networkInterface = networkInterface;
-			_buffer = new byte[KBEngineApp.app.getInitArgs().RECV_BUFFER_MAX];
-
-			messageReader = new MessageReader();
-		}
-
-		public NetworkInterface networkInterface()
-		{
-			return _networkInterface;
-		}
-
-		public void process()
+		public override void process()
 		{
 			int t_wpos = Interlocked.Add(ref _wpos, 0);
 
 			if (_rpos < t_wpos)
 			{
-				messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
+				_messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
 				Interlocked.Exchange(ref _rpos, t_wpos);
 			}
 			else if (t_wpos < _rpos)
 			{
-				messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
-				messageReader.process(_buffer, (UInt32)0, (UInt32)t_wpos);
+				_messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
+				_messageReader.process(_buffer, (UInt32)0, (UInt32)t_wpos);
 				Interlocked.Exchange(ref _rpos, t_wpos);
 			}
 			else
@@ -98,18 +81,11 @@
 			return t_rpos - _wpos - 1;
 		}
 
-		public void startRecv()
-		{
-
-			var v = new AsyncReceiveMethod(this._asyncReceive);
-			v.BeginInvoke(new AsyncCallback(_onRecv), null);
-		}
-
-		private void _asyncReceive()
+		protected override void _asyncReceive()
 		{
 			if (_networkInterface == null || !_networkInterface.valid())
 			{
-				Dbg.WARNING_MSG("PacketReceiver::_asyncReceive(): network interface invalid!");
+				Dbg.WARNING_MSG("PacketReceiverTCP::_asyncReceive(): network interface invalid!");
 				return;
 			}
 
@@ -127,12 +103,12 @@
 					{
 						if (first > 1000)
 						{
-							Dbg.ERROR_MSG("PacketReceiver::_asyncReceive(): no space!");
+							Dbg.ERROR_MSG("PacketReceiverTCP::_asyncReceive(): no space!");
 							Event.fireIn("_closeNetwork", new object[] { _networkInterface });
 							return;
 						}
 
-						Dbg.WARNING_MSG("PacketReceiver::_asyncReceive(): waiting for space, Please adjust 'RECV_BUFFER_MAX'! retries=" + first);
+						Dbg.WARNING_MSG("PacketReceiverTCP::_asyncReceive(): waiting for space, Please adjust 'RECV_BUFFER_MAX'! retries=" + first);
 						System.Threading.Thread.Sleep(5);
 					}
 
@@ -147,7 +123,7 @@
 				}
 				catch (SocketException se)
 				{
-					Dbg.ERROR_MSG(string.Format("PacketReceiver::_asyncReceive(): receive error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
+					Dbg.ERROR_MSG(string.Format("PacketReceiverTCP::_asyncReceive(): receive error, disconnect from '{0}'! error = '{1}'", socket.RemoteEndPoint, se));
 					Event.fireIn("_closeNetwork", new object[] { _networkInterface });
 					return;
 				}
@@ -159,18 +135,11 @@
 				}
 				else
 				{
-					Dbg.WARNING_MSG(string.Format("PacketReceiver::_asyncReceive(): receive 0 bytes, disconnect from '{0}'!", socket.RemoteEndPoint));
+					Dbg.WARNING_MSG(string.Format("PacketReceiverTCP::_asyncReceive(): receive 0 bytes, disconnect from '{0}'!", socket.RemoteEndPoint));
 					Event.fireIn("_closeNetwork", new object[] { _networkInterface });
 					return;
 				}
 			}
-		}
-
-		private void _onRecv(IAsyncResult ar)
-		{
-			AsyncResult result = (AsyncResult)ar;
-			AsyncReceiveMethod caller = (AsyncReceiveMethod)result.AsyncDelegate;
-			caller.EndInvoke(ar);
 		}
 	}
 } 

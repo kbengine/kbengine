@@ -11,7 +11,7 @@
 		消息阅读模块
 		从数据包流中分析出所有的消息包并将其交给对应的消息处理函数
 	*/
-    public class MessageReader
+    public class MessageReaderTCP : MessageReaderBase
     {
 		enum READ_STATE
 		{
@@ -35,11 +35,11 @@
 		private READ_STATE state = READ_STATE.READ_STATE_MSGID;
 		private MemoryStream stream = new MemoryStream();
 		
-		public MessageReader()
+		public MessageReaderTCP()
 		{
 		}
 		
-		public void process(byte[] datas, MessageLengthEx offset, MessageLengthEx length)
+		public override void process(byte[] datas, MessageLengthEx offset, MessageLengthEx length)
 		{
 			MessageLengthEx totallen = offset;
 			
