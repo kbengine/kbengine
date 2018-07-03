@@ -551,7 +551,9 @@
 			一些移动类应用容易掉线，可以使用该功能快速的重新与服务端建立通信
 		*/
 		public void reloginBaseapp()
-		{  
+		{
+			_lastTickTime = System.DateTime.Now;
+
 			if(_networkInterface.valid())
 				return;
 
