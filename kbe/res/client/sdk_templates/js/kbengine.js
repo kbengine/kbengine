@@ -3290,7 +3290,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	}
 	
 	this.reloginBaseapp = function()
-	{  
+	{
+		var dateObject = new Date();
+		KBEngine.app.lastTickCBTime = dateObject.getTime();
+		
 		if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
 			return;
 		
