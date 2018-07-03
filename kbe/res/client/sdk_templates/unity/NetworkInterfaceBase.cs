@@ -23,7 +23,7 @@
 		public const int TCP_PACKET_MAX = 1460;
 		public const int UDP_PACKET_MAX = 1472;
 		public const string UDP_HELLO = "62a559f3fa7748bc22f8e0766019d498";
-		public const string UDP_HELLO_ACK = "4387a8e683fafacc29c965a1c8435a8e";
+		public const string UDP_HELLO_ACK = "1432ad7c829170a76dd31982c3501eca";
 
 		public delegate void AsyncConnectMethod(ConnectState state);
 		public delegate void ConnectCallback(string ip, int port, bool success, object userData);
