@@ -566,7 +566,15 @@
 				return;
 
 			Event.fireAll("onReloginBaseapp", new object[]{});
-			_networkInterface.connectTo(baseappIP, baseappTcpPort, onReConnectTo_baseapp_callback, null);
+
+			if(baseappUdpPort == 0)
+			{
+				_networkInterface.connectTo(baseappIP, baseappTcpPort, onReConnectTo_baseapp_callback, null);
+			}
+			else
+			{
+				_networkInterface.connectTo(baseappIP, baseappUdpPort, onReConnectTo_baseapp_callback, null);
+			}
 		}
 
 		private void onReConnectTo_baseapp_callback(string ip, int port, bool success, object userData)
