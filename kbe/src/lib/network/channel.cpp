@@ -958,14 +958,13 @@ void Channel::handshake()
 
 	if(bufferedReceives_.size() > 0)
 	{
-		BufferedReceives::iterator packetIter = bufferedReceives_.begin();
-		Packet* pPacket = (*packetIter);
-		
-		// 交互一次之后无条件设置为握手过，是否成功不管
-		flags_ |= FLAG_HANDSHAKE;
-
 		if (protocoltype_ == PROTOCOL_TCP)
 		{
+			flags_ |= FLAG_HANDSHAKE;
+
+			BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+			Packet* pPacket = (*packetIter);
+
 			// 此处判定是否为websocket或者其他协议的握手
 			if (websocket::WebSocketProtocol::isWebSocketProtocol(pPacket))
 			{
@@ -997,32 +996,41 @@ void Channel::handshake()
 		{
 			if (protocolSubtype_ == SUB_PROTOCOL_KCP)
 			{
-				std::string hello;
-				(*pPacket) >> hello;
-				pPacket->clear(false);
-
-				bufferedReceives_.erase(packetIter);
-
-				if (hello != UDP_HELLO)
+				while (bufferedReceives_.size() > 0)
 				{
-					DEBUG_MSG(fmt::format("Channel::handshake: kcp({}) error!\n", this->c_str()));
-					this->condemn();
-				}
-				else
-				{
-					UDPPacket* pHelloAckUDPPacket = UDPPacket::createPoolObject();
-					(*pHelloAckUDPPacket) << Network::UDP_HELLO_ACK << KBEVersion::versionString() << (uint32)id();
-					pEndPoint()->sendto(pHelloAckUDPPacket->data(), pHelloAckUDPPacket->length());
-					UDPPacket::reclaimPoolObject(pHelloAckUDPPacket);
+					BufferedReceives::iterator packetIter = bufferedReceives_.begin();
+					Packet* pPacket = (*packetIter);
 
-					if (!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_KCP)
+					std::string hello;
+					(*pPacket) >> hello;
+					pPacket->clear(false);
+
+					bufferedReceives_.erase(packetIter);
+
+					if (hello != UDP_HELLO)
 					{
-						SAFE_RELEASE(pPacketReader_);
-						pPacketReader_ = new KCPPacketReader(this);
+						// 这里不做处理，防止客户端在断线感应期间可能会发送一些包， 导致新的连接被握手失败从而再也无法通讯
+						//DEBUG_MSG(fmt::format("Channel::handshake: kcp({}) error!\n", this->c_str()));
+						//this->condemn();
+						continue;
 					}
+					else
+					{
+						UDPPacket* pHelloAckUDPPacket = UDPPacket::createPoolObject();
+						(*pHelloAckUDPPacket) << Network::UDP_HELLO_ACK << KBEVersion::versionString() << (uint32)id();
+						pEndPoint()->sendto(pHelloAckUDPPacket->data(), pHelloAckUDPPacket->length());
+						UDPPacket::reclaimPoolObject(pHelloAckUDPPacket);
 
-					DEBUG_MSG(fmt::format("Channel::handshake: kcp({}) successfully!\n", this->c_str()));
-					return;
+						if (!pPacketReader_ || pPacketReader_->type() != PacketReader::PACKET_READER_TYPE_KCP)
+						{
+							SAFE_RELEASE(pPacketReader_);
+							pPacketReader_ = new KCPPacketReader(this);
+						}
+
+						DEBUG_MSG(fmt::format("Channel::handshake: kcp({}) successfully!\n", this->c_str()));
+						flags_ |= FLAG_HANDSHAKE;
+						return;
+					}
 				}
 			}
 		}

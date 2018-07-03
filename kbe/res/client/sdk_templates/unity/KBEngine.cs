@@ -561,18 +561,25 @@
 			一些移动类应用容易掉线，可以使用该功能快速的重新与服务端建立通信
 		*/
 		public void reloginBaseapp()
-		{  
+		{
+			_lastTickTime = System.DateTime.Now;
+			_lastTickCBTime = System.DateTime.Now;
+
 			if(_networkInterface.valid())
 				return;
 
 			Event.fireAll("onReloginBaseapp", new object[]{});
 
+			_networkInterface.reset();
+
 			if(baseappUdpPort == 0)
 			{
+				_networkInterface = new NetworkInterfaceTCP();
 				_networkInterface.connectTo(baseappIP, baseappTcpPort, onReConnectTo_baseapp_callback, null);
 			}
 			else
 			{
+				_networkInterface = new NetworkInterfaceKCP();
 				_networkInterface.connectTo(baseappIP, baseappUdpPort, onReConnectTo_baseapp_callback, null);
 			}
 		}
