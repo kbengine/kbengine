@@ -670,6 +670,7 @@ void KBEngineApp::onLogin_baseapp()
 
 void KBEngineApp::reloginBaseapp()
 {
+	lastTickTime_ = getTimeSeconds();
 	lastTickCBTime_ = getTimeSeconds();
 
 	if(pNetworkInterface_->valid())
