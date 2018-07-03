@@ -113,6 +113,10 @@
 		private System.DateTime _lastTickCBTime = System.DateTime.Now;
 		private System.DateTime _lastUpdateToServerTime = System.DateTime.Now;
 		
+		//上传玩家信息到服务器间隔，单位毫秒
+        private float _updatePlayerToServerPeroid = 100.0f;
+		private const int _1MS_TO_100NS = 10000;
+
 		// 玩家当前所在空间的id， 以及空间对应的资源
 		public UInt32 spaceID = 0;
 		public string spaceResPath = "";
@@ -134,7 +138,8 @@
 		public virtual bool initialize(KBEngineArgs args)
 		{
 			_args = args;
-			
+			_updatePlayerToServerPeroid = (float)_args.syncPlayerMS;
+
 			EntityDef.init();
 
         	initNetwork();
@@ -1257,11 +1262,11 @@
 		}
 
 		/*
-			更新当前玩家的位置与朝向到服务端， 可以通过开关_syncPlayer关闭这个机制
+			更新当前玩家的位置与朝向到服务端， 可以通过开关_syncPlayerMS关闭这个机制
 		*/
 		public void updatePlayerToServer()
 		{
-			if(!_args.syncPlayer || spaceID == 0)
+			if(_updatePlayerToServerPeroid <= 0.01f || spaceID == 0)
 			{
 				return;
 			}
@@ -1269,14 +1274,14 @@
 			var now = DateTime.Now;
 			TimeSpan span = now - _lastUpdateToServerTime;
 
-			if (span.Ticks < 1000000)
-				return;
+			if (span.Ticks < _updatePlayerToServerPeroid * _1MS_TO_100NS)
+                return;
 			
 			Entity playerEntity = player();
 			if (playerEntity == null || playerEntity.inWorld == false || playerEntity.isControlled)
 				return;
 
-			_lastUpdateToServerTime = now - (span - TimeSpan.FromTicks(1000000));
+			_lastUpdateToServerTime = now - (span - TimeSpan.FromTicks(Convert.ToInt64(_updatePlayerToServerPeroid * _1MS_TO_100NS)));
 			
 			Vector3 position = playerEntity.position;
 			Vector3 direction = playerEntity.direction;
