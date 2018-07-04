@@ -7,6 +7,7 @@
 #include "Bundle.h"
 #include "Engine.h"
 #include "KBDebug.h"
+#include "Entity.h"
 
 // Sets default values for this component's properties
 UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -20,7 +21,7 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 
 	ip = TEXT("127.0.0.1");
 	port = @{KBE_LOGIN_PORT};
-	syncPlayer = true;
+	syncPlayerMS = 100;
 	useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	isOnInitCallPropertysSetMethods = true;
 	clientType = EKCLIENT_TYPE::CLIENT_TYPE_WIN;
@@ -47,7 +48,7 @@ void UKBEMain::BeginPlay()
 	KBEngineArgs* pArgs = new KBEngineArgs();
 	pArgs->ip = ip;
 	pArgs->port = port;
-	pArgs->syncPlayer = syncPlayer;
+	pArgs->syncPlayerMS = syncPlayerMS;
 	pArgs->useAliasEntityID = useAliasEntityID;
 	pArgs->isOnInitCallPropertysSetMethods = isOnInitCallPropertysSetMethods;
 	pArgs->clientType = clientType;
