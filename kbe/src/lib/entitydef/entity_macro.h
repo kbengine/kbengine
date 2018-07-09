@@ -346,6 +346,7 @@ public:																										\
 				if(PyObject_TypeCheck(pComponentProperty, EntityComponent::getScriptType()))				\
 				{																							\
 					EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pComponentProperty);	\
+					pEntityComponent->updateOwner(id(), this);												\
 					pEntityComponent->onAttached();															\
 				}																							\
 				else																						\
@@ -1558,6 +1559,10 @@ public:																										\
 			if(dataType)																					\
 			{																								\
 				PyObject* defObj = propertyDescription->newDefaultVal();									\
+																											\
+				if(dataType->type() == DATA_TYPE_ENTITY_COMPONENT)											\
+					((EntityComponent*)defObj)->updateOwner(id(), this);									\
+																											\
 				PyObject_SetAttrString(static_cast<PyObject*>(this),										\
 							propertyDescription->getName(), defObj);										\
 				Py_DECREF(defObj);																			\
