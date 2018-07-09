@@ -367,9 +367,9 @@ public:																										\
 		onInitializeScript();																				\
 	}																										\
 																											\
-	void initializeEntity(PyObject* dictData)																\
+	void initializeEntity(PyObject* dictData, bool persistentData = false)									\
 	{																										\
-		createNamespace(dictData);																			\
+		createNamespace(dictData, persistentData);															\
 		initializeScript();																					\
 	}																										\
 																											\
@@ -396,7 +396,7 @@ public:																										\
 		return _reload(fullReload);																			\
 	}																										\
 																											\
-	void createNamespace(PyObject* dictData)																\
+	void createNamespace(PyObject* dictData, bool persistentData = false)									\
 	{																										\
 		if(dictData == NULL)																				\
 			return;																							\
@@ -418,7 +418,7 @@ public:																										\
 		if(cellDataDict == NULL)																			\
 		{																									\
 			PyErr_Clear();																					\
-			EntityComponent::convertDictDataToEntityComponent(id(), this, pScriptModule_, dictData);		\
+			EntityComponent::convertDictDataToEntityComponent(id(), this, pScriptModule_, dictData, persistentData); \
 		}																									\
 																											\
 		while(PyDict_Next(dictData, &pos, &key, &value))													\

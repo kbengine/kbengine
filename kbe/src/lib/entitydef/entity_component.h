@@ -184,10 +184,10 @@ public:
 
 	PyObject* createCellData();
 
-	void createFromDict(PyObject* pyDict);
+	void createFromDict(PyObject* pyDict, bool persistentData);
 	void updateFromDict(PyObject* pOwner, PyObject* pyDict);
 
-	static void convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData);
+	static void convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData, bool persistentData);
 	static std::vector<EntityComponent*> getComponents(const std::string& name, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs);
 
 	/**

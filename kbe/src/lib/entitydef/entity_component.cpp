@@ -1259,7 +1259,7 @@ PyObject* EntityComponent::createCellData()
 }
 
 //-------------------------------------------------------------------------------------
-void EntityComponent::createFromDict(PyObject* pyDict)
+void EntityComponent::createFromDict(PyObject* pyDict, bool persistentData)
 {
 	// 设置为-1， 避免onScriptSetAttribute中尝试广播属性
 	ENTITY_ID oid = ownerID_;
@@ -1291,11 +1291,18 @@ void EntityComponent::createFromDict(PyObject* pyDict)
 		}
 		else
 		{
-			SCRIPT_ERROR_CHECK();
+			if (persistentData)
+			{
+				SCRIPT_ERROR_CHECK();
 
-			ERROR_MSG(fmt::format("EntityComponent::createFromDict: not found property({}), use default values! name={}, utype={}, owner={}, ownerID={}, domain={}.\n",
-				propertyDescription->getName(), pComponentDescrs_ ? pComponentDescrs_->getName() : "", pComponentDescrs_ ? pComponentDescrs_->getUType() : 0,
-				(ownerID() > 0 ? owner()->ob_type->tp_name : "unknown"), ownerID(), COMPONENT_NAME_EX(componentType())));
+				ERROR_MSG(fmt::format("EntityComponent::createFromDict: not found property({}), use default values! name={}, utype={}, owner={}, ownerID={}, domain={}.\n",
+					propertyDescription->getName(), pComponentDescrs_ ? pComponentDescrs_->getName() : "", pComponentDescrs_ ? pComponentDescrs_->getUType() : 0,
+					(ownerID() > 0 ? owner()->ob_type->tp_name : "unknown"), ownerID(), COMPONENT_NAME_EX(componentType())));
+			}
+			else
+			{
+				PyErr_Clear();
+			}
 		}
 	}
 
@@ -1384,7 +1391,7 @@ void EntityComponent::updateFromDict(PyObject* pOwner, PyObject* pyDict)
 }
 
 //-------------------------------------------------------------------------------------
-void EntityComponent::convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData)
+void EntityComponent::convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData, bool persistentData)
 {
 	ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pEntityScriptDescrs->getComponentDescrs();
 
@@ -1419,7 +1426,7 @@ void EntityComponent::convertDictDataToEntityComponent(ENTITY_ID entityID, PyObj
 		EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyEntityComponent);
 
 		if(pyObj)
-			pEntityComponent->createFromDict(pyObj);
+			pEntityComponent->createFromDict(pyObj, persistentData);
 
 		PropertyDescription* pPropertyDescription = pEntityScriptDescrs->findCellPropertyDescription(comps_iter->first.c_str());
 		KBE_ASSERT(pPropertyDescription);
