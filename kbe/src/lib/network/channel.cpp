@@ -514,6 +514,9 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	//SAFE_RELEASE(pPacketReader_);
 	//SAFE_RELEASE(pPacketSender_);
 
+	if (pPacketReader_)
+		pPacketReader_->reset();
+
 	if (!fina_kcp())
 	{
 		KBE_ASSERT(false);
