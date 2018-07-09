@@ -382,6 +382,9 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	//SAFE_RELEASE(pPacketReader_);
 	//SAFE_RELEASE(pPacketSender_);
 
+	if (pPacketReader_)
+		pPacketReader_->reset();
+
 	flags_ = 0;
 	pFilter_ = NULL;
 
