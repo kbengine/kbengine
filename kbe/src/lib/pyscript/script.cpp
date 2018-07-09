@@ -175,6 +175,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
         return false;
     } 
 
+	PySys_SetArgvEx(0, NULL, 0);
 	PyObject *m = PyImport_AddModule("__main__");
 
 	// 添加一个脚本基础模块
