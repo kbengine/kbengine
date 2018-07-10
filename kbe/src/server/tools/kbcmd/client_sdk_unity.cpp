@@ -1247,6 +1247,13 @@ bool ClientSDKUnity::writeEntityDefsModuleInitScript_ScriptModule(ScriptDefModul
 //-------------------------------------------------------------------------------------
 bool ClientSDKUnity::writeEntityDefsModuleInitScript_MethodDescr(ScriptDefModule* pScriptDefModule, MethodDescription* pDescr, COMPONENT_TYPE componentType)
 {
+	// 如果pDescr为None，并且是客户端方法，那么需要强制设定useMethodDescrAlias为true，否则默认为false将会出现问题
+	if (!pDescr && componentType == CLIENT_TYPE)
+	{
+		sourcefileBody_ += fmt::format("\t\t\tp{}Module.useMethodDescrAlias = true;\n", pScriptDefModule->getName());
+		return true;
+	}
+
 	sourcefileBody_ += fmt::format("\t\t\tList<DATATYPE_BASE> p{}_{}_args = new List<DATATYPE_BASE>();\n", pScriptDefModule->getName(), pDescr->getName());
 
 	const std::vector<DataType*>& args = pDescr->getArgTypes();
