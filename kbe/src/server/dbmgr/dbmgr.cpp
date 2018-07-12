@@ -55,6 +55,7 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 	pUpdateDBServerLogHandler_(NULL),
 	pTelnetServer_(NULL)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &DbmgrInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------

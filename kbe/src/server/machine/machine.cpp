@@ -43,6 +43,7 @@ Machine::Machine(Network::EventDispatcher& dispatcher,
 	localuids_()
 {
 	SystemInfo::getSingleton().getCPUPer();
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &MachineInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------

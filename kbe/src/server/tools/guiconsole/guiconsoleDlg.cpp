@@ -413,6 +413,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	m_ToolBar.ShowWindow(SW_SHOW);
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
 	
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &KBEngine::ConsoleInterface::messageHandlers;
 
 	// TODO: Add extra initialization here
 	_dispatcher.breakProcessing(false);

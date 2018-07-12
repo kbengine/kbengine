@@ -391,7 +391,7 @@ void ClientObject::gameTick()
 			return;
 		}
 		
-		pServerChannel()->processPackets(NULL);
+		pServerChannel()->updateTick(NULL);
 	}
 	else
 	{

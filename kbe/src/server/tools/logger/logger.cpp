@@ -44,6 +44,7 @@ buffered_logs_(),
 timer_(),
 pTelnetServer_(NULL)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &LoggerInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
