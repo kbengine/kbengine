@@ -233,7 +233,7 @@ private:
 	
 	Bundles						bundles_;
 	
-	int							lastTickBufferedReceives_;
+	uint32						lastTickBufferedReceives_;
 
 	PacketReader*				pPacketReader_;
 
