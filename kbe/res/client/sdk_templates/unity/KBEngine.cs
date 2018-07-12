@@ -2052,7 +2052,7 @@
 		{
 			TimeSpan span = DateTime.Now - _lasttime; 
 			
-			int diff = (int)(threadUpdatePeriod - span.Milliseconds);
+			int diff = (int)(threadUpdatePeriod - span.TotalMilliseconds);
 
 			if(diff < 0)
 				diff = 0;
