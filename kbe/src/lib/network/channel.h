@@ -77,8 +77,6 @@ public:
 		CHANNEL_WEB = 1,
 	};
 
-	typedef std::vector<Packet*> BufferedReceives;
-
 public:
 	Channel();
 
@@ -163,10 +161,9 @@ public:
 	void updateLastReceivedTime()		{ lastReceivedTime_ = timestamp(); }
 		
 	void addReceiveWindow(Packet* pPacket);
-	
-	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
-	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
+	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
+	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
 	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
 	void condemn();
@@ -182,7 +179,7 @@ public:
 	COMPONENT_ID componentID() const{ return componentID_; }
 	void componentID(COMPONENT_ID cid){ componentID_ = cid; }
 
-	virtual void handshake();
+	bool handshake(Packet* pPacket);
 
 	KBEngine::Network::MessageHandlers* pMsgHandlers() const { return pMsgHandlers_; }
 	void pMsgHandlers(KBEngine::Network::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
@@ -236,7 +233,7 @@ private:
 	
 	Bundles						bundles_;
 	
-	BufferedReceives			bufferedReceives_;
+	int							lastTickBufferedReceives_;
 
 	PacketReader*				pPacketReader_;
 

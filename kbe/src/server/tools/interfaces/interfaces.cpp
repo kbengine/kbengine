@@ -55,6 +55,7 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 	reqAccountLogin_requests_(),
 	pTelnetServer_(NULL)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &InterfacesInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------

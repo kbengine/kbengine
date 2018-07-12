@@ -84,6 +84,7 @@ Cellappmgr::Cellappmgr(Network::EventDispatcher& dispatcher,
 	cellapps_(),
 	cellapp_cids_()
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappmgrInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------

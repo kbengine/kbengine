@@ -89,6 +89,7 @@ Baseappmgr::Baseappmgr(Network::EventDispatcher& dispatcher,
 	pending_logins_(),
 	baseappsInitProgress_(0.f)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappmgrInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------

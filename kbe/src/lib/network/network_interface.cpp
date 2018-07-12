@@ -434,7 +434,7 @@ void NetworkInterface::processChannels(KBEngine::Network::MessageHandlers* pMsgH
 		}
 		else
 		{
-			pChannel->processPackets(pMsgHandlers);
+			pChannel->updateTick(pMsgHandlers);
 			++iter;
 		}
 	}
