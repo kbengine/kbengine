@@ -76,9 +76,13 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 						continue;
 				}
 
-				bool hasComponentData = false;
 				EntityComponentType* pEntityComponentType = ((EntityComponentType*)propertyDescription->getDataType());
 
+				// 和dbmgr判断保持一致，如果没有持久化属性dbmgr将不会传输数据过来
+				if (pEntityComponentType->pScriptDefModule()->getPersistentPropertyDescriptions().size() == 0)
+					continue;
+
+				bool hasComponentData = false;
 				s >> hasComponentData;
 
 				if (hasComponentData)
