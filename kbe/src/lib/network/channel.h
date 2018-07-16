@@ -108,19 +108,19 @@ public:
 
 	typedef std::vector<Bundle*> Bundles;
 	Bundles & bundles();
-	
+	const Bundles & bundles() const;
+
 	/**
 		创建发送bundle，该bundle可能是从send放入发送队列中获取的，如果队列为空
 		则创建一个新的
 	*/
 	Bundle* createSendBundle();
-	
-	int32 bundlesLength();
-
-	const Bundles & bundles() const;
-	INLINE void pushBundle(Bundle* pBundle);
 	void clearBundle();
 
+	int32 bundlesLength();
+
+	INLINE void pushBundle(Bundle* pBundle);
+	
 	bool sending() const { return (flags_ & FLAG_SENDING) > 0;}
 	void stopSend();
 
