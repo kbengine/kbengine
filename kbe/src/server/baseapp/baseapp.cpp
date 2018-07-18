@@ -4179,9 +4179,13 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	pSendBundle->pCurrMsgHandler(pMessageHandler);
 
 	if (!pBufferedSendToClientMessages)
-		static_cast<Proxy*>(pEntity)->sendToClient(pSendBundle);
+	{
+		static_cast<Proxy*>(pEntity)->sendToClient(pSendBundle, true);
+	}
 	else
+	{
 		pBufferedSendToClientMessages->pushMessages(pSendBundle);
+	}
 
 	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
