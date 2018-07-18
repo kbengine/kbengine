@@ -70,7 +70,9 @@
 
 			if(_socket != null)
 			{
-				Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::reset(), close socket from '{0}'", _socket.RemoteEndPoint.ToString()));
+				if(_socket.RemoteEndPoint != null)
+					Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::reset(), close socket from '{0}'", _socket.RemoteEndPoint.ToString()));
+
 				_socket.Close(0);
 				_socket = null;
 			}
