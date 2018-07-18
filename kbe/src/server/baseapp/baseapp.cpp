@@ -4308,7 +4308,6 @@ void Baseapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		s.done();
 		return;
 	}
-	
 
 	switch(calltype)
 	{
