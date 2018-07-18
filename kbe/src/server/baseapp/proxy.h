@@ -44,7 +44,7 @@ public:
 		向witness客户端推送一条消息
 	*/
 	bool sendToClient(const Network::MessageHandler& msgHandler, Network::Bundle* pBundle);
-	bool sendToClient(Network::Bundle* pBundle);
+	bool sendToClient(Network::Bundle* pBundle, bool immediately = false);
 	bool sendToClient(bool expectData = true);
 
 	/** 
