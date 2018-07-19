@@ -217,6 +217,11 @@ public:
 	void protocoltype(ProtocolType v) { protocoltype_ = v; }
 	void protocolSubtype(ProtocolSubType v) { protocolSubtype_ = v; }
 
+	/**
+		round-trip time (RTT) Microseconds
+	*/
+	uint32 getRTT();
+
 private:
 	static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user);
 	static void kcp_writeLog(const char *log, struct IKCPCB *kcp, void *user);

@@ -294,6 +294,18 @@ bool Channel::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+uint32 Channel::getRTT()
+{
+	if (protocolSubtype_ == SUB_PROTOCOL_KCP && pKCP_)
+		return (uint32)(pKCP_->rx_srtt/* BSD±ê×¼£¬ºÁÃë */) * 1000;
+
+	if (!pEndPoint())
+		return 0;
+
+	return pEndPoint()->getRTT();
+}
+
+//-------------------------------------------------------------------------------------
 IUINT32 createNewKCPID(IUINT32 arrayIndex)
 {
 	IUINT32 sessionID = 0;

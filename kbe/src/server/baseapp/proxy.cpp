@@ -422,11 +422,10 @@ void Proxy::onGetWitness()
 //-------------------------------------------------------------------------------------
 double Proxy::getRoundTripTime() const
 {
-	if(clientEntityCall() == NULL || clientEntityCall()->getChannel() == NULL || 
-		clientEntityCall()->getChannel()->pEndPoint() == NULL)
+	if(clientEntityCall() == NULL || clientEntityCall()->getChannel() == NULL)
 		return 0.0;
 
-	return double(clientEntityCall()->getChannel()->pEndPoint()->getRTT()) / 1000000.0;
+	return double(clientEntityCall()->getChannel()->getRTT()) / 1000000.0;
 }
 
 //-------------------------------------------------------------------------------------
