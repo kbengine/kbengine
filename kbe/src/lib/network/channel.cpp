@@ -266,6 +266,15 @@ bool Channel::finalise()
 }
 
 //-------------------------------------------------------------------------------------
+uint32 Channel::getRTT()
+{
+	if (!pEndPoint())
+		return 0;
+
+	return pEndPoint()->getRTT();
+}
+
+//-------------------------------------------------------------------------------------
 Channel * Channel::get(NetworkInterface & networkInterface,
 			const Address& addr)
 {

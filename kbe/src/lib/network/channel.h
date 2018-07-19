@@ -199,6 +199,8 @@ public:
 		return channelType_;;
 	}
 
+	uint32 getRTT();
+
 private:
 
 	enum Flags
