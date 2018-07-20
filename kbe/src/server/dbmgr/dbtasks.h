@@ -650,6 +650,27 @@ public:
 protected:
 };
 
+/**
+	²Á³ýÄ³¸öbaseapp¼ÇÂ¼µÄentitylog
+*/
+class DBTaskEraseBaseappEntityLog : public DBTask
+{
+public:
+	DBTaskEraseBaseappEntityLog(COMPONENT_ID componentID);
+	virtual ~DBTaskEraseBaseappEntityLog();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskEraseBaseappEntityLog";
+	}
+
+protected:
+	COMPONENT_ID componentID_;
+	bool success_;
+
+};
+
 }
 
 #endif // KBE_DBTASKS_H

@@ -237,6 +237,8 @@ public:
 		return &dbin_iter->second;
 	}
 
+	virtual void onChannelDeregister(Network::Channel * pChannel);
+
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -270,6 +272,8 @@ protected:
 	UpdateDBServerLogHandler*							pUpdateDBServerLogHandler_;
 	
 	TelnetServer*										pTelnetServer_;
+
+	std::map<COMPONENT_ID, uint64>						loseBaseappts_;
 };
 
 }

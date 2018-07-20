@@ -1864,4 +1864,35 @@ thread::TPTask::TPTaskState DBTaskServerLog::presentMainThread()
 }
 
 //-------------------------------------------------------------------------------------
+DBTaskEraseBaseappEntityLog::DBTaskEraseBaseappEntityLog(COMPONENT_ID componentID) :
+	DBTask(),
+	componentID_(componentID),
+	success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskEraseBaseappEntityLog::~DBTaskEraseBaseappEntityLog()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskEraseBaseappEntityLog::db_thread_process()
+{
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
+	KBE_ASSERT(pELTable);
+
+	success_ = pELTable->eraseBaseappEntityLog(pdbi_, componentID_);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskEraseBaseappEntityLog::presentMainThread()
+{
+	WARNING_MSG(fmt::format("Dbmgr::DBTaskEraseBaseappEntityLog(): erase all baseapp({}) entitylogs! success={}\n", componentID_, success_));
+	return DBTask::presentMainThread();
+}
+
+//-------------------------------------------------------------------------------------
 }

@@ -105,6 +105,12 @@ bool KBEEntityLogTableRedis::eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTIT
 }
 
 //-------------------------------------------------------------------------------------
+bool KBEEntityLogTableRedis::eraseBaseappEntityLog(DBInterface * pdbi, COMPONENT_ID componentID)
+{
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
 KBEEntityLogTableRedis::KBEEntityLogTableRedis(EntityTables* pEntityTables) :
 KBEEntityLogTable(pEntityTables)
 {

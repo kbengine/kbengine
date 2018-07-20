@@ -90,6 +90,7 @@ public:
 	virtual bool queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType) = 0;
 
 	virtual bool eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType) = 0;
+	virtual bool eraseBaseappEntityLog(DBInterface * pdbi, COMPONENT_ID componentID) = 0;
 
 protected:
 	
