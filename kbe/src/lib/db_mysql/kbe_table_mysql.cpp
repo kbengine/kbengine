@@ -194,6 +194,24 @@ bool KBEEntityLogTableMysql::eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTIT
 }
 
 //-------------------------------------------------------------------------------------
+bool KBEEntityLogTableMysql::eraseBaseappEntityLog(DBInterface * pdbi, COMPONENT_ID componentID)
+{
+	std::string sqlstr = "delete from " KBE_TABLE_PERFIX "_entitylog where componentID=";
+
+	char tbuf[MAX_BUF];
+
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, componentID);
+	sqlstr += tbuf;
+
+	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 KBEEntityLogTableMysql::KBEEntityLogTableMysql(EntityTables* pEntityTables):
 KBEEntityLogTable(pEntityTables)
 {

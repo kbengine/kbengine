@@ -33,7 +33,8 @@ public:
 	virtual bool queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType);
 
 	virtual bool eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType);
-	
+	virtual bool eraseBaseappEntityLog(DBInterface * pdbi, COMPONENT_ID componentID);
+
 protected:
 	
 };

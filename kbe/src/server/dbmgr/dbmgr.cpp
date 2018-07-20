@@ -53,7 +53,8 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 	pInterfacesChargeHandler_(NULL),
 	pSyncAppDatasHandler_(NULL),
 	pUpdateDBServerLogHandler_(NULL),
-	pTelnetServer_(NULL)
+	pTelnetServer_(NULL),
+	loseBaseappts_()
 {
 	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &DbmgrInterface::messageHandlers;
 }
@@ -224,6 +225,36 @@ void Dbmgr::handleMainTick()
 //-------------------------------------------------------------------------------------
 void Dbmgr::handleCheckStatusTick()
 {
+	// 检查丢失的组件进程，如果在一段时间之内仍然无法发现，需要清理数据库中entitylog
+	if (loseBaseappts_.size() > 0)
+	{
+		std::map<COMPONENT_ID, uint64>::iterator iter = loseBaseappts_.begin();
+		for (; iter != loseBaseappts_.end();)
+		{
+			if (timestamp() > iter->second)
+			{
+				Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(iter->first);
+				if (!cinfo)
+				{
+					ENGINE_COMPONENT_INFO& dbcfg = g_kbeSrvConfig.getDBMgr();
+					std::vector<DBInterfaceInfo>::iterator dbinfo_iter = dbcfg.dbInterfaceInfos.begin();
+					for (; dbinfo_iter != dbcfg.dbInterfaceInfos.end(); ++dbinfo_iter)
+					{
+						std::string dbInterfaceName = dbinfo_iter->name;
+
+						DBUtil::pThreadPool(dbInterfaceName)->
+							addTask(new DBTaskEraseBaseappEntityLog(iter->first));
+					}
+				}
+
+				loseBaseappts_.erase(iter++);
+			}
+			else
+			{
+				++iter;
+			}
+		}
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -967,6 +998,26 @@ std::string Dbmgr::selectAccountDBInterfaceName(const std::string& name)
 	}
 
 	return dbInterfaceName;
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onChannelDeregister(Network::Channel * pChannel)
+{
+	// 如果是app死亡了
+	if (pChannel->isInternal())
+	{
+		Components::ComponentInfos* cinfo = Components::getSingleton().findComponent(pChannel);
+		if (cinfo)
+		{
+			if (cinfo->componentType == BASEAPP_TYPE)
+			{
+				loseBaseappts_[cinfo->cid] = timestamp() + uint64(60 * stampsPerSecond());
+				WARNING_MSG(fmt::format("Dbmgr::onChannelDeregister(): If the process cannot be resumed, the entitylog(baseapp={}) will be cleaned up after 60 seconds!\n", cinfo->cid));
+			}
+		}
+	}
+	
+	ServerApp::onChannelDeregister(pChannel);
 }
 
 //-------------------------------------------------------------------------------------
