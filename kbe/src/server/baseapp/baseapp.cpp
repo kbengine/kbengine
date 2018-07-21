@@ -3914,6 +3914,30 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 }
 
 //-------------------------------------------------------------------------------------
+void Baseapp::logoutBaseapp(Network::Channel* pChannel, uint64 key, ENTITY_ID entityID)
+{
+	INFO_MSG(fmt::format("Baseapp::logoutBaseapp: key={}, entityID={}.\n", key, entityID));
+
+	Entity* pEntity = findEntity(entityID);
+	if (pEntity == NULL || !PyObject_TypeCheck(pEntity, Proxy::getScriptType()) || pEntity->isDestroyed())
+	{
+		return;
+	}
+
+	Proxy* proxy = static_cast<Proxy*>(pEntity);
+
+	if (key == 0 || proxy->rndUUID() != key)
+	{
+		return;
+	}
+
+	if (pChannel && !pChannel->isDestroyed())
+	{
+		pChannel->condemn();
+	}
+}
+
+//-------------------------------------------------------------------------------------
 void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountName, 
 							 std::string& password, uint64 key, ENTITY_ID entityID)
 {

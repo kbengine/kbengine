@@ -2471,6 +2471,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{
 		KBEngine.Event.register("createAccount", KBEngine.app, "createAccount");
 		KBEngine.Event.register("login", KBEngine.app, "login");
+		KBEngine.Event.register("logout", KBEngine.app, "logout");
 		KBEngine.Event.register("reloginBaseapp", KBEngine.app, "reloginBaseapp");
 		KBEngine.Event.register("bindAccountEmail", KBEngine.app, "bindAccountEmail");
 		KBEngine.Event.register("newPassword", KBEngine.app, "newPassword");
@@ -2478,9 +2479,12 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 	this.uninstallEvents = function()
 	{
-		KBEngine.Event.deregister("reloginBaseapp", KBEngine.app);
-		KBEngine.Event.deregister("login", KBEngine.app);
 		KBEngine.Event.deregister("createAccount", KBEngine.app);
+		KBEngine.Event.deregister("login", KBEngine.app);
+		KBEngine.Event.deregister("logout", KBEngine.app);
+		KBEngine.Event.deregister("reloginBaseapp", KBEngine.app);
+		KBEngine.Event.deregister("bindAccountEmail", KBEngine.app);
+		KBEngine.Event.deregister("newPassword", KBEngine.app);
 	}
 	
 	this.hello = function()
@@ -3185,6 +3189,15 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.app.login_loginapp(true);
 	}
 	
+	this.logout = function()
+	{
+		var bundle = new KBEngine.Bundle();
+		bundle.newMessage(KBEngine.messages.Baseapp_logoutBaseapp);
+		bundle.writeUint64(KBEngine.app.entity_uuid);
+		bundle.writeInt32(KBEngine.app.entity_id);
+		bundle.send(KBEngine.app);
+	}
+
 	this.login_loginapp = function(noconnect)
 	{  
 		if(noconnect)

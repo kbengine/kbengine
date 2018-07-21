@@ -138,6 +138,11 @@ void KBEngineApp::installEvents()
 		login(data.username, data.password, data.datas);
 	});
 
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("logout", "logout", [this](const UKBEventData* pEventData)
+	{
+		logout();
+	});
+
 	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("createAccount", "createAccount", [this](const UKBEventData* pEventData)
 	{
 		const UKBEventData_createAccount& data = static_cast<const UKBEventData_createAccount&>(*pEventData);
@@ -553,6 +558,19 @@ bool KBEngineApp::login(const FString& username, const FString& password, const 
 
 	login_loginapp(true);
 	return true;
+}
+
+void KBEngineApp::logout()
+{
+	if (currserver_ != TEXT("baseapp"))
+		return;
+
+	INFO_MSG("KBEngineApp::logout()");
+	Bundle* pBundle = Bundle::createObject();
+	pBundle->newMessage(Messages::messages[TEXT("Baseapp_logoutBaseapp"]));
+	(*pBundle) << entity_uuid_;
+	(*pBundle) << entity_id_;
+	pBundle->send(pNetworkInterface_);
 }
 
 void KBEngineApp::login_loginapp(bool noconnect)

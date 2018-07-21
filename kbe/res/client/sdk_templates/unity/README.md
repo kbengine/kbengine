@@ -311,7 +311,6 @@ KBE-Plugin fire-in events(Unity => KBE):
 					Data will be recorded into the KBE account database, you can access the datas through the script layer.
 					If you use third-party account system, datas will be submitted to the third-party system.
 				
-
 	login
 			Description: 
 				Login to server.
@@ -323,6 +322,13 @@ KBE-Plugin fire-in events(Unity => KBE):
 					Datas by user defined.
 					Data will be recorded into the KBE account database, you can access the datas through the script layer.
 					If you use third-party account system, datas will be submitted to the third-party system.
+
+	logout
+			Description: 
+				Logout to baseapp, called when exiting the client.
+
+			Event-datas: 
+				No datas.
 
 	reloginBaseapp
 			Description: 

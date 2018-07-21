@@ -281,6 +281,11 @@ public:
 	*/
 	void loginBaseapp(Network::Channel* pChannel, std::string& accountName, std::string& password);
 
+	/** 网络接口
+		到网关上登出，仅仅断开连接并触发实体的onClientDead，实体销毁由用户决定
+	*/
+	void logoutBaseapp(Network::Channel* pChannel, uint64 key, ENTITY_ID entityID);
+
 	/**
 		踢出一个Channel
 	*/
