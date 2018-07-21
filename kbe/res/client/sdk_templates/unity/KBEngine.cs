@@ -159,6 +159,7 @@
 		{
 			Event.registerIn("createAccount", this, "createAccount");
 			Event.registerIn("login", this, "login");
+			Event.registerIn("logout", this, "logout");
 			Event.registerIn("reloginBaseapp", this, "reloginBaseapp");
 			Event.registerIn("resetPassword", this, "resetPassword");
 			Event.registerIn("bindAccountEmail", this, "bindAccountEmail");
@@ -589,6 +590,18 @@
 			_lastTickCBTime = System.DateTime.Now;
 		}
 
+		/*
+			登出baseapp
+		*/
+		public void logout()
+		{
+			Bundle bundle = Bundle.createObject();
+			bundle.newMessage(Messages.messages["Baseapp_logoutBaseapp"]);
+			bundle.writeUint64(entity_uuid);
+			bundle.writeInt32(entity_id);
+			bundle.send(_networkInterface);
+		}
+		
 		/*
 			通过错误id得到错误描述
 		*/

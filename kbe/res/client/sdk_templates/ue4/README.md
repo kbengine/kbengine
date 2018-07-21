@@ -315,8 +315,7 @@ KBE-Plugin fire-in events(UE4 => KBE):
 				bytes: datas
 					Datas by user defined.
 					Data will be recorded into the KBE account database, you can access the datas through the script layer.
-					If you use third-party account system, datas will be submitted to the third-party system.
-				
+					If you use third-party account system, datas will be submitted to the third-party system.	
 
 	login
 			Description: 
@@ -329,6 +328,13 @@ KBE-Plugin fire-in events(UE4 => KBE):
 					Datas by user defined.
 					Data will be recorded into the KBE account database, you can access the datas through the script layer.
 					If you use third-party account system, datas will be submitted to the third-party system.
+
+	logout
+			Description: 
+				Logout to baseapp, called when exiting the client.
+
+			Event-datas: 
+				No datas.
 
 	reloginBaseapp
 			Description: 
