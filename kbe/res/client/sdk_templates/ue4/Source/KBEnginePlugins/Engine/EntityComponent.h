@@ -14,6 +14,14 @@ public:
 	virtual ~EntityComponent();
 
 public:
+	//virtual void onAttached(Entity* pOwner)
+	//{
+	//}
+		
+	//virtual void onDetached(Entity* pOwner)
+	//{
+	//}
+
 	virtual void onRemoteMethodCall(uint16 methodUtype, MemoryStream& stream)
 	{
 		// 动态生成
@@ -32,6 +40,7 @@ public:
 	virtual void createFromStream(MemoryStream& stream);
 
 public:
+	uint16 entityComponentPropertyID;
 	uint16 componentType;
 	ENTITY_ID ownerID;
 	Entity* pOwner;

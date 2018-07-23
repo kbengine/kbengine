@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "baseappmgr.h"
@@ -89,6 +71,7 @@ Baseappmgr::Baseappmgr(Network::EventDispatcher& dispatcher,
 	pending_logins_(),
 	baseappsInitProgress_(0.f)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &BaseappmgrInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -594,11 +577,11 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	DBID entityDBID;
 	uint32 flags;
 	uint64 deadline;
-	COMPONENT_TYPE componentType;
+	int clientType;
 	bool forceInternalLogin;
 	bool needCheckPassword;
 
-	s >> loginName >> accountName >> password >> needCheckPassword >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
+	s >> loginName >> accountName >> password >> needCheckPassword >> entityDBID >> flags >> deadline >> clientType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(pChannel);
@@ -628,7 +611,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 
 		pFI->pBundle = pBundle;
 		(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-		(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << componentType << forceInternalLogin;
+		(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << clientType << forceInternalLogin;
 		pBundle->appendBlob(datas);
 
 		int runstate = -1;
@@ -650,7 +633,7 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << componentType << forceInternalLogin;
+	(*pBundle) << loginName << accountName << password << needCheckPassword << eid << entityDBID << flags << deadline << clientType << forceInternalLogin;
 	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 
@@ -673,11 +656,11 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	DBID entityDBID;
 	uint32 flags;
 	uint64 deadline;
-	COMPONENT_TYPE componentType;
+	int clientType;
 	bool forceInternalLogin;
 	bool needCheckPassword;
 
-	s >> componentID >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
+	s >> componentID >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> clientType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	DEBUG_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr:{0}, componentID={1}, entityID={2}.\n",
@@ -696,27 +679,27 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
 		ERROR_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr: not found baseapp({}).\n", componentID));
-		sendAllocatedBaseappAddr(pChannel, loginName, accountName, "", 0);
+		sendAllocatedBaseappAddr(pChannel, loginName, accountName, "", 0, 0);
 		return;
 	}
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(BaseappInterface::registerPendingLogin);
-	(*pBundle) << loginName << accountName << password << needCheckPassword << entityID << entityDBID << flags << deadline << componentType << forceInternalLogin;
+	(*pBundle) << loginName << accountName << password << needCheckPassword << entityID << entityDBID << flags << deadline << clientType << forceInternalLogin;
 	pBundle->appendBlob(datas);
 	cinfos->pChannel->send(pBundle);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::onPendingAccountGetBaseappAddr(Network::Channel* pChannel, 
-							  std::string& loginName, std::string& accountName, std::string& addr, uint16 port)
+							  std::string& loginName, std::string& accountName, std::string& addr, uint16 tcp_port, uint16 udp_port)
 {
-	sendAllocatedBaseappAddr(pChannel, loginName, accountName, addr, port);
+	sendAllocatedBaseappAddr(pChannel, loginName, accountName, addr, tcp_port, udp_port);
 }
 
 //-------------------------------------------------------------------------------------
 void Baseappmgr::sendAllocatedBaseappAddr(Network::Channel* pChannel, 
-							  std::string& loginName, std::string& accountName, const std::string& addr, uint16 port)
+							  std::string& loginName, std::string& accountName, const std::string& addr, uint16 tcp_port, uint16 udp_port)
 {
 	KBEUnordered_map< std::string, COMPONENT_ID >::iterator iter = pending_logins_.find(loginName);
 	if(iter == pending_logins_.end())
@@ -735,8 +718,8 @@ void Baseappmgr::sendAllocatedBaseappAddr(Network::Channel* pChannel,
 	Network::Bundle* pBundleToLoginapp = Network::Bundle::createPoolObject();
 	(*pBundleToLoginapp).newMessage(LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgr);
 
-	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs4::staticAddToBundle((*pBundleToLoginapp), loginName, 
-		accountName, addr, port);
+	LoginappInterface::onLoginAccountQueryBaseappAddrFromBaseappmgrArgs5::staticAddToBundle((*pBundleToLoginapp), loginName, 
+		accountName, addr, tcp_port, udp_port);
 
 	cinfos->pChannel->send(pBundleToLoginapp);
 	pending_logins_.erase(iter);

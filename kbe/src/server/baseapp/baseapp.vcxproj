@@ -232,6 +232,7 @@
     <ClCompile Include="proxy.cpp" />
     <ClCompile Include="proxy_forwarder.cpp" />
     <ClCompile Include="restore_entity_handler.cpp" />
+    <ClCompile Include="space.cpp" />
     <ClCompile Include="sync_entitystreamtemplate_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -254,12 +255,14 @@
     <ClInclude Include="proxy_forwarder.h" />
     <ClInclude Include="proxy_interface_macros.h" />
     <ClInclude Include="restore_entity_handler.h" />
+    <ClInclude Include="space.h" />
     <ClInclude Include="sync_entitystreamtemplate_handler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="entity.inl" />
     <None Include="proxy.inl" />
     <None Include="ReadMe.txt" />
+    <None Include="space.inl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\lib\common\common.vcxproj">

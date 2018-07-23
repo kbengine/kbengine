@@ -1,26 +1,9 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "baseapp.h"
 #include "proxy.h"
+#include "space.h"
 #include "entity.h"
 #include "baseapp_interface.h"
 #include "entity_remotemethod.h"
@@ -84,15 +67,69 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 			PyObject* pyVal = NULL;
 			const char* attrname = propertyDescription->getName();
 
-			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT && !propertyDescription->hasBase())
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
 			{
-				pyVal = ((EntityComponentType*)propertyDescription->getDataType())->createCellDataFromPersistentStream(&s);
+				// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+				if (!pScriptModule->hasCell())
+				{
+					if (!propertyDescription->hasBase())
+						continue;
+				}
+
+				EntityComponentType* pEntityComponentType = ((EntityComponentType*)propertyDescription->getDataType());
+
+				// 和dbmgr判断保持一致，如果没有持久化属性dbmgr将不会传输数据过来
+				if (pEntityComponentType->pScriptDefModule()->getPersistentPropertyDescriptions().size() == 0)
+					continue;
+
+				bool hasComponentData = false;
+				s >> hasComponentData;
+
+				if (hasComponentData)
+				{
+					if (!propertyDescription->hasBase())
+					{
+						pyVal = pEntityComponentType->createCellDataFromPersistentStream(&s);
+					}
+					else
+					{
+						pyVal = ((EntityComponentDescription*)propertyDescription)->createFromPersistentStream(pScriptModule, &s);
+
+						if (!propertyDescription->isSameType(pyVal))
+						{
+							if (pyVal)
+							{
+								Py_DECREF(pyVal);
+							}
+
+							ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: {}.{} error, set to default!\n",
+								entityType, attrname));
+
+							pyVal = propertyDescription->parseDefaultStr("");
+						}
+					}
+				}
+				else
+				{
+					if (!propertyDescription->hasBase())
+					{
+						pyVal = ((EntityComponentType*)propertyDescription->getDataType())->createCellDataFromPersistentStream(NULL);
+					}
+					else
+					{
+
+						ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: {}.{} error, set to default!\n",
+							entityType, attrname));
+
+						pyVal = propertyDescription->parseDefaultStr("");
+					}
+				}
 			}
 			else
 			{
 				pyVal = propertyDescription->createFromPersistentStream(&s);
 
-				if (!propertyDescription->getDataType()->isSameType(pyVal))
+				if (!propertyDescription->isSameType(pyVal))
 				{
 					if (pyVal)
 					{
@@ -102,7 +139,7 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 					ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: {}.{} error, set to default!\n",
 						entityType, attrname));
 
-					pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+					pyVal = propertyDescription->parseDefaultStr("");
 				}
 			}
 
@@ -153,7 +190,7 @@ PyObject* createDictDataFromPersistentStream(MemoryStream& s, const char* entity
 			ERROR_MSG(fmt::format("Baseapp::createDictDataFromPersistentStream: set({}.{}) to default!\n",
 				entityType, attrname));
 
-			PyObject* pyVal = propertyDescription->getDataType()->parseDefaultStr("");
+			PyObject* pyVal = propertyDescription->parseDefaultStr("");
 
 			PyDict_SetItemString(pyDict, attrname, pyVal);
 			Py_DECREF(pyVal);
@@ -371,6 +408,7 @@ bool Baseapp::installPyModules()
 {
 	Entity::installScript(getScript().getModule());
 	Proxy::installScript(getScript().getModule());
+	Space::installScript(getScript().getModule());
 	EntityComponent::installScript(getScript().getModule());
 	GlobalDataClient::installScript(getScript().getModule());
 
@@ -845,15 +883,15 @@ void Baseapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 		(*pBundle).newMessage(BaseappInterface::onRegisterNewApp);
 		BaseappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			this->networkInterface().intaddr().ip, this->networkInterface().intaddr().port, 
-			this->networkInterface().extaddr().ip, this->networkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			this->networkInterface().intTcpAddr().ip, this->networkInterface().intTcpAddr().port,
+			this->networkInterface().extTcpAddr().ip, this->networkInterface().extTcpAddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	case CELLAPP_TYPE:
 		(*pBundle).newMessage(CellappInterface::onRegisterNewApp);
 		CellappInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), 
 			getUserUID(), getUsername(), BASEAPP_TYPE, componentID_, startGlobalOrder_, startGroupOrder_,
-			this->networkInterface().intaddr().ip, this->networkInterface().intaddr().port, 
-			this->networkInterface().extaddr().ip, this->networkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+			this->networkInterface().intTcpAddr().ip, this->networkInterface().intTcpAddr().port,
+			this->networkInterface().extTcpAddr().ip, this->networkInterface().extTcpAddr().port, g_kbeSrvConfig.getConfig().externalAddress);
 		break;
 	default:
 		KBE_ASSERT(false && "no support!\n");
@@ -869,6 +907,10 @@ Entity* Baseapp::onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_
 	if(PyType_IsSubtype(sm->getScriptType(), Proxy::getScriptType()))
 	{
 		return new(pyEntity) Proxy(eid, sm);
+	}
+	else if (PyType_IsSubtype(sm->getScriptType(), Space::getScriptType()))
+	{
+		return new(pyEntity) Space(eid, sm);
 	}
 
 	return EntityApp<Entity>::onCreateEntity(pyEntity, sm, eid);
@@ -3608,11 +3650,11 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	DBID										entityDBID;
 	uint32										flags;
 	uint64										deadline;
-	COMPONENT_TYPE								componentType;
+	int											clientType;
 	bool										forceInternalLogin;
 	bool										needCheckPassword;
 
-	s >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> componentType >> forceInternalLogin;
+	s >> loginName >> accountName >> password >> needCheckPassword >> entityID >> entityDBID >> flags >> deadline >> clientType >> forceInternalLogin;
 	s.readBlob(datas);
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
@@ -3627,10 +3669,12 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	}
 	else
 	{
-		(*pBundle) << inet_ntoa((struct in_addr&)networkInterface().extaddr().ip);
+		(*pBundle) << inet_ntoa((struct in_addr&)networkInterface().extTcpAddr().ip);
 	}
 
-	(*pBundle) << this->networkInterface().extaddr().port;
+	(*pBundle) << this->networkInterface().extTcpAddr().port;
+	(*pBundle) << this->networkInterface().extUdpAddr().port;
+
 	pChannel->send(pBundle);
 
 	PendingLoginMgr::PLInfos* ptinfos = new PendingLoginMgr::PLInfos;
@@ -3640,7 +3684,7 @@ void Baseapp::registerPendingLogin(Network::Channel* pChannel, KBEngine::MemoryS
 	ptinfos->entityDBID = entityDBID;
 	ptinfos->flags = flags;
 	ptinfos->deadline = deadline;
-	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)componentType;
+	ptinfos->ctype = (COMPONENT_CLIENT_TYPE)clientType;
 	ptinfos->datas = datas;
 	ptinfos->needCheckPassword = needCheckPassword;
 	pendingLoginMgr_.add(ptinfos);
@@ -3867,6 +3911,30 @@ void Baseapp::loginBaseapp(Network::Channel* pChannel,
 
 	// 记录客户端地址
 	ptinfos->addr = pChannel->addr();
+}
+
+//-------------------------------------------------------------------------------------
+void Baseapp::logoutBaseapp(Network::Channel* pChannel, uint64 key, ENTITY_ID entityID)
+{
+	INFO_MSG(fmt::format("Baseapp::logoutBaseapp: key={}, entityID={}.\n", key, entityID));
+
+	Entity* pEntity = findEntity(entityID);
+	if (pEntity == NULL || !PyObject_TypeCheck(pEntity, Proxy::getScriptType()) || pEntity->isDestroyed())
+	{
+		return;
+	}
+
+	Proxy* proxy = static_cast<Proxy*>(pEntity);
+
+	if (key == 0 || proxy->rndUUID() != key)
+	{
+		return;
+	}
+
+	if (pChannel && !pChannel->isDestroyed())
+	{
+		pChannel->condemn();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -4205,9 +4273,13 @@ void Baseapp::forwardMessageToClientFromCellapp(Network::Channel* pChannel,
 	pSendBundle->pCurrMsgHandler(pMessageHandler);
 
 	if (!pBufferedSendToClientMessages)
-		static_cast<Proxy*>(pEntity)->sendToClient(pSendBundle);
+	{
+		static_cast<Proxy*>(pEntity)->sendToClient(pSendBundle, true);
+	}
 	else
+	{
 		pBufferedSendToClientMessages->pushMessages(pSendBundle);
+	}
 
 	if(Network::g_trace_packet > 0 && s.length() >= sizeof(Network::MessageID))
 	{
@@ -4335,7 +4407,6 @@ void Baseapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		return;
 	}
 	
-
 	switch(calltype)
 	{
 		// 本组件是baseapp，那么确认邮件的目的地是这里， 那么执行最终操作
@@ -5371,7 +5442,8 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(pEntity, "__ACCOUNT_NAME__");
 	if(py__ACCOUNT_NAME__ == NULL)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) not found __ACCOUNT_NAME__!\n", pEntity->scriptName(), entityID));
+		PyErr_Clear();
 		return;
 	}
 
@@ -5386,7 +5458,7 @@ void Baseapp::reqAccountBindEmail(Network::Channel* pChannel, ENTITY_ID entityID
 
 	if(accountName.size() == 0)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountBindEmail: {}({}) __ACCOUNT_NAME__ is NULL!\n", pEntity->scriptName(), entityID));
 		return;
 	}
 
@@ -5516,7 +5588,8 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 	PyObject* py__ACCOUNT_NAME__ = PyObject_GetAttrString(pEntity, "__ACCOUNT_NAME__");
 	if(py__ACCOUNT_NAME__ == NULL)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: {}({}) not found __ACCOUNT_NAME__!\n", pEntity->scriptName(), entityID));
+		PyErr_Clear();
 		return;
 	}
 
@@ -5531,7 +5604,7 @@ void Baseapp::reqAccountNewPassword(Network::Channel* pChannel, ENTITY_ID entity
 
 	if(accountName.size() == 0)
 	{
-		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: entity({}) __ACCOUNT_NAME__ is NULL\n", entityID));
+		DEBUG_MSG(fmt::format("Baseapp::reqAccountNewPassword: {}({}) __ACCOUNT_NAME__ is NULL!\n", pEntity->scriptName(), entityID));
 		return;
 	}
 

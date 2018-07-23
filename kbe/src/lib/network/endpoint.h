@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_ENDPOINT_H
 #define KBE_ENDPOINT_H
@@ -88,7 +70,6 @@ public:
 	
 	INLINE int send(const void * gramData, int gramSize);
 	void send(Bundle * pBundle);
-	void sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 
 	INLINE int recv(void * gramData, int gramSize);
 	bool recvAll(void * gramData, int gramSize);
@@ -121,8 +102,11 @@ public:
 	INLINE const char * c_str() const;
 	INLINE int getremotehostname(std::string * name) const;
 	
+	INLINE int sendto(void * gramData, int gramSize);
 	INLINE int sendto(void * gramData, int gramSize, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
 	INLINE int sendto(void * gramData, int gramSize, struct sockaddr_in & sin);
+	void sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t networkAddr = BROADCAST);
+
 	INLINE int recvfrom(void * gramData, int gramSize, u_int16_t * networkPort, u_int32_t * networkAddr);
 	INLINE int recvfrom(void * gramData, int gramSize, struct sockaddr_in & sin);
 	
@@ -132,9 +116,16 @@ public:
 
 	bool waitSend();
 
+	void setSocketRef(KBESOCKET s) 
+	{
+		socket_ = s;
+		isRefSocket_ = true;
+	}
+
 protected:
 	KBESOCKET socket_;
 	Address address_;
+	bool isRefSocket_;
 };
 
 }

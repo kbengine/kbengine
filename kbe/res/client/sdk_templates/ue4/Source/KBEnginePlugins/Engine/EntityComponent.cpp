@@ -5,6 +5,7 @@
 #include "MemoryStream.h"
 
 EntityComponent::EntityComponent():
+entityComponentPropertyID(0),
 componentType(0),
 ownerID(0),
 pOwner(NULL)

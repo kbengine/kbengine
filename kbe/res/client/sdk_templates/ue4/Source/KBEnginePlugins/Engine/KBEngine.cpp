@@ -24,7 +24,8 @@ KBEngineApp::KBEngineApp() :
 	username_(TEXT("")),
 	password_(TEXT("")),
 	baseappIP_(TEXT("")),
-	baseappPort_(0),
+	baseappTcpPort_(0),
+	baseappUdpPort_(0),
 	currserver_(TEXT("")),
 	currstate_(TEXT("")),
 	serverdatas_(),
@@ -63,7 +64,8 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	username_(TEXT("")),
 	password_(TEXT("")),
 	baseappIP_(TEXT("")),
-	baseappPort_(0),
+	baseappTcpPort_(0),
+	baseappUdpPort_(0),
 	currserver_(TEXT("")),
 	currstate_(TEXT("")),
 	serverdatas_(),
@@ -134,6 +136,11 @@ void KBEngineApp::installEvents()
 	{
 		const UKBEventData_login& data = static_cast<const UKBEventData_login&>(*pEventData);
 		login(data.username, data.password, data.datas);
+	});
+
+	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("logout", "logout", [this](const UKBEventData* pEventData)
+	{
+		logout();
 	});
 
 	KBENGINE_REGISTER_EVENT_OVERRIDE_FUNC("createAccount", "createAccount", [this](const UKBEventData* pEventData)
@@ -341,13 +348,13 @@ FString KBEngineApp::serverErr(uint16 id)
 
 void KBEngineApp::updatePlayerToServer()
 {
-	if (!pArgs_->syncPlayer || spaceID_ == 0)
+	if (pArgs_->syncPlayerMS <= 0 || spaceID_ == 0)
 		return;
 
 	double tnow = getTimeSeconds();
 	double span = tnow - lastUpdateToServerTime_;
 
-	if (span < 0.1)
+	if (span < ((double)pArgs_->syncPlayerMS / 1000.0))
 		return;
 
 	Entity* pPlayerEntity = player();
@@ -553,6 +560,19 @@ bool KBEngineApp::login(const FString& username, const FString& password, const 
 	return true;
 }
 
+void KBEngineApp::logout()
+{
+	if (currserver_ != TEXT("baseapp"))
+		return;
+
+	INFO_MSG("KBEngineApp::logout()");
+	Bundle* pBundle = Bundle::createObject();
+	pBundle->newMessage(Messages::messages[TEXT("Baseapp_logoutBaseapp"]));
+	(*pBundle) << entity_uuid_;
+	(*pBundle) << entity_id_;
+	pBundle->send(pNetworkInterface_);
+}
+
 void KBEngineApp::login_loginapp(bool noconnect)
 {
 	if (noconnect)
@@ -614,10 +634,11 @@ void KBEngineApp::Client_onLoginSuccessfully(MemoryStream& stream)
 	stream >> accountName;
 	username_ = accountName;
 	stream >> baseappIP_;
-	stream >> baseappPort_;
+	stream >> baseappTcpPort_;
+	stream >> baseappUdpPort_;
 
 	DEBUG_MSG("KBEngineApp::Client_onLoginSuccessfully(): accountName(%s), addr("
-		 "%s:%d), datas(%d)!", *accountName, *baseappIP_, baseappPort_, serverdatas_.Num());
+		 "%s:%d:%d), datas(%d)!", *accountName, *baseappIP_, baseappTcpPort_, baseappUdpPort_, serverdatas_.Num());
 
 	stream.readBlob(serverdatas_);
 	login_baseapp(true);
@@ -632,7 +653,7 @@ void KBEngineApp::login_baseapp(bool noconnect)
 		pNetworkInterface_->destroy();
 		pNetworkInterface_ = NULL;
 		initNetwork();
-		pNetworkInterface_->connectTo(baseappIP_, baseappPort_, this, 2);
+		pNetworkInterface_->connectTo(baseappIP_, baseappTcpPort_, this, 2);
 	}
 	else
 	{
@@ -670,13 +691,16 @@ void KBEngineApp::onLogin_baseapp()
 
 void KBEngineApp::reloginBaseapp()
 {
+	lastTickTime_ = getTimeSeconds();
+	lastTickCBTime_ = getTimeSeconds();
+
 	if(pNetworkInterface_->valid())
 		return;
 
 	UKBEventData_onReloginBaseapp* pEventData = NewObject<UKBEventData_onReloginBaseapp>();
 	KBENGINE_EVENT_FIRE("KBEngineApp::reloginBaseapp(): onReloginBaseapp", pEventData);
 
-	pNetworkInterface_->connectTo(baseappIP_, baseappPort_, this, 3);
+	pNetworkInterface_->connectTo(baseappIP_, baseappTcpPort_, this, 3);
 }
 
 void KBEngineApp::onReloginTo_baseapp_callback(FString ip, uint16 port, bool success)

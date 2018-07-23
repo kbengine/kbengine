@@ -184,8 +184,14 @@
     <ClCompile Include="event_dispatcher.cpp" />
     <ClCompile Include="event_poller.cpp" />
     <ClCompile Include="fixed_messages.cpp" />
+    <ClCompile Include="ikcp.c" />
     <ClCompile Include="interface_defs.cpp" />
+    <ClCompile Include="kcp_packet_reader.cpp" />
+    <ClCompile Include="kcp_packet_receiver.cpp" />
+    <ClCompile Include="kcp_packet_sender.cpp" />
     <ClCompile Include="listener_receiver.cpp" />
+    <ClCompile Include="listener_tcp_receiver.cpp" />
+    <ClCompile Include="listener_udp_receiver.cpp" />
     <ClCompile Include="network_stats.cpp" />
     <ClCompile Include="message_handler.cpp" />
     <ClCompile Include="network_interface.cpp" />
@@ -200,6 +206,7 @@
     <ClCompile Include="tcp_packet_sender.cpp" />
     <ClCompile Include="udp_packet.cpp" />
     <ClCompile Include="udp_packet_receiver.cpp" />
+    <ClCompile Include="udp_packet_sender.cpp" />
     <ClCompile Include="websocket_packet_filter.cpp" />
     <ClCompile Include="websocket_packet_reader.cpp" />
     <ClCompile Include="websocket_protocol.cpp" />
@@ -218,9 +225,15 @@
     <ClInclude Include="event_poller.h" />
     <ClInclude Include="fixed_messages.h" />
     <ClInclude Include="http_utility.h" />
+    <ClInclude Include="ikcp.h" />
     <ClInclude Include="interface_defs.h" />
     <ClInclude Include="interfaces.h" />
+    <ClInclude Include="kcp_packet_reader.h" />
+    <ClInclude Include="kcp_packet_receiver.h" />
+    <ClInclude Include="kcp_packet_sender.h" />
     <ClInclude Include="listener_receiver.h" />
+    <ClInclude Include="listener_tcp_receiver.h" />
+    <ClInclude Include="listener_udp_receiver.h" />
     <ClInclude Include="network_stats.h" />
     <ClInclude Include="message_handler.h" />
     <ClInclude Include="network_interface.h" />
@@ -237,6 +250,7 @@
     <ClInclude Include="tcp_packet_sender.h" />
     <ClInclude Include="udp_packet.h" />
     <ClInclude Include="udp_packet_receiver.h" />
+    <ClInclude Include="udp_packet_sender.h" />
     <ClInclude Include="websocket_packet_filter.h" />
     <ClInclude Include="websocket_packet_reader.h" />
     <ClInclude Include="websocket_protocol.h" />
@@ -248,7 +262,11 @@
     <None Include="endpoint.inl" />
     <None Include="error_reporter.inl" />
     <None Include="event_dispatcher.inl" />
+    <None Include="kcp_packet_receiver.inl" />
+    <None Include="kcp_packet_sender.inl" />
     <None Include="listener_receiver.inl" />
+    <None Include="listener_tcp_receiver.inl" />
+    <None Include="listener_udp_receiver.inl" />
     <None Include="network_interface.inl" />
     <None Include="packet_filter.inl" />
     <None Include="packet_receiver.inl" />
@@ -259,6 +277,7 @@
     <None Include="tcp_packet_sender.inl" />
     <None Include="udp_packet.inl" />
     <None Include="udp_packet_receiver.inl" />
+    <None Include="udp_packet_sender.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

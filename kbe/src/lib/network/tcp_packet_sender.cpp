@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "tcp_packet_sender.h"
@@ -105,7 +87,7 @@ void TCPPacketSender::onGetError(Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-bool TCPPacketSender::processSend(Channel* pChannel)
+bool TCPPacketSender::processSend(Channel* pChannel, int userarg)
 {
 	bool noticed = pChannel == NULL;
 
@@ -130,7 +112,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 		Bundle::Packets::iterator iter1 = pakcets.begin();
 		for (; iter1 != pakcets.end(); ++iter1)
 		{
-			reason = processPacket(pChannel, (*iter1));
+			reason = processPacket(pChannel, (*iter1), userarg);
 			if(reason != REASON_SUCCESS)
 				break; 
 			else
@@ -195,7 +177,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 }
 
 //-------------------------------------------------------------------------------------
-Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket)
+Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg)
 {
 	if(pChannel->isCondemn())
 	{

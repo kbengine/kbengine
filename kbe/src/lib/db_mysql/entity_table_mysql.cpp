@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "entity_table_mysql.h"
 #include "kbe_table_mysql.h"
@@ -25,6 +7,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "remove_entity_helper.h"
 #include "entitydef/scriptdef_module.h"
 #include "entitydef/property.h"
+#include "entitydef/entitydef.h"
 #include "db_interface/db_interface.h"
 #include "db_interface/entity_table.h"
 #include "network/fixed_messages.h"
@@ -155,6 +138,13 @@ bool EntityTableMysql::initialize(ScriptDefModule* sm, std::string name)
 	for(; iter != pdescrsMap.end(); ++iter)
 	{
 		PropertyDescription* pdescrs = iter->second;
+
+		// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+		if (!sm->hasCell())
+		{
+			if (pdescrs->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT && !pdescrs->hasBase())
+				continue;
+		}
 
 		EntityTableItem* pETItem = this->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
 
@@ -1518,12 +1508,19 @@ bool EntityTableItemMysql_Component::initialize(const PropertyDescription* pProp
 	pTable->tableName(tableName);
 	pTable->isChild(true);
 
+	ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(pparentTable->tableName(), false);
+
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP& pdescrsMap = pEntityComponentScriptDefModule->getPersistentPropertyDescriptions();
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pdescrsMap.begin();
 
 	for (; iter != pdescrsMap.end(); ++iter)
 	{
 		PropertyDescription* pdescrs = iter->second;
+
+		if (!pScriptDefModule->hasCell() && pdescrs->hasCell() && !pdescrs->hasBase())
+		{
+			continue;
+		}
 
 		EntityTableItem* pETItem = pparentTable->createItem(pdescrs->getDataType()->getName(), pdescrs->getDefaultValStr());
 
@@ -1569,7 +1566,12 @@ void EntityTableItemMysql_Component::addToStream(MemoryStream* s, mysql::DBConte
 			{
 				std::vector<DBID>& dbids = iter->second->dbids[resultDBID];
 
-				if (dbids.size() > 0)
+				// 如果一个实体已经存档，开发中又对实体加入了组件，那么数据库中此时是没有数据的，加载实体时需要对这样的情况做一些判断
+				// 例如：实体加载时重新写入组件默认数据值
+				bool foundData = dbids.size() > 0;
+				(*s) << foundData;
+
+				if (foundData)
 				{
 					// 理论上一定是不会大于1个的
 					KBE_ASSERT(dbids.size() == 1);

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "dbtasks.h"
 #include "dbmgr.h"
@@ -671,8 +653,8 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 	{
 		if(pdbi->getlasterror() > 0)
 		{
-			WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount(): queryAccount error: {}\n", 
-				pdbi->getstrerror()));
+			WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount({}): queryAccount error: {}\n", 
+				accountName, pdbi->getstrerror()));
 		}
 
 		return false;
@@ -694,9 +676,15 @@ bool DBTaskCreateAccount::writeAccount(DBInterface* pdbi, const std::string& acc
 
 		entityDBID = EntityTables::findByInterfaceName(pdbi->name()).writeEntity(pdbi, 0, -1,
 				&copyAccountDefMemoryStream, pModule);
-	}
 
-	KBE_ASSERT(entityDBID > 0);
+		if (entityDBID <= 0)
+		{
+			WARNING_MSG(fmt::format("DBTaskCreateAccount::writeAccount({}): writeEntity error: {}\n",
+				accountName, pdbi->getstrerror()));
+
+			return false;
+		}
+	}
 
 	info.name = accountName;
 	info.email = accountName + "@0.0";
@@ -1506,7 +1494,7 @@ bool DBTaskAccountLogin::db_thread_process()
 	// 如果Interfaces已经判断不成功就没必要继续下去
 	if(retcode_ != SERVER_SUCCESS)
 	{
-		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): interfaces is failed!\n"));
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): interfaces report failed({})!\n", retcode_));
 		return false;
 	}
 
@@ -1854,6 +1842,44 @@ bool DBTaskServerLog::db_thread_process()
 thread::TPTask::TPTaskState DBTaskServerLog::presentMainThread()
 {
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskServerLog()\n"));
+	return DBTask::presentMainThread();
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskEraseBaseappEntityLog::DBTaskEraseBaseappEntityLog(COMPONENT_ID componentID) :
+	DBTask(),
+	componentID_(componentID),
+	success_(false)
+{
+}
+
+//-------------------------------------------------------------------------------------
+DBTaskEraseBaseappEntityLog::~DBTaskEraseBaseappEntityLog()
+{
+}
+
+//-------------------------------------------------------------------------------------
+bool DBTaskEraseBaseappEntityLog::db_thread_process()
+{
+	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
+	KBEEntityLogTable* pELTable = static_cast<KBEEntityLogTable*>(entityTables.findKBETable(KBE_TABLE_PERFIX "_entitylog"));
+	
+	if (!pELTable)
+	{
+		success_ = true;
+		return false;
+	}
+
+	success_ = pELTable->eraseBaseappEntityLog(pdbi_, componentID_);
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+thread::TPTask::TPTaskState DBTaskEraseBaseappEntityLog::presentMainThread()
+{
+	WARNING_MSG(fmt::format("Dbmgr::DBTaskEraseBaseappEntityLog(): erase all baseapp({}) entitylogs! success={}, dbInterface={}\n",
+		componentID_, success_, pdbi_->name()));
+
 	return DBTask::presentMainThread();
 }
 

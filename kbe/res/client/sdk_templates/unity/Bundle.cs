@@ -93,7 +93,7 @@
 			_curMsgStreamIndex = 0;
 		}
 		
-		public void send(NetworkInterface networkInterface)
+		public void send(NetworkInterfaceBase networkInterface)
 		{
 			fini(true);
 			

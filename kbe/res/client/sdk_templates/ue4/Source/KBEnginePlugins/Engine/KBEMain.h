@@ -91,7 +91,7 @@ public:
 	EKCLIENT_TYPE clientType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
-	bool syncPlayer;
+	int syncPlayerMS;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	bool useAliasEntityID;
