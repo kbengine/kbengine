@@ -214,6 +214,8 @@
     <ClCompile Include="clientobject.cpp" />
     <ClCompile Include="create_and_login_handler.cpp" />
     <ClCompile Include="..\..\..\lib\python\Modules\getbuildinfo.c" />
+    <ClCompile Include="kcp_packet_receiver_ex.cpp" />
+    <ClCompile Include="kcp_packet_sender_ex.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="profile.cpp" />
     <ClCompile Include="pybots.cpp" />
@@ -226,6 +228,8 @@
     <ClInclude Include="bots_interface_macros.h" />
     <ClInclude Include="clientobject.h" />
     <ClInclude Include="create_and_login_handler.h" />
+    <ClInclude Include="kcp_packet_receiver_ex.h" />
+    <ClInclude Include="kcp_packet_sender_ex.h" />
     <ClInclude Include="profile.h" />
     <ClInclude Include="pybots.h" />
     <ClInclude Include="tcp_packet_receiver_ex.h" />

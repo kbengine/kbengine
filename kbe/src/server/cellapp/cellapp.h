@@ -1,28 +1,10 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_CELLAPP_H
 #define KBE_CELLAPP_H
 
 #include "entity.h"
-#include "spaces.h"
+#include "spacememorys.h"
 #include "cells.h"
 #include "space_viewer.h"
 #include "updatables.h"
@@ -89,6 +71,11 @@ public:
 							std::string& username, 
 							COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
 							uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
+
+	/**
+		创建了一个entity回调
+	*/
+	virtual Entity* onCreateEntity(PyObject* pyEntity, ScriptDefModule* sm, ENTITY_ID eid);
 
 	/**  
 		创建一个entity 
@@ -252,7 +239,7 @@ public:
 	void pGhostManager(GhostManager* v){ pGhostManager_ = v; }
 	GhostManager* pGhostManager() const{ return pGhostManager_; }
 
-	ArraySize spaceSize() const { return (ArraySize)Spaces::size(); }
+	ArraySize spaceSize() const { return (ArraySize)SpaceMemorys::size(); }
 
 	/** 
 		射线 

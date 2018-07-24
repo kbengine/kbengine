@@ -25,7 +25,7 @@ public:
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	EKCLIENT_TYPE clientType;
 
-	bool syncPlayer;
+	int syncPlayerMS;
 	bool useAliasEntityID;
 	bool isOnInitCallPropertysSetMethods;
 

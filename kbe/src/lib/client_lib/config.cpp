@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "config.h"
@@ -273,12 +255,76 @@ bool Config::loadConfig(std::string fileName)
 						Network::g_extReceiveWindowBytesOverflow = KBE_MAX(0, xml->getValInt(childnode2));
 				}
 			}
-		};
+		}
 
 		childnode = xml->enterNode(rootNode, "encrypt_type");
 		if(childnode)
 		{
 			Network::g_channelExternalEncryptType = xml->getValInt(childnode);
+		}
+
+		TiXmlNode* rudpChildnode = xml->enterNode(rootNode, "reliableUDP");
+		if (rudpChildnode)
+		{
+			childnode = xml->enterNode(rudpChildnode, "readPacketsQueueSize");
+			if (childnode)
+			{
+				TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+				if (childnode1)
+					Network::g_rudp_intReadPacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+
+				childnode1 = xml->enterNode(childnode, "external");
+				if (childnode1)
+					Network::g_rudp_extReadPacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "writePacketsQueueSize");
+			if (childnode)
+			{
+				TiXmlNode* childnode1 = xml->enterNode(childnode, "internal");
+				if (childnode1)
+					Network::g_rudp_intWritePacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+
+				childnode1 = xml->enterNode(childnode, "external");
+				if (childnode1)
+					Network::g_rudp_extWritePacketsQueueSize = KBE_MAX(0, xml->getValInt(childnode1));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "tickInterval");
+			if (childnode)
+			{
+				Network::g_rudp_tickInterval = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "minRTO");
+			if (childnode)
+			{
+				Network::g_rudp_minRTO = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "mtu");
+			if (childnode)
+			{
+				Network::g_rudp_mtu = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "missAcksResend");
+			if (childnode)
+			{
+				Network::g_rudp_missAcksResend = KBE_MAX(0, xml->getValInt(childnode));
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "congestionControl");
+			if (childnode)
+			{
+				Network::g_rudp_congestionControl = (xml->getValStr(childnode) == "true");
+			}
+
+			childnode = xml->enterNode(rudpChildnode, "nodelay");
+			if (childnode)
+			{
+				Network::g_rudp_nodelay = (xml->getValStr(childnode) == "true");
+			}
 		}
 	}
 

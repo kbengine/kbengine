@@ -15,6 +15,7 @@ SRCS =						\
 	initprogress_handler				\
 	restore_entity_handler				\
 	sync_entitystreamtemplate_handler	\
+	space					\
 	main					\
 	proxy					\
 	proxy_forwarder			\

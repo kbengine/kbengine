@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "client_sdk.h"
 #include "client_sdk_unity.h"	
@@ -52,7 +34,13 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #define KBE_MKDIR(a) _mkdir((a))  
 #else
 #define KBE_ACCESS access  
-#define KBE_MKDIR(a) mkdir((a),0755)  
+#define KBE_MKDIR(a) KBE_UNIX_MKDIR((a))  
+
+int KBE_UNIX_MKDIR(const char* a)
+{
+	umask(0);
+	return mkdir((a), 0755);
+}
 #endif  
 
 namespace KBEngine {	
@@ -77,6 +65,9 @@ int CreatDir(const char *pDir)
 	{
 		if (pszDir[i] == '\\' || pszDir[i] == '/')
 		{
+			if (i == 0)
+				continue;
+
 			pszDir[i] = '\0';
 
 			//如果不存在,创建  
@@ -86,6 +77,9 @@ int CreatDir(const char *pDir)
 				iRet = KBE_MKDIR(pszDir);
 				if (iRet != 0)
 				{
+					ERROR_MSG(fmt::format("CreatDir(): KBE_MKDIR [{}] error! iRet={}\n",
+						pszDir, iRet));
+
 					free(pszDir);
 					return -1;
 				}
@@ -99,8 +93,14 @@ int CreatDir(const char *pDir)
 	if (iLen > 0 && KBE_ACCESS(pszDir, 0) != 0)
 	{
 		iRet = KBE_MKDIR(pszDir);
+
+		if (iRet != 0)
+		{
+			ERROR_MSG(fmt::format("CreatDir(): KBE_MKDIR [{}] error! iRet={}\n",
+				pszDir, iRet));
+		}
 	}
-	
+
 	free(pszDir);
 	return iRet;
 }
@@ -255,11 +255,7 @@ bool ClientSDK::create(const std::string& path)
 	basepath_ = path;
 
 	if (basepath_[basepath_.size() - 1] != '\\' && basepath_[basepath_.size() - 1] != '/')
-#ifdef _WIN32  
 		basepath_ += "/";
-#else
-		basepath_ += "\\";
-#endif
 
 	currHeaderPath_ = currSourcePath_ = basepath_;
 
@@ -406,7 +402,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 		strutil::kbe_replace(filebody, "@{KBE_SERVER_ENTITYDEF_MD5}", EntityDef::md5().getDigestStr());
 		strutil::kbe_replace(filebody, "@{KBE_USE_ALIAS_ENTITYID}", g_kbeSrvConfig.getCellApp().aliasEntityID ? "true" : "false");
 		strutil::kbe_replace(filebody, "@{KBE_UPDATEHZ}", fmt::format("{}", g_kbeSrvConfig.gameUpdateHertz()));
-		strutil::kbe_replace(filebody, "@{KBE_LOGIN_PORT}", fmt::format("{}", g_kbeSrvConfig.getLoginApp().externalPorts_min));
+		strutil::kbe_replace(filebody, "@{KBE_LOGIN_PORT}", fmt::format("{}", g_kbeSrvConfig.getLoginApp().externalTcpPorts_min));
 		output << filebody;
 
 		output.close();
@@ -803,9 +799,17 @@ bool ClientSDK::writeEntityDefsModuleInitScript(ScriptDefModule* pScriptDefModul
 	}
 
 	ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
-	for (; miter != methods.end(); ++miter)
+	if (methods.size() > 0)
 	{
-		if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, miter->second, CLIENT_TYPE))
+		for (; miter != methods.end(); ++miter)
+		{
+			if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, miter->second, CLIENT_TYPE))
+				return false;
+		}
+	}
+	else
+	{
+		if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, NULL, CLIENT_TYPE))
 			return false;
 	}
 

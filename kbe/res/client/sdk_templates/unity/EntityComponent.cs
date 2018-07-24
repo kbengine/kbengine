@@ -11,6 +11,7 @@ namespace KBEngine
 	*/
 	public class EntityComponent
 	{
+		public UInt16 entityComponentPropertyID = 0;
 		public UInt16 componentType = 0;
 		public Int32 ownerID = 0;
 		public Entity owner = null;

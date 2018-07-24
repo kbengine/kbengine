@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "websocket_protocol.h"
 #include "common/memorystream.h"
@@ -117,12 +99,18 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	values = KBEngine::strutil::kbe_splits(header_and_data[0], "\r\n");
 	std::vector<std::string>::iterator iter = values.begin();
 
-	for(; iter != values.end(); ++iter)
+	for (; iter != values.end(); ++iter)
 	{
-		header_and_data = KBEngine::strutil::kbe_splits((*iter), ": ");
+		std::string linedata = (*iter);
 
-		if(header_and_data.size() == 2)
-			headers[header_and_data[0]] = header_and_data[1];
+		std::string::size_type findex = linedata.find_first_of(':', 0);
+		if (findex == std::string::npos)
+			continue;
+
+		std::string leftstr = linedata.substr(0, findex);
+		std::string rightstr = linedata.substr(findex + 1, linedata.size() - findex);
+
+		headers[KBEngine::strutil::kbe_trim(leftstr)] = KBEngine::strutil::kbe_trim(rightstr);
 	}
 
 	std::string szKey, szOrigin, szHost;

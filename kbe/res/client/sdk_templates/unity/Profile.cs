@@ -32,8 +32,8 @@ namespace KBEngine
 		{
 			System.TimeSpan time = System.DateTime.Now - startTime;
 			
-			if(time.Milliseconds >= 100)
-				Dbg.WARNING_MSG("Profile::profile(): '" + _name + "' took " + time.Milliseconds + " ms");
+			if(time.TotalMilliseconds >= 100)
+				Dbg.WARNING_MSG("Profile::profile(): '" + _name + "' took " + time.TotalMilliseconds + " ms");
 		}
 	}
 }

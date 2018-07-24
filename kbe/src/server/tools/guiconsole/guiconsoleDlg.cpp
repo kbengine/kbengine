@@ -190,7 +190,7 @@ public:
 
 			bhandler.newMessage(MachineInterface::onFindInterfaceAddr);
 			MachineInterface::onFindInterfaceAddrArgs7::staticAddToBundle(bhandler, getUserUID(), getUsername(), 
-				dlg->componentType(), dlg->componentID(), (COMPONENT_TYPE)findComponentType, dlg->networkInterface().intaddr().ip, 
+				dlg->componentType(), dlg->componentID(), (COMPONENT_TYPE)findComponentType, dlg->networkInterface().intTcpAddr().ip,
 				bhandler.epListen().addr().port);
 
 			if(!bhandler.broadcast())
@@ -413,6 +413,7 @@ BOOL CguiconsoleDlg::OnInitDialog()
 	m_ToolBar.ShowWindow(SW_SHOW);
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
 	
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &KBEngine::ConsoleInterface::messageHandlers;
 
 	// TODO: Add extra initialization here
 	_dispatcher.breakProcessing(false);
@@ -1713,7 +1714,7 @@ void CguiconsoleDlg::OnToolBar_StopServer()
 		KBEngine::COMPONENT_ID cid = 0;
 		bhandler << cid;
 		
-		uint32 ip = _networkInterface.intaddr().ip;
+		uint32 ip = _networkInterface.intTcpAddr().ip;
 		uint16 port = bhandler.epListen().addr().port;
 		bhandler << ip << port;
 

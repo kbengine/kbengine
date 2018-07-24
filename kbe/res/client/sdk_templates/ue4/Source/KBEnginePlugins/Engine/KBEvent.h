@@ -128,6 +128,14 @@ public:
 };
 
 UCLASS(Blueprintable, BlueprintType)
+class KBENGINEPLUGINS_API UKBEventData_logout : public UKBEventData
+{
+	GENERATED_BODY()
+
+public:
+};
+
+UCLASS(Blueprintable, BlueprintType)
 class KBENGINEPLUGINS_API UKBEventData_onLoginFailed : public UKBEventData
 {
 	GENERATED_BODY()

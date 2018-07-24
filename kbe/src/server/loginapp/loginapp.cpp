@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "jwsmtp.h"
@@ -60,6 +42,7 @@ Loginapp::Loginapp(Network::EventDispatcher& dispatcher,
 	initProgress_(0.f),
 	pTelnetServer_(NULL)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &LoginappInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -208,6 +191,12 @@ void Loginapp::onInstallPyModules()
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
 	mainProcessTimer_.cancel();
 	PythonApp::finalise();
 }
@@ -611,7 +600,7 @@ void Loginapp::onReqCreateMailAccountResult(Network::Channel* pChannel, MemorySt
 			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 			else
-				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 		}
 		else
 		{
@@ -767,7 +756,7 @@ void Loginapp::onReqAccountResetPasswordCB(Network::Channel* pChannel, std::stri
 			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 			else
-				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 		}
 		else
 		{
@@ -808,7 +797,7 @@ void Loginapp::onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pCha
 		if (strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 			http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 		else
-			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 	}
 	else
 	{
@@ -1235,7 +1224,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		(*pBundle) << componentID << loginName << accountName << password << needCheckPassword << entityID << dbid << flags << deadline << infos->ctype << infos->forceInternalLogin;
+		(*pBundle) << componentID << loginName << accountName << password << needCheckPassword << entityID << dbid << flags << deadline << (int)infos->ctype << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 		return;
@@ -1253,7 +1242,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		(*pBundle) << dbid;
 		(*pBundle) << flags;
 		(*pBundle) << deadline;
-		(*pBundle) << infos->ctype;
+		(*pBundle) << (int)infos->ctype;
 		(*pBundle) << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
@@ -1262,7 +1251,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 
 //-------------------------------------------------------------------------------------
 void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pChannel, std::string& loginName, 
-															std::string& accountName, std::string& addr, uint16 port)
+															std::string& accountName, std::string& addr, uint16 tcp_port, uint16 udp_port)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1276,7 +1265,7 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY, datas);
 	}
 
-	Network::Address address(addr, ntohs(port));
+	Network::Address address(addr, ntohs(tcp_port));
 
 	DEBUG_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={0}, addr={1}.\n", 
 		loginName, address.c_str()));
@@ -1297,10 +1286,14 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 	(*pBundle).newMessage(ClientInterface::onLoginSuccessfully);
-	uint16 fport = ntohs(port);
+
+	uint16 f_tcp_port = ntohs(tcp_port);
+	uint16 f_udp_port = ntohs(udp_port);
+
 	(*pBundle) << accountName;
 	(*pBundle) << addr;
-	(*pBundle) << fport;
+	(*pBundle) << f_tcp_port;
+	(*pBundle) << f_udp_port;
 	(*pBundle).appendBlob(infos->datas);
 	pClientChannel->send(pBundle);
 
