@@ -2264,10 +2264,12 @@ KBEngine.DATATYPE_PYTHON = function()
 	
 	this.createFromStream = function(stream)
 	{
+		return stream.readBlob();
 	}
 	
 	this.addToStream = function(stream, v)
 	{
+		stream.writeBlob(v);
 	}
 	
 	this.parseDefaultValStr = function(v)
