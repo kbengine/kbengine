@@ -106,6 +106,11 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 
 		if(rstate == PacketReceiver::RECV_STATE_INTERRUPT)
 		{
+			if (pChannel->isInternal())
+			{
+				ERROR_MSG(fmt::format("TCPPacketReceiver::processRecv(): {}, error={}\n", pChannel->c_str(), kbe_lasterror()));
+			}
+
 			onGetError(pChannel);
 			return false;
 		}
@@ -114,6 +119,11 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 	}
 	else if(len == 0) // 客户端正常退出
 	{
+		if (pChannel->isInternal())
+		{
+			DEBUG_MSG(fmt::format("TCPPacketReceiver::processRecv(): disconnected! {}\n", pChannel->c_str()));
+		}
+
 		TCPPacket::reclaimPoolObject(pReceiveWindow);
 		onGetError(pChannel);
 		return false;
