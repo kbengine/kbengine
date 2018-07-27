@@ -23,7 +23,7 @@ public:
 	virtual Channel* findChannel(const Address& addr);
 
 protected:
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 
 	ClientObject* pClientObject_;
 };

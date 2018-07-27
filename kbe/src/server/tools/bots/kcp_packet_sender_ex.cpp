@@ -42,7 +42,7 @@ Channel* KCPPacketSenderEx::getChannel()
 }
 
 //-------------------------------------------------------------------------------------
-void KCPPacketSenderEx::onGetError(Channel* pChannel)
+void KCPPacketSenderEx::onGetError(Channel* pChannel, const std::string& err)
 {
 	pClientObject_->destroy();
 }
