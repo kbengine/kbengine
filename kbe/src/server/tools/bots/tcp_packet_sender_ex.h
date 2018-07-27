@@ -40,7 +40,7 @@ public:
 	virtual Channel* getChannel();
 
 protected:
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 
 	ClientObject* pClientObject_;
 };

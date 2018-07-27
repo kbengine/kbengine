@@ -269,7 +269,7 @@ InterfacesHandler_Interfaces::~InterfacesHandler_Interfaces()
 	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
 	if(pInterfacesChannel)
 	{
-		pInterfacesChannel->condemn();
+		pInterfacesChannel->condemn("");
 	}
 
 	pInterfacesChannel = NULL;

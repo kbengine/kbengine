@@ -55,7 +55,7 @@ public:
 	TCPPacketSender(EndPoint & endpoint, NetworkInterface & networkInterface);
 	~TCPPacketSender();
 
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 	virtual bool processSend(Channel* pChannel);
 
 protected:

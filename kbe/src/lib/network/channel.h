@@ -166,13 +166,14 @@ public:
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
 	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
-	void condemn();
+	void condemn(const std::string& reason);
+	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
 
 	ENTITY_ID proxyID() const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
-
+	  
 	const std::string& extra() const { return strextra_; }
 	void extra(const std::string& s){ strextra_ = s; }
 
@@ -268,6 +269,8 @@ private:
 	KBEngine::Network::MessageHandlers* pMsgHandlers_;
 
 	uint32						flags_;
+
+	std::string					condemnReason_;
 };
 
 }

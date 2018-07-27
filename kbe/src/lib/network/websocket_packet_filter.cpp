@@ -222,7 +222,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: frame is error! addr={}!\n",
 					pChannel_->c_str()));
 
-				this->pChannel_->condemn();
+				this->pChannel_->condemn("WebSocketPacketReader::recv: frame is error!");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
@@ -236,7 +236,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE({})! addr={}!\n",
 					(int)msg_frameType_, pChannel_->c_str()));
 
-				this->pChannel_->condemn();
+				this->pChannel_->condemn("WebSocketPacketReader::recv: Does not support FRAME_TYPE");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
@@ -244,7 +244,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 			}
 			else if(msg_frameType_ == websocket::WebSocketProtocol::CLOSE_FRAME)
 			{
-				this->pChannel_->condemn();
+				this->pChannel_->condemn("");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
@@ -262,7 +262,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: pFragmentDatasRemain_ <= 0! addr={}!\n",
 					pChannel_->c_str()));
 
-				this->pChannel_->condemn();
+				this->pChannel_->condemn("WebSocketPacketReader::recv: pFragmentDatasRemain_ <= 0!");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
@@ -290,7 +290,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: decoding-frame is error! addr={}!\n",
 					pChannel_->c_str()));
 
-				this->pChannel_->condemn();
+				this->pChannel_->condemn("WebSocketPacketReader::recv: decoding-frame is error!");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));

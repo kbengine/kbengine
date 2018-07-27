@@ -80,7 +80,7 @@ size_t Channel::getPoolObjectBytes()
 		+ sizeof(flags_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
 		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
 		+ sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
-		+ sizeof(componentID_) + sizeof(pMsgHandlers_);
+		+ sizeof(componentID_) + sizeof(pMsgHandlers_) + condemnReason_.size();
 
 	return bytes;
 }
@@ -132,7 +132,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
 	pMsgHandlers_(NULL),
-	flags_(0)
+	flags_(0),
+	condemnReason_()
 {
 	this->clearBundle();
 	initialize(networkInterface, pEndPoint, traits, pt, pFilter, id);
@@ -166,7 +167,8 @@ Channel::Channel():
 	channelType_(CHANNEL_NORMAL),
 	componentID_(UNKNOWN_COMPONENT_TYPE),
 	pMsgHandlers_(NULL),
-	flags_(0)
+	flags_(0),
+	condemnReason_()
 {
 	this->clearBundle();
 }
@@ -354,6 +356,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	proxyID_ = 0;
 	strextra_ = "";
 	channelType_ = CHANNEL_NORMAL;
+	condemnReason_ = "";
 
 	if(pEndPoint_ && protocoltype_ == PROTOCOL_TCP && !this->isDestroyed())
 	{
@@ -530,7 +533,7 @@ void Channel::send(Bundle * pBundle)
 				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), send-window bufferedMessages has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->send->messages.\n",
 					(void*)this, this->c_str(), bundleSize, Network::g_extSendWindowMessagesOverflow));
 
-				this->condemn();
+				this->condemn("Channel::send: send-window bufferedMessages has overflowed!");
 			}
 		}
 
@@ -542,7 +545,7 @@ void Channel::send(Bundle * pBundle)
 				ERROR_MSG(fmt::format("Channel::send[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->send->bytes.\n",
 					(void*)this, this->c_str(), bundleBytes, g_extSendWindowBytesOverflow));
 
-				this->condemn();
+				this->condemn("Channel::send: send-window bufferedBytes has overflowed!");
 			}
 		}
 	}
@@ -556,7 +559,7 @@ void Channel::send(Bundle * pBundle)
 				ERROR_MSG(fmt::format("Channel::send[{:p}]: internal channel({}), send-window bufferedMessages has overflowed({} > {}).\n",
 					(void*)this, this->c_str(), bundleSize, Network::g_intSendWindowMessagesOverflow));
 
-				this->condemn();
+				this->condemn("Channel::send: send-window bufferedMessages has overflowed!");
 			}
 			else
 			{
@@ -619,7 +622,7 @@ void Channel::onPacketSent(int bytes, bool sentCompleted)
 			ERROR_MSG(fmt::format("Channel::onPacketSent[{:p}]: external channel({}), sentBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->send->tickSentBytes.\n", 
 				(void*)this, this->c_str(), lastTickBytesSent_, g_extSentWindowBytesOverflow));
 
-			this->condemn();
+			this->condemn("Channel::onPacketSent: sentBytes has overflowed!");
 		}
 	}
 	else
@@ -655,7 +658,7 @@ void Channel::onPacketReceived(int bytes)
 			ERROR_MSG(fmt::format("Channel::onPacketReceived[{:p}]: external channel({}), bufferedBytes has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->receive.\n", 
 				(void*)this, this->c_str(), lastTickBytesReceived_, g_extReceiveWindowBytesOverflow));
 
-			this->condemn();
+			this->condemn("Channel::onPacketReceived: bufferedBytes has overflowed!");
 		}
 	}
 	else
@@ -684,7 +687,7 @@ void Channel::addReceiveWindow(Packet* pPacket)
 				ERROR_MSG(fmt::format("Channel::addReceiveWindow[{:p}]: external channel({}), receive window has overflowed({} > {}), Try adjusting the kbengine[_defs].xml->windowOverflow->receive->messages->external.\n", 
 					(void*)this, this->c_str(), lastTickBufferedReceives_, Network::g_extReceiveWindowMessagesOverflow));
 
-				this->condemn();
+				this->condemn("Channel::addReceiveWindow: receive window has overflowed!");
 			}
 			else
 			{
@@ -712,11 +715,12 @@ void Channel::addReceiveWindow(Packet* pPacket)
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::condemn()
+void Channel::condemn(const std::string& reason)
 { 
 	if(isCondemn())
 		return;
 
+	condemnReason_ = reason;
 	flags_ |= FLAG_CONDEMN; 
 	//WARNING_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
 }
@@ -820,7 +824,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, P
 
 		pPacketReader_->currMsgID(0);
 		pPacketReader_->currMsgLen(0);
-		condemn();
+		condemn("Channel::processPackets: packet invalid!");
 	}
 
 	RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
