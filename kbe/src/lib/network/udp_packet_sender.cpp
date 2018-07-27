@@ -74,9 +74,9 @@ UDPPacketSender::~UDPPacketSender()
 }
 
 //-------------------------------------------------------------------------------------
-void UDPPacketSender::onGetError(Channel* pChannel)
+void UDPPacketSender::onGetError(Channel* pChannel, const std::string& err)
 {
-	pChannel->condemn();
+	pChannel->condemn(err);
 	
 	// 此处不必立即销毁，可能导致bufferedReceives_内部遍历迭代器破坏
 	// 交给TCPPacketReceiver处理即可
@@ -141,27 +141,41 @@ bool UDPPacketSender::processSend(Channel* pChannel, int userarg)
 				// 连续超过10次则通知出错
 				if (++sendfailCount >= 10 && pChannel->isExternal())
 				{
-					onGetError(pChannel);
+					onGetError(pChannel, "UDPPacketSender::processSend: sendfailCount >= 10");
 
 					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(),
-						fmt::format("UDPPacketSender::processSend(sendfailCount({}) >= 10)", (int)sendfailCount).c_str());
+						fmt::format("UDPPacketSender::processSend(external, sendfailCount({}) >= 10)", (int)sendfailCount).c_str());
 				}
 				else
 				{
 					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(),
-						fmt::format("UDPPacketSender::processSend({})", (int)sendfailCount).c_str());
+						fmt::format("UDPPacketSender::processSend(internal, {})", (int)sendfailCount).c_str());
 				}
 			}
 			else
 			{
+				if (pChannel->isExternal())
+				{
 #ifdef unix
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend()",
-					fmt::format(", errno: {}", errno).c_str());
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend(external)",
+						fmt::format(", errno: {}", errno).c_str());
 #else
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend()",
-					fmt::format(", errno: {}", WSAGetLastError()).c_str());
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend(external)",
+						fmt::format(", errno: {}", WSAGetLastError()).c_str());
 #endif
-				onGetError(pChannel);
+			}
+				else
+				{
+#ifdef unix
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend(internal)",
+						fmt::format(", errno: {}, {}", errno, pChannel->c_str()).c_str());
+#else
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "UDPPacketSender::processSend(internal)",
+						fmt::format(", errno: {}, {}", WSAGetLastError(), pChannel->c_str()).c_str());
+#endif
+				}
+
+				onGetError(pChannel, fmt::format("UDPPacketSender::processSend: errno={}", kbe_lasterror()));
 			}
 
 			return false;

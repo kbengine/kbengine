@@ -124,8 +124,8 @@ bool ServerApp::loadConfig()
 bool ServerApp::installSignals()
 {
 	g_kbeSignalHandlers.attachApp(this);
+	g_kbeSignalHandlers.ignoreSignal(SIGPIPE);
 	g_kbeSignalHandlers.addSignal(SIGINT, this);
-	g_kbeSignalHandlers.addSignal(SIGPIPE, this);
 	g_kbeSignalHandlers.addSignal(SIGHUP, this);
 	return true;
 }
@@ -286,8 +286,9 @@ void ServerApp::onChannelDeregister(Network::Channel * pChannel)
 void ServerApp::onChannelTimeOut(Network::Channel * pChannel)
 {
 	INFO_MSG(fmt::format("ServerApp::onChannelTimeOut: "
-		"Channel {0} timed out.\n", pChannel->c_str()));
+		"Channel {0} timeout!\n", pChannel->c_str()));
 
+	pChannel->condemn("timedout");
 	networkInterface_.deregisterChannel(pChannel);
 	pChannel->destroy();
 	Network::Channel::reclaimPoolObject(pChannel);

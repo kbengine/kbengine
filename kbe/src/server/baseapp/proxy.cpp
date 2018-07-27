@@ -72,7 +72,7 @@ PyObject* Proxy::pyDisconnect()
 	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
 	if (pChannel && !pChannel->isDestroyed())
 	{
-		pChannel->condemn();
+		pChannel->condemn("");
 	}
 
 	S_Return;
@@ -91,7 +91,7 @@ void Proxy::kick()
 		//pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
 		this->sendToClient(ClientInterface::onKicked, pBundle);
 		this->sendToClient();
-		pChannel->condemn();
+		pChannel->condemn("");
 	}
 }
 

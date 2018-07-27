@@ -168,7 +168,8 @@ public:
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
 	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
-	void condemn();
+	void condemn(const std::string& reason);
+	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
 
@@ -289,6 +290,8 @@ private:
 	uint32						flags_;
 
 	ikcpcb*						pKCP_;
+
+	std::string					condemnReason_;
 };
 
 }

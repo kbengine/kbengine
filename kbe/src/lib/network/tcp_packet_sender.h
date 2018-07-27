@@ -37,7 +37,7 @@ public:
 	TCPPacketSender(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~TCPPacketSender();
 
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 	virtual bool processSend(Channel* pChannel, int userarg);
 
 	virtual PacketSender::PACKET_SENDER_TYPE type() const

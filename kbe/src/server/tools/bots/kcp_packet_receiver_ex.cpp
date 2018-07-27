@@ -45,7 +45,7 @@ Channel* KCPPacketReceiverEx::findChannel(const Address& addr)
 }
 
 //-------------------------------------------------------------------------------------
-void KCPPacketReceiverEx::onGetError(Channel* pChannel)
+void KCPPacketReceiverEx::onGetError(Channel* pChannel, const std::string& err)
 {
 	pClientObject_->destroy();
 }

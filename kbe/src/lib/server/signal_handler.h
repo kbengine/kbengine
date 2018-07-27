@@ -28,6 +28,8 @@ public:
 	
 	SignalHandler* delSignal(int sigNum);
 	
+	bool ignoreSignal(int sigNum);
+
 	void clear();
 	
 	void onSignalled(int sigNum);

@@ -42,7 +42,7 @@ protected:
 	virtual bool processRecv(bool expectingPacket);
 	PacketReceiver::RecvState checkSocketErrors(int len, bool expectingPacket);
 
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 	
 };
 }
