@@ -46,6 +46,8 @@ public:
 	
 	SignalHandler* delSignal(int sigNum);
 	
+	bool ignoreSignal(int sigNum);
+
 	void clear();
 	
 	void onSignalled(int sigNum);
@@ -63,6 +65,7 @@ private:
 	ServerApp* papp_;
 	uint8 rpos_, wpos_;
 	int signalledArray_[256];
+
 };
 
 #define g_kbeSignalHandlers SignalHandlers::getSingleton()

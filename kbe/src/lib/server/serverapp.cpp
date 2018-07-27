@@ -142,8 +142,8 @@ bool ServerApp::loadConfig()
 bool ServerApp::installSignals()
 {
 	g_kbeSignalHandlers.attachApp(this);
+	g_kbeSignalHandlers.ignoreSignal(SIGPIPE);
 	g_kbeSignalHandlers.addSignal(SIGINT, this);
-	g_kbeSignalHandlers.addSignal(SIGPIPE, this);
 	g_kbeSignalHandlers.addSignal(SIGHUP, this);
 	return true;
 }
