@@ -505,7 +505,7 @@ public:
 
     void resize(size_t newsize)
     {
-    	KBE_ASSERT(newsize <= 1310700);
+    	KBE_ASSERT(newsize <= MAX_SIZE);
         data_.resize(newsize);
         rpos_ = 0;
         wpos_ = size();
@@ -513,13 +513,13 @@ public:
 
     void data_resize(size_t newsize)
     {
-    	KBE_ASSERT(newsize <= 1310700);
+    	KBE_ASSERT(newsize <= MAX_SIZE);
         data_.resize(newsize);
     }
 
     void reserve(size_t ressize)
     {
-    	KBE_ASSERT(ressize <= 1310700);
+    	KBE_ASSERT(ressize <= MAX_SIZE);
 
         if (ressize > size())
             data_.reserve(ressize);
