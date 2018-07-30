@@ -136,7 +136,7 @@ protected:
 	std::string sdatas_;
 	CALLBACK_ID callbackID_;
 	std::string error_;
-	MemoryStream execret_;
+	MemoryStream* pExecret_;
 };
 
 
@@ -161,7 +161,7 @@ protected:
 	std::string sdatas_;
 	CALLBACK_ID callbackID_;
 	std::string error_;
-	MemoryStream execret_;
+	MemoryStream* pExecret_;
 };
 
 /**
@@ -507,7 +507,7 @@ protected:
 	std::string accountName_;
 	std::string password_;
 	bool success_;
-	MemoryStream s_;
+	MemoryStream* s_;
 	DBID dbid_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
@@ -621,7 +621,7 @@ protected:
 	COMPONENT_ID componentID_;
 	CALLBACK_ID callbackID_;
 	bool success_;
-	MemoryStream s_;
+	MemoryStream* s_;
 	ENTITY_ID entityID_;
 
 	// 如果实体已经激活，则这个属性指向实体所在app

@@ -105,13 +105,15 @@ componentType_(UNKNOWN_COMPONENT_TYPE),
 sdatas_(),
 callbackID_(0),
 error_(),
-execret_()
+pExecret_(NULL)
 {
+	pExecret_ = MemoryStream::createPoolObject();
 }
 
 //-------------------------------------------------------------------------------------
 DBTaskExecuteRawDatabaseCommand::~DBTaskExecuteRawDatabaseCommand()
 {
+	MemoryStream::reclaimPoolObject(pExecret_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -123,7 +125,7 @@ bool DBTaskExecuteRawDatabaseCommand::db_thread_process()
 
 	try
 	{
-		if (!pdbi_->query(sdatas_.data(), (uint32)sdatas_.size(), false, &execret_))
+		if (!pdbi_->query(sdatas_.data(), (uint32)sdatas_.size(), false, pExecret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -151,13 +153,15 @@ componentType_(UNKNOWN_COMPONENT_TYPE),
 sdatas_(),
 callbackID_(0),
 error_(),
-execret_()
+pExecret_(NULL)
 {
+	pExecret_ = MemoryStream::createPoolObject();
 }
 
 //-------------------------------------------------------------------------------------
 DBTaskExecuteRawDatabaseCommandByEntity::~DBTaskExecuteRawDatabaseCommandByEntity()
 {
+	MemoryStream::reclaimPoolObject(pExecret_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -169,7 +173,7 @@ bool DBTaskExecuteRawDatabaseCommandByEntity::db_thread_process()
 
 	try
 	{
-		if (!pdbi_->query(sdatas_.data(), (uint32)sdatas_.size(), false, &execret_))
+		if (!pdbi_->query(sdatas_.data(), (uint32)sdatas_.size(), false, pExecret_))
 		{
 			error_ = pdbi_->getstrerror();
 		}
@@ -213,7 +217,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	(*pBundle) << error_;
 
 	if(error_.size() <= 0)
-		(*pBundle).append(execret_);
+		(*pBundle).append(pExecret_);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
 
@@ -256,7 +260,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 	(*pBundle) << error_;
 
 	if(error_.size() <= 0)
-		(*pBundle).append(execret_);
+		(*pBundle).append(pExecret_);
 
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
 
@@ -1251,7 +1255,7 @@ EntityDBTask(addr, entityID, entityDBID),
 accountName_(accountName),
 password_(password),
 success_(false),
-s_(),
+s_(NULL),
 dbid_(entityDBID),
 componentID_(componentID),
 entityID_(entityID),
@@ -1263,11 +1267,13 @@ deadline_(0),
 bindatas_(),
 needCheckPassword_(needCheckPassword)
 {
+	s_ = MemoryStream::createPoolObject();
 }
 
 //-------------------------------------------------------------------------------------
 DBTaskQueryAccount::~DBTaskQueryAccount()
 {
+	MemoryStream::reclaimPoolObject(s_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1325,7 +1331,7 @@ bool DBTaskQueryAccount::db_thread_process()
 	}
 
 	ScriptDefModule* pModule = EntityDef::findScriptModule(DBUtil::accountScriptName());
-	success_ = entityTables.queryEntity(pdbi_, info.dbid, &s_, pModule);
+	success_ = entityTables.queryEntity(pdbi_, info.dbid, s_, pModule);
 
 	if(!success_ && pdbi_->getlasterror() > 0)
 	{
@@ -1699,18 +1705,20 @@ dbid_(dbid),
 componentID_(componentID),
 callbackID_(callbackID),
 success_(false),
-s_(),
+s_(NULL),
 entityID_(entityID),
 wasActive_(false),
 wasActiveCID_(0),
 wasActiveEntityID_(0),
 logger_(0)
 {
+	s_ = MemoryStream::createPoolObject();
 }
 
 //-------------------------------------------------------------------------------------
 DBTaskQueryEntity::~DBTaskQueryEntity()
 {
+	MemoryStream::reclaimPoolObject(s_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1718,7 +1726,7 @@ bool DBTaskQueryEntity::db_thread_process()
 {
 	EntityTables& entityTables = EntityTables::findByInterfaceName(pdbi_->name());
 	ScriptDefModule* pModule = EntityDef::findScriptModule(entityType_.c_str());
-	success_ = entityTables.queryEntity(pdbi_, dbid_, &s_, pModule);
+	success_ = entityTables.queryEntity(pdbi_, dbid_, s_, pModule);
 
 	if(success_)
 	{
