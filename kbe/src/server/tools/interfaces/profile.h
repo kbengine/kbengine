@@ -11,6 +11,9 @@
 namespace KBEngine{
 
 extern ProfileVal SCRIPTCALL_PROFILE;
+extern ProfileVal SCRIPTCALL_CREATEACCOUNT_PROFILE;
+extern ProfileVal SCRIPTCALL_ACCOUNTLOGIN_PROFILE;
+extern ProfileVal SCRIPTCALL_CHARGE_PROFILE;
 
 extern EventHistoryStats g_privateClientEventHistoryStats;
 extern EventHistoryStats g_publicClientEventHistoryStats;
