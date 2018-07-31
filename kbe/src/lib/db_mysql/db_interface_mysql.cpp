@@ -482,7 +482,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool printlog, Memory
 				mysql_errno(pMysql_), mysql_error(pMysql_), lastquery_)); 
 		}
 
-		this->throwError();
+		this->throwError(NULL);
 		
 		if(result)
 			write_query_result(result);
@@ -512,28 +512,43 @@ bool DBInterfaceMysql::write_query_result(MemoryStream * result)
 
 	if(pResult)
 	{
+		size_t wpos = result->wpos();
 		uint32 nrows = (uint32)mysql_num_rows(pResult);
 		uint32 nfields = (uint32)mysql_num_fields(pResult);
 
-		(*result) << nfields << nrows;
-
-		MYSQL_ROW arow;
-
-		while((arow = mysql_fetch_row(pResult)) != NULL)
+		try
 		{
-			unsigned long *lengths = mysql_fetch_lengths(pResult);
+			(*result) << nfields << nrows;
 
-			for (uint32 i = 0; i < nfields; ++i)
+			MYSQL_ROW arow;
+
+			while ((arow = mysql_fetch_row(pResult)) != NULL)
 			{
-				if (arow[i] == NULL)
+				unsigned long *lengths = mysql_fetch_lengths(pResult);
+
+				for (uint32 i = 0; i < nfields; ++i)
 				{
-					result->appendBlob("KBE_QUERY_DB_NULL", strlen("KBE_QUERY_DB_NULL"));
-				}
-				else
-				{
-					result->appendBlob(arow[i], lengths[i]);
+					if (arow[i] == NULL)
+					{
+						result->appendBlob("KBE_QUERY_DB_NULL", strlen("KBE_QUERY_DB_NULL"));
+					}
+					else
+					{
+						result->appendBlob(arow[i], lengths[i]);
+					}
 				}
 			}
+		}
+		catch (MemoryStreamWriteOverflow & e)
+		{
+			mysql_free_result(pResult);
+			result->wpos(wpos);
+
+			DBException e1(NULL);
+			e1.setError(fmt::format("DBException: {}, SQL({})", e.what(), lastquery_), 0);
+			throwError(&e1);
+
+			return false;
 		}
 
 		mysql_free_result(pResult);
@@ -679,16 +694,23 @@ bool DBInterfaceMysql::unlock()
 }
 
 //-------------------------------------------------------------------------------------
-void DBInterfaceMysql::throwError()
+void DBInterfaceMysql::throwError(DBException* pDBException)
 {
-	DBException e( this );
-
-	if (e.isLostConnection())
+	if (pDBException)
 	{
-		this->hasLostConnection(true);
+		throw *pDBException;
 	}
+	else
+	{
+		DBException e(this);
 
-	throw e;
+		if (e.isLostConnection())
+		{
+			this->hasLostConnection(true);
+		}
+
+		throw e;
+	}
 }
 
 //-------------------------------------------------------------------------------------

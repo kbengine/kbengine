@@ -63,6 +63,8 @@ struct MYSQL_TABLE_FIELD
 	enum_field_types type;
 };
 
+class DBException;
+
 /*
 	数据库接口
 */
@@ -126,7 +128,7 @@ public:
 
 	MYSQL* mysql(){ return pMysql_; }
 
-	void throwError();
+	void throwError(DBException* pDBException);
 
 	my_ulonglong insertID()		{ return mysql_insert_id( pMysql_ ); }
 
