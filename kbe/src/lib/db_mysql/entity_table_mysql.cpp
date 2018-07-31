@@ -103,6 +103,7 @@ bool sync_item_to_db(DBInterface* pdbi,
 		}
 	}
 	else if (mysql_errorno == 1064/* You have an error in your SQL syntax */ || 
+		mysql_errorno == 1074/* Column length too big for column */ ||
 		mysql_errorno == 1101/* 1101: BLOB/TEXT column 'sm_s11s11' can't have a default value */)
 	{
 		ERROR_MSG(fmt::format("syncToDB(): {}->{}({}), error({}: {})\n lastQuery: {}.\n",
