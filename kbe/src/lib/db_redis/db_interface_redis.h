@@ -21,6 +21,8 @@
 
 namespace KBEngine { 
 
+class DBException;
+
 /*
 	数据库接口
 	tbl_Account_Auto_increment = uint64(1)
@@ -131,7 +133,7 @@ public:
 	virtual bool lock();
 	virtual bool unlock();
 
-	void throwError();
+	void throwError(DBException* pDBException);
 	
 	/**
 		处理异常

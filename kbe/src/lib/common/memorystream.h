@@ -13,22 +13,54 @@ namespace KBEngine{
 class MemoryStreamException
 {
     public:
-        MemoryStreamException(bool _add, size_t _pos, size_t _esize, size_t _size)
-            : _m_add(_add), _m_pos(_pos), _m_esize(_esize), _m_size(_size)
+        MemoryStreamException(bool _add, size_t _pos, size_t _opsize, size_t _size)
+            : _m_add(_add), _m_pos(_pos), _m_opsize(_opsize), _m_size(_size)
         {
             PrintPosError();
         }
 
         void PrintPosError() const
         {
-			ERROR_MSG(fmt::format("Attempted to {} in MemoryStream (pos:{}  size: {}).\n", 
-				(_m_add ? "put" : "get"), _m_pos, _m_size));
+			ERROR_MSG(what());
         }
+
+		std::string what() const
+		{
+			return fmt::format("Attempted to {} in MemoryStream (pos:{}, size:{}, opsize:{})!\n",
+				(_m_add ? "put" : "get"), _m_pos, _m_size, _m_opsize);
+		}
+
     private:
         bool 		_m_add;
         size_t 		_m_pos;
-        size_t 		_m_esize;
+        size_t 		_m_opsize;
         size_t 		_m_size;
+};
+
+class MemoryStreamWriteOverflow
+{
+public:
+	MemoryStreamWriteOverflow(size_t _wpos, size_t _wsize, size_t _size)
+		: _m_wpos(_wpos), _m_writeSize(_wsize), _m_size(_size)
+	{
+		PrintPosError();
+	}
+
+	void PrintPosError() const
+	{
+		ERROR_MSG(what());
+	}
+
+	std::string what() const
+	{
+		return fmt::format("MemoryStream write overflowed! writePos:{}, bufferMaxSize:{}, writeSize:{}.\n",
+			_m_wpos, _m_size, _m_writeSize);
+	}
+
+private:
+	size_t 		_m_wpos;
+	size_t 		_m_writeSize;
+	size_t 		_m_size;
 };
 
 /*
@@ -553,10 +585,15 @@ public:
         if (!cnt)
             return;
 
-        assert(size() < MAX_SIZE);
+		size_t expectedSize = wpos_ + cnt;
+		if (expectedSize >= MAX_SIZE)
+		{
+			throw MemoryStreamWriteOverflow(wpos_, cnt, expectedSize);
+			return;
+		}
 
-        if (data_.size() < wpos_ + cnt)
-            data_.resize(wpos_ + cnt);
+        if (data_.size() < expectedSize)
+            data_.resize(expectedSize);
 
         memcpy(&data_[wpos_], src, cnt);
         wpos_ += cnt;
