@@ -262,6 +262,8 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCOPED_PROFILE(SCRIPTCALL_CREATEACCOUNT_PROFILE);
+
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onRequestCreateAccount"), 
 										const_cast<char*>("ssy#"), 
@@ -372,6 +374,8 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCOPED_PROFILE(SCRIPTCALL_ACCOUNTLOGIN_PROFILE);
+
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onRequestAccountLogin"), 
 										const_cast<char*>("ssy#"), 
@@ -485,6 +489,8 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCOPED_PROFILE(SCRIPTCALL_CHARGE_PROFILE);
+
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onRequestCharge"), 
 										const_cast<char*>("sKy#"), 

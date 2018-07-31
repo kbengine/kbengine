@@ -71,7 +71,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	uint32 datasize = GAME_PACKET_MAX_SIZE_TCP - sizeof(int16) - sizeof(uint32);
 
-	if(remainSent_ > 0 && currSent_ < remainSent_)
+	if ((remainSent_ > 0 && currSent_ < remainSent_) || totalBytes_ == 0)
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
 
