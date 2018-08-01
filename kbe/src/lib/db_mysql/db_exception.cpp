@@ -10,8 +10,8 @@ namespace KBEngine {
 
 //-------------------------------------------------------------------------------------
 DBException::DBException(DBInterface* pdbi) :
-			errStr_(mysql_error(static_cast<DBInterfaceMysql*>(pdbi)->mysql())),
-			errNum_(mysql_errno(static_cast<DBInterfaceMysql*>(pdbi)->mysql()))
+	errStr_(pdbi ? mysql_error(static_cast<DBInterfaceMysql*>(pdbi)->mysql()) : ""),
+	errNum_(pdbi ? mysql_errno(static_cast<DBInterfaceMysql*>(pdbi)->mysql()) : 0)
 {
 }
 
