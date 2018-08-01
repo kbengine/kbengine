@@ -2390,7 +2390,21 @@ void Baseapp::createCellEntityInNewSpace(Entity* pEntity, PyObject* pyCellappInd
 	(*pBundle) << hasClient;
 
 	MemoryStream* s = MemoryStream::createPoolObject();
-	pEntity->addCellDataToStream(ED_FLAG_ALL, s);
+
+	try
+	{
+		pEntity->addCellDataToStream(ED_FLAG_ALL, s);
+	}
+	catch (MemoryStreamWriteOverflow & err)
+	{
+		ERROR_MSG(fmt::format("{}::createCellEntityInNewSpace({}): {}\n",
+			pEntity->scriptName(), pEntity->id(), err.what()));
+
+		MemoryStream::reclaimPoolObject(s);
+		Network::Bundle::reclaimPoolObject(pBundle);
+		return;
+	}
+
 	(*pBundle).append(*s);
 	MemoryStream::reclaimPoolObject(s);
 	
@@ -2434,7 +2448,21 @@ void Baseapp::restoreSpaceInCell(Entity* pEntity)
 	(*pBundle) << hasClient;
 
 	MemoryStream* s = MemoryStream::createPoolObject();
-	pEntity->addCellDataToStream(ED_FLAG_ALL, s);
+
+	try
+	{
+		pEntity->addCellDataToStream(ED_FLAG_ALL, s);
+	}
+	catch (MemoryStreamWriteOverflow & err)
+	{
+		ERROR_MSG(fmt::format("{}::restoreSpaceInCell({}): {}\n",
+			pEntity->scriptName(), pEntity->id(), err.what()));
+
+		MemoryStream::reclaimPoolObject(s);
+		Network::Bundle::reclaimPoolObject(pBundle);
+		return;
+	}
+
 	(*pBundle).append(*s);
 	MemoryStream::reclaimPoolObject(s);
 	
@@ -2950,7 +2978,21 @@ void Baseapp::createCellEntity(EntityCallAbstract* createToCellEntityCall, Entit
 	(*pBundle) << pEntity->inRestore();
 
 	MemoryStream* s = MemoryStream::createPoolObject();
-	pEntity->addCellDataToStream(ED_FLAG_ALL, s);
+
+	try
+	{
+		pEntity->addCellDataToStream(ED_FLAG_ALL, s);
+	}
+	catch (MemoryStreamWriteOverflow & err)
+	{
+		ERROR_MSG(fmt::format("{}::createCellEntity({}): {}\n",
+			pEntity->scriptName(), pEntity->id(), err.what()));
+
+		MemoryStream::reclaimPoolObject(s);
+		Network::Bundle::reclaimPoolObject(pBundle);
+		return;
+	}
+
 	(*pBundle).append(*s);
 	MemoryStream::reclaimPoolObject(s);
 	
