@@ -128,7 +128,20 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	if(methodDescription->checkArgs(args))
 	{
 		MemoryStream* mstream = MemoryStream::createPoolObject();
-		methodDescription->addToStream(mstream, args);
+
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): srcEntityID(%d), error={}!\n",
+				srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id(), err.what());
+			PyErr_PrintEx(0);
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
 		
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(srcEntity->id(), (*pSendBundle));

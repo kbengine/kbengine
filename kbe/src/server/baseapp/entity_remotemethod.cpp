@@ -57,14 +57,14 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 {	
 	EntityRemoteMethod* rmethod = static_cast<EntityRemoteMethod*>(self);
 	MethodDescription* methodDescription = rmethod->getDescription();
-	EntityCallAbstract* entitycall = rmethod->getEntityCall();
+	EntityCallAbstract* entityCall = rmethod->getEntityCall();
 
-	if (!entitycall->isClient() || entitycall->type() == ENTITYCALL_TYPE_CLIENT_VIA_CELL /* 需要先经过cell */ )
+	if (!entityCall->isClient() || entityCall->type() == ENTITYCALL_TYPE_CLIENT_VIA_CELL /* 需要先经过cell */ )
 	{
 		return RemoteEntityMethod::tp_call(self, args, kwds);
 	}
 
-	Entity* pEntity = Baseapp::getSingleton().findEntity(entitycall->id());
+	Entity* pEntity = Baseapp::getSingleton().findEntity(entityCall->id());
 	if(pEntity == NULL)
 	{
 		//WARNING_MSG(fmt::format("EntityRemoteMethod::callClientMethod: not found entity({}).\n",
@@ -77,10 +77,22 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	if(methodDescription->checkArgs(args))
 	{
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
-		entitycall->newCall((*pBundle));
+		entityCall->newCall((*pBundle));
 
 		MemoryStream* mstream = MemoryStream::createPoolObject();
-		methodDescription->addToStream(mstream, args);
+
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("EntityRemoteMethod::tp_call(): {}.{}() {}, error={}\n",
+				entityCall->pScriptDefModule()->getName(), rmethod->getName(), entityCall->id(), err.what()));
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
 
 		if(mstream->wpos() > 0)
 			(*pBundle).append(mstream->data(), (int)mstream->wpos());

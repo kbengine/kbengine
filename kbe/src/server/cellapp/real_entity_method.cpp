@@ -75,7 +75,19 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	if(methodDescription->checkArgs(args))
 	{
 		MemoryStream* mstream = MemoryStream::createPoolObject();
-		methodDescription->addToStream(mstream, args);
+
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("RealEntityMethod::tp_call: {}::{} {}, error={}!\n",
+				scriptName_, methodDescription->getName(), ghostEntityID_, err.what()));
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
 
 		Network::Bundle* pForwardBundle = gm->createSendBundle(realCell_);
 

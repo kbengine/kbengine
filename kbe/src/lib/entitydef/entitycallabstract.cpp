@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.h"
 #include "network/network_interface.h"
 #include "server/components.h"
+#include "entitydef/entitydef.h"
 #include "client_lib/client_interface.h"
 
 #include "../../server/baseapp/baseapp_interface.h"
@@ -182,6 +183,12 @@ PyObject* EntityCallAbstract::__py_reduce_ex__(PyObject* self, PyObject* protoco
 PyObject* EntityCallAbstract::pyGetID()
 { 
 	return PyLong_FromLong(id()); 
+}
+
+//-------------------------------------------------------------------------------------
+ScriptDefModule* EntityCallAbstract::pScriptDefModule()
+{
+	return EntityDef::findScriptModule(utype_);
 }
 
 //-------------------------------------------------------------------------------------
