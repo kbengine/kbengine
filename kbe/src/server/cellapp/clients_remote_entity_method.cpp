@@ -97,7 +97,18 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				(*mstream) << (ENTITY_PROPERTY_UID)0;
 		}
 
-		methodDescription->addToStream(mstream, args);
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("ClientsRemoteEntityMethod::callmethod: {}::{} {}, error={}!\n",
+				pEntity->scriptName(), methodDescription->getName(), pEntity->id(), err.what()));
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
 
 		if((!otherClients_ && (pEntity->pWitness() && (pEntity->clientEntityCall()))))
 		{
