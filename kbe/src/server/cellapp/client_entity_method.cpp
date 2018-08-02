@@ -135,8 +135,8 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 		}
 		catch (MemoryStreamWriteOverflow & err)
 		{
-			PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): srcEntityID(%d), error={}!\n",
-				srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id(), err.what());
+			PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): srcEntityID(%d), error=%s!\n",
+				srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id(), err.what().c_str());
 			PyErr_PrintEx(0);
 
 			MemoryStream::reclaimPoolObject(mstream);
