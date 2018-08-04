@@ -70,8 +70,15 @@
 
 			if(_socket != null)
 			{
-				if(_socket.RemoteEndPoint != null)
-					Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::reset(), close socket from '{0}'", _socket.RemoteEndPoint.ToString()));
+				try
+				{
+					if(_socket.RemoteEndPoint != null)
+						Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::reset(), close socket from '{0}'", _socket.RemoteEndPoint.ToString()));
+				}
+				catch (Exception e)
+				{
+
+				}
 
 				_socket.Close(0);
 				_socket = null;
@@ -119,7 +126,7 @@
 			bool success = (state.error == "" && valid());
 			if (success)
 			{
-				Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::_onConnectionState(), connect to {0} is success!", state.socket.RemoteEndPoint.ToString()));
+				Dbg.DEBUG_MSG(string.Format("NetworkInterfaceBase::_onConnectionState(), connect to {0}:{1} is success!", state.connectIP, state.connectPort));
 				_packetReceiver = createPacketReceiver();
 				_packetReceiver.startRecv();
 				connected = true;

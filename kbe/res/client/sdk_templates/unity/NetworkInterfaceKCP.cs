@@ -135,7 +135,7 @@
 		{
 			try
 			{
-				state.socket.Connect(state.connectIP, state.connectPort);
+				//state.socket.Connect(state.connectIP, state.connectPort);
 
 				byte[] helloPacket = System.Text.Encoding.ASCII.GetBytes(UDP_HELLO);
 				state.socket.SendTo(helloPacket, helloPacket.Length, SocketFlags.None, new IPEndPoint(IPAddress.Parse(state.connectIP), state.connectPort));
