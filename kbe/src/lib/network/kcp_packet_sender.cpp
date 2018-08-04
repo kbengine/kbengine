@@ -91,9 +91,11 @@ Reason KCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket,
 			ERROR_MSG(fmt::format("KCPPacketSender::ikcp_send: send error! currPacketSize={}, ikcp_waitsnd={}\n", 
 				pPacket->length(), ikcp_waitsnd(pChannel->pKCP())));
 
+			pChannel->nextTickKcpUpdate();
 			return REASON_RESOURCE_UNAVAILABLE;
 		}
 
+		pChannel->nextTickKcpUpdate();
 		pPacket->sentSize += pPacket->length();
 	}
 	else

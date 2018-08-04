@@ -89,10 +89,12 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 	{
 		if (ikcp_input(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
 		{
+			pChannel->nextTickKcpUpdate();
 			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 			return REASON_CHANNEL_LOST;
 		}
 
+		pChannel->nextTickKcpUpdate();
 		RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 
 		while (true)

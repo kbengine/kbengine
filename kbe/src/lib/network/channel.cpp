@@ -65,7 +65,7 @@ size_t Channel::getPoolObjectBytes()
 		+ sizeof(flags_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
 		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
 		+ sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
-		+ sizeof(componentID_) + sizeof(pMsgHandlers_) + condemnReason_.size();
+		+ sizeof(componentID_) + sizeof(pMsgHandlers_) + condemnReason_.size() + sizeof(nextUpdateKcpTime_) + sizeof(pKCP_);
 
 	return bytes;
 }
@@ -120,6 +120,7 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pMsgHandlers_(NULL),
 	flags_(0),
 	pKCP_(NULL),
+	nextUpdateKcpTime_(0),
 	condemnReason_()
 {
 	this->clearBundle();
@@ -157,6 +158,7 @@ Channel::Channel():
 	pMsgHandlers_(NULL),
 	flags_(0),
 	pKCP_(NULL),
+	nextUpdateKcpTime_(0),
 	condemnReason_()
 {
 	this->clearBundle();
@@ -377,6 +379,8 @@ bool Channel::init_kcp()
 	*/
 
 	pNetworkInterface_->dispatcher().addTask(this);
+
+	nextUpdateKcpTime_ = 0;
 	return true;
 }
 
@@ -390,6 +394,7 @@ bool Channel::fina_kcp()
 
 	ikcp_release(pKCP_);
 	pKCP_ = NULL;
+	nextUpdateKcpTime_ = 0;
 	return true;
 }
 
@@ -1036,7 +1041,14 @@ bool Channel::handshake(Packet* pPacket)
 //-------------------------------------------------------------------------------------
 bool Channel::process()
 {
-	ikcp_update(pKCP_, kbe_clock());
+	uint32 current = kbe_clock();
+
+	if (current >= nextUpdateKcpTime_)
+	{
+		ikcp_update(pKCP_, current);
+		nextUpdateKcpTime_ = ikcp_check(pKCP_, current);
+	}
+
 	return true;
 }
 

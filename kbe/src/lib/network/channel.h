@@ -211,6 +211,7 @@ public:
 
 	bool init_kcp();
 	bool fina_kcp();
+	void nextTickKcpUpdate() { nextUpdateKcpTime_ = 0; }
 
 	ProtocolType protocoltype() const { return protocoltype_; }
 	ProtocolSubType protocolSubtype() const { return protocolSubtype_; }
@@ -290,6 +291,7 @@ private:
 	uint32						flags_;
 
 	ikcpcb*						pKCP_;
+	uint32						nextUpdateKcpTime_;
 
 	std::string					condemnReason_;
 };
