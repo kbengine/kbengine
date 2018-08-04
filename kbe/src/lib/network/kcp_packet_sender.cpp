@@ -86,16 +86,16 @@ Reason KCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket,
 		//DEBUG_MSG(fmt::format("KCPPacketSender::processFilterPacket: kcp_sent={}, kcp={:p}, channel={:p}, this={:p}\n", 
 		//	pPacket->length(), (void*)pChannel->pKCP(), (void*)pChannel, (void*)this));
 
+		pChannel->nextTickKcpUpdate();
+
 		if (ikcp_send(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
 		{
 			ERROR_MSG(fmt::format("KCPPacketSender::ikcp_send: send error! currPacketSize={}, ikcp_waitsnd={}\n", 
 				pPacket->length(), ikcp_waitsnd(pChannel->pKCP())));
 
-			pChannel->nextTickKcpUpdate();
 			return REASON_RESOURCE_UNAVAILABLE;
 		}
 
-		pChannel->nextTickKcpUpdate();
 		pPacket->sentSize += pPacket->length();
 	}
 	else
