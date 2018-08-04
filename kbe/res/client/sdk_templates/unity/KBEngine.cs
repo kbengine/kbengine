@@ -179,6 +179,9 @@
         {
         	Dbg.WARNING_MSG("KBEngine::destroy()");
         	
+			if(currserver == "baseapp")
+				logout();
+			
         	reset();
         	KBEngine.Event.deregisterIn(this);
         	resetMessages();
