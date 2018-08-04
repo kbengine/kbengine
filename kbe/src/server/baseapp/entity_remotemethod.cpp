@@ -62,7 +62,19 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		entityCall->newCall((*pBundle));
 
 		MemoryStream* mstream = MemoryStream::createPoolObject();
-		methodDescription->addToStream(mstream, args);
+
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("EntityRemoteMethod::tp_call(): {}.{}() {}, error={}\n",
+				entityCall->pScriptDefModule()->getName(), rmethod->getName(), entityCall->id(), err.what()));
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
 
 		if(mstream->wpos() > 0)
 			(*pBundle).append(mstream->data(), (int)mstream->wpos());

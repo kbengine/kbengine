@@ -5,6 +5,7 @@
 #include "remote_entity_method.h"
 #include "network/bundle.h"
 #include "helper/debug_helper.h"
+#include "entitydef/scriptdef_module.h"
 
 namespace KBEngine{
 
@@ -54,6 +55,21 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		Network::Channel* pChannel = entityCall->getChannel();
 		Network::Bundle* pSendBundle = NULL;
 
+		MemoryStream* mstream = MemoryStream::createPoolObject();
+
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("RemoteEntityMethod::tp_call(): {}.{}() {}, error={}\n", 
+				entityCall->pScriptDefModule()->getName(), rmethod->getName(), entityCall->id(), err.what()));
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
+
 		if (!pChannel)
 			pSendBundle = Network::Bundle::createPoolObject();
 		else
@@ -61,12 +77,10 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 
 		entityCall->newCall((*pSendBundle));
 
-		MemoryStream mstream;
-		methodDescription->addToStream(&mstream, args);
+		if(mstream->wpos() > 0)
+			(*pSendBundle).append(mstream->data(), mstream->wpos());
 
-		if(mstream.wpos() > 0)
-			(*pSendBundle).append(mstream.data(), mstream.wpos());
-
+		MemoryStream::reclaimPoolObject(mstream);
 		entityCall->sendCall(pSendBundle);
 	}
 	else

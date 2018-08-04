@@ -5,7 +5,6 @@
 #define KBE_ENTITYCALL_BASE_H
 	
 #include "common/common.h"
-//#include "network/channel.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/common.h"
 #include "network/address.h"
@@ -124,6 +123,8 @@ public:
 	INLINE bool isBaseReal() const;
 	INLINE bool isBaseViaCell() const;
 	
+	ScriptDefModule* pScriptDefModule();
+
 protected:
 	COMPONENT_ID							componentID_;			// 远端机器组件的ID
 	Network::Address						addr_;					// 频道地址
