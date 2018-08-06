@@ -332,7 +332,8 @@ bool ClientSDKUE4::writeEngineMessagesModuleBegin()
 	strutil::kbe_replace(fileBody(), "#REPLACE#", "");
 
 	fileBody() += "#pragma once\n\n";
-	fileBody() += "#include \"KBECommon.h\"\n\n";
+	fileBody() += "#include \"KBECommon.h\"\n";
+	fileBody() += "#include \"MemoryStream.h\"\n\n";
 
 	fileBody() += "// engine-c++ messages\n\n";
 	fileBody() += fmt::format("class KBENGINEPLUGINS_API {}\n{{\npublic:", "Message");
