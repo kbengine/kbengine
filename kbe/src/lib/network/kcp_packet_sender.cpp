@@ -86,7 +86,7 @@ Reason KCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket,
 		//DEBUG_MSG(fmt::format("KCPPacketSender::processFilterPacket: kcp_sent={}, kcp={:p}, channel={:p}, this={:p}\n", 
 		//	pPacket->length(), (void*)pChannel->pKCP(), (void*)pChannel, (void*)this));
 
-		pChannel->nextTickKcpUpdate();
+		pChannel->addKcpUpdate();
 
 		if (ikcp_send(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
 		{

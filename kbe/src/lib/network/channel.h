@@ -29,7 +29,7 @@ class MessageHandlers;
 class PacketReader;
 class PacketSender;
 
-class Channel : public TimerHandler, public Task, public PoolObject
+class Channel : public TimerHandler, public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
@@ -163,7 +163,6 @@ public:
 		
 	void addReceiveWindow(Packet* pPacket);
 
-	virtual bool process();
 	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
@@ -211,7 +210,8 @@ public:
 
 	bool init_kcp();
 	bool fina_kcp();
-	void nextTickKcpUpdate() { nextUpdateKcpTime_ = 0; }
+	void kcpUpdate();
+	void addKcpUpdate(int64 microseconds = 1);
 
 	ProtocolType protocoltype() const { return protocoltype_; }
 	ProtocolSubType protocolSubtype() const { return protocolSubtype_; }
@@ -232,7 +232,8 @@ private:
 
 	enum TimeOutType
 	{
-		TIMEOUT_INACTIVITY_CHECK
+		TIMEOUT_INACTIVITY_CHECK = 0,
+		KCP_UPDATE = 1
 	};
 
 	virtual void handleTimeout(TimerHandle, void * pUser);
@@ -291,7 +292,8 @@ private:
 	uint32						flags_;
 
 	ikcpcb*						pKCP_;
-	uint32						nextUpdateKcpTime_;
+	TimerHandle					kcpUpdateTimerHandle_;
+	bool						hasSetNextKcpUpdate_;
 
 	std::string					condemnReason_;
 };
