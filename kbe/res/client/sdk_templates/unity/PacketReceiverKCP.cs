@@ -61,6 +61,7 @@
                     return;
                 }
 
+				((NetworkInterfaceKCP)_networkInterface).nextTickKcpUpdate = 0; 
                 if(kcp_.Input(_buffer, 0, length) < 0)
                 {
                     Dbg.WARNING_MSG(string.Format("PacketReceiverKCP::_asyncReceive(): KCP Input get {0}!", length));

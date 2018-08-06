@@ -560,10 +560,10 @@ bool KBEngineApp::login(const FString& username, const FString& password, const 
 	return true;
 }
 
-void KBEngineApp::logout()
+bool KBEngineApp::logout()
 {
 	if (currserver_ != TEXT("baseapp"))
-		return;
+		return false;
 
 	INFO_MSG("KBEngineApp::logout()");
 	Bundle* pBundle = Bundle::createObject();
@@ -571,6 +571,7 @@ void KBEngineApp::logout()
 	(*pBundle) << entity_uuid_;
 	(*pBundle) << entity_id_;
 	pBundle->send(pNetworkInterface_);
+	return true;
 }
 
 void KBEngineApp::login_loginapp(bool noconnect)

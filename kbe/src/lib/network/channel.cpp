@@ -65,7 +65,7 @@ size_t Channel::getPoolObjectBytes()
 		+ sizeof(flags_) + sizeof(numPacketsSent_) + sizeof(numPacketsReceived_) + sizeof(numBytesSent_) + sizeof(numBytesReceived_)
 		+ sizeof(lastTickBytesReceived_) + sizeof(lastTickBytesSent_) + sizeof(pFilter_) + sizeof(pEndPoint_) + sizeof(pPacketReceiver_) + sizeof(pPacketSender_)
 		+ sizeof(proxyID_) + strextra_.size() + sizeof(channelType_)
-		+ sizeof(componentID_) + sizeof(pMsgHandlers_) + condemnReason_.size() + sizeof(nextUpdateKcpTime_) + sizeof(pKCP_);
+		+ sizeof(componentID_) + sizeof(pMsgHandlers_) + condemnReason_.size() + sizeof(kcpUpdateTimerHandle_) + sizeof(pKCP_) + sizeof(hasSetNextKcpUpdate_);
 
 	return bytes;
 }
@@ -120,7 +120,8 @@ Channel::Channel(NetworkInterface & networkInterface,
 	pMsgHandlers_(NULL),
 	flags_(0),
 	pKCP_(NULL),
-	nextUpdateKcpTime_(0),
+	kcpUpdateTimerHandle_(),
+	hasSetNextKcpUpdate_(false),
 	condemnReason_()
 {
 	this->clearBundle();
@@ -158,7 +159,8 @@ Channel::Channel():
 	pMsgHandlers_(NULL),
 	flags_(0),
 	pKCP_(NULL),
-	nextUpdateKcpTime_(0),
+	kcpUpdateTimerHandle_(),
+	hasSetNextKcpUpdate_(false),
 	condemnReason_()
 {
 	this->clearBundle();
@@ -378,9 +380,8 @@ bool Channel::init_kcp()
 		IKCP_LOG_IN_PROBE | IKCP_LOG_IN_WINS | IKCP_LOG_OUT_DATA | IKCP_LOG_OUT_ACK | IKCP_LOG_OUT_PROBE | IKCP_LOG_OUT_WINS);
 	*/
 
-	pNetworkInterface_->dispatcher().addTask(this);
-
-	nextUpdateKcpTime_ = 0;
+	hasSetNextKcpUpdate_ = false;
+	addKcpUpdate();
 	return true;
 }
 
@@ -390,11 +391,13 @@ bool Channel::fina_kcp()
 	if (!pKCP_)
 		return true;
 
-	pNetworkInterface_->dispatcher().cancelTask(this);
-
 	ikcp_release(pKCP_);
 	pKCP_ = NULL;
-	nextUpdateKcpTime_ = 0;
+
+	if (kcpUpdateTimerHandle_.isSet())
+		kcpUpdateTimerHandle_.cancel();
+
+	hasSetNextKcpUpdate_ = false;
 	return true;
 }
 
@@ -414,6 +417,53 @@ int Channel::kcp_output(const char *buf, int len, ikcpcb *kcp, void *user)
 		return -1;
 
 	return ((KCPPacketSender*)pChannel->pPacketSender())->kcp_output(buf, len, kcp, pChannel);
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::addKcpUpdate(int64 microseconds)
+{
+	//AUTO_SCOPED_PROFILE("addKcpUpdate");
+
+	if (microseconds <= 1)
+	{
+		// 避免send等操作导致多次添加和取消timer
+		if (!hasSetNextKcpUpdate_)
+			hasSetNextKcpUpdate_ = true;
+		else
+			return;
+	}
+	else
+	{
+		hasSetNextKcpUpdate_ = false;
+	}
+
+	if (kcpUpdateTimerHandle_.isSet())
+	{
+		kcpUpdateTimerHandle_.cancel();
+	}
+
+	kcpUpdateTimerHandle_ = this->dispatcher().addTimer(microseconds, this, (void *)KCP_UPDATE);
+}
+
+//-------------------------------------------------------------------------------------
+void Channel::kcpUpdate()
+{
+	//AUTO_SCOPED_PROFILE("kcpUpdate");
+
+	uint32 current = kbe_clock();
+	ikcp_update(pKCP_, current);
+
+	uint32 nextUpdateKcpTime = ikcp_check(pKCP_, current) - current;
+
+	if (nextUpdateKcpTime > 0)
+	{
+		addKcpUpdate(nextUpdateKcpTime * 1000);
+	}
+	else
+	{
+		kcpUpdateTimerHandle_.cancel();
+		hasSetNextKcpUpdate_ = false;
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -603,6 +653,11 @@ void Channel::handleTimeout(TimerHandle, void * arg)
 			{
 				this->networkInterface().onChannelTimeOut(this);
 			}
+			break;
+		}
+		case KCP_UPDATE:
+		{
+			kcpUpdate();
 			break;
 		}
 		default:
@@ -1036,20 +1091,6 @@ bool Channel::handshake(Packet* pPacket)
 	}
 
 	return false;
-}
-
-//-------------------------------------------------------------------------------------
-bool Channel::process()
-{
-	uint32 current = kbe_clock();
-
-	if (current >= nextUpdateKcpTime_)
-	{
-		ikcp_update(pKCP_, current);
-		nextUpdateKcpTime_ = ikcp_check(pKCP_, current);
-	}
-
-	return true;
 }
 
 //-------------------------------------------------------------------------------------

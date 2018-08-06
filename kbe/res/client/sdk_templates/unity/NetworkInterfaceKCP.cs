@@ -22,6 +22,7 @@
 	{
 		private Deps.KCP kcp_ = null;
 		public UInt32 connID;
+		public UInt32 nextTickKcpUpdate = 0;
 		public EndPoint remoteEndPint = null;
 
 		protected override Socket createSocket()
@@ -79,6 +80,8 @@
             kcp_.WndSize(KBEngineApp.app.getInitArgs().getUDPSendBufferSize(), KBEngineApp.app.getInitArgs().getUDPRecvBufferSize());
             kcp_.NoDelay(1, 10, 2, 1);
             kcp_.SetMinRTO(10);
+
+			nextTickKcpUpdate = 0;
 			return true;
 		}
 
@@ -93,6 +96,7 @@
 
 			remoteEndPint = null;
 			connID = 0;
+			nextTickKcpUpdate = 0;
 			return true;
 		}
 
@@ -108,6 +112,7 @@
 				throw new ArgumentException("invalid socket!");
 			}
 
+			nextTickKcpUpdate = 0;
 			return kcp_.Send(stream.data(), stream.rpos, (int)stream.length()) >= 0;
 		}
 
@@ -116,8 +121,13 @@
 			if (!valid())
 				return;
 
-			kcp_.Update(Deps.KCP.TimeUtils.iclock());
-			
+			uint current = Deps.KCP.TimeUtils.iclock();
+			if(current >= nextTickKcpUpdate)
+			{
+				kcp_.Update(current);
+				nextTickKcpUpdate = kcp_.Check(current);
+			}
+
 			if (_packetReceiver != null)
 				_packetReceiver.process();
 		}

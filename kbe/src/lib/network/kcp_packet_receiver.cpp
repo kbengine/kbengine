@@ -87,14 +87,14 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 {
 	if (pChannel != NULL && pChannel->hasHandshake())
 	{
+		pChannel->addKcpUpdate();
+
 		if (ikcp_input(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
 		{
-			pChannel->nextTickKcpUpdate();
 			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 			return REASON_CHANNEL_LOST;
 		}
 
-		pChannel->nextTickKcpUpdate();
 		RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
 
 		while (true)

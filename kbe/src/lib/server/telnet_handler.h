@@ -64,6 +64,30 @@ public:
 	void sendEnter();
 	void sendDelChar();
 	void sendNewLine();
+	void sendBackSpace();
+
+	/** telnet协议
+		IAC WILL SUPPRESS GO AHEAD, 抑制继续进行
+	*/
+	void sendWillSuppressGoAhead();
+
+	void sendDOTT();
+
+	/** telnet协议
+		IAC DO 24, 同意询问终端类型
+	*/
+	void sendQueryClientTerminalType();
+
+	/** telnet协议
+		IAC SB 24 0'v' 't' '1' '0' '0' IAC SE, 发送服务端的终端类型
+	*/
+	void sendServerTerminalType();
+
+	/** telnet协议
+		IAC WILL ECHO, 回显
+	*/
+	void sendWillEcho();
+	
 	void resetStartPosition();
 
 	void onProfileEnd(const std::string& datas);
@@ -77,8 +101,10 @@ private:
 	void onRecvInput(const char *buffer, int size);
 	bool processCommand();
 	void processPythonCommand(std::string command);
+	void processBackSpace();
 
 	bool checkUDLR(const std::string &cmd);
+	void checkTerminalType(std::string &iac);
 
 	std::string getInputStartString();
 
@@ -101,6 +127,8 @@ private:
 	Network::NetworkInterface* pNetworkInterface_;
 
 	bool getingHistroyCmd_;
+
+	int clientTermialType_;
 };
 
 
