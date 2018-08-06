@@ -67,13 +67,14 @@ public:
 	void sendBackSpace();
 
 	/** telnet协议
-		IAC WILL SUPPRESS GO AHEAD,抑制继续进行
+		IAC WILL SUPPRESS GO AHEAD, 抑制继续进行
 	*/
 	void sendWillSuppressGoAhead();
 
 	void sendDOTT();
+
 	/** telnet协议
-		IAC DO 24 , 同意询问终端类型
+		IAC DO 24, 同意询问终端类型
 	*/
 	void sendQueryClientTerminalType();
 
