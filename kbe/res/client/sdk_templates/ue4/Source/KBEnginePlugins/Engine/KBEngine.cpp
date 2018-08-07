@@ -460,6 +460,7 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 	INFO_MSG("KBEngineApp::Client_onHelloCB(): verInfo(%s), scriptVersion(%s), srvProtocolMD5(%s), srvEntitydefMD5(%s), ctype(%d)!", 
 		*serverVersion_, *serverScriptVersion_, *serverProtocolMD5_, *serverEntitydefMD5_, ctype);
 
+	/*
 	if(serverProtocolMD5_ != serverProtocolMD5)
 	{
 		ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverProtocolMD5=%s(server: %s)", *serverProtocolMD5_, *serverProtocolMD5);
@@ -470,6 +471,7 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 		KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
 		return;
 	}
+	*/
 
 	if(serverEntitydefMD5_ != serverEntitydefMD5)
 	{
