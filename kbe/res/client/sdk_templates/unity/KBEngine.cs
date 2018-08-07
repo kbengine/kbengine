@@ -382,13 +382,15 @@
 				+ "), scriptVersion("+ serverScriptVersion + "), srvProtocolMD5("+ serverProtocolMD5 
 				+ "), srvEntitydefMD5("+ serverEntitydefMD5 + "), + ctype(" + ctype + ")!");
 			
+			/*
             if(serverProtocolMD5 != currentServerProtocolMD5)
             {
                 Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverProtocolMD5=" + serverProtocolMD5 + "(server: " + currentServerProtocolMD5 + ")");
                 Event.fireAll("onVersionNotMatch", new object[] { clientVersion, serverVersion });
                 return;
             }
-
+			*/
+			
             if (serverEntitydefMD5 != currentServerEntitydefMD5)
             {
                 Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverEntitydefMD5=" + serverEntitydefMD5 + "(server: " + currentServerEntitydefMD5 + ")");
