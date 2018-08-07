@@ -1780,10 +1780,11 @@ int Entity::pySetPosition(PyObject *value)
 
 	if(!script::ScriptVector3::check(value))
 		return -1;
-	
+
 	Position3D pos;
 	script::ScriptVector3::convertPyObjectToVector3(pos, value);
 	position(pos);
+
 	isOnGround_ = true;
 
 	static ENTITY_PROPERTY_UID posuid = 0;
