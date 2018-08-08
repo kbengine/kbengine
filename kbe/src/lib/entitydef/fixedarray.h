@@ -51,6 +51,7 @@ public:
 	static PyObject* __py_insert(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static PyObject* __py_pop(PyObject* self, PyObject* args, PyObject* kwargs);
 	static PyObject* __py_remove(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_clear(PyObject* self, PyObject* args, PyObject* kwargs);
 	
 	bool isSameType(PyObject* pyValue);
 	bool isSameItemType(PyObject* pyValue);
