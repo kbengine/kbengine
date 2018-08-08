@@ -14,6 +14,7 @@ class FixedArray : public script::Sequence
 {		
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(FixedArray, Sequence)
+
 public:	
 	FixedArray(DataType* dataType);
 	virtual ~FixedArray();
@@ -63,6 +64,7 @@ public:
 	*/
 	PyObject* tp_repr();
 	PyObject* tp_str();
+
 protected:
 	FixedArrayType* _dataType;
 } ;
