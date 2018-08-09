@@ -140,6 +140,13 @@ void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStrea
 			else
 				val1 = iter->second->dataType->createFromStream(streamInitData);
 
+			if (!val1)
+			{
+				ERROR_MSG(fmt::format("FixedDict::initialize: key({}) createFromStream error, use default value! type={}\n", iter->first, this->getDataType()->aliasName()));
+				val1 = iter->second->dataType->parseDefaultStr("");
+				KBE_ASSERT(val1);
+			}
+
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
 			
 			// 由于PyDict_SetItem会增加引用因此需要减
