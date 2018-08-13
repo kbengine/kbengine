@@ -68,11 +68,13 @@ int Map::mp_length(PyObject* self)
 	return PyDict_Size(static_cast<Map*>(self)->pyDict_);
 }
 
+//-------------------------------------------------------------------------------------
 PyObject* Map::mp_keyiter(PyObject* self)
 {
 	return PyObject_GetIter(static_cast<Map*>(self)->pyDict_);
 }
 
+//-------------------------------------------------------------------------------------
 PyObject* Map::mp_iternextkey(PyObject* key_iter)
 {
 	return PyIter_Next(key_iter);
