@@ -62,7 +62,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(FixedDict)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(FixedDict, 0, &FixedDict::mappingSequenceMethods, &FixedDict::mappingMethods, 0, 0)	
+SCRIPT_INIT(FixedDict, 0, &FixedDict::mappingSequenceMethods, &FixedDict::mappingMethods, &Map::mp_keyiter, &Map::mp_iternextkey)
 	
 //-------------------------------------------------------------------------------------
 FixedDict::FixedDict(DataType* dataType):
