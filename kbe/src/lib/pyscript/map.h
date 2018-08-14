@@ -42,6 +42,9 @@ public:
 
 	static int mp_length(PyObject* self);
 
+	static PyObject* mp_keyiter(PyObject* self);
+	static PyObject* mp_iternextkey(PyObject* iter);
+
 	/** 
 		获取字典对象 
 	*/

@@ -375,13 +375,29 @@
 		{
 			serverVersion = stream.readString();
 			serverScriptVersion = stream.readString();
-			serverProtocolMD5 = stream.readString();
-			serverEntitydefMD5 = stream.readString();
+			string currentServerProtocolMD5 = stream.readString();
+			string currentServerEntitydefMD5 = stream.readString();
 			Int32 ctype = stream.readInt32();
 			
 			Dbg.DEBUG_MSG("KBEngine::Client_onHelloCB: verInfo(" + serverVersion 
 				+ "), scriptVersion("+ serverScriptVersion + "), srvProtocolMD5("+ serverProtocolMD5 
 				+ "), srvEntitydefMD5("+ serverEntitydefMD5 + "), + ctype(" + ctype + ")!");
+			
+			/* 
+            if(serverProtocolMD5 != currentServerProtocolMD5)
+            {
+                Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverProtocolMD5=" + serverProtocolMD5 + "(server: " + currentServerProtocolMD5 + ")");
+                Event.fireAll("onVersionNotMatch", new object[] { clientVersion, serverVersion });
+                return;
+            }
+			*/
+			
+            if (serverEntitydefMD5 != currentServerEntitydefMD5)
+            {
+                Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverEntitydefMD5=" + serverEntitydefMD5 + "(server: " + currentServerEntitydefMD5 + ")");
+                Event.fireAll("onVersionNotMatch", new object[] { clientVersion, serverVersion });
+                return;
+            }
 			
 			onServerDigest();
 			

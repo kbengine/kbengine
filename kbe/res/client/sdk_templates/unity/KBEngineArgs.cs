@@ -59,12 +59,12 @@
 
 		public int getUDPRecvBufferSize()
 		{
-			return (int)TCP_RECV_BUFFER_MAX;
+			return (int)UDP_RECV_BUFFER_MAX;
 		}
 
 		public int getUDPSendBufferSize()
 		{
-			return (int)TCP_SEND_BUFFER_MAX;
+			return (int)UDP_SEND_BUFFER_MAX;
 		}
     }
 

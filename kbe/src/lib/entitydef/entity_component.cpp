@@ -249,25 +249,31 @@ void EntityComponent::initializeScript()
 //-------------------------------------------------------------------------------------
 void EntityComponent::onAttached()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onAttached"),
-		const_cast<char*>("O"), owner());
+	if (PyObject_HasAttrString(this, "onAttached"))
+	{
+		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onAttached"),
+			const_cast<char*>("O"), owner());
 
-	if (pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+		if (pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void EntityComponent::onDetached()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDetached"),
-		const_cast<char*>("O"), owner());
+	if (PyObject_HasAttrString(this, "onDetached"))
+	{
+		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDetached"),
+			const_cast<char*>("O"), owner());
 
-	if (pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+		if (pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------

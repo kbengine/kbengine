@@ -375,8 +375,8 @@ public:																						\
 		0,														/* tp_clear           */	\
 		0,														/* tp_richcompare     */	\
 		0,														/* tp_weaklistoffset  */	\
-		ITER,													/* tp_iter            */	\
-		ITERNEXT,												/* tp_iternext        */	\
+		(getiterfunc)ITER,										/* tp_iter            */	\
+		(iternextfunc)ITERNEXT,									/* tp_iternext        */	\
 		0,														/* tp_methods         */	\
 		0,														/* tp_members         */	\
 		0,														/* tp_getset          */	\
@@ -424,8 +424,8 @@ public:																						\
 		0,														/* tp_clear           */	\
 		0,														/* tp_richcompare     */	\
 		0,														/* tp_weaklistoffset  */	\
-		ITER,													/* tp_iter            */	\
-		ITERNEXT,												/* tp_iternext        */	\
+		(getiterfunc)ITER,										/* tp_iter            */	\
+		(iternextfunc)ITERNEXT,									/* tp_iternext        */	\
 		0,														/* tp_methods         */	\
 		0,														/* tp_members         */	\
 		0,														/* tp_getset          */	\

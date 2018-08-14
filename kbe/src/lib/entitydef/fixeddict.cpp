@@ -44,7 +44,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(FixedDict)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(FixedDict, 0, &FixedDict::mappingSequenceMethods, &FixedDict::mappingMethods, 0, 0)	
+SCRIPT_INIT(FixedDict, 0, &FixedDict::mappingSequenceMethods, &FixedDict::mappingMethods, &Map::mp_keyiter, &Map::mp_iternextkey)
 	
 //-------------------------------------------------------------------------------------
 FixedDict::FixedDict(DataType* dataType):
@@ -139,6 +139,13 @@ void FixedDict::initialize(MemoryStream* streamInitData, bool isPersistentsStrea
 				val1 = ((FixedArrayType*)iter->second->dataType)->createFromStreamEx(streamInitData, isPersistentsStream);
 			else
 				val1 = iter->second->dataType->createFromStream(streamInitData);
+
+			if (!val1)
+			{
+				ERROR_MSG(fmt::format("FixedDict::initialize: key({}) createFromStream error, use default value! type={}\n", iter->first, this->getDataType()->aliasName()));
+				val1 = iter->second->dataType->parseDefaultStr("");
+				KBE_ASSERT(val1);
+			}
 
 			PyDict_SetItemString(pyDict_, iter->first.c_str(), val1);
 			
