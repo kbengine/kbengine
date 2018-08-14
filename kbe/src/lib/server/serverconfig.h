@@ -270,6 +270,7 @@ public:
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
 
+	INLINE float channelExternalTimeout(void) const;
 	INLINE bool IsPureDBInterfaceName(const std::string& dbInterfaceName);
 	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
 	INLINE int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName);
