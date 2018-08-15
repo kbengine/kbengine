@@ -591,6 +591,14 @@ void Baseappmgr::registerPendingAccountToBaseapp(Network::Channel* pChannel, Mem
 		return;
 	}
 
+	if (pending_logins_.find(loginName) != pending_logins_.end())
+	{
+		ERROR_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseapp: Already registered! accountName={}.\n",
+			loginName));
+
+		return;
+	}
+
 	pending_logins_[loginName] = cinfos->cid;
 
 	updateBestBaseapp();
@@ -673,6 +681,14 @@ void Baseappmgr::registerPendingAccountToBaseappAddr(Network::Channel* pChannel,
 		return;
 	}
 
+	if (pending_logins_.find(loginName) != pending_logins_.end())
+	{
+		ERROR_MSG(fmt::format("Baseappmgr::registerPendingAccountToBaseappAddr: Already registered! accountName={}.\n",
+			loginName));
+
+		return;
+	}
+
 	pending_logins_[loginName] = cinfos->cid;
 
 	cinfos = Components::getSingleton().findComponent(componentID);
@@ -704,14 +720,14 @@ void Baseappmgr::sendAllocatedBaseappAddr(Network::Channel* pChannel,
 	KBEUnordered_map< std::string, COMPONENT_ID >::iterator iter = pending_logins_.find(loginName);
 	if(iter == pending_logins_.end())
 	{
-		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp, pending_logins is error!\n");
+		ERROR_MSG(fmt::format("Baseappmgr::sendAllocatedBaseappAddr: not found accountName({}), pending_logins error!\n", loginName));
 		return;
 	}
 	
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(iter->second);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		ERROR_MSG("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp!\n");
+		ERROR_MSG(fmt::format("Baseappmgr::sendAllocatedBaseappAddr: not found loginapp! accountName={}\n", loginName));
 		return;
 	}
 
