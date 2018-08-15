@@ -21,11 +21,11 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 
 	ip = TEXT("127.0.0.1");
 	port = @{KBE_LOGIN_PORT};
-	syncPlayerMS = 100;
+	syncPlayerMS = @{KBE_UPDATEHZ} * 10;
 	useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	isOnInitCallPropertysSetMethods = true;
 	clientType = EKCLIENT_TYPE::CLIENT_TYPE_WIN;
-	serverHeartbeatTick = 15;
+	serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT} / 2;
 	SEND_BUFFER_MAX = TCP_PACKET_MAX;
 	RECV_BUFFER_MAX = TCP_PACKET_MAX;
 }

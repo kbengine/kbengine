@@ -117,6 +117,8 @@ INLINE DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)
 
 	return NULL;
 }
+//-------------------------------------------------------------------------------------
+INLINE float ServerConfig::channelExternalTimeout(void) const { return Network::g_channelExternalTimeout; }
 
 //-------------------------------------------------------------------------------------	
 INLINE bool ServerConfig::IsPureDBInterfaceName(const std::string& dbInterfaceName)
