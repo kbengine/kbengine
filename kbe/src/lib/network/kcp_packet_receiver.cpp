@@ -101,7 +101,7 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 		{
 			Packet* pRcvdUDPPacket = UDPPacket::createPoolObject();
 			int bytes_recvd = ikcp_recv(pChannel->pKCP(), (char*)pRcvdUDPPacket->data(), pRcvdUDPPacket->size());
-			if (bytes_recvd <= 0)
+			if (bytes_recvd < 0)
 			{
 				//WARNING_MSG(fmt::format("KCPPacketReceiver::processPacket(): recvd_bytes({}) <= 0! addr={}\n", bytes_recvd, pChannel->c_str()));
 				RECLAIM_PACKET(pRcvdUDPPacket->isTCPPacket(), pRcvdUDPPacket);
