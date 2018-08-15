@@ -71,7 +71,7 @@
                 while (true)
                 {
                     length = kcp_.Recv(_buffer, 0, _buffer.Length);
-                    if (length <= 0)
+                    if (length < 0)
                     {
                         break;
                     }
