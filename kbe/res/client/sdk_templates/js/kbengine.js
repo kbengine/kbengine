@@ -2504,7 +2504,7 @@ KBEngine.KBEngineArgs = function()
 	this.ip = "127.0.0.1";
 	this.port = @{KBE_USE_ALIAS_ENTITYID};
 	this.updateHZ = @{KBE_UPDATEHZ} * 10;
-	this.serverHeartbeatTick = 15;
+	this.serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT} / 2;
 
 	// Reference: http://kbengine.github.io/docs/programming/clientsdkprogramming.html, client types
 	this.clientType = 5;
