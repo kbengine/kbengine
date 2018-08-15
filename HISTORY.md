@@ -1,3 +1,25 @@
+###v1.2.1
+
+	2018/8/15
+
+	新增与改善：
+		增加更加准确的网络退出原因输出(#687)
+		部分DBTask优化， MemoryStream应该通过对象池创建。(#698)
+		interfaces增加更详细的profile(#695)
+		当dbmgr查询的数据量过大撑爆MemoryStream::MAX_SIZE时，给出更友好的处理办法(#696)
+		当持久化属性设置DatabaseLength太大时提示错误
+		引擎telnet服务Linux/Windows下完美支持命令编辑
+		'FixedArray' 增加python数组的clear功能
+		FIXED_DICT支持for key in *Dict语法
+		根据配置文件 kbengine/kbe/res/server/kbengine_defaults.xml生成SDK里面的参数
+
+	BUG修正：
+		修复streamFileToClient传输0字节文件异常的问题
+		SignalHandlers信号处理连续超出255时异常(#691)
+		当脚本设置postion后， isOnGround应该设置为False
+
+
+
 ###v1.2.0
 
 	2018/7/23
