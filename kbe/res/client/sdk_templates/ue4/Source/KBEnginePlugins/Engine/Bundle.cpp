@@ -2,7 +2,7 @@
 #include "Bundle.h"
 #include "MemoryStream.h"
 #include "Messages.h"
-#include "NetworkInterface.h"
+#include "NetworkInterfaceBase.h"
 #include "KBDebug.h"
 
 Bundle::Bundle():
@@ -70,7 +70,7 @@ void Bundle::fini(bool issend)
 	curMsgStreamIndex_ = 0;
 }
 
-void Bundle::send(NetworkInterface* pNetworkInterface)
+void Bundle::send(NetworkInterfaceBase* pNetworkInterface)
 {
 	fini(true);
 

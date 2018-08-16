@@ -5,7 +5,7 @@
 #include "KBECommon.h"
 
 class MemoryStream;
-class NetworkInterface;
+class NetworkInterfaceBase;
 class Message;
 
 /*
@@ -27,7 +27,7 @@ public:
 	void fini(bool issend);
 
 	void writeMsgLength();
-	void send(NetworkInterface* pNetworkInterface);
+	void send(NetworkInterfaceBase* pNetworkInterface);
 
 	void checkStream(uint32 v);
 

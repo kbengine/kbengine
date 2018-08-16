@@ -1,12 +1,13 @@
 
-#include "NetworkInterface.h"
+#include "NetworkInterfaceBase.h"
 #include "PacketReceiver.h"
 #include "PacketSender.h"
 #include "MemoryStream.h"
 #include "KBEvent.h"
 #include "KBDebug.h"
+#include "Interfaces.h"
 
-NetworkInterface::NetworkInterface():
+NetworkInterfaceBase::NetworkInterfaceBase():
 	socket_(NULL),
 	pPacketSender_(NULL),
 	pPacketReceiver_(NULL),
@@ -19,22 +20,22 @@ NetworkInterface::NetworkInterface():
 {
 }
 
-NetworkInterface::~NetworkInterface()
+NetworkInterfaceBase::~NetworkInterfaceBase()
 {
 	close();
 }
 
-void NetworkInterface::reset()
+void NetworkInterfaceBase::reset()
 {
 	close();
 }
 
-void NetworkInterface::close()
+void NetworkInterfaceBase::close()
 {
 	if (socket_)
 	{
 		socket_->Close();
-		INFO_MSG("NetworkInterface::close(): network closed!");
+		INFO_MSG("NetworkInterfaceBase::close(): network closed!");
 		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(socket_);
 		KBENGINE_EVENT_FIRE("onDisconnected", NewObject<UKBEventData_onDisconnected>());
 	}
@@ -51,14 +52,24 @@ void NetworkInterface::close()
 	startTime_ = 0.0;
 }
 
-bool NetworkInterface::valid()
+bool NetworkInterfaceBase::valid()
 {
 	return socket_ != NULL;
 }
 
-bool NetworkInterface::connectTo(const FString& addr, uint16 port, InterfaceConnect* callback, int userdata)
+FSocket* NetworkInterfaceBase::createSocket(const FString& socketDescript)
 {
-	INFO_MSG("NetworkInterface::connectTo(): will connect to %s:%d ...", *addr, port);
+	return ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_Stream, socketDescript, false);
+}
+
+bool NetworkInterfaceBase::_connect(const FInternetAddr& addr)
+{
+	return socket_->Connect(addr);
+}
+
+bool NetworkInterfaceBase::connectTo(const FString& addr, uint16 port, InterfaceConnect* callback, int userdata)
+{
+	INFO_MSG("NetworkInterfaceBase::connectTo(): will connect to %s:%d ...", *addr, port);
 
 	reset();
 
@@ -72,7 +83,7 @@ bool NetworkInterface::connectTo(const FString& addr, uint16 port, InterfaceConn
 
 		if (resolveInfo->GetErrorCode() != 0)
 		{
-			ERROR_MSG("NetworkInterface::connectTo(): GetHostByName(%s) error, code=%d", *addr, resolveInfo->GetErrorCode());
+			ERROR_MSG("NetworkInterfaceBase::connectTo(): GetHostByName(%s) error, code=%d", *addr, resolveInfo->GetErrorCode());
 			return false;
 		}
 
@@ -87,21 +98,22 @@ bool NetworkInterface::connectTo(const FString& addr, uint16 port, InterfaceConn
 	internetAddr->SetIp(OutIP);
 	internetAddr->SetPort(port);
 
-	socket_ = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_Stream, TEXT("default"), false);
+	socket_ = createSocket();
 
 	if (!valid())
 	{
-		ERROR_MSG("NetworkInterface::connectTo(): socket could't be created!");
+		ERROR_MSG("NetworkInterfaceBase::connectTo(): socket could't be created!");
 		return false;
 	}
 	
 	if (!socket_->SetNonBlocking(true))
 	{
-		ERROR_MSG("NetworkInterface::connectTo(): socket->SetNonBlocking error(%d)!", *addr, port,
+		ERROR_MSG("NetworkInterfaceBase::connectTo(%s:%d): socket->SetNonBlocking error(%d)!", *addr, port,
 			(int32)ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLastErrorCode());
 	}
 
-	socket_->Connect(*internetAddr);
+	if (!_connect(*internetAddr))
+		return false;
 
 	connectCB_ = callback;
 	connectIP_ = addr;
@@ -112,7 +124,7 @@ bool NetworkInterface::connectTo(const FString& addr, uint16 port, InterfaceConn
 	return true;
 }
 
-bool NetworkInterface::send(MemoryStream* pMemoryStream)
+bool NetworkInterfaceBase::send(MemoryStream* pMemoryStream)
 {
 	if (!valid())
 	{
@@ -120,12 +132,12 @@ bool NetworkInterface::send(MemoryStream* pMemoryStream)
 	}
 
 	if (!pPacketSender_)
-		pPacketSender_ = new PacketSender(this);
+		pPacketSender_ = createPacketSender();
 
 	return pPacketSender_->send(pMemoryStream);
 }
 
-void NetworkInterface::process()
+void NetworkInterfaceBase::process()
 {
 	if (!valid())
 		return;
@@ -137,7 +149,7 @@ void NetworkInterface::process()
 	}
 
 	if (!pPacketReceiver_)
-		pPacketReceiver_ = new PacketReceiver(this);
+		pPacketReceiver_ = createPacketReceiver();
 
 	pPacketReceiver_->process();
 
@@ -148,7 +160,7 @@ void NetworkInterface::process()
 	}
 }
 
-void NetworkInterface::tickConnecting()
+void NetworkInterfaceBase::tickConnecting()
 {
 	ESocketConnectionState state = socket_->GetConnectionState();
 
@@ -157,7 +169,7 @@ void NetworkInterface::tickConnecting()
 		TSharedRef<FInternetAddr> addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
 		socket_->GetPeerAddress(*addr);
 
-		INFO_MSG("NetworkInterface::tickConnecting(): connect to %s success!", *addr->ToString(true));
+		INFO_MSG("NetworkInterfaceBase::tickConnecting(): connect to %s success!", *addr->ToString(true));
 		connectCB_->onConnectCallback(connectIP_, connectPort_, true, connectUserdata_);
 		connectCB_ = NULL;
 
@@ -172,7 +184,7 @@ void NetworkInterface::tickConnecting()
 		double currTime = getTimeSeconds();
 		if (state == SCS_ConnectionError || currTime - startTime_ > 30)
 		{
-			ERROR_MSG("NetworkInterface::tickConnecting(): connect to %s:%d timeout!", *connectIP_, connectPort_);
+			ERROR_MSG("NetworkInterfaceBase::tickConnecting(): connect to %s:%d timeout!", *connectIP_, connectPort_);
 			connectCB_->onConnectCallback(connectIP_, connectPort_, false, connectUserdata_);
 			connectCB_ = NULL;
 

@@ -10,8 +10,10 @@ KBEngineArgs::KBEngineArgs():
 	useAliasEntityID(true),
 	isOnInitCallPropertysSetMethods(true),
 	serverHeartbeatTick(15),
-	SEND_BUFFER_MAX(TCP_PACKET_MAX),
-	RECV_BUFFER_MAX(TCP_PACKET_MAX)
+	TCP_SEND_BUFFER_MAX(TCP_PACKET_MAX),
+	UDP_SEND_BUFFER_MAX(128),
+	TCP_RECV_BUFFER_MAX(TCP_PACKET_MAX),
+	UDP_RECV_BUFFER_MAX(128)
 {
 }
 
@@ -19,12 +21,22 @@ KBEngineArgs::~KBEngineArgs()
 {
 }
 
-int KBEngineArgs::getRecvBufferSize()
+int KBEngineArgs::getTCPRecvBufferSize()
 {
-	return (int)RECV_BUFFER_MAX;
+	return (int)TCP_RECV_BUFFER_MAX;
 }
 
-int KBEngineArgs::getSendBufferSize()
+int KBEngineArgs::getTCPSendBufferSize()
 {
-	return (int)SEND_BUFFER_MAX;
+	return (int)TCP_SEND_BUFFER_MAX;
+}
+
+int KBEngineArgs::getUDPRecvBufferSize()
+{
+	return (int)UDP_RECV_BUFFER_MAX;
+}
+
+int KBEngineArgs::getUDPSendBufferSize()
+{
+	return (int)UDP_SEND_BUFFER_MAX;
 }

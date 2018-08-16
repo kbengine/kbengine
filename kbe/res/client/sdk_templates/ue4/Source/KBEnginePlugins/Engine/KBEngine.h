@@ -8,7 +8,7 @@
 
 class KBEngineArgs;
 class Entity;
-class NetworkInterface;
+class NetworkInterfaceBase;
 class MemoryStream;
 
 /*
@@ -38,7 +38,7 @@ public:
 	void destroy();
 	void reset();
 
-	NetworkInterface* pNetworkInterface() const {
+	NetworkInterfaceBase* pNetworkInterface() const {
 		return pNetworkInterface_;
 	}
 
@@ -412,7 +412,7 @@ public:
 
 protected:
 	KBEngineArgs* pArgs_;
-	NetworkInterface* pNetworkInterface_;
+	NetworkInterfaceBase* pNetworkInterface_;
 
 	FString username_;
 	FString password_;
