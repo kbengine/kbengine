@@ -191,7 +191,6 @@ void NetworkInterfaceKCP::process()
 		uint32 current = secs64 & 0xfffffffful;
 		if (current >= nextTickKcpUpdate_)
 		{
-			ERROR_MSG("NetworkInterfaceKCP::process(): =1");
 			ikcp_update(pKCP_, current);
 			nextTickKcpUpdate_ = ikcp_check(pKCP_, current);
 		}
