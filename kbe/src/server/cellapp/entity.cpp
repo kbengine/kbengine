@@ -1621,7 +1621,7 @@ int Entity::pySetPosition(PyObject *value)
 	script::ScriptVector3::convertPyObjectToVector3(pos, value);
 	position(pos);
 
-	isOnGround_ = true;
+	isOnGround_ = false;
 
 	static ENTITY_PROPERTY_UID posuid = 0;
 	if(posuid == 0)
@@ -1793,7 +1793,7 @@ void Entity::onPyPositionChanged()
 	if(this->isDestroyed())
 		return;
 
-	isOnGround_ = true;
+	isOnGround_ = false;
 
 	static ENTITY_PROPERTY_UID posuid = 0;
 	if(posuid == 0)
