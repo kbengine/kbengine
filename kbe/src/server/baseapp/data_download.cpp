@@ -91,7 +91,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	if ((remainSent_ > 0 && currSent_ < remainSent_) || totalBytes_ == 0)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 		if(!sentStart_)
 		{
@@ -160,7 +160,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 		pDataDownloads_->onDownloadCompleted(this);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 
 		pBundle->newMessage(ClientInterface::onStreamDataCompleted);

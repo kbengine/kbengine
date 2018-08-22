@@ -107,7 +107,7 @@ void ClientObject::reset(void)
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
-	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -150,7 +150,7 @@ bool ClientObject::initCreate()
 	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
 	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::hello);
 	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
@@ -182,7 +182,7 @@ bool ClientObject::initLoginBaseapp()
 	SAFE_RELEASE(pTCPPacketSenderEx_);
 	SAFE_RELEASE(pTCPPacketReceiverEx_);
 
-	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -223,7 +223,7 @@ bool ClientObject::initLoginBaseapp()
 
 	connectedBaseapp_ = true;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::hello);
 	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 	

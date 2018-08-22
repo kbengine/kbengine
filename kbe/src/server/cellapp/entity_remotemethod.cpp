@@ -88,7 +88,7 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 		Network::Bundle* pBundle = pChannel->createSendBundle();
 		entitycall->newCall((*pBundle));
 
-		MemoryStream* mstream = MemoryStream::createPoolObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 		try
 		{

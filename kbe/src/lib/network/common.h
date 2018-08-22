@@ -302,9 +302,9 @@ const char * reasonToString(Reason reason)
 #define MALLOC_PACKET(outputPacket, isTCPPacket)															\
 {																											\
 	if(isTCPPacket)																							\
-		outputPacket = TCPPacket::createPoolObject();														\
+		outputPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);										\
 	else																									\
-		outputPacket = UDPPacket::createPoolObject();														\
+		outputPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);										\
 }																											\
 
 

@@ -78,9 +78,9 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-EndPoint* EndPoint::createPoolObject()
+EndPoint* EndPoint::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,9 +99,9 @@ void EndPoint::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj()
+EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<EndPoint>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<EndPoint>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------

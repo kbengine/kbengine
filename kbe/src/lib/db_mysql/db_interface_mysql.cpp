@@ -78,47 +78,47 @@ static uint32 watcher_query(std::string cmd)
 	return 0;
 }
 
-static uint32 watcher_select()
+static uint32 watcher_select(const std::string&)
 {
 	return watcher_query("SELECT");
 }
 
-static uint32 watcher_delete()
+static uint32 watcher_delete(const std::string&)
 {
 	return watcher_query("DELETE");
 }
 
-static uint32 watcher_insert()
+static uint32 watcher_insert(const std::string&)
 {
 	return watcher_query("INSERT");
 }
 
-static uint32 watcher_update()
+static uint32 watcher_update(const std::string&)
 {
 	return watcher_query("UPDATE");
 }
 
-static uint32 watcher_create()
+static uint32 watcher_create(const std::string&)
 {
 	return watcher_query("CREATE");
 }
 
-static uint32 watcher_drop()
+static uint32 watcher_drop(const std::string&)
 {
 	return watcher_query("DROP");
 }
 
-static uint32 watcher_show()
+static uint32 watcher_show(const std::string&)
 {
 	return watcher_query("SHOW");
 }
 
-static uint32 watcher_alter()
+static uint32 watcher_alter(const std::string&)
 {
 	return watcher_query("ALTER");
 }
 
-static uint32 watcher_grant()
+static uint32 watcher_grant(const std::string&)
 {
 	return watcher_query("GRANT");
 }

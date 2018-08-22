@@ -73,7 +73,7 @@ int ListenerReceiver::handleInputNotification(int fd)
 		}
 		else
 		{
-			Channel* pChannel = Network::Channel::createPoolObject();
+			Channel* pChannel = Network::Channel::createPoolObject(OBJECTPOOL_POINT);
 			bool ret = pChannel->initialize(networkInterface_, pNewEndPoint, traits_);
 			if(!ret)
 			{

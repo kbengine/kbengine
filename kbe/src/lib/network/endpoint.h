@@ -36,9 +36,9 @@ class EndPoint : public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< EndPoint > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<EndPoint>& ObjPool();
-	static EndPoint* createPoolObject();
+	static EndPoint* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(EndPoint* obj);
 	static void destroyObjPool();
 	void onReclaimObject();

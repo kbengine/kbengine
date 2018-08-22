@@ -189,7 +189,6 @@ bool Dbmgr::initializeWatcher()
 	WATCH_OBJECT("numExecuteRawDatabaseCommand", numExecuteRawDatabaseCommand_);
 	WATCH_OBJECT("numCreatedAccount", numCreatedAccount_);
 
-
 	KBEUnordered_map<std::string, Buffered_DBTasks>::iterator bditer = bufferedDBTasksMaps_.begin();
 	for (; bditer != bufferedDBTasksMaps_.end(); ++bditer)
 	{
@@ -198,7 +197,6 @@ bool Dbmgr::initializeWatcher()
 		WATCH_OBJECT(fmt::format("DBThreadPool/{}/printBuffered_dbid", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::printBuffered_dbid);
 		WATCH_OBJECT(fmt::format("DBThreadPool/{}/printBuffered_entityID", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::printBuffered_entityID);
 	}
-
 
 	return ServerApp::initializeWatcher() && DBUtil::initializeWatcher();
 }
@@ -469,7 +467,7 @@ void Dbmgr::onReqAllocEntityID(Network::Channel* pChannel, COMPONENT_ORDER compo
 
 	// 获取一个id段 并传输给IDClient
 	std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	if(ct == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onReqAllocEntityID);
@@ -553,7 +551,7 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 				if((*fiter).cid == componentID)
 					continue;
 
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 				ENTITTAPP_COMMON_NETWORK_MESSAGE(broadcastCpTypes[idx], (*pBundle), onGetEntityAppFromDbmgr);
 				
 				if(tcomponentType == BASEAPP_TYPE)

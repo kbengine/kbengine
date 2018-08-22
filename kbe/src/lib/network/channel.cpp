@@ -51,9 +51,9 @@ ObjectPool<Channel>& Channel::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-Channel* Channel::createPoolObject()
+Channel* Channel::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -86,9 +86,9 @@ size_t Channel::getPoolObjectBytes()
 }
 
 //-------------------------------------------------------------------------------------
-Channel::SmartPoolObjectPtr Channel::createSmartPoolObj()
+Channel::SmartPoolObjectPtr Channel::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -873,7 +873,7 @@ Bundle* Channel::createSendBundle()
 		}
 	}
 	
-	Bundle* pBundle = Bundle::createPoolObject();
+	Bundle* pBundle = Bundle::createPoolObject(OBJECTPOOL_POINT);
 	pBundle->pChannel(this);
 	return pBundle;
 }

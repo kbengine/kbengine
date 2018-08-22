@@ -462,7 +462,7 @@ void DebugHelper::sync()
 		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
 		childThreadBufferedLogPackets_.pop();
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		bufferedLogPackets_.push(pBundle);
 
 		pBundle->newMessage(LoggerInterface::writeLog);
@@ -615,7 +615,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 	if (!isMainThread)
 	{
-		MemoryStream* pMemoryStream = memoryStreamPool_.createObject();
+		MemoryStream* pMemoryStream = memoryStreamPool_.createObject(OBJECTPOOL_POINT);
 
 		(*pMemoryStream) << getUserUID();
 		(*pMemoryStream) << logType;
@@ -661,7 +661,7 @@ void DebugHelper::onMessage(uint32 logType, const char * str, uint32 length)
 
 		int8 trace_packet = Network::g_trace_packet;
 		Network::g_trace_packet = 0;
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 		pBundle->newMessage(LoggerInterface::writeLog);
 
@@ -728,7 +728,7 @@ void DebugHelper::printBufferedLogs()
 		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
 		childThreadBufferedLogPackets_.pop();
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		bufferedLogPackets_.push(pBundle);
 
 		pBundle->newMessage(LoggerInterface::writeLog);

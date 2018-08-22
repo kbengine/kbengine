@@ -74,7 +74,7 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::createPoolObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 		try
 		{

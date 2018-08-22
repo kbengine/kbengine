@@ -196,7 +196,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 								"WebSocket-Protocol: WebManagerSocket\r\n\r\n", 
 								server_key, szOrigin, szHost);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle) << ackHandshake;
 	(*pBundle).pCurrPacket()->wpos((*pBundle).pCurrPacket()->wpos() - 1);
 	pChannel->send(pBundle);
