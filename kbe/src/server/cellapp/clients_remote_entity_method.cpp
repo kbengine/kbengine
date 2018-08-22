@@ -79,7 +79,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	// 先发给自己
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::createPoolObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 		// 如果是广播给组件的消息
 		if (pComponentPropertyDescription_)
@@ -116,7 +116,7 @@ PyObject* ClientsRemoteEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 			Network::Channel* pChannel = pEntity->clientEntityCall()->getChannel();
 
 			if (!pChannel)
-				pSendBundle = Network::Bundle::createPoolObject();
+				pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			else
 				pSendBundle = pChannel->createSendBundle();
 

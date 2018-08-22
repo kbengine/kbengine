@@ -85,7 +85,7 @@ void Proxy::kick()
 	Network::Channel* pChannel = Baseapp::getSingleton().networkInterface().findChannel(addr_);
 	if(pChannel && !pChannel->isDestroyed())
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onKicked);
 		ClientInterface::onKickedArgs1::staticAddToBundle(*pBundle, SERVER_ERR_PROXY_DESTROYED);
 		//pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
@@ -101,12 +101,12 @@ void Proxy::initClientBasePropertys()
 	if(clientEntityCall() == NULL)
 		return;
 
-	MemoryStream* s1 = MemoryStream::createPoolObject();
+	MemoryStream* s1 = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 	addClientDataToStream(s1);
 	
 	if(s1->wpos() > 0)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 		(*pBundle) << this->id();
 		(*pBundle).append(*s1);
@@ -123,7 +123,7 @@ void Proxy::initClientCellPropertys()
 	if(clientEntityCall() == NULL)
 		return;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(ClientInterface::onUpdatePropertys);
 	(*pBundle) << this->id();
 
@@ -147,7 +147,7 @@ void Proxy::initClientCellPropertys()
 		(*pBundle) << (ENTITY_PROPERTY_UID)0 << spaceuid << this->spaceID();
 	}
 
-	MemoryStream* s = MemoryStream::createPoolObject();
+	MemoryStream* s = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 	// celldata获取客户端感兴趣的数据初始化客户端 如:ALL_CLIENTS
 	try
@@ -379,14 +379,14 @@ void Proxy::giveClientTo(Proxy* proxy)
 			// 当前这个entity如果有cell，说明已经绑定了witness， 那么既然我们将控制权
 			// 交换给了另一个entity， 这个entity需要解绑定witness。
 			// 通知cell丢失witness
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			(*pBundle).newMessage(CellappInterface::onLoseWitness);
 			(*pBundle) << this->id();
 			sendToCellapp(pBundle);
 		}
 
 		// 既然客户端失去对其的控制, 那么通知client销毁这个entity
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onEntityDestroyed);
 		(*pBundle) << this->id();
 		sendToClient(ClientInterface::onEntityDestroyed, pBundle);
@@ -425,7 +425,7 @@ void Proxy::onGetWitness()
 	if(cellEntityCall())
 	{
 		// 通知cell获得客户端
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappInterface::onGetWitnessFromBase);
 		(*pBundle) << this->id();
 		sendToCellapp(pBundle);

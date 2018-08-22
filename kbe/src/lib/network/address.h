@@ -16,9 +16,9 @@ public:
 	static const Address NONE;
 
 	typedef KBEShared_ptr< SmartPoolObject< Address > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Address>& ObjPool();
-	static Address* createPoolObject();
+	static Address* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Address* obj);
 	static void destroyObjPool();
 	void onReclaimObject();

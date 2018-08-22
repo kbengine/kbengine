@@ -113,7 +113,7 @@ void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDele
 		Network::Channel* lpChannel = iter1->pChannel;
 		KBE_ASSERT(lpChannel != NULL);
 		
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		
 		(*pBundle).newMessage(DbmgrInterface::onBroadcastGlobalDataChanged);
 		

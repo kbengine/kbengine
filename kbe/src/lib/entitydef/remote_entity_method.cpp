@@ -55,7 +55,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		Network::Channel* pChannel = entityCall->getChannel();
 		Network::Bundle* pSendBundle = NULL;
 
-		MemoryStream* mstream = MemoryStream::createPoolObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 		try
 		{
@@ -71,7 +71,7 @@ PyObject* RemoteEntityMethod::tp_call(PyObject* self, PyObject* args,
 		}
 
 		if (!pChannel)
-			pSendBundle = Network::Bundle::createPoolObject();
+			pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		else
 			pSendBundle = pChannel->createSendBundle();
 

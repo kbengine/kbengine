@@ -26,9 +26,9 @@ class UDPPacketSender : public PacketSender
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< UDPPacketSender > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<UDPPacketSender>& ObjPool();
-	static UDPPacketSender* createPoolObject();
+	static UDPPacketSender* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(UDPPacketSender* obj);
 	virtual void onReclaimObject();
 	static void destroyObjPool();

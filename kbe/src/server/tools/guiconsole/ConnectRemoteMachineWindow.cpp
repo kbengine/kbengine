@@ -103,7 +103,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	command += csport;
 	free(csport);
 
-	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
+	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 
 	KBEngine::u_int32_t address;
 	Network::Address::string2ip(strip, address);

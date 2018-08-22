@@ -43,7 +43,7 @@ void Backuper::tick()
 		this->createBackupTable();
 	}
 
-	MemoryStream* s = MemoryStream::createPoolObject();
+	MemoryStream* s = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 	
 	while((numToBackUp > 0) && !backupEntityIDs_.empty())
 	{

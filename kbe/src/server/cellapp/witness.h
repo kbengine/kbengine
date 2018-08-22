@@ -75,10 +75,10 @@ public:
 	void createFromStream(KBEngine::MemoryStream& s);
 
 	typedef KBEShared_ptr< SmartPoolObject< Witness > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 
 	static ObjectPool<Witness>& ObjPool();
-	static Witness* createPoolObject();
+	static Witness* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Witness* obj);
 	static void destroyObjPool();
 	void onReclaimObject();

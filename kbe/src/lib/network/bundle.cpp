@@ -27,9 +27,9 @@ ObjectPool<Bundle>& Bundle::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-Bundle* Bundle::createPoolObject()
+Bundle* Bundle::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -59,9 +59,9 @@ size_t Bundle::getPoolObjectBytes()
 }
 
 //-------------------------------------------------------------------------------------
-Bundle::SmartPoolObjectPtr Bundle::createSmartPoolObj()
+Bundle::SmartPoolObjectPtr Bundle::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<Bundle>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<Bundle>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -413,7 +413,7 @@ void Bundle::debugCurrentMessages(MessageID currMsgID, const Network::MessageHan
 		return;
 	}
 
-	MemoryStream* pMemoryStream = MemoryStream::createPoolObject();
+	MemoryStream* pMemoryStream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 	
 	// 通过消息长度找到消息头，然后将消息内容输出
 	int msglen = currMsgLength;

@@ -99,7 +99,7 @@ bool InitProgressHandler::process()
 		completed = true;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(CellappmgrInterface::onCellappInitProgress);
 	(*pBundle) << g_componentID << v << g_componentGlobalOrder << g_componentGroupOrder;

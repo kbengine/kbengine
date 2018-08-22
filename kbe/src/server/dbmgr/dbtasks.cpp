@@ -40,7 +40,7 @@ DBTaskBase(),
 pDatas_(0),
 addr_(addr)
 {
-	pDatas_ = MemoryStream::createPoolObject();
+	pDatas_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 	*pDatas_ = datas;
 }
 
@@ -89,7 +89,7 @@ callbackID_(0),
 error_(),
 pExecret_(NULL)
 {
-	pExecret_ = MemoryStream::createPoolObject();
+	pExecret_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 }
 
 //-------------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ callbackID_(0),
 error_(),
 pExecret_(NULL)
 {
-	pExecret_ = MemoryStream::createPoolObject();
+	pExecret_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 }
 
 //-------------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	if(callbackID_ <= 0)
 		return EntityDBTask::presentMainThread();
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	if(componentType_ == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
@@ -227,7 +227,7 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 	if(callbackID_ <= 0)
 		return thread::TPTask::TPTASK_STATE_COMPLETED;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	if(componentType_ == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
@@ -330,7 +330,7 @@ thread::TPTask::TPTaskState DBTaskWriteEntity::presentMainThread()
 
 	// 返回写entity的结果， 成功或者失败
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::onWriteToDBCallback);
 	BaseappInterface::onWriteToDBCallbackArgs5::staticAddToBundle((*pBundle), 
 		eid_, entityDBID_, pdbi_->dbIndex(), callbackID_, success_);
@@ -442,7 +442,7 @@ thread::TPTask::TPTaskState DBTaskDeleteEntityByDBID::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskDeleteEntityByDBID: {}({}), entityInAppID({}).\n", 
 		pModule->getName(), entityDBID_, entityInAppID_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::deleteEntityByDBIDCB);
 
 	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
@@ -493,7 +493,7 @@ thread::TPTask::TPTaskState DBTaskEntityAutoLoad::presentMainThread()
 			pModule->getName(), size));
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::onEntityAutoLoadCBFromDBMgr);
 
 	(*pBundle) << pdbi_->dbIndex() << size << entityType_;
@@ -584,7 +584,7 @@ thread::TPTask::TPTaskState DBTaskLookUpEntityByDBID::presentMainThread()
 			entityDBID_, logger_, g_componentID));
 	}
 	
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::lookUpEntityByDBIDCB);
 
 	(*pBundle) << success_ << entityID_ << entityInAppID_ << callbackID_ << sid_ << entityDBID_;
@@ -731,7 +731,7 @@ thread::TPTask::TPTaskState DBTaskCreateAccount::presentMainThread()
 {
 	DEBUG_MSG(fmt::format("Dbmgr::reqCreateAccount: {}, success={}.\n", registerName_.c_str(), success_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::onReqCreateAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
@@ -847,7 +847,7 @@ thread::TPTask::TPTaskState DBTaskCreateMailAccount::presentMainThread()
 {
 	DEBUG_MSG(fmt::format("Dbmgr::reqCreateMailAccount: {}, success={}.\n", registerName_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::onReqCreateMailAccountResult);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
@@ -904,7 +904,7 @@ bool DBTaskActivateAccount::db_thread_process()
 //-------------------------------------------------------------------------------------
 thread::TPTask::TPTaskState DBTaskActivateAccount::presentMainThread()
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(LoginappInterface::onAccountActivated);
 	(*pBundle) << code_ << success_;
@@ -974,7 +974,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountResetPassword::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskReqAccountResetPassword: accountName={}, code_={}, success={}.\n",
 		accountName_, code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::onReqAccountResetPasswordCB);
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
 
@@ -1029,7 +1029,7 @@ thread::TPTask::TPTaskState DBTaskAccountResetPassword::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskAccountResetPassword: code({}), success={}.\n",
 		code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::onAccountResetPassword);
 
 	(*pBundle) << code_;
@@ -1091,7 +1091,7 @@ thread::TPTask::TPTaskState DBTaskReqAccountBindEmail::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskReqAccountBindEmail: code({}), success={}.\n", 
 		code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::onReqAccountBindEmailCBFromDBMgr);
 
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
@@ -1147,7 +1147,7 @@ thread::TPTask::TPTaskState DBTaskAccountBindEmail::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskAccountBindEmail: code({}), success={}.\n", 
 		code_, success_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::onAccountBindedEmail);
 
 	(*pBundle) << code_;
@@ -1209,7 +1209,7 @@ thread::TPTask::TPTaskState DBTaskAccountNewPassword::presentMainThread()
 {
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskAccountNewPassword: success={}.\n", success_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::onReqAccountNewPasswordCB);
 
 	SERVER_ERROR_CODE failedcode = SERVER_SUCCESS;
@@ -1249,7 +1249,7 @@ deadline_(0),
 bindatas_(),
 needCheckPassword_(needCheckPassword)
 {
-	s_ = MemoryStream::createPoolObject();
+	s_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1356,7 +1356,7 @@ thread::TPTask::TPTaskState DBTaskQueryAccount::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::queryAccount: {}, success={}, flags={}, deadline={}.\n", 
 		 accountName_.c_str(), success_, flags_, deadline_));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::onQueryAccountCBFromDbmgr);
 	(*pBundle) << pdbi_->dbIndex();
 	(*pBundle) << accountName_;
@@ -1653,7 +1653,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	}
 	
 	// 一个用户登录， 构造一个数据库查询指令并加入到执行队列， 执行完毕将结果返回给loginapp
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::onLoginAccountQueryResultFromDbmgr);
 
 	(*pBundle) << retcode_;
@@ -1694,7 +1694,7 @@ wasActiveCID_(0),
 wasActiveEntityID_(0),
 logger_(0)
 {
-	s_ = MemoryStream::createPoolObject();
+	s_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1786,7 +1786,7 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 			entityType_, dbid_, logger_, g_componentID));
 	}
 	
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	if(queryMode_ == 0)
 		pBundle->newMessage(BaseappInterface::onCreateEntityFromDBIDCallback);

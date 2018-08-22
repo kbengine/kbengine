@@ -74,7 +74,7 @@ void Machine::onBroadcastInterface(Network::Channel* pChannel, int32 uid, std::s
 		if(pinfos->pid != pid || pinfos->pIntAddr->ip != intaddr ||
 			username != pinfos->username || uid != pinfos->uid)
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 			MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid,
 				pinfos->username, pinfos->componentType, pinfos->cid, componentIDEx, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
@@ -194,7 +194,7 @@ void Machine::onFindInterfaceAddr(Network::Channel* pChannel, int32 uid, std::st
 	Components::COMPONENTS::iterator iter = components.begin();
 
 	bool found = false;
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	for(; iter != components.end(); )
 	{
@@ -303,7 +303,7 @@ void Machine::onQueryMachines(Network::Channel* pChannel, int32 uid, std::string
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	uint64 cidex = 0;
 	float cpu = SystemInfo::getSingleton().getCPUPer();
@@ -347,7 +347,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 	}
 
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		
 		uint64 cidex = 0;
 		float cpu = SystemInfo::getSingleton().getCPUPer();
@@ -407,7 +407,7 @@ void Machine::onQueryAllInterfaceInfos(Network::Channel* pChannel, int32 uid, st
 			{
 				if(islocal)
 				{
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 					
 					MachineInterface::onBroadcastInterfaceArgs25::staticAddToBundle((*pBundle), pinfos->uid, 
 						pinfos->username, findComponentType, pinfos->cid, pinfos->cid, pinfos->globalOrderid, pinfos->groupOrderid, pinfos->gus,
@@ -668,7 +668,7 @@ void Machine::startserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	int16 gus = 0;
 	std::string KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	bool success = true;
 
 	uint16 finderRecvPort = 0;
@@ -891,7 +891,7 @@ void Machine::stopserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			uid,  COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle) << success;
 
 	if(finderRecvPort != 0)
@@ -1024,7 +1024,7 @@ void Machine::killserver(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 			uid, COMPONENT_NAME_EX(componentType), pChannel->c_str()));
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle) << success;
 
 	if (finderRecvPort != 0)

@@ -33,9 +33,9 @@ class Channel : public TimerHandler, public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Channel>& ObjPool();
-	static Channel* createPoolObject();
+	static Channel* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
 	virtual void onReclaimObject();

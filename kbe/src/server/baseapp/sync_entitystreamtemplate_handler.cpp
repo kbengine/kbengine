@@ -121,7 +121,7 @@ bool SyncEntityStreamTemplateHandler::process()
 			propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(DbmgrInterface::syncEntityStreamTemplate);
 	(*pBundle).append(accountDefMemoryStream);

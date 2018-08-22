@@ -27,9 +27,9 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacketReceiver* TCPPacketReceiver::createPoolObject()
+TCPPacketReceiver* TCPPacketReceiver::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -48,9 +48,9 @@ void TCPPacketReceiver::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacketReceiver::SmartPoolObjectPtr TCPPacketReceiver::createSmartPoolObj()
+TCPPacketReceiver::SmartPoolObjectPtr TCPPacketReceiver::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacketReceiver>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacketReceiver>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 		return false;
 	}
 
-	TCPPacket* pReceiveWindow = TCPPacket::createPoolObject();
+	TCPPacket* pReceiveWindow = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
 	int len = pReceiveWindow->recvFromEndPoint(*pEndpoint_);
 
 	if (len < 0)

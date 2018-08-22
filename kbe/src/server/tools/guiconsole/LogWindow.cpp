@@ -377,7 +377,7 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 
 	if(!pulling)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(LoggerInterface::registerLogWatcher);
 
 		int32 uid = dlg->getSelTreeItemUID();
@@ -435,7 +435,7 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 	{
 		m_autopull.SetWindowTextW(L"auto");
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(LoggerInterface::deregisterLogWatcher);
 		pChannel->send(pBundle);
 	}
@@ -607,7 +607,7 @@ void CLogWindow::OnLbnSelchangeMsgtypeList2()
 
 void CLogWindow::updateSettingToServer()
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoggerInterface::updateLogWatcherSetting);
 
 	CguiconsoleDlg* dlg = static_cast<CguiconsoleDlg*>(theApp.m_pMainWnd);

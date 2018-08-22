@@ -27,9 +27,9 @@ ObjectPool<KCPPacketReceiver>& KCPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-KCPPacketReceiver* KCPPacketReceiver::createPoolObject()
+KCPPacketReceiver* KCPPacketReceiver::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -48,9 +48,9 @@ void KCPPacketReceiver::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-KCPPacketReceiver::SmartPoolObjectPtr KCPPacketReceiver::createSmartPoolObj()
+KCPPacketReceiver::SmartPoolObjectPtr KCPPacketReceiver::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<KCPPacketReceiver>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<KCPPacketReceiver>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 
 		while (true)
 		{
-			Packet* pRcvdUDPPacket = UDPPacket::createPoolObject();
+			Packet* pRcvdUDPPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);
 			int bytes_recvd = ikcp_recv(pChannel->pKCP(), (char*)pRcvdUDPPacket->data(), pRcvdUDPPacket->size());
 			if (bytes_recvd < 0)
 			{

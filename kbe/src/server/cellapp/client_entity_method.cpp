@@ -112,7 +112,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::createPoolObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 		// 如果是广播给组件的消息
 		if (pComponentPropertyDescription_)
