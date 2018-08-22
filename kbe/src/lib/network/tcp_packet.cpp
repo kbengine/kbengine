@@ -58,6 +58,8 @@ Packet(msgID, true, res)
 //-------------------------------------------------------------------------------------
 TCPPacket::~TCPPacket(void)
 {
+	if (poolObjectCreatePoint().size() > 0)
+		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

@@ -71,6 +71,9 @@ KCPPacketSender::KCPPacketSender(EndPoint & endpoint,
 KCPPacketSender::~KCPPacketSender()
 {
 	//DEBUG_MSG("KCPPacketSender::~KCPPacketSender()\n");
+
+	if (poolObjectCreatePoint().size() > 0)
+		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

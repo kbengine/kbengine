@@ -35,7 +35,7 @@ public:
 	Address(uint32 ipArg, uint16 portArg);
 	Address(std::string ipArg, uint16 portArg);
 	
-	virtual ~Address(){}
+	virtual ~Address();
 
 	uint32	ip;
 	uint16	port;

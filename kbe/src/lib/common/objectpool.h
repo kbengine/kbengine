@@ -151,7 +151,7 @@ public:
 				T* t = static_cast<T1*>(*objects_.begin());
 				objects_.pop_front();
 				--obj_count_;
-				++logPoints_[logPoint].count;
+				incLogPoint(logPoint);
 				t->poolObjectCreatePoint(logPoint);
 				t->onEabledPoolObject();
 				t->isEnabledPoolObject(true);
@@ -182,7 +182,7 @@ public:
 				T* t = static_cast<T*>(*objects_.begin());
 				objects_.pop_front();
 				--obj_count_;
-				++logPoints_[logPoint].count;
+				incLogPoint(logPoint);
 				t->poolObjectCreatePoint(logPoint);
 				t->onEabledPoolObject();
 				t->isEnabledPoolObject(true);
@@ -286,6 +286,16 @@ public:
 		return logPoints_;
 	}
 
+	void incLogPoint(const std::string& logPoint)
+	{
+		++logPoints_[logPoint].count;
+	}
+
+	void decLogPoint(const std::string& logPoint)
+	{
+		--logPoints_[logPoint].count;
+	}
+
 protected:
 	/**
 		回收一个对象
@@ -294,11 +304,12 @@ protected:
 	{
 		if(obj != NULL)
 		{
-			--logPoints_[obj->poolObjectCreatePoint()].count;
+			decLogPoint(obj->poolObjectCreatePoint());
 
 			// 先重置状态
 			obj->onReclaimObject();
 			obj->isEnabledPoolObject(false);
+			obj->poolObjectCreatePoint("");
 
 			if(size() >= max_ || isDestroyed_)
 			{

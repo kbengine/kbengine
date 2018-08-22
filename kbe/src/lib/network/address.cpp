@@ -66,6 +66,13 @@ port(htons(portArg))
 } 
 
 //-------------------------------------------------------------------------------------
+Address::~Address()
+{
+	if (poolObjectCreatePoint().size() > 0)
+		ObjPool().decLogPoint(poolObjectCreatePoint());
+}
+
+//-------------------------------------------------------------------------------------
 int Address::writeToString(char * str, int length) const
 {
 	uint32	hip = ntohl(ip);
