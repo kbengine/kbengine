@@ -64,9 +64,6 @@ TCPPacketReceiver::TCPPacketReceiver(EndPoint & endpoint,
 TCPPacketReceiver::~TCPPacketReceiver()
 {
 	//DEBUG_MSG("TCPPacketReceiver::~TCPPacketReceiver()\n");
-
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

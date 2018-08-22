@@ -71,9 +71,6 @@ UDPPacketSender::UDPPacketSender(EndPoint & endpoint,
 UDPPacketSender::~UDPPacketSender()
 {
 	//DEBUG_MSG("UDPPacketSender::~UDPPacketSender()\n");
-
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

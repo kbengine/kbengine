@@ -106,7 +106,6 @@ std::string watch_celltracelogs()
 		for (; oiter != pLogPoints->end(); ++oiter)
 		{
 			const std::string& pointName = oiter->first;
-			int cound = oiter->second.count;
 
 			Watchers::WATCHER_MAP& watchers = iter->second->watchers().watcherObjs();
 			Watchers::WATCHER_MAP::iterator fiter = watchers.find(pointName);

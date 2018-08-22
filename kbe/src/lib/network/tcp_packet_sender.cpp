@@ -73,9 +73,6 @@ TCPPacketSender::TCPPacketSender(EndPoint & endpoint,
 TCPPacketSender::~TCPPacketSender()
 {
 	//DEBUG_MSG("TCPPacketSender::~TCPPacketSender()\n");
-
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

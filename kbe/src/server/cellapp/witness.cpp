@@ -52,9 +52,6 @@ Witness::~Witness()
 	pEntity_ = NULL;
 	SAFE_RELEASE(pViewTrigger_);
 	SAFE_RELEASE(pViewHysteresisAreaTrigger_);
-
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

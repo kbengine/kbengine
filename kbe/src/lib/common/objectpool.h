@@ -24,9 +24,7 @@ namespace KBEngine{
 #define OBJECT_POOL_REDUCING_TIME_OUT	300 * stampsPerSecondD()
 
 // 追踪对象分配处
-#define _s_l_(l) #l 
-#define _str_line_(l) _s_l_(l)
-#define OBJECTPOOL_POINT __FUNCTION__ "#" _str_line_( __LINE__ ) 
+#define OBJECTPOOL_POINT fmt::format("{}#{}", __FUNCTION__, __LINE__).c_str() 
 
 template< typename T >
 class SmartPoolObject;

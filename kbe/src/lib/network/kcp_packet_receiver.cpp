@@ -63,8 +63,6 @@ KCPPacketReceiver::KCPPacketReceiver(EndPoint & endpoint,
 //-------------------------------------------------------------------------------------
 KCPPacketReceiver::~KCPPacketReceiver()
 {
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------
