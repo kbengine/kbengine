@@ -81,8 +81,9 @@ UDPPacketReceiver::UDPPacketReceiver(EndPoint & endpoint,
 //-------------------------------------------------------------------------------------
 UDPPacketReceiver::~UDPPacketReceiver()
 {
+	if (poolObjectCreatePoint().size() > 0)
+		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
-
 
 //-------------------------------------------------------------------------------------
 bool UDPPacketReceiver::processRecv(bool expectingPacket)

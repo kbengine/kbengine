@@ -72,6 +72,15 @@ void MemoryStream::onReclaimObject()
 }
 
 //-------------------------------------------------------------------------------------
+MemoryStream::~MemoryStream()
+{
+	clear(true);
+
+	if (poolObjectCreatePoint().size() > 0)
+		ObjPool().decLogPoint(poolObjectCreatePoint());
+}
+
+//-------------------------------------------------------------------------------------
 } 
 
 
