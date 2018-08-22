@@ -46,8 +46,6 @@ flags_(ENTITYREF_FLAG_UNKONWN)
 //-------------------------------------------------------------------------------------
 EntityRef::~EntityRef()
 {
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

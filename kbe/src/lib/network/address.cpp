@@ -86,8 +86,6 @@ port(htons(portArg))
 //-------------------------------------------------------------------------------------
 Address::~Address()
 {
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

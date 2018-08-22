@@ -178,9 +178,6 @@ Channel::~Channel()
 {
 	// DEBUG_MSG(fmt::format("Channel::~Channel(): {}\n", this->c_str()));
 	finalise();
-
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

@@ -76,8 +76,6 @@ Packet(msgID, false, res)
 //-------------------------------------------------------------------------------------
 UDPPacket::~UDPPacket(void)
 {
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------

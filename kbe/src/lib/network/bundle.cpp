@@ -138,9 +138,6 @@ Bundle::Bundle(const Bundle& bundle)
 Bundle::~Bundle()
 {
 	clear(false);
-
-	if (poolObjectCreatePoint().size() > 0)
-		ObjPool().decLogPoint(poolObjectCreatePoint());
 }
 
 //-------------------------------------------------------------------------------------
