@@ -388,7 +388,9 @@ void InterfacesHandler_Interfaces::onLoginAccountCB(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 bool InterfacesHandler_Interfaces::initialize()
 {
-	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	KBE_ASSERT(addr_ != Network::Address::NONE);
+
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	if(pInterfacesChannel)
 		return true;
 
@@ -398,7 +400,9 @@ bool InterfacesHandler_Interfaces::initialize()
 //-------------------------------------------------------------------------------------
 bool InterfacesHandler_Interfaces::reconnect()
 {
-	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	KBE_ASSERT(addr_ != Network::Address::NONE);
+
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 
 	if(pInterfacesChannel)
 	{

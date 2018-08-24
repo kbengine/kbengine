@@ -1166,7 +1166,6 @@ void Bots::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	pChannel->send(pBundle1);
 }
 
-
 //-------------------------------------------------------------------------------------
 void Bots::startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
