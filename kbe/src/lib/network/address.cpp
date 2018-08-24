@@ -22,9 +22,9 @@ ObjectPool<Address>& Address::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-Address* Address::createPoolObject()
+Address* Address::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -43,9 +43,9 @@ void Address::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-Address::SmartPoolObjectPtr Address::createSmartPoolObj()
+Address::SmartPoolObjectPtr Address::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<Address>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<Address>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -64,6 +64,11 @@ port(htons(portArg))
 	Network::Address::string2ip(ipArg.c_str(), addr);
 	ip = (uint32)addr;
 } 
+
+//-------------------------------------------------------------------------------------
+Address::~Address()
+{
+}
 
 //-------------------------------------------------------------------------------------
 int Address::writeToString(char * str, int length) const

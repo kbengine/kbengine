@@ -56,7 +56,7 @@ Network::Bundle* GhostManager::createSendBundle(COMPONENT_ID componentID)
 		}
 	}
 
-	return Network::Bundle::createPoolObject();
+	return Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 }
 
 //-------------------------------------------------------------------------------------

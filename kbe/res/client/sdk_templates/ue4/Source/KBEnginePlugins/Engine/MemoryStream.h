@@ -75,6 +75,7 @@ public:
 
 public:
 	const static size_t DEFAULT_SIZE = 0x100;
+	const static size_t MAX_SIZE = 10000000;
 
 	MemoryStream() :
 		rpos_(0), 
@@ -122,13 +123,13 @@ public:
 
 	void data_resize(uint32 newsize)
 	{
-		KBE_ASSERT(newsize <= 1310700);
+		KBE_ASSERT(newsize <= MAX_SIZE);
 		data_.SetNumUninitialized(newsize);
 	}
 
 	void resize(uint32 newsize)
 	{
-		KBE_ASSERT(newsize <= 1310700);
+		KBE_ASSERT(newsize <= MAX_SIZE);
 		data_.SetNumUninitialized(newsize);
 		rpos_ = 0;
 		wpos_ = size();
@@ -136,7 +137,7 @@ public:
 
 	void reserve(uint32 ressize)
 	{
-		KBE_ASSERT(ressize <= 1310700);
+		KBE_ASSERT(ressize <= MAX_SIZE);
 
 		if (ressize > size())
 			data_.Reserve(ressize);

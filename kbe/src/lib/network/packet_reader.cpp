@@ -264,7 +264,7 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
-			pFragmentStream_ = MemoryStream::createPoolObject();
+			pFragmentStream_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 			pFragmentStream_->append(pFragmentDatas_, currMsgLen_);
 			break;
 

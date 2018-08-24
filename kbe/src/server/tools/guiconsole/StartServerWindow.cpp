@@ -115,7 +115,7 @@ void CStartServerWindow::OnBnClickedButton2()
 			continue;
 		}
 
-		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 		
 		KBEngine::u_int32_t address;
 		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);
@@ -250,7 +250,7 @@ void CStartServerWindow::OnBnClickedButton3()
 			continue;
 		}
 
-		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
+		KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 		
 		KBEngine::u_int32_t address;
 		KBEngine::Network::Address::string2ip(vec[0].c_str(), address);

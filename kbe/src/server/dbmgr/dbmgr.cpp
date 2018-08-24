@@ -49,8 +49,7 @@ Dbmgr::Dbmgr(Network::EventDispatcher& dispatcher,
 	numQueryEntity_(0),
 	numExecuteRawDatabaseCommand_(0),
 	numCreatedAccount_(0),
-	pInterfacesAccountHandler_(NULL),
-	pInterfacesChargeHandler_(NULL),
+	pInterfacesHandler_(NULL),
 	pSyncAppDatasHandler_(NULL),
 	pUpdateDBServerLogHandler_(NULL),
 	pTelnetServer_(NULL),
@@ -66,8 +65,7 @@ Dbmgr::~Dbmgr()
 	mainProcessTimer_.cancel();
 	KBEngine::sleep(300);
 
-	SAFE_RELEASE(pInterfacesAccountHandler_);
-	SAFE_RELEASE(pInterfacesChargeHandler_);
+	SAFE_RELEASE(pInterfacesHandler_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -171,7 +169,6 @@ bool Dbmgr::initializeWatcher()
 	WATCH_OBJECT("numExecuteRawDatabaseCommand", numExecuteRawDatabaseCommand_);
 	WATCH_OBJECT("numCreatedAccount", numCreatedAccount_);
 
-
 	KBEUnordered_map<std::string, Buffered_DBTasks>::iterator bditer = bufferedDBTasksMaps_.begin();
 	for (; bditer != bufferedDBTasksMaps_.end(); ++bditer)
 	{
@@ -180,7 +177,6 @@ bool Dbmgr::initializeWatcher()
 		WATCH_OBJECT(fmt::format("DBThreadPool/{}/printBuffered_dbid", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::printBuffered_dbid);
 		WATCH_OBJECT(fmt::format("DBThreadPool/{}/printBuffered_entityID", bditer->first).c_str(), &bditer->second, &Buffered_DBTasks::printBuffered_entityID);
 	}
-
 
 	return ServerApp::initializeWatcher() && DBUtil::initializeWatcher();
 }
@@ -346,15 +342,15 @@ void Dbmgr::onInstallPyModules()
 bool Dbmgr::initInterfacesHandler()
 {
 	std::string type = Network::Address::NONE == g_kbeSrvConfig.interfacesAddr() ? "dbmgr" : "interfaces";
-	pInterfacesAccountHandler_ = InterfacesHandlerFactory::create(type);
-	pInterfacesChargeHandler_ = InterfacesHandlerFactory::create(type);
+	pInterfacesHandler_ = InterfacesHandlerFactory::create(type);
 
 	INFO_MSG(fmt::format("Dbmgr::initInterfacesHandler: interfaces addr({}), accountType:({}), chargeType:({}).\n", 
 		g_kbeSrvConfig.interfacesAddr().c_str(),
 		type,
 		type));
 
-	return pInterfacesAccountHandler_->initialize() && pInterfacesChargeHandler_->initialize();
+	((InterfacesHandler_Interfaces*)pInterfacesHandler_)->setAddr(g_kbeSrvConfig.interfacesAddr());
+	return pInterfacesHandler_->initialize();
 }
 
 //-------------------------------------------------------------------------------------		
@@ -451,7 +447,7 @@ void Dbmgr::onReqAllocEntityID(Network::Channel* pChannel, COMPONENT_ORDER compo
 
 	// 获取一个id段 并传输给IDClient
 	std::pair<ENTITY_ID, ENTITY_ID> idRange = idServer_.allocRange();
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	if(ct == BASEAPP_TYPE)
 		(*pBundle).newMessage(BaseappInterface::onReqAllocEntityID);
@@ -535,7 +531,7 @@ void Dbmgr::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string&
 				if((*fiter).cid == componentID)
 					continue;
 
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 				ENTITTAPP_COMMON_NETWORK_MESSAGE(broadcastCpTypes[idx], (*pBundle), onGetEntityAppFromDbmgr);
 				
 				if(tcomponentType == BASEAPP_TYPE)
@@ -639,14 +635,14 @@ void Dbmgr::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemoryStream&
 		return;
 	}
 
-	pInterfacesAccountHandler_->createAccount(pChannel, registerName, password, datas, ACCOUNT_TYPE(uatype));
+	pInterfacesHandler_->createAccount(pChannel, registerName, password, datas, ACCOUNT_TYPE(uatype));
 	numCreatedAccount_++;
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onCreateAccountCBFromInterfaces(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pInterfacesAccountHandler_->onCreateAccountCB(s);
+	pInterfacesHandler_->onCreateAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -662,13 +658,13 @@ void Dbmgr::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStream& s
 		return;
 	}
 
-	pInterfacesAccountHandler_->loginAccount(pChannel, loginName, password, datas);
+	pInterfacesHandler_->loginAccount(pChannel, loginName, password, datas);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onLoginAccountCBBFromInterfaces(Network::Channel* pChannel, KBEngine::MemoryStream& s) 
 {
-	pInterfacesAccountHandler_->onLoginAccountCB(s);
+	pInterfacesHandler_->onLoginAccountCB(s);
 }
 
 //-------------------------------------------------------------------------------------
@@ -906,40 +902,40 @@ void Dbmgr::syncEntityStreamTemplate(Network::Channel* pChannel, KBEngine::Memor
 //-------------------------------------------------------------------------------------
 void Dbmgr::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pInterfacesChargeHandler_->charge(pChannel, s);
+	pInterfacesHandler_->charge(pChannel, s);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::onChargeCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	pInterfacesChargeHandler_->onChargeCB(s);
+	pInterfacesHandler_->onChargeCB(s);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 {
-	pInterfacesAccountHandler_->eraseClientReq(pChannel, logkey);
+	pInterfacesHandler_->eraseClientReq(pChannel, logkey);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountActivate(Network::Channel* pChannel, std::string& scode)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountActivate: code={}.\n", scode));
-	pInterfacesAccountHandler_->accountActivate(pChannel, scode);
+	pInterfacesHandler_->accountActivate(pChannel, scode);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountReqResetPassword(Network::Channel* pChannel, std::string& accountName)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountReqResetPassword: accountName={}.\n", accountName));
-	pInterfacesAccountHandler_->accountReqResetPassword(pChannel, accountName);
+	pInterfacesHandler_->accountReqResetPassword(pChannel, accountName);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountResetPassword(Network::Channel* pChannel, std::string& accountName, std::string& newpassword, std::string& code)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountResetPassword: accountName={}.\n", accountName));
-	pInterfacesAccountHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
+	pInterfacesHandler_->accountResetPassword(pChannel, accountName, newpassword, code);
 }
 
 //-------------------------------------------------------------------------------------
@@ -947,14 +943,14 @@ void Dbmgr::accountReqBindMail(Network::Channel* pChannel, ENTITY_ID entityID, s
 							   std::string& password, std::string& email)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountReqBindMail: accountName={}, email={}.\n", accountName, email));
-	pInterfacesAccountHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
+	pInterfacesHandler_->accountReqBindMail(pChannel, entityID, accountName, password, email);
 }
 
 //-------------------------------------------------------------------------------------
 void Dbmgr::accountBindMail(Network::Channel* pChannel, std::string& username, std::string& scode)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountBindMail: username={}, scode={}.\n", username, scode));
-	pInterfacesAccountHandler_->accountBindMail(pChannel, username, scode);
+	pInterfacesHandler_->accountBindMail(pChannel, username, scode);
 }
 
 //-------------------------------------------------------------------------------------
@@ -962,7 +958,7 @@ void Dbmgr::accountNewPassword(Network::Channel* pChannel, ENTITY_ID entityID, s
 							   std::string& password, std::string& newpassword)
 {
 	INFO_MSG(fmt::format("Dbmgr::accountNewPassword: accountName={}.\n", accountName));
-	pInterfacesAccountHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
+	pInterfacesHandler_->accountNewPassword(pChannel, entityID, accountName, password, newpassword);
 }
 
 //-------------------------------------------------------------------------------------

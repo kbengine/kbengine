@@ -36,9 +36,9 @@ ObjectPool<Channel>& Channel::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-Channel* Channel::createPoolObject()
+Channel* Channel::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -71,9 +71,9 @@ size_t Channel::getPoolObjectBytes()
 }
 
 //-------------------------------------------------------------------------------------
-Channel::SmartPoolObjectPtr Channel::createSmartPoolObj()
+Channel::SmartPoolObjectPtr Channel::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<Channel>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -709,7 +709,7 @@ void Channel::sendto(bool reliable, Bundle* pBundle)
 
 	if (pPacketSender_ == NULL)
 	{
-		pPacketSender_ = KCPPacketSender::createPoolObject();
+		pPacketSender_ = KCPPacketSender::createPoolObject(OBJECTPOOL_POINT);
 		pPacketSender_->pEndPoint(pEndPoint_);
 		pPacketSender_->pNetworkInterface(pNetworkInterface_);
 	}
@@ -718,7 +718,7 @@ void Channel::sendto(bool reliable, Bundle* pBundle)
 		if (pPacketSender_->type() != PacketSender::UDP_PACKET_SENDER)
 		{
 			TCPPacketSender::reclaimPoolObject((TCPPacketSender*)pPacketSender_);
-			pPacketSender_ = KCPPacketSender::createPoolObject();
+			pPacketSender_ = KCPPacketSender::createPoolObject(OBJECTPOOL_POINT);
 			pPacketSender_->pEndPoint(pEndPoint_);
 			pPacketSender_->pNetworkInterface(pNetworkInterface_);
 		}
@@ -778,7 +778,7 @@ void Channel::send(Bundle* pBundle)
 	{
 		if (pPacketSender_ == NULL)
 		{
-			pPacketSender_ = TCPPacketSender::createPoolObject();
+			pPacketSender_ = TCPPacketSender::createPoolObject(OBJECTPOOL_POINT);
 			pPacketSender_->pEndPoint(pEndPoint_);
 			pPacketSender_->pNetworkInterface(pNetworkInterface_);
 		}
@@ -787,7 +787,7 @@ void Channel::send(Bundle* pBundle)
 			if (pPacketSender_->type() != PacketSender::TCP_PACKET_SENDER)
 			{
 				KCPPacketSender::reclaimPoolObject((KCPPacketSender*)pPacketSender_);
-				pPacketSender_ = TCPPacketSender::createPoolObject();
+				pPacketSender_ = TCPPacketSender::createPoolObject(OBJECTPOOL_POINT);
 				pPacketSender_->pEndPoint(pEndPoint_);
 				pPacketSender_->pNetworkInterface(pNetworkInterface_);
 			}
@@ -1064,7 +1064,7 @@ bool Channel::handshake(Packet* pPacket)
 			}
 			else
 			{
-				UDPPacket* pHelloAckUDPPacket = UDPPacket::createPoolObject();
+				UDPPacket* pHelloAckUDPPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);
 				(*pHelloAckUDPPacket) << Network::UDP_HELLO_ACK << KBEVersion::versionString() << (uint32)id();
 				pEndPoint()->sendto(pHelloAckUDPPacket->data(), pHelloAckUDPPacket->length());
 				UDPPacket::reclaimPoolObject(pHelloAckUDPPacket);
@@ -1200,7 +1200,7 @@ Bundle* Channel::createSendBundle()
 		}
 	}
 	
-	Bundle* pBundle = Bundle::createPoolObject();
+	Bundle* pBundle = Bundle::createPoolObject(OBJECTPOOL_POINT);
 	pBundle->pChannel(this);
 	return pBundle;
 }

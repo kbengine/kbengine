@@ -96,12 +96,12 @@ public:
 
 public:
 	static ObjectPool<MemoryStream>& ObjPool();
-	static MemoryStream* createPoolObject();
+	static MemoryStream* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(MemoryStream* obj);
 	static void destroyObjPool();
 
 	typedef KBEShared_ptr< SmartPoolObject< MemoryStream > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 
 	virtual size_t getPoolObjectBytes();
 	virtual void onReclaimObject();
@@ -122,10 +122,7 @@ public:
 
     MemoryStream(const MemoryStream &buf): rpos_(buf.rpos_), wpos_(buf.wpos_), data_(buf.data_) { }
 	
-	virtual ~MemoryStream()
-	{
-		clear(true);
-	}
+	virtual ~MemoryStream();
 	
     void clear(bool clearData)
     {
@@ -945,7 +942,7 @@ inline void MemoryStream::read_skip<std::string>()
 }
 
 // 从对象池中创建与回收 
-#define NEW_MEMORY_STREAM() MemoryStream::createPoolObject()
+#define NEW_MEMORY_STREAM() MemoryStream::createPoolObject(OBJECTPOOL_POINT)
 #define DELETE_MEMORY_STREAM(obj) { MemoryStream::reclaimPoolObject(obj); obj = NULL; }
 
 }

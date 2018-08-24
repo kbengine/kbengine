@@ -13,9 +13,9 @@ class UDPPacket : public Packet
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< UDPPacket > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<UDPPacket>& ObjPool();
-	static UDPPacket* createPoolObject();
+	static UDPPacket* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(UDPPacket* obj);
 	static void destroyObjPool();
 	static size_t maxBufferSize();

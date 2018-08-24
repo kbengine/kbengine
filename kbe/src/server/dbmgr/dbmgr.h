@@ -247,8 +247,7 @@ protected:
 	uint32												numExecuteRawDatabaseCommand_;
 	uint32												numCreatedAccount_;
 
-	InterfacesHandler*									pInterfacesAccountHandler_;
-	InterfacesHandler*									pInterfacesChargeHandler_;
+	InterfacesHandler*									pInterfacesHandler_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
 	UpdateDBServerLogHandler*							pUpdateDBServerLogHandler_;

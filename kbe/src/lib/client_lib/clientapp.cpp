@@ -396,7 +396,7 @@ void ClientApp::handleGameTick()
 				if(ret)
 				{
 					// 先握手然后等helloCB之后再进行登录
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 					(*pBundle).newMessage(BaseappInterface::hello);
 					(*pBundle) << KBEVersion::versionString();
 					(*pBundle) << KBEVersion::scriptVersionString();
@@ -654,7 +654,7 @@ bool ClientApp::login(std::string accountName, std::string passwd, std::string d
 	if(ret)
 	{
 		// 先握手然后等helloCB之后再进行登录
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(LoginappInterface::hello);
 		(*pBundle) << KBEVersion::versionString();
 		(*pBundle) << KBEVersion::scriptVersionString();

@@ -59,7 +59,7 @@ Reason WebSocketPacketFilter::send(Channel * pChannel, PacketSender& sender, Pac
 		return PacketFilter::send(pChannel, sender, pPacket, userarg);
 
 	Bundle* pBundle = pPacket->pBundle();
-	TCPPacket* pRetTCPPacket = TCPPacket::createPoolObject();
+	TCPPacket* pRetTCPPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
 	websocket::WebSocketProtocol::FrameType frameType = websocket::WebSocketProtocol::BINARY_FRAME;
 
 	if (pBundle)
@@ -130,7 +130,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				if(pFragmentDatasRemain_ > 0)
 				{
 					pPacket->rpos(rpos);
-					pTCPPacket_ = TCPPacket::createPoolObject();
+					pTCPPacket_ = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
 					pTCPPacket_->append(*(static_cast<MemoryStream*>(pPacket)));
 					pPacket->done();
 				}
@@ -252,7 +252,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 			}
 
 			if(pTCPPacket_ == NULL)
-				pTCPPacket_ = TCPPacket::createPoolObject();
+				pTCPPacket_ = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
 
 			if(pFragmentDatasRemain_ <= (int32)pPacket->length())
 			{

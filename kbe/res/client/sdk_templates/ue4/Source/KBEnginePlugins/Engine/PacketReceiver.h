@@ -4,8 +4,9 @@
 
 #include "KBECommon.h"
 
-class NetworkInterface;
+class NetworkInterfaceBase;
 class MessageReader;
+class MemoryStream;
 
 /*
 	包接收模块(与服务端网络部分的名称对应)
@@ -14,14 +15,14 @@ class MessageReader;
 class KBENGINEPLUGINS_API PacketReceiver
 {
 public:
-	PacketReceiver(NetworkInterface* pNetworkInterface);
+	PacketReceiver(NetworkInterfaceBase* pNetworkInterface);
 	virtual ~PacketReceiver();
 
 public:
-	void process();
+	virtual void process();
 
 protected:
-	NetworkInterface* pNetworkInterface_;
+	NetworkInterfaceBase * pNetworkInterface_;
 	MessageReader* pMessageReader_;
 	MemoryStream* pBuffer_;
 };

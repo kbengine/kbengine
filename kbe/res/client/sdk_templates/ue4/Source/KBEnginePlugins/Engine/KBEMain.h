@@ -103,8 +103,14 @@ public:
 	int serverHeartbeatTick;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
-	int SEND_BUFFER_MAX;
+	int TCP_SEND_BUFFER_MAX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
-	int RECV_BUFFER_MAX;
+	int TCP_RECV_BUFFER_MAX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	int UDP_SEND_BUFFER_MAX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	int UDP_RECV_BUFFER_MAX;
 };

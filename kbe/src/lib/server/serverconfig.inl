@@ -117,6 +117,7 @@ INLINE DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)
 
 	return NULL;
 }
+
 //-------------------------------------------------------------------------------------
 INLINE float ServerConfig::channelExternalTimeout(void) const { return Network::g_channelExternalTimeout; }
 

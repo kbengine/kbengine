@@ -297,7 +297,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 
 	CreateAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -409,7 +409,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 
 	LoginAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	(*pBundle).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -531,7 +531,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 					DBID dbid = 0;
 					CALLBACK_ID cbid = 0;
 
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 					(*pBundle).newMessage(DbmgrInterface::onChargeCB);
 					(*pBundle) << baseappID << orderID << dbid;
@@ -554,7 +554,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 	KBEShared_ptr<Orders> orders = iter->second;
 	orders->getDatas = extraDatas;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
 	(*pBundle) << orders->baseappID << orders->ordersID << orders->dbid;

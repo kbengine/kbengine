@@ -61,7 +61,7 @@ public:
 	InterfacesHandler_Dbmgr();
 	virtual ~InterfacesHandler_Dbmgr();
 	
-	virtual bool initialize(){ return true; }
+	virtual bool initialize() { return true; }
 
 	virtual void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
 
@@ -95,6 +95,11 @@ public:
 	InterfacesHandler_Interfaces();
 	virtual ~InterfacesHandler_Interfaces();
 	
+	void setAddr(const Network::Address& addr)
+	{
+		addr_ = addr;
+	}
+
 	virtual bool initialize();
 
 	virtual void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
@@ -125,6 +130,7 @@ public:
 	virtual bool process();
 
 protected:
+	Network::Address addr_;
 
 };
 

@@ -29,9 +29,9 @@ ObjectPool<UDPPacketSender>& UDPPacketSender::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-UDPPacketSender* UDPPacketSender::createPoolObject()
+UDPPacketSender* UDPPacketSender::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -55,9 +55,9 @@ void UDPPacketSender::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-UDPPacketSender::SmartPoolObjectPtr UDPPacketSender::createSmartPoolObj()
+UDPPacketSender::SmartPoolObjectPtr UDPPacketSender::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacketSender>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacketSender>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------

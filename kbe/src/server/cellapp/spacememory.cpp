@@ -33,7 +33,7 @@ destroyTime_(0)
 	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
 	if (pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
 		
 		(*pBundle) << g_componentID;
@@ -61,7 +61,7 @@ SpaceMemory::~SpaceMemory()
 	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
 	if (pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
 
 		(*pBundle) << g_componentID;
@@ -288,7 +288,7 @@ void SpaceMemory::unLoadSpaceGeometry()
 	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
 	if (pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
 
 		(*pBundle) << g_componentID;
@@ -320,7 +320,7 @@ void SpaceMemory::onLoadedSpaceGeometryMapping(NavigationHandlePtr pNavHandle)
 	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
 	if (pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappmgrInterface::updateSpaceData);
 
 		(*pBundle) << g_componentID;
@@ -630,7 +630,7 @@ void SpaceMemory::onSpaceDataChanged(const std::string& key, const std::string& 
 		if(pEntity == NULL || pEntity->isDestroyed() || !pEntity->hasWitness())
 			continue;
 
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 		
 		if(!isdel)
@@ -677,7 +677,7 @@ void SpaceMemory::_addSpaceDatasToEntityClient(const Entity* pEntity)
 		return;
 	}
 
-	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 
 	ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::initSpaceData, init);

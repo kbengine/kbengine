@@ -4,7 +4,7 @@
 
 #include "KBECommon.h"
 
-class NetworkInterface;
+class NetworkInterfaceBase;
 class MemoryStream;
 
 /*
@@ -14,12 +14,12 @@ class MemoryStream;
 class KBENGINEPLUGINS_API PacketSender
 {
 public:
-	PacketSender(NetworkInterface* pNetworkInterface);
+	PacketSender(NetworkInterfaceBase* pNetworkInterface);
 	virtual ~PacketSender();
 
 public:
-	bool send(MemoryStream* pMemoryStream);
+	virtual bool send(MemoryStream* pMemoryStream);
 
 protected:
-	NetworkInterface* pNetworkInterface_;
+	NetworkInterfaceBase * pNetworkInterface_;
 };

@@ -371,7 +371,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		return -1;
 	}
 
-	Network::EndPoint * pEndpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint * pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
@@ -389,7 +389,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 
 	if(ret == 0)
 	{
-		Network::Channel* pChannel = Network::Channel::createPoolObject();
+		Network::Channel* pChannel = Network::Channel::createPoolObject(OBJECTPOOL_POINT);
 		bool ret = pChannel->initialize(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
 		if(!ret)
 		{
@@ -424,7 +424,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		}
 		else
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			if(componentType == BASEAPPMGR_TYPE)
 			{
 				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
@@ -756,7 +756,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 	
 	epListen.setnodelay(true);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	// 由于COMMON_NETWORK_MESSAGE不包含client， 如果是bots， 我们需要单独处理
 	if(info->componentType != BOTS_TYPE)

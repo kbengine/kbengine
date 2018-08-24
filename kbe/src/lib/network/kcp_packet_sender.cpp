@@ -29,9 +29,9 @@ ObjectPool<KCPPacketSender>& KCPPacketSender::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-KCPPacketSender* KCPPacketSender::createPoolObject()
+KCPPacketSender* KCPPacketSender::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -55,9 +55,9 @@ void KCPPacketSender::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-KCPPacketSender::SmartPoolObjectPtr KCPPacketSender::createSmartPoolObj()
+KCPPacketSender::SmartPoolObjectPtr KCPPacketSender::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<KCPPacketSender>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<KCPPacketSender>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------

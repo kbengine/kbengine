@@ -21,9 +21,9 @@ ObjectPool<TCPPacket>& TCPPacket::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacket* TCPPacket::createPoolObject()
+TCPPacket* TCPPacket::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -42,9 +42,9 @@ void TCPPacket::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacket::SmartPoolObjectPtr TCPPacket::createSmartPoolObj()
+TCPPacket::SmartPoolObjectPtr TCPPacket::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacket>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacket>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
