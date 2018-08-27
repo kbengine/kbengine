@@ -271,8 +271,10 @@ public:
 	void updateExternalAddress(char* buf);
 
 	INLINE int16 gameUpdateHertz(void) const;
-	INLINE Network::Address interfacesAddr(void) const;
 
+	Network::Address interfacesAddr(void) const;
+	INLINE std::vector< Network::Address > interfacesAddrs(void) const;
+	
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
 	uint32 tcp_SOMAXCONN(COMPONENT_TYPE componentType);
@@ -315,6 +317,7 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Network::Address interfacesAddr_;
+	std::vector< Network::Address > interfacesAddrs_;
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

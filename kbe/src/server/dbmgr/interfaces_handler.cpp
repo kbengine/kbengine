@@ -259,14 +259,15 @@ void InterfacesHandler_Dbmgr::accountNewPassword(Network::Channel* pChannel, ENT
 
 //-------------------------------------------------------------------------------------
 InterfacesHandler_Interfaces::InterfacesHandler_Interfaces() :
-InterfacesHandler_Dbmgr()
+InterfacesHandler_Dbmgr(),
+addr_()
 {
 }
 
 //-------------------------------------------------------------------------------------
 InterfacesHandler_Interfaces::~InterfacesHandler_Interfaces()
 {
-	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	if(pInterfacesChannel)
 	{
 		pInterfacesChannel->condemn("");
@@ -279,7 +280,7 @@ InterfacesHandler_Interfaces::~InterfacesHandler_Interfaces()
 bool InterfacesHandler_Interfaces::createAccount(Network::Channel* pChannel, std::string& registerName,
 											  std::string& password, std::string& datas, ACCOUNT_TYPE uatype)
 {
-	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	KBE_ASSERT(pInterfacesChannel);
 
 	if(pInterfacesChannel->isDestroyed())
@@ -344,7 +345,7 @@ void InterfacesHandler_Interfaces::onCreateAccountCB(KBEngine::MemoryStream& s)
 bool InterfacesHandler_Interfaces::loginAccount(Network::Channel* pChannel, std::string& loginName,
 											 std::string& password, std::string& datas)
 {
-	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	KBE_ASSERT(pInterfacesChannel);
 
 	if(pInterfacesChannel->isDestroyed())
@@ -431,7 +432,7 @@ bool InterfacesHandler_Interfaces::reconnect()
 		Network::Channel::reclaimPoolObject(pInterfacesChannel);
 	}
 
-	Network::Address addr = g_kbeSrvConfig.interfacesAddr();
+	Network::Address addr = addr_;
 	Network::EndPoint* pEndPoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	pEndPoint->addr(addr);
 
@@ -507,7 +508,7 @@ bool InterfacesHandler_Interfaces::process()
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 {
-	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	KBE_ASSERT(pInterfacesChannel);
 
 	if(pInterfacesChannel->isDestroyed())
@@ -604,7 +605,7 @@ void InterfacesHandler_Interfaces::onChargeCB(KBEngine::MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void InterfacesHandler_Interfaces::eraseClientReq(Network::Channel* pChannel, std::string& logkey)
 {
-	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(g_kbeSrvConfig.interfacesAddr());
+	Network::Channel* pInterfacesChannel = Dbmgr::getSingleton().networkInterface().findChannel(addr_);
 	KBE_ASSERT(pInterfacesChannel);
 
 	if(pInterfacesChannel->isDestroyed())
