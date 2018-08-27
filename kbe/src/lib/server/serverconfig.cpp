@@ -21,6 +21,7 @@ gameUpdateHertz_(10),
 tick_max_buffered_logs_(4096),
 tick_max_sync_logs_(32),
 interfacesAddr_(),
+interfacesAddrs_(),
 shutdown_time_(1.f),
 shutdown_waitTickTime_(1.f),
 callback_timeout_(180.f),
@@ -860,32 +861,42 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "InterfacesServiceAddr");
 		if (node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "host");
+			TiXmlNode* loopNode = node;
+
+			do
+			{
+				if (TiXmlNode::TINYXML_COMMENT == loopNode->Type())
+					continue;
+
+				std::string name = loopNode->Value();
+				name = strutil::kbe_trim(name);
+
+				if (name == "item")
+				{
+					if (loopNode->FirstChild() != NULL)
+					{
+						TiXmlNode* host_node = xml->enterNode(loopNode->FirstChild(), "host");
+						TiXmlNode* port_node = xml->enterNode(loopNode->FirstChild(), "port");
+						if (host_node && port_node)
+						{
+							std::string ip = xml->getValStr(host_node);
+							int port = xml->getValInt(port_node);
+
+							if (port <= 0)
+								port = KBE_INTERFACES_TCP_PORT;
+
+							Network::Address addr(ip, port);
+							interfacesAddrs_.push_back(addr);
+						}
+					}
+				}
+			} while ((loopNode = loopNode->NextSibling()));
+
+			TiXmlNode* childnode = xml->enterNode(node, "enable");
 			if (childnode)
 			{
-				std::string ip = xml->getValStr(childnode);
-				Network::Address addr(ip, ntohs(interfacesAddr_.port));
-				interfacesAddr_ = addr;
-			}
-
-			uint16 port = 0;
-			childnode = xml->enterNode(node, "port");
-			if (childnode)
-			{
-				port = xml->getValInt(childnode);
-
-				if (port <= 0)
-					port = KBE_INTERFACES_TCP_PORT;
-
-				Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
-				interfacesAddr_ = addr;
-			}
-
-			childnode = xml->enterNode(node, "enable");
-			if (childnode)
-			{
-				if(xml->getValStr(childnode) != "true")
-					interfacesAddr_ = Network::Address::NONE;
+				if (xml->getValStr(childnode) != "true")
+					interfacesAddrs_.clear();
 			}
 		}
 
@@ -1238,6 +1249,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 		{
 			do
 			{
+				if (TiXmlNode::TINYXML_COMMENT == node->Type())
+					continue;
+
 				if(node->FirstChild() != NULL)
 				{
 					std::string c = node->FirstChild()->Value();

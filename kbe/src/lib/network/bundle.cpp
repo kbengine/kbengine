@@ -86,6 +86,24 @@ Bundle::Bundle(Channel * pChannel, ProtocolType pt):
 //-------------------------------------------------------------------------------------
 Bundle::Bundle(const Bundle& bundle)
 {
+	copy(bundle);
+}
+
+//-------------------------------------------------------------------------------------
+Bundle::~Bundle()
+{
+	clear(false);
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::onReclaimObject()
+{
+	clear(true);
+}
+
+//-------------------------------------------------------------------------------------
+void Bundle::copy(const Bundle& bundle)
+{
 	// 这些必须在前面设置
 	// 否则中途创建packet可能错误
 	isTCPPacket_ = bundle.isTCPPacket_;
@@ -102,7 +120,7 @@ Bundle::Bundle(const Bundle& bundle)
 	}
 
 	pCurrPacket_ = NULL;
-	if(bundle.pCurrPacket_)
+	if (bundle.pCurrPacket_)
 	{
 		newPacket();
 		pCurrPacket_->append(*static_cast<MemoryStream*>(bundle.pCurrPacket_));
@@ -114,18 +132,6 @@ Bundle::Bundle(const Bundle& bundle)
 	currMsgHandlerLength_ = bundle.currMsgHandlerLength_;
 	currMsgLengthPos_ = bundle.currMsgLengthPos_;
 	_calcPacketMaxSize();
-}
-
-//-------------------------------------------------------------------------------------
-Bundle::~Bundle()
-{
-	clear(false);
-}
-
-//-------------------------------------------------------------------------------------
-void Bundle::onReclaimObject()
-{
-	clear(true);
 }
 
 //-------------------------------------------------------------------------------------

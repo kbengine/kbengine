@@ -101,7 +101,10 @@ INLINE ENGINE_COMPONENT_INFO& ServerConfig::getComponent(COMPONENT_TYPE componen
 INLINE int16 ServerConfig::gameUpdateHertz(void) const { return gameUpdateHertz_;}
 
 //-------------------------------------------------------------------------------------	
-INLINE Network::Address ServerConfig::interfacesAddr(void) const { return interfacesAddr_;}
+INLINE Network::Address ServerConfig::interfacesAddr(void) const { return interfacesAddr_; }
+
+//-------------------------------------------------------------------------------------	
+INLINE std::vector< Network::Address > ServerConfig::interfacesAddrs(void) const { return interfacesAddrs_;}
 
 //-------------------------------------------------------------------------------------	
 INLINE DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)

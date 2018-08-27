@@ -4877,7 +4877,9 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy(bundle);
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -5050,7 +5052,9 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle((*pBundleImportEntityDefDatas_)));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy((*pBundleImportEntityDefDatas_));
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------

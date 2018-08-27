@@ -221,6 +221,8 @@ public:
 
 	virtual void onChannelDeregister(Network::Channel * pChannel);
 
+	InterfacesHandler* findBestInterfacesHandler();
+
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -247,7 +249,7 @@ protected:
 	uint32												numExecuteRawDatabaseCommand_;
 	uint32												numCreatedAccount_;
 
-	InterfacesHandler*									pInterfacesHandler_;
+	std::vector<InterfacesHandler*>						pInterfacesHandlers_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
 	UpdateDBServerLogHandler*							pUpdateDBServerLogHandler_;

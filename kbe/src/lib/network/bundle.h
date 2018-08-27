@@ -104,6 +104,8 @@ public:
 	void clear(bool isRecl);
 	bool empty() const;
 	
+	void copy(const Bundle& bundle);
+
 	INLINE int32 packetMaxSize() const;
 	int packetsSize() const;
 
