@@ -18,8 +18,8 @@ public class KBEMain : MonoBehaviour
 	public string ip = "127.0.0.1";
 	public int port = @{KBE_LOGIN_PORT};
 	public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
-	public int syncPlayerMS = @{KBE_UPDATEHZ} * 10;
-	public int threadUpdateHZ = @{KBE_UPDATEHZ};
+	public int syncPlayerMS = 1000 / @{KBE_UPDATEHZ};
+	public int threadUpdateHZ = @{KBE_UPDATEHZ} * 2;
 	public int serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT} / 2;
 	public int SEND_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public int RECV_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;

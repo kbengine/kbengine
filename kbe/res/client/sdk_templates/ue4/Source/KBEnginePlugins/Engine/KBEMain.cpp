@@ -21,7 +21,7 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 
 	ip = TEXT("127.0.0.1");
 	port = @{KBE_LOGIN_PORT};
-	syncPlayerMS = @{KBE_UPDATEHZ} * 10;
+	syncPlayerMS = 1000 / @{KBE_UPDATEHZ};
 	useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	isOnInitCallPropertysSetMethods = true;
 	clientType = EKCLIENT_TYPE::CLIENT_TYPE_WIN;
