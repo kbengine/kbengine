@@ -947,7 +947,6 @@ KBEngine.mappingDataType = function(writer, argType)
 	KBEngine.datatype2id["PY_DICT"] = 10;
 	KBEngine.datatype2id["PY_TUPLE"] = 10;
 	KBEngine.datatype2id["PY_LIST"] = 10;
-	KBEngine.datatype2id["ENTITYCALL"] = 10;
 
 	KBEngine.datatype2id["BLOB"] = 11;
 
@@ -966,6 +965,8 @@ KBEngine.mappingDataType = function(writer, argType)
 	KBEngine.datatype2id["FIXED_DICT"] = 18;
 
 	KBEngine.datatype2id["ARRAY"] = 19;
+
+	KBEngine.datatype2id["ENTITYCALL"] = 20;
 }
 
 KBEngine.mappingDataType();
@@ -2321,10 +2322,23 @@ KBEngine.DATATYPE_ENTITYCALL = function()
 	
 	this.createFromStream = function(stream)
 	{
+		var cid = KBEngine.reader.readUint64.call(stream);
+		var id = KBEngine.reader.readInt32.call(stream);
+		var type = KBEngine.reader.readUint16.call(stream);
+		var utype = KBEngine.reader.readUint16.call(stream);
 	}
 	
 	this.addToStream = function(stream, v)
 	{
+		var cid = new KBEngine.UINT64(0, 0);
+		var id = 0;
+		var type = 0;
+		var utype = 0;
+
+		stream.writeUint64(cid);
+		stream.writeInt32(id);
+		stream.writeUint16(type);
+		stream.writeUint16(utype);
 	}
 	
 	this.parseDefaultValStr = function(v)
@@ -4667,8 +4681,15 @@ KBEngine.destroy = function()
 	KBEngine.app = undefined;
 }
 
-if(module != undefined)
+try
 {
-	module.exports = KBEngine;
+	if(module != undefined)
+	{
+		module.exports = KBEngine;
+	}
+}
+catch(e)
+{
+	
 }
 
