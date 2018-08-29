@@ -120,6 +120,16 @@ public:
 		appendBlob(v);
 	}
 
+	void writeEntitycall(const TArray<uint8>& v)
+	{
+		uint64 cid = 0;
+		int32 id = 0;
+		uint16 type = 0;
+		uint16 utype = 0;
+
+		(*this) << cid << id << type << utype;
+	}
+
 	void writeVector2(const FVector2D& v);
 	void writeVector3(const FVector& v);
 	void writeVector4(const FVector4& v);
