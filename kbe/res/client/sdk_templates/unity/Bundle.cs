@@ -239,5 +239,20 @@
 			checkStream(16);
 			stream.writeVector4(v);
 		}
+
+		public void writeEntitycall(byte[] v)
+		{
+			checkStream(16);
+
+			UInt64 cid = 0;
+			Int32 id = 0;
+			UInt16 type = 0;
+			UInt16 utype = 0;
+
+			stream.writeUint64(cid);
+			stream.writeInt32(id);
+			stream.writeUint16(type);
+			stream.writeUint16(utype);
+		}
     }
 } 

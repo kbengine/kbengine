@@ -55,7 +55,7 @@ uint16 datatype2id(std::string datatype)
 		return 8;
 	else if (datatype == "INT64")
 		return 9;
-	else if (datatype == "PYTHON" || datatype == "PY_DICT" || datatype == "PY_TUPLE" || datatype == "PY_LIST" || datatype == "ENTITYCALL")
+	else if (datatype == "PYTHON" || datatype == "PY_DICT" || datatype == "PY_TUPLE" || datatype == "PY_LIST")
 		return 10;
 	else if (datatype == "BLOB")
 		return 11;
@@ -75,6 +75,8 @@ uint16 datatype2id(std::string datatype)
 		return 18;
 	else if (datatype == "ARRAY")
 		return 19;
+	else if (datatype == "ENTITYCALL")
+		return 20;
 	else if (datatype == "KBE_DATATYPE2ID_MAX")
 		return KBE_DATATYPE2ID_MAX;
 
@@ -149,6 +151,9 @@ std::string datatype2nativetype(uint16 datatype)
 		break;
 	case 19:
 		return "ARRAY";
+		break;
+	case 20:
+		return "ENTITYCALL";
 		break;
 	default:
 		break;
