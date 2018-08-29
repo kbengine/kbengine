@@ -1293,8 +1293,8 @@ void EntityApp<E>::onDbmgrInitCompleted(Network::Channel* pChannel,
 
 	if(digest != EntityDef::md5().getDigestStr())
 	{
-		ERROR_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: digest not match. curr({}) != dbmgr({})\n",
-			EntityDef::md5().getDigestStr(), digest));
+		ERROR_MSG(fmt::format("EntityApp::onDbmgrInitCompleted: digest not match. curr({}) != dbmgr({}, addr={})\n",
+			EntityDef::md5().getDigestStr(), digest, pChannel->c_str()));
 
 		this->shutDown();
 	}
