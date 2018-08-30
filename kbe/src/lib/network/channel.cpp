@@ -430,7 +430,7 @@ const char * Channel::c_str() const
 		pEndPoint_->addr().writeToString(tdodgyString, MAX_BUF);
 
 	kbe_snprintf(dodgyString, MAX_BUF, "%s/%d/%d/%d", tdodgyString, id_, 
-		this->isCondemn(), this->isDestroyed());
+		this->condemn(), this->isDestroyed());
 
 	return dodgyString;
 }
@@ -481,12 +481,12 @@ void Channel::send(Bundle * pBundle)
 		return;
 	}
 
-	if(isCondemn())
+	if(condemn() > 0)
 	{
 		//WARNING_MSG(fmt::format("Channel::send: error, reason={}, from {}.\n", reasonToString(REASON_CHANNEL_CONDEMN), 
 		//	c_str()));
 
-		this->clearBundle();
+		// this->clearBundle();
 
 		if(pBundle)
 			Network::Bundle::reclaimPoolObject(pBundle);
@@ -513,7 +513,7 @@ void Channel::send(Bundle * pBundle)
 		pPacketSender_->processSend(this);
 
 		// 如果不能立即发送到系统缓冲区，那么交给poller处理
-		if(bundles_.size() > 0 && !isCondemn() && !isDestroyed())
+		if(bundles_.size() > 0 && condemn() == 0 && !isDestroyed())
 		{
 			flags_ |= FLAG_SENDING;
 			pNetworkInterface_->dispatcher().registerWriteFileDescriptor(*pEndPoint_, pPacketSender_);
@@ -715,14 +715,12 @@ void Channel::addReceiveWindow(Packet* pPacket)
 }
 
 //-------------------------------------------------------------------------------------
-void Channel::condemn(const std::string& reason)
+void Channel::condemn(const std::string& reason, bool waitSendCompletedDestroy)
 { 
-	if(isCondemn())
-		return;
+	if(condemnReason_.size() == 0)
+		condemnReason_ = reason;
 
-	condemnReason_ = reason;
-	flags_ |= FLAG_CONDEMN; 
-	//WARNING_MSG(fmt::format("Channel::condemn[{:p}]: channel({}).\n", (void*)this, this->c_str())); 
+	flags_ |= (waitSendCompletedDestroy ? FLAG_CONDEMN_AND_WAIT_DESTROY : FLAG_CONDEMN);
 }
 
 //-------------------------------------------------------------------------------------
@@ -790,7 +788,7 @@ void Channel::processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, P
 		return;
 	}
 
-	if(this->isCondemn())
+	if(this->condemn() > 0)
 	{
 		ERROR_MSG(fmt::format("Channel::processPackets({}): channel[{:p}] is condemn.\n", 
 			this->c_str(), (void*)this));

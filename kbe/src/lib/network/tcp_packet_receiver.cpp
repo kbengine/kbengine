@@ -90,7 +90,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 	Channel* pChannel = getChannel();
 	KBE_ASSERT(pChannel != NULL);
 
-	if(pChannel->isCondemn())
+	if(pChannel->condemn() > 0)
 	{
 		return false;
 	}

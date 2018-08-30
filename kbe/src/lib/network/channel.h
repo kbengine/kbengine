@@ -77,6 +77,16 @@ public:
 		CHANNEL_WEB = 1,
 	};
 
+	enum Flags
+	{
+		FLAG_SENDING					= 0x00000001,	// 发送信息中
+		FLAG_DESTROYED					= 0x00000002,	// 通道已经销毁
+		FLAG_HANDSHAKE					= 0x00000004,	// 已经握手过
+		FLAG_CONDEMN_AND_WAIT_DESTROY	= 0x00000008,	// 该频道已经变得不合法，即将在数据发送完毕后关闭
+		FLAG_CONDEMN_AND_DESTROY		= 0x00000010,	// 该频道已经变得不合法，即将关闭
+		FLAG_CONDEMN					= FLAG_CONDEMN_AND_WAIT_DESTROY | FLAG_CONDEMN_AND_DESTROY,
+	};
+
 public:
 	Channel();
 
@@ -165,8 +175,18 @@ public:
 	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
-	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
-	void condemn(const std::string& reason);
+	uint32 condemn() const 
+	{
+		if ((flags_ & FLAG_CONDEMN_AND_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_DESTROY;
+
+		if ((flags_ & FLAG_CONDEMN_AND_WAIT_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_WAIT_DESTROY;
+
+		return 0;
+	}
+
+	void condemn(const std::string& reason, bool waitSendCompletedDestroy = true);
 	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
@@ -203,16 +223,6 @@ public:
 	uint32 getRTT();
 
 private:
-
-	enum Flags
-	{
-		FLAG_SENDING					= 0x00000001,	// 发送信息中
-		FLAG_DESTROYED					= 0x00000002,	// 通道已经销毁
-		FLAG_HANDSHAKE					= 0x00000004,	// 已经握手过
-		FLAG_CONDEMN_AND_WAIT_DESTROY	= 0x00000008,	// 该频道已经变得不合法，即将在数据发送完毕后关闭
-		FLAG_CONDEMN_AND_DESTROY		= 0x00000010,	// 该频道已经变得不合法，即将关闭
-		FLAG_CONDEMN					= FLAG_CONDEMN_AND_WAIT_DESTROY | FLAG_CONDEMN_AND_DESTROY,
-	};
 
 	enum TimeOutType
 	{
