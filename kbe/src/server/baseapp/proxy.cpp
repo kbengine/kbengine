@@ -91,7 +91,7 @@ void Proxy::kick()
 		//pBundle->send(Baseapp::getSingleton().networkInterface(), pChannel);
 		this->sendToClient(ClientInterface::onKicked, pBundle);
 		this->sendToClient();
-		pChannel->condemn("");
+		pChannel->condemn("", true);
 	}
 }
 

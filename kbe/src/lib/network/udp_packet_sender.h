@@ -49,6 +49,9 @@ protected:
 	virtual void onSent(Packet* pPacket);
 	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg);
 
+protected:
+	uint8 sendfailCount_;
+
 };
 }
 }

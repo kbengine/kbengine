@@ -123,12 +123,9 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 	
 	KBE_ASSERT(pSrcChannel != NULL);
 
-	if(pSrcChannel->isCondemn())
+	if (pSrcChannel->condemn() > 0)
 	{
 		UDPPacket::reclaimPoolObject(pChannelReceiveWindow);
-		pNetworkInterface_->deregisterChannel(pSrcChannel);
-		pSrcChannel->destroy();
-		Network::Channel::reclaimPoolObject(pSrcChannel);
 		return false;
 	}
 	

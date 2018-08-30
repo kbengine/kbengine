@@ -123,7 +123,7 @@ public:
 
 	INLINE void pushBundle(Bundle* pBundle);
 	
-	bool sending() const { return (flags_ & FLAG_SENDING) > 0;}
+	bool sending() const;
 	void stopSend();
 
 	void send(Bundle* pBundle = NULL);
@@ -168,8 +168,18 @@ public:
 	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
-	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
-	void condemn(const std::string& reason);
+	uint32 condemn() const
+	{
+		if ((flags_ & FLAG_CONDEMN_AND_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_DESTROY;
+
+		if ((flags_ & FLAG_CONDEMN_AND_WAIT_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_WAIT_DESTROY;
+
+		return 0;
+	}
+
+	void condemn(const std::string& reason, bool waitSendCompletedDestroy = true);
 	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
