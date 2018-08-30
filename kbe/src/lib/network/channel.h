@@ -62,10 +62,12 @@ public:
 
 	enum Flags
 	{
-		FLAG_SENDING = 0x00000001,		// 发送信息中
-		FLAG_DESTROYED = 0x00000002,	// 通道已经销毁
-		FLAG_HANDSHAKE = 0x00000004,	// 已经握手过
-		FLAG_CONDEMN = 0x00000008,		// 该频道已经变得不合法
+		FLAG_SENDING					= 0x00000001,	// 发送信息中
+		FLAG_DESTROYED					= 0x00000002,	// 通道已经销毁
+		FLAG_HANDSHAKE					= 0x00000004,	// 已经握手过
+		FLAG_CONDEMN_AND_WAIT_DESTROY	= 0x00000008,	// 该频道已经变得不合法，即将在数据发送完毕后关闭
+		FLAG_CONDEMN_AND_DESTROY		= 0x00000010,	// 该频道已经变得不合法，即将关闭
+		FLAG_CONDEMN					= FLAG_CONDEMN_AND_WAIT_DESTROY | FLAG_CONDEMN_AND_DESTROY,
 	};
 
 public:
