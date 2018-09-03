@@ -206,6 +206,8 @@ inline uint64 secondsToStamps(float seconds)
 	return (uint64)(seconds * stampsPerSecondD());
 }
 
+void autoFixUserDigestUID();
+
 /*
  账号和密码最大长度
 */
