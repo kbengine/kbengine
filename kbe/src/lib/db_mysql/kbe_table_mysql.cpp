@@ -38,7 +38,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 	if (!serverLogTable.clearTimeoutLogs(pdbi, cids))
 		return false;
 	
-	cids.push_back(g_componentID);
+	cids.push_back(getUserUID());
 	
 	sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
 	
@@ -97,7 +97,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 	sqlstr += tbuf;
 	sqlstr += ",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, getUserUID());
 	sqlstr += tbuf;
 	sqlstr += ")";
 
@@ -246,7 +246,7 @@ bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 	sqlstr += tbuf;
 	sqlstr += ",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, getUserUID());
 	sqlstr += tbuf;
 	sqlstr += ") ON DUPLICATE KEY UPDATE heartbeatTime=";
 
@@ -284,7 +284,7 @@ bool KBEServerLogTableMysql::queryServer(DBInterface * pdbi, ServerLog& serverlo
 	std::string sqlstr = "select heartbeatTime from " KBE_TABLE_PERFIX "_serverlog where logger=";
 
 	char tbuf[MAX_BUF];
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, g_componentID);
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, getUserUID());
 	sqlstr += tbuf;
 
 	sqlstr += " LIMIT 1";
@@ -336,7 +336,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 			KBEngine::StringConv::str2value(serverlog.heartbeatTime, arow[0]);
 			KBEngine::StringConv::str2value(serverlog.logger, arow[1]);
 			
-			if(serverlog.logger == g_componentID)
+			if(serverlog.logger == getUserUID())
 				continue;
 			
 			if(time(NULL) - serverlog.heartbeatTime > KBEServerLogTable::TIMEOUT * 2)
@@ -362,7 +362,7 @@ bool KBEServerLogTableMysql::clearTimeoutLogs(DBInterface * pdbi, const std::vec
 	std::vector<COMPONENT_ID>::const_iterator citer = cids.begin();
 	for(; citer != cids.end(); ++citer)
 	{
-		if((*citer) == g_componentID)
+		if((*citer) == getUserUID())
 			continue;
 
 		kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
