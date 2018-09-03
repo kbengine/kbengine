@@ -2,7 +2,9 @@
 
 
 #include "common.h"
+#include "common/md5.h"
 #include "server/serverconfig.h"
+#include "server/machine_infos.h"
 
 namespace KBEngine { 
 
@@ -142,6 +144,30 @@ std::string datatype2nativetype(uint16 datatype)
 	};
 
 	return "";
+}
+
+void autoFixUserDigestUID()
+{
+	MachineInfos machineInfo;
+
+	std::string datas = fmt::format("{}{}{}{}",
+		getUsername(),
+		machineInfo.machineName(),
+		machineInfo.cpuInfo(),
+		machineInfo.memInfo());
+	
+	std::string md5_digest = KBE_MD5::getDigest(datas.data(), (int)datas.length());
+
+	int mod = 0;
+	int divider = 65535;
+
+	for (int i = 0; i<32; i++)
+	{
+		int digit = md5_digest[i];
+		mod = (mod * 16 + digit) % divider;
+	}
+
+	setenv("UID", fmt::format("{}", (uint16)mod).c_str(), 1);
 }
 
 //-------------------------------------------------------------------------------------
