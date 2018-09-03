@@ -2548,7 +2548,12 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.serverErrorsDescrImported = false;
 	this.entitydefImported = false;
 	
-	
+	KBEngine.getSingleton = function()
+	{
+		console.assert(KBEngine.app != undefined, "KBEngineApp is null");
+		return KBEngine.app;
+	}
+
 	// 描述服务端返回的错误信息
 	KBEngine.ServerErr = function()
 	{
