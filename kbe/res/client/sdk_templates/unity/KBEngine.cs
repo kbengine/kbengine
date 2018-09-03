@@ -135,7 +135,7 @@
 			initialize(args);
         }
 
-		public KBEngineApp getSingleton() 
+		public static KBEngineApp getSingleton() 
 		{
 			if(KBEngineApp::app == null)
 			{
