@@ -135,6 +135,16 @@
 			initialize(args);
         }
 
+		public KBEngineApp getSingleton() 
+		{
+			if(KBEngineApp::app == null)
+			{
+				throw new Exception("Please create KBEngineApp!");
+			}
+
+			return KBEngineApp::app;
+		}
+
 		public virtual bool initialize(KBEngineArgs args)
 		{
 			_args = args;
