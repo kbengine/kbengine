@@ -312,7 +312,7 @@ KBEngine.Event = function()
 	{
 		if(arguments.length < 1)
 		{
-			KBEngine.ERROR_MSG('KBEngine.Event::fire: not found eventName!');  
+			//KBEngine.ERROR_MSG('KBEngine.Event::fire: not found eventName!');  
 			return;
 		}
 
