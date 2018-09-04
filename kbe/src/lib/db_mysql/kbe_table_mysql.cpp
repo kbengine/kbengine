@@ -56,7 +56,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 	if (!serverLogTable.clearTimeoutLogs(pdbi, cids))
 		return false;
 	
-	cids.push_back(getUserUID());
+	cids.push_back((uint64)getUserUID());
 	
 	sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
 	
@@ -115,7 +115,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 	sqlstr += tbuf;
 	sqlstr += ",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, getUserUID());
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (uint64)getUserUID());
 	sqlstr += tbuf;
 	sqlstr += ")";
 
@@ -264,7 +264,7 @@ bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 	sqlstr += tbuf;
 	sqlstr += ",";
 
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, getUserUID());
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (uint64)getUserUID());
 	sqlstr += tbuf;
 	sqlstr += ") ON DUPLICATE KEY UPDATE heartbeatTime=";
 
@@ -302,7 +302,7 @@ bool KBEServerLogTableMysql::queryServer(DBInterface * pdbi, ServerLog& serverlo
 	std::string sqlstr = "select heartbeatTime from " KBE_TABLE_PERFIX "_serverlog where logger=";
 
 	char tbuf[MAX_BUF];
-	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, getUserUID());
+	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (uint64)getUserUID());
 	sqlstr += tbuf;
 
 	sqlstr += " LIMIT 1";
@@ -354,7 +354,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 			KBEngine::StringConv::str2value(serverlog.heartbeatTime, arow[0]);
 			KBEngine::StringConv::str2value(serverlog.logger, arow[1]);
 			
-			if(serverlog.logger == getUserUID())
+			if(serverlog.logger == (uint64)getUserUID())
 				continue;
 			
 			if(time(NULL) - serverlog.heartbeatTime > KBEServerLogTable::TIMEOUT * 2)
@@ -380,7 +380,7 @@ bool KBEServerLogTableMysql::clearTimeoutLogs(DBInterface * pdbi, const std::vec
 	std::vector<COMPONENT_ID>::const_iterator citer = cids.begin();
 	for(; citer != cids.end(); ++citer)
 	{
-		if((*citer) == getUserUID())
+		if((*citer) == (uint64)getUserUID())
 			continue;
 
 		kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
