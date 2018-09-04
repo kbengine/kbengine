@@ -136,6 +136,14 @@ bool KBEServerLogTableRedis::queryServer(DBInterface * pdbi, ServerLog& serverlo
 }
 
 //-------------------------------------------------------------------------------------
+std::vector<COMPONENT_ID> KBEServerLogTableRedis::queryServers(DBInterface * pdbi)
+{
+	std::vector<COMPONENT_ID> cids;
+
+	return cids;
+}
+
+//-------------------------------------------------------------------------------------
 std::vector<COMPONENT_ID> KBEServerLogTableRedis::queryTimeOutServers(DBInterface * pdbi)
 {
 	std::vector<COMPONENT_ID> cids;
@@ -144,7 +152,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableRedis::queryTimeOutServers(DBInterfac
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEServerLogTableRedis::clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids)
+bool KBEServerLogTableRedis::clearServers(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids)
 {
 	return true;
 }

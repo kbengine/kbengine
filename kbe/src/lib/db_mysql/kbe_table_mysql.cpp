@@ -35,49 +35,102 @@ namespace KBEngine {
 bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 {
 	std::string sqlstr = "CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_entitylog "
-			"(entityDBID bigint(20) unsigned not null DEFAULT 0,"
-			"entityType int unsigned not null DEFAULT 0,"
-			"entityID int unsigned not null DEFAULT 0,"
-			"ip varchar(64),"
-			"port int unsigned not null DEFAULT 0,"
-			"componentID bigint unsigned not null DEFAULT 0,"
-			"logger bigint unsigned not null DEFAULT 0,"
-			"PRIMARY KEY (entityDBID, entityType))"
+		"(entityDBID bigint(20) unsigned not null DEFAULT 0,"
+		"entityType int unsigned not null DEFAULT 0,"
+		"entityID int unsigned not null DEFAULT 0,"
+		"ip varchar(64),"
+		"port int unsigned not null DEFAULT 0,"
+		"componentID bigint unsigned not null DEFAULT 0,"
+		"logger bigint unsigned not null DEFAULT 0,"
+		"PRIMARY KEY (entityDBID, entityType))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
-	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
+	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
 		return false;
-	
+
 	// 清除过期的日志
 	KBEServerLogTableMysql serverLogTable(NULL);
-	
-	std::vector<COMPONENT_ID> cids = serverLogTable.queryTimeOutServers(pdbi);
-	
-	if (!serverLogTable.clearTimeoutLogs(pdbi, cids))
-		return false;
-	
-	cids.push_back((uint64)getUserUID());
-	
-	sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
-	
-	char tbuf[MAX_BUF];
+	std::vector<COMPONENT_ID> cids;
 
-	std::vector<COMPONENT_ID>::iterator citer = cids.begin();
-	for(; citer != cids.end(); ++citer)
 	{
-		kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
-		sqlstr += tbuf;
-		sqlstr += ",";
+		cids = serverLogTable.queryTimeOutServers(pdbi);
+
+		if (!serverLogTable.clearServers(pdbi, cids))
+			return false;
+
+		cids.push_back((uint64)getUserUID());
+
+		sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
+
+		char tbuf[MAX_BUF];
+
+		std::vector<COMPONENT_ID>::iterator citer = cids.begin();
+		for (; citer != cids.end(); ++citer)
+		{
+			kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
+			sqlstr += tbuf;
+			sqlstr += ",";
+		}
+
+		if (sqlstr[sqlstr.size() - 1] == ',')
+			sqlstr.erase(sqlstr.end() - 1);
+
+		sqlstr += ")";
+
+		if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
+			return false;
 	}
 
-	if (sqlstr[sqlstr.size() - 1] == ',')
-		sqlstr.erase(sqlstr.end() - 1);
+	// 获得所有服务器
+	cids = serverLogTable.queryServers(pdbi);
 
-	sqlstr += ")";
+	// 查询所有entitylog筛选出在serverlog中找不到记录的log并清理这些无效记录
+	{
+		sqlstr = fmt::format("select distinct(logger) from " KBE_TABLE_PERFIX "_entitylog");
 
-	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
-		return false;
-	
+		if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
+			return false;
+
+		std::vector<COMPONENT_ID> erases_ids;
+
+		MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
+		if (pResult)
+		{
+			MYSQL_ROW arow;
+			while ((arow = mysql_fetch_row(pResult)) != NULL)
+			{
+				COMPONENT_ID loggerID = 0;
+				KBEngine::StringConv::str2value(loggerID, arow[0]);
+
+				// 如果找不到服务器log就添加到删除列表
+				if (std::find(cids.begin(), cids.end(), loggerID) == cids.end())
+					erases_ids.push_back(loggerID);
+			}
+
+			mysql_free_result(pResult);
+		}
+
+		sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
+
+		char tbuf[MAX_BUF];
+
+		std::vector<COMPONENT_ID>::iterator citer = erases_ids.begin();
+		for (; citer != erases_ids.end(); ++citer)
+		{
+			kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
+			sqlstr += tbuf;
+			sqlstr += ",";
+		}
+
+		if (sqlstr[sqlstr.size() - 1] == ',')
+			sqlstr.erase(sqlstr.end() - 1);
+
+		sqlstr += ")";
+
+		if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
+			return false;
+	}
+
 	return true;
 }
 
@@ -333,6 +386,37 @@ bool KBEServerLogTableMysql::queryServer(DBInterface * pdbi, ServerLog& serverlo
 }
 
 //-------------------------------------------------------------------------------------
+std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryServers(DBInterface * pdbi)
+{
+	std::vector<COMPONENT_ID> cids;
+
+	std::string sqlstr = "select heartbeatTime,logger from " KBE_TABLE_PERFIX "_serverlog";
+
+	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
+	{
+		return cids;
+	}
+
+	MYSQL_RES * pResult = mysql_store_result(static_cast<DBInterfaceMysql*>(pdbi)->mysql());
+	if (pResult)
+	{
+		MYSQL_ROW arow;
+		while ((arow = mysql_fetch_row(pResult)) != NULL)
+		{
+			ServerLog serverlog;
+			KBEngine::StringConv::str2value(serverlog.heartbeatTime, arow[0]);
+			KBEngine::StringConv::str2value(serverlog.logger, arow[1]);
+
+			cids.push_back(serverlog.logger);
+		}
+
+		mysql_free_result(pResult);
+	}
+
+	return cids;
+}
+
+//-------------------------------------------------------------------------------------
 std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterface * pdbi)
 {
 	std::vector<COMPONENT_ID> cids;
@@ -368,7 +452,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 }
 
 //-------------------------------------------------------------------------------------
-bool KBEServerLogTableMysql::clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids)
+bool KBEServerLogTableMysql::clearServers(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids)
 {
 	if(cids.size() == 0)
 		return true;
