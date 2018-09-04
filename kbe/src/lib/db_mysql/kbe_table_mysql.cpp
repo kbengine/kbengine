@@ -110,25 +110,28 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 			mysql_free_result(pResult);
 		}
 
-		sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
-
-		char tbuf[MAX_BUF];
-
-		std::vector<COMPONENT_ID>::iterator citer = erases_ids.begin();
-		for (; citer != erases_ids.end(); ++citer)
+		if (erases_ids.size())
 		{
-			kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
-			sqlstr += tbuf;
-			sqlstr += ",";
+			sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
+
+			char tbuf[MAX_BUF];
+
+			std::vector<COMPONENT_ID>::iterator citer = erases_ids.begin();
+			for (; citer != erases_ids.end(); ++citer)
+			{
+				kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (*citer));
+				sqlstr += tbuf;
+				sqlstr += ",";
+			}
+
+			if (sqlstr[sqlstr.size() - 1] == ',')
+				sqlstr.erase(sqlstr.end() - 1);
+
+			sqlstr += ")";
+
+			if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
+				return false;
 		}
-
-		if (sqlstr[sqlstr.size() - 1] == ',')
-			sqlstr.erase(sqlstr.end() - 1);
-
-		sqlstr += ")";
-
-		if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), true))
-			return false;
 	}
 
 	return true;
