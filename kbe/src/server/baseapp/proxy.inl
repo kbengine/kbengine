@@ -63,7 +63,8 @@ INLINE void Proxy::setCreateDatas(const std::string& datas)
 
 INLINE void Proxy::addr(const Network::Address& address)
 { 
-	addr_ = address; 
+	addr_.ip = address.ip;
+	addr_.port = address.port;
 }
 
 INLINE const Network::Address& Proxy::addr() const
