@@ -87,6 +87,7 @@ public:
 	/** 
 		初始化相关接口 
 	*/
+	bool initialize();
 	bool initializeBegin();
 	bool initializeEnd();
 	void finalise();
