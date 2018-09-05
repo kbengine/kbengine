@@ -503,12 +503,12 @@ std::vector< std::string > SystemInfo::getMacAddresses()
 				memset(&MAC[0], 0, sizeof(MAC));
 
 				sprintf(MAC, "%02x:%02x:%02x:%02x:%02x:%02x",
-					(unsigned char)buf[interfaceNum]->ifr_hwaddr.sa_data[0],
-					(unsigned char)buf[interfaceNum]->ifr_hwaddr.sa_data[1],
-					(unsigned char)buf[interfaceNum]->ifr_hwaddr.sa_data[2],
-					(unsigned char)buf[interfaceNum]->ifr_hwaddr.sa_data[3],
-					(unsigned char)buf[interfaceNum]->ifr_hwaddr.sa_data[4],
-					(unsigned char)buf[interfaceNum]->ifr_hwaddr.sa_data[5]);
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[0],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[1],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[2],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[3],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[4],
+					(unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[5]);
 
 				mac_addresses.push_back(MAC);
 			}
