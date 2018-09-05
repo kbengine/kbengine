@@ -443,7 +443,8 @@ void KBEngineApp::hello()
 
 void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 {
-	stream >> serverVersion_;
+	FString str_serverVersion;
+	stream >> str_serverVersion;
 	stream >> serverScriptVersion_;
 
 	FString serverProtocolMD5;
@@ -456,30 +457,35 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 	stream >> ctype;
 
 	INFO_MSG("KBEngineApp::Client_onHelloCB(): verInfo(%s), scriptVersion(%s), srvProtocolMD5(%s), srvEntitydefMD5(%s), ctype(%d)!", 
-		*serverVersion_, *serverScriptVersion_, *serverProtocolMD5_, *serverEntitydefMD5_, ctype);
+		*str_serverVersion, *serverScriptVersion_, *serverProtocolMD5_, *serverEntitydefMD5_, ctype);
 
-	/*
-	if(serverProtocolMD5_ != serverProtocolMD5)
+	if(str_serverVersion != "Getting")
 	{
-		ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverProtocolMD5=%s(server: %s)", *serverProtocolMD5_, *serverProtocolMD5);
+		serverVersion_ = str_serverVersion;
 
-		UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
-		pEventData->clientVersion = clientVersion_;
-		pEventData->serverVersion = serverVersion_;
-		KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
-		return;
-	}
-	*/
+		/*
+		if(serverProtocolMD5_ != serverProtocolMD5)
+		{
+			ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverProtocolMD5=%s(server: %s)", *serverProtocolMD5_, *serverProtocolMD5);
 
-	if(serverEntitydefMD5_ != serverEntitydefMD5)
-	{
-		ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverEntitydefMD5=%s(server: %s)", *serverEntitydefMD5_, *serverEntitydefMD5);
+			UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
+			pEventData->clientVersion = clientVersion_;
+			pEventData->serverVersion = serverVersion_;
+			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+			return;
+		}
+		*/
 
-		UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
-		pEventData->clientVersion = clientVersion_;
-		pEventData->serverVersion = serverVersion_;
-		KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
-		return;
+		if(serverEntitydefMD5_ != serverEntitydefMD5)
+		{
+			ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverEntitydefMD5=%s(server: %s)", *serverEntitydefMD5_, *serverEntitydefMD5);
+
+			UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
+			pEventData->clientVersion = clientVersion_;
+			pEventData->serverVersion = serverVersion_;
+			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+			return;
+		}
 	}
 
 	onServerDigest();
