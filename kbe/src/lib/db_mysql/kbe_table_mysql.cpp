@@ -23,7 +23,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 		"ip varchar(64),"
 		"port int unsigned not null DEFAULT 0,"
 		"componentID bigint unsigned not null DEFAULT 0,"
-		"logger bigint unsigned not null DEFAULT 0,"
+		"serverGroupID bigint unsigned not null DEFAULT 0,"
 		"PRIMARY KEY (entityDBID, entityType))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
@@ -42,7 +42,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 
 		cids.push_back((uint64)getUserUID());
 
-		sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
+		sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where serverGroupID in (");
 
 		char tbuf[MAX_BUF];
 
@@ -68,7 +68,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 
 	// 查询所有entitylog筛选出在serverlog中找不到记录的log并清理这些无效记录
 	{
-		sqlstr = fmt::format("select distinct(logger) from " KBE_TABLE_PERFIX "_entitylog");
+		sqlstr = fmt::format("select distinct(serverGroupID) from " KBE_TABLE_PERFIX "_entitylog");
 
 		if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 			return false;
@@ -81,12 +81,12 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 			MYSQL_ROW arow;
 			while ((arow = mysql_fetch_row(pResult)) != NULL)
 			{
-				COMPONENT_ID loggerID = 0;
-				KBEngine::StringConv::str2value(loggerID, arow[0]);
+				COMPONENT_ID serverGroupID = 0;
+				KBEngine::StringConv::str2value(serverGroupID, arow[0]);
 
 				// 如果找不到服务器log就添加到删除列表
-				if (std::find(cids.begin(), cids.end(), loggerID) == cids.end())
-					erases_ids.push_back(loggerID);
+				if (std::find(cids.begin(), cids.end(), serverGroupID) == cids.end())
+					erases_ids.push_back(serverGroupID);
 			}
 
 			mysql_free_result(pResult);
@@ -94,7 +94,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 
 		if (erases_ids.size() > 0)
 		{
-			sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where logger in (");
+			sqlstr = fmt::format("delete from " KBE_TABLE_PERFIX "_entitylog where serverGroupID in (");
 
 			char tbuf[MAX_BUF];
 
@@ -123,7 +123,7 @@ bool KBEEntityLogTableMysql::syncToDB(DBInterface* pdbi)
 bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint32 port, DBID dbid,
 					COMPONENT_ID componentID, ENTITY_ID entityID, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_entitylog (entityDBID, entityType, entityID, ip, port, componentID, logger) values(";
+	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_entitylog (entityDBID, entityType, entityID, ip, port, componentID, serverGroupID) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -185,7 +185,7 @@ bool KBEEntityLogTableMysql::logEntity(DBInterface * pdbi, const char* ip, uint3
 //-------------------------------------------------------------------------------------
 bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType)
 {
-	std::string sqlstr = "select entityID, ip, port, componentID, logger from " KBE_TABLE_PERFIX "_entitylog where entityDBID=";
+	std::string sqlstr = "select entityID, ip, port, componentID, serverGroupID from " KBE_TABLE_PERFIX "_entitylog where entityDBID=";
 
 	char tbuf[MAX_BUF];
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, dbid);
@@ -203,7 +203,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 	
 	entitylog.dbid = dbid;
 	entitylog.componentID = 0;
-	entitylog.logger = 0;
+	entitylog.serverGroupID = 0;
 	entitylog.entityID = 0;
 	entitylog.ip[0] = '\0';
 	entitylog.port = 0;
@@ -218,7 +218,7 @@ bool KBEEntityLogTableMysql::queryEntity(DBInterface * pdbi, DBID dbid, EntityLo
 			kbe_snprintf(entitylog.ip, MAX_IP, "%s", arow[1]);
 			StringConv::str2value(entitylog.port, arow[2]);
 			StringConv::str2value(entitylog.componentID, arow[3]);
-			StringConv::str2value(entitylog.logger, arow[4]);
+			StringConv::str2value(entitylog.serverGroupID, arow[4]);
 		}
 
 		mysql_free_result(pResult);
@@ -282,8 +282,8 @@ bool KBEServerLogTableMysql::syncToDB(DBInterface* pdbi)
 
 	sqlstr = "CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_serverlog "
 			"(heartbeatTime bigint(20) unsigned not null DEFAULT 0,"
-			"logger bigint unsigned not null DEFAULT 0,"
-			"PRIMARY KEY (logger))"
+			"serverGroupID bigint unsigned not null DEFAULT 0,"
+			"PRIMARY KEY (serverGroupID))"
 		"ENGINE=" MYSQL_ENGINE_TYPE;
 
 	ret = pdbi->query(sqlstr.c_str(), sqlstr.size(), true);
@@ -294,7 +294,7 @@ bool KBEServerLogTableMysql::syncToDB(DBInterface* pdbi)
 //-------------------------------------------------------------------------------------
 bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 {
-	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_serverlog (heartbeatTime, logger) values(";
+	std::string sqlstr = "insert into " KBE_TABLE_PERFIX "_serverlog (heartbeatTime, serverGroupID) values(";
 
 	char* tbuf = new char[MAX_BUF * 3];
 
@@ -337,7 +337,7 @@ bool KBEServerLogTableMysql::updateServer(DBInterface * pdbi)
 //-------------------------------------------------------------------------------------
 bool KBEServerLogTableMysql::queryServer(DBInterface * pdbi, ServerLog& serverlog)
 {
-	std::string sqlstr = "select heartbeatTime from " KBE_TABLE_PERFIX "_serverlog where logger=";
+	std::string sqlstr = "select heartbeatTime from " KBE_TABLE_PERFIX "_serverlog where serverGroupID=";
 
 	char tbuf[MAX_BUF];
 	kbe_snprintf(tbuf, MAX_BUF, "%" PRDBID, (uint64)getUserUID());
@@ -375,7 +375,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryServers(DBInterface * pdb
 {
 	std::vector<COMPONENT_ID> cids;
 
-	std::string sqlstr = "select heartbeatTime,logger from " KBE_TABLE_PERFIX "_serverlog";
+	std::string sqlstr = "select heartbeatTime,serverGroupID from " KBE_TABLE_PERFIX "_serverlog";
 
 	if (!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
@@ -390,9 +390,9 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryServers(DBInterface * pdb
 		{
 			ServerLog serverlog;
 			KBEngine::StringConv::str2value(serverlog.heartbeatTime, arow[0]);
-			KBEngine::StringConv::str2value(serverlog.logger, arow[1]);
+			KBEngine::StringConv::str2value(serverlog.serverGroupID, arow[1]);
 
-			cids.push_back(serverlog.logger);
+			cids.push_back(serverlog.serverGroupID);
 		}
 
 		mysql_free_result(pResult);
@@ -406,7 +406,7 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 {
 	std::vector<COMPONENT_ID> cids;
 
-	std::string sqlstr = "select heartbeatTime,logger from " KBE_TABLE_PERFIX "_serverlog";
+	std::string sqlstr = "select heartbeatTime,serverGroupID from " KBE_TABLE_PERFIX "_serverlog";
 
 	if(!pdbi->query(sqlstr.c_str(), sqlstr.size(), false))
 	{
@@ -421,13 +421,13 @@ std::vector<COMPONENT_ID> KBEServerLogTableMysql::queryTimeOutServers(DBInterfac
 		{
 			ServerLog serverlog;
 			KBEngine::StringConv::str2value(serverlog.heartbeatTime, arow[0]);
-			KBEngine::StringConv::str2value(serverlog.logger, arow[1]);
+			KBEngine::StringConv::str2value(serverlog.serverGroupID, arow[1]);
 			
-			if(serverlog.logger == (uint64)getUserUID())
+			if(serverlog.serverGroupID == (uint64)getUserUID())
 				continue;
 			
 			if(time(NULL) - serverlog.heartbeatTime > KBEServerLogTable::TIMEOUT * 2)
-				cids.push_back(serverlog.logger);
+				cids.push_back(serverlog.serverGroupID);
 		}
 
 		mysql_free_result(pResult);
@@ -442,7 +442,7 @@ bool KBEServerLogTableMysql::clearServers(DBInterface * pdbi, const std::vector<
 	if(cids.size() == 0)
 		return true;
 	
-	std::string sqlstr = "delete from " KBE_TABLE_PERFIX "_serverlog where logger in (";
+	std::string sqlstr = "delete from " KBE_TABLE_PERFIX "_serverlog where serverGroupID in (";
 
 	char tbuf[MAX_BUF];
 
