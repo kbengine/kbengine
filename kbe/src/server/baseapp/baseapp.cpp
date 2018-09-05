@@ -584,6 +584,25 @@ void Baseapp::handleArchive()
 }
 
 //-------------------------------------------------------------------------------------
+bool Baseapp::initialize()
+{
+	if (!EntityApp<Entity>::initialize())
+		return false;
+
+	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
+
+	if (!PyType_IsSubtype(pModule->getScriptType(), Proxy::getScriptType()))
+	{
+		ERROR_MSG(fmt::format("Baseapp::initialize: kbengine[_defs].xml->dbmgr->account_system->AccountEntityScriptType({}) must be inherited from KBEngine.Proxy!\n",
+			g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType));
+
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool Baseapp::initializeBegin()
 {
 	return true;

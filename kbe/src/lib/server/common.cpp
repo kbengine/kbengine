@@ -146,6 +146,7 @@ std::string datatype2nativetype(uint16 datatype)
 	return "";
 }
 
+//-------------------------------------------------------------------------------------
 void autoFixUserDigestUID()
 {
 	MachineInfos machineInfo;
