@@ -567,7 +567,7 @@ bool DBTaskLookUpEntityByDBID::db_thread_process()
 	// 如果有在线纪录
 	if(pELTable->queryEntity(pdbi_, entityDBID_, entitylog, pModule->getUType()))
 	{
-		if(entitylog.serverGroupID != getUserUID())
+		if(entitylog.serverGroupID != (COMPONENT_ID)getUserUID())
 		{
 			success_ = false;
 			entityInAppID_ = 0;
