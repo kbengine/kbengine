@@ -486,7 +486,7 @@ std::vector< std::string > SystemInfo::getMacAddresses()
 	if ((fd = ::socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 	{
 		::close(fd);
-		return -1;
+		return mac_addresses;
 	}
 
 	ifc.ifc_len = sizeof(buf);
