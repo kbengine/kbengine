@@ -23,6 +23,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "common/md5.h"
 #include "server/serverconfig.h"
 #include "server/machine_infos.h"
+#include "helper/sys_info.h"
 
 namespace KBEngine { 
 
@@ -174,6 +175,13 @@ void autoFixUserDigestUID()
 		machineInfo.machineName(),
 		machineInfo.cpuInfo(),
 		machineInfo.memInfo());
+
+	std::vector< std::string > macinfos = SystemInfo::getSingleton().getMacAddresses();
+	std::vector< std::string >::iterator iter = macinfos.begin();
+	for (; iter != macinfos.end(); ++iter)
+	{
+		datas += (*iter);
+	}
 
 	std::string md5_digest = KBE_MD5::getDigest(datas.data(), (int)datas.length());
 

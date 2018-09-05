@@ -63,6 +63,9 @@ public:
 	void update();
 	
 	void clear();
+
+	std::vector< std::string > getMacAddresses();
+
 private:
 	bool _autocreate();
 	uint64 totalmem_;
