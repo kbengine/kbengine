@@ -71,7 +71,7 @@ public:
 		COMPONENT_ID componentID;
 
 		// 由谁记录
-		COMPONENT_ID logger;
+		COMPONENT_ID serverGroupID;
 	};
 
 	KBEEntityLogTable(EntityTables* pEntityTables) :
@@ -109,7 +109,7 @@ public:
 		uint64 heartbeatTime;
 
 		// 由谁记录
-		COMPONENT_ID logger;
+		COMPONENT_ID serverGroupID;
 	};
 
 	KBEServerLogTable(EntityTables* pEntityTables) :
