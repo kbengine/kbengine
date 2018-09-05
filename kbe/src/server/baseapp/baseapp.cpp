@@ -593,7 +593,7 @@ bool Baseapp::initialize()
 
 	if (!PyType_IsSubtype(pModule->getScriptType(), Proxy::getScriptType()))
 	{
-		ERROR_MSG(fmt::format("Baseapp::initialize: kbengine[_defs].xml->dbmgr->account_system->AccountEntityScriptType({}) must be inherited from KBEngine.Proxy!\n",
+		ERROR_MSG(fmt::format("Baseapp::initialize: kbengine[_defs].xml->dbmgr->account_system->AccountEntityScriptType({}), entity must be inherited from KBEngine.Proxy!\n",
 			g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType));
 
 		return false;
