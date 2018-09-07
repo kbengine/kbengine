@@ -309,11 +309,6 @@ bool Script::installExtraModule(const char* moduleName)
 	extraModule_ = PyImport_AddModule(moduleName);
 	if (extraModule_ == NULL)
 		return false;
-	
-	// 初始化扩展模块
-	PyObject *module = PyImport_AddModule(moduleName);
-	if (module == NULL)
-		return false;
 
 	// 将扩展模块对象加入main
 	PyObject_SetAttrString(m, moduleName, extraModule_);
