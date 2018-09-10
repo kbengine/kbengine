@@ -20,7 +20,7 @@ public class KBEMain : MonoBehaviour
 	public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
 	public int syncPlayerMS = 1000 / @{KBE_UPDATEHZ};
 	public int threadUpdateHZ = @{KBE_UPDATEHZ} * 2;
-	public int serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT} / 2;
+	public int serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT};
 	public int SEND_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public int RECV_BUFFER_MAX = (int)KBEngine.NetworkInterface.TCP_PACKET_MAX;
 	public bool useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
@@ -56,7 +56,7 @@ public class KBEMain : MonoBehaviour
 		args.clientType = clientType;
 		args.syncPlayerMS = syncPlayerMS;
 		args.threadUpdateHZ = threadUpdateHZ;
-		args.serverHeartbeatTick = serverHeartbeatTick;
+		args.serverHeartbeatTick = serverHeartbeatTick / 2;
 		args.useAliasEntityID = useAliasEntityID;
 		args.isOnInitCallPropertysSetMethods = isOnInitCallPropertysSetMethods;
 
