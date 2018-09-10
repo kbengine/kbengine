@@ -28,6 +28,7 @@ public class KBEMain : MonoBehaviour
 	public int UDP_RECV_BUFFER_MAX = (int)KBEngine.NetworkInterfaceBase.UDP_PACKET_MAX;
 	public bool useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	public bool isOnInitCallPropertysSetMethods = true;
+	public bool forceDisableUDP = false;
 
 	protected virtual void Awake() 
 	 {
@@ -62,6 +63,7 @@ public class KBEMain : MonoBehaviour
 		args.serverHeartbeatTick = serverHeartbeatTick / 2;
 		args.useAliasEntityID = useAliasEntityID;
 		args.isOnInitCallPropertysSetMethods = isOnInitCallPropertysSetMethods;
+		args.forceDisableUDP = forceDisableUDP;
 
 		args.TCP_SEND_BUFFER_MAX = (UInt32)TCP_SEND_BUFFER_MAX;
 		args.TCP_RECV_BUFFER_MAX = (UInt32)TCP_RECV_BUFFER_MAX;

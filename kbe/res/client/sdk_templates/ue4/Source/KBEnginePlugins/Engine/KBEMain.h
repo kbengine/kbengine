@@ -100,6 +100,9 @@ public:
 	bool isOnInitCallPropertysSetMethods;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	bool forceDisableUDP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	int serverHeartbeatTick;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)

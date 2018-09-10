@@ -246,7 +246,7 @@ bool KBEngineApp::initNetwork()
 
 	Messages::initialize();
 
-	if(baseappUdpPort_ == 0)
+	if(pArgs_->forceDisableUDP || baseappUdpPort_ == 0)
 		pNetworkInterface_ = new NetworkInterfaceTCP();
 	else
 		pNetworkInterface_ = new NetworkInterfaceKCP();
@@ -696,7 +696,7 @@ void KBEngineApp::login_baseapp(bool noconnect)
 		pNetworkInterface_->destroy();
 		pNetworkInterface_ = NULL;
 		initNetwork();
-		pNetworkInterface_->connectTo(baseappIP_, baseappUdpPort_ > 0 ? baseappUdpPort_ : baseappTcpPort_, this, 2);
+		pNetworkInterface_->connectTo(baseappIP_, (!pArgs_->forceDisableUDP && baseappUdpPort_ > 0) ? baseappUdpPort_ : baseappTcpPort_, this, 2);
 	}
 	else
 	{
@@ -743,7 +743,7 @@ void KBEngineApp::reloginBaseapp()
 	UKBEventData_onReloginBaseapp* pEventData = NewObject<UKBEventData_onReloginBaseapp>();
 	KBENGINE_EVENT_FIRE("KBEngineApp::reloginBaseapp(): onReloginBaseapp", pEventData);
 
-	pNetworkInterface_->connectTo(baseappIP_, baseappUdpPort_ > 0 ? baseappUdpPort_ : baseappTcpPort_, this, 3);
+	pNetworkInterface_->connectTo(baseappIP_, (!pArgs_->forceDisableUDP && baseappUdpPort_ > 0) ? baseappUdpPort_ : baseappTcpPort_, this, 3);
 }
 
 void KBEngineApp::onReloginTo_baseapp_callback(FString ip, uint16 port, bool success)

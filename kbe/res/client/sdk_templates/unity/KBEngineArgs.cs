@@ -44,6 +44,9 @@
 		// 线程主循环处理频率
 		public int threadUpdateHZ = @{KBE_UPDATEHZ};
 
+		// 强制禁用UDP通讯
+		public bool forceDisableUDP = false;
+
 		// 心跳频率（tick数）
 		public int serverHeartbeatTick = 15;
 

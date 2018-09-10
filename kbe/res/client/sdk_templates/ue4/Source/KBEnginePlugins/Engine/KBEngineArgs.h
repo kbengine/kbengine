@@ -32,6 +32,9 @@ public:
 	bool useAliasEntityID;
 	bool isOnInitCallPropertysSetMethods;
 
+	// 强制禁用UDP通讯
+	bool forceDisableUDP;
+
 	// 心跳频率（tick数）
 	int serverHeartbeatTick;
 

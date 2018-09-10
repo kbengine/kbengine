@@ -24,6 +24,7 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 	syncPlayerMS = 1000 / @{KBE_UPDATEHZ};
 	useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	isOnInitCallPropertysSetMethods = true;
+	forceDisableUDP = false;
 	clientType = EKCLIENT_TYPE::CLIENT_TYPE_WIN;
 	serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT};
 	TCP_SEND_BUFFER_MAX = TCP_PACKET_MAX;
@@ -53,6 +54,7 @@ void UKBEMain::BeginPlay()
 	pArgs->syncPlayerMS = syncPlayerMS;
 	pArgs->useAliasEntityID = useAliasEntityID;
 	pArgs->isOnInitCallPropertysSetMethods = isOnInitCallPropertysSetMethods;
+	pArgs->forceDisableUDP = forceDisableUDP;
 	pArgs->clientType = clientType;
 	pArgs->serverHeartbeatTick = serverHeartbeatTick / 2;
 	pArgs->TCP_SEND_BUFFER_MAX = TCP_SEND_BUFFER_MAX;

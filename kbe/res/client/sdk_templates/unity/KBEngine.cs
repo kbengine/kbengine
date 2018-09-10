@@ -551,7 +551,7 @@
 				
 				_networkInterface.reset();
 
-				if(baseappUdpPort == 0)
+				if(_args.forceDisableUDP || baseappUdpPort == 0)
 				{
 					_networkInterface = new NetworkInterfaceTCP();
 					_networkInterface.connectTo(baseappIP, baseappTcpPort, onConnectTo_baseapp_callback, null);
@@ -612,7 +612,7 @@
 
 			_networkInterface.reset();
 
-			if(baseappUdpPort == 0)
+			if(_args.forceDisableUDP || baseappUdpPort == 0)
 			{
 				_networkInterface = new NetworkInterfaceTCP();
 				_networkInterface.connectTo(baseappIP, baseappTcpPort, onReConnectTo_baseapp_callback, null);
