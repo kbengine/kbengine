@@ -272,10 +272,10 @@
 			
 			if(!events.TryGetValue(eventname, out lst))
 			{
-				if(events == events_in)
-					Dbg.WARNING_MSG("Event::fireIn: event(" + eventname + ") not found!");
-				else
-					Dbg.WARNING_MSG("Event::fireOut: event(" + eventname + ") not found!");
+				//if(events == events_in)
+				//	Dbg.WARNING_MSG("Event::fireIn: event(" + eventname + ") not found!");
+				//else
+				//	Dbg.WARNING_MSG("Event::fireOut: event(" + eventname + ") not found!");
 				
 				monitor_Exit(events);
 				return;

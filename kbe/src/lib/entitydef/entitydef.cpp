@@ -94,6 +94,7 @@ bool EntityDef::finalise(bool isReload)
 		EntityDef::__oldScriptTypeMappingUType.clear();
 	}
 
+	g_scriptUtype = 1;
 	EntityDef::__scriptModules.clear();
 	EntityDef::__scriptTypeMappingUType.clear();
 	g_methodCusUtypes.clear();

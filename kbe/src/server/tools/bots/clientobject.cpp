@@ -385,7 +385,7 @@ void ClientObject::gameTick()
 {
 	if(pServerChannel()->pEndPoint())
 	{
-		if(pServerChannel()->isCondemn())
+		if(pServerChannel()->condemn() > 0)
 		{
 			destroy();
 			return;

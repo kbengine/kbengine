@@ -524,7 +524,7 @@ sid_(sid),
 success_(false),
 entityID_(0),
 entityInAppID_(0),
-logger_(0)
+serverGroupID_(0)
 {
 }
 
@@ -549,12 +549,12 @@ bool DBTaskLookUpEntityByDBID::db_thread_process()
 	// 如果有在线纪录
 	if(pELTable->queryEntity(pdbi_, entityDBID_, entitylog, pModule->getUType()))
 	{
-		if(entitylog.logger != g_componentID)
+		if(entitylog.serverGroupID != (COMPONENT_ID)getUserUID())
 		{
 			success_ = false;
 			entityInAppID_ = 0;
 			entityID_ = 0;
-			logger_ = entitylog.logger;
+			serverGroupID_ = entitylog.serverGroupID;
 			return false;
 		}
 		
@@ -578,10 +578,10 @@ thread::TPTask::TPTaskState DBTaskLookUpEntityByDBID::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskLookUpEntityByDBID: {}({}), entityInAppID({}).\n", 
 		pModule->getName(), entityDBID_, entityInAppID_));
 
-	if(logger_ > 0)
+	if(serverGroupID_ > 0)
 	{
-		ERROR_MSG(fmt::format("DBTaskLookUpEntityByDBID::presentMainThread: entitylog({}) logger not match. logger_={}, self={}\n", 
-			entityDBID_, logger_, g_componentID));
+		ERROR_MSG(fmt::format("DBTaskLookUpEntityByDBID::presentMainThread: entitylog({}) serverGroupID not match. serverGroupID={}, self={}\n", 
+			entityDBID_, serverGroupID_, g_componentID));
 	}
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
@@ -1485,7 +1485,7 @@ dbid_(0),
 flags_(0),
 deadline_(0),
 needCheckPassword_(needCheckPassword),
-logger_(0)
+serverGroupID_(0)
 {
 }
 
@@ -1556,7 +1556,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		}
 
 		if (g_kbeSrvConfig.getDBMgr().notFoundAccountAutoCreate || 
-			(Network::Address::NONE != g_kbeSrvConfig.interfacesAddr() && !needCheckPassword_/*第三方处理成功则自动创建账号*/))
+			(g_kbeSrvConfig.interfacesAddrs().size() > 0 && !needCheckPassword_/*第三方处理成功则自动创建账号*/))
 		{
 			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			{
@@ -1591,7 +1591,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		return false;
 	}
 
-	if (needCheckPassword_ || Network::Address::NONE == g_kbeSrvConfig.interfacesAddr())
+	if (needCheckPassword_ || g_kbeSrvConfig.interfacesAddrs().size() == 0)
 	{
 		if (kbe_stricmp(info.password.c_str(), KBE_MD5::getDigest(password_.data(), (int)password_.length()).c_str()) != 0)
 		{
@@ -1612,9 +1612,9 @@ bool DBTaskAccountLogin::db_thread_process()
 		componentID_ = entitylog.componentID;
 		entityID_ = entitylog.entityID;
 		
-		if(entitylog.logger != g_componentID)
+		if(entitylog.serverGroupID != g_componentID)
 		{
-			logger_ = entitylog.logger;
+			serverGroupID_ = entitylog.serverGroupID;
 			retcode_ = SERVER_ERR_ACCOUNT_LOGIN_ANOTHER_SERVER;
 		}
 	}
@@ -1643,10 +1643,10 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 		deadline_
 		));
 
-	if(logger_ > 0)
+	if(serverGroupID_ > 0)
 	{
-		ERROR_MSG(fmt::format("DBTaskAccountLogin::presentMainThread: entitylog logger not match. loginName={}, accountName={}, self={}\n", 
-			loginName_, accountName_, logger_, g_componentID));
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::presentMainThread: entitylog serverGroupID not match. loginName={}, accountName={}, self={}\n", 
+			loginName_, accountName_, serverGroupID_, g_componentID));
 		
 		componentID_ = 0;
 		entityID_ = 0;
@@ -1692,7 +1692,7 @@ entityID_(entityID),
 wasActive_(false),
 wasActiveCID_(0),
 wasActiveEntityID_(0),
-logger_(0)
+serverGroupID_(0)
 {
 	s_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 }
@@ -1759,10 +1759,10 @@ bool DBTaskQueryEntity::db_thread_process()
 
 			wasActive_ = true;
 			
-			if(entitylog.logger != g_componentID)
+			if(entitylog.serverGroupID != g_componentID)
 			{
 				success_ = false;
-				logger_ = entitylog.logger;
+				serverGroupID_ = entitylog.serverGroupID;
 				return false;
 			}
 			
@@ -1780,10 +1780,10 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 	DEBUG_MSG(fmt::format("Dbmgr::DBTaskQueryEntity: {}, dbid={}, entityID={}, wasActive={}, queryMode={}, componentID={}, success={}.\n", 
 		entityType_, dbid_, entityID_, wasActive_, ((int)queryMode_), componentID_, success_));
 
-	if(logger_ > 0)
+	if(serverGroupID_ > 0)
 	{
-		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: entitylog logger not match. {}, dbid={}, self={}\n", 
-			entityType_, dbid_, logger_, g_componentID));
+		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: entitylog serverGroupID not match. {}, dbid={}, self={}\n", 
+			entityType_, dbid_, serverGroupID_, g_componentID));
 	}
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);

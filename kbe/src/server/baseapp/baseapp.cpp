@@ -584,6 +584,25 @@ void Baseapp::handleArchive()
 }
 
 //-------------------------------------------------------------------------------------
+bool Baseapp::initialize()
+{
+	if (!EntityApp<Entity>::initialize())
+		return false;
+
+	ScriptDefModule* pModule = EntityDef::findScriptModule(g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType);
+
+	if (!PyType_IsSubtype(pModule->getScriptType(), Proxy::getScriptType()))
+	{
+		ERROR_MSG(fmt::format("Baseapp::initialize: kbengine[_defs].xml->dbmgr->account_system->AccountEntityScriptType({}), entity must be inherited from KBEngine.Proxy!\n",
+			g_kbeSrvConfig.getDBMgr().dbAccountEntityScriptType));
+
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 bool Baseapp::initializeBegin()
 {
 	return true;
@@ -4015,7 +4034,7 @@ void Baseapp::reloginBaseapp(Network::Channel* pChannel, std::string& accountNam
 		if(pMBChannel)
 		{
 			pMBChannel->proxyID(0);
-			pMBChannel->condemn("");
+			pMBChannel->condemn("", true);
 		}
 
 		entityClientEntityCall->addr(pChannel->addr());
@@ -4064,7 +4083,7 @@ void Baseapp::kickChannel(Network::Channel* pChannel, SERVER_ERROR_CODE failedco
 	pChannel->send(pBundle);
 
 	pChannel->proxyID(0);
-	pChannel->condemn("");
+	pChannel->condemn("", true);
 }
 
 //-------------------------------------------------------------------------------------
@@ -4877,7 +4896,9 @@ void Baseapp::importClientMessages(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy(bundle);
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -5050,7 +5071,9 @@ void Baseapp::importClientEntityDef(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle((*pBundleImportEntityDefDatas_)));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy((*pBundleImportEntityDefDatas_));
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------

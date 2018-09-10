@@ -291,9 +291,19 @@
 			<!-- 如果enable为false则相关数据不转发到Interfaces进程 
 				注意：如果为true，dbmgr认为数据将由interfaces交给第三方平台处理
 			-->
-			<enable> true		</enable>
-			<host>	 localhost	</host>
-			<port>	 30099		</port>
+			<enable> true </enable>
+
+			<item>
+				<host>	 localhost	</host>
+				<port>	 30099		</port>
+			</item>
+
+			<!-- 可添加多个interfaces地址分担压力
+			<item>
+				<host>	 localhost1	</host>
+				<port>	 30098		</port>
+			</item>
+			-->
 		</InterfacesServiceAddr>
 
 		<!-- 数据库接口 

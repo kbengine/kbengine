@@ -97,7 +97,7 @@ bool TCPPacketSender::processSend(Channel* pChannel, int userarg)
 
 	KBE_ASSERT(pChannel != NULL);
 	
-	if(pChannel->isCondemn())
+	if(pChannel->condemn() == Channel::FLAG_CONDEMN_AND_DESTROY)
 	{
 		return false;
 	}
@@ -193,7 +193,7 @@ bool TCPPacketSender::processSend(Channel* pChannel, int userarg)
 //-------------------------------------------------------------------------------------
 Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg)
 {
-	if(pChannel->isCondemn())
+	if(pChannel->condemn() == Channel::FLAG_CONDEMN_AND_DESTROY)
 	{
 		return REASON_CHANNEL_CONDEMN;
 	}

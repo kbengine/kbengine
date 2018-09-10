@@ -188,6 +188,8 @@ inline uint64 secondsToStamps(float seconds)
 	return (uint64)(seconds * stampsPerSecondD());
 }
 
+void autoFixUserDigestUID();
+
 /*
  账号和密码最大长度
 */
@@ -201,7 +203,7 @@ inline uint64 secondsToStamps(float seconds)
 #define KBE_NEXT_ONLY								2
 
 /** c/c++数据类别转换成KBEDataTypeID */
-#define KBE_DATATYPE2ID_MAX							20
+#define KBE_DATATYPE2ID_MAX							21
 uint16 datatype2id(std::string datatype);
 
 /** c/c++数据类别转换成原生类别UINT16 ... */

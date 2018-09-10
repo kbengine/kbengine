@@ -74,7 +74,13 @@ bool KCPPacketReceiver::processRecv(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 bool KCPPacketReceiver::processRecv(UDPPacket* pReceiveWindow)
 {
-	Reason ret = this->processPacket(getChannel(), pReceiveWindow);
+	Channel* pChannel = getChannel();
+	if (pChannel && pChannel->condemn() > 0)
+	{
+		return false;
+	}
+
+	Reason ret = this->processPacket(pChannel, pReceiveWindow);
 
 	if (ret != REASON_SUCCESS)
 		this->dispatcher().errorReporter().reportException(ret, pEndpoint_->addr());

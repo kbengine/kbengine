@@ -76,7 +76,7 @@ KCPPacketSender::~KCPPacketSender()
 //-------------------------------------------------------------------------------------
 Reason KCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg)
 {
-	if (pChannel->isCondemn())
+	if (pChannel->condemn() == Channel::FLAG_CONDEMN_AND_DESTROY)
 	{
 		return REASON_CHANNEL_CONDEMN;
 	}
@@ -88,10 +88,12 @@ Reason KCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket,
 
 		pChannel->addKcpUpdate();
 
-		if (ikcp_send(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
+
+		if (ikcp_waitsnd(pChannel->pKCP()) > (int)(pChannel->pKCP()->snd_wnd * 2)/* 发送队列超出发送窗口2倍则提示资源不足 */ || 
+			ikcp_send(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
 		{
-			ERROR_MSG(fmt::format("KCPPacketSender::ikcp_send: send error! currPacketSize={}, ikcp_waitsnd={}\n", 
-				pPacket->length(), ikcp_waitsnd(pChannel->pKCP())));
+			ERROR_MSG(fmt::format("KCPPacketSender::ikcp_send: send error! currPacketSize={}, ikcp_waitsnd={}, snd_wndsize={}\n", 
+				pPacket->length(), ikcp_waitsnd(pChannel->pKCP()), pChannel->pKCP()->snd_wnd));
 
 			return REASON_RESOURCE_UNAVAILABLE;
 		}

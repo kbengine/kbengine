@@ -1069,7 +1069,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Network::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force)
 {
-	INFO_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login is failed. failedcode={1}, datas={2}.\n",
+	INFO_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login failed. failedcode={1}, datas={2}.\n",
 		loginName, SERVER_ERR_STR[failedcode], datas));
 	
 	PendingLoginMgr::PLInfos* infos = NULL;
@@ -1309,7 +1309,12 @@ void Loginapp::onHello(Network::Channel* pChannel,
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	pBundle->newMessage(ClientInterface::onHelloCB);
-	(*pBundle) << KBEVersion::versionString();
+
+	if (initProgress_ < 1.f)
+		(*pBundle) << "Getting";
+	else
+		(*pBundle) << KBEVersion::versionString();
+
 	(*pBundle) << KBEVersion::scriptVersionString();
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << digest_;
@@ -1331,8 +1336,8 @@ void Loginapp::onHello(Network::Channel* pChannel,
 		}
 		else
 		{
-			WARNING_MSG(fmt::format("Loginapp::onHello: client is not encrypted, addr={}\n"
-				, pChannel->c_str()));
+			WARNING_MSG(fmt::format("Loginapp::onHello: client is not encrypted, addr={}\n",
+				pChannel->c_str()));
 		}
 	}
 }
@@ -1443,7 +1448,9 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy(bundle);
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1461,7 +1468,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 
 			if (!xml->isGood())
 			{
-				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} failed!\n",
 					"server/server_errors_defaults.xml"));
 
 				return;
@@ -1523,7 +1530,9 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy(bundle);
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------

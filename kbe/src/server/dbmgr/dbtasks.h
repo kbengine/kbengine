@@ -274,7 +274,7 @@ protected:
 	bool success_;
 	ENTITY_ID entityID_;
 	COMPONENT_ID entityInAppID_;
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -576,7 +576,7 @@ protected:
 	uint32 flags_;
 	uint64 deadline_;
 	bool needCheckPassword_;
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -611,7 +611,7 @@ protected:
 	COMPONENT_ID wasActiveCID_;
 	ENTITY_ID wasActiveEntityID_;
 	
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
