@@ -599,7 +599,7 @@ thread::TPTask::TPTaskState DBTaskLookUpEntityByDBID::presentMainThread()
 	if(serverGroupID_ > 0)
 	{
 		ERROR_MSG(fmt::format("DBTaskLookUpEntityByDBID::presentMainThread: entitylog({}) serverGroupID not match. serverGroupID={}, self={}\n", 
-			entityDBID_, serverGroupID_, g_componentID));
+			entityDBID_, serverGroupID_, (uint64)getUserUID()));
 	}
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
@@ -1630,7 +1630,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		componentID_ = entitylog.componentID;
 		entityID_ = entitylog.entityID;
 		
-		if(entitylog.serverGroupID != g_componentID)
+		if(entitylog.serverGroupID != (uint64)getUserUID())
 		{
 			serverGroupID_ = entitylog.serverGroupID;
 			retcode_ = SERVER_ERR_ACCOUNT_LOGIN_ANOTHER_SERVER;
@@ -1664,7 +1664,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	if(serverGroupID_ > 0)
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountLogin::presentMainThread: entitylog serverGroupID not match. loginName={}, accountName={}, self={}\n", 
-			loginName_, accountName_, serverGroupID_, g_componentID));
+			loginName_, accountName_, serverGroupID_, (uint64)getUserUID()));
 		
 		componentID_ = 0;
 		entityID_ = 0;
@@ -1777,7 +1777,7 @@ bool DBTaskQueryEntity::db_thread_process()
 
 			wasActive_ = true;
 			
-			if(entitylog.serverGroupID != g_componentID)
+			if(entitylog.serverGroupID != (uint64)getUserUID())
 			{
 				success_ = false;
 				serverGroupID_ = entitylog.serverGroupID;
@@ -1801,7 +1801,7 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 	if(serverGroupID_ > 0)
 	{
 		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: entitylog serverGroupID not match. {}, dbid={}, self={}\n", 
-			entityType_, dbid_, serverGroupID_, g_componentID));
+			entityType_, dbid_, serverGroupID_, (uint64)getUserUID()));
 	}
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
