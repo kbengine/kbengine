@@ -28,10 +28,10 @@ namespace KBEngine {
 #define CALL_COMPONENTS_AND_ENTITY_METHOD(ENTITYOBJ, CALLCODE)													\
 {																												\
 	{																											\
-		CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);														\
-		bool GETERR = false;																					\
 		Py_INCREF(ENTITYOBJ);																					\
 		PyObject* pyTempObj = ENTITYOBJ;																		\
+		CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);														\
+		bool GETERR = false;																					\
 		CALLCODE;																								\
 		Py_DECREF(ENTITYOBJ);																					\
 	}																											\
