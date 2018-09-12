@@ -55,7 +55,17 @@
 			// Mini-Client
 			CLIENT_TYPE_MINI				= 7,
 		};
-		
+
+        //加密通信类型
+        public enum NETWORK_ENCRYPT_TYPE
+        {
+            //无加密
+            ENCRYPT_TYPE_NONE = 0,
+
+            //Blowfish
+            ENCRYPT_TYPE_BLOWFISH = 1,
+        };
+
         public string username = "kbengine";
         public string password = "123456";
 		
@@ -117,8 +127,11 @@
         private float _updatePlayerToServerPeroid = 100.0f;
 		private const int _1MS_TO_100NS = 10000;
 
-		// 玩家当前所在空间的id， 以及空间对应的资源
-		public UInt32 spaceID = 0;
+        //加密过滤器
+        private EncryptionFilter _filter = null;
+
+        // 玩家当前所在空间的id， 以及空间对应的资源
+        public UInt32 spaceID = 0;
 		public string spaceResPath = "";
 		public bool isLoadedGeometry = false;
 		
@@ -134,16 +147,6 @@
 			
 			initialize(args);
         }
-
-		public static KBEngineApp getSingleton() 
-		{
-			if(KBEngineApp.app == null)
-			{
-				throw new Exception("Please create KBEngineApp!");
-			}
-
-			return KBEngineApp.app;
-		}
 
 		public virtual bool initialize(KBEngineArgs args)
 		{
@@ -371,8 +374,15 @@
 				bundle.newMessage(Messages.messages["Loginapp_hello"]);
 			else
 				bundle.newMessage(Messages.messages["Baseapp_hello"]);
-			
-			bundle.writeString(clientVersion);
+
+            if (_args.networkEncryptType == NETWORK_ENCRYPT_TYPE.ENCRYPT_TYPE_BLOWFISH)
+            {
+                _filter = new BlowfishFilter();
+                _encryptedKey = ((BlowfishFilter)_filter).key();
+                _networkInterface.setFilter(null);
+            }
+
+            bundle.writeString(clientVersion);
 			bundle.writeString(clientScriptVersion);
 			bundle.writeBlob(_encryptedKey);
 			bundle.send(_networkInterface);
@@ -383,38 +393,39 @@
 		*/
 		public void Client_onHelloCB(MemoryStream stream)
 		{
-			string str_serverVersion = stream.readString();
+			serverVersion = stream.readString();
 			serverScriptVersion = stream.readString();
 			string currentServerProtocolMD5 = stream.readString();
 			string currentServerEntitydefMD5 = stream.readString();
 			Int32 ctype = stream.readInt32();
 			
-			Dbg.DEBUG_MSG("KBEngine::Client_onHelloCB: verInfo(" + str_serverVersion 
+			Dbg.DEBUG_MSG("KBEngine::Client_onHelloCB: verInfo(" + serverVersion 
 				+ "), scriptVersion("+ serverScriptVersion + "), srvProtocolMD5("+ serverProtocolMD5 
 				+ "), srvEntitydefMD5("+ serverEntitydefMD5 + "), + ctype(" + ctype + ")!");
 			
-			if(str_serverVersion != "Getting")
-			{
-				serverVersion = str_serverVersion;
+			/* 
+            if(serverProtocolMD5 != currentServerProtocolMD5)
+            {
+                Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverProtocolMD5=" + serverProtocolMD5 + "(server: " + currentServerProtocolMD5 + ")");
+                Event.fireAll("onVersionNotMatch", new object[] { clientVersion, serverVersion });
+                return;
+            }
+			*/
+			
+            if (serverEntitydefMD5 != currentServerEntitydefMD5)
+            {
+                Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverEntitydefMD5=" + serverEntitydefMD5 + "(server: " + currentServerEntitydefMD5 + ")");
+                Event.fireAll("onVersionNotMatch", new object[] { clientVersion, serverVersion });
+                return;
+            }
 
-				/* 
-				if(serverProtocolMD5 != currentServerProtocolMD5)
-				{
-					Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverProtocolMD5=" + serverProtocolMD5 + "(server: " + currentServerProtocolMD5 + ")");
-					Event.fireAll("onVersionNotMatch", new object[] { clientVersion, serverVersion });
-					return;
-				}
-				*/
-				
-				if (serverEntitydefMD5 != currentServerEntitydefMD5)
-				{
-					Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverEntitydefMD5=" + serverEntitydefMD5 + "(server: " + currentServerEntitydefMD5 + ")");
-					Event.fireAll("onVersionNotMatch", new object[] { clientVersion, serverVersion });
-					return;
-				}
-			}
+            if (_args.networkEncryptType == NETWORK_ENCRYPT_TYPE.ENCRYPT_TYPE_BLOWFISH)
+            {
+                _networkInterface.setFilter(_filter);
+				_filter = null;
+            }
 
-			onServerDigest();
+            onServerDigest();
 			
 			if(currserver == "baseapp")
 			{
@@ -522,14 +533,14 @@
 			
 			if(!success)
 			{
-				Dbg.ERROR_MSG(string.Format("KBEngine::login_loginapp(): connect {0}:{1} error!", ip, port));  
+				Dbg.ERROR_MSG(string.Format("KBEngine::login_loginapp(): connect {0}:{1} is error!", ip, port));  
 				return;
 			}
 			
 			currserver = "loginapp";
 			currstate = "login";
 			
-			Dbg.DEBUG_MSG(string.Format("KBEngine::login_loginapp(): connect {0}:{1} success!", ip, port));
+			Dbg.DEBUG_MSG(string.Format("KBEngine::login_loginapp(): connect {0}:{1} is success!", ip, port));
 
 			hello();
 		}
@@ -551,7 +562,7 @@
 				
 				_networkInterface.reset();
 
-				if(_args.forceDisableUDP || baseappUdpPort == 0)
+				if(baseappUdpPort == 0)
 				{
 					_networkInterface = new NetworkInterfaceTCP();
 					_networkInterface.connectTo(baseappIP, baseappTcpPort, onConnectTo_baseapp_callback, null);
@@ -578,14 +589,14 @@
 			
 			if(!success)
 			{
-				Dbg.ERROR_MSG(string.Format("KBEngine::login_baseapp(): connect {0}:{1} error!", ip, port));
+				Dbg.ERROR_MSG(string.Format("KBEngine::login_baseapp(): connect {0}:{1} is error!", ip, port));
 				return;
 			}
 			
 			currserver = "baseapp";
 			currstate = "";
 			
-			Dbg.DEBUG_MSG(string.Format("KBEngine::login_baseapp(): connect {0}:{1} success!", ip, port));
+			Dbg.DEBUG_MSG(string.Format("KBEngine::login_baseapp(): connect {0}:{1} is successfully!", ip, port));
 
 			hello();
 		}
@@ -612,7 +623,7 @@
 
 			_networkInterface.reset();
 
-			if(_args.forceDisableUDP || baseappUdpPort == 0)
+			if(baseappUdpPort == 0)
 			{
 				_networkInterface = new NetworkInterfaceTCP();
 				_networkInterface.connectTo(baseappIP, baseappTcpPort, onReConnectTo_baseapp_callback, null);
@@ -628,11 +639,12 @@
 		{
 			if(!success)
 			{
-				Dbg.ERROR_MSG(string.Format("KBEngine::reloginBaseapp(): connect {0}:{1} error!", ip, port));
+				Dbg.ERROR_MSG(string.Format("KBEngine::reloginBaseapp(): connect {0}:{1} is error!", ip, port));
 				return;
 			}
 			
-			Dbg.DEBUG_MSG(string.Format("KBEngine::relogin_baseapp(): connect {0}:{1} success!", ip, port));
+			
+			Dbg.DEBUG_MSG(string.Format("KBEngine::relogin_baseapp(): connect {0}:{1} is successfully!", ip, port));
 
 			Bundle bundle = Bundle.createObject();
 			bundle.newMessage(Messages.messages["Baseapp_reloginBaseapp"]);
@@ -709,11 +721,11 @@
 			
 			if(!success)
 			{
-				Dbg.ERROR_MSG(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} error!", ip, port));
+				Dbg.ERROR_MSG(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} is error!", ip, port));
 				return;
 			}
 			
-			Dbg.DEBUG_MSG(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} success!", ip, port)); 
+			Dbg.DEBUG_MSG(string.Format("KBEngine::resetpassword_loginapp(): connect {0}:{1} is success!", ip, port)); 
 			onOpenLoginapp_resetpassword();
 		}
 		
@@ -721,11 +733,11 @@
 		{
 			if(failcode != 0)
 			{
-				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " is failed! code=" + failcode + "!");
 				return;
 			}
 	
-			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " success!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " is successfully!");
 		}
 		
 		/*
@@ -745,11 +757,11 @@
 		{
 			if(failcode != 0)
 			{
-				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " is failed! code=" + failcode + "!");
 				return;
 			}
 
-			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " success!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " is successfully!");
 		}
 		
 		/*
@@ -769,11 +781,11 @@
 		{
 			if(failcode != 0)
 			{
-				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " is failed! code=" + failcode + "!");
 				return;
 			}
 	
-			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " success!");
+			Dbg.DEBUG_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " is successfully!");
 		}
 
 		public void createAccount(string username, string password, byte[] datas)
@@ -822,11 +834,11 @@
 			
 			if(!success)
 			{
-				Dbg.ERROR_MSG(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} error!", ip, port));
+				Dbg.ERROR_MSG(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} is error!", ip, port));
 				return;
 			}
 			
-			Dbg.DEBUG_MSG(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} success!", ip, port)); 
+			Dbg.DEBUG_MSG(string.Format("KBEngine::createAccount_loginapp(): connect {0}:{1} is success!", ip, port)); 
 			onOpenLoginapp_createAccount();
 		}
 		
@@ -858,13 +870,13 @@
 			baseappIP = stream.readString();
 			baseappTcpPort = stream.readUint16();
 			baseappUdpPort = stream.readUint16();
+            _serverdatas = stream.readBlob();
 
 			Dbg.DEBUG_MSG("KBEngine::Client_onLoginSuccessfully: accountName(" + accountName + "), addr(" + 
 					baseappIP + ":" + baseappTcpPort + "|" + baseappUdpPort + "), datas(" + _serverdatas.Length + ")!");
-			
-			_serverdatas = stream.readBlob();
-			login_baseapp(true);
-		}
+
+            login_baseapp(true);
+        }
 		
 		/*
 			登录baseapp失败了

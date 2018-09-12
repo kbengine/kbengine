@@ -75,8 +75,15 @@
                     {
                         break;
                     }
-
-					_messageReader.process(_buffer, 0, (MessageLengthEx)length);
+					
+                    if (_networkInterface.fileter() != null)
+                    {
+                        _networkInterface.fileter().recv(_messageReader, _buffer, 0, (MessageLengthEx)length);
+                    }
+                    else
+                    {
+                        _messageReader.process(_buffer, 0, (MessageLengthEx)length);
+                    }
                 }
 			}
 		}

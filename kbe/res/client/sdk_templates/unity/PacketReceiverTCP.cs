@@ -44,13 +44,30 @@
 
 			if (_rpos < t_wpos)
 			{
-				_messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
+                if (_networkInterface.fileter() != null)
+                {
+                    _networkInterface.fileter().recv(_messageReader, _buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
+                }
+                else
+                {
+                    _messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(t_wpos - _rpos));
+                }
+                    
 				Interlocked.Exchange(ref _rpos, t_wpos);
 			}
 			else if (t_wpos < _rpos)
 			{
-				_messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
-				_messageReader.process(_buffer, (UInt32)0, (UInt32)t_wpos);
+                if (_networkInterface.fileter() != null)
+                {
+                    _networkInterface.fileter().recv(_messageReader, _buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
+                    _networkInterface.fileter().recv(_messageReader, _buffer, (UInt32)0, (UInt32)t_wpos);
+                }
+                else
+                {
+                    _messageReader.process(_buffer, (UInt32)_rpos, (UInt32)(_buffer.Length - _rpos));
+                    _messageReader.process(_buffer, (UInt32)0, (UInt32)t_wpos);
+                }
+                
 				Interlocked.Exchange(ref _rpos, t_wpos);
 			}
 			else
