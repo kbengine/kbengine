@@ -27,6 +27,7 @@ public:
 	// 客户端类型
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	EKCLIENT_TYPE clientType;
+	NETWORK_ENCRYPT_TYPE  networkEncryptType;
 
 	int syncPlayerMS;
 	bool useAliasEntityID;
