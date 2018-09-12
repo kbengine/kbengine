@@ -4,6 +4,7 @@
 
 #include "KBECommon.h"
 
+class MemoryStream;
 
 /*
 	消息阅读模块

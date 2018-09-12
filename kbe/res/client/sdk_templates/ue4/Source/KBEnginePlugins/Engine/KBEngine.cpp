@@ -15,6 +15,7 @@
 #include "Regex.h"
 #include "KBDebug.h"
 #include "KBEvent.h"
+#include "EncryptionFilter.h"
 
 ServerErrorDescrs KBEngineApp::serverErrs_;
 
@@ -52,7 +53,8 @@ KBEngineApp::KBEngineApp() :
 	spaceID_(0),
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
-	component_(TEXT("client"))
+	component_(TEXT("client")),
+	pFilter_(NULL)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
 }
@@ -185,6 +187,7 @@ void KBEngineApp::destroy()
 
 	KBE_SAFE_RELEASE(pArgs_);
 	KBE_SAFE_RELEASE(pNetworkInterface_);
+	KBE_SAFE_RELEASE(pFilter_);
 }
 
 void KBEngineApp::resetMessages()
@@ -435,6 +438,13 @@ void KBEngineApp::hello()
 	else
 		pBundle->newMessage(Messages::messages[TEXT("Baseapp_hello")]);
 
+	if (pArgs_->networkEncryptType ==  NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pFilter_ = new BlowfishFilter();
+		encryptedKey_ = ((BlowfishFilter*)pFilter_)->key();
+		pNetworkInterface_->setFilter(NULL);
+	}
+
 	(*pBundle) << clientVersion_;
 	(*pBundle) << clientScriptVersion_;
 	pBundle->appendBlob(encryptedKey_);
@@ -443,8 +453,7 @@ void KBEngineApp::hello()
 
 void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 {
-	FString str_serverVersion;
-	stream >> str_serverVersion;
+	stream >> serverVersion_;
 	stream >> serverScriptVersion_;
 
 	FString serverProtocolMD5;
@@ -457,35 +466,36 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 	stream >> ctype;
 
 	INFO_MSG("KBEngineApp::Client_onHelloCB(): verInfo(%s), scriptVersion(%s), srvProtocolMD5(%s), srvEntitydefMD5(%s), ctype(%d)!", 
-		*str_serverVersion, *serverScriptVersion_, *serverProtocolMD5_, *serverEntitydefMD5_, ctype);
+		*serverVersion_, *serverScriptVersion_, *serverProtocolMD5_, *serverEntitydefMD5_, ctype);
 
-	if(str_serverVersion != "Getting")
+	/*
+	if(serverProtocolMD5_ != serverProtocolMD5)
 	{
-		serverVersion_ = str_serverVersion;
+		ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverProtocolMD5=%s(server: %s)", *serverProtocolMD5_, *serverProtocolMD5);
 
-		/*
-		if(serverProtocolMD5_ != serverProtocolMD5)
-		{
-			ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverProtocolMD5=%s(server: %s)", *serverProtocolMD5_, *serverProtocolMD5);
+		UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
+		pEventData->clientVersion = clientVersion_;
+		pEventData->serverVersion = serverVersion_;
+		KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+		return;
+	}
+	*/
 
-			UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
-			pEventData->clientVersion = clientVersion_;
-			pEventData->serverVersion = serverVersion_;
-			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
-			return;
-		}
-		*/
+	if(serverEntitydefMD5_ != serverEntitydefMD5)
+	{
+		ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverEntitydefMD5=%s(server: %s)", *serverEntitydefMD5_, *serverEntitydefMD5);
 
-		if(serverEntitydefMD5_ != serverEntitydefMD5)
-		{
-			ERROR_MSG("KBEngineApp::Client_onHelloCB():  digest not match! serverEntitydefMD5=%s(server: %s)", *serverEntitydefMD5_, *serverEntitydefMD5);
+		UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
+		pEventData->clientVersion = clientVersion_;
+		pEventData->serverVersion = serverVersion_;
+		KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+		return;
+	}
 
-			UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
-			pEventData->clientVersion = clientVersion_;
-			pEventData->serverVersion = serverVersion_;
-			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
-			return;
-		}
+	if (pArgs_->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pNetworkInterface_->setFilter(pFilter_);
+		pFilter_ = NULL;
 	}
 
 	onServerDigest();
@@ -668,11 +678,11 @@ void KBEngineApp::Client_onLoginSuccessfully(MemoryStream& stream)
 	username_ = accountName;
 	stream >> baseappIP_;
 	stream >> baseappPort_;
-
+	stream.readBlob(serverdatas_);
+	
 	DEBUG_MSG("KBEngineApp::Client_onLoginSuccessfully(): accountName(%s), addr("
 		 "%s:%d), datas(%d)!", *accountName, *baseappIP_, baseappPort_, serverdatas_.Num());
 
-	stream.readBlob(serverdatas_);
 	login_baseapp(true);
 }
 

@@ -21,11 +21,12 @@ UKBEMain::UKBEMain(const FObjectInitializer& ObjectInitializer) : Super(ObjectIn
 
 	ip = TEXT("127.0.0.1");
 	port = @{KBE_LOGIN_PORT};
-	syncPlayerMS = 1000 / @{KBE_UPDATEHZ};
+	syncPlayerMS = @{KBE_UPDATEHZ} * 10;
 	useAliasEntityID = @{KBE_USE_ALIAS_ENTITYID};
 	isOnInitCallPropertysSetMethods = true;
 	clientType = EKCLIENT_TYPE::CLIENT_TYPE_WIN;
-	serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT};
+	networkEncryptType = NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_NONE;
+	serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT} / 2;
 	SEND_BUFFER_MAX = TCP_PACKET_MAX;
 	RECV_BUFFER_MAX = TCP_PACKET_MAX;
 }
@@ -52,7 +53,8 @@ void UKBEMain::BeginPlay()
 	pArgs->useAliasEntityID = useAliasEntityID;
 	pArgs->isOnInitCallPropertysSetMethods = isOnInitCallPropertysSetMethods;
 	pArgs->clientType = clientType;
-	pArgs->serverHeartbeatTick = serverHeartbeatTick / 2;
+	pArgs->networkEncryptType = networkEncryptType;
+	pArgs->serverHeartbeatTick = serverHeartbeatTick;
 	pArgs->SEND_BUFFER_MAX = SEND_BUFFER_MAX;
 	pArgs->RECV_BUFFER_MAX = RECV_BUFFER_MAX;
 
