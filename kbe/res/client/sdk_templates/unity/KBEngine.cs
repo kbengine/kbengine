@@ -866,7 +866,6 @@
 			
 			Dbg.DEBUG_MSG("KBEngine::Client_onLoginSuccessfully: accountName(" + accountName + "), addr(" + 
 					baseappIP + ":" + baseappPort + "), datas(" + _serverdatas.Length + ")!");
-			
 		
 			login_baseapp(true);
 		}
