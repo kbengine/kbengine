@@ -584,6 +584,64 @@ void EntityComponent::onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntit
 			SCRIPT_ERROR_CHECK();
 		}
 	}
+
+	
+	if (!beforeDestroy)
+	{
+		EntityComponentUnbind* pEntityComponentUnbind = new EntityComponentUnbind(pEntity, pEntityScriptDescrs);
+		DebugHelper::getSingleton().pDispatcher()->addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), pEntityComponentUnbind, NULL);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityComponent::onEntityUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, EntityComponentUnbind* pEntityComponentUnbind)
+{
+	ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pEntityScriptDescrs->getComponentDescrs();
+	ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
+	for (; comps_iter != componentDescrs.end(); ++comps_iter)
+	{
+		if (g_componentType == BASEAPP_TYPE)
+		{
+			if (!comps_iter->second->hasBase())
+				continue;
+		}
+		else if (g_componentType == CELLAPP_TYPE)
+		{
+			if (!comps_iter->second->hasCell())
+				continue;
+		}
+		else
+		{
+			if (!comps_iter->second->hasClient())
+				continue;
+		}
+
+		PyObject* pyObj = PyObject_GetAttrString(pEntity, comps_iter->first.c_str());
+		if (pyObj)
+		{
+			EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyObj);
+			pEntityComponent->onOwnerUnbind(pEntity, pEntityScriptDescrs);
+
+			Py_DECREF(pyObj);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+	}
+
+	delete pEntityComponentUnbind;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityComponent::onOwnerUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs)
+{
+	ownerID_ = 0;
+
+	if (owner_)
+		Py_DECREF(owner_);
+
+	owner_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -598,10 +656,11 @@ void EntityComponent::onOwnerDestroyEnd(PyObject* pEntity, ScriptDefModule* pEnt
 {
 	ownerID_ = 0;
 
-	if (owner_)
-		Py_DECREF(owner_);
+	// 等待onOwnerUnbind来延时处理
+	//if (owner_)
+	//	Py_DECREF(owner_);
 
-	owner_ = NULL;
+	//owner_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
