@@ -16,6 +16,7 @@
 #include "Regex.h"
 #include "KBDebug.h"
 #include "KBEvent.h"
+#include "EncryptionFilter.h"
 
 ServerErrorDescrs KBEngineApp::serverErrs_;
 
@@ -54,7 +55,8 @@ KBEngineApp::KBEngineApp() :
 	spaceID_(0),
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
-	component_(TEXT("client"))
+	component_(TEXT("client")),
+	pFilter_(NULL)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
 }
@@ -445,6 +447,13 @@ void KBEngineApp::hello()
 	else
 		pBundle->newMessage(Messages::messages[TEXT("Baseapp_hello")]);
 
+	if (pArgs_->networkEncryptType ==  NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pFilter_ = new BlowfishFilter();
+		encryptedKey_ = ((BlowfishFilter*)pFilter_)->key();
+		pNetworkInterface_->setFilter(NULL);
+	}
+
 	(*pBundle) << clientVersion_;
 	(*pBundle) << clientScriptVersion_;
 	pBundle->appendBlob(encryptedKey_);
@@ -496,6 +505,12 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
 			return;
 		}
+	}
+
+	if (pArgs_->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pNetworkInterface_->setFilter(pFilter_);
+		pFilter_ = NULL;
 	}
 
 	onServerDigest();
@@ -679,11 +694,11 @@ void KBEngineApp::Client_onLoginSuccessfully(MemoryStream& stream)
 	stream >> baseappIP_;
 	stream >> baseappTcpPort_;
 	stream >> baseappUdpPort_;
+	stream.readBlob(serverdatas_);
 
 	DEBUG_MSG("KBEngineApp::Client_onLoginSuccessfully(): accountName(%s), addr("
 		 "%s:%d:%d), datas(%d)!", *accountName, *baseappIP_, baseappTcpPort_, baseappUdpPort_, serverdatas_.Num());
-
-	stream.readBlob(serverdatas_);
+	
 	login_baseapp(true);
 }
 

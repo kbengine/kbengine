@@ -16,7 +16,8 @@ NetworkInterfaceBase::NetworkInterfaceBase():
 	connectPort_(0),
 	connectUserdata_(0),
 	startTime_(0.0),
-	isDestroyed_(false)
+	isDestroyed_(false),
+	pFilter_(NULL)
 {
 }
 
@@ -44,6 +45,7 @@ void NetworkInterfaceBase::close()
 
 	KBE_SAFE_RELEASE(pPacketSender_);
 	KBE_SAFE_RELEASE(pPacketReceiver_);
+	KBE_SAFE_RELEASE(pFilter_);
 
 	connectCB_ = NULL;
 	connectIP_ = TEXT("");
@@ -133,6 +135,9 @@ bool NetworkInterfaceBase::send(MemoryStream* pMemoryStream)
 
 	if (!pPacketSender_)
 		pPacketSender_ = createPacketSender();
+
+	if (pFilter_ )
+		return pFilter_->send(pPacketSender_, pMemoryStream);
 
 	return pPacketSender_->send(pMemoryStream);
 }

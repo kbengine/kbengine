@@ -112,6 +112,11 @@
 				throw new ArgumentException("invalid socket!");
 			}
 
+            if(_filter != null)
+            {
+                _filter.encrypt(stream);
+            }
+
 			nextTickKcpUpdate = 0;
 			return kcp_.Send(stream.data(), stream.rpos, (int)stream.length()) >= 0;
 		}
