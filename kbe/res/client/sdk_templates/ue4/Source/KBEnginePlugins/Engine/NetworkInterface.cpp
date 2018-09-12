@@ -5,6 +5,7 @@
 #include "MemoryStream.h"
 #include "KBEvent.h"
 #include "KBDebug.h"
+#include "KBEngine.h"
 
 NetworkInterface::NetworkInterface():
 	socket_(NULL),
@@ -15,7 +16,8 @@ NetworkInterface::NetworkInterface():
 	connectPort_(0),
 	connectUserdata_(0),
 	startTime_(0.0),
-	isDestroyed_(false)
+	isDestroyed_(false),
+	pFilter_(NULL)
 {
 }
 
@@ -43,6 +45,7 @@ void NetworkInterface::close()
 
 	KBE_SAFE_RELEASE(pPacketSender_);
 	KBE_SAFE_RELEASE(pPacketReceiver_);
+	KBE_SAFE_RELEASE(pFilter_);
 
 	connectCB_ = NULL;
 	connectIP_ = TEXT("");
@@ -121,6 +124,9 @@ bool NetworkInterface::send(MemoryStream* pMemoryStream)
 
 	if (!pPacketSender_)
 		pPacketSender_ = new PacketSender(this);
+
+	if (pFilter_)
+		return pFilter_->send(pPacketSender_, pMemoryStream);
 
 	return pPacketSender_->send(pMemoryStream);
 }
