@@ -515,7 +515,7 @@ int EntityComponent::onScriptDelAttribute(PyObject* attr)
 
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs = &pComponentDescrs_->getPropertyDescrs();
 
-	if (pPropertyDescrs)
+	if (pPropertyDescrs) 
 	{
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs->find(ccattr);
 		if (iter != pPropertyDescrs->end())
