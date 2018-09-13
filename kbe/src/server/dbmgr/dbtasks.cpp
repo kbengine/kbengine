@@ -1500,7 +1500,7 @@ bool DBTaskAccountLogin::db_thread_process()
 	// 如果Interfaces已经判断不成功就没必要继续下去
 	if(retcode_ != SERVER_SUCCESS)
 	{
-		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): interfaces report failed({})!\n", retcode_));
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): interfaces report failed(errcode={})!\n", retcode_));
 		return false;
 	}
 
