@@ -25,6 +25,8 @@ public:
 	// Reference: http://kbengine.github.io/docs/programming/clientsdkprogramming.html, client types
 	EKCLIENT_TYPE clientType;
 
+	NETWORK_ENCRYPT_TYPE  networkEncryptType;
+
 	int syncPlayerMS;
 	bool useAliasEntityID;
 	bool isOnInitCallPropertysSetMethods;
@@ -37,4 +39,5 @@ public:
 
 	// 接收缓冲区大小
 	MessageLengthEx RECV_BUFFER_MAX;
+
 };

@@ -165,6 +165,20 @@ public:
 		return wpos_;
 	}
 
+	void swap(MemoryStream & s)
+	{
+		size_t rpos = s.rpos(), wpos = s.wpos();
+
+		TArray<uint8> temp = data_;
+		data_ = s.data_;
+		s.data_ = temp;
+
+		s.rpos((int)rpos_);
+		s.wpos((int)wpos_);
+		rpos_ = rpos;
+		wpos_ = wpos;
+	}
+
 	uint8 operator[](uint32 pos)
 	{
 		return read<uint8>(pos);
@@ -857,6 +871,7 @@ public:
 
 	/** 输出流数据 */
 	void print_storage();
+	void hexlike();
 
 protected:
 	uint32 rpos_;

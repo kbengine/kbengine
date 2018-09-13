@@ -16,6 +16,9 @@
 		// 客户端类型
 		// Reference: http://kbengine.github.io/docs/programming/clientsdkprogramming.html, client types
 		public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
+
+        //加密通信类型
+        public KBEngineApp.NETWORK_ENCRYPT_TYPE networkEncryptType = KBEngineApp.NETWORK_ENCRYPT_TYPE.ENCRYPT_TYPE_NONE;
 		
 		// Allow synchronization role position information to the server
 		// 是否开启自动同步玩家信息到服务端，信息包括位置与方向，毫秒

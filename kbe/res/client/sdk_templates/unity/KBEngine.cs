@@ -55,7 +55,17 @@
 			// Mini-Client
 			CLIENT_TYPE_MINI				= 7,
 		};
-		
+
+        //加密通信类型
+        public enum NETWORK_ENCRYPT_TYPE
+        {
+            //无加密
+            ENCRYPT_TYPE_NONE = 0,
+
+            //Blowfish
+            ENCRYPT_TYPE_BLOWFISH = 1,
+        };
+
         public string username = "kbengine";
         public string password = "123456";
 		
@@ -116,8 +126,11 @@
         private float _updatePlayerToServerPeroid = 100.0f;
 		private const int _1MS_TO_100NS = 10000;
 
-		// 玩家当前所在空间的id， 以及空间对应的资源
-		public UInt32 spaceID = 0;
+        //加密过滤器
+        private EncryptionFilter _filter = null;
+
+        // 玩家当前所在空间的id， 以及空间对应的资源
+        public UInt32 spaceID = 0;
 		public string spaceResPath = "";
 		public bool isLoadedGeometry = false;
 		
@@ -161,6 +174,7 @@
 		
 		void initNetwork()
 		{
+			_filter = null;
 			Messages.init();
         	_networkInterface = new NetworkInterface();
 		}
@@ -253,6 +267,7 @@
 			if (_networkInterface != null)
 				_networkInterface.reset();
 
+			_filter = null;
 			_networkInterface = new NetworkInterface();
 			
 			_spacedatas.Clear();
@@ -370,8 +385,17 @@
 				bundle.newMessage(Messages.messages["Loginapp_hello"]);
 			else
 				bundle.newMessage(Messages.messages["Baseapp_hello"]);
-			
-			bundle.writeString(clientVersion);
+
+			_filter = null;
+
+            if (_args.networkEncryptType == NETWORK_ENCRYPT_TYPE.ENCRYPT_TYPE_BLOWFISH)
+            {
+                _filter = new BlowfishFilter();
+                _encryptedKey = ((BlowfishFilter)_filter).key();
+                _networkInterface.setFilter(null);
+            }
+
+            bundle.writeString(clientVersion);
 			bundle.writeString(clientScriptVersion);
 			bundle.writeBlob(_encryptedKey);
 			bundle.send(_networkInterface);
@@ -412,8 +436,15 @@
 					return;
 				}
 			}
+			
+			 if (_args.networkEncryptType == NETWORK_ENCRYPT_TYPE.ENCRYPT_TYPE_BLOWFISH)
+            {
+                _networkInterface.setFilter(_filter);
+				_filter = null;
+            }
 
-			onServerDigest();
+
+            onServerDigest();
 			
 			if(currserver == "baseapp")
 			{
@@ -835,11 +866,11 @@
 			username = accountName;
 			baseappIP = stream.readString();
 			baseappPort = stream.readUint16();
+			_serverdatas = stream.readBlob();
 			
 			Dbg.DEBUG_MSG("KBEngine::Client_onLoginSuccessfully: accountName(" + accountName + "), addr(" + 
 					baseappIP + ":" + baseappPort + "), datas(" + _serverdatas.Length + ")!");
-			
-			_serverdatas = stream.readBlob();
+		
 			login_baseapp(true);
 		}
 		

@@ -25,6 +25,7 @@
 		public delegate void ConnectCallback(string ip, int port, bool success, object userData);
 
 		protected Socket _socket = null;
+		protected EncryptionFilter _filter = null;
 		PacketReceiver _packetReceiver = null;
 		PacketSender _packetSender = null;
 
@@ -62,6 +63,7 @@
 		{
 			_packetReceiver = null;
 			_packetSender = null;
+			_filter = null;
 			connected = false;
 
 			if(_socket != null)
@@ -222,7 +224,10 @@
 			if (_packetSender == null)
 				_packetSender = new PacketSender(this);
 
-			return _packetSender.send(stream);
+            if (_filter != null)
+                return _filter.send(_packetSender, stream);
+
+            return _packetSender.send(stream);
 		}
 
 		public void process()
@@ -233,5 +238,14 @@
 			if (_packetReceiver != null)
 				_packetReceiver.process();
 		}
-	}
+        public EncryptionFilter fileter()
+        {
+            return _filter;
+        }
+
+        public void setFilter(EncryptionFilter filter)
+        {
+            _filter = filter;
+        }
+    }
 }

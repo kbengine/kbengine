@@ -4,6 +4,7 @@
 #include "NetworkInterface.h"
 #include "MessageReader.h"
 #include "KBDebug.h"
+#include "MemoryStream.h"
 
 PacketReceiver::PacketReceiver(NetworkInterface* pNetworkInterface):
 	pNetworkInterface_(pNetworkInterface),
@@ -32,7 +33,16 @@ void PacketReceiver::process()
 		int32 BytesRead = 0;
 		if (socket->Recv(pBuffer_->data(), pBuffer_->size(), BytesRead))
 		{
-			pMessageReader_->process(pBuffer_->data(), 0, BytesRead);
+			pBuffer_->wpos(BytesRead);
+
+			if (pNetworkInterface_->filter())
+			{
+				pNetworkInterface_->filter()->recv(pMessageReader_, pBuffer_);
+			}
+			else
+			{
+				pMessageReader_->process(pBuffer_->data(), 0, BytesRead);
+			}
 		}
 	}
 }
