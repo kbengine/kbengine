@@ -79,6 +79,14 @@ enum class EKCLIENT_TYPE : uint8
 	CLIENT_TYPE_MINI		UMETA(DisplayName = "Mini"),
 };
 
+//加密通讯的类别
+UENUM(BlueprintType)
+enum class NETWORK_ENCRYPT_TYPE : uint8
+{
+	ENCRYPT_TYPE_NONE			UMETA(DisplayName = "None"),
+	ENCRYPT_TYPE_BLOWFISH		UMETA(DisplayName = "Blowfish"),
+};
+
 // 网络消息类别
 enum NETWORK_MESSAGE_TYPE
 {
