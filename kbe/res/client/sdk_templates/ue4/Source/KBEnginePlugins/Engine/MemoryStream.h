@@ -170,7 +170,9 @@ public:
 	{
 		size_t rpos = s.rpos(), wpos = s.wpos();
 
-		MemoryStreamConverter::swap(data_, s.data_);
+		TArray<uint8> *temp = data_;
+		data_ = s.data_;
+		s.data_ = temp;
 
 		s.rpos((int)rpos_);
 		s.wpos((int)wpos_);
