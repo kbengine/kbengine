@@ -80,7 +80,7 @@ public:
 	MemoryStream() :
 		rpos_(0), 
 		wpos_(0),
-		data_()
+		data_(new TArray<uint8>)
 	{
 		data_resize(DEFAULT_SIZE);
 	}
@@ -88,6 +88,7 @@ public:
 	virtual ~MemoryStream()
 	{
 		clear(false);
+		KBE_SAFE_RELEASE(data_);
 	}
 
 	static MemoryStream* createObject();
@@ -95,22 +96,22 @@ public:
 
 public:
 	uint8* data() {
-		return data_.GetData();
+		return data_->GetData();
 	}
 
 	void clear(bool clearData)
 	{
 		if (clearData)
-			data_.Empty();
+			data_->Empty();
 
 		rpos_ = wpos_ = 0;
 	}
 
 	// array的大小
-	virtual uint32 size() const { return data_.Num(); }
+	virtual uint32 size() const { return data_->Num(); }
 
 	// array是否为空
-	virtual bool empty() const { return data_.Num() == 0; }
+	virtual bool empty() const { return data_->Num() == 0; }
 
 	// 读索引到与写索引之间的长度
 	virtual uint32 length() const { return rpos() >= wpos() ? 0 : wpos() - rpos(); }
@@ -124,13 +125,13 @@ public:
 	void data_resize(uint32 newsize)
 	{
 		KBE_ASSERT(newsize <= MAX_SIZE);
-		data_.SetNumUninitialized(newsize);
+		data_->SetNumUninitialized(newsize);
 	}
 
 	void resize(uint32 newsize)
 	{
 		KBE_ASSERT(newsize <= MAX_SIZE);
-		data_.SetNumUninitialized(newsize);
+		data_->SetNumUninitialized(newsize);
 		rpos_ = 0;
 		wpos_ = size();
 	}
@@ -140,7 +141,7 @@ public:
 		KBE_ASSERT(ressize <= MAX_SIZE);
 
 		if (ressize > size())
-			data_.Reserve(ressize);
+			data_->Reserve(ressize);
 	}
 
 	uint32 rpos() const { return rpos_; }
@@ -169,7 +170,7 @@ public:
 	{
 		size_t rpos = s.rpos(), wpos = s.wpos();
 
-		TArray<uint8> temp = data_;
+		TArray<uint8> *temp = data_;
 		data_ = s.data_;
 		s.data_ = temp;
 
@@ -876,7 +877,8 @@ public:
 protected:
 	uint32 rpos_;
 	uint32 wpos_;
-	TArray<uint8> data_;
+
+	TArray<uint8>* data_;
 };
 
 template<>
