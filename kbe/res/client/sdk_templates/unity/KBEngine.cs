@@ -143,6 +143,7 @@
 				throw new Exception("Only one instance of KBEngineApp!");
 			
 			app = this;
+			Event.outEventsImmediately = !args.isMultiThreads;
 			
 			initialize(args);
         }
