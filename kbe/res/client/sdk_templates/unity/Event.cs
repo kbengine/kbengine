@@ -27,6 +27,8 @@
 		
     	static Dictionary<string, List<Pair>> events_out = new Dictionary<string, List<Pair>>();
 		
+		public static bool outEventsImmediately = true;
+
 		static LinkedList<EventObj> firedEvents_out = new LinkedList<EventObj>();
 		static LinkedList<EventObj> doingEvents_out = new LinkedList<EventObj>();
 		
@@ -36,7 +38,7 @@
 		static LinkedList<EventObj> doingEvents_in = new LinkedList<EventObj>();
 
 		static bool _isPauseOut = false;
-	
+
 		public Event()
 		{
 		}
@@ -244,7 +246,7 @@
 		*/
 		public static void fireOut(string eventname, params object[] args)
 		{
-			fire_(events_out, firedEvents_out, eventname, args);
+			fire_(events_out, firedEvents_out, eventname, args, outEventsImmediately);
 		}
 
 		/*
@@ -253,7 +255,7 @@
 		*/
 		public static void fireIn(string eventname, params object[] args)
 		{
-			fire_(events_in, firedEvents_in, eventname, args);
+			fire_(events_in, firedEvents_in, eventname, args, false);
 		}
 
 		/*
@@ -261,11 +263,11 @@
 		*/
 		public static void fireAll(string eventname, params object[] args)
 		{
-			fire_(events_in, firedEvents_in, eventname, args);
-			fire_(events_out, firedEvents_out, eventname, args);
+			fire_(events_in, firedEvents_in, eventname, args, false);
+			fire_(events_out, firedEvents_out, eventname, args, false);
 		}
 		
-		private static void fire_(Dictionary<string, List<Pair>> events, LinkedList<EventObj> firedEvents, string eventname, object[] args)
+		private static void fire_(Dictionary<string, List<Pair>> events, LinkedList<EventObj> firedEvents, string eventname, object[] args, bool eventsImmediately)
 		{
 			monitor_Enter(events);
 			List<Pair> lst = null;
@@ -281,14 +283,33 @@
 				return;
 			}
 			
-			for(int i=0; i<lst.Count; i++)
+			if(eventsImmediately)
 			{
-				EventObj eobj = new EventObj();
-				eobj.info = lst[i];
-				eobj.args = args;
-				firedEvents.AddLast(eobj);
+				for(int i=0; i<lst.Count; i++)
+				{
+					Pair info = lst[i];
+
+					try
+					{
+						info.method.Invoke (info.obj, args);
+					}
+					catch (Exception e)
+					{
+						Dbg.ERROR_MSG("Event::fire_: event=" + info.funcname + "\n" + e.ToString());
+					}
+				}
 			}
-			
+			else
+			{
+				for(int i=0; i<lst.Count; i++)
+				{
+					EventObj eobj = new EventObj();
+					eobj.info = lst[i];
+					eobj.args = args;
+					firedEvents.AddLast(eobj);
+				}
+			}
+
 			monitor_Exit(events);
 		}
 		
