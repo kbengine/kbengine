@@ -147,6 +147,7 @@
 			pair.obj = obj;
 			pair.funcname = funcname;
 			pair.method = obj.GetType().GetMethod(funcname);
+			
 			if(pair.method == null)
 			{
 				Dbg.ERROR_MSG("Event::register: " + obj + "not found method[" + funcname + "]");
@@ -295,7 +296,7 @@
 					}
 					catch (Exception e)
 					{
-						Dbg.ERROR_MSG("Event::fire_: event=" + info.funcname + "\n" + e.ToString());
+						Dbg.ERROR_MSG("Event::fire_: event=" + info.method.DeclaringType.FullName + "::" + info.funcname + "\n" + e.ToString());
 					}
 				}
 			}
@@ -346,7 +347,7 @@
 				}
 	            catch (Exception e)
 	            {
-	            	Dbg.ERROR_MSG("Event::processOutEvents: event=" + eobj.info.funcname + "\n" + e.ToString());
+	            	Dbg.ERROR_MSG("Event::processOutEvents: event=" + eobj.info.method.DeclaringType.FullName + "::" + eobj.info.funcname + "\n" + e.ToString());
 	            }
             
 				if(doingEvents_out.Count > 0)
@@ -387,7 +388,7 @@
 				}
 	            catch (Exception e)
 	            {
-	            	Dbg.ERROR_MSG("Event::processInEvents: event=" + eobj.info.funcname + "\n" + e.ToString());
+	            	Dbg.ERROR_MSG("Event::processInEvents: event=" + eobj.info.method.DeclaringType.FullName + "::" + eobj.info.funcname + "\n" + e.ToString());
 	            }
 	            
 				if(doingEvents_in.Count > 0)
