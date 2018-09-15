@@ -162,6 +162,8 @@ public:
 	void registerLogger(Network::MessageID msgID, Network::Address* pAddr);
 	void unregisterLogger(Network::MessageID msgID, Network::Address* pAddr);
 
+	void onNoLogger();
+
 	void changeLogger(const std::string& name);
 	void closeLogger();  // close logger for fork + execv
 
