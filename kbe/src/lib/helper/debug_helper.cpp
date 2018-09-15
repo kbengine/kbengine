@@ -688,6 +688,11 @@ void DebugHelper::unregisterLogger(Network::MessageID msgID, Network::Address* p
 }
 
 //-------------------------------------------------------------------------------------
+void DebugHelper::DebugHelper::onNoLogger()
+{
+}
+
+//-------------------------------------------------------------------------------------
 void DebugHelper::printBufferedLogs()
 {
 	lockthread();
