@@ -1029,8 +1029,8 @@ void Components::onChannelDeregister(Network::Channel * pChannel, bool isShuting
 bool Components::findLogger()
 {
 	if (g_componentType == LOGGER_TYPE || g_componentType == MACHINE_TYPE || g_componentType == TOOL_TYPE ||
-		g_componentType == CONSOLE_TYPE || g_componentType == CLIENT_TYPE || g_componentType == WATCHER_TYPE ||
-		componentType_ == INTERFACES_TYPE)
+		g_componentType == CONSOLE_TYPE || g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE || 
+		g_componentType == WATCHER_TYPE || componentType_ == INTERFACES_TYPE)
 	{
 		DebugHelper::getSingleton().onNoLogger();
 		return true;
