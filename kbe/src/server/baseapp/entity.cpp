@@ -633,11 +633,19 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 		return NULL;
 	}
 
-	if(pobj->creatingCell() || pobj->cellEntityCall() != NULL) 
+	if (pobj->creatingCell())
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell! creatingCell=%s\n", 
-			pobj->scriptName(), pobj->id(),
-			pobj->creatingCell() ? "true" : "false");
+		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i creating cell! !\n",
+			pobj->scriptName(), pobj->id());
+
+		PyErr_PrintEx(0);
+		return NULL;
+	}
+
+	if (pobj->cellEntityCall() != NULL)
+	{
+		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i has cell, please destroyCellEntity() first!\n",
+			pobj->scriptName(), pobj->id());
 
 		PyErr_PrintEx(0);
 		return NULL;
