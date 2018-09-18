@@ -136,7 +136,6 @@ INLINE bool Entity::isDirty() const
 //-------------------------------------------------------------------------------------
 INLINE uint16 Entity::dbInterfaceIndex() const
 {
-	
 	return dbInterfaceIndex_;
 }
 
