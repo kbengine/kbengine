@@ -5,7 +5,7 @@
 #include "NetworkInterfaceKCP.h"
 
 PacketSenderKCP::PacketSenderKCP(NetworkInterfaceBase* pNetworkInterface) :
-	PacketSender(pNetworkInterface)
+	PacketSenderBase(pNetworkInterface)
 {
 }
 

@@ -8,7 +8,7 @@
 #include "modes.h"
 
 class MemoryStream;
-class PacketSender;
+class PacketSenderBase;
 class MessageReader;
 
 class EncryptionFilter
@@ -22,7 +22,7 @@ public:
 	virtual void decrypt(uint8 *buf, MessageLengthEx len) = 0;
 	virtual void decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len) = 0;
 
-	virtual bool send(PacketSender* pPacketSender, MemoryStream *pPacket) = 0;
+	virtual bool send(PacketSenderBase* pPacketSender, MemoryStream *pPacket) = 0;
 	virtual bool recv(MessageReader* pMessageReader, MemoryStream *pPacket) = 0;
 };
 
@@ -46,7 +46,7 @@ public:
 	virtual void decrypt(uint8 *buf, MessageLengthEx len);
 	virtual void decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len);
 
-	virtual bool send(PacketSender *pPacketSender, MemoryStream *pPacket);
+	virtual bool send(PacketSenderBase *pPacketSender, MemoryStream *pPacket);
 	virtual bool recv(MessageReader *pMessageReader, MemoryStream *pPacket);
 
 	TArray<uint8>& key() {

@@ -1,7 +1,7 @@
 
 #include "NetworkInterfaceBase.h"
-#include "PacketReceiver.h"
-#include "PacketSender.h"
+#include "PacketReceiverBase.h"
+#include "PacketSenderBase.h"
 #include "MemoryStream.h"
 #include "KBEvent.h"
 #include "KBDebug.h"

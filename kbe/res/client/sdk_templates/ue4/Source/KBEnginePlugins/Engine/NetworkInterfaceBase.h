@@ -10,8 +10,8 @@
 #include "Runtime/Sockets/Public/Sockets.h"
 #include "EncryptionFilter.h"
 
-class PacketSender;
-class PacketReceiver;
+class PacketSenderBase;
+class PacketReceiverBase;
 class MemoryStream;
 class InterfaceConnect;
 
@@ -60,13 +60,13 @@ protected:
 	virtual void tickConnecting();
 	virtual bool _connect(const FInternetAddr& addr);
 
-	virtual PacketSender* createPacketSender() = 0;
-	virtual PacketReceiver* createPacketReceiver() = 0;
+	virtual PacketSenderBase* createPacketSender() = 0;
+	virtual PacketReceiverBase* createPacketReceiver() = 0;
 
 protected:
 	FSocket* socket_;
-	PacketSender* pPacketSender_;
-	PacketReceiver* pPacketReceiver_;
+	PacketSenderBase* pPacketSender_;
+	PacketReceiverBase* pPacketReceiver_;
 
 	InterfaceConnect* connectCB_;
 	FString connectIP_;

@@ -7,7 +7,7 @@
 #include "MemoryStream.h"
 
 PacketReceiverKCP::PacketReceiverKCP(NetworkInterfaceBase* pNetworkInterface):
-	PacketReceiver(pNetworkInterface),
+	PacketReceiverBase(pNetworkInterface),
 	remoteAddr_(ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr())
 {
 	pBuffer_->resize(65507u);

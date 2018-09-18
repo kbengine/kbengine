@@ -5,7 +5,7 @@
 #include "NetworkInterfaceBase.h"
 
 PacketSenderTCP::PacketSenderTCP(NetworkInterfaceBase* pNetworkInterface) :
-	PacketSender(pNetworkInterface)
+	PacketSenderBase(pNetworkInterface)
 {
 }
 

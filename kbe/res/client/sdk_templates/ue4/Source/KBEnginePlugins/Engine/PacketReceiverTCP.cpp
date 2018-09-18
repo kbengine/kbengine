@@ -7,7 +7,7 @@
 #include "MemoryStream.h"
 
 PacketReceiverTCP::PacketReceiverTCP(NetworkInterfaceBase* pNetworkInterface):
-	PacketReceiver(pNetworkInterface)
+	PacketReceiverBase(pNetworkInterface)
 {
 }
 

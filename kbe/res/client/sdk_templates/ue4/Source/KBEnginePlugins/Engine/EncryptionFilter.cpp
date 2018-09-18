@@ -148,7 +148,7 @@ void BlowfishFilter::decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx
 	decrypt(buf + offset, len);
 }
 
-bool BlowfishFilter::send(PacketSender* pPacketSender, MemoryStream *pPacket)
+bool BlowfishFilter::send(PacketSenderBase* pPacketSender, MemoryStream *pPacket)
 {
 	if (!isGood_)
 	{
