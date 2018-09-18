@@ -553,7 +553,7 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 
 	if (pobj->creatingCell())
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i creating cell! !\n",
+		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i creating cell!\n",
 			pobj->scriptName(), pobj->id());
 
 		PyErr_PrintEx(0);
