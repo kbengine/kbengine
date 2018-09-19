@@ -635,11 +635,11 @@ PyObject* Entity::__py_pyDestroyEntity(PyObject* self, PyObject* args, PyObject 
 
 	if (pobj->creatingCell())
 	{
-		PyErr_Format(PyExc_Exception, "%s::destroy: id:%i creating cell!\n",
-			pobj->scriptName(), pobj->id());
+		WARNING_MSG(fmt::format("{}::destroy(): id={} creating cell! automatic 'destroy' process will begin after 'onGetCell'.\n", 
+			pobj->scriptName(), pobj->id()));
 
-		PyErr_PrintEx(0);
-		return NULL;
+		pobj->addFlags(ENTITY_FLAGS_DESTROY_AFTER_GETCELL);
+		S_Return;
 	}
 
 	if (pobj->cellEntityCall() != NULL)
@@ -1046,6 +1046,14 @@ void Entity::onGetCell(Network::Channel* pChannel, COMPONENT_ID componentID)
 	{
 		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGetCell"), GETERR));
 	}
+
+	if (!isDestroyed() && hasFlags(ENTITY_FLAGS_DESTROY_AFTER_GETCELL))
+	{
+		WARNING_MSG(fmt::format("{}::onGetCell(): Automatically destroy cell! id={}.\n",
+			this->scriptName(), this->id()));
+
+		destroyCellEntity();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -1070,6 +1078,14 @@ void Entity::onLoseCell(Network::Channel* pChannel, MemoryStream& s)
 	createdSpace_ = false;
 	
 	CALL_COMPONENTS_AND_ENTITY_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLoseCell"), GETERR));
+
+	if (!isDestroyed() && hasFlags(ENTITY_FLAGS_DESTROY_AFTER_GETCELL))
+	{
+		WARNING_MSG(fmt::format("{}::onLoseCell(): Automatically destroy! id={}.\n",
+			this->scriptName(), this->id()));
+
+		destroy();
+	}
 }
 
 //-------------------------------------------------------------------------------------
