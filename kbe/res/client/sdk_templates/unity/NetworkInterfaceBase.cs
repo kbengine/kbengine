@@ -94,7 +94,7 @@
 			{
 				_socket.Close(0);
 				_socket = null;
-				Event.fireAll("onDisconnected", new object[]{});
+				Event.fireAll(EventOutTypes.onDisconnected);
             }
 
             _socket = null;
@@ -139,7 +139,7 @@
 				Dbg.ERROR_MSG(string.Format("NetworkInterfaceBase::_onConnectionState(), connect error! ip: {0}:{1}, err: {2}", state.connectIP, state.connectPort, state.error));
 			}
 
-			Event.fireAll("onConnectionState", new object[] { success });
+			Event.fireAll(EventOutTypes.onConnectionState, success);
 
 			if (state.connectCB != null)
 				state.connectCB(state.connectIP, state.connectPort, success, state.userData);
