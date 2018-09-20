@@ -37,7 +37,7 @@ void NetworkInterfaceKCP::close()
 
 bool NetworkInterfaceKCP::valid()
 {
-	return socket_ != NULL;
+	return socket_ != NULL && pKCP();
 }
 
 bool NetworkInterfaceKCP::initKCP()
@@ -166,7 +166,6 @@ void NetworkInterfaceKCP::tickConnecting()
 	}
 	else
 	{
-		// ������ӳ�ʱ��ص�ʧ��
 		double currTime = getTimeSeconds();
 		if (currTime - startTime_ > 30)
 		{
