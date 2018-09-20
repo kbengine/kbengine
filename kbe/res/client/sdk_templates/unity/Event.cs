@@ -247,7 +247,7 @@
 			public object obj;
 			public string funcname;
 			public System.Reflection.MethodInfo method;
-		};
+        };
 		
 		public struct EventObj
 		{
@@ -360,6 +360,56 @@
 		}
 
         /// <summary>
+		///	注册监听由kbe插件抛出的事件。(out = kbe->render)
+		///	通常由渲染表现层来注册, 例如：监听角色血量属性的变化， 如果UI层注册这个事件，
+		///	事件触发后就可以根据事件所附带的当前血量值来改变角色头顶的血条值。
+        /// </summary>
+        public static bool registerOut(string eventname, Action handler)
+        {
+            return registerOut(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+		///	注册监听由kbe插件抛出的事件。(out = kbe->render)
+		///	通常由渲染表现层来注册, 例如：监听角色血量属性的变化， 如果UI层注册这个事件，
+		///	事件触发后就可以根据事件所附带的当前血量值来改变角色头顶的血条值。
+        /// </summary>
+        public static bool registerOut<T1>(string eventname, Action<T1> handler)
+        {
+            return registerOut(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+		///	注册监听由kbe插件抛出的事件。(out = kbe->render)
+		///	通常由渲染表现层来注册, 例如：监听角色血量属性的变化， 如果UI层注册这个事件，
+		///	事件触发后就可以根据事件所附带的当前血量值来改变角色头顶的血条值。
+        /// </summary>
+        public static bool registerOut<T1, T2>(string eventname, Action<T1, T2> handler)
+        {
+            return registerOut(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+		///	注册监听由kbe插件抛出的事件。(out = kbe->render)
+		///	通常由渲染表现层来注册, 例如：监听角色血量属性的变化， 如果UI层注册这个事件，
+		///	事件触发后就可以根据事件所附带的当前血量值来改变角色头顶的血条值。
+        /// </summary>
+        public static bool registerOut<T1, T2, T3>(string eventname, Action<T1, T2, T3> handler)
+        {
+            return registerOut(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+		///	注册监听由kbe插件抛出的事件。(out = kbe->render)
+		///	通常由渲染表现层来注册, 例如：监听角色血量属性的变化， 如果UI层注册这个事件，
+		///	事件触发后就可以根据事件所附带的当前血量值来改变角色头顶的血条值。
+        /// </summary>
+        public static bool registerOut<T1, T2, T3, T4>(string eventname, Action<T1, T2, T3, T4> handler)
+        {
+            return registerOut(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
         /// 注册监听由渲染表现层抛出的事件(in = render->kbe)
 		/// 通常由kbe插件层来注册， 例如：UI层点击登录， 此时需要触发一个事件给kbe插件层进行与服务端交互的处理。
         /// </summary>
@@ -367,8 +417,53 @@
 		{
 			return register(events_in, eventname, obj, funcname);
 		}
-		
-		private static bool register(Dictionary<string, List<Pair>> events, string eventname, object obj, string funcname)
+
+        /// <summary>
+        /// 注册监听由渲染表现层抛出的事件(in = render->kbe)
+		/// 通常由kbe插件层来注册， 例如：UI层点击登录， 此时需要触发一个事件给kbe插件层进行与服务端交互的处理。
+        /// </summary>
+        public static bool registerIn(string eventname, Action handler)
+        {
+            return registerIn(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+        /// 注册监听由渲染表现层抛出的事件(in = render->kbe)
+		/// 通常由kbe插件层来注册， 例如：UI层点击登录， 此时需要触发一个事件给kbe插件层进行与服务端交互的处理。
+        /// </summary>
+        public static bool registerIn<T1>(string eventname, Action<T1> handler)
+        {
+            return registerIn(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+        /// 注册监听由渲染表现层抛出的事件(in = render->kbe)
+		/// 通常由kbe插件层来注册， 例如：UI层点击登录， 此时需要触发一个事件给kbe插件层进行与服务端交互的处理。
+        /// </summary>
+        public static bool registerIn<T1, T2>(string eventname, Action<T1, T2> handler)
+        {
+            return registerIn(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+        /// 注册监听由渲染表现层抛出的事件(in = render->kbe)
+		/// 通常由kbe插件层来注册， 例如：UI层点击登录， 此时需要触发一个事件给kbe插件层进行与服务端交互的处理。
+        /// </summary>
+        public static bool registerIn<T1, T2, T3>(string eventname, Action<T1, T2, T3> handler)
+        {
+            return registerIn(eventname, handler.Target, handler.Method.Name);
+        }
+
+        /// <summary>
+        /// 注册监听由渲染表现层抛出的事件(in = render->kbe)
+		/// 通常由kbe插件层来注册， 例如：UI层点击登录， 此时需要触发一个事件给kbe插件层进行与服务端交互的处理。
+        /// </summary>
+        public static bool registerIn<T1, T2, T3, T4>(string eventname, Action<T1, T2, T3, T4> handler)
+        {
+            return registerIn(eventname, handler.Target, handler.Method.Name);
+        }
+
+        private static bool register(Dictionary<string, List<Pair>> events, string eventname, object obj, string funcname)
 		{
 			deregister(events, eventname, obj, funcname);
 			List<Pair> lst = null;
@@ -405,13 +500,23 @@
 		{
 			return deregister(events_out, eventname, obj, funcname);
 		}
+  
+        public static bool deregisterOut(string eventname, Action handler)
+        {
+            return deregisterOut(eventname, handler.Target, handler.Method.Name);
+        }
 
-		public static bool deregisterIn(string eventname, object obj, string funcname)
+        public static bool deregisterIn(string eventname, object obj, string funcname)
 		{
 			return deregister(events_in, eventname, obj, funcname);
 		}
-		
-		private static bool deregister(Dictionary<string, List<Pair>> events, string eventname, object obj, string funcname)
+
+        public static bool deregisterIn(string eventname, Action handler)
+        {
+            return deregisterIn(eventname, handler.Target, handler.Method.Name);
+        }
+
+        private static bool deregister(Dictionary<string, List<Pair>> events, string eventname, object obj, string funcname)
 		{
 			monitor_Enter(events);
 			List<Pair> lst = null;
