@@ -228,10 +228,9 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
 				return REASON_WEBSOCKET_ERROR;
 			}
-			else if(msg_frameType_ == websocket::WebSocketProtocol::TEXT_FRAME || 
-					msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
-					msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME ||
-					msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
+			else if (msg_frameType_ == websocket::WebSocketProtocol::TEXT_FRAME ||
+				msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
+				msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
 			{
 				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE({})! addr={}!\n",
 					(int)msg_frameType_, pChannel_->c_str()));
@@ -254,6 +253,48 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 			{
 				// 继续等待后续内容到达
 			}
+		}
+		else if (msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME)
+		{
+			TCPPacket* pPongPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
+
+			if (pFragmentDatasRemain_ > 0)
+			{
+				int wpos = pPacket->wpos();
+				pPacket->wpos(pPacket->rpos() + pFragmentDatasRemain_);
+
+				if (!websocket::WebSocketProtocol::decodingDatas(pPacket, msg_masked_, msg_mask_))
+				{
+					ERROR_MSG(fmt::format("WebSocketPacketReader::recv: decoding-ping-frame error! addr={}!\n",
+						pChannel_->c_str()));
+
+					this->pChannel_->condemn("WebSocketPacketReader::recv: decoding-ping-frame error!");
+					reset();
+
+					TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
+					TCPPacket::reclaimPoolObject(pPongPacket);
+					pFragmentDatasRemain_ = 0;
+					fragmentDatasFlag_ = FRAGMENT_MESSAGE_HREAD;
+					return REASON_WEBSOCKET_ERROR;
+				}
+
+				pPacket->wpos(wpos);
+			}
+
+			websocket::WebSocketProtocol::makeFrame(websocket::WebSocketProtocol::PONG_FRAME, pPacket, pPongPacket);
+
+			if (pFragmentDatasRemain_ > 0)
+			{
+				pPongPacket->append(pPacket->data() + pPacket->rpos(), pFragmentDatasRemain_);
+				pPacket->read_skip((size_t)pFragmentDatasRemain_);
+			}
+
+			pChannel->pEndPoint()->send(pPongPacket->data(), pPongPacket->length());
+			TCPPacket::reclaimPoolObject(pPongPacket);
+
+			pFragmentDatasRemain_ = 0;
+			fragmentDatasFlag_ = FRAGMENT_MESSAGE_HREAD;
+			continue;
 		}
 		else
 		{
@@ -287,10 +328,10 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 
 			if(!websocket::WebSocketProtocol::decodingDatas(pTCPPacket_, msg_masked_, msg_mask_))
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: decoding-frame is error! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: decoding-frame error! addr={}!\n",
 					pChannel_->c_str()));
 
-				this->pChannel_->condemn("WebSocketPacketReader::recv: decoding-frame is error!");
+				this->pChannel_->condemn("WebSocketPacketReader::recv: decoding-frame error!");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
