@@ -44,8 +44,8 @@ public:
 		TEXT_FRAME = 0x81,
 		BINARY_FRAME = 0x82,
 
-		PING_FRAME = 0x19,
-		PONG_FRAME = 0x1A,
+		PING_FRAME = 0x09,
+		PONG_FRAME = 0x0A,
 
 		// πÿ±’¡¨Ω”
 		CLOSE_FRAME = 0x08
