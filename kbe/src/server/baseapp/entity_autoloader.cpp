@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.h"
 #include "network/channel.h"
 #include "entitydef/entitydef.h"
+#include "server/serverconfig.h"
 
 #include "../../server/dbmgr/dbmgr_interface.h"
 
@@ -142,10 +143,20 @@ bool EntityAutoLoader::process()
 				end_ = LOAD_ENTITY_SIZE;
 
 			uint16 dbInterfaceIndex = (uint16)(g_kbeSrvConfig.getDBMgr().dbInterfaceInfos.size() - entityTypes_.size());
-			(*pBundle).newMessage(DbmgrInterface::entityAutoLoad);
-			(*pBundle) << dbInterfaceIndex << g_componentID << (*(*entityTypes_.begin()).begin()) << start_ << end_;
-			pChannel->send(pBundle);
-			querying_ = true;
+
+			if (!g_kbeSrvConfig.isPureDBInterfaceName(g_kbeSrvConfig.dbInterfaceIndex2dbInterfaceName(dbInterfaceIndex)))
+			{
+				(*pBundle).newMessage(DbmgrInterface::entityAutoLoad);
+				(*pBundle) << dbInterfaceIndex << g_componentID << (*(*entityTypes_.begin()).begin()) << start_ << end_;
+				pChannel->send(pBundle);
+				querying_ = true;
+			}
+			else
+			{
+				start_ = 0;
+				end_ = 0;
+				(*entityTypes_.begin()).erase((*entityTypes_.begin()).begin());
+			}
 		}
 		else
 		{

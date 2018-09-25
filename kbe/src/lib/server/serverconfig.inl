@@ -143,7 +143,7 @@ INLINE DBInterfaceInfo* ServerConfig::dbInterface(const std::string& name)
 INLINE float ServerConfig::channelExternalTimeout(void) const { return Network::g_channelExternalTimeout; }
 
 //-------------------------------------------------------------------------------------	
-INLINE bool ServerConfig::IsPureDBInterfaceName(const std::string& dbInterfaceName)
+INLINE bool ServerConfig::isPureDBInterfaceName(const std::string& dbInterfaceName)
 {
 	for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
 	{
