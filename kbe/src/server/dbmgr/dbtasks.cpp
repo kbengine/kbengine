@@ -20,6 +20,7 @@
 #include "baseappmgr/baseappmgr_interface.h"
 #include "cellappmgr/cellappmgr_interface.h"
 #include "loginapp/loginapp_interface.h"
+#include "tools/interfaces/interfaces_interface.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef _DEBUG
@@ -190,6 +191,8 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
 	else if(componentType_ == CELLAPP_TYPE)
 		(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+	else if (componentType_ == INTERFACES_TYPE)
+		(*pBundle).newMessage(InterfacesInterface::onExecuteRawDatabaseCommandCB);
 	else
 	{
 		KBE_ASSERT(false && "no support!\n");
@@ -233,6 +236,8 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
 	else if(componentType_ == CELLAPP_TYPE)
 		(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+	else if (componentType_ == INTERFACES_TYPE)
+		(*pBundle).newMessage(InterfacesInterface::onExecuteRawDatabaseCommandCB);
 	else
 	{
 		KBE_ASSERT(false && "no support!\n");
