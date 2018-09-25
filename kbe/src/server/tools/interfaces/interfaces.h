@@ -24,6 +24,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/kbemain.h"
 #include "server/python_app.h"
 #include "server/serverconfig.h"
+#include "server/callbackmgr.h"	
 #include "common/timer.h"
 #include "network/endpoint.h"
 #include "resmgr/resmgr.h"
@@ -70,6 +71,17 @@ public:
 
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
+
+
+	/** 网络接口
+	注册一个新激活的baseapp或者cellapp或者dbmgr
+	通常是一个新的app被启动了， 它需要向某些组件注册自己。
+	*/
+	virtual void onRegisterNewApp(Network::Channel* pChannel,
+		int32 uid,
+		std::string& username,
+		COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
+		uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx);
 
 	/** 网络接口
 		请求创建账号
@@ -122,6 +134,15 @@ public:
 	void eraseOrders(std::string ordersid);
 	bool hasOrders(std::string ordersid);
 	
+	/**
+		向dbmgr请求执行一个数据库命令
+	*/
+	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
+	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid, const std::string& dbInterfaceName);
+	void onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s);
+
+	PY_CALLBACKMGR& callbackMgr() { return pyCallbackMgr_; }
+
 protected:
 	TimerHandle																mainProcessTimer_;
 
@@ -134,6 +155,7 @@ protected:
 
 	TelnetServer*															pTelnetServer_;
 
+	PY_CALLBACKMGR															pyCallbackMgr_;
 };
 
 }
