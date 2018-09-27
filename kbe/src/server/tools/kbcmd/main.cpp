@@ -247,7 +247,7 @@ int process_getuid(int argc, char* argv[])
 		autoFixUserDigestUID();
 	}
 
-	setenv("UID", fmt::format("{}", getUserUID()), 1);
+	setenv("UID", fmt::format("{}", getUserUID()).c_str(), 1);
 	printf("%s", fmt::format("{}", getUserUID()).c_str());
 	return getUserUID();
 }
