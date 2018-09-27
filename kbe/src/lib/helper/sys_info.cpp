@@ -448,6 +448,7 @@ std::vector< std::string > SystemInfo::getMacAddresses()
 				MAC += MAC_BUF;
 			}
 
+			std::transform(MAC.begin(), MAC.end(), MAC.begin(), tolower);
 			mac_addresses.push_back(MAC);
 			_pIpAdapterInfo = _pIpAdapterInfo->Next;
 		}
