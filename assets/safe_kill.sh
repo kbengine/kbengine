@@ -24,7 +24,7 @@ XUID=$?
 if [ $XUID = 0 ]
 then
 	XUID=`$KBE_BIN_PATH/kbcmd --getuid`
-	echo $XUID
+	echo UID=$XUID
 fi
 
 python $KBE_ROOT/kbe/tools/server/pycluster/cluster_controller.py stop $XUID
