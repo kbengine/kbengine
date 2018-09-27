@@ -230,7 +230,7 @@ int process_getuid(int argc, char* argv[])
 	}
 
 	setenv("UID", fmt::format("{}", getUserUID()), 1);
-	printf("%d", fmt::format("{}", getUserUID()).c_str());
+	printf("%s", fmt::format("{}", getUserUID()).c_str());
 	return getUserUID();
 }
 
