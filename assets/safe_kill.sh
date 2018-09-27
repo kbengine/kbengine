@@ -18,4 +18,13 @@ fi
 export KBE_RES_PATH="$KBE_ROOT/kbe/res/:$(pwd):$(pwd)/res:$(pwd)/scripts/"
 export KBE_BIN_PATH="$KBE_ROOT/kbe/bin/server/"
 
-python $KBE_ROOT/kbe/tools/server/pycluster/cluster_controller.py stop
+userid=`id -u $1 &>/dev/null`
+XUID=$?
+
+if [ $XUID = 0 ]
+then
+	XUID=`$KBE_BIN_PATH/kbcmd --getuid`
+	echo UID=$XUID
+fi
+
+python $KBE_ROOT/kbe/tools/server/pycluster/cluster_controller.py stop $XUID
