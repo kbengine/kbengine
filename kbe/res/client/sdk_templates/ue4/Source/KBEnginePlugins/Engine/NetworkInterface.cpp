@@ -92,7 +92,7 @@ bool NetworkInterface::connectTo(const FString& addr, uint16 port, InterfaceConn
 
 	socket_ = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_Stream, TEXT("default"), false);
 
-	if (!socket_)
+	if (!valid())
 	{
 		ERROR_MSG("NetworkInterface::connectTo(): socket could't be created!");
 		return false;
