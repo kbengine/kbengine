@@ -103,7 +103,7 @@ bool NetworkInterfaceBase::connectTo(const FString& addr, uint16 port, Interface
 
 	socket_ = createSocket();
 
-	if (!valid())
+	if (!socket_)
 	{
 		ERROR_MSG("NetworkInterfaceBase::connectTo(): socket could't be created!");
 		return false;
