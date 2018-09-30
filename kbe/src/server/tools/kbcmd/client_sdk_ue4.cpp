@@ -2201,7 +2201,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 
-	if (clientPropertys.size() > 0)
+	//if (clientPropertys.size() > 0)
 	{
 		fileBody() += fmt::format("\tswitch(pProp->properUtype)\n\t{{\n");
 
@@ -2231,7 +2231,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 				{
 					fileBody() += fmt::format("\t\tcase {}:\n\t\t{{\n", pPropertyDescription->getUType());
 					fileBody() += fmt::format("\t\t\tstream.readUint32();\n");
-					fileBody() += fmt::format("\t\t\tbreak;\n\t\t}}\n");
+					fileBody() += fmt::format("\t\t\tbreak;\n\t\t\t}}\n");
 					continue;
 				}
 				else
