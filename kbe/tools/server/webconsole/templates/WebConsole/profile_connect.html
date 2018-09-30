@@ -5,11 +5,19 @@
 <div class="container-win row placeholders">
   <div id="server-title"><h4>{{ request.GET.title }}</h4></div>
   <form class="form-inline" onkeypress="if(event.keyCode==13||event.which==13){return false;}">
-    <div class="form-group">
-      <input class="form-control" type="text" name="second" id="second" placeholder="输入查询时长(单位：秒)" style="padding-left: 0.3em;padding-top: 0.2em;padding-bottom: 0.3em " />
-      <input class="btn btn-default form-control" type="button" name="exec" value="连接组件" id="exec" onClick="onProfile(this)"/>
-      <div id="output_block_area2" class="form-control" style="  border: none;background-color: none;box-shadow:none;"></div>
+    <div class="form-group" style="margin-right: 1em">
+      <input class="form-control" type="text" name="second" id="second" placeholder="输入查询时长(单位：秒)" style="padding-left: 0.3em;padding-top: 0.2em;padding-bottom: 0.3em;" />
       <div>注：默认查询时长为10秒</div>
+    </div>
+    <div class="form-group" style="margin-right: 1em">
+        <input class="form-control" type="text" name="password" id="password" placeholder="输入密码" style="padding-left: 0.3em;padding-top: 0.2em;padding-bottom: 0.3em; " />
+        <div>注：需要提供telnet密码，默认为pwd123456</div>
+    </div>
+    <div class="form-group">
+        <input class="btn btn-default form-control" type="button" name="exec" value="连接组件" id="exec" onClick="onProfile(this)" />
+        <div id="output_block_area2" class="form-control" style="border: none;background-color: none;box-shadow:none;"></div>
+        <div style="height: 1.5em"></div>
+    </div>   
     </div>
   </form>
   
@@ -61,7 +69,7 @@
   </table>
   <br>
   <div id="execute-block">
-      <input name="component_ip" type="hidden" id="component_ip" value="{{ request.GET.ip }}">
+    <input name="component_ip" type="hidden" id="component_ip" value="{{ request.GET.ip }}">
     <input name="component_port" type="hidden" id="component_port" value="{{ request.GET.port }}">
     <input name="ws_url" type="hidden" id="ws_url" value="{{ ws_url }}">
   </div>
@@ -91,14 +99,20 @@ function onProfile(elm)
     {
         ws_url = "";
         var sec = $("#second").val();
+        var password = $("#password").val();
         if(sec == null || sec == "" || sec == 0){
           sec = "10";
         }
+
+        if(password == null || password == "") {
+          password = "pwd123456";
+        }
+
         if (sec > 0 )
         {
           // sec = $("#second").val();
           
-          ws_url = "{{ws_url}}"+"&sec="+sec;
+          ws_url = "{{ws_url}}"+"&sec="+sec+"&password="+password;
           $("#ws_url").val(ws_url);
           elmm.val("断开连接");
           $.data.profile_started = true;
@@ -158,7 +172,6 @@ window.onload = function()
   {
     $("#tottime").removeClass("hide");
     $(".object-info").removeClass("hide");
-    
   }
 
   if (cmd =="eventprofile")
