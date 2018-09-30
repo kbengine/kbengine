@@ -49,7 +49,9 @@
             {
                 padSize = (int)(BLOCK_SIZE - (stream.length() % BLOCK_SIZE));
                 stream.wpos += padSize;
-                Debug.Assert(stream.wpos <= MemoryStream.BUFFER_MAX);
+
+				if(stream.wpos > MemoryStream.BUFFER_MAX)
+					Debug.LogError("BlowfishFilter::encrypt: stream.wpos(" + stream.wpos + ") > MemoryStream.BUFFER_MAX(" + MemoryStream.BUFFER_MAX + ")!");
             }
 
             _blowfish.encipher(stream.data(), (int)stream.length());
