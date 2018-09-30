@@ -37,7 +37,7 @@ void NetworkInterfaceKCP::close()
 
 bool NetworkInterfaceKCP::valid()
 {
-	return socket_ != NULL && pKCP();
+	return socket_ && (pKCP() || connectCB_);
 }
 
 bool NetworkInterfaceKCP::initKCP()
