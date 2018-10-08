@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\posix.cc" />
-    <ClCompile Include="src\format.cc" />
+    <ClCompile Include="src\posix.cpp" />
+    <ClCompile Include="src\format.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\fmt\color.h" />
