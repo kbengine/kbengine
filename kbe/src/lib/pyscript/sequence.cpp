@@ -284,7 +284,7 @@ int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 		}
 		else
 		{
-			PyErr_SetString(PyExc_IndexError, "Sequence set to type is error!");
+			PyErr_SetString(PyExc_IndexError, "Sequence set to type error!");
 			PyErr_PrintEx(0);
 			return -1;
 		}

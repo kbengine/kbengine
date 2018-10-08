@@ -924,14 +924,14 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * pdbi, const s
 
 	if(!pTable->setFlagsDeadline(pdbi, info.name, info.flags, info.deadline))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): set deadline is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): set deadline error({})!\n", 
 				code, pdbi->getstrerror()));
 		return false;
 	}
 
 	if(!pTable->updatePassword(pdbi, info.name, password))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update password is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update password error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		return false;
@@ -958,7 +958,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * pdbi, const s
 	if(!pdbi->query(fmt::format("update " KBE_TABLE_PERFIX "_accountinfos set entityDBID={} where accountName like \"{}\"", 
 		info.dbid, tbuf), false))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		SAFE_RELEASE_ARRAY(tbuf);

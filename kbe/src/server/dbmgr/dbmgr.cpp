@@ -357,6 +357,8 @@ void Dbmgr::onInstallPyModules()
 			ERROR_MSG( fmt::format("Dbmgr::onInstallPyModules: Unable to set KBEngine.{}.\n", SERVER_ERR_STR[i]));
 		}
 	}
+
+	APPEND_SCRIPT_MODULE_METHOD(module,		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,		METH_VARARGS,	0);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -678,7 +680,7 @@ void Dbmgr::onBroadcastGlobalDataChanged(Network::Channel* pChannel, KBEngine::M
 			pCellAppData_->write(pChannel, componentType, key, value);
 		break;
 	default:
-		KBE_ASSERT(false && "dataType is error!\n");
+		KBE_ASSERT(false && "dataType error!\n");
 		break;
 	};
 }
@@ -814,7 +816,7 @@ void Dbmgr::executeRawDatabaseCommand(Network::Channel* pChannel,
 			return;
 		}
 
-		pThreadPool->addTask(new DBTaskExecuteRawDatabaseCommand(pChannel->addr(), s));
+		pThreadPool->addTask(new DBTaskExecuteRawDatabaseCommand(pChannel ? pChannel->addr() : Network::Address::NONE, s));
 	}
 	else
 	{
@@ -826,12 +828,226 @@ void Dbmgr::executeRawDatabaseCommand(Network::Channel* pChannel,
 			return;
 		}
 
-		pBuffered_DBTasks->addTask(new DBTaskExecuteRawDatabaseCommandByEntity(pChannel->addr(), s, entityID));
+		pBuffered_DBTasks->addTask(new DBTaskExecuteRawDatabaseCommandByEntity(pChannel ? pChannel->addr() : Network::Address::NONE, s, entityID));
 	}
 
 	s.done();
 
 	++numExecuteRawDatabaseCommand_;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Dbmgr::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
+{
+	int argCount = (int)PyTuple_Size(args);
+	PyObject* pycallback = NULL;
+	PyObject* pyDBInterfaceName = NULL;
+	int ret = -1;
+	ENTITY_ID eid = -1;
+
+	char* data = NULL;
+	Py_ssize_t size;
+
+	if (argCount == 4)
+		ret = PyArg_ParseTuple(args, "s#|O|i|O", &data, &size, &pycallback, &eid, &pyDBInterfaceName);
+	else if (argCount == 3)
+		ret = PyArg_ParseTuple(args, "s#|O|i", &data, &size, &pycallback, &eid);
+	else if (argCount == 2)
+		ret = PyArg_ParseTuple(args, "s#|O", &data, &size, &pycallback);
+	else if (argCount == 1)
+		ret = PyArg_ParseTuple(args, "s#", &data, &size);
+
+	if (ret == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	std::string dbInterfaceName = "default";
+	if (pyDBInterfaceName)
+	{
+		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyDBInterfaceName, NULL);
+		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
+		dbInterfaceName = ccattr;
+		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		free(ccattr);
+
+		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args4, incorrect dbInterfaceName(%s)!",
+				dbInterfaceName.c_str());
+
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+	}
+
+	Dbmgr::getSingleton().executeRawDatabaseCommand(data, (uint32)size, pycallback, eid, dbInterfaceName);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid, const std::string& dbInterfaceName)
+{
+	if (datas == NULL)
+	{
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute error!\n");
+		return;
+	}
+
+	int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+	if (dbInterfaceIndex < 0)
+	{
+		ERROR_MSG(fmt::format("KBEngine::executeRawDatabaseCommand: not found dbInterface({})!\n",
+			dbInterfaceName));
+
+		return;
+	}
+
+	//INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", (eid > 0 ? fmt::format("(entityID={})", eid) : ""), datas));
+
+	MemoryStream* pMemoryStream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+	(*pMemoryStream) << eid;
+	(*pMemoryStream) << (uint16)dbInterfaceIndex;
+	(*pMemoryStream) << componentID_ << componentType_;
+
+	CALLBACK_ID callbackID = 0;
+
+	if (pycallback && PyCallable_Check(pycallback))
+		callbackID = callbackMgr().save(pycallback);
+
+	(*pMemoryStream) << callbackID;
+	(*pMemoryStream) << size;
+	(*pMemoryStream).append(datas, size);
+	executeRawDatabaseCommand(NULL, *pMemoryStream);
+	MemoryStream::reclaimPoolObject(pMemoryStream);
+}
+
+//-------------------------------------------------------------------------------------
+void Dbmgr::onExecuteRawDatabaseCommandCB(KBEngine::MemoryStream& s)
+{
+	std::string err;
+	CALLBACK_ID callbackID = 0;
+	uint32 nrows = 0;
+	uint32 nfields = 0;
+	uint64 affectedRows = 0;
+	uint64 lastInsertID = 0;
+
+	PyObject* pResultSet = NULL;
+	PyObject* pAffectedRows = NULL;
+	PyObject* pLastInsertID = NULL;
+	PyObject* pErrorMsg = NULL;
+
+	s >> callbackID;
+	s >> err;
+
+	if (err.size() <= 0)
+	{
+		s >> nfields;
+
+		pErrorMsg = Py_None;
+		Py_INCREF(pErrorMsg);
+
+		if (nfields > 0)
+		{
+			pAffectedRows = Py_None;
+			Py_INCREF(pAffectedRows);
+
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
+
+			s >> nrows;
+
+			pResultSet = PyList_New(nrows);
+			for (uint32 i = 0; i < nrows; ++i)
+			{
+				PyObject* pRow = PyList_New(nfields);
+				for (uint32 j = 0; j < nfields; ++j)
+				{
+					std::string cell;
+					s.readBlob(cell);
+
+					PyObject* pCell = NULL;
+
+					if (cell == "KBE_QUERY_DB_NULL")
+					{
+						Py_INCREF(Py_None);
+						pCell = Py_None;
+					}
+					else
+					{
+						pCell = PyBytes_FromStringAndSize(cell.data(), cell.length());
+					}
+
+					PyList_SET_ITEM(pRow, j, pCell);
+				}
+
+				PyList_SET_ITEM(pResultSet, i, pRow);
+			}
+		}
+		else
+		{
+			pResultSet = Py_None;
+			Py_INCREF(pResultSet);
+
+			pErrorMsg = Py_None;
+			Py_INCREF(pErrorMsg);
+
+			s >> affectedRows;
+
+			pAffectedRows = PyLong_FromUnsignedLongLong(affectedRows);
+
+			s >> lastInsertID;
+			pLastInsertID = PyLong_FromUnsignedLongLong(lastInsertID);
+		}
+	}
+	else
+	{
+		pResultSet = Py_None;
+		Py_INCREF(pResultSet);
+
+		pErrorMsg = PyUnicode_FromString(err.c_str());
+
+		pAffectedRows = Py_None;
+		Py_INCREF(pAffectedRows);
+
+		pLastInsertID = Py_None;
+		Py_INCREF(pLastInsertID);
+	}
+
+	s.done();
+
+	//DEBUG_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
+	//	nrows, nfields, err.c_str()));
+
+	if (callbackID > 0)
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		if (pyfunc != NULL)
+		{
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(),
+				const_cast<char*>("OOOO"),
+				pResultSet, pAffectedRows, pLastInsertID, pErrorMsg);
+
+			if (pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: can't found callback:{}.\n",
+				callbackID));
+		}
+	}
+
+	Py_XDECREF(pResultSet);
+	Py_XDECREF(pAffectedRows);
+	Py_XDECREF(pLastInsertID);
+	Py_XDECREF(pErrorMsg);
 }
 
 //-------------------------------------------------------------------------------------

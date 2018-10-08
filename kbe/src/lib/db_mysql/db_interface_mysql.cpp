@@ -363,7 +363,7 @@ bool DBInterfaceMysql::checkErrors()
 		std::string querycmd = fmt::format("SHOW TABLES LIKE \"" ENTITY_TABLE_PERFIX "_{}\"", DBUtil::accountScriptName());
 		if (!query(querycmd.c_str(), querycmd.size(), true))
 		{
-			ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query(dbInterface={}) is error!\n", querycmd, name()));
+			ERROR_MSG(fmt::format("DBInterfaceMysql::checkErrors: {}, query(dbInterface={}) error!\n", querycmd, name()));
 			return false;
 		}
 
@@ -490,7 +490,7 @@ bool DBInterfaceMysql::query(const char* cmd, uint32 size, bool printlog, Memory
     {
 		if(printlog)
 		{
-			ERROR_MSG(fmt::format("DBInterfaceMysql::query: is error({}:{})!\nsql:({})\n", 
+			ERROR_MSG(fmt::format("DBInterfaceMysql::query: error({}:{})!\nsql:({})\n", 
 				mysql_errno(pMysql_), mysql_error(pMysql_), lastquery_)); 
 		}
 

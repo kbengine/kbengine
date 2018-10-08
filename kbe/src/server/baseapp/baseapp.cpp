@@ -1498,7 +1498,7 @@ void Baseapp::createEntityAnywhereFromDBID(const char* entityType, DBID dbid, Py
 	Network::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
 	if (pBaseappmgrChannel == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::createEntityAnywhereFromDBID: create {}({}) is error, not found baseappmgr!\n",
+		ERROR_MSG(fmt::format("Baseapp::createEntityAnywhereFromDBID: create {}({}) error, not found baseappmgr!\n",
 			entityType, dbid));
 
 		return;

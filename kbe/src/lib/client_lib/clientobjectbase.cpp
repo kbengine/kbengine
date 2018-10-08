@@ -258,7 +258,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -268,7 +268,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "f|O",  &time, &pyCallback) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -291,7 +291,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -302,7 +302,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "i",  &id) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -474,7 +474,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 	Network::Address::string2ip(ip.c_str(), address);
 	if(pEndpoint->connect(htons(port), address) == -1)
 	{
-		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server is error({})!\n",
+		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server error({})!\n",
 			kbe_strerror()));
 
 		Network::EndPoint::reclaimPoolObject(pEndpoint);
@@ -512,7 +512,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	Network::Address::string2ip(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
+		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server error({})!\n",
 			kbe_strerror()));
 
 		Network::EndPoint::reclaimPoolObject(pEndpoint);
@@ -2075,7 +2075,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2083,7 +2083,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	char* key = NULL;
 	if(PyArg_ParseTuple(args, "s",  &key) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2108,7 +2108,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2117,7 +2117,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "s", &path) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2247,7 +2247,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2256,7 +2256,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "s", &path) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2287,7 +2287,7 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 		uint32 i = 0;
 		if(PyArg_ParseTuple(args, "I", &i) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] error!");
 			PyErr_PrintEx(0);
 			S_Return
 		}

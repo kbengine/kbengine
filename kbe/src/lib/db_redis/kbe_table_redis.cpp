@@ -543,14 +543,14 @@ bool KBEEmailVerificationTableRedis::activateAccount(DBInterface * pdbi, const s
 
 	if(!pTable->setFlagsDeadline(pdbi, info.name, info.flags, info.deadline))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::activateAccount({}): set deadline is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::activateAccount({}): set deadline error({})!\n", 
 				code, pdbi->getstrerror()));
 		return false;
 	}
 
 	if(!pTable->updatePassword(pdbi, info.name, password))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::activateAccount({}): update password is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::activateAccount({}): update password error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		return false;
@@ -576,7 +576,7 @@ bool KBEEmailVerificationTableRedis::activateAccount(DBInterface * pdbi, const s
 	if(!pdbi->query(fmt::format("HSET " KBE_TABLE_PERFIX "_accountinfos:{} entityDBID {}", 
 		info.name, info.dbid), false))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableRedis::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		return false;

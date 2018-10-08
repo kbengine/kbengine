@@ -125,10 +125,10 @@ void EntityDef::reload(bool fullReload)
 		}
 
 		bool ret = finalise(true);
-		KBE_ASSERT(ret && "EntityDef::reload: finalise is error!");
+		KBE_ASSERT(ret && "EntityDef::reload: finalise error!");
 
 		ret = initialize(EntityDef::__scriptBaseTypes, EntityDef::__loadComponentType);
-		KBE_ASSERT(ret && "EntityDef::reload: initialize is error!");
+		KBE_ASSERT(ret && "EntityDef::reload: initialize error!");
 	}
 	else
 	{

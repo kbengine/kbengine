@@ -598,7 +598,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "O", &pyResourceName) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args is error!");
+			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -607,7 +607,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "O|O", &pyResourceName, &pyDesc) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args is error!");
+			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -616,7 +616,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "O|O|H", &pyResourceName, &pyDesc, &id) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args is error!");
+			PyErr_Format(PyExc_TypeError, "Proxy::streamFileToClient: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -693,7 +693,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "O", &pyData) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args is error!");
+			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -702,7 +702,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "O|O", &pyData, &pyDesc) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args is error!");
+			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -711,7 +711,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "O|O|H", &pyData, &pyDesc, &id) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args is error!");
+			PyErr_Format(PyExc_TypeError, "Proxy::streamStringToClient: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}

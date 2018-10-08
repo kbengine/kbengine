@@ -107,7 +107,7 @@ bool Bots::initializeEnd()
 		g_kbeSrvConfig.getBots().telnet_deflayer, 
 		g_kbeSrvConfig.getBots().telnet_port))
 	{
-		ERROR_MSG("Bots::initialize: initializeEnd is error!\n");
+		ERROR_MSG("Bots::initialize: initializeEnd error!\n");
 		return false;
 	}
 
@@ -350,7 +350,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "I", &reqCreateAndLoginTotalCount) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -363,7 +363,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 		if(PyArg_ParseTuple(args, "I|I|f", &reqCreateAndLoginTotalCount, 
 			&reqCreateAndLoginTickCount, &reqCreateAndLoginTickTime) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -379,7 +379,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -393,7 +393,7 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -402,7 +402,7 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "i", &type) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
 	}
 

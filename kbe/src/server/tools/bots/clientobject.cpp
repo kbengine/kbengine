@@ -124,7 +124,7 @@ bool ClientObject::initCreate()
 	Network::Address::string2ip(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
+		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) error({0})!\n",
 			kbe_strerror(), name_, infos.login_ip, infos.login_port));
 
 		Network::EndPoint::reclaimPoolObject(pEndpoint);
@@ -198,7 +198,7 @@ bool ClientObject::initLoginBaseapp()
 	Network::Address::string2ip(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(port_), address) == -1)
 	{
-		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",
+		ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server error({})!\n",
 			kbe_strerror(), name_));
 
 		Network::EndPoint::reclaimPoolObject(pEndpoint);

@@ -317,7 +317,7 @@ public:																						\
 																							\
 		CLASS::onInstallScript(mod);														\
 		if (PyType_Ready(&_scriptType) < 0){												\
-			ERROR_MSG("PyType_Ready(" #CLASS ") is error!");								\
+			ERROR_MSG("PyType_Ready(" #CLASS ") error!");									\
 			PyErr_Print();																	\
 			return;																			\
 		}																					\
@@ -327,7 +327,7 @@ public:																						\
 			Py_INCREF(&_scriptType);														\
 			if(PyModule_AddObject(mod, name, (PyObject *)&_scriptType) < 0)					\
 			{																				\
-				ERROR_MSG(fmt::format("PyModule_AddObject({}) is error!", name));			\
+				ERROR_MSG(fmt::format("PyModule_AddObject({}) error!", name));				\
 			}																				\
 		}																					\
 																							\
