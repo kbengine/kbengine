@@ -155,9 +155,9 @@ void myassert(const char * exp, const char * func, const char * file, unsigned i
 																\
 		char* ccattr = strutil::wchar2char(exe_path);			\
 		if(CHANGED)												\
-			printf("Logging(changed) to: %s/logs/"NAME"%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
+			printf("Logging(changed) to: %s/logs/" NAME "%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
 		else													\
-			printf("Logging to: %s/logs/"NAME"%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
+			printf("Logging to: %s/logs/" NAME "%s.*.log\n\n", ccattr, COMPONENT_NAME_EX(g_componentType));\
 		free(ccattr);											\
 	}															\
 
@@ -455,10 +455,10 @@ void DebugHelper::sync()
 		return;
 	}
 
-	// ½«×ÓÏß³ÌÈÕÖ¾·ÅÈëbufferedLogPackets_
+	// å°†å­çº¿ç¨‹æ—¥å¿—æ”¾å…¥bufferedLogPackets_
 	while (childThreadBufferedLogPackets_.size() > 0)
 	{
-		// ´ÓÖ÷¶ÔÏó³ØÈ¡³öÒ»¸ö¶ÔÏó£¬½«×ÓÏß³ÌÖĞ¶ÔÏóvectorÄÚ´æ½»»»½øÈ¥
+		// ä»ä¸»å¯¹è±¡æ± å–å‡ºä¸€ä¸ªå¯¹è±¡ï¼Œå°†å­çº¿ç¨‹ä¸­å¯¹è±¡vectorå†…å­˜äº¤æ¢è¿›å»
 		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
 		childThreadBufferedLogPackets_.pop();
 
@@ -469,11 +469,11 @@ void DebugHelper::sync()
 		pBundle->finiCurrPacket();
 		pBundle->newPacket();
 
-		// ½«ËûÃÇµÄÄÚ´æ½»»»½øÈ¥
+		// å°†ä»–ä»¬çš„å†…å­˜äº¤æ¢è¿›å»
 		pBundle->pCurrPacket()->swap(*pMemoryStream);
 		pBundle->currMsgLength(pBundle->currMsgLength() + pBundle->pCurrPacket()->length());
 
-		// ½«ËùÓĞ¶ÔÏó½»»¹¸ø¶ÔÏó³Ø
+		// å°†æ‰€æœ‰å¯¹è±¡äº¤è¿˜ç»™å¯¹è±¡æ± 
 		memoryStreamPool_.reclaimObject(pMemoryStream);
 	}
 
@@ -549,7 +549,7 @@ void DebugHelper::sync()
 		--hasBufferedLogPackets_;
 	}
 
-	// ÕâÀïĞèÒªÑÓÊ±·¢ËÍ£¬·ñÔòÔÚ·¢ËÍ¹ı³ÌÖĞ²úÉú´íÎó£¬µ¼ÖÂÈÕÖ¾Êä³ö»á³öÏÖËÀËø
+	// è¿™é‡Œéœ€è¦å»¶æ—¶å‘é€ï¼Œå¦åˆ™åœ¨å‘é€è¿‡ç¨‹ä¸­äº§ç”Ÿé”™è¯¯ï¼Œå¯¼è‡´æ—¥å¿—è¾“å‡ºä¼šå‡ºç°æ­»é”
 	if(bundles.size() > 0 && !pLoggerChannel->sending())
 		pLoggerChannel->delayedSend();
 
@@ -726,10 +726,10 @@ void DebugHelper::printBufferedLogs()
 	KBE_LOG4CXX_INFO(g_logger, std::string("The following logs sent to logger failed:\n"));
 #endif
 
-	// ½«×ÓÏß³ÌÈÕÖ¾·ÅÈëbufferedLogPackets_
+	// å°†å­çº¿ç¨‹æ—¥å¿—æ”¾å…¥bufferedLogPackets_
 	while (childThreadBufferedLogPackets_.size() > 0)
 	{
-		// ´ÓÖ÷¶ÔÏó³ØÈ¡³öÒ»¸ö¶ÔÏó£¬½«×ÓÏß³ÌÖĞ¶ÔÏóvectorÄÚ´æ½»»»½øÈ¥
+		// ä»ä¸»å¯¹è±¡æ± å–å‡ºä¸€ä¸ªå¯¹è±¡ï¼Œå°†å­çº¿ç¨‹ä¸­å¯¹è±¡vectorå†…å­˜äº¤æ¢è¿›å»
 		MemoryStream* pMemoryStream = childThreadBufferedLogPackets_.front();
 		childThreadBufferedLogPackets_.pop();
 
@@ -740,11 +740,11 @@ void DebugHelper::printBufferedLogs()
 		pBundle->finiCurrPacket();
 		pBundle->newPacket();
 
-		// ½«ËûÃÇµÄÄÚ´æ½»»»½øÈ¥
+		// å°†ä»–ä»¬çš„å†…å­˜äº¤æ¢è¿›å»
 		pBundle->pCurrPacket()->swap(*pMemoryStream);
 		pBundle->currMsgLength(pBundle->currMsgLength() + pBundle->pCurrPacket()->length());
 
-		// ½«ËùÓĞ¶ÔÏó½»»¹¸ø¶ÔÏó³Ø
+		// å°†æ‰€æœ‰å¯¹è±¡äº¤è¿˜ç»™å¯¹è±¡æ± 
 		memoryStreamPool_.reclaimObject(pMemoryStream);
 	}
 
@@ -944,7 +944,7 @@ void DebugHelper::script_info_msg(const std::string& s)
 
 	onMessage(KBELOG_TYPE_MAPPING(scriptMsgType_), s.c_str(), (uint32)s.size());
 
-	// Èç¹ûÊÇÓÃ»§ÊÖ¶¯ÉèÖÃµÄÒ²Êä³öÎª´íÎóĞÅÏ¢
+	// å¦‚æœæ˜¯ç”¨æˆ·æ‰‹åŠ¨è®¾ç½®çš„ä¹Ÿè¾“å‡ºä¸ºé”™è¯¯ä¿¡æ¯
 	if(log4cxx::ScriptLevel::SCRIPT_ERR == scriptMsgType_)
 	{
 		set_errorcolor();
