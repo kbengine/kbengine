@@ -128,7 +128,7 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += math common helper resmgr
+MY_LIBS += fmt math common helper resmgr
 endif
 endif
 
@@ -139,6 +139,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/fmt/include
 
 # Preprocessor output only (useful when debugging macros)
 # CPPFLAGS += -E

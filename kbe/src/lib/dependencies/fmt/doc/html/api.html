@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    
+    <title>API Reference &mdash; fmt 5.2.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/breathe.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '5.2.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX:  ''
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="next" title="Format String Syntax" href="syntax.html" />
+    <link rel="prev" title="Usage" href="usage.html" />
+<meta name="description" content="Small, safe and fast formatting library">
+<meta name="keywords" content="C++, formatting, printf, string, library">
+<meta name="author" content="Victor Zverovich">
+<link rel="stylesheet" href="_static/fmt.css">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();
+    a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;
+    a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-20116650-4', 'fmtlib.net');
+  ga('send', 'pageview');
+</script>
+
+  </head>
+  <body role="document">
+<nav class="navbar navbar-inverse">
+  <div class="tb-container">
+    <div class="row">
+      <div class="navbar-content">
+        
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed"
+                  data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">{fmt}</a>
+        </div>
+
+        
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                 role="button" aria-expanded="false">5.2.1
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                
+                <li><a href="http://fmtlib.net/5.2.1">5.2.1</a></li>
+                
+                <li><a href="http://fmtlib.net/5.2.0">5.2.0</a></li>
+                
+                <li><a href="http://fmtlib.net/5.1.0">5.1.0</a></li>
+                
+              </ul>
+            </li>
+            
+              
+              <li><a href="contents.html">Contents</a></li>
+              
+            
+              
+              <li><a href="usage.html">Usage</a></li>
+              
+            
+              
+              <li class="active"><a href="api.html">API
+                <span class="sr-only">(current)</span></a></li>
+              
+            
+              
+              <li><a href="syntax.html">Syntax</a></li>
+              
+            
+          </ul>
+          
+            
+<form class="navbar-form navbar-right" role="search" action="search.html"
+      method="get">
+  <div class="form-group">
+    <input type="text" name="q" class="form-control"
+           placeholder="Search" >
+  </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+  
+</form>
+          
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+</nav>
+
+
+
+<div class="tb-container">
+  <div class="row">
+    
+
+    <div class="content">
+      
+  <div class="section" id="api-reference">
+<span id="string-formatting-api"></span><h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<p>The {fmt} library API consists of the following parts:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#core-api"><span class="std std-ref">fmt/core.h</span></a>: the core API providing argument handling
+facilities and a lightweight subset of formatting functions</li>
+<li><a class="reference internal" href="#format-api"><span class="std std-ref">fmt/format.h</span></a>: the full format API providing compile-time
+format string checks, output iterator and user-defined type support</li>
+<li><a class="reference internal" href="#time-api"><span class="std std-ref">fmt/time.h</span></a>: date and time formatting</li>
+<li><a class="reference internal" href="#ostream-api"><span class="std std-ref">fmt/ostream.h</span></a>: <code class="docutils literal"><span class="pre">std::ostream</span></code> support</li>
+<li><a class="reference internal" href="#printf-api"><span class="std std-ref">fmt/printf.h</span></a>: <code class="docutils literal"><span class="pre">printf</span></code> formatting</li>
+</ul>
+<p>All functions and types provided by the library reside in namespace <code class="docutils literal"><span class="pre">fmt</span></code> and
+macros have prefix <code class="docutils literal"><span class="pre">FMT_</span></code> or <code class="docutils literal"><span class="pre">fmt</span></code>.</p>
+<div class="section" id="core-api">
+<span id="id1"></span><h2>Core API<a class="headerlink" href="#core-api" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">fmt/core.h</span></code> defines the core API which provides argument handling facilities
+and a lightweight subset of formatting functions.</p>
+<p>The following functions use <a class="reference internal" href="syntax.html#syntax"><span class="std std-ref">format string syntax</span></a>
+imilar to that of Python&#8217;s <a class="reference external" href="http://docs.python.org/3/library/stdtypes.html#str.format">str.format</a>.
+They take <em>format_str</em> and <em>args</em> as arguments.</p>
+<p><em>format_str</em> is a format string that contains literal text and replacement
+fields surrounded by braces <code class="docutils literal"><span class="pre">{}</span></code>. The fields are replaced with formatted
+arguments in the resulting string.</p>
+<p><em>args</em> is an argument list representing objects to be formatted.</p>
+<span class="target" id="format"></span><dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> String, typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt6formatERK6StringDpRK4Args">
+<span id="fmt::format__StringCR.ArgsCRDp"></span><span class="target" id="formatcore_8h_1a2137bde68486807ee048d67bb532418c"></span>std::basic_string&lt;<em class="property">typename</em> internal::format_string_traits&lt;String&gt;::char_type&gt; <code class="descclassname">fmt::</code><code class="descname">format</code><span class="sig-paren">(</span><em class="property">const</em> String &amp;<em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt6formatERK6StringDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Formats arguments and returns the result as a string.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;fmt/core.h&gt;</span><span class="cp"></span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message</span> <span class="o">=</span> <span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;The answer is {}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> String, <em class="property">typename</em> Char = typename internal::format_string_traits&lt;String&gt;::char_type&gt;</dt>
+<dt id="_CPPv2N3fmt7vformatERK6String17basic_format_argsIN14buffer_contextI4CharE4typeEE">
+<span id="fmt::vformat__StringCR.basic_format_args:buffer_context:Char:::type:"></span><span class="target" id="formatcore_8h_1ae7fa93c46542e98fe4dd885ee9eb2b62"></span>std::basic_string&lt;Char&gt; <code class="descclassname">fmt::</code><code class="descname">vformat</code><span class="sig-paren">(</span><em class="property">const</em> String &amp;<em>format_str</em>, <a class="reference internal" href="#_CPPv2N3fmt17basic_format_argsE" title="fmt::basic_format_args">basic_format_args</a>&lt;<em class="property">typename</em> buffer_context&lt;Char&gt;::type&gt; <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt7vformatERK6String17basic_format_argsIN14buffer_contextI4CharE4typeEE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<span class="target" id="print"></span><dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt5printE11string_viewDpRK4Args">
+<span id="fmt::print__string_view.ArgsCRDp"></span><span class="target" id="formatcore_8h_1a651d28b3ca56409857705bafc9f3f702"></span>void <code class="descclassname">fmt::</code><code class="descname">print</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt5printE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Prints formatted data to <code class="docutils literal"><span class="pre">stdout</span></code>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;Elapsed time: {0:.2f} seconds&quot;</span><span class="p">,</span> <span class="mf">1.23</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt6vprintE11string_view11format_args">
+<span id="fmt::vprint__string_view.format_args"></span><span class="target" id="formatcore_8h_1a5213d5ba83d1dad5e97b5aa99a0f9469"></span>void <code class="descclassname">fmt::</code><code class="descname">vprint</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <a class="reference internal" href="#_CPPv2N3fmt11format_argsE" title="fmt::format_args">format_args</a> <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt6vprintE11string_view11format_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt5printEPNSt4FILEE11string_viewDpRK4Args">
+<span id="fmt::print__std::FILEP.string_view.ArgsCRDp"></span><span class="target" id="formatcore_8h_1abf7b098df212e3df89505743846f7a93"></span>void <code class="descclassname">fmt::</code><code class="descname">print</code><span class="sig-paren">(</span>std::FILE *<em>f</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt5printEPNSt4FILEE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Prints formatted data to the file <em>f</em>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Don&#39;t {}!&quot;</span><span class="p">,</span> <span class="s">&quot;panic&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt6vprintEPNSt4FILEE11string_view11format_args">
+<span id="fmt::vprint__std::FILEP.string_view.format_args"></span><span class="target" id="formatcore_8h_1acd3dc63be1aa90869e42e8c76bfec923"></span>void <code class="descclassname">fmt::</code><code class="descname">vprint</code><span class="sig-paren">(</span>std::FILE *<em>f</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <a class="reference internal" href="#_CPPv2N3fmt11format_argsE" title="fmt::format_args">format_args</a> <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt6vprintEPNSt4FILEE11string_view11format_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt5printEPNSt4FILEE12wstring_viewDpRK4Args">
+<span id="fmt::print__std::FILEP.wstring_view.ArgsCRDp"></span><span class="target" id="formatcore_8h_1a76e26143fd23ef33ab87eac7aeb09759"></span>void <code class="descclassname">fmt::</code><code class="descname">print</code><span class="sig-paren">(</span>std::FILE *<em>f</em>, <a class="reference internal" href="#_CPPv2N3fmt12wstring_viewE" title="fmt::wstring_view">wstring_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt5printEPNSt4FILEE12wstring_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints formatted data to the file <em>f</em> which should be in wide-oriented mode set via <code class="docutils literal"><span class="pre">fwide(f,</span> <span class="pre">1)</span></code> or <code class="docutils literal"><span class="pre">_setmode(_fileno(f),</span> <span class="pre">_O_U8TEXT)</span></code> on Windows. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt6vprintEPNSt4FILEE12wstring_view12wformat_args">
+<span id="fmt::vprint__std::FILEP.wstring_view.wformat_args"></span><span class="target" id="formatcore_8h_1aadc7b5e3f94e1c0dbd09befe4922b79b"></span>void <code class="descclassname">fmt::</code><code class="descname">vprint</code><span class="sig-paren">(</span>std::FILE *<em>f</em>, <a class="reference internal" href="#_CPPv2N3fmt12wstring_viewE" title="fmt::wstring_view">wstring_view</a> <em>format_str</em>, wformat_args <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt6vprintEPNSt4FILEE12wstring_view12wformat_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="section" id="named-arguments">
+<h3>Named arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> T&gt;</dt>
+<dt id="_CPPv2N3fmt3argE11string_viewRK1T">
+<span id="fmt::arg__string_view.TCR"></span><span class="target" id="formatcore_8h_1a759956375d564e93730013134801b8a3"></span>internal::named_arg&lt;T, char&gt; <code class="descclassname">fmt::</code><code class="descname">arg</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>name</em>, <em class="property">const</em> T &amp;<em>arg</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt3argE11string_viewRK1T" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Returns a named argument to be used in a formatting function.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;Elapsed time: {s:.2f} seconds&quot;</span><span class="p">,</span> <span class="n">fmt</span><span class="o">::</span><span class="n">arg</span><span class="p">(</span><span class="s">&quot;s&quot;</span><span class="p">,</span> <span class="mf">1.23</span><span class="p">));</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+</div>
+<div class="section" id="argument-lists">
+<h3>Argument lists<a class="headerlink" href="#argument-lists" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> Context, <em class="property">typename</em> ... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt16make_format_argsEDpRK4Args">
+<span id="fmt::make_format_args__ArgsCRDp"></span><span class="target" id="formatcore_8h_1af3ad68caae053f4e78c3e673ae1f79e3"></span><a class="reference internal" href="#_CPPv2N3fmt16format_arg_storeE" title="fmt::format_arg_store">format_arg_store</a>&lt;Context, Args...&gt; <code class="descclassname">fmt::</code><code class="descname">make_format_args</code><span class="sig-paren">(</span><em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt16make_format_argsEDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Constructs an <a class="reference internal" href="#_CPPv2N3fmt16format_arg_storeE" title="fmt::format_arg_store"><code class="xref cpp cpp-any docutils literal"><span class="pre">format_arg_store</span></code></a> object that contains references to
+arguments and can be implicitly converted to <a class="reference internal" href="#_CPPv2N3fmt11format_argsE" title="fmt::format_args"><code class="xref cpp cpp-any docutils literal"><span class="pre">format_args</span></code></a>. <code class="xref cpp cpp-any docutils literal"><span class="pre">Context</span></code>
+can be omitted in which case it defaults to <code class="xref cpp cpp-any docutils literal"><span class="pre">context</span></code>.</p>
+ </p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<span class="target" id="formatclassfmt_1_1format__arg__store"></span><em class="property">template </em>&lt;typename <em>Context</em>, <em class="property">typename</em> ... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt16format_arg_storeE">
+<span id="fmt::format_arg_store"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">format_arg_store</code><a class="headerlink" href="#_CPPv2N3fmt16format_arg_storeE" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>An array of references to arguments. It can be implicitly converted into
+<a class="reference internal" href="#_CPPv2N3fmt17basic_format_argsE" title="fmt::basic_format_args"><code class="xref cpp cpp-any docutils literal"><span class="pre">basic_format_args</span></code></a> for passing into type-erased formatting functions
+such as <a class="reference internal" href="#_CPPv2N3fmt7vformatERK6String17basic_format_argsIN14buffer_contextI4CharE4typeEE" title="fmt::vformat"><code class="xref cpp cpp-any docutils literal"><span class="pre">vformat()</span></code></a>.</p>
+ </p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<span class="target" id="formatclassfmt_1_1basic__format__args"></span><em class="property">template </em>&lt;typename <em>Context</em>&gt;</dt>
+<dt id="_CPPv2N3fmt17basic_format_argsE">
+<span id="fmt::basic_format_args"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">basic_format_args</code><a class="headerlink" href="#_CPPv2N3fmt17basic_format_argsE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formatting arguments. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt17basic_format_args17basic_format_argsERK16format_arg_storeI7ContextDp4ArgsE">
+<span id="fmt::basic_format_args::basic_format_args__format_arg_store:Context.ArgsDp:CR"></span><span class="target" id="formatclassfmt_1_1basic__format__args_1ac0c8db14de663d589f1b40f6f45c1258"></span><code class="descname">basic_format_args</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N3fmt16format_arg_storeE" title="fmt::format_arg_store">format_arg_store</a>&lt;Context, Args...&gt; &amp;<em>store</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt17basic_format_args17basic_format_argsERK16format_arg_storeI7ContextDp4ArgsE" title="Permalink to this definition">¶</a></dt>
+<dd><p></p>
+<p><p>Constructs a <code class="xref cpp cpp-any docutils literal"><span class="pre">basic_format_args</span></code> object from <a class="reference internal" href="#_CPPv2N3fmt16format_arg_storeE" title="fmt::format_arg_store"><code class="xref cpp cpp-any docutils literal"><span class="pre">format_arg_store</span></code></a>.</p>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt17basic_format_args17basic_format_argsEPK10format_arg9size_type">
+<span id="fmt::basic_format_args::basic_format_args__format_argCP.size_type"></span><span class="target" id="formatclassfmt_1_1basic__format__args_1ac01d1212e174ff81752004a0e8750640"></span><code class="descname">basic_format_args</code><span class="sig-paren">(</span><em class="property">const</em> format_arg *<em>args</em>, size_type <em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt17basic_format_args17basic_format_argsEPK10format_arg9size_type" title="Permalink to this definition">¶</a></dt>
+<dd><p></p>
+<p><p>Constructs a <code class="xref cpp cpp-any docutils literal"><span class="pre">basic_format_args</span></code> object from a dynamic set of arguments.</p>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK3fmt17basic_format_args3getE9size_type">
+<span id="fmt::basic_format_args::get__size_typeC"></span><span class="target" id="formatclassfmt_1_1basic__format__args_1af67b005497d6cb3c50a691cf67adb69a"></span>format_arg <code class="descname">get</code><span class="sig-paren">(</span>size_type <em>index</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK3fmt17basic_format_args3getE9size_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the argument at specified index. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="_CPPv2N3fmt11format_argsE">
+<span id="fmt::format_args"></span><span class="target" id="formatstructfmt_1_1format__args"></span><em class="property">struct </em><code class="descclassname">fmt::</code><code class="descname">format_args</code><a class="headerlink" href="#_CPPv2N3fmt11format_argsE" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias to <code class="docutils literal"><span class="pre">basic_format_args&lt;context&gt;</span></code>. </p>
+<p>Inherits from <a class="reference internal" href="#formatclassfmt_1_1basic__format__args"><span class="std std-ref">fmt::basic_format_args&lt; format_context &gt;</span></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<span class="target" id="formatclassfmt_1_1basic__format__arg"></span><em class="property">template </em>&lt;typename <em>Context</em>&gt;</dt>
+<dt id="_CPPv2N3fmt16basic_format_argE">
+<span id="fmt::basic_format_arg"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">basic_format_arg</code><a class="headerlink" href="#_CPPv2N3fmt16basic_format_argE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="compatibility">
+<h3>Compatibility<a class="headerlink" href="#compatibility" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt>
+<span class="target" id="formatclassfmt_1_1basic__string__view"></span><em class="property">template </em>&lt;typename <em>Char</em>&gt;</dt>
+<dt id="_CPPv2N3fmt17basic_string_viewE">
+<span id="fmt::basic_string_view"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">basic_string_view</code><a class="headerlink" href="#_CPPv2N3fmt17basic_string_viewE" title="Permalink to this definition">¶</a></dt>
+<dd><p>An implementation of <code class="docutils literal"><span class="pre">std::basic_string_view</span></code> for pre-C++17. </p>
+<p>It provides a subset of the API. <code class="docutils literal"><span class="pre">fmt::basic_string_view</span></code> is used for format strings even if <code class="docutils literal"><span class="pre">std::string_view</span></code> is available to prevent issues when a library is compiled with a different <code class="docutils literal"><span class="pre">-std</span></code> option than the client code (which is not recommended). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N3fmt17basic_string_view17basic_string_viewEPK4Char6size_t">
+<span id="fmt::basic_string_view::basic_string_view__CharCP.s"></span><span class="target" id="formatclassfmt_1_1basic__string__view_1a0f110741d86e44ad17b1d7e88baf3e14"></span><code class="descname">basic_string_view</code><span class="sig-paren">(</span><em class="property">const</em> Char *<em>s</em>, size_t <em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt17basic_string_view17basic_string_viewEPK4Char6size_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a string reference object from a C string and a size. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt17basic_string_view17basic_string_viewEPK4Char">
+<span id="fmt::basic_string_view::basic_string_view__CharCP"></span><span class="target" id="formatclassfmt_1_1basic__string__view_1a027c1e3a6352aa4ad89a1414bbf1c349"></span><code class="descname">basic_string_view</code><span class="sig-paren">(</span><em class="property">const</em> Char *<em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt17basic_string_view17basic_string_viewEPK4Char" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Constructs a string reference object from a C string computing
+the size with <code class="docutils literal"><span class="pre">std::char_traits&lt;Char&gt;::length</span></code>.</p>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> Alloc&gt;</dt>
+<dt id="_CPPv2N3fmt17basic_string_view17basic_string_viewERKNSt12basic_stringI4Char5AllocEE">
+<span id="fmt::basic_string_view::basic_string_view__std::basic_string:Char.Alloc:CR"></span><span class="target" id="formatclassfmt_1_1basic__string__view_1ad38941573be5cdc0ba9a0f9f66efaaf4"></span><code class="descname">basic_string_view</code><span class="sig-paren">(</span><em class="property">const</em> std::basic_string&lt;Char, Alloc&gt; &amp;<em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt17basic_string_view17basic_string_viewERKNSt12basic_stringI4Char5AllocEE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a string reference from a <code class="docutils literal"><span class="pre">std::basic_string</span></code> object. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK3fmt17basic_string_view4dataEv">
+<span id="fmt::basic_string_view::dataC"></span><span class="target" id="formatclassfmt_1_1basic__string__view_1a639d3003a4f38ac2a31697ebf0c9f13d"></span><em class="property">const</em> Char *<code class="descname">data</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK3fmt17basic_string_view4dataEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pointer to the string data. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2NK3fmt17basic_string_view4sizeEv">
+<span id="fmt::basic_string_view::sizeC"></span><span class="target" id="formatclassfmt_1_1basic__string__view_1a3475045c2a1ea2d3239e18ffc6d2e34b"></span>size_t <code class="descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv2NK3fmt17basic_string_view4sizeEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the string size. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="type">
+<dt id="_CPPv2N3fmt11string_viewE">
+<span id="fmt::string_view"></span><span class="target" id="formatcore_8h_1a6d8fb03f0f25d1c9beb969adeff276f0"></span><em class="property">typedef </em><a class="reference internal" href="#_CPPv2N3fmt17basic_string_viewE" title="fmt::basic_string_view">basic_string_view</a>&lt;char&gt; <code class="descclassname">fmt::</code><code class="descname">string_view</code><a class="headerlink" href="#_CPPv2N3fmt11string_viewE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="type">
+<dt id="_CPPv2N3fmt12wstring_viewE">
+<span id="fmt::wstring_view"></span><span class="target" id="formatcore_8h_1a31540fce97073b56df83abd6377e1d32"></span><em class="property">typedef </em><a class="reference internal" href="#_CPPv2N3fmt17basic_string_viewE" title="fmt::basic_string_view">basic_string_view</a>&lt;wchar_t&gt; <code class="descclassname">fmt::</code><code class="descname">wstring_view</code><a class="headerlink" href="#_CPPv2N3fmt12wstring_viewE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+<div class="section" id="format-api">
+<span id="id2"></span><h2>Format API<a class="headerlink" href="#format-api" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">fmt/format.h</span></code> defines the full format API providing compile-time format
+string checks, output iterator and user-defined type support.</p>
+<div class="section" id="compile-time-format-string-checks">
+<h3>Compile-time format string checks<a class="headerlink" href="#compile-time-format-string-checks" title="Permalink to this headline">¶</a></h3>
+<dl class="macro">
+<dt id="c.fmt">
+<span class="target" id="formatformat_8h_1aff86c72b572c3d31f6e4a7f45ad6d4b2"></span><code class="descname">fmt</code><span class="sig-paren">(</span>s<span class="sig-paren">)</span><a class="headerlink" href="#c.fmt" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Constructs a compile-time format string. This macro is disabled by default to
+prevent potential name collisions. To enable it define <code class="docutils literal"><span class="pre">FMT_STRING_ALIAS</span></code> to
+1 before including <code class="docutils literal"><span class="pre">fmt/format.h</span></code>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#define FMT_STRING_ALIAS 1</span>
+<span class="cp">#include</span> <span class="cpf">&lt;fmt/format.h&gt;</span><span class="cp"></span>
+<span class="c1">// A compile-time error because &#39;d&#39; is an invalid specifier for strings.</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s</span> <span class="o">=</span> <span class="n">format</span><span class="p">(</span><span class="n">fmt</span><span class="p">(</span><span class="s">&quot;{:d}&quot;</span><span class="p">),</span> <span class="s">&quot;foo&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+</div>
+<div class="section" id="formatting-user-defined-types">
+<h3>Formatting user-defined types<a class="headerlink" href="#formatting-user-defined-types" title="Permalink to this headline">¶</a></h3>
+<p>To make a user-defined type formattable, specialize the <code class="docutils literal"><span class="pre">formatter&lt;T&gt;</span></code> struct
+template and implement <code class="docutils literal"><span class="pre">parse</span></code> and <code class="docutils literal"><span class="pre">format</span></code> methods:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;fmt/format.h&gt;</span><span class="cp"></span>
+
+<span class="k">struct</span> <span class="n">point</span> <span class="p">{</span> <span class="kt">double</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span> <span class="p">};</span>
+
+<span class="k">namespace</span> <span class="n">fmt</span> <span class="p">{</span>
+<span class="k">template</span> <span class="o">&lt;&gt;</span>
+<span class="k">struct</span> <span class="n">formatter</span><span class="o">&lt;</span><span class="n">point</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">ParseContext</span><span class="o">&gt;</span>
+  <span class="k">constexpr</span> <span class="k">auto</span> <span class="n">parse</span><span class="p">(</span><span class="n">ParseContext</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">ctx</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="p">}</span>
+
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">FormatContext</span><span class="o">&gt;</span>
+  <span class="k">auto</span> <span class="n">format</span><span class="p">(</span><span class="k">const</span> <span class="n">point</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">FormatContext</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">format_to</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="s">&quot;({:.1f}, {:.1f})&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Then you can pass objects of type <code class="docutils literal"><span class="pre">point</span></code> to any formatting function:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">point</span> <span class="n">p</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s</span> <span class="o">=</span> <span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">);</span>
+<span class="c1">// s == &quot;(1.0, 2.0)&quot;</span>
+</pre></div>
+</div>
+<p>In the example above the <code class="docutils literal"><span class="pre">formatter&lt;point&gt;::parse</span></code> function ignores the
+contents of the format string referred to by <code class="docutils literal"><span class="pre">ctx.begin()</span></code> so the object will
+always be formatted in the same way. See <code class="docutils literal"><span class="pre">formatter&lt;tm&gt;::parse</span></code> in
+<code class="file docutils literal"><span class="pre">fmt/time.h</span></code> for an advanced example of how to parse the format string and
+customize the formatted output.</p>
+<p>You can also reuse existing formatters, for example:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="k">class</span> <span class="nc">color</span> <span class="p">{</span><span class="n">red</span><span class="p">,</span> <span class="n">green</span><span class="p">,</span> <span class="n">blue</span><span class="p">};</span>
+
+<span class="k">template</span> <span class="o">&lt;&gt;</span>
+<span class="k">struct</span> <span class="n">fmt</span><span class="o">::</span><span class="n">formatter</span><span class="o">&lt;</span><span class="n">color</span><span class="o">&gt;:</span> <span class="n">formatter</span><span class="o">&lt;</span><span class="n">string_view</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="c1">// parse is inherited from formatter&lt;string_view&gt;.</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">FormatContext</span><span class="o">&gt;</span>
+  <span class="k">auto</span> <span class="n">format</span><span class="p">(</span><span class="n">color</span> <span class="n">c</span><span class="p">,</span> <span class="n">FormatContext</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">string_view</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;unknown&quot;</span><span class="p">;</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">color</span><span class="o">::</span><span class="nl">red</span><span class="p">:</span>   <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;red&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">color</span><span class="o">::</span><span class="nl">green</span><span class="p">:</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;green&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">color</span><span class="o">::</span><span class="nl">blue</span><span class="p">:</span>  <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;blue&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">formatter</span><span class="o">&lt;</span><span class="n">string_view</span><span class="o">&gt;::</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ctx</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>This section shows how to define a custom format function for a user-defined
+type. The next section describes how to get <code class="docutils literal"><span class="pre">fmt</span></code> to use a conventional stream
+output <code class="docutils literal"><span class="pre">operator&lt;&lt;</span></code> when one is defined for a user-defined type.</p>
+</div>
+<div class="section" id="output-iterator-support">
+<h3>Output iterator support<a class="headerlink" href="#output-iterator-support" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> OutputIt, typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt9format_toE8OutputIt11string_viewDpRK4Args">
+<span id="fmt::format_to__OutputIt.string_view.ArgsCRDp"></span><span class="target" id="formatformat_8h_1a9a205895a727ae3f8a4a78af7c1e6c5d"></span>OutputIt <code class="descclassname">fmt::</code><code class="descname">format_to</code><span class="sig-paren">(</span>OutputIt <em>out</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt9format_toE8OutputIt11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p></p>
+<p><p>Formats arguments, writes the result to the output iterator <code class="docutils literal"><span class="pre">out</span></code> and returns
+the iterator past the end of the output range.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="n">out</span><span class="p">;</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">format_to</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">back_inserter</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> OutputIt, typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt11format_to_nE8OutputItNSt6size_tE11string_viewDpRK4Args">
+<span id="fmt::format_to_n__OutputIt.std::s.string_view.ArgsCRDp"></span><span class="target" id="formatformat_8h_1a3e88cbb672f5fc7b11fca199c1d597e5"></span><a class="reference internal" href="#_CPPv2N3fmt18format_to_n_resultE" title="fmt::format_to_n_result">format_to_n_result</a>&lt;OutputIt&gt; <code class="descclassname">fmt::</code><code class="descname">format_to_n</code><span class="sig-paren">(</span>OutputIt <em>out</em>, std::size_t <em>n</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt11format_to_nE8OutputItNSt6size_tE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p></p>
+<p><p>Formats arguments, writes up to <code class="docutils literal"><span class="pre">n</span></code> characters of the result to the output
+iterator <code class="docutils literal"><span class="pre">out</span></code> and returns the total output size and the iterator past the
+end of the output range.</p>
+ </p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<span class="target" id="formatstructfmt_1_1format__to__n__result"></span><em class="property">template </em>&lt;<em class="property">typename</em> OutputIt&gt;</dt>
+<dt id="_CPPv2N3fmt18format_to_n_resultE">
+<span id="fmt::format_to_n_result"></span><em class="property">struct </em><code class="descclassname">fmt::</code><code class="descname">format_to_n_result</code><a class="headerlink" href="#_CPPv2N3fmt18format_to_n_resultE" title="Permalink to this definition">¶</a></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv2N3fmt18format_to_n_result3outE">
+<span id="fmt::format_to_n_result::out__OutputIt"></span><span class="target" id="formatstructfmt_1_1format__to__n__result_1a71d11006ad16fba226096f94c21b037e"></span>OutputIt <code class="descname">out</code><a class="headerlink" href="#_CPPv2N3fmt18format_to_n_result3outE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterator past the end of the output range. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv2N3fmt18format_to_n_result4sizeE">
+<span id="fmt::format_to_n_result::size__std::s"></span><span class="target" id="formatstructfmt_1_1format__to__n__result_1a709c7c76641522a89cdff059c076a5ba"></span>std::size_t <code class="descname">size</code><a class="headerlink" href="#_CPPv2N3fmt18format_to_n_result4sizeE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total (not truncated) output size. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="literal-based-api">
+<h3>Literal-based API<a class="headerlink" href="#literal-based-api" title="Permalink to this headline">¶</a></h3>
+<p>The following user-defined literals are defined in <code class="docutils literal"><span class="pre">fmt/format.h</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">doxygenfunction: Cannot find function &#8220;operator&#8221;&#8220;_format&#8221; in doxygen xml output for project &#8220;format&#8221; from directory: /Users/viz/work/fmt/support/build/fmt/doc/doxyxml</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">doxygenfunction: Cannot find function &#8220;operator&#8221;&#8220;_a&#8221; in doxygen xml output for project &#8220;format&#8221; from directory: /Users/viz/work/fmt/support/build/fmt/doc/doxyxml</p>
+</div>
+</div>
+<div class="section" id="utilities">
+<h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt14formatted_sizeE11string_viewDpRK4Args">
+<span id="fmt::formatted_size__string_view.ArgsCRDp"></span><span class="target" id="formatformat_8h_1a917052f43f248e06fbd24b93dccf0ea7"></span>std::size_t <code class="descclassname">fmt::</code><code class="descname">formatted_size</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt14formatted_sizeE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of characters in the output of <code class="docutils literal"><span class="pre">format(format_str,</span> <span class="pre">args...)</span></code>. </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> T&gt;</dt>
+<dt id="_CPPv2N3fmt9to_stringERK1T">
+<span id="fmt::to_string__TCR"></span><span class="target" id="formatformat_8h_1abfd84051cd3673d750be5851ee93b05f"></span>std::string <code class="descclassname">fmt::</code><code class="descname">to_string</code><span class="sig-paren">(</span><em class="property">const</em> T &amp;<em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt9to_stringERK1T" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Converts <em>value</em> to <code class="docutils literal"><span class="pre">std::string</span></code> using the default format for type <em>T</em>.
+It doesn&#8217;t support user-defined types with custom formatters.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;fmt/format.h&gt;</span><span class="cp"></span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">answer</span> <span class="o">=</span> <span class="n">fmt</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">typename</em> T&gt;</dt>
+<dt id="_CPPv2N3fmt10to_wstringERK1T">
+<span id="fmt::to_wstring__TCR"></span><span class="target" id="formatformat_8h_1a611f78ef8ce316c44fdf7c82397cfbdd"></span>std::wstring <code class="descclassname">fmt::</code><code class="descname">to_wstring</code><span class="sig-paren">(</span><em class="property">const</em> T &amp;<em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt10to_wstringERK1T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts <em>value</em> to <code class="docutils literal"><span class="pre">std::wstring</span></code> using the default format for type <em>T</em>. </p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<span class="target" id="formatclassfmt_1_1basic__memory__buffer"></span><em class="property">template </em>&lt;typename <em>T</em>, std::size_t <em>SIZE</em> = inline_buffer_size, typename <em>Allocator</em> = std::allocator&lt;T&gt;&gt;</dt>
+<dt id="_CPPv2N3fmt19basic_memory_bufferE">
+<span id="fmt::basic_memory_buffer"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">basic_memory_buffer</code><a class="headerlink" href="#_CPPv2N3fmt19basic_memory_bufferE" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>A dynamically growing memory buffer for trivially copyable/constructible types
+with the first <code class="docutils literal"><span class="pre">SIZE</span></code> elements stored in the object itself.</p>
+<p>You can use one of the following typedefs for common character types:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Type</th>
+<th class="head">Definition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>memory_buffer</td>
+<td>basic_memory_buffer&lt;char&gt;</td>
+</tr>
+<tr class="row-odd"><td>wmemory_buffer</td>
+<td>basic_memory_buffer&lt;wchar_t&gt;</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">memory_buffer</span> <span class="n">out</span><span class="p">;</span>
+<span class="n">format_to</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s">&quot;The answer is {}.&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This will write the following output to the <code class="docutils literal"><span class="pre">out</span></code> object:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>The answer is 42.
+</pre></div>
+</div>
+<p>The output can be converted to an <code class="docutils literal"><span class="pre">std::string</span></code> with <code class="docutils literal"><span class="pre">to_string(out)</span></code>.</p>
+ </p>
+<p>Inherits from Allocator, fmt::internal::basic_buffer&lt; T &gt;</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N3fmt19basic_memory_buffer19basic_memory_bufferERR19basic_memory_buffer">
+<span id="fmt::basic_memory_buffer::basic_memory_buffer__basic_memory_bufferRR"></span><span class="target" id="formatclassfmt_1_1basic__memory__buffer_1a9fb40013539baf48b86fc71b578d1afc"></span><code class="descname">basic_memory_buffer</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt19basic_memory_buffer19basic_memory_bufferERR19basic_memory_buffer" title="fmt::basic_memory_buffer::basic_memory_buffer">basic_memory_buffer</a> &amp;&amp;<em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt19basic_memory_buffer19basic_memory_bufferERR19basic_memory_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Constructs a <a class="reference internal" href="#_CPPv2N3fmt19basic_memory_bufferE" title="fmt::basic_memory_buffer"><code class="xref cpp cpp-class docutils literal"><span class="pre">fmt::basic_memory_buffer</span></code></a> object moving the content
+of the other object to it.</p>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt19basic_memory_bufferaSERR19basic_memory_buffer">
+<span id="fmt::basic_memory_buffer::assign-operator__basic_memory_bufferRR"></span><span class="target" id="formatclassfmt_1_1basic__memory__buffer_1ac857fcf47614d2552e64392b0ae1455c"></span><a class="reference internal" href="#_CPPv2N3fmt19basic_memory_bufferE" title="fmt::basic_memory_buffer">basic_memory_buffer</a> &amp;<code class="descname">operator=</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt19basic_memory_bufferE" title="fmt::basic_memory_buffer">basic_memory_buffer</a> &amp;&amp;<em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt19basic_memory_bufferaSERR19basic_memory_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Moves the content of the other <code class="docutils literal"><span class="pre">basic_memory_buffer</span></code> object to this one.</p>
+ </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="system-errors">
+<h3>System errors<a class="headerlink" href="#system-errors" title="Permalink to this headline">¶</a></h3>
+<p>fmt does not use <code class="docutils literal"><span class="pre">errno</span></code> to communicate errors to the user, but it may call
+system functions which set <code class="docutils literal"><span class="pre">errno</span></code>. Users should not make any assumptions about
+the value of <code class="docutils literal"><span class="pre">errno</span></code> being preserved by library functions.</p>
+<dl class="class">
+<dt id="_CPPv2N3fmt12system_errorE">
+<span id="fmt::system_error"></span><span class="target" id="formatclassfmt_1_1system__error"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">system_error</code><a class="headerlink" href="#_CPPv2N3fmt12system_errorE" title="Permalink to this definition">¶</a></dt>
+<dd><p>
+An error returned by an operating system or a language runtime, for example a file opening error. </p>
+<p>Inherits from runtime_error</p>
+<p>Subclassed by <a class="reference internal" href="#formatclassfmt_1_1windows__error"><span class="std std-ref">fmt::windows_error</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt12system_error12system_errorEi11string_viewDpRK4Args">
+<span id="fmt::system_error::system_error__i.string_view.ArgsCRDp"></span><span class="target" id="formatclassfmt_1_1system__error_1ab06a9bc123bd7debbac088000baaeb60"></span><code class="descname">system_error</code><span class="sig-paren">(</span>int <em>error_code</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>message</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt12system_error12system_errorEi11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p></p>
+<p><p>Constructs a <a class="reference internal" href="#_CPPv2N3fmt12system_errorE" title="fmt::system_error"><code class="xref cpp cpp-class docutils literal"><span class="pre">fmt::system_error</span></code></a> object with a description
+formatted with <a class="reference internal" href="#_CPPv2N3fmt19format_system_errorERN8internal6bufferEiN3fmt11string_viewE" title="fmt::format_system_error"><code class="xref cpp cpp-any docutils literal"><span class="pre">fmt::format_system_error()</span></code></a>. <em>message</em> and additional
+arguments passed into the constructor are formatted similarly to
+<a class="reference internal" href="#_CPPv2N3fmt6formatERK6StringDpRK4Args" title="fmt::format"><code class="xref cpp cpp-any docutils literal"><span class="pre">fmt::format()</span></code></a>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// This throws a system_error with the description</span>
+<span class="c1">//   cannot open file &#39;madeup&#39;: No such file or directory</span>
+<span class="c1">// or similar (system message may vary).</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;madeup&quot;</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">file</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">fopen</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">file</span><span class="p">)</span>
+  <span class="k">throw</span> <span class="n">fmt</span><span class="o">::</span><span class="n">system_error</span><span class="p">(</span><span class="n">errno</span><span class="p">,</span> <span class="s">&quot;cannot open file &#39;{}&#39;&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt19format_system_errorERN8internal6bufferEiN3fmt11string_viewE">
+<span id="fmt::format_system_error__internal::bufferR.i.fmt::string_view"></span><span class="target" id="formatformat_8h_1ab63062f1211e745d8edebc39e2e584a7"></span>void <code class="descclassname">fmt::</code><code class="descname">format_system_error</code><span class="sig-paren">(</span>internal::buffer &amp;<em>out</em>, int <em>error_code</em>, fmt::<a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt19format_system_errorERN8internal6bufferEiN3fmt11string_viewE" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Formats an error returned by an operating system or a language runtime,
+for example a file opening error, and writes it to <em>out</em> in the following
+form:</p>
+<pre class="literal-block">
+<em>&lt;message&gt;</em>: <em>&lt;system-message&gt;</em>
+</pre>
+<p>where <em>&lt;message&gt;</em> is the passed message and <em>&lt;system-message&gt;</em> is
+the system message corresponding to the error code.
+<em>error_code</em> is a system error code as given by <code class="docutils literal"><span class="pre">errno</span></code>.
+If <em>error_code</em> is not a valid error code such as -1, the system message
+may look like &#8220;Unknown error -1&#8221; and is platform-dependent.</p>
+ </p>
+</dd></dl>
+
+<dl class="class">
+<dt id="_CPPv2N3fmt13windows_errorE">
+<span id="fmt::windows_error"></span><span class="target" id="formatclassfmt_1_1windows__error"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">windows_error</code><a class="headerlink" href="#_CPPv2N3fmt13windows_errorE" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Windows error. </p>
+<p>Inherits from <a class="reference internal" href="#formatclassfmt_1_1system__error"><span class="std std-ref">fmt::system_error</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt13windows_error13windows_errorEi11string_viewDpRK4Args">
+<span id="fmt::windows_error::windows_error__i.string_view.ArgsCRDp"></span><span class="target" id="formatclassfmt_1_1windows__error_1a3fe680ddcdff03d03612be7dedaeca98"></span><code class="descname">windows_error</code><span class="sig-paren">(</span>int <em>error_code</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>message</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt13windows_error13windows_errorEi11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p></p>
+<p><p>Constructs a <a class="reference internal" href="#_CPPv2N3fmt13windows_errorE" title="fmt::windows_error"><code class="xref cpp cpp-class docutils literal"><span class="pre">fmt::windows_error</span></code></a> object with the description
+of the form</p>
+<pre class="literal-block">
+<em>&lt;message&gt;</em>: <em>&lt;system-message&gt;</em>
+</pre>
+<p>where <em>&lt;message&gt;</em> is the formatted message and <em>&lt;system-message&gt;</em> is the
+system message corresponding to the error code.
+<em>error_code</em> is a Windows error code as given by <code class="docutils literal"><span class="pre">GetLastError</span></code>.
+If <em>error_code</em> is not a valid error code such as -1, the system message
+will look like &#8220;error -1&#8221;.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="c1">// This throws a windows_error with the description</span>
+<span class="c1">//   cannot open file &#39;madeup&#39;: The system cannot find the file specified.</span>
+<span class="c1">// or similar (system message may vary).</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;madeup&quot;</span><span class="p">;</span>
+<span class="n">LPOFSTRUCT</span> <span class="n">of</span> <span class="o">=</span> <span class="n">LPOFSTRUCT</span><span class="p">();</span>
+<span class="n">HFILE</span> <span class="n">file</span> <span class="o">=</span> <span class="n">OpenFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">of</span><span class="p">,</span> <span class="n">OF_READ</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">file</span> <span class="o">==</span> <span class="n">HFILE_ERROR</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">throw</span> <span class="n">fmt</span><span class="o">::</span><span class="n">windows_error</span><span class="p">(</span><span class="n">GetLastError</span><span class="p">(),</span>
+                           <span class="s">&quot;cannot open file &#39;{}&#39;&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="custom-allocators">
+<span id="formatstrings"></span><h3>Custom allocators<a class="headerlink" href="#custom-allocators" title="Permalink to this headline">¶</a></h3>
+<p>The {fmt} library supports custom dynamic memory allocators.
+A custom allocator class can be specified as a template argument to
+<a class="reference internal" href="#_CPPv2N3fmt19basic_memory_bufferE" title="fmt::basic_memory_buffer"><code class="xref cpp cpp-class docutils literal"><span class="pre">fmt::basic_memory_buffer</span></code></a>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">custom_memory_buffer</span> <span class="o">=</span>
+  <span class="n">fmt</span><span class="o">::</span><span class="n">basic_memory_buffer</span><span class="o">&lt;</span><span class="kt">char</span><span class="p">,</span> <span class="n">fmt</span><span class="o">::</span><span class="n">inline_buffer_size</span><span class="p">,</span> <span class="n">custom_allocator</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>It is also possible to write a formatting function that uses a custom
+allocator:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">custom_string</span> <span class="o">=</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">basic_string</span><span class="o">&lt;</span><span class="kt">char</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">char_traits</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">custom_allocator</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="n">custom_string</span> <span class="nf">vformat</span><span class="p">(</span><span class="n">custom_allocator</span> <span class="n">alloc</span><span class="p">,</span> <span class="n">fmt</span><span class="o">::</span><span class="n">string_view</span> <span class="n">format_str</span><span class="p">,</span>
+                      <span class="n">fmt</span><span class="o">::</span><span class="n">format_args</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">custom_memory_buffer</span> <span class="n">buf</span><span class="p">(</span><span class="n">alloc</span><span class="p">);</span>
+  <span class="n">fmt</span><span class="o">::</span><span class="n">vformat_to</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">format_str</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">custom_string</span><span class="p">(</span><span class="n">buf</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">buf</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">alloc</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="p">...</span><span class="n">Args</span><span class="o">&gt;</span>
+<span class="kr">inline</span> <span class="n">custom_string</span> <span class="n">format</span><span class="p">(</span><span class="n">custom_allocator</span> <span class="n">alloc</span><span class="p">,</span>
+                            <span class="n">fmt</span><span class="o">::</span><span class="n">string_view</span> <span class="n">format_str</span><span class="p">,</span>
+                            <span class="k">const</span> <span class="n">Args</span> <span class="o">&amp;</span> <span class="p">...</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">vformat</span><span class="p">(</span><span class="n">alloc</span><span class="p">,</span> <span class="n">format_str</span><span class="p">,</span> <span class="n">fmt</span><span class="o">::</span><span class="n">make_format_args</span><span class="p">(</span><span class="n">args</span><span class="p">...));</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The allocator will be used for the output container only. If you are using named
+arguments, the container that stores pointers to them will be allocated using
+the default allocator. Also floating-point formatting falls back on <code class="docutils literal"><span class="pre">sprintf</span></code>
+which may do allocations.</p>
+</div>
+<div class="section" id="custom-formatting-of-built-in-types">
+<h3>Custom formatting of built-in types<a class="headerlink" href="#custom-formatting-of-built-in-types" title="Permalink to this headline">¶</a></h3>
+<p>It is possible to change the way arguments are formatted by providing a
+custom argument formatter class:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">arg_formatter</span> <span class="o">=</span>
+  <span class="n">fmt</span><span class="o">::</span><span class="n">arg_formatter</span><span class="o">&lt;</span><span class="n">fmt</span><span class="o">::</span><span class="n">back_insert_range</span><span class="o">&lt;</span><span class="n">fmt</span><span class="o">::</span><span class="n">internal</span><span class="o">::</span><span class="n">buffer</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+
+<span class="c1">// A custom argument formatter that formats negative integers as unsigned</span>
+<span class="c1">// with the ``x`` format specifier.</span>
+<span class="k">class</span> <span class="nc">custom_arg_formatter</span> <span class="o">:</span> <span class="k">public</span> <span class="n">arg_formatter</span> <span class="p">{</span>
+ <span class="k">public</span><span class="o">:</span>
+  <span class="n">custom_arg_formatter</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">format_context</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">,</span> <span class="n">fmt</span><span class="o">::</span><span class="n">format_specs</span> <span class="o">&amp;</span><span class="n">spec</span><span class="p">)</span>
+    <span class="o">:</span> <span class="n">arg_formatter</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="p">{}</span>
+
+  <span class="k">using</span> <span class="n">arg_formatter</span><span class="o">::</span><span class="k">operator</span><span class="p">();</span>
+
+  <span class="k">auto</span> <span class="nf">operator</span><span class="p">()(</span><span class="kt">int</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">spec</span><span class="p">().</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="sc">&#39;x&#39;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="o">&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">));</span> <span class="c1">// convert to unsigned and format</span>
+    <span class="k">return</span> <span class="n">arg_formatter</span><span class="o">::</span><span class="k">operator</span><span class="p">()(</span><span class="n">value</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">custom_vformat</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">string_view</span> <span class="n">format_str</span><span class="p">,</span> <span class="n">fmt</span><span class="o">::</span><span class="n">format_args</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">fmt</span><span class="o">::</span><span class="n">memory_buffer</span> <span class="n">buffer</span><span class="p">;</span>
+  <span class="c1">// Pass custom argument formatter as a template arg to vformat_to.</span>
+  <span class="n">fmt</span><span class="o">::</span><span class="n">vformat_to</span><span class="o">&lt;</span><span class="n">custom_arg_formatter</span><span class="o">&gt;</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">format_str</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">fmt</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="p">...</span><span class="n">Args</span><span class="o">&gt;</span>
+<span class="kr">inline</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">custom_format</span><span class="p">(</span>
+    <span class="n">fmt</span><span class="o">::</span><span class="n">string_view</span> <span class="n">format_str</span><span class="p">,</span> <span class="k">const</span> <span class="n">Args</span> <span class="o">&amp;</span><span class="p">...</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">custom_vformat</span><span class="p">(</span><span class="n">format_str</span><span class="p">,</span> <span class="n">fmt</span><span class="o">::</span><span class="n">make_format_args</span><span class="p">(</span><span class="n">args</span><span class="p">...));</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s</span> <span class="o">=</span> <span class="n">custom_format</span><span class="p">(</span><span class="s">&quot;{:x}&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">42</span><span class="p">);</span> <span class="c1">// s == &quot;ffffffd6&quot;</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt>
+<span class="target" id="formatclassfmt_1_1arg__formatter"></span><em class="property">template </em>&lt;<em class="property">typename</em> Range&gt;</dt>
+<dt id="_CPPv2N3fmt13arg_formatterE">
+<span id="fmt::arg_formatter"></span><em class="property">class </em><code class="descclassname">fmt::</code><code class="descname">arg_formatter</code><a class="headerlink" href="#_CPPv2N3fmt13arg_formatterE" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default argument formatter. </p>
+<p>Inherits from fmt::internal::function&lt; internal::arg_formatter_base&lt; Range &gt;::iterator &gt;, fmt::internal::arg_formatter_base&lt; Range &gt;</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N3fmt13arg_formatter13arg_formatterER12context_typeP12format_specs">
+<span id="fmt::arg_formatter::arg_formatter__context_typeR.format_specsP"></span><span class="target" id="formatclassfmt_1_1arg__formatter_1a091a781fe94e7e1d8e35d0c1c1dd8cb2"></span><code class="descname">arg_formatter</code><span class="sig-paren">(</span>context_type &amp;<em>ctx</em>, format_specs *<em>spec</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt13arg_formatter13arg_formatterER12context_typeP12format_specs" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Constructs an argument formatter object.
+<em>ctx</em> is a reference to the formatting context,
+<em>spec</em> contains format specifier information for standard argument types.</p>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3fmt13arg_formatterclEN16basic_format_argI12context_typeE6handleE">
+<span id="fmt::arg_formatter::call-operator__basic_format_arg:context_type:::handle"></span><span class="target" id="formatclassfmt_1_1arg__formatter_1a83fbd1cb71fa644130b58cbc817ff990"></span>iterator <code class="descname">operator()</code><span class="sig-paren">(</span><em class="property">typename</em> <a class="reference internal" href="#_CPPv2N3fmt16basic_format_argE" title="fmt::basic_format_arg">basic_format_arg</a>&lt;context_type&gt;::handle <em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt13arg_formatterclEN16basic_format_argI12context_typeE6handleE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats an argument of a user-defined type. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="date-and-time-formatting">
+<span id="time-api"></span><h2>Date and time formatting<a class="headerlink" href="#date-and-time-formatting" title="Permalink to this headline">¶</a></h2>
+<p>The library supports <a class="reference external" href="http://en.cppreference.com/w/cpp/chrono/c/strftime">strftime</a>-like date and time
+formatting:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;fmt/time.h&gt;</span><span class="cp"></span>
+
+<span class="n">std</span><span class="o">::</span><span class="kt">time_t</span> <span class="n">t</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">time</span><span class="p">(</span><span class="k">nullptr</span><span class="p">);</span>
+<span class="c1">// Prints &quot;The date is 2016-04-29.&quot; (with the current date)</span>
+<span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">&quot;The date is {:%Y-%m-%d}.&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">std</span><span class="o">::</span><span class="n">localtime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">t</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>The format string syntax is described in the documentation of
+<a class="reference external" href="http://en.cppreference.com/w/cpp/chrono/c/strftime">strftime</a>.</p>
+</div>
+<div class="section" id="std-ostream-support">
+<span id="ostream-api"></span><h2><code class="docutils literal"><span class="pre">std::ostream</span></code> support<a class="headerlink" href="#std-ostream-support" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">fmt/ostream.h</span></code> provides <code class="docutils literal"><span class="pre">std::ostream</span></code> support including formatting of
+user-defined types that have overloaded <code class="docutils literal"><span class="pre">operator&lt;&lt;</span></code>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;fmt/ostream.h&gt;</span><span class="cp"></span>
+
+<span class="k">class</span> <span class="nc">date</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">year_</span><span class="p">,</span> <span class="n">month_</span><span class="p">,</span> <span class="n">day_</span><span class="p">;</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">date</span><span class="p">(</span><span class="kt">int</span> <span class="n">year</span><span class="p">,</span> <span class="kt">int</span> <span class="n">month</span><span class="p">,</span> <span class="kt">int</span> <span class="n">day</span><span class="p">)</span><span class="o">:</span> <span class="n">year_</span><span class="p">(</span><span class="n">year</span><span class="p">),</span> <span class="n">month_</span><span class="p">(</span><span class="n">month</span><span class="p">),</span> <span class="n">day_</span><span class="p">(</span><span class="n">day</span><span class="p">)</span> <span class="p">{}</span>
+
+  <span class="k">friend</span> <span class="n">std</span><span class="o">::</span><span class="n">ostream</span> <span class="o">&amp;</span><span class="k">operator</span><span class="o">&lt;&lt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span> <span class="o">&amp;</span><span class="n">os</span><span class="p">,</span> <span class="k">const</span> <span class="n">date</span> <span class="o">&amp;</span><span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">os</span> <span class="o">&lt;&lt;</span> <span class="n">d</span><span class="p">.</span><span class="n">year_</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;-&#39;</span> <span class="o">&lt;&lt;</span> <span class="n">d</span><span class="p">.</span><span class="n">month_</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;-&#39;</span> <span class="o">&lt;&lt;</span> <span class="n">d</span><span class="p">.</span><span class="n">day_</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s</span> <span class="o">=</span> <span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;The date is {}&quot;</span><span class="p">,</span> <span class="n">date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">9</span><span class="p">));</span>
+<span class="c1">// s == &quot;The date is 2012-12-9&quot;</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt5printERNSt7ostreamE11string_viewDpRK4Args">
+<span id="fmt::print__osR.string_view.ArgsCRDp"></span><span class="target" id="formatostream_8h_1a763b14502f9f6bf37041d0391425cabd"></span>void <code class="descclassname">fmt::</code><code class="descname">print</code><span class="sig-paren">(</span>std::ostream &amp;<em>os</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt5printERNSt7ostreamE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Prints formatted data to the stream <em>os</em>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="n">cerr</span><span class="p">,</span> <span class="s">&quot;Don&#39;t {}!&quot;</span><span class="p">,</span> <span class="s">&quot;panic&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+</div>
+<div class="section" id="printf-formatting">
+<span id="printf-api"></span><h2><code class="docutils literal"><span class="pre">printf</span></code> formatting<a class="headerlink" href="#printf-formatting" title="Permalink to this headline">¶</a></h2>
+<p>The header <code class="docutils literal"><span class="pre">fmt/printf.h</span></code> provides <code class="docutils literal"><span class="pre">printf</span></code>-like formatting functionality.
+The following functions use <a class="reference external" href="http://pubs.opengroup.org/onlinepubs/009695399/functions/fprintf.html">printf format string syntax</a> with
+the POSIX extension for positional arguments. Unlike their standard
+counterparts, the <code class="docutils literal"><span class="pre">fmt</span></code> functions are type-safe and throw an exception if an
+argument type doesn&#8217;t match its format specification.</p>
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt6printfE11string_viewDpRK4Args">
+<span id="fmt::printf__string_view.ArgsCRDp"></span><span class="target" id="formatprintf_8h_1a87537ac11487249a9b0805e24c2995cc"></span>int <code class="descclassname">fmt::</code><code class="descname">printf</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt6printfE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Prints formatted data to <code class="docutils literal"><span class="pre">stdout</span></code>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Elapsed time: %.2f seconds&quot;</span><span class="p">,</span> <span class="mf">1.23</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt7fprintfEPNSt4FILEE11string_viewDpRK4Args">
+<span id="fmt::fprintf__std::FILEP.string_view.ArgsCRDp"></span><span class="target" id="formatprintf_8h_1ab003804a9380b80d7c158943298cb2e7"></span>int <code class="descclassname">fmt::</code><code class="descname">fprintf</code><span class="sig-paren">(</span>std::FILE *<em>f</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt7fprintfEPNSt4FILEE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Prints formatted data to the file <em>f</em>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Don&#39;t %s!&quot;</span><span class="p">,</span> <span class="s">&quot;panic&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt7fprintfERNSt7ostreamE11string_viewDpRK4Args">
+<span id="fmt::fprintf__osR.string_view.ArgsCRDp"></span><span class="target" id="formatprintf_8h_1aaaf634e059568d17b16f84cb4adea7c9"></span>int <code class="descclassname">fmt::</code><code class="descname">fprintf</code><span class="sig-paren">(</span>std::ostream &amp;<em>os</em>, <a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt7fprintfERNSt7ostreamE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Prints formatted data to the stream <em>os</em>.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">fmt</span><span class="o">::</span><span class="n">fprintf</span><span class="p">(</span><span class="n">cerr</span><span class="p">,</span> <span class="s">&quot;Don&#39;t %s!&quot;</span><span class="p">,</span> <span class="s">&quot;panic&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;typename... <em>Args</em>&gt;</dt>
+<dt id="_CPPv2N3fmt7sprintfE11string_viewDpRK4Args">
+<span id="fmt::sprintf__string_view.ArgsCRDp"></span><span class="target" id="formatprintf_8h_1a646bb364d052227a9e0934e01427349a"></span>std::string <code class="descclassname">fmt::</code><code class="descname">sprintf</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N3fmt11string_viewE" title="fmt::string_view">string_view</a> <em>format_str</em>, <em class="property">const</em> Args&amp;... <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3fmt7sprintfE11string_viewDpRK4Args" title="Permalink to this definition">¶</a></dt>
+<dd><p><p>Formats arguments and returns the result as a string.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message</span> <span class="o">=</span> <span class="n">fmt</span><span class="o">::</span><span class="n">sprintf</span><span class="p">(</span><span class="s">&quot;The answer is %d&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+</div>
+</div>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2012-present, Victor Zverovich.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1+.
+    </div>
+
+<script src="_static/bootstrap.min.js"></script>
+
+  </body>
+</html>
