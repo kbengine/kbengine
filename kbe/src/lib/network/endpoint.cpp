@@ -23,7 +23,7 @@
 namespace KBEngine { 
 namespace Network
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 #else	// not unix
 	// Need to implement if_nameindex functions on Windows
 	/** @internal */
@@ -105,7 +105,7 @@ bool EndPoint::getClosedPort(Network::Address & closedPort)
 {
 	bool isResultSet = false;
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 //	KBE_ASSERT(errno == ECONNREFUSED);
 
 	struct sockaddr_in	offender;
@@ -475,7 +475,7 @@ int EndPoint::getInterfaceAddressByMAC(const char * mac, u_int32_t & address)
 //-------------------------------------------------------------------------------------
 int EndPoint::findDefaultInterface(char * name, int buffsize)
 {
-#ifndef unix
+#if KBE_PLATFORM != PLATFORM_UNIX
 	strcpy(name, "eth0");
 	return 0;
 #else

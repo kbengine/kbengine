@@ -133,7 +133,7 @@ void TelnetServer::closeHandler(int fd, TelnetHandler* pTelnetHandler)
 	pDispatcher_->deregisterReadFileDescriptor(fd);
 	handlers_.erase(iter);
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	::close(fd);
 #else
 	::closesocket(fd);
