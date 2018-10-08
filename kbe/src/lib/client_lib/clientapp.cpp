@@ -544,7 +544,7 @@ PyObject* ClientApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -553,7 +553,7 @@ PyObject* ClientApp::__py_setScriptLogType(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "i", &type) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
 	}
 
@@ -758,7 +758,7 @@ PyObject* ClientApp::__py_getResFullPath(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if (argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -767,7 +767,7 @@ PyObject* ClientApp::__py_getResFullPath(PyObject* self, PyObject* args)
 
 	if (PyArg_ParseTuple(args, "s", &respath) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getResFullPath(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -785,7 +785,7 @@ PyObject* ClientApp::__py_hasRes(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if (argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -794,7 +794,7 @@ PyObject* ClientApp::__py_hasRes(PyObject* self, PyObject* args)
 
 	if (PyArg_ParseTuple(args, "s", &respath) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::hasRes(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -808,7 +808,7 @@ PyObject* ClientApp::__py_kbeOpen(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if (argCount != 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -818,7 +818,7 @@ PyObject* ClientApp::__py_kbeOpen(PyObject* self, PyObject* args)
 
 	if (PyArg_ParseTuple(args, "s|s", &respath, &fargs) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::open(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -849,7 +849,7 @@ PyObject* ClientApp::__py_matchPath(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if (argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -858,7 +858,7 @@ PyObject* ClientApp::__py_matchPath(PyObject* self, PyObject* args)
 
 	if (PyArg_ParseTuple(args, "s", &respath) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::matchPath(): args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -873,7 +873,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 	int argCount = PyTuple_Size(args);
 	if (argCount < 1 || argCount > 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -886,7 +886,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 	{
 		if (PyArg_ParseTuple(args, "O", &pathobj) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] error!");
 			PyErr_PrintEx(0);
 			S_Return;
 		}
@@ -895,7 +895,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 	{
 		if (PyArg_ParseTuple(args, "O|O", &pathobj, &path_argsobj) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] error!");
 			PyErr_PrintEx(0);
 			S_Return;
 		}
@@ -918,7 +918,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 					PyObject* pyobj = PySequence_GetItem(path_argsobj, i);
 					if (!PyUnicode_Check(pyobj))
 					{
-						PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] is error!");
+						PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path, pathargs=\'*.*\'] error!");
 						PyErr_PrintEx(0);
 						S_Return;
 					}
@@ -932,7 +932,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 			}
 			else
 			{
-				PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] is error!");
+				PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[pathargs] error!");
 				PyErr_PrintEx(0);
 				S_Return;
 			}
@@ -941,7 +941,7 @@ PyObject* ClientApp::__py_listPathRes(PyObject* self, PyObject* args)
 
 	if (!PyUnicode_Check(pathobj))
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::listPathRes(): args[path] error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}

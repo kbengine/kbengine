@@ -25,14 +25,14 @@ bool Pickler::initialize(void)
 		picklerMethod_ = PyObject_GetAttrString(cPickleModule, "dumps");
 		if (!picklerMethod_)
 		{
-			ERROR_MSG("Pickler::initialize: get dumps is error!\n");
+			ERROR_MSG("Pickler::initialize: get dumps error!\n");
 			PyErr_PrintEx(0);
 		}
 
 		unPicklerMethod_ = PyObject_GetAttrString(cPickleModule, "loads");
 		if(!unPicklerMethod_)
 		{
-			ERROR_MSG("Pickler::init: get loads is error!\n");
+			ERROR_MSG("Pickler::init: get loads error!\n");
 			PyErr_PrintEx(0);
 		}
 

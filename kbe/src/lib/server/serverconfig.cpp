@@ -1557,7 +1557,7 @@ void ServerConfig::_updateEmailInfos()
 		std::string out = KBEKey::getSingleton().decrypt(emailServerInfo_.password);
 		if(out.size() == 0)
 		{
-			ERROR_MSG("ServerConfig::loadConfig: email password(email_service.xml) encrypt is error!\n");
+			ERROR_MSG("ServerConfig::loadConfig: email password(email_service.xml) encrypt error!\n");
 		}
 		else
 		{

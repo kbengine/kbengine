@@ -175,7 +175,7 @@ inline void CallbackMgr<PyObjectPtr>::createFromStream(KBEngine::MemoryStream& s
 
 		if(pyCallback == NULL || cbID == 0)
 		{
-			ERROR_MSG(fmt::format("CallbackMgr::createFromStream: pyCallback({}) is error!\n", cbID));
+			ERROR_MSG(fmt::format("CallbackMgr::createFromStream: pyCallback({}) error!\n", cbID));
 			continue;
 		}
 

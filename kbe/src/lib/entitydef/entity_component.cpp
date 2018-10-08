@@ -368,13 +368,13 @@ PyObject* EntityComponent::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if (size != 2)
 	{
-		ERROR_MSG("EntityComponent::__unpickle__: args is error! size != 2.\n");
+		ERROR_MSG("EntityComponent::__unpickle__: args error! size != 2.\n");
 		S_Return;
 	}
 
 	if (!PyArg_ParseTuple(args, "iHH", &ownerID, &utype, &ctype))
 	{
-		ERROR_MSG("EntityComponent::__unpickle__: args is error!\n");
+		ERROR_MSG("EntityComponent::__unpickle__: args error!\n");
 		S_Return;
 	}
 

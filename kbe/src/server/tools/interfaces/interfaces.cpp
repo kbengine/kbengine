@@ -257,7 +257,7 @@ PyObject* Interfaces::__py_executeRawDatabaseCommand(PyObject* self, PyObject* a
 
 	if (ret == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -290,7 +290,7 @@ void Interfaces::executeRawDatabaseCommand(const char* datas, uint32 size, PyObj
 {
 	if (datas == NULL)
 	{
-		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute is error!\n");
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute error!\n");
 		return;
 	}
 

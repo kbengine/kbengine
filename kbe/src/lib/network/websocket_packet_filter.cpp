@@ -201,10 +201,10 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 
 			if(websocket::WebSocketProtocol::ERROR_FRAME == msg_frameType_)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: frame is error! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: frame error! addr={}!\n",
 					pChannel_->c_str()));
 
-				this->pChannel_->condemn("WebSocketPacketReader::recv: frame is error!");
+				this->pChannel_->condemn("WebSocketPacketReader::recv: frame error!");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));

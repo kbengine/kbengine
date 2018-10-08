@@ -228,13 +228,13 @@ PyObject* EntityCall::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 4)
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error! size != 4.\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error! size != 4.\n");
 		S_Return;
 	}
 
 	if(!PyArg_ParseTuple(args, "iKHh", &eid, &componentID, &utype, &type))
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error!\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error!\n");
 		S_Return;
 	}
 

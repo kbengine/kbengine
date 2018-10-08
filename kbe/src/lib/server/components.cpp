@@ -1113,7 +1113,7 @@ RESTART_RECV:
 				{
 					if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0, false) != 0)
 					{
-						//ERROR_MSG(fmt::format("Components::findLogger: register self to {} is error!\n",
+						//ERROR_MSG(fmt::format("Components::findLogger: register self to {} error!\n",
 						//COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 						//dispatcher().breakProcessing();
 						KBEngine::sleep(200);
@@ -1270,7 +1270,7 @@ RESTART_RECV:
 						findComponentTypes_[findIdx_] = -1;
 						if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
+							ERROR_MSG(fmt::format("Components::findComponents: register self to {} error!\n",
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 							findIdx_++;
 							//dispatcher().breakProcessing();
@@ -1353,7 +1353,7 @@ RESTART_RECV:
 
 			if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
+				ERROR_MSG(fmt::format("Components::findComponents: register self to {} error!\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				//dispatcher().breakProcessing();
 				return false;

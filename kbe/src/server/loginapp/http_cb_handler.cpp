@@ -81,7 +81,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		if(newclient == NULL)
 		{
-			ERROR_MSG(fmt::format("HTTPCBHandler::handleInputNotification: accept is error:{}.\n", kbe_strerror()));
+			ERROR_MSG(fmt::format("HTTPCBHandler::handleInputNotification: accept error:{}.\n", kbe_strerror()));
 			return 0;
 		}
 
