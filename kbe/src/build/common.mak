@@ -128,7 +128,7 @@ OBJS = $(addsuffix .o, $(ALL_SRC))
 # don't want these for a shared object - we'll use the exe's instead
 ifndef SO
 ifndef NO_EXTRA_LIBS
-MY_LIBS += fmt math common helper resmgr
+MY_LIBS += math common helper resmgr
 endif
 endif
 
@@ -147,6 +147,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/fmt/include
 
 LDLIBS += $(addprefix -l, $(MY_LIBS))
 LDLIBS += -lm
+LDLIBS += -lfmt
 
 ifndef DISABLE_WATCHERS
 CPPFLAGS += -DENABLE_WATCHERS
