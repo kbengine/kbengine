@@ -139,6 +139,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/server
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies
 KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
+KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/fmt/include
 
 # Preprocessor output only (useful when debugging macros)
 # CPPFLAGS += -E
@@ -146,6 +147,7 @@ KBE_INCLUDES += -I $(KBE_ROOT)/kbe/src/lib/dependencies/tinyxml
 
 LDLIBS += $(addprefix -l, $(MY_LIBS))
 LDLIBS += -lm
+LDLIBS += -lfmt
 
 ifndef DISABLE_WATCHERS
 CPPFLAGS += -DENABLE_WATCHERS

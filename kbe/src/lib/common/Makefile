@@ -3,17 +3,16 @@ LIB =	common
 SRCS =				\
 	blowfish		\
 	common			\
-	format			\
 	tasks			\
 	timer			\
 	timestamp		\
 	strutil			\
 	kbeversion		\
 	kbekey			\
-	md5			\
+	md5				\
 	sha1			\
 	base64			\
-	rsa			\
+	rsa				\
 	memorystream
 
 ifndef KBE_ROOT
