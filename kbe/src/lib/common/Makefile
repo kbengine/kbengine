@@ -3,7 +3,6 @@ LIB =	common
 SRCS =				\
 	blowfish		\
 	common			\
-	format			\
 	tasks			\
 	timer			\
 	timestamp		\
