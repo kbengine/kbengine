@@ -238,7 +238,7 @@ Network::Reason TelnetHandler::checkLastErrors()
 	int err;
 	Network::Reason reason;
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	err = errno;
 
 	switch (err)

@@ -32,7 +32,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/tcp_packet.h"
 #include "server/serverconfig.h"
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 #include <unistd.h>
 #include <syslog.h>
 #endif
@@ -1068,7 +1068,7 @@ void DebugHelper::set_warningcolor()
 }
 
 //-------------------------------------------------------------------------------------
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 #define MAX_DEPTH 50
 #include <execinfo.h>
 #include <cxxabi.h>

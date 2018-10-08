@@ -166,7 +166,7 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 		return RECV_STATE_BREAK;
 	}
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	if (errno == EAGAIN ||							// 已经无数据可读了
 		errno == ECONNREFUSED ||					// 连接被服务器拒绝
 		errno == EHOSTUNREACH)						// 目的地址不可到达
