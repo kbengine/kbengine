@@ -337,6 +337,15 @@ bool DBTaskWriteEntity::db_thread_process()
 
 	if(writeEntityLog)
 	{
+		if (pDatas_->length() < (sizeof(uint32) + sizeof(uint32)))
+		{
+			ERROR_MSG(fmt::format("DBTaskWriteEntity::db_thread_process(): MemoryStream exception(rpos={}, wpos={})! entityID={}, sid={}, callbackID={}, shouldAutoLoad={}, address={}\n",
+				pDatas_->rpos(), pDatas_->wpos(), eid_, sid_, callbackID_, shouldAutoLoad_, addr_.c_str()));
+
+			success_ = false;
+			return false;
+		}
+
 		(*pDatas_) >> ip >> port;
 	}
 
