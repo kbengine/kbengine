@@ -268,18 +268,19 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 
 				int sendSize = pPongPacket->length();
 				
-				do
+				while (sendSize > 0);
 				{
 					int ret = pChannel->pEndPoint()->send(pPongPacket->data() + (pPongPacket->length() - sendSize), sendSize);
 					if (ret <= 0)
 					{
-						ERROR_MSG(fmt::format("WebSocketPacketReader::recv: send({}) pong-frame error! addr={}!\n",
-							ret, pChannel_->c_str()));
+						ERROR_MSG(fmt::format("WebSocketPacketReader::recv: send({}) pong-frame error! addr={}, sendSize={}\n",
+							ret, pChannel_->c_str(), sendSize));
 
 						break;
 					}
 
-				} while (sendSize < pPongPacket->length());
+					sendSize -= ret;
+				}
 
 				TCPPacket::reclaimPoolObject(pPongPacket);
 
