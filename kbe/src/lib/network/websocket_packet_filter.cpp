@@ -291,7 +291,7 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 
 			int sendSize = pPongPacket->length();
 
-			while (sendSize > 0);
+			while (sendSize > 0)
 			{
 				int ret = pChannel->pEndPoint()->send(pPongPacket->data() + (pPongPacket->length() - sendSize), sendSize);
 				if (ret <= 0)
