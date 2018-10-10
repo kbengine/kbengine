@@ -3,7 +3,7 @@ all:: config.status
 
 CONFIG_ARGS =
 
-config.status:  autogen
+config.status:
 	@chmod -R 755 .
 	./buildconf
 	./configure --with-ssl=../openssl
