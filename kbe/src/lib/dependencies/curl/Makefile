@@ -3,9 +3,10 @@ all:: config.status
 
 CONFIG_ARGS =
 
-config.status:  autogen
+config.status:
 	@chmod -R 755 .
-	./autogen.sh
+	./buildconf
+	./configure --with-ssl=../openssl --disable-shared
 	@make
 
 .PHONY: clean
