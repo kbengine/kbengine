@@ -10,9 +10,9 @@ config.status:
 	@chmod -R 755 .
 	./buildconf
 	./configure --with-ssl=$(KBE_ROOT)/kbe/src/lib/dependencies/openssl --disable-shared --enable-static --disable-ldap --disable-sspi --without-librtmp --disable-ftp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --without-libidn
-	@cp -f "kbe/Makefile" "src" 
+	@cp -f "$(KBE_ROOT)/kbe/src/lib/dependencies/curl/kbe/Makefile" "$(KBE_ROOT)/kbe/src/lib/dependencies/curl/src" 
 	@make
-	@cp -f "lib/.libs/liburl.a" "$(KBE_ROOT)/kbe/src/libs" 
+	@cp -f "$(KBE_ROOT)/kbe/src/lib/dependencies/curl/lib/.libs/liburl.a" "$(KBE_ROOT)/kbe/src/libs" 
 
 .PHONY: clean
 
