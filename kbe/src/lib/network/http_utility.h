@@ -132,7 +132,18 @@ namespace Http
 		Status setTimeout(uint32 time);
 
 		Status setHeader(const std::vector<std::string>& headers);
+		Status setHeader(const std::map<std::string, std::string>& headers);
 		Status setHeader(const std::string& header);
+
+		// 设置CA证书、客户端证书和客户端秘钥
+		Status setCAInfo(const std::string& cainfo);
+		Status setSSLCert(const std::string& sslCert);
+		Status setSSLKey(const std::string& sslKey);
+		Status setSSLKeyPassword(const std::string& sslKeyPwd);
+
+		// 是否验证证书和主机
+		Status setSSLVerifyPeer(long v);
+		Status setSSLVerifyHost(long v);
 
 		Status setProxy(const std::string& proxyIP, long proxyPort);
 
@@ -171,6 +182,8 @@ namespace Http
 
 		Callback resultCallback_;
 		bool called_;
+
+		bool setVerifySSL_;
 	};
 
 	class Requests : public TimerHandler
@@ -183,7 +196,10 @@ namespace Http
 			异步http请求
 		*/
 		Request::Status perform(Request* pRequest);
-		Request::Status perform(const std::string& url, const Request::Callback& resultCallback);
+		Request::Status perform(const std::string& url, const Request::Callback& resultCallback,
+			const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
+		Request::Status perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback,
+			const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
 
 		void* pContext() {
 			return pContext_;
@@ -202,7 +218,10 @@ namespace Http
 	};
 
 	Request::Status perform(Request* pRequest);
-	Request::Status perform(const std::string& url, const Request::Callback& resultCallback);
+	Request::Status perform(const std::string& url, const Request::Callback& resultCallback,
+		const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
+	Request::Status perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback,
+		const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
 
 }
 }
