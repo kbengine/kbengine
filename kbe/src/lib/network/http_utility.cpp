@@ -28,7 +28,7 @@ bool initialize()
 		CURLcode curlCode = curl_global_init(CURL_GLOBAL_ALL);
 		if (CURLE_OK != curlCode)
 		{
-			ERROR_MSG(fmt::format("HttpUtility::initialize: "
+			ERROR_MSG(fmt::format("Http::initialize: "
 				"curl_global_init error! curlCode={}\n", curlCode));
 
 			return false;
@@ -60,7 +60,8 @@ Request::Request():
 	receivedContent_(),
 	receivedHeader_(),
 	resultCallback_(),
-	called_(false)
+	called_(false),
+	setVerifySSL_(false)
 {
 	pContext_ = (void*)curl_easy_init();
 	curl_easy_setopt((CURL*)pContext_, CURLOPT_PRIVATE, (void*)this);
@@ -104,14 +105,102 @@ Request::~Request()
 }
 
 //-------------------------------------------------------------------------------------
+Request::Status Request::setCAInfo(const std::string& cainfo)
+{
+	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_CAINFO, cainfo.c_str());
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setCAInfo: error! curlCode={}\n", curlCode));
+		return INVALID_OPT;
+	}
+
+	return OK;
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Request::setSSLCert(const std::string& sslCert)
+{
+	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_SSLCERT, sslCert.c_str());
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setSSLCert: error! curlCode={}\n", curlCode));
+		return INVALID_OPT;
+	}
+
+	return OK;
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Request::setSSLKey(const std::string& sslKey)
+{
+	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_SSLKEY, sslKey.c_str());
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setSSLKey: error! curlCode={}\n", curlCode));
+		return INVALID_OPT;
+	}
+
+	return OK;
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Request::setSSLKeyPassword(const std::string& sslKeyPwd)
+{
+	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_KEYPASSWD, sslKeyPwd.c_str());
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setSSLKeyPassword: error! curlCode={}\n", curlCode));
+		return INVALID_OPT;
+	}
+
+	return OK;
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Request::setSSLVerifyPeer(long v)
+{
+	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_SSL_VERIFYPEER, v);
+	setVerifySSL_ = true;
+
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setSSLVerifyPeer: error! curlCode={}\n", curlCode));
+		return INVALID_OPT;
+	}
+
+	return OK;
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Request::setSSLVerifyHost(long v)
+{
+	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_SSL_VERIFYPEER, v);
+	setVerifySSL_ = true;
+
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setSSLVerifyHost: error! curlCode={}\n", curlCode));
+		return INVALID_OPT;
+	}
+
+	return OK;
+}
+
+//-------------------------------------------------------------------------------------
 Request::Status Request::setURL(const std::string& url)
 {
 	CURLcode curlCode = CURLE_OK;
 
+	if (!setVerifySSL_/* 如果没设置过，自动设置一个默认值 */ && url.substr(0, 6) == "https:")
+	{
+		curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_SSL_VERIFYPEER, 0L);
+		curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_SSL_VERIFYHOST, 0L);
+	}
+
 	curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_URL, url.c_str());
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setURL: "
+		ERROR_MSG(fmt::format("Http::Request::setURL: "
 			"curl_easy_setopt(CURLOPT_URL) error! curlCode={}, url={}\n", curlCode, url));
 
 		return INVALID_OPT;
@@ -134,7 +223,7 @@ Request::Status Request::setFollowURL(int maxRedirs)
 		curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_MAXREDIRS, maxRedirs);
 		if (CURLE_OK != curlCode)
 		{
-			ERROR_MSG(fmt::format("HttpUtility::Request::setFollowURL: "
+			ERROR_MSG(fmt::format("Http::Request::setFollowURL: "
 				"curl_easy_setopt(CURLOPT_MAXREDIRS) error! curlCode={}, maxRedirs={}\n", curlCode, maxRedirs));
 
 			return INVALID_OPT;
@@ -145,7 +234,7 @@ Request::Status Request::setFollowURL(int maxRedirs)
 
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setFollowURL: "
+		ERROR_MSG(fmt::format("Http::Request::setFollowURL: "
 			"curl_easy_setopt(CURLOPT_FOLLOWLOCATION) error! curlCode={}, maxRedirs={}\n", curlCode, maxRedirs));
 
 		return INVALID_OPT;
@@ -160,7 +249,7 @@ Request::Status Request::setPostData(const void* data, unsigned int size)
 {
 	if (!data)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setPostData: "
+		ERROR_MSG(fmt::format("Http::Request::setPostData: "
 				"data is NULL! size={}\n", size));
 
 		return INVALID_OPT;
@@ -171,7 +260,7 @@ Request::Status Request::setPostData(const void* data, unsigned int size)
 	curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_POST, 1);
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setPostData: "
+		ERROR_MSG(fmt::format("Http::Request::setPostData: "
 			"curl_easy_setopt(CURLOPT_POST) error! curlCode={}, size={}\n", curlCode, size));
 
 		return INVALID_OPT;
@@ -190,7 +279,7 @@ Request::Status Request::setPostData(const void* data, unsigned int size)
 
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setPostData: "
+		ERROR_MSG(fmt::format("Http::Request::setPostData: "
 			"curl_easy_setopt(CURLOPT_POSTFIELDS) error! curlCode={}, size={}\n", curlCode, size));
 
 		return INVALID_OPT;
@@ -199,7 +288,7 @@ Request::Status Request::setPostData(const void* data, unsigned int size)
 	curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_POSTFIELDSIZE, size);
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setPostData: "
+		ERROR_MSG(fmt::format("Http::Request::setPostData: "
 			"curl_easy_setopt(CURLOPT_POSTFIELDSIZE) error! curlCode={}, size={}\n", curlCode, size));
 
 		return INVALID_OPT;
@@ -212,13 +301,13 @@ Request::Status Request::setPostData(const void* data, unsigned int size)
 Request::Status Request::setHeader(const std::string& header)
 {
 	if(headers_)
-		curl_slist_append((curl_slist *)headers_, header.c_str());
+		curl_slist_append((curl_slist *)headers_, strutil::kbe_trim(header).c_str());
 	else
-		headers_ = curl_slist_append(NULL, header.c_str());
+		headers_ = curl_slist_append(NULL, strutil::kbe_trim(header).c_str());
 
 	if (!headers_)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setHeaders: "
+		ERROR_MSG(fmt::format("Http::Request::setHeaders: "
 			"curl_slist_append error!, header={}\n", header));
 
 		return INVALID_OPT;
@@ -228,7 +317,7 @@ Request::Status Request::setHeader(const std::string& header)
 
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setHeader: "
+		ERROR_MSG(fmt::format("Http::Request::setHeader: "
 			"curl_easy_setopt(CURLOPT_HTTPHEADER) error! curlCode={}, header={}\n", curlCode, header));
 
 		return INVALID_OPT;
@@ -242,7 +331,7 @@ Request::Status Request::setHeader(const std::vector<std::string>& headers)
 {
 	if (headers.size() == 0)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setHeaders: headers size is 0!\n"));
+		ERROR_MSG(fmt::format("Http::Request::setHeaders: headers size is 0!\n"));
 		return INVALID_OPT;
 	}
 
@@ -252,13 +341,13 @@ Request::Status Request::setHeader(const std::vector<std::string>& headers)
 	for (; iter != headers.end(); ++iter)
 	{
 		if (headers_)
-			curl_slist_append((curl_slist *)headers_, (*iter).c_str());
+			curl_slist_append((curl_slist *)headers_, strutil::kbe_trim((*iter)).c_str());
 		else
-			headers_ = curl_slist_append(NULL, (*iter).c_str());
+			headers_ = curl_slist_append(NULL, strutil::kbe_trim((*iter)).c_str());
 
 		if (!headers_)
 		{
-			ERROR_MSG(fmt::format("HttpUtility::Request::setHeaders: "
+			ERROR_MSG(fmt::format("Http::Request::setHeaders: "
 				"curl_slist_append error! curlCode={}, header={}\n", curlCode, (*iter)));
 
 			return INVALID_OPT;
@@ -269,7 +358,52 @@ Request::Status Request::setHeader(const std::vector<std::string>& headers)
 
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setHeaders: "
+		ERROR_MSG(fmt::format("Http::Request::setHeaders: "
+			"curl_easy_setopt(CURLOPT_HTTPHEADER) error! curlCode={}\n", curlCode));
+
+		return INVALID_OPT;
+	}
+
+	return OK;
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Request::setHeader(const std::map<std::string, std::string>& headers)
+{
+	if (headers.size() == 0)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setHeaders: headers size is 0!\n"));
+		return INVALID_OPT;
+	}
+
+	CURLcode curlCode = CURLE_OK;
+
+	std::map<std::string, std::string>::const_iterator iter = headers.begin();
+	for (; iter != headers.end(); ++iter)
+	{
+		std::string header = strutil::kbe_trim(iter->first);
+		header += ": ";
+		header += strutil::kbe_trim(iter->second);
+
+		if (headers_)
+			curl_slist_append((curl_slist *)headers_, header.c_str());
+		else
+			headers_ = curl_slist_append(NULL, header.c_str());
+
+		if (!headers_)
+		{
+			ERROR_MSG(fmt::format("Http::Request::setHeaders: "
+				"curl_slist_append error! curlCode={}, header={}\n", curlCode, header));
+
+			return INVALID_OPT;
+		}
+	}
+
+	curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_HTTPHEADER, (curl_slist *)headers_);
+
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::setHeaders: "
 			"curl_easy_setopt(CURLOPT_HTTPHEADER) error! curlCode={}\n", curlCode));
 
 		return INVALID_OPT;
@@ -284,7 +418,7 @@ Request::Status Request::setTimeout(uint32 secs)
 	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_TIMEOUT, secs);
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setTimeout: "
+		ERROR_MSG(fmt::format("Http::Request::setTimeout: "
 			"curl_easy_setopt(CURLOPT_TIMEOUT) error! curlCode={}, secs={}\n", curlCode, secs));
 
 		return INVALID_OPT;
@@ -299,7 +433,7 @@ Request::Status Request::setProxy(const std::string& proxyIP, long proxyPort)
 	CURLcode curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_PROXYPORT, proxyPort);
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setProxy: "
+		ERROR_MSG(fmt::format("Http::Request::setProxy: "
 			"curl_easy_setopt(CURLOPT_PROXYPORT) error! curlCode={}\n", curlCode));
 
 		return INVALID_OPT;
@@ -308,7 +442,7 @@ Request::Status Request::setProxy(const std::string& proxyIP, long proxyPort)
 	curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_PROXY, proxyIP.c_str());
 	if (CURLE_OK != curlCode)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::setProxy: "
+		ERROR_MSG(fmt::format("Http::Request::setProxy: "
 			"curl_easy_setopt(CURLOPT_PROXYPORT) error! curlCode={}\n", curlCode));
 
 		return INVALID_OPT;
@@ -369,7 +503,7 @@ Request::Status Request::perform()
 	CURLcode curlCode1 = curl_easy_getinfo((CURL*)pContext_, CURLINFO_RESPONSE_CODE, &httpCode_);
 	if (CURLE_OK != curlCode1)
 	{
-		ERROR_MSG(fmt::format("HttpUtility::Request::perform: "
+		ERROR_MSG(fmt::format("Http::Request::perform: "
 			"curl_easy_getinfo(CURLINFO_RESPONSE_CODE) error! curlCode={}\n", curlCode1));
 
 		return INVALID_OPT;
@@ -382,7 +516,7 @@ Request::Status Request::perform()
 	else
 	{
 		const char* err_string = curl_easy_strerror(curlCode);
-		ERROR_MSG(fmt::format("HttpUtility::Request::perform: {}\n", err_string));
+		ERROR_MSG(fmt::format("Http::Request::perform: {}\n", err_string));
 
 		callCallback(false);
 	}
@@ -689,11 +823,31 @@ Request::Status Requests::perform(Request* pRequest)
 }
 
 //-------------------------------------------------------------------------------------
-Request::Status Requests::perform(const std::string& url, const Request::Callback& resultCallback)
+Request::Status Requests::perform(const std::string& url, const Request::Callback& resultCallback, 
+	const std::map<std::string, std::string>& headers)
 {
 	Network::Http::Request* r = new Network::Http::Request();
 	r->setURL(url);
 	r->setCallback(resultCallback);
+
+	if (headers.size() > 0)
+		r->setHeader(headers);
+
+	return perform(r);
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Requests::perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback, 
+	const std::map<std::string, std::string>& headers)
+{
+	Network::Http::Request* r = new Network::Http::Request();
+	r->setURL(url);
+	r->setCallback(resultCallback);
+	r->setPostData(postData.data(), postData.size());
+
+	if (headers.size() > 0)
+		r->setHeader(headers);
+
 	return perform(r);
 }
 
@@ -719,9 +873,15 @@ Request::Status perform(Request* pRequest)
 }
 
 //-------------------------------------------------------------------------------------
-Request::Status perform(const std::string& url, const Request::Callback& resultCallback)
+Request::Status perform(const std::string& url, const Request::Callback& resultCallback, const std::map<std::string, std::string>& headers)
 {
-	return g_pRequests->perform(url, resultCallback);
+	return g_pRequests->perform(url, resultCallback, headers);
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback, const std::map<std::string, std::string>& headers)
+{
+	return g_pRequests->perform(url, postData, resultCallback, headers);
 }
 
 //-------------------------------------------------------------------------------------
