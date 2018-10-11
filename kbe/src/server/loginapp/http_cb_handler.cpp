@@ -280,8 +280,8 @@ int HTTPCBHandler::handleInputNotification(int fd)
 						}
 					}
 
-					username = HttpUtility::URLDecode(username);
-					password = HttpUtility::URLDecode(password);
+					username = Network::Http::URLDecode(username);
+					password = Network::Http::URLDecode(password);
 
 					// œÚdbmgr÷ÿ÷√’À∫≈
 					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
@@ -312,7 +312,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 				if(username.size() > 0)
 				{
-					username = HttpUtility::URLDecode(username);
+					username = Network::Http::URLDecode(username);
 
 					// œÚdbmgr∞Û∂®’À∫≈’À∫≈
 					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);

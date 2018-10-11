@@ -17,15 +17,23 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef KBE_HTTP_UTILTY_H
 #define KBE_HTTP_UTILTY_H
 
 #include "common/common.h"
+#include "common/timer.h"
 
 namespace KBEngine 
 {
-namespace HttpUtility
+class MemoryStream;
+namespace Network
+{
+namespace Http
 { 
+	bool initialize();
+	void finalise();
+
     inline uint8 toHex(const uint8 &x)
     {
         return x > 9 ? x -10 + 'A': x + '0';
@@ -49,7 +57,7 @@ namespace HttpUtility
             {      
                 buf[0] = sIn[ix];
             }
-            //else if ( isspace( (uint8)sIn[ix] ) ) //√≤À∆∞—ø’∏Ò±‡¬Î≥…%20ªÚ’ﬂ+∂ºø…“‘
+            //else if ( isspace( (uint8)sIn[ix] ) ) //Ë≤å‰ººÊääÁ©∫Ê†ºÁºñÁ†ÅÊàê%20ÊàñËÄÖ+ÈÉΩÂèØ‰ª•
             //{
             //    buf[0] = '+';
             //}
@@ -93,10 +101,107 @@ namespace HttpUtility
         
         return sOut;
     }
-}
 
-}
+	class Request
+	{
+	public:
+		enum Status {
+			OK = 0,
+			INVALID_OPT = 1,
+			PERFORM_ERROR = 2,
+			OPENFILE_ERROR = 3,
+			INIT_ERROR = 4,
+		};
 
+		/* 
+			success, data
+		*/
+		typedef std::function<void(bool, const Request& pRequest, const std::string&)> Callback;
+
+	public:
+		Request();
+		~Request();
+
+		Status setURL(const std::string& url);
+
+		/* example.com is redirected, so we tell libcurl to follow redirection */
+		Status setFollowURL(int maxRedirs);
+
+		Status setPostData(const void* data, unsigned int size);
+
+		Status setTimeout(uint32 time);
+
+		Status setHeader(const std::vector<std::string>& headers);
+		Status setHeader(const std::string& header);
+
+		Status setProxy(const std::string& proxyIP, long proxyPort);
+
+		Status setCallback(Callback resultCallback) {
+			resultCallback_ = resultCallback;
+			return OK;
+		}
+
+		void callCallback(bool success);
+
+		Status perform();
+
+		int getHttpCode() { return httpCode_; }
+		const char* getReceivedHeader() { return receivedHeader_.c_str(); }
+		const char* getReceivedContent() { return receivedContent_.c_str(); }
+		const char* getError() { return (const char*)&error_[0]; }
+
+		static size_t receiveHeaderFunction(char *buffer, size_t size, size_t nitems, void *userdata);
+		static size_t receiveContentFunction(char *ptr, size_t size, size_t nmemb, void *userdata);
+
+		void* pContext() {
+			return pContext_;
+		}
+
+	private:
+		void* pContext_;
+		void* headers_;
+		MemoryStream* postData_;
+		long httpCode_;
+		char error_[MAX_BUF];
+		bool hasSetRedirect_;
+		int retryTimes_;
+
+		std::string receivedContent_;
+		std::string receivedHeader_;
+
+		Callback resultCallback_;
+		bool called_;
+	};
+
+	class Requests : public TimerHandler
+	{
+	public:
+		Requests();
+		~Requests();
+
+		/*
+			ÂºÇÊ≠•httpËØ∑Ê±Ç
+		*/
+		Request::Status perform(Request* pRequest);
+
+		void* pContext() {
+			return pContext_;
+		}
+
+		virtual void handleTimeout(TimerHandle, void * pUser);
+
+	public:
+		int still_running;
+		Request* pRequest;
+		TimerHandle timerHandle;
+
+	private:
+		void* pContext_;
+
+	};
+}
+}
+}
 
 #endif // KBE_HTTP_UTILTY_H
 
