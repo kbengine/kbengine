@@ -459,11 +459,11 @@ static void check_multi_info(Requests *g)
 		if (msg->msg == CURLMSG_DONE) 
 		{
 			easy = msg->easy_handle;
-			res = msg->data.result;
+
 			curl_easy_getinfo(easy, CURLINFO_PRIVATE, &pRequest);
 			curl_easy_getinfo(easy, CURLINFO_EFFECTIVE_URL, &eff_url);
 
-			//DEBUG_MSG(fmt::format("check_multi_info: DONE: {} => ({}) {}\n", eff_url, res, pRequest->getError()));
+			//DEBUG_MSG(fmt::format("check_multi_info: DONE: {} => ({}) {}\n", eff_url, msg->data.result, pRequest->getError()));
 
 			curl_multi_remove_handle((CURLM*)g->pContext(), easy);
 			pRequest->callCallback(true);
