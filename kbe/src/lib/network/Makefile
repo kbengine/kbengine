@@ -12,6 +12,7 @@ SRCS =					\
 	event_poller		\
 	encryption_filter	\
 	fixed_messages		\
+	http_utility		\
 	interface_defs		\
 	message_handler		\
 	listener_receiver	\

@@ -2,6 +2,7 @@
 
 
 #include "common.h"
+#include "network/http_utility.h"
 #include "network/channel.h"
 #include "network/bundle.h"
 #include "network/tcp_packet.h"
@@ -78,7 +79,7 @@ bool initializeWatcher()
 			return false;
 	}
 
-	return true;
+	return Http::initialize();
 }
 
 void destroyObjPool()
@@ -95,6 +96,8 @@ void destroyObjPool()
 
 void finalise(void)
 {
+	Http::finalise();
+
 #ifdef ENABLE_WATCHERS
 	WatcherPaths::finalise();
 #endif
