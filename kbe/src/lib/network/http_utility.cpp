@@ -432,7 +432,6 @@ static void check_multi_info(Requests *g)
 	CURLMsg *msg;
 	int msgs_left;
 	CURL *easy;
-	CURLcode res;
 	Request * pRequest = NULL;
 
 	//DEBUG_MSG(fmt::format("check_multi_info: remaining {}.\n", g->still_running));
