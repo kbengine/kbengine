@@ -34,6 +34,7 @@ namespace Http
 { 
 
 static bool _g_init = false;
+static Requests* g_pRequests = NULL;
 
 //-------------------------------------------------------------------------------------
 bool initialize()
@@ -50,6 +51,8 @@ bool initialize()
 
 			return false;
 		}
+
+		g_pRequests = new Requests();
 	}
 
 	return true;
@@ -58,6 +61,8 @@ bool initialize()
 //-------------------------------------------------------------------------------------
 void finalise()
 {
+	SAFE_RELEASE(g_pRequests);
+
 	if(_g_init)
 		curl_global_cleanup();
 }
@@ -691,7 +696,23 @@ Request::Status Requests::perform(Request* pRequest)
 {
 	CURLMcode rc = curl_multi_add_handle((CURLM*)pContext_, pRequest->pContext());
 	mcode_or_die("Requests::perform: curl_multi_add_handle", rc);
+
+	if (rc != CURLM_OK)
+	{
+		delete pRequest;
+		return Request::INVALID_OPT;
+	}
+
 	return Request::OK;
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status Requests::perform(const std::string& url, const Request::Callback& resultCallback)
+{
+	Network::Http::Request* r = new Network::Http::Request();
+	r->setURL(url);
+	r->setCallback(resultCallback);
+	return perform(r);
 }
 
 //-------------------------------------------------------------------------------------
@@ -706,6 +727,18 @@ void Requests::handleTimeout(TimerHandle, void * pUser)
 	check_multi_info(this);
 
 	//DEBUG_MSG(fmt::format(" Requests::handleTimeout: still_running={}!\n", still_running));
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status perform(Request* pRequest)
+{
+	return g_pRequests->perform(pRequest);
+}
+
+//-------------------------------------------------------------------------------------
+Request::Status perform(const std::string& url, const Request::Callback& resultCallback)
+{
+	return g_pRequests->perform(url, resultCallback);
 }
 
 //-------------------------------------------------------------------------------------
