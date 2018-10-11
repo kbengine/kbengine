@@ -117,7 +117,7 @@ namespace Http
 
 		Status setProxy(const std::string& proxyIP, long proxyPort);
 
-		Status setCallback(Callback resultCallback) {
+		Status setCallback(const Callback& resultCallback) {
 			resultCallback_ = resultCallback;
 			return OK;
 		}
@@ -164,6 +164,7 @@ namespace Http
 			异步http请求
 		*/
 		Request::Status perform(Request* pRequest);
+		Request::Status perform(const std::string& url, const Request::Callback& resultCallback);
 
 		void* pContext() {
 			return pContext_;
@@ -180,6 +181,10 @@ namespace Http
 		void* pContext_;
 
 	};
+
+	static Request::Status perform(Request* pRequest);
+	static Request::Status perform(const std::string& url, const Request::Callback& resultCallback);
+
 }
 }
 }
