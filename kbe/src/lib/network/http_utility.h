@@ -201,8 +201,8 @@ namespace Http
 
 	};
 
-	static Request::Status perform(Request* pRequest);
-	static Request::Status perform(const std::string& url, const Request::Callback& resultCallback);
+	Request::Status perform(Request* pRequest);
+	Request::Status perform(const std::string& url, const Request::Callback& resultCallback);
 
 }
 }
