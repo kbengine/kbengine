@@ -435,7 +435,7 @@ static void check_multi_info(Requests *g)
 	CURLcode res;
 	Request * pRequest = NULL;
 
-	DEBUG_MSG(fmt::format("check_multi_info: remaining {}.\n", g->still_running));
+	//DEBUG_MSG(fmt::format("check_multi_info: remaining {}.\n", g->still_running));
 
 	while ((msg = curl_multi_info_read((CURLM*)g->pContext(), &msgs_left))) 
 	{
@@ -446,7 +446,7 @@ static void check_multi_info(Requests *g)
 			curl_easy_getinfo(easy, CURLINFO_PRIVATE, &pRequest);
 			curl_easy_getinfo(easy, CURLINFO_EFFECTIVE_URL, &eff_url);
 
-			DEBUG_MSG(fmt::format("check_multi_info: DONE: {} => ({}) {}\n", eff_url, res, pRequest->getError()));
+			//DEBUG_MSG(fmt::format("check_multi_info: DONE: {} => ({}) {}\n", eff_url, res, pRequest->getError()));
 
 			curl_multi_remove_handle((CURLM*)g->pContext(), easy);
 			pRequest->callCallback(true);
@@ -688,7 +688,7 @@ void Requests::handleTimeout(TimerHandle, void * pUser)
 	mcode_or_die("Requests::handleTimeout: curl_multi_socket_action", rc);
 	check_multi_info(this);
 
-	DEBUG_MSG(fmt::format(" Requests::handleTimeout: still_running={}!\n", still_running));
+	//DEBUG_MSG(fmt::format(" Requests::handleTimeout: still_running={}!\n", still_running));
 }
 
 //-------------------------------------------------------------------------------------
