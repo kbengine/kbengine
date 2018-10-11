@@ -150,6 +150,7 @@ LDLIBS += $(addprefix -l, $(MY_LIBS))
 LDLIBS += -lm
 LDLIBS += -lfmt
 LDLIBS += -lcurl
+LDLIBS += -lzip
 
 ifndef DISABLE_WATCHERS
 CPPFLAGS += -DENABLE_WATCHERS
