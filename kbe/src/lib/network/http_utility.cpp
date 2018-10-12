@@ -765,16 +765,14 @@ static int multi_timer_cb(CURLM* multi, long timeout_ms, Requests *g)
 
 	EventDispatcher &dispatcher = DebugHelper::getSingleton().pNetworkInterface()->dispatcher();
 	
+	g->timerHandle.cancel();
+
 	if (timeout_ms == 0) 
 	{
 		rc = curl_multi_socket_action((CURLM*)g->pContext(), CURL_SOCKET_TIMEOUT, 0, &g->still_running);
 		mcode_or_die("multi_timer_cb: curl_multi_socket_action", rc);
 	}
-	else if (timeout_ms == -1)
-	{
-		g->timerHandle.cancel();
-	}
-	else
+	else if (timeout_ms > 0)
 	{
 		g->timerHandle = dispatcher.addTimer(timeout_ms * 1000, g);
 	}
