@@ -81,7 +81,7 @@ def onRequestCreateAccount(registerName, password, datas):
 	# datas将会回调至客户端
 	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
 	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
-	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
+	# KBEngine.urlopen("https://www.baidu.com",onHttpCallback)异步访问。也可以结合socket的方式与平台交互。
 	
 	KBEngine.createAccountResponse(commitName, realAccountName, datas, KBEngine.SERVER_SUCCESS)
 	
@@ -109,7 +109,7 @@ def onRequestAccountLogin(loginName, password, datas):
 	# datas将会回调至客户端
 	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
 	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
-	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
+	# KBEngine.urlopen("https://www.baidu.com",onHttpCallback)异步访问。也可以结合socket的方式与平台交互。
 	
 	# 如果返回码为KBEngine.SERVER_ERR_LOCAL_PROCESSING则表示验证登陆成功，但dbmgr需要检查账号密码，KBEngine.SERVER_SUCCESS则无需再检查密码
 	KBEngine.accountLoginResponse(commitName, realAccountName, datas, KBEngine.SERVER_ERR_LOCAL_PROCESSING)
@@ -133,7 +133,7 @@ def onRequestCharge(ordersID, entityDBID, datas):
 	# datas将会回调至baseapp的订单回调中，具体参考API手册charge
 	# 如果使用http访问，因为interfaces是单线程的，同步http访问容易卡住主线程，建议使用
 	# KBEngine.registerReadFileDescriptor()和KBEngine.registerWriteFileDescriptor()结合
-	# tornado异步访问。也可以结合socket模拟http的方式与平台交互。
+	# KBEngine.urlopen("https://www.baidu.com",onHttpCallback)异步访问。也可以结合socket的方式与平台交互。
 	
 	KBEngine.chargeResponse(ordersID, datas, KBEngine.SERVER_SUCCESS)
 
