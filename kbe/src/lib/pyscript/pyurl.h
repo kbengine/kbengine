@@ -5,11 +5,12 @@
 
 #include "common/common.h"
 #include "scriptobject.h"
-#include "script.h"
 #include "pyobject_pointer.h"
 #include "network/http_utility.h"
 
-namespace KBEngine{ namespace script{
+namespace KBEngine { namespace script{
+
+class Script;
 
 class PyUrl
 {						
