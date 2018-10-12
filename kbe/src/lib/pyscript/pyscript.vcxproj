@@ -181,6 +181,7 @@
     <ClCompile Include="map.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="pickler.cpp" />
+    <ClCompile Include="pyurl.cpp" />
     <ClCompile Include="py_gc.cpp" />
     <ClCompile Include="py_memorystream.cpp" />
     <ClCompile Include="pyprofile.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="map.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="pickler.h" />
+    <ClInclude Include="pyurl.h" />
     <ClInclude Include="py_gc.h" />
     <ClInclude Include="py_macros.h" />
     <ClInclude Include="py_memorystream.h" />

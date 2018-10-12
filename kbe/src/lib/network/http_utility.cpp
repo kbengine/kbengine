@@ -61,8 +61,12 @@ Request::Request():
 	receivedHeader_(),
 	resultCallback_(),
 	called_(false),
-	setVerifySSL_(false)
+	setVerifySSL_(false),
+	userargs_(NULL),
+	url_()
 {
+	error_[0] = '\0';
+
 	pContext_ = (void*)curl_easy_init();
 	curl_easy_setopt((CURL*)pContext_, CURLOPT_PRIVATE, (void*)this);
 
@@ -206,6 +210,7 @@ Request::Status Request::setURL(const std::string& url)
 		return INVALID_OPT;
 	}
 
+	url_ = url;
 	return OK;
 }
 
@@ -500,26 +505,7 @@ Request::Status Request::perform()
 
 	} while (retryTimes-- > 0);
 
-	CURLcode curlCode1 = curl_easy_getinfo((CURL*)pContext_, CURLINFO_RESPONSE_CODE, &httpCode_);
-	if (CURLE_OK != curlCode1)
-	{
-		ERROR_MSG(fmt::format("Http::Request::perform: "
-			"curl_easy_getinfo(CURLINFO_RESPONSE_CODE) error! curlCode={}\n", curlCode1));
-
-		return INVALID_OPT;
-	}
-
-	if (curlCode == CURLE_OK && httpCode_ == 200)
-	{
-		callCallback(true);
-	}
-	else
-	{
-		const char* err_string = curl_easy_strerror(curlCode);
-		ERROR_MSG(fmt::format("Http::Request::perform: {}\n", err_string));
-
-		callCallback(false);
-	}
+	callCallback(true);
 
 	if (headers_)
 		curl_slist_free_all((curl_slist *)headers_);
@@ -529,12 +515,34 @@ Request::Status Request::perform()
 }
 
 //-------------------------------------------------------------------------------------
+bool Request::updateHttpCode()
+{
+	CURLcode curlCode = curl_easy_getinfo((CURL*)pContext_, CURLINFO_RESPONSE_CODE, &httpCode_);
+	if (CURLE_OK != curlCode)
+	{
+		ERROR_MSG(fmt::format("Http::Request::perform: "
+			"curl_easy_getinfo(CURLINFO_RESPONSE_CODE) error! curlCode={}\n", curlCode));
+
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
 void Request::callCallback(bool success)
 {
 	called_ = true;
+	updateHttpCode();
+
+	if (strlen(getError()) > 0)
+	{
+		ERROR_MSG(fmt::format("Http::Request::perform: {}\n", getError()));
+		success = false;
+	}
 
 	if (resultCallback_)
-		resultCallback_(success, *this, receivedContent_);
+		resultCallback_((success && httpCode_ == 200), *this, receivedContent_);
 }
 
 //-------------------------------------------------------------------------------------
@@ -840,7 +848,7 @@ Request::Status Requests::perform(const std::string& url, const Request::Callbac
 }
 
 //-------------------------------------------------------------------------------------
-Request::Status Requests::perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback, 
+Request::Status Requests::perform(const std::string& url, const Request::Callback& resultCallback, const std::string& postData,
 	const std::map<std::string, std::string>& headers)
 {
 	Network::Http::Request* r = new Network::Http::Request();
@@ -882,9 +890,9 @@ Request::Status perform(const std::string& url, const Request::Callback& resultC
 }
 
 //-------------------------------------------------------------------------------------
-Request::Status perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback, const std::map<std::string, std::string>& headers)
+Request::Status perform(const std::string& url, const Request::Callback& resultCallback, const std::string& postData, const std::map<std::string, std::string>& headers)
 {
-	return g_pRequests->perform(url, postData, resultCallback, headers);
+	return g_pRequests->perform(url, resultCallback, postData, headers);
 }
 
 //-------------------------------------------------------------------------------------

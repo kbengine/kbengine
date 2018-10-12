@@ -97,7 +97,7 @@ namespace Http
 		/* 
 			success, data
 		*/
-		typedef std::function<void(bool, const Request& pRequest, const std::string&)> Callback;
+		typedef std::function<void(bool, const Request&, const std::string&)> Callback;
 
 	public:
 		Request();
@@ -137,10 +137,10 @@ namespace Http
 
 		Status perform();
 
-		int getHttpCode() { return httpCode_; }
-		const char* getReceivedHeader() { return receivedHeader_.c_str(); }
-		const char* getReceivedContent() { return receivedContent_.c_str(); }
-		const char* getError() { return (const char*)&error_[0]; }
+		int getHttpCode() const { return httpCode_; }
+		const char* getReceivedHeader() const { return receivedHeader_.c_str(); }
+		const char* getReceivedContent() const { return receivedContent_.c_str(); }
+		const char* getError() const { return (const char*)&error_[0]; }
 
 		static size_t receiveHeaderFunction(char *buffer, size_t size, size_t nitems, void *userdata);
 		static size_t receiveContentFunction(char *ptr, size_t size, size_t nmemb, void *userdata);
@@ -148,6 +148,20 @@ namespace Http
 		void* pContext() {
 			return pContext_;
 		}
+
+		void setUserargs(void* v) {
+			userargs_ = v;
+		}
+
+		void* getUserargs() const {
+			return userargs_;
+		}
+
+		const char* url() const {
+			return url_.c_str();
+		}
+
+		bool updateHttpCode();
 
 	private:
 		void* pContext_;
@@ -165,6 +179,9 @@ namespace Http
 		bool called_;
 
 		bool setVerifySSL_;
+		void* userargs_;
+
+		std::string url_;
 	};
 
 	class Requests : public TimerHandler
@@ -179,7 +196,7 @@ namespace Http
 		Request::Status perform(Request* pRequest);
 		Request::Status perform(const std::string& url, const Request::Callback& resultCallback, 
 			const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
-		Request::Status perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback, 
+		Request::Status perform(const std::string& url, const Request::Callback& resultCallback, const std::string& postData,
 			const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
 
 		void* pContext() {
@@ -201,7 +218,7 @@ namespace Http
 	Request::Status perform(Request* pRequest);
 	Request::Status perform(const std::string& url, const Request::Callback& resultCallback, 
 		const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
-	Request::Status perform(const std::string& url, const std::string& postData, const Request::Callback& resultCallback, 
+	Request::Status perform(const std::string& url, const Request::Callback& resultCallback, const std::string& postData,
 		const std::map<std::string, std::string>& headers = std::map<std::string, std::string>());
 }
 }
