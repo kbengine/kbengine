@@ -42,7 +42,7 @@ void PyUrl::onHttpCallback(bool success, const Network::Http::Request& pRequest,
 
 	KBE_ASSERT(pRequest.getUserargs());
 
-	// httpcode, data, headers, opt_success, url
+	// httpcode, data, headers, opt_success, url 
 	PyObject* pyargs = PyTuple_New(5);
 
 	PyTuple_SET_ITEM(pyargs, 0, PyLong_FromLong(pRequest.getHttpCode()));
