@@ -7,7 +7,7 @@ SRCS =					\
 	math				\
 	pickler				\
 	py_gc				\
-	py_url				\
+	pyurl				\
 	pystruct			\
 	pyprofile			\
 	pyprofile_handler	\
