@@ -606,6 +606,11 @@ public:
 		action = 0;
 	}
 
+	virtual ~SockInfo()
+	{
+
+	}
+
 	virtual int handleInputNotification(int fd)
 	{
 		KBE_ASSERT(sockfd == fd);
