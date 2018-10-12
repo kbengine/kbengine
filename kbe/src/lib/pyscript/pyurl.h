@@ -13,31 +13,42 @@ KBEngine is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_PYOBJECT_POINTER_H
-#define KBE_PYOBJECT_POINTER_H
+#ifndef KBE_PY_URL_H
+#define KBE_PY_URL_H
 
-#include "common/smartpointer.h"
+#include "common/common.h"
+#include "scriptobject.h"
+#include "script.h"
+#include "pyobject_pointer.h"
+#include "network/http_utility.h"
 
-namespace KBEngine { 
+namespace KBEngine{ namespace script{
 
-typedef SmartPointer<PyObject> PyObjectPtr;
+class PyUrl
+{						
+public:	
+	/** 
+		初始化
+	*/
+	static bool initialize(Script* pScript);
+	static void finalise(void);
+	
+	static PyObject* __py_urlopen(PyObject* self, PyObject* args);
 
-template<>
-inline void incrementReferenceCount(const PyObject& obj)
-{
-	Py_INCREF( const_cast<PyObject*>( &obj ) );
-};
+	static void onHttpCallback(bool success, const Network::Http::Request& pRequest, const std::string& data);
 
-template<>
-inline void decrementReferenceCount(const PyObject& obj)
-{
-	Py_DECREF( const_cast<PyObject*>( &obj ) );
+private:
+	static bool	isInit; // 是否已经被初始化
+	static std::map<PyObject*, PyObjectPtr> pyCallbacks;
+
 };
 
 }
-#endif // KBE_PYOBJECT_POINTER_H
+}
+
+#endif // KBE_PY_URL_H

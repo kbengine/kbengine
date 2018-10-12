@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "copy.h"
 #include "pystruct.h"
 #include "py_gc.h"
+#include "pyurl.h"
 #include "install_py_dlls.h"
 #include "resmgr/resmgr.h"
 #include "thread/concurrency.h"
@@ -256,6 +257,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	PyProfile::initialize(this);
 	PyStruct::initialize();
 	Copy::initialize();
+	PyUrl::initialize(this);
 	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
@@ -271,6 +273,7 @@ bool Script::uninstall()
 	PyProfile::finalise();
 	PyStruct::finalise();
 	Copy::finalise();
+	PyUrl::finalise();
 	SCRIPT_ERROR_CHECK();
 
 	if(pyStdouterr_)
