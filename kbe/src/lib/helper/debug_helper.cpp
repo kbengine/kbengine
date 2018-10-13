@@ -262,6 +262,7 @@ mainThreadID_(pthread_self()),
 memoryStreamPool_("DebugHelperMemoryStream")
 {
 	g_pDebugHelperSyncHandler = new DebugHelperSyncHandler();
+	loseLoggerTime_ = timestamp();
 }
 
 //-------------------------------------------------------------------------------------
@@ -477,20 +478,28 @@ void DebugHelper::sync()
 		memoryStreamPool_.reclaimObject(pMemoryStream);
 	}
 
-	if(Network::Address::NONE == loggerAddr_)
+	if (Network::Address::NONE == loggerAddr_)
 	{
-		if(g_kbeSrvConfig.tickMaxBufferedLogs() > 0)
+		// 如果超过300秒没有找到logger，那么强制清理内存
+		if (timestamp() - loseLoggerTime_ > uint64(300 * stampsPerSecond()))
 		{
-			if(hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
-			{
-				clearBufferedLog();
-			}
+			clearBufferedLog();
 		}
 		else
 		{
-			if(hasBufferedLogPackets_ > 256)
+			if (g_kbeSrvConfig.tickMaxBufferedLogs() > 0)
 			{
-				clearBufferedLog();
+				if (hasBufferedLogPackets_ > g_kbeSrvConfig.tickMaxBufferedLogs())
+				{
+					clearBufferedLog();
+				}
+			}
+			else
+			{
+				if (hasBufferedLogPackets_ > 256)
+				{
+					clearBufferedLog();
+				}
 			}
 		}
 
@@ -701,6 +710,7 @@ void DebugHelper::unregisterLogger(Network::MessageID msgID, Network::Address* p
 {
 	loggerAddr_ = Network::Address::NONE;
 	canLogFile_ = true;
+	loseLoggerTime_ = timestamp();
 	ALERT_LOG_TO("", true);
 	printBufferedLogs();
 }
