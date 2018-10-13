@@ -1442,7 +1442,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 		}
 
 		std::string readName;
-		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\n", className);
+		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\npublic:\n", className);
 
 		bool isFixedType = strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0 ||
 			strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0;
