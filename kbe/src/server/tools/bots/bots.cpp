@@ -412,7 +412,7 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Bots::lookApp(Network::Channel* pChannel)
 {
-	DEBUG_MSG(fmt::format("Bots::lookApp: {0}\n", pChannel->c_str()));
+	//DEBUG_MSG(fmt::format("Bots::lookApp: {0}\n", pChannel->c_str()));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
