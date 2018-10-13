@@ -61,6 +61,7 @@ void PyUrl::onHttpCallback(bool success, const Network::Http::Request& pRequest,
 		Py_DECREF(pyRet);
 	}
 
+	Py_DECREF(pyargs);
 	pyCallbacks.erase((PyObject*)pRequest.getUserargs());
 }
 
