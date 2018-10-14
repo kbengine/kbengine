@@ -71,7 +71,7 @@ KBEngine
 
 ## 什么是KBEngine?
 
-	一款开源的MMOG游戏服务端引擎，
+	一款开源的MMOG（Massive（Massively）Multiplayer Online Game）游戏服务端引擎，
 	仅Python脚本即可简单高效的完成任何游戏逻辑(支持热更新)，
 	使用配套客户端插件能够快速与(Unity3D、UE4、OGRE、HTML5、等等)结合形成一个完整的客户端。
 
