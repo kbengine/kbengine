@@ -64,9 +64,7 @@ RemoteEntityMethod* EntityComponentCall::createRemoteMethod(MethodDescription* p
 //-------------------------------------------------------------------------------------
 PyObject* EntityComponentCall::onScriptGetAttribute(PyObject* attr)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = NULL;
 	ScriptDefModule* pScriptDefModule = pComponentScriptDefModule();
@@ -100,8 +98,6 @@ PyObject* EntityComponentCall::onScriptGetAttribute(PyObject* attr)
 	
 	if(pMethodDescription != NULL)
 	{
-		free(ccattr);
-
 		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
 		{
 			if(!pMethodDescription->isExposed())
@@ -111,7 +107,6 @@ PyObject* EntityComponentCall::onScriptGetAttribute(PyObject* attr)
 		return createRemoteMethod(pMethodDescription);
 	}
 	
-	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 

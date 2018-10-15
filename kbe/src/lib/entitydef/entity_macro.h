@@ -740,9 +740,7 @@ public:																										\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
+		char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);													\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
 		if(pPropertyDescrs_)																				\
@@ -754,7 +752,6 @@ public:																										\
 				kbe_snprintf(err, 255, "property[%s] defined in %s.def, del failed!", ccattr, scriptName());\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
-				free(ccattr);																				\
 				return 0;																					\
 			}																								\
 		}																									\
@@ -765,20 +762,16 @@ public:																										\
 			kbe_snprintf(err, 255, "method[%s] defined in %s.def, del failed!", ccattr, scriptName());		\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
-			free(ccattr);																					\
 			return 0;																						\
 		}																									\
 																											\
-		free(ccattr);																						\
 		return ScriptObject::onScriptDelAttribute(attr);													\
 	}																										\
 																											\
 	int onScriptSetAttribute(PyObject* attr, PyObject* value)												\
 	{																										\
 		DEBUG_OP_ATTRIBUTE("set", attr)																		\
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
+		char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);													\
 																											\
 		if(pPropertyDescrs_)																				\
 		{																									\
@@ -793,7 +786,6 @@ public:																										\
 					PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",		\
 													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
-					free(ccattr);																			\
 					return 0;																				\
 				}																							\
 																											\
@@ -802,7 +794,6 @@ public:																										\
 					PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",								\
 													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
-					free(ccattr);																			\
 					return 0;																				\
 				}																							\
 				else																						\
@@ -818,13 +809,11 @@ public:																										\
 							Py_DECREF(pySetObj);															\
 					}																						\
 																											\
-					free(ccattr);																			\
 					return pySetObj == NULL ? -1 : 0;														\
 				}																							\
 			}																								\
 		}																									\
 																											\
-		free(ccattr);																						\
 		return ScriptObject::onScriptSetAttribute(attr, value);												\
 	}																										\
 																											\
