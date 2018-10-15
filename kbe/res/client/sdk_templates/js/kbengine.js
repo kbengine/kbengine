@@ -2703,7 +2703,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		catch(e)
 		{  
-			KBEngine.ERROR_MSG('WebSocket init error!');  
+			KBEngine.ERROR_MSG('WebSocket init error(' + e.toString() + ')!');   
 			KBEngine.Event.fire("onConnectionState", false);
 			return;  
 		}
