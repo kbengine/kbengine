@@ -659,9 +659,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 		
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 	
 	// 如果访问了def持久化类容器属性
 	// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
@@ -675,7 +673,6 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 		setDirty();
 	}
 	
-	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
 
