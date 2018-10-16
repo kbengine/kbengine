@@ -1,8 +1,7 @@
 ﻿#include "EncryptionFilter.h"
 #include "MemoryStream.h"
 #include "MessageReader.h"
-#include "PacketSenderTCP.h"
-#include "PacketSenderKCP.h"
+#include "PacketSender.h"
 #include "Engine/KBDebug.h"
 
 #include "cryptlib.h"
