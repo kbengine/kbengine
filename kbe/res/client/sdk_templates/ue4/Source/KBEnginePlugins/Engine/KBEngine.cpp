@@ -252,10 +252,13 @@ bool KBEngineApp::initNetwork()
 
 	Messages::initialize();
 
-	if(pArgs_->forceDisableUDP || baseappUdpPort_ == 0)
-		pNetworkInterface_ = new NetworkInterfaceTCP();
-	else
-		pNetworkInterface_ = new NetworkInterfaceKCP();
+	if (pArgs_)
+	{
+		if (pArgs_->forceDisableUDP || baseappUdpPort_ == 0)
+			pNetworkInterface_ = new NetworkInterfaceTCP();
+		else
+			pNetworkInterface_ = new NetworkInterfaceKCP();
+	}
 
 	return true;
 }
