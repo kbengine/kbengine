@@ -501,7 +501,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 
 	std::string sqlstr = fmt::format("CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_accountinfos "
 		"(`accountName` varchar({}) not null, PRIMARY KEY idKey (`accountName`),"
-		"`password` varchar({}),"
+		"`password` varchar({}) not null,"
 			"`bindata` blob,"
 			"`email` varchar(191) not null, UNIQUE KEY `email` (`email`),"
 			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
