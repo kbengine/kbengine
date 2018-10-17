@@ -219,10 +219,10 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 
 			if(websocket::WebSocketProtocol::ERROR_FRAME == msg_frameType_)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: frame error! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketFilter::recv: frame error! addr={}!\n",
 					pChannel_->c_str()));
 
-				this->pChannel_->condemn("WebSocketPacketReader::recv: frame error!");
+				this->pChannel_->condemn("WebSocketPacketFilter::recv: frame error!");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
@@ -232,10 +232,10 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				msg_frameType_ == websocket::WebSocketProtocol::INCOMPLETE_TEXT_FRAME ||
 				msg_frameType_ == websocket::WebSocketProtocol::PONG_FRAME)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: Does not support FRAME_TYPE({})! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketFilter::recv: Does not support FRAME_TYPE({})! addr={}!\n",
 					(int)msg_frameType_, pChannel_->c_str()));
 
-				this->pChannel_->condemn("WebSocketPacketReader::recv: Does not support FRAME_TYPE");
+				this->pChannel_->condemn("WebSocketPacketFilter::recv: Does not support FRAME_TYPE");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
@@ -253,72 +253,31 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 			{
 				// 继续等待后续内容到达
 			}
-		}
-		else if (msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME)
-		{
-			TCPPacket* pPongPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
-
-			if (pFragmentDatasRemain_ > 0)
+			else if (msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME)
 			{
-				int wpos = pPacket->wpos();
-				pPacket->wpos(pPacket->rpos() + pFragmentDatasRemain_);
-
-				if (!websocket::WebSocketProtocol::decodingDatas(pPacket, msg_masked_, msg_mask_))
+				if (pFragmentDatasRemain_ <= 0)
 				{
-					ERROR_MSG(fmt::format("WebSocketPacketReader::recv: decoding-ping-frame error! addr={}!\n",
-						pChannel_->c_str()));
+					Reason reason = onPing(pChannel, pPacket);
+					if (reason != REASON_SUCCESS)
+					{
+						reset();
 
-					this->pChannel_->condemn("WebSocketPacketReader::recv: decoding-ping-frame error!");
-					reset();
-
-					TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
-					TCPPacket::reclaimPoolObject(pPongPacket);
-					pFragmentDatasRemain_ = 0;
-					fragmentDatasFlag_ = FRAGMENT_MESSAGE_HREAD;
-					return REASON_WEBSOCKET_ERROR;
+						TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
+						return reason;
+					}
 				}
 
-				pPacket->wpos(wpos);
+				continue;
 			}
-
-			websocket::WebSocketProtocol::makeFrame(websocket::WebSocketProtocol::PONG_FRAME, pPacket, pPongPacket);
-
-			if (pFragmentDatasRemain_ > 0)
-			{
-				pPongPacket->append(pPacket->data() + pPacket->rpos(), pFragmentDatasRemain_);
-				pPacket->read_skip((size_t)pFragmentDatasRemain_);
-			}
-
-			int sendSize = pPongPacket->length();
-
-			while (sendSize > 0)
-			{
-				int ret = pChannel->pEndPoint()->send(pPongPacket->data() + (pPongPacket->length() - sendSize), sendSize);
-				if (ret <= 0)
-				{
-					ERROR_MSG(fmt::format("WebSocketPacketReader::recv: send({}) pong-frame error! addr={}, sendSize={}\n",
-						ret, pChannel_->c_str(), sendSize));
-
-					break;
-				}
-
-				sendSize -= ret;
-			}
-
-			TCPPacket::reclaimPoolObject(pPongPacket);
-
-			pFragmentDatasRemain_ = 0;
-			fragmentDatasFlag_ = FRAGMENT_MESSAGE_HREAD;
-			continue;
 		}
 		else
 		{
 			if (pFragmentDatasRemain_ <= 0)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: pFragmentDatasRemain_ <= 0! addr={}!\n",
+				ERROR_MSG(fmt::format("WebSocketPacketFilter::recv: pFragmentDatasRemain_ <= 0! addr={}!\n",
 					pChannel_->c_str()));
 
-				this->pChannel_->condemn("WebSocketPacketReader::recv: pFragmentDatasRemain_ <= 0!");
+				this->pChannel_->condemn("WebSocketPacketFilter::recv: pFragmentDatasRemain_ <= 0!");
 				reset();
 
 				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
@@ -341,32 +300,99 @@ Reason WebSocketPacketFilter::recv(Channel * pChannel, PacketReceiver & receiver
 				pPacket->done();
 			}
 
-			if(!websocket::WebSocketProtocol::decodingDatas(pTCPPacket_, msg_masked_, msg_mask_))
+			Reason reason = REASON_SUCCESS;
+
+			if (msg_frameType_ == websocket::WebSocketProtocol::PING_FRAME)
 			{
-				ERROR_MSG(fmt::format("WebSocketPacketReader::recv: decoding-frame error! addr={}!\n",
-					pChannel_->c_str()));
+				// 继续等剩余的内容到来为止
+				if (pFragmentDatasRemain_ > 0)
+					continue;
 
-				this->pChannel_->condemn("WebSocketPacketReader::recv: decoding-frame error!");
-				reset();
+				if (!websocket::WebSocketProtocol::decodingDatas(pTCPPacket_, msg_masked_, msg_mask_))
+				{
+					ERROR_MSG(fmt::format("WebSocketPacketFilter::recv: decoding-frame error! addr={}!\n",
+						pChannel_->c_str()));
 
-				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
-				return REASON_WEBSOCKET_ERROR;
+					this->pChannel_->condemn("WebSocketPacketFilter::recv: decoding-frame error!");
+					reset();
+
+					TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
+					return REASON_WEBSOCKET_ERROR;
+				}
+
+				reason = onPing(pChannel, pTCPPacket_);
 			}
+			else
+			{
+				if (!websocket::WebSocketProtocol::decodingDatas(pTCPPacket_, msg_masked_, msg_mask_))
+				{
+					ERROR_MSG(fmt::format("WebSocketPacketFilter::recv: decoding-frame error! addr={}!\n",
+						pChannel_->c_str()));
 
-			Reason reason = PacketFilter::recv(pChannel, receiver, pTCPPacket_);
+					this->pChannel_->condemn("WebSocketPacketFilter::recv: decoding-frame error!");
+					reset();
 
-			// pTCPPacket_不需要在这里回收了
-			pTCPPacket_ = NULL;
+					TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
+					return REASON_WEBSOCKET_ERROR;
+				}
+
+				reason = PacketFilter::recv(pChannel, receiver, pTCPPacket_);
+				KBE_ASSERT(reason == REASON_SUCCESS);
+
+				// pTCPPacket_不需要在这里回收了
+				pTCPPacket_ = NULL;
+			}
 
 			if(pFragmentDatasRemain_ == 0)
 				reset();
 
-			if(reason != REASON_SUCCESS)
+			if (reason != REASON_SUCCESS)
+			{
+				TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
+				reset();
 				return reason;
+			}
 		}
 	}
 
 	TCPPacket::reclaimPoolObject(static_cast<TCPPacket*>(pPacket));
+	return REASON_SUCCESS;
+}
+
+//-------------------------------------------------------------------------------------
+Reason WebSocketPacketFilter::onPing(Channel * pChannel, Packet* pPacket)
+{
+	KBE_ASSERT(pFragmentDatasRemain_ == 0);
+
+	TCPPacket* pPongPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
+	websocket::WebSocketProtocol::makeFrame(websocket::WebSocketProtocol::PONG_FRAME, pPacket, pPongPacket);
+
+	if (msg_payload_length_ > 0)
+	{
+		pPongPacket->append(pPacket->data() + pPacket->rpos(), msg_payload_length_);
+		pPacket->read_skip((size_t)msg_payload_length_);
+	}
+
+	int sendSize = pPongPacket->length();
+
+	while (sendSize > 0)
+	{
+		int ret = pChannel->pEndPoint()->send(pPongPacket->data() + (pPongPacket->length() - sendSize), sendSize);
+		if (ret <= 0)
+		{
+			ERROR_MSG(fmt::format("WebSocketPacketFilter::recv: send({}) pong-frame error! addr={}, sendSize={}\n",
+				ret, pChannel_->c_str(), sendSize));
+
+			break;
+		}
+
+		sendSize -= ret;
+	}
+
+	TCPPacket::reclaimPoolObject(pPongPacket);
+
+	pFragmentDatasRemain_ = 0;
+	fragmentDatasFlag_ = FRAGMENT_MESSAGE_HREAD;
 	return REASON_SUCCESS;
 }
 

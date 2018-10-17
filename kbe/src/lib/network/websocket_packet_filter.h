@@ -41,6 +41,7 @@ public:
 
 protected:
 	void reset();
+	Reason onPing(Channel * pChannel, Packet* pPacket);
 
 protected:
 	enum FragmentDataTypes
