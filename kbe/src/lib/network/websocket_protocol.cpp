@@ -175,7 +175,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	//RFC6544_MAGIC_KEY
     server_key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-	SHA1 sha;
+	KBE_SHA1 sha;
 	unsigned int message_digest[5];
 
 	sha.Reset();

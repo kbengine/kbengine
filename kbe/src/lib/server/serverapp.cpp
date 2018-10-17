@@ -173,9 +173,9 @@ bool ServerApp::initialize()
 		return false;
 
 #ifdef ENABLE_WATCHERS
-	return ret && initializeWatcher();
+	return ret &&  Network::initialize() && initializeWatcher();
 #else
-	return ret;
+	return ret && Network::initialize();
 #endif
 }
 

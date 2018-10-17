@@ -26,6 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "helper/debug_helper.h"
 #include "network/address.h"
 #include "network/common.h"
+#include "openssl/ssl.h"
 
 namespace KBEngine { 
 namespace Network
@@ -132,9 +133,18 @@ public:
 
 	bool waitSend();
 
+	bool setupSSL();
+	bool destroySSL();
+
+	bool isSSL() const {
+		return sslHandle_;
+	}
+
 protected:
 	KBESOCKET socket_;
 	Address address_;
+	SSL* sslHandle_;
+	SSL_CTX* sslContext_;
 };
 
 }

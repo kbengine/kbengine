@@ -181,6 +181,7 @@
     <ClCompile Include="memorystream.cpp" />
     <ClCompile Include="rsa.cpp" />
     <ClCompile Include="sha1.cpp" />
+    <ClCompile Include="ssl.cpp" />
     <ClCompile Include="strutil.cpp" />
     <ClCompile Include="tasks.cpp" />
     <ClCompile Include="timer.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="sha1.h" />
     <ClInclude Include="singleton.h" />
     <ClInclude Include="smartpointer.h" />
+    <ClInclude Include="ssl.h" />
     <ClInclude Include="stdfindif_handers.h" />
     <ClInclude Include="stringconv.h" />
     <ClInclude Include="strutil.h" />

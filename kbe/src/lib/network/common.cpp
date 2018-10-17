@@ -20,6 +20,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "common.h"
+#include "common/ssl.h"
 #include "network/http_utility.h"
 #include "network/channel.h"
 #include "network/bundle.h"
@@ -82,7 +83,7 @@ bool initializeWatcher()
 			return false;
 	}
 
-	return Http::initialize();
+	return true;
 }
 
 void destroyObjPool()
@@ -97,9 +98,15 @@ void destroyObjPool()
 	UDPPacketReceiver::destroyObjPool();
 }
 
+bool initialize()
+{
+	return KB_SSL::initialize() && Http::initialize();
+}
+
 void finalise(void)
 {
 	Http::finalise();
+	KB_SSL::finalise();
 
 #ifdef ENABLE_WATCHERS
 	WatcherPaths::finalise();

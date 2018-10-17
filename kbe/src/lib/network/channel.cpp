@@ -38,6 +38,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/message_handler.h"
 #include "network/network_stats.h"
 #include "helper/profile.h"
+#include "common/ssl.h"
 
 namespace KBEngine { 
 namespace Network
@@ -246,7 +247,7 @@ bool Channel::initialize(NetworkInterface & networkInterface,
 
 	startInactivityDetection((traits_ == INTERNAL) ? g_channelInternalTimeout : 
 													g_channelExternalTimeout,
-							(traits_ == INTERNAL) ? g_channelInternalTimeout  / 2.f: 
+							(traits_ == INTERNAL) ? g_channelInternalTimeout / 2.f: 
 													g_channelExternalTimeout / 2.f);
 
 	return true;
@@ -384,6 +385,7 @@ void Channel::clearState( bool warnOnDiscard /*=false*/ )
 	// 由于pEndPoint通常由外部给入，必须释放，频道重新激活时会重新赋值
 	if(pEndPoint_)
 	{
+		pEndPoint_->destroySSL();
 		pEndPoint_->close();
 		this->pEndPoint(NULL);
 	}
@@ -728,6 +730,13 @@ bool Channel::handshake(Packet* pPacket)
 {
 	if(hasHandshake())
 		return false;
+
+	if (KB_SSL::isSSLProtocal(pPacket))
+	{
+		// 无论成功和失败都返回true，让外部回收数据包并继续等待握手
+		pEndPoint_->setupSSL();
+		return true;
+	}
 
 	flags_ |= FLAG_HANDSHAKE;
 
