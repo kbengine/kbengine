@@ -352,13 +352,13 @@ bool ServerConfig::loadConfig(std::string fileName)
 		childnode = xml->enterNode(rootNode, "sslCertificate");
 		if (childnode)
 		{
-			Network::g_sslCertificate = xml->getValInt(childnode);
+			Network::g_sslCertificate = xml->getValStr(childnode);
 		}
 
 		childnode = xml->enterNode(rootNode, "sslPrivateKey");
 		if (childnode)
 		{
-			Network::g_sslPrivateKey = xml->getValInt(childnode);
+			Network::g_sslPrivateKey = xml->getValStr(childnode);
 		}
 
 		TiXmlNode* rudpChildnode = xml->enterNode(rootNode, "reliableUDP");
