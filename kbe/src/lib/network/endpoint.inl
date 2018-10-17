@@ -19,6 +19,9 @@ socket_(-1)
 	}
 
 	isRefSocket_ = false;
+
+	sslHandle_ = NULL;
+	sslContext_ = NULL;
 }
 
 INLINE EndPoint::EndPoint(Address address):
@@ -34,6 +37,9 @@ socket_(-1)
 	}
 
 	isRefSocket_ = false;
+
+	sslHandle_ = NULL;
+	sslContext_ = NULL;
 }
 
 INLINE EndPoint::~EndPoint()
@@ -196,6 +202,8 @@ INLINE int EndPoint::quitMulticastGroup(u_int32_t networkAddr)
 
 INLINE int EndPoint::close()
 {
+	destroySSL();
+
 	if (socket_ == -1)
 	{
 		return 0;
@@ -412,11 +420,17 @@ INLINE EndPoint * EndPoint::accept(u_int16_t * networkPort, u_int32_t * networkA
 
 INLINE int EndPoint::send(const void * gramData, int gramSize)
 {
+	if (isSSL())
+		return SSL_write(sslHandle_, (char*)gramData, gramSize);
+
 	return ::send(socket_, (char*)gramData, gramSize, 0);
 }
 
 INLINE int EndPoint::recv(void * gramData, int gramSize)
 {
+	if (isSSL())
+		return SSL_read(sslHandle_, (char*)gramData, gramSize);
+
 	return ::recv(socket_, (char*)gramData, gramSize, 0);
 }
 

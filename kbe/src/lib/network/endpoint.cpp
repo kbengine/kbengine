@@ -6,6 +6,9 @@
 #include "endpoint.inl"
 #endif
 
+#include "resmgr/resmgr.h"
+#include <openssl/err.h>
+
 #include "network/bundle.h"
 #include "network/tcp_packet_receiver.h"
 #include "network/tcp_packet_sender.h"
@@ -98,6 +101,7 @@ void EndPoint::onReclaimObject()
 	address_ = Address::NONE;
 
 	isRefSocket_ = false;
+	destroySSL();
 }
 
 //-------------------------------------------------------------------------------------
@@ -650,6 +654,82 @@ void EndPoint::sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t network
 {
 	//AUTO_SCOPED_PROFILE("sendBundle");
 	SENDTO_BUNDLE((*this), networkAddr, networkPort, (*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
+bool EndPoint::setupSSL()
+{
+	// New context saying we are a client, and using SSL 2 or 3
+	sslContext_ = SSL_CTX_new(SSLv23_client_method());
+
+	if (!sslContext_)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_new(SSLv23_client_method()) error! {}\n", ERR_error_string(ERR_get_error(), NULL)));
+		return false;
+	}
+
+	SSL_CTX_set_options(sslContext_, SSL_OP_SINGLE_DH_USE | SSL_OP_SINGLE_ECDH_USE);
+
+	std::string pem = Resmgr::getSingleton().matchPath("key/") + "kbengine_cert.pem";
+	int use_cert = SSL_CTX_use_certificate_file(sslContext_, pem.c_str(), SSL_FILETYPE_PEM);
+	if (0 >= use_cert)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_certificate_file({}) error! {}\n", pem, ERR_error_string(ERR_get_error(), NULL)));
+		destroySSL();
+		return false;
+	}
+
+	pem = Resmgr::getSingleton().matchPath("key/") + "kbengine_key.pem";
+	int use_prv = SSL_CTX_use_PrivateKey_file(sslContext_, pem.c_str(), SSL_FILETYPE_PEM);
+	if (0 >= use_prv)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_PrivateKey_file({}) error! {}\n", pem, ERR_error_string(ERR_get_error(), NULL)));
+		destroySSL();
+		return false;
+	}
+
+	if (!SSL_CTX_check_private_key(sslContext_)) {
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_check_private_key() error! {}\n", pem, ERR_error_string(ERR_get_error(), NULL)));
+		destroySSL();
+		return false;
+	}
+
+	sslHandle_ = SSL_new(sslContext_);
+
+	if (!sslHandle_)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: new SSL_new error! {}\n", ERR_error_string(ERR_get_error(), NULL)));
+		destroySSL();
+		return false;
+	}
+
+	SSL_set_fd(sslHandle_, *this);
+
+	if (SSL_accept(sslHandle_) == -1) {
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: new SSL_accept error! {}\n", ERR_error_string(ERR_get_error(), NULL)));
+		destroySSL();
+		return false;
+	}
+
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EndPoint::destroySSL()
+{
+	if (sslHandle_)
+	{
+		SSL_free(sslHandle_);
+		sslHandle_ = NULL;
+	}
+
+	if (sslContext_)
+	{
+		SSL_CTX_free(sslContext_);
+		sslContext_ = NULL;
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

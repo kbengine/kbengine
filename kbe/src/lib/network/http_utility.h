@@ -38,7 +38,7 @@ namespace Http
             {      
                 buf[0] = sIn[ix];
             }
-            //else if ( isspace( (uint8)sIn[ix] ) ) //貌似把空格编码成%20或者+都可以
+            //else if ( isspace( (uint8)sIn[ix] ) ) //ò�ưѿո�����%20����+������
             //{
             //    buf[0] = '+';
             //}
@@ -116,13 +116,13 @@ namespace Http
 		Status setHeader(const std::map<std::string, std::string>& headers);
 		Status setHeader(const std::string& header);
 
-		// 设置CA证书、客户端证书和客户端秘钥
+		// set cert、ca、key
 		Status setCAInfo(const std::string& cainfo);
 		Status setSSLCert(const std::string& sslCert);
 		Status setSSLKey(const std::string& sslKey);
 		Status setSSLKeyPassword(const std::string& sslKeyPwd);
 
-		// 是否验证证书和主机
+		// set to check cert and host
 		Status setSSLVerifyPeer(long v);
 		Status setSSLVerifyHost(long v);
 
@@ -191,7 +191,7 @@ namespace Http
 		~Requests();
 
 		/*
-			异步http请求
+			http async-request
 		*/
 		Request::Status perform(Request* pRequest);
 		Request::Status perform(const std::string& url, const Request::Callback& resultCallback, 

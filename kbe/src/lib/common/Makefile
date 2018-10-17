@@ -11,6 +11,7 @@ SRCS =				\
 	kbekey			\
 	md5				\
 	sha1			\
+	ssl				\
 	base64			\
 	rsa				\
 	memorystream
