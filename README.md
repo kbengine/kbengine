@@ -58,11 +58,6 @@ KBEngine
 	The upper limit of the capacity of a single machine depends on the complexity of the game logic itself.)
 
 
-## Acknowledgements(alphabetical)
-
-	acatadog, colin
-
-
 ## 中文
 
 [官网](http://kbengine.github.io/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321
