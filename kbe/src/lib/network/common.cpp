@@ -66,6 +66,10 @@ uint32						g_intReSendRetries = 0;
 uint32						g_extReSendInterval = 10;
 uint32						g_extReSendRetries = 3;
 
+// Certificate file required for HTTPS/WSS/SSL communication
+std::string					g_sslCertificate = "";
+std::string					g_sslPrivateKey = "";
+
 bool initializeWatcher()
 {
 	WATCH_OBJECT("network/numPacketsSent", g_numPacketsSent);
