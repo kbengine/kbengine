@@ -681,32 +681,36 @@ bool EndPoint::setupSSL()
 
 	if (!sslContext_)
 	{
-		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_new(SSLv23_client_method()) error! {}\n", ERR_error_string(ERR_get_error(), NULL)));
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_new(SSLv23_client_method()): {}!\n", ERR_error_string(ERR_get_error(), NULL)));
 		return false;
 	}
 
 	SSL_CTX_set_options(sslContext_, SSL_OP_SINGLE_DH_USE | SSL_OP_SINGLE_ECDH_USE);
 
-	std::string pem = Resmgr::getSingleton().matchPath("key/") + "kbengine_cert.pem";
+	std::string pem = Resmgr::getSingleton().matchRes(g_sslCertificate.c_str());
 	int use_cert = SSL_CTX_use_certificate_file(sslContext_, pem.c_str(), SSL_FILETYPE_PEM);
 	if (0 >= use_cert)
 	{
-		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_certificate_file({}) error! {}\n", pem, ERR_error_string(ERR_get_error(), NULL)));
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_certificate_file({}): {}! check kbengine[_defs].xml->channelCommon->sslCertificate\n",
+			pem, ERR_error_string(ERR_get_error(), NULL)));
+
 		destroySSL();
 		return false;
 	}
 
-	pem = Resmgr::getSingleton().matchPath("key/") + "kbengine_key.pem";
+	pem = Resmgr::getSingleton().matchRes(g_sslPrivateKey.c_str());
 	int use_prv = SSL_CTX_use_PrivateKey_file(sslContext_, pem.c_str(), SSL_FILETYPE_PEM);
 	if (0 >= use_prv)
 	{
-		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_PrivateKey_file({}) error! {}\n", pem, ERR_error_string(ERR_get_error(), NULL)));
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_PrivateKey_file({}): {}! check kbengine[_defs].xml->channelCommon->sslPrivateKey\n",
+			pem, ERR_error_string(ERR_get_error(), NULL)));
+
 		destroySSL();
 		return false;
 	}
 
 	if (!SSL_CTX_check_private_key(sslContext_)) {
-		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_check_private_key() error! {}\n", pem, ERR_error_string(ERR_get_error(), NULL)));
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_check_private_key(): {}!\n", pem, ERR_error_string(ERR_get_error(), NULL)));
 		destroySSL();
 		return false;
 	}
@@ -715,7 +719,7 @@ bool EndPoint::setupSSL()
 
 	if (!sslHandle_)
 	{
-		ERROR_MSG(fmt::format("EndPoint::setupSSL: new SSL_new error! {}\n", ERR_error_string(ERR_get_error(), NULL)));
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_new: {}!\n", ERR_error_string(ERR_get_error(), NULL)));
 		destroySSL();
 		return false;
 	}
@@ -723,7 +727,7 @@ bool EndPoint::setupSSL()
 	SSL_set_fd(sslHandle_, *this);
 
 	if (SSL_accept(sslHandle_) == -1) {
-		ERROR_MSG(fmt::format("EndPoint::setupSSL: new SSL_accept error! {}\n", ERR_error_string(ERR_get_error(), NULL)));
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept: {}!\n", ERR_error_string(ERR_get_error(), NULL)));
 		destroySSL();
 		return false;
 	}
