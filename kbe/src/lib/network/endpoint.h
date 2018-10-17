@@ -127,7 +127,7 @@ public:
 	bool destroySSL();
 
 	bool isSSL() const {
-		return sslHandle_;
+		return sslHandle_ != NULL;
 	}
 
 protected:
