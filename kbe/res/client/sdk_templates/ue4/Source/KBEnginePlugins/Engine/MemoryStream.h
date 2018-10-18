@@ -533,17 +533,26 @@ public:
 
 	FVector2D readVector2()
 	{
-		return FVector2D(readFloat(), readFloat());
+		float X = readFloat();
+		float Y = readFloat();
+		return FVector2D(X, Y);
 	}
 
 	FVector readVector3()
 	{
-		return FVector(readFloat(), readFloat(), readFloat());
+		float X = readFloat();
+		float Y = readFloat();
+		float Z = readFloat();
+		return FVector(X, Y, Z);
 	}
 
 	FVector4 readVector4()
 	{
-		return FVector4(readFloat(), readFloat(), readFloat(), readFloat());
+		float X = readFloat();
+		float Y = readFloat();
+		float Z = readFloat();
+		float W = readFloat();
+		return FVector4(X, Y, Z, W);
 	}
 
 	TArray<uint8> readPython()
