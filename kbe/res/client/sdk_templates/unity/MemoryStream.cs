@@ -170,17 +170,26 @@
 
 		public Vector2 readVector2()
 		{
-			return new Vector2(readFloat(), readFloat());
+			float x = readFloat();
+			float y = readFloat();
+			return new Vector2(x, y);
 		}
 
 		public Vector3 readVector3()
 		{
-			return new Vector3(readFloat(), readFloat(), readFloat());
+			float x = readFloat();
+			float y = readFloat();
+			float z = readFloat();
+			return new Vector3(x, y, z);
 		}
 
 		public Vector4 readVector4()
 		{
-			return new Vector4(readFloat(), readFloat(), readFloat(), readFloat());
+			float x = readFloat();
+			float y = readFloat();
+			float z = readFloat();
+			float w = readFloat();
+			return new Vector4(x, y, z, w);
 		}
 
 		public byte[] readPython()

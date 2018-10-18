@@ -433,7 +433,7 @@
 				if (serverEntitydefMD5 != currentServerEntitydefMD5)
 				{
 					Dbg.ERROR_MSG("Client_onHelloCB: digest not match! serverEntitydefMD5=" + serverEntitydefMD5 + "(server: " + currentServerEntitydefMD5 + ")");
-					Event.fireAll(EventOutTypes.onVersionNotMatch", clientVersion, serverVersion);
+					Event.fireAll(EventOutTypes.onVersionNotMatch, clientVersion, serverVersion);
 					return;
 				}
 			}
