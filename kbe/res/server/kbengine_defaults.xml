@@ -297,12 +297,11 @@
 			-->
 			<enable> true </enable>
 
-			<item>
-				<host>	 localhost	</host>
-				<port>	 30099		</port>
-			</item>
+			<!-- 如果为true，则自动将配置中的Interfaces地址加入到地址池，以免改动Interfaces端口需要修改多处
+			-->
+			<addDefaultAddress> true </addDefaultAddress>
 
-			<!-- 可添加多个interfaces地址分担压力
+			<!-- 可额外的添加多个interfaces到地址池分担压力
 			<item>
 				<host>	 localhost1	</host>
 				<port>	 30098		</port>

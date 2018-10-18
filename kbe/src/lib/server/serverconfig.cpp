@@ -911,7 +911,32 @@ bool ServerConfig::loadConfig(std::string fileName)
 				}
 			} while ((loopNode = loopNode->NextSibling()));
 
-			TiXmlNode* childnode = xml->enterNode(node, "enable");
+			TiXmlNode* childnode = xml->enterNode(node, "addDefaultAddress");
+			if (childnode)
+			{
+				if (xml->getValStr(childnode) == "true")
+				{
+					TiXmlNode* interfacesRootNode = xml->getRootNode("interfaces");
+					if (interfacesRootNode != NULL)
+					{
+						TiXmlNode* host_node = xml->enterNode(interfacesRootNode, "host");
+						TiXmlNode* port_node = xml->enterNode(interfacesRootNode, "port");
+						if (host_node && port_node)
+						{
+							std::string ip = xml->getValStr(host_node);
+							int port = xml->getValInt(port_node);
+
+							if (port <= 0)
+								port = KBE_INTERFACES_TCP_PORT;
+
+							Network::Address addr(ip, port);
+							interfacesAddrs_.push_back(addr);
+						}
+					}
+				}
+			}
+
+			childnode = xml->enterNode(node, "enable");
 			if (childnode)
 			{
 				if (xml->getValStr(childnode) != "true")
