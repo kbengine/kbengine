@@ -404,7 +404,9 @@ KBEngine.MemoryStream = function(size_or_buffer)
 
 	this.readInt64 = function()
 	{
-		return new KBEngine.INT64(this.readUint32(), this.readUint32());
+		var lo = this.readInt32();
+		var hi = this.readInt32();
+		return new KBEngine.INT64(lo, hi);
 	}
 	
 	this.readUint8 = function()
@@ -430,7 +432,9 @@ KBEngine.MemoryStream = function(size_or_buffer)
 
 	this.readUint64 = function()
 	{
-		return new KBEngine.UINT64(this.readUint32(), this.readUint32());
+		var lo = this.readUint32();
+		var hi = this.readUint32();
+		return new KBEngine.UINT64(lo, hi);
 	}
 	
 	this.readFloat = function()
@@ -2103,13 +2107,15 @@ KBEngine.DATATYPE_VECTOR2 = function()
 	{
 		if(KBEngine.CLIENT_NO_FLOAT)
 		{
-			return new KBEngine.Vector2(KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream));
+			var x = KBEngine.reader.readInt32.call(stream);
+			var y = KBEngine.reader.readInt32.call(stream);
+			return new KBEngine.Vector2(x, y);
 		}
 		else
 		{
-			return new KBEngine.Vector2(KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream));
+			var x = KBEngine.reader.readFloat.call(stream);
+			var y = KBEngine.reader.readFloat.call(stream);
+			return new KBEngine.Vector2(x, y);
 		}
 		
 		return undefined;
@@ -2155,13 +2161,17 @@ KBEngine.DATATYPE_VECTOR3 = function()
 	{
 		if(KBEngine.CLIENT_NO_FLOAT)
 		{
-			return new KBEngine.Vector3(KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream), KBEngine.reader.readInt32.call(stream));
+			var x = KBEngine.reader.readInt32.call(stream);
+			var y = KBEngine.reader.readInt32.call(stream);
+			var z = KBEngine.reader.readInt32.call(stream);
+			return new KBEngine.Vector3(x, y, z);
 		}
 		else
 		{
-			return new KBEngine.Vector3(KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream), KBEngine.reader.readFloat.call(stream));
+			var x = KBEngine.reader.readFloat.call(stream);
+			var y = KBEngine.reader.readFloat.call(stream);
+			var z = KBEngine.reader.readFloat.call(stream);
+			return new KBEngine.Vector3(x, y, z);
 		}
 	
 		return undefined;
@@ -2209,15 +2219,19 @@ KBEngine.DATATYPE_VECTOR4 = function()
 	{
 		if(KBEngine.CLIENT_NO_FLOAT)
 		{
-			return new KBEngine.Vector4(KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream), KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream));
+			var x = KBEngine.reader.readInt32.call(stream);
+			var y = KBEngine.reader.readInt32.call(stream);
+			var z = KBEngine.reader.readInt32.call(stream);
+			var w = KBEngine.reader.readInt32.call(stream);
+			return new KBEngine.Vector4(x, y, z, w);
 		}
 		else
 		{
-			return new KBEngine.Vector4(KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream), KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream));
+			var x = KBEngine.reader.readFloat.call(stream);
+			var y = KBEngine.reader.readFloat.call(stream);
+			var z = KBEngine.reader.readFloat.call(stream);
+			var w = KBEngine.reader.readFloat.call(stream);
+			return new KBEngine.Vector4(x, y, z, w);
 		}
 		
 		return undefined;
