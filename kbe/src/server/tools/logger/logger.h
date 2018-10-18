@@ -29,6 +29,11 @@ class TelnetServer;
 
 struct LOG_ITEM
 {
+	LOG_ITEM()
+	{
+		persistent = true;
+	}
+
 	int32 uid;
 	uint32 logtype;
 	COMPONENT_TYPE componentType;
@@ -38,6 +43,7 @@ struct LOG_ITEM
 	int64 t;
 	GAME_TIME kbetime;
 	std::stringstream logstream;
+	bool persistent;
 };
 
 class Logger:	public PythonApp, 

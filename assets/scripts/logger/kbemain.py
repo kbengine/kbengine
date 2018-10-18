@@ -37,7 +37,9 @@ def onLogWrote(logData):
 	KBEngine method.
 	logger写入了一条日志后的回调，
 	有需要的用户可以在此处把日志写入到其它的地方（如数据库）
+	如果返回False，该条日志将不写入到磁盘文件。
+	如果返回字符串，该条日志将被替换为所返回的内容。
 	@param logData: bytes
 	"""
-	pass
+	return True
 
