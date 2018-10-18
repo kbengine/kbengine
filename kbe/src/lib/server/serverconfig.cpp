@@ -15,6 +15,8 @@
 namespace KBEngine{
 KBE_SINGLETON_INIT(ServerConfig);
 
+static bool g_dbmgr_addDefaultAddress = true;
+
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig():
 	gameUpdateHertz_(10),
@@ -914,26 +916,7 @@ bool ServerConfig::loadConfig(std::string fileName)
 			TiXmlNode* childnode = xml->enterNode(node, "addDefaultAddress");
 			if (childnode)
 			{
-				if (xml->getValStr(childnode) == "true")
-				{
-					TiXmlNode* interfacesRootNode = xml->getRootNode("interfaces");
-					if (interfacesRootNode != NULL)
-					{
-						TiXmlNode* host_node = xml->enterNode(interfacesRootNode, "host");
-						TiXmlNode* port_node = xml->enterNode(interfacesRootNode, "port");
-						if (host_node && port_node)
-						{
-							std::string ip = xml->getValStr(host_node);
-							int port = xml->getValInt(port_node);
-
-							if (port <= 0)
-								port = KBE_INTERFACES_TCP_PORT;
-
-							Network::Address addr(ip, port);
-							interfacesAddrs_.push_back(addr);
-						}
-					}
-				}
+				g_dbmgr_addDefaultAddress = xml->getValStr(childnode) == "true";
 			}
 
 			childnode = xml->enterNode(node, "enable");
@@ -1636,6 +1619,11 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 
 	for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
 		_dbmgrInfo.dbInterfaceInfos[i].index = i;
+
+	if (g_dbmgr_addDefaultAddress)
+	{
+		interfacesAddrs_.insert(interfacesAddrs_.begin(), interfacesAddr_);
+	}
 
 	//updateExternalAddress(getBaseApp().externalTcpAddr);
 	//updateExternalAddress(getLoginApp().externalTcpAddr);
