@@ -2710,7 +2710,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 	this.connect = function(addr)
 	{
-		KBEngine.app.resetSocket();
+		console.assert(KBEngine.app.socket == null, "Assertion of socket not is null");
 		
 		try
 		{  
