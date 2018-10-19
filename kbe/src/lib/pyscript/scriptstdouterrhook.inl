@@ -5,8 +5,8 @@ namespace KBEngine {
 namespace script{
 
 INLINE void ScriptStdOutErrHook::setHookBuffer(std::string* buffer){ 
-	buffer_ = buffer; 
-	wbuffer_ = L""; 
+	pBuffer_ = buffer; 
+	buffer_ = ""; 
 };
 
 INLINE void ScriptStdOutErrHook::setPrint(bool v)
