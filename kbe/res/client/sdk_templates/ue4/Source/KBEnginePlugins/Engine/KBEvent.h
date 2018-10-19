@@ -287,6 +287,9 @@ public:
 	FVector position;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
+	FRotator direction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	int entityID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
@@ -323,7 +326,7 @@ class KBENGINEPLUGINS_API UKBEventData_set_direction : public UKBEventData
 public:
 	// roll, pitch, yaw
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
-	FVector direction;
+	FRotator direction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = KBEngine)
 	int entityID;

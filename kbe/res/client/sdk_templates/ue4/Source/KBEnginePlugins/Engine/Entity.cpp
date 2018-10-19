@@ -116,7 +116,7 @@ void Entity::enterSpace()
 	KBENGINE_EVENT_FIRE("set_position", pPosEventData);
 
 	UKBEventData_set_direction* pDirEventData = NewObject<UKBEventData_set_direction>();
-	pDirEventData->direction = direction;
+	KBDir2UE4Dir(pDirEventData->direction, direction);
 	pDirEventData->entityID = id();
 	KBENGINE_EVENT_FIRE("set_direction", pDirEventData);
 }
@@ -171,7 +171,7 @@ void Entity::onDirectionChanged(const FVector& oldValue)
 	if (inWorld())
 	{
 		UKBEventData_set_direction* pEventData = NewObject<UKBEventData_set_direction>();
-		pEventData->direction = direction;
+		KBDir2UE4Dir(pEventData->direction, direction);
 		pEventData->entityID = id();
 		KBENGINE_EVENT_FIRE("set_direction", pEventData);
 	}
