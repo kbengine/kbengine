@@ -21,7 +21,7 @@ public:
 	virtual ~NetworkInterfaceTCP();
 	
 protected:
-	PacketSender* createPacketSender() override;
-	PacketReceiver* createPacketReceiver() override;
+	PacketSenderBase* createPacketSender() override;
+	PacketReceiverBase* createPacketReceiver() override;
 
 };

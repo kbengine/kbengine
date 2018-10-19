@@ -179,7 +179,7 @@ public:
 		return 0;
 	}
 
-	void condemn(const std::string& reason, bool waitSendCompletedDestroy = true);
+	void condemn(const std::string& reason, bool waitSendCompletedDestroy = false);
 	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }

@@ -42,6 +42,7 @@ public class KBEnginePlugins : ModuleRules
 				"SlateCore",
                 "Networking",
                 "Sockets",
+				"CryptoPP",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -1,7 +1,6 @@
 
 #include "NetworkInterfaceTCP.h"
 #include "PacketSenderKCP.h"
-#include "PacketSender.h"
 #include "MemoryStream.h"
 #include "KBEvent.h"
 #include "KBDebug.h"
@@ -18,12 +17,12 @@ NetworkInterfaceTCP::~NetworkInterfaceTCP()
 {
 }
 
-PacketSender* NetworkInterfaceTCP::createPacketSender()
+PacketSenderBase* NetworkInterfaceTCP::createPacketSender()
 {
 	return new PacketSenderTCP(this);
 }
 
-PacketReceiver* NetworkInterfaceTCP::createPacketReceiver()
+PacketReceiverBase* NetworkInterfaceTCP::createPacketReceiver()
 {
 	return new PacketReceiverTCP(this);
 }

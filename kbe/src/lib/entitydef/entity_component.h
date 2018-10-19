@@ -5,6 +5,7 @@
 #define KBE_ENTITY_COMPONENT_H
 	
 #include "common/common.h"
+#include "common/timer.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/common.h"
 #include "entitydef/scriptdef_module.h"
@@ -24,6 +25,18 @@ namespace KBEngine {
 	}																											\
 }																												\
 
+
+#define CALL_COMPONENTS_AND_ENTITY_METHOD(ENTITYOBJ, CALLCODE)													\
+{																												\
+	{																											\
+		Py_INCREF(ENTITYOBJ);																					\
+		PyObject* pyTempObj = ENTITYOBJ;																		\
+		CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);														\
+		bool GETERR = false;																					\
+		CALLCODE;																								\
+		Py_DECREF(ENTITYOBJ);																					\
+	}																											\
+}																												\
 
 
 #define CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)														\
@@ -71,6 +84,37 @@ public:
 	EntityComponent(ENTITY_ID ownerID, ScriptDefModule* pComponentDescrs, COMPONENT_TYPE assignmentToComponentType/*属性所属实体的哪一部分，cell或者base?*/);
 	
 	~EntityComponent();
+
+	class EntityComponentUnbind : public TimerHandler
+	{
+	public:
+		EntityComponentUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs):
+			pEntity_(pEntity),
+			pEntityScriptDescrs_(pEntityScriptDescrs)
+		{
+			Py_INCREF(pEntity_);
+		}
+
+		~EntityComponentUnbind()
+		{
+			Py_DECREF(pEntity_);
+		}
+
+	protected:
+		virtual void handleTimeout(TimerHandle handle, void * arg)
+		{
+			handle.cancel();
+			EntityComponent::onEntityUnbind(pEntity_, pEntityScriptDescrs_, this);
+		}
+
+		virtual void onRelease(TimerHandle handle, void  * pUser) {
+		}
+
+	protected:
+		PyObject* pEntity_;
+		ScriptDefModule* pEntityScriptDescrs_;
+
+	};
 
 	/** 
 		获取entityID 
@@ -173,6 +217,8 @@ public:
 	static void onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript, bool beforeDestroy);
 	void onOwnerDestroyBegin(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript);
 	void onOwnerDestroyEnd(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript);
+	static void onEntityUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, EntityComponentUnbind* pEntityComponentUnbind);
+	void onOwnerUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs);
 
 	PropertyDescription* pPropertyDescription() const {
 		return pPropertyDescription_;

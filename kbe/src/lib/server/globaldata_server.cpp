@@ -91,7 +91,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 				}
 				else
 				{
-					KBE_ASSERT(false && "componentType is error!\n");
+					KBE_ASSERT(false && "componentType error!\n");
 				}
 				break;
 			case BASEAPP_DATA:
@@ -101,7 +101,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 				(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 				break;
 			default:
-				KBE_ASSERT(false && "dataType is error!\n");
+				KBE_ASSERT(false && "dataType error!\n");
 				break;
 			};
 
@@ -146,7 +146,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 			}
 			else
 			{
-				KBE_ASSERT(false && "componentType is error!\n");
+				KBE_ASSERT(false && "componentType error!\n");
 			}
 			break;
 		case BASEAPP_DATA:
@@ -168,7 +168,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 			(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 			break;
 		default:
-			KBE_ASSERT(false && "dataType is error!\n");
+			KBE_ASSERT(false && "dataType error!\n");
 			break;
 		};
 

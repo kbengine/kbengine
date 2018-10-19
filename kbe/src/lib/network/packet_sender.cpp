@@ -87,7 +87,7 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 	int err;
 	Reason reason;
 
-	#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 		err = errno;
 
 		switch (err)
@@ -99,7 +99,7 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 			case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
 			default:			reason = REASON_GENERAL_NETWORK; break;
 		}
-	#else
+#else
 		err = WSAGetLastError();
 
 		if (err == WSAEWOULDBLOCK || err == WSAEINTR)
@@ -116,7 +116,7 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 				default:reason = REASON_GENERAL_NETWORK;break;
 			}
 		}
-	#endif
+#endif
 
 	return reason;
 }

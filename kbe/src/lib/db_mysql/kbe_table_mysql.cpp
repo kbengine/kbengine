@@ -483,7 +483,7 @@ bool KBEAccountTableMysql::syncToDB(DBInterface* pdbi)
 
 	std::string sqlstr = fmt::format("CREATE TABLE IF NOT EXISTS " KBE_TABLE_PERFIX "_accountinfos "
 		"(`accountName` varchar({}) not null, PRIMARY KEY idKey (`accountName`),"
-		"`password` varchar({}),"
+		"`password` varchar({}) not null,"
 			"`bindata` blob,"
 			"`email` varchar(191) not null, UNIQUE KEY `email` (`email`),"
 			"`entityDBID` bigint(20) unsigned not null DEFAULT 0, UNIQUE KEY `entityDBID` (`entityDBID`),"
@@ -906,14 +906,14 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * pdbi, const s
 
 	if(!pTable->setFlagsDeadline(pdbi, info.name, info.flags, info.deadline))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): set deadline is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): set deadline error({})!\n", 
 				code, pdbi->getstrerror()));
 		return false;
 	}
 
 	if(!pTable->updatePassword(pdbi, info.name, password))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update password is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update password error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		return false;
@@ -940,7 +940,7 @@ bool KBEEmailVerificationTableMysql::activateAccount(DBInterface * pdbi, const s
 	if(!pdbi->query(fmt::format("update " KBE_TABLE_PERFIX "_accountinfos set entityDBID={} where accountName like \"{}\"", 
 		info.dbid, tbuf), false))
 	{
-		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos is error({})!\n", 
+		ERROR_MSG(fmt::format("KBEEmailVerificationTableMysql::activateAccount({}): update " KBE_TABLE_PERFIX "_accountinfos error({})!\n", 
 				code, pdbi->getstrerror()));
 
 		SAFE_RELEASE_ARRAY(tbuf);

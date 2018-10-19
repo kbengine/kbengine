@@ -80,9 +80,7 @@ RemoteEntityMethod* EntityCall::createRemoteMethod(MethodDescription* pMethodDes
 //-------------------------------------------------------------------------------------
 PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = NULL;
 
@@ -115,8 +113,6 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 	
 	if(pMethodDescription != NULL)
 	{
-		free(ccattr);
-
 		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
 		{
 			if(!pMethodDescription->isExposed())
@@ -164,8 +160,6 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 		
 		if(mbtype != -1)
 		{
-			free(ccattr);
-
 			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 			{
 				return new EntityCall(pScriptModule_, &addr_, componentID_, 
@@ -178,8 +172,7 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 			}
 		}
 	}
-	
-	free(ccattr);
+
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 
@@ -228,13 +221,13 @@ PyObject* EntityCall::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 4)
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error! size != 4.\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error! size != 4.\n");
 		S_Return;
 	}
 
 	if(!PyArg_ParseTuple(args, "iKHh", &eid, &componentID, &utype, &type))
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error!\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error!\n");
 		S_Return;
 	}
 

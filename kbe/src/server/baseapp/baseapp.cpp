@@ -1555,7 +1555,7 @@ void Baseapp::createEntityAnywhereFromDBID(const char* entityType, DBID dbid, Py
 	Network::Channel* pBaseappmgrChannel = Components::getSingleton().getBaseappmgrChannel();
 	if (pBaseappmgrChannel == NULL)
 	{
-		ERROR_MSG(fmt::format("Baseapp::createEntityAnywhereFromDBID: create {}({}) is error, not found baseappmgr!\n",
+		ERROR_MSG(fmt::format("Baseapp::createEntityAnywhereFromDBID: create {}({}) error, not found baseappmgr!\n",
 			entityType, dbid));
 
 		return;
@@ -4822,7 +4822,7 @@ void Baseapp::lookApp(Network::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG(fmt::format("Baseapp::lookApp: {}\n", pChannel->c_str()));
+	//DEBUG_MSG(fmt::format("Baseapp::lookApp: {}\n", pChannel->c_str()));
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	

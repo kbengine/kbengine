@@ -94,14 +94,10 @@ PyObject* ClientEntityComponent::onScriptGetAttribute(PyObject* attr)
 		return 0;
 	}
 
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	ScriptDefModule* pScriptDefModule = pComponentScriptDefModule();
 	MethodDescription* pMethodDescription = pScriptDefModule->findClientMethodDescription(ccattr);
-
-	free(ccattr);
 
 	if (pMethodDescription != NULL)
 	{
@@ -197,15 +193,12 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 		return 0;
 	}
 
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(e->pScriptModule())->findClientMethodDescription(ccattr);
 
 	if(pMethodDescription != NULL)
 	{
-		free(ccattr);
 		return new ClientEntityMethod(NULL, e->pScriptModule(), pMethodDescription, srcEntityID_, clientEntityID_);
 	}
 	else
@@ -214,12 +207,10 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 		PropertyDescription* pComponentPropertyDescription = const_cast<ScriptDefModule*>(e->pScriptModule())->findComponentPropertyDescription(ccattr);
 		if (pComponentPropertyDescription)
 		{
-			free(ccattr);
 			return new ClientEntityComponent(pComponentPropertyDescription, this);
 		}
 	}
 
-	free(ccattr);
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 

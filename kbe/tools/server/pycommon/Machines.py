@@ -95,8 +95,12 @@ class Machines:
 			uid = Define.getDefaultUID()
 		
 		if username is None:
-			username = Define.pwd.getpwuid( uid ).pw_name
-			
+			try:
+				username = Define.pwd.getpwuid( uid ).pw_name
+			except:
+				import getpass
+				username = getpass.getuser()
+
 		self.uid = uid
 		self.username = username
 		if type(self.username) is str:

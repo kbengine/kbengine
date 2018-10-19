@@ -42,7 +42,17 @@
 
 		public bool sendto(byte[] packet, int size)
 		{
-			socket_.SendTo(packet, size, SocketFlags.None, remoteEndPint_);
+			try
+			{
+				socket_.SendTo(packet, size, SocketFlags.None, remoteEndPint_);
+			}
+			catch (SocketException se)
+			{
+				Dbg.ERROR_MSG(string.Format("PacketSenderKCP::sendto(): send data error, disconnect from '{0}'! error = '{1}'", socket_.RemoteEndPoint, se));
+				Event.fireIn("_closeNetwork", new object[] { _networkInterface });
+				return false;
+			}
+			
 			return true;
 		}
 

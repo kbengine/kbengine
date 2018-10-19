@@ -48,8 +48,8 @@ protected:
 
 	static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user);
 
-	PacketSender* createPacketSender() override;
-	PacketReceiver* createPacketReceiver() override;
+	PacketSenderBase* createPacketSender() override;
+	PacketReceiverBase* createPacketReceiver() override;
 
 protected:
 	ikcpcb*	pKCP_;

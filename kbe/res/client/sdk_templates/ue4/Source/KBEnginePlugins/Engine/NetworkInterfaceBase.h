@@ -8,9 +8,10 @@
 #include "Runtime/Core/Public/Templates/SharedPointer.h"
 #include "Runtime/Networking/Public/Networking.h"
 #include "Runtime/Sockets/Public/Sockets.h"
+#include "EncryptionFilter.h"
 
-class PacketSender;
-class PacketReceiver;
+class PacketSenderBase;
+class PacketReceiverBase;
 class MemoryStream;
 class InterfaceConnect;
 
@@ -32,6 +33,14 @@ public:
 		return socket_;
 	}
 
+	virtual EncryptionFilter* filter() {
+		return pFilter_;
+	}
+
+	virtual void setFilter(EncryptionFilter* filter) {
+		pFilter_ = filter;
+	}
+
 	virtual void process();
 
 	virtual void reset();
@@ -51,13 +60,13 @@ protected:
 	virtual void tickConnecting();
 	virtual bool _connect(const FInternetAddr& addr);
 
-	virtual PacketSender* createPacketSender() = 0;
-	virtual PacketReceiver* createPacketReceiver() = 0;
+	virtual PacketSenderBase* createPacketSender() = 0;
+	virtual PacketReceiverBase* createPacketReceiver() = 0;
 
 protected:
 	FSocket* socket_;
-	PacketSender* pPacketSender_;
-	PacketReceiver* pPacketReceiver_;
+	PacketSenderBase* pPacketSender_;
+	PacketReceiverBase* pPacketReceiver_;
 
 	InterfaceConnect* connectCB_;
 	FString connectIP_;
@@ -66,4 +75,7 @@ protected:
 	double startTime_;
 
 	bool isDestroyed_;
+
+	EncryptionFilter *pFilter_;
+
 };

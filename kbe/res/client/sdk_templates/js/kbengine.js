@@ -404,7 +404,9 @@ KBEngine.MemoryStream = function(size_or_buffer)
 
 	this.readInt64 = function()
 	{
-		return new KBEngine.INT64(this.readUint32(), this.readUint32());
+		var lo = this.readInt32();
+		var hi = this.readInt32();
+		return new KBEngine.INT64(lo, hi);
 	}
 	
 	this.readUint8 = function()
@@ -430,7 +432,9 @@ KBEngine.MemoryStream = function(size_or_buffer)
 
 	this.readUint64 = function()
 	{
-		return new KBEngine.UINT64(this.readUint32(), this.readUint32());
+		var lo = this.readUint32();
+		var hi = this.readUint32();
+		return new KBEngine.UINT64(lo, hi);
 	}
 	
 	this.readFloat = function()
@@ -2103,13 +2107,15 @@ KBEngine.DATATYPE_VECTOR2 = function()
 	{
 		if(KBEngine.CLIENT_NO_FLOAT)
 		{
-			return new KBEngine.Vector2(KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream));
+			var x = KBEngine.reader.readInt32.call(stream);
+			var y = KBEngine.reader.readInt32.call(stream);
+			return new KBEngine.Vector2(x, y);
 		}
 		else
 		{
-			return new KBEngine.Vector2(KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream));
+			var x = KBEngine.reader.readFloat.call(stream);
+			var y = KBEngine.reader.readFloat.call(stream);
+			return new KBEngine.Vector2(x, y);
 		}
 		
 		return undefined;
@@ -2155,13 +2161,17 @@ KBEngine.DATATYPE_VECTOR3 = function()
 	{
 		if(KBEngine.CLIENT_NO_FLOAT)
 		{
-			return new KBEngine.Vector3(KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream), KBEngine.reader.readInt32.call(stream));
+			var x = KBEngine.reader.readInt32.call(stream);
+			var y = KBEngine.reader.readInt32.call(stream);
+			var z = KBEngine.reader.readInt32.call(stream);
+			return new KBEngine.Vector3(x, y, z);
 		}
 		else
 		{
-			return new KBEngine.Vector3(KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream), KBEngine.reader.readFloat.call(stream));
+			var x = KBEngine.reader.readFloat.call(stream);
+			var y = KBEngine.reader.readFloat.call(stream);
+			var z = KBEngine.reader.readFloat.call(stream);
+			return new KBEngine.Vector3(x, y, z);
 		}
 	
 		return undefined;
@@ -2209,15 +2219,19 @@ KBEngine.DATATYPE_VECTOR4 = function()
 	{
 		if(KBEngine.CLIENT_NO_FLOAT)
 		{
-			return new KBEngine.Vector4(KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream), KBEngine.reader.readInt32.call(stream), 
-				KBEngine.reader.readInt32.call(stream));
+			var x = KBEngine.reader.readInt32.call(stream);
+			var y = KBEngine.reader.readInt32.call(stream);
+			var z = KBEngine.reader.readInt32.call(stream);
+			var w = KBEngine.reader.readInt32.call(stream);
+			return new KBEngine.Vector4(x, y, z, w);
 		}
 		else
 		{
-			return new KBEngine.Vector4(KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream), KBEngine.reader.readFloat.call(stream), 
-				KBEngine.reader.readFloat.call(stream));
+			var x = KBEngine.reader.readFloat.call(stream);
+			var y = KBEngine.reader.readFloat.call(stream);
+			var z = KBEngine.reader.readFloat.call(stream);
+			var w = KBEngine.reader.readFloat.call(stream);
+			return new KBEngine.Vector4(x, y, z, w);
 		}
 		
 		return undefined;
@@ -2518,7 +2532,7 @@ KBEngine.KBEngineArgs = function()
 	this.ip = "127.0.0.1";
 	this.port = @{KBE_USE_ALIAS_ENTITYID};
 	this.updateHZ = @{KBE_UPDATEHZ} * 10;
-	this.serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT} / 2;
+	this.serverHeartbeatTick = @{KBE_SERVER_EXTERNAL_TIMEOUT};
 
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	this.clientType = 5;
@@ -2605,7 +2619,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		KBEngine.app.currserver = "loginapp";
 		KBEngine.app.currstate = "create";
-		
+		KBEngine.app.currconnect = "loginapp";
+
 		// 扩展数据
 		KBEngine.app.serverdatas = "";
 		
@@ -2696,7 +2711,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 	this.connect = function(addr)
 	{
-		console.assert(KBEngine.app.socket == null, "Assertion of socket not is null");
+		KBEngine.app.resetSocket();
 		
 		try
 		{  
@@ -2704,7 +2719,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		catch(e)
 		{  
-			KBEngine.ERROR_MSG('WebSocket init error!');  
+			KBEngine.ERROR_MSG('WebSocket init error(' + e.toString() + ')!'); 
 			KBEngine.Event.fire("onConnectionState", false);
 			return;  
 		}
@@ -2781,6 +2796,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.onclose = function()
 	{  
 		KBEngine.INFO_MSG('connect close:' + KBEngine.app.currserver);
+
+		if(KBEngine.app.currconnect != KBEngine.app.currserver)
+			return;
+
 		KBEngine.app.resetSocket();
 		KBEngine.Event.fire("onDisconnected");
 		//if(KBEngine.app.currserver != "loginapp")
@@ -2804,7 +2823,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			return;
 
 		var dateObject = new Date();
-		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > KBEngine.app.args.serverHeartbeatTick)
+		if((dateObject.getTime() - KBEngine.app.lastTickTime) / 1000 > (KBEngine.app.args.serverHeartbeatTick / 2))
 		{
 			// 如果心跳回调接收时间小于心跳发送时间，说明没有收到回调
 			// 此时应该通知客户端掉线了
@@ -3327,6 +3346,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(noconnect)
 		{
 			KBEngine.INFO_MSG("KBEngineApp::createAccount_loginapp: start connect to ws://" + KBEngine.app.ip + ":" + KBEngine.app.port + "!");
+			KBEngine.app.currconnect = "loginapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.ip + ":" + KBEngine.app.port);
 			KBEngine.app.socket.onopen = KBEngine.app.onOpenLoginapp_createAccount;  
 		}
@@ -3385,6 +3405,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(noconnect)
 		{
 			KBEngine.INFO_MSG("KBEngineApp::login_loginapp: start connect to ws://" + KBEngine.app.ip + ":" + KBEngine.app.port + "!");
+			KBEngine.app.currconnect = "loginapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.ip + ":" + KBEngine.app.port);
 			KBEngine.app.socket.onopen = KBEngine.app.onOpenLoginapp_login;  
 		}
@@ -3432,6 +3453,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(noconnect)
 		{
 			KBEngine.INFO_MSG("KBEngineApp::createAccount_loginapp: start connect to ws://" + KBEngine.app.ip + ":" + KBEngine.app.port + "!");
+			KBEngine.app.currconnect = "loginapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.ip + ":" + KBEngine.app.port);
 			KBEngine.app.socket.onopen = KBEngine.app.onOpenLoginapp_resetpassword;  
 		}
@@ -3469,6 +3491,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		{
 			KBEngine.Event.fire("onLoginBaseapp");
 			KBEngine.INFO_MSG("KBEngineApp::login_baseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort + "!");
+			KBEngine.app.currconnect = "baseapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort);
 			
 			if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
@@ -3489,13 +3512,14 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var dateObject = new Date();
 		KBEngine.app.lastTickTime = dateObject.getTime();
 		KBEngine.app.lastTickCBTime = dateObject.getTime();
-		
+
 		if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
 			return;
 		
 		KBEngine.app.resetSocket();
 		KBEngine.Event.fire("onReloginBaseapp");
 		KBEngine.INFO_MSG("KBEngineApp::reloginBaseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort + "!");
+		KBEngine.app.currconnect = "baseapp";
 		KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappTcpPort);
 		
 		if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
@@ -4699,4 +4723,5 @@ catch(e)
 {
 	
 }
+
 

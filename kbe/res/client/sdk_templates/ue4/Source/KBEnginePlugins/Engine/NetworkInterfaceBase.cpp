@@ -1,11 +1,12 @@
 
 #include "NetworkInterfaceBase.h"
-#include "PacketReceiver.h"
-#include "PacketSender.h"
+#include "PacketReceiverBase.h"
+#include "PacketSenderBase.h"
 #include "MemoryStream.h"
 #include "KBEvent.h"
 #include "KBDebug.h"
 #include "Interfaces.h"
+#include "KBEngine.h"
 
 NetworkInterfaceBase::NetworkInterfaceBase():
 	socket_(NULL),
@@ -16,7 +17,8 @@ NetworkInterfaceBase::NetworkInterfaceBase():
 	connectPort_(0),
 	connectUserdata_(0),
 	startTime_(0.0),
-	isDestroyed_(false)
+	isDestroyed_(false),
+	pFilter_(NULL)
 {
 }
 
@@ -44,6 +46,7 @@ void NetworkInterfaceBase::close()
 
 	KBE_SAFE_RELEASE(pPacketSender_);
 	KBE_SAFE_RELEASE(pPacketReceiver_);
+	KBE_SAFE_RELEASE(pFilter_);
 
 	connectCB_ = NULL;
 	connectIP_ = TEXT("");
@@ -100,7 +103,7 @@ bool NetworkInterfaceBase::connectTo(const FString& addr, uint16 port, Interface
 
 	socket_ = createSocket();
 
-	if (!valid())
+	if (!socket_)
 	{
 		ERROR_MSG("NetworkInterfaceBase::connectTo(): socket could't be created!");
 		return false;
@@ -133,6 +136,9 @@ bool NetworkInterfaceBase::send(MemoryStream* pMemoryStream)
 
 	if (!pPacketSender_)
 		pPacketSender_ = createPacketSender();
+
+	if (pFilter_ )
+		return pFilter_->send(pPacketSender_, pMemoryStream);
 
 	return pPacketSender_->send(pMemoryStream);
 }

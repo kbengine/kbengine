@@ -3,7 +3,7 @@
 #pragma once
 
 #include "KBECommon.h"
-#include "PacketSender.h"
+#include "PacketSenderBase.h"
 
 class NetworkInterfaceBase;
 class MemoryStream;
@@ -12,7 +12,7 @@ class MemoryStream;
 	包发送模块(与服务端网络部分的名称对应)
 	处理网络数据的发送
 */
-class KBENGINEPLUGINS_API PacketSenderKCP : public PacketSender
+class KBENGINEPLUGINS_API PacketSenderKCP : public PacketSenderBase
 {
 public:
 	PacketSenderKCP(NetworkInterfaceBase* pNetworkInterface);

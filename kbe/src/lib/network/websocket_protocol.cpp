@@ -157,7 +157,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	//RFC6544_MAGIC_KEY
     server_key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-	SHA1 sha;
+	KBE_SHA1 sha;
 	unsigned int message_digest[5];
 
 	sha.Reset();
@@ -297,14 +297,17 @@ int WebSocketProtocol::getFrame(Packet * pPacket, uint8& msg_opcode, uint8& msg_
 			return remainSize;
 		}
 		
-		msg_payload_length = ((uint64)(pPacket->data() + pPacket->rpos() + 0) << 56) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 1) << 48) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 2) << 40) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 3) << 32) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 4) << 24) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 5) << 16) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 6) << 8) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 7));
+		uint8 *pDatas = pPacket->data();
+		size_t dataRpos = pPacket->rpos();
+
+		msg_payload_length = ((uint64)(*(pDatas + dataRpos + 0)) << 56) |
+							 ((uint64)(*(pDatas + dataRpos + 1)) << 48) |
+							 ((uint64)(*(pDatas + dataRpos + 2)) << 40) |
+							 ((uint64)(*(pDatas + dataRpos + 3)) << 32) |
+							 ((uint64)(*(pDatas + dataRpos + 4)) << 24) |
+							 ((uint64)(*(pDatas + dataRpos + 5)) << 16) |
+							 ((uint64)(*(pDatas + dataRpos + 6)) << 8) |
+							 ((uint64)(*(pDatas + dataRpos + 7)));
 
 		pPacket->read_skip(8);
 	}

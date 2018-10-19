@@ -81,6 +81,9 @@
     <ClCompile Include="scriptstderr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pyurl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="copy.h">
@@ -153,6 +156,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="py_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pyurl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

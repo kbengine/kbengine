@@ -40,12 +40,13 @@ public:
 		INCOMPLETE_TEXT_FRAME = 0x01,
 		INCOMPLETE_BINARY_FRAME = 0x02,
 
-		// 文本帧与二进制帧
+		// 文本帧与二进制帧 END_FRAME + *_FRAME
 		TEXT_FRAME = 0x81,
 		BINARY_FRAME = 0x82,
 
-		PING_FRAME = 0x19,
-		PONG_FRAME = 0x1A,
+		// END_FRAME + *_FRAME
+		PING_FRAME = 0x89,
+		PONG_FRAME = 0x8A,
 
 		// 关闭连接
 		CLOSE_FRAME = 0x08

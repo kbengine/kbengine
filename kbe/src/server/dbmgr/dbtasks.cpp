@@ -20,6 +20,7 @@
 #include "baseappmgr/baseappmgr_interface.h"
 #include "cellappmgr/cellappmgr_interface.h"
 #include "loginapp/loginapp_interface.h"
+#include "tools/interfaces/interfaces_interface.h"
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 #ifdef _DEBUG
@@ -184,35 +185,56 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommandByEntity::presentMain
 	if(callbackID_ <= 0)
 		return EntityDBTask::presentMainThread();
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	if (componentType_ != DBMGR_TYPE)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
-	if(componentType_ == BASEAPP_TYPE)
-		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
-	else if(componentType_ == CELLAPP_TYPE)
-		(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+		if (componentType_ == BASEAPP_TYPE)
+			(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
+		else if (componentType_ == CELLAPP_TYPE)
+			(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+		else if (componentType_ == INTERFACES_TYPE)
+			(*pBundle).newMessage(InterfacesInterface::onExecuteRawDatabaseCommandCB);
+		else
+		{
+			KBE_ASSERT(false && "no support!\n");
+		}
+
+		(*pBundle) << callbackID_;
+		(*pBundle) << error_;
+
+		if (error_.size() <= 0)
+			(*pBundle).append(pExecret_);
+
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
+
+		if (cinfos && cinfos->pChannel)
+		{
+			cinfos->pChannel->send(pBundle);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
+				COMPONENT_NAME_EX(componentType_)));
+
+			Network::Bundle::reclaimPoolObject(pBundle);
+		}
+	}
 	else
 	{
-		KBE_ASSERT(false && "no support!\n");
-	}
+		// 只能由自己发出
+		KBE_ASSERT(componentID_ == g_componentID);
 
-	(*pBundle) << callbackID_;
-	(*pBundle) << error_;
+		MemoryStream* pMemoryStream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
-	if(error_.size() <= 0)
-		(*pBundle).append(pExecret_);
+		(*pMemoryStream) << callbackID_;
+		(*pMemoryStream) << error_;
 
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
+		if (error_.size() <= 0)
+			(*pMemoryStream).append(*pExecret_);
 
-	if(cinfos && cinfos->pChannel)
-	{
-		cinfos->pChannel->send(pBundle);
-	}
-	else
-	{
-		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
-			COMPONENT_NAME_EX(componentType_)));
-
-		Network::Bundle::reclaimPoolObject(pBundle);
+		Dbmgr::getSingleton().onExecuteRawDatabaseCommandCB(*pMemoryStream);
+		MemoryStream::reclaimPoolObject(pMemoryStream);
 	}
 
 	return EntityDBTask::presentMainThread();
@@ -227,35 +249,56 @@ thread::TPTask::TPTaskState DBTaskExecuteRawDatabaseCommand::presentMainThread()
 	if(callbackID_ <= 0)
 		return thread::TPTask::TPTASK_STATE_COMPLETED;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	if (componentType_ != DBMGR_TYPE)
+	{
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
-	if(componentType_ == BASEAPP_TYPE)
-		(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
-	else if(componentType_ == CELLAPP_TYPE)
-		(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+		if (componentType_ == BASEAPP_TYPE)
+			(*pBundle).newMessage(BaseappInterface::onExecuteRawDatabaseCommandCB);
+		else if (componentType_ == CELLAPP_TYPE)
+			(*pBundle).newMessage(CellappInterface::onExecuteRawDatabaseCommandCB);
+		else if (componentType_ == INTERFACES_TYPE)
+			(*pBundle).newMessage(InterfacesInterface::onExecuteRawDatabaseCommandCB);
+		else
+		{
+			KBE_ASSERT(false && "no support!\n");
+		}
+
+		(*pBundle) << callbackID_;
+		(*pBundle) << error_;
+
+		if (error_.size() <= 0)
+			(*pBundle).append(pExecret_);
+
+		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
+
+		if (cinfos && cinfos->pChannel)
+		{
+			cinfos->pChannel->send(pBundle);
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
+				COMPONENT_NAME_EX(componentType_)));
+
+			Network::Bundle::reclaimPoolObject(pBundle);
+		}
+	}
 	else
 	{
-		KBE_ASSERT(false && "no support!\n");
-	}
+		// 只能由自己发出
+		KBE_ASSERT(componentID_ == g_componentID);
 
-	(*pBundle) << callbackID_;
-	(*pBundle) << error_;
+		MemoryStream* pMemoryStream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
-	if(error_.size() <= 0)
-		(*pBundle).append(pExecret_);
+		(*pMemoryStream) << callbackID_;
+		(*pMemoryStream) << error_;
 
-	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(componentType_, componentID_);
+		if (error_.size() <= 0)
+			(*pMemoryStream).append(*pExecret_);
 
-	if(cinfos && cinfos->pChannel)
-	{
-		cinfos->pChannel->send(pBundle);
-	}
-	else
-	{
-		ERROR_MSG(fmt::format("DBTask::ExecuteRawDatabaseCommandByEntity::presentMainThread: {} not found!\n",
-			COMPONENT_NAME_EX(componentType_)));
-
-		Network::Bundle::reclaimPoolObject(pBundle);
+		Dbmgr::getSingleton().onExecuteRawDatabaseCommandCB(*pMemoryStream);
+		MemoryStream::reclaimPoolObject(pMemoryStream);
 	}
 
 	return thread::TPTask::TPTASK_STATE_COMPLETED;
@@ -294,6 +337,15 @@ bool DBTaskWriteEntity::db_thread_process()
 
 	if(writeEntityLog)
 	{
+		if (pDatas_->length() < (sizeof(uint32) + sizeof(uint32)))
+		{
+			ERROR_MSG(fmt::format("DBTaskWriteEntity::db_thread_process(): MemoryStream exception(rpos={}, wpos={})! entityID={}, sid={}, callbackID={}, shouldAutoLoad={}, address={}\n",
+				pDatas_->rpos(), pDatas_->wpos(), eid_, sid_, callbackID_, shouldAutoLoad_, addr_.c_str()));
+
+			success_ = false;
+			return false;
+		}
+
 		(*pDatas_) >> ip >> port;
 	}
 
@@ -581,7 +633,7 @@ thread::TPTask::TPTaskState DBTaskLookUpEntityByDBID::presentMainThread()
 	if(serverGroupID_ > 0)
 	{
 		ERROR_MSG(fmt::format("DBTaskLookUpEntityByDBID::presentMainThread: entitylog({}) serverGroupID not match. serverGroupID={}, self={}\n", 
-			entityDBID_, serverGroupID_, g_componentID));
+			entityDBID_, serverGroupID_, (uint64)getUserUID()));
 	}
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
@@ -803,7 +855,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	{
 		if(pdbi_->getlasterror() > 0)
 		{
-			WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): queryAccount is error: {}\n", 
+			WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): queryAccount error: {}\n", 
 				pdbi_->getstrerror()));
 		}
 
@@ -829,7 +881,7 @@ bool DBTaskCreateMailAccount::db_thread_process()
 	}
 	catch (...)
 	{
-		WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): logAccount(" KBE_TABLE_PERFIX "_accountinfos) is error: {}\n{}\n", 
+		WARNING_MSG(fmt::format("DBTaskCreateMailAccount::db_thread_process(): logAccount(" KBE_TABLE_PERFIX "_accountinfos) error: {}\n{}\n", 
 			pdbi_->getstrerror(), pdbi_->lastquery()));
 	}
 
@@ -1500,7 +1552,7 @@ bool DBTaskAccountLogin::db_thread_process()
 	// 如果Interfaces已经判断不成功就没必要继续下去
 	if(retcode_ != SERVER_SUCCESS)
 	{
-		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): interfaces report failed({})!\n", retcode_));
+		ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): interfaces report failed(errcode={})!\n", retcode_));
 		return false;
 	}
 
@@ -1560,7 +1612,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		{
 			if(!DBTaskCreateAccount::writeAccount(pdbi_, accountName_, password_, postdatas_, info) || info.dbid == 0 || info.flags != ACCOUNT_FLAG_NORMAL)
 			{
-				ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): writeAccount[{}] is error!\n",
+				ERROR_MSG(fmt::format("DBTaskAccountLogin::db_thread_process(): writeAccount[{}] error!\n",
 					accountName_));
 
 				retcode_ = SERVER_ERR_DB;
@@ -1612,7 +1664,7 @@ bool DBTaskAccountLogin::db_thread_process()
 		componentID_ = entitylog.componentID;
 		entityID_ = entitylog.entityID;
 		
-		if(entitylog.serverGroupID != g_componentID)
+		if(entitylog.serverGroupID != (uint64)getUserUID())
 		{
 			serverGroupID_ = entitylog.serverGroupID;
 			retcode_ = SERVER_ERR_ACCOUNT_LOGIN_ANOTHER_SERVER;
@@ -1646,7 +1698,7 @@ thread::TPTask::TPTaskState DBTaskAccountLogin::presentMainThread()
 	if(serverGroupID_ > 0)
 	{
 		ERROR_MSG(fmt::format("DBTaskAccountLogin::presentMainThread: entitylog serverGroupID not match. loginName={}, accountName={}, self={}\n", 
-			loginName_, accountName_, serverGroupID_, g_componentID));
+			loginName_, accountName_, serverGroupID_, (uint64)getUserUID()));
 		
 		componentID_ = 0;
 		entityID_ = 0;
@@ -1759,7 +1811,7 @@ bool DBTaskQueryEntity::db_thread_process()
 
 			wasActive_ = true;
 			
-			if(entitylog.serverGroupID != g_componentID)
+			if(entitylog.serverGroupID != (uint64)getUserUID())
 			{
 				success_ = false;
 				serverGroupID_ = entitylog.serverGroupID;
@@ -1783,7 +1835,7 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 	if(serverGroupID_ > 0)
 	{
 		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: entitylog serverGroupID not match. {}, dbid={}, self={}\n", 
-			entityType_, dbid_, serverGroupID_, g_componentID));
+			entityType_, dbid_, serverGroupID_, (uint64)getUserUID()));
 	}
 	
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);

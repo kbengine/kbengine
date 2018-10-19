@@ -10,6 +10,7 @@ class KBEngineArgs;
 class Entity;
 class NetworkInterfaceBase;
 class MemoryStream;
+class EncryptionFilter;
 
 /*
 	这是KBEngine插件的核心模块
@@ -481,6 +482,8 @@ protected:
 
 	// 按照标准，每个客户端部分都应该包含这个属性
 	FString component_;
+
+	EncryptionFilter *pFilter_;
 
 };
 

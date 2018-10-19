@@ -16,6 +16,7 @@
 #include "Regex.h"
 #include "KBDebug.h"
 #include "KBEvent.h"
+#include "EncryptionFilter.h"
 
 ServerErrorDescrs KBEngineApp::serverErrs_;
 
@@ -54,7 +55,8 @@ KBEngineApp::KBEngineApp() :
 	spaceID_(0),
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
-	component_(TEXT("client"))
+	component_(TEXT("client")),
+	pFilter_(NULL)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
 }
@@ -94,7 +96,8 @@ KBEngineApp::KBEngineApp(KBEngineArgs* pArgs):
 	spaceID_(0),
 	spaceResPath_(TEXT("")),
 	isLoadedGeometry_(false),
-	component_(TEXT("client"))
+	component_(TEXT("client")),
+	pFilter_(NULL)
 {
 	INFO_MSG("KBEngineApp::KBEngineApp(): hello!");
 	initialize(pArgs);
@@ -188,6 +191,7 @@ void KBEngineApp::destroy()
 
 	KBE_SAFE_RELEASE(pArgs_);
 	KBE_SAFE_RELEASE(pNetworkInterface_);
+	KBE_SAFE_RELEASE(pFilter_);
 }
 
 void KBEngineApp::resetMessages()
@@ -241,15 +245,20 @@ void KBEngineApp::reset()
 
 bool KBEngineApp::initNetwork()
 {
+	KBE_SAFE_RELEASE(pFilter_);
+
 	if (pNetworkInterface_)
 		delete pNetworkInterface_;
 
 	Messages::initialize();
 
-	if(baseappUdpPort_ == 0)
-		pNetworkInterface_ = new NetworkInterfaceTCP();
-	else
-		pNetworkInterface_ = new NetworkInterfaceKCP();
+	if (pArgs_)
+	{
+		if (pArgs_->forceDisableUDP || baseappUdpPort_ == 0)
+			pNetworkInterface_ = new NetworkInterfaceTCP();
+		else
+			pNetworkInterface_ = new NetworkInterfaceKCP();
+	}
 
 	return true;
 }
@@ -445,6 +454,15 @@ void KBEngineApp::hello()
 	else
 		pBundle->newMessage(Messages::messages[TEXT("Baseapp_hello")]);
 
+	KBE_SAFE_RELEASE(pFilter_);
+
+	if (pArgs_->networkEncryptType ==  NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pFilter_ = new BlowfishFilter();
+		encryptedKey_ = ((BlowfishFilter*)pFilter_)->key();
+		pNetworkInterface_->setFilter(NULL);
+	}
+
 	(*pBundle) << clientVersion_;
 	(*pBundle) << clientScriptVersion_;
 	pBundle->appendBlob(encryptedKey_);
@@ -496,6 +514,12 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
 			return;
 		}
+	}
+
+	if (pArgs_->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pNetworkInterface_->setFilter(pFilter_);
+		pFilter_ = NULL;
 	}
 
 	onServerDigest();
@@ -679,11 +703,11 @@ void KBEngineApp::Client_onLoginSuccessfully(MemoryStream& stream)
 	stream >> baseappIP_;
 	stream >> baseappTcpPort_;
 	stream >> baseappUdpPort_;
+	stream.readBlob(serverdatas_);
 
 	DEBUG_MSG("KBEngineApp::Client_onLoginSuccessfully(): accountName(%s), addr("
 		 "%s:%d:%d), datas(%d)!", *accountName, *baseappIP_, baseappTcpPort_, baseappUdpPort_, serverdatas_.Num());
-
-	stream.readBlob(serverdatas_);
+	
 	login_baseapp(true);
 }
 
@@ -696,7 +720,7 @@ void KBEngineApp::login_baseapp(bool noconnect)
 		pNetworkInterface_->destroy();
 		pNetworkInterface_ = NULL;
 		initNetwork();
-		pNetworkInterface_->connectTo(baseappIP_, baseappUdpPort_ > 0 ? baseappUdpPort_ : baseappTcpPort_, this, 2);
+		pNetworkInterface_->connectTo(baseappIP_, (!pArgs_->forceDisableUDP && baseappUdpPort_ > 0) ? baseappUdpPort_ : baseappTcpPort_, this, 2);
 	}
 	else
 	{
@@ -743,7 +767,7 @@ void KBEngineApp::reloginBaseapp()
 	UKBEventData_onReloginBaseapp* pEventData = NewObject<UKBEventData_onReloginBaseapp>();
 	KBENGINE_EVENT_FIRE("KBEngineApp::reloginBaseapp(): onReloginBaseapp", pEventData);
 
-	pNetworkInterface_->connectTo(baseappIP_, baseappUdpPort_ > 0 ? baseappUdpPort_ : baseappTcpPort_, this, 3);
+	pNetworkInterface_->connectTo(baseappIP_, (!pArgs_->forceDisableUDP && baseappUdpPort_ > 0) ? baseappUdpPort_ : baseappTcpPort_, this, 3);
 }
 
 void KBEngineApp::onReloginTo_baseapp_callback(FString ip, uint16 port, bool success)

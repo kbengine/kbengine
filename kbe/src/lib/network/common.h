@@ -56,6 +56,10 @@ extern uint32 g_rudp_missAcksResend;
 extern bool g_rudp_congestionControl;
 extern bool g_rudp_nodelay;
 
+// Certificate file required for HTTPS/WSS/SSL communication
+extern std::string g_sslCertificate;
+extern std::string g_sslPrivateKey;
+
 // 不做通道超时检查
 #define CLOSE_CHANNEL_INACTIVITIY_DETECTION()										\
 {																					\
@@ -415,6 +419,7 @@ extern uint32						g_intSentWindowBytesOverflow;
 extern uint32						g_extSentWindowBytesOverflow;
 
 bool initializeWatcher();
+bool initialize();
 void finalise(void);
 
 }

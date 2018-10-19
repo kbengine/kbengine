@@ -1442,7 +1442,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 		}
 
 		std::string readName;
-		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\n", className);
+		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\npublic:\n", className);
 
 		bool isFixedType = strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0 ||
 			strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0;
@@ -2464,15 +2464,15 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 							pDataType->aliasName(), pMethodDescription->getName(), i);
 
 						fileBody() += fmt::format("\t\t\t((DATATYPE_{}*)pMethod->args[{}])->createFromStreamEx(stream, {}_arg{});\n",
-							pDataType->aliasName(), (i - 1), pDataType->aliasName(), pMethodDescription->getName(), i);
+							pDataType->aliasName(), (i - 1), pMethodDescription->getName(), i);
 					}
 					else
 					{
 						fileBody() += fmt::format("\t\t\t{} {}_arg{};\n",
 							typestr, pMethodDescription->getName(), i);
 
-						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}]).createFromStreamEx(stream, {} {}_arg{});\n",
-							typeID, (i - 1), typestr, pMethodDescription->getName(), i);
+						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}]).createFromStreamEx(stream, {}_arg{});\n",
+							typeID, (i - 1), pMethodDescription->getName(), i);
 					}
 				}
 				else
@@ -2636,7 +2636,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 
-	if (clientPropertys.size() > 0)
+	//if (clientPropertys.size() > 0)
 	{
 		fileBody() += fmt::format("\t\tswitch(pProp->properUtype)\n\t\t{{\n");
 
@@ -2677,7 +2677,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 				{
 					fileBody() += fmt::format("\t\t\tcase {}:\n\t\t\t{{\n", pPropertyDescription->getUType());
 					fileBody() += fmt::format("\t\t\t\tstream.readUint32();\n");
-					fileBody() += fmt::format("\t\t\t\tbreak;\n\t\t}}\n");
+					fileBody() += fmt::format("\t\t\t\tbreak;\n\t\t\t}}\n");
 					continue;
 				}
 				else

@@ -66,6 +66,14 @@ port(htons(portArg))
 } 
 
 //-------------------------------------------------------------------------------------
+Address::Address(const Address& addr) :
+ip(addr.ip),
+port(addr.port)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
 Address::~Address()
 {
 }
@@ -120,7 +128,7 @@ int Address::string2ip(const char * string, u_int32_t & address)
 {
 	u_int32_t	trial;
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	if (inet_aton(string, (struct in_addr*)&trial) != 0)
 #else
 	if ((trial = inet_addr(string)) != INADDR_NONE)

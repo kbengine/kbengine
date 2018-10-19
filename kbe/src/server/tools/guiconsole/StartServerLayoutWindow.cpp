@@ -202,7 +202,7 @@ void CStartServerLayoutWindow::OnBnClickedButton1()
 
 	if (0 == m_ip.GetAddress(ips[0],ips[1],ips[2],ips[3]))
 	{
-		AfxMessageBox(L"address is error!");
+		AfxMessageBox(L"address error!");
 		return;
 	}
 	

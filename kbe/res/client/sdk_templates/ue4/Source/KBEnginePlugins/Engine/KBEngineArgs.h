@@ -27,10 +27,14 @@ public:
 	// 客户端类型
 	// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 	EKCLIENT_TYPE clientType;
+	NETWORK_ENCRYPT_TYPE  networkEncryptType;
 
 	int syncPlayerMS;
 	bool useAliasEntityID;
 	bool isOnInitCallPropertysSetMethods;
+
+	// 强制禁用UDP通讯
+	bool forceDisableUDP;
 
 	// 心跳频率（tick数）
 	int serverHeartbeatTick;
@@ -42,4 +46,5 @@ public:
 	// 接收缓冲区大小
 	MessageLengthEx TCP_RECV_BUFFER_MAX;
 	MessageLengthEx UDP_RECV_BUFFER_MAX;
+
 };

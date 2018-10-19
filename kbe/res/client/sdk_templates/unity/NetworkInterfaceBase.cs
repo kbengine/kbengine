@@ -31,6 +31,7 @@
 		protected Socket _socket = null;
 		protected PacketReceiverBase _packetReceiver = null;
 		protected PacketSenderBase _packetSender = null;
+        protected EncryptionFilter _filter = null;
 
 		public bool connected = false;
 		
@@ -66,6 +67,7 @@
 		{
 			_packetReceiver = null;
 			_packetSender = null;
+			_filter = null;
 			connected = false;
 
 			if(_socket != null)
@@ -92,7 +94,7 @@
 			{
 				_socket.Close(0);
 				_socket = null;
-				Event.fireAll("onDisconnected", new object[]{});
+				Event.fireAll(EventOutTypes.onDisconnected);
             }
 
             _socket = null;
@@ -137,7 +139,7 @@
 				Dbg.ERROR_MSG(string.Format("NetworkInterfaceBase::_onConnectionState(), connect error! ip: {0}:{1}, err: {2}", state.connectIP, state.connectPort, state.error));
 			}
 
-			Event.fireAll("onConnectionState", new object[] { success });
+			Event.fireAll(EventOutTypes.onConnectionState, success);
 
 			if (state.connectCB != null)
 				state.connectCB(state.connectIP, state.connectPort, success, state.userData);
@@ -236,7 +238,10 @@
 			if (_packetSender == null)
 				_packetSender = createPacketSender();
 
-			return _packetSender.send(stream);
+            if (_filter != null)
+                return _filter.send(_packetSender, stream);
+
+            return _packetSender.send(stream);
 		}
 
 		public virtual void process()
@@ -247,5 +252,16 @@
 			if (_packetReceiver != null)
 				_packetReceiver.process();
 		}
-	}
+
+
+        public EncryptionFilter fileter()
+        {
+            return _filter;
+        }
+
+        public void setFilter(EncryptionFilter filter)
+        {
+            _filter = filter;
+        }
+    }
 }

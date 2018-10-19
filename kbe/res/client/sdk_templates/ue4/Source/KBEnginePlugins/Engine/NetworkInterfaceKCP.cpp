@@ -1,7 +1,7 @@
 
 #include "NetworkInterfaceKCP.h"
-#include "PacketReceiver.h"
-#include "PacketSender.h"
+#include "PacketReceiverBase.h"
+#include "PacketSenderBase.h"
 #include "MemoryStream.h"
 #include "KBEvent.h"
 #include "KBDebug.h"
@@ -37,7 +37,7 @@ void NetworkInterfaceKCP::close()
 
 bool NetworkInterfaceKCP::valid()
 {
-	return socket_ != NULL;
+	return socket_ && (pKCP() || connectCB_);
 }
 
 bool NetworkInterfaceKCP::initKCP()
@@ -83,12 +83,12 @@ FSocket* NetworkInterfaceKCP::createSocket(const FString& socketDescript)
 	return ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(NAME_DGram, socketDescript, false);
 }
 
-PacketSender* NetworkInterfaceKCP::createPacketSender()
+PacketSenderBase* NetworkInterfaceKCP::createPacketSender()
 {
 	return new PacketSenderKCP(this);
 }
 
-PacketReceiver* NetworkInterfaceKCP::createPacketReceiver()
+PacketReceiverBase* NetworkInterfaceKCP::createPacketReceiver()
 {
 	return new PacketReceiverKCP(this);
 }
@@ -166,7 +166,6 @@ void NetworkInterfaceKCP::tickConnecting()
 	}
 	else
 	{
-		// 如果连接超时则回调失败
 		double currTime = getTimeSeconds();
 		if (currTime - startTime_ > 30)
 		{

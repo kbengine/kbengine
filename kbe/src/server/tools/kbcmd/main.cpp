@@ -89,6 +89,25 @@ using namespace KBEngine;
 		continue; \
 	} \
 
+#define PARSE_COMMAND_ARG_DO_FUNC_RETURN(NAME, EXEC)	\
+	cmd = argv[argIdx];	\
+	findcmd = NAME;	\
+	fi1 = cmd.find(findcmd); \
+	if (fi1 != std::string::npos)	\
+	{	\
+		cmd.erase(fi1, findcmd.size());	\
+		try \
+		{ \
+			return EXEC; \
+		} \
+		catch (...) \
+		{ \
+			ERROR_MSG("parseCommandArgs: "#NAME"? invalid, no set! type is uint64\n"); \
+		} \
+		\
+		continue; \
+	} \
+
 #define PARSE_COMMAND_ARG_GET_VALUE(NAME, VAL)	\
 	cmd = argv[argIdx];	\
 	findcmd = NAME;	\
@@ -203,6 +222,18 @@ int process_make_client_sdk(int argc, char* argv[], const std::string clientType
 	return ret;
 }
 
+int process_getuid(int argc, char* argv[])
+{
+	if (getUserUID() == 0)
+	{
+		autoFixUserDigestUID();
+	}
+
+	setenv("UID", fmt::format("{}", getUserUID()).c_str(), 1);
+	printf("%s", fmt::format("{}", getUserUID()).c_str());
+	return getUserUID();
+}
+
 int process_help(int argc, char* argv[])
 {
 	printf("Usage:\n");
@@ -211,6 +242,8 @@ int process_help(int argc, char* argv[])
 	printf("\tkbcmd.exe --clientsdk=unity --outpath=c:/unity_kbesdk\n");
 	printf("\tkbcmd.exe --clientsdk=ue4 --outpath=c:/unity_kbesdk\n");
 	printf("\tkbcmd.exe --clientsdk=ue4 --outpath=c:/unity_kbesdk --KBE_ROOT=\"*\"  --KBE_RES_PATH=\"*\"  --KBE_BIN_PATH=\"*\"\n");
+
+	printf("\tkbcmd.exe --getuid\n");
 
 	printf("\n--help:\n");
 	printf("\tDisplay help information.\n");
@@ -231,6 +264,7 @@ int main(int argc, char* argv[])
 
 	PARSE_COMMAND_ARG_BEGIN();
 	PARSE_COMMAND_ARG_DO_FUNC("--clientsdk=", process_make_client_sdk(argc, argv, cmd));
+	PARSE_COMMAND_ARG_DO_FUNC_RETURN("--getuid", process_getuid(argc, argv));
 	PARSE_COMMAND_ARG_DO_FUNC("--help", process_help(argc, argv));
 	PARSE_COMMAND_ARG_END();
 

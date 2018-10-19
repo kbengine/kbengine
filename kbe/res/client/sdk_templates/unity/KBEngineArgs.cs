@@ -16,11 +16,14 @@
 		// 客户端类型
 		// Reference: http://www.kbengine.org/docs/programming/clientsdkprogramming.html, client types
 		public KBEngineApp.CLIENT_TYPE clientType = KBEngineApp.CLIENT_TYPE.CLIENT_TYPE_MINI;
-		
-		// Allow synchronization role position information to the server
-		// 是否开启自动同步玩家信息到服务端，信息包括位置与方向，毫秒
-		// 非高实时类游戏不需要开放这个选项
-		public int syncPlayerMS = 100;
+
+        //加密通信类型
+        public KBEngineApp.NETWORK_ENCRYPT_TYPE networkEncryptType = KBEngineApp.NETWORK_ENCRYPT_TYPE.ENCRYPT_TYPE_NONE;
+
+        // Allow synchronization role position information to the server
+        // 是否开启自动同步玩家信息到服务端，信息包括位置与方向，毫秒
+        // 非高实时类游戏不需要开放这个选项
+        public int syncPlayerMS = 100;
 
 		// 是否使用别名机制
 		// 这个参数的选择必须与kbengine_defs.xml::cellapp/aliasEntityID的参数保持一致
@@ -43,6 +46,9 @@
 		// 只在多线程模式启用
 		// 线程主循环处理频率
 		public int threadUpdateHZ = @{KBE_UPDATEHZ};
+
+		// 强制禁用UDP通讯
+		public bool forceDisableUDP = false;
 
 		// 心跳频率（tick数）
 		public int serverHeartbeatTick = 15;

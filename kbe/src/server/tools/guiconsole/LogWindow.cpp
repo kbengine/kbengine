@@ -371,7 +371,7 @@ void CLogWindow::pullLogs(KBEngine::Network::Address addr)
 	Network::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
-		::AfxMessageBox(L"logger is error!");
+		::AfxMessageBox(L"logger error!");
 		return;
 	}
 
@@ -667,7 +667,7 @@ void CLogWindow::updateSettingToServer()
 	Network::Channel* pChannel = dlg->networkInterface().findChannel(addr);
 	if(pChannel == NULL)
 	{
-		::AfxMessageBox(L"logger is error!");
+		::AfxMessageBox(L"logger error!");
 		Network::Bundle::reclaimPoolObject(pBundle);
 		return;
 	}
