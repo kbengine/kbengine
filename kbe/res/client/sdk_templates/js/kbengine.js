@@ -2618,7 +2618,8 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		KBEngine.app.currserver = "loginapp";
 		KBEngine.app.currstate = "create";
-		
+		KBEngine.app.currconnect = "loginapp";
+
 		// 扩展数据
 		KBEngine.app.serverdatas = "";
 		
@@ -2717,7 +2718,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		}
 		catch(e)
 		{  
-			KBEngine.ERROR_MSG('WebSocket init error(' + e.toString() + ')!');   
+			KBEngine.ERROR_MSG('WebSocket init error(' + e.toString() + ')!'); 
 			KBEngine.Event.fire("onConnectionState", false);
 			return;  
 		}
@@ -2794,6 +2795,10 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.onclose = function()
 	{  
 		KBEngine.INFO_MSG('connect close:' + KBEngine.app.currserver);
+
+		if(KBEngine.app.currconnect != KBEngine.app.currserver)
+			return;
+
 		KBEngine.app.resetSocket();
 		KBEngine.Event.fire("onDisconnected");
 		//if(KBEngine.app.currserver != "loginapp")
@@ -3340,6 +3345,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(noconnect)
 		{
 			KBEngine.INFO_MSG("KBEngineApp::createAccount_loginapp: start connect to ws://" + KBEngine.app.ip + ":" + KBEngine.app.port + "!");
+			KBEngine.app.currconnect = "loginapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.ip + ":" + KBEngine.app.port);
 			KBEngine.app.socket.onopen = KBEngine.app.onOpenLoginapp_createAccount;  
 		}
@@ -3398,6 +3404,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(noconnect)
 		{
 			KBEngine.INFO_MSG("KBEngineApp::login_loginapp: start connect to ws://" + KBEngine.app.ip + ":" + KBEngine.app.port + "!");
+			KBEngine.app.currconnect = "loginapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.ip + ":" + KBEngine.app.port);
 			KBEngine.app.socket.onopen = KBEngine.app.onOpenLoginapp_login;  
 		}
@@ -3445,6 +3452,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(noconnect)
 		{
 			KBEngine.INFO_MSG("KBEngineApp::createAccount_loginapp: start connect to ws://" + KBEngine.app.ip + ":" + KBEngine.app.port + "!");
+			KBEngine.app.currconnect = "loginapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.ip + ":" + KBEngine.app.port);
 			KBEngine.app.socket.onopen = KBEngine.app.onOpenLoginapp_resetpassword;  
 		}
@@ -3482,6 +3490,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		{
 			KBEngine.Event.fire("onLoginBaseapp");
 			KBEngine.INFO_MSG("KBEngineApp::login_baseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort + "!");
+			KBEngine.app.currconnect = "baseapp";
 			KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort);
 			
 			if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
@@ -3509,6 +3518,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.app.resetSocket();
 		KBEngine.Event.fire("onReloginBaseapp");
 		KBEngine.INFO_MSG("KBEngineApp::reloginBaseapp: start connect to ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort + "!");
+		KBEngine.app.currconnect = "baseapp";
 		KBEngine.app.connect("ws://" + KBEngine.app.baseappIp + ":" + KBEngine.app.baseappPort);
 		
 		if(KBEngine.app.socket != undefined && KBEngine.app.socket != null)
@@ -4711,4 +4721,5 @@ catch(e)
 {
 	
 }
+
 
