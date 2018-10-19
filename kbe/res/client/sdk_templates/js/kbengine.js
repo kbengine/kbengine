@@ -2744,14 +2744,14 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 	this.onerror_before_onopen = function(evt)
 	{  
-		KBEngine.ERROR_MSG('connect error:' + evt.data);
+		KBEngine.ERROR_MSG('onerror_before_onopen error:' + evt.data);
 		KBEngine.app.resetSocket();
 		KBEngine.Event.fire("onConnectionState", false);
 	}
 	
 	this.onerror_after_onopen = function(evt)
 	{
-		KBEngine.ERROR_MSG('connect error:' + evt.data);
+		KBEngine.ERROR_MSG('onerror_after_onopen error:' + evt.data);
 		KBEngine.app.resetSocket();
 		KBEngine.Event.fire("onDisconnected");
 	}
