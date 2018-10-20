@@ -555,16 +555,7 @@ bool ClientSDKUE4::writeEntityDefsModuleBegin()
 	for (; iter != modules.end(); ++iter)
 	{
 		if (!iter->get()->hasClient())
-		{
-			// 如果是一个entity，不需要不需要产生代码
-			if (!iter->get()->isComponentModule())
-				continue;
-
-			// 如果是组件， 并且服务器上没有脚本或者exposed方法不需要产生代码
-			if((!iter->get()->hasBase() && iter->get()->getBaseExposedMethodDescriptions().size() == 0) &&
-				(!iter->get()->hasCell() && iter->get()->getCellExposedMethodDescriptions().size() == 0))
-				continue;
-		}
+			continue;
 
 		++numEntity;
 
