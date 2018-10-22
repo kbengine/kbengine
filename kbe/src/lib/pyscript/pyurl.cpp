@@ -141,7 +141,7 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 		}
 		else
 		{
-			PyErr_Format(PyExc_AssertionError, "KBEngine::urlopen: args3 is not postData_bytes or callback!");
+			PyErr_Format(PyExc_AssertionError, "KBEngine::urlopen: args3 is not postData(bytes) or callback(method)!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
