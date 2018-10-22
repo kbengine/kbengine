@@ -214,21 +214,21 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 
 	if (map_headers.size() > 0)
 	{
-		Network::Http::Request::Status ret = pRequest->setHeader(map_headers);
-		if (Network::Http::Request::OK != ret)
-			return PyLong_FromLong(ret);
+		Network::Http::Request::Status result = pRequest->setHeader(map_headers);
+		if (Network::Http::Request::OK != result)
+			return PyLong_FromLong(result);
 	}
 
 	if (postDataLength > 0 && postData)
 	{
-		Network::Http::Request::Status ret = pRequest->setPostData(postData, postDataLength);
-		if (Network::Http::Request::OK != ret)
-			return PyLong_FromLong(ret);
+		Network::Http::Request::Status result = pRequest->setPostData(postData, postDataLength);
+		if (Network::Http::Request::OK != result)
+			return PyLong_FromLong(result);
 	}
 
-	Network::Http::Request::Status ret = pRequest->setURL(surl);
-	if (Network::Http::Request::OK != ret)
-		return PyLong_FromLong(ret);
+	Network::Http::Request::Status result = pRequest->setURL(surl);
+	if (Network::Http::Request::OK != result)
+		return PyLong_FromLong(result);
 
 	return PyLong_FromLong(Network::Http::perform(pRequest));
 }
