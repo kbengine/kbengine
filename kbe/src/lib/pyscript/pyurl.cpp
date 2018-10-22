@@ -237,7 +237,9 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 
 	if (postDataLength > 0 && postData)
 	{
-		pRequest->setPostData(postData, postDataLength);
+		Network::Http::Request::Status ret = pRequest->setPostData(postData, postDataLength);
+		if (Network::Http::Request::OK != ret)
+			return PyLong_FromLong(ret);
 	}
 
 	pRequest->setURL(surl);
