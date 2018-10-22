@@ -214,7 +214,9 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 
 	if (map_headers.size() > 0)
 	{
-		pRequest->setHeader(map_headers);
+		Network::Http::Request::Status ret = pRequest->setHeader(map_headers);
+		if (Network::Http::Request::OK != ret)
+			return PyLong_FromLong(ret);
 	}
 
 	if (postDataLength > 0 && postData)
@@ -224,7 +226,10 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 			return PyLong_FromLong(ret);
 	}
 
-	pRequest->setURL(surl);
+	Network::Http::Request::Status ret = pRequest->setURL(surl);
+	if (Network::Http::Request::OK != ret)
+		return PyLong_FromLong(ret);
+
 	return PyLong_FromLong(Network::Http::perform(pRequest));
 }
 
