@@ -295,6 +295,9 @@ Request::Status Request::setPostData(const void* data, unsigned int size)
 	}
 	else
 	{
+		if (!postData_)
+			postData_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+
 		postData_->clear(false);
 		postData_->append((uint8*)data, size);
 		curlCode = curl_easy_setopt((CURL*)pContext_, CURLOPT_POSTFIELDS, postData_->data());
