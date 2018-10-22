@@ -83,7 +83,7 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 	else if (argCount == 3)
 	{
 		PyObject* pyobj = NULL;
-		ret = PyArg_ParseTuple(args, "s|O|O", &surl, &pyCallback, pyobj);
+		ret = PyArg_ParseTuple(args, "s|O|O", &surl, &pyCallback, &pyobj);
 
 		// 检查是headers还是post data
 		if (PyDict_Check(pyobj))
@@ -132,7 +132,7 @@ PyObject* PyUrl::__py_urlopen(PyObject* self, PyObject* args)
 	{
 		PyObject* pypost = NULL;
 		PyObject* pyheaders = NULL;
-		ret = PyArg_ParseTuple(args, "s|O|O|O", &surl, &pyCallback, pypost, pyheaders);
+		ret = PyArg_ParseTuple(args, "s|O|O|O", &surl, &pyCallback, &pypost, &pyheaders);
 
 		// 检查是headers还是post data
 		if (PyDict_Check(pyheaders))
