@@ -478,6 +478,11 @@ void Entity::addPersistentsDataToStream(uint32 flags, MemoryStream* s)
 					// 一些实体没有cell部分， 因此cell属性忽略
 					if (cellDataDict_)
 					{
+						// 一些组件可能没有cell属性
+						EntityComponentType* pEntityComponentType = (EntityComponentType*)propertyDescription->getDataType();
+						if (pEntityComponentType->pScriptDefModule()->getCellPropertyDescriptions().size() == 0)
+							continue;
+
 						PyObject* pyVal = PyDict_GetItemString(cellDataDict_, attrname);
 						if (!propertyDescription->isSamePersistentType(pyVal))
 						{
