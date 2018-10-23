@@ -438,7 +438,7 @@ std::string Resmgr::getPySysResPath()
 	{
 		respath = matchRes("server/kbengine_defaults.xml");
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine_defaults.xml");
+		KBEngine::strutil::kbe_splits(respath, "server/kbengine_defaults.xml", tmpvec);
 
 		if(tmpvec.size() > 1)
 		{
@@ -463,7 +463,7 @@ std::string Resmgr::getPyUserResPath()
 	{
 		respath = matchRes("server/kbengine.xml");
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml");
+		KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml", tmpvec);
 
 		if(tmpvec.size() > 1)
 		{
@@ -500,7 +500,7 @@ std::string Resmgr::getPyUserScriptsPath()
 
 
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(path, entities_xml);
+		KBEngine::strutil::kbe_splits(path, entities_xml, tmpvec);
 		if(tmpvec.size() > 1)
 		{
 			path = tmpvec[0];
