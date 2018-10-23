@@ -1210,6 +1210,7 @@ void Entity::writeToDB(void* data, void* extra1, void* extra2)
 			}
 		}
 	}
+
 	onWriteToDB();
 	backupCellData();
 
