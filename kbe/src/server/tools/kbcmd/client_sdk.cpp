@@ -277,7 +277,7 @@ bool ClientSDK::create(const std::string& path)
 
 	currHeaderPath_ = currSourcePath_ = basepath_;
 
-	std::string findpath = "client/sdk_templates/" + name();
+	std::string findpath = "sdk_templates/client/" + name();
 
 	std::string getpath = Resmgr::getSingleton().matchPath(findpath);
 
@@ -353,7 +353,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 	if (!Resmgr::getSingleton().listPathRes(sourcePath, L"*", results))
 		return false;
 
-	wchar_t* wfindpath = strutil::char2wchar(std::string("client/sdk_templates/" + name()).c_str());
+	wchar_t* wfindpath = strutil::char2wchar(std::string("sdk_templates/client/" + name()).c_str());
 	std::wstring findpath = wfindpath;
 	free(wfindpath);
 
