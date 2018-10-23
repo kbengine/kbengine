@@ -91,6 +91,12 @@ public:
 	}
 
 public:
+	void destroy()
+	{
+		detachComponents();
+		onDestroy();
+	}
+
 	virtual void onDestroy()
 	{
 	}
@@ -157,6 +163,16 @@ public:
 	}
 
 	virtual void callPropertysSetMethods()
+	{
+		// 动态生成
+	}
+
+	virtual void attachComponents()
+	{
+		// 动态生成
+	}
+
+	virtual void detachComponents()
 	{
 		// 动态生成
 	}

@@ -49,7 +49,13 @@
 		{
 		}
 		
-		public virtual void onDestroy ()
+		public void destroy()
+		{
+			detachComponents();
+			onDestroy();
+		}
+
+		public virtual void onDestroy()
 		{
 		}
 		
@@ -108,6 +114,16 @@
 			// 动态生成
 		}
 		
+		public virtual void attachComponents()
+		{
+			// 动态生成
+		}
+
+		public virtual void detachComponents()
+		{
+			// 动态生成
+		}
+
 		public void baseCall(string methodname, params object[] arguments)
 		{			
 			if(KBEngineApp.app.currserver == "loginapp")

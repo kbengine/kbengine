@@ -967,6 +967,7 @@
 				}
 				
 				entity.__init__();
+				entity.attachComponents();
 				entity.inited = true;
 				
 				if(_args.isOnInitCallPropertysSetMethods)
@@ -1160,6 +1161,7 @@
 				entity.onPositionChanged(entity.position);
 								
 				entity.__init__();
+				entity.attachComponents();
 				entity.inited = true;
 				entity.inWorld = true;
 				entity.enterWorld();
@@ -1230,7 +1232,7 @@
 					Event.fireOut(EventOutTypes.onLoseControlledEntity, entity);
 
 				entities.Remove(eid);
-				entity.onDestroy();
+				entity.destroy();
 				_entityIDAliasIDList.Remove(eid);
 			}
 		}
@@ -1486,7 +1488,7 @@
 					if(dic.Value.inWorld)
 						dic.Value.leaveWorld();
 					
-				    dic.Value.onDestroy();
+				    dic.Value.destroy();
 				}  
 		
 				entities.Clear();
@@ -1499,7 +1501,7 @@
 					if(dic.Value.inWorld)
 						dic.Value.leaveWorld();
 
-				    dic.Value.onDestroy();
+				    dic.Value.destroy();
 				}  
 		
 				entities.Clear();
@@ -1587,7 +1589,7 @@
 				Event.fireOut(EventOutTypes.onLoseControlledEntity, entity);
 
 			entities.Remove(eid);
-			entity.onDestroy();
+			entity.destroy();
 		}
 		
 		/*
