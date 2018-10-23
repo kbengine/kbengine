@@ -2014,7 +2014,7 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 	
 	if(res_.size() != 2)
 	{
-		ERROR_MSG(fmt::format("FixedDictType::loadImplModule: {} impl error! like:[moduleName.inst]\n",
+		ERROR_MSG(fmt::format("FixedDictType::loadImplModule: {} impl error! like:[moduleName.ClassName|moduleName.xxInstance]\n",
 			moduleName.c_str()));
 
 		return false;
@@ -2036,6 +2036,19 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		return false;
 	}
 
+	if (PyType_Check(implObj_))
+	{
+		PyObject* implClass = implObj_;
+		implObj_ = PyObject_CallObject(implClass, NULL);
+		Py_DECREF(implClass);
+
+		if (!implObj_)
+		{
+			SCRIPT_ERROR_CHECK()
+			return false;
+		}
+	}
+
 	pycreateObjFromDict_ = PyObject_GetAttrString(implObj_, "createObjFromDict");
 	if (!pycreateObjFromDict_)
 	{
@@ -2043,7 +2056,6 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		return false;
 	}
 	
-
 	pygetDictFromObj_ = PyObject_GetAttrString(implObj_, "getDictFromObj");
 	if (!pygetDictFromObj_)
 	{
