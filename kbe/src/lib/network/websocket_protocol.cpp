@@ -72,7 +72,7 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 	}
 
 	std::vector<std::string> header_and_data;
-	header_and_data = KBEngine::strutil::kbe_splits(data, "\r\n\r\n");
+	KBEngine::strutil::kbe_splits(data, "\r\n\r\n", header_and_data);
 	
 	if(header_and_data.size() != 2)
 	{
@@ -102,7 +102,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	(*s) >> data;
 
 	std::vector<std::string> header_and_data;
-	header_and_data = KBEngine::strutil::kbe_splits(data, "\r\n\r\n");
+	KBEngine::strutil::kbe_splits(data, "\r\n\r\n", header_and_data);
 	
 	if(header_and_data.size() != 2)
 	{
@@ -114,7 +114,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	KBEUnordered_map<std::string, std::string> headers;
 	std::vector<std::string> values;
 	
-	values = KBEngine::strutil::kbe_splits(header_and_data[0], "\r\n");
+	KBEngine::strutil::kbe_splits(header_and_data[0], "\r\n", values);
 	std::vector<std::string>::iterator iter = values.begin();
 
 	for (; iter != values.end(); ++iter)

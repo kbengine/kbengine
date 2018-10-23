@@ -2268,7 +2268,7 @@ bool ClientSDKUnity::writeEntityProperty_ARRAY(ScriptDefModule* pEntityScriptDef
 
 		bool ret = writeTypeItemType_ARRAY(pPropertyDescription->getName(), pPropertyDescription->getDataType()->aliasName(), pPropertyDescription->getDataType());
 		std::vector<std::string> values;
-		values = KBEngine::strutil::kbe_splits(sourcefileBody_, " ");
+		KBEngine::strutil::kbe_splits(sourcefileBody_, " ", values);
 		sourcefileBody_ = s + sourcefileBody_;
 
 		std::string name = pPropertyDescription->getName();
