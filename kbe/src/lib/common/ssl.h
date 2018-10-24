@@ -18,8 +18,9 @@ public:
 
 	/**
 		是否为Https/Wss协议
+		返回具体协议版本
 	*/
-	static bool isSSLProtocal(MemoryStream* s);
+	static int isSSLProtocal(MemoryStream* s);
 
 };
 

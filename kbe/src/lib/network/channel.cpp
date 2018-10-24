@@ -1033,10 +1033,11 @@ bool Channel::handshake(Packet* pPacket)
 
 	if (protocoltype_ == PROTOCOL_TCP)
 	{
-		if (KB_SSL::isSSLProtocal(pPacket))
+		int sslVersion = KB_SSL::isSSLProtocal(pPacket);
+		if (sslVersion != -1)
 		{
 			// 无论成功和失败都返回true，让外部回收数据包并继续等待握手
-			pEndPoint_->setupSSL();
+			pEndPoint_->setupSSL(sslVersion, pPacket);
 			return true;
 		}
 
