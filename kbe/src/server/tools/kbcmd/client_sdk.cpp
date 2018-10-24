@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "kbcmd.h"
 #include "client_sdk.h"
 #include "client_sdk_unity.h"	
 #include "client_sdk_ue4.h"
@@ -39,89 +40,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr/dbmgr_interface.h"
 #include "loginapp/loginapp_interface.h"
 
-#ifdef _WIN32  
-#include <direct.h>  
-#include <io.h>  
-#elif _LINUX  
-#include <stdarg.h>  
-#include <sys/stat.h>  
-#endif  
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-#define KBE_ACCESS _access  
-#define KBE_MKDIR(a) _mkdir((a))  
-#else
-#define KBE_ACCESS access  
-#define KBE_MKDIR(a) KBE_UNIX_MKDIR((a))  
-
-int KBE_UNIX_MKDIR(const char* a)
-{
-	umask(0);
-	return mkdir((a), 0755);
-}
-#endif  
-
 namespace KBEngine {	
-
-int CreatDir(const char *pDir)
-{
-	int i = 0;
-	int iRet = -1;
-	int iLen = 0;
-	char* pszDir = NULL;
-
-	if (NULL == pDir)
-	{
-		return 0;
-	}
-
-	pszDir = strdup(pDir);
-	iLen = strlen(pszDir);
-
-	// 创建中间目录  
-	for (i = 0; i < iLen; i++)
-	{
-		if (pszDir[i] == '\\' || pszDir[i] == '/')
-		{
-			if (i == 0)
-				continue;
-
-			pszDir[i] = '\0';
-
-			//如果不存在,创建  
-			iRet = KBE_ACCESS(pszDir, 0);
-			if (iRet != 0)
-			{
-				iRet = KBE_MKDIR(pszDir);
-				if (iRet != 0)
-				{
-					ERROR_MSG(fmt::format("CreatDir(): KBE_MKDIR [{}] error! iRet={}\n",
-						pszDir, iRet));
-
-					free(pszDir);
-					return -1;
-				}
-			}
-
-			//支持linux,将所有\换成/  
-			pszDir[i] = '/';
-		}
-	}
-
-	if (iLen > 0 && KBE_ACCESS(pszDir, 0) != 0)
-	{
-		iRet = KBE_MKDIR(pszDir);
-
-		if (iRet != 0)
-		{
-			ERROR_MSG(fmt::format("CreatDir(): KBE_MKDIR [{}] error! iRet={}\n",
-				pszDir, iRet));
-		}
-	}
-
-	free(pszDir);
-	return iRet;
-}
 
 //-------------------------------------------------------------------------------------
 ClientSDK::ClientSDK():
@@ -180,7 +99,7 @@ bool ClientSDK::saveFile()
 
 	if (sourcefileName_.size() > 0)
 	{
-		if (CreatDir(currSourcePath_.c_str()) == -1)
+		if (creatDir(currSourcePath_.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("creating directory error! path={}\n", currSourcePath_));
 			return false;
@@ -223,7 +142,7 @@ bool ClientSDK::saveFile()
 
 	if (headerfileName_.size() > 0)
 	{
-		if (CreatDir(currHeaderPath_.c_str()) == -1)
+		if (creatDir(currHeaderPath_.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("creating directory error! path={}\n", currHeaderPath_));
 			return false;
@@ -347,7 +266,6 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 	wpath = strutil::char2wchar(basepath_.c_str());
 	std::wstring destPath = wpath;
 	free(wpath);
-	
 
 	std::vector<std::wstring> results;
 	if (!Resmgr::getSingleton().listPathRes(sourcePath, L"*", results))
@@ -399,7 +317,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 		std::string currbasepath = ccattr;
 		free(ccattr);
 
-		if (CreatDir(currbasepath.c_str()) == -1)
+		if (creatDir(currbasepath.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): creating directory error! path={}\n", currbasepath));
 			return false;
