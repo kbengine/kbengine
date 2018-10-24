@@ -38,10 +38,12 @@ KBEngine
 	BBS		: http://bbs.kbengine.org
 	Maillist	: https://groups.google.com/d/forum/kbengine_maillist
 
+
 ## Stresstest
 
 	https://www.youtube.com/watch?v=sWtk3CfxyGY
 	http://v.youku.com/v_show/id_XMjgyMjM0MTYwNA==.html?spm=a2h3j.8428770.3416059.1
+
 
 ## What is KBEngine?
 
@@ -57,6 +59,15 @@ KBEngine
 	architecture has been designed as a multi-process distributed dynamic load balancing solution. In theory, 
 	by continuously expanding the hardware, the upper limit of the load can also be continuously increased. 
 	The upper limit of the capacity of a single machine depends on the complexity of the game logic itself.)
+
+
+## Create a new game asset library
+
+	Execute:
+		new_assets.bat
+
+	Output:
+		server_assets
 
 
 ## 中文
