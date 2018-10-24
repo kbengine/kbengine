@@ -318,6 +318,14 @@ void ScriptDefModule::autoMatchCompOwn()
 			setCell(true);
 		}
 
+		if (!hasClient())
+		{
+			// 如果是组件， 并且服务器上没有脚本或者exposed方法不需要产生代码
+			if ((hasBase() && getBaseExposedMethodDescriptions().size() > 0) ||
+				(hasCell() && getCellExposedMethodDescriptions().size() > 0))
+				setClient(true);
+		}
+
 		return;
 	}
 

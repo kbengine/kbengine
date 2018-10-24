@@ -23,19 +23,19 @@ public:
 	bool uninstall(void);
 	bool isInstall(void) const{ return isInstall_; }
 
-	virtual void error_msg(const wchar_t* msg, uint32 msglen);
-	virtual void info_msg(const wchar_t* msg, uint32 msglen);
+	virtual void error_msg(const char* msg, uint32 msglen);
+	virtual void info_msg(const char* msg, uint32 msglen);
 
 	void pyPrint(const std::string& str);
 
-	INLINE std::wstring& buffer();
+	INLINE std::string& buffer();
 
 protected:
 	ScriptStdErr* pStderr_;
 	ScriptStdOut* pStdout_;
 	PyObject* pyPrint_;
 	bool isInstall_;
-	std::wstring sbuffer_;
+	std::string sbuffer_;
 } ;
 
 }
