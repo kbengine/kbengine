@@ -685,8 +685,8 @@ static long ssl_bio_callback(BIO *bio, int cmd, const char *argp, int argi, long
 		return ret;
 
 	// 类似recv， argi是buffer，argl是buffer长度，这里判断pPacket大于长度返回指定长度，小于长度则返回读取到的长度
-	if (pPacket->length() < argi)
-		argi = pPacket->length();
+	if ((int)pPacket->length() < argi)
+		argi = (int)pPacket->length();
 
 	// 将我们的buffer填充进去
 	if ((cmd & BIO_CB_RETURN) > 0)
