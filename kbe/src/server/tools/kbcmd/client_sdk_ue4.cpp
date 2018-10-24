@@ -2228,7 +2228,6 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	
 	fileBody() += fmt::format("\n{}::~{}()\n{{\n", newModuleName, newModuleName);
 
-
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
@@ -2252,7 +2251,53 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	fileBody() += fmt::format("\tif(pCellEntityCall)\n");
 	fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
 
-	fileBody() += "}\n\n";
+	fileBody() += "}\n";
+
+	// attach组件
+	changeContextToHeader();
+	fileBody() += fmt::format("\n\tvoid attachComponents() override;\n");
+
+	changeContextToSource();
+	fileBody() += fmt::format("\n{}::attachComponents()\n{{\n", newModuleName);
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			fileBody() += fmt::format("\t{}->onAttached(this);\n", pPropertyDescription->getName());
+		}
+	}
+
+	fileBody() += fmt::format("}}\n");
+
+	// detach组件
+	changeContextToHeader();
+	fileBody() += fmt::format("\tvoid detachComponents() override;\n");
+
+	changeContextToSource();
+	fileBody() += fmt::format("\n{}::detachComponents()\n{{\n", newModuleName);
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			fileBody() += fmt::format("\t{}->onDetached(this);\n", pPropertyDescription->getName());
+		}
+	}
+
+	fileBody() += fmt::format("}}\n\n");
 
 	changeContextToHeader();
 	fileBody() += "\n};\n\n";

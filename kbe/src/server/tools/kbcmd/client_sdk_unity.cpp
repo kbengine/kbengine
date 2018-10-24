@@ -1885,6 +1885,41 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 		sourcefileBody_ += "\t\t}\n";
 	}
 
+	// attach/detach组件
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void attachComponents()\n\t\t{{\n");
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+			sourcefileBody_ += fmt::format("\t\t\t{}.onAttached(this);\n", pPropertyDescription->getName());
+		}
+
+		sourcefileBody_ += "\t\t}\n";
+
+		sourcefileBody_ += fmt::format("\n\t\tpublic override void detachComponents()\n\t\t{{\n");
+		propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
+			sourcefileBody_ += fmt::format("\t\t\t{}.onDetached(this);\n", pPropertyDescription->getName());
+		}
+
+		sourcefileBody_ += "\t\t}\n";
+	}
+
 	// 处理方法
 	if (!pEntityScriptDefModule->isComponentModule())
 		sourcefileBody_ += fmt::format("\n\t\tpublic override void onRemoteMethodCall(MemoryStream stream)\n\t\t{{\n");
