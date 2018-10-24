@@ -215,6 +215,7 @@
     <ClCompile Include="kbcmd_interface.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="profile.cpp" />
+    <ClCompile Include="server_assets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client_sdk.h" />
@@ -224,6 +225,7 @@
     <ClInclude Include="kbcmd_interface.h" />
     <ClInclude Include="kbcmd_interface_macros.h" />
     <ClInclude Include="profile.h" />
+    <ClInclude Include="server_assets.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

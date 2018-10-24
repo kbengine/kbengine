@@ -18,30 +18,37 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KBE_SSL_H
-#define KBE_SSL_H
+#ifndef KBE_SERVER_ASSETS_H
+#define KBE_SERVER_ASSETS_H
 
 #include "common/common.h"
+#include "helper/debug_helper.h"
+#include "network/message_handler.h"
 
-namespace KBEngine
-{
+namespace KBEngine{
 
-class MemoryStream;
-
-class KB_SSL
+class ServerAssets
 {
 public:
-	static bool initialize();
-	static void finalise();
+	ServerAssets();
+	virtual ~ServerAssets();
 
-	/**
-		是否为Https/Wss协议
-		返回具体协议版本
-	*/
-	static int isSSLProtocal(MemoryStream* s);
+	virtual bool good() const;
+
+	virtual bool create(const std::string& path);
+
+	static ServerAssets* createServerAssets(const std::string& type);
+
+	virtual std::string name() const {
+		return "python_assets";
+	}
+
+	virtual bool copyAssetsSourceToPath(const std::string& path);
+
+protected:
+	std::string basepath_;
 
 };
 
 }
-
-#endif // KBE_SSL_H
+#endif
