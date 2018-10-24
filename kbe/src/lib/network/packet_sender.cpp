@@ -31,6 +31,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.h"
 #include "network/network_interface.h"
 #include "network/event_poller.h"
+#include <openssl/err.h>
 
 namespace KBEngine { 
 namespace Network
@@ -135,6 +136,15 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 			}
 		}
 #endif
+
+	if (err == 0 && pEndpoint->isSSL())
+	{
+		long sslerr = ERR_get_error();
+		if (sslerr > 0)
+		{
+			return REASON_WEBSOCKET_ERROR;
+		}
+	}
 
 	return reason;
 }

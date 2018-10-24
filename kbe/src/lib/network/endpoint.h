@@ -133,7 +133,7 @@ public:
 
 	bool waitSend();
 
-	bool setupSSL();
+	bool setupSSL(int sslVersion, Packet* pPacket);
 	bool destroySSL();
 
 	bool isSSL() const {
