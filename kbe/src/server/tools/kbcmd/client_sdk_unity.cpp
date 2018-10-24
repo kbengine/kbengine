@@ -1898,7 +1898,6 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
 				continue;
 
-			EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
 			sourcefileBody_ += fmt::format("\t\t\t{}.onAttached(this);\n", pPropertyDescription->getName());
 		}
 
@@ -1913,7 +1912,6 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
 				continue;
 
-			EntityComponentType * pEntityComponentType = (EntityComponentType*)pPropertyDescription->getDataType();
 			sourcefileBody_ += fmt::format("\t\t\t{}.onDetached(this);\n", pPropertyDescription->getName());
 		}
 

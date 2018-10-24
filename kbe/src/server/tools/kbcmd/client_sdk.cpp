@@ -81,7 +81,7 @@ bool ClientSDK::saveFile()
 
 	if (sourcefileName_.size() > 0)
 	{
-		if (creatDir(currSourcePath_.c_str()) == -1)
+		if (KBCMD::creatDir(currSourcePath_.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("creating directory error! path={}\n", currSourcePath_));
 			return false;
@@ -124,7 +124,7 @@ bool ClientSDK::saveFile()
 
 	if (headerfileName_.size() > 0)
 	{
-		if (creatDir(currHeaderPath_.c_str()) == -1)
+		if (KBCMD::creatDir(currHeaderPath_.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("creating directory error! path={}\n", currHeaderPath_));
 			return false;
@@ -299,7 +299,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 		std::string currbasepath = ccattr;
 		free(ccattr);
 
-		if (creatDir(currbasepath.c_str()) == -1)
+		if (KBCMD::creatDir(currbasepath.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): creating directory error! path={}\n", currbasepath));
 			return false;
