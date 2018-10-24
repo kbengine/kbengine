@@ -61,8 +61,7 @@ KBEngine
 
 ## Create a new game asset library
 
-	Enter on the command line:
-		cd kbengine
+	Execute:
 		new_assets.bat
 
 	Output:
