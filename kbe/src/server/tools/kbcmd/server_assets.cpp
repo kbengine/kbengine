@@ -155,7 +155,7 @@ bool ServerAssets::copyAssetsSourceToPath(const std::string& path)
 		std::string currbasepath = ccattr;
 		free(ccattr);
 
-		if (creatDir(currbasepath.c_str()) == -1)
+		if (KBCMD::creatDir(currbasepath.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("ServerAssets::copyAssetsSourceToPath(): creating directory error! path={}\n", currbasepath));
 			return false;
