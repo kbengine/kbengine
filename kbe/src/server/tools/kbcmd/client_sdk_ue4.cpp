@@ -2254,13 +2254,14 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	fileBody() += "}\n";
 
 	// attach组件
-	changeContextToHeader();
-	fileBody() += fmt::format("\n\tvoid attachComponents() override;\n");
-
-	changeContextToSource();
-	fileBody() += fmt::format("\n{}::attachComponents()\n{{\n", newModuleName);
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\n\tvoid attachComponents() override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::attachComponents()\n{{\n", newModuleName);
+
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
 		for (; propIter != clientPropertys.end(); ++propIter)
@@ -2272,18 +2273,19 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 
 			fileBody() += fmt::format("\t{}->onAttached(this);\n", pPropertyDescription->getName());
 		}
+
+		fileBody() += fmt::format("}}\n");
 	}
 
-	fileBody() += fmt::format("}}\n");
-
 	// detach组件
-	changeContextToHeader();
-	fileBody() += fmt::format("\tvoid detachComponents() override;\n");
-
-	changeContextToSource();
-	fileBody() += fmt::format("\n{}::detachComponents()\n{{\n", newModuleName);
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\tvoid detachComponents() override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::detachComponents()\n{{\n", newModuleName);
+
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
 		for (; propIter != clientPropertys.end(); ++propIter)
@@ -2295,9 +2297,9 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 
 			fileBody() += fmt::format("\t{}->onDetached(this);\n", pPropertyDescription->getName());
 		}
-	}
 
-	fileBody() += fmt::format("}}\n\n");
+		fileBody() += fmt::format("}}\n\n");
+	}
 
 	changeContextToHeader();
 	fileBody() += "\n};\n\n";

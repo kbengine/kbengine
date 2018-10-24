@@ -14,11 +14,11 @@ public:
 	virtual ~EntityComponent();
 
 public:
-	virtual void onAttached(Entity* pOwner)
+	virtual void onAttached(Entity* pOwnerEntity)
 	{
 	}
 		
-	virtual void onDetached(Entity* pOwner)
+	virtual void onDetached(Entity* pOwnerEntity)
 	{
 	}
 
