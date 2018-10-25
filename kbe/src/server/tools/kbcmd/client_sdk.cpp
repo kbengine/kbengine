@@ -321,7 +321,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 		strutil::kbe_replace(filebody, "@{KBE_USE_ALIAS_ENTITYID}", g_kbeSrvConfig.getCellApp().aliasEntityID ? "true" : "false");
 		strutil::kbe_replace(filebody, "@{KBE_UPDATEHZ}", fmt::format("{}", g_kbeSrvConfig.gameUpdateHertz()));
 		strutil::kbe_replace(filebody, "@{KBE_LOGIN_PORT}", fmt::format("{}", g_kbeSrvConfig.getLoginApp().externalTcpPorts_min));
-		strutil::kbe_replace(filebody, "@{KBE_SERVER_EXTERNAL_TIMEOUT}", fmt::format("{}", g_kbeSrvConfig.channelExternalTimeout()));
+		strutil::kbe_replace(filebody, "@{KBE_SERVER_EXTERNAL_TIMEOUT}", fmt::format("{}", (int)g_kbeSrvConfig.channelExternalTimeout()));
 		output << filebody;
 
 		output.close();
