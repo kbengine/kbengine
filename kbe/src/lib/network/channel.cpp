@@ -1033,13 +1033,23 @@ bool Channel::handshake(Packet* pPacket)
 
 	if (protocoltype_ == PROTOCOL_TCP)
 	{
-		int sslVersion = KB_SSL::isSSLProtocal(pPacket);
-		if (sslVersion != -1)
+		// https/wss
+		if (!pEndPoint_->isSSL())
 		{
-			// 无论成功和失败都返回true，让外部回收数据包并继续等待握手
-			pEndPoint_->setupSSL(sslVersion, pPacket);
+			int sslVersion = KB_SSL::isSSLProtocal(pPacket);
+			if (sslVersion != -1)
+			{
+				// 无论成功和失败都返回true，让外部回收数据包并继续等待握手
+				pEndPoint_->setupSSL(sslVersion, pPacket);
 
-			if (pPacket->length() == 0)
+				if (pPacket->length() == 0)
+					return true;
+			}
+		}
+		else
+		{
+			// 如果开启了ssl通讯，因目前只支持wss，所以必须等待websocket握手成功才算通过
+			if (!websocket::WebSocketProtocol::isWebSocketProtocol(pPacket))
 				return true;
 		}
 
