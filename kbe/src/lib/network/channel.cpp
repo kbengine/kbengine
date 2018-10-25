@@ -736,7 +736,9 @@ bool Channel::handshake(Packet* pPacket)
 	{
 		// 无论成功和失败都返回true，让外部回收数据包并继续等待握手
 		pEndPoint_->setupSSL(sslVersion, pPacket);
-		return true;
+
+		if(pPacket->length() == 0)
+			return true;
 	}
 
 	flags_ |= FLAG_HANDSHAKE;
