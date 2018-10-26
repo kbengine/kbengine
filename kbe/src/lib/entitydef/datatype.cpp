@@ -2083,7 +2083,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 {
 	// 可能在传入参数的时候已经是用户类型了, 因为parseDefaultStr
 	// 会初始为最终对象类型
-	if(impl_isSameType(dictData))
+	if(!PyObject_TypeCheck(dictData, FixedDict::getScriptType()) && impl_isSameType(dictData))
 	{
 		Py_INCREF(dictData);
 		return dictData;
