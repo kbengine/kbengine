@@ -220,13 +220,7 @@ FileDataDownload::FileDataDownload(PyObjectPtr objptr,
 							const std::string & descr, int16 id):
 DataDownload(objptr, descr, id)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(objptr.get(), NULL);
-	char* pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
-	PyMem_Free(PyUnicode_AsWideCharStringRet1);
-
-	path_ = pDescr;
-	free(pDescr);
-
+	path_ = PyUnicode_AsUTF8AndSize(objptr.get(), NULL);
 	stream_ = new char[65537];
 }
 

@@ -35,25 +35,20 @@ EntityComponent::ENTITY_COMPONENTS EntityComponent::entity_components;
 #define DEBUG_OP_ATTRIBUTE(op, ccattr)																		\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
-			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
+			char* ccattr_DEBUG_OP_ATTRIBUTE = PyUnicode_AsUTF8AndSize(ccattr, NULL);						\
 			DEBUG_MSG(fmt::format("{}.{}(refc={}, id={})::debug_op_attr:op={}, {}.\n",						\
 												owner()->ob_type->tp_name,									\
 										(pComponentDescrs_ ? pComponentDescrs_->getName() : ""),			\
 												static_cast<PyObject*>(this)->ob_refcnt, this->ownerID(),	\
 															op, ccattr_DEBUG_OP_ATTRIBUTE));				\
-			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
-			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 		}																									\
 
 #define DEBUG_CREATE_NAMESPACE																				\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
-			char* ccattr_DEBUG_CREATE_NAMESPACE= strutil::wchar2char(PyUnicode_AsWideCharStringRet1);		\
+			char* ccattr_DEBUG_CREATE_NAMESPACE = PyUnicode_AsUTF8AndSize(key, NULL);						\
 			PyObject* pytsval = PyObject_Str(value);														\
-			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
-			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
+			char* cccpytsval = PyUnicode_AsUTF8AndSize(pytsval, NULL);										\
 			Py_DECREF(pytsval);																				\
 			DEBUG_MSG(fmt::format("{}.{}(refc={}, id={})::debug_createNamespace:add {}({}).\n",				\
 												owner()->ob_type->tp_name,									\
@@ -62,10 +57,6 @@ EntityComponent::ENTITY_COMPONENTS EntityComponent::entity_components;
 												this->ownerID(),											\
 																ccattr_DEBUG_CREATE_NAMESPACE,				\
 																cccpytsval));								\
-			free(ccattr_DEBUG_CREATE_NAMESPACE);															\
-			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
-			free(cccpytsval);																				\
-			PyMem_Free(cwpytsval);																			\
 		}																									\
 
 
@@ -1395,9 +1386,7 @@ void EntityComponent::updateFromDict(PyObject* pOwner, PyObject* pyDict)
 
 	while (PyDict_Next(pyDict, &pos, &key, &value))
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		char* ccattr = PyUnicode_AsUTF8AndSize(key, NULL);
 
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs->find(ccattr);
 		if (iter != pPropertyDescrs->end())
@@ -1435,8 +1424,6 @@ void EntityComponent::updateFromDict(PyObject* pOwner, PyObject* pyDict)
 			PyObject_SetAttr(static_cast<PyObject*>(this),
 				key, value);
 		}
-
-		free(ccattr);
 	}
 
 	SCRIPT_ERROR_CHECK();
