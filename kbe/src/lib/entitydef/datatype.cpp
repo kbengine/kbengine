@@ -972,9 +972,15 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyValue, NULL);
-	strutil::wchar2char(PyUnicode_AsWideCharStringRet0, mstream);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* s = PyUnicode_AsUTF8AndSize(pyValue, NULL);
+
+	if (s == NULL)
+	{
+		OUT_TYPE_ERROR("STRING");
+		return;
+	}
+
+	(*mstream) << s;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1045,15 +1051,16 @@ PyObject* UnicodeType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	PyObject* pyobj = PyUnicode_AsUTF8String(pyValue);
-	if(pyobj == NULL)
+	Py_ssize_t size;
+	char* s = PyUnicode_AsUTF8AndSize(pyValue, &size);
+
+	if (s == NULL)
 	{
 		OUT_TYPE_ERROR("UNICODE");
 		return;
-	}	
+	}
 
-	mstream->appendBlob(PyBytes_AS_STRING(pyobj), (ArraySize)PyBytes_GET_SIZE(pyobj));
-	Py_DECREF(pyobj);
+	mstream->appendBlob(s, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1449,15 +1456,13 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 
 					PyObject* pyClass = PyObject_GetAttrString(pyValue, "__class__");
 					PyObject* pyClassName = PyObject_GetAttrString(pyClass, "__name__");
-					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyClassName, NULL);
-					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 
-					PyMem_Free(PyUnicode_AsWideCharStringRet0);
+					char* ccattr = PyUnicode_AsUTF8AndSize(pyClassName, NULL);
+
 					Py_DECREF(pyClass);
 					Py_DECREF(pyClassName);
 
 					ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(ccattr);
-					free(ccattr);
 
 					utype = pScriptDefModule->getUType();
 				}

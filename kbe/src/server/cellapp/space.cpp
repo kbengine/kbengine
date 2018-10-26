@@ -215,13 +215,7 @@ PyObject* Space::__py_AddSpaceGeometryMapping(PyObject* self, PyObject* args)
 					return 0;
 				}
 				
-			    long i = PyLong_AsLong(key);
-
-				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(value, NULL);
-				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-				PyMem_Free(PyUnicode_AsWideCharStringRet0);
-				params[i] = ccattr;
-				free(ccattr);
+				params[PyLong_AsLong(key)] = PyUnicode_AsUTF8AndSize(value, NULL);
 			}
 			
 			SCRIPT_ERROR_CHECK();

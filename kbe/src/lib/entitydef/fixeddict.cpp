@@ -73,8 +73,8 @@ Map(getScriptType(), false)
 
 	script::PyGC::incTracing("FixedDict");
 
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(1): {:p}---{}\n", (void*)this,
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
+	//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(1): {:p}---{}\n", (void*)this,
+	//		PyUnicode_AsUTF8AndSize(PyObject_Str(getDictObject()), NULL)));
 }
 
 //-------------------------------------------------------------------------------------
@@ -86,8 +86,8 @@ Map(getScriptType(), false)
 	
 	script::PyGC::incTracing("FixedDict");
 
-//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
-//		wchar2char(PyUnicode_AsWideCharString(PyObject_Str(getDictObject()), NULL))));
+	//	DEBUG_MSG(fmt::format("FixedDict::FixedDict(2): {:p}---{}\n", (void*)this,
+	//		PyUnicode_AsUTF8AndSize(PyObject_Str(getDictObject()), NULL)));
 }
 
 
@@ -240,8 +240,8 @@ int FixedDict::mp_length(PyObject* self)
 //-------------------------------------------------------------------------------------
 int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);
-	if (PyUnicode_AsWideCharStringRet0 == NULL)
+	char* dictKeyName = PyUnicode_AsUTF8AndSize(key, NULL);
+	if (dictKeyName == NULL)
 	{
 		char err[255];
 		kbe_snprintf(err, 255, "FixedDict::mp_ass_subscript: key not is string!\n");
@@ -250,25 +250,19 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 		return 0;
 	}
 
-	char* dictKeyName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
-
 	FixedDict* fixedDict = static_cast<FixedDict*>(self);
 	if (value == NULL)
 	{
 		if(!fixedDict->checkDataChanged(dictKeyName, value, true))
 		{
-			free(dictKeyName);
 			return 0;
 		}
 
-		free(dictKeyName);
 		return PyDict_DelItem(fixedDict->pyDict_, key);
 	}
 	
 	if(!fixedDict->checkDataChanged(dictKeyName, value))
 	{
-		free(dictKeyName);
 		return 0;
 	}
 
@@ -280,7 +274,6 @@ int FixedDict::mp_ass_subscript(PyObject* self, PyObject* key, PyObject* value)
 	// 由于PyDict_SetItem会增加引用因此需要减
 	Py_DECREF(val1);
 
-	free(dictKeyName);
 	return ret;
 }
 

@@ -626,9 +626,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 
 	if (pyDesc)
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
-		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
-		PyMem_Free(PyUnicode_AsWideCharStringRet1);
+		pDescr = PyUnicode_AsUTF8AndSize(pyDesc, NULL);
 	}
 
 	if(pDescr && strlen(pDescr) > 255)
@@ -637,16 +635,12 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 			strlen(pDescr));
 
 		PyErr_PrintEx(0);
-		free(pDescr);
 		return NULL;
 	}
 
 	int16 rid = pobj->streamFileToClient(pyResourceName, 
 							(pDescr == NULL ? "" : pDescr),  
 							id);
-
-	if(pDescr)
-		free(pDescr);
 
 	return PyLong_FromLong(rid);
 }
@@ -721,9 +715,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 
 	if (pyDesc)
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyDesc, NULL);
-		pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
-		PyMem_Free(PyUnicode_AsWideCharStringRet1);
+		pDescr = PyUnicode_AsUTF8AndSize(pyDesc, NULL);
 	}
 
 	if(pDescr && strlen(pDescr) > 255)
@@ -732,16 +724,12 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 			strlen(pDescr));
 
 		PyErr_PrintEx(0);
-		free(pDescr);
 		return NULL;
 	}
 
 	int16 rid = pobj->streamStringToClient(pyData, 
 						(pDescr == NULL ? "" : pDescr),  
 						id);
-
-	if(pDescr)
-		free(pDescr);
 
 	return PyLong_FromLong(rid);
 }
