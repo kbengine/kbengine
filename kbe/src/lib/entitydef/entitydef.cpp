@@ -1757,7 +1757,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 						{
 							// 如果不匹配， 并且是一个exposed方法，参数多了一个，可以理解为显示的加入了第一个参数callerID用于脚本检查调用者
 							// 如果不是这种情况，一律视为参数不正确
-							if (iter->second->isExposed() && methodArgsSize + 1 == argsSize)
+							if (iter->second->isExposed() && methodArgsSize + 1 == (size_t)argsSize)
 							{
 								iter->second->setExposed(MethodDescription::EXPOSED_AND_CALLER_CHECK);
 							}
