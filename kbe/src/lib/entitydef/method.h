@@ -22,6 +22,20 @@ namespace KBEngine{
 
 class MethodDescription
 {
+public:
+	// 暴露方法的类型
+	enum EXPOSED_TYPE
+	{
+		// 默认，非暴露方法
+		NO_EXPOSED = 0,
+
+		// 默认，脚本方法可以不加调用者参数
+		EXPOSED = 1,
+
+		// 脚本方法第一个参数为调用者ID，提供脚本检查调用者合法性
+		EXPOSED_AND_CALLER_CHECK = 2
+	};
+
 public:	
 	MethodDescription(ENTITY_METHOD_UID utype, COMPONENT_ID domain,
 		std::string name, 
@@ -37,9 +51,9 @@ public:
 	static uint32 getDescriptionCount(void){ return methodDescriptionCount_; }
 	static void resetDescriptionCount(void){ methodDescriptionCount_ = 0; }
 
-	INLINE bool isExposed(void) const;
+	INLINE EXPOSED_TYPE isExposed(void) const;
 
-	void setExposed(void);
+	void setExposed(EXPOSED_TYPE type = EXPOSED);
 
 	bool pushArgType(DataType* dataType);
 
@@ -92,7 +106,7 @@ protected:
 
 	std::vector<DataType*>					argTypes_;									// 这个属性的参数类别列表
 
-	bool									isExposed_;									// 是否是一个暴露方法
+	EXPOSED_TYPE							exposedType_;								// 是否是一个暴露方法
 
 	int16									aliasID_;									// 别名id， 当暴露的方法或者广播的属性总个数小于255时， 我们不使用utype而使用1字节的aliasID来传输
 };
