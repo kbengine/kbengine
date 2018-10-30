@@ -22,7 +22,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine {
 namespace script{
 
-INLINE std::wstring& ScriptStdOutErr::buffer()
+INLINE std::string& ScriptStdOutErr::buffer()
 { 
 	return sbuffer_; 
 }

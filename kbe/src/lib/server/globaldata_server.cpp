@@ -94,7 +94,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 			if(dataType_ == CELLAPP_DATA && iter1->componentType != CELLAPP_TYPE)
 				continue;
 
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 			switch(dataType_)
 			{
@@ -109,7 +109,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 				}
 				else
 				{
-					KBE_ASSERT(false && "componentType is error!\n");
+					KBE_ASSERT(false && "componentType error!\n");
 				}
 				break;
 			case BASEAPP_DATA:
@@ -119,7 +119,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 				(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 				break;
 			default:
-				KBE_ASSERT(false && "dataType is error!\n");
+				KBE_ASSERT(false && "dataType error!\n");
 				break;
 			};
 
@@ -149,7 +149,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 	DATA_MAP_KEY iter = dict_.begin();
 	for(; iter != dict_.end(); ++iter)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		
 		switch(dataType_)
 		{
@@ -164,7 +164,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 			}
 			else
 			{
-				KBE_ASSERT(false && "componentType is error!\n");
+				KBE_ASSERT(false && "componentType error!\n");
 			}
 			break;
 		case BASEAPP_DATA:
@@ -186,7 +186,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 			(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 			break;
 		default:
-			KBE_ASSERT(false && "dataType is error!\n");
+			KBE_ASSERT(false && "dataType error!\n");
 			break;
 		};
 

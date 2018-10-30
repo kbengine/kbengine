@@ -360,7 +360,7 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 					((int32)globalorderID), 
 					((int32)grouporderID)));
 
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			(*pBundle).newMessage(DbmgrInterface::reqKillServer);
 			(*pBundle) << g_componentID << g_componentType << KBEngine::getUsername() << KBEngine::getUserUID() << "Duplicate app-id.";
 			pChannel->send(pBundle);
@@ -401,7 +401,7 @@ void Cellapp::onGetEntityAppFromDbmgr(Network::Channel* pChannel, int32 uid, std
 	int ret = Components::getSingleton().connectComponent(tcomponentType, uid, componentID);
 	KBE_ASSERT(ret != -1);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	switch(tcomponentType)
 	{
@@ -433,7 +433,7 @@ void Cellapp::onUpdateLoad()
 	Network::Channel* pChannel = Components::getSingleton().getCellappmgrChannel();
 	if(pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappmgrInterface::updateCellapp);
 		CellappmgrInterface::updateCellappArgs4::staticAddToBundle((*pBundle), 
 			componentID_, (ENTITY_ID)pEntities_->getEntities().size(), getLoad(), flags_);
@@ -453,7 +453,7 @@ PyObject* Cellapp::__py_createEntity(PyObject* self, PyObject* args)
 	if(!PyArg_ParseTuple(args, "s|I|O|O|O", &entityType, &spaceID, &position, &direction, &params))
 	{
 		PyErr_Format(PyExc_TypeError, 
-			"KBEngine::createEntity: args is error! args[scriptName, spaceID, position, direction, states].");
+			"KBEngine::createEntity: args error! args[scriptName, spaceID, position, direction, states].");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -531,7 +531,7 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 
 	if(ret == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -539,11 +539,7 @@ PyObject* Cellapp::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args
 	std::string dbInterfaceName = "default";
 	if (pyDBInterfaceName)
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyDBInterfaceName, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		dbInterfaceName = ccattr;
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		free(ccattr);
+		dbInterfaceName = PyUnicode_AsUTF8AndSize(pyDBInterfaceName, NULL);
 		
 		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))
 		{
@@ -564,7 +560,7 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 {
 	if(datas == NULL)
 	{
-		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute is error!\n");
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute error!\n");
 		return;
 	}
 
@@ -591,7 +587,7 @@ void Cellapp::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject
 
 	//INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", (eid > 0 ? fmt::format("(entityID={})", eid) : ""), datas));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
 	(*pBundle) << eid;
 	(*pBundle) << (uint16)dbInterfaceIndex;
@@ -891,7 +887,7 @@ void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel
 			ERROR_MSG("Cellapp::onCreateCellEntityInNewSpaceFromBaseapp: createEntity error!\n");
 
 			/* 目前来说除非内存或者系统问题，否则不会出现这个错误
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			pBundle->newMessage(BaseappInterface::onCreateCellFailure);
 			BaseappInterface::onCreateCellFailureArgs1::staticAddToBundle(*pBundle, entitycallEntityID);
 			cinfos->pChannel->send(pBundle);
@@ -916,14 +912,14 @@ void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel
 
 			// 为了能够让entity.__init__中能够修改属性立刻能广播到客户端我们需要提前设置这些
 			e->clientEntityCall(client);
-			e->setWitness(Witness::createPoolObject());
+			e->setWitness(Witness::createPoolObject(OBJECTPOOL_POINT));
 		}
 
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			ForwardItem* pFI = new ForwardItem();
 			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp(e, spaceID, cellData);
 			//Py_XDECREF(cellData);
@@ -955,7 +951,7 @@ void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel
 			space->onEnterWorld(e);
 		}
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), entitycallEntityID, componentID_, spaceID);
 		cinfos->pChannel->send(pBundle);
@@ -1014,14 +1010,14 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 
 			// 为了能够让entity.__init__中能够修改属性立刻能广播到客户端我们需要提前设置这些
 			e->clientEntityCall(client);
-			e->setWitness(Witness::createPoolObject());
+			e->setWitness(Witness::createPoolObject(OBJECTPOOL_POINT));
 		}
 
 		// 此处baseapp可能还有没初始化过来， 所以有一定概率是为None的
 		Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 		if(cinfos == NULL || cinfos->pChannel == NULL)
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			ForwardItem* pFI = new ForwardItem();
 			pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityInNewSpaceFromBaseapp(e, spaceID, cellData);
 			//Py_XDECREF(cellData);
@@ -1045,7 +1041,7 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 
 		space->addEntityAndEnterWorld(e, true);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle((*pBundle), entitycallEntityID, componentID_, spaceID);
 		cinfos->pChannel->send(pBundle);
@@ -1067,7 +1063,7 @@ void Cellapp::requestRestore(Network::Channel* pChannel, KBEngine::MemoryStream&
 	DEBUG_MSG(fmt::format("Cellapp::requestRestore: cid={}, canRestore={}, channel={}.\n", 
 		cid, canRestore, pChannel->c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::onRequestRestoreCB);
 	(*pBundle) << g_componentID << cid << canRestore;
 	pChannel->send(pBundle);
@@ -1095,10 +1091,10 @@ void Cellapp::onCreateCellEntityFromBaseapp(Network::Channel* pChannel, KBEngine
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(BASEAPP_TYPE, componentID);
 	if(cinfos == NULL || cinfos->pChannel == NULL)
 	{
-		MemoryStream* pCellData = MemoryStream::createPoolObject();
+		MemoryStream* pCellData = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 		pCellData->append(s);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		ForwardItem* pFI = new ForwardItem();
 		pFI->pHandler = new FMH_Baseapp_onEntityGetCellFrom_onCreateCellEntityFromBaseapp(entityType, createToEntityID, 
 			entityID, pCellData, hasClient, inRescore, componentID, spaceID);
@@ -1136,7 +1132,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	{
 		ERROR_MSG("Cellapp::_onCreateCellEntityFromBaseapp: not fount spaceEntity. may have been destroyed!\n");
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		pBundle->newMessage(BaseappInterface::onCreateCellFailure);
 		BaseappInterface::onCreateCellFailureArgs1::staticAddToBundle(*pBundle, entityID);
 		cinfos->pChannel->send(pBundle);
@@ -1152,7 +1148,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 	if(space != NULL && space->isGood())
 	{
 		// 告知baseapp， entity的cell创建了
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		pBundle->newMessage(BaseappInterface::onEntityGetCell);
 		BaseappInterface::onEntityGetCellArgs3::staticAddToBundle(*pBundle, entityID, componentID_, spaceID);
 		cinfos->pChannel->send(pBundle);
@@ -1187,7 +1183,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 
 			// 为了能够让entity.__init__中能够修改属性立刻能广播到客户端我们需要提前设置这些
 			e->clientEntityCall(client);
-			e->setWitness(Witness::createPoolObject());
+			e->setWitness(Witness::createPoolObject(OBJECTPOOL_POINT));
 		}
 
 		space->addEntity(e);
@@ -1226,7 +1222,7 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		return;
 	}
 
-	KBE_ASSERT(false && "Cellapp::onCreateCellEntityFromBaseapp: is error!\n");
+	KBE_ASSERT(false && "Cellapp::onCreateCellEntityFromBaseapp: error!\n");
 }
 
 //-------------------------------------------------------------------------------------
@@ -1348,7 +1344,7 @@ void Cellapp::onEntityCall(Network::Channel* pChannel, KBEngine::MemoryStream& s
 			break;
 		default:
 			{
-				ERROR_MSG(fmt::format("Cellapp::onEntityCall: entityCallType {} is error! must a cellType. entityID={}.\n",
+				ERROR_MSG(fmt::format("Cellapp::onEntityCall: entityCallType {} error! must a cellType. entityID={}.\n",
 					calltype, eid));
 			}
 	};
@@ -1703,9 +1699,9 @@ void Cellapp::lookApp(Network::Channel* pChannel)
 	if(pChannel->isExternal())
 		return;
 
-	DEBUG_MSG(fmt::format("Cellapp::lookApp: {}\n", pChannel->c_str()));
+	//DEBUG_MSG(fmt::format("Cellapp::lookApp: {}\n", pChannel->c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	(*pBundle) << g_componentType;
 	(*pBundle) << componentID_;
@@ -1734,7 +1730,7 @@ PyObject* Cellapp::__py_reloadScript(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "b", &fullReload) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::reloadScript(fullReload): args error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -1806,7 +1802,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	{
 		s.rpos((int)rpos);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
@@ -1826,7 +1822,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	{
 		s.rpos((int)rpos);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
@@ -1845,7 +1841,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	{
 		s.rpos((int)rpos);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
@@ -1881,7 +1877,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 		entityBaseappID = e->baseEntityCall()->componentID();
 
 		// 向baseapp发送传送到达通知
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
 		(*pBundle) << e->id();
 		(*pBundle) << ghostCell << g_componentID;
@@ -1891,7 +1887,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	// 进入新space之前必须通知客户端leaveSpace
 	if (e->clientEntityCall())
 	{
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(e->id(), (*pSendBundle));
 		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onEntityLeaveSpace, leaveSpace);
 		(*pSendBundle) << e->id();
@@ -1908,7 +1904,7 @@ void Cellapp::reqTeleportToCellApp(Network::Channel* pChannel, MemoryStream& s)
 	success = true;
 
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(CellappInterface::reqTeleportToCellAppCB);
 		(*pBundle) << ghostCell << g_componentID << entityBaseappID;
 		(*pBundle) << teleportEntityID;
@@ -1949,7 +1945,7 @@ void Cellapp::reqTeleportToCellAppCB(Network::Channel* pChannel, MemoryStream& s
 		Components::ComponentInfos* pInfos = Components::getSingleton().findComponent(entityBaseappID);
 		if (pInfos && pInfos->pChannel)
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappEnd);
 			(*pBundle) << teleportEntityID;
 			(*pBundle) << sourceCellappID << sourceCellappID;
@@ -2054,7 +2050,7 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "IOO", &spaceID, &pyStartPos, &pyEndPos) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -2063,14 +2059,14 @@ PyObject* Cellapp::__py_raycast(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "IiOO", &spaceID, &layer, &pyStartPos, &pyEndPos) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+			PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args error!");
 			PyErr_PrintEx(0);
 			return 0;
 		}
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args is error!");
+		PyErr_Format(PyExc_TypeError, "Cellapp::raycast: args error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -2150,7 +2146,7 @@ PyObject* Cellapp::__py_setFlags(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "I", &flags) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::setFlags: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}

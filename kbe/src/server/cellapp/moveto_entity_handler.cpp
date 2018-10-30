@@ -27,9 +27,10 @@ namespace KBEngine{
 
 //-------------------------------------------------------------------------------------
 MoveToEntityHandler::MoveToEntityHandler(KBEShared_ptr<Controller>& pController, ENTITY_ID pTargetID, float velocity, float range, bool faceMovement, 
-		bool moveVertically, PyObject* userarg):
+		bool moveVertically, PyObject* userarg, const Position3D& offsetPos):
 MoveToPointHandler(pController, pController->pEntity()->layer(), pController->pEntity()->position(), velocity, range, faceMovement, moveVertically, userarg),
-pTargetID_(pTargetID)
+pTargetID_(pTargetID), 
+offsetPos_(offsetPos)
 {
 	updatableName = "MoveToEntityHandler";
 }
@@ -65,7 +66,8 @@ void MoveToEntityHandler::createFromStream(KBEngine::MemoryStream& s)
 const Position3D& MoveToEntityHandler::destPos()
 {
 	Entity* pEntity = Cellapp::getSingleton().findEntity(pTargetID_);
-	return pEntity->position();
+	destPos_ = pEntity->position() + offsetPos_;
+	return destPos_;
 }
 
 //-------------------------------------------------------------------------------------

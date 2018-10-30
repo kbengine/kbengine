@@ -215,6 +215,7 @@ typedef struct EngineComponentInfo
 
 	std::string bots_account_name_prefix;					// 机器人账号名称的前缀
 	uint32 bots_account_name_suffix_inc;					// 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增
+	std::string bots_account_passwd;						// 机器人账号的密码
 
 	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
 
@@ -270,8 +271,10 @@ public:
 	void updateExternalAddress(char* buf);
 
 	INLINE int16 gameUpdateHertz(void) const;
-	INLINE Network::Address interfacesAddr(void) const;
 
+	Network::Address interfacesAddr(void) const;
+	INLINE std::vector< Network::Address > interfacesAddrs(void) const;
+	
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
 	uint32 tcp_SOMAXCONN(COMPONENT_TYPE componentType);
@@ -282,7 +285,8 @@ public:
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
 
-	INLINE bool IsPureDBInterfaceName(const std::string& dbInterfaceName);
+	INLINE float channelExternalTimeout(void) const;
+	INLINE bool isPureDBInterfaceName(const std::string& dbInterfaceName);
 	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
 	INLINE int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName);
 	INLINE const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex);
@@ -313,6 +317,7 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Network::Address interfacesAddr_;
+	std::vector< Network::Address > interfacesAddrs_;
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

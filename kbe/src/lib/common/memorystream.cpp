@@ -29,9 +29,9 @@ ObjectPool<MemoryStream>& MemoryStream::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream* MemoryStream::createPoolObject()
+MemoryStream* MemoryStream::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -50,9 +50,9 @@ void MemoryStream::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-MemoryStream::SmartPoolObjectPtr MemoryStream::createSmartPoolObj()
+MemoryStream::SmartPoolObjectPtr MemoryStream::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<MemoryStream>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<MemoryStream>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -69,6 +69,12 @@ void MemoryStream::onReclaimObject()
 		data_.reserve(DEFAULT_SIZE);
 
 	clear(false);
+}
+
+//-------------------------------------------------------------------------------------
+MemoryStream::~MemoryStream()
+{
+	clear(true);
 }
 
 //-------------------------------------------------------------------------------------

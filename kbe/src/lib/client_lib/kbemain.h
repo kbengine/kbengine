@@ -78,7 +78,7 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 		Resmgr::getSingleton().getPySysResPath().size() == 0 ||
 		Resmgr::getSingleton().getPyUserScriptsPath().size() == 0)
 	{
-		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
+		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH error!\n");
 		return false;
 	}
 
@@ -258,7 +258,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	if(!loadConfig())
 	{
-		ERROR_MSG("app::initialize is error!\n");
+		ERROR_MSG("app::initialize error!\n");
 		return -1;
 	}
 	
@@ -275,7 +275,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	KBEngine::script::Script script;
 	if(!installPyScript(script, componentType))
 	{
-		ERROR_MSG("app::initialize is error!\n");
+		ERROR_MSG("app::initialize error!\n");
 		return -1;
 	}
 
@@ -284,7 +284,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
 	if(!pApp->initialize()){
-		ERROR_MSG("app::initialize is error!\n");
+		ERROR_MSG("app::initialize error!\n");
 		pApp->finalise();
 		Py_DECREF(pApp);
 		uninstallPyScript(script);

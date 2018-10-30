@@ -187,7 +187,7 @@ void SpaceViewer::sendStream(MemoryStream* s, int type)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	ConsoleInterface::ConsoleQuerySpacesHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);

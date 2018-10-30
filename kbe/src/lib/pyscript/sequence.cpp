@@ -27,6 +27,12 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{ namespace script{
 
+PyMappingMethods Sequence::seqMapping = {
+	(lenfunc)seq_length,
+	(binaryfunc)seq_subscript,
+	0
+};
+
 PySequenceMethods Sequence::seqMethods =
 {
 	seq_length,				// inquiry sq_length;				len(x)
@@ -49,7 +55,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(Sequence)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(Sequence, 0, &Sequence::seqMethods, 0, 0, 0)	
+SCRIPT_INIT(Sequence, 0, &Sequence::seqMethods, &Sequence::seqMapping, 0, 0)
 	
 //-------------------------------------------------------------------------------------
 Sequence::Sequence(PyTypeObject* pyType, bool isInitialised):
@@ -171,7 +177,8 @@ PyObject* Sequence::seq_repeat(PyObject* self, Py_ssize_t n)
 PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 {
 	Sequence* seq = static_cast<Sequence*>(self);
-	std::vector<PyObject*>& values = seq->getValues();	
+	std::vector<PyObject*>& values = seq->getValues();
+
 	if (uint32(index) < values.size())
 	{
 		PyObject* pyobj = values[index];
@@ -180,6 +187,46 @@ PyObject* Sequence::seq_item(PyObject* self, Py_ssize_t index)
 	}
 
 	PyErr_SetString(PyExc_IndexError, "Sequence index out of range");
+	return NULL;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Sequence::seq_subscript(PyObject* self, PyObject* item)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (i < 0) {
+			Sequence* seq = static_cast<Sequence*>(self);
+			i += seq->length();
+		}
+		return seq_item(self, i);
+	}
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx(item, Py_SIZE(self),
+			&start, &stop, &step, &slicelength) < 0) {
+			return NULL;
+		}
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return seq_slice(self, start, stop);
+		}
+		else {
+			return seq_slice(self, start, stop);
+		}
+	}
+
+	PyErr_Format(PyExc_TypeError,
+		"Sequence indices must be integers, not %.200s",
+		item->ob_type->tp_name);
+
 	return NULL;
 }
 
@@ -237,7 +284,7 @@ int Sequence::seq_ass_item(PyObject* self, Py_ssize_t index, PyObject* value)
 		}
 		else
 		{
-			PyErr_SetString(PyExc_IndexError, "Sequence set to type is error!");
+			PyErr_SetString(PyExc_IndexError, "Sequence set to type error!");
 			PyErr_PrintEx(0);
 			return -1;
 		}
@@ -408,6 +455,7 @@ PyObject* Sequence::seq_inplace_concat(PyObject* self, PyObject* oterSeq)
 		values[szA + i] = pyTemp;
 	}
 
+	Py_INCREF(seq);
 	return seq;
 }
 
@@ -447,6 +495,7 @@ PyObject* Sequence::seq_inplace_repeat(PyObject* self, Py_ssize_t n)
 		}
 	}
 
+	Py_INCREF(seq);
 	return seq;
 }
 

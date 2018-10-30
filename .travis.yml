@@ -5,6 +5,7 @@ compiler:
 branches:
   only:
   - master
+  - 1.x
 #  - stable
 before_install:
    - sudo apt-get update

@@ -104,12 +104,9 @@ PyObject* ClientEntity::onScriptGetAttribute(PyObject* attr)
 		return 0;
 	}
 
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = const_cast<ScriptDefModule*>(e->pScriptModule())->findClientMethodDescription(ccattr);
-	free(ccattr);
 
 	if(pMethodDescription != NULL)
 	{

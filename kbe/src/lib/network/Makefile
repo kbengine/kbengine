@@ -1,17 +1,18 @@
 LIB =	network
 
-SRCS =				\
-	address			\
+SRCS =					\
+	address				\
 	bundle_broadcast	\
-	bundle			\
-	channel			\
-	common			\
+	bundle				\
+	channel				\
+	common				\
 	delayed_channels	\
 	error_reporter		\
 	event_dispatcher	\
 	event_poller		\
 	encryption_filter	\
 	fixed_messages		\
+	http_utility		\
 	interface_defs		\
 	message_handler		\
 	listener_receiver	\
@@ -23,11 +24,11 @@ SRCS =				\
 	packet_receiver		\
 	poller_epoll		\
 	poller_select		\
-	endpoint		\
-	tcp_packet		\
+	endpoint			\
+	tcp_packet			\
 	tcp_packet_receiver	\
 	tcp_packet_sender	\
-	udp_packet		\
+	udp_packet			\
 	udp_packet_receiver	\
 	websocket_packet_reader	\
 	websocket_packet_filter	\

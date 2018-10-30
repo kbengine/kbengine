@@ -164,6 +164,10 @@
 				2: RSA (res\key\kbengine_private.key)
 		 -->
 		<encrypt_type> 1 </encrypt_type>
+
+		<!-- Certificate file required for HTTPS/WSS/SSL communication -->
+		<sslCertificate> key/server_cert.pem </sslCertificate>
+		<sslPrivateKey> key/server_key.pem </sslPrivateKey>
 	</channelCommon> 
 	
 	<!-- 关服倒计时(秒) 
@@ -263,9 +267,18 @@
 			<!-- 如果enable为false则相关数据不转发到Interfaces进程 
 				注意：如果为true，dbmgr认为数据将由interfaces交给第三方平台处理
 			-->
-			<enable> true		</enable>
-			<host>	 localhost	</host>
-			<port>	 30099		</port>
+			<enable> true </enable>
+
+			<!-- 如果为true，则自动将配置中的Interfaces地址加入到地址池，以免改动Interfaces端口需要修改多处
+			-->
+			<addDefaultAddress> true </addDefaultAddress>
+
+			<!-- 可额外的添加多个interfaces到地址池分担压力
+			<item>
+				<host>	 localhost1	</host>
+				<port>	 30098		</port>
+			</item>
+			-->
 		</InterfacesServiceAddr>
 
 		<!-- 数据库接口 
@@ -801,6 +814,8 @@
 				(The account name suffix, 0 is the use of random number, Otherwise, use account_name_suffix_inc and increasing.)
 			-->
 			<account_name_suffix_inc>	0		</account_name_suffix_inc><!-- Type: Integer -->
+
+			<account_password> pwd123456 </account_password>
 		</account_infos>
 		
 		<!-- Telnet服务, 如果端口被占用则向后尝试51001.. 

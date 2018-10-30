@@ -53,8 +53,10 @@ Interfaces::Interfaces(Network::EventDispatcher& dispatcher,
 	mainProcessTimer_(),
 	reqCreateAccount_requests_(),
 	reqAccountLogin_requests_(),
-	pTelnetServer_(NULL)
+	pTelnetServer_(NULL),
+	pyCallbackMgr_()
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &InterfacesInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -200,6 +202,7 @@ void Interfaces::onInstallPyModules()
 	APPEND_SCRIPT_MODULE_METHOD(module,		chargeResponse,					__py_chargeResponse,									METH_VARARGS,	0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		accountLoginResponse,			__py_accountLoginResponse,								METH_VARARGS,	0);
 	APPEND_SCRIPT_MODULE_METHOD(module,		createAccountResponse,			__py_createAccountResponse,								METH_VARARGS,	0);
+	APPEND_SCRIPT_MODULE_METHOD(module,		executeRawDatabaseCommand,		__py_executeRawDatabaseCommand,							METH_VARARGS,	0);
 }
 
 //-------------------------------------------------------------------------------------		
@@ -211,7 +214,267 @@ bool Interfaces::initDB()
 //-------------------------------------------------------------------------------------
 void Interfaces::finalise()
 {
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
+	pyCallbackMgr_.finalise();
+
 	PythonApp::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+void Interfaces::onRegisterNewApp(Network::Channel* pChannel, int32 uid, std::string& username,
+	COMPONENT_TYPE componentType, COMPONENT_ID componentID, COMPONENT_ORDER globalorderID, COMPONENT_ORDER grouporderID,
+	uint32 intaddr, uint16 intport, uint32 extaddr, uint16 extport, std::string& extaddrEx)
+{
+	if (pChannel->isExternal())
+		return;
+
+	PythonApp::onRegisterNewApp(pChannel, uid, username,
+		componentType, componentID, globalorderID, grouporderID,
+		intaddr, intport, extaddr, extport, extaddrEx);
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	(*pBundle).newMessage(InterfacesInterface::onRegisterNewApp);
+
+	if (componentType == DBMGR_TYPE)
+	{
+		InterfacesInterface::onRegisterNewAppArgs11::staticAddToBundle((*pBundle), getUserUID(), getUsername(),
+			g_componentType, g_componentID,
+			g_componentGlobalOrder, g_componentGroupOrder,
+			networkInterface().intaddr().ip,networkInterface().intaddr().port,
+			networkInterface().extaddr().ip, networkInterface().extaddr().port, g_kbeSrvConfig.getConfig().externalAddress);
+
+		pChannel->send(pBundle);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Interfaces::__py_executeRawDatabaseCommand(PyObject* self, PyObject* args)
+{
+	int argCount = (int)PyTuple_Size(args);
+	PyObject* pycallback = NULL;
+	PyObject* pyDBInterfaceName = NULL;
+	int ret = -1;
+	ENTITY_ID eid = -1;
+
+	char* data = NULL;
+	Py_ssize_t size;
+
+	if (argCount == 4)
+		ret = PyArg_ParseTuple(args, "s#|O|i|O", &data, &size, &pycallback, &eid, &pyDBInterfaceName);
+	else if (argCount == 3)
+		ret = PyArg_ParseTuple(args, "s#|O|i", &data, &size, &pycallback, &eid);
+	else if (argCount == 2)
+		ret = PyArg_ParseTuple(args, "s#|O", &data, &size, &pycallback);
+	else if (argCount == 1)
+		ret = PyArg_ParseTuple(args, "s#", &data, &size);
+
+	if (ret == -1)
+	{
+		PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args error!");
+		PyErr_PrintEx(0);
+		S_Return;
+	}
+
+	std::string dbInterfaceName = "default";
+	if (pyDBInterfaceName)
+	{
+		dbInterfaceName = PyUnicode_AsUTF8AndSize(pyDBInterfaceName, NULL);
+
+		if (!g_kbeSrvConfig.dbInterface(dbInterfaceName))
+		{
+			PyErr_Format(PyExc_TypeError, "KBEngine::executeRawDatabaseCommand: args4, incorrect dbInterfaceName(%s)!",
+				dbInterfaceName.c_str());
+
+			PyErr_PrintEx(0);
+			S_Return;
+		}
+	}
+
+	Interfaces::getSingleton().executeRawDatabaseCommand(data, (uint32)size, pycallback, eid, dbInterfaceName);
+	S_Return;
+}
+
+//-------------------------------------------------------------------------------------
+void Interfaces::executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid, const std::string& dbInterfaceName)
+{
+	if (datas == NULL)
+	{
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: execute error!\n");
+		return;
+	}
+
+	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
+	Components::ComponentInfos* dbmgrinfos = NULL;
+
+	if (cts.size() > 0)
+	{
+		srand(KBEngine::getSystemTime());
+		dbmgrinfos = &(cts[(rand() % cts.size())]);
+	}
+
+	if (dbmgrinfos == NULL || dbmgrinfos->pChannel == NULL || dbmgrinfos->cid == 0)
+	{
+		ERROR_MSG("KBEngine::executeRawDatabaseCommand: not found dbmgr!\n");
+		return;
+	}
+
+	int dbInterfaceIndex = g_kbeSrvConfig.dbInterfaceName2dbInterfaceIndex(dbInterfaceName);
+	if (dbInterfaceIndex < 0)
+	{
+		ERROR_MSG(fmt::format("KBEngine::executeRawDatabaseCommand: not found dbInterface({})!\n",
+			dbInterfaceName));
+
+		return;
+	}
+
+	//INFO_MSG(fmt::format("KBEngine::executeRawDatabaseCommand{}:{}.\n", (eid > 0 ? fmt::format("(entityID={})", eid) : ""), datas));
+
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	(*pBundle).newMessage(DbmgrInterface::executeRawDatabaseCommand);
+	(*pBundle) << eid;
+	(*pBundle) << (uint16)dbInterfaceIndex;
+	(*pBundle) << componentID_ << componentType_;
+
+	CALLBACK_ID callbackID = 0;
+
+	if (pycallback && PyCallable_Check(pycallback))
+		callbackID = callbackMgr().save(pycallback);
+
+	(*pBundle) << callbackID;
+	(*pBundle) << size;
+	(*pBundle).append(datas, size);
+	dbmgrinfos->pChannel->send(pBundle);
+}
+
+//-------------------------------------------------------------------------------------
+void Interfaces::onExecuteRawDatabaseCommandCB(Network::Channel* pChannel, KBEngine::MemoryStream& s)
+{
+	std::string err;
+	CALLBACK_ID callbackID = 0;
+	uint32 nrows = 0;
+	uint32 nfields = 0;
+	uint64 affectedRows = 0;
+	uint64 lastInsertID = 0;
+
+	PyObject* pResultSet = NULL;
+	PyObject* pAffectedRows = NULL;
+	PyObject* pLastInsertID = NULL;
+	PyObject* pErrorMsg = NULL;
+
+	s >> callbackID;
+	s >> err;
+
+	if (err.size() <= 0)
+	{
+		s >> nfields;
+
+		pErrorMsg = Py_None;
+		Py_INCREF(pErrorMsg);
+
+		if (nfields > 0)
+		{
+			pAffectedRows = Py_None;
+			Py_INCREF(pAffectedRows);
+
+			pLastInsertID = Py_None;
+			Py_INCREF(pLastInsertID);
+
+			s >> nrows;
+
+			pResultSet = PyList_New(nrows);
+			for (uint32 i = 0; i < nrows; ++i)
+			{
+				PyObject* pRow = PyList_New(nfields);
+				for (uint32 j = 0; j < nfields; ++j)
+				{
+					std::string cell;
+					s.readBlob(cell);
+
+					PyObject* pCell = NULL;
+
+					if (cell == "KBE_QUERY_DB_NULL")
+					{
+						Py_INCREF(Py_None);
+						pCell = Py_None;
+					}
+					else
+					{
+						pCell = PyBytes_FromStringAndSize(cell.data(), cell.length());
+					}
+
+					PyList_SET_ITEM(pRow, j, pCell);
+				}
+
+				PyList_SET_ITEM(pResultSet, i, pRow);
+			}
+		}
+		else
+		{
+			pResultSet = Py_None;
+			Py_INCREF(pResultSet);
+
+			pErrorMsg = Py_None;
+			Py_INCREF(pErrorMsg);
+
+			s >> affectedRows;
+
+			pAffectedRows = PyLong_FromUnsignedLongLong(affectedRows);
+
+			s >> lastInsertID;
+			pLastInsertID = PyLong_FromUnsignedLongLong(lastInsertID);
+		}
+	}
+	else
+	{
+		pResultSet = Py_None;
+		Py_INCREF(pResultSet);
+
+		pErrorMsg = PyUnicode_FromString(err.c_str());
+
+		pAffectedRows = Py_None;
+		Py_INCREF(pAffectedRows);
+
+		pLastInsertID = Py_None;
+		Py_INCREF(pLastInsertID);
+	}
+
+	s.done();
+
+	//DEBUG_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: nrows={}, nfields={}, err={}.\n", 
+	//	nrows, nfields, err.c_str()));
+
+	if (callbackID > 0)
+	{
+		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+
+		PyObjectPtr pyfunc = pyCallbackMgr_.take(callbackID);
+		if (pyfunc != NULL)
+		{
+			PyObject* pyResult = PyObject_CallFunction(pyfunc.get(),
+				const_cast<char*>("OOOO"),
+				pResultSet, pAffectedRows, pLastInsertID, pErrorMsg);
+
+			if (pyResult != NULL)
+				Py_DECREF(pyResult);
+			else
+				SCRIPT_ERROR_CHECK();
+		}
+		else
+		{
+			ERROR_MSG(fmt::format("Cellapp::onExecuteRawDatabaseCommandCB: can't found callback:{}.\n",
+				callbackID));
+		}
+	}
+
+	Py_XDECREF(pResultSet);
+	Py_XDECREF(pAffectedRows);
+	Py_XDECREF(pLastInsertID);
+	Py_XDECREF(pErrorMsg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -273,6 +536,8 @@ void Interfaces::reqCreateAccount(Network::Channel* pChannel, KBEngine::MemorySt
 
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCOPED_PROFILE(SCRIPTCALL_CREATEACCOUNT_PROFILE);
+
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onRequestCreateAccount"), 
 										const_cast<char*>("ssy#"), 
@@ -306,7 +571,7 @@ void Interfaces::createAccountResponse(std::string commitName, std::string realA
 
 	CreateAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(DbmgrInterface::onCreateAccountCBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -383,6 +648,8 @@ void Interfaces::onAccountLogin(Network::Channel* pChannel, KBEngine::MemoryStre
 
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCOPED_PROFILE(SCRIPTCALL_ACCOUNTLOGIN_PROFILE);
+
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onRequestAccountLogin"), 
 										const_cast<char*>("ssy#"), 
@@ -416,7 +683,7 @@ void Interfaces::accountLoginResponse(std::string commitName, std::string realAc
 
 	LoginAccountTask *task = iter->second;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	(*pBundle).newMessage(DbmgrInterface::onLoginAccountCBBFromInterfaces);
 	(*pBundle) << task->baseappID << commitName << realAccountName << task->password << errorCode;
@@ -496,6 +763,8 @@ void Interfaces::charge(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	
 	// 把请求交由脚本处理
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
+	SCOPED_PROFILE(SCRIPTCALL_CHARGE_PROFILE);
+
 	PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(), 
 										const_cast<char*>("onRequestCharge"), 
 										const_cast<char*>("sKy#"), 
@@ -536,7 +805,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 					DBID dbid = 0;
 					CALLBACK_ID cbid = 0;
 
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 					(*pBundle).newMessage(DbmgrInterface::onChargeCB);
 					(*pBundle) << baseappID << orderID << dbid;
@@ -559,7 +828,7 @@ void Interfaces::chargeResponse(std::string orderID, std::string extraDatas, KBE
 	KBEShared_ptr<Orders> orders = iter->second;
 	orders->getDatas = extraDatas;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(DbmgrInterface::onChargeCB);
 	(*pBundle) << orders->baseappID << orders->ordersID << orders->dbid;

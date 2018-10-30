@@ -47,9 +47,9 @@ ObjectPool<TCPPacketSender>& TCPPacketSender::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacketSender* TCPPacketSender::createPoolObject()
+TCPPacketSender* TCPPacketSender::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -74,9 +74,9 @@ void TCPPacketSender::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacketSender::SmartPoolObjectPtr TCPPacketSender::createSmartPoolObj()
+TCPPacketSender::SmartPoolObjectPtr TCPPacketSender::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacketSender>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacketSender>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -94,9 +94,9 @@ TCPPacketSender::~TCPPacketSender()
 }
 
 //-------------------------------------------------------------------------------------
-void TCPPacketSender::onGetError(Channel* pChannel)
+void TCPPacketSender::onGetError(Channel* pChannel, const std::string& err)
 {
-	pChannel->condemn();
+	pChannel->condemn(err);
 	
 	// 此处不必立即销毁，可能导致bufferedReceives_内部遍历迭代器破坏
 	// 交给TCPPacketReceiver处理即可
@@ -115,7 +115,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 
 	KBE_ASSERT(pChannel != NULL);
 	
-	if(pChannel->isCondemn())
+	if(pChannel->condemn() == Channel::FLAG_CONDEMN_AND_DESTROY)
 	{
 		return false;
 	}
@@ -159,27 +159,41 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 				// 连续超过10次则通知出错
 				if (++sendfailCount_ >= 10 && pChannel->isExternal())
 				{
-					onGetError(pChannel);
+					onGetError(pChannel, "TCPPacketSender::processSend: sendfailCount >= 10");
 
-					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
-						fmt::format("TCPPacketSender::processSend(sendfailCount({}) >= 10)", (int)sendfailCount_).c_str());
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(),
+						fmt::format("TCPPacketSender::processSend(external, sendfailCount({}) >= 10)", (int)sendfailCount_).c_str());
 				}
 				else
 				{
-					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), 
-						fmt::format("TCPPacketSender::processSend({})", (int)sendfailCount_).c_str());
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(),
+						fmt::format("TCPPacketSender::processSend(internal, {})", (int)sendfailCount_).c_str());
 				}
 			}
 			else
 			{
-#ifdef unix
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()", 
-					fmt::format(", errno: {}", errno).c_str());
+				if (pChannel->isExternal())
+				{
+#if KBE_PLATFORM == PLATFORM_UNIX
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend(external)",
+						fmt::format(", errno: {}", errno).c_str());
 #else
-				this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend()", 
-					fmt::format(", errno: {}", WSAGetLastError()).c_str());
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend(external)",
+						fmt::format(", errno: {}", WSAGetLastError()).c_str());
 #endif
-				onGetError(pChannel);
+				}
+				else
+				{
+#if KBE_PLATFORM == PLATFORM_UNIX
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend(internal)",
+						fmt::format(", errno: {}, {}", errno, pChannel->c_str()).c_str());
+#else
+					this->dispatcher().errorReporter().reportException(reason, pEndpoint_->addr(), "TCPPacketSender::processSend(internal)",
+						fmt::format(", errno: {}, {}", WSAGetLastError(), pChannel->c_str()).c_str());
+#endif
+				}
+
+				onGetError(pChannel, fmt::format("TCPPacketSender::processSend: errno={}", kbe_lasterror()));
 			}
 
 			return false;
@@ -197,7 +211,7 @@ bool TCPPacketSender::processSend(Channel* pChannel)
 //-------------------------------------------------------------------------------------
 Reason TCPPacketSender::processFilterPacket(Channel* pChannel, Packet * pPacket)
 {
-	if(pChannel->isCondemn())
+	if(pChannel->condemn() == Channel::FLAG_CONDEMN_AND_DESTROY)
 	{
 		return REASON_CHANNEL_CONDEMN;
 	}

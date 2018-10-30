@@ -59,7 +59,7 @@ namespace KBEngine{
 					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
 					eid, pChannel->proxyID()));									\
 																				\
-				pChannel->condemn();											\
+				pChannel->condemn(#NAME"handler::handle: Illegal access");		\
 																				\
 				return;															\
 			}																	\
@@ -134,7 +134,7 @@ namespace KBEngine{
 					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
 					eid, pChannel->proxyID()));									\
 																				\
-				pChannel->condemn();											\
+				pChannel->condemn(#NAME"handler::handle: Illegal access");		\
 																				\
 				return;															\
 			}																	\
@@ -209,7 +209,7 @@ namespace KBEngine{
 					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
 					eid, pChannel->proxyID()));									\
 																				\
-				pChannel->condemn();											\
+				pChannel->condemn(#NAME"handler::handle: Illegal access");		\
 																				\
 				return;															\
 			}																	\
@@ -287,7 +287,7 @@ namespace KBEngine{
 					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
 					eid, pChannel->proxyID()));									\
 																				\
-				pChannel->condemn();											\
+				pChannel->condemn(#NAME"handler::handle: Illegal access");		\
 																				\
 				return;															\
 			}																	\
@@ -374,7 +374,7 @@ namespace KBEngine{
 					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
 					eid, pChannel->proxyID()));									\
 																				\
-				pChannel->condemn();											\
+				pChannel->condemn(#NAME"handler::handle: Illegal access");		\
 																				\
 				return;															\
 			}																	\
@@ -466,7 +466,7 @@ namespace KBEngine{
 					#NAME"handler::handle: Illegal access to entityID:{}! proxyID={}\n",\
 					eid, pChannel->proxyID()));									\
 																				\
-				pChannel->condemn();											\
+				pChannel->condemn(#NAME"handler::handle: Illegal access");		\
 																				\
 				return;															\
 			}																	\

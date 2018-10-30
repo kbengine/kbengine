@@ -47,7 +47,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 3)
 	{
-		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args is error! "
+		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args error! "
 			"arg(watcherName, deftype[UINT32|STRING...], pyCallable).\n");
 		PyErr_PrintEx(0);
 		return NULL;
@@ -59,7 +59,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 	
 	if(PyArg_ParseTuple(args, "O|O|O", &pyName, &pyType, &pyObj) == -1)
 	{
-		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args is error! "
+		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args error! "
 			"arg(watcherPath, deftype[UINT32|STRING...], pyCallable).\n");
 		PyErr_PrintEx(0);
 		return NULL;
@@ -67,7 +67,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 
 	if(!PyUnicode_Check(pyName))
 	{
-		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args1 is error! "
+		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args1 error! "
 			"arg=watcherPath\n");
 		PyErr_PrintEx(0);
 		return NULL;
@@ -75,29 +75,20 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 
 	if(!PyUnicode_Check(pyType))
 	{
-		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args2 is error! "
+		PyErr_Format(PyExc_Exception, "KBEngine::addWatcher: args2 error! "
 			"arg=deftype[UINT32|STRING...]\n");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 
-	wchar_t* wstr = PyUnicode_AsWideCharString(pyName, NULL);					
-	char* pwatchername = strutil::wchar2char(wstr);	
-	std::string watchername = pwatchername;
-	PyMem_Free(wstr);	
-	free(pwatchername);
-
-	wstr = PyUnicode_AsWideCharString(pyType, NULL);					
-	pwatchername = strutil::wchar2char(wstr);	
-	std::string type = pwatchername;
-	PyMem_Free(wstr);	
-	free(pwatchername);
+	std::string watchername = PyUnicode_AsUTF8AndSize(pyName, NULL);
+	std::string type = PyUnicode_AsUTF8AndSize(pyType, NULL);
 	
 	PyObject* pyObj1 = NULL;
 
 	if(!PyCallable_Check(pyObj))
 	{
-		PyErr_Format(PyExc_Exception, "Baseapp::addWatcher: args3 is error! "
+		PyErr_Format(PyExc_Exception, "Baseapp::addWatcher: args3 error! "
 			"arg=pyCallable.\n");
 		PyErr_PrintEx(0);
 		return NULL;
@@ -107,7 +98,7 @@ static PyObject* addWatcher(PyObject* self, PyObject* args)
 	if(!pyObj1)
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_Exception, "Baseapp::addWatcher: return is error for args3! "
+		PyErr_Format(PyExc_Exception, "Baseapp::addWatcher: return error for args3! "
 			"arg=pyCallable.\n");
 		PyErr_PrintEx(0);
 		return NULL;
@@ -173,7 +164,7 @@ static PyObject* delWatcher(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 1)
 	{
-		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName is error!\n");
+		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName error!\n");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -182,24 +173,19 @@ static PyObject* delWatcher(PyObject* self, PyObject* args)
 	
 	if(PyArg_ParseTuple(args, "O", &pyName) == -1)
 	{
-		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName is error!\n");
+		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName error!\n");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 
 	if(!PyUnicode_Check(pyName))
 	{
-		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName is error!\n");
+		PyErr_Format(PyExc_Exception, "KBEngine::delWatcher: watcherName error!\n");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
 
-	wchar_t* wstr = PyUnicode_AsWideCharString(pyName, NULL);					
-	char* pwatchername = strutil::wchar2char(wstr);	
-	PyMem_Free(wstr);	
-	
-	bool ret = _delWatcher(pwatchername);
-	free(pwatchername);
+	bool ret = _delWatcher(PyUnicode_AsUTF8AndSize(pyName, NULL));
 	
 	if(!ret)
 	{

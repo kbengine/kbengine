@@ -79,15 +79,16 @@ std::string SIGNAL2NAMES(int signum)
 
 void signalHandler(int signum)
 {
-	DEBUG_MSG(fmt::format("SignalHandlers: receive sigNum {}.\n", SIGNAL2NAMES(signum)));
+	printf("SignalHandlers: receive sigNum %d.\n", signum);
 	g_signalHandlers.onSignalled(signum);
 };
 
 //-------------------------------------------------------------------------------------
 SignalHandlers::SignalHandlers():
 singnalHandlerMap_(),
-signalledVec_(),
-papp_(NULL)
+papp_(NULL),
+rpos_(0),
+wpos_(0)
 {
 }
 
@@ -101,6 +102,17 @@ void SignalHandlers::attachApp(ServerApp* app)
 { 
 	papp_ = app; 
 	app->dispatcher().addTask(this);
+}
+
+//-------------------------------------------------------------------------------------	
+bool SignalHandlers::ignoreSignal(int sigNum)
+{
+#if KBE_PLATFORM != PLATFORM_WIN32
+	if (signal(sigNum, SIG_IGN) == SIG_ERR)
+		return false;
+#endif
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -152,33 +164,82 @@ void SignalHandlers::clear()
 //-------------------------------------------------------------------------------------	
 void SignalHandlers::onSignalled(int sigNum)
 {
-	signalledVec_.push_back(sigNum);
+	// 不要分配内存
+	KBE_ASSERT(wpos_ != 0XFF);
+	signalledArray_[wpos_++] = sigNum;
 }
 
 //-------------------------------------------------------------------------------------	
 bool SignalHandlers::process()
 {
-	if(signalledVec_.size() > 0)
-	{
-		std::vector<int>::iterator iter = signalledVec_.begin();
-		for(; iter != signalledVec_.end(); ++iter)
-		{
-			int sigNum = (*iter);
-			SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
-			if(iter1 == singnalHandlerMap_.end())
-			{
-				DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n", 
-					SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
+	if (wpos_ == 0)
+		return true;
 
-				continue;
-			}
-			
-			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle.\n", SIGNAL2NAMES(sigNum)));
-				iter1->second->onSignalled(sigNum);
+	DEBUG_MSG(fmt::format("SignalHandlers::process: rpos={}, wpos={}.\n", rpos_, wpos_));
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	/* 如果信号有瞬时超过255触发需求，可以打开注释，将会屏蔽所有信号等执行完毕之后再执行期间触发的信号，将signalledArray_改为信号集类型
+	if (wpos_ == 1 && signalledArray_[0] == SIGALRM)
+		return true;
+
+	sigset_t mask, old_mask;
+	sigemptyset(&mask);
+	sigemptyset(&old_mask);
+
+	sigfillset(&mask);
+
+	// 屏蔽信号
+	sigprocmask(SIG_BLOCK, &mask, &old_mask);
+	*/
+#endif
+
+	while (rpos_ < wpos_)
+	{
+		int sigNum = signalledArray_[rpos_++];
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+		//if (SIGALRM == sigNum)
+		//	continue;
+#endif
+
+		SignalHandlerMap::iterator iter1 = singnalHandlerMap_.find(sigNum);
+		if (iter1 == singnalHandlerMap_.end())
+		{
+			DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} unhandled, singnalHandlerMap({}).\n",
+				SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
+
+			continue;
 		}
 
-		signalledVec_.clear();
+		DEBUG_MSG(fmt::format("SignalHandlers::process: sigNum {} handle. singnalHandlerMap({})\n", SIGNAL2NAMES(sigNum), singnalHandlerMap_.size()));
+		iter1->second->onSignalled(sigNum);
 	}
+
+	rpos_ = 0;
+	wpos_ = 0;
+
+#if KBE_PLATFORM != PLATFORM_WIN32
+	// 恢复屏蔽
+	/*
+	sigprocmask(SIG_SETMASK, &old_mask, NULL);
+
+	addSignal(SIGALRM, NULL);
+
+	// Get the current signal mask
+	sigprocmask(0, NULL, &mask);
+
+	// Unblock SIGALRM
+	sigdelset(&mask, SIGALRM);
+
+	// Wait with this mask
+	ualarm(1, 0);
+
+	// 让期间错过的信号重新触发
+	sigsuspend(&mask);
+
+	delSignal(SIGALRM);
+	*/
+#endif
 
 	return true;
 }

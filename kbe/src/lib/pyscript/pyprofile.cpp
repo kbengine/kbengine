@@ -235,7 +235,7 @@ bool PyProfile::dump(std::string profile, std::string fileName)
 
 	if(!pyRet)
 	{
-		ERROR_MSG(fmt::format("PyProfile::dump: save to {} is error!\n", fileName));
+		ERROR_MSG(fmt::format("PyProfile::dump: save to {} error!\n", fileName));
 		return false;
 	}
 	else

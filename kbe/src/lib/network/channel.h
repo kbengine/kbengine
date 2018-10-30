@@ -50,9 +50,9 @@ class Channel : public TimerHandler, public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Channel>& ObjPool();
-	static Channel* createPoolObject();
+	static Channel* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
 	virtual void onReclaimObject();
@@ -77,7 +77,15 @@ public:
 		CHANNEL_WEB = 1,
 	};
 
-	typedef std::vector<Packet*> BufferedReceives;
+	enum Flags
+	{
+		FLAG_SENDING					= 0x00000001,	// 发送信息中
+		FLAG_DESTROYED					= 0x00000002,	// 通道已经销毁
+		FLAG_HANDSHAKE					= 0x00000004,	// 已经握手过
+		FLAG_CONDEMN_AND_WAIT_DESTROY	= 0x00000008,	// 该频道已经变得不合法，即将在数据发送完毕后关闭
+		FLAG_CONDEMN_AND_DESTROY		= 0x00000010,	// 该频道已经变得不合法，即将关闭
+		FLAG_CONDEMN					= FLAG_CONDEMN_AND_WAIT_DESTROY | FLAG_CONDEMN_AND_DESTROY,
+	};
 
 public:
 	Channel();
@@ -118,18 +126,18 @@ public:
 
 	typedef std::vector<Bundle*> Bundles;
 	Bundles & bundles();
-	
+	const Bundles & bundles() const;
+
 	/**
 		创建发送bundle，该bundle可能是从send放入发送队列中获取的，如果队列为空
 		则创建一个新的
 	*/
 	Bundle* createSendBundle();
-	
-	int32 bundlesLength();
-
-	const Bundles & bundles() const;
-	INLINE void pushBundle(Bundle* pBundle);
 	void clearBundle();
+
+	INLINE void pushBundle(Bundle* pBundle);
+
+	int32 bundlesLength();
 
 	bool sending() const { return (flags_ & FLAG_SENDING) > 0;}
 	void stopSend();
@@ -163,26 +171,36 @@ public:
 	void updateLastReceivedTime()		{ lastReceivedTime_ = timestamp(); }
 		
 	void addReceiveWindow(Packet* pPacket);
-	
-	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
 		
-	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
+	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
+	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
-	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
-	void condemn();
+	uint32 condemn() const 
+	{
+		if ((flags_ & FLAG_CONDEMN_AND_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_DESTROY;
+
+		if ((flags_ & FLAG_CONDEMN_AND_WAIT_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_WAIT_DESTROY;
+
+		return 0;
+	}
+
+	void condemn(const std::string& reason, bool waitSendCompletedDestroy = false);
+	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
 
 	ENTITY_ID proxyID() const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
-
+	  
 	const std::string& extra() const { return strextra_; }
 	void extra(const std::string& s){ strextra_ = s; }
 
 	COMPONENT_ID componentID() const{ return componentID_; }
 	void componentID(COMPONENT_ID cid){ componentID_ = cid; }
 
-	virtual void handshake();
+	bool handshake(Packet* pPacket);
 
 	KBEngine::Network::MessageHandlers* pMsgHandlers() const { return pMsgHandlers_; }
 	void pMsgHandlers(KBEngine::Network::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
@@ -202,15 +220,9 @@ public:
 		return channelType_;;
 	}
 
-private:
+	uint32 getRTT();
 
-	enum Flags
-	{
-		FLAG_SENDING	= 0x00000001,	// 发送信息中
-		FLAG_DESTROYED	= 0x00000002,	// 通道已经销毁
-		FLAG_HANDSHAKE	= 0x00000004,	// 已经握手过
-		FLAG_CONDEMN	= 0x00000008,	// 该频道已经变得不合法
-	};
+private:
 
 	enum TimeOutType
 	{
@@ -236,7 +248,7 @@ private:
 	
 	Bundles						bundles_;
 	
-	BufferedReceives			bufferedReceives_;
+	uint32						lastTickBufferedReceives_;
 
 	PacketReader*				pPacketReader_;
 
@@ -269,6 +281,8 @@ private:
 	KBEngine::Network::MessageHandlers* pMsgHandlers_;
 
 	uint32						flags_;
+
+	std::string					condemnReason_;
 };
 
 }

@@ -85,7 +85,9 @@ public:
 	virtual bool writeBaseEntityCallEnd(ScriptDefModule* pScriptDefModule);
 	virtual bool writeCellEntityCallBegin(ScriptDefModule* pScriptDefModule);
 	virtual bool writeCellEntityCallEnd(ScriptDefModule* pScriptDefModule);
-	virtual bool writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
+	virtual bool writeEntityCallMethodBegin(ScriptDefModule* pScriptDefModule, 
+		MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType);
+	virtual bool writeEntityCallMethodEnd(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription);
 
 	virtual bool writeEntityDefsModuleInitDefTypesBegin();
 	virtual bool writeEntityDefsModuleInitDefTypesEnd();
@@ -387,9 +389,11 @@ public:
 	static ClientSDK* createClientSDK(const std::string& type);
 
 protected:
-	std::string basepath_, currpath_;
+	std::string basepath_, currSourcePath_, currHeaderPath_;
 	std::string sourcefileBody_;
 	std::string sourcefileName_;
+	std::string headerfileName_;
+	std::string headerfileBody_;
 };
 
 }

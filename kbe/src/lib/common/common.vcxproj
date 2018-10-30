@@ -95,7 +95,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;LOG4CXX_STATIC;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -115,7 +115,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;LOG4CXX_STATIC;WIN32;_DEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -135,7 +135,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;LOG4CXX_STATIC;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -155,7 +155,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../common;../../lib;../../lib/dependencies/log4cxx/src/main/include;../../lib/dependencies;../../lib/dependencies/fmt/include;../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>USE_OPENSSL;ENABLE_WATCHERS;LOG4CXX_STATIC;WIN32;NDEBUG;_LIB;CODE_INLINE;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -175,13 +175,13 @@
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="blowfish.cpp" />
     <ClCompile Include="common.cpp" />
-    <ClCompile Include="format.cpp" />
     <ClCompile Include="kbekey.cpp" />
     <ClCompile Include="kbeversion.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="memorystream.cpp" />
     <ClCompile Include="rsa.cpp" />
     <ClCompile Include="sha1.cpp" />
+    <ClCompile Include="ssl.cpp" />
     <ClCompile Include="strutil.cpp" />
     <ClCompile Include="tasks.cpp" />
     <ClCompile Include="timer.cpp" />
@@ -192,7 +192,6 @@
     <ClInclude Include="blowfish.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="deadline.h" />
-    <ClInclude Include="format.h" />
     <ClInclude Include="kbekey.h" />
     <ClInclude Include="kbemalloc.h" />
     <ClInclude Include="kbeversion.h" />
@@ -206,6 +205,7 @@
     <ClInclude Include="sha1.h" />
     <ClInclude Include="singleton.h" />
     <ClInclude Include="smartpointer.h" />
+    <ClInclude Include="ssl.h" />
     <ClInclude Include="stdfindif_handers.h" />
     <ClInclude Include="stringconv.h" />
     <ClInclude Include="strutil.h" />

@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "KBEngine",
+	"Description": "",
+	"Category": "KBEngine",
+	"CreatedBy": "KBEngine",
+	"CreatedByURL": "http://kbengine.github.io",
+	"DocsURL": "http://kbengine.github.io/docs",
+	"MarketplaceURL": "http://kbengine.github.io/marketplace",
+	"SupportURL": "http://bbs.kbengine.org",
+	"EnabledByDefault": false,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "KBEnginePlugins",
+			"Type": "Developer",
+			"LoadingPhase": "Default"
+		}
+	]
+}

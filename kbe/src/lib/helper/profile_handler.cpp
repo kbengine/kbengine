@@ -152,7 +152,7 @@ void CProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
@@ -275,7 +275,7 @@ void EventProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
@@ -383,7 +383,7 @@ void NetworkProfileHandler::sendStream(MemoryStream* s)
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	ConsoleInterface::ConsoleProfileHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);

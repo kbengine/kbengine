@@ -125,7 +125,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/jsoncpp/include;../../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_WINDOWS;Py_NO_ENABLE_SHARED;USE_PYTHON;_DEBUG;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -147,7 +147,7 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
 /ignore:4244 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;entitydef_d.lib;crypt32.lib;_ssl_d.pyd;_hashlib_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_hashlib_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;helper_d.lib;network_d.lib;thread_d.lib;client_lib_d.lib;pyexpat_d.pyd;expat_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;entitydef_d.lib;crypt32.lib;_ssl_d.pyd;_hashlib_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_hashlib_d.pyd;_socket_d.pyd;Version.lib;wldap32.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;fmt_d.lib;helper_d.lib;network_d.lib;libcurl_d.lib;thread_d.lib;client_lib_d.lib;pyexpat_d.pyd;expat_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;../../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -163,7 +163,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/jsoncpp/include;../../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_WINDOWS;Py_NO_ENABLE_SHARED;USE_PYTHON;_DEBUG;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -184,7 +184,7 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
 /ignore:4244 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>openssl_uptable.obj;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;entitydef_d.lib;openssl_uptable.obj;crypt32.lib;_ssl_d.pyd;_hashlib_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_hashlib_d.pyd;_socket_d.pyd;Version.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;helper_d.lib;network_d.lib;thread_d.lib;client_lib_d.lib;pyexpat_d.pyd;expat_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openssl_uptable.obj;apr-1_d.lib;aprutil-1_d.lib;log4cxx_d.lib;entitydef_d.lib;openssl_uptable.obj;crypt32.lib;_ssl_d.pyd;_hashlib_d.pyd;select_d.pyd;_ctypes_d.pyd;_elementtree_d.pyd;unicodedata_d.pyd;_hashlib_d.pyd;_socket_d.pyd;Version.lib;wldap32.lib;netapi32.lib;resmgr_d.lib;python34_d.lib;pyscript_d.lib;xml_d.lib;common_d.lib;fmt_d.lib;helper_d.lib;network_d.lib;libcurl_d.lib;thread_d.lib;client_lib_d.lib;pyexpat_d.pyd;expat_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;../../../lib/dependencies/vld;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -201,7 +201,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/jsoncpp/include;../../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_WINDOWS;NDEBUG;Py_NO_ENABLE_SHARED;USE_PYTHON;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -223,7 +223,7 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
 /ignore:4244 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;entitydef.lib;crypt32.lib;_ssl.pyd;_hashlib.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_hashlib.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;pyscript.lib;xml.lib;common.lib;helper.lib;network.lib;thread.lib;client_lib.lib;pyexpat.pyd;expat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;entitydef.lib;crypt32.lib;_ssl.pyd;_hashlib.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_hashlib.pyd;_socket.pyd;Version.lib;wldap32.lib;netapi32.lib;resmgr.lib;python34.lib;pyscript.lib;xml.lib;common.lib;fmt.lib;helper.lib;network.lib;libcurl.lib;thread.lib;client_lib.lib;pyexpat.pyd;expat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -242,7 +242,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../lib/dependencies/jsoncpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../lib/python/PC;../../../lib/python/Include;../../../lib;../../../common;../../../lib/dependencies/g3dlite;../../../server;../../../lib/dependencies/log4cxx/src/main/include;../../../lib/dependencies;../../../lib/dependencies/fmt/include;../../../lib/dependencies/jsoncpp/include;../../../lib/dependencies/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ENABLE_WATCHERS;WIN32;_WINDOWS;NDEBUG;Py_NO_ENABLE_SHARED;USE_PYTHON;KBE_USE_ASSERTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -264,7 +264,7 @@
       <AdditionalOptions>/ignore:4049
 /ignore:4217
 /ignore:4244 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;entitydef.lib;openssl_uptable.obj;crypt32.lib;_ssl.pyd;_hashlib.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_hashlib.pyd;_socket.pyd;Version.lib;netapi32.lib;resmgr.lib;python34.lib;pyscript.lib;xml.lib;common.lib;helper.lib;network.lib;thread.lib;client_lib.lib;pyexpat.pyd;expat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>apr-1.lib;aprutil-1.lib;log4cxx.lib;entitydef.lib;openssl_uptable.obj;crypt32.lib;_ssl.pyd;_hashlib.pyd;select.pyd;_ctypes.pyd;_elementtree.pyd;unicodedata.pyd;_hashlib.pyd;_socket.pyd;Version.lib;wldap32.lib;netapi32.lib;resmgr.lib;python34.lib;pyscript.lib;xml.lib;common.lib;fmt.lib;helper.lib;network.lib;libcurl.lib;thread.lib;client_lib.lib;pyexpat.pyd;expat.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>../../../libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>expat.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>

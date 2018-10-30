@@ -26,7 +26,7 @@ KBEngine
 
 ## Docs
 
-	Docs		: http://kbengine.org/docs/
+	Docs		: http://kbengine.github.io/docs/
 	API		: https://github.com/kbengine/kbengine/tree/master/docs
 
 
@@ -42,28 +42,35 @@ KBEngine
 	https://www.youtube.com/watch?v=sWtk3CfxyGY
 	http://v.youku.com/v_show/id_XMjgyMjM0MTYwNA==.html?spm=a2h3j.8428770.3416059.1
 
+
 ## What is KBEngine?
 
 	An open source MMOG server engine. 
-	Just use the Python script to be able to complete any game logic simply and efficiently (can hotfix).
-	Using the client plug-in can be quickly combined with (Unity3D, UE4, OGRE, HTML5, etc.) to form a complete client.
+	Just use Python scripting to be able to complete any game logic simply and efficiently (supports hotfixing).
+	Various KBEngine plugins can be quickly combined with (Unity3D, OGRE, Cocos2d-x, HTML5, etc.) technology to 
+	form a complete game client.
 
-	Engine written in C++, developers do not need to re-implement some common server-side technology,
-	allows developers to concentrate on the game logic development, quickly create a variety of games.
+	The engine is written in C++, and saves developers from having to re-implement common server-side 
+	technology, allowing them to concentrate on game logic development, to quickly create a variety of games.
 
-	(Frequently asked load-limit, KBEngine is designed to be multi-process distributed dynamic load balancing scheme, 
-	in theory only need to expand hardware can increase load-limit, the single machine load-limit 
-	depends on complexity of logic of the game itself.)
+	(Because it is often asked what the upper limit of the load is that KBEngine can handle, the underlying 
+	architecture has been designed as a multi-process distributed dynamic load balancing solution. In theory, 
+	by continuously expanding the hardware, the upper limit of the load can also be continuously increased. 
+	The upper limit of the capacity of a single machine depends on the complexity of the game logic itself.)
 
 
-## Acknowledgements(alphabetical)
+## Create a new game asset library
 
-	acatadog, colin
+	Execute:
+		new_assets.bat
+
+	Output:
+		server_assets
 
 
 ## 中文
 
-[官网](http://kbengine.org/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321
+[官网](http://kbengine.github.io/cn)，[论坛](http://bbs.kbengine.org)，QQ交流群：461368412、16535321
 
 
 ## 什么是KBEngine?

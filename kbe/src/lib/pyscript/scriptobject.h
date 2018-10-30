@@ -95,7 +95,7 @@ namespace KBEngine{ namespace script{
 
 																							
 #define SCRIPT_HREADER_BASE(CLASS, SUPERCLASS)												\
-	/* 当前脚本模块的类别 */																\
+	/* 当前脚本模块的类别 */																	\
 	static PyTypeObject _scriptType;														\
 	typedef CLASS ThisClass;																\
 																							\
@@ -140,11 +140,11 @@ namespace KBEngine{ namespace script{
 	}																						\
 																							\
 public:																						\
-	/* 最终将要被安装到脚本模块中的方法和成员存放列表*/										\
+	/* 最终将要被安装到脚本模块中的方法和成员存放列表*/											\
 	static PyMethodDef* _##CLASS##_lpScriptmethods;											\
 	static PyMemberDef* _##CLASS##_lpScriptmembers;											\
 	static PyGetSetDef* _##CLASS##_lpgetseters;												\
-	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */				\
+	/* 本模块所要暴漏给脚本的方法和成员， 最终会被导入到上面的2个指针列表中 */					\
 	static PyMethodDef _##CLASS##_scriptMethods[];											\
 	static PyMemberDef _##CLASS##_scriptMembers[];											\
 	static PyGetSetDef _##CLASS##_scriptGetSeters[];										\
@@ -317,7 +317,7 @@ public:																						\
 																							\
 		CLASS::onInstallScript(mod);														\
 		if (PyType_Ready(&_scriptType) < 0){												\
-			ERROR_MSG("PyType_Ready(" #CLASS ") is error!");								\
+			ERROR_MSG("PyType_Ready(" #CLASS ") error!");									\
 			PyErr_Print();																	\
 			return;																			\
 		}																					\
@@ -327,7 +327,7 @@ public:																						\
 			Py_INCREF(&_scriptType);														\
 			if(PyModule_AddObject(mod, name, (PyObject *)&_scriptType) < 0)					\
 			{																				\
-				ERROR_MSG(fmt::format("PyModule_AddObject({}) is error!", name));			\
+				ERROR_MSG(fmt::format("PyModule_AddObject({}) error!", name));				\
 			}																				\
 		}																					\
 																							\
@@ -393,8 +393,8 @@ public:																						\
 		0,														/* tp_clear           */	\
 		0,														/* tp_richcompare     */	\
 		0,														/* tp_weaklistoffset  */	\
-		ITER,													/* tp_iter            */	\
-		ITERNEXT,												/* tp_iternext        */	\
+		(getiterfunc)ITER,										/* tp_iter            */	\
+		(iternextfunc)ITERNEXT,									/* tp_iternext        */	\
 		0,														/* tp_methods         */	\
 		0,														/* tp_members         */	\
 		0,														/* tp_getset          */	\
@@ -442,8 +442,8 @@ public:																						\
 		0,														/* tp_clear           */	\
 		0,														/* tp_richcompare     */	\
 		0,														/* tp_weaklistoffset  */	\
-		ITER,													/* tp_iter            */	\
-		ITERNEXT,												/* tp_iternext        */	\
+		(getiterfunc)ITER,										/* tp_iter            */	\
+		(iternextfunc)ITERNEXT,									/* tp_iternext        */	\
 		0,														/* tp_methods         */	\
 		0,														/* tp_members         */	\
 		0,														/* tp_getset          */	\

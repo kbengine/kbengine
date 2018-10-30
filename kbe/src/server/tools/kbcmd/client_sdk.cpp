@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "kbcmd.h"
 #include "client_sdk.h"
 #include "client_sdk_unity.h"	
 #include "client_sdk_ue4.h"
@@ -39,78 +40,17 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "dbmgr/dbmgr_interface.h"
 #include "loginapp/loginapp_interface.h"
 
-#ifdef _WIN32  
-#include <direct.h>  
-#include <io.h>  
-#elif _LINUX  
-#include <stdarg.h>  
-#include <sys/stat.h>  
-#endif  
-
-#if KBE_PLATFORM == PLATFORM_WIN32
-#define KBE_ACCESS _access  
-#define KBE_MKDIR(a) _mkdir((a))  
-#else
-#define KBE_ACCESS access  
-#define KBE_MKDIR(a) mkdir((a),0755)  
-#endif  
-
 namespace KBEngine {	
-
-int CreatDir(const char *pDir)
-{
-	int i = 0;
-	int iRet;
-	int iLen;
-	char* pszDir;
-
-	if (NULL == pDir)
-	{
-		return 0;
-	}
-
-	pszDir = strdup(pDir);
-	iLen = strlen(pszDir);
-
-	// 创建中间目录  
-	for (i = 0; i < iLen; i++)
-	{
-		if (pszDir[i] == '\\' || pszDir[i] == '/')
-		{
-			pszDir[i] = '\0';
-
-			//如果不存在,创建  
-			iRet = KBE_ACCESS(pszDir, 0);
-			if (iRet != 0)
-			{
-				iRet = KBE_MKDIR(pszDir);
-				if (iRet != 0)
-				{
-					free(pszDir);
-					return -1;
-				}
-			}
-
-			//支持linux,将所有\换成/  
-			pszDir[i] = '/';
-		}
-	}
-
-	if (iLen > 0 && KBE_ACCESS(pszDir, 0) != 0)
-	{
-		iRet = KBE_MKDIR(pszDir);
-	}
-	
-	free(pszDir);
-	return iRet;
-}
 
 //-------------------------------------------------------------------------------------
 ClientSDK::ClientSDK():
 	basepath_(),
-	currpath_(),
+	currSourcePath_(),
+	currHeaderPath_(),
 	sourcefileBody_(),
-	sourcefileName_()
+	sourcefileName_(),
+	headerfileName_(),
+	headerfileBody_()
 {
 
 }
@@ -149,50 +89,101 @@ bool ClientSDK::good() const
 void ClientSDK::onCreateEntityModuleFileName(const std::string& moduleName)
 {
 	sourcefileName_ = moduleName + ".unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::saveFile()
 {
-	if (CreatDir(currpath_.c_str()) == -1)
+	bool done = false;
+
+	if (sourcefileName_.size() > 0)
 	{
-		ERROR_MSG(fmt::format("creating directory error! path={}\n", currpath_));
-		return false;
-	}
+		if (KBCMD::creatDir(currSourcePath_.c_str()) == -1)
+		{
+			ERROR_MSG(fmt::format("creating directory error! path={}\n", currSourcePath_));
+			return false;
+		}
 
-	std::string path = currpath_ + sourcefileName_;
-	
-	DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
-		path));
+		std::string path = currSourcePath_ + sourcefileName_;
 
-	FILE *fp = fopen(path.c_str(), "w");
-
-	if (NULL == fp)
-	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
+		DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 			path));
 
-		return false;
+		FILE *fp = fopen(path.c_str(), "w");
+
+		if (NULL == fp)
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
+				path));
+
+			return false;
+		}
+
+		int written = fwrite(sourcefileBody_.c_str(), 1, sourcefileBody_.size(), fp);
+		if (written != (int)sourcefileBody_.size())
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
+				path));
+
+			return false;
+		}
+
+		if (fclose(fp))
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
+				path));
+
+			return false;
+		}
+
+		done = true;
 	}
 
-	int written = fwrite(sourcefileBody_.c_str(), 1, sourcefileBody_.size(), fp);
-	if (written != (int)sourcefileBody_.size())
+	if (headerfileName_.size() > 0)
 	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
+		if (KBCMD::creatDir(currHeaderPath_.c_str()) == -1)
+		{
+			ERROR_MSG(fmt::format("creating directory error! path={}\n", currHeaderPath_));
+			return false;
+		}
+
+		std::string path = currHeaderPath_ + headerfileName_;
+
+		DEBUG_MSG(fmt::format("ClientSDK::saveFile(): {}\n",
 			path));
 
-		return false;
+		FILE *fp = fopen(path.c_str(), "w");
+
+		if (NULL == fp)
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fopen error! {}\n",
+				path));
+
+			return false;
+		}
+
+		int written = fwrite(headerfileBody_.c_str(), 1, headerfileBody_.size(), fp);
+		if (written != (int)headerfileBody_.size())
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fwrite error! {}\n",
+				path));
+
+			return false;
+		}
+
+		if (fclose(fp))
+		{
+			ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
+				path));
+
+			return false;
+		}
+
+		done = true;
 	}
 
-	if(fclose(fp))
-	{
-		ERROR_MSG(fmt::format("ClientSDK::saveFile(): fclose error! {}\n",
-			path));
-
-		return false;
-	}
-
-	return true;
+	return done;
 }
 
 //-------------------------------------------------------------------------------------
@@ -201,15 +192,11 @@ bool ClientSDK::create(const std::string& path)
 	basepath_ = path;
 
 	if (basepath_[basepath_.size() - 1] != '\\' && basepath_[basepath_.size() - 1] != '/')
-#ifdef _WIN32  
 		basepath_ += "/";
-#else
-		basepath_ += "\\";
-#endif
 
-	currpath_ = basepath_;
+	currHeaderPath_ = currSourcePath_ = basepath_;
 
-	std::string findpath = "client/sdk_templates/" + name();
+	std::string findpath = "sdk_templates/client/" + name();
 
 	std::string getpath = Resmgr::getSingleton().matchPath(findpath);
 
@@ -259,12 +246,14 @@ bool ClientSDK::create(const std::string& path)
 void ClientSDK::onCreateTypeFileName()
 {
 	sourcefileName_ = "KBEType.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateServerErrorDescrsModuleFileName()
 {
 	sourcefileName_ = "ServerErrDescrs.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
@@ -277,13 +266,12 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 	wpath = strutil::char2wchar(basepath_.c_str());
 	std::wstring destPath = wpath;
 	free(wpath);
-	
 
 	std::vector<std::wstring> results;
 	if (!Resmgr::getSingleton().listPathRes(sourcePath, L"*", results))
 		return false;
 
-	wchar_t* wfindpath = strutil::char2wchar(std::string("client/sdk_templates/" + name()).c_str());
+	wchar_t* wfindpath = strutil::char2wchar(std::string("sdk_templates/client/" + name()).c_str());
 	std::wstring findpath = wfindpath;
 	free(wfindpath);
 
@@ -329,7 +317,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 		std::string currbasepath = ccattr;
 		free(ccattr);
 
-		if (CreatDir(currbasepath.c_str()) == -1)
+		if (KBCMD::creatDir(currbasepath.c_str()) == -1)
 		{
 			ERROR_MSG(fmt::format("ClientSDK::copyPluginsSourceToPath(): creating directory error! path={}\n", currbasepath));
 			return false;
@@ -351,6 +339,7 @@ bool ClientSDK::copyPluginsSourceToPath(const std::string& path)
 		strutil::kbe_replace(filebody, "@{KBE_USE_ALIAS_ENTITYID}", g_kbeSrvConfig.getCellApp().aliasEntityID ? "true" : "false");
 		strutil::kbe_replace(filebody, "@{KBE_UPDATEHZ}", fmt::format("{}", g_kbeSrvConfig.gameUpdateHertz()));
 		strutil::kbe_replace(filebody, "@{KBE_LOGIN_PORT}", fmt::format("{}", g_kbeSrvConfig.getLoginApp().externalPorts_min));
+		strutil::kbe_replace(filebody, "@{KBE_SERVER_EXTERNAL_TIMEOUT}", fmt::format("{}", (int)g_kbeSrvConfig.channelExternalTimeout()));
 		output << filebody;
 
 		output.close();
@@ -418,6 +407,8 @@ bool ClientSDK::writeServerErrorDescrsModule()
 	}
 
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateServerErrorDescrsModuleFileName();
 
 	DEBUG_MSG(fmt::format("ClientSDK::writeServerErrorDescrsModule(): {}/{}\n",
@@ -465,12 +456,15 @@ bool ClientSDK::writeServerErrorDescrsModuleEnd()
 void ClientSDK::onCreateEngineMessagesModuleFileName()
 {
 	sourcefileName_ = "Messages.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEngineMessagesModule()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateEngineMessagesModuleFileName();
 
 	DEBUG_MSG(fmt::format("ClientSDK::writeEngineMessagesModule(): {}/{}\n",
@@ -590,18 +584,22 @@ bool ClientSDK::writeEngineMessagesModuleEnd()
 void ClientSDK::onCreateEntityDefsModuleFileName()
 {
 	sourcefileName_ = "EntityDef.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 void ClientSDK::onCreateDefsCustomTypesModuleFileName()
 {
 	sourcefileName_ = "CustomDataTypes.unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityDefsModule()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateEntityDefsModuleFileName();
 
 	DEBUG_MSG(fmt::format("ClientSDK::writeEntityDefsModule(): {}/{}\n",
@@ -738,9 +736,17 @@ bool ClientSDK::writeEntityDefsModuleInitScript(ScriptDefModule* pScriptDefModul
 	}
 
 	ScriptDefModule::METHODDESCRIPTION_MAP::const_iterator miter = methods.begin();
-	for (; miter != methods.end(); ++miter)
+	if (methods.size() > 0)
 	{
-		if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, miter->second, CLIENT_TYPE))
+		for (; miter != methods.end(); ++miter)
+		{
+			if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, miter->second, CLIENT_TYPE))
+				return false;
+		}
+	}
+	else
+	{
+		if (!writeEntityDefsModuleInitScript_MethodDescr(pScriptDefModule, NULL, CLIENT_TYPE))
 			return false;
 	}
 
@@ -829,12 +835,15 @@ bool ClientSDK::writeEntityDefsModuleInitDefTypes()
 void ClientSDK::onEntityCallModuleFileName(const std::string& moduleName)
 {
 	sourcefileName_ = std::string("EntityCall") + moduleName + ".unknown";
+	headerfileName_ = "";
 }
 
 //-------------------------------------------------------------------------------------
 bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onEntityCallModuleFileName(pScriptDefModule->getName());
 
 	if (!writeEntityCallBegin(pScriptDefModule))
@@ -856,11 +865,12 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			if (!pMethodDescription->isExposed())
 				continue;
 
-			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
+			if (!writeEntityCallMethodBegin(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", BASEAPP_TYPE))
 				return false;
 
-			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
-			KBE_ASSERT(fpos != std::string::npos);
+			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE_FILLARGS1#");
+			std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT((fHeaderPos != std::string::npos) || (fSourcePos != std::string::npos));
 
 			std::string argsBody1 = "";
 			std::string argsBody2 = "";
@@ -924,15 +934,20 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 				argsBody2 = std::string(", ") + argsBody2;
 			}
 
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS2#", argsBody2);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
-			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+
+			if (!writeEntityCallMethodEnd(pScriptDefModule, pMethodDescription))
+				return false;
 		}
 	}
 
 	if (!writeBaseEntityCallEnd(pScriptDefModule))
 		return false;
 
+	headerfileBody_ += fmt::format("\n");
 	sourcefileBody_ += fmt::format("\n");
 
 	// 再写CellEntityCall
@@ -949,11 +964,12 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 			if (!pMethodDescription->isExposed())
 				continue;
 
-			if (!writeEntityCallMethod(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
+			if (!writeEntityCallMethodBegin(pScriptDefModule, pMethodDescription, "#REPLACE_FILLARGS1#", "#REPLACE_FILLARGS2#", CELLAPP_TYPE))
 				return false;
 
-			std::string::size_type fpos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
-			KBE_ASSERT(fpos != std::string::npos);
+			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE_FILLARGS1#");
+			std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE_FILLARGS1#");
+			KBE_ASSERT((fHeaderPos != std::string::npos) || (fSourcePos != std::string::npos));
 
 			std::string argsBody1 = "";
 			std::string argsBody2 = "";
@@ -1017,9 +1033,13 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 				argsBody2 = std::string(", ") + argsBody2;
 			}
 
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS1#", argsBody1);
+			strutil::kbe_replace(headerfileBody_, "#REPLACE_FILLARGS2#", argsBody2);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS1#", argsBody1);
 			strutil::kbe_replace(sourcefileBody_, "#REPLACE_FILLARGS2#", argsBody2);
-			sourcefileBody_ += fmt::format("\t\t}}\n\n");
+
+			if (!writeEntityCallMethodEnd(pScriptDefModule, pMethodDescription))
+				return false;
 		}
 	}
 
@@ -1033,9 +1053,16 @@ bool ClientSDK::writeEntityCall(ScriptDefModule* pScriptDefModule)
 }
 
 //-------------------------------------------------------------------------------------
-bool ClientSDK::writeEntityCallMethod(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
+bool ClientSDK::writeEntityCallMethodBegin(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription, const char* fillString1, const char* fillString2, COMPONENT_TYPE componentType)
 {
-	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethod: Not Implemented!\n"));
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethodBegin: Not Implemented!\n"));
+	return false;
+}
+
+//-------------------------------------------------------------------------------------
+bool ClientSDK::writeEntityCallMethodEnd(ScriptDefModule* pScriptDefModule, MethodDescription* pMethodDescription)
+{
+	ERROR_MSG(fmt::format("ClientSDK::writeEntityCallMethodEnd: Not Implemented!\n"));
 	return false;
 }
 
@@ -1099,6 +1126,8 @@ bool ClientSDK::writeCustomDataTypesEnd()
 bool ClientSDK::writeCustomDataTypes()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateDefsCustomTypesModuleFileName();
 
 	if (!writeCustomDataTypesBegin())
@@ -1132,6 +1161,8 @@ bool ClientSDK::writeCustomDataType(const DataType* pDataType)
 bool ClientSDK::writeTypes()
 {
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateTypeFileName();
 
 	if (!writeTypesBegin())
@@ -1319,20 +1350,24 @@ bool ClientSDK::writeTypes()
 			{
 				std::string newType;
 				getArrayType(pFixedArrayType->getDataType(), newType);
+				strutil::kbe_replace(headerfileBody_, "#REPLACE#", newType);
 				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", newType);
 			}
 			else if (type == "FIXED_DICT")
 			{
+				strutil::kbe_replace(headerfileBody_, "#REPLACE#", itemTypeAliasName);
 				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", itemTypeAliasName);
 			}
 			else
 			{
 				std::string newType = typeToType(type);
+				strutil::kbe_replace(headerfileBody_, "#REPLACE#", newType);
 				strutil::kbe_replace(sourcefileBody_, "#REPLACE#", newType);
 			}
 
-			std::string::size_type fpos = sourcefileBody_.find("#REPLACE#");
-			KBE_ASSERT(fpos == std::string::npos);
+			std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE#");
+			std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE#");
+			KBE_ASSERT((fHeaderPos == std::string::npos) || (fSourcePos == std::string::npos));
 
 			if (!writeTypeEnd(typeName, pFixedArrayType))
 				return false;
@@ -1374,9 +1409,11 @@ bool ClientSDK::writeTypesEnd()
 bool ClientSDK::writeEntityModule(ScriptDefModule* pEntityScriptDefModule)
 {
 	DEBUG_MSG(fmt::format("ClientSDK::writeEntityModule(): {}/{}\n",
-		currpath_, pEntityScriptDefModule->getName()));
+		currSourcePath_, pEntityScriptDefModule->getName()));
 
 	sourcefileName_ = sourcefileBody_ = "";
+	headerfileName_ = headerfileBody_ = "";
+
 	onCreateEntityModuleFileName(pEntityScriptDefModule->getName());
 
 	if (!writeEntityModuleBegin(pEntityScriptDefModule))
@@ -1550,6 +1587,7 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 	ScriptDefModule* pCurrScriptDefModule)
 {
 	sourcefileBody_ += "\n";
+	headerfileBody_ += "\n";
 
 	ScriptDefModule::METHODDESCRIPTION_MAP& clientMethods = pCurrScriptDefModule->getClientMethodDescriptions();
 	ScriptDefModule::METHODDESCRIPTION_MAP::iterator methodIter = clientMethods.begin();
@@ -1559,8 +1597,9 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 		if (!writeEntityMethod(pEntityScriptDefModule, pCurrScriptDefModule, pMethodDescription, "#REPLACE#"))
 			return false;
 
-		std::string::size_type fpos = sourcefileBody_.find("#REPLACE#");
-		KBE_ASSERT(fpos != std::string::npos);
+		std::string::size_type fHeaderPos = headerfileBody_.find("#REPLACE#");
+		std::string::size_type fSourcePos = sourcefileBody_.find("#REPLACE#");
+		KBE_ASSERT((fHeaderPos != std::string::npos) || (fSourcePos != std::string::npos));
 
 		std::string argsBody = "";
 
@@ -1618,6 +1657,7 @@ bool ClientSDK::writeEntityMethods(ScriptDefModule* pEntityScriptDefModule,
 			argsBody.erase(argsBody.size() - 2, 2);
 		}
 
+		strutil::kbe_replace(headerfileBody_, "#REPLACE#", argsBody);
 		strutil::kbe_replace(sourcefileBody_, "#REPLACE#", argsBody);
 	}
 

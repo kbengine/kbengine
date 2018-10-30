@@ -1,3 +1,120 @@
+###v1.2.2
+
+	2018/8/22
+
+	新增与改善：
+		频繁使用对象泄露追踪(#733)
+
+
+
+###v1.2.1
+
+	2018/8/15
+
+	新增与改善：
+		增加更加准确的网络退出原因输出(#687)
+		部分DBTask优化， MemoryStream应该通过对象池创建。(#698)
+		interfaces增加更详细的profile(#695)
+		当dbmgr查询的数据量过大撑爆MemoryStream::MAX_SIZE时，给出更友好的处理办法(#696)
+		当持久化属性设置DatabaseLength太大时提示错误
+		引擎telnet服务Linux/Windows下完美支持命令编辑
+		'FixedArray' 增加python数组的clear功能
+		FIXED_DICT支持for key in *Dict语法
+		根据配置文件 kbengine/kbe/res/server/kbengine_defaults.xml生成SDK里面的参数
+
+	BUG修正：
+		修复streamFileToClient传输0字节文件异常的问题
+		SignalHandlers信号处理连续超出255时异常(#691)
+		当脚本设置postion后， isOnGround应该设置为False
+
+
+
+###v1.2.0
+
+	2018/7/23
+
+	新增与改善：
+		服务器网络包处理速度优化(#654)
+		增加功能，当这个cid的进程1分钟以内还没有重新被发现（重启动或者重连上）则清除该进程的entitylog，避免无法登录。(#674)
+		增加logout接口，让客户端可以主动退出服务器(#676)
+
+
+
+###v1.1.10
+
+	2018/7/12
+
+	新增与改善：
+		sys.argv支持(#657)
+
+	BUG修正：
+		修正客户端插件updateHZ调整后， 线程的更新频率没有匹配上(#653)
+		修正实体没有客户端方法时，生成的sdk没有初始化Module.useMethodDescrAlias为true造成一些错误。
+
+
+
+###v1.1.9
+
+	2018/6/21
+
+	新增与改善：
+		更新API文档。
+
+	BUG修正：
+		修正对def中声明的数组类型属性进行+=、*=操作导致0xC0000005崩溃(#649)
+		修正sdk生成工具字符串默认值问题(#619)
+		修正u3d插件生成， int64可能丢失数据(#632)
+		修正sdk生成数组entitycall出错(#637)
+		修正腾讯玩一玩，非标准的websocket协议引擎解析不兼容问题(#623)
+
+
+
+###v1.1.8
+
+	2018/4/25
+
+	新增与改善：
+		更新API文档。
+
+	BUG修正：
+		修正SDK生成工具，在linux生成的目录不正确(#595)
+		修正SDK生成工具生成UnitySDK时浮点数错误问题。
+		修正SDK生成工具生成UnitySDK时Vector3错误问题。
+
+
+
+###v1.1.7
+
+	2018/4/20
+
+	新增与改善：
+		FixedArray增加slice操作符支持(v = x[i:j])(#578)
+		继续完善SDK生成。
+		更新API文档。
+
+	BUG修正：
+		脚本中引擎回调内代码出错无提示问题(#575)
+		修正Linux系统信号接收处理函数堆栈破坏问题(#589)
+		修正int64 PyMemoryStream::pop()异常(#594)
+		修正多复杂重数组反复插入增删存储可能乱序问题(#586)
+
+
+
+###v1.1.6
+
+	2018/4/6
+
+	新增与改善：
+		支持配置中填写bots机器人密码(#570)
+		优化所有的callback调用，减少一次hasattr的判断(#565)
+		继续完善SDK生成。
+		更新API文档。
+
+	BUG修正：
+		当使用邮箱激活注册时， 账号表中bindata是激活码(#577)
+
+
+
 ###v1.1.5
 
 	2018/2/26
@@ -599,7 +716,7 @@
 
 	    实体自动加载功能（用法见API手册，baseapp中writeToDB部分）
 	    onBaseAppReady、onReadyForLogin回调函数参数调整，改为bool（是否为第一个启动的baseapp）
-	    增加进程启动参数 --gus，详见：http://www.kbengine.org/cn/docs/startup_shutdown.html
+	    增加进程启动参数 --gus，详见：http://kbengine.github.io/cn/docs/startup_shutdown.html
 	    删除进程启动参数--grouporder与--globalorder，该值由程序内部自动产生，通过环境变量在脚本中可以获得KBE_COMPONENTID、KBE_BOOTIDX_GLOBAL、KBE_BOOTIDX_GROUP
 	    API文档完善
 

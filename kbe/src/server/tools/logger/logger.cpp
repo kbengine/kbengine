@@ -62,6 +62,7 @@ buffered_logs_(),
 timer_(),
 pTelnetServer_(NULL)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &LoggerInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -169,6 +170,12 @@ bool Logger::initializeEnd()
 //-------------------------------------------------------------------------------------
 void Logger::finalise()
 {
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
 	std::deque<LOG_ITEM*>::iterator iter = buffered_logs_.begin();
 	for(; iter != buffered_logs_.end(); ++iter)
 	{
@@ -294,23 +301,12 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 	pLogItem->logstream << "- ";
 	pLogItem->logstream << str;
 
-
-	DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(pLogItem->componentType));
-	PRINT_MSG(pLogItem->logstream.str());
-	DebugHelper::getSingleton().changeLogger("default");
-
-	LOG_WATCHERS::iterator iter = logWatchers_.begin();
-	for(; iter != logWatchers_.end(); ++iter)
-	{
-		iter->second.onMessage(pLogItem);
-	}
+	// 记录下完整的日志，以在脚本回调时使用
+	std::string sLog = pLogItem->logstream.str();
 
 	static bool notificationScript = getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onLogWrote") > 0;
-	if(notificationScript)
+	if (notificationScript)
 	{
-		// 记录下完整的日志，以在脚本回调时使用
-		std::string sLog = pLogItem->logstream.str();
-		
 		PyObject* pyResult = PyObject_CallMethod(getEntryScript().get(),
 			const_cast<char*>("onLogWrote"),
 			const_cast<char*>("y#"),
@@ -319,12 +315,46 @@ void Logger::writeLog(Network::Channel* pChannel, KBEngine::MemoryStream& s)
 
 		if (pyResult != NULL)
 		{
+			if (Py_False == pyResult)
+				pLogItem->persistent = false;
+			else
+				pLogItem->persistent = true;
+
+			if (PyUnicode_Check(pyResult))
+			{
+				Py_ssize_t size = 0;
+				char* data = PyUnicode_AsUTF8AndSize(pyResult, &size);
+
+				if (size > 0)
+				{
+					if (data)
+						sLog.assign(data, size);
+				}
+				else
+				{
+					sLog = "";
+				}
+			}
+
 			Py_DECREF(pyResult);
 		}
 		else
 		{
 			SCRIPT_ERROR_CHECK();
 		}
+	}
+
+	if (pLogItem->persistent)
+	{
+		DebugHelper::getSingleton().changeLogger(COMPONENT_NAME_EX(pLogItem->componentType));
+		PRINT_MSG(sLog);
+		DebugHelper::getSingleton().changeLogger("default");
+	}
+
+	LOG_WATCHERS::iterator iter = logWatchers_.begin();
+	for(; iter != logWatchers_.end(); ++iter)
+	{
+		iter->second.onMessage(pLogItem);
 	}
 
 	// 缓存一部分log，提供工具查看log时能快速获取初始上下文
