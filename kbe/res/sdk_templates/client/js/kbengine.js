@@ -62,21 +62,47 @@ KBEngine.Class.extend = function(props) {
 	return newClass;
 };
 
+// 如果ArrayBuffer没有transfer()的方法, 则为ArrayBuffer添加transfer()方法
+//该方法回一个新的ArrayBuffer， 其内容取自oldBuffer的数据，并且根据 newByteLength 的大小来对数据进行截取
+//参考:https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/transfer
+if(!ArrayBuffer.transfer) {
+    ArrayBuffer.transfer = function (source, length) {
+        source = Object(source);
+		var dest = new ArrayBuffer(length);
+		
+        if(!(source instanceof ArrayBuffer) || !(dest instanceof ArrayBuffer)) {
+            throw new TypeError("ArrayBuffer.transfer, error: Source and destination must be ArrayBuffer instances");
+		}
+		
+        if(dest.byteLength >= source.byteLength) {
+			var buf = new Uint8Array(dest);
+			buf.set(new Uint8Array(source), 0);
+		}
+		else {
+			throw new RangeError("ArrayBuffer.transfer, error: destination has not enough space");
+		}
+		
+		return dest;
+    };
+};
+
 // export
 window.Class = KBEngine.Class;
 
 /*-----------------------------------------------------------------------------------------
 												global
 -----------------------------------------------------------------------------------------*/
-KBEngine.PACKET_MAX_SIZE		= 1500;
-KBEngine.PACKET_MAX_SIZE_TCP	= 1460;
-KBEngine.PACKET_MAX_SIZE_UDP	= 1472;
+KBEngine.PACKET_MAX_SIZE		 = 1500;
+KBEngine.PACKET_MAX_SIZE_TCP	 = 1460;
+KBEngine.PACKET_MAX_SIZE_UDP	 = 1472;
 
-KBEngine.MESSAGE_ID_LENGTH		= 2;
-KBEngine.MESSAGE_LENGTH_LENGTH	= 2;
+KBEngine.MESSAGE_ID_LENGTH		 = 2;
+KBEngine.MESSAGE_LENGTH_LENGTH	 = 2;
+KBEngine.MESSAGE_LENGTH1_LENGTH  = 4;
+KBEngine.MESSAGE_MAX_SIZE		 = 65535;
 
-KBEngine.CLIENT_NO_FLOAT		= 0;
-KBEngine.KBE_FLT_MAX			= 3.402823466e+38;
+KBEngine.CLIENT_NO_FLOAT		 = 0;
+KBEngine.KBE_FLT_MAX			 = 3.402823466e+38;
 
 /*-----------------------------------------------------------------------------------------
 												number64bits
@@ -689,6 +715,24 @@ KBEngine.MemoryStream = function(size_or_buffer)
 		buf[i++] = 0;
 		this.wpos += i;
 	}
+
+	this.append = function(stream, offset, size)
+	{
+		if(!(stream instanceof KBEngine.MemoryStream)) 
+		{
+			KBEngine.ERROR_MSG("MemoryStream::append(): stream must be MemoryStream instances");
+			return;
+		}
+
+		if(size > this.space())
+		{
+			this.buffer = ArrayBuffer.transfer(this.buffer, this.buffer.byteLength + size * 2);
+		}
+
+		var buf = new Uint8Array(this.buffer, this.wpos, size);
+		buf.set(new Uint8Array(stream.buffer, offset, size), 0);
+		this.wpos += size;
+	}
 	
 	//---------------------------------------------------------------------------------
 	this.readSkip = function(v)
@@ -724,6 +768,22 @@ KBEngine.MemoryStream = function(size_or_buffer)
 	this.getbuffer = function(v)
 	{
 		return this.buffer.slice(this.rpos, this.wpos);
+	}
+
+	//---------------------------------------------------------------------------------
+	this.size = function()
+	{
+		return this.buffer.byteLength;
+	}
+
+	//---------------------------------------------------------------------------------
+	this.clear = function()
+	{
+		this.rpos = 0;
+		this.wpos = 0;
+
+		if(this.buffer.byteLength > KBEngine.PACKET_MAX_SIZE)
+			this.buffer = new ArrayBuffer(KBEngine.PACKET_MAX_SIZE);
 	}
 }
 
@@ -2578,6 +2638,15 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		this.descr = "";
 		this.id = 0;
 	}
+
+	KBEngine.FragmentDataTypes = 
+	{
+		FRAGMENT_DATA_UNKNOW : 0,
+		FRAGMENT_DATA_MESSAGE_ID : 1,
+		FRAGMENT_DATA_MESSAGE_LENGTH : 2,
+		FRAGMENT_DATA_MESSAGE_LENGTH1 : 3,
+		FRAGMENT_DATA_MESSAGE_BODY : 4
+	};
 	
 	this.serverErrs = {};
 		
@@ -2590,6 +2659,14 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	// 服务端分配的baseapp地址
 	this.baseappIP = "";
 	this.baseappPort = 0;
+	
+	this.currMsgID = 0;
+	this.currMsgCount = 0;
+	this.currMsgLen = 0;
+	
+	this.fragmentStream = null;
+	this.fragmentDatasFlag = KBEngine.FragmentDataTypes.FRAGMENT_DATA_UNKNOW;
+	this.fragmentDatasRemain = 0;
 
 	this.resetSocket = function()
 	{
@@ -2765,37 +2842,169 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{ 
 		var stream = new KBEngine.MemoryStream(msg.data);
 		stream.wpos = msg.data.byteLength;
-		
-		while(stream.rpos < stream.wpos)
+		var app =  KBEngine.app;
+		var FragmentDataTypes = KBEngine.FragmentDataTypes;
+
+		while(stream.length() > 0 || app.fragmentStream != null)
 		{
-			var msgid = stream.readUint16();
-			var msgHandler = KBEngine.clientmessages[msgid];
-			
-			if(!msgHandler)
+			if(app.fragmentDatasFlag == FragmentDataTypes.FRAGMENT_DATA_UNKNOW)
 			{
-				KBEngine.ERROR_MSG("KBEngineApp::onmessage[" + KBEngine.app.currserver + "]: not found msg(" + msgid + ")!");
+				if(app.currMsgID == 0)
+				{
+					if(KBEngine.MESSAGE_ID_LENGTH > 1 && stream.length() < KBEngine.MESSAGE_ID_LENGTH)
+					{
+						app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_ID, stream, KBEngine.MESSAGE_ID_LENGTH);
+						break;
+					}
+
+					app.currMsgID = stream.readUint16();
+				}
+					
+				var msgHandler = KBEngine.clientmessages[app.currMsgID];
+				
+				if(!msgHandler)
+				{
+					app.currMsgID = 0;
+					app.currMsgLen = 0;
+					KBEngine.ERROR_MSG("KBEngineApp::onmessage[" + app.currserver + "]: not found msg(" + app.currMsgID + ")!");
+					break;
+				}
+
+				if(app.currMsgLen == 0)
+				{
+					var msglen = msgHandler.length;
+					if(msglen == -1)
+					{
+						if(stream.length() < KBEngine.MESSAGE_LENGTH_LENGTH)
+						{
+							app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH, stream, KBEngine.NETWORK_MESSAGE_LENGTH_SIZE);
+							break;
+						}
+						else
+						{
+							msglen = stream.readUint16();
+							app.currMsgLen = msglen;
+
+							// 扩展长度
+							if(msglen == KBEngine.MESSAGE_MAX_SIZE)
+							{
+								if(stream.length() < KBEngine.MESSAGE_LENGTH1_LENGTH)
+								{
+									app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH, stream, KBEngine.NETWORK_MESSAGE_LENGTH_SIZE);
+									break;
+								}
+
+								app.currMsgLen = stream.readUint32();
+							}
+						}
+					}
+					else
+					{
+						app.currMsgLen = msglen;
+					}
+				}
+
+				if(app.fragmentStream != null && app.fragmentStream.length() >= app.currMsgLen)
+				{
+					msgHandler.handleMessage(app.fragmentStream);
+					app.fragmentStream = null;
+				}
+				else if(stream.length() < app.currMsgLen && stream.length() > 0)
+				{
+					app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_BODY, stream, app.currMsgLen);
+					break;
+				}
+				else
+				{
+					var wpos = stream.wpos;
+					var rpos = stream.rpos + msglen;
+					stream.wpos = rpos;
+					msgHandler.handleMessage(stream);
+					stream.wpos = wpos;
+					stream.rpos = rpos;
+				}
+
+				app.currMsgID = 0;
+				app.currMsgLen = 0;
+				app.fragmentStream = null;
 			}
 			else
 			{
-				var msglen = msgHandler.length;
-				if(msglen == -1)
-				{
-					msglen = stream.readUint16();
-					
-					// 扩展长度
-					if(msglen == 65535)
-						msglen = stream.readUint32();
-				}
-			
-				var wpos = stream.wpos;
-				var rpos = stream.rpos + msglen;
-				stream.wpos = rpos;
-				msgHandler.handleMessage(stream);
-				stream.wpos = wpos;
-				stream.rpos = rpos;
+				app.mergeFragmentMessage(stream);
 			}
 		}
 	}  
+
+	this.writeFragmentMessage = function(FragmentDataType, stream, datasize)
+	{
+		if(!(stream instanceof KBEngine.MemoryStream))
+		{
+			KBEngine.ERROR_MSG("writeFragmentMessage(): stream must be MemoryStream instances!");
+			return;
+		}
+
+		var app = KBEngine.app;
+		var opsize = stream.length();
+		
+		app.fragmentDatasRemain = datasize - opsize;
+		app.fragmentDatasFlag = FragmentDataType;
+		app.fragmentStream = stream;
+	}
+
+	this.mergeFragmentMessage = function(stream)
+	{
+		if(!(stream instanceof KBEngine.MemoryStream))
+		{
+			KBEngine.ERROR_MSG("mergeFragmentMessage(): stream must be MemoryStream instances!");
+			return;
+		}
+
+		var opsize = stream.length();
+		if(opsize == 0)
+			return 0;
+
+		var app = KBEngine.app;
+		var fragmentStream = app.fragmentStream;
+		console.assert(fragmentStream != null);
+
+		if(opsize >= app.fragmentDatasRemain)
+		{
+			var FragmentDataTypes = KBEngine.FragmentDataTypes;
+			fragmentStream.append(stream, stream.rpos, app.fragmentDatasRemain);
+
+			switch(app.fragmentDatasFlag)
+			{
+				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_ID:
+					app.currMsgID = fragmentStream.readUint16();
+					app.fragmentStream = null;
+					break;
+
+				case FragmentDataTypes.NETWORK_MESSAGE_LENGTH_SIZE:
+					app.currMsgLen = fragmentStream.readUint16();
+					app.fragmentStream = null;
+					break;
+
+				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH1:
+					app.currMsgLen = fragmentStream.readUint32();
+					app.fragmentStream = null;
+					break;
+
+				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_BODY:
+				default:
+					break;
+			}
+
+			stream.rpos += app.fragmentDatasRemain;
+			app.fragmentDatasFlag = FragmentDataTypes.FRAGMENT_DATA_UNKNOW;
+			app.fragmentDatasRemain = 0;
+		}
+		else
+		{
+			fragmentStream.append(stream, stream.rpos, opsize);
+			app.fragmentDatasRemain -= opsize;
+			stream.done();
+		}
+	}
 
 	this.onclose = function()
 	{  
@@ -3269,70 +3478,107 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.app.entitydefImported = true;
 		KBEngine.app.login_baseapp(false);
 	}
+
+	this.importClientMessages = function(stream)
+	{
+		var app = KBEngine.app;
+
+		while(app.currMsgCount > 0)
+		{
+			app.currMsgCount--;
+		
+			var msgid = stream.readUint16();
+			var msglen = stream.readInt16();
+			var msgname = stream.readString();
+			var argtype = stream.readInt8();
+			var argsize = stream.readUint8();
+			var argstypes = new Array(argsize);
+			
+			for(var i=0; i<argsize; i++)
+			{
+				argstypes[i] = stream.readUint8();
+			}
+			
+			var handler = null;
+			var isClientMethod = msgname.indexOf("Client_") >= 0;
+			if(isClientMethod)
+			{
+				handler = app[msgname];
+				if(handler == null || handler == undefined)
+				{
+					KBEngine.WARNING_MSG("KBEngineApp::onImportClientMessages[" + app.currserver + "]: interface(" + msgname + "/" + msgid + ") no implement!");
+					handler = null;
+				}
+				else
+				{
+					KBEngine.INFO_MSG("KBEngineApp::onImportClientMessages: import(" + msgname + ") successfully!");
+				}
+			}
+	
+			if(msgname.length > 0)
+			{
+				KBEngine.messages[msgname] = new KBEngine.Message(msgid, msgname, msglen, argtype, argstypes, handler);
+				
+				if(isClientMethod)
+					KBEngine.clientmessages[msgid] = KBEngine.messages[msgname];
+				else
+					KBEngine.messages[KBEngine.app.currserver][msgid] = KBEngine.messages[msgname];
+			}
+			else
+			{
+				KBEngine.messages[app.currserver][msgid] = new KBEngine.Message(msgid, msgname, msglen, argtype, argstypes, handler);
+			}
+		};
+
+		app.onImportClientMessagesCompleted();
+		app.currMsgID = 0;
+		app.currMsgLen = 0;
+		app.MsgCount = 0;
+		app.fragmentStream = null;
+	}
 	
 	this.Client_onImportClientMessages = function(msg)
 	{
 		var stream = new KBEngine.MemoryStream(msg.data);
-		var msgid = stream.readUint16();
+		stream.wpos = msg.data.byteLength;
+		var app = KBEngine.app;
 
-		if(msgid == KBEngine.messages.onImportClientMessages.id)
+		if(app.currMsgID == 0)
 		{
-			var msglen = stream.readUint16();
-			var msgcount = stream.readUint16();
-			
-			KBEngine.INFO_MSG("KBEngineApp::onImportClientMessages: start(" + msgcount + ") ...!");
-			
-			while(msgcount > 0)
-			{
-				msgcount--;
-				
-				msgid = stream.readUint16();
-				msglen = stream.readInt16();
-				var msgname = stream.readString();
-				var argtype = stream.readInt8();
-				var argsize = stream.readUint8();
-				var argstypes = new Array(argsize);
-				
-				for(var i=0; i<argsize; i++)
-				{
-					argstypes[i] = stream.readUint8();
-				}
-				
-				var handler = null;
-				var isClientMethod = msgname.indexOf("Client_") >= 0;
-				if(isClientMethod)
-				{
-					handler = KBEngine.app[msgname];
-					if(handler == null || handler == undefined)
-					{
-						KBEngine.WARNING_MSG("KBEngineApp::onImportClientMessages[" + KBEngine.app.currserver + "]: interface(" + msgname + "/" + msgid + ") no implement!");
-						handler = null;
-					}
-					else
-					{
-						KBEngine.INFO_MSG("KBEngineApp::onImportClientMessages: import(" + msgname + ") successfully!");
-					}
-				}
-			
-				if(msgname.length > 0)
-				{
-					KBEngine.messages[msgname] = new KBEngine.Message(msgid, msgname, msglen, argtype, argstypes, handler);
-					
-					if(isClientMethod)
-						KBEngine.clientmessages[msgid] = KBEngine.messages[msgname];
-					else
-						KBEngine.messages[KBEngine.app.currserver][msgid] = KBEngine.messages[msgname];
-				}
-				else
-				{
-					KBEngine.messages[KBEngine.app.currserver][msgid] = new KBEngine.Message(msgid, msgname, msglen, argtype, argstypes, handler);
-				}
-			};
+			app.currMsgID = stream.readUint16();
+		} 
 
-			KBEngine.app.onImportClientMessagesCompleted();
+		if(app.currMsgID == KBEngine.messages.onImportClientMessages.id)
+		{
+			if(app.currMsgLen == 0) 
+			{
+				app.currMsgLen = stream.readUint16();
+				app.currMsgCount = stream.readUint16();
+			}
+			
+			var FragmentDataTypes = KBEngine.FragmentDataTypes
+			if(stream.length() + 2 < app.currMsgLen && app.fragmentStream == null)
+			{
+				app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_BODY, stream, app.currMsgLen - 2);
+			}
+			else if(app.fragmentStream != null)
+			{
+				app.mergeFragmentMessage(stream);
+				
+				if(app.fragmentStream.length() + 2 >= app.currMsgLen)
+				{
+					app.importClientMessages(app.fragmentStream);
+				}
+			}
+			else
+			{
+				app.importClientMessages(stream);
+			}
 		}
 		else
-			KBEngine.ERROR_MSG("KBEngineApp::onmessage: not found msg(" + msgid + ")!");
+		{
+			KBEngine.ERROR_MSG("KBEngineApp::onmessage: not found msg(" + app.currMsgID + ")!");
+		}
 	}
 	
 	this.createAccount = function(username, password, datas)
