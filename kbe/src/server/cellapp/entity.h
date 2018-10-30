@@ -573,7 +573,7 @@ public:
 	/** 
 		设置实体持久化数据是否已脏，脏了会自动存档 
 	*/
-	INLINE void setDirty(bool dirty = true);
+	INLINE void setDirty(uint32* digest = NULL);
 	INLINE bool isDirty() const;
 	
 	/**
@@ -681,8 +681,8 @@ protected:
 	// 在脚本层做搜索的时候可以按层搜索.
 	int8													layer_;
 	
-	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
-	bool													isDirty_;
+	// 需要持久化的数据是否变脏（内存sha1），如果没有变脏不需要持久化
+	uint32													persistentDigest_[5];
 
 	// 如果用户有设置过Volatileinfo，则此处创建Volatileinfo，否则为NULL使用ScriptDefModule的Volatileinfo
 	VolatileInfo*											pCustomVolatileinfo_;
