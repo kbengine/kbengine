@@ -1062,8 +1062,10 @@ void Entity::backupCellData()
 		sha.Input(s->data(), s->length());
 		sha.Result(digest);
 
+		bool dataDirty = memcmp((void*)&persistentDigest_[0], (void*)&digest[0], sizeof(persistentDigest_)) != 0;
+
 		// 检查数据是否有变化，有变化则将数据备份并且记录数据hash
-		if (memcmp((void*)&persistentDigest_[0], (void*)&digest[0], sizeof(persistentDigest_)) == 0)
+		if (!dataDirty)
 		{
 			MemoryStream::reclaimPoolObject(s);
 		}
@@ -1076,14 +1078,14 @@ void Entity::backupCellData()
 		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
-		(*pBundle) << isDirty();
-		
-		if(isDirty())
+		(*pBundle) << dataDirty;
+
+		if (dataDirty)
 		{
 			(*pBundle).append(s);
 			MemoryStream::reclaimPoolObject(s);
 		}
-		
+
 		baseEntityCall_->sendCall(pBundle);
 	}
 	else
@@ -1160,8 +1162,8 @@ void Entity::onWriteToDB()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
-	DEBUG_MSG(fmt::format("{}::onWriteToDB(): {}.\n", 
-		this->scriptName(), this->id()));
+	//DEBUG_MSG(fmt::format("{}::onWriteToDB(): {}.\n", 
+	//	this->scriptName(), this->id()));
 
 	SCRIPT_OBJECT_CALL_ARGS0(this, const_cast<char*>("onWriteToDB"), false);
 }

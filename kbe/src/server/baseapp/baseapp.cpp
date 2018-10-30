@@ -33,6 +33,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "sync_entitystreamtemplate_handler.h"
 #include "common/timestamp.h"
 #include "common/kbeversion.h"
+#include "common/sha1.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -1294,6 +1295,12 @@ void Baseapp::onCreateEntityFromDBIDCallback(Network::Channel* pChannel, KBEngin
 		static_cast<Entity*>(e)->dbid(dbInterfaceIndex, dbid);
 		static_cast<Entity*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
+
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		static_cast<Entity*>(e)->setDirty((uint32*)&digest[0]);
 	}
 	else
 	{
@@ -1730,6 +1737,12 @@ void Baseapp::createEntityAnywhereFromDBIDOtherBaseapp(Network::Channel* pChanne
 		static_cast<Entity*>(e)->dbid(dbInterfaceIndex, dbid);
 		static_cast<Entity*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
+
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		static_cast<Entity*>(e)->setDirty((uint32*)&digest[0]);
 	}
 	else
 	{
@@ -2203,6 +2216,12 @@ void Baseapp::createEntityRemotelyFromDBIDOtherBaseapp(Network::Channel* pChanne
 		static_cast<Entity*>(e)->dbid(dbInterfaceIndex, dbid);
 		static_cast<Entity*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
+
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		static_cast<Entity*>(e)->setDirty((uint32*)&digest[0]);
 	}
 	else
 	{
@@ -4037,6 +4056,12 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	pEntity->initializeEntity(pyDict);
 	Py_DECREF(pyDict);
 
+	KBE_SHA1 sha;
+	uint32 digest[5];
+	sha.Input(s.data(), s.length());
+	sha.Result(digest);
+	pEntity->setDirty((uint32*)&digest[0]);
+
 	if(pClientChannel != NULL)
 	{
 		// 创建entity的客户端entitycall
@@ -4564,8 +4589,8 @@ void Baseapp::onBackupEntityCellData(Network::Channel* pChannel, KBEngine::Memor
 
 	if(pEntity)
 	{
-		INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), {} bytes.\n",
-			pEntity->scriptName(), entityID, s.length()));
+		//INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), {} bytes.\n",
+		//	pEntity->scriptName(), entityID, s.length()));
 
 		pEntity->onBackupCellData(pChannel, s);
 	}
