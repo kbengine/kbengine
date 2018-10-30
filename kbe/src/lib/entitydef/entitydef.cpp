@@ -1398,35 +1398,115 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 {
 	ScriptDefModule::METHODDESCRIPTION_MAP* methodDescrsPtr = NULL;
 	
-	switch(__loadComponentType)
+	PyObject* pyInspectModule =
+		PyImport_ImportModule(const_cast<char*>("inspect"));
+
+	PyObject* pyGetfullargspec = NULL;
+	if (pyInspectModule)
+	{
+		Py_DECREF(pyInspectModule);
+
+		pyGetfullargspec =
+			PyObject_GetAttrString(pyInspectModule, const_cast<char *>("getfullargspec"));
+	}
+	else
+	{
+		SCRIPT_ERROR_CHECK();
+	}
+
+	switch (__loadComponentType)
 	{
 	case BASEAPP_TYPE:
-		methodDescrsPtr = 
+		methodDescrsPtr =
 			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getBaseMethodDescriptions();
 		break;
 	case CELLAPP_TYPE:
-		methodDescrsPtr = 
+		methodDescrsPtr =
 			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getCellMethodDescriptions();
 		break;
 	case CLIENT_TYPE:
 	case BOTS_TYPE:
-		methodDescrsPtr = 
+		methodDescrsPtr =
 			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getClientMethodDescriptions();
 		break;
 	default:
-		methodDescrsPtr = 
+		methodDescrsPtr =
 			(ScriptDefModule::METHODDESCRIPTION_MAP*)&pScriptModule->getCellMethodDescriptions();
 		break;
 	};
 
 	ScriptDefModule::METHODDESCRIPTION_MAP::iterator iter = methodDescrsPtr->begin();
-	for(; iter != methodDescrsPtr->end(); ++iter)
+	for (; iter != methodDescrsPtr->end(); ++iter)
 	{
-		PyObject* pyMethod = 
+		PyObject* pyMethod =
 			PyObject_GetAttrString(moduleObj, const_cast<char *>(iter->first.c_str()));
 
 		if (pyMethod != NULL)
 		{
+			if (pyGetfullargspec)
+			{
+				// def方法中的参数个数
+				size_t methodArgsSize = iter->second->getArgSize();
+
+				PyObject* pyGetMethodArgs = PyObject_CallFunction(pyGetfullargspec,
+					const_cast<char*>("(O)"), pyMethod);
+
+				if (!pyGetMethodArgs)
+				{
+					SCRIPT_ERROR_CHECK();
+				}
+				else
+				{
+					PyObject* pyGetMethodArgsResult = PyObject_GetAttrString(pyGetMethodArgs, const_cast<char *>("args"));
+					if (!pyGetMethodArgsResult)
+					{
+						SCRIPT_ERROR_CHECK();
+					}
+					else
+					{
+						size_t argsSize = (size_t)PyObject_Size(pyGetMethodArgsResult);
+
+						// 减去self这个参数
+						KBE_ASSERT(argsSize > 0);
+						argsSize -= 1;
+
+						Py_DECREF(pyGetMethodArgsResult);
+
+						// 检查参数的个数是否匹配
+						if (methodArgsSize != argsSize)
+						{
+							// 如果不匹配， 并且是一个exposed方法，参数多了一个，可以理解为显示的加入了第一个参数callerID用于脚本检查调用者
+							// 如果不是这种情况，一律视为参数不正确
+							if (iter->second->isExposed() && methodArgsSize + 1 == argsSize)
+							{
+								iter->second->setExposed(MethodDescription::EXPOSED_AND_CALLER_CHECK);
+							}
+							else
+							{
+								ERROR_MSG(fmt::format("EntityDef::checkDefMethod: {}.{} parameter is incorrect, script argssize({}) != {}! defined in {}.def!\n",
+									moduleName.c_str(), iter->first.c_str(), methodArgsSize, argsSize, moduleName));
+
+								Py_DECREF(pyMethod);
+								Py_XDECREF(pyGetfullargspec);
+								return false;
+							}
+						}
+
+						if (iter->second->isExposed())
+						{
+							if (iter->second->isExposed() != MethodDescription::EXPOSED_AND_CALLER_CHECK)
+							{
+								WARNING_MSG(fmt::format("EntityDef::checkDefMethod: exposed of method: {}.{}{}!\n",
+									moduleName.c_str(), iter->first.c_str(), (iter->second->isExposed() == MethodDescription::EXPOSED_AND_CALLER_CHECK ?
+										"" : fmt::format(", check the caller can use \"def {}(self, callerID, ...)\", such as: if callerID == self.id", iter->first))));
+							}
+						}
+					}
+
+					Py_DECREF(pyGetMethodArgs);
+				}
+			}
+
 			Py_DECREF(pyMethod);
 		}
 		else
@@ -1435,11 +1515,13 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 				moduleName.c_str(), iter->first.c_str(), moduleName));
 
 			PyErr_Clear();
+			Py_XDECREF(pyGetfullargspec);
 			return false;
 		}
 	}
-	
-	return true;	
+
+	Py_XDECREF(pyGetfullargspec);
+	return true;
 }
 
 //-------------------------------------------------------------------------------------
