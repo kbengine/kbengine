@@ -1,26 +1,11 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "common.h"
+#include "common/md5.h"
 #include "server/serverconfig.h"
+#include "server/machine_infos.h"
+#include "helper/sys_info.h"
 
 namespace KBEngine { 
 
@@ -55,7 +40,7 @@ uint16 datatype2id(std::string datatype)
 		return 8;
 	else if (datatype == "INT64")
 		return 9;
-	else if (datatype == "PYTHON" || datatype == "PY_DICT" || datatype == "PY_TUPLE" || datatype == "PY_LIST" || datatype == "ENTITYCALL")
+	else if (datatype == "PYTHON" || datatype == "PY_DICT" || datatype == "PY_TUPLE" || datatype == "PY_LIST")
 		return 10;
 	else if (datatype == "BLOB")
 		return 11;
@@ -75,6 +60,8 @@ uint16 datatype2id(std::string datatype)
 		return 18;
 	else if (datatype == "ARRAY")
 		return 19;
+	else if (datatype == "ENTITYCALL")
+		return 20;
 	else if (datatype == "KBE_DATATYPE2ID_MAX")
 		return KBE_DATATYPE2ID_MAX;
 
@@ -150,11 +137,46 @@ std::string datatype2nativetype(uint16 datatype)
 	case 19:
 		return "ARRAY";
 		break;
+	case 20:
+		return "ENTITYCALL";
+		break;
 	default:
 		break;
 	};
 
 	return "";
+}
+
+//-------------------------------------------------------------------------------------
+void autoFixUserDigestUID()
+{
+	MachineInfos machineInfo;
+
+	std::string datas = fmt::format("{}{}{}{}",
+		getUsername(),
+		machineInfo.machineName(),
+		machineInfo.cpuInfo(),
+		machineInfo.memInfo());
+	
+	std::vector< std::string > macinfos = SystemInfo::getSingleton().getMacAddresses();
+	std::vector< std::string >::iterator iter = macinfos.begin();
+	for (; iter != macinfos.end(); ++iter)
+	{
+		datas += (*iter);
+	}
+
+	std::string md5_digest = KBE_MD5::getDigest(datas.data(), (int)datas.length());
+
+	int mod = 0;
+	int divider = 65535;
+
+	for (int i = 0; i<32; i++)
+	{
+		int digit = md5_digest[i];
+		mod = (mod * 16 + digit) % divider;
+	}
+
+	setenv("UID", fmt::format("{}", (uint16)mod).c_str(), 1);
 }
 
 //-------------------------------------------------------------------------------------

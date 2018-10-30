@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "scriptdef_module.h"
@@ -318,6 +300,35 @@ PyObject* ScriptDefModule::getInitDict(void)
 //-------------------------------------------------------------------------------------
 void ScriptDefModule::autoMatchCompOwn()
 {
+	if (isComponentModule())
+	{
+		std::string fmodule = "scripts/base/components/" + name_ + ".py";
+		std::string fmodule_pyc = fmodule + "c";
+		if (Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
+			Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
+		{
+			setBase(true);
+		}
+
+		fmodule = "scripts/cell/components/" + name_ + ".py";
+		fmodule_pyc = fmodule + "c";
+		if (Resmgr::getSingleton().matchRes(fmodule) != fmodule ||
+			Resmgr::getSingleton().matchRes(fmodule_pyc) != fmodule_pyc)
+		{
+			setCell(true);
+		}
+
+		if (!hasClient())
+		{
+			// 如果是组件， 并且服务器上没有脚本或者exposed方法不需要产生代码
+			if ((hasBase() && getBaseExposedMethodDescriptions().size() > 0) ||
+				(hasCell() && getCellExposedMethodDescriptions().size() > 0))
+				setClient(true);
+		}
+
+		return;
+	}
+
 	/*
 		entity存在某部分(cell, base, client)的判定规则
 
@@ -504,9 +515,9 @@ void ScriptDefModule::autoMatchCompOwn()
 //-------------------------------------------------------------------------------------
 bool ScriptDefModule::addPropertyDescription(const char* attrName, 
 										  PropertyDescription* propertyDescription, 
-										  COMPONENT_TYPE componentType)
+										  COMPONENT_TYPE componentType, bool ignoreConflict)
 {
-	if(hasMethodName(attrName))
+	if(!ignoreConflict && hasMethodName(attrName))
 	{
 		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: There is a method[{}] name conflict! componentType={}.\n",
 			attrName, componentType));
@@ -514,7 +525,7 @@ bool ScriptDefModule::addPropertyDescription(const char* attrName,
 		return false;
 	}
 	
-	if (hasComponentName(attrName))
+	if (!ignoreConflict && hasComponentName(attrName))
 	{
 		ERROR_MSG(fmt::format("ScriptDefModule::addPropertyDescription: There is a component[{}] name conflict!\n",
 			attrName));

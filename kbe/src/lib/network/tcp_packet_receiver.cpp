@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "tcp_packet_receiver.h"
@@ -32,6 +14,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/network_interface.h"
 #include "network/event_poller.h"
 #include "network/error_reporter.h"
+#include <openssl/err.h>
 
 namespace KBEngine { 
 namespace Network
@@ -45,9 +28,9 @@ ObjectPool<TCPPacketReceiver>& TCPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacketReceiver* TCPPacketReceiver::createPoolObject()
+TCPPacketReceiver* TCPPacketReceiver::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -66,9 +49,9 @@ void TCPPacketReceiver::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-TCPPacketReceiver::SmartPoolObjectPtr TCPPacketReceiver::createSmartPoolObj()
+TCPPacketReceiver::SmartPoolObjectPtr TCPPacketReceiver::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacketReceiver>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<TCPPacketReceiver>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -90,12 +73,12 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 	Channel* pChannel = getChannel();
 	KBE_ASSERT(pChannel != NULL);
 
-	if(pChannel->isCondemn())
+	if(pChannel->condemn() > 0)
 	{
 		return false;
 	}
 
-	TCPPacket* pReceiveWindow = TCPPacket::createPoolObject();
+	TCPPacket* pReceiveWindow = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
 	int len = pReceiveWindow->recvFromEndPoint(*pEndpoint_);
 
 	if (len < 0)
@@ -106,7 +89,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 
 		if(rstate == PacketReceiver::RECV_STATE_INTERRUPT)
 		{
-			onGetError(pChannel);
+			onGetError(pChannel, fmt::format("TCPPacketReceiver::processRecv(): error={}\n", kbe_lasterror()));
 			return false;
 		}
 
@@ -115,7 +98,7 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 	else if(len == 0) // 客户端正常退出
 	{
 		TCPPacket::reclaimPoolObject(pReceiveWindow);
-		onGetError(pChannel);
+		onGetError(pChannel, "disconnected");
 		return false;
 	}
 	
@@ -128,9 +111,9 @@ bool TCPPacketReceiver::processRecv(bool expectingPacket)
 }
 
 //-------------------------------------------------------------------------------------
-void TCPPacketReceiver::onGetError(Channel* pChannel)
+void TCPPacketReceiver::onGetError(Channel* pChannel, const std::string& err)
 {
-	pChannel->condemn();
+	pChannel->condemn(err);
 	pChannel->networkInterface().deregisterChannel(pChannel);
 	pChannel->destroy();
 	Network::Channel::reclaimPoolObject(pChannel);
@@ -166,7 +149,7 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 		return RECV_STATE_BREAK;
 	}
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	if (errno == EAGAIN ||							// 已经无数据可读了
 		errno == ECONNREFUSED ||					// 连接被服务器拒绝
 		errno == EHOSTUNREACH)						// 目的地址不可到达
@@ -199,6 +182,24 @@ PacketReceiver::RecvState TCPPacketReceiver::checkSocketErrors(int len, bool exp
 	};
 
 #endif // unix
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+	if (wsaErr == 0
+#else
+	if (errno == 0
+#endif
+		&& pEndPoint()->isSSL())
+	{
+		long sslerr = ERR_get_error();
+		if (sslerr > 0)
+		{
+			WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "
+				"Throwing SSL - {}\n",
+				(pEndpoint_ ? pEndpoint_->addr().c_str() : ""), ERR_error_string(sslerr, NULL)));
+
+			return RECV_STATE_INTERRUPT;
+		}
+	}
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 	WARNING_MSG(fmt::format("TCPPacketReceiver::processPendingEvents({}): "

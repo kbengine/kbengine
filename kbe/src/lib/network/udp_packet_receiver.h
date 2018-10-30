@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_NETWORKUDPPACKET_RECEIVER_H
 #define KBE_NETWORKUDPPACKET_RECEIVER_H
@@ -43,15 +25,15 @@ class UDPPacketReceiver : public PacketReceiver
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< UDPPacketReceiver > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<UDPPacketReceiver>& ObjPool();
-	static UDPPacketReceiver* createPoolObject();
+	static UDPPacketReceiver* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(UDPPacketReceiver* obj);
 	static void destroyObjPool();
 
 	UDPPacketReceiver():PacketReceiver(){}
 	UDPPacketReceiver(EndPoint & endpoint, NetworkInterface & networkInterface);
-	~UDPPacketReceiver();
+	virtual ~UDPPacketReceiver();
 
 	Reason processFilteredPacket(Channel* pChannel, Packet * pPacket);
 	
@@ -60,8 +42,16 @@ public:
 		return UDP_PACKET_RECEIVER;
 	}
 
+	virtual ProtocolSubType protocolSubType() const {
+		return SUB_PROTOCOL_UDP;
+	}
+
+	virtual bool processRecv(UDPPacket* pReceiveWindow);
+	virtual bool processRecv(bool expectingPacket);
+
+	virtual Channel* findChannel(const Address& addr);
+
 protected:
-	bool processRecv(bool expectingPacket);
 	PacketReceiver::RecvState checkSocketErrors(int len, bool expectingPacket);
 
 protected:

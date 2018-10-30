@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_WITNESS_H
 #define KBE_WITNESS_H
@@ -47,7 +29,7 @@ namespace Network
 class Entity;
 class MemoryStream;
 class ViewTrigger;
-class Space;
+class SpaceMemory;
 
 /** 观察者信息结构 */
 struct WitnessInfo
@@ -93,10 +75,10 @@ public:
 	void createFromStream(KBEngine::MemoryStream& s);
 
 	typedef KBEShared_ptr< SmartPoolObject< Witness > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 
 	static ObjectPool<Witness>& ObjPool();
-	static Witness* createPoolObject();
+	static Witness* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Witness* obj);
 	static void destroyObjPool();
 	void onReclaimObject();
@@ -139,8 +121,8 @@ public:
 
 	bool update();
 	
-	void onEnterSpace(Space* pSpace);
-	void onLeaveSpace(Space* pSpace);
+	void onEnterSpace(SpaceMemory* pSpace);
+	void onLeaveSpace(SpaceMemory* pSpace);
 
 	void onEnterView(ViewTrigger* pViewTrigger, Entity* pEntity);
 	void onLeaveView(ViewTrigger* pViewTrigger, Entity* pEntity);

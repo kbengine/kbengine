@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_DBTASKS_H
 #define KBE_DBTASKS_H
@@ -136,7 +118,7 @@ protected:
 	std::string sdatas_;
 	CALLBACK_ID callbackID_;
 	std::string error_;
-	MemoryStream execret_;
+	MemoryStream* pExecret_;
 };
 
 
@@ -161,7 +143,7 @@ protected:
 	std::string sdatas_;
 	CALLBACK_ID callbackID_;
 	std::string error_;
-	MemoryStream execret_;
+	MemoryStream* pExecret_;
 };
 
 /**
@@ -292,7 +274,7 @@ protected:
 	bool success_;
 	ENTITY_ID entityID_;
 	COMPONENT_ID entityInAppID_;
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -507,7 +489,7 @@ protected:
 	std::string accountName_;
 	std::string password_;
 	bool success_;
-	MemoryStream s_;
+	MemoryStream* s_;
 	DBID dbid_;
 	COMPONENT_ID componentID_;
 	ENTITY_ID entityID_;
@@ -594,7 +576,7 @@ protected:
 	uint32 flags_;
 	uint64 deadline_;
 	bool needCheckPassword_;
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -621,7 +603,7 @@ protected:
 	COMPONENT_ID componentID_;
 	CALLBACK_ID callbackID_;
 	bool success_;
-	MemoryStream s_;
+	MemoryStream* s_;
 	ENTITY_ID entityID_;
 
 	// 如果实体已经激活，则这个属性指向实体所在app
@@ -629,7 +611,7 @@ protected:
 	COMPONENT_ID wasActiveCID_;
 	ENTITY_ID wasActiveEntityID_;
 	
-	COMPONENT_ID logger_;
+	COMPONENT_ID serverGroupID_;
 };
 
 /**
@@ -648,6 +630,27 @@ public:
 	}
 
 protected:
+};
+
+/**
+	擦除某个baseapp记录的entitylog
+*/
+class DBTaskEraseBaseappEntityLog : public DBTask
+{
+public: 
+	DBTaskEraseBaseappEntityLog(COMPONENT_ID componentID);
+	virtual ~DBTaskEraseBaseappEntityLog();
+	virtual bool db_thread_process();
+	virtual thread::TPTask::TPTaskState presentMainThread();
+
+	virtual std::string name() const {
+		return "DBTaskEraseBaseappEntityLog";
+	}
+
+protected:
+	COMPONENT_ID componentID_;
+	bool success_;
+
 };
 
 }

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "datatype.h"
 #include "datatypes.h"
@@ -974,9 +956,15 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyValue, NULL);
-	strutil::wchar2char(PyUnicode_AsWideCharStringRet0, mstream);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* s = PyUnicode_AsUTF8AndSize(pyValue, NULL);
+
+	if (s == NULL)
+	{
+		OUT_TYPE_ERROR("STRING");
+		return;
+	}
+
+	(*mstream) << s;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1047,15 +1035,16 @@ PyObject* UnicodeType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	PyObject* pyobj = PyUnicode_AsUTF8String(pyValue);
-	if(pyobj == NULL)
+	Py_ssize_t size;
+	char* s = PyUnicode_AsUTF8AndSize(pyValue, &size);
+
+	if (s == NULL)
 	{
 		OUT_TYPE_ERROR("UNICODE");
 		return;
-	}	
+	}
 
-	mstream->appendBlob(PyBytes_AS_STRING(pyobj), (ArraySize)PyBytes_GET_SIZE(pyobj));
-	Py_DECREF(pyobj);
+	mstream->appendBlob(s, size);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1451,15 +1440,13 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 
 					PyObject* pyClass = PyObject_GetAttrString(pyValue, "__class__");
 					PyObject* pyClassName = PyObject_GetAttrString(pyClass, "__name__");
-					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyClassName, NULL);
-					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
 
-					PyMem_Free(PyUnicode_AsWideCharStringRet0);
+					char* ccattr = PyUnicode_AsUTF8AndSize(pyClassName, NULL);
+
 					Py_DECREF(pyClass);
 					Py_DECREF(pyClassName);
 
 					ScriptDefModule* pScriptDefModule = EntityDef::findScriptModule(ccattr);
-					free(ccattr);
 
 					utype = pScriptDefModule->getUType();
 				}
@@ -1529,7 +1516,8 @@ DataType(did)
 //-------------------------------------------------------------------------------------
 FixedArrayType::~FixedArrayType()
 {
-	dataType_->decRef();
+	if(dataType_)
+		dataType_->decRef();
 }
 
 //-------------------------------------------------------------------------------------
@@ -2015,7 +2003,7 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 	
 	if(res_.size() != 2)
 	{
-		ERROR_MSG(fmt::format("FixedDictType::loadImplModule: {} impl error! like:[moduleName.inst]\n",
+		ERROR_MSG(fmt::format("FixedDictType::loadImplModule: {} impl error! like:[moduleName.ClassName|moduleName.xxInstance]\n",
 			moduleName.c_str()));
 
 		return false;
@@ -2037,6 +2025,19 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		return false;
 	}
 
+	if (PyType_Check(implObj_))
+	{
+		PyObject* implClass = implObj_;
+		implObj_ = PyObject_CallObject(implClass, NULL);
+		Py_DECREF(implClass);
+		
+		if (!implObj_)
+		{
+			SCRIPT_ERROR_CHECK()
+			return false;
+		}
+	}
+
 	pycreateObjFromDict_ = PyObject_GetAttrString(implObj_, "createObjFromDict");
 	if (!pycreateObjFromDict_)
 	{
@@ -2044,7 +2045,6 @@ bool FixedDictType::loadImplModule(std::string moduleName)
 		return false;
 	}
 	
-
 	pygetDictFromObj_ = PyObject_GetAttrString(implObj_, "getDictFromObj");
 	if (!pygetDictFromObj_)
 	{
@@ -2067,7 +2067,7 @@ PyObject* FixedDictType::impl_createObjFromDict(PyObject* dictData)
 {
 	// 可能在传入参数的时候已经是用户类型了, 因为parseDefaultStr
 	// 会初始为最终对象类型
-	if(impl_isSameType(dictData))
+	if(!PyObject_TypeCheck(dictData, FixedDict::getScriptType()) && impl_isSameType(dictData))
 	{
 		Py_INCREF(dictData);
 		return dictData;
@@ -2486,7 +2486,7 @@ void EntityComponentType::addPersistentToStream(MemoryStream* mstream, PyObject*
 					propertyDescription->getName(), pScriptDefModule_ ? pScriptDefModule_->getName() : "", pScriptDefModule_ ? pScriptDefModule_->getUType() : 0,
 					COMPONENT_NAME_EX(CELLAPP_TYPE)));
 
-				propertyDescription->addToStream(mstream, NULL);
+				propertyDescription->addPersistentToStream(mstream, NULL);
 			}
 		}
 
@@ -2497,6 +2497,41 @@ void EntityComponentType::addPersistentToStream(MemoryStream* mstream, PyObject*
 	pEntityComponent->addPersistentToStream(mstream, pyValue);
 }
 
+//-------------------------------------------------------------------------------------
+void EntityComponentType::addPersistentToStream(MemoryStream* mstream)
+{
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptDefModule_->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
+	for (; iter != propertyDescrs.end(); ++iter)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+
+		PyObject* pyDefVal = propertyDescription->newDefaultVal();
+		propertyDescription->getDataType()->addToStream(mstream, pyDefVal);
+		Py_DECREF(pyDefVal);
+	}
+}
+//-------------------------------------------------------------------------------------
+void EntityComponentType::addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream)
+{
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP& propertyDescrs = pScriptDefModule_->getPersistentPropertyDescriptions();
+	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = propertyDescrs.begin();
+
+	for (; iter != propertyDescrs.end(); ++iter)
+	{
+		PropertyDescription* propertyDescription = iter->second;
+
+		if (propertyDescription->hasCell())
+		{
+			// 一些实体没有cell部分， 因此cell属性忽略
+			if (!pScriptModule->hasCell())
+				continue;
+		}
+
+		propertyDescription->addPersistentToStream(mstream, NULL);
+	}
+}
 //-------------------------------------------------------------------------------------
 void EntityComponentType::addCellDataToStream(MemoryStream* mstream, uint32 flags, PyObject* pyValue, 
 	ENTITY_ID ownerID, PropertyDescription* parentPropertyDescription, COMPONENT_TYPE sendtoComponentType, bool checkValue)
@@ -2626,7 +2661,7 @@ PyObject* EntityComponentType::createFromStream(MemoryStream* mstream)
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* EntityComponentType::createFromPersistentStream(MemoryStream* mstream)
+PyObject* EntityComponentType::createFromPersistentStream(ScriptDefModule* pScriptDefModule, MemoryStream* mstream)
 {
 	KBE_ASSERT(EntityDef::context().currEntityID > 0);
 
@@ -2636,7 +2671,7 @@ PyObject* EntityComponentType::createFromPersistentStream(MemoryStream* mstream)
 	PyObject* pyEntityComponent = new(pyobj) EntityComponent(EntityDef::context().currEntityID, pScriptDefModule_, EntityDef::context().currComponentType);
 
 	EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyEntityComponent);
-	return pEntityComponent->createFromPersistentStream(mstream);
+	return pEntityComponent->createFromPersistentStream(pScriptDefModule, mstream);
 }
 
 //-------------------------------------------------------------------------------------
@@ -2727,7 +2762,10 @@ PyObject* EntityComponentType::createCellDataFromPersistentStream(MemoryStream* 
 		if (!propertyDescription->hasCell())
 			continue;
 
-		PyObject* pyobj = propertyDescription->createFromStream(mstream);
+		PyObject* pyobj = NULL;
+		
+		if(mstream)
+			pyobj = propertyDescription->createFromStream(mstream);
 
 		if (pyobj == NULL)
 		{

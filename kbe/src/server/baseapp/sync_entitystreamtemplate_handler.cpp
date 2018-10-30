@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "baseapp.h"
 #include "sync_entitystreamtemplate_handler.h"
@@ -57,8 +39,20 @@ networkInterface_(networkInterface)
 		for(; iter != propertyDescrs.end(); ++iter)
 		{
 			PropertyDescription* propertyDescription = iter->second;
+
+			// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+			if (!pScriptModule->hasCell())
+			{
+				if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT && !propertyDescription->hasBase())
+					continue;
+			}
+
 			accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
-			propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
+			
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+				((EntityComponentDescription*)propertyDescription)->addPersistentToStreamTemplates(pScriptModule, &accountDefMemoryStream);
+			else
+				propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 		}
 	}
 }
@@ -111,11 +105,23 @@ bool SyncEntityStreamTemplateHandler::process()
 	for(; iter != propertyDescrs.end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
+
+		// 如果某个实体没有cell部分， 而组件属性没有base部分则忽略
+		if (!pScriptModule->hasCell())
+		{
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT && !propertyDescription->hasBase())
+				continue;
+		}
+
 		accountDefMemoryStream << (ENTITY_PROPERTY_UID)0 << propertyDescription->getUType();
-		propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
+
+		if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+			((EntityComponentDescription*)propertyDescription)->addPersistentToStreamTemplates(pScriptModule, &accountDefMemoryStream);
+		else
+			propertyDescription->addPersistentToStream(&accountDefMemoryStream, NULL);
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(DbmgrInterface::syncEntityStreamTemplate);
 	(*pBundle).append(accountDefMemoryStream);

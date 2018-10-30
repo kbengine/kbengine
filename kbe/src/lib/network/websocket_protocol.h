@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_WEBSOCKET_PROTOCOL_H
 #define KBE_WEBSOCKET_PROTOCOL_H
@@ -58,12 +40,13 @@ public:
 		INCOMPLETE_TEXT_FRAME = 0x01,
 		INCOMPLETE_BINARY_FRAME = 0x02,
 
-		// 文本帧与二进制帧
+		// 文本帧与二进制帧 END_FRAME + *_FRAME
 		TEXT_FRAME = 0x81,
 		BINARY_FRAME = 0x82,
 
-		PING_FRAME = 0x19,
-		PONG_FRAME = 0x1A,
+		// END_FRAME + *_FRAME
+		PING_FRAME = 0x89,
+		PONG_FRAME = 0x8A,
 
 		// 关闭连接
 		CLOSE_FRAME = 0x08

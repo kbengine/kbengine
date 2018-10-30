@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_NETWORK_COMMON_H
 #define KBE_NETWORK_COMMON_H
@@ -57,6 +39,26 @@ extern int8 g_channelExternalEncryptType;
 
 // listen监听队列最大值
 extern uint32 g_SOMAXCONN;
+
+// udp握手包
+extern const char* UDP_HELLO;
+extern const char* UDP_HELLO_ACK;
+
+// UDP参数
+extern uint32 g_rudp_intWritePacketsQueueSize;
+extern uint32 g_rudp_intReadPacketsQueueSize;
+extern uint32 g_rudp_extWritePacketsQueueSize;
+extern uint32 g_rudp_extReadPacketsQueueSize;
+extern uint32 g_rudp_tickInterval;
+extern uint32 g_rudp_minRTO;
+extern uint32 g_rudp_mtu;
+extern uint32 g_rudp_missAcksResend;
+extern bool g_rudp_congestionControl;
+extern bool g_rudp_nodelay;
+
+// Certificate file required for HTTPS/WSS/SSL communication
+extern std::string g_sslCertificate;
+extern std::string g_sslPrivateKey;
 
 // 不做通道超时检查
 #define CLOSE_CHANNEL_INACTIVITIY_DETECTION()										\
@@ -124,6 +126,13 @@ enum ProtocolType
 {
 	PROTOCOL_TCP = 0,
 	PROTOCOL_UDP = 1,
+};
+
+enum ProtocolSubType
+{
+	SUB_PROTOCOL_DEFAULT = 0,
+	SUB_PROTOCOL_UDP = 1,
+	SUB_PROTOCOL_KCP = 2,
 };
 
 enum Reason
@@ -302,9 +311,9 @@ const char * reasonToString(Reason reason)
 #define MALLOC_PACKET(outputPacket, isTCPPacket)															\
 {																											\
 	if(isTCPPacket)																							\
-		outputPacket = TCPPacket::createPoolObject();														\
+		outputPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);										\
 	else																									\
-		outputPacket = UDPPacket::createPoolObject();														\
+		outputPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);										\
 }																											\
 
 
@@ -410,6 +419,7 @@ extern uint32						g_intSentWindowBytesOverflow;
 extern uint32						g_extSentWindowBytesOverflow;
 
 bool initializeWatcher();
+bool initialize();
 void finalise(void);
 
 }

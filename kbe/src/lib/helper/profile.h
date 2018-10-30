@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBENGINE_PROFILE_H
 #define KBENGINE_PROFILE_H
@@ -61,11 +43,10 @@ public:
 	static void finalise(void);
 
 	INLINE const ProfileGroup::PROFILEVALS& profiles() const;
+
 private:
 	PROFILEVALS profiles_;
-
 	PROFILEVALS stack_;
-
 	std::string name_;
 };
 
@@ -137,7 +118,6 @@ public:
 			stack.back()->lastIntTime_ = now;
 	}
 
-	
 	INLINE bool stop( const char * filename, int lineNum, uint32 qty = 0);
 
 	INLINE bool running() const;
@@ -154,14 +134,16 @@ public:
 	INLINE double lastIntTimeInSeconds() const ;
 	INLINE double sumIntTimeInSeconds() const;
 
-	
-
 	INLINE const char* name() const;
 
 	INLINE uint32 count() const;
 
+	INLINE bool isTooLong() const;
+
+	static void setWarningPeriod(TimeStamp warningPeriod) { warningPeriod_ = warningPeriod; }
+
 	// 名称
-	std::string	name_;
+	std::string		name_;
 
 	// ProfileGroup指针
 	ProfileGroup * pProfileGroup_;
@@ -178,22 +160,18 @@ public:
 	// count_次内部总时间
 	TimeStamp		sumIntTime_;
 
-	uint32		lastQuantity_;	///< The last value passed into stop.
-	uint32		sumQuantity_;	///< The total of all values passed into stop.
-	uint32		count_;			///< The number of times stop has been called.
+	uint32			lastQuantity_;	///< The last value passed into stop.
+	uint32			sumQuantity_;	///< The total of all values passed into stop.
+	uint32			count_;			///< The number of times stop has been called.
 
 	// 记录第几次处理, 如递归等
-	int			inProgress_;
+	int				inProgress_;
 
-	bool initWatcher_;
-
-	INLINE bool isTooLong() const;
-
-	static void setWarningPeriod( TimeStamp warningPeriod )
-							{ warningPeriod_ = warningPeriod; }
+	bool			initWatcher_;
 
 private:
 	static TimeStamp warningPeriod_;
+
 };
 
 class ScopedProfile
@@ -213,9 +191,10 @@ public:
 	}
 
 private:
-	ProfileVal & profile_;
-	const char * filename_;
+	ProfileVal& profile_;
+	const char* filename_;
 	int lineNum_;
+
 };
 
 #define START_PROFILE( PROFILE ) PROFILE.start();

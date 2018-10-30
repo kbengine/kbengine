@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_KBE_TABLE_MYSQL_H
 #define KBE_KBE_TABLE_MYSQL_H
@@ -51,7 +33,8 @@ public:
 	virtual bool queryEntity(DBInterface * pdbi, DBID dbid, EntityLog& entitylog, ENTITY_SCRIPT_UID entityType);
 
 	virtual bool eraseEntityLog(DBInterface * pdbi, DBID dbid, ENTITY_SCRIPT_UID entityType);
-	
+	virtual bool eraseBaseappEntityLog(DBInterface * pdbi, COMPONENT_ID componentID);
+
 protected:
 	
 };
@@ -71,10 +54,11 @@ public:
 	virtual bool updateServer(DBInterface * pdbi);
 
 	virtual bool queryServer(DBInterface * pdbi, ServerLog& serverlog);
-	
+	virtual std::vector<COMPONENT_ID> queryServers(DBInterface * pdbi);
+
 	virtual std::vector<COMPONENT_ID> queryTimeOutServers(DBInterface * pdbi);
 	
-	virtual bool clearTimeoutLogs(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids);
+	virtual bool clearServers(DBInterface * pdbi, const std::vector<COMPONENT_ID>& cids);
 	
 protected:
 	

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_ADDRESS_H
 #define KBE_ADDRESS_H
@@ -34,9 +16,9 @@ public:
 	static const Address NONE;
 
 	typedef KBEShared_ptr< SmartPoolObject< Address > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Address>& ObjPool();
-	static Address* createPoolObject();
+	static Address* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Address* obj);
 	static void destroyObjPool();
 	void onReclaimObject();
@@ -52,8 +34,9 @@ public:
 	Address();
 	Address(uint32 ipArg, uint16 portArg);
 	Address(std::string ipArg, uint16 portArg);
-	
-	virtual ~Address(){}
+	Address(const Address& addr);
+
+	virtual ~Address();
 
 	uint32	ip;
 	uint16	port;

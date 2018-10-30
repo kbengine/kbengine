@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_NETWORKCHANCEL_H
 #define KBE_NETWORKCHANCEL_H
@@ -35,6 +17,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/bundle.h"
 #include "network/interfaces.h"
 #include "network/packet_filter.h"
+#include "network/ikcp.h"
 
 namespace KBEngine { 
 namespace Network
@@ -50,9 +33,9 @@ class Channel : public TimerHandler, public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Channel>& ObjPool();
-	static Channel* createPoolObject();
+	static Channel* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
 	virtual void onReclaimObject();
@@ -77,7 +60,15 @@ public:
 		CHANNEL_WEB = 1,
 	};
 
-	typedef std::vector<Packet*> BufferedReceives;
+	enum Flags
+	{
+		FLAG_SENDING					= 0x00000001,	// 发送信息中
+		FLAG_DESTROYED					= 0x00000002,	// 通道已经销毁
+		FLAG_HANDSHAKE					= 0x00000004,	// 已经握手过
+		FLAG_CONDEMN_AND_WAIT_DESTROY	= 0x00000008,	// 该频道已经变得不合法，即将在数据发送完毕后关闭
+		FLAG_CONDEMN_AND_DESTROY		= 0x00000010,	// 该频道已经变得不合法，即将关闭
+		FLAG_CONDEMN					= FLAG_CONDEMN_AND_WAIT_DESTROY | FLAG_CONDEMN_AND_DESTROY,
+	};
 
 public:
 	Channel();
@@ -86,6 +77,7 @@ public:
 		const EndPoint * pEndPoint, 
 		Traits traits, 
 		ProtocolType pt = PROTOCOL_TCP, 
+		ProtocolSubType spt = SUB_PROTOCOL_DEFAULT,
 		PacketFilterPtr pFilter = NULL, 
 		ChannelID id = CHANNEL_ID_NULL);
 
@@ -118,30 +110,38 @@ public:
 
 	typedef std::vector<Bundle*> Bundles;
 	Bundles & bundles();
-	
+	const Bundles & bundles() const;
+
 	/**
 		创建发送bundle，该bundle可能是从send放入发送队列中获取的，如果队列为空
 		则创建一个新的
 	*/
 	Bundle* createSendBundle();
-	
-	int32 bundlesLength();
-
-	const Bundles & bundles() const;
-	INLINE void pushBundle(Bundle* pBundle);
 	void clearBundle();
 
-	bool sending() const { return (flags_ & FLAG_SENDING) > 0;}
+	int32 bundlesLength();
+
+	INLINE void pushBundle(Bundle* pBundle);
+	
+	bool sending() const;
 	void stopSend();
 
-	void send(Bundle * pBundle = NULL);
-	void delayedSend();
+	void send(Bundle* pBundle = NULL);
+	void sendto(bool reliable = true, Bundle* pBundle = NULL);
+	void sendCheck(uint32 bundleSize);
 
+	void delayedSend();
+	bool waitSend();
+
+	ikcpcb* pKCP() const {
+		return pKCP_;
+	}
 
 	INLINE PacketReader* pPacketReader() const;
 	INLINE PacketSender* pPacketSender() const;
 	INLINE void pPacketSender(PacketSender* pPacketSender);
 	INLINE PacketReceiver* pPacketReceiver() const;
+	INLINE void pPacketReceiver(PacketReceiver* pPacketReceiver);
 
 	Traits traits() const { return traits_; }
 	bool isExternal() const { return traits_ == EXTERNAL; }
@@ -153,7 +153,8 @@ public:
 
 	const char * c_str() const;
 	ChannelID id() const	{ return id_; }
-	
+	void id(ChannelID v) { id_ = v; }
+
 	uint32	numPacketsSent() const		{ return numPacketsSent_; }
 	uint32	numPacketsReceived() const	{ return numPacketsReceived_; }
 	uint32	numBytesSent() const		{ return numBytesSent_; }
@@ -163,16 +164,34 @@ public:
 	void updateLastReceivedTime()		{ lastReceivedTime_ = timestamp(); }
 		
 	void addReceiveWindow(Packet* pPacket);
-	
-	BufferedReceives& bufferedReceives(){ return bufferedReceives_; }
-		
-	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers);
 
-	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
-	void condemn();
+	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
+	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
+
+	uint32 condemn() const
+	{
+		if ((flags_ & FLAG_CONDEMN_AND_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_DESTROY;
+
+		if ((flags_ & FLAG_CONDEMN_AND_WAIT_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_WAIT_DESTROY;
+
+		return 0;
+	}
+
+	void condemn(const std::string& reason, bool waitSendCompletedDestroy = false);
+	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
 
+	void setFlags(bool add, uint32 flag)
+	{ 
+		if(add)
+			flags_ |= flag;
+		else
+			flags_ &= ~flag;
+	}
+	
 	ENTITY_ID proxyID() const { return proxyID_; }
 	void proxyID(ENTITY_ID pid){ proxyID_ = pid; }
 
@@ -182,17 +201,16 @@ public:
 	COMPONENT_ID componentID() const{ return componentID_; }
 	void componentID(COMPONENT_ID cid){ componentID_ = cid; }
 
-	virtual void handshake();
+	bool handshake(Packet* pPacket);
 
 	KBEngine::Network::MessageHandlers* pMsgHandlers() const { return pMsgHandlers_; }
 	void pMsgHandlers(KBEngine::Network::MessageHandlers* pMsgHandlers) { pMsgHandlers_ = pMsgHandlers; }
-
-	bool waitSend();
 
 	bool initialize(NetworkInterface & networkInterface, 
 		const EndPoint * pEndPoint, 
 		Traits traits, 
 		ProtocolType pt = PROTOCOL_TCP, 
+		ProtocolSubType spt = SUB_PROTOCOL_DEFAULT,
 		PacketFilterPtr pFilter = NULL, 
 		ChannelID id = CHANNEL_ID_NULL);
 
@@ -202,19 +220,32 @@ public:
 		return channelType_;;
 	}
 
-private:
+	bool init_kcp();
+	bool fina_kcp();
+	void kcpUpdate();
+	void addKcpUpdate(int64 microseconds = 1);
 
-	enum Flags
-	{
-		FLAG_SENDING	= 0x00000001,	// 发送信息中
-		FLAG_DESTROYED	= 0x00000002,	// 通道已经销毁
-		FLAG_HANDSHAKE	= 0x00000004,	// 已经握手过
-		FLAG_CONDEMN	= 0x00000008,	// 该频道已经变得不合法
-	};
+	ProtocolType protocoltype() const { return protocoltype_; }
+	ProtocolSubType protocolSubtype() const { return protocolSubtype_; }
+
+	void protocoltype(ProtocolType v) { protocoltype_ = v; }
+	void protocolSubtype(ProtocolSubType v) { protocolSubtype_ = v; }
+
+	/**
+		round-trip time (RTT) Microseconds
+	*/
+	uint32 getRTT();
+
+private:
+	static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user);
+	static void kcp_writeLog(const char *log, struct IKCPCB *kcp, void *user);
+
+private:
 
 	enum TimeOutType
 	{
-		TIMEOUT_INACTIVITY_CHECK
+		TIMEOUT_INACTIVITY_CHECK = 0,
+		KCP_UPDATE = 1
 	};
 
 	virtual void handleTimeout(TimerHandle, void * pUser);
@@ -223,9 +254,11 @@ private:
 
 private:
 	NetworkInterface * 			pNetworkInterface_;
+
 	Traits						traits_;
 	ProtocolType				protocoltype_;
-		
+	ProtocolSubType				protocolSubtype_;
+
 	ChannelID					id_;
 	
 	TimerHandle					inactivityTimerHandle_;
@@ -236,7 +269,7 @@ private:
 	
 	Bundles						bundles_;
 	
-	BufferedReceives			bufferedReceives_;
+	uint32						lastTickBufferedReceives_;
 
 	PacketReader*				pPacketReader_;
 
@@ -269,6 +302,12 @@ private:
 	KBEngine::Network::MessageHandlers* pMsgHandlers_;
 
 	uint32						flags_;
+
+	ikcpcb*						pKCP_;
+	TimerHandle					kcpUpdateTimerHandle_;
+	bool						hasSetNextKcpUpdate_;
+
+	std::string					condemnReason_;
 };
 
 }

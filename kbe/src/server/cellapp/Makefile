@@ -23,7 +23,8 @@ SRCS =						\
 	loadnavmesh_threadtasks	\
 	main					\
 	space					\
-	spaces					\
+	spacememory				\
+	spacememorys			\
 	space_viewer			\
 	move_controller			\
 	moveto_entity_handler	\

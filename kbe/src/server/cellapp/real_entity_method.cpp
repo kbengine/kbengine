@@ -1,24 +1,7 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "cellapp.h"
+#include "entity.h"
 #include "real_entity_method.h"
 #include "entitydef/method.h"
 #include "network/bundle.h"
@@ -39,9 +22,11 @@ SCRIPT_GETSET_DECLARE_END()
 SCRIPT_INIT(RealEntityMethod, tp_call, 0, 0, 0, 0)	
 
 //-------------------------------------------------------------------------------------
-RealEntityMethod::RealEntityMethod(MethodDescription* methodDescription, 
-		Entity* ghostEntity):
+RealEntityMethod::RealEntityMethod(PropertyDescription* pComponentPropertyDescription,
+	MethodDescription* methodDescription, 
+	Entity* ghostEntity):
 script::ScriptObject(getScriptType(), false),
+pComponentPropertyDescription_(pComponentPropertyDescription),
 methodDescription_(methodDescription),
 ghostEntityID_(ghostEntity->id()),
 realCell_(ghostEntity->realCell()),
@@ -74,8 +59,30 @@ PyObject* RealEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::createPoolObject();
-		methodDescription->addToStream(mstream, args);
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+
+		// 如果是给组件的消息
+		if (pComponentPropertyDescription_)
+		{
+			(*mstream) << pComponentPropertyDescription_->getUType();
+		}
+		else
+		{
+			(*mstream) << (ENTITY_PROPERTY_UID)0;
+		}
+
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("RealEntityMethod::tp_call: {}::{} {}, error={}!\n",
+				scriptName_, methodDescription->getName(), ghostEntityID_, err.what()));
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
 
 		Network::Bundle* pForwardBundle = gm->createSendBundle(realCell_);
 

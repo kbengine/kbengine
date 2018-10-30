@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "packet_reader.h"
 #include "network/channel.h"
@@ -100,7 +82,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 
 				currMsgID_ = 0;
 				currMsgLen_ = 0;
-				pChannel_->condemn();
+				pChannel_->condemn("PacketReader::processMessages: not found msgID");
 				break;
 			}
 
@@ -178,7 +160,7 @@ void PacketReader::processMessages(KBEngine::Network::MessageHandlers* pMsgHandl
 					pMsgHandler->name.c_str(), currMsgID_, currMsgLen_, pPacket1->length(), pChannel_->c_str(), NETWORK_MESSAGE_MAX_SIZE));
 
 				currMsgLen_ = 0;
-				pChannel_->condemn();
+				pChannel_->condemn("PacketReader::processMessages: msglen exceeds the limit!");
 				break;
 			}
 
@@ -282,7 +264,7 @@ void PacketReader::mergeFragmentMessage(Packet* pPacket)
 			break;
 
 		case FRAGMENT_DATA_MESSAGE_BODY:		// 消息内容信息不全
-			pFragmentStream_ = MemoryStream::createPoolObject();
+			pFragmentStream_ = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 			pFragmentStream_->append(pFragmentDatas_, currMsgLen_);
 			break;
 

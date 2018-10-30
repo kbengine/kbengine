@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    
+    <title>Usage &mdash; fmt 5.2.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/breathe.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '5.2.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX:  ''
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="Contents" href="contents.html" />
+<meta name="description" content="Small, safe and fast formatting library">
+<meta name="keywords" content="C++, formatting, printf, string, library">
+<meta name="author" content="Victor Zverovich">
+<link rel="stylesheet" href="_static/fmt.css">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();
+    a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;
+    a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-20116650-4', 'fmtlib.net');
+  ga('send', 'pageview');
+</script>
+
+  </head>
+  <body role="document">
+<nav class="navbar navbar-inverse">
+  <div class="tb-container">
+    <div class="row">
+      <div class="navbar-content">
+        
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed"
+                  data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">{fmt}</a>
+        </div>
+
+        
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                 role="button" aria-expanded="false">5.2.1
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                
+                <li><a href="http://fmtlib.net/5.2.1">5.2.1</a></li>
+                
+                <li><a href="http://fmtlib.net/5.2.0">5.2.0</a></li>
+                
+                <li><a href="http://fmtlib.net/5.1.0">5.1.0</a></li>
+                
+              </ul>
+            </li>
+            
+              
+              <li><a href="contents.html">Contents</a></li>
+              
+            
+              
+              <li class="active"><a href="usage.html">Usage
+                <span class="sr-only">(current)</span></a></li>
+              
+            
+              
+              <li><a href="api.html">API</a></li>
+              
+            
+              
+              <li><a href="syntax.html">Syntax</a></li>
+              
+            
+          </ul>
+          
+            
+<form class="navbar-form navbar-right" role="search" action="search.html"
+      method="get">
+  <div class="form-group">
+    <input type="text" name="q" class="form-control"
+           placeholder="Search" >
+  </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+  
+</form>
+          
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+</nav>
+
+
+
+<div class="tb-container">
+  <div class="row">
+    
+
+    <div class="content">
+      
+  <div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<p>To use the fmt library, add <code class="file docutils literal"><span class="pre">format.h</span></code> and <code class="file docutils literal"><span class="pre">format.cc</span></code> from
+a <a class="reference external" href="https://github.com/fmtlib/fmt/releases/latest">release archive</a>
+or the <a class="reference external" href="https://github.com/fmtlib/fmt">Git repository</a> to your project.
+Alternatively, you can <a class="reference internal" href="#building"><span class="std std-ref">build the library with CMake</span></a>.</p>
+<p>If you are using Visual C++ with precompiled headers, you might need to add
+the line</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;stdafx.h&quot;</span><span class="cp"></span>
+</pre></div>
+</div>
+<p>before other includes in <code class="file docutils literal"><span class="pre">format.cc</span></code>.</p>
+<div class="section" id="building-the-library">
+<span id="building"></span><h2>Building the library<a class="headerlink" href="#building-the-library" title="Permalink to this headline">¶</a></h2>
+<p>The included <a class="reference external" href="https://github.com/fmtlib/fmt/blob/master/CMakeLists.txt">CMake build script</a> can be used to build the fmt
+library on a wide range of platforms. CMake is freely available for
+download from <a class="reference external" href="http://www.cmake.org/download/">http://www.cmake.org/download/</a>.</p>
+<p>CMake works by generating native makefiles or project files that can
+be used in the compiler environment of your choice. The typical
+workflow starts with:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span>mkdir build          # Create a directory to hold the build output.
+cd build
+cmake &lt;path/to/fmt&gt;  # Generate native build scripts.
+</pre></div>
+</div>
+<p>where <code class="file docutils literal"><em><span class="pre">&lt;path/to/fmt&gt;</span></em></code> is a path to the <code class="docutils literal"><span class="pre">fmt</span></code> repository.</p>
+<p>If you are on a *nix system, you should now see a Makefile in the
+current directory. Now you can build the library by running <strong class="command">make</strong>.</p>
+<p>Once the library has been built you can invoke <strong class="command">make test</strong> to run
+the tests.</p>
+<p>You can control generation of the make <code class="docutils literal"><span class="pre">test</span></code> target with the <code class="docutils literal"><span class="pre">FMT_TEST</span></code>
+CMake option. This can be useful if you include fmt as a subdirectory in
+your project but don&#8217;t want to add fmt&#8217;s tests to your <code class="docutils literal"><span class="pre">test</span></code> target.</p>
+<p>If you use Windows and have Visual Studio installed, a <code class="file docutils literal"><span class="pre">FORMAT.sln</span></code>
+file and several <code class="file docutils literal"><span class="pre">.vcproj</span></code> files will be created. You can then build them
+using Visual Studio or msbuild.</p>
+<p>On Mac OS X with Xcode installed, an <code class="file docutils literal"><span class="pre">.xcodeproj</span></code> file will be generated.</p>
+<p>To build a <a class="reference external" href="http://en.wikipedia.org/wiki/Library_%28computing%29#Shared_libraries">shared library</a> set the <code class="docutils literal"><span class="pre">BUILD_SHARED_LIBS</span></code> CMake variable to
+<code class="docutils literal"><span class="pre">TRUE</span></code>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">cmake</span> <span class="o">-</span><span class="n">DBUILD_SHARED_LIBS</span><span class="o">=</span><span class="n">TRUE</span> <span class="p">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="header-only-usage-with-cmake">
+<h2>Header-only usage with CMake<a class="headerlink" href="#header-only-usage-with-cmake" title="Permalink to this headline">¶</a></h2>
+<p>You can add the <code class="docutils literal"><span class="pre">fmt</span></code> library directory into your project and include it in
+your <code class="docutils literal"><span class="pre">CMakeLists.txt</span></code> file:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">add_subdirectory</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">add_subdirectory</span><span class="p">(</span><span class="n">fmt</span> <span class="n">EXCLUDE_FROM_ALL</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>to exclude it from <code class="docutils literal"><span class="pre">make</span></code>, <code class="docutils literal"><span class="pre">make</span> <span class="pre">all</span></code>, or <code class="docutils literal"><span class="pre">cmake</span> <span class="pre">--build</span> <span class="pre">.</span></code>.</p>
+<p>Settting up your target to use a header-only version of <code class="docutils literal"><span class="pre">fmt</span></code> is equaly easy:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">target_link_libraries</span><span class="p">(</span><span class="o">&lt;</span><span class="n">your</span><span class="o">-</span><span class="n">target</span><span class="o">&gt;</span> <span class="n">PRIVATE</span> <span class="n">fmt</span><span class="o">-</span><span class="n">header</span><span class="o">-</span><span class="n">only</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="building-the-documentation">
+<h2>Building the documentation<a class="headerlink" href="#building-the-documentation" title="Permalink to this headline">¶</a></h2>
+<p>To build the documentation you need the following software installed on your
+system:</p>
+<ul>
+<li><p class="first"><a class="reference external" href="https://www.python.org/">Python</a> with pip and virtualenv</p>
+</li>
+<li><p class="first"><a class="reference external" href="http://www.stack.nl/~dimitri/doxygen/">Doxygen</a></p>
+</li>
+<li><p class="first"><a class="reference external" href="http://lesscss.org/">Less</a> with <code class="docutils literal"><span class="pre">less-plugin-clean-css</span></code>.
+Ubuntu doesn&#8217;t package the <code class="docutils literal"><span class="pre">clean-css</span></code> plugin so you should use <code class="docutils literal"><span class="pre">npm</span></code>
+instead of <code class="docutils literal"><span class="pre">apt</span></code> to install both <code class="docutils literal"><span class="pre">less</span></code> and the plugin:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">npm</span> <span class="n">install</span> <span class="o">-</span><span class="n">g</span> <span class="n">less</span> <span class="n">less</span><span class="o">-</span><span class="n">plugin</span><span class="o">-</span><span class="n">clean</span><span class="o">-</span><span class="n">css</span><span class="p">.</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>First generate makefiles or project files using CMake as described in
+the previous section. Then compile the <code class="docutils literal"><span class="pre">doc</span></code> target/project, for example:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">doc</span>
+</pre></div>
+</div>
+<p>This will generate the HTML documentation in <code class="docutils literal"><span class="pre">doc/html</span></code>.</p>
+</div>
+<div class="section" id="android-ndk">
+<h2>Android NDK<a class="headerlink" href="#android-ndk" title="Permalink to this headline">¶</a></h2>
+<p>fmt provides <a class="reference external" href="https://github.com/fmtlib/fmt/blob/master/Android.mk">Android.mk file</a> that can be used to build the library
+with <a class="reference external" href="https://developer.android.com/tools/sdk/ndk/index.html">Android NDK</a>.
+For an example of using fmt with Android NDK, see the
+<a class="reference external" href="https://github.com/fmtlib/android-ndk-example">android-ndk-example</a>
+repository.</p>
+</div>
+<div class="section" id="homebrew">
+<h2>Homebrew<a class="headerlink" href="#homebrew" title="Permalink to this headline">¶</a></h2>
+<p>fmt can be installed on OS X using <a class="reference external" href="http://brew.sh/">Homebrew</a>:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="n">brew</span> <span class="n">install</span> <span class="n">fmt</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2012-present, Victor Zverovich.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1+.
+    </div>
+
+<script src="_static/bootstrap.min.js"></script>
+
+  </body>
+</html>

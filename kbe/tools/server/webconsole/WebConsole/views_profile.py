@@ -73,6 +73,7 @@ def process_cmd( request ):
 	host = GET["host"]
 	cmd = GET["cmd"]
 	sec = GET["sec"]
+	password = GET["password"]
 
-	console = ProfileConsole(request.websocket, host, port, cmd, sec)
+	console = ProfileConsole(request.websocket, host, port, cmd, sec, password)
 	return console.run()

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "helper/profile.h"
 #include "encryption_filter.h"
@@ -61,7 +43,7 @@ BlowfishFilter::~BlowfishFilter()
 }
 
 //-------------------------------------------------------------------------------------
-Reason BlowfishFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket)
+Reason BlowfishFilter::send(Channel * pChannel, PacketSender& sender, Packet * pPacket, int userarg)
 {
 	if(!pPacket->encrypted())
 	{
@@ -121,7 +103,7 @@ Reason BlowfishFilter::send(Channel * pChannel, PacketSender& sender, Packet * p
 		}
 	}
 	
-	return sender.processFilterPacket(pChannel, pPacket);
+	return sender.processFilterPacket(pChannel, pPacket, userarg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -297,9 +279,9 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 	else
 	{
 		if(pInPacket->isTCPPacket())
-			pOutPacket = TCPPacket::createPoolObject();
+			pOutPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
 		else
-			pOutPacket = UDPPacket::createPoolObject();
+			pOutPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);
 
 		pOutPacket->data_resize(pInPacket->size() + 1);
 

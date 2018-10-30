@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "jwsmtp.h"
@@ -60,6 +42,7 @@ Loginapp::Loginapp(Network::EventDispatcher& dispatcher,
 	initProgress_(0.f),
 	pTelnetServer_(NULL)
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &LoginappInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -136,7 +119,7 @@ void Loginapp::onChannelDeregister(Network::Channel * pChannel)
 			}
 			else
 			{
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 				(*pBundle).newMessage(DbmgrInterface::eraseClientReq);
 				(*pBundle) << extra;
 				dbmgrinfos->pChannel->send(pBundle);
@@ -208,6 +191,12 @@ void Loginapp::onInstallPyModules()
 //-------------------------------------------------------------------------------------
 void Loginapp::finalise()
 {
+	if (pTelnetServer_)
+	{
+		pTelnetServer_->stop();
+		SAFE_RELEASE(pTelnetServer_);
+	}
+
 	mainProcessTimer_.cancel();
 	PythonApp::finalise();
 }
@@ -243,7 +232,7 @@ void Loginapp::onClientActiveTick(Network::Channel* pChannel)
 
 	onAppActiveTick(pChannel, CLIENT_TYPE, 0);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	pBundle->newMessage(ClientInterface::onAppActiveTickCB);
 	pChannel->send(pBundle);
 }
@@ -262,7 +251,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			accountName));
 
 		std::string retdatas = "";
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_ACCOUNT_REGISTER_NOT_AVAILABLE;
 		(*pBundle) << retcode;
@@ -303,7 +292,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 	{
 		WARNING_MSG(fmt::format("Loginapp::_createAccount: shutting down, create {} failed!\n", accountName));
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_IN_SHUTTINGDOWN;
 		(*pBundle) << retcode;
@@ -318,7 +307,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		WARNING_MSG(fmt::format("Loginapp::_createAccount: pendingCreateMgr has {}, request create failed!\n", 
 			accountName));
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_BUSY;
 		(*pBundle) << retcode;
@@ -384,7 +373,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			
 		if(retcode != SERVER_SUCCESS)
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 			(*pBundle) << retcode;
 			(*pBundle).appendBlob(retdatas);
@@ -398,7 +387,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 				ERROR_MSG(fmt::format("Loginapp::_createAccount: accountName is empty!\n"));
 
 				retcode = SERVER_ERR_NAME;
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 				(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 				(*pBundle) << retcode;
 				(*pBundle).appendBlob(retdatas);
@@ -421,7 +410,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 				ERROR_MSG(fmt::format("Loginapp::_createAccount: invalid accountName({})\n",
 					accountName));
 
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 				(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 				SERVER_ERROR_CODE retcode = SERVER_ERR_NAME;
 				(*pBundle) << retcode;
@@ -440,7 +429,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 			ERROR_MSG(fmt::format("Loginapp::_createAccount: invalid accountName({})\n",
 				accountName));
 
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 			SERVER_ERROR_CODE retcode = SERVER_ERR_NAME;
 			(*pBundle) << retcode;
@@ -459,7 +448,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		WARNING_MSG(fmt::format("Loginapp::_createAccount: invalid email={}\n", 
 			accountName));
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_NAME_MAIL;
 		(*pBundle) << retcode;
@@ -489,7 +478,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 		ERROR_MSG(fmt::format("Loginapp::_createAccount: create({}), not found dbmgr!\n", 
 			accountName));
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
 		(*pBundle) << retcode;
@@ -500,7 +489,7 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 
 	pChannel->extra(accountName);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(DbmgrInterface::reqCreateAccount);
 	uint8 uatype = uint8(type);
 	(*pBundle) << accountName << password << uatype;
@@ -578,7 +567,7 @@ void Loginapp::onReqCreateAccountResult(Network::Channel* pChannel, MemoryStream
 
 	pClientChannel->extra("");
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 	(*pBundle) << failedcode;
 	(*pBundle).appendBlob(retdatas);
@@ -611,7 +600,7 @@ void Loginapp::onReqCreateMailAccountResult(Network::Channel* pChannel, MemorySt
 			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 			else
-				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 		}
 		else
 		{
@@ -644,7 +633,7 @@ void Loginapp::onReqCreateMailAccountResult(Network::Channel* pChannel, MemorySt
 	pClientChannel->extra("");
 	retdatas = "";
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(ClientInterface::onCreateAccountResult);
 	(*pBundle) << failedcode;
 	(*pBundle).appendBlob(retdatas);
@@ -707,7 +696,7 @@ void Loginapp::reqAccountResetPassword(Network::Channel* pChannel, std::string& 
 		ERROR_MSG(fmt::format("Loginapp::reqAccountResetPassword({}): not available! modify kbengine[_defs].xml->dbmgr->account_resetPassword.\n",
 			accountName));
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onReqAccountResetPasswordCB);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_ACCOUNT_RESET_PASSWORD_NOT_AVAILABLE;
 		(*pBundle) << retcode;
@@ -726,7 +715,7 @@ void Loginapp::reqAccountResetPassword(Network::Channel* pChannel, std::string& 
 		ERROR_MSG(fmt::format("Loginapp::_createAccount: create({}), not found dbmgr!\n", 
 			accountName));
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onReqAccountResetPasswordCB);
 		SERVER_ERROR_CODE retcode = SERVER_ERR_SRV_NO_READY;
 		(*pBundle) << retcode;
@@ -735,14 +724,14 @@ void Loginapp::reqAccountResetPassword(Network::Channel* pChannel, std::string& 
 	}
 
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(DbmgrInterface::accountReqResetPassword);
 		(*pBundle) << accountName;
 		dbmgrinfos->pChannel->send(pBundle);
 	}
 
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(ClientInterface::onReqAccountResetPasswordCB);
 		SERVER_ERROR_CODE retcode = SERVER_SUCCESS;
 		(*pBundle) << retcode;
@@ -767,7 +756,7 @@ void Loginapp::onReqAccountResetPasswordCB(Network::Channel* pChannel, std::stri
 			if(strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 				http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 			else
-				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+				http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 		}
 		else
 		{
@@ -808,7 +797,7 @@ void Loginapp::onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pCha
 		if (strlen((const char*)&g_kbeSrvConfig.getLoginApp().externalAddress) > 0)
 			http_host = g_kbeSrvConfig.getBaseApp().externalAddress;
 		else
-			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip);
+			http_host = inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip);
 	}
 	else
 	{
@@ -825,7 +814,7 @@ void Loginapp::onReqAccountBindEmailAllocCallbackLoginapp(Network::Channel* pCha
 		}
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	(*pBundle).newMessage(BaseappmgrInterface::onReqAccountBindEmailCBFromLoginapp);
 
@@ -1070,7 +1059,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 	pChannel->extra(loginName);
 
 	// 向dbmgr查询用户合法性
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(DbmgrInterface::onAccountLogin);
 	(*pBundle) << loginName << password;
 	(*pBundle).appendBlob(datas);
@@ -1080,7 +1069,7 @@ void Loginapp::login(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Loginapp::_loginFailed(Network::Channel* pChannel, std::string& loginName, SERVER_ERROR_CODE failedcode, std::string& datas, bool force)
 {
-	INFO_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login is failed. failedcode={1}, datas={2}.\n",
+	INFO_MSG(fmt::format("Loginapp::loginFailed: loginName={0} login failed. failedcode={1}, datas={2}.\n",
 		loginName, SERVER_ERR_STR[failedcode], datas));
 	
 	PendingLoginMgr::PLInfos* infos = NULL;
@@ -1092,7 +1081,7 @@ void Loginapp::_loginFailed(Network::Channel* pChannel, std::string& loginName, 
 			return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(ClientInterface::onLoginFailed);
 	(*pBundle) << failedcode;
 	(*pBundle).appendBlob(datas);
@@ -1233,9 +1222,9 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	// 如果大于0则说明当前账号仍然存活于某个baseapp上
 	if(componentID > 0)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseappAddr);
-		(*pBundle) << componentID << loginName << accountName << password << needCheckPassword << entityID << dbid << flags << deadline << infos->ctype << infos->forceInternalLogin;
+		(*pBundle) << componentID << loginName << accountName << password << needCheckPassword << entityID << dbid << flags << deadline << (int)infos->ctype << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
 		return;
@@ -1243,7 +1232,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 	else
 	{
 		// 注册到baseapp并且获取baseapp的地址
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappmgrInterface::registerPendingAccountToBaseapp);
 
 		(*pBundle) << loginName;
@@ -1253,7 +1242,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 		(*pBundle) << dbid;
 		(*pBundle) << flags;
 		(*pBundle) << deadline;
-		(*pBundle) << infos->ctype;
+		(*pBundle) << (int)infos->ctype;
 		(*pBundle) << infos->forceInternalLogin;
 		(*pBundle).appendBlob(infos->datas);
 		baseappmgrinfos->pChannel->send(pBundle);
@@ -1262,7 +1251,7 @@ void Loginapp::onLoginAccountQueryResultFromDbmgr(Network::Channel* pChannel, Me
 
 //-------------------------------------------------------------------------------------
 void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pChannel, std::string& loginName, 
-															std::string& accountName, std::string& addr, uint16 port)
+															std::string& accountName, std::string& addr, uint16 tcp_port, uint16 udp_port)
 {
 	if(pChannel->isExternal())
 		return;
@@ -1276,7 +1265,7 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 		_loginFailed(NULL, loginName, SERVER_ERR_SRV_NO_READY, datas);
 	}
 
-	Network::Address address(addr, ntohs(port));
+	Network::Address address(addr, ntohs(tcp_port));
 
 	DEBUG_MSG(fmt::format("Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr:accountName={0}, addr={1}.\n", 
 		loginName, address.c_str()));
@@ -1295,12 +1284,16 @@ void Loginapp::onLoginAccountQueryBaseappAddrFromBaseappmgr(Network::Channel* pC
 		return;
 	}
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(ClientInterface::onLoginSuccessfully);
-	uint16 fport = ntohs(port);
+
+	uint16 f_tcp_port = ntohs(tcp_port);
+	uint16 f_udp_port = ntohs(udp_port);
+
 	(*pBundle) << accountName;
 	(*pBundle) << addr;
-	(*pBundle) << fport;
+	(*pBundle) << f_tcp_port;
+	(*pBundle) << f_udp_port;
 	(*pBundle).appendBlob(infos->datas);
 	pClientChannel->send(pBundle);
 
@@ -1313,10 +1306,15 @@ void Loginapp::onHello(Network::Channel* pChannel,
 						const std::string& scriptVerInfo, 
 						const std::string& encryptedKey)
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	pBundle->newMessage(ClientInterface::onHelloCB);
-	(*pBundle) << KBEVersion::versionString();
+
+	if (initProgress_ < 1.f)
+		(*pBundle) << "Getting";
+	else
+		(*pBundle) << KBEVersion::versionString();
+
 	(*pBundle) << KBEVersion::scriptVersionString();
 	(*pBundle) << Network::MessageHandlers::getDigestStr();
 	(*pBundle) << digest_;
@@ -1338,8 +1336,8 @@ void Loginapp::onHello(Network::Channel* pChannel,
 		}
 		else
 		{
-			WARNING_MSG(fmt::format("Loginapp::onHello: client is not encrypted, addr={}\n"
-				, pChannel->c_str()));
+			WARNING_MSG(fmt::format("Loginapp::onHello: client is not encrypted, addr={}\n",
+				pChannel->c_str()));
 		}
 	}
 }
@@ -1347,7 +1345,7 @@ void Loginapp::onHello(Network::Channel* pChannel,
 //-------------------------------------------------------------------------------------
 void Loginapp::onVersionNotMatch(Network::Channel* pChannel)
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	pBundle->newMessage(ClientInterface::onVersionNotMatch);
 	(*pBundle) << KBEVersion::versionString();
@@ -1357,7 +1355,7 @@ void Loginapp::onVersionNotMatch(Network::Channel* pChannel)
 //-------------------------------------------------------------------------------------
 void Loginapp::onScriptVersionNotMatch(Network::Channel* pChannel)
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	pBundle->newMessage(ClientInterface::onScriptVersionNotMatch);
 	(*pBundle) << KBEVersion::scriptVersionString();
@@ -1450,7 +1448,9 @@ void Loginapp::importClientMessages(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy(bundle);
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------
@@ -1468,7 +1468,7 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 
 			if (!xml->isGood())
 			{
-				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} is failed!\n",
+				ERROR_MSG(fmt::format("ServerConfig::loadConfig: load {} failed!\n",
 					"server/server_errors_defaults.xml"));
 
 				return;
@@ -1530,7 +1530,9 @@ void Loginapp::importServerErrorsDescr(Network::Channel* pChannel)
 		}
 	}
 
-	pChannel->send(new Network::Bundle(bundle));
+	Network::Bundle* pNewBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
+	pNewBundle->copy(bundle);
+	pChannel->send(pNewBundle);
 }
 
 //-------------------------------------------------------------------------------------

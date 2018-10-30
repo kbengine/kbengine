@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 #include "globaldata_server.h"
 #include "components.h"
 #include "network/channel.h"
@@ -94,7 +76,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 			if(dataType_ == CELLAPP_DATA && iter1->componentType != CELLAPP_TYPE)
 				continue;
 
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 			switch(dataType_)
 			{
@@ -109,7 +91,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 				}
 				else
 				{
-					KBE_ASSERT(false && "componentType is error!\n");
+					KBE_ASSERT(false && "componentType error!\n");
 				}
 				break;
 			case BASEAPP_DATA:
@@ -119,7 +101,7 @@ void GlobalDataServer::broadcastDataChanged(Network::Channel* pChannel, COMPONEN
 				(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 				break;
 			default:
-				KBE_ASSERT(false && "dataType is error!\n");
+				KBE_ASSERT(false && "dataType error!\n");
 				break;
 			};
 
@@ -149,7 +131,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 	DATA_MAP_KEY iter = dict_.begin();
 	for(; iter != dict_.end(); ++iter)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		
 		switch(dataType_)
 		{
@@ -164,7 +146,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 			}
 			else
 			{
-				KBE_ASSERT(false && "componentType is error!\n");
+				KBE_ASSERT(false && "componentType error!\n");
 			}
 			break;
 		case BASEAPP_DATA:
@@ -186,7 +168,7 @@ void GlobalDataServer::onGlobalDataClientLogon(Network::Channel* client, COMPONE
 			(*pBundle).newMessage(CellappInterface::onBroadcastCellAppDataChanged);
 			break;
 		default:
-			KBE_ASSERT(false && "dataType is error!\n");
+			KBE_ASSERT(false && "dataType error!\n");
 			break;
 		};
 

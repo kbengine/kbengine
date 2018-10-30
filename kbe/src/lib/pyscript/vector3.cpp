@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "vector3.h"
@@ -402,13 +384,13 @@ PyObject* ScriptVector3::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != VECTOR_SIZE)
 	{
-		ERROR_MSG("ScriptVector3::__unpickle__: args is error! size != 3");
+		ERROR_MSG("ScriptVector3::__unpickle__: args error! size != 3");
 		S_Return;
 	}
 
 	if(!PyArg_ParseTuple(args, "fff", &x, &y, &z))
 	{
-		ERROR_MSG("ScriptVector3::__unpickle__: args is error!");
+		ERROR_MSG("ScriptVector3::__unpickle__: args error!");
 		S_Return;
 	}
 
@@ -650,7 +632,7 @@ PyObject* ScriptVector3::__py_pyFlatDistSqrTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
-		PyErr_SetString(PyExc_TypeError, "args > 1 is error!\n");
+		PyErr_SetString(PyExc_TypeError, "args > 1 error!\n");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -677,7 +659,7 @@ PyObject* ScriptVector3::__py_pyFlatDistTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
-		PyErr_SetString(PyExc_TypeError, "args > 1 is error!\n");
+		PyErr_SetString(PyExc_TypeError, "args > 1 error!\n");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -701,7 +683,7 @@ PyObject* ScriptVector3::__py_pyDistTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
-		PyErr_SetString(PyExc_TypeError, "args > 1 is error!\n");
+		PyErr_SetString(PyExc_TypeError, "args > 1 error!\n");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -727,7 +709,7 @@ PyObject* ScriptVector3::__py_pyDistSqrTo(PyObject* self, PyObject* args)
 {
 	if (PyTuple_Size(args) != 1)
 	{
-		PyErr_SetString(PyExc_TypeError, "args > 1 is error!\n");
+		PyErr_SetString(PyExc_TypeError, "args > 1 error!\n");
 		PyErr_PrintEx(0);
 		S_Return;
 	}

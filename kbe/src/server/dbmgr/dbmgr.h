@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_DBMGR_H
 #define KBE_DBMGR_H
@@ -32,6 +14,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "server/serverconfig.h"
 #include "server/globaldata_client.h"
 #include "server/globaldata_server.h"
+#include "server/callbackmgr.h"	
 #include "common/timer.h"
 #include "network/endpoint.h"
 #include "resmgr/resmgr.h"
@@ -237,6 +220,19 @@ public:
 		return &dbin_iter->second;
 	}
 
+	virtual void onChannelDeregister(Network::Channel * pChannel);
+
+	InterfacesHandler* findBestInterfacesHandler();
+
+	/**
+		向dbmgr请求执行一个数据库命令
+	*/
+	static PyObject* __py_executeRawDatabaseCommand(PyObject* self, PyObject* args);
+	void executeRawDatabaseCommand(const char* datas, uint32 size, PyObject* pycallback, ENTITY_ID eid, const std::string& dbInterfaceName);
+	void onExecuteRawDatabaseCommandCB(KBEngine::MemoryStream& s);
+
+	PY_CALLBACKMGR& callbackMgr() { return pyCallbackMgr_; }
+
 protected:
 	TimerHandle											loopCheckTimerHandle_;
 	TimerHandle											mainProcessTimer_;
@@ -263,13 +259,16 @@ protected:
 	uint32												numExecuteRawDatabaseCommand_;
 	uint32												numCreatedAccount_;
 
-	InterfacesHandler*									pInterfacesAccountHandler_;
-	InterfacesHandler*									pInterfacesChargeHandler_;
+	std::vector<InterfacesHandler*>						pInterfacesHandlers_;
 
 	SyncAppDatasHandler*								pSyncAppDatasHandler_;
 	UpdateDBServerLogHandler*							pUpdateDBServerLogHandler_;
 	
 	TelnetServer*										pTelnetServer_;
+
+	std::map<COMPONENT_ID, uint64>						loseBaseappts_;
+
+	PY_CALLBACKMGR										pyCallbackMgr_;
 };
 
 }

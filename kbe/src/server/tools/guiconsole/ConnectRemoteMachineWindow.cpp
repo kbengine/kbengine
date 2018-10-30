@@ -86,7 +86,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 	if (0 == m_ip.GetAddress(ips[0],ips[1],ips[2],ips[3]))
 	{
-		AfxMessageBox(L"address is error!");
+		AfxMessageBox(L"address error!");
 		return;
 	}
 	
@@ -103,7 +103,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	command += csport;
 	free(csport);
 
-	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject();
+	KBEngine::Network::EndPoint* endpoint = KBEngine::Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 
 	KBEngine::u_int32_t address;
 	Network::Address::string2ip(strip, address);
@@ -111,7 +111,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 
 	if(addr.ip == 0)
 	{
-		::AfxMessageBox(L"address is error!");
+		::AfxMessageBox(L"address error!");
 		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;
 	}
@@ -128,7 +128,7 @@ void CConnectRemoteMachineWindow::OnBnClickedOk()
 	if(endpoint->connect(addr.port, addr.ip) == -1)
 	{
 		CString err;
-		err.Format(L"connect server is error! %d", ::WSAGetLastError());
+		err.Format(L"connect server error! %d", ::WSAGetLastError());
 		AfxMessageBox(err);
 		KBEngine::Network::EndPoint::reclaimPoolObject(endpoint);
 		return;

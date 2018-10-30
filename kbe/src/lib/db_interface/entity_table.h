@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_ENTITY_TABLE_H
 #define KBE_ENTITY_TABLE_H
@@ -295,11 +277,30 @@ protected:
 class EntityTables
 {
 public:
+	struct case_insensitive_hasher
+	{
+		size_t operator()(const std::string& key) const
+		{
+			std::string keyCopy(key);
+			std::transform(keyCopy.begin(), keyCopy.end(), keyCopy.begin(), tolower);
+			return std::tr1::hash<std::string>()(keyCopy);
+		}
+	};
+
+	struct case_insensitive_comparer
+	{
+		bool operator() (const std::string& x, const std::string& y) const
+		{
+			return x.size() == y.size() && kbe_stricmp(x.c_str(), y.c_str()) == 0;
+		}
+	};
+
 	typedef KBEUnordered_map<std::string, EntityTables> ENTITY_TABLES_MAP;
 	static ENTITY_TABLES_MAP sEntityTables;
 	static EntityTables& findByInterfaceName(const std::string& dbInterfaceName);
 
-	typedef KBEUnordered_map<std::string, KBEShared_ptr<EntityTable> > TABLES_MAP;
+	typedef KBEUnordered_map<std::string, KBEShared_ptr<EntityTable>, case_insensitive_hasher, case_insensitive_comparer> TABLES_MAP;
+
 	EntityTables();
 	virtual ~EntityTables();
 	

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "resmgr.h"
 #include "helper/watcher.h"
@@ -168,13 +150,17 @@ bool Resmgr::initialize()
 		autoSetPaths();
 
 	updatePaths();
+
 	if(getPySysResPath() == "" || getPyUserResPath() == "" || getPyUserScriptsPath() == "")
 	{
-		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT=%s, KBE_RES_PATH=%s, KBE_BIN_PATH=%s) invalid!\n", 
-			kb_env_.root_path.c_str(), kb_env_.res_path.c_str(), kb_env_.bin_path.c_str());
+		if (UNKNOWN_COMPONENT_TYPE != g_componentType && g_componentType != TOOL_TYPE)
+		{
+			printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT=%s, KBE_RES_PATH=%s, KBE_BIN_PATH=%s) invalid!\n",
+				kb_env_.root_path.c_str(), kb_env_.res_path.c_str(), kb_env_.bin_path.c_str());
 #if KBE_PLATFORM == PLATFORM_WIN32
-		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
+			::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
 #endif
+		}
 	}
 
 	isInit_ = true;
@@ -456,7 +442,7 @@ std::string Resmgr::getPySysResPath()
 	{
 		respath = matchRes("server/kbengine_defaults.xml");
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine_defaults.xml");
+		KBEngine::strutil::kbe_splits(respath, "server/kbengine_defaults.xml", tmpvec);
 
 		if(tmpvec.size() > 1)
 		{
@@ -481,7 +467,7 @@ std::string Resmgr::getPyUserResPath()
 	{
 		respath = matchRes("server/kbengine.xml");
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml");
+		KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml", tmpvec);
 
 		if(tmpvec.size() > 1)
 		{
@@ -518,7 +504,7 @@ std::string Resmgr::getPyUserScriptsPath()
 
 
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(path, entities_xml);
+		KBEngine::strutil::kbe_splits(path, entities_xml, tmpvec);
 		if(tmpvec.size() > 1)
 		{
 			path = tmpvec[0];

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_NETWORK_BUNDLE_H
 #define KBE_NETWORK_BUNDLE_H
@@ -89,9 +71,9 @@ class Bundle : public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< Bundle > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Bundle>& ObjPool();
-	static Bundle* createPoolObject();
+	static Bundle* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Bundle* obj);
 	static void destroyObjPool();
 	virtual void onReclaimObject();
@@ -122,6 +104,8 @@ public:
 	void clear(bool isRecl);
 	bool empty() const;
 	
+	void copy(const Bundle& bundle);
+
 	INLINE int32 packetMaxSize() const;
 	int packetsSize() const;
 

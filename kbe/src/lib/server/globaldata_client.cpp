@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 #include "globaldata_client.h"
 #include "components.h"
 #include "serverapp.h"
@@ -73,7 +55,7 @@ bool GlobalDataClient::write(PyObject* pyKey, PyObject* pyValue)
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Map::write:unpickle is error. key={}, val={}\n",
+		ERROR_MSG(fmt::format("Map::write:unpickle error. key={}, val={}\n",
 			(pyKey ? PyBytes_AsString(pyKey) : "NULL"), (pyValue ? PyBytes_AsString(pyValue)  : "NULL")));
 
 		PyErr_Print();
@@ -105,7 +87,7 @@ bool GlobalDataClient::del(PyObject* pyKey)
 	}
 	else
 	{
-		ERROR_MSG(fmt::format("Map::del: delete key is error! key={}.\n", "NULL"));
+		ERROR_MSG(fmt::format("Map::del: delete key error! key={}.\n", "NULL"));
 		PyErr_Print();
 	}
 
@@ -131,7 +113,7 @@ void GlobalDataClient::onDataChanged(PyObject* key, PyObject* value, bool isDele
 		Network::Channel* lpChannel = iter1->pChannel;
 		KBE_ASSERT(lpChannel != NULL);
 		
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		
 		(*pBundle).newMessage(DbmgrInterface::onBroadcastGlobalDataChanged);
 		

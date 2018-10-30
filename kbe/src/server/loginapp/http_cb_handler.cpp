@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "loginapp.h"
 #include "http_cb_handler.h"
@@ -37,7 +19,7 @@ HTTPCBHandler::HTTPCBHandler():
 pEndPoint_(NULL),
 clients_()
 {
-	pEndPoint_ = Network::EndPoint::createPoolObject();
+	pEndPoint_ = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 
 	pEndPoint_->socket(SOCK_STREAM);
 
@@ -48,10 +30,10 @@ clients_()
 	}
 
 	if (pEndPoint_->bind(htons(g_kbeSrvConfig.getLoginApp().http_cbport), 
-		Loginapp::getSingleton().networkInterface().extaddr().ip) == -1)
+		Loginapp::getSingleton().networkInterface().extTcpAddr().ip) == -1)
 	{
 		ERROR_MSG(fmt::format("HTTPCBHandler::bind({}): {}:{}\n",
-			 kbe_strerror(), inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip),
+			 kbe_strerror(), inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip),
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 
 		pEndPoint_->close();
@@ -61,7 +43,7 @@ clients_()
 	if(pEndPoint_->listen() == -1)
 	{
 		ERROR_MSG(fmt::format("HTTPCBHandler::listeningSocket({}): {}:{}\n",
-			 kbe_strerror(), inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip),
+			 kbe_strerror(), inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip),
 			g_kbeSrvConfig.getLoginApp().http_cbport));
 
 		pEndPoint_->close();
@@ -73,7 +55,7 @@ clients_()
 	Loginapp::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor(*pEndPoint_, this);
 
 	INFO_MSG(fmt::format("HTTPCBHandler::bind: {}:{}\n",
-		inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extaddr().ip),
+		inet_ntoa((struct in_addr&)Loginapp::getSingleton().networkInterface().extTcpAddr().ip),
 		g_kbeSrvConfig.getLoginApp().http_cbport));
 }
 
@@ -99,7 +81,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 		if(newclient == NULL)
 		{
-			ERROR_MSG(fmt::format("HTTPCBHandler::handleInputNotification: accept is error:{}.\n", kbe_strerror()));
+			ERROR_MSG(fmt::format("HTTPCBHandler::handleInputNotification: accept error:{}.\n", kbe_strerror()));
 			return 0;
 		}
 
@@ -237,7 +219,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(type == 1)
 			{
 				// œÚdbmgrº§ªÓ’À∫≈
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 				(*pBundle).newMessage(DbmgrInterface::accountActivate);
 				(*pBundle) << code;
 				dbmgrinfos->pChannel->send(pBundle);
@@ -280,11 +262,11 @@ int HTTPCBHandler::handleInputNotification(int fd)
 						}
 					}
 
-					username = HttpUtility::URLDecode(username);
-					password = HttpUtility::URLDecode(password);
+					username = Network::Http::URLDecode(username);
+					password = Network::Http::URLDecode(password);
 
 					// œÚdbmgr÷ÿ÷√’À∫≈
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 					(*pBundle).newMessage(DbmgrInterface::accountResetPassword);
 					(*pBundle) << KBEngine::strutil::kbe_trim(username);
 					(*pBundle) << KBEngine::strutil::kbe_trim(password);
@@ -312,10 +294,10 @@ int HTTPCBHandler::handleInputNotification(int fd)
 
 				if(username.size() > 0)
 				{
-					username = HttpUtility::URLDecode(username);
+					username = Network::Http::URLDecode(username);
 
 					// œÚdbmgr∞Û∂®’À∫≈’À∫≈
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 					(*pBundle).newMessage(DbmgrInterface::accountBindMail);
 					(*pBundle) << KBEngine::strutil::kbe_trim(username);
 					(*pBundle) << code;
@@ -328,7 +310,7 @@ int HTTPCBHandler::handleInputNotification(int fd)
 			if(hellomessage.size() > 0 && client.state < 2)
 			{
 				KBEngine::strutil::kbe_replace(hellomessage, "${backlink}", fmt::format("http://{}:{}/{}{}", 
-					Loginapp::getSingleton().networkInterface().extaddr().ipAsString(),
+					Loginapp::getSingleton().networkInterface().extTcpAddr().ipAsString(),
 					g_kbeSrvConfig.getLoginApp().http_cbport,
 					keys,
 					code));

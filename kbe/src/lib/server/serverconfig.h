@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 /*
 		ServerConfig::getSingleton().loadConfig("../../res/server/KBEngine.xml");
@@ -162,8 +144,9 @@ typedef struct EngineComponentInfo
 	float defaultViewRadius;								// 配置在cellapp节点中的player的view半径大小
 	float defaultViewHysteresisArea;						// 配置在cellapp节点中的player的view的滞后范围
 	uint16 witness_timeout;									// 观察者默认超时时间(秒)
-	const Network::Address* externalAddr;					// 外部地址
-	const Network::Address* internalAddr;					// 内部地址
+	const Network::Address* externalTcpAddr;				// 外部地址
+	const Network::Address* externalUdpAddr;				// 外部地址
+	const Network::Address* internalTcpAddr;				// 内部地址
 	COMPONENT_ID componentID;
 
 	float ghostDistance;									// ghost区域距离
@@ -180,8 +163,12 @@ typedef struct EngineComponentInfo
 	char internalInterface[MAX_NAME];						// 内部网卡接口名称
 	char externalInterface[MAX_NAME];						// 外部网卡接口名称
 	char externalAddress[MAX_NAME];							// 外部IP地址
-	int32 externalPorts_min;								// 对外socket端口使用指定范围
-	int32 externalPorts_max;
+
+	int32 externalTcpPorts_min;								// 对外socket TCP端口使用指定范围
+	int32 externalTcpPorts_max;
+
+	int32 externalUdpPorts_min;								// 对外socket UDP端口使用指定范围
+	int32 externalUdpPorts_max;
 
 	std::vector<DBInterfaceInfo> dbInterfaceInfos;			// 数据库接口
 	bool notFoundAccountAutoCreate;							// 登录合法时游戏数据库找不到游戏账号则自动创建
@@ -215,6 +202,7 @@ typedef struct EngineComponentInfo
 
 	std::string bots_account_name_prefix;					// 机器人账号名称的前缀
 	uint32 bots_account_name_suffix_inc;					// 机器人账号名称的后缀递增, 0使用随机数递增， 否则按照baseNum填写的数递增
+	std::string bots_account_passwd;						// 机器人账号的密码
 
 	uint32 tcp_SOMAXCONN;									// listen监听队列最大值
 
@@ -265,12 +253,14 @@ public:
 	INLINE ENGINE_COMPONENT_INFO& getConfig();
 
  	void updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPONENT_ID componentID, 
- 				const Network::Address& internalAddr, const Network::Address& externalAddr);
+ 				const Network::Address& internalTcpAddr, const Network::Address& externalTcpAddr, const Network::Address& externalUdpAddr);
  	
 	void updateExternalAddress(char* buf);
 
 	INLINE int16 gameUpdateHertz(void) const;
-	INLINE Network::Address interfacesAddr(void) const;
+
+	Network::Address interfacesAddr(void) const;
+	INLINE std::vector< Network::Address > interfacesAddrs(void) const;
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -282,7 +272,8 @@ public:
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
 
-	INLINE bool IsPureDBInterfaceName(const std::string& dbInterfaceName);
+	INLINE float channelExternalTimeout(void) const;
+	INLINE bool isPureDBInterfaceName(const std::string& dbInterfaceName);
 	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
 	INLINE int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName);
 	INLINE const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex);
@@ -313,6 +304,7 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Network::Address interfacesAddr_;
+	std::vector< Network::Address > interfacesAddrs_;
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "redis_helper.h"
@@ -271,7 +253,7 @@ bool DBInterfaceRedis::query(const std::string& cmd, redisReply** pRedisReply, b
 			(*pRedisReply) = NULL;
 		}
 
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}
 
@@ -304,7 +286,7 @@ bool DBInterfaceRedis::query(const char* cmd, uint32 size, bool printlog, Memory
 		if(pRedisReply)
 			freeReplyObject(pRedisReply); 
 		
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}  
 
@@ -351,7 +333,7 @@ bool DBInterfaceRedis::query(bool printlog, const char* format, ...)
 
 		va_end(ap);
 		
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}
 
@@ -397,7 +379,7 @@ bool DBInterfaceRedis::queryAppend(bool printlog, const char* format, ...)
 
 		va_end(ap);
 		
-		this->throwError();
+		this->throwError(NULL);
 		return false;
 	}  
 
@@ -558,16 +540,23 @@ bool DBInterfaceRedis::unlock()
 }
 
 //-------------------------------------------------------------------------------------
-void DBInterfaceRedis::throwError()
+void DBInterfaceRedis::throwError(DBException* pDBException)
 {
-	DBException e( this );
-
-	if (e.isLostConnection())
+	if (pDBException)
 	{
-		this->hasLostConnection(true);
+		throw *pDBException;
 	}
+	else
+	{
+		DBException e(this);
 
-	throw e;
+		if (e.isLostConnection())
+		{
+			this->hasLostConnection(true);
+		}
+
+		throw e;
+	}
 }
 
 //-------------------------------------------------------------------------------------

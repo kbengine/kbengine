@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "packet_sender.h"
@@ -31,6 +13,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/event_dispatcher.h"
 #include "network/network_interface.h"
 #include "network/event_poller.h"
+#include <openssl/err.h>
 
 namespace KBEngine { 
 namespace Network
@@ -75,22 +58,22 @@ Channel* PacketSender::getChannel()
 //-------------------------------------------------------------------------------------
 int PacketSender::handleOutputNotification(int fd)
 {
-	processSend(NULL);
+	processSend(NULL, 0);
 	return 0;
 }
 
 //-------------------------------------------------------------------------------------
-Reason PacketSender::processPacket(Channel* pChannel, Packet * pPacket)
+Reason PacketSender::processPacket(Channel* pChannel, Packet * pPacket, int userarg)
 {
 	if (pChannel != NULL)
 	{
 		if (pChannel->pFilter())
 		{
-			return pChannel->pFilter()->send(pChannel, *this, pPacket);
+			return pChannel->pFilter()->send(pChannel, *this, pPacket, userarg);
 		}
 	}
 
-	return this->processFilterPacket(pChannel, pPacket);
+	return this->processFilterPacket(pChannel, pPacket, userarg);
 }
 
 //-------------------------------------------------------------------------------------
@@ -105,7 +88,7 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 	int err;
 	Reason reason;
 
-	#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 		err = errno;
 
 		switch (err)
@@ -117,7 +100,7 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 			case ENOBUFS:		reason = REASON_TRANSMIT_QUEUE_FULL; break;
 			default:			reason = REASON_GENERAL_NETWORK; break;
 		}
-	#else
+#else
 		err = WSAGetLastError();
 
 		if (err == WSAEWOULDBLOCK || err == WSAEINTR)
@@ -134,7 +117,16 @@ Reason PacketSender::checkSocketErrors(const EndPoint * pEndpoint)
 				default:reason = REASON_GENERAL_NETWORK;break;
 			}
 		}
-	#endif
+#endif
+
+	if (err == 0 && pEndpoint->isSSL())
+	{
+		long sslerr = ERR_get_error();
+		if (sslerr > 0)
+		{
+			return REASON_WEBSOCKET_ERROR;
+		}
+	}
 
 	return reason;
 }

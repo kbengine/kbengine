@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 	
 /*
@@ -193,7 +175,7 @@ inline void CallbackMgr<PyObjectPtr>::createFromStream(KBEngine::MemoryStream& s
 
 		if(pyCallback == NULL || cbID == 0)
 		{
-			ERROR_MSG(fmt::format("CallbackMgr::createFromStream: pyCallback({}) is error!\n", cbID));
+			ERROR_MSG(fmt::format("CallbackMgr::createFromStream: pyCallback({}) error!\n", cbID));
 			continue;
 		}
 
@@ -220,16 +202,13 @@ template<>
 inline bool CallbackMgr<PyObject*>::processTimeout(CALLBACK_ID cbID, PyObject* callback)
 {
 	PyObject* pystr = PyObject_Str(callback);
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(callback, NULL);
 	Py_DECREF(pystr);
 
 	INFO_MSG(fmt::format("CallbackMgr::processTimeout: callbackID:{}, callback({}) timeout!\n", cbID,
 		ccattr));
 
 	Py_DECREF(callback);
-	free(ccattr);
 	return true;
 }
 

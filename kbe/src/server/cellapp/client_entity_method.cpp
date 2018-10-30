@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "witness.h"
 #include "cellapp.h"
@@ -130,7 +112,7 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 	MethodDescription* methodDescription = getDescription();
 	if(methodDescription->checkArgs(args))
 	{
-		MemoryStream* mstream = MemoryStream::createPoolObject();
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 		// 如果是广播给组件的消息
 		if (pComponentPropertyDescription_)
@@ -148,8 +130,20 @@ PyObject* ClientEntityMethod::callmethod(PyObject* args, PyObject* kwds)
 				(*mstream) << (ENTITY_PROPERTY_UID)0;
 		}
 
-		methodDescription->addToStream(mstream, args);
-		
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			PyErr_Format(PyExc_AssertionError, "%s::clientEntity(%s): srcEntityID(%d), error=%s!\n",
+				srcEntity->scriptName(), methodDescription_->getName(), srcEntity->id(), err.what().c_str());
+			PyErr_PrintEx(0);
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
+
 		Network::Bundle* pSendBundle = pChannel->createSendBundle();
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(srcEntity->id(), (*pSendBundle));
 

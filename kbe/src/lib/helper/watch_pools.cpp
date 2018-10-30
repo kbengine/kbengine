@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "watcher.h"
 #include "watch_pools.h"
@@ -337,6 +319,80 @@ uint32 watchChannelPool_bytes()
 }
 
 //-------------------------------------------------------------------------------------
+std::string watch_tracelogs()
+{
+	WatcherPaths::WATCHER_PATHS paths = WatcherPaths::root().watcherPaths()["root"]->watcherPaths();
+	WatcherPaths::WATCHER_PATHS::iterator iter = paths.find("objectPools");
+
+	if (iter == paths.end())
+		return "NotFound";
+
+	paths = iter->second->watcherPaths();
+	iter = paths.begin();
+
+	for (; iter != paths.end(); ++iter)
+	{
+		const std::string& pathName = iter->first;
+		std::map<std::string, ObjectPoolLogPoint>* pLogPoints = NULL;
+
+		if (pathName == "Bundle")
+		{
+			pLogPoints = &Network::Bundle::ObjPool().logPoints();
+		}
+		else if (pathName == "Address")
+		{
+			pLogPoints = &Network::Address::ObjPool().logPoints();
+		}
+		else if (pathName == "MemoryStream")
+		{
+			pLogPoints = &MemoryStream::ObjPool().logPoints();
+		}
+		else if (pathName == "TCPPacket")
+		{
+			pLogPoints = &Network::TCPPacket::ObjPool().logPoints();
+		}
+		else if (pathName == "TCPPacketReceiver")
+		{
+			pLogPoints = &Network::TCPPacketReceiver::ObjPool().logPoints();
+		}
+		else if (pathName == "UDPPacket")
+		{
+			pLogPoints = &Network::UDPPacket::ObjPool().logPoints();
+		}
+		else if (pathName == "UDPPacketReceiver")
+		{
+			pLogPoints = &Network::UDPPacketReceiver::ObjPool().logPoints();
+		}
+		else if (pathName == "EndPoint")
+		{
+			pLogPoints = &Network::EndPoint::ObjPool().logPoints();
+		}
+		else if (pathName == "Channel")
+		{
+			pLogPoints = &Network::Channel::ObjPool().logPoints();
+		}
+
+		if (!pLogPoints)
+			continue;
+
+		std::map<std::string, ObjectPoolLogPoint>::const_iterator oiter = pLogPoints->begin();
+		for (; oiter != pLogPoints->end(); ++oiter)
+		{
+			const std::string& pointName = oiter->first;
+
+			Watchers::WATCHER_MAP& watchers = iter->second->watchers().watcherObjs();
+			Watchers::WATCHER_MAP::iterator fiter = watchers.find(pointName);
+			if (fiter != watchers.end())
+				continue;
+
+			WATCH_OBJECT(fmt::format("objectPools/{}/{}", pathName, pointName).c_str(), oiter->second.count);
+		}
+	}
+
+	return "Collecting...";
+}
+
+//-------------------------------------------------------------------------------------
 bool WatchPool::initWatchPools()
 {
 	WATCH_OBJECT("objectPools/Bundle/size", &watchBundlePool_size);
@@ -392,6 +448,8 @@ bool WatchPool::initWatchPools()
 	WATCH_OBJECT("objectPools/Channel/isDestroyed", &watchChannelPool_isDestroyed);
 	WATCH_OBJECT("objectPools/Channel/memory", &watchChannelPool_bytes);
 	WATCH_OBJECT("objectPools/Channel/totalAllocs", &watchChannelPool_totalAllocs);
+
+	WATCH_OBJECT("objectPools/TraceLogs", &watch_tracelogs);
 	return true;
 }
 

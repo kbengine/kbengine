@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "clientapp.h"
@@ -151,6 +133,12 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 	DEBUG_OP_ATTRIBUTE("get", attr)
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
+
+//-------------------------------------------------------------------------------------
+void Entity::onInitializeScript()
+{
+
+}
 
 //-------------------------------------------------------------------------------------
 void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyDescription* propertyDescription, PyObject* pyData)
@@ -563,7 +551,7 @@ void Entity::onEnterWorld()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	enterworld_ = true;
 
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onEnterWorld"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onEnterWorld"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -573,7 +561,7 @@ void Entity::onLeaveWorld()
 	enterworld_ = false;
 	spaceID(0);
 
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLeaveWorld"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLeaveWorld"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -581,7 +569,7 @@ void Entity::onEnterSpace()
 {
 	this->stopMove();
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onEnterSpace"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onEnterSpace"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -590,7 +578,7 @@ void Entity::onLeaveSpace()
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	spaceID(0);
 
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLeaveSpace"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLeaveSpace"), GETERR));
 
 	this->stopMove();
 }
@@ -639,7 +627,7 @@ void Entity::onBecomePlayer()
 	}
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onBecomePlayer"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onBecomePlayer"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -649,7 +637,7 @@ void Entity::onBecomeNonPlayer()
 		return;
 	
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onBecomeNonPlayer"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onBecomeNonPlayer"), GETERR));
 
 	PyObject_SetAttrString(static_cast<PyObject*>(this), "__class__", (PyObject*)this->pScriptModule_->getScriptType());
 	SCRIPT_ERROR_CHECK();
@@ -731,7 +719,7 @@ void Entity::onMove(uint32 controllerId, int layer, const Position3D& oldPos, Py
 
 	AUTO_SCOPED_PROFILE("onMove");
 	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onMove"),
-		const_cast<char*>("IO"), controllerId, userarg, false));
+		const_cast<char*>("IO"), controllerId, userarg, GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -744,7 +732,7 @@ void Entity::onMoveOver(uint32 controllerId, int layer, const Position3D& oldPos
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onMoveOver"),
-		const_cast<char*>("IO"), controllerId, userarg, false));
+		const_cast<char*>("IO"), controllerId, userarg, GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -757,7 +745,7 @@ void Entity::onMoveFailure(uint32 controllerId, PyObject* userarg)
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onMoveFailure"),
-		const_cast<char*>("IO"), controllerId, userarg, false));
+		const_cast<char*>("IO"), controllerId, userarg, GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -793,25 +781,21 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "O", &pyargobj) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) error!", pobj->scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 	
 	if(pyargobj == NULL)
 	{
-		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) is error!", pobj->scriptName());
+		PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int or \"Movement\"|str) error!", pobj->scriptName());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
 	if(PyUnicode_Check(pyargobj))
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyargobj, NULL);
-		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		
-		if(strcmp(s, "Movement") == 0)
+		if (strcmp(PyUnicode_AsUTF8AndSize(pyargobj, NULL), "Movement") == 0)
 		{
 			pobj->stopMove();
 		}
@@ -819,11 +803,8 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "%s::cancel: args not is \"Movement\"!", pobj->scriptName());
 			PyErr_PrintEx(0);
-			free(s);
 			return 0;
 		}
-
-		free(s);
 
 		S_Return;
 	}
@@ -831,7 +812,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 	{
 		if(!PyLong_Check(pyargobj))
 		{
-			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int) is error!", pobj->scriptName());
+			PyErr_Format(PyExc_TypeError, "%s::cancel: args(controllerID|int) error!", pobj->scriptName());
 			PyErr_PrintEx(0);
 			return 0;
 		}
@@ -887,7 +868,7 @@ void Entity::onTimer(ScriptID timerID, int useraAgs)
 {
 	SCOPED_PROFILE(ONTIMER_PROFILE);
 	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS2(pyTempObj, const_cast<char*>("onTimer"),
-		const_cast<char*>("Ii"), timerID, useraAgs, false));
+		const_cast<char*>("Ii"), timerID, useraAgs, GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -898,7 +879,7 @@ void Entity::onControlled(bool p_controlled)
     PyObject *pyval = p_controlled ? Py_True : Py_False;
 
 	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS1(pyTempObj, const_cast<char*>("onControlled"),
-		const_cast<char*>("O"), pyval, false));
+		const_cast<char*>("O"), pyval, GETERR));
 }
 
 //-------------------------------------------------------------------------------------

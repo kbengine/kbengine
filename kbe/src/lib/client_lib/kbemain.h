@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBEMAIN_CLIENT_H
 #define KBEMAIN_CLIENT_H
@@ -79,7 +61,7 @@ inline bool installPyScript(KBEngine::script::Script& script, COMPONENT_TYPE com
 		Resmgr::getSingleton().getPySysResPath().size() == 0 ||
 		Resmgr::getSingleton().getPyUserScriptsPath().size() == 0)
 	{
-		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH is error!\n");
+		ERROR_MSG("EntityApp::installPyScript: KBE_RES_PATH error!\n");
 		return false;
 	}
 
@@ -251,8 +233,9 @@ inline void setEvns()
 
 template <class CLIENT_APP>
 int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType, 
-			 int32 extlisteningPort_min = -1, int32 extlisteningPort_max = -1, const char * extlisteningInterface = "",
-			 int32 intlisteningPort = 0, const char * intlisteningInterface = "")
+	int32 extlisteningTcpPort_min = -1, int32 extlisteningTcpPort_max = -1,
+	int32 extlisteningUdpPort_min = -1, int32 extlisteningUdpPort_max = -1, const char * extlisteningInterface = "",
+	int32 intlisteningPort = 0, const char * intlisteningInterface = "")
 {
 	g_componentID = genUUID64();
 	g_componentType = componentType;
@@ -261,7 +244,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	if(!loadConfig())
 	{
-		ERROR_MSG("app::initialize is error!\n");
+		ERROR_MSG("app::initialize error!\n");
 		return -1;
 	}
 	
@@ -272,13 +255,13 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 	DebugHelper::getSingleton().pDispatcher(&dispatcher);
 
 	Network::NetworkInterface networkInterface(&dispatcher, 
-		extlisteningPort_min, extlisteningPort_max, extlisteningInterface, 0, 0,
+		extlisteningTcpPort_min, extlisteningTcpPort_max, extlisteningUdpPort_min, extlisteningUdpPort_max, extlisteningInterface, 0, 0,
 		(intlisteningPort != -1) ? htons(intlisteningPort) : -1, intlisteningInterface, 0, 0);
 	
 	KBEngine::script::Script script;
 	if(!installPyScript(script, componentType))
 	{
-		ERROR_MSG("app::initialize is error!\n");
+		ERROR_MSG("app::initialize error!\n");
 		return -1;
 	}
 
@@ -287,7 +270,7 @@ int kbeMainT(int argc, char * argv[], COMPONENT_TYPE componentType,
 
 	START_MSG(COMPONENT_NAME_EX(componentType), g_componentID);
 	if(!pApp->initialize()){
-		ERROR_MSG("app::initialize is error!\n");
+		ERROR_MSG("app::initialize error!\n");
 		pApp->finalise();
 		Py_DECREF(pApp);
 		uninstallPyScript(script);

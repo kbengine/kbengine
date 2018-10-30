@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "entity_call.h"
@@ -98,9 +80,7 @@ RemoteEntityMethod* EntityCall::createRemoteMethod(MethodDescription* pMethodDes
 //-------------------------------------------------------------------------------------
 PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = NULL;
 
@@ -133,8 +113,6 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 	
 	if(pMethodDescription != NULL)
 	{
-		free(ccattr);
-
 		if(g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE)
 		{
 			if(!pMethodDescription->isExposed())
@@ -182,8 +160,6 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 		
 		if(mbtype != -1)
 		{
-			free(ccattr);
-
 			if(g_componentType != CLIENT_TYPE && g_componentType != BOTS_TYPE)
 			{
 				return new EntityCall(pScriptModule_, &addr_, componentID_, 
@@ -196,8 +172,7 @@ PyObject* EntityCall::onScriptGetAttribute(PyObject* attr)
 			}
 		}
 	}
-	
-	free(ccattr);
+
 	return ScriptObject::onScriptGetAttribute(attr);
 }
 
@@ -246,13 +221,13 @@ PyObject* EntityCall::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if(size != 4)
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error! size != 4.\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error! size != 4.\n");
 		S_Return;
 	}
 
 	if(!PyArg_ParseTuple(args, "iKHh", &eid, &componentID, &utype, &type))
 	{
-		ERROR_MSG("EntityCall::__unpickle__: args is error!\n");
+		ERROR_MSG("EntityCall::__unpickle__: args error!\n");
 		S_Return;
 	}
 

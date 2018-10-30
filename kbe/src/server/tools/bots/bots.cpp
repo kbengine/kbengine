@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "pybots.h"
 #include "bots.h"
@@ -107,11 +89,12 @@ bool Bots::initializeEnd()
 {
 	pTelnetServer_ = new TelnetServer(&dispatcher(), &networkInterface());
 	pTelnetServer_->pScript(&getScript());
+
 	if(!pTelnetServer_->start(g_kbeSrvConfig.getBots().telnet_passwd, 
 		g_kbeSrvConfig.getBots().telnet_deflayer, 
 		g_kbeSrvConfig.getBots().telnet_port))
 	{
-		ERROR_MSG("Bots::initialize: initializeEnd is error!\n");
+		ERROR_MSG("Bots::initialize: initializeEnd error!\n");
 		return false;
 	}
 
@@ -163,9 +146,11 @@ void Bots::finalise()
 	reqCreateAndLoginTotalCount_ = 0;
 	SAFE_RELEASE(pCreateAndLoginHandler_);
 	
-	if(pTelnetServer_)
+	if (pTelnetServer_)
+	{
 		pTelnetServer_->stop();
-	SAFE_RELEASE(pTelnetServer_);
+		SAFE_RELEASE(pTelnetServer_);
+	}
 
 	ClientApp::finalise();
 }
@@ -364,7 +349,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 	{
 		if(PyArg_ParseTuple(args, "I", &reqCreateAndLoginTotalCount) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -377,7 +362,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 		if(PyArg_ParseTuple(args, "I|I|f", &reqCreateAndLoginTotalCount, 
 			&reqCreateAndLoginTickCount, &reqCreateAndLoginTickTime) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 			PyErr_PrintEx(0);
 			return NULL;
 		}
@@ -393,7 +378,7 @@ PyObject* Bots::__py_addBots(PyObject* self, PyObject* args)
 	}
 	else
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::addBots: args error!");
 		PyErr_PrintEx(0);
 		return NULL;
 	}
@@ -407,7 +392,7 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
 		return 0;
 	}
@@ -416,7 +401,7 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "i", &type) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::scriptLogType(): args error!");
 		PyErr_PrintEx(0);
 	}
 
@@ -427,9 +412,9 @@ PyObject* Bots::__py_setScriptLogType(PyObject* self, PyObject* args)
 //-------------------------------------------------------------------------------------
 void Bots::lookApp(Network::Channel* pChannel)
 {
-	DEBUG_MSG(fmt::format("Bots::lookApp: {0}\n", pChannel->c_str()));
+	//DEBUG_MSG(fmt::format("Bots::lookApp: {0}\n", pChannel->c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	(*pBundle) << g_componentType;
 	(*pBundle) << componentID_;
@@ -444,7 +429,7 @@ void Bots::reqCloseServer(Network::Channel* pChannel, MemoryStream& s)
 {
 	DEBUG_MSG(fmt::format("Bots::reqCloseServer: {0}\n", pChannel->c_str()));
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	
 	bool success = true;
 	(*pBundle) << success;
@@ -498,7 +483,7 @@ void Bots::onExecScriptCommand(Network::Channel* pChannel, KBEngine::MemoryStrea
 	if(getScript().run_simpleString(PyBytes_AsString(pycmd1), &retbuf) == 0)
 	{
 		// 将结果返回给客户端
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		ConsoleInterface::ConsoleExecCommandCBMessageHandler msgHandler;
 		(*pBundle).newMessage(msgHandler);
 		ConsoleInterface::ConsoleExecCommandCBMessageHandlerArgs1::staticAddToBundle((*pBundle), retbuf);
@@ -1157,13 +1142,13 @@ void Bots::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	std::string path;
 	s >> path;
 
-	MemoryStream::SmartPoolObjectPtr readStreamPtr = MemoryStream::createSmartPoolObj();
+	MemoryStream::SmartPoolObjectPtr readStreamPtr = MemoryStream::createSmartPoolObj(OBJECTPOOL_POINT);
 	WatcherPaths::root().readWatchers(path, readStreamPtr.get()->get());
 
-	MemoryStream::SmartPoolObjectPtr readStreamPtr1 = MemoryStream::createSmartPoolObj();
+	MemoryStream::SmartPoolObjectPtr readStreamPtr1 = MemoryStream::createSmartPoolObj(OBJECTPOOL_POINT);
 	WatcherPaths::root().readChildPaths(path, path, readStreamPtr1.get()->get());
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleWatcherCBMessageHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 
@@ -1172,7 +1157,7 @@ void Bots::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	(*pBundle).append(readStreamPtr.get()->get());
 	pChannel->send(pBundle);
 
-	Network::Bundle* pBundle1 = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle1 = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle1).newMessage(msgHandler);
 
 	type = 1;
@@ -1180,7 +1165,6 @@ void Bots::queryWatcher(Network::Channel* pChannel, MemoryStream& s)
 	(*pBundle1).append(readStreamPtr1.get()->get());
 	pChannel->send(pBundle1);
 }
-
 
 //-------------------------------------------------------------------------------------
 void Bots::startProfile(Network::Channel* pChannel, KBEngine::MemoryStream& s)

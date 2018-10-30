@@ -1,28 +1,13 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "endpoint.h"
 #ifndef CODE_INLINE
 #include "endpoint.inl"
 #endif
+
+#include "resmgr/resmgr.h"
+#include <openssl/err.h>
 
 #include "network/bundle.h"
 #include "network/tcp_packet_receiver.h"
@@ -41,7 +26,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 namespace KBEngine { 
 namespace Network
 {
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 #else	// not unix
 	// Need to implement if_nameindex functions on Windows
 	/** @internal */
@@ -78,9 +63,9 @@ ObjectPool<EndPoint>& EndPoint::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-EndPoint* EndPoint::createPoolObject()
+EndPoint* EndPoint::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -99,9 +84,9 @@ void EndPoint::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj()
+EndPoint::SmartPoolObjectPtr EndPoint::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<EndPoint>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<EndPoint>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -114,6 +99,9 @@ void EndPoint::onReclaimObject()
 #endif
 
 	address_ = Address::NONE;
+
+	isRefSocket_ = false;
+	destroySSL();
 }
 
 //-------------------------------------------------------------------------------------
@@ -121,7 +109,7 @@ bool EndPoint::getClosedPort(Network::Address & closedPort)
 {
 	bool isResultSet = false;
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 //	KBE_ASSERT(errno == ECONNREFUSED);
 
 	struct sockaddr_in	offender;
@@ -491,7 +479,7 @@ int EndPoint::getInterfaceAddressByMAC(const char * mac, u_int32_t & address)
 //-------------------------------------------------------------------------------------
 int EndPoint::findDefaultInterface(char * name, int buffsize)
 {
-#ifndef unix
+#if KBE_PLATFORM != PLATFORM_UNIX
 	strcpy(name, "eth0");
 	return 0;
 #else
@@ -666,6 +654,179 @@ void EndPoint::sendto(Bundle * pBundle, u_int16_t networkPort, u_int32_t network
 {
 	//AUTO_SCOPED_PROFILE("sendBundle");
 	SENDTO_BUNDLE((*this), networkAddr, networkPort, (*pBundle));
+}
+
+//-------------------------------------------------------------------------------------
+static long ssl_bio_callback(BIO *bio, int cmd, const char *argp, int argi, long argl, long ret)
+{
+	if ((cmd & ~BIO_CB_RETURN) != BIO_CB_READ)
+		return ret;
+
+	Packet* pPacket = (Packet*)BIO_get_callback_arg(bio);
+
+	// 类似recv， argi是buffer，argl是buffer长度，这里判断pPacket大于长度返回指定长度，小于长度则返回读取到的长度
+	if ((int)pPacket->length() < argi)
+		argi = (int)pPacket->length();
+
+	// 将我们的buffer填充进去
+	if ((cmd & BIO_CB_RETURN) > 0)
+	{
+		memcpy((void*)argp, pPacket->data() + pPacket->rpos(), argi);
+		pPacket->read_skip(argi);
+		bio->num_read += argi;
+	}
+	else
+	{
+		return ret;
+	}
+
+	if (pPacket->length() == 0)
+	{
+		BIO_set_callback(bio, NULL);
+		BIO_set_callback_arg(bio, (char*)NULL);
+	}
+
+	return argi;
+}
+
+bool EndPoint::setupSSL(int sslVersion, Packet* pPacket)
+{
+	switch (sslVersion)
+	{
+	case SSL2_VERSION:
+		sslContext_ = SSL_CTX_new(SSLv2_server_method());
+		break;
+	case SSL3_VERSION:
+		sslContext_ = SSL_CTX_new(SSLv3_server_method());
+		break;
+	case TLS1_VERSION:
+		sslContext_ = SSL_CTX_new(TLSv1_server_method());
+		break;
+	case TLS1_1_VERSION:
+		sslContext_ = SSL_CTX_new(TLSv1_1_server_method());
+		break;
+	case TLS1_2_VERSION:
+		sslContext_ = SSL_CTX_new(TLSv1_2_server_method());
+		break;
+	default:
+		sslContext_ = SSL_CTX_new(SSLv23_server_method());
+		break;
+	};
+
+	if (!sslContext_)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_new(SSLv23_client_method()): {}!\n", ERR_error_string(ERR_get_error(), NULL)));
+		return false;
+	}
+
+	SSL_CTX_set_options(sslContext_, SSL_OP_SINGLE_DH_USE | SSL_OP_SINGLE_ECDH_USE);
+
+	std::string pem = Resmgr::getSingleton().matchRes(g_sslCertificate.c_str());
+	int use_cert = SSL_CTX_use_certificate_file(sslContext_, pem.c_str(), SSL_FILETYPE_PEM);
+	if (0 >= use_cert)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_certificate_file({}): {}! check kbengine[_defs].xml->channelCommon->sslCertificate\n",
+			pem, ERR_error_string(ERR_get_error(), NULL)));
+
+		destroySSL();
+		return false;
+	}
+
+	pem = Resmgr::getSingleton().matchRes(g_sslPrivateKey.c_str());
+	int use_prv = SSL_CTX_use_PrivateKey_file(sslContext_, pem.c_str(), SSL_FILETYPE_PEM);
+	if (0 >= use_prv)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: load SSL_CTX_use_PrivateKey_file({}): {}! check kbengine[_defs].xml->channelCommon->sslPrivateKey\n",
+			pem, ERR_error_string(ERR_get_error(), NULL)));
+
+		destroySSL();
+		return false;
+	}
+
+	if (!SSL_CTX_check_private_key(sslContext_)) {
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_CTX_check_private_key(): {}!\n", pem, ERR_error_string(ERR_get_error(), NULL)));
+		destroySSL();
+		return false;
+	}
+
+	sslHandle_ = SSL_new(sslContext_);
+
+	if (!sslHandle_)
+	{
+		ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_new: {}!\n", ERR_error_string(ERR_get_error(), NULL)));
+		destroySSL();
+		return false;
+	}
+
+	SSL_set_fd(sslHandle_, *this);
+
+	BIO_set_callback(sslHandle_->rbio, ssl_bio_callback);
+	BIO_set_callback_arg(sslHandle_->rbio, (char*)pPacket);
+
+	while (SSL_accept(sslHandle_) == -1)
+	{
+		fd_set fds;
+		FD_ZERO(&fds);
+		FD_SET(*this, &fds);
+
+		struct timeval tv = { 0, 100000 }; // 100ms
+
+		switch (SSL_get_error(sslHandle_, -1))
+		{
+		case SSL_ERROR_WANT_READ:
+		{
+			int selgot = select((*this) + 1, &fds, NULL, NULL, &tv);
+			if (selgot <= 0)
+			{
+				ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept(SSL_ERROR_WANT_READ): {}!\n", ERR_error_string(SSL_get_error(sslHandle_, -1), NULL)));
+				destroySSL();
+				return true;
+			}
+
+			break;
+		}
+		case SSL_ERROR_WANT_WRITE:
+		{
+			int selgot = select((*this) + 1, NULL, &fds, NULL, &tv);
+			if (selgot <= 0)
+			{
+				ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept(SSL_ERROR_WANT_WRITE): {}!\n", ERR_error_string(SSL_get_error(sslHandle_, -1), NULL)));
+				destroySSL();
+				return true;
+			}
+
+			break;
+		}
+		default:
+		{
+			ERROR_MSG(fmt::format("EndPoint::setupSSL: SSL_accept: {}!\n", ERR_error_string(SSL_get_error(sslHandle_, -1), NULL)));
+			destroySSL();
+			return false;
+		}
+		}
+	}
+
+	BIO_set_callback(sslHandle_->rbio, NULL);
+	BIO_set_callback_arg(sslHandle_->rbio, (char*)NULL);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------
+bool EndPoint::destroySSL()
+{
+	if (sslHandle_)
+	{
+		SSL_free(sslHandle_);
+		sslHandle_ = NULL;
+	}
+
+	if (sslContext_)
+	{
+		SSL_CTX_free(sslContext_);
+		sslContext_ = NULL;
+	}
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------

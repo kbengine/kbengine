@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_OBJECTPOOL_H
 #define KBE_OBJECTPOOL_H
@@ -41,8 +23,23 @@ namespace KBEngine{
 // 每5分钟检查一次瘦身
 #define OBJECT_POOL_REDUCING_TIME_OUT	300 * stampsPerSecondD()
 
+// 追踪对象分配处
+#define OBJECTPOOL_POINT fmt::format("{}#{}", __FUNCTION__, __LINE__).c_str() 
+
 template< typename T >
 class SmartPoolObject;
+
+class ObjectPoolLogPoint
+{
+public:
+	ObjectPoolLogPoint() :
+		count(0)
+	{
+
+	}
+
+	int count;
+};
 
 /*
 	一些对象会非常频繁的被创建， 例如：MemoryStream, Bundle, TCPPacket等等
@@ -63,7 +60,8 @@ public:
 		name_(name),
 		total_allocs_(0),
 		obj_count_(0),
-		lastReducingCheckTime_(timestamp())
+		lastReducingCheckTime_(timestamp()),
+		logPoints_()
 	{
 	}
 
@@ -75,7 +73,8 @@ public:
 		name_(name),
 		total_allocs_(0),
 		obj_count_(0),
-		lastReducingCheckTime_(timestamp())
+		lastReducingCheckTime_(timestamp()),
+		logPoints_()
 	{
 	}
 
@@ -139,7 +138,7 @@ public:
 		创建一个新的， 这个对象必须是继承自T的。
 	*/
 	template<typename T1>
-	T* createObject(void)
+	T* createObject(const std::string& logPoint)
 	{
 		pMutex_->lockMutex();
 
@@ -150,6 +149,8 @@ public:
 				T* t = static_cast<T1*>(*objects_.begin());
 				objects_.pop_front();
 				--obj_count_;
+				incLogPoint(logPoint);
+				t->poolObjectCreatePoint(logPoint);
 				t->onEabledPoolObject();
 				t->isEnabledPoolObject(true);
 				pMutex_->unlockMutex();
@@ -168,7 +169,7 @@ public:
 		创建一个对象。 如果缓冲里已经创建则返回现有的，否则
 		创建一个新的。
 	*/
-	T* createObject(void)
+	T* createObject(const std::string& logPoint)
 	{
 		pMutex_->lockMutex();
 
@@ -179,6 +180,8 @@ public:
 				T* t = static_cast<T*>(*objects_.begin());
 				objects_.pop_front();
 				--obj_count_;
+				incLogPoint(logPoint);
+				t->poolObjectCreatePoint(logPoint);
 				t->onEabledPoolObject();
 				t->isEnabledPoolObject(true);
 				pMutex_->unlockMutex();
@@ -277,6 +280,20 @@ public:
 
 	bool isDestroyed() const { return isDestroyed_; }
 
+	std::map<std::string, ObjectPoolLogPoint>& logPoints() {
+		return logPoints_;
+	}
+
+	void incLogPoint(const std::string& logPoint)
+	{
+		++logPoints_[logPoint].count;
+	}
+
+	void decLogPoint(const std::string& logPoint)
+	{
+		--logPoints_[logPoint].count;
+	}
+
 protected:
 	/**
 		回收一个对象
@@ -285,9 +302,12 @@ protected:
 	{
 		if(obj != NULL)
 		{
+			decLogPoint(obj->poolObjectCreatePoint());
+
 			// 先重置状态
 			obj->onReclaimObject();
 			obj->isEnabledPoolObject(false);
+			obj->poolObjectCreatePoint("");
 
 			if(size() >= max_ || isDestroyed_)
 			{
@@ -354,6 +374,9 @@ protected:
 	// 最后一次瘦身检查时间
 	// 如果长达OBJECT_POOL_REDUCING_TIME_OUT大于OBJECT_POOL_INIT_SIZE，则最多瘦身OBJECT_POOL_INIT_SIZE个
 	uint64 lastReducingCheckTime_;
+
+	// 记录的创建位置信息，用于追踪泄露点
+	std::map<std::string, ObjectPoolLogPoint> logPoints_;
 };
 
 /*
@@ -397,10 +420,23 @@ public:
 		isEnabledPoolObject_ = v;
 	}
 
+	void poolObjectCreatePoint(const std::string& logPoint)
+	{
+		poolObjectCreatePoint_ = logPoint;
+	}
+
+	const std::string& poolObjectCreatePoint() const
+	{
+		return poolObjectCreatePoint_;
+	}
+
 protected:
 
 	// 池对象是否处于激活（从池中已经取出）状态
 	bool isEnabledPoolObject_;
+
+	// 记录对象创建的位置
+	std::string poolObjectCreatePoint_;
 };
 
 template< typename T >
@@ -454,7 +490,7 @@ private:
 };
 
 
-#define NEW_POOL_OBJECT(TYPE) TYPE::createPoolObject();
+#define NEW_POOL_OBJECT(TYPE) TYPE::createPoolObject(OBJECTPOOL_POINT);
 
 
 }

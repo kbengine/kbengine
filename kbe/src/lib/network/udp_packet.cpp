@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "udp_packet.h"
@@ -39,9 +21,9 @@ ObjectPool<UDPPacket>& UDPPacket::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-UDPPacket* UDPPacket::createPoolObject()
+UDPPacket* UDPPacket::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -60,9 +42,9 @@ void UDPPacket::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-UDPPacket::SmartPoolObjectPtr UDPPacket::createSmartPoolObj()
+UDPPacket::SmartPoolObjectPtr UDPPacket::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacket>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacket>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------

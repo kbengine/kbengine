@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "pickler.h"
 #include "py_memorystream.h"
@@ -347,25 +329,21 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	}
 	else if(strcmp(type, "STRING") == 0)
 	{
-		wchar_t* ws = PyUnicode_AsWideCharString(pyVal, NULL);
-		char* s = strutil::wchar2char(ws);
-		PyMem_Free(ws);
-
+		char* s = PyUnicode_AsUTF8AndSize(pyVal, NULL);
 		pyobj->stream() << s;
-		free(s);
 	}
 	else if(strcmp(type, "UNICODE") == 0)
 	{
-		PyObject* obj = PyUnicode_AsUTF8String(pyVal);
-		if(obj == NULL)
+		Py_ssize_t size;
+		char* s = PyUnicode_AsUTF8AndSize(pyVal, &size);
+		if (s == NULL)
 		{
 			PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: val is not UNICODE!");
 			PyErr_PrintEx(0);
 			S_Return;
-		}	
+		}
 
-		pyobj->stream().appendBlob(PyBytes_AS_STRING(obj), PyBytes_GET_SIZE(obj));
-		Py_DECREF(obj);
+		pyobj->stream().appendBlob(s, size);
 	}
 	else if(strcmp(type, "PYTHON") == 0 || strcmp(type, "PY_DICT") == 0
 		 || strcmp(type, "PY_TUPLE") == 0  || strcmp(type, "PY_LIST") == 0)
@@ -484,7 +462,7 @@ PyObject* PyMemoryStream::__py_pop(PyObject* self, PyObject* args, PyObject* kwa
 		}
 		else if(strcmp(type, "INT64") == 0)
 		{
-			int8 v;
+			int64 v;
 			pyobj->stream() >> v;
 			return PyLong_FromLongLong(v);
 		}

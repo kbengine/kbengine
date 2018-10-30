@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "fixedarray.h"
 #include "datatypes.h"
@@ -33,6 +15,7 @@ SCRIPT_METHOD_DECLARE("index",						index,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("insert",						insert,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("pop",						pop,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("remove",						remove,					METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("clear",						clear,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
 
@@ -41,7 +24,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(FixedArray)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(FixedArray, 0, &Sequence::seqMethods, 0, 0, 0)	
+SCRIPT_INIT(FixedArray, 0, &Sequence::seqMethods, &Sequence::seqMapping, 0, 0)
 	
 //-------------------------------------------------------------------------------------
 FixedArray::FixedArray(DataType* dataType):
@@ -309,6 +292,21 @@ PyObject* FixedArray::__py_remove(PyObject* self, PyObject* args, PyObject* kwar
 	PyObject* ret = PyBool_FromLong(seq_ass_slice(self, index, index + 1, &*pyTuple) == 0);
 	Py_DECREF(pyTuple);
 	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedArray::__py_clear(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	FixedArray* ary = static_cast<FixedArray*>(self);
+
+	std::vector<PyObject*>& values = ary->getValues();
+	for (size_t i = 0; i < values.size(); ++i)
+	{
+		Py_DECREF(values[i]);
+	}
+
+	values.clear();
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

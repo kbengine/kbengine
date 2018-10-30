@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef KBENGINE_DEF_PROPERTY_H
@@ -64,7 +46,8 @@ public:
 		是否是一个保存到数据库中的属性 
 	*/
 	INLINE bool isPersistent(void) const;
-	
+	INLINE void isPersistent(bool v);
+
 	/** 
 		获取这个属性的数据类别 
 	*/
@@ -291,7 +274,9 @@ public:
 
 	virtual bool isSamePersistentType(PyObject* pyValue);
 	virtual void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 	virtual PyObject* createFromPersistentStream(MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 
 	virtual PyObject* createFromStream(MemoryStream* mstream);
 
@@ -299,6 +284,8 @@ public:
 		获取这个属性描述在def文件中被定义的默认值
 	*/
 	virtual PyObject* newDefaultVal(void);
+
+	virtual PyObject* parseDefaultStr(const std::string& defaultVal);
 
 protected:
 };

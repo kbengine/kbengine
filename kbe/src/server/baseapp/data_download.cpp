@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #include "baseapp.h"
 #include "data_download.h"
@@ -89,9 +71,9 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 	uint32 datasize = GAME_PACKET_MAX_SIZE_TCP - sizeof(int16) - sizeof(uint32);
 
-	if(remainSent_ > 0 && currSent_ < remainSent_)
+	if ((remainSent_ > 0 && currSent_ < remainSent_) || totalBytes_ == 0)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 		if(!sentStart_)
 		{
@@ -160,7 +142,7 @@ thread::TPTask::TPTaskState DataDownload::presentMainThread()
 
 		pDataDownloads_->onDownloadCompleted(this);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 
 		pBundle->newMessage(ClientInterface::onStreamDataCompleted);
@@ -238,13 +220,7 @@ FileDataDownload::FileDataDownload(PyObjectPtr objptr,
 							const std::string & descr, int16 id):
 DataDownload(objptr, descr, id)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(objptr.get(), NULL);
-	char* pDescr = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
-	PyMem_Free(PyUnicode_AsWideCharStringRet1);
-
-	path_ = pDescr;
-	free(pDescr);
-
+	path_ = PyUnicode_AsUTF8AndSize(objptr.get(), NULL);
 	stream_ = new char[65537];
 }
 

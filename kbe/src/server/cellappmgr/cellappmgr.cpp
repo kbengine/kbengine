@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "cellappmgr.h"
@@ -84,6 +66,7 @@ Cellappmgr::Cellappmgr(Network::EventDispatcher& dispatcher,
 	cellapps_(),
 	cellapp_cids_()
 {
+	KBEngine::Network::MessageHandlers::pMainMessageHandlers = &CellappmgrInterface::messageHandlers;
 }
 
 //-------------------------------------------------------------------------------------
@@ -237,7 +220,7 @@ void Cellappmgr::forwardMessage(Network::Channel* pChannel, MemoryStream& s)
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(forward_componentID);
 	KBE_ASSERT(cinfos != NULL && cinfos->pChannel != NULL);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).append((char*)s.data() + s.rpos(), (int)s.length());
 	cinfos->pChannel->send(pBundle);
 	s.done();
@@ -344,7 +327,7 @@ void Cellappmgr::reqCreateCellEntityInNewSpace(Network::Channel* pChannel, Memor
 
 	static SPACE_ID spaceID = 1;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(CellappInterface::onCreateCellEntityInNewSpaceFromBaseapp);
 	(*pBundle) << entityType;
 	(*pBundle) << id;
@@ -424,7 +407,7 @@ void Cellappmgr::reqRestoreSpaceInCell(Network::Channel* pChannel, MemoryStream&
 	s >> spaceID;
 	s >> hasClient;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(CellappInterface::onRestoreSpaceInCellFromBaseapp);
 	(*pBundle) << entityType;
 	(*pBundle) << id;
@@ -543,7 +526,7 @@ void Cellappmgr::addCellappComponentID(COMPONENT_ID cid)
 //-------------------------------------------------------------------------------------
 void Cellappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleQueryAppsLoadsHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 
@@ -565,7 +548,7 @@ void Cellappmgr::queryAppsLoads(Network::Channel* pChannel, MemoryStream& s)
 //-------------------------------------------------------------------------------------
 void Cellappmgr::querySpaces(Network::Channel* pChannel, MemoryStream& s)
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	ConsoleInterface::ConsoleQuerySpacesHandler msgHandler;
 	(*pBundle).newMessage(msgHandler);
 

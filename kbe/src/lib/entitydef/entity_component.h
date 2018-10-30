@@ -1,53 +1,66 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef KBE_ENTITY_COMPONENT_H
 #define KBE_ENTITY_COMPONENT_H
 	
 #include "common/common.h"
+#include "common/timer.h"
 #include "pyscript/scriptobject.h"
 #include "entitydef/common.h"
 #include "entitydef/scriptdef_module.h"
 
 namespace KBEngine {
 
-	// 调用所有组件的方法
+// 调用所有组件的方法
 #define CALL_ENTITY_AND_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)													\
 {																												\
-	Py_INCREF(ENTITYOBJ);																						\
-	PyObject* pyTempObj = ENTITYOBJ;																			\
-	CALLCODE;																									\
-	CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);															\
-	Py_DECREF(ENTITYOBJ);																						\
+	{																											\
+		bool GETERR = false;																					\
+		Py_INCREF(ENTITYOBJ);																					\
+		PyObject* pyTempObj = ENTITYOBJ;																		\
+		CALLCODE;																								\
+		CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);														\
+		Py_DECREF(ENTITYOBJ);																					\
+	}																											\
+}																												\
+
+
+#define CALL_COMPONENTS_AND_ENTITY_METHOD(ENTITYOBJ, CALLCODE)													\
+{																												\
+	{																											\
+		Py_INCREF(ENTITYOBJ);																					\
+		PyObject* pyTempObj = ENTITYOBJ;																		\
+		CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE);														\
+		bool GETERR = false;																					\
+		CALLCODE;																								\
+		Py_DECREF(ENTITYOBJ);																					\
+	}																											\
 }																												\
 
 
 #define CALL_ENTITY_COMPONENTS_METHOD(ENTITYOBJ, CALLCODE)														\
 	{																											\
+		bool GETERR = false;																					\
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pScriptModule_->getComponentDescrs();		\
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();				\
 		for (; comps_iter != componentDescrs.end(); ++comps_iter)												\
 		{																										\
-			if (!comps_iter->second->hasBase())																	\
-				continue;																						\
+			if(g_componentType == BASEAPP_TYPE)																	\
+			{																									\
+				if (!comps_iter->second->hasBase())																\
+					continue;																					\
+			}																									\
+			else if (g_componentType == CELLAPP_TYPE)															\
+			{																									\
+				if (!comps_iter->second->hasCell())																\
+					continue;																					\
+			}																									\
+			else																								\
+			{																									\
+				if (!comps_iter->second->hasClient())															\
+					continue;																					\
+			}																									\
 																												\
 			PyObject* pyTempObj = PyObject_GetAttrString(ENTITYOBJ, comps_iter->first.c_str());					\
 			if (pyTempObj)																						\
@@ -72,6 +85,37 @@ public:
 	
 	~EntityComponent();
 
+	class EntityComponentUnbind : public TimerHandler
+	{
+	public:
+		EntityComponentUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs):
+			pEntity_(pEntity),
+			pEntityScriptDescrs_(pEntityScriptDescrs)
+		{
+			Py_INCREF(pEntity_);
+		}
+
+		~EntityComponentUnbind()
+		{
+			Py_DECREF(pEntity_);
+		}
+
+	protected:
+		virtual void handleTimeout(TimerHandle handle, void * arg)
+		{
+			handle.cancel();
+			EntityComponent::onEntityUnbind(pEntity_, pEntityScriptDescrs_, this);
+		}
+
+		virtual void onRelease(TimerHandle handle, void  * pUser) {
+		}
+
+	protected:
+		PyObject* pEntity_;
+		ScriptDefModule* pEntityScriptDescrs_;
+
+	};
+
 	/** 
 		获取entityID 
 	*/
@@ -80,6 +124,7 @@ public:
 	DECLARE_PY_GET_MOTHOD(pyGetOwnerID);
 
 	PyObject* owner(bool attempt = false);
+	void updateOwner(ENTITY_ID id, PyObject* pOwner);
 
 	DECLARE_PY_GET_MOTHOD(pyIsDestroyed);
 
@@ -148,7 +193,8 @@ public:
 
 	bool isSamePersistentType(PyObject* pyValue);
 	void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
-	PyObject* createFromPersistentStream(MemoryStream* mstream);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 
 	PropertyDescription* getProperty(ENTITY_PROPERTY_UID child_uid);
 	
@@ -162,11 +208,17 @@ public:
 
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pChildPropertyDescrs();
 
+	ScriptDefModule* pComponentScriptDefModuleDescrs() {
+		return pComponentDescrs_;
+	}
+
 	typedef std::tr1::function<void (EntityComponent*, const PropertyDescription*, PyObject*)> OnDataChangedEvent;
 
 	static void onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript, bool beforeDestroy);
 	void onOwnerDestroyBegin(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript);
 	void onOwnerDestroyEnd(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, bool callScript);
+	static void onEntityUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, EntityComponentUnbind* pEntityComponentUnbind);
+	void onOwnerUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs);
 
 	PropertyDescription* pPropertyDescription() const {
 		return pPropertyDescription_;
@@ -178,10 +230,10 @@ public:
 
 	PyObject* createCellData();
 
-	void createFromDict(PyObject* pyDict);
-	void updateFromDict(PyObject* pyDict);
+	void createFromDict(PyObject* pyDict, bool persistentData);
+	void updateFromDict(PyObject* pOwner, PyObject* pyDict);
 
-	static void convertDictDataToEntityComponent(ENTITY_ID entityID, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData);
+	static void convertDictDataToEntityComponent(ENTITY_ID entityID, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, PyObject* cellData, bool persistentData);
 	static std::vector<EntityComponent*> getComponents(const std::string& name, PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs);
 
 	/**

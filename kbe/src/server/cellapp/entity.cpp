@@ -1,29 +1,11 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "cellapp.h"
 #include "entity.h"
 #include "witness.h"	
 #include "profile.h"
-#include "space.h"
+#include "spacememory.h"
 #include "range_trigger.h"
 #include "all_clients.h"
 #include "client_entity.h"
@@ -110,8 +92,9 @@ int32 Entity::_scriptCallbacksBufferCount = 0;
 int32 Entity::_scriptCallbacksBufferNum = 0;
 
 //-------------------------------------------------------------------------------------
-Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule):
-ScriptObject(getScriptType(), true),
+Entity::Entity(ENTITY_ID id, const ScriptDefModule* pScriptModule,
+	PyTypeObject* pyType, bool isInitialised) :
+ScriptObject(pyType, isInitialised),
 ENTITY_CONSTRUCTION(Entity),
 clientEntityCall_(NULL),
 baseEntityCall_(NULL),
@@ -185,6 +168,12 @@ Entity::~Entity()
 }	
 
 //-------------------------------------------------------------------------------------
+void Entity::onInitializeScript()
+{
+
+}
+
+//-------------------------------------------------------------------------------------
 void Entity::installCoordinateNodes(CoordinateSystem* pCoordinateSystem)
 {
 	if(g_kbeSrvConfig.getCellApp().use_coordinate_system)
@@ -214,7 +203,7 @@ void Entity::onDestroy(bool callScript)
 	if(callScript && isReal())
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onDestroy"), false));
+		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onDestroy"), GETERR));
 
 		// 如果不通知脚本， 那么也不会产生这个回调
 		// 通常销毁一个entity不通知脚本可能是迁移或者传送造成的
@@ -223,7 +212,7 @@ void Entity::onDestroy(bool callScript)
 			setDirty();
 			this->backupCellData();
 
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			(*pBundle).newMessage(BaseappInterface::onLoseCell);
 			(*pBundle) << id_;
 			baseEntityCall_->sendCall(pBundle);
@@ -243,7 +232,7 @@ void Entity::onDestroy(bool callScript)
 	}
 
 	// 将entity从场景中剔除
-	Space* space = Spaces::findSpace(this->spaceID());
+	SpaceMemory* space = SpaceMemorys::findSpace(this->spaceID());
 	if(space)
 	{
 		space->removeEntity(this);
@@ -383,14 +372,14 @@ void Entity::destroySpace()
 	if(spaceID() == 0)
 		return;
 
-	Spaces::destroySpace(spaceID(), this->id());
+	SpaceMemorys::destroySpace(spaceID(), this->id());
 }
 
 //-------------------------------------------------------------------------------------
 void Entity::onSpaceGone()
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onSpaceGone"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onSpaceGone"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -563,8 +552,8 @@ void Entity::sendControlledByStatusMessage(EntityCall* baseEntityCall, int8 isCo
 	if (!pChannel)
 		return;
 
-	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject();
-	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject();
+	Network::Bundle* pSendBundle = Network::Bundle::ObjPool().createObject(OBJECTPOOL_POINT);
+	Network::Bundle* pForwardBundle = Network::Bundle::ObjPool().createObject(OBJECTPOOL_POINT);
 
 	(*pForwardBundle).newMessage(ClientInterface::onControlEntity);
 	(*pForwardBundle) << id();
@@ -645,10 +634,8 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
 	{
@@ -656,8 +643,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 		
 		if(pMethodDescription)
 		{
-			free(ccattr);
-			return new RealEntityMethod(pMethodDescription, this);
+			return new RealEntityMethod(NULL, pMethodDescription, this);
 		}
 	}
 	else
@@ -670,8 +656,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 			setDirty();
 		}
 	}
-	
-	free(ccattr);
+
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
 
@@ -697,7 +682,7 @@ void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyD
 	uint32 flags = propertyDescription->getFlags();
 
 	// 首先创建一个需要广播的模板流
-	MemoryStream* mstream = MemoryStream::createPoolObject();
+	MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 
 	EntityDef::context().currComponentType = g_componentType;
 	propertyDescription->getDataType()->addToStream(mstream, pyData);
@@ -863,7 +848,7 @@ void Entity::onDefDataChanged(EntityComponent* pEntityComponent, const PropertyD
 		
 		Network::Channel* pChannel = pWitness_->pChannel();
 		if(!pChannel)
-			pSendBundle = Network::Bundle::createPoolObject();
+			pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		else
 			pSendBundle = pChannel->createSendBundle();
 		
@@ -1085,6 +1070,14 @@ void Entity::addCellDataToStream(COMPONENT_TYPE sendTo, uint32 flags, MemoryStre
 		PropertyDescription* propertyDescription = iter->second;
 		if((flags & propertyDescription->getFlags()) > 0)
 		{
+			// 由于存在一种情况， 组件def中没有内容， 但有cell脚本，此时baseapp上无法判断他是否有cell属性，所以写celldata时没有数据写入
+			if (propertyDescription->getDataType()->type() == DATA_TYPE_ENTITY_COMPONENT)
+			{
+				EntityComponentType* pEntityComponentType = (EntityComponentType*)propertyDescription->getDataType();
+				if (pEntityComponentType->pScriptDefModule()->getPropertyDescrs().size() == 0)
+					continue;
+			}
+
 			// DEBUG_MSG(fmt::format("Entity::addCellDataToStream: {}.\n", propertyDescription->getName()));
 			PyObject* pyVal = PyDict_GetItemString(cellData, propertyDescription->getName());
 
@@ -1099,18 +1092,18 @@ void Entity::addCellDataToStream(COMPONENT_TYPE sendTo, uint32 flags, MemoryStre
 				(*mstream) << propertyDescription->getUType();
 			}
 
-			if (!propertyDescription->getDataType()->isSameType(pyVal))
+			if (!propertyDescription->isSameType(pyVal))
 			{
 				ERROR_MSG(fmt::format("{}::addCellDataToStream: {}({}) not is ({})!\n", this->scriptName(),
 					propertyDescription->getName(), (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName()));
 
-				PyObject* pydefval = propertyDescription->getDataType()->parseDefaultStr("");
-				propertyDescription->getDataType()->addToStream(mstream, pydefval);
+				PyObject* pydefval = propertyDescription->parseDefaultStr("");
+				propertyDescription->addToStream(mstream, pydefval);
 				Py_DECREF(pydefval);
 			}
 			else
 			{
-				propertyDescription->getDataType()->addToStream(mstream, pyVal);
+				propertyDescription->addToStream(mstream, pyVal);
 			}
 
 			if (PyErr_Occurred())
@@ -1134,15 +1127,29 @@ void Entity::backupCellData()
 	if(baseEntityCall_ != NULL)
 	{
 		// 将当前的cell部分数据打包 一起发送给base部分备份
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::onBackupEntityCellData);
 		(*pBundle) << id_;
 		(*pBundle) << isDirty();
 		
 		if(isDirty())
 		{
-			MemoryStream* s = MemoryStream::createPoolObject();
-			addCellDataToStream(BASEAPP_TYPE, ENTITY_CELL_DATA_FLAGS, s);
+			MemoryStream* s = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+
+			try
+			{
+				addCellDataToStream(BASEAPP_TYPE, ENTITY_CELL_DATA_FLAGS, s);
+			}
+			catch (MemoryStreamWriteOverflow & err)
+			{
+				ERROR_MSG(fmt::format("{}::backupCellData({}): {}\n",
+					scriptName(), id(), err.what()));
+
+				MemoryStream::reclaimPoolObject(s);
+				Network::Bundle::reclaimPoolObject(pBundle);
+				return;
+			}
+
 			(*pBundle).append(s);
 			MemoryStream::reclaimPoolObject(s);
 		}
@@ -1203,10 +1210,11 @@ void Entity::writeToDB(void* data, void* extra1, void* extra2)
 			}
 		}
 	}
+
 	onWriteToDB();
 	backupCellData();
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::onCellWriteToDBCompleted);
 	(*pBundle) << this->id();
 	(*pBundle) << callbackID;
@@ -1227,7 +1235,7 @@ void Entity::onWriteToDB()
 	DEBUG_MSG(fmt::format("{}::onWriteToDB(): {}.\n", 
 		this->scriptName(), this->id()));
 
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onWriteToDB"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onWriteToDB"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -1283,7 +1291,7 @@ bool Entity::bufferOrExeCallback(const char * funcName, PyObject * funcArgs, boo
 		ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
 		for (; comps_iter != componentDescrs.end(); ++comps_iter)
 		{
-			if (!comps_iter->second->hasBase())
+			if (!comps_iter->second->hasCell())
 				continue;
 
 			PyObject* pyTempObj = PyObject_GetAttrString(this, comps_iter->first.c_str());
@@ -1363,7 +1371,7 @@ void Entity::bufferCallback(bool enable)
 				ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
 				for (; comps_iter != componentDescrs.end(); ++comps_iter)
 				{
-					if (!comps_iter->second->hasBase())
+					if (!comps_iter->second->hasCell())
 						continue;
 
 					PyObject* pyTempObj = PyObject_GetAttrString(pBufferedScriptCall->entityPtr.get(), comps_iter->first.c_str());
@@ -1473,7 +1481,7 @@ void Entity::delWitnessed(Entity* entity)
 
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS1(pyTempObj, const_cast<char*>("onLoseControlledBy"),
-			const_cast<char*>("i"), entity->id(), false));
+			const_cast<char*>("i"), entity->id(), GETERR));
 	}
 
 	// 延时执行
@@ -1606,6 +1614,14 @@ PyObject* Entity::pyClientEntity(ENTITY_ID entityID)
 		return 0;
 	}
 
+	if (entityID == id())
+	{
+		PyErr_Format(PyExc_AssertionError, "%s::clientEntity: call your own method using entity.client! id=%d\n",
+			scriptName(), id());
+		PyErr_PrintEx(0);
+		return 0;
+	}
+
 	return new ClientEntity(id(), entityID);
 }
 
@@ -1666,11 +1682,7 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 
 	if(PyUnicode_Check(pyargobj))
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyargobj, NULL);
-		char* s = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
-		
-		if(strcmp(s, "Movement") == 0)
+		if (strcmp(PyUnicode_AsUTF8AndSize(pyargobj, NULL), "Movement") == 0)
 		{
 			pobj->stopMove();
 		}
@@ -1678,11 +1690,8 @@ PyObject* Entity::__py_pyCancelController(PyObject* self, PyObject* args)
 		{
 			PyErr_Format(PyExc_TypeError, "%s::cancel: args not is \"Movement\"!", pobj->scriptName());
 			PyErr_PrintEx(0);
-			free(s);
 			return 0;
 		}
-
-		free(s);
 
 		S_Return;
 	}
@@ -1765,6 +1774,8 @@ int Entity::pySetPosition(PyObject *value)
 	Position3D pos;
 	script::ScriptVector3::convertPyObjectToVector3(pos, value);
 	position(pos);
+
+	isOnGround_ = false;
 
 	static ENTITY_PROPERTY_UID posuid = 0;
 	if(posuid == 0)
@@ -1936,6 +1947,8 @@ void Entity::onPyPositionChanged()
 	if(this->isDestroyed())
 		return;
 
+	isOnGround_ = false;
+
 	static ENTITY_PROPERTY_UID posuid = 0;
 	if(posuid == 0)
 	{
@@ -2054,7 +2067,7 @@ void Entity::onGetWitness(bool fromBase)
 
 		if(pWitness_ == NULL)
 		{
-			setWitness(Witness::createPoolObject());
+			setWitness(Witness::createPoolObject(OBJECTPOOL_POINT));
 		}
 		else
 		{
@@ -2075,7 +2088,7 @@ void Entity::onGetWitness(bool fromBase)
 	// 防止自己在一些脚本回调中被销毁，这里对自己做一次引用
 	Py_INCREF(this);
 
-	Space* space = Spaces::findSpace(this->spaceID());
+	SpaceMemory* space = SpaceMemorys::findSpace(this->spaceID());
 	if(space && space->isGood())
 	{
 		space->onEntityAttachWitness(this);
@@ -2086,17 +2099,17 @@ void Entity::onGetWitness(bool fromBase)
 	
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGetWitness"), false));
+		CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onGetWitness"), GETERR));
 	}
 	
 	// 如果一个实体已经有cell的情况下giveToClient，那么需要将最新的客户端属性值更新到客户端
 	if(fromBase)
 	{
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(id(), (*pSendBundle));
 		
 		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onUpdatePropertys, updatePropertys);
-		MemoryStream* s1 = MemoryStream::createPoolObject();
+		MemoryStream* s1 = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 		(*pSendBundle) << id();
 		
 		ENTITY_PROPERTY_UID spaceuid = ENTITY_BASE_PROPERTY_UTYPE_SPACEID;
@@ -2145,7 +2158,7 @@ void Entity::onLoseWitness(Network::Channel* pChannel)
 	pWitness_ = NULL;
 
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
-	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLoseWitness"), false));
+	CALL_ENTITY_AND_COMPONENTS_METHOD(this, SCRIPT_OBJECT_CALL_ARGS0(pyTempObj, const_cast<char*>("onLoseWitness"), GETERR));
 }
 
 //-------------------------------------------------------------------------------------
@@ -2336,7 +2349,7 @@ void Entity::onUpdateDataFromClient(KBEngine::MemoryStream& s)
 		if(pW)
 		{
 			// 通知重置
-			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(targetID, (*pSendBundle));
 			
 			ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
@@ -2450,7 +2463,7 @@ bool Entity::canNavigate()
 	if(spaceID() <= 0)
 		return false;
 
-	Space* pSpace = Spaces::findSpace(spaceID());
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
 		return false;
 
@@ -2463,7 +2476,7 @@ bool Entity::canNavigate()
 //-------------------------------------------------------------------------------------
 bool Entity::navigatePathPoints( std::vector<Position3D>& outPaths, const Position3D& destination, float maxSearchDistance, int8 layer )
 {
-	Space* pSpace = Spaces::findSpace(spaceID());
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
 	{
 		ERROR_MSG(fmt::format("Entity::navigatePathPoints(): not found space({}), entityID({})!\n",
@@ -2622,7 +2635,7 @@ PyObject* Entity::pyNavigate(PyObject_ptr pyDestination, float velocity, float d
 bool Entity::getRandomPoints(std::vector<Position3D>& outPoints, const Position3D& centerPos,
 	float maxRadius, uint32 maxPoints, int8 layer)
 {
-	Space* pSpace = Spaces::findSpace(spaceID());
+	SpaceMemory* pSpace = SpaceMemorys::findSpace(spaceID());
 	if(pSpace == NULL || !pSpace->isGood())
 	{
 		ERROR_MSG(fmt::format("Entity::getRandomPoints(): not found space({}), entityID({})!\n",
@@ -2745,7 +2758,7 @@ PyObject* Entity::pyMoveToPoint(PyObject_ptr pyDestination, float velocity, floa
 
 //-------------------------------------------------------------------------------------
 uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, PyObject* userData, 
-						 bool faceMovement, bool moveVertically)
+						 bool faceMovement, bool moveVertically, const Position3D& offsetPos)
 {
 	stopMove();
 
@@ -2754,7 +2767,7 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, 
 	KBEShared_ptr<Controller> p(new MoveController(this, NULL));
 
 	new MoveToEntityHandler(p, targetID, velocity, distance,
-		faceMovement, moveVertically, userData);
+		faceMovement, moveVertically, userData, offsetPos);
 
 	bool ret = pControllers_->add(p);
 	KBE_ASSERT(ret);
@@ -2764,26 +2777,61 @@ uint32 Entity::moveToEntity(ENTITY_ID targetID, float velocity, float distance, 
 }
 
 //-------------------------------------------------------------------------------------
-PyObject* Entity::pyMoveToEntity(ENTITY_ID targetID, float velocity, float distance, PyObject_ptr userData,
-								 int32 faceMovement, int32 moveVertically)
+PyObject* Entity::__py_pyMoveToEntity(PyObject* self, PyObject* args)
 {
-	if(!isReal())
+	uint16 currargsSize = PyTuple_Size(args);
+	Entity* pobj = static_cast<Entity*>(self);
+
+	if (!pobj->isReal())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: not is real entity(%d).", 
-			scriptName(), id());
+		PyErr_Format(PyExc_AssertionError, "%s::MoveToEntity: not is real entity(%d).",
+			pobj->scriptName(), pobj->id());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	if(this->isDestroyed())
+	if (pobj->isDestroyed())
 	{
-		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: %d is destroyed!\n",		
-			scriptName(), id());		
+		PyErr_Format(PyExc_AssertionError, "%s::moveToEntity: %d is destroyed!\n",
+			pobj->scriptName(), pobj->id());
 		PyErr_PrintEx(0);
 		return 0;
 	}
 
-	return PyLong_FromLong(moveToEntity(targetID, velocity, distance, userData, faceMovement > 0, moveVertically > 0));
+	ENTITY_ID targetID = 0;
+	float velocity = 0.0, distance = 0.0;
+	PyObject* userData = NULL, *pyOffset = NULL;
+	int32 faceMovement = 0, moveVertically = 0;
+
+	if (currargsSize == 6)
+	{
+		if (PyArg_ParseTuple(args, "iffOii", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "%s::moveToEntity: args error! entity(%d)",
+				pobj->scriptName(), pobj->id());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+	else if (currargsSize == 7)
+	{
+		if (PyArg_ParseTuple(args, "iffOiiO", &targetID, &velocity, &distance, &userData, &faceMovement, &moveVertically, &pyOffset) == -1)
+		{
+			PyErr_Format(PyExc_TypeError, "%s::moveToEntity: args error! entity(%d)",
+				pobj->scriptName(), pobj->id());
+			PyErr_PrintEx(0);
+			return 0;
+		}
+	}
+
+	Position3D offsetPos;
+	if (pyOffset && pyOffset != Py_None)
+	{
+		// 将坐标信息提取出来
+		script::ScriptVector3::convertPyObjectToVector3(offsetPos, pyOffset);
+	}
+
+	return PyLong_FromLong(pobj->moveToEntity(targetID, velocity, distance, userData, faceMovement > 0, moveVertically > 0, offsetPos));
 }
 
 //-------------------------------------------------------------------------------------
@@ -3192,9 +3240,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 
 	if (pyEntityType && pyEntityType != Py_None)
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEntityType, NULL);
-		pEntityType = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		pEntityType = PyUnicode_AsUTF8AndSize(pyEntityType, NULL);
 	}
 
 	int entityUType = -1;
@@ -3204,11 +3250,9 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 		ScriptDefModule* sm = EntityDef::findScriptModule(pEntityType);
 		if (sm == NULL)
 		{
-			free(pEntityType);
 			return PyList_New(0);
 		}
 
-		free(pEntityType);
 		entityUType = sm->getUType();
 	}
 
@@ -3238,7 +3282,7 @@ void Entity::_sendBaseTeleportResult(ENTITY_ID sourceEntityID, COMPONENT_ID sour
 	Components::ComponentInfos* cinfos = Components::getSingleton().findComponent(sourceBaseAppID);
 	if(cinfos != NULL && cinfos->pChannel != NULL)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::onTeleportCB);
 		(*pBundle) << sourceEntityID;
 		BaseappInterface::onTeleportCBArgs2::staticAddToBundle((*pBundle), spaceID, fromCellTeleport);
@@ -3305,7 +3349,7 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 		// 如果是不同space跳转
 		if(spaceID != this->spaceID())
 		{
-			Space* space = Spaces::findSpace(spaceID);
+			SpaceMemory* space = SpaceMemorys::findSpace(spaceID);
 			if(space == NULL || !space->isGood())
 			{
 				ERROR_MSG(fmt::format("{}::teleportFromBaseapp: {}, can't found space({}).\n",
@@ -3315,7 +3359,7 @@ void Entity::teleportFromBaseapp(Network::Channel* pChannel, COMPONENT_ID cellAp
 				return;
 			}
 			
-			Space* currspace = Spaces::findSpace(this->spaceID());
+			SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
 			currspace->removeEntity(this);
 			space->addEntityAndEnterWorld(this);
 			_sendBaseTeleportResult(this->id(), sourceBaseAppID, spaceID, lastSpaceID, false);
@@ -3349,7 +3393,7 @@ PyObject* Entity::pyTeleport(PyObject* nearbyMBRef, PyObject* pyposition, PyObje
 		return 0;
 	}
 
-	Space* currspace = Spaces::findSpace(this->spaceID());
+	SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
 	if(currspace == NULL || !currspace->isGood())
 	{
 		PyErr_Format(PyExc_Exception, "%s::teleport: %d, current space has been destroyed!\n", scriptName(), id());
@@ -3444,8 +3488,8 @@ void Entity::teleportRefEntity(Entity* entity, Position3D& pos, Direction3D& dir
 	else
 	{
 		// 否则为当前cellapp上的space， 那么我们也能够直接执行操作
-		Space* currspace = Spaces::findSpace(this->spaceID());
-		Space* space = Spaces::findSpace(spaceID);
+		SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
+		SpaceMemory* space = SpaceMemorys::findSpace(spaceID);
 
 		// 如果要跳转的space不存在或者引用的entity是这个space的创建者且已经销毁， 那么都应该是跳转失败
 		if(space == NULL || !space->isGood() || entity->isDestroyed())
@@ -3519,7 +3563,7 @@ void Entity::teleportRefEntityCall(EntityCall* nearbyMBRef, Position3D& pos, Dir
 			// 同时需要通知base暂存发往cellapp的消息，因为后面如果跳转成功需要切换cellEntityCall映射关系到新的cellapp
 			// 为了避免在切换的一瞬间消息次序发生混乱(旧的cellapp消息也会转到新的cellapp上)， 因此需要在传送前进行
 			// 暂存， 传送成功后通知旧的cellapp销毁entity之后同时通知baseapp改变映射关系。
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			(*pBundle).newMessage(BaseappInterface::onMigrationCellappStart);
 			(*pBundle) << id();
 			(*pBundle) << g_componentID;
@@ -3542,7 +3586,7 @@ void Entity::teleportRefEntityCall(EntityCall* nearbyMBRef, Position3D& pos, Dir
 void Entity::onTeleportRefEntityCall(EntityCall* nearbyMBRef, Position3D& pos, Direction3D& dir)
 {
 	// 我们需要将entity打包发往目的cellapp
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(CellappInterface::reqTeleportToCellApp);
 	(*pBundle) << id();
 	(*pBundle) << nearbyMBRef->id();
@@ -3552,8 +3596,21 @@ void Entity::onTeleportRefEntityCall(EntityCall* nearbyMBRef, Position3D& pos, D
 	(*pBundle) << dir.roll() << dir.pitch() << dir.yaw();
 	(*pBundle) << g_componentID;
 
-	MemoryStream* s = MemoryStream::createPoolObject();
-	changeToGhost(nearbyMBRef->componentID(), *s);
+	MemoryStream* s = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+
+	try
+	{ 
+		changeToGhost(nearbyMBRef->componentID(), *s);
+	}
+	catch (MemoryStreamWriteOverflow & err)
+	{
+		ERROR_MSG(fmt::format("{}::onTeleportRefEntityCall({}): {}\n",
+			scriptName(), id(), err.what()));
+
+		MemoryStream::reclaimPoolObject(s);
+		Network::Bundle::reclaimPoolObject(pBundle);
+		return;
+	}
 
 	(*pBundle).append(s);
 	MemoryStream::reclaimPoolObject(s);
@@ -3576,7 +3633,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 	SPACE_ID lastSpaceID = this->spaceID();
 
 	// 先要从CoordinateSystem中删除entity节点
-	Space* currspace = Spaces::findSpace(this->spaceID());
+	SpaceMemory* currspace = SpaceMemorys::findSpace(this->spaceID());
 	this->uninstallCoordinateNodes(currspace->pCoordinateSystem());
 
 	// 此时不会扰动ranglist
@@ -3585,7 +3642,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 	if(this->pWitness())
 	{
 		// 通知位置强制改变
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(id(), (*pSendBundle));
 		
 		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
@@ -3620,7 +3677,7 @@ void Entity::teleportLocal(PyObject_ptr nearbyMBRef, Position3D& pos, Direction3
 			continue;
 
 		// 通知位置强制改变
-		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pSendBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		NETWORK_ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pEntity->id(), (*pSendBundle));
 		
 		ENTITY_MESSAGE_FORWARD_CLIENT_BEGIN(pSendBundle, ClientInterface::onSetEntityPosAndDir, setEntityPosAndDir);
@@ -3742,7 +3799,7 @@ void Entity::onTeleportSuccess(PyObject* nearbyEntity, SPACE_ID lastSpaceID)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onEnterSpace(Space* pSpace)
+void Entity::onEnterSpace(SpaceMemory* pSpace)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -3750,7 +3807,7 @@ void Entity::onEnterSpace(Space* pSpace)
 }
 
 //-------------------------------------------------------------------------------------
-void Entity::onLeaveSpace(Space* pSpace)
+void Entity::onLeaveSpace(SpaceMemory* pSpace)
 {
 	SCOPED_PROFILE(SCRIPTCALL_PROFILE);
 
@@ -4034,11 +4091,11 @@ void Entity::createFromStream(KBEngine::MemoryStream& s)
 
 	removeFlags(ENTITY_FLAGS_INITING);
 	
-	createEventsFromStream(s);
 	createMovementHandlerFromStream(s);
 	createControllersFromStream(s);
 	createWitnessFromStream(s);
 	createTimersFromStream(s);
+	createEventsFromStream(s);
 
 	pyCallbackMgr_.createFromStream(s);
 	setDirty();
@@ -4181,7 +4238,7 @@ void Entity::createWitnessFromStream(KBEngine::MemoryStream& s)
 
 		// 不要使用setWitness，因为此时不需要走onAttach流程，客户端不需要重新enterworld。
 		// setWitness(Witness::createPoolObject());
-		pWitness_ = Witness::createPoolObject();
+		pWitness_ = Witness::createPoolObject(OBJECTPOOL_POINT);
 		pWitness_->pEntity(this);
 		pWitness_->createFromStream(s);
 	}
@@ -4327,9 +4384,7 @@ void Entity::addEventsToStream(KBEngine::MemoryStream& s)
 				continue;
 			}
 
-			wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyObj, NULL);
-			char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-			PyMem_Free(PyUnicode_AsWideCharStringRet0);
+			char* ccattr = PyUnicode_AsUTF8AndSize(pyObj, NULL);
 
 			char *pClass;
 			char *pMethod;
@@ -4373,13 +4428,8 @@ void Entity::addEventsToStream(KBEngine::MemoryStream& s)
 						}
 						else
 						{
-							wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(pyObj1, NULL);
-							char* ccattr1 = strutil::wchar2char(PyUnicode_AsWideCharStringRet1);
-							PyMem_Free(PyUnicode_AsWideCharStringRet1);
-
+							char* ccattr1 = PyUnicode_AsUTF8AndSize(pyObj1, NULL);
 							s << fmt::format("{}.{}", ccattr1, pMethod);
-
-							free(ccattr1);
 							S_RELEASE(pyObj1);
 						}
 					}
@@ -4390,7 +4440,6 @@ void Entity::addEventsToStream(KBEngine::MemoryStream& s)
 				}
 			}
 
-			free(ccattr);
 			S_RELEASE(pyObj);
 		}
 	}

@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #include "scriptstdouterr.h"
@@ -44,34 +26,26 @@ ScriptStdOutErr::~ScriptStdOutErr()
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErr::info_msg(const wchar_t* msg, uint32 msglen)
+void ScriptStdOutErr::info_msg(const char* msg, uint32 msglen)
 {
-	std::wstring str;
-	str.assign(msg, msglen);
-	sbuffer_ += str;
+	sbuffer_ += msg;
 
-	if(msg[0] == L'\n')
+	if(msg[0] == '\n')
 	{
-		std::string out;
-		strutil::wchar2utf8(sbuffer_, out);
-		SCRIPT_INFO_MSG(out);
-		sbuffer_ = L"";
+		SCRIPT_INFO_MSG(sbuffer_);
+		sbuffer_ = "";
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErr::error_msg(const wchar_t* msg, uint32 msglen)
+void ScriptStdOutErr::error_msg(const char* msg, uint32 msglen)
 {
-	std::wstring str;
-	str.assign(msg, msglen);
-	sbuffer_ += str;
+	sbuffer_ += msg;
 
-	if(msg[0] == L'\n')
+	if(msg[0] == '\n')
 	{
-		std::string out;
-		strutil::wchar2utf8(sbuffer_, out);
-		SCRIPT_ERROR_MSG(out);
-		sbuffer_ = L"";
+		SCRIPT_ERROR_MSG(sbuffer_);
+		sbuffer_ = "";
 	}
 }
 

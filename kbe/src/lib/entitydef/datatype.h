@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 
 #ifndef KBE_DATA_TYPE_H
@@ -172,7 +154,7 @@ inline PyObject* IntType<uint8>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "UINT8Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "UINT8Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -201,7 +183,7 @@ inline PyObject* IntType<uint16>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "UINT16Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "UINT16Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -230,7 +212,7 @@ inline PyObject* IntType<uint32>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "UINT32Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "UINT32Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -259,7 +241,7 @@ inline PyObject* IntType<int8>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "INT8Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "INT8Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -288,7 +270,7 @@ inline PyObject* IntType<int16>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "INT16Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "INT16Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -317,7 +299,7 @@ inline PyObject* IntType<int32>::parseDefaultStr(std::string defaultVal)
 	if (PyErr_Occurred()) 
 	{
 		PyErr_Clear();
-		PyErr_Format(PyExc_TypeError, "INT32Type::parseDefaultStr: defaultVal(%s) is error! val=[%s]", 
+		PyErr_Format(PyExc_TypeError, "INT32Type::parseDefaultStr: defaultVal(%s) error! val=[%s]", 
 			pyval != NULL ? pyval->ob_type->tp_name : "NULL", defaultVal.c_str());
 
 		PyErr_PrintEx(0);
@@ -787,11 +769,14 @@ public:
 
 	void addToStream(MemoryStream* mstream, PyObject* pyValue);
 	void addPersistentToStream(MemoryStream* mstream, PyObject* pyValue);
+	void addPersistentToStream(MemoryStream* mstream);
+	void addPersistentToStreamTemplates(ScriptDefModule* pScriptModule, MemoryStream* mstream);
 	void addCellDataToStream(MemoryStream* mstream, uint32 flags, PyObject* pyValue, 
 		ENTITY_ID ownerID, PropertyDescription* parentPropertyDescription, COMPONENT_TYPE sendtoComponentType, bool checkValue);
 
 	PyObject* createFromStream(MemoryStream* mstream);
-	PyObject* createFromPersistentStream(MemoryStream* mstream);
+	PyObject* createFromPersistentStream(ScriptDefModule* pScriptDefModule, MemoryStream* mstream);
+
 	PyObject* createCellData();
 	PyObject* createCellDataFromPersistentStream(MemoryStream* mstream);
 	PyObject* createCellDataFromStream(MemoryStream* mstream);
@@ -888,7 +873,7 @@ void IntType<SPECIFY_TYPE>::addToStream(MemoryStream* mstream,
 		if(PyErr_Occurred())
 		{
 			PyErr_Clear();
-			PyErr_Format(PyExc_TypeError, "IntType::addToStream: pyValue(%s) is error!", 
+			PyErr_Format(PyExc_TypeError, "IntType::addToStream: pyValue(%s) error!", 
 				(pyValue == NULL) ? "NULL": pyValue->ob_type->tp_name);
 
 			PyErr_PrintEx(0);

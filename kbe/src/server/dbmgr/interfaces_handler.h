@@ -1,22 +1,4 @@
-/*
-This source file is part of KBEngine
-For the latest info, see http://www.kbengine.org/
-
-Copyright (c) 2008-2018 KBEngine.
-
-KBEngine is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-KBEngine is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public License
-along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2008-2018 Yolo Technologies, Inc. All Rights Reserved. https://www.comblockengine.com
 
 #ifndef KBE_INTERFACES_HANDLER_H
 #define KBE_INTERFACES_HANDLER_H
@@ -79,7 +61,7 @@ public:
 	InterfacesHandler_Dbmgr();
 	virtual ~InterfacesHandler_Dbmgr();
 	
-	virtual bool initialize(){ return true; }
+	virtual bool initialize() { return true; }
 
 	virtual void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
 
@@ -113,6 +95,11 @@ public:
 	InterfacesHandler_Interfaces();
 	virtual ~InterfacesHandler_Interfaces();
 	
+	void setAddr(const Network::Address& addr)
+	{
+		addr_ = addr;
+	}
+
 	virtual bool initialize();
 
 	virtual void eraseClientReq(Network::Channel* pChannel, std::string& logkey);
@@ -143,6 +130,7 @@ public:
 	virtual bool process();
 
 protected:
+	Network::Address addr_;
 
 };
 
