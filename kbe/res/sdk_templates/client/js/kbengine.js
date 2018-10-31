@@ -285,9 +285,17 @@ KBEngine.EventInfo = function(classinst, callbackfn)
 	this.classinst = classinst;
 }
 
+KBEngine.EventObj = function(evtInfo, ars)
+{
+	this.evtInfo = evtInfo;
+	this.ars = ars;
+}
+
 KBEngine.Event = function()
 {
 	this._events = {};
+	this._isPause = false;
+	this._fireEvents = [];
 	
 	this.register = function(evtName, classinst, strCallback)
 	{
@@ -357,7 +365,42 @@ KBEngine.Event = function()
 		for(var i=0; i<evtlst.length; i++)
 		{
 			var info = evtlst[i];
-			if(arguments.length < 1)
+
+			if(!this._isPause)
+			{
+				if(ars.length < 1)
+				{
+					info.callbackfn.apply(info.classinst);
+				}
+				else
+				{
+					info.callbackfn.apply(info.classinst, ars);
+				}
+			}
+			else
+			{
+				var eobj = new KBEngine.EventObj(info, ars);
+				this._fireEvents.push(eobj);
+			}
+		}
+	}
+
+	this.pause = function() 
+	{
+		this._isPause = true;
+	}
+
+	this.resume = function()
+	{
+		this._isPause = false;
+
+		while(this._fireEvents.length > 0)
+		{
+			var eobj = this._fireEvents.shift();
+			var info = eobj.evtInfo;
+			var ars = eobj.ars;
+
+			if(ars.length < 1)
 			{
 				info.callbackfn.apply(info.classinst);
 			}
