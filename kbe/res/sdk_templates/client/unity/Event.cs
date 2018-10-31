@@ -305,6 +305,7 @@
 		public static void resume()
 		{
 			_isPauseOut = false;
+			processOutEvents();
 		}
 
 		public static bool isPause()
