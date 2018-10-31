@@ -2877,7 +2877,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 					{
 						if(stream.length() < KBEngine.MESSAGE_LENGTH_LENGTH)
 						{
-							app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH, stream, KBEngine.NETWORK_MESSAGE_LENGTH_SIZE);
+							app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH, stream, KBEngine.MESSAGE_LENGTH_LENGTH);
 							break;
 						}
 						else
@@ -2890,7 +2890,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 							{
 								if(stream.length() < KBEngine.MESSAGE_LENGTH1_LENGTH)
 								{
-									app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH, stream, KBEngine.NETWORK_MESSAGE_LENGTH_SIZE);
+									app.writeFragmentMessage(FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH1, stream, KBEngine.MESSAGE_LENGTH1_LENGTH);
 									break;
 								}
 
@@ -2979,7 +2979,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 					app.fragmentStream = null;
 					break;
 
-				case FragmentDataTypes.NETWORK_MESSAGE_LENGTH_SIZE:
+				case FragmentDataTypes.FRAGMENT_DATA_MESSAGE_LENGTH:
 					app.currMsgLen = fragmentStream.readUint16();
 					app.fragmentStream = null;
 					break;
