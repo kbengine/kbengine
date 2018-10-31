@@ -3533,7 +3533,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		app.onImportClientMessagesCompleted();
 		app.currMsgID = 0;
 		app.currMsgLen = 0;
-		app.MsgCount = 0;
+		app.currMsgCount = 0;
 		app.fragmentStream = null;
 	}
 	
