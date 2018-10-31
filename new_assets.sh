@@ -1,7 +1,7 @@
 #!/bin/sh
 
 currPath=$(pwd)
-keyStr="/kbengine/"
+keyStr="/kbengine"
 
 bcontain=`echo $currPath|grep $keyStr|wc -l`
 
@@ -10,7 +10,7 @@ if [ $bcontain = 0 ]
 then
 	export KBE_ROOT=$(cd ../; pwd)
 else
-	export KBE_ROOT="$(pwd | awk -F "/kbengine/" '{print $1}')/kbengine"
+	export KBE_ROOT="$(pwd | awk -F "/kbengine" '{print $1}')/kbengine"
 fi
 
 export KBE_RES_PATH="$KBE_ROOT/kbe/res/"
