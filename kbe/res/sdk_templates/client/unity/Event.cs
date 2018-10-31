@@ -620,7 +620,7 @@
 				return;
 			}
 			
-			if(eventsImmediately)
+			if(eventsImmediately && !_isPauseOut)
 			{
 				for(int i=0; i<lst.Count; i++)
 				{
