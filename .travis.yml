@@ -1,14 +1,6 @@
 language: cpp
-os:
-  - linux
-  - linux
 sudo: required
-env:
-  matrix:
-    - OS_TYPE=centos OS_VERSION=7
-    - OS_TYPE=ubuntu OS_VERSION=18.04
 compiler:
-   - gcc
    - gcc
 branches:
   only:
@@ -16,8 +8,7 @@ branches:
   - 1.x
 #  - stable
 before_install:
-   - if [[ $OS_TYPE == "centos" ]]; then sudo yum -y update           ; fi
-   - if [[ $OS_TYPE == "ubuntu" ]]; then sudo apt-get update          ; fi
+   - sudo apt-get update
 notifications:
   recipients:
     - kbesrv@gmail.com
