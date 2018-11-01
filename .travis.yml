@@ -12,8 +12,8 @@ branches:
   - 1.x
 #  - stable
 before_install:
-   - if [[ "$OS_TYPE" == "centos" ]]; then sudo yum -y update           ; fi
-   - if [[ "$OS_TYPE" == "ubuntu" ]]; then sudo apt-get update          ; fi
+   - if [[ $OS_TYPE == "centos" ]]; then sudo yum -y update           ; fi
+   - if [[ $OS_TYPE == "ubuntu" ]]; then sudo apt-get update          ; fi
 notifications:
   recipients:
     - kbesrv@gmail.com
