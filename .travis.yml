@@ -1,10 +1,14 @@
 language: cpp
+os:
+  - linux
+  - linux
 sudo: required
 env:
   matrix:
     - OS_TYPE=centos OS_VERSION=7
     - OS_TYPE=ubuntu OS_VERSION=18.04
 compiler:
+   - gcc
    - gcc
 branches:
   only:
