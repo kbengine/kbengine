@@ -218,6 +218,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DetourAlloc.cpp" />
+    <ClCompile Include="DetourAssert.cpp" />
     <ClCompile Include="DetourCommon.cpp" />
     <ClCompile Include="DetourCrowd.cpp" />
     <ClCompile Include="DetourLocalBoundary.cpp" />
@@ -238,6 +239,7 @@
     <ClCompile Include="Recast.cpp" />
     <ClCompile Include="RecastAlloc.cpp" />
     <ClCompile Include="RecastArea.cpp" />
+    <ClCompile Include="RecastAssert.cpp" />
     <ClCompile Include="RecastContour.cpp" />
     <ClCompile Include="RecastFilter.cpp" />
     <ClCompile Include="RecastLayers.cpp" />
