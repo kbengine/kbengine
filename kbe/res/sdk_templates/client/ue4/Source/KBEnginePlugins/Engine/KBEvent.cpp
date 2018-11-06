@@ -21,7 +21,12 @@ void KBEvent::clear()
 
 void KBEvent::clearFiredEvents()
 {
-
+	while (doningEvents_.Num() > 0)
+	{
+		DoingEvent* event = doningEvents_.Pop();
+		event->args->ConditionalBeginDestroy();
+		delete event;
+	}
 }
 
 bool KBEvent::registerEvent(const FString& eventName, const FString& funcName, TFunction<void(const UKBEventData*)> func, void* objPtr)
