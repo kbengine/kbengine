@@ -3,6 +3,8 @@
 #include "KBDebug.h"
 
 TMap<FString, TArray<KBEvent::EventObj>> KBEvent::events_;
+TArray<KBEvent::DoingEvent*>	KBEvent::doningEvents_;
+bool KBEvent::isPause_ = false;
 
 KBEvent::KBEvent()
 {
@@ -89,9 +91,36 @@ void KBEvent::fire(const FString& eventName, UKBEventData* pEventData)
 
 	for (auto& item : (*eo_array_find))
 	{
-		item.method(pEventData);
+		if (!isPause_)
+		{
+			item.method(pEventData);
+			pEventData->ConditionalBeginDestroy();
+		} 
+		else
+		{
+			DoingEvent* event = new DoingEvent;
+			event->evt = item;
+			event->args = pEventData;
+			doningEvents_.Emplace(event);
+		}
 	}
 
-	pEventData->ConditionalBeginDestroy();
 	//GetWorld()->ForceGarbageCollection(true);
+}
+
+void KBEvent::pause()
+{
+	isPause_ = true;
+}
+
+void KBEvent::resume()
+{
+	isPause_ = false;
+	while (doningEvents_.Num() > 0)
+	{
+		DoingEvent* event = doningEvents_.Pop();
+		event->evt.method(event->args);
+		event->args->ConditionalBeginDestroy();
+		delete event;
+	}
 }
