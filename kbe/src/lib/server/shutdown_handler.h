@@ -20,6 +20,14 @@ public:
 		SHUTDOWN_STATE_END = COMPONENT_STATE_STOP
 	};
 
+	enum CAN_SHUTDOWN_STATE
+	{
+		CAN_SHUTDOWN_STATE_USER_FALSE = 0,
+		CAN_SHUTDOWN_STATE_USER_TRUE = 1,
+		CAN_SHUTDOWN_STATE_FALSE = 2,
+		CAN_SHUTDOWN_STATE_TRUE = 3
+	};
+
 	ShutdownHandler():lastShutdownFailReason_("tasks"),
 	shuttingdown_(SHUTDOWN_STATE_STOP){
 	}
@@ -30,7 +38,7 @@ public:
 	virtual void onShutdown(bool first) = 0;
 	virtual void onShutdownEnd() = 0;
 	
-	virtual bool canShutdown(){ return true; }
+	virtual CAN_SHUTDOWN_STATE canShutdown() { return CAN_SHUTDOWN_STATE_TRUE; }
 	
 	void setShuttingdown(SHUTDOWN_STATE state){ shuttingdown_ = state; }
 	bool isShuttingdown() const{ return shuttingdown_ != SHUTDOWN_STATE_STOP; }

@@ -69,7 +69,7 @@ Cellapp::~Cellapp()
 }
 
 //-------------------------------------------------------------------------------------	
-bool Cellapp::canShutdown()
+ShutdownHandler::CAN_SHUTDOWN_STATE Cellapp::canShutdown()
 {
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 	Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
@@ -80,11 +80,11 @@ bool Cellapp::canShutdown()
 		//		pEntity->pScriptModule()->isPersistent())
 		{
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 		}
 	}
 
-	return true;
+	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
 }
 
 //-------------------------------------------------------------------------------------	
