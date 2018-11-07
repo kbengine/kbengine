@@ -90,7 +90,7 @@ Dbmgr::~Dbmgr()
 }
 
 //-------------------------------------------------------------------------------------
-bool Dbmgr::canShutdown()
+ShutdownHandler::CAN_SHUTDOWN_STATE Dbmgr::canShutdown()
 {
 	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
 	{
@@ -105,14 +105,14 @@ bool Dbmgr::canShutdown()
 			Py_DECREF(pyResult);
 
 			if (isReady)
-				return true;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE;
 			else
-				return false;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 		else
 		{
 			SCRIPT_ERROR_CHECK();
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 	}
 
@@ -128,41 +128,41 @@ bool Dbmgr::canShutdown()
 				bditer->first, bditer->second.size(), bditer->second.getTasksinfos(), (pThreadPool->currentThreadCount() - pThreadPool->currentFreeThreadCount()),
 				pThreadPool->currentThreadCount(), pThreadPool->isDestroyed()));
 
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 		}
 	}
 
 	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	if(cellapp_components.size() > 0)
+	if (cellapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<cellapp_components.size(); ++i)
+		for (size_t i = 0; i<cellapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", cellapp_components[i].cid);
 		}
 
-		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for cellapp[{}] destruction!\n", 
+		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for cellapp[{}] destruction!\n",
 			s));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
 	Components::COMPONENTS& baseapp_components = Components::getSingleton().getComponents(BASEAPP_TYPE);
-	if(baseapp_components.size() > 0)
+	if (baseapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<baseapp_components.size(); ++i)
+		for (size_t i = 0; i<baseapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", baseapp_components[i].cid);
 		}
 
-		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for baseapp[{}] destruction!\n", 
+		INFO_MSG(fmt::format("Dbmgr::canShutdown(): Waiting for baseapp[{}] destruction!\n",
 			s));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
-	return true;
+	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
 }
 
 //-------------------------------------------------------------------------------------	

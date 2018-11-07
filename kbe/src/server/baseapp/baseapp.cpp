@@ -211,7 +211,7 @@ Baseapp::~Baseapp()
 }
 
 //-------------------------------------------------------------------------------------	
-bool Baseapp::canShutdown()
+ShutdownHandler::CAN_SHUTDOWN_STATE Baseapp::canShutdown()
 {
 	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
 	{
@@ -226,36 +226,36 @@ bool Baseapp::canShutdown()
 			Py_DECREF(pyResult);
 
 			if (isReady)
-				return true;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE;
 			else
-				return false;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 		else
 		{
 			SCRIPT_ERROR_CHECK();
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 	}
-	
+
 	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	if(cellapp_components.size() > 0)
+	if (cellapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<cellapp_components.size(); ++i)
+		for (size_t i = 0; i<cellapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", cellapp_components[i].cid);
 		}
 
-		INFO_MSG(fmt::format("Baseapp::canShutdown(): Waiting for cellapp[{}] destruction!\n", 
+		INFO_MSG(fmt::format("Baseapp::canShutdown(): Waiting for cellapp[{}] destruction!\n",
 			s));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
 	int count = 0;
-	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
+	Entities<Entity>::ENTITYS_MAP& entities = this->pEntities()->getEntities();
 	Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
-	for(; iter != entities.end(); ++iter)
+	for (; iter != entities.end(); ++iter)
 	{
 		//if(static_cast<Entity*>(iter->second.get())->hasDB())
 		{
@@ -263,16 +263,16 @@ bool Baseapp::canShutdown()
 		}
 	}
 
-	if(count > 0)
+	if (count > 0)
 	{
 		lastShutdownFailReason_ = "destroyHasDBBases";
-		INFO_MSG(fmt::format("Baseapp::canShutdown(): Wait for the entity's into the database! The remaining {}.\n", 
+		INFO_MSG(fmt::format("Baseapp::canShutdown(): Wait for the entity's into the database! The remaining {}.\n",
 			count));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
-	return true;
+	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
 }
 
 //-------------------------------------------------------------------------------------	

@@ -189,16 +189,8 @@ void Logger::finalise()
 }
 
 //-------------------------------------------------------------------------------------	
-bool Logger::canShutdown()
+ShutdownHandler::CAN_SHUTDOWN_STATE Logger::canShutdown()
 {
-	if(Components::getSingleton().getGameSrvComponentsSize() > 0)
-	{
-		INFO_MSG(fmt::format("Logger::canShutdown(): Waiting for components({}) destruction!\n", 
-			Components::getSingleton().getGameSrvComponentsSize()));
-
-		return false;
-	}
-
 	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
 	{
 		// 所有脚本都加载完毕
@@ -212,18 +204,26 @@ bool Logger::canShutdown()
 			Py_DECREF(pyResult);
 
 			if (isReady)
-				return true;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE;
 			else
-				return false;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 		else
 		{
 			SCRIPT_ERROR_CHECK();
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 	}
 
-	return true;
+	if (Components::getSingleton().getGameSrvComponentsSize() > 0)
+	{
+		INFO_MSG(fmt::format("Logger::canShutdown(): Waiting for components({}) destruction!\n",
+			Components::getSingleton().getGameSrvComponentsSize()));
+
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
+	}
+
+	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
 }
 
 //-------------------------------------------------------------------------------------	
