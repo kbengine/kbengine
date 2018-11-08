@@ -252,7 +252,8 @@
 		public struct EventObj
 		{
 			public Pair info;
-			public object[] args;
+            public string eventname;
+            public object[] args;
 		};
 		
     	static Dictionary<string, List<Pair>> events_out = new Dictionary<string, List<Pair>>();
@@ -499,7 +500,8 @@
 
 		public static bool deregisterOut(string eventname, object obj, string funcname)
 		{
-			return deregister(events_out, eventname, obj, funcname);
+            removeFiredEventOut(obj, eventname, funcname);
+            return deregister(events_out, eventname, obj, funcname);
 		}
   
         public static bool deregisterOut(string eventname, Action handler)
@@ -509,7 +511,8 @@
 
         public static bool deregisterIn(string eventname, object obj, string funcname)
 		{
-			return deregister(events_in, eventname, obj, funcname);
+            removeFiredEventIn(obj, eventname, funcname);
+            return deregister(events_in, eventname, obj, funcname);
 		}
 
         public static bool deregisterIn(string eventname, Action handler)
@@ -545,11 +548,13 @@
 
 		public static bool deregisterOut(object obj)
 		{
+            removeAllFiredEventOut(obj);
 			return deregister(events_out, obj);
 		}
 
 		public static bool deregisterIn(object obj)
 		{
+            removeAllFiredEventIn(obj);
 			return deregister(events_in, obj);
 		}
 		
@@ -642,7 +647,8 @@
 				{
 					EventObj eobj = new EventObj();
 					eobj.info = lst[i];
-					eobj.args = args;
+                    eobj.eventname = eventname;
+                    eobj.args = args;
 					firedEvents.AddLast(eobj);
 				}
 			}
@@ -731,6 +737,51 @@
 					doingEvents_in.RemoveFirst();
 			}
 		}
-	
+
+        public static void removeAllFiredEventIn(object obj)
+        {
+            removeFiredEvent(firedEvents_in, obj);
+        }
+
+        public static void removeAllFiredEventOut(object obj)
+        {
+            removeFiredEvent(firedEvents_out, obj);
+        }
+
+        public static void removeFiredEventIn(object obj, string eventname, string funcname)
+        {
+            removeFiredEvent(firedEvents_in, obj, eventname, funcname);
+        }
+
+        public static void removeFiredEventOut(object obj, string eventname, string funcname)
+        {
+            removeFiredEvent(firedEvents_out, obj, eventname, funcname);
+        }
+
+        public static void removeFiredEvent(LinkedList<EventObj> firedEvents, object obj, string eventname="", string funcname="")
+        {
+            monitor_Enter(firedEvents);
+           
+            while(true)
+            {
+                bool found = false;
+                foreach(EventObj eobj in firedEvents)
+                {
+                    if( ((eventname == "" && funcname == "") || (eventname == eobj.eventname && funcname == eobj.info.funcname))
+                        && eobj.info.obj == obj)
+                    {
+                        firedEvents.Remove(eobj);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                    break;
+            }
+           
+            monitor_Exit(firedEvents);
+        }
+    
     }
 } 
