@@ -287,8 +287,9 @@ KBEngine.EventInfo = function(classinst, callbackfn)
 	this.classinst = classinst;
 }
 
-KBEngine.EventObj = function(evtInfo, ars)
+KBEngine.EventObj = function(evtName, evtInfo, ars)
 {
+	this.evtName = evtName;
 	this.evtInfo = evtInfo;
 	this.ars = ars;
 }
@@ -318,29 +319,69 @@ KBEngine.Event = function()
 		var info = new KBEngine.EventInfo(classinst, callbackfn);
 		evtlst.push(info);
 	}
-	
-	this.deregister = function(evtName, classinst)
+
+	this.deregisterAll = function(classinst)
 	{
 		for(var itemkey in this._events)
 		{
-			var evtlst = this._events[itemkey];
-			while(true)
+			this.deregister(itemkey, classinst);
+		}
+	}
+	
+	this.deregister = function(evtName, classinst)
+	{
+		var evtlst = this._events[evtName];
+
+		if(evtlst == undefined)
+		{
+			return;
+		}
+
+		while(true)
+		{
+			var found = false;
+			for(var i=0; i<evtlst.length; i++)
 			{
-				var found = false;
-				for(var i=0; i<evtlst.length; i++)
+				var info = evtlst[i];
+				if(info.classinst == classinst)
 				{
-					var info = evtlst[i];
-					if(info.classinst == classinst)
-					{
-						evtlst.splice(i, 1);
-						found = true;
-						break;
-					}
-				}
-				
-				if(!found)
+					evtlst.splice(i, 1);
+					found = true;
 					break;
+				}
 			}
+			
+			if(!found)
+				break;
+		}
+
+		this.removeFiredEvent(evtName, classinst);
+	}
+
+	this.removeAllFiredEvent = function(classinst)
+	{
+		this.removeFiredEvent("", classinst);
+	}
+
+	this.removeFiredEvent = function(evtName, classinst)
+	{
+		var fireEvents = this._fireEvents;
+		while(true)
+		{
+			var found = false;
+			for(var i=0; i<fireEvents.length; i++)
+			{
+				var evt = fireEvents[i];
+				if((evtName == "" || evt.evtName == evtName) && evt.evtInfo.classinst == classinst)
+				{
+					fireEvents.splice(i, 1);
+					found = true;
+					break;
+				}
+			}
+
+			if(!found)
+				break;
 		}
 	}
 	
@@ -381,7 +422,7 @@ KBEngine.Event = function()
 			}
 			else
 			{
-				var eobj = new KBEngine.EventObj(info, ars);
+				var eobj = new KBEngine.EventObj(evtName, info, ars);
 				this._fireEvents.push(eobj);
 			}
 		}
