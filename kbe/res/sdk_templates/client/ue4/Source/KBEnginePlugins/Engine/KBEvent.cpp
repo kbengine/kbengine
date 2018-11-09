@@ -12,7 +12,6 @@ KBEvent::KBEvent()
 
 KBEvent::~KBEvent()
 {
-	clearFiredEvents(true);
 }
 
 void KBEvent::clear()
@@ -20,16 +19,13 @@ void KBEvent::clear()
 	clearFiredEvents();
 }
 
-void KBEvent::clearFiredEvents(bool isClear /*= false*/)
+void KBEvent::clearFiredEvents()
 {
-	if (isClear)
+	while (firedEvents_.Num() > 0)
 	{
-		while (firedEvents_.Num() > 0)
-		{
-			FiredEvent* event = firedEvents_.Pop();
-			event->args->ConditionalBeginDestroy();
-			delete event;
-		}
+		FiredEvent* event = firedEvents_.Pop();
+		event->args->ConditionalBeginDestroy();
+		delete event;
 	}
 }
 

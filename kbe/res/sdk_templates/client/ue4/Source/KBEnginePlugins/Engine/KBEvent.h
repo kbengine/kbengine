@@ -40,7 +40,7 @@ public:
 		static void fire(const FString& eventName, UKBEventData* pEventData);
 
 		static void clear();
-		static void clearFiredEvents(bool isClear = false);
+		static void clearFiredEvents();
 
 		static void processInEvents() {}
 		static void processOutEvents() {}
