@@ -3,7 +3,7 @@
 #include "KBDebug.h"
 
 TMap<FString, TArray<KBEvent::EventObj>> KBEvent::events_;
-TArray<KBEvent::DoingEvent*>	KBEvent::doningEvents_;
+TArray<KBEvent::FiredEvent*>	KBEvent::firedEvents_;
 bool KBEvent::isPause_ = false;
 
 KBEvent::KBEvent()
@@ -12,6 +12,7 @@ KBEvent::KBEvent()
 
 KBEvent::~KBEvent()
 {
+	clearFiredEvents(true);
 }
 
 void KBEvent::clear()
@@ -19,13 +20,16 @@ void KBEvent::clear()
 	clearFiredEvents();
 }
 
-void KBEvent::clearFiredEvents()
+void KBEvent::clearFiredEvents(bool isClear /*= false*/)
 {
-	while (doningEvents_.Num() > 0)
+	if (isClear)
 	{
-		DoingEvent* event = doningEvents_.Pop();
-		event->args->ConditionalBeginDestroy();
-		delete event;
+		while (firedEvents_.Num() > 0)
+		{
+			FiredEvent* event = firedEvents_.Pop();
+			event->args->ConditionalBeginDestroy();
+			delete event;
+		}
 	}
 }
 
@@ -70,6 +74,8 @@ bool KBEvent::deregister(void* objPtr, const FString& eventName, const FString& 
 		}
 	}
 
+	removeFiredEvent(objPtr, eventName, funcName);
+
 	return true;
 }
 
@@ -103,10 +109,11 @@ void KBEvent::fire(const FString& eventName, UKBEventData* pEventData)
 		} 
 		else
 		{
-			DoingEvent* event = new DoingEvent;
+			FiredEvent* event = new FiredEvent;
 			event->evt = item;
+			event->eventName = eventName;
 			event->args = pEventData;
-			doningEvents_.Emplace(event);
+			firedEvents_.Emplace(event);
 		}
 	}
 
@@ -121,11 +128,34 @@ void KBEvent::pause()
 void KBEvent::resume()
 {
 	isPause_ = false;
-	while (doningEvents_.Num() > 0)
+	while (firedEvents_.Num() > 0)
 	{
-		DoingEvent* event = doningEvents_.Pop();
+		FiredEvent* event = firedEvents_.Pop();
 		event->evt.method(event->args);
 		event->args->ConditionalBeginDestroy();
 		delete event;
+	}
+}
+
+void KBEvent::removeFiredEvent(void* objPtr, const FString& eventName /*= TEXT("")*/, const FString& funcName /*= TEXT("")*/)
+{
+	while (true)
+	{
+		bool found = false;
+		for (auto item : firedEvents_)
+		{
+			bool ret = eventName.Len() == 0 && funcName.Len() == 0 || item->eventName == eventName && (funcName.Len() == 0 || item->evt.funcName == funcName);
+			if (ret && item->evt.objPtr == objPtr)
+			{
+				firedEvents_.Remove(item);
+				item->args->ConditionalBeginDestroy();
+				delete item;
+				found = true;
+				break;
+			}
+		}
+
+		if (!found)
+			break;
 	}
 }
