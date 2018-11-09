@@ -40,10 +40,15 @@ public:
 		static void fire(const FString& eventName, UKBEventData* pEventData);
 
 		static void clear();
-		static void clearFiredEvents();
+		static void clearFiredEvents(bool isClear = false);
 
 		static void processInEvents() {}
 		static void processOutEvents() {}
+
+		static void pause();
+		static void resume();
+
+		static void removeFiredEvent(void* objPtr, const FString& eventName = TEXT(""), const FString& funcName = TEXT(""));
 
 protected:
 	struct EventObj
@@ -53,15 +58,16 @@ protected:
 		void* objPtr;
 	};
 
-	struct DoingEvent
+	struct FiredEvent
 	{
-		EventObj	  evt;
+		EventObj evt;
+		FString eventName;
 		UKBEventData* args;
 	};
 
 	static TMap<FString, TArray<EventObj>> events_;
-	static TArray<DoingEvent*>	doningEvents_;
-	static bool	isPause_;
+	static TArray<FiredEvent*> firedEvents_;
+	static bool isPause_;
 };
 
 
@@ -74,7 +80,8 @@ protected:
 	KBEvent::registerEvent(EVENT_NAME, FUNC_NAME, EVENT_FUNC, (void*)this);
 
 // 注销这个对象某个事件
-#define KBENGINE_DEREGISTER_EVENT(EVENT_NAME) KBEvent::deregister((void*)this, EVENT_NAME, FUNC_NAME);
+#define KBENGINE_DEREGISTER_EVENT_BY_FUNCNAME(EVENT_NAME, FUNC_NAME) KBEvent::deregister((void*)this, EVENT_NAME, FUNC_NAME);
+#define KBENGINE_DEREGISTER_EVENT(EVENT_NAME) KBEvent::deregister((void*)this, EVENT_NAME, TEXT(""));
 
 // 注销这个对象所有的事件
 #define KBENGINE_DEREGISTER_ALL_EVENT()	KBEvent::deregister((void*)this);
