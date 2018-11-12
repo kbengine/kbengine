@@ -84,38 +84,48 @@ void Shutdowner::handleTimeout(TimerHandle handle, void * arg)
 	{
 		case TIMEOUT_SHUTDOWN_TICK:
 		{
-			INFO_MSG( "Shutdowner::onShutdown: shutting down\n" );
+			INFO_MSG("Shutdowner::onShutdown: shutting down\n");
+
 			pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_RUNNING);
-			pShutdownHandler_->onShutdown(true);
+			ShutdownHandler::CAN_SHUTDOWN_STATE canState = pShutdownHandler_->canShutdown();
+
+			if (canState == ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE || canState == ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE)
+				pShutdownHandler_->onShutdown(true);
+
 			cancel();
-			
+
 			pTimerHandle_ = pDispatcher_->addTimer(int(tickPeriod_ * 1000000),
-											this, (void *)TIMEOUT_SHUTDOWN_END_TICK);
-	
+				this, (void *)TIMEOUT_SHUTDOWN_END_TICK);
+
 			break;
 		}
 		case TIMEOUT_SHUTDOWN_END_TICK:
+		{
 			pShutdownHandler_->setShuttingdown(ShutdownHandler::SHUTDOWN_STATE_END);
-			if(!pShutdownHandler_->canShutdown())
+			ShutdownHandler::CAN_SHUTDOWN_STATE canState = pShutdownHandler_->canShutdown();
+
+			if (canState != ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE && canState != ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE)
 			{
 				//INFO_MSG(fmt::format("Shutdowner::onShutdownEnd: waiting for {} to complete!\n",
 				//	pShutdownHandler_->lastShutdownFailReason()));
-				
-				pShutdownHandler_->onShutdown(false);
-				
+
+				if (canState != ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE)
+					pShutdownHandler_->onShutdown(false);
+
 				cancel();
-				
+
 				pTimerHandle_ = pDispatcher_->addTimer(int(100000),
-												this, (void *)TIMEOUT_SHUTDOWN_END_TICK);
-			
+					this, (void *)TIMEOUT_SHUTDOWN_END_TICK);
+
 				break;
 			}
-			
-			INFO_MSG( "Shutdowner::onShutdownEnd: shutting down\n" );
+
+			INFO_MSG("Shutdowner::onShutdownEnd: shutting down\n");
 
 			cancel();
 			pShutdownHandler_->onShutdownEnd();
 			break;
+		}
 		default:
 			break;
 	}

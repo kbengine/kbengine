@@ -81,7 +81,7 @@ public:
 
 	bool initDB();
 
-	virtual bool canShutdown();
+	virtual ShutdownHandler::CAN_SHUTDOWN_STATE canShutdown();
 
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
