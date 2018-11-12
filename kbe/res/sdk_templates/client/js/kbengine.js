@@ -287,7 +287,7 @@ KBEngine.EventInfo = function(classinst, callbackfn)
 	this.classinst = classinst;
 }
 
-KBEngine.EventObj = function(evtName, evtInfo, ars)
+KBEngine.FiredEvent = function(evtName, evtInfo, ars)
 {
 	this.evtName = evtName;
 	this.evtInfo = evtInfo;
@@ -298,7 +298,7 @@ KBEngine.Event = function()
 {
 	this._events = {};
 	this._isPause = false;
-	this._fireEvents = [];
+	this._firedEvents = [];
 	
 	this.register = function(evtName, classinst, strCallback)
 	{
@@ -365,16 +365,16 @@ KBEngine.Event = function()
 
 	this.removeFiredEvent = function(evtName, classinst)
 	{
-		var fireEvents = this._fireEvents;
+		var firedEvents = this._firedEvents;
 		while(true)
 		{
 			var found = false;
-			for(var i=0; i<fireEvents.length; i++)
+			for(var i=0; i<firedEvents.length; i++)
 			{
-				var evt = fireEvents[i];
+				var evt = firedEvents[i];
 				if((evtName == "" || evt.evtName == evtName) && evt.evtInfo.classinst == classinst)
 				{
-					fireEvents.splice(i, 1);
+					firedEvents.splice(i, 1);
 					found = true;
 					break;
 				}
@@ -422,8 +422,8 @@ KBEngine.Event = function()
 			}
 			else
 			{
-				var eobj = new KBEngine.EventObj(evtName, info, ars);
-				this._fireEvents.push(eobj);
+				var eobj = new KBEngine.FiredEvent(evtName, info, ars);
+				this._firedEvents.push(eobj);
 			}
 		}
 	}
@@ -437,11 +437,12 @@ KBEngine.Event = function()
 	{
 		this._isPause = false;
 
-		while(this._fireEvents.length > 0)
+		var firedEvents = this._firedEvents;
+		while(firedEvents.length > 0)
 		{
-			var eobj = this._fireEvents.shift();
-			var info = eobj.evtInfo;
-			var ars = eobj.ars;
+			var evt = firedEvents.shift();
+			var info = evt.evtInfo;
+			var ars = evt.ars;
 
 			if(ars.length < 1)
 			{
@@ -1755,7 +1756,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 		this.inWorld = true;
 		this.onEnterWorld();
 		
-		KBEngine.Event.fire("onEnterWorld", this);
+		KBEngine.Event.fire(KBEngine.EventTypes.onEnterWorld, this);
 	},
 
 	onEnterWorld : function()
@@ -1767,7 +1768,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 		KBEngine.INFO_MSG(this.className + '::leaveWorld: ' + this.id); 
 		this.inWorld = false;
 		this.onLeaveWorld();
-		KBEngine.Event.fire("onLeaveWorld", this);
+		KBEngine.Event.fire(KBEngine.EventTypes.onLeaveWorld, this);
 	},
 
 	onLeaveWorld : function()
@@ -1778,11 +1779,11 @@ KBEngine.Entity = KBEngine.Class.extend(
 	{
 		KBEngine.INFO_MSG(this.className + '::enterSpace: ' + this.id); 
 		this.onEnterSpace();
-		KBEngine.Event.fire("onEnterSpace", this);
+		KBEngine.Event.fire(KBEngine.EventTypes.onEnterSpace, this);
 		
 		// 要立即刷新表现层对象的位置
-		KBEngine.Event.fire("set_position", this);
-		KBEngine.Event.fire("set_direction", this);
+		KBEngine.Event.fire(KBEngine.EventTypes.set_position, this);
+		KBEngine.Event.fire(KBEngine.EventTypes.set_direction, this);
 	},
 
 	onEnterSpace : function()
@@ -1811,7 +1812,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 			KBEngine.app.entityServerPos.z = this.position.z;
 		}
 		
-		KBEngine.Event.fire("set_position", this);
+		KBEngine.Event.fire(KBEngine.EventTypes.set_position, this);
 	},
 
 	onUpdateVolatileData : function()
@@ -1821,7 +1822,7 @@ KBEngine.Entity = KBEngine.Class.extend(
 	set_direction : function(old)
 	{
 		// KBEngine.DEBUG_MSG(this.className + "::set_direction: " + old);  
-		KBEngine.Event.fire("set_direction", this);
+		KBEngine.Event.fire(KBEngine.EventTypes.set_direction, this);
 	}
 });
 
@@ -2693,6 +2694,159 @@ KBEngine.KBEngineArgs = function()
 /*-----------------------------------------------------------------------------------------
 												KBEngine app
 -----------------------------------------------------------------------------------------*/
+KBEngine.EventTypes =
+{
+	// Create new account.
+	// <para> param1(string): accountName</para>
+	// <para> param2(string): password</para>
+	// <para> param3(bytes): datas // Datas by user defined. Data will be recorded into the KBE account database, you can access the datas through the script layer. If you use third-party account system, datas will be submitted to the third-party system.</para>
+	createAccount : "createAccount",
+
+	// Login to server.
+	// <para> param1(string): accountName</para>
+	// <para> param2(string): password</para>
+	// <para> param3(bytes): datas // Datas by user defined. Data will be recorded into the KBE account database, you can access the datas through the script layer. If you use third-party account system, datas will be submitted to the third-party system.</para>
+	login : "login",
+
+	// Logout to baseapp, called when exiting the client.	
+	logout : "logout",
+
+	// Relogin to baseapp.
+	reloginBaseapp : "reloginBaseapp",
+
+	// Request server binding account Email.
+	// <para> param1(string): emailAddress</para>
+	bindAccountEmail : "bindAccountEmail",
+
+	// Request to set up a new password for the account. Note: account must be online.
+	// <para> param1(string): old_password</para>
+	// <para> param2(string): new_password</para>
+	newPassword : "newPassword",
+
+	// ------------------------------------连接相关------------------------------------
+
+	// Kicked of the current server.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	onKicked : "onKicked",
+
+	// Disconnected from the server.
+	onDisconnected : "onDisconnected",
+
+	// Status of connection server.
+	// <para> param1(bool): success or fail</para>
+	onConnectionState : "onConnectionState",
+
+	// ------------------------------------logon相关------------------------------------
+
+	// Create account feedback results.
+	// <para> param1(uint16): retcode. // server_errors</para>
+	// <para> param2(bytes): datas. // If you use third-party account system, the system may fill some of the third-party additional datas. </para>
+	onCreateAccountResult : "onCreateAccountResult",
+
+	// Engine version mismatch.
+	// <para> param1(string): clientVersion
+	// <para> param2(string): serverVersion
+	onVersionNotMatch : "onVersionNotMatch",
+
+	// script version mismatch.
+    // <para> param1(string): clientScriptVersion
+    // <para> param2(string): serverScriptVersion
+	onScriptVersionNotMatch : "onScriptVersionNotMatch",
+
+	// Login failed.
+    // <para> param1(uint16): retcode. // server_errors</para>
+	onLoginFailed : "onLoginFailed",
+
+	// Login to baseapp.
+	onLoginBaseapp : "onLoginBaseapp",
+
+	// Login baseapp failed.
+    // <para> param1(uint16): retcode. // server_errors</para>
+	onLoginBaseappFailed : "onLoginBaseappFailed",
+
+	// Relogin to baseapp.
+	onReloginBaseapp : "onReloginBaseapp",
+
+	// Relogin baseapp success.
+	onReloginBaseappSuccessfully : "onReloginBaseappSuccessfully",
+
+	// Relogin baseapp failed.
+    // <para> param1(uint16): retcode. // server_errors</para>
+	onReloginBaseappFailed : "onReloginBaseappFailed",
+
+	// ------------------------------------实体cell相关事件------------------------------------
+
+	// Entity enter the client-world.
+    // <para> param1: Entity</para>
+	onEnterWorld : "onEnterWorld",
+
+	// Entity leave the client-world.
+    // <para> param1: Entity</para>
+	onLeaveWorld : "onLeaveWorld",
+
+	// Player enter the new space.
+    // <para> param1: Entity</para>
+	onEnterSpace : "onEnterSpace",
+
+	// Player leave the space.
+    // <para> param1: Entity</para>
+	onLeaveSpace : "onLeaveSpace",
+
+	// Sets the current position of the entity.
+	// <para> param1: Entity</para>
+	set_position : "set_position",
+
+	// Sets the current direction of the entity.
+	// <para> param1: Entity</para>
+	set_direction : "set_direction",
+
+	// The entity position is updated, you can smooth the moving entity to new location.
+	// <para> param1: Entity</para>
+	updatePosition : "updatePosition",
+
+	// The current space is specified by the geometry mapping.
+	// Popular said is to load the specified Map Resources.
+	// <para> param1(string): resPath</para>
+	addSpaceGeometryMapping : "addSpaceGeometryMapping",
+
+	// Server spaceData set data.
+	// <para> param1(int32): spaceID</para>
+	// <para> param2(string): key</para>
+	// <para> param3(string): value</para>
+	onSetSpaceData : "onSetSpaceData",
+
+	// Start downloading data.
+	// <para> param1(int32): rspaceID</para>
+	// <para> param2(string): key</para>
+	onDelSpaceData : "onDelSpaceData",
+
+	// Triggered when the entity is controlled or out of control.
+	// <para> param1: Entity</para>
+	// <para> param2(bool): isControlled</para>
+	onControlled : "onControlled",
+
+	// Lose controlled entity.
+	// <para> param1: Entity</para>
+	onLoseControlledEntity : "onLoseControlledEntity",
+
+	// ------------------------------------数据下载相关------------------------------------
+
+	// Start downloading data.
+	// <para> param1(uint16): resouce id</para>
+	// <para> param2(uint32): data size</para>
+	// <para> param3(string): description</para>
+	onStreamDataStarted : "onStreamDataStarted",
+
+	// Receive data.
+	// <para> param1(uint16): resouce id</para>
+	// <para> param2(bytes): datas</para>
+	onStreamDataRecv : "onStreamDataRecv",
+
+	// The downloaded data is completed.
+	// <para> param1(uint16): resouce id</para>
+	onStreamDataCompleted : "onStreamDataCompleted",
+}
+
 KBEngine.KBEngineApp = function(kbengineArgs)
 {
 	console.assert(KBEngine.app == null || KBEngine.app == undefined, "Assertion of KBEngine.app not is null");
@@ -2725,15 +2879,6 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		this.id = 0;
 	}
 
-	KBEngine.FragmentDataTypes = 
-	{
-		FRAGMENT_DATA_UNKNOW : 0,
-		FRAGMENT_DATA_MESSAGE_ID : 1,
-		FRAGMENT_DATA_MESSAGE_LENGTH : 2,
-		FRAGMENT_DATA_MESSAGE_LENGTH1 : 3,
-		FRAGMENT_DATA_MESSAGE_BODY : 4
-	};
-	
 	this.serverErrs = {};
 		
 	// 登录loginapp的地址
@@ -2750,6 +2895,15 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.currMsgCount = 0;
 	this.currMsgLen = 0;
 	
+	KBEngine.FragmentDataTypes = 
+	{
+		FRAGMENT_DATA_UNKNOW : 0,
+		FRAGMENT_DATA_MESSAGE_ID : 1,
+		FRAGMENT_DATA_MESSAGE_LENGTH : 2,
+		FRAGMENT_DATA_MESSAGE_LENGTH1 : 3,
+		FRAGMENT_DATA_MESSAGE_BODY : 4
+	};
+
 	this.fragmentStream = null;
 	this.fragmentDatasFlag = KBEngine.FragmentDataTypes.FRAGMENT_DATA_UNKNOW;
 	this.fragmentDatasRemain = 0;
@@ -2833,22 +2987,22 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 	this.installEvents = function()
 	{
-		KBEngine.Event.register("createAccount", KBEngine.app, "createAccount");
-		KBEngine.Event.register("login", KBEngine.app, "login");
-		KBEngine.Event.register("logout", KBEngine.app, "logout");
-		KBEngine.Event.register("reloginBaseapp", KBEngine.app, "reloginBaseapp");
-		KBEngine.Event.register("bindAccountEmail", KBEngine.app, "bindAccountEmail");
-		KBEngine.Event.register("newPassword", KBEngine.app, "newPassword");
+		KBEngine.Event.register(KBEngine.EventTypes.createAccount, KBEngine.app, "createAccount");
+		KBEngine.Event.register(KBEngine.EventTypes.login, KBEngine.app, "login");
+		KBEngine.Event.register(KBEngine.EventTypes.logout, KBEngine.app, "logout");
+		KBEngine.Event.register(KBEngine.EventTypes.reloginBaseapp, KBEngine.app, "reloginBaseapp");
+		KBEngine.Event.register(KBEngine.EventTypes.bindAccountEmail, KBEngine.app, "bindAccountEmail");
+		KBEngine.Event.register(KBEngine.EventTypes.newPassword, KBEngine.app, "newPassword");
 	}
 
 	this.uninstallEvents = function()
 	{
-		KBEngine.Event.deregister("createAccount", KBEngine.app);
-		KBEngine.Event.deregister("login", KBEngine.app);
-		KBEngine.Event.deregister("logout", KBEngine.app);
-		KBEngine.Event.deregister("reloginBaseapp", KBEngine.app);
-		KBEngine.Event.deregister("bindAccountEmail", KBEngine.app);
-		KBEngine.Event.deregister("newPassword", KBEngine.app);
+		KBEngine.Event.deregister(KBEngine.EventTypes.createAccount, KBEngine.app);
+		KBEngine.Event.deregister(KBEngine.EventTypes.login, KBEngine.app);
+		KBEngine.Event.deregister(KBEngine.EventTypes.logout, KBEngine.app);
+		KBEngine.Event.deregister(KBEngine.EventTypes.reloginBaseapp, KBEngine.app);
+		KBEngine.Event.deregister(KBEngine.EventTypes.bindAccountEmail, KBEngine.app);
+		KBEngine.Event.deregister(KBEngine.EventTypes.newPassword, KBEngine.app);
 	}
 	
 	this.hello = function()
@@ -2887,7 +3041,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		catch(e)
 		{  
 			KBEngine.ERROR_MSG('WebSocket init error(' + e.toString() + ')!'); 
-			KBEngine.Event.fire("onConnectionState", false);
+			KBEngine.Event.fire(KBEngine.EventTypes.onConnectionState, false);
 			return;  
 		}
 		
@@ -2907,21 +3061,21 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{  
 		KBEngine.INFO_MSG('connect success!');
 		KBEngine.app.socket.onerror = KBEngine.app.onerror_after_onopen;
-		KBEngine.Event.fire("onConnectionState", true);
+		KBEngine.Event.fire(KBEngine.EventTypes.onConnectionState, true);
 	}
 
 	this.onerror_before_onopen = function(evt)
 	{  
 		KBEngine.ERROR_MSG('onerror_before_onopen error:' + evt.data);
 		KBEngine.app.resetSocket();
-		KBEngine.Event.fire("onConnectionState", false);
+		KBEngine.Event.fire(KBEngine.EventTypes.onConnectionState, false);
 	}
 	
 	this.onerror_after_onopen = function(evt)
 	{
 		KBEngine.ERROR_MSG('onerror_after_onopen error:' + evt.data);
 		KBEngine.app.resetSocket();
-		KBEngine.Event.fire("onDisconnected");
+		KBEngine.Event.fire(KBEngine.EventTypes.onDisconnected);
 	}
 	
 	this.onmessage = function(msg)
@@ -3103,7 +3257,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			return;
 
 		KBEngine.app.resetSocket();
-		KBEngine.Event.fire("onDisconnected");
+		KBEngine.Event.fire(KBEngine.EventTypes.onDisconnected);
 		//if(KBEngine.app.currserver != "loginapp")
 		//	KBEngine.app.reset();
 	}
@@ -3208,7 +3362,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.onOpenLoginapp_login = function()
 	{  
 		KBEngine.INFO_MSG("KBEngineApp::onOpenLoginapp_login: successfully!");
-		KBEngine.Event.fire("onConnectionState", true);
+		KBEngine.Event.fire(KBEngine.EventTypes.onConnectionState, true);
 		
 		KBEngine.app.currserver = "loginapp";
 		KBEngine.app.currstate = "login";
@@ -3230,7 +3384,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.onOpenLoginapp_createAccount = function()
 	{  
-		KBEngine.Event.fire("onConnectionState", true);
+		KBEngine.Event.fire(KBEngine.EventTypes.onConnectionState, true);
 		KBEngine.INFO_MSG("KBEngineApp::onOpenLoginapp_createAccount: successfully!");
 		KBEngine.app.currserver = "loginapp";
 		KBEngine.app.currstate = "createAccount";
@@ -3551,14 +3705,14 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{
 		KBEngine.app.serverVersion = stream.readString();
 		KBEngine.ERROR_MSG("Client_onVersionNotMatch: verInfo=" + KBEngine.app.clientVersion + " not match(server: " + KBEngine.app.serverVersion + ")");
-		KBEngine.Event.fire("onVersionNotMatch", KBEngine.app.clientVersion, KBEngine.app.serverVersion);
+		KBEngine.Event.fire(KBEngine.EventTypes.onVersionNotMatch, KBEngine.app.clientVersion, KBEngine.app.serverVersion);
 	}
 
 	this.Client_onScriptVersionNotMatch = function(stream)
 	{
 		KBEngine.app.serverScriptVersion = stream.readString();
 		KBEngine.ERROR_MSG("Client_onScriptVersionNotMatch: verInfo=" + KBEngine.app.clientScriptVersion + " not match(server: " + KBEngine.app.serverScriptVersion + ")");
-		KBEngine.Event.fire("onScriptVersionNotMatch", KBEngine.app.clientScriptVersion, KBEngine.app.serverScriptVersion);
+		KBEngine.Event.fire(KBEngine.EventTypes.onScriptVersionNotMatch, KBEngine.app.clientScriptVersion, KBEngine.app.serverScriptVersion);
 	}
 	
 	this.onImportEntityDefCompleted = function()
@@ -3842,7 +3996,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{  
 		if(noconnect)
 		{
-			KBEngine.Event.fire("onLoginBaseapp");
+			KBEngine.Event.fire(KBEngine.EventTypes.onLoginBaseapp);
 			var serverAddr = this.getServerAddr(KBEngine.app.baseappIp, KBEngine.app.baseappPort);
 			KBEngine.INFO_MSG("KBEngineApp::login_baseapp: start connect to " + serverAddr + "!");
 			KBEngine.app.currconnect = "baseapp";
@@ -3871,7 +4025,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			return;
 		
 		KBEngine.app.resetSocket();
-		KBEngine.Event.fire("onReloginBaseapp");
+		KBEngine.Event.fire(KBEngine.EventTypes.onReloginBaseapp);
 
 		var serverAddr = this.getServerAddr(KBEngine.app.baseappIp, KBEngine.app.baseappPort);
 		KBEngine.INFO_MSG("KBEngineApp::reloginBaseapp: start connect to " + serverAddr + "!");
@@ -3921,7 +4075,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var failedcode = args.readUint16();
 		KBEngine.app.serverdatas = args.readBlob();
 		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginFailed: failedcode(" + KBEngine.app.serverErrs[failedcode].name + "), datas(" + KBEngine.app.serverdatas.length + ")!");
-		KBEngine.Event.fire("onLoginFailed", failedcode);
+		KBEngine.Event.fire(KBEngine.EventTypes.onLoginFailed, failedcode);
 	}
 	
 	this.Client_onLoginSuccessfully = function(args)
@@ -3942,20 +4096,20 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.Client_onLoginBaseappFailed = function(failedcode)
 	{
 		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginBaseappFailed: failedcode(" + KBEngine.app.serverErrs[failedcode].name + ")!");
-		KBEngine.Event.fire("onLoginBaseappFailed", failedcode);
+		KBEngine.Event.fire(KBEngine.onLoginBaseappFailed.onLoginBaseappFailed, failedcode);
 	}
 
 	this.Client_onReloginBaseappFailed = function(failedcode)
 	{
 		KBEngine.ERROR_MSG("KBEngineApp::Client_onReloginBaseappFailed: failedcode(" + KBEngine.app.serverErrs[failedcode].name + ")!");
-		KBEngine.Event.fire("onReloginBaseappFailed", failedcode);
+		KBEngine.Event.fire(KBEngine.EventTypes.onReloginBaseappFailed, failedcode);
 	}
 
 	this.Client_onReloginBaseappSuccessfully = function(stream)
 	{
 		KBEngine.app.entity_uuid = stream.readUint64();
 		KBEngine.DEBUG_MSG("KBEngineApp::Client_onReloginBaseappSuccessfully: " + KBEngine.app.username);
-		KBEngine.Event.fire("onReloginBaseappSuccessfully");
+		KBEngine.Event.fire(KBEngine.EventTypes.onReloginBaseappSuccessfully);
 	}
 	
 	this.entityclass = {};
@@ -4287,7 +4441,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 				}
 				else
 				{
-					KBEngine.Event.fire("onLoseControlledEntity");
+					KBEngine.Event.fire(KBEngine.EventTypes.onLoseControlledEntity);
 				}
 			}
 			
@@ -4374,7 +4528,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	this.Client_onKicked = function(failedcode)
 	{
 		KBEngine.ERROR_MSG("KBEngineApp::Client_onKicked: failedcode(" + KBEngine.app.serverErrs[failedcode].name + ")!");
-		KBEngine.Event.fire("onKicked", failedcode);
+		KBEngine.Event.fire(KBEngine.EventTypes.onKicked, failedcode);
 	}
 
 	this.Client_onCreateAccountResult = function(stream)
@@ -4382,7 +4536,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var retcode = stream.readUint16();
 		var datas = stream.readBlob();
 		
-		KBEngine.Event.fire("onCreateAccountResult", retcode, datas);
+		KBEngine.Event.fire(KBEngine.EventTypes.onCreateAccountResult, retcode, datas);
 		
 		if(retcode != 0)
 		{
@@ -4429,7 +4583,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		try
 		{
 			entity.onControlled(isCont);
-			KBEngine.Event.fire("onControlled", entity, isCont);
+			KBEngine.Event.fire(KBEngine.EventTypes.onControlled, entity, isCont);
 		}
 		catch (e)
 		{
@@ -4504,7 +4658,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		KBEngine.app.spaceID = spaceID;
 		KBEngine.app.spaceResPath = respath;
-		KBEngine.Event.fire("addSpaceGeometryMapping", respath);
+		KBEngine.Event.fire(KBEngine.EventTypes.addSpaceGeometryMapping, respath);
 	}
 
 	this.clearSpace = function(isAll)
@@ -4580,7 +4734,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		if(key == "_mapping")
 			KBEngine.app.addSpaceGeometryMapping(spaceID, value);
 		
-		KBEngine.Event.fire("onSetSpaceData", spaceID, key, value);
+		KBEngine.Event.fire(KBEngine.EventTypes.onSetSpaceData, spaceID, key, value);
 	}
 	
 	this.Client_delSpaceData = function(spaceID, key)
@@ -4588,7 +4742,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		KBEngine.INFO_MSG("KBEngineApp::Client_delSpaceData: spaceID(" + spaceID + "), key(" + key + ")!");
 		
 		delete KBEngine.app.spacedata[key];
-		KBEngine.Event.fire("onDelSpaceData", spaceID, key);
+		KBEngine.Event.fire(KBEngine.EventTypes.onDelSpaceData, spaceID, key);
 	}
 	
 	this.Client_getSpaceData = function(spaceID, key)
@@ -4948,7 +5102,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		var done = false;
 		if(changeDirection == true)
 		{
-			KBEngine.Event.fire("set_direction", entity);		
+			KBEngine.Event.fire(KBEngine.EventTypes.set_direction, entity);		
 			done = true;
 		}
 		
@@ -4967,7 +5121,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 			entity.position.z = z + KBEngine.app.entityServerPos.z;
 			
 			done = true;
-			KBEngine.Event.fire("updatePosition", entity);
+			KBEngine.Event.fire(KBEngine.EventTypes.updatePosition, entity);
 		}
 		
 		if(done)
@@ -4976,19 +5130,19 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onStreamDataStarted = function(id, datasize, descr)
 	{
-		KBEngine.Event.fire("onStreamDataStarted", id, datasize, descr);
+		KBEngine.Event.fire(KBEngine.EventTypes.onStreamDataStarted, id, datasize, descr);
 	}
 	
 	this.Client_onStreamDataRecv = function(stream)
 	{
 		var id = stream.readUint16();
 		var data = stream.readBlob();
-		KBEngine.Event.fire("onStreamDataRecv", id, data);
+		KBEngine.Event.fire(KBEngine.EventTypes.onStreamDataRecv, id, data);
 	}
 	
 	this.Client_onStreamDataCompleted = function(id)
 	{
-		KBEngine.Event.fire("onStreamDataCompleted", id);
+		KBEngine.Event.fire(KBEngine.EventTypes.onStreamDataCompleted, id);
 	}
 	
 	this.Client_onReqAccountResetPasswordCB = function(failedcode)
