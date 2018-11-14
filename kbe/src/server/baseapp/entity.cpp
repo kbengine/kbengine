@@ -27,6 +27,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "network/channel.h"	
 #include "network/fixed_messages.h"
 #include "client_lib/client_interface.h"
+#include "common/sha1.h"
 
 #ifndef CODE_INLINE
 #include "entity.inl"
@@ -76,9 +77,10 @@ creatingCell_(false),
 createdSpace_(false),
 inRestore_(false),
 pBufferedSendToClientMessages_(NULL),
-isDirty_(true),
 dbInterfaceIndex_(0)
 {
+	setDirty();
+
 	script::PyGC::incTracing("Entity");
 	ENTITY_INIT_PROPERTYS(Entity);
 
@@ -145,8 +147,6 @@ void Entity::onDefDataChanged(const PropertyDescription* propertyDescription,
 //-------------------------------------------------------------------------------------
 void Entity::onDestroy(bool callScript)
 {
-	setDirty();
-	
 	if(callScript)
 	{
 		SCOPED_PROFILE(SCRIPTCALL_PROFILE);
@@ -658,21 +658,6 @@ void Entity::onDestroyEntity(bool deleteFromDB, bool writeToDB)
 PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
-		
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
-	
-	// 如果访问了def持久化类容器属性
-	// 由于没有很好的监测容器类属性内部的变化，这里使用一个折中的办法进行标脏
-	PropertyDescription* pPropertyDescription = const_cast<ScriptDefModule*>(pScriptModule())->findPersistentPropertyDescription(ccattr);
-	if(pPropertyDescription && (pPropertyDescription->getFlags() & ENTITY_BASE_DATA_FLAGS) > 0)
-	{
-		setDirty();
-	}
-	else if (strcmp(ccattr, "cellData") == 0)
-	{
-		setDirty();
-	}
-	
 	return ScriptObject::onScriptGetAttribute(attr);
 }	
 
@@ -1190,14 +1175,6 @@ void Entity::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoa
 	// 如果在数据库中已经存在该entity则允许应用层多次调用写库进行数据及时覆盖需求
 	if(this->DBID_ > 0)
 		isArchiveing_ = false;
-	else
-		setDirty();
-	
-	// 如果数据没有改变那么不需要持久化
-	if(!isDirty())
-		return;
-	
-	setDirty(false);
 	
 	Components::COMPONENTS& cts = Components::getSingleton().getComponents(DBMGR_TYPE);
 	Components::ComponentInfos* dbmgrinfos = NULL;
@@ -1225,6 +1202,23 @@ void Entity::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoa
 
 		MemoryStream::reclaimPoolObject(s);
 		return;
+	}
+
+	KBE_SHA1 sha;
+	uint32 digest[5];
+
+	sha.Input(s->data(), s->length());
+	sha.Result(digest);
+
+	// 检查数据是否有变化，有变化则将数据备份并且记录数据hash，没变化什么也不做
+	if (memcmp((void*)&persistentDigest_[0], (void*)&digest[0], sizeof(persistentDigest_)) == 0)
+	{
+		MemoryStream::reclaimPoolObject(s);
+		return;
+	}
+	else
+	{
+		setDirty((uint32*)&digest[0]);
 	}
 
 	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);

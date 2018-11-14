@@ -297,15 +297,23 @@ void Channel::startInactivityDetection( float period, float checkPeriod )
 	stopInactivityDetection();
 
 	// 如果周期为负数则不检查
-	if(period > 0.001f)
+	if (period > 0.001f)
 	{
 		checkPeriod = std::max(1.f, checkPeriod);
-		inactivityExceptionPeriod_ = uint64( period * stampsPerSecond() ) - uint64( 0.05f * stampsPerSecond() );
+
+		int icheckPeriod = int(checkPeriod * 1000000);
+		if (icheckPeriod <= 0)
+		{
+			ERROR_MSG(fmt::format("Channel::startInactivityDetection: checkPeriod overflowed, close checker! period={}, checkPeriod={}\n", period, checkPeriod));
+			return;
+		}
+
+		inactivityExceptionPeriod_ = uint64(period * stampsPerSecond()) - uint64(0.05f * stampsPerSecond());
 		lastReceivedTime_ = timestamp();
 
 		inactivityTimerHandle_ =
-			this->dispatcher().addTimer( int( checkPeriod * 1000000 ),
-										this, (void *)TIMEOUT_INACTIVITY_CHECK );
+			this->dispatcher().addTimer(icheckPeriod,
+				this, (void *)TIMEOUT_INACTIVITY_CHECK);
 	}
 }
 

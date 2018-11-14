@@ -279,7 +279,7 @@ public:
 	/** 
 		设置实体持久化数据是否已脏，脏了会自动存档 
 	*/
-	INLINE void setDirty(bool dirty = true);
+	INLINE void setDirty(uint32* digest = NULL);
 	INLINE bool isDirty() const;
 	
 protected:
@@ -333,8 +333,8 @@ protected:
 	// 等cell1的包到达后执行完毕再执行cell2的包
 	BaseMessagesForwardClientHandler*		pBufferedSendToClientMessages_;
 	
-	// 需要持久化的数据是否变脏，如果没有变脏不需要持久化
-	bool									isDirty_;
+	// 需要持久化的数据是否变脏（内存sha1），如果没有变脏不需要持久化
+	uint32									persistentDigest_[5];
 
 	// 如果这个实体已经写到数据库，那么这个属性就是对应的数据库接口的索引
 	uint16									dbInterfaceIndex_;

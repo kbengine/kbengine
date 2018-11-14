@@ -16,45 +16,20 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#include <stdlib.h>
-#include <string.h>
-#include "RecastAlloc.h"
-#include "RecastAssert.h"
+#include "DetourAssert.h"
 
-static void *rcAllocDefault(size_t size, rcAllocHint)
+#ifndef NDEBUG
+
+static dtAssertFailFunc* sAssertFailFunc = 0;
+
+void dtAssertFailSetCustom(dtAssertFailFunc *assertFailFunc)
 {
-	return malloc(size);
+	sAssertFailFunc = assertFailFunc;
 }
 
-static void rcFreeDefault(void *ptr)
+dtAssertFailFunc* dtAssertFailGetCustom()
 {
-	free(ptr);
+	return sAssertFailFunc;
 }
 
-static rcAllocFunc* sRecastAllocFunc = rcAllocDefault;
-static rcFreeFunc* sRecastFreeFunc = rcFreeDefault;
-
-/// @see rcAlloc, rcFree
-void rcAllocSetCustom(rcAllocFunc *allocFunc, rcFreeFunc *freeFunc)
-{
-	sRecastAllocFunc = allocFunc ? allocFunc : rcAllocDefault;
-	sRecastFreeFunc = freeFunc ? freeFunc : rcFreeDefault;
-}
-
-/// @see rcAllocSetCustom
-void* rcAlloc(size_t size, rcAllocHint hint)
-{
-	return sRecastAllocFunc(size, hint);
-}
-
-/// @par
-///
-/// @warning This function leaves the value of @p ptr unchanged.  So it still
-/// points to the same (now invalid) location, and not to null.
-/// 
-/// @see rcAllocSetCustom
-void rcFree(void* ptr)
-{
-	if (ptr)
-		sRecastFreeFunc(ptr);
-}
+#endif
