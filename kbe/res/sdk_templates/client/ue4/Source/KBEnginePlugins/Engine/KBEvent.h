@@ -4,6 +4,7 @@
 
 #include "Object.h"
 #include "KBECommon.h"
+#include "KBEventTypes.h"
 #include "KBEvent.generated.h"
 
 

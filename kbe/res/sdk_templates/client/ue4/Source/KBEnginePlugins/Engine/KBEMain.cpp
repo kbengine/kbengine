@@ -151,7 +151,7 @@ bool UKBEMain::login(FString username, FString password, TArray<uint8> datas)
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE("login", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::login, pEventData);
 	return true;
 }
 
@@ -168,6 +168,6 @@ bool UKBEMain::createAccount(FString username, FString password, const TArray<ui
 	pEventData->username = username;
 	pEventData->password = password;
 	pEventData->datas = datas;
-	KBENGINE_EVENT_FIRE("createAccount", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::createAccount, pEventData);
 	return true;
 }
