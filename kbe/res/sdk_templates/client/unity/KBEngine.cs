@@ -508,7 +508,7 @@
 		*/
 		public void Client_onKicked(UInt16 failedcode)
 		{
-			Dbg.DEBUG_MSG("Client_onKicked: failedcode=" + failedcode);
+			Dbg.DEBUG_MSG("Client_onKicked: failedcode=" + failedcode + "(" + serverErr(failedcode) + ")");
 			Event.fireAll(EventOutTypes.onKicked, failedcode);
 		}
 		
@@ -752,7 +752,7 @@
 		{
 			if(failcode != 0)
 			{
-				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountResetPasswordCB: " + username + " failed! code=" + failcode + "(" + serverErr(failcode) + ")!");
 				return;
 			}
 	
@@ -776,7 +776,7 @@
 		{
 			if(failcode != 0)
 			{
-				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountBindEmailCB: " + username + " failed! code=" + failcode + "(" + serverErr(failcode) + ")!");
 				return;
 			}
 
@@ -800,7 +800,7 @@
 		{
 			if(failcode != 0)
 			{
-				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " failed! code=" + failcode + "!");
+				Dbg.ERROR_MSG("KBEngine::Client_onReqAccountNewPasswordCB: " + username + " failed! code=" + failcode + "(" + serverErr(failcode) + ")!");
 				return;
 			}
 	
@@ -875,7 +875,7 @@
 		{
 			UInt16 failedcode = stream.readUint16();
 			_serverdatas = stream.readBlob();
-			Dbg.ERROR_MSG("KBEngine::Client_onLoginFailed: failedcode(" + failedcode + "), datas(" + _serverdatas.Length + ")!");
+			Dbg.ERROR_MSG("KBEngine::Client_onLoginFailed: failedcode=" + failedcode + "(" + serverErr(failedcode) +"), datas=" + _serverdatas.Length + " !");
 			Event.fireAll(EventOutTypes.onLoginFailed, failedcode);
 		}
 		
@@ -902,7 +902,7 @@
 		*/
 		public void Client_onLoginBaseappFailed(UInt16 failedcode)
 		{
-			Dbg.ERROR_MSG("KBEngine::Client_onLoginBaseappFailed: failedcode(" + failedcode + ")!");
+			Dbg.ERROR_MSG("KBEngine::Client_onLoginBaseappFailed: failedcode=" + failedcode + "("+ serverErr(failedcode) + ")!");
 			Event.fireAll(EventOutTypes.onLoginBaseappFailed, failedcode);
 		}
 
@@ -911,7 +911,7 @@
 		*/
 		public void Client_onReloginBaseappFailed(UInt16 failedcode)
 		{
-			Dbg.ERROR_MSG("KBEngine::Client_onReloginBaseappFailed: failedcode(" + failedcode + ")!");
+			Dbg.ERROR_MSG("KBEngine::Client_onReloginBaseappFailed: failedcode=" + failedcode + "(" + serverErr(failedcode) + ")!");
 			Event.fireAll(EventOutTypes.onReloginBaseappFailed, failedcode);
 		}
 		
@@ -1292,7 +1292,7 @@
 			
 			if(retcode != 0)
 			{
-				Dbg.WARNING_MSG("KBEngine::Client_onCreateAccountResult: " + username + " create is failed! code=" + retcode + "!");
+				Dbg.WARNING_MSG("KBEngine::Client_onCreateAccountResult: " + username + " create is failed! code=" + retcode + "(" + serverErr(retcode)+ ")!");
 				return;
 			}
 	
