@@ -26,9 +26,9 @@ class TCPPacketSender : public PacketSender
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< TCPPacketSender > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<TCPPacketSender>& ObjPool();
-	static TCPPacketSender* createPoolObject();
+	static TCPPacketSender* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(TCPPacketSender* obj);
 	virtual void onReclaimObject();
 	static void destroyObjPool();
@@ -37,7 +37,7 @@ public:
 	TCPPacketSender(EndPoint & endpoint, NetworkInterface & networkInterface);
 	virtual ~TCPPacketSender();
 
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 	virtual bool processSend(Channel* pChannel, int userarg);
 
 	virtual PacketSender::PACKET_SENDER_TYPE type() const

@@ -3,6 +3,8 @@
 #ifndef KBE_PYOBJECT_POINTER_H
 #define KBE_PYOBJECT_POINTER_H
 
+#include "common/smartpointer.h"
+
 namespace KBEngine { 
 
 typedef SmartPointer<PyObject> PyObjectPtr;

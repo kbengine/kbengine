@@ -58,11 +58,23 @@ PyObject* EntityRemoteMethod::tp_call(PyObject* self, PyObject* args,
 	// 如果是调用客户端方法， 我们记录事件并且记录带宽
 	if(methodDescription->checkArgs(args))
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		entityCall->newCall((*pBundle));
 
-		MemoryStream* mstream = MemoryStream::createPoolObject();
-		methodDescription->addToStream(mstream, args);
+		MemoryStream* mstream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
+
+		try
+		{
+			methodDescription->addToStream(mstream, args);
+		}
+		catch (MemoryStreamWriteOverflow & err)
+		{
+			ERROR_MSG(fmt::format("EntityRemoteMethod::tp_call(): {}.{}() {}, error={}\n",
+				entityCall->pScriptDefModule()->getName(), rmethod->getName(), entityCall->id(), err.what()));
+
+			MemoryStream::reclaimPoolObject(mstream);
+			S_Return;
+		}
 
 		if(mstream->wpos() > 0)
 			(*pBundle).append(mstream->data(), (int)mstream->wpos());

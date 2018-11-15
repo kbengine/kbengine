@@ -22,14 +22,14 @@ bool PyStruct::initialize(void)
 		pack_ = PyObject_GetAttrString(cModule, "pack");
 		if (!pack_)
 		{
-			ERROR_MSG("PyStruct::initialize:get pack is error!\n");
+			ERROR_MSG("PyStruct::initialize:get pack error!\n");
 			PyErr_PrintEx(0);
 		}
 
 		unpack_ = PyObject_GetAttrString(cModule, "unpack");
 		if(!unpack_)
 		{
-			ERROR_MSG("PyStruct::init: get unpack is error!\n");
+			ERROR_MSG("PyStruct::init: get unpack error!\n");
 			PyErr_PrintEx(0);
 		}
 

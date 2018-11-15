@@ -314,7 +314,8 @@ bool ClientSDKUE4::writeEngineMessagesModuleBegin()
 	strutil::kbe_replace(fileBody(), "#REPLACE#", "");
 
 	fileBody() += "#pragma once\n\n";
-	fileBody() += "#include \"KBECommon.h\"\n\n";
+	fileBody() += "#include \"KBECommon.h\"\n";
+	fileBody() += "#include \"MemoryStream.h\"\n\n";
 
 	fileBody() += "// engine-c++ messages\n\n";
 	fileBody() += fmt::format("class KBENGINEPLUGINS_API {}\n{{\npublic:", "Message");
@@ -1441,7 +1442,7 @@ bool ClientSDKUE4::writeCustomDataType(const DataType* pDataType)
 		}
 
 		std::string readName;
-		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\n", className);
+		fileBody() += fmt::format("\nclass KBENGINEPLUGINS_API DATATYPE_{} : DATATYPE_BASE\n{{\npublic:\n", className);
 
 		bool isFixedType = strcmp(pFixedArrayType->getDataType()->getName(), "FIXED_DICT") == 0 ||
 			strcmp(pFixedArrayType->getDataType()->getName(), "ARRAY") == 0;
@@ -2227,7 +2228,6 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	
 	fileBody() += fmt::format("\n{}::~{}()\n{{\n", newModuleName, newModuleName);
 
-
 	if (!pEntityScriptDefModule->isComponentModule())
 	{
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
@@ -2251,7 +2251,55 @@ bool ClientSDKUE4::writeEntityModuleEnd(ScriptDefModule* pEntityScriptDefModule)
 	fileBody() += fmt::format("\tif(pCellEntityCall)\n");
 	fileBody() += fmt::format("\t\tdelete pCellEntityCall;\n\n");
 
-	fileBody() += "}\n\n";
+	fileBody() += "}\n";
+
+	// attach组件
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\n\tvoid attachComponents() override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::attachComponents()\n{{\n", newModuleName);
+
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			fileBody() += fmt::format("\t{}->onAttached(this);\n", pPropertyDescription->getName());
+		}
+
+		fileBody() += fmt::format("}}\n");
+	}
+
+	// detach组件
+	if (!pEntityScriptDefModule->isComponentModule())
+	{
+		changeContextToHeader();
+		fileBody() += fmt::format("\tvoid detachComponents() override;\n");
+
+		changeContextToSource();
+		fileBody() += fmt::format("\nvoid {}::detachComponents()\n{{\n", newModuleName);
+
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
+		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator propIter = clientPropertys.begin();
+		for (; propIter != clientPropertys.end(); ++propIter)
+		{
+			PropertyDescription* pPropertyDescription = propIter->second;
+
+			if (pPropertyDescription->getDataType()->type() != DATA_TYPE_ENTITY_COMPONENT)
+				continue;
+
+			fileBody() += fmt::format("\t{}->onDetached(this);\n", pPropertyDescription->getName());
+		}
+
+		fileBody() += fmt::format("}}\n\n");
+	}
 
 	changeContextToHeader();
 	fileBody() += "\n};\n\n";
@@ -2463,15 +2511,15 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 							pDataType->aliasName(), pMethodDescription->getName(), i);
 
 						fileBody() += fmt::format("\t\t\t((DATATYPE_{}*)pMethod->args[{}])->createFromStreamEx(stream, {}_arg{});\n",
-							pDataType->aliasName(), (i - 1), pDataType->aliasName(), pMethodDescription->getName(), i);
+							pDataType->aliasName(), (i - 1), pMethodDescription->getName(), i);
 					}
 					else
 					{
 						fileBody() += fmt::format("\t\t\t{} {}_arg{};\n",
 							typestr, pMethodDescription->getName(), i);
 
-						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}]).createFromStreamEx(stream, {} {}_arg{});\n",
-							typeID, (i - 1), typestr, pMethodDescription->getName(), i);
+						fileBody() += fmt::format("\t\t\t((DATATYPE_AnonymousArray_{}*)pMethod->args[{}]).createFromStreamEx(stream, {}_arg{});\n",
+							typeID, (i - 1), pMethodDescription->getName(), i);
 					}
 				}
 				else
@@ -2635,7 +2683,8 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP clientPropertys = pEntityScriptDefModule->getClientPropertyDescriptions();
 
-	if (clientPropertys.size() > 0)
+	// entity即使在属性小于0时仍然存在默认属性，而组件则可能因为没有属性导致空switch编译出错
+	if (!pEntityScriptDefModule->isComponentModule() || clientPropertys.size() > 0)
 	{
 		fileBody() += fmt::format("\t\tswitch(pProp->properUtype)\n\t\t{{\n");
 
@@ -2676,7 +2725,7 @@ bool ClientSDKUE4::writeEntityProcessMessagesMethod(ScriptDefModule* pEntityScri
 				{
 					fileBody() += fmt::format("\t\t\tcase {}:\n\t\t\t{{\n", pPropertyDescription->getUType());
 					fileBody() += fmt::format("\t\t\t\tstream.readUint32();\n");
-					fileBody() += fmt::format("\t\t\t\tbreak;\n\t\t}}\n");
+					fileBody() += fmt::format("\t\t\t\tbreak;\n\t\t\t}}\n");
 					continue;
 				}
 				else
@@ -3045,7 +3094,7 @@ bool ClientSDKUE4::writeEntityProperty_ARRAY(ScriptDefModule* pEntityScriptDefMo
 
 		bool ret = writeTypeItemType_ARRAY(pPropertyDescription->getName(), pPropertyDescription->getDataType()->aliasName(), pPropertyDescription->getDataType());
 		std::vector<std::string> values;
-		values = KBEngine::strutil::kbe_splits(fileBody(), " ");
+		KBEngine::strutil::kbe_splits(fileBody(), " ", values);
 		fileBody() = s + fileBody();
 
 		std::string name = pPropertyDescription->getName();

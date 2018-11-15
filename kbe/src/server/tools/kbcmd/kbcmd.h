@@ -47,6 +47,8 @@ public:
 	virtual void onShutdownBegin();
 	virtual void onShutdownEnd();
 
+	static int creatDir(const char *pDir);
+
 protected:
 	TimerHandle																mainProcessTimer_;
 

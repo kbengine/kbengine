@@ -260,15 +260,30 @@ INLINE void Entity::controlledBy(EntityCall* baseEntityCall)
 }
 
 //-------------------------------------------------------------------------------------
-INLINE void Entity::setDirty(bool dirty)
+INLINE void Entity::setDirty(uint32* digest)
 {
-	isDirty_ = dirty;
+	if (digest)
+	{
+		memcpy((void*)&persistentDigest_[0], (void*)digest, sizeof(persistentDigest_));
+	}
+	else
+	{
+		persistentDigest_[0] = 0;
+		persistentDigest_[1] = 0;
+		persistentDigest_[2] = 0;
+		persistentDigest_[3] = 0;
+		persistentDigest_[4] = 0;
+	}
 }
 
 //-------------------------------------------------------------------------------------
 INLINE bool Entity::isDirty() const
 {
-	return isDirty_;
+	return persistentDigest_[0] == 0 && 
+		persistentDigest_[1] == 0 && 
+		persistentDigest_[2] == 0 && 
+		persistentDigest_[3] == 0 && 
+		persistentDigest_[4] == 0;
 }
 
 //-------------------------------------------------------------------------------------

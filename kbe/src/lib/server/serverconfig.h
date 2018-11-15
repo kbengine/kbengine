@@ -258,7 +258,9 @@ public:
 	void updateExternalAddress(char* buf);
 
 	INLINE int16 gameUpdateHertz(void) const;
-	INLINE Network::Address interfacesAddr(void) const;
+
+	Network::Address interfacesAddr(void) const;
+	INLINE std::vector< Network::Address > interfacesAddrs(void) const;
 
 	const ChannelCommon& channelCommon(){ return channelCommon_; }
 
@@ -270,7 +272,8 @@ public:
 	uint32 tickMaxBufferedLogs() const { return tick_max_buffered_logs_; }
 	uint32 tickMaxSyncLogs() const { return tick_max_sync_logs_; }
 
-	INLINE bool IsPureDBInterfaceName(const std::string& dbInterfaceName);
+	INLINE float channelExternalTimeout(void) const;
+	INLINE bool isPureDBInterfaceName(const std::string& dbInterfaceName);
 	INLINE DBInterfaceInfo* dbInterface(const std::string& name);
 	INLINE int dbInterfaceName2dbInterfaceIndex(const std::string& dbInterfaceName);
 	INLINE const char* dbInterfaceIndex2dbInterfaceName(size_t dbInterfaceIndex);
@@ -301,6 +304,7 @@ public:
 	uint32 bitsPerSecondToClient_;		
 
 	Network::Address interfacesAddr_;
+	std::vector< Network::Address > interfacesAddrs_;
 	uint32 interfaces_orders_timeout_;
 
 	float shutdown_time_;

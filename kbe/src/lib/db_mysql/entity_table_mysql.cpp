@@ -79,16 +79,15 @@ bool sync_item_to_db(DBInterface* pdbi,
 		}
 		catch(...)
 		{
-			ERROR_MSG(fmt::format("syncToDB(): {}->{}({}), error({}: {})\n lastQuery: {}.\n", 
+			ERROR_MSG(fmt::format("syncToDB(0): {}->{}({}), error({}: {})\n lastQuery: {}.\n", 
 				tableName, itemName, datatype, pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
 
 			return false;
 		}
 	}
-	else if (mysql_errorno == 1064/* You have an error in your SQL syntax */ || 
-		mysql_errorno == 1101/* 1101: BLOB/TEXT column 'sm_s11s11' can't have a default value */)
+	else if(mysql_errorno > 0)
 	{
-		ERROR_MSG(fmt::format("syncToDB(): {}->{}({}), error({}: {})\n lastQuery: {}.\n",
+		ERROR_MSG(fmt::format("syncToDB(1): {}->{}({}), error({}: {})\n lastQuery: {}.\n",
 			tableName, itemName, datatype, pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
 
 		return false;
@@ -390,7 +389,7 @@ bool EntityTableMysql::syncToDB(DBInterface* pdbi)
 	}
 	catch(...)
 	{
-		ERROR_MSG(fmt::format("EntityTableMysql::syncToDB(): is error({}: {})\n lastQuery: {}.\n", 
+		ERROR_MSG(fmt::format("EntityTableMysql::syncToDB(): error({}: {})\n lastQuery: {}.\n", 
 			pdbi->getlasterror(), pdbi->getstrerror(), static_cast<DBInterfaceMysql*>(pdbi)->lastquery()));
 
 		return false;

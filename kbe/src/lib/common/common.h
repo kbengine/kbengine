@@ -6,7 +6,7 @@
 #include "common/kbeversion.h"
 #include "common/kbemalloc.h"
 #include "common/stringconv.h"
-#include "common/format.h"
+#include "fmt/format.h"
 
 namespace KBEngine{
 
@@ -409,7 +409,7 @@ inline bool email_isvalid(const char *address)
 	if (*c <= ' ' || *c >= 127) return false;
 	if (strchr(rfc822_specials, *c)) return false;
 	}
-	if (c == address || *(c - 1) == '.') return false;
+	if (c == address || *(c - 1) == '.' || *c == '\0') return false;
 
 	/* next we validate the domain portion (name@domain) */
 	if (!*(domain = ++c)) return false;

@@ -15,6 +15,7 @@ SCRIPT_METHOD_DECLARE("index",						index,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("insert",						insert,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("pop",						pop,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE("remove",						remove,					METH_VARARGS, 0)
+SCRIPT_METHOD_DECLARE("clear",						clear,					METH_VARARGS, 0)
 SCRIPT_METHOD_DECLARE_END()
 
 
@@ -291,6 +292,21 @@ PyObject* FixedArray::__py_remove(PyObject* self, PyObject* args, PyObject* kwar
 	PyObject* ret = PyBool_FromLong(seq_ass_slice(self, index, index + 1, &*pyTuple) == 0);
 	Py_DECREF(pyTuple);
 	return ret;
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* FixedArray::__py_clear(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+	FixedArray* ary = static_cast<FixedArray*>(self);
+
+	std::vector<PyObject*>& values = ary->getValues();
+	for (size_t i = 0; i < values.size(); ++i)
+	{
+		Py_DECREF(values[i]);
+	}
+
+	values.clear();
+	S_Return;
 }
 
 //-------------------------------------------------------------------------------------

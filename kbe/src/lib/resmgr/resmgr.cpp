@@ -150,13 +150,17 @@ bool Resmgr::initialize()
 		autoSetPaths();
 
 	updatePaths();
+
 	if(getPySysResPath() == "" || getPyUserResPath() == "" || getPyUserScriptsPath() == "")
 	{
-		printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT=%s, KBE_RES_PATH=%s, KBE_BIN_PATH=%s) invalid!\n", 
-			kb_env_.root_path.c_str(), kb_env_.res_path.c_str(), kb_env_.bin_path.c_str());
+		if (UNKNOWN_COMPONENT_TYPE != g_componentType && g_componentType != TOOL_TYPE)
+		{
+			printf("[ERROR] Resmgr::initialize: not set environment, (KBE_ROOT=%s, KBE_RES_PATH=%s, KBE_BIN_PATH=%s) invalid!\n",
+				kb_env_.root_path.c_str(), kb_env_.res_path.c_str(), kb_env_.bin_path.c_str());
 #if KBE_PLATFORM == PLATFORM_WIN32
-		::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
+			::MessageBox(0, L"Resmgr::initialize: not set environment, (KBE_ROOT, KBE_RES_PATH, KBE_BIN_PATH) invalid!\n", L"ERROR", MB_ICONERROR);
 #endif
+		}
 	}
 
 	isInit_ = true;
@@ -438,7 +442,7 @@ std::string Resmgr::getPySysResPath()
 	{
 		respath = matchRes("server/kbengine_defaults.xml");
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine_defaults.xml");
+		KBEngine::strutil::kbe_splits(respath, "server/kbengine_defaults.xml", tmpvec);
 
 		if(tmpvec.size() > 1)
 		{
@@ -463,7 +467,7 @@ std::string Resmgr::getPyUserResPath()
 	{
 		respath = matchRes("server/kbengine.xml");
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml");
+		KBEngine::strutil::kbe_splits(respath, "server/kbengine.xml", tmpvec);
 
 		if(tmpvec.size() > 1)
 		{
@@ -500,7 +504,7 @@ std::string Resmgr::getPyUserScriptsPath()
 
 
 		std::vector<std::string> tmpvec;
-		tmpvec = KBEngine::strutil::kbe_splits(path, entities_xml);
+		KBEngine::strutil::kbe_splits(path, entities_xml, tmpvec);
 		if(tmpvec.size() > 1)
 		{
 			path = tmpvec[0];

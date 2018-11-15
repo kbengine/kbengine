@@ -8,6 +8,7 @@
 #include "copy.h"
 #include "pystruct.h"
 #include "py_gc.h"
+#include "pyurl.h"
 #include "install_py_dlls.h"
 #include "resmgr/resmgr.h"
 #include "thread/concurrency.h"
@@ -238,6 +239,7 @@ bool Script::install(const wchar_t* pythonHomeDir, std::wstring pyPaths,
 	PyProfile::initialize(this);
 	PyStruct::initialize();
 	Copy::initialize();
+	PyUrl::initialize(this);
 	SCRIPT_ERROR_CHECK();
 
 	math::installModule("Math");
@@ -253,6 +255,7 @@ bool Script::uninstall()
 	PyProfile::finalise();
 	PyStruct::finalise();
 	Copy::finalise();
+	PyUrl::finalise();
 	SCRIPT_ERROR_CHECK();
 
 	if(pyStdouterr_)
@@ -290,11 +293,6 @@ bool Script::installExtraModule(const char* moduleName)
 	// 添加一个脚本扩展模块
 	extraModule_ = PyImport_AddModule(moduleName);
 	if (extraModule_ == NULL)
-		return false;
-	
-	// 初始化扩展模块
-	PyObject *module = PyImport_AddModule(moduleName);
-	if (module == NULL)
 		return false;
 
 	// 将扩展模块对象加入main

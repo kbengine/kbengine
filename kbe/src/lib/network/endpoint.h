@@ -8,6 +8,7 @@
 #include "helper/debug_helper.h"
 #include "network/address.h"
 #include "network/common.h"
+#include "openssl/ssl.h"
 
 namespace KBEngine { 
 namespace Network
@@ -18,9 +19,9 @@ class EndPoint : public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< EndPoint > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<EndPoint>& ObjPool();
-	static EndPoint* createPoolObject();
+	static EndPoint* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(EndPoint* obj);
 	static void destroyObjPool();
 	void onReclaimObject();
@@ -122,9 +123,18 @@ public:
 		isRefSocket_ = true;
 	}
 
+	bool setupSSL(int sslVersion, Packet* pPacket);
+	bool destroySSL();
+
+	bool isSSL() const {
+		return sslHandle_ != NULL;
+	}
+
 protected:
 	KBESOCKET socket_;
 	Address address_;
+	SSL* sslHandle_;
+	SSL_CTX* sslContext_;
 	bool isRefSocket_;
 };
 

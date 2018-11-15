@@ -26,9 +26,9 @@ class UDPPacketSender : public PacketSender
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< UDPPacketSender > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<UDPPacketSender>& ObjPool();
-	static UDPPacketSender* createPoolObject();
+	static UDPPacketSender* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(UDPPacketSender* obj);
 	virtual void onReclaimObject();
 	static void destroyObjPool();
@@ -45,9 +45,12 @@ public:
 	}
 
 protected:
-	virtual void onGetError(Channel* pChannel);
+	virtual void onGetError(Channel* pChannel, const std::string& err);
 	virtual void onSent(Packet* pPacket);
 	virtual Reason processFilterPacket(Channel* pChannel, Packet * pPacket, int userarg);
+
+protected:
+	uint8 sendfailCount_;
 
 };
 }

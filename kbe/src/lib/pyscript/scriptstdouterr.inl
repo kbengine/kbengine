@@ -4,7 +4,7 @@
 namespace KBEngine {
 namespace script{
 
-INLINE std::wstring& ScriptStdOutErr::buffer()
+INLINE std::string& ScriptStdOutErr::buffer()
 { 
 	return sbuffer_; 
 }

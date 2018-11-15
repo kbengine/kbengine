@@ -21,6 +21,28 @@
 #include "loginapp/loginapp_interface.h"
 #include "dbmgr/dbmgr_interface.h"	
 
+#ifdef _WIN32  
+#include <direct.h>  
+#include <io.h>  
+#elif _LINUX  
+#include <stdarg.h>  
+#include <sys/stat.h>  
+#endif  
+
+#if KBE_PLATFORM == PLATFORM_WIN32
+#define KBE_ACCESS _access  
+#define KBE_MKDIR(a) _mkdir((a))  
+#else
+#define KBE_ACCESS access  
+#define KBE_MKDIR(a) KBE_UNIX_MKDIR((a))  
+
+int KBE_UNIX_MKDIR(const char* a)
+{
+	umask(0);
+	return mkdir((a), 0755);
+}
+#endif  
+
 namespace KBEngine{
 	
 ServerConfig g_serverConfig;
@@ -135,6 +157,67 @@ bool KBCMD::initDB()
 void KBCMD::finalise()
 {
 	PythonApp::finalise();
+}
+
+//-------------------------------------------------------------------------------------
+int KBCMD::creatDir(const char *pDir)
+{
+	int i = 0;
+	int iRet = -1;
+	int iLen = 0;
+	char* pszDir = NULL;
+
+	if (NULL == pDir)
+	{
+		return 0;
+	}
+
+	pszDir = strdup(pDir);
+	iLen = strlen(pszDir);
+
+	// 创建中间目录  
+	for (i = 0; i < iLen; i++)
+	{
+		if (pszDir[i] == '\\' || pszDir[i] == '/')
+		{
+			if (i == 0)
+				continue;
+
+			pszDir[i] = '\0';
+
+			//如果不存在,创建  
+			iRet = KBE_ACCESS(pszDir, 0);
+			if (iRet != 0)
+			{
+				iRet = KBE_MKDIR(pszDir);
+				if (iRet != 0)
+				{
+					ERROR_MSG(fmt::format("creatDir(): KBE_MKDIR [{}] error! iRet={}\n",
+						pszDir, iRet));
+
+					free(pszDir);
+					return -1;
+				}
+			}
+
+			//支持linux,将所有\换成/  
+			pszDir[i] = '/';
+		}
+	}
+
+	if (iLen > 0 && KBE_ACCESS(pszDir, 0) != 0)
+	{
+		iRet = KBE_MKDIR(pszDir);
+
+		if (iRet != 0)
+		{
+			ERROR_MSG(fmt::format("creatDir(): KBE_MKDIR [{}] error! iRet={}\n",
+				pszDir, iRet));
+		}
+	}
+
+	free(pszDir);
+	return iRet;
 }
 
 //-------------------------------------------------------------------------------------

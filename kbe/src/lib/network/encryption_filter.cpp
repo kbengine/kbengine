@@ -279,9 +279,9 @@ void BlowfishFilter::encrypt(Packet * pInPacket, Packet * pOutPacket)
 	else
 	{
 		if(pInPacket->isTCPPacket())
-			pOutPacket = TCPPacket::createPoolObject();
+			pOutPacket = TCPPacket::createPoolObject(OBJECTPOOL_POINT);
 		else
-			pOutPacket = UDPPacket::createPoolObject();
+			pOutPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);
 
 		pOutPacket->data_resize(pInPacket->size() + 1);
 

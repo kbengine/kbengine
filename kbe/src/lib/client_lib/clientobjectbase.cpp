@@ -81,7 +81,7 @@ controlledEntities_()
 {
 	appID_ = g_appID++;
 
-	pServerChannel_ = Network::Channel::createPoolObject();
+	pServerChannel_ = Network::Channel::createPoolObject(OBJECTPOOL_POINT);
 	pServerChannel_->pNetworkInterface(&ninterface);
 }
 
@@ -148,7 +148,7 @@ void ClientObjectBase::reset(void)
 		pServerChannel_ = NULL;
 	}
 
-	pServerChannel_ = Network::Channel::createPoolObject();
+	pServerChannel_ = Network::Channel::createPoolObject(OBJECTPOOL_POINT);
 	pServerChannel_->pNetworkInterface(&networkInterface_);
 }
 
@@ -187,7 +187,7 @@ void ClientObjectBase::tickSend()
 	{
 		lastSentActiveTickTime_ = timestamp();
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		if(connectedBaseapp_)
 			(*pBundle).newMessage(BaseappInterface::onClientActiveTick);
 		else
@@ -254,7 +254,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 2)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::callback: (argssize != (time, callback)) error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -264,7 +264,7 @@ PyObject* ClientObjectBase::__py_callback(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "f|O",  &time, &pyCallback) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::callback: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -287,7 +287,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: (argssize != (callbackID)) error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -298,7 +298,7 @@ PyObject* ClientObjectBase::__py_cancelCallback(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "i",  &id) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::cancelCallback: args error!");
 		PyErr_PrintEx(0);
 		S_Return;
 	}
@@ -448,7 +448,7 @@ bool ClientObjectBase::deregisterEventHandle(EventHandle* pEventHandle)
 bool ClientObjectBase::createAccount()
 {
 	// 创建账号
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::reqCreateAccount);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -460,7 +460,7 @@ bool ClientObjectBase::createAccount()
 //-------------------------------------------------------------------------------------
 Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName, std::string passwd, std::string ip, KBEngine::uint32 port)
 {
-	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -474,7 +474,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 	Network::Address::string2ip(ip.c_str(), address);
 	if(pEndpoint->connect(htons(port), address) == -1)
 	{
-		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server is error({})!\n",
+		ERROR_MSG(fmt::format("ClientObjectBase::initLoginappChannel: connect server error({})!\n",
 			kbe_strerror()));
 
 		Network::EndPoint::reclaimPoolObject(pEndpoint);
@@ -497,7 +497,7 @@ Network::Channel* ClientObjectBase::initLoginappChannel(std::string accountName,
 //-------------------------------------------------------------------------------------
 Network::Channel* ClientObjectBase::initBaseappChannel()
 {
-	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -512,7 +512,7 @@ Network::Channel* ClientObjectBase::initBaseappChannel()
 	Network::Address::string2ip(ip_.c_str(), address);
 	if(pEndpoint->connect(htons(tcp_port_), address) == -1)
 	{
-		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server is error({})!\n",
+		ERROR_MSG(fmt::format("ClientObjectBase::initBaseappChannel: connect server error({})!\n",
 			kbe_strerror()));
 
 		Network::EndPoint::reclaimPoolObject(pEndpoint);
@@ -602,7 +602,7 @@ void ClientObjectBase::onScriptVersionNotMatch(Network::Channel* pChannel, Memor
 //-------------------------------------------------------------------------------------
 bool ClientObjectBase::login()
 {
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	// 提交账号密码请求登录
 	(*pBundle).newMessage(LoginappInterface::login);
@@ -642,7 +642,7 @@ bool ClientObjectBase::loginBaseapp()
 	// 请求登录网关, 能走到这里来一定是连接了网关
 	connectedBaseapp_ = true;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::loginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -656,7 +656,7 @@ bool ClientObjectBase::reloginBaseapp()
 	// 请求重登陆网关, 通常是掉线了之后执行
 	connectedBaseapp_ = true;
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(BaseappInterface::reloginBaseapp);
 	(*pBundle) << name_;
 	(*pBundle) << password_;
@@ -1202,7 +1202,7 @@ void ClientObjectBase::updatePlayerToServer()
 
     if(posChanged || dirChanged)
     {
-        Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+        Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
         (*pBundle).newMessage(BaseappInterface::onUpdateDataFromClient);
 
         pEntity->position(clientPos);
@@ -1240,7 +1240,7 @@ void ClientObjectBase::updatePlayerToServer()
             entity->position(tempClientPos);
             entity->direction(tempClientDir);
 
-            Network::Bundle *tempBundle = Network::Bundle::createPoolObject();
+            Network::Bundle *tempBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
             (*tempBundle).newMessage(BaseappInterface::onUpdateDataFromClientForControlledEntity);
 
             (*tempBundle) << entity->id();
@@ -2076,7 +2076,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 {
 	if(PyTuple_Size(args) != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: (argssize != (key)) error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2084,7 +2084,7 @@ PyObject* ClientObjectBase::__py_GetSpaceData(PyObject* self, PyObject* args)
 	char* key = NULL;
 	if(PyArg_ParseTuple(args, "s",  &key) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getSpaceData: args error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2109,7 +2109,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2118,7 +2118,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "s", &path) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcher(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2135,7 +2135,7 @@ PyObject* ClientObjectBase::__py_getWatcher(PyObject* self, PyObject* args)
 
 	WATCHER_VALUE_TYPE wtype = pWobj->getType();
 	PyObject* pyval = NULL;
-	MemoryStream* stream = MemoryStream::createPoolObject();
+	MemoryStream* stream = MemoryStream::createPoolObject(OBJECTPOOL_POINT);
 	pWobj->addToStream(stream);
 	WATCHER_ID id;
 	(*stream) >> id;
@@ -2248,7 +2248,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 	int argCount = (int)PyTuple_Size(args);
 	if(argCount != 1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2257,7 +2257,7 @@ PyObject* ClientObjectBase::__py_getWatcherDir(PyObject* self, PyObject* args)
 
 	if(PyArg_ParseTuple(args, "s", &path) == -1)
 	{
-		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] is error!");
+		PyErr_Format(PyExc_TypeError, "KBEngine::getWatcherDir(): args[strpath] error!");
 		PyErr_PrintEx(0);
 		S_Return
 	}
@@ -2288,7 +2288,7 @@ PyObject* ClientObjectBase::__py_disconnect(PyObject* self, PyObject* args)
 		uint32 i = 0;
 		if(PyArg_ParseTuple(args, "I", &i) == -1)
 		{
-			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] is error!");
+			PyErr_Format(PyExc_TypeError, "KBEngine::disconnect(): args[lock_secs] error!");
 			PyErr_PrintEx(0);
 			S_Return
 		}

@@ -100,7 +100,7 @@ namespace KBEngine{ namespace script{
 	if(PyModule_AddObject(MODULE, #NAME, PyCFunction_New(&__pymethod_##NAME, SELF)) != 0)	\
 	{																						\
 		SCRIPT_ERROR_CHECK();																\
-		ERROR_MSG("append " #NAME " to pyscript is error!\n");								\
+		ERROR_MSG("append " #NAME " to pyscript error!\n");									\
 	}																						\
 	
 /** 定义暴露给脚本的属性宏
@@ -167,7 +167,7 @@ namespace KBEngine{ namespace script{
 			if(!PyArg_ParseTuple(args, PY_METHOD_ARG_##ARG_TYPE1##_PYARGTYPE,														\
 										&arg1))																						\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s) is error!\n", __FUNCTION__, #ARG_TYPE1);								\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s) error!\n", __FUNCTION__, #ARG_TYPE1);									\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
@@ -205,7 +205,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE2##_PYARGTYPE,														\
 										&arg1, &arg2))																				\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s) is error!\n", __FUNCTION__, #ARG_TYPE1, #ARG_TYPE2);				\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s) error!\n", __FUNCTION__, #ARG_TYPE1, #ARG_TYPE2);					\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
@@ -246,7 +246,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE3##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3))																		\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s) is error!\n", __FUNCTION__, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3);\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s) error!\n", __FUNCTION__, #ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3);	\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
 			}																														\
@@ -289,7 +289,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE4##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4))																\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s) is error!\n", __FUNCTION__,									\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s) error!\n", __FUNCTION__,									\
 										#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4);											\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
@@ -337,7 +337,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE5##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5))															\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s) is error!\n", __FUNCTION__,								\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s) error!\n", __FUNCTION__,								\
 						#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5);												\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
@@ -388,7 +388,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE6##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6))													\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,							\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s) error!\n", __FUNCTION__,							\
 							#ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6);											\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
@@ -443,7 +443,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE7##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7))											\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,						\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s) error!\n", __FUNCTION__,						\
 							#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7);					\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
@@ -501,7 +501,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE8##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8))									\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,					\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s) error!\n", __FUNCTION__,					\
 							#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8);		\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
@@ -563,7 +563,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE9##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9))								\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,				\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s, %s) error!\n", __FUNCTION__,				\
 						#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8, #ARG_TYPE9);\
 				PyErr_PrintEx(0);																									\
 				S_Return;																											\
@@ -628,7 +628,7 @@ namespace KBEngine{ namespace script{
 										PY_METHOD_ARG_##ARG_TYPE10##_PYARGTYPE,														\
 										&arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10))						\
 			{																														\
-				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) is error!\n", __FUNCTION__,			\
+				PyErr_Format(PyExc_TypeError, "%s: args(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) error!\n", __FUNCTION__,			\
 				#ARG_TYPE1, #ARG_TYPE2, #ARG_TYPE3, #ARG_TYPE4, #ARG_TYPE5, #ARG_TYPE6,	#ARG_TYPE7,	#ARG_TYPE8,						\
 				#ARG_TYPE9, #ARG_TYPE10);																							\
 				PyErr_PrintEx(0);																									\

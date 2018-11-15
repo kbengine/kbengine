@@ -29,13 +29,13 @@ class MessageHandlers;
 class PacketReader;
 class PacketSender;
 
-class Channel : public TimerHandler, public Task, public PoolObject
+class Channel : public TimerHandler, public PoolObject
 {
 public:
 	typedef KBEShared_ptr< SmartPoolObject< Channel > > SmartPoolObjectPtr;
-	static SmartPoolObjectPtr createSmartPoolObj();
+	static SmartPoolObjectPtr createSmartPoolObj(const std::string& logPoint);
 	static ObjectPool<Channel>& ObjPool();
-	static Channel* createPoolObject();
+	static Channel* createPoolObject(const std::string& logPoint);
 	static void reclaimPoolObject(Channel* obj);
 	static void destroyObjPool();
 	virtual void onReclaimObject();
@@ -62,10 +62,12 @@ public:
 
 	enum Flags
 	{
-		FLAG_SENDING = 0x00000001,		// 发送信息中
-		FLAG_DESTROYED = 0x00000002,	// 通道已经销毁
-		FLAG_HANDSHAKE = 0x00000004,	// 已经握手过
-		FLAG_CONDEMN = 0x00000008,		// 该频道已经变得不合法
+		FLAG_SENDING					= 0x00000001,	// 发送信息中
+		FLAG_DESTROYED					= 0x00000002,	// 通道已经销毁
+		FLAG_HANDSHAKE					= 0x00000004,	// 已经握手过
+		FLAG_CONDEMN_AND_WAIT_DESTROY	= 0x00000008,	// 该频道已经变得不合法，即将在数据发送完毕后关闭
+		FLAG_CONDEMN_AND_DESTROY		= 0x00000010,	// 该频道已经变得不合法，即将关闭
+		FLAG_CONDEMN					= FLAG_CONDEMN_AND_WAIT_DESTROY | FLAG_CONDEMN_AND_DESTROY,
 	};
 
 public:
@@ -121,7 +123,7 @@ public:
 
 	INLINE void pushBundle(Bundle* pBundle);
 	
-	bool sending() const { return (flags_ & FLAG_SENDING) > 0;}
+	bool sending() const;
 	void stopSend();
 
 	void send(Bundle* pBundle = NULL);
@@ -163,12 +165,22 @@ public:
 		
 	void addReceiveWindow(Packet* pPacket);
 
-	virtual bool process();
 	void updateTick(KBEngine::Network::MessageHandlers* pMsgHandlers);
 	void processPackets(KBEngine::Network::MessageHandlers* pMsgHandlers, Packet* pPacket);
 
-	bool isCondemn() const { return (flags_ & FLAG_CONDEMN) > 0; }
-	void condemn();
+	uint32 condemn() const
+	{
+		if ((flags_ & FLAG_CONDEMN_AND_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_DESTROY;
+
+		if ((flags_ & FLAG_CONDEMN_AND_WAIT_DESTROY) > 0)
+			return FLAG_CONDEMN_AND_WAIT_DESTROY;
+
+		return 0;
+	}
+
+	void condemn(const std::string& reason, bool waitSendCompletedDestroy = false);
+	std::string condemnReason() const { return condemnReason_; }
 
 	bool hasHandshake() const { return (flags_ & FLAG_HANDSHAKE) > 0; }
 
@@ -210,6 +222,8 @@ public:
 
 	bool init_kcp();
 	bool fina_kcp();
+	void kcpUpdate();
+	void addKcpUpdate(int64 microseconds = 1);
 
 	ProtocolType protocoltype() const { return protocoltype_; }
 	ProtocolSubType protocolSubtype() const { return protocolSubtype_; }
@@ -230,7 +244,8 @@ private:
 
 	enum TimeOutType
 	{
-		TIMEOUT_INACTIVITY_CHECK
+		TIMEOUT_INACTIVITY_CHECK = 0,
+		KCP_UPDATE = 1
 	};
 
 	virtual void handleTimeout(TimerHandle, void * pUser);
@@ -289,6 +304,10 @@ private:
 	uint32						flags_;
 
 	ikcpcb*						pKCP_;
+	TimerHandle					kcpUpdateTimerHandle_;
+	bool						hasSetNextKcpUpdate_;
+
+	std::string					condemnReason_;
 };
 
 }

@@ -20,8 +20,10 @@ LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
+	cd dependencies/fmt/src && $(MAKE) $@
 	cd dependencies/jemalloc && $(MAKE) $@ && if ! test -e ../../../libs/libjemalloc.a; then \cp -f "./lib/libjemalloc.a" "../../../libs"; fi
 	cd dependencies/openssl && $(MAKE) $@ && if ! test -e ../../../libs/libssl.a; then \cp -f "libssl.a" "../../../libs"; fi && if ! test -e ../../../libs/libcrypto.a; then \cp -f "libcrypto.a" "../../../libs"; fi
+	cd dependencies/curl && $(MAKE) $@
 	cd dependencies/hiredis && $(MAKE) $@
 	cd dependencies/zip && $(MAKE) $@
 	cd dependencies/g3dlite && $(MAKE) $@

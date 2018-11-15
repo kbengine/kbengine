@@ -27,9 +27,9 @@ ObjectPool<KCPPacketReceiver>& KCPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-KCPPacketReceiver* KCPPacketReceiver::createPoolObject()
+KCPPacketReceiver* KCPPacketReceiver::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -48,9 +48,9 @@ void KCPPacketReceiver::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-KCPPacketReceiver::SmartPoolObjectPtr KCPPacketReceiver::createSmartPoolObj()
+KCPPacketReceiver::SmartPoolObjectPtr KCPPacketReceiver::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<KCPPacketReceiver>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<KCPPacketReceiver>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -74,7 +74,13 @@ bool KCPPacketReceiver::processRecv(bool expectingPacket)
 //-------------------------------------------------------------------------------------
 bool KCPPacketReceiver::processRecv(UDPPacket* pReceiveWindow)
 {
-	Reason ret = this->processPacket(getChannel(), pReceiveWindow);
+	Channel* pChannel = getChannel();
+	if (pChannel && pChannel->condemn() > 0)
+	{
+		return false;
+	}
+
+	Reason ret = this->processPacket(pChannel, pReceiveWindow);
 
 	if (ret != REASON_SUCCESS)
 		this->dispatcher().errorReporter().reportException(ret, pEndpoint_->addr());
@@ -87,6 +93,8 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 {
 	if (pChannel != NULL && pChannel->hasHandshake())
 	{
+		pChannel->addKcpUpdate();
+
 		if (ikcp_input(pChannel->pKCP(), (const char*)pPacket->data(), pPacket->length()) < 0)
 		{
 			RECLAIM_PACKET(pPacket->isTCPPacket(), pPacket);
@@ -97,9 +105,9 @@ Reason KCPPacketReceiver::processPacket(Channel* pChannel, Packet * pPacket)
 
 		while (true)
 		{
-			Packet* pRcvdUDPPacket = UDPPacket::createPoolObject();
+			Packet* pRcvdUDPPacket = UDPPacket::createPoolObject(OBJECTPOOL_POINT);
 			int bytes_recvd = ikcp_recv(pChannel->pKCP(), (char*)pRcvdUDPPacket->data(), pRcvdUDPPacket->size());
-			if (bytes_recvd <= 0)
+			if (bytes_recvd < 0)
 			{
 				//WARNING_MSG(fmt::format("KCPPacketReceiver::processPacket(): recvd_bytes({}) <= 0! addr={}\n", bytes_recvd, pChannel->c_str()));
 				RECLAIM_PACKET(pRcvdUDPPacket->isTCPPacket(), pRcvdUDPPacket);

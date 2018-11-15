@@ -104,7 +104,7 @@ void ClientObject::reset(void)
 //-------------------------------------------------------------------------------------
 bool ClientObject::initCreate()
 {
-	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint* pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
@@ -121,7 +121,7 @@ bool ClientObject::initCreate()
 	Network::Address::string2ip(infos.login_ip, address);
 	if(pEndpoint->connect(htons(infos.login_port), address) == -1)
 	{
-		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) is error({0})!\n",
+		ERROR_MSG(fmt::format("ClientObject::initNetwork({1}): connect server({2}:{3}) error({0})!\n",
 			kbe_strerror(), name_, infos.login_ip, infos.login_port));
 
 		Network::EndPoint::reclaimPoolObject(pEndpoint);
@@ -151,7 +151,7 @@ bool ClientObject::initCreate()
 	//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
 	pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle).newMessage(LoginappInterface::hello);
 	(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
@@ -200,7 +200,7 @@ bool ClientObject::initLoginBaseapp()
 	// 首先尝试用udp交互
 	if (udp_port_ > 0)
 	{
-		Network::EndPoint* pUdpEndpoint = Network::EndPoint::createPoolObject();
+		Network::EndPoint* pUdpEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 
 		pUdpEndpoint->socket(SOCK_DGRAM);
 		if (!pUdpEndpoint->good())
@@ -220,7 +220,7 @@ bool ClientObject::initLoginBaseapp()
 		if (pUdpEndpoint->sendto((void*)Network::UDP_HELLO, strlen(Network::UDP_HELLO)) != -1)
 		{
 			// 等待接收返回包
-			Network::UDPPacket* pHelloAckUDPPacket = Network::UDPPacket::createPoolObject();
+			Network::UDPPacket* pHelloAckUDPPacket = Network::UDPPacket::createPoolObject(OBJECTPOOL_POINT);
 
 			fd_set	frds;
 			struct timeval tv = { 0, 1000000 }; // 1s
@@ -281,7 +281,7 @@ bool ClientObject::initLoginBaseapp()
 
 					Bots::getSingleton().networkInterface().dispatcher().registerReadFileDescriptor((*pUdpEndpoint), pKCPPacketReceiverEx_);
 
-					Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+					Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 					(*pBundle).newMessage(BaseappInterface::hello);
 					(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
@@ -316,7 +316,7 @@ bool ClientObject::initLoginBaseapp()
 	// 如果udp可以通讯则不再启用tcp交互
 	if (!connectedBaseapp_ && tcp_port_ > 0)
 	{
-		Network::EndPoint* pTcpEndpoint = Network::EndPoint::createPoolObject();
+		Network::EndPoint* pTcpEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 
 		pTcpEndpoint->socket(SOCK_STREAM);
 		if (!pTcpEndpoint->good())
@@ -329,7 +329,7 @@ bool ClientObject::initLoginBaseapp()
 
 		if (pTcpEndpoint->connect(htons(tcp_port_), srv_address) == -1)
 		{
-			ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server is error({})!\n",
+			ERROR_MSG(fmt::format("ClientObject::initLogin({}): connect server error({})!\n",
 				kbe_strerror(), name_));
 
 			Network::EndPoint::reclaimPoolObject(pTcpEndpoint);
@@ -355,7 +355,7 @@ bool ClientObject::initLoginBaseapp()
 		//Bots::getSingleton().networkInterface().dispatcher().registerWriteFileDescriptor((*pEndpoint), pTCPPacketSenderEx_);
 		pServerChannel_->pPacketSender(pTCPPacketSenderEx_);
 
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		(*pBundle).newMessage(BaseappInterface::hello);
 		(*pBundle) << KBEVersion::versionString() << KBEVersion::scriptVersionString();
 
@@ -385,7 +385,7 @@ void ClientObject::gameTick()
 {
 	if(pServerChannel()->pEndPoint())
 	{
-		if(pServerChannel()->isCondemn())
+		if(pServerChannel()->condemn() > 0)
 		{
 			destroy();
 			return;

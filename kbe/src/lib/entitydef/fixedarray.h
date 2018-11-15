@@ -14,6 +14,7 @@ class FixedArray : public script::Sequence
 {		
 	/** 子类化 将一些py操作填充进派生类 */
 	INSTANCE_SCRIPT_HREADER(FixedArray, Sequence)
+
 public:	
 	FixedArray(DataType* dataType);
 	virtual ~FixedArray();
@@ -51,6 +52,7 @@ public:
 	static PyObject* __py_insert(PyObject* self, PyObject* args, PyObject* kwargs);	
 	static PyObject* __py_pop(PyObject* self, PyObject* args, PyObject* kwargs);
 	static PyObject* __py_remove(PyObject* self, PyObject* args, PyObject* kwargs);
+	static PyObject* __py_clear(PyObject* self, PyObject* args, PyObject* kwargs);
 	
 	bool isSameType(PyObject* pyValue);
 	bool isSameItemType(PyObject* pyValue);
@@ -62,6 +64,7 @@ public:
 	*/
 	PyObject* tp_repr();
 	PyObject* tp_str();
+
 protected:
 	FixedArrayType* _dataType;
 } ;

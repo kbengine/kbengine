@@ -255,7 +255,7 @@ RESTART_RECV:
 				}
 				else
 				{
-					ERROR_MSG(fmt::format("CguiconsoleDlg::OnTimer: {} not found. receive data is error!\n",
+					ERROR_MSG(fmt::format("CguiconsoleDlg::OnTimer: {} not found. receive data error!\n",
 						COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				}
 
@@ -591,7 +591,7 @@ void CguiconsoleDlg::commitPythonCommand(CString strCommand)
 	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			(*pBundle).newMessage(BaseappInterface::onExecScriptCommand);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == CELLAPP_TYPE)
@@ -850,7 +850,7 @@ void CguiconsoleDlg::OnTimer(UINT_PTR nIDEvent)
 			for(; iter != channels.end(); iter++)
 			{
 				Network::Channel* pChannel = const_cast<KBEngine::Network::Channel*>(iter->second);
-				Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+				Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 				if(pChannel->proxyID() != BOTS_TYPE)
 				{
@@ -1167,7 +1167,7 @@ void CguiconsoleDlg::reqQueryWatcher(std::string paths)
 
 	if(pChannel)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 		if(debugComponentType == BOTS_TYPE)
 		{
@@ -1360,7 +1360,7 @@ bool CguiconsoleDlg::connectTo()
 		return false;
 	}
 	
-	Network::EndPoint* endpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint* endpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	endpoint->socket(SOCK_STREAM);
 	if (!endpoint->good())
 	{
@@ -1373,7 +1373,7 @@ bool CguiconsoleDlg::connectTo()
 	if(endpoint->connect(addr.port, addr.ip) == -1)
 	{
 		CString err;
-		err.Format(L"connect server is error! %d", ::WSAGetLastError());
+		err.Format(L"connect server error! %d", ::WSAGetLastError());
 		AfxMessageBox(err);
 		return false;
 	}
@@ -1387,7 +1387,7 @@ bool CguiconsoleDlg::connectTo()
 		Network::Channel::reclaimPoolObject(pChannel);
 	}
 
-	pChannel = Network::Channel::createPoolObject();
+	pChannel = Network::Channel::createPoolObject(OBJECTPOOL_POINT);
 	bool ret = pChannel->initialize(_networkInterface, endpoint, Network::Channel::INTERNAL);
 	if(!ret)
 	{
@@ -1765,7 +1765,7 @@ bool CguiconsoleDlg::startProfile(std::string name, int8 type, uint32 timinglen)
 	Network::Channel* pChannel = _networkInterface.findChannel(this->getTreeItemAddr(m_tree.GetSelectedItem()));
 	if(pChannel)
 	{
-		Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+		Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 		if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPP_TYPE)
 			(*pBundle).newMessage(BaseappInterface::startProfile);
 		else if(getTreeItemComponent(m_tree.GetSelectedItem()) == BASEAPPMGR_TYPE)

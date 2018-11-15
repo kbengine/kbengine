@@ -27,9 +27,9 @@ ObjectPool<UDPPacketReceiver>& UDPPacketReceiver::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-UDPPacketReceiver* UDPPacketReceiver::createPoolObject()
+UDPPacketReceiver* UDPPacketReceiver::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -48,9 +48,9 @@ void UDPPacketReceiver::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-UDPPacketReceiver::SmartPoolObjectPtr UDPPacketReceiver::createSmartPoolObj()
+UDPPacketReceiver::SmartPoolObjectPtr UDPPacketReceiver::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacketReceiver>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<UDPPacketReceiver>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ Channel* UDPPacketReceiver::findChannel(const Address& addr)
 bool UDPPacketReceiver::processRecv(bool expectingPacket)
 {	
 	Address	srcAddr;
-	UDPPacket* pChannelReceiveWindow = UDPPacket::createPoolObject();
+	UDPPacket* pChannelReceiveWindow = UDPPacket::createPoolObject(OBJECTPOOL_POINT);
 	int len = pChannelReceiveWindow->recvFromEndPoint(*pEndpoint_, &srcAddr);
 
 	if (len <= 0)
@@ -89,11 +89,11 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 
 	if(pSrcChannel == NULL) 
 	{
-		EndPoint* pNewEndPoint = EndPoint::createPoolObject();
+		EndPoint* pNewEndPoint = EndPoint::createPoolObject(OBJECTPOOL_POINT);
 		pNewEndPoint->addr(srcAddr);
 		pNewEndPoint->setSocketRef(pEndpoint_->socket());
 
-		pSrcChannel = Network::Channel::createPoolObject();
+		pSrcChannel = Network::Channel::createPoolObject(OBJECTPOOL_POINT);
 		bool ret = pSrcChannel->initialize(*pNetworkInterface_, pNewEndPoint, Channel::EXTERNAL, PROTOCOL_UDP, protocolSubType());
 		if(!ret)
 		{
@@ -123,12 +123,9 @@ bool UDPPacketReceiver::processRecv(bool expectingPacket)
 	
 	KBE_ASSERT(pSrcChannel != NULL);
 
-	if(pSrcChannel->isCondemn())
+	if (pSrcChannel->condemn() > 0)
 	{
 		UDPPacket::reclaimPoolObject(pChannelReceiveWindow);
-		pNetworkInterface_->deregisterChannel(pSrcChannel);
-		pSrcChannel->destroy();
-		Network::Channel::reclaimPoolObject(pSrcChannel);
 		return false;
 	}
 	
@@ -188,7 +185,7 @@ PacketReceiver::RecvState UDPPacketReceiver::checkSocketErrors(int len, bool exp
 		return RECV_STATE_BREAK;
 	}
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	if (errno == EAGAIN ||
 		errno == ECONNREFUSED ||
 		errno == EHOSTUNREACH)

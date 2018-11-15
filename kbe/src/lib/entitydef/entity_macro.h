@@ -192,11 +192,9 @@ namespace KBEngine{
 #define DEBUG_CREATE_ENTITY_NAMESPACE																		\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
-			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE= strutil::wchar2char(PyUnicode_AsWideCharStringRet1);\
+			char* ccattr_DEBUG_CREATE_ENTITY_NAMESPACE = PyUnicode_AsUTF8AndSize(key, NULL);				\
 			PyObject* pytsval = PyObject_Str(value);														\
-			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
-			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
+			char* cccpytsval = PyUnicode_AsUTF8AndSize(pytsval, NULL);										\
 			Py_DECREF(pytsval);																				\
 			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_createNamespace:add {}({}).\n",				\
 												scriptName(),												\
@@ -204,24 +202,17 @@ namespace KBEngine{
 												this->id(),													\
 																ccattr_DEBUG_CREATE_ENTITY_NAMESPACE,		\
 																cccpytsval));								\
-			free(ccattr_DEBUG_CREATE_ENTITY_NAMESPACE);														\
-			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
-			free(cccpytsval);																				\
-			PyMem_Free(cwpytsval);																			\
 		}																									\
 
 
 #define DEBUG_OP_ATTRIBUTE(op, ccattr)																		\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
-			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
+			char* ccattr_DEBUG_OP_ATTRIBUTE = PyUnicode_AsUTF8AndSize(ccattr, NULL);						\
 			DEBUG_MSG(fmt::format("{}(refc={}, id={})::debug_op_attr:op={}, {}.\n",							\
 												scriptName(),												\
 												static_cast<PyObject*>(this)->ob_refcnt, this->id(),		\
 															op, ccattr_DEBUG_OP_ATTRIBUTE));				\
-			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
-			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 		}																									\
 
 
@@ -269,11 +260,12 @@ namespace KBEngine{
 
 
 // 实体的标志
-#define ENTITY_FLAGS_UNKNOWN			0x00000000
-#define ENTITY_FLAGS_DESTROYING			0x00000001
-#define ENTITY_FLAGS_INITING			0x00000002
-#define ENTITY_FLAGS_TELEPORT_START		0x00000004
-#define ENTITY_FLAGS_TELEPORT_STOP		0x00000008
+#define ENTITY_FLAGS_UNKNOWN						0x00000000
+#define ENTITY_FLAGS_DESTROYING						0x00000001
+#define ENTITY_FLAGS_INITING						0x00000002
+#define ENTITY_FLAGS_TELEPORT_START					0x00000004
+#define ENTITY_FLAGS_TELEPORT_STOP					0x00000008
+#define ENTITY_FLAGS_DESTROY_AFTER_GETCELL			0x00000010
 
 #define ENTITY_HEADER(CLASS)																				\
 public:																										\
@@ -426,9 +418,7 @@ public:																										\
 			DEBUG_CREATE_ENTITY_NAMESPACE																	\
 			if(PyObject_HasAttr(this, key) > 0)																\
 			{																								\
-				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);			\
-				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);							\
-				PyMem_Free(PyUnicode_AsWideCharStringRet0);													\
+				char* ccattr = PyUnicode_AsUTF8AndSize(key, NULL);											\
 																											\
 				PropertyDescription* pCompPropertyDescription =												\
 					pScriptModule_->findComponentPropertyDescription(ccattr);								\
@@ -451,7 +441,6 @@ public:																										\
 					PyObject_SetAttr(this, key, value);														\
 				}																							\
 																											\
-				free(ccattr);																				\
 				continue;																					\
 			}																								\
 																											\
@@ -473,18 +462,15 @@ public:																										\
 			}																								\
 			else																							\
 			{																								\
-				wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);			\
-				char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);							\
-				PyMem_Free(PyUnicode_AsWideCharStringRet0);													\
+				char* ccattr = PyUnicode_AsUTF8AndSize(key, NULL);											\
 																											\
 				PropertyDescription* pCompPropertyDescription =												\
 					pScriptModule_->findComponentPropertyDescription(ccattr);								\
 																											\
-				free(ccattr);																				\
 																											\
 				if (pCompPropertyDescription)																\
 				{																							\
-					/* 一般在base上可能放在cellData中是字典，而没有cell的实体需要pass这个设置 */				\
+					/* 一般在base上可能放在cellData中是字典，而没有cell的实体需要pass这个设置 */					\
 					if(PyDict_Check(value))																	\
 						continue;																			\
 				}																							\
@@ -739,9 +725,7 @@ public:																										\
 																											\
 	int onScriptDelAttribute(PyObject* attr)																\
 	{																										\
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
+		char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);													\
 		DEBUG_OP_ATTRIBUTE("del", attr)																		\
 																											\
 		if(pPropertyDescrs_)																				\
@@ -753,7 +737,6 @@ public:																										\
 				kbe_snprintf(err, 255, "property[%s] defined in %s.def, del failed!", ccattr, scriptName());\
 				PyErr_SetString(PyExc_TypeError, err);														\
 				PyErr_PrintEx(0);																			\
-				free(ccattr);																				\
 				return 0;																					\
 			}																								\
 		}																									\
@@ -764,20 +747,16 @@ public:																										\
 			kbe_snprintf(err, 255, "method[%s] defined in %s.def, del failed!", ccattr, scriptName());		\
 			PyErr_SetString(PyExc_TypeError, err);															\
 			PyErr_PrintEx(0);																				\
-			free(ccattr);																					\
 			return 0;																						\
 		}																									\
 																											\
-		free(ccattr);																						\
 		return ScriptObject::onScriptDelAttribute(attr);													\
 	}																										\
 																											\
 	int onScriptSetAttribute(PyObject* attr, PyObject* value)												\
 	{																										\
 		DEBUG_OP_ATTRIBUTE("set", attr)																		\
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);					\
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);									\
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);															\
+		char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);													\
 																											\
 		if(pPropertyDescrs_)																				\
 		{																									\
@@ -792,7 +771,6 @@ public:																										\
 					PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",		\
 													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
-					free(ccattr);																			\
 					return 0;																				\
 				}																							\
 																											\
@@ -801,7 +779,6 @@ public:																										\
 					PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",								\
 													scriptName(), ccattr, value->ob_type->tp_name);			\
 					PyErr_PrintEx(0);																		\
-					free(ccattr);																			\
 					return 0;																				\
 				}																							\
 				else																						\
@@ -817,13 +794,11 @@ public:																										\
 							Py_DECREF(pySetObj);															\
 					}																						\
 																											\
-					free(ccattr);																			\
 					return pySetObj == NULL ? -1 : 0;														\
 				}																							\
 			}																								\
 		}																									\
 																											\
-		free(ccattr);																						\
 		return ScriptObject::onScriptSetAttribute(attr, value);												\
 	}																										\
 																											\
@@ -944,11 +919,7 @@ public:																										\
 																											\
 				if(pystr_extra)																				\
 				{																							\
-					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);\
-					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);						\
-					strextra = ccattr;																		\
-					PyMem_Free(PyUnicode_AsWideCharStringRet0);												\
-					free(ccattr);																			\
+					strextra = PyUnicode_AsUTF8AndSize(pystr_extra, NULL);									\
 				}																							\
 																											\
 				if(!g_kbeSrvConfig.dbInterface(strextra))													\
@@ -990,11 +961,7 @@ public:																										\
 																											\
 				if(pystr_extra)																				\
 				{																							\
-					wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pystr_extra, NULL);\
-					char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);						\
-					strextra = ccattr;																		\
-					PyMem_Free(PyUnicode_AsWideCharStringRet0);												\
-					free(ccattr);																			\
+					strextra = PyUnicode_AsUTF8AndSize(pystr_extra, NULL);									\
 				}																							\
 																											\
 				if(!g_kbeSrvConfig.dbInterface(strextra))													\
@@ -1274,14 +1241,11 @@ public:																										\
 				Py_RETURN_FALSE;																			\
 			}																								\
 																											\
-			wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(pyEvnName, NULL);			\
-			eventName = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);								\
-			PyMem_Free(PyUnicode_AsWideCharStringRet0);														\
+			eventName = PyUnicode_AsUTF8AndSize(pyEvnName, NULL);											\
 																											\
 			PyObject* pyargs = PyTuple_GetSlice(args, 1, currargsSize);										\
 			pobj->fireEvent(eventName, pyargs);																\
 			Py_DECREF(pyargs);																				\
-			free(eventName);																				\
 		}																									\
 																											\
 		Py_RETURN_TRUE;																						\

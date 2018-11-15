@@ -324,14 +324,14 @@ void Components::removeComponentByChannel(Network::Channel * pChannel, bool isSh
 				//SAFE_RELEASE((*iter).pExtAddr);
 				// (*iter).pChannel->decRef();
 
-				if (!isShutingdown && g_componentType != LOGGER_TYPE)
+				if (!isShutingdown && g_componentType != LOGGER_TYPE && g_componentType != INTERFACES_TYPE)
 				{
 					ERROR_MSG(fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! {}\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid, kbe_strerror()));
+						COMPONENT_NAME_EX(componentType), (*iter).cid, pChannel->condemnReason()));
 
 #if KBE_PLATFORM == PLATFORM_WIN32
 					printf("[ERROR]: %s.\n", (fmt::format("Components::removeComponentByChannel: {} : {}, Abnormal exit! {}\n",
-						COMPONENT_NAME_EX(componentType), (*iter).cid, kbe_strerror())).c_str());
+						COMPONENT_NAME_EX(componentType), (*iter).cid, pChannel->condemnReason())).c_str());
 #endif
 				}
 				else
@@ -371,7 +371,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		return -1;
 	}
 
-	Network::EndPoint * pEndpoint = Network::EndPoint::createPoolObject();
+	Network::EndPoint * pEndpoint = Network::EndPoint::createPoolObject(OBJECTPOOL_POINT);
 	pEndpoint->socket(SOCK_STREAM);
 	if (!pEndpoint->good())
 	{
@@ -389,7 +389,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 
 	if(ret == 0)
 	{
-		Network::Channel* pChannel = Network::Channel::createPoolObject();
+		Network::Channel* pChannel = Network::Channel::createPoolObject(OBJECTPOOL_POINT);
 		bool ret = pChannel->initialize(*_pNetworkInterface, pEndpoint, Network::Channel::INTERNAL);
 		if(!ret)
 		{
@@ -424,7 +424,7 @@ int Components::connectComponent(COMPONENT_TYPE componentType, int32 uid, COMPON
 		}
 		else
 		{
-			Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+			Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 			if(componentType == BASEAPPMGR_TYPE)
 			{
 				(*pBundle).newMessage(BaseappmgrInterface::onRegisterNewApp);
@@ -756,7 +756,7 @@ bool Components::updateComponentInfos(const Components::ComponentInfos* info)
 	
 	epListen.setnodelay(true);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 
 	// 由于COMMON_NETWORK_MESSAGE不包含client， 如果是bots， 我们需要单独处理
 	if(info->componentType != BOTS_TYPE)
@@ -1010,9 +1010,11 @@ void Components::onChannelDeregister(Network::Channel * pChannel, bool isShuting
 //-------------------------------------------------------------------------------------
 bool Components::findLogger()
 {
-	if(g_componentType == LOGGER_TYPE || g_componentType == MACHINE_TYPE ||
-		componentType_ == INTERFACES_TYPE)
+	if (g_componentType == LOGGER_TYPE || g_componentType == MACHINE_TYPE || g_componentType == TOOL_TYPE ||
+		g_componentType == CONSOLE_TYPE || g_componentType == CLIENT_TYPE || g_componentType == BOTS_TYPE ||
+		g_componentType == WATCHER_TYPE || componentType_ == INTERFACES_TYPE)
 	{
+		DebugHelper::getSingleton().onNoLogger();
 		return true;
 	}
 	
@@ -1111,7 +1113,7 @@ RESTART_RECV:
 				{
 					if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0, false) != 0)
 					{
-						//ERROR_MSG(fmt::format("Components::findLogger: register self to {} is error!\n",
+						//ERROR_MSG(fmt::format("Components::findLogger: register self to {} error!\n",
 						//COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 						//dispatcher().breakProcessing();
 						KBEngine::sleep(200);
@@ -1268,7 +1270,7 @@ RESTART_RECV:
 						findComponentTypes_[findIdx_] = -1;
 						if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 						{
-							ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
+							ERROR_MSG(fmt::format("Components::findComponents: register self to {} error!\n",
 							COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 							findIdx_++;
 							//dispatcher().breakProcessing();
@@ -1351,7 +1353,7 @@ RESTART_RECV:
 
 			if(connectComponent(static_cast<COMPONENT_TYPE>(findComponentType), getUserUID(), 0) != 0)
 			{
-				ERROR_MSG(fmt::format("Components::findComponents: register self to {} is error!\n",
+				ERROR_MSG(fmt::format("Components::findComponents: register self to {} error!\n",
 				COMPONENT_NAME_EX((COMPONENT_TYPE)findComponentType)));
 				//dispatcher().breakProcessing();
 				return false;

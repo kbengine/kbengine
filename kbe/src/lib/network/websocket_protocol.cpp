@@ -54,7 +54,7 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 	}
 
 	std::vector<std::string> header_and_data;
-	header_and_data = KBEngine::strutil::kbe_splits(data, "\r\n\r\n");
+	KBEngine::strutil::kbe_splits(data, "\r\n\r\n", header_and_data);
 	
 	if(header_and_data.size() != 2)
 	{
@@ -84,7 +84,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	(*s) >> data;
 
 	std::vector<std::string> header_and_data;
-	header_and_data = KBEngine::strutil::kbe_splits(data, "\r\n\r\n");
+	KBEngine::strutil::kbe_splits(data, "\r\n\r\n", header_and_data);
 	
 	if(header_and_data.size() != 2)
 	{
@@ -96,7 +96,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	KBEUnordered_map<std::string, std::string> headers;
 	std::vector<std::string> values;
 	
-	values = KBEngine::strutil::kbe_splits(header_and_data[0], "\r\n");
+	KBEngine::strutil::kbe_splits(header_and_data[0], "\r\n", values);
 	std::vector<std::string>::iterator iter = values.begin();
 
 	for (; iter != values.end(); ++iter)
@@ -157,10 +157,9 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	//RFC6544_MAGIC_KEY
     server_key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-	SHA1 sha;
+	KBE_SHA1 sha;
 	unsigned int message_digest[5];
 
-	sha.Reset();
 	sha << server_key.c_str();
 	sha.Result(message_digest);
 
@@ -178,7 +177,7 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 								"WebSocket-Protocol: WebManagerSocket\r\n\r\n", 
 								server_key, szOrigin, szHost);
 
-	Network::Bundle* pBundle = Network::Bundle::createPoolObject();
+	Network::Bundle* pBundle = Network::Bundle::createPoolObject(OBJECTPOOL_POINT);
 	(*pBundle) << ackHandshake;
 	(*pBundle).pCurrPacket()->wpos((*pBundle).pCurrPacket()->wpos() - 1);
 	pChannel->send(pBundle);
@@ -297,14 +296,17 @@ int WebSocketProtocol::getFrame(Packet * pPacket, uint8& msg_opcode, uint8& msg_
 			return remainSize;
 		}
 		
-		msg_payload_length = ((uint64)(pPacket->data() + pPacket->rpos() + 0) << 56) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 1) << 48) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 2) << 40) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 3) << 32) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 4) << 24) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 5) << 16) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 6) << 8) |
-                         ((uint64)(pPacket->data() + pPacket->rpos() + 7));
+		uint8 *pDatas = pPacket->data();
+		size_t dataRpos = pPacket->rpos();
+
+		msg_payload_length = ((uint64)(*(pDatas + dataRpos + 0)) << 56) |
+							 ((uint64)(*(pDatas + dataRpos + 1)) << 48) |
+							 ((uint64)(*(pDatas + dataRpos + 2)) << 40) |
+							 ((uint64)(*(pDatas + dataRpos + 3)) << 32) |
+							 ((uint64)(*(pDatas + dataRpos + 4)) << 24) |
+							 ((uint64)(*(pDatas + dataRpos + 5)) << 16) |
+							 ((uint64)(*(pDatas + dataRpos + 6)) << 8) |
+							 ((uint64)(*(pDatas + dataRpos + 7)));
 
 		pPacket->read_skip(8);
 	}

@@ -15,19 +15,29 @@
 namespace KBEngine{
 KBE_SINGLETON_INIT(ServerConfig);
 
+static bool g_dbmgr_addDefaultAddress = true;
+
 //-------------------------------------------------------------------------------------
 ServerConfig::ServerConfig():
-gameUpdateHertz_(10),
-tick_max_buffered_logs_(4096),
-tick_max_sync_logs_(32),
-interfacesAddr_(),
-shutdown_time_(1.f),
-shutdown_waitTickTime_(1.f),
-callback_timeout_(180.f),
-thread_timeout_(300.f),
-thread_init_create_(1),
-thread_pre_create_(2),
-thread_max_create_(8)
+	gameUpdateHertz_(10),
+	tick_max_buffered_logs_(4096),
+	tick_max_sync_logs_(32),
+	channelCommon_(),
+	bitsPerSecondToClient_(0),
+	interfacesAddr_(),
+	interfacesAddrs_(),
+	interfaces_orders_timeout_(0),
+	shutdown_time_(1.f),
+	shutdown_waitTickTime_(1.f),
+	callback_timeout_(180.f),
+	thread_timeout_(300.f),
+	thread_init_create_(1),
+	thread_pre_create_(2),
+	thread_max_create_(8),
+	emailServerInfo_(),
+	emailAtivationInfo_(),
+	emailResetPasswordInfo_(),
+	emailBindInfo_()
 {
 }
 
@@ -339,6 +349,18 @@ bool ServerConfig::loadConfig(std::string fileName)
 		if(childnode)
 		{
 			Network::g_channelExternalEncryptType = xml->getValInt(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "sslCertificate");
+		if (childnode)
+		{
+			Network::g_sslCertificate = xml->getValStr(childnode);
+		}
+
+		childnode = xml->enterNode(rootNode, "sslPrivateKey");
+		if (childnode)
+		{
+			Network::g_sslPrivateKey = xml->getValStr(childnode);
 		}
 
 		TiXmlNode* rudpChildnode = xml->enterNode(rootNode, "reliableUDP");
@@ -860,32 +882,48 @@ bool ServerConfig::loadConfig(std::string fileName)
 		node = xml->enterNode(rootNode, "InterfacesServiceAddr");
 		if (node != NULL)
 		{
-			TiXmlNode* childnode = xml->enterNode(node, "host");
+			TiXmlNode* loopNode = node;
+
+			do
+			{
+				if (TiXmlNode::TINYXML_COMMENT == loopNode->Type())
+					continue;
+
+				std::string name = loopNode->Value();
+				name = strutil::kbe_trim(name);
+
+				if (name == "item")
+				{
+					if (loopNode->FirstChild() != NULL)
+					{
+						TiXmlNode* host_node = xml->enterNode(loopNode->FirstChild(), "host");
+						TiXmlNode* port_node = xml->enterNode(loopNode->FirstChild(), "port");
+						if (host_node && port_node)
+						{
+							std::string ip = xml->getValStr(host_node);
+							int port = xml->getValInt(port_node);
+
+							if (port <= 0)
+								port = KBE_INTERFACES_TCP_PORT;
+
+							Network::Address addr(ip, port);
+							interfacesAddrs_.push_back(addr);
+						}
+					}
+				}
+			} while ((loopNode = loopNode->NextSibling()));
+
+			TiXmlNode* childnode = xml->enterNode(node, "addDefaultAddress");
 			if (childnode)
 			{
-				std::string ip = xml->getValStr(childnode);
-				Network::Address addr(ip, ntohs(interfacesAddr_.port));
-				interfacesAddr_ = addr;
-			}
-
-			uint16 port = 0;
-			childnode = xml->enterNode(node, "port");
-			if (childnode)
-			{
-				port = xml->getValInt(childnode);
-
-				if (port <= 0)
-					port = KBE_INTERFACES_TCP_PORT;
-
-				Network::Address addr(inet_ntoa((struct in_addr&)interfacesAddr_.ip), port);
-				interfacesAddr_ = addr;
+				g_dbmgr_addDefaultAddress = xml->getValStr(childnode) == "true";
 			}
 
 			childnode = xml->enterNode(node, "enable");
 			if (childnode)
 			{
-				if(xml->getValStr(childnode) != "true")
-					interfacesAddr_ = Network::Address::NONE;
+				if (xml->getValStr(childnode) != "true")
+					interfacesAddrs_.clear();
 			}
 		}
 
@@ -1238,6 +1276,9 @@ bool ServerConfig::loadConfig(std::string fileName)
 		{
 			do
 			{
+				if (TiXmlNode::TINYXML_COMMENT == node->Type())
+					continue;
+
 				if(node->FirstChild() != NULL)
 				{
 					std::string c = node->FirstChild()->Value();
@@ -1543,7 +1584,7 @@ void ServerConfig::_updateEmailInfos()
 		std::string out = KBEKey::getSingleton().decrypt(emailServerInfo_.password);
 		if(out.size() == 0)
 		{
-			ERROR_MSG("ServerConfig::loadConfig: email password(email_service.xml) encrypt is error!\n");
+			ERROR_MSG("ServerConfig::loadConfig: email password(email_service.xml) encrypt error!\n");
 		}
 		else
 		{
@@ -1578,6 +1619,11 @@ void ServerConfig::updateInfos(bool isPrint, COMPONENT_TYPE componentType, COMPO
 
 	for (size_t i = 0; i < _dbmgrInfo.dbInterfaceInfos.size(); ++i)
 		_dbmgrInfo.dbInterfaceInfos[i].index = i;
+
+	if (g_dbmgr_addDefaultAddress)
+	{
+		interfacesAddrs_.insert(interfacesAddrs_.begin(), interfacesAddr_);
+	}
 
 	//updateExternalAddress(getBaseApp().externalTcpAddr);
 	//updateExternalAddress(getLoginApp().externalTcpAddr);

@@ -47,7 +47,7 @@ SCRIPT_MEMBER_DECLARE_END()
 
 SCRIPT_GETSET_DECLARE_BEGIN(Map)
 SCRIPT_GETSET_DECLARE_END()
-SCRIPT_INIT(Map, 0, &Map::mappingSequenceMethods, &Map::mappingMethods, 0, 0)	
+SCRIPT_INIT(Map, 0, &Map::mappingSequenceMethods, &Map::mappingMethods, &Map::mp_keyiter, &Map::mp_iternextkey)
 	
 //-------------------------------------------------------------------------------------
 Map::Map(PyTypeObject* pyType, bool isInitialised):
@@ -66,6 +66,18 @@ Map::~Map()
 int Map::mp_length(PyObject* self)
 {
 	return PyDict_Size(static_cast<Map*>(self)->pyDict_);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Map::mp_keyiter(PyObject* self)
+{
+	return PyObject_GetIter(static_cast<Map*>(self)->pyDict_);
+}
+
+//-------------------------------------------------------------------------------------
+PyObject* Map::mp_iternextkey(PyObject* key_iter)
+{
+	return PyIter_Next(key_iter);
 }
 
 //-------------------------------------------------------------------------------------

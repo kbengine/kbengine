@@ -26,34 +26,26 @@ ScriptStdOutErr::~ScriptStdOutErr()
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErr::info_msg(const wchar_t* msg, uint32 msglen)
+void ScriptStdOutErr::info_msg(const char* msg, uint32 msglen)
 {
-	std::wstring str;
-	str.assign(msg, msglen);
-	sbuffer_ += str;
+	sbuffer_ += msg;
 
-	if(msg[0] == L'\n')
+	if(msg[0] == '\n')
 	{
-		std::string out;
-		strutil::wchar2utf8(sbuffer_, out);
-		SCRIPT_INFO_MSG(out);
-		sbuffer_ = L"";
+		SCRIPT_INFO_MSG(sbuffer_);
+		sbuffer_ = "";
 	}
 }
 
 //-------------------------------------------------------------------------------------
-void ScriptStdOutErr::error_msg(const wchar_t* msg, uint32 msglen)
+void ScriptStdOutErr::error_msg(const char* msg, uint32 msglen)
 {
-	std::wstring str;
-	str.assign(msg, msglen);
-	sbuffer_ += str;
+	sbuffer_ += msg;
 
-	if(msg[0] == L'\n')
+	if(msg[0] == '\n')
 	{
-		std::string out;
-		strutil::wchar2utf8(sbuffer_, out);
-		SCRIPT_ERROR_MSG(out);
-		sbuffer_ = L"";
+		SCRIPT_ERROR_MSG(sbuffer_);
+		sbuffer_ = "";
 	}
 }
 

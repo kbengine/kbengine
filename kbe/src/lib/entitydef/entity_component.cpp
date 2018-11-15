@@ -35,25 +35,20 @@ EntityComponent::ENTITY_COMPONENTS EntityComponent::entity_components;
 #define DEBUG_OP_ATTRIBUTE(op, ccattr)																		\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet2 = PyUnicode_AsWideCharString(ccattr, NULL);				\
-			char* ccattr_DEBUG_OP_ATTRIBUTE = strutil::wchar2char(PyUnicode_AsWideCharStringRet2);			\
+			char* ccattr_DEBUG_OP_ATTRIBUTE = PyUnicode_AsUTF8AndSize(ccattr, NULL);						\
 			DEBUG_MSG(fmt::format("{}.{}(refc={}, id={})::debug_op_attr:op={}, {}.\n",						\
 												owner()->ob_type->tp_name,									\
 										(pComponentDescrs_ ? pComponentDescrs_->getName() : ""),			\
 												static_cast<PyObject*>(this)->ob_refcnt, this->ownerID(),	\
 															op, ccattr_DEBUG_OP_ATTRIBUTE));				\
-			free(ccattr_DEBUG_OP_ATTRIBUTE);																\
-			PyMem_Free(PyUnicode_AsWideCharStringRet2);														\
 		}																									\
 
 #define DEBUG_CREATE_NAMESPACE																				\
 		if(g_debugEntity)																					\
 		{																									\
-			wchar_t* PyUnicode_AsWideCharStringRet1 = PyUnicode_AsWideCharString(key, NULL);				\
-			char* ccattr_DEBUG_CREATE_NAMESPACE= strutil::wchar2char(PyUnicode_AsWideCharStringRet1);		\
+			char* ccattr_DEBUG_CREATE_NAMESPACE = PyUnicode_AsUTF8AndSize(key, NULL);						\
 			PyObject* pytsval = PyObject_Str(value);														\
-			wchar_t* cwpytsval = PyUnicode_AsWideCharString(pytsval, NULL);									\
-			char* cccpytsval = strutil::wchar2char(cwpytsval);												\
+			char* cccpytsval = PyUnicode_AsUTF8AndSize(pytsval, NULL);										\
 			Py_DECREF(pytsval);																				\
 			DEBUG_MSG(fmt::format("{}.{}(refc={}, id={})::debug_createNamespace:add {}({}).\n",				\
 												owner()->ob_type->tp_name,									\
@@ -62,10 +57,6 @@ EntityComponent::ENTITY_COMPONENTS EntityComponent::entity_components;
 												this->ownerID(),											\
 																ccattr_DEBUG_CREATE_NAMESPACE,				\
 																cccpytsval));								\
-			free(ccattr_DEBUG_CREATE_NAMESPACE);															\
-			PyMem_Free(PyUnicode_AsWideCharStringRet1);														\
-			free(cccpytsval);																				\
-			PyMem_Free(cwpytsval);																			\
 		}																									\
 
 
@@ -249,25 +240,31 @@ void EntityComponent::initializeScript()
 //-------------------------------------------------------------------------------------
 void EntityComponent::onAttached()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onAttached"),
-		const_cast<char*>("O"), owner());
+	if (PyObject_HasAttrString(this, "onAttached"))
+	{
+		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onAttached"),
+			const_cast<char*>("O"), owner());
 
-	if (pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+		if (pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------
 void EntityComponent::onDetached()
 {
-	PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDetached"),
-		const_cast<char*>("O"), owner());
+	if (PyObject_HasAttrString(this, "onDetached"))
+	{
+		PyObject* pyResult = PyObject_CallMethod(this, const_cast<char*>("onDetached"),
+			const_cast<char*>("O"), owner());
 
-	if (pyResult != NULL)
-		Py_DECREF(pyResult);
-	else
-		SCRIPT_ERROR_CHECK();
+		if (pyResult != NULL)
+			Py_DECREF(pyResult);
+		else
+			SCRIPT_ERROR_CHECK();
+	}
 }
 
 //-------------------------------------------------------------------------------------
@@ -362,13 +359,13 @@ PyObject* EntityComponent::__unpickle__(PyObject* self, PyObject* args)
 	Py_ssize_t size = PyTuple_Size(args);
 	if (size != 2)
 	{
-		ERROR_MSG("EntityComponent::__unpickle__: args is error! size != 2.\n");
+		ERROR_MSG("EntityComponent::__unpickle__: args error! size != 2.\n");
 		S_Return;
 	}
 
 	if (!PyArg_ParseTuple(args, "iHH", &ownerID, &utype, &ctype))
 	{
-		ERROR_MSG("EntityComponent::__unpickle__: args is error!\n");
+		ERROR_MSG("EntityComponent::__unpickle__: args error!\n");
 		S_Return;
 	}
 
@@ -403,9 +400,7 @@ void EntityComponent::onInstallScript(PyObject* mod)
 int EntityComponent::onScriptSetAttribute(PyObject* attr, PyObject* value)
 {
 	DEBUG_OP_ATTRIBUTE("set", attr)
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);	
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs = &pComponentDescrs_->getPropertyDescrs();
 
@@ -422,7 +417,6 @@ int EntityComponent::onScriptSetAttribute(PyObject* attr, PyObject* value)
 				PyErr_Format(PyExc_AssertionError, "can't set %s.%s to %s. entity is destroyed!",
 					scriptName(), ccattr, value->ob_type->tp_name);
 				PyErr_PrintEx(0);
-				free(ccattr);
 				return 0;
 			}
 
@@ -431,7 +425,6 @@ int EntityComponent::onScriptSetAttribute(PyObject* attr, PyObject* value)
 				PyErr_Format(PyExc_ValueError, "can't set %s.%s to %s.",
 					scriptName(), ccattr, value->ob_type->tp_name);
 				PyErr_PrintEx(0);
-				free(ccattr);
 				return 0;
 			}
 			else
@@ -489,27 +482,23 @@ int EntityComponent::onScriptSetAttribute(PyObject* attr, PyObject* value)
 						Py_DECREF(pySetObj);
 				}
 
-				free(ccattr);
 				return pySetObj == NULL ? -1 : 0;
 			}
 		}
 	}
 
-	free(ccattr);
 	return ScriptObject::onScriptSetAttribute(attr, value);
 }
 
 //-------------------------------------------------------------------------------------
 int EntityComponent::onScriptDelAttribute(PyObject* attr)
 {
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(attr, NULL);
-	char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 	DEBUG_OP_ATTRIBUTE("del", attr)
 
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs = &pComponentDescrs_->getPropertyDescrs();
 
-	if (pPropertyDescrs)
+	if (pPropertyDescrs) 
 	{
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs->find(ccattr);
 		if (iter != pPropertyDescrs->end())
@@ -518,7 +507,6 @@ int EntityComponent::onScriptDelAttribute(PyObject* attr)
 			kbe_snprintf(err, 255, "property[%s] defined in %s.def, del failed!", ccattr, scriptName());
 			PyErr_SetString(PyExc_TypeError, err);
 			PyErr_PrintEx(0);
-			free(ccattr);
 			return 0;
 		}
 	}
@@ -529,11 +517,9 @@ int EntityComponent::onScriptDelAttribute(PyObject* attr)
 		kbe_snprintf(err, 255, "method[%s] defined in %s.def, del failed!", ccattr, scriptName());
 		PyErr_SetString(PyExc_TypeError, err);
 		PyErr_PrintEx(0);
-		free(ccattr);
 		return 0;
 	}
 
-	free(ccattr);
 	return ScriptObject::onScriptDelAttribute(attr);
 }
 
@@ -578,6 +564,64 @@ void EntityComponent::onEntityDestroy(PyObject* pEntity, ScriptDefModule* pEntit
 			SCRIPT_ERROR_CHECK();
 		}
 	}
+
+	
+	if (!beforeDestroy)
+	{
+		EntityComponentUnbind* pEntityComponentUnbind = new EntityComponentUnbind(pEntity, pEntityScriptDescrs);
+		DebugHelper::getSingleton().pDispatcher()->addTimer(1000000 / g_kbeSrvConfig.gameUpdateHertz(), pEntityComponentUnbind, NULL);
+	}
+}
+
+//-------------------------------------------------------------------------------------
+void EntityComponent::onEntityUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs, EntityComponentUnbind* pEntityComponentUnbind)
+{
+	ScriptDefModule::COMPONENTDESCRIPTION_MAP& componentDescrs = pEntityScriptDescrs->getComponentDescrs();
+	ScriptDefModule::COMPONENTDESCRIPTION_MAP::iterator comps_iter = componentDescrs.begin();
+	for (; comps_iter != componentDescrs.end(); ++comps_iter)
+	{
+		if (g_componentType == BASEAPP_TYPE)
+		{
+			if (!comps_iter->second->hasBase())
+				continue;
+		}
+		else if (g_componentType == CELLAPP_TYPE)
+		{
+			if (!comps_iter->second->hasCell())
+				continue;
+		}
+		else
+		{
+			if (!comps_iter->second->hasClient())
+				continue;
+		}
+
+		PyObject* pyObj = PyObject_GetAttrString(pEntity, comps_iter->first.c_str());
+		if (pyObj)
+		{
+			EntityComponent* pEntityComponent = static_cast<EntityComponent*>(pyObj);
+			pEntityComponent->onOwnerUnbind(pEntity, pEntityScriptDescrs);
+
+			Py_DECREF(pyObj);
+		}
+		else
+		{
+			SCRIPT_ERROR_CHECK();
+		}
+	}
+
+	delete pEntityComponentUnbind;
+}
+
+//-------------------------------------------------------------------------------------
+void EntityComponent::onOwnerUnbind(PyObject* pEntity, ScriptDefModule* pEntityScriptDescrs)
+{
+	ownerID_ = 0;
+
+	if (owner_)
+		Py_DECREF(owner_);
+
+	owner_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -592,10 +636,11 @@ void EntityComponent::onOwnerDestroyEnd(PyObject* pEntity, ScriptDefModule* pEnt
 {
 	ownerID_ = 0;
 
-	if (owner_)
-		Py_DECREF(owner_);
+	// 等待onOwnerUnbind来延时处理
+	//if (owner_)
+	//	Py_DECREF(owner_);
 
-	owner_ = NULL;
+	//owner_ = NULL;
 }
 
 //-------------------------------------------------------------------------------------
@@ -1341,9 +1386,7 @@ void EntityComponent::updateFromDict(PyObject* pOwner, PyObject* pyDict)
 
 	while (PyDict_Next(pyDict, &pos, &key, &value))
 	{
-		wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(key, NULL);
-		char* ccattr = strutil::wchar2char(PyUnicode_AsWideCharStringRet0);
-		PyMem_Free(PyUnicode_AsWideCharStringRet0);
+		char* ccattr = PyUnicode_AsUTF8AndSize(key, NULL);
 
 		ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs->find(ccattr);
 		if (iter != pPropertyDescrs->end())
@@ -1381,8 +1424,6 @@ void EntityComponent::updateFromDict(PyObject* pOwner, PyObject* pyDict)
 			PyObject_SetAttr(static_cast<PyObject*>(this),
 				key, value);
 		}
-
-		free(ccattr);
 	}
 
 	SCRIPT_ERROR_CHECK();

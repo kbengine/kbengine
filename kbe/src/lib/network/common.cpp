@@ -2,6 +2,8 @@
 
 
 #include "common.h"
+#include "common/ssl.h"
+#include "network/http_utility.h"
 #include "network/channel.h"
 #include "network/bundle.h"
 #include "network/tcp_packet.h"
@@ -64,6 +66,10 @@ uint32						g_intReSendRetries = 0;
 uint32						g_extReSendInterval = 10;
 uint32						g_extReSendRetries = 3;
 
+// Certificate file required for HTTPS/WSS/SSL communication
+std::string					g_sslCertificate = "";
+std::string					g_sslPrivateKey = "";
+
 bool initializeWatcher()
 {
 	WATCH_OBJECT("network/numPacketsSent", g_numPacketsSent);
@@ -93,8 +99,16 @@ void destroyObjPool()
 	UDPPacketReceiver::destroyObjPool();
 }
 
+bool initialize()
+{
+	return KB_SSL::initialize() && Http::initialize();
+}
+
 void finalise(void)
 {
+	Http::finalise();
+	KB_SSL::finalise();
+
 #ifdef ENABLE_WATCHERS
 	WatcherPaths::finalise();
 #endif

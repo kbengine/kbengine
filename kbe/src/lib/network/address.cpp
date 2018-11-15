@@ -22,9 +22,9 @@ ObjectPool<Address>& Address::ObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-Address* Address::createPoolObject()
+Address* Address::createPoolObject(const std::string& logPoint)
 {
-	return _g_objPool.createObject();
+	return _g_objPool.createObject(logPoint);
 }
 
 //-------------------------------------------------------------------------------------
@@ -43,9 +43,9 @@ void Address::destroyObjPool()
 }
 
 //-------------------------------------------------------------------------------------
-Address::SmartPoolObjectPtr Address::createSmartPoolObj()
+Address::SmartPoolObjectPtr Address::createSmartPoolObj(const std::string& logPoint)
 {
-	return SmartPoolObjectPtr(new SmartPoolObject<Address>(ObjPool().createObject(), _g_objPool));
+	return SmartPoolObjectPtr(new SmartPoolObject<Address>(ObjPool().createObject(logPoint), _g_objPool));
 }
 
 //-------------------------------------------------------------------------------------
@@ -64,6 +64,19 @@ port(htons(portArg))
 	Network::Address::string2ip(ipArg.c_str(), addr);
 	ip = (uint32)addr;
 } 
+
+//-------------------------------------------------------------------------------------
+Address::Address(const Address& addr) :
+ip(addr.ip),
+port(addr.port)
+{
+
+}
+
+//-------------------------------------------------------------------------------------
+Address::~Address()
+{
+}
 
 //-------------------------------------------------------------------------------------
 int Address::writeToString(char * str, int length) const
@@ -115,7 +128,7 @@ int Address::string2ip(const char * string, u_int32_t & address)
 {
 	u_int32_t	trial;
 
-#ifdef unix
+#if KBE_PLATFORM == PLATFORM_UNIX
 	if (inet_aton(string, (struct in_addr*)&trial) != 0)
 #else
 	if ((trial = inet_addr(string)) != INADDR_NONE)

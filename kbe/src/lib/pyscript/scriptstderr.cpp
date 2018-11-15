@@ -82,18 +82,16 @@ bool ScriptStdErr::uninstall(void)
 //-------------------------------------------------------------------------------------
 PyObject* ScriptStdErr::__py_write(PyObject* self, PyObject *args)
 {
-	PyObject* obj = NULL;
+	char* sdata = NULL;
+	Py_ssize_t size = 0;
 
-	if (!PyArg_ParseTuple(args, "O", &obj))
+	if (!PyArg_ParseTuple(args, "s#", &sdata, &size))
 	{
 		ERROR_MSG("ScriptStdErr::write: Bad args\n");
 		return NULL;
 	}
 		
-	Py_ssize_t size = 0;
-	wchar_t* PyUnicode_AsWideCharStringRet0 = PyUnicode_AsWideCharString(obj, &size);
-	static_cast<ScriptStdErr*>(self)->pScriptStdOutErr()->error_msg(PyUnicode_AsWideCharStringRet0, size);
-	PyMem_Free(PyUnicode_AsWideCharStringRet0);
+	static_cast<ScriptStdErr*>(self)->pScriptStdOutErr()->error_msg(sdata, size);
 	S_Return;
 }
 

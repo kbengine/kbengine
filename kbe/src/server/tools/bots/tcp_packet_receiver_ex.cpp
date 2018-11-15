@@ -39,7 +39,7 @@ Channel* TCPPacketReceiverEx::getChannel()
 }
 
 //-------------------------------------------------------------------------------------
-void TCPPacketReceiverEx::onGetError(Channel* pChannel)
+void TCPPacketReceiverEx::onGetError(Channel* pChannel, const std::string& err)
 {
 	pClientObject_->destroy();
 }
