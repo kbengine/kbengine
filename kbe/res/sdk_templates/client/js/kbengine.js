@@ -4074,7 +4074,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{
 		var failedcode = args.readUint16();
 		KBEngine.app.serverdatas = args.readBlob();
-		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginFailed: failedcode(" + KBEngine.app.serverErrs[failedcode].name + "), datas(" + KBEngine.app.serverdatas.length + ")!");
+		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginFailed: failedcode=" + failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + "), datas(" + KBEngine.app.serverdatas.length + ")!");
 		KBEngine.Event.fire(KBEngine.EventTypes.onLoginFailed, failedcode);
 	}
 	
@@ -4095,13 +4095,13 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	
 	this.Client_onLoginBaseappFailed = function(failedcode)
 	{
-		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginBaseappFailed: failedcode(" + KBEngine.app.serverErrs[failedcode].name + ")!");
+		KBEngine.ERROR_MSG("KBEngineApp::Client_onLoginBaseappFailed: failedcode=" + failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + ")!");
 		KBEngine.Event.fire(KBEngine.onLoginBaseappFailed.onLoginBaseappFailed, failedcode);
 	}
 
 	this.Client_onReloginBaseappFailed = function(failedcode)
 	{
-		KBEngine.ERROR_MSG("KBEngineApp::Client_onReloginBaseappFailed: failedcode(" + KBEngine.app.serverErrs[failedcode].name + ")!");
+		KBEngine.ERROR_MSG("KBEngineApp::Client_onReloginBaseappFailed: failedcode="+ failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + ")!");
 		KBEngine.Event.fire(KBEngine.EventTypes.onReloginBaseappFailed, failedcode);
 	}
 
@@ -4527,7 +4527,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 
 	this.Client_onKicked = function(failedcode)
 	{
-		KBEngine.ERROR_MSG("KBEngineApp::Client_onKicked: failedcode(" + KBEngine.app.serverErrs[failedcode].name + ")!");
+		KBEngine.ERROR_MSG("KBEngineApp::Client_onKicked: failedcode=" + failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + ")!");
 		KBEngine.Event.fire(KBEngine.EventTypes.onKicked, failedcode);
 	}
 
@@ -4540,7 +4540,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 		
 		if(retcode != 0)
 		{
-			KBEngine.ERROR_MSG("KBEngineApp::Client_onCreateAccountResult: " + KBEngine.app.username + " create is failed! code=" + KBEngine.app.serverErrs[retcode].name + "!");
+			KBEngine.ERROR_MSG("KBEngineApp::Client_onCreateAccountResult: " + KBEngine.app.username + " create is failed! code=" + retcode + "(" + KBEngine.app.serverErrs[retcode].name + "!");
 			return;
 		}
 
@@ -5149,7 +5149,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{
 		if(failedcode != 0)
 		{
-			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountResetPasswordCB: " + KBEngine.app.username + " is failed! code=" + KBEngine.app.serverErrs[failedcode].name + "!");
+			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountResetPasswordCB: " + KBEngine.app.username + " is failed! code=" + failedcode + "(" + KBEngine.app.serverErrs[failedcode].name + ")!");
 			return;
 		}
 
@@ -5160,7 +5160,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{
 		if(failedcode != 0)
 		{
-			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountBindEmailCB: " + KBEngine.app.username + " is failed! code=" + KBEngine.app.serverErrs[failedcode].name + "!");
+			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountBindEmailCB: " + KBEngine.app.username + " is failed! code=" + failedcode +"(" + KBEngine.app.serverErrs[failedcode].name + ")!");
 			return;
 		}
 
@@ -5171,7 +5171,7 @@ KBEngine.KBEngineApp = function(kbengineArgs)
 	{
 		if(failedcode != 0)
 		{
-			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB: " + KBEngine.app.username + " is failed! code=" + KBEngine.app.serverErrs[failedcode].name + "!");
+			KBEngine.ERROR_MSG("KBEngineApp::Client_onReqAccountNewPasswordCB: " + KBEngine.app.username + " is failed! code=" + failedcode + "(" +KBEngine.app.serverErrs[failedcode].name + ")!");
 			return;
 		}
 
