@@ -499,7 +499,7 @@ void KBEngineApp::Client_onHelloCB(MemoryStream& stream)
 			UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
 			pEventData->clientVersion = clientVersion_;
 			pEventData->serverVersion = serverVersion_;
-			KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+			KBENGINE_EVENT_FIRE(KBEventTypes::onVersionNotMatch, pEventData);
 			return;
 		}
 		*/
@@ -543,7 +543,7 @@ void KBEngineApp::Client_onVersionNotMatch(MemoryStream& stream)
 	UKBEventData_onVersionNotMatch* pEventData = NewObject<UKBEventData_onVersionNotMatch>();
 	pEventData->clientVersion = clientVersion_;
 	pEventData->serverVersion = serverVersion_;
-	KBENGINE_EVENT_FIRE("onVersionNotMatch", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onVersionNotMatch, pEventData);
 }
 
 void KBEngineApp::Client_onScriptVersionNotMatch(MemoryStream& stream)
@@ -555,7 +555,7 @@ void KBEngineApp::Client_onScriptVersionNotMatch(MemoryStream& stream)
 	UKBEventData_onScriptVersionNotMatch* pEventData = NewObject<UKBEventData_onScriptVersionNotMatch>();
 	pEventData->clientScriptVersion = clientScriptVersion_;
 	pEventData->serverScriptVersion = serverScriptVersion_;
-	KBENGINE_EVENT_FIRE("onScriptVersionNotMatch", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onScriptVersionNotMatch, pEventData);
 }
 
 void KBEngineApp::Client_onKicked(uint16 failedcode)
@@ -1052,7 +1052,7 @@ void KBEngineApp::Client_setSpaceData(uint32 spaceID, const FString& key, const 
 	pEventData->spaceID = spaceID_;
 	pEventData->key = key;
 	pEventData->value = value;
-	KBENGINE_EVENT_FIRE("onSetSpaceData", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onSetSpaceData, pEventData);
 }
 
 void KBEngineApp::Client_delSpaceData(uint32 spaceID, const FString& key)
