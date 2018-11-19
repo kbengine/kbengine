@@ -81,7 +81,7 @@ void Entity::leaveWorld()
 	pEventData->entityID = id();
 	pEventData->spaceID = KBEngineApp::getSingleton().spaceID();
 	pEventData->isPlayer = isPlayer();
-	KBENGINE_EVENT_FIRE("onLeaveWorld", pEventData);
+	KBENGINE_EVENT_FIRE(KBEventTypes::onLeaveWorld, pEventData);
 }
 
 void Entity::onLeaveWorld()
