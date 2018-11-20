@@ -661,15 +661,6 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 			return false;
 		}
 
-		// 尝试加载detailLevel数据
-		if (!loadDetailLevelInfo(defFilePath, componentTypeName, componentXml.get(), componentRootNode, pCompScriptDefModule))
-		{
-			ERROR_MSG(fmt::format("EntityDef::loadComponents: failed to load component:{} DetailLevelInfo.\n",
-				componentTypeName.c_str()));
-
-			return false;
-		}
-
 		// 遍历所有的interface， 并将他们的方法和属性加入到模块中
 		if (!loadInterfaces(defFilePath, componentTypeName, componentXml.get(), componentRootNode, pCompScriptDefModule, true))
 		{
@@ -679,6 +670,24 @@ bool EntityDef::loadComponents(const std::string& defFilePath,
 			return false;
 		}
 		
+		// 加载父类所有的内容
+		if (!loadParentClass(defFilePath + "components/", componentTypeName, componentXml.get(), componentRootNode, pCompScriptDefModule))
+		{
+			ERROR_MSG(fmt::format("EntityDef::loadComponents: failed to load component:{} parentClass.\n",
+				componentTypeName.c_str()));
+
+			return false;
+		}
+
+		// 尝试加载detailLevel数据
+		if (!loadDetailLevelInfo(defFilePath, componentTypeName, componentXml.get(), componentRootNode, pCompScriptDefModule))
+		{
+			ERROR_MSG(fmt::format("EntityDef::loadComponents: failed to load component:{} DetailLevelInfo.\n",
+				componentTypeName.c_str()));
+
+			return false;
+		}
+
 		pCompScriptDefModule->autoMatchCompOwn();
 
 		flags = ED_FLAG_UNKOWN;
