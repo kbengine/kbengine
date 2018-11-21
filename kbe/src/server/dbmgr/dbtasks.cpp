@@ -1834,7 +1834,7 @@ thread::TPTask::TPTaskState DBTaskQueryEntity::presentMainThread()
 
 	if(serverGroupID_ > 0)
 	{
-		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: entitylog serverGroupID not match. {}, dbid={}, self={}\n", 
+		ERROR_MSG(fmt::format("DBTaskQueryEntity::presentMainThread: entitylog serverGroupID not match. {}, dbid={}, serverGroupID={}£¬ currentServerGroupID={}!\n",
 			entityType_, dbid_, serverGroupID_, (uint64)getUserUID()));
 	}
 	
