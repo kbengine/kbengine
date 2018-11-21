@@ -44,7 +44,7 @@ static bool isVecotr(std::string str, std::size_t n, std::vector<float>& nums)
 	std::vector<std::string> result;
 	strutil::kbe_splits(strtemp, ",", result);
 
-	if (result.size() < n)
+	if (result.size() != n)
 	{
 		return false;
 	}
@@ -80,7 +80,6 @@ static bool isVector4(std::string str, std::vector<float>& nums)
 {
 	return isVecotr(str, 4, nums);
 }
-
 
 //-------------------------------------------------------------------------------------
 DataType::DataType(DATATYPE_UID did):
@@ -917,7 +916,7 @@ PyObject* Vector4Type::parseDefaultStr(std::string defaultVal)
 	if (!defaultVal.empty())
 	{
 		std::vector<float> result;
-		if (isVector3(defaultVal, result))
+		if (isVector4(defaultVal, result))
 		{
 			x = result[0];
 			y = result[1];
