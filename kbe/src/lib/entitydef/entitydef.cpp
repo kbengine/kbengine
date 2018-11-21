@@ -1494,7 +1494,7 @@ bool EntityDef::checkDefMethod(ScriptDefModule* pScriptModule,
 
 						if (iter->second->isExposed())
 						{
-							if (iter->second->isExposed() != MethodDescription::EXPOSED_AND_CALLER_CHECK)
+							if (iter->second->isExposed() != MethodDescription::EXPOSED_AND_CALLER_CHECK && iter->second->isCell())
 							{
 								WARNING_MSG(fmt::format("EntityDef::checkDefMethod: exposed of method: {}.{}{}!\n",
 									moduleName.c_str(), iter->first.c_str(), (iter->second->isExposed() == MethodDescription::EXPOSED_AND_CALLER_CHECK ?
