@@ -30,6 +30,7 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector4.h"
 #include "pyscript/copy.h"
 #include "pyscript/py_memorystream.h"
+#include <regex>
 
 #ifndef CODE_INLINE
 #include "datatype.inl"
@@ -37,6 +38,64 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KBEngine{
 static DATATYPE_UID _g_dataTypeUID = 1;
+
+static bool isVecotr(std::string str, std::size_t n, std::vector<float>& nums)
+{
+	if (str.empty())
+	{
+		return false;
+	}
+
+	if (n < 2)
+	{
+		return false;
+	}
+
+	std::string strtemp = str;
+
+	strutil::kbe_replace(strtemp, " ", "");
+	strutil::kbe_replace(strtemp, "(", "");
+	strutil::kbe_replace(strtemp, ")", "");
+
+	std::vector<std::string> result;
+	strutil::kbe_splits(strtemp, ",", result);
+
+	if (result.size() != n)
+	{
+		return false;
+	}
+
+	nums.clear();
+	std::regex r("^[-\\+]?[\\d]+(\\.[\\d]+)?$");
+	for (auto ite = result.begin(); ite != result.end(); ite++)
+	{
+		if (!std::regex_match(*ite, r))
+		{
+			return false;
+		}
+		else
+		{
+			nums.push_back(std::stof(*ite));
+		}
+	}
+
+	return true;
+}
+
+static bool isVector2(std::string str, std::vector<float>& nums)
+{
+	return isVecotr(str, 2, nums);
+}
+
+static bool isVector3(std::string str, std::vector<float>& nums)
+{
+	return isVecotr(str, 3, nums);
+}
+
+static bool isVector4(std::string str, std::vector<float>& nums)
+{
+	return isVecotr(str, 4, nums);
+}
 
 //-------------------------------------------------------------------------------------
 DataType::DataType(DATATYPE_UID did):
@@ -663,11 +722,18 @@ PyObject* Vector2Type::parseDefaultStr(std::string defaultVal)
 {
 	float x = 0.0f, y = 0.0f;
 
-	if(!defaultVal.empty())
+	if (!defaultVal.empty())
 	{
-		std::stringstream stream;
-		stream << defaultVal;
-		stream >> x >> y;
+		std::vector<float> result;
+		if (isVector2(defaultVal, result))
+		{
+			x = result[0];
+			y = result[1];
+			return new script::ScriptVector2(float(x), float(y));
+		}
+
+		PyErr_Format(PyExc_TypeError, "Vector2::parseDefaultStr: defaultVal=%s format error!", defaultVal.c_str());
+		PyErr_PrintEx(0);
 	}
 
 	return new script::ScriptVector2(float(x), float(y));
@@ -761,9 +827,17 @@ PyObject* Vector3Type::parseDefaultStr(std::string defaultVal)
 
 	if (!defaultVal.empty())
 	{
-		std::stringstream stream;
-		stream << defaultVal;
-		stream >> x >> y >> z;
+		std::vector<float> result;
+		if (isVector3(defaultVal, result))
+		{
+			x = result[0];
+			y = result[1];
+			z = result[2];
+			return new script::ScriptVector3(float(x), float(y), float(z));
+		}
+
+		PyErr_Format(PyExc_TypeError, "Vector3::parseDefaultStr: defaultVal=%s format error!", defaultVal.c_str());
+		PyErr_PrintEx(0);
 	}
 
 	return new script::ScriptVector3(float(x), float(y), float(z));
@@ -857,9 +931,18 @@ PyObject* Vector4Type::parseDefaultStr(std::string defaultVal)
 
 	if (!defaultVal.empty())
 	{
-		std::stringstream stream;
-		stream << defaultVal;
-		stream >> x >> y >> z >> w;
+		std::vector<float> result;
+		if (isVector4(defaultVal, result))
+		{
+			x = result[0];
+			y = result[1];
+			z = result[2];
+			w = result[3];
+			return new script::ScriptVector4(float(x), float(y), float(z), float(w));
+		}
+
+		PyErr_Format(PyExc_TypeError, "Vector4::parseDefaultStr: defaultVal=%s format error!", defaultVal.c_str());
+		PyErr_PrintEx(0);
 	}
 
 	return new script::ScriptVector4(float(x), float(y), float(z), float(w));
