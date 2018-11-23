@@ -662,7 +662,13 @@ KBEngine.MemoryStream = function(size_or_buffer)
 	this.readPackY = function()
 	{
 		var v = this.readUint16();
-		return v;
+		
+		var yPackData = new  KBEngine.MemoryStream.PackFloatXType();
+		yPackData.uv[0] = 0x40000000;
+		yPackData.uv[0] |= (v & 0x7fff) << 12;
+		yPackData.fv[0] -= 2.0;
+		yPackData.uv[0] |= (v & 0x8000) << 16;
+		return yPackData.fv[0];
 	}
 	
 	//---------------------------------------------------------------------------------
