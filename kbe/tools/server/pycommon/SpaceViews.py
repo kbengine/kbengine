@@ -68,7 +68,6 @@ class SpaceViewer(ServerApp.ServerApp):
 		"""
 		CMD_querySpaceViewer = CMD_ID_querySpaceViewer[self.componentType]
 		msg = MessageStream.MessageStreamWriter(CMD_querySpaceViewer)
-		msg.writeUint16(CMD_querySpaceViewer)
 		self.send(msg)
 
 	def onSpaceViewerMsg(self, streamReader):
