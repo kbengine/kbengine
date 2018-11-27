@@ -1539,7 +1539,7 @@ PyObject* EntityComponent::pyGetCellEntityCall()
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "cell");
 	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'cell'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.cell'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
@@ -1572,7 +1572,7 @@ PyObject* EntityComponent::pyGetBaseEntityCall()
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "base");
 	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'base'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.base'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
@@ -1605,7 +1605,7 @@ PyObject* EntityComponent::pyGetClientEntityCall()
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "client");
 	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'client'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.client'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
@@ -1638,7 +1638,7 @@ PyObject* EntityComponent::pyGetAllClients()
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "allClients");
 	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'allClients'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.allClients'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
@@ -1671,7 +1671,7 @@ PyObject* EntityComponent::pyGetOtherClients()
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "otherClients");
 	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'otherClients'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.otherClients'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
