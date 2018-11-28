@@ -863,8 +863,11 @@ bool ServerConfig::loadConfig(std::string fileName)
 			childnode = xml->enterNode(node, "enable");
 			if (childnode)
 			{
-				if(xml->getValStr(childnode) != "true")
+				if (xml->getValStr(childnode) != "true")
+				{
 					interfacesAddrs_.clear();
+					g_dbmgr_addDefaultAddress = false;
+				}
 			}
 		}
 
