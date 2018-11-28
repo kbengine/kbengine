@@ -1018,13 +1018,14 @@ void EntityComponent::addToServerStream(MemoryStream* mstream, PyObject* pyValue
 	const ScriptDefModule::PROPERTYDESCRIPTION_MAP* pPropertyDescrs = pChildPropertyDescrs();
 
 	uint16 count = (uint16)pPropertyDescrs->size();
+	uint16 oldCount = count;
+	size_t oldWpos = mstream->wpos();
 	(*mstream) << count;
 
 	ScriptDefModule::PROPERTYDESCRIPTION_MAP::const_iterator iter = pPropertyDescrs->begin();
 	for (; iter != pPropertyDescrs->end(); ++iter)
 	{
 		PropertyDescription* propertyDescription = iter->second;
-
 		PyObject* pyVal = PyObject_GetAttrString(this, propertyDescription->getName());
 		if (pyVal)
 		{
@@ -1034,6 +1035,8 @@ void EntityComponent::addToServerStream(MemoryStream* mstream, PyObject* pyValue
 					propertyDescription->getName(), (pyVal ? pyVal->ob_type->tp_name : "unknown"), propertyDescription->getDataType()->getName(),
 					pComponentDescrs_ ? pComponentDescrs_->getName() : "", pComponentDescrs_ ? pComponentDescrs_->getUType() : 0,
 					owner()->ob_type->tp_name, ownerID(), COMPONENT_NAME_EX(componentType())));
+
+				--count;
 			}
 			else
 			{
@@ -1060,6 +1063,14 @@ void EntityComponent::addToServerStream(MemoryStream* mstream, PyObject* pyValue
 			propertyDescription->addToStream(mstream, pyDefVal);
 			Py_DECREF(pyDefVal);
 		}
+	}
+
+	if (oldCount != count)
+	{
+		size_t wpos = mstream->wpos();
+		mstream->wpos(oldWpos);
+		(*mstream) << count;
+		mstream->wpos(wpos);
 	}
 }
 
