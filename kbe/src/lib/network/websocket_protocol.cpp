@@ -160,7 +160,6 @@ bool WebSocketProtocol::handshake(Network::Channel* pChannel, MemoryStream* s)
 	KBE_SHA1 sha;
 	unsigned int message_digest[5];
 
-	sha.Reset();
 	sha << server_key.c_str();
 	sha.Result(message_digest);
 

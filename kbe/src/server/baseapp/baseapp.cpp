@@ -16,6 +16,7 @@
 #include "sync_entitystreamtemplate_handler.h"
 #include "common/timestamp.h"
 #include "common/kbeversion.h"
+#include "common/sha1.h"
 #include "network/common.h"
 #include "network/tcp_packet.h"
 #include "network/udp_packet.h"
@@ -254,7 +255,7 @@ Baseapp::~Baseapp()
 }
 
 //-------------------------------------------------------------------------------------	
-bool Baseapp::canShutdown()
+ShutdownHandler::CAN_SHUTDOWN_STATE Baseapp::canShutdown()
 {
 	if (getEntryScript().get() && PyObject_HasAttrString(getEntryScript().get(), "onReadyForShutDown") > 0)
 	{
@@ -269,36 +270,36 @@ bool Baseapp::canShutdown()
 			Py_DECREF(pyResult);
 
 			if (isReady)
-				return true;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_TRUE;
 			else
-				return false;
+				return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 		else
 		{
 			SCRIPT_ERROR_CHECK();
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_USER_FALSE;
 		}
 	}
-	
+
 	Components::COMPONENTS& cellapp_components = Components::getSingleton().getComponents(CELLAPP_TYPE);
-	if(cellapp_components.size() > 0)
+	if (cellapp_components.size() > 0)
 	{
 		std::string s;
-		for(size_t i=0; i<cellapp_components.size(); ++i)
+		for (size_t i = 0; i<cellapp_components.size(); ++i)
 		{
 			s += fmt::format("{}, ", cellapp_components[i].cid);
 		}
 
-		INFO_MSG(fmt::format("Baseapp::canShutdown(): Waiting for cellapp[{}] destruction!\n", 
+		INFO_MSG(fmt::format("Baseapp::canShutdown(): Waiting for cellapp[{}] destruction!\n",
 			s));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
 	int count = 0;
-	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
+	Entities<Entity>::ENTITYS_MAP& entities = this->pEntities()->getEntities();
 	Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
-	for(; iter != entities.end(); ++iter)
+	for (; iter != entities.end(); ++iter)
 	{
 		//if(static_cast<Entity*>(iter->second.get())->hasDB())
 		{
@@ -306,16 +307,16 @@ bool Baseapp::canShutdown()
 		}
 	}
 
-	if(count > 0)
+	if (count > 0)
 	{
 		lastShutdownFailReason_ = "destroyHasDBBases";
-		INFO_MSG(fmt::format("Baseapp::canShutdown(): Wait for the entity's into the database! The remaining {}.\n", 
+		INFO_MSG(fmt::format("Baseapp::canShutdown(): Wait for the entity's into the database! The remaining {}.\n",
 			count));
 
-		return false;
+		return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 	}
 
-	return true;
+	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -1352,6 +1353,12 @@ void Baseapp::onCreateEntityFromDBIDCallback(Network::Channel* pChannel, KBEngin
 		static_cast<Entity*>(e)->dbid(dbInterfaceIndex, dbid);
 		static_cast<Entity*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
+
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		static_cast<Entity*>(e)->setDirty((uint32*)&digest[0]);
 	}
 	else
 	{
@@ -1792,6 +1799,12 @@ void Baseapp::createEntityAnywhereFromDBIDOtherBaseapp(Network::Channel* pChanne
 		static_cast<Entity*>(e)->dbid(dbInterfaceIndex, dbid);
 		static_cast<Entity*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
+
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		static_cast<Entity*>(e)->setDirty((uint32*)&digest[0]);
 	}
 	else
 	{
@@ -2269,6 +2282,12 @@ void Baseapp::createEntityRemotelyFromDBIDOtherBaseapp(Network::Channel* pChanne
 		static_cast<Entity*>(e)->dbid(dbInterfaceIndex, dbid);
 		static_cast<Entity*>(e)->initializeEntity(pyDict);
 		Py_DECREF(pyDict);
+
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		static_cast<Entity*>(e)->setDirty((uint32*)&digest[0]);
 	}
 	else
 	{
@@ -4108,6 +4127,12 @@ void Baseapp::onQueryAccountCBFromDbmgr(Network::Channel* pChannel, KBEngine::Me
 	pEntity->initializeEntity(pyDict);
 	Py_DECREF(pyDict);
 
+	KBE_SHA1 sha;
+	uint32 digest[5];
+	sha.Input(s.data(), s.length());
+	sha.Result(digest);
+	pEntity->setDirty((uint32*)&digest[0]);
+
 	if(pClientChannel != NULL)
 	{
 		// 创建entity的客户端entityCall
@@ -4635,8 +4660,8 @@ void Baseapp::onBackupEntityCellData(Network::Channel* pChannel, KBEngine::Memor
 
 	if(pEntity)
 	{
-		INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), {} bytes.\n",
-			pEntity->scriptName(), entityID, s.length()));
+		//INFO_MSG(fmt::format("Baseapp::onBackupEntityCellData: {}({}), {} bytes.\n",
+		//	pEntity->scriptName(), entityID, s.length()));
 
 		pEntity->onBackupCellData(pChannel, s);
 	}

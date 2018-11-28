@@ -22,6 +22,7 @@
 #include "dbmgr/dbmgr_interface.h"
 #include "navigation/navigation.h"
 #include "client_lib/client_interface.h"
+#include "common/sha1.h"
 
 #include "../../server/baseappmgr/baseappmgr_interface.h"
 #include "../../server/cellappmgr/cellappmgr_interface.h"
@@ -68,7 +69,7 @@ Cellapp::~Cellapp()
 }
 
 //-------------------------------------------------------------------------------------	
-bool Cellapp::canShutdown()
+ShutdownHandler::CAN_SHUTDOWN_STATE Cellapp::canShutdown()
 {
 	Entities<Entity>::ENTITYS_MAP& entities =  this->pEntities()->getEntities();
 	Entities<Entity>::ENTITYS_MAP::iterator iter = entities.begin();
@@ -79,11 +80,11 @@ bool Cellapp::canShutdown()
 		//		pEntity->pScriptModule()->isPersistent())
 		{
 			lastShutdownFailReason_ = "destroyHasBaseEntitys";
-			return false;
+			return ShutdownHandler::CAN_SHUTDOWN_STATE_FALSE;
 		}
 	}
 
-	return true;
+	return ShutdownHandler::CAN_SHUTDOWN_STATE_TRUE;
 }
 
 //-------------------------------------------------------------------------------------	
@@ -932,6 +933,12 @@ void Cellapp::onCreateCellEntityInNewSpaceFromBaseapp(Network::Channel* pChannel
 			return;
 		}
 
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		e->setDirty((uint32*)&digest[0]);
+
 		space->addEntity(e);
 		e->spaceID(space->id());
 		e->initializeEntity(cellData, true);
@@ -1030,6 +1037,12 @@ void Cellapp::onRestoreSpaceInCellFromBaseapp(Network::Channel* pChannel, KBEngi
 			return;
 		}
 		
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(s.data(), s.length());
+		sha.Result(digest);
+		e->setDirty((uint32*)&digest[0]);
+
 		e->spaceID(space->id());
 		e->createNamespace(cellData);
 		Py_XDECREF(cellData);
@@ -1167,6 +1180,12 @@ void Cellapp::_onCreateCellEntityFromBaseapp(std::string& entityType, ENTITY_ID 
 		EntityCall* entityCall = new EntityCall(e->pScriptModule(), NULL, componentID, entityID, ENTITYCALL_TYPE_BASE);
 		e->baseEntityCall(entityCall);
 		
+		KBE_SHA1 sha;
+		uint32 digest[5];
+		sha.Input(pCellData->data(), pCellData->length());
+		sha.Result(digest);
+		e->setDirty((uint32*)&digest[0]);
+
 		cellData = e->createCellDataFromStream(pCellData);
 
 		e->createNamespace(cellData, true);

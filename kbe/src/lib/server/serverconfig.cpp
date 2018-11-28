@@ -923,7 +923,10 @@ bool ServerConfig::loadConfig(std::string fileName)
 			if (childnode)
 			{
 				if (xml->getValStr(childnode) != "true")
+				{
 					interfacesAddrs_.clear();
+					g_dbmgr_addDefaultAddress = false;
+				}
 			}
 		}
 

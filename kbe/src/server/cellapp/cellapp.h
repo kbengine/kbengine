@@ -54,7 +54,7 @@ public:
 	bool initializeEnd();
 	void finalise();
 
-	virtual bool canShutdown();
+	virtual ShutdownHandler::CAN_SHUTDOWN_STATE canShutdown();
 	virtual void onShutdown(bool first);
 
 	void destroyObjPool();

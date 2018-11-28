@@ -1548,12 +1548,18 @@ PyObject* EntityComponent::pyGetCellEntityCall()
 	}
 
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "cell");
-	if (!entityCall || entityCall == Py_None)
+	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'cell'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.cell'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
+	}
+
+	if (entityCall == Py_None)
+	{
+		// 无需减引用
+		return entityCall;
 	}
 
 	PyObject* pyObj = PyObject_GetAttrString(entityCall, pPropertyDescription_->getName());
@@ -1575,12 +1581,18 @@ PyObject* EntityComponent::pyGetBaseEntityCall()
 	}
 
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "base");
-	if (!entityCall || entityCall == Py_None)
+	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'base'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.base'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
+	}
+
+	if (entityCall == Py_None)
+	{
+		// 无需减引用
+		return entityCall;
 	}
 
 	PyObject* pyObj = PyObject_GetAttrString(entityCall, pPropertyDescription_->getName());
@@ -1602,12 +1614,18 @@ PyObject* EntityComponent::pyGetClientEntityCall()
 	}
 
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "client");
-	if (!entityCall || entityCall == Py_None)
+	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'client'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.client'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
+	}
+
+	if (entityCall == Py_None)
+	{
+		// 无需减引用
+		return entityCall;
 	}
 
 	PyObject* pyObj = PyObject_GetAttrString(entityCall, pPropertyDescription_->getName());
@@ -1629,12 +1647,18 @@ PyObject* EntityComponent::pyGetAllClients()
 	}
 
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "allClients");
-	if (!entityCall || entityCall == Py_None)
+	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'allClients'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.allClients'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
+	}
+
+	if (entityCall == Py_None)
+	{
+		// 无需减引用
+		return entityCall;
 	}
 
 	PyObject* pyObj = PyObject_GetAttrString(entityCall, pPropertyDescription_->getName());
@@ -1656,12 +1680,18 @@ PyObject* EntityComponent::pyGetOtherClients()
 	}
 
 	PyObject* entityCall = PyObject_GetAttrString(pEntity, "otherClients");
-	if (!entityCall || entityCall == Py_None)
+	if (!entityCall)
 	{
-		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'otherClients'\n",
+		PyErr_Format(PyExc_AttributeError, "'%s: %d' object has no attribute 'EntityComponent.otherClients'\n",
 			pEntity->ob_type->tp_name, ownerID_);
 
 		return NULL;
+	}
+
+	if (entityCall == Py_None)
+	{
+		// 无需减引用
+		return entityCall;
 	}
 
 	PyObject* pyObj = PyObject_GetAttrString(entityCall, pPropertyDescription_->getName());
