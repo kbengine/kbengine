@@ -1204,6 +1204,12 @@ void Entity::onCellWriteToDBCompleted(CALLBACK_ID callbackID, int8 shouldAutoLoa
 		return;
 	}
 
+	if (s->length() == 0)
+	{
+		MemoryStream::reclaimPoolObject(s);
+		return;
+	}
+
 	KBE_SHA1 sha;
 	uint32 digest[5];
 

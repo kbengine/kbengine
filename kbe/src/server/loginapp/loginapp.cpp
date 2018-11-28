@@ -368,9 +368,14 @@ bool Loginapp::_createAccount(Network::Channel* pChannel, std::string& accountNa
 					password = spassword;
 
 					if (extraDatas && extraDatas_size > 0)
+					{
+						retdatas.assign(extraDatas, extraDatas_size);
 						datas.assign(extraDatas, extraDatas_size);
+					}
 					else
+					{
 						SCRIPT_ERROR_CHECK();
+					}
 				}
 			}
 			else
