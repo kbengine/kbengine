@@ -199,9 +199,9 @@ PyObject* FixedDict::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 {
 	Py_ssize_t size = PyTuple_Size(args);
-	if(size != 2)
+	if (size != 2)
 	{
-		ERROR_MSG("FixedDict::__unpickle__: args is wrong! (size != 2)");
+		ERROR_MSG("FixedDict::__unpickle__: args is wrong! (size != 2)\n");
 		S_Return;
 	}
 
@@ -209,13 +209,26 @@ PyObject* FixedDict::__unpickle__(PyObject* self, PyObject* args)
 	DATATYPE_UID uid = (DATATYPE_UID)PyLong_AsUnsignedLong(pyDatatypeUID);
 
 	PyObject* dict = PyTuple_GET_ITEM(args, 1);
-	if(dict == NULL)
+	if (dict == NULL)
 	{
-		ERROR_MSG("FixedDict::__unpickle__: args is wrong!");
+		ERROR_MSG("FixedDict::__unpickle__: args is wrong!\n");
 		S_Return;
 	}
-	
-	FixedDict* pFixedDict = new FixedDict(DataTypes::getDataType(uid));
+
+	DataType* pDataType = DataTypes::getDataType(uid);
+	if (!pDataType)
+	{
+		ERROR_MSG(fmt::format("FixedDict::__unpickle__: not found datatype(uid={})!\n", uid));
+		S_Return;
+	}
+
+	if (pDataType->type() != DATA_TYPE_FIXEDDICT)
+	{
+		ERROR_MSG(fmt::format("FixedDict::__unpickle__: datatype(uid={}) is not FixedDict! dataTypeName={}\n", uid, pDataType->getName()));
+		S_Return;
+	}
+
+	FixedDict* pFixedDict = new FixedDict(pDataType);
 	pFixedDict->initialize(dict);
 	return pFixedDict;
 }
