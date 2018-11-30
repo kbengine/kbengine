@@ -1,8 +1,7 @@
 ﻿#include "EncryptionFilter.h"
 #include "MemoryStream.h"
 #include "MessageReader.h"
-#include "PacketSenderTCP.h"
-#include "PacketSenderKCP.h"
+#include "PacketSender.h"
 #include "Engine/KBDebug.h"
 
 #ifndef KBENGINE_NO_CRYPTO
@@ -11,8 +10,6 @@
 #include "secblock.h"
 #endif
 
-
-
 BlowfishFilter::BlowfishFilter(int keySize):
 	isGood_(false),
 	pPacket_(new MemoryStream()),
@@ -20,7 +17,7 @@ BlowfishFilter::BlowfishFilter(int keySize):
 	packetLen_(0),
 	padSize_(0)
 {
-#ifndef KBENGINE_NO_CRYPTO
+#ifndef  KBENGINE_NO_CRYPTO
 	key_.Init(0, keySize);
 
 	CryptoPP::RDRAND rng;
@@ -48,7 +45,7 @@ BlowfishFilter::~BlowfishFilter()
 
 bool BlowfishFilter::init()
 {
-#ifndef KBENGINE_NO_CRYPTO
+#ifndef  KBENGINE_NO_CRYPTO
 	if (key_.Num() >= encripter.MinKeyLength() && key_.Num() <= encripter.MaxKeyLength())
 	{
 		encripter.SetKey(key_.GetData(), key_.Num());
@@ -68,7 +65,7 @@ void BlowfishFilter::encrypt(MemoryStream *pMemoryStream)
 {
 	// BlowFish 每次只能加密和解密8字节数据
 	// 不足8字节则填充0
-#ifndef KBENGINE_NO_CRYPTO
+#ifndef  KBENGINE_NO_CRYPTO
 	uint8 padSize = 0;
 
 	if (pMemoryStream->length() % BLOCK_SIZE != 0)
@@ -93,7 +90,7 @@ void BlowfishFilter::encrypt(MemoryStream *pMemoryStream)
 
 void BlowfishFilter::encrypt(uint8 *buf, MessageLengthEx len)
 {
-#ifndef KBENGINE_NO_CRYPTO
+#ifndef  KBENGINE_NO_CRYPTO
 	if (len % BLOCK_SIZE != 0)
 	{
 		ERROR_MSG("BlowfishFilter::encrypt: Input length (%d) is not a multiple of block size ", len);
@@ -132,7 +129,7 @@ void BlowfishFilter::decrypt(MemoryStream *pMemoryStream)
 
 void BlowfishFilter::decrypt(uint8 *buf, MessageLengthEx len)
 {
-#ifndef KBENGINE_NO_CRYPTO
+#ifndef  KBENGINE_NO_CRYPTO
 	if (len % BLOCK_SIZE != 0)
 	{
 		ERROR_MSG("BlowfishFilter::decrypt: Input length (%d) is not a multiple of block size ", len);
@@ -160,7 +157,7 @@ void BlowfishFilter::decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx
 	decrypt(buf + offset, len);
 }
 
-bool BlowfishFilter::send(PacketSenderBase* pPacketSender, MemoryStream *pPacket)
+bool BlowfishFilter::send(PacketSender* pPacketSender, MemoryStream *pPacket)
 {
 #ifndef KBENGINE_NO_CRYPTO
 	if (!isGood_)
@@ -278,3 +275,4 @@ bool BlowfishFilter::recv(MessageReader* pMessageReader, MemoryStream *pPacket)
 	
 	return true;
 }
+
