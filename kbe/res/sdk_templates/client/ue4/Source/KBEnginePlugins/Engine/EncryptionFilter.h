@@ -1,14 +1,17 @@
 ﻿#pragma once
 #include "KBECommon.h"
 
+#ifndef KBENGINE_NO_CRYPTO
 // https://stackoverflow.com/questions/51416259/unreal-engine-4-20-build-error-in-plugin-adaptive-unity-build-disabling-pch-f
 #pragma warning(disable:4668)   // x  is not defined as a preprocessor macro, replacing with '0' for '#if/#elif'
 #include "blowfish.h"
 #pragma warning(default:4668)  
 #include "modes.h"
+#endif
+
 
 class MemoryStream;
-class PacketSender;
+class PacketSenderBase;
 class MessageReader;
 
 class EncryptionFilter
@@ -22,7 +25,7 @@ public:
 	virtual void decrypt(uint8 *buf, MessageLengthEx len) = 0;
 	virtual void decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len) = 0;
 
-	virtual bool send(PacketSender* pPacketSender, MemoryStream *pPacket) = 0;
+	virtual bool send(PacketSenderBase* pPacketSender, MemoryStream *pPacket) = 0;
 	virtual bool recv(MessageReader* pMessageReader, MemoryStream *pPacket) = 0;
 };
 
@@ -46,7 +49,7 @@ public:
 	virtual void decrypt(uint8 *buf, MessageLengthEx len);
 	virtual void decrypt(uint8 *buf, MessageLengthEx offset, MessageLengthEx len);
 
-	virtual bool send(PacketSender *pPacketSender, MemoryStream *pPacket);
+	virtual bool send(PacketSenderBase *pPacketSender, MemoryStream *pPacket);
 	virtual bool recv(MessageReader *pMessageReader, MemoryStream *pPacket);
 
 	TArray<uint8>& key() {
@@ -63,6 +66,8 @@ private:
 	MemoryStream*	pEncryptStream_;
 	MessageLength	packetLen_;
 	uint8			padSize_;
+#ifndef KBENGINE_NO_CRYPTO
 	CryptoPP::ECB_Mode<CryptoPP::Blowfish>::Encryption encripter;
 	CryptoPP::ECB_Mode<CryptoPP::Blowfish>::Decryption decripter;
+#endif
 };
