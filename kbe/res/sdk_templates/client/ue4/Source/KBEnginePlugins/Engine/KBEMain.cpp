@@ -60,6 +60,14 @@ void UKBEMain::BeginPlay()
 
 	if (!KBEngineApp::getSingleton().initialize(pArgs))
 		delete pArgs;
+
+#ifdef KBENGINE_NO_CRYPTO
+	if (pArgs->networkEncryptType == NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_BLOWFISH)
+	{
+		pArgs->networkEncryptType = NETWORK_ENCRYPT_TYPE::ENCRYPT_TYPE_NONE;
+		ERROR_MSG("No module CryptoPP! Please use unreal engine source code to install");
+	}
+#endif
 }
 
 void UKBEMain::EndPlay(const EEndPlayReason::Type EndPlayReason)
