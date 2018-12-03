@@ -883,18 +883,27 @@ void Requests::handleTimeout(TimerHandle, void * pUser)
 //-------------------------------------------------------------------------------------
 Request::Status perform(Request* pRequest)
 {
+	if (!_g_init)
+		initialize();
+
 	return g_pRequests->perform(pRequest);
 }
 
 //-------------------------------------------------------------------------------------
 Request::Status perform(const std::string& url, const Request::Callback& resultCallback, const std::map<std::string, std::string>& headers)
 {
+	if (!_g_init)
+		initialize();
+
 	return g_pRequests->perform(url, resultCallback, headers);
 }
 
 //-------------------------------------------------------------------------------------
 Request::Status perform(const std::string& url, const Request::Callback& resultCallback, const std::string& postData, const std::map<std::string, std::string>& headers)
 {
+	if (!_g_init)
+		initialize();
+
 	return g_pRequests->perform(url, resultCallback, postData, headers);
 }
 
