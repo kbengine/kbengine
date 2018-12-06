@@ -758,6 +758,7 @@ public:
 
 	std::string& moduleName(){ return moduleName_; }
 	
+	std::string getNotFoundKeys(PyObject* dict);
 protected:
 	// 这个固定字典里的各个key的类型
 	FIXEDDICT_KEYTYPE_MAP			keyTypes_;				

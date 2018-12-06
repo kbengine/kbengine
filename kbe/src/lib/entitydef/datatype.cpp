@@ -1899,6 +1899,31 @@ std::string FixedDictType::debugInfos(void)
 }
 
 //-------------------------------------------------------------------------------------
+std::string FixedDictType::getNotFoundKeys(PyObject* dict)
+{
+	std::string notFoundKeys = "";
+
+	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
+	for (; iter != keyTypes_.end(); ++iter)
+	{
+		PyObject* pyObject = PyDict_GetItemString(dict, const_cast<char*>(iter->first.c_str()));
+		if (pyObject == NULL)
+		{
+			notFoundKeys += iter->first.c_str();
+			notFoundKeys += ", ";
+
+			if (PyErr_Occurred())
+				PyErr_Clear();
+		}
+	}
+
+	if (notFoundKeys.size() > 0)
+		notFoundKeys.erase(notFoundKeys.size() - 2, 2);
+
+	return notFoundKeys;
+}
+
+//-------------------------------------------------------------------------------------
 PyObject* FixedDictType::createNewItemFromObj(const char* keyName, PyObject* pyobj)
 {
 	DataType* dataType = isSameItemType(keyName, pyobj);
@@ -2284,10 +2309,10 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	Py_ssize_t dictSize = PyDict_Size(pyValue);
 	if(dictSize != (Py_ssize_t)keyTypes_.size())
 	{
-		PyErr_Format(PyExc_TypeError, 
-			"FIXED_DICT(%s) key does not match! giveKeySize=%d, dictKeySize=%d, dictKeyNames=[%s].", 
-			this->aliasName(), dictSize, keyTypes_.size(), 
-			debugInfos().c_str());
+		PyErr_Format(PyExc_TypeError,
+			"FIXED_DICT(%s) key does not match! giveKeySize=%d, dictKeySize=%d, dictKeyNames=[%s], notFoundKeys=[%s].",
+			this->aliasName(), dictSize, keyTypes_.size(),
+			debugInfos().c_str(), getNotFoundKeys(pyValue).c_str());
 		
 		PyErr_PrintEx(0);
 		return false;
@@ -2297,15 +2322,24 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 	for(; iter != keyTypes_.end(); ++iter)
 	{
 		PyObject* pyObject = PyDict_GetItemString(pyValue, const_cast<char*>(iter->first.c_str()));
-		if(pyObject == NULL || !iter->second->dataType->isSameType(pyObject))
+		if (pyObject == NULL)
 		{
-				PyErr_Format(PyExc_TypeError, 
-					"set FIXED_DICT(%s) error! at key: %s(%s), keyNames=[%s].", 
-					this->aliasName(), 
-					iter->first.c_str(),
-					(pyObject == NULL ? "NULL" : pyObject->ob_type->tp_name),
-					debugInfos().c_str());
-			
+			PyErr_Format(PyExc_TypeError,
+				"set FIXED_DICT(%s) error! keys[%s] not found, allKeyNames=[%s].",
+				this->aliasName(), getNotFoundKeys(pyValue).c_str(), debugInfos().c_str());
+
+			PyErr_PrintEx(0);
+			return false;
+		}
+		else if (!iter->second->dataType->isSameType(pyObject))
+		{
+			PyErr_Format(PyExc_TypeError,
+				"set FIXED_DICT(%s) error! at key: %s(%s), allKeyNames=[%s].",
+				this->aliasName(),
+				iter->first.c_str(),
+				pyObject->ob_type->tp_name,
+				debugInfos().c_str());
+
 			PyErr_PrintEx(0);
 			return false;
 		}
