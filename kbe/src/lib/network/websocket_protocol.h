@@ -72,6 +72,7 @@ public:
 	static bool decodingDatas(Packet* pPacket, uint8 msg_masked, uint32 msg_mask);
 
 	static std::string getFrameTypeName(FrameType frame_type);
+
 };
 
 }
