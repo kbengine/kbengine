@@ -128,22 +128,35 @@ PyObject* FixedArray::__py_reduce_ex__(PyObject* self, PyObject* protocol)
 PyObject* FixedArray::__unpickle__(PyObject* self, PyObject* args)
 {
 	Py_ssize_t size = PyTuple_Size(args);
-	if(size != 2)
+	if (size != 2)
 	{
-		ERROR_MSG("FixedArray::__unpickle__: args is wrong! (size != 2)");
+		ERROR_MSG("FixedArray::__unpickle__: args is wrong! (size != 2)\n");
 		S_Return;
 	}
-	
+
 	PyObject* pyDatatypeUID = PyTuple_GET_ITEM(args, 0);
 	DATATYPE_UID uid = (DATATYPE_UID)PyLong_AsUnsignedLong(pyDatatypeUID);
 	PyObject* pyList = PyTuple_GET_ITEM(args, 1);
-	if(pyList == NULL)
+	if (pyList == NULL)
 	{
-		ERROR_MSG("FixedArray::__unpickle__: args is wrong!");
+		ERROR_MSG("FixedArray::__unpickle__: args is wrong!\n");
 		S_Return;
 	}
-	
-	FixedArray* pFixedArray = new FixedArray(DataTypes::getDataType(uid));
+
+	DataType* pDataType = DataTypes::getDataType(uid);
+	if (!pDataType)
+	{
+		ERROR_MSG(fmt::format("FixedArray::__unpickle__: not found datatype(uid={})!\n", uid));
+		S_Return;
+	}
+
+	if (pDataType->type() != DATA_TYPE_FIXEDARRAY)
+	{
+		ERROR_MSG(fmt::format("FixedArray::__unpickle__: datatype(uid={}) is not FixedArray! dataTypeName={}\n", uid, pDataType->getName()));
+		S_Return;
+	}
+
+	FixedArray* pFixedArray = new FixedArray(pDataType);
 	pFixedArray->initialize(pyList);
 	return pFixedArray;
 }
