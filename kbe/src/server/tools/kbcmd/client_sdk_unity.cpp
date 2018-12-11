@@ -2000,7 +2000,6 @@ bool ClientSDKUnity::writeEntityProcessMessagesMethod(ScriptDefModule* pEntitySc
 			sourcefileBody_ += fmt::format("\t\t\t\t}}\n");
 		}
 
-
 		sourcefileBody_ += fmt::format("\t\t\t}}\n");
 		sourcefileBody_ += fmt::format("\t\t\telse\n");
 		sourcefileBody_ += fmt::format("\t\t\t{{\n");
