@@ -30,7 +30,6 @@ along with KBEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "pyscript/vector4.h"
 #include "pyscript/copy.h"
 #include "pyscript/py_memorystream.h"
-#include <regex>
 
 #ifndef CODE_INLINE
 #include "datatype.inl"
