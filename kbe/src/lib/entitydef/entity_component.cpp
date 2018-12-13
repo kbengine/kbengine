@@ -656,7 +656,7 @@ void EntityComponent::c_str(char* s, size_t size)
 {
 	kbe_snprintf(s, size, "EntityComponent=%s, utype=%d, owner=%s, ownerID=%d, domain=%s.",
 		pComponentDescrs_ ? pComponentDescrs_->getName() : "", pComponentDescrs_ ? pComponentDescrs_->getUType() : 0,
-		owner()->ob_type->tp_name, ownerID(), COMPONENT_NAME_EX(componentType()));
+		(owner() ? owner()->ob_type->tp_name : "unknown"), ownerID(), COMPONENT_NAME_EX(componentType()));
 }
 
 //-------------------------------------------------------------------------------------
