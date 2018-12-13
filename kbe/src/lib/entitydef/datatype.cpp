@@ -14,7 +14,6 @@
 #include "pyscript/vector4.h"
 #include "pyscript/copy.h"
 #include "pyscript/py_memorystream.h"
-#include <cctype>
 
 #ifndef CODE_INLINE
 #include "datatype.inl"
