@@ -66,16 +66,17 @@ static bool isVecotr(std::string str, std::size_t n, std::vector<float>& nums)
 	}
 
 	nums.clear();
-	std::regex r("^[-\\+]?[\\d]+(\\.[\\d]+)?$");
 	for (auto ite = result.begin(); ite != result.end(); ite++)
 	{
-		if (!std::regex_match(*ite, r))
+		try
+		{
+			float num = 0.f;
+			StringConv::str2value(num, (*ite).c_str());
+			nums.push_back(num);
+		}
+		catch (...)
 		{
 			return false;
-		}
-		else
-		{
-			nums.push_back(std::stof(*ite));
 		}
 	}
 
