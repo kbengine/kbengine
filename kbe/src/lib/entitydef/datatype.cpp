@@ -1212,8 +1212,16 @@ PyObject* PythonType::parseDefaultStr(std::string defaultVal)
 
 		PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
 		
-		return PyRun_String(const_cast<char*>(defaultVal.c_str()), 
-							Py_eval_input, mdict, mdict);
+		PyObject* result = PyRun_String(const_cast<char*>(defaultVal.c_str()),
+			Py_eval_input, mdict, mdict);
+
+		if (result == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			S_Return;
+		}
+
+		return result;
 	}
 		
 	S_Return;
