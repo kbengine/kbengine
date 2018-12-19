@@ -69,6 +69,51 @@ FixedArray::~FixedArray()
 //-------------------------------------------------------------------------------------
 void FixedArray::initialize(std::string strInitData)
 {
+	PyObject* pyVal = NULL;
+
+	if (strInitData.size() > 0)
+	{
+		PyObject* module = PyImport_AddModule("__main__");
+		if (module == NULL)
+		{
+			PyErr_SetString(PyExc_SystemError,
+				"FixedArrayType::createObject:PyImport_AddModule __main__ error!");
+
+			PyErr_PrintEx(0);
+			goto _StartCreateFixedArray;
+		}
+
+		PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
+
+		pyVal = PyRun_String(const_cast<char*>(strInitData.c_str()),
+			Py_eval_input, mdict, mdict);
+
+		if (pyVal == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			ERROR_MSG(fmt::format("FixedArray({}) initialize({}) error!\n",
+				_dataType->aliasName(), strInitData));
+		}
+		else
+		{
+			if (!isSameType(pyVal))
+			{
+				ERROR_MSG(fmt::format("FixedArray({}) initialize({}) error! is not same type\n",
+					_dataType->aliasName(), strInitData));
+				Py_DECREF(pyVal);
+				pyVal = NULL;
+			}
+		}
+	}
+
+_StartCreateFixedArray:
+	if (!pyVal)
+	{
+		pyVal = PyList_New(0);
+	}
+
+	initialize(pyVal);
+	Py_DECREF(pyVal);
 }
 
 //-------------------------------------------------------------------------------------
