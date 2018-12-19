@@ -103,24 +103,60 @@ FixedDict::~FixedDict()
 //-------------------------------------------------------------------------------------
 void FixedDict::initialize(std::string strDictInitData)
 {
-	FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
-	FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
-	for(; iter != keyTypes.end(); ++iter)
+	PyObject* pyVal = NULL;
+
+	if (strDictInitData.size() > 0)
 	{
-		PyObject* pyobj = iter->second->dataType->parseDefaultStr("");
-		if(pyobj)
+		PyObject* module = PyImport_AddModule("__main__");
+		if (module == NULL)
 		{
-			PyObject* pykey = PyUnicode_FromString(iter->first.c_str());
-			PyDict_SetItem(pyDict_, pykey, pyobj);
-			Py_DECREF(pykey);
-			Py_DECREF(pyobj);
+			PyErr_SetString(PyExc_SystemError,
+				"FixedDictType::createObject:PyImport_AddModule __main__ error!");
+
+			PyErr_PrintEx(0);
+			goto _StartCreateFixedDict;
+		}
+
+		PyObject* mdict = PyModule_GetDict(module); // Borrowed reference.
+
+		pyVal = PyRun_String(const_cast<char*>(strDictInitData.c_str()),
+			Py_eval_input, mdict, mdict);
+
+		if (pyVal == NULL)
+		{
+			SCRIPT_ERROR_CHECK();
+			ERROR_MSG(fmt::format("FIXED_DICT({}) initialize({}) error!\n",
+				_dataType->aliasName(), strDictInitData));
 		}
 		else
 		{
-			ERROR_MSG(fmt::format("FixedDict::initialize: error! strDictInitData={}.\n",
-				strDictInitData.c_str()));
+			if (!isSameType(pyVal))
+			{
+				ERROR_MSG(fmt::format("FIXED_DICT({}) initialize({}) error! is not same type, allKeyNames=[{}]\n",
+					_dataType->aliasName(), strDictInitData, _dataType->debugInfos().c_str()));
+				Py_DECREF(pyVal);
+				pyVal = NULL;
+			}
 		}
 	}
+
+_StartCreateFixedDict:
+	if (!pyVal)
+	{
+		pyVal = PyDict_New();
+
+		FixedDictType::FIXEDDICT_KEYTYPE_MAP& keyTypes = _dataType->getKeyTypes();
+		FixedDictType::FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes.begin();
+		for (; iter != keyTypes.end(); ++iter)
+		{
+			PyObject* item = iter->second->dataType->parseDefaultStr("");
+			PyDict_SetItemString(pyVal, iter->first.c_str(), item);
+			Py_DECREF(item);
+		}
+	}
+
+	initialize(pyVal);
+	Py_DECREF(pyVal);
 }
 
 //-------------------------------------------------------------------------------------
@@ -369,6 +405,11 @@ PyObject* FixedDict::update(PyObject* args)
 PyObject* FixedDict::tp_str()
 {
 	return tp_repr();
+}
+
+bool FixedDict::isSameType(PyObject* pyValue)
+{
+	return _dataType->isSameType(pyValue);
 }
 
 //-------------------------------------------------------------------------------------
