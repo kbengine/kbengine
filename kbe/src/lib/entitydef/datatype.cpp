@@ -1741,7 +1741,7 @@ bool FixedArrayType::isSameType(PyObject* pyValue)
 PyObject* FixedArrayType::parseDefaultStr(std::string defaultVal)
 {
 	FixedArray* pFixedArray = new FixedArray(this);
-	pFixedArray->initialize("");
+	pFixedArray->initialize(defaultVal);
 	return pFixedArray;
 }
 
@@ -2343,27 +2343,16 @@ bool FixedDictType::isSameType(PyObject* pyValue)
 //-------------------------------------------------------------------------------------
 PyObject* FixedDictType::parseDefaultStr(std::string defaultVal)
 {
-	PyObject* val = PyDict_New();
-
-	FIXEDDICT_KEYTYPE_MAP::iterator iter = keyTypes_.begin();
-	for(; iter != keyTypes_.end(); ++iter)
-	{
-		PyObject* item = iter->second->dataType->parseDefaultStr("");
-		PyDict_SetItemString(val, iter->first.c_str(), item);
-		Py_DECREF(item);
-	}
-
 	FixedDict* pydict = new FixedDict(this);
-	pydict->initialize(val);
-	Py_DECREF(val);
+	pydict->initialize(defaultVal);
 
-	if(hasImpl())
+	if (hasImpl())
 	{
 		PyObject* pyValue = impl_createObjFromDict(pydict);
 		Py_DECREF(pydict);
 		return pyValue;
 	}
-	
+
 	return pydict;
 }
 
