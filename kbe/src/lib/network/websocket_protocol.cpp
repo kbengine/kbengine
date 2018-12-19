@@ -55,7 +55,7 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 
 	(*s) >> data;
 
-	size_t fi = data.find_first_of("Sec-WebSocket-Key");
+	size_t fi = data.find("Sec-WebSocket-Key");
 	if(fi == std::string::npos)
 	{
 		s->rpos(rpos);
@@ -63,7 +63,7 @@ bool WebSocketProtocol::isWebSocketProtocol(MemoryStream* s)
 		return false;
 	}
 
-	fi = data.find_first_of("GET");
+	fi = data.find("GET");
 	if(fi == std::string::npos)
 	{
 		s->rpos(rpos);
