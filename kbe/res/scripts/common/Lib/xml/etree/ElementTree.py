@@ -85,7 +85,7 @@ __all__ = [
     "TreeBuilder",
     "VERSION",
     "XML", "XMLID",
-    "XMLParser",
+    "XMLParser", "XMLPullParser",
     "register_namespace",
     ]
 
@@ -95,6 +95,8 @@ import sys
 import re
 import warnings
 import io
+import collections
+import collections.abc
 import contextlib
 
 from . import ElementPath
@@ -125,7 +127,7 @@ class Element:
     This class is the reference implementation of the Element interface.
 
     An element's length is its number of subelements.  That means if you
-    you want to check if an element is truly empty, you should check BOTH
+    want to check if an element is truly empty, you should check BOTH
     its length AND its text attribute.
 
     The element tag, attribute names, and attribute values can be either
@@ -174,7 +176,7 @@ class Element:
         self._children = []
 
     def __repr__(self):
-        return "<Element %s at 0x%x>" % (repr(self.tag), id(self))
+        return "<%s %r at %#x>" % (self.__class__.__name__, self.tag, id(self))
 
     def makeelement(self, tag, attrib):
         """Create a new element with the same type.
@@ -428,12 +430,14 @@ class Element:
         tag = self.tag
         if not isinstance(tag, str) and tag is not None:
             return
-        if self.text:
-            yield self.text
+        t = self.text
+        if t:
+            yield t
         for e in self:
             yield from e.itertext()
-            if e.tail:
-                yield e.tail
+            t = e.tail
+            if t:
+                yield t
 
 
 def SubElement(parent, tag, attrib={}, **extra):
@@ -509,7 +513,7 @@ class QName:
     def __str__(self):
         return self.text
     def __repr__(self):
-        return '<QName %r>' % (self.text,)
+        return '<%s %r>' % (self.__class__.__name__, self.text)
     def __hash__(self):
         return hash(self.text)
     def __le__(self, other):
@@ -532,10 +536,6 @@ class QName:
         if isinstance(other, QName):
             return self.text == other.text
         return self.text == other
-    def __ne__(self, other):
-        if isinstance(other, QName):
-            return self.text != other.text
-        return self.text != other
 
 # --------------------------------------------------------------------
 
@@ -756,14 +756,13 @@ class ElementTree:
                 encoding = "utf-8"
             else:
                 encoding = "us-ascii"
-        else:
-            encoding = encoding.lower()
-        with _get_writer(file_or_filename, encoding) as write:
+        enc_lower = encoding.lower()
+        with _get_writer(file_or_filename, enc_lower) as write:
             if method == "xml" and (xml_declaration or
                     (xml_declaration is None and
-                     encoding not in ("utf-8", "us-ascii", "unicode"))):
+                     enc_lower not in ("utf-8", "us-ascii", "unicode"))):
                 declared_encoding = encoding
-                if encoding == "unicode":
+                if enc_lower == "unicode":
                     # Retrieve the default encoding for the xml declaration
                     import locale
                     declared_encoding = locale.getpreferredencoding()
@@ -1032,7 +1031,7 @@ def register_namespace(prefix, uri):
     ValueError is raised if prefix is reserved or is invalid.
 
     """
-    if re.match("ns\d+$", prefix):
+    if re.match(r"ns\d+$", prefix):
         raise ValueError("Prefix format reserved for internal use")
     for k, v in list(_namespace_map.items()):
         if k == uri or v == prefix:
@@ -1063,7 +1062,7 @@ def _escape_cdata(text):
     # escape character data
     try:
         # it's worth avoiding do-nothing calls for strings that are
-        # shorter than 500 character, or so.  assume that's, by far,
+        # shorter than 500 characters, or so.  assume that's, by far,
         # the most common case in most applications.
         if "&" in text:
             text = text.replace("&", "&amp;")
@@ -1086,8 +1085,19 @@ def _escape_attrib(text):
             text = text.replace(">", "&gt;")
         if "\"" in text:
             text = text.replace("\"", "&quot;")
+        # The following business with carriage returns is to satisfy
+        # Section 2.11 of the XML specification, stating that
+        # CR or CR LN should be replaced with just LN
+        # http://www.w3.org/TR/REC-xml/#sec-line-ends
+        if "\r\n" in text:
+            text = text.replace("\r\n", "\n")
+        if "\r" in text:
+            text = text.replace("\r", "\n")
+        #The following four lines are issue 17582
         if "\n" in text:
             text = text.replace("\n", "&#10;")
+        if "\t" in text:
+            text = text.replace("\t", "&#09;")
         return text
     except (TypeError, AttributeError):
         _raise_serialization_error(text)
@@ -1203,11 +1213,37 @@ def iterparse(source, events=None, parser=None):
     Returns an iterator providing (event, elem) pairs.
 
     """
+    # Use the internal, undocumented _parser argument for now; When the
+    # parser argument of iterparse is removed, this can be killed.
+    pullparser = XMLPullParser(events=events, _parser=parser)
+    def iterator():
+        try:
+            while True:
+                yield from pullparser.read_events()
+                # load event buffer
+                data = source.read(16 * 1024)
+                if not data:
+                    break
+                pullparser.feed(data)
+            root = pullparser._close_and_return_root()
+            yield from pullparser.read_events()
+            it.root = root
+        finally:
+            if close_source:
+                source.close()
+
+    class IterParseIterator(collections.abc.Iterator):
+        __next__ = iterator().__next__
+    it = IterParseIterator()
+    it.root = None
+    del iterator, IterParseIterator
+
     close_source = False
     if not hasattr(source, "read"):
         source = open(source, "rb")
         close_source = True
-    return _IterParseIterator(source, events, parser, close_source)
+
+    return it
 
 
 class XMLPullParser:
@@ -1217,9 +1253,7 @@ class XMLPullParser:
         # upon in user code. It will be removed in a future release.
         # See http://bugs.python.org/issue17741 for more details.
 
-        # _elementtree.c expects a list, not a deque
-        self._events_queue = []
-        self._index = 0
+        self._events_queue = collections.deque()
         self._parser = _parser or XMLParser(target=TreeBuilder())
         # wire up the parser for event reporting
         if events is None:
@@ -1257,56 +1291,12 @@ class XMLPullParser:
         retrieved from the iterator.
         """
         events = self._events_queue
-        while True:
-            index = self._index
-            try:
-                event = events[self._index]
-                # Avoid retaining references to past events
-                events[self._index] = None
-            except IndexError:
-                break
-            index += 1
-            # Compact the list in a O(1) amortized fashion
-            # As noted above, _elementree.c needs a list, not a deque
-            if index * 2 >= len(events):
-                events[:index] = []
-                self._index = 0
-            else:
-                self._index = index
+        while events:
+            event = events.popleft()
             if isinstance(event, Exception):
                 raise event
             else:
                 yield event
-
-
-class _IterParseIterator:
-
-    def __init__(self, source, events, parser, close_source=False):
-        # Use the internal, undocumented _parser argument for now; When the
-        # parser argument of iterparse is removed, this can be killed.
-        self._parser = XMLPullParser(events=events, _parser=parser)
-        self._file = source
-        self._close_file = close_source
-        self.root = self._root = None
-
-    def __next__(self):
-        while 1:
-            for event in self._parser.read_events():
-                return event
-            if self._parser._parser is None:
-                self.root = self._root
-                if self._close_file:
-                    self._file.close()
-                raise StopIteration
-            # load event buffer
-            data = self._file.read(16 * 1024)
-            if data:
-                self._parser.feed(data)
-            else:
-                self._root = self._parser._close_and_return_root()
-
-    def __iter__(self):
-        return self
 
 
 def XML(text, parser=None):
@@ -1441,12 +1431,13 @@ class TreeBuilder:
         self._tail = 1
         return self._last
 
+_sentinel = ['sentinel']
 
 # also see ElementTree and TreeBuilder
 class XMLParser:
     """Element structure builder for XML source data based on the expat parser.
 
-    *html* are predefined HTML entities (not supported currently),
+    *html* are predefined HTML entities (deprecated and not supported),
     *target* is an optional target object which defaults to an instance of the
     standard TreeBuilder class, *encoding* is an optional encoding string
     which if given, overrides the encoding specified in the XML file:
@@ -1454,7 +1445,11 @@ class XMLParser:
 
     """
 
-    def __init__(self, html=0, target=None, encoding=None):
+    def __init__(self, html=_sentinel, target=None, encoding=None):
+        if html is not _sentinel:
+            warnings.warn(
+                "The html argument of XMLParser() is deprecated",
+                DeprecationWarning, stacklevel=2)
         try:
             from xml.parsers import expat
         except ImportError:

@@ -4,7 +4,6 @@ __author__ = "Jiwon Seo"
 __email__ = "seojiwon at gmail dot com"
 
 import unittest
-from test.support import run_unittest
 
 def posonly_sum(pos_arg1, *arg, **kwarg):
     return pos_arg1 + sum(arg) + sum(kwarg.values())
@@ -52,24 +51,12 @@ class KeywordOnlyArgTestCase(unittest.TestCase):
         self.assertRaisesSyntaxError("def f(p, *, (k1, k2), **kw):\n  pass\n")
 
     def testSyntaxForManyArguments(self):
-        fundef = "def f("
-        for i in range(255):
-            fundef += "i%d, "%i
-        fundef += "*, key=100):\n pass\n"
-        self.assertRaisesSyntaxError(fundef)
-
-        fundef2 = "def foo(i,*,"
-        for i in range(255):
-            fundef2 += "i%d, "%i
-        fundef2 += "lastarg):\n  pass\n"
-        self.assertRaisesSyntaxError(fundef2)
-
-        # exactly 255 arguments, should compile ok
-        fundef3 = "def f(i,*,"
-        for i in range(253):
-            fundef3 += "i%d, "%i
-        fundef3 += "lastarg):\n  pass\n"
-        compile(fundef3, "<test>", "single")
+        # more than 255 positional arguments, should compile ok
+        fundef = "def f(%s):\n  pass\n" % ', '.join('i%d' % i for i in range(300))
+        compile(fundef, "<test>", "single")
+        # more than 255 keyword-only arguments, should compile ok
+        fundef = "def f(*, %s):\n  pass\n" % ', '.join('i%d' % i for i in range(300))
+        compile(fundef, "<test>", "single")
 
     def testTooManyPositionalErrorMessage(self):
         def f(a, b=None, *, c=None):
@@ -186,8 +173,5 @@ class KeywordOnlyArgTestCase(unittest.TestCase):
         self.assertEqual(str(err.exception), "name 'b' is not defined")
 
 
-def test_main():
-    run_unittest(KeywordOnlyArgTestCase)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

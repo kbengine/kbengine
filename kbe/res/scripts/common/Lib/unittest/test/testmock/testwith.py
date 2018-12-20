@@ -151,6 +151,20 @@ class TestMockOpen(unittest.TestCase):
         self.assertEqual(mock.mock_calls, expected_calls)
         self.assertIs(f, handle)
 
+    def test_mock_open_context_manager_multiple_times(self):
+        mock = mock_open()
+        with patch('%s.open' % __name__, mock, create=True):
+            with open('foo') as f:
+                f.read()
+            with open('bar') as f:
+                f.read()
+
+        expected_calls = [
+            call('foo'), call().__enter__(), call().read(),
+            call().__exit__(None, None, None),
+            call('bar'), call().__enter__(), call().read(),
+            call().__exit__(None, None, None)]
+        self.assertEqual(mock.mock_calls, expected_calls)
 
     def test_explicit_mock(self):
         mock = MagicMock()
@@ -174,6 +188,7 @@ class TestMockOpen(unittest.TestCase):
 
     def test_readline_data(self):
         # Check that readline will return all the lines from the fake file
+        # And that once fully consumed, readline will return an empty string.
         mock = mock_open(read_data='foo\nbar\nbaz\n')
         with patch('%s.open' % __name__, mock, create=True):
             h = open('bar')
@@ -183,6 +198,7 @@ class TestMockOpen(unittest.TestCase):
         self.assertEqual(line1, 'foo\n')
         self.assertEqual(line2, 'bar\n')
         self.assertEqual(line3, 'baz\n')
+        self.assertEqual(h.readline(), '')
 
         # Check that we properly emulate a file that doesn't end in a newline
         mock = mock_open(read_data='foo')
@@ -190,6 +206,19 @@ class TestMockOpen(unittest.TestCase):
             h = open('bar')
             result = h.readline()
         self.assertEqual(result, 'foo')
+        self.assertEqual(h.readline(), '')
+
+
+    def test_dunder_iter_data(self):
+        # Check that dunder_iter will return all the lines from the fake file.
+        mock = mock_open(read_data='foo\nbar\nbaz\n')
+        with patch('%s.open' % __name__, mock, create=True):
+            h = open('bar')
+            lines = [l for l in h]
+        self.assertEqual(lines[0], 'foo\n')
+        self.assertEqual(lines[1], 'bar\n')
+        self.assertEqual(lines[2], 'baz\n')
+        self.assertEqual(h.readline(), '')
 
 
     def test_readlines_data(self):
@@ -208,6 +237,34 @@ class TestMockOpen(unittest.TestCase):
             result = h.readlines()
 
         self.assertEqual(result, ['foo\n', 'bar\n', 'baz'])
+
+
+    def test_read_bytes(self):
+        mock = mock_open(read_data=b'\xc6')
+        with patch('%s.open' % __name__, mock, create=True):
+            with open('abc', 'rb') as f:
+                result = f.read()
+        self.assertEqual(result, b'\xc6')
+
+
+    def test_readline_bytes(self):
+        m = mock_open(read_data=b'abc\ndef\nghi\n')
+        with patch('%s.open' % __name__, m, create=True):
+            with open('abc', 'rb') as f:
+                line1 = f.readline()
+                line2 = f.readline()
+                line3 = f.readline()
+        self.assertEqual(line1, b'abc\n')
+        self.assertEqual(line2, b'def\n')
+        self.assertEqual(line3, b'ghi\n')
+
+
+    def test_readlines_bytes(self):
+        m = mock_open(read_data=b'abc\ndef\nghi\n')
+        with patch('%s.open' % __name__, m, create=True):
+            with open('abc', 'rb') as f:
+                result = f.readlines()
+        self.assertEqual(result, [b'abc\n', b'def\n', b'ghi\n'])
 
 
     def test_mock_open_read_with_argument(self):

@@ -12,7 +12,7 @@ from distutils.command.register import register
 from distutils.errors import DistutilsSetupError
 from distutils.log import INFO
 
-from distutils.tests.test_config import PyPIRCCommandTestCase
+from distutils.tests.test_config import BasePyPIRCCommandTestCase
 
 try:
     import docutils
@@ -72,7 +72,7 @@ class FakeOpener(object):
             }.get(name.lower(), default)
 
 
-class RegisterTestCase(PyPIRCCommandTestCase):
+class RegisterTestCase(BasePyPIRCCommandTestCase):
 
     def setUp(self):
         super(RegisterTestCase, self).setUp()
@@ -300,6 +300,20 @@ class RegisterTestCase(PyPIRCCommandTestCase):
         cmd.run()
         results = self.get_logs(INFO)
         self.assertEqual(results, ['running check', 'xxx'])
+
+    def test_show_response(self):
+        # test that the --show-response option return a well formatted response
+        cmd = self._get_cmd()
+        inputs = Inputs('1', 'tarek', 'y')
+        register_module.input = inputs.__call__
+        cmd.show_response = 1
+        try:
+            cmd.run()
+        finally:
+            del register_module.input
+
+        results = self.get_logs(INFO)
+        self.assertEqual(results[3], 75 * '-' + '\nxxx\n' + 75 * '-')
 
 
 def test_suite():

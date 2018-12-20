@@ -6,6 +6,7 @@
 
 __all__ = ['MIMEText']
 
+from email.charset import Charset
 from email.mime.nonmultipart import MIMENonMultipart
 
 
@@ -13,7 +14,7 @@ from email.mime.nonmultipart import MIMENonMultipart
 class MIMEText(MIMENonMultipart):
     """Class for generating text/* type MIME documents."""
 
-    def __init__(self, _text, _subtype='plain', _charset=None):
+    def __init__(self, _text, _subtype='plain', _charset=None, *, policy=None):
         """Create a text/* type MIME document.
 
         _text is the string for this message object.
@@ -35,7 +36,7 @@ class MIMEText(MIMENonMultipart):
             except UnicodeEncodeError:
                 _charset = 'utf-8'
 
-        MIMENonMultipart.__init__(self, 'text', _subtype,
-                                  **{'charset': _charset})
+        MIMENonMultipart.__init__(self, 'text', _subtype, policy=policy,
+                                  **{'charset': str(_charset)})
 
         self.set_payload(_text, _charset)

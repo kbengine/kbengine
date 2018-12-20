@@ -1,8 +1,9 @@
-from test.support import verbose
+from test.support import verbose, is_android, check_warnings
 import unittest
 import locale
 import sys
 import codecs
+import warnings
 
 class BaseLocalizedTest(unittest.TestCase):
     #
@@ -143,8 +144,9 @@ class BaseFormattingTest(object):
             func(format, value, **format_opts), out)
 
     def _test_format(self, format, value, out, **format_opts):
-        self._test_formatfunc(format, value, out,
-            func=locale.format, **format_opts)
+        with check_warnings(('', DeprecationWarning)):
+            self._test_formatfunc(format, value, out,
+                func=locale.format, **format_opts)
 
     def _test_format_string(self, format, value, out, **format_opts):
         self._test_formatfunc(format, value, out,
@@ -197,6 +199,10 @@ class EnUSNumberFormatting(BaseFormattingTest):
         self._test_format("%+10.f", -4200, grouping=0, out='-4200'.rjust(10))
         self._test_format("%-10.f", 4200, grouping=0, out='4200'.ljust(10))
 
+    def test_format_deprecation(self):
+        with self.assertWarns(DeprecationWarning):
+            locale.format("%-10.f", 4200, grouping=True)
+
     def test_complex_formatting(self):
         # Spaces in formatting string
         self._test_format_string("One million is %i", 1000000, grouping=1,
@@ -227,14 +233,15 @@ class TestFormatPatternArg(unittest.TestCase):
     # Test handling of pattern argument of format
 
     def test_onlyOnePattern(self):
-        # Issue 2522: accept exactly one % pattern, and no extra chars.
-        self.assertRaises(ValueError, locale.format, "%f\n", 'foo')
-        self.assertRaises(ValueError, locale.format, "%f\r", 'foo')
-        self.assertRaises(ValueError, locale.format, "%f\r\n", 'foo')
-        self.assertRaises(ValueError, locale.format, " %f", 'foo')
-        self.assertRaises(ValueError, locale.format, "%fg", 'foo')
-        self.assertRaises(ValueError, locale.format, "%^g", 'foo')
-        self.assertRaises(ValueError, locale.format, "%f%%", 'foo')
+        with check_warnings(('', DeprecationWarning)):
+            # Issue 2522: accept exactly one % pattern, and no extra chars.
+            self.assertRaises(ValueError, locale.format, "%f\n", 'foo')
+            self.assertRaises(ValueError, locale.format, "%f\r", 'foo')
+            self.assertRaises(ValueError, locale.format, "%f\r\n", 'foo')
+            self.assertRaises(ValueError, locale.format, " %f", 'foo')
+            self.assertRaises(ValueError, locale.format, "%fg", 'foo')
+            self.assertRaises(ValueError, locale.format, "%^g", 'foo')
+            self.assertRaises(ValueError, locale.format, "%f%%", 'foo')
 
 
 class TestLocaleFormatString(unittest.TestCase):
@@ -339,9 +346,14 @@ class TestCollation(unittest.TestCase):
         self.assertLess(locale.strcoll('a', 'b'), 0)
         self.assertEqual(locale.strcoll('a', 'a'), 0)
         self.assertGreater(locale.strcoll('b', 'a'), 0)
+        # embedded null character
+        self.assertRaises(ValueError, locale.strcoll, 'a\0', 'a')
+        self.assertRaises(ValueError, locale.strcoll, 'a', 'a\0')
 
     def test_strxfrm(self):
         self.assertLess(locale.strxfrm('a'), locale.strxfrm('b'))
+        # embedded null character
+        self.assertRaises(ValueError, locale.strxfrm, 'a\0')
 
 
 class TestEnUSCollation(BaseLocalizedTest, TestCollation):
@@ -353,14 +365,18 @@ class TestEnUSCollation(BaseLocalizedTest, TestCollation):
         enc = codecs.lookup(locale.getpreferredencoding(False) or 'ascii').name
         if enc not in ('utf-8', 'iso8859-1', 'cp1252'):
             raise unittest.SkipTest('encoding not suitable')
-        if enc != 'iso8859-1' and (sys.platform == 'darwin' or
+        if enc != 'iso8859-1' and (sys.platform == 'darwin' or is_android or
                                    sys.platform.startswith('freebsd')):
             raise unittest.SkipTest('wcscoll/wcsxfrm have known bugs')
         BaseLocalizedTest.setUp(self)
 
+    @unittest.skipIf(sys.platform.startswith('aix'),
+                     'bpo-29972: broken test on AIX')
     def test_strcoll_with_diacritic(self):
         self.assertLess(locale.strcoll('à', 'b'), 0)
 
+    @unittest.skipIf(sys.platform.startswith('aix'),
+                     'bpo-29972: broken test on AIX')
     def test_strxfrm_with_diacritic(self):
         self.assertLess(locale.strxfrm('à'), locale.strxfrm('b'))
 
@@ -425,7 +441,7 @@ class NormalizeTest(unittest.TestCase):
 
     def test_valencia_modifier(self):
         self.check('ca_ES.UTF-8@valencia', 'ca_ES.UTF-8@valencia')
-        self.check('ca_ES@valencia', 'ca_ES.ISO8859-1@valencia')
+        self.check('ca_ES@valencia', 'ca_ES.UTF-8@valencia')
         self.check('ca@valencia', 'ca_ES.ISO8859-1@valencia')
 
     def test_devanagari_modifier(self):
@@ -511,7 +527,7 @@ class TestMiscellaneous(unittest.TestCase):
             self.skipTest('test needs Turkish locale')
         loc = locale.getlocale(locale.LC_CTYPE)
         if verbose:
-            print('got locale %a' % (loc,))
+            print('testing with %a' % (loc,), end=' ', flush=True)
         locale.setlocale(locale.LC_CTYPE, loc)
         self.assertEqual(loc, locale.getlocale(locale.LC_CTYPE))
 
@@ -522,6 +538,60 @@ class TestMiscellaneous(unittest.TestCase):
     def test_invalid_iterable_in_localetuple(self):
         with self.assertRaises(TypeError):
             locale.setlocale(locale.LC_ALL, (b'not', b'valid'))
+
+
+class BaseDelocalizeTest(BaseLocalizedTest):
+
+    def _test_delocalize(self, value, out):
+        self.assertEqual(locale.delocalize(value), out)
+
+    def _test_atof(self, value, out):
+        self.assertEqual(locale.atof(value), out)
+
+    def _test_atoi(self, value, out):
+        self.assertEqual(locale.atoi(value), out)
+
+
+class TestEnUSDelocalize(EnUSCookedTest, BaseDelocalizeTest):
+
+    def test_delocalize(self):
+        self._test_delocalize('50000.00', '50000.00')
+        self._test_delocalize('50,000.00', '50000.00')
+
+    def test_atof(self):
+        self._test_atof('50000.00', 50000.)
+        self._test_atof('50,000.00', 50000.)
+
+    def test_atoi(self):
+        self._test_atoi('50000', 50000)
+        self._test_atoi('50,000', 50000)
+
+
+class TestCDelocalizeTest(CCookedTest, BaseDelocalizeTest):
+
+    def test_delocalize(self):
+        self._test_delocalize('50000.00', '50000.00')
+
+    def test_atof(self):
+        self._test_atof('50000.00', 50000.)
+
+    def test_atoi(self):
+        self._test_atoi('50000', 50000)
+
+
+class TestfrFRDelocalizeTest(FrFRCookedTest, BaseDelocalizeTest):
+
+    def test_delocalize(self):
+        self._test_delocalize('50000,00', '50000.00')
+        self._test_delocalize('50 000,00', '50000.00')
+
+    def test_atof(self):
+        self._test_atof('50000,00', 50000.)
+        self._test_atof('50 000,00', 50000.)
+
+    def test_atoi(self):
+        self._test_atoi('50000', 50000)
+        self._test_atoi('50 000', 50000)
 
 
 if __name__ == '__main__':

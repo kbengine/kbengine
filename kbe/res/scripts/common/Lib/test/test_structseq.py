@@ -1,7 +1,6 @@
 import os
 import time
 import unittest
-from test import support
 
 
 class StructSeqTest(unittest.TestCase):
@@ -98,7 +97,7 @@ class StructSeqTest(unittest.TestCase):
         class Exc(Exception):
             pass
 
-        # Devious code could crash structseqs' contructors
+        # Devious code could crash structseqs' constructors
         class C:
             def __getitem__(self, i):
                 raise Exc
@@ -123,8 +122,5 @@ class StructSeqTest(unittest.TestCase):
                     self.assertEqual(list(t[start:stop:step]),
                                      L[start:stop:step])
 
-def test_main():
-    support.run_unittest(StructSeqTest)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

@@ -1,6 +1,5 @@
 # Codec encoding tests for ISO 2022 encodings.
 
-from test import support
 from test import multibytecodec_support
 import unittest
 
@@ -38,8 +37,5 @@ class Test_ISO2022_KR(multibytecodec_support.TestBase, unittest.TestCase):
     def test_chunkcoding(self):
         pass
 
-def test_main():
-    support.run_unittest(__name__)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

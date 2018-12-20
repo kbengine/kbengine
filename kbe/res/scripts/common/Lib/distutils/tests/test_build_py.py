@@ -120,8 +120,8 @@ class BuildPyTestCase(support.TempdirManager,
         found = os.listdir(cmd.build_lib)
         self.assertEqual(sorted(found), ['__pycache__', 'boiledeggs.py'])
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
-        self.assertEqual(sorted(found),
-                         ['boiledeggs.%s.pyo' % sys.implementation.cache_tag])
+        expect = 'boiledeggs.{}.opt-1.pyc'.format(sys.implementation.cache_tag)
+        self.assertEqual(sorted(found), [expect])
 
     def test_dir_in_package_data(self):
         """
@@ -168,7 +168,8 @@ class BuildPyTestCase(support.TempdirManager,
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        self.assertIn('byte-compiling is disabled', self.logs[0][1])
+        self.assertIn('byte-compiling is disabled',
+                      self.logs[0][1] % self.logs[0][2])
 
 
 def test_suite():
