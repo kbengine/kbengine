@@ -4,12 +4,16 @@
 .. module:: asyncore
    :synopsis: A base class for developing asynchronous socket handling
               services.
+
 .. moduleauthor:: Sam Rushing <rushing@nightmare.com>
 .. sectionauthor:: Christopher Petrilli <petrilli@amber.org>
 .. sectionauthor:: Steve Holden <sholden@holdenweb.com>
 .. heavily adapted from original documentation by Sam Rushing
 
 **Source code:** :source:`Lib/asyncore.py`
+
+.. deprecated:: 3.6
+   Please use :mod:`asyncio` instead.
 
 --------------
 
@@ -56,7 +60,7 @@ any that have been added to the map during asynchronous service) is closed.
 
    Enter a polling loop that terminates after count passes or all open
    channels have been closed.  All arguments are optional.  The *count*
-   parameter defaults to None, resulting in the loop terminating only when all
+   parameter defaults to ``None``, resulting in the loop terminating only when all
    channels have been closed.  The *timeout* argument sets the timeout
    parameter for the appropriate :func:`~select.select` or :func:`~select.poll`
    call, measured in seconds; the default is 30 seconds.  The *use_poll*
@@ -315,8 +319,8 @@ implement its socket handling::
            self.buffer = self.buffer[sent:]
 
 
-    client = HTTPClient('www.python.org', '/')
-    asyncore.loop()
+   client = HTTPClient('www.python.org', '/')
+   asyncore.loop()
 
 .. _asyncore-example-2:
 

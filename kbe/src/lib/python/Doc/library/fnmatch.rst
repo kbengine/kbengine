@@ -4,12 +4,11 @@
 .. module:: fnmatch
    :synopsis: Unix shell style filename pattern matching.
 
+**Source code:** :source:`Lib/fnmatch.py`
 
 .. index:: single: filenames; wildcard expansion
 
 .. index:: module: re
-
-**Source code:** :source:`Lib/fnmatch.py`
 
 --------------
 
@@ -44,9 +43,8 @@ patterns.
 .. function:: fnmatch(filename, pattern)
 
    Test whether the *filename* string matches the *pattern* string, returning
-   :const:`True` or :const:`False`.  If the operating system is case-insensitive,
-   then both parameters will be normalized to all lower- or upper-case before
-   the comparison is performed.  :func:`fnmatchcase` can be used to perform a
+   :const:`True` or :const:`False`.  Both parameters are case-normalized
+   using :func:`os.path.normcase`. :func:`fnmatchcase` can be used to perform a
    case-sensitive comparison, regardless of whether that's standard for the
    operating system.
 
@@ -64,7 +62,8 @@ patterns.
 .. function:: fnmatchcase(filename, pattern)
 
    Test whether *filename* matches *pattern*, returning :const:`True` or
-   :const:`False`; the comparison is case-sensitive.
+   :const:`False`; the comparison is case-sensitive and does not apply
+   :func:`os.path.normcase`.
 
 
 .. function:: filter(names, pattern)
@@ -75,7 +74,8 @@ patterns.
 
 .. function:: translate(pattern)
 
-   Return the shell-style *pattern* converted to a regular expression.
+   Return the shell-style *pattern* converted to a regular expression for
+   using with :func:`re.match`.
 
    Example:
 
@@ -83,10 +83,10 @@ patterns.
       >>>
       >>> regex = fnmatch.translate('*.txt')
       >>> regex
-      '.*\\.txt$'
+      '(?s:.*\\.txt)\\Z'
       >>> reobj = re.compile(regex)
       >>> reobj.match('foobar.txt')
-      <_sre.SRE_Match object; span=(0, 10), match='foobar.txt'>
+      <re.Match object; span=(0, 10), match='foobar.txt'>
 
 
 .. seealso::

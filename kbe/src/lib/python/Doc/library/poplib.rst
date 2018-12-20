@@ -3,19 +3,20 @@
 
 .. module:: poplib
    :synopsis: POP3 protocol client (requires sockets).
+
 .. sectionauthor:: Andrew T. Csillag
 .. revised by ESR, January 2000
 
-.. index:: pair: POP3; protocol
-
 **Source code:** :source:`Lib/poplib.py`
+
+.. index:: pair: POP3; protocol
 
 --------------
 
 This module defines a class, :class:`POP3`, which encapsulates a connection to a
 POP3 server and implements the protocol as defined in :rfc:`1939`. The
 :class:`POP3` class supports both the minimal and optional command sets from
-:rfc:`1939`. The :class:`POP3` class also supports the `STLS` command introduced
+:rfc:`1939`. The :class:`POP3` class also supports the ``STLS`` command introduced
 in :rfc:`2595` to enable encrypted communication on an already established connection.
 
 Additionally, this module provides a class :class:`POP3_SSL`, which provides
@@ -60,6 +61,13 @@ The :mod:`poplib` module provides two classes:
       The class now supports hostname check with
       :attr:`ssl.SSLContext.check_hostname` and *Server Name Indication* (see
       :data:`ssl.HAS_SNI`).
+
+   .. deprecated:: 3.6
+
+       *keyfile* and *certfile* are deprecated in favor of *context*.
+       Please use :meth:`ssl.SSLContext.load_cert_chain` instead, or let
+       :func:`ssl.create_default_context` select the system's trusted CA
+       certificates for you.
 
 One exception is defined as an attribute of the :mod:`poplib` module:
 
@@ -193,6 +201,15 @@ An :class:`POP3` instance has the following methods:
    Return message digest (unique id) list. If *which* is specified, result contains
    the unique id for that message in the form ``'response mesgnum uid``, otherwise
    result is list ``(response, ['mesgnum uid', ...], octets)``.
+
+
+.. method:: POP3.utf8()
+
+   Try to switch to UTF-8 mode. Returns the server response if successful,
+   raises :class:`error_proto` if not. Specified in :RFC:`6856`.
+
+   .. versionadded:: 3.5
+
 
 .. method:: POP3.stls(context=None)
 

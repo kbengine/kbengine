@@ -4,17 +4,16 @@
 .. module:: timeit
    :synopsis: Measure the execution time of small code snippets.
 
+**Source code:** :source:`Lib/timeit.py`
 
 .. index::
    single: Benchmarking
    single: Performance
 
-**Source code:** :source:`Lib/timeit.py`
-
 --------------
 
 This module provides a simple way to time small bits of Python code. It has both
-a :ref:`command-line-interface` as well as a :ref:`callable <python-interface>`
+a :ref:`timeit-command-line-interface` as well as a :ref:`callable <python-interface>`
 one.  It avoids a number of common traps for measuring execution times.
 See also Tim Peters' introduction to the "Algorithms" chapter in the *Python
 Cookbook*, published by O'Reilly.
@@ -23,17 +22,17 @@ Cookbook*, published by O'Reilly.
 Basic Examples
 --------------
 
-The following example shows how the :ref:`command-line-interface`
+The following example shows how the :ref:`timeit-command-line-interface`
 can be used to compare three different expressions:
 
-.. code-block:: sh
+.. code-block:: shell-session
 
    $ python3 -m timeit '"-".join(str(n) for n in range(100))'
-   10000 loops, best of 3: 30.2 usec per loop
+   10000 loops, best of 5: 30.2 usec per loop
    $ python3 -m timeit '"-".join([str(n) for n in range(100)])'
-   10000 loops, best of 3: 27.5 usec per loop
+   10000 loops, best of 5: 27.5 usec per loop
    $ python3 -m timeit '"-".join(map(str, range(100)))'
-   10000 loops, best of 3: 23.2 usec per loop
+   10000 loops, best of 5: 23.2 usec per loop
 
 This can be achieved from the :ref:`python-interface` with::
 
@@ -59,24 +58,29 @@ Python Interface
 The module defines three convenience functions and a public class:
 
 
-.. function:: timeit(stmt='pass', setup='pass', timer=<default timer>, number=1000000)
+.. function:: timeit(stmt='pass', setup='pass', timer=<default timer>, number=1000000, globals=None)
 
    Create a :class:`Timer` instance with the given statement, *setup* code and
    *timer* function and run its :meth:`.timeit` method with *number* executions.
+   The optional *globals* argument specifies a namespace in which to execute the
+   code.
 
-   .. note::
-
-        Because :meth:`.timeit` is executing *stmt*, placing a return statement
-        in *stmt* will prevent :meth:`.timeit` from returning execution time.
-        It will instead return the data specified by your return statement.
+   .. versionchanged:: 3.5
+      The optional *globals* parameter was added.
 
 
-.. function:: repeat(stmt='pass', setup='pass', timer=<default timer>, repeat=3, number=1000000)
+.. function:: repeat(stmt='pass', setup='pass', timer=<default timer>, repeat=5, number=1000000, globals=None)
 
    Create a :class:`Timer` instance with the given statement, *setup* code and
    *timer* function and run its :meth:`.repeat` method with the given *repeat*
-   count and *number* executions.
+   count and *number* executions.  The optional *globals* argument specifies a
+   namespace in which to execute the code.
 
+   .. versionchanged:: 3.5
+      The optional *globals* parameter was added.
+
+   .. versionchanged:: 3.7
+      Default value of *repeat* changed from 3 to 5.
 
 .. function:: default_timer()
 
@@ -86,7 +90,7 @@ The module defines three convenience functions and a public class:
       :func:`time.perf_counter` is now the default timer.
 
 
-.. class:: Timer(stmt='pass', setup='pass', timer=<timer function>)
+.. class:: Timer(stmt='pass', setup='pass', timer=<timer function>, globals=None)
 
    Class for timing execution speed of small code snippets.
 
@@ -94,17 +98,23 @@ The module defines three convenience functions and a public class:
    for setup, and a timer function.  Both statements default to ``'pass'``;
    the timer function is platform-dependent (see the module doc string).
    *stmt* and *setup* may also contain multiple statements separated by ``;``
-   or newlines, as long as they don't contain multi-line string literals.
+   or newlines, as long as they don't contain multi-line string literals.  The
+   statement will by default be executed within timeit's namespace; this behavior
+   can be controlled by passing a namespace to *globals*.
 
    To measure the execution time of the first statement, use the :meth:`.timeit`
-   method.  The :meth:`.repeat` method is a convenience to call :meth:`.timeit`
-   multiple times and return a list of results.
+   method.  The :meth:`.repeat` and :meth:`.autorange` methods are convenience
+   methods to call :meth:`.timeit` multiple times.
+
+   The execution time of *setup* is excluded from the overall timed execution run.
 
    The *stmt* and *setup* parameters can also take objects that are callable
    without arguments.  This will embed calls to them in a timer function that
    will then be executed by :meth:`.timeit`.  Note that the timing overhead is a
    little larger in this case because of the extra function calls.
 
+   .. versionchanged:: 3.5
+      The optional *globals* parameter was added.
 
    .. method:: Timer.timeit(number=1000000)
 
@@ -127,7 +137,23 @@ The module defines three convenience functions and a public class:
             timeit.Timer('for i in range(10): oct(i)', 'gc.enable()').timeit()
 
 
-   .. method:: Timer.repeat(repeat=3, number=1000000)
+   .. method:: Timer.autorange(callback=None)
+
+      Automatically determine how many times to call :meth:`.timeit`.
+
+      This is a convenience function that calls :meth:`.timeit` repeatedly
+      so that the total time >= 0.2 second, returning the eventual
+      (number of loops, time taken for that number of loops). It calls
+      :meth:`.timeit` with increasing numbers from the sequence 1, 2, 5,
+      10, 20, 50, ... until the time taken is at least 0.2 second.
+
+      If *callback* is given and is not ``None``, it will be called after
+      each trial with two arguments: ``callback(number, time_taken)``.
+
+      .. versionadded:: 3.6
+
+
+   .. method:: Timer.repeat(repeat=5, number=1000000)
 
       Call :meth:`.timeit` a few times.
 
@@ -148,6 +174,9 @@ The module defines three convenience functions and a public class:
          should be interested in.  After that, you should look at the entire
          vector and apply common sense rather than statistics.
 
+      .. versionchanged:: 3.7
+         Default value of *repeat* changed from 3 to 5.
+
 
    .. method:: Timer.print_exc(file=None)
 
@@ -166,14 +195,14 @@ The module defines three convenience functions and a public class:
       where the traceback is sent; it defaults to :data:`sys.stderr`.
 
 
-.. _command-line-interface:
+.. _timeit-command-line-interface:
 
 Command-Line Interface
 ----------------------
 
 When called as a program from the command line, the following form is used::
 
-   python -m timeit [-n N] [-r N] [-s S] [-t] [-c] [-h] [statement ...]
+   python -m timeit [-n N] [-r N] [-u U] [-s S] [-h] [statement ...]
 
 Where the following options are understood:
 
@@ -185,7 +214,7 @@ Where the following options are understood:
 
 .. cmdoption:: -r N, --repeat=N
 
-   how many times to repeat the timer (default 3)
+   how many times to repeat the timer (default 5)
 
 .. cmdoption:: -s S, --setup=S
 
@@ -198,13 +227,11 @@ Where the following options are understood:
 
    .. versionadded:: 3.3
 
-.. cmdoption:: -t, --time
+.. cmdoption:: -u, --unit=U
 
-   use :func:`time.time` (deprecated)
+    specify a time unit for timer output; can select nsec, usec, msec, or sec
 
-.. cmdoption:: -c, --clock
-
-   use :func:`time.clock` (deprecated)
+   .. versionadded:: 3.5
 
 .. cmdoption:: -v, --verbose
 
@@ -225,7 +252,7 @@ successive powers of 10 until the total time is at least 0.2 seconds.
 :func:`default_timer` measurements can be affected by other programs running on
 the same machine, so the best thing to do when accurate timing is necessary is
 to repeat the timing a few times and use the best time.  The :option:`-r`
-option is good for this; the default of 3 repetitions is probably enough in
+option is good for this; the default of 5 repetitions is probably enough in
 most cases.  You can use :func:`time.process_time` to measure CPU time.
 
 .. note::
@@ -243,12 +270,12 @@ Examples
 
 It is possible to provide a setup statement that is executed only once at the beginning:
 
-.. code-block:: sh
+.. code-block:: shell-session
 
    $ python -m timeit -s 'text = "sample string"; char = "g"'  'char in text'
-   10000000 loops, best of 3: 0.0877 usec per loop
+   5000000 loops, best of 5: 0.0877 usec per loop
    $ python -m timeit -s 'text = "sample string"; char = "g"'  'text.find(char)'
-   1000000 loops, best of 3: 0.342 usec per loop
+   1000000 loops, best of 5: 0.342 usec per loop
 
 ::
 
@@ -272,17 +299,17 @@ The following examples show how to time expressions that contain multiple lines.
 Here we compare the cost of using :func:`hasattr` vs. :keyword:`try`/:keyword:`except`
 to test for missing and present object attributes:
 
-.. code-block:: sh
+.. code-block:: shell-session
 
    $ python -m timeit 'try:' '  str.__bool__' 'except AttributeError:' '  pass'
-   100000 loops, best of 3: 15.7 usec per loop
+   20000 loops, best of 5: 15.7 usec per loop
    $ python -m timeit 'if hasattr(str, "__bool__"): pass'
-   100000 loops, best of 3: 4.26 usec per loop
+   50000 loops, best of 5: 4.26 usec per loop
 
    $ python -m timeit 'try:' '  int.__bool__' 'except AttributeError:' '  pass'
-   1000000 loops, best of 3: 1.43 usec per loop
+   200000 loops, best of 5: 1.43 usec per loop
    $ python -m timeit 'if hasattr(int, "__bool__"): pass'
-   100000 loops, best of 3: 2.23 usec per loop
+   100000 loops, best of 5: 2.23 usec per loop
 
 ::
 
@@ -324,3 +351,17 @@ To give the :mod:`timeit` module access to functions you define, you can pass a
    if __name__ == '__main__':
        import timeit
        print(timeit.timeit("test()", setup="from __main__ import test"))
+
+Another option is to pass :func:`globals` to the  *globals* parameter, which will cause the code
+to be executed within your current global namespace.  This can be more convenient
+than individually specifying imports::
+
+   def f(x):
+       return x**2
+   def g(x):
+       return x**4
+   def h(x):
+       return x**8
+
+   import timeit
+   print(timeit.timeit('[func(42) for func in (f,g,h)]', globals=globals()))

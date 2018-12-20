@@ -1,7 +1,3 @@
-# -*-mode: python; fill-column: 75; tab-width: 8 -*-
-#
-# $Id$
-#
 # Tix.py -- Tix widget wrappers.
 #
 #       For Tix, see http://tix.sourceforge.net
@@ -26,12 +22,10 @@
 # appreciate the advantages.
 #
 
+import os
+import tkinter
 from tkinter import *
-from tkinter import _cnfmerge, _default_root
-
-# WARNING - TkVersion is a limited precision floating point number
-if TkVersion < 3.999:
-    raise ImportError("This version of Tix.py requires Tk 4.0 or higher")
+from tkinter import _cnfmerge
 
 import _tkinter # If this fails your Python may not be configured for Tk
 
@@ -72,7 +66,6 @@ TCL_ALL_EVENTS    = 0
 # BEWARE - this is implemented by copying some code from the Widget class
 #          in Tkinter (to override Widget initialization) and is therefore
 #          liable to break.
-import tkinter, os
 
 # Could probably add this to Tkinter.Misc
 class tixCommand:
@@ -221,7 +214,7 @@ class Tk(tkinter.Tk, tixCommand):
         self.tk.eval('package require Tix')
 
     def destroy(self):
-        # For safety, remove an delete_window binding before destroy
+        # For safety, remove the delete_window binding before destroy
         self.protocol("WM_DELETE_WINDOW", "")
         tkinter.Tk.destroy(self)
 
@@ -475,11 +468,17 @@ class DisplayStyle:
     """DisplayStyle - handle configuration options shared by
     (multiple) Display Items"""
 
-    def __init__(self, itemtype, cnf={}, **kw):
-        master = _default_root              # global from Tkinter
-        if not master and 'refwindow' in cnf: master=cnf['refwindow']
-        elif not master and 'refwindow' in kw:  master= kw['refwindow']
-        elif not master: raise RuntimeError("Too early to create display style: no root window")
+    def __init__(self, itemtype, cnf={}, *, master=None, **kw):
+        if not master:
+            if 'refwindow' in kw:
+                master = kw['refwindow']
+            elif 'refwindow' in cnf:
+                master = cnf['refwindow']
+            else:
+                master = tkinter._default_root
+                if not master:
+                    raise RuntimeError("Too early to create display style: "
+                                       "no root window")
         self.tk = master.tk
         self.stylename = self.tk.call('tixDisplayStyle', itemtype,
                             *self._options(cnf,kw) )
@@ -702,7 +701,7 @@ class DirSelectBox(TixWidget):
 
 class ExFileSelectBox(TixWidget):
     """ExFileSelectBox - MS Windows style file select box.
-    It provides an convenient method for the user to select files.
+    It provides a convenient method for the user to select files.
 
     Subwidget       Class
     ---------       -----
@@ -760,7 +759,7 @@ class DirSelectDialog(TixWidget):
 # Should inherit from a Dialog class
 class ExFileSelectDialog(TixWidget):
     """ExFileSelectDialog - MS Windows style file select dialog.
-    It provides an convenient method for the user to select files.
+    It provides a convenient method for the user to select files.
 
     Subwidgets       Class
     ----------       -----
@@ -923,7 +922,11 @@ class HList(TixWidget, XView, YView):
         return self.tk.call(self._w, 'header', 'cget', col, opt)
 
     def header_exists(self,  col):
-        return self.tk.call(self._w, 'header', 'exists', col)
+        # A workaround to Tix library bug (issue #25464).
+        # The documented command is "exists", but only erroneous "exist" is
+        # accepted.
+        return self.tk.getboolean(self.tk.call(self._w, 'header', 'exist', col))
+    header_exist = header_exists
 
     def header_delete(self, col):
         self.tk.call(self._w, 'header', 'delete', col)
@@ -1052,8 +1055,8 @@ class InputOnly(TixWidget):
 
 class LabelEntry(TixWidget):
     """LabelEntry - Entry field with label. Packages an entry widget
-    and a label into one mega widget. It can beused be used to simplify
-    the creation of ``entry-form'' type of interface.
+    and a label into one mega widget. It can be used to simplify the creation
+    of ``entry-form'' type of interface.
 
     Subwidgets       Class
     ----------       -----
@@ -1110,7 +1113,7 @@ class ListNoteBook(TixWidget):
 
     def pages(self):
         # Can't call subwidgets_all directly because we don't want .nbframe
-        names = self.tk.split(self.tk.call(self._w, 'pages'))
+        names = self.tk.splitlist(self.tk.call(self._w, 'pages'))
         ret = []
         for x in names:
             ret.append(self.subwidget(x))
@@ -1156,7 +1159,7 @@ class NoteBook(TixWidget):
 
     def pages(self):
         # Can't call subwidgets_all directly because we don't want .nbframe
-        names = self.tk.split(self.tk.call(self._w, 'pages'))
+        names = self.tk.splitlist(self.tk.call(self._w, 'pages'))
         ret = []
         for x in names:
             ret.append(self.subwidget(x))
@@ -1579,8 +1582,7 @@ class CheckList(TixWidget):
         '''Returns a list of items whose status matches status. If status is
      not specified, the list of items in the "on" status will be returned.
      Mode can be on, off, default'''
-        c = self.tk.split(self.tk.call(self._w, 'getselection', mode))
-        return self.tk.splitlist(c)
+        return self.tk.splitlist(self.tk.call(self._w, 'getselection', mode))
 
     def getstatus(self, entrypath):
         '''Returns the current status of entryPath.'''
@@ -1901,7 +1903,7 @@ class Grid(TixWidget, XView, YView):
                      or a real number following by the word chars
                      (e.g. 3.4chars) that sets the width of the column to the
                      given number of characters."""
-        return self.tk.split(self.tk.call(self._w, 'size', 'column', index,
+        return self.tk.splitlist(self.tk.call(self._w, 'size', 'column', index,
                              *self._options({}, kw)))
 
     def size_row(self, index, **kw):
@@ -1926,7 +1928,7 @@ class Grid(TixWidget, XView, YView):
                      or a real number following by the word chars
                      (e.g. 3.4chars) that sets the height of the row to the
                      given number of characters."""
-        return self.tk.split(self.tk.call(
+        return self.tk.splitlist(self.tk.call(
                     self, 'size', 'row', index, *self._options({}, kw)))
 
     def unset(self, x, y):

@@ -58,8 +58,20 @@ class CursorFactoryTests(unittest.TestCase):
         self.con.close()
 
     def CheckIsInstance(self):
-        cur = self.con.cursor(factory=MyCursor)
+        cur = self.con.cursor()
+        self.assertIsInstance(cur, sqlite.Cursor)
+        cur = self.con.cursor(MyCursor)
         self.assertIsInstance(cur, MyCursor)
+        cur = self.con.cursor(factory=lambda con: MyCursor(con))
+        self.assertIsInstance(cur, MyCursor)
+
+    def CheckInvalidFactory(self):
+        # not a callable at all
+        self.assertRaises(TypeError, self.con.cursor, None)
+        # invalid callable with not exact one argument
+        self.assertRaises(TypeError, self.con.cursor, lambda: None)
+        # invalid callable returning non-cursor
+        self.assertRaises(TypeError, self.con.cursor, lambda con: None)
 
 class RowFactoryTestsBackwardsCompat(unittest.TestCase):
     def setUp(self):
@@ -111,6 +123,24 @@ class RowFactoryTests(unittest.TestCase):
         with self.assertRaises(IndexError):
             row[2**1000]
 
+    def CheckSqliteRowSlice(self):
+        # A sqlite.Row can be sliced like a list.
+        self.con.row_factory = sqlite.Row
+        row = self.con.execute("select 1, 2, 3, 4").fetchone()
+        self.assertEqual(row[0:0], ())
+        self.assertEqual(row[0:1], (1,))
+        self.assertEqual(row[1:3], (2, 3))
+        self.assertEqual(row[3:1], ())
+        # Explicit bounds are optional.
+        self.assertEqual(row[1:], (2, 3, 4))
+        self.assertEqual(row[:3], (1, 2, 3))
+        # Slices can use negative indices.
+        self.assertEqual(row[-2:-1], (3,))
+        self.assertEqual(row[-2:], (3, 4))
+        # Slicing supports steps.
+        self.assertEqual(row[0:4:2], (1, 3))
+        self.assertEqual(row[3:0:-2], (4, 2))
+
     def CheckSqliteRowIter(self):
         """Checks if the row object is iterable"""
         self.con.row_factory = sqlite.Row
@@ -161,6 +191,16 @@ class RowFactoryTests(unittest.TestCase):
         as_tuple = tuple(row)
         self.assertEqual(list(reversed(row)), list(reversed(as_tuple)))
         self.assertIsInstance(row, Sequence)
+
+    def CheckFakeCursorClass(self):
+        # Issue #24257: Incorrect use of PyObject_IsInstance() caused
+        # segmentation fault.
+        # Issue #27861: Also applies for cursor factory.
+        class FakeCursor(str):
+            __class__ = sqlite.Cursor
+        self.con.row_factory = sqlite.Row
+        self.assertRaises(TypeError, self.con.cursor, FakeCursor)
+        self.assertRaises(TypeError, sqlite.Row, FakeCursor(), ())
 
     def tearDown(self):
         self.con.close()

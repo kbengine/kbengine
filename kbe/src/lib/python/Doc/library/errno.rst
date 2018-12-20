@@ -4,6 +4,7 @@
 .. module:: errno
    :synopsis: Standard errno system symbols.
 
+----------------
 
 This module makes available standard ``errno`` system symbols. The value of each
 symbol is the corresponding integer value. The names and descriptions are
@@ -41,7 +42,10 @@ defined by the module.  The specific list of defined symbols is available as
 
 .. data:: EINTR
 
-   Interrupted system call
+   Interrupted system call.
+
+   .. seealso::
+      This error is mapped to the exception :exc:`InterruptedError`.
 
 
 .. data:: EIO

@@ -4,33 +4,24 @@
 .. module:: html.parser
    :synopsis: A simple parser that can handle HTML and XHTML.
 
+**Source code:** :source:`Lib/html/parser.py`
 
 .. index::
    single: HTML
    single: XHTML
-
-**Source code:** :source:`Lib/html/parser.py`
 
 --------------
 
 This module defines a class :class:`HTMLParser` which serves as the basis for
 parsing text files formatted in HTML (HyperText Mark-up Language) and XHTML.
 
-.. class:: HTMLParser(strict=False, *, convert_charrefs=False)
+.. class:: HTMLParser(*, convert_charrefs=True)
 
-   Create a parser instance.
+   Create a parser instance able to parse invalid markup.
 
-   If *convert_charrefs* is ``True`` (default: ``False``), all character
+   If *convert_charrefs* is ``True`` (the default), all character
    references (except the ones in ``script``/``style`` elements) are
    automatically converted to the corresponding Unicode characters.
-   The use of ``convert_charrefs=True`` is encouraged and will become
-   the default in Python 3.5.
-
-   If *strict* is ``False`` (the default), the parser will accept and parse
-   invalid markup.  If *strict* is ``True`` the parser will raise an
-   :exc:`~html.parser.HTMLParseError` exception instead [#]_ when it's not
-   able to parse the markup.  The use of ``strict=True`` is discouraged and
-   the *strict* argument is deprecated.
 
    An :class:`.HTMLParser` instance is fed HTML data and calls handler methods
    when start tags, end tags, text, comments, and other markup elements are
@@ -40,31 +31,11 @@ parsing text files formatted in HTML (HyperText Mark-up Language) and XHTML.
    This parser does not check that end tags match start tags or call the end-tag
    handler for elements which are closed implicitly by closing an outer element.
 
-   .. versionchanged:: 3.2
-      *strict* argument added.
-
-   .. deprecated-removed:: 3.3 3.5
-      The *strict* argument and the strict mode have been deprecated.
-      The parser is now able to accept and parse invalid markup too.
-
    .. versionchanged:: 3.4
       *convert_charrefs* keyword argument added.
 
-An exception is defined as well:
-
-
-.. exception:: HTMLParseError
-
-   Exception raised by the :class:`HTMLParser` class when it encounters an error
-   while parsing and *strict* is ``True``.  This exception provides three
-   attributes: :attr:`msg` is a brief message explaining the error,
-   :attr:`lineno` is the number of the line on which the broken construct was
-   detected, and :attr:`offset` is the number of characters into the line at
-   which the construct starts.
-
-   .. deprecated-removed:: 3.3 3.5
-      This exception has been deprecated because it's never raised by the parser
-      (when the default non-strict mode is used).
+   .. versionchanged:: 3.5
+      The default value for argument *convert_charrefs* is now ``True``.
 
 
 Example HTML Parser Application
@@ -79,8 +50,10 @@ as they are encountered::
    class MyHTMLParser(HTMLParser):
        def handle_starttag(self, tag, attrs):
            print("Encountered a start tag:", tag)
+
        def handle_endtag(self, tag):
            print("Encountered an end tag :", tag)
+
        def handle_data(self, data):
            print("Encountered some data  :", data)
 
@@ -88,7 +61,9 @@ as they are encountered::
    parser.feed('<html><head><title>Test</title></head>'
                '<body><h1>Parse me!</h1></body></html>')
 
-The output will then be::
+The output will then be:
+
+.. code-block:: none
 
    Encountered a start tag: html
    Encountered a start tag: head
@@ -159,8 +134,8 @@ implementations do nothing (except for :meth:`~HTMLParser.handle_startendtag`):
    and quotes in the *value* have been removed, and character and entity references
    have been replaced.
 
-   For instance, for the tag ``<A HREF="http://www.cwi.nl/">``, this method
-   would be called as ``handle_starttag('a', [('href', 'http://www.cwi.nl/')])``.
+   For instance, for the tag ``<A HREF="https://www.cwi.nl/">``, this method
+   would be called as ``handle_starttag('a', [('href', 'https://www.cwi.nl/')])``.
 
    All entity references from :mod:`html.entities` are replaced in the attribute
    values.
@@ -213,7 +188,7 @@ implementations do nothing (except for :meth:`~HTMLParser.handle_startendtag`):
 
    The content of Internet Explorer conditional comments (condcoms) will also be
    sent to this method, so, for ``<!--[if IE 9]>IE9-specific content<![endif]-->``,
-   this method will receive ``'[if IE 9]>IE-specific content<![endif]'``.
+   this method will receive ``'[if IE 9]>IE9-specific content<![endif]'``.
 
 
 .. method:: HTMLParser.handle_decl(decl)
@@ -246,8 +221,7 @@ implementations do nothing (except for :meth:`~HTMLParser.handle_startendtag`):
 
    The *data* parameter will be the entire contents of the declaration inside
    the ``<![...]>`` markup.  It is sometimes useful to be overridden by a
-   derived class.  The base class implementation raises an :exc:`HTMLParseError`
-   when *strict* is ``True``.
+   derived class.  The base class implementation does nothing.
 
 
 .. _htmlparser-examples:
@@ -266,21 +240,27 @@ examples::
            print("Start tag:", tag)
            for attr in attrs:
                print("     attr:", attr)
+
        def handle_endtag(self, tag):
            print("End tag  :", tag)
+
        def handle_data(self, data):
            print("Data     :", data)
+
        def handle_comment(self, data):
            print("Comment  :", data)
+
        def handle_entityref(self, name):
            c = chr(name2codepoint[name])
            print("Named ent:", c)
+
        def handle_charref(self, name):
            if name.startswith('x'):
                c = chr(int(name[1:], 16))
            else:
                c = chr(int(name))
            print("Num ent  :", c)
+
        def handle_decl(self, data):
            print("Decl     :", data)
 
@@ -312,7 +292,7 @@ further parsing::
         attr: ('type', 'text/css')
    Data     : #python { color: green }
    End tag  : style
-   >>>
+
    >>> parser.feed('<script type="text/javascript">'
    ...             'alert("<strong>hello!</strong>");</script>')
    Start tag: script
@@ -358,9 +338,3 @@ Parsing invalid HTML (e.g. unquoted attributes) also works::
    Data     : tag soup
    End tag  : p
    End tag  : a
-
-.. rubric:: Footnotes
-
-.. [#] For backward compatibility reasons *strict* mode does not raise
-       exceptions for all non-compliant HTML.  That is, some invalid HTML
-       is tolerated even in *strict* mode.

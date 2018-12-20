@@ -8,11 +8,11 @@ extern "C" {
 #endif
 
 PyAPI_FUNC(PyObject *) PySys_GetObject(const char *);
+PyAPI_FUNC(int) PySys_SetObject(const char *, PyObject *);
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(PyObject *) _PySys_GetObjectId(_Py_Identifier *key);
-#endif
-PyAPI_FUNC(int) PySys_SetObject(const char *, PyObject *);
 PyAPI_FUNC(int) _PySys_SetObjectId(_Py_Identifier *key, PyObject *);
+#endif
 
 PyAPI_FUNC(void) PySys_SetArgv(int, wchar_t **);
 PyAPI_FUNC(void) PySys_SetArgvEx(int, wchar_t **, int);
@@ -34,7 +34,12 @@ PyAPI_FUNC(void) PySys_AddXOption(const wchar_t *);
 PyAPI_FUNC(PyObject *) PySys_GetXOptions(void);
 
 #ifndef Py_LIMITED_API
-PyAPI_DATA(size_t) _PySys_GetSizeOf(PyObject *);
+PyAPI_FUNC(size_t) _PySys_GetSizeOf(PyObject *);
+#endif
+
+#ifdef Py_BUILD_CORE
+PyAPI_FUNC(int) _PySys_AddXOptionWithError(const wchar_t *s);
+PyAPI_FUNC(int) _PySys_AddWarnOptionWithError(PyObject *option);
 #endif
 
 #ifdef __cplusplus

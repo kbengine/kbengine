@@ -54,11 +54,12 @@ int pysqlite_statement_create(pysqlite_Statement* self, pysqlite_Connection* con
     int rc;
     const char* sql_cstr;
     Py_ssize_t sql_cstr_len;
+    const char* p;
 
     self->st = NULL;
     self->in_use = 0;
 
-    sql_cstr = _PyUnicode_AsStringAndSize(sql, &sql_cstr_len);
+    sql_cstr = PyUnicode_AsUTF8AndSize(sql, &sql_cstr_len);
     if (sql_cstr == NULL) {
         rc = PYSQLITE_SQL_WRONG_TYPE;
         return rc;
@@ -72,12 +73,31 @@ int pysqlite_statement_create(pysqlite_Statement* self, pysqlite_Connection* con
     Py_INCREF(sql);
     self->sql = sql;
 
+    /* Determine if the statement is a DML statement.
+       SELECT is the only exception. See #9924. */
+    self->is_dml = 0;
+    for (p = sql_cstr; *p != 0; p++) {
+        switch (*p) {
+            case ' ':
+            case '\r':
+            case '\n':
+            case '\t':
+                continue;
+        }
+
+        self->is_dml = (PyOS_strnicmp(p, "insert", 6) == 0)
+                    || (PyOS_strnicmp(p, "update", 6) == 0)
+                    || (PyOS_strnicmp(p, "delete", 6) == 0)
+                    || (PyOS_strnicmp(p, "replace", 7) == 0);
+        break;
+    }
+
     Py_BEGIN_ALLOW_THREADS
-    rc = sqlite3_prepare(connection->db,
-                         sql_cstr,
-                         -1,
-                         &self->st,
-                         &tail);
+    rc = sqlite3_prepare_v2(connection->db,
+                            sql_cstr,
+                            -1,
+                            &self->st,
+                            &tail);
     Py_END_ALLOW_THREADS
 
     self->db = connection->db;
@@ -94,8 +114,7 @@ int pysqlite_statement_create(pysqlite_Statement* self, pysqlite_Connection* con
 int pysqlite_statement_bind_parameter(pysqlite_Statement* self, int pos, PyObject* parameter)
 {
     int rc = SQLITE_OK;
-    const char* buffer;
-    char* string;
+    const char *string;
     Py_ssize_t buflen;
     parameter_type paramtype;
 
@@ -135,7 +154,7 @@ int pysqlite_statement_bind_parameter(pysqlite_Statement* self, int pos, PyObjec
             rc = sqlite3_bind_double(self->st, pos, PyFloat_AsDouble(parameter));
             break;
         case TYPE_UNICODE:
-            string = _PyUnicode_AsStringAndSize(parameter, &buflen);
+            string = PyUnicode_AsUTF8AndSize(parameter, &buflen);
             if (string == NULL)
                 return -1;
             if (buflen > INT_MAX) {
@@ -145,18 +164,22 @@ int pysqlite_statement_bind_parameter(pysqlite_Statement* self, int pos, PyObjec
             }
             rc = sqlite3_bind_text(self->st, pos, string, (int)buflen, SQLITE_TRANSIENT);
             break;
-        case TYPE_BUFFER:
-            if (PyObject_AsCharBuffer(parameter, &buffer, &buflen) != 0) {
+        case TYPE_BUFFER: {
+            Py_buffer view;
+            if (PyObject_GetBuffer(parameter, &view, PyBUF_SIMPLE) != 0) {
                 PyErr_SetString(PyExc_ValueError, "could not convert BLOB to buffer");
                 return -1;
             }
-            if (buflen > INT_MAX) {
+            if (view.len > INT_MAX) {
                 PyErr_SetString(PyExc_OverflowError,
                                 "BLOB longer than INT_MAX bytes");
+                PyBuffer_Release(&view);
                 return -1;
             }
-            rc = sqlite3_bind_blob(self->st, pos, buffer, buflen, SQLITE_TRANSIENT);
+            rc = sqlite3_bind_blob(self->st, pos, view.buf, (int)view.len, SQLITE_TRANSIENT);
+            PyBuffer_Release(&view);
             break;
+        }
         case TYPE_UNKNOWN:
             rc = -1;
     }
@@ -294,52 +317,6 @@ void pysqlite_statement_bind_parameters(pysqlite_Statement* self, PyObject* para
     } else {
         PyErr_SetString(PyExc_ValueError, "parameters are of unsupported type");
     }
-}
-
-int pysqlite_statement_recompile(pysqlite_Statement* self, PyObject* params)
-{
-    const char* tail;
-    int rc;
-    const char* sql_cstr;
-    Py_ssize_t sql_len;
-    sqlite3_stmt* new_st;
-
-    sql_cstr = _PyUnicode_AsStringAndSize(self->sql, &sql_len);
-    if (sql_cstr == NULL) {
-        rc = PYSQLITE_SQL_WRONG_TYPE;
-        return rc;
-    }
-
-    Py_BEGIN_ALLOW_THREADS
-    rc = sqlite3_prepare(self->db,
-                         sql_cstr,
-                         -1,
-                         &new_st,
-                         &tail);
-    Py_END_ALLOW_THREADS
-
-    if (rc == SQLITE_OK) {
-        /* The efficient sqlite3_transfer_bindings is only available in SQLite
-         * version 3.2.2 or later. For older SQLite releases, that might not
-         * even define SQLITE_VERSION_NUMBER, we do it the manual way.
-         */
-        #ifdef SQLITE_VERSION_NUMBER
-        #if SQLITE_VERSION_NUMBER >= 3002002
-        /* The check for the number of parameters is necessary to not trigger a
-         * bug in certain SQLite versions (experienced in 3.2.8 and 3.3.4). */
-        if (sqlite3_bind_parameter_count(self->st) > 0) {
-            (void)sqlite3_transfer_bindings(self->st, new_st);
-        }
-        #endif
-        #else
-        statement_bind_parameters(self, params);
-        #endif
-
-        (void)sqlite3_finalize(self->st);
-        self->st = new_st;
-    }
-
-    return rc;
 }
 
 int pysqlite_statement_finalize(pysqlite_Statement* self)

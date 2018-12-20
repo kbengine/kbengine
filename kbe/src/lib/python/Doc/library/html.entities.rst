@@ -3,6 +3,7 @@
 
 .. module:: html.entities
    :synopsis: Definitions of HTML general entities.
+
 .. sectionauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 
 **Source code:** :source:`Lib/html/entities.py`
@@ -33,14 +34,14 @@ This module defines four dictionaries, :data:`html5`,
 
 .. data:: name2codepoint
 
-   A dictionary that maps HTML entity names to the Unicode codepoints.
+   A dictionary that maps HTML entity names to the Unicode code points.
 
 
 .. data:: codepoint2name
 
-   A dictionary that maps Unicode codepoints to HTML entity names.
+   A dictionary that maps Unicode code points to HTML entity names.
 
 
 .. rubric:: Footnotes
 
-.. [#] See http://www.w3.org/TR/html5/syntax.html#named-character-references
+.. [#] See https://www.w3.org/TR/html5/syntax.html#named-character-references

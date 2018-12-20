@@ -3,29 +3,6 @@ Virtual environment (venv) package for Python. Based on PEP 405.
 
 Copyright (C) 2011-2014 Vinay Sajip.
 Licensed to the PSF under a contributor agreement.
-
-usage: python -m venv [-h] [--system-site-packages] [--symlinks] [--clear]
-            [--upgrade]
-            ENV_DIR [ENV_DIR ...]
-
-Creates virtual Python environments in one or more target directories.
-
-positional arguments:
-  ENV_DIR               A directory to create the environment in.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --system-site-packages
-                        Give the virtual environment access to the system
-                        site-packages dir.
-  --symlinks            Attempt to symlink rather than copy.
-  --clear               Delete the environment directory if it already exists.
-                        If not specified and the directory exists, an error is
-                        raised.
-  --upgrade             Upgrade the environment directory to use this version
-                        of Python, assuming Python has been upgraded in-place.
-  --without-pip         Skips installing or upgrading pip in the virtual
-                        environment (pip is bootstrapped by default)
 """
 import logging
 import os
@@ -52,23 +29,24 @@ class EnvBuilder:
 
     :param system_site_packages: If True, the system (global) site-packages
                                  dir is available to created environments.
-    :param clear: If True and the target directory exists, it is deleted.
-                  Otherwise, if the target directory exists, an error is
-                  raised.
+    :param clear: If True, delete the contents of the environment directory if
+                  it already exists, before environment creation.
     :param symlinks: If True, attempt to symlink rather than copy files into
                      virtual environment.
     :param upgrade: If True, upgrade an existing virtual environment.
     :param with_pip: If True, ensure pip is installed in the virtual
                      environment
+    :param prompt: Alternative terminal prefix for the environment.
     """
 
     def __init__(self, system_site_packages=False, clear=False,
-                 symlinks=False, upgrade=False, with_pip=False):
+                 symlinks=False, upgrade=False, with_pip=False, prompt=None):
         self.system_site_packages = system_site_packages
         self.clear = clear
         self.symlinks = symlinks
         self.upgrade = upgrade
         self.with_pip = with_pip
+        self.prompt = prompt
 
     def create(self, env_dir):
         """
@@ -79,6 +57,10 @@ class EnvBuilder:
         """
         env_dir = os.path.abspath(env_dir)
         context = self.ensure_directories(env_dir)
+        # See issue 24875. We need system_site_packages to be False
+        # until after pip is installed.
+        true_system_site_packages = self.system_site_packages
+        self.system_site_packages = False
         self.create_configuration(context)
         self.setup_python(context)
         if self.with_pip:
@@ -86,6 +68,11 @@ class EnvBuilder:
         if not self.upgrade:
             self.setup_scripts(context)
             self.post_setup(context)
+        if true_system_site_packages:
+            # We had set it to False before, now
+            # restore it and rewrite the configuration
+            self.system_site_packages = True
+            self.create_configuration(context)
 
     def clear_directory(self, path):
         for fn in os.listdir(path):
@@ -114,7 +101,8 @@ class EnvBuilder:
         context = types.SimpleNamespace()
         context.env_dir = env_dir
         context.env_name = os.path.split(env_dir)[1]
-        context.prompt = '(%s) ' % context.env_name
+        prompt = self.prompt if self.prompt is not None else context.env_name
+        context.prompt = '(%s) ' % prompt
         create_if_needed(env_dir)
         env = os.environ
         if sys.platform == 'darwin' and '__PYVENV_LAUNCHER__' in env:
@@ -141,10 +129,9 @@ class EnvBuilder:
         # Issue 21197: create lib64 as a symlink to lib on 64-bit non-OS X POSIX
         if ((sys.maxsize > 2**32) and (os.name == 'posix') and
             (sys.platform != 'darwin')):
-            p = os.path.join(env_dir, 'lib')
             link_path = os.path.join(env_dir, 'lib64')
             if not os.path.exists(link_path):   # Issue #21643
-                os.symlink(p, link_path)
+                os.symlink('lib', link_path)
         context.bin_path = binpath = os.path.join(env_dir, binname)
         context.bin_name = binname
         context.env_exe = os.path.join(binpath, exename)
@@ -178,7 +165,7 @@ class EnvBuilder:
                 result = f.startswith('python') and f.endswith('.exe')
             return result
 
-    def symlink_or_copy(self, src, dst):
+    def symlink_or_copy(self, src, dst, relative_symlinks_ok=False):
         """
         Try symlinking a file, and if that fails, fall back to copying.
         """
@@ -186,7 +173,11 @@ class EnvBuilder:
         if not force_copy:
             try:
                 if not os.path.islink(dst): # can't link to itself!
-                    os.symlink(src, dst)
+                    if relative_symlinks_ok:
+                        assert os.path.dirname(src) == os.path.dirname(dst)
+                        os.symlink(os.path.basename(src), dst)
+                    else:
+                        os.symlink(src, dst)
             except Exception:   # may need to use a more specific exception
                 logger.warning('Unable to symlink %r to %r', src, dst)
                 force_copy = True
@@ -201,7 +192,6 @@ class EnvBuilder:
                         being processed.
         """
         binpath = context.bin_path
-        exename = context.python_exe
         path = context.env_exe
         copier = self.symlink_or_copy
         copier(context.executable, path)
@@ -214,7 +204,7 @@ class EnvBuilder:
                 if not os.path.exists(path):
                     # Issue 18807: make copies if
                     # symlinks are not wanted
-                    copier(context.env_exe, path)
+                    copier(context.env_exe, path, relative_symlinks_ok=True)
                     if not os.path.islink(path):
                         os.chmod(path, 0o755)
         else:
@@ -330,45 +320,27 @@ class EnvBuilder:
                 dstfile = os.path.join(dstdir, f)
                 with open(srcfile, 'rb') as f:
                     data = f.read()
-                if srcfile.endswith('.exe'):
-                    mode = 'wb'
-                else:
-                    mode = 'w'
+                if not srcfile.endswith('.exe'):
                     try:
                         data = data.decode('utf-8')
                         data = self.replace_variables(data, context)
-                    except UnicodeDecodeError as e:
+                        data = data.encode('utf-8')
+                    except UnicodeError as e:
                         data = None
                         logger.warning('unable to copy script %r, '
                                        'may be binary: %s', srcfile, e)
                 if data is not None:
-                    with open(dstfile, mode) as f:
+                    with open(dstfile, 'wb') as f:
                         f.write(data)
                     shutil.copymode(srcfile, dstfile)
 
 
 def create(env_dir, system_site_packages=False, clear=False,
-                    symlinks=False, with_pip=False):
-    """
-    Create a virtual environment in a directory.
-
-    By default, makes the system (global) site-packages dir *un*available to
-    the created environment, and uses copying rather than symlinking for files
-    obtained from the source Python installation.
-
-    :param env_dir: The target directory to create an environment in.
-    :param system_site_packages: If True, the system (global) site-packages
-                                 dir is available to the environment.
-    :param clear: If True and the target directory exists, it is deleted.
-                  Otherwise, if the target directory exists, an error is
-                  raised.
-    :param symlinks: If True, attempt to symlink rather than copy files into
-                     virtual environment.
-    :param with_pip: If True, ensure pip is installed in the virtual
-                     environment
-    """
+                    symlinks=False, with_pip=False, prompt=None):
+    """Create a virtual environment in a directory."""
     builder = EnvBuilder(system_site_packages=system_site_packages,
-                         clear=clear, symlinks=symlinks, with_pip=with_pip)
+                         clear=clear, symlinks=symlinks, with_pip=with_pip,
+                         prompt=prompt)
     builder.create(env_dir)
 
 def main(args=None):
@@ -428,6 +400,9 @@ def main(args=None):
                             help='Skips installing or upgrading pip in the '
                                  'virtual environment (pip is bootstrapped '
                                  'by default)')
+        parser.add_argument('--prompt',
+                            help='Provides an alternative prompt prefix for '
+                                 'this environment.')
         options = parser.parse_args(args)
         if options.upgrade and options.clear:
             raise ValueError('you cannot supply --upgrade and --clear together.')
@@ -435,7 +410,8 @@ def main(args=None):
                              clear=options.clear,
                              symlinks=options.symlinks,
                              upgrade=options.upgrade,
-                             with_pip=options.with_pip)
+                             with_pip=options.with_pip,
+                             prompt=options.prompt)
         for d in options.dirs:
             builder.create(d)
 

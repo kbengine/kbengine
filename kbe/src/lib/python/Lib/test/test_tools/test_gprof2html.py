@@ -2,12 +2,11 @@
 
 import os
 import sys
-import importlib
 import unittest
 from unittest import mock
 import tempfile
 
-from test.test_tools import scriptsdir, skip_if_missing, import_tool
+from test.test_tools import skip_if_missing, import_tool
 
 skip_if_missing()
 
@@ -22,7 +21,7 @@ class Gprof2htmlTests(unittest.TestCase):
         sys.argv = []
 
     def test_gprof(self):
-        # Issue #14508: this used to fail with an NameError.
+        # Issue #14508: this used to fail with a NameError.
         with mock.patch.object(self.gprof, 'webbrowser') as wmock, \
                 tempfile.TemporaryDirectory() as tmpdir:
             fn = os.path.join(tmpdir, 'abc')

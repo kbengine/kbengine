@@ -24,12 +24,14 @@ PyAPI_FUNC(int) PyTraceBack_Here(struct _frame *);
 PyAPI_FUNC(int) PyTraceBack_Print(PyObject *, PyObject *);
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(int) _Py_DisplaySourceLine(PyObject *, PyObject *, int, int);
+PyAPI_FUNC(void) _PyTraceback_Add(const char *, const char *, int);
 #endif
 
 /* Reveal traceback type so we can typecheck traceback objects */
 PyAPI_DATA(PyTypeObject) PyTraceBack_Type;
 #define PyTraceBack_Check(v) (Py_TYPE(v) == &PyTraceBack_Type)
 
+#ifndef Py_LIMITED_API
 /* Write the Python traceback into the file 'fd'. For example:
 
        Traceback (most recent call first):
@@ -47,24 +49,69 @@ PyAPI_DATA(PyTypeObject) PyTraceBack_Type;
 
    This function is signal safe. */
 
-PyAPI_DATA(void) _Py_DumpTraceback(
+PyAPI_FUNC(void) _Py_DumpTraceback(
     int fd,
     PyThreadState *tstate);
 
 /* Write the traceback of all threads into the file 'fd'. current_thread can be
-   NULL. Return NULL on success, or an error message on error.
+   NULL.
+
+   Return NULL on success, or an error message on error.
 
    This function is written for debug purpose only. It calls
    _Py_DumpTraceback() for each thread, and so has the same limitations. It
    only write the traceback of the first 100 threads: write "..." if there are
    more threads.
 
+   If current_tstate is NULL, the function tries to get the Python thread state
+   of the current thread. It is not an error if the function is unable to get
+   the current Python thread state.
+
+   If interp is NULL, the function tries to get the interpreter state from
+   the current Python thread state, or from
+   _PyGILState_GetInterpreterStateUnsafe() in last resort.
+
+   It is better to pass NULL to interp and current_tstate, the function tries
+   different options to retrieve these informations.
+
    This function is signal safe. */
 
-PyAPI_DATA(const char*) _Py_DumpTracebackThreads(
-    int fd, PyInterpreterState *interp,
-    PyThreadState *current_thread);
+PyAPI_FUNC(const char*) _Py_DumpTracebackThreads(
+    int fd,
+    PyInterpreterState *interp,
+    PyThreadState *current_tstate);
+#endif /* !Py_LIMITED_API */
 
+#ifndef Py_LIMITED_API
+
+/* Write a Unicode object into the file descriptor fd. Encode the string to
+   ASCII using the backslashreplace error handler.
+
+   Do nothing if text is not a Unicode object. The function accepts Unicode
+   string which is not ready (PyUnicode_WCHAR_KIND).
+
+   This function is signal safe. */
+PyAPI_FUNC(void) _Py_DumpASCII(int fd, PyObject *text);
+
+/* Format an integer as decimal into the file descriptor fd.
+
+   This function is signal safe. */
+PyAPI_FUNC(void) _Py_DumpDecimal(
+    int fd,
+    unsigned long value);
+
+/* Format an integer as hexadecimal into the file descriptor fd with at least
+   width digits.
+
+   The maximum width is sizeof(unsigned long)*2 digits.
+
+   This function is signal safe. */
+PyAPI_FUNC(void) _Py_DumpHexadecimal(
+    int fd,
+    unsigned long value,
+    Py_ssize_t width);
+
+#endif   /* !Py_LIMITED_API */
 
 #ifdef __cplusplus
 }

@@ -3,6 +3,7 @@
 
 .. module:: weakref
    :synopsis: Support for weak references and weak dictionaries.
+
 .. moduleauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 .. moduleauthor:: Neil Schemenauer <nas@arctrix.com>
 .. moduleauthor:: Martin von Löwis <martin@loewis.home.cs.tu-berlin.de>
@@ -165,8 +166,8 @@ Extension types can easily be made to support weak references; see
       performed by the program during iteration may cause items in the
       dictionary to vanish "by magic" (as a side effect of garbage collection).
 
-:class:`WeakKeyDictionary` objects have the following additional methods.  These
-expose the internal references directly.  The references are not guaranteed to
+:class:`WeakKeyDictionary` objects have an additional method that
+exposes the internal references directly.  The references are not guaranteed to
 be "live" at the time they are used, so the result of calling the references
 needs to be checked before being used.  This can be used to avoid creating
 references that will cause the garbage collector to keep the keys around longer
@@ -191,9 +192,9 @@ than needed.
       by the program during iteration may cause items in the dictionary to vanish "by
       magic" (as a side effect of garbage collection).
 
-:class:`WeakValueDictionary` objects have the following additional methods.
-These method have the same issues as the and :meth:`keyrefs` method of
-:class:`WeakKeyDictionary` objects.
+:class:`WeakValueDictionary` objects have an additional method that has the
+same issues as the :meth:`keyrefs` method of :class:`WeakKeyDictionary`
+objects.
 
 
 .. method:: WeakValueDictionary.valuerefs()
@@ -258,7 +259,7 @@ These method have the same issues as the and :meth:`keyrefs` method of
    are called in reverse order of creation.
 
    A finalizer will never invoke its callback during the later part of
-   the interpreter shutdown when module globals are liable to have
+   the :term:`interpreter shutdown` when module globals are liable to have
    been replaced by :const:`None`.
 
    .. method:: __call__()
@@ -329,7 +330,7 @@ These method have the same issues as the and :meth:`keyrefs` method of
 
 .. seealso::
 
-   :pep:`0205` - Weak References
+   :pep:`205` - Weak References
       The proposal and rationale for this feature, including links to earlier
       implementations and information about similar features in other languages.
 
@@ -413,7 +414,7 @@ the referent is accessed::
 Example
 -------
 
-This simple example shows how an application can use objects IDs to retrieve
+This simple example shows how an application can use object IDs to retrieve
 objects that it has seen before.  The IDs of the objects can then be used in
 other data structures without forcing the objects to remain alive, but the
 objects can still be retrieved by ID if they do.
@@ -477,7 +478,7 @@ the constructor when it was created.
     >>> obj = Object()
     >>> f = weakref.finalize(obj, callback, 1, 2, z=3)
     >>> f.detach()                                           #doctest:+ELLIPSIS
-    (<__main__.Object object ...>, <function callback ...>, (1, 2), {'z': 3})
+    (<...Object object ...>, <function callback ...>, (1, 2), {'z': 3})
     >>> newobj, func, args, kwargs = _
     >>> assert not f.alive
     >>> assert newobj is obj
@@ -527,8 +528,8 @@ follows::
 
 Starting with Python 3.4, :meth:`__del__` methods no longer prevent
 reference cycles from being garbage collected, and module globals are
-no longer forced to :const:`None` during interpreter shutdown. So this
-code should work without any issues on CPython.
+no longer forced to :const:`None` during :term:`interpreter shutdown`.
+So this code should work without any issues on CPython.
 
 However, handling of :meth:`__del__` methods is notoriously implementation
 specific, since it depends on internal details of the interpreter's garbage
@@ -566,8 +567,8 @@ third party, such as running code when a module is unloaded::
 
 .. note::
 
-   If you create a finalizer object in a daemonic thread just as the
-   the program exits then there is the possibility that the finalizer
+   If you create a finalizer object in a daemonic thread just as the program
+   exits then there is the possibility that the finalizer
    does not get called at exit.  However, in a daemonic thread
    :func:`atexit.register`, ``try: ... finally: ...`` and ``with: ...``
    do not guarantee that cleanup occurs either.

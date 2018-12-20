@@ -4,19 +4,18 @@
 .. module:: ftplib
    :synopsis: FTP protocol client (requires sockets).
 
+**Source code:** :source:`Lib/ftplib.py`
 
 .. index::
    pair: FTP; protocol
    single: FTP; ftplib (standard module)
-
-**Source code:** :source:`Lib/ftplib.py`
 
 --------------
 
 This module defines the class :class:`FTP` and a few related items. The
 :class:`FTP` class implements the client side of the FTP protocol.  You can use
 this to write Python programs that perform a variety of automated FTP jobs, such
-as mirroring other ftp servers.  It is also used by the module
+as mirroring other FTP servers.  It is also used by the module
 :mod:`urllib.request` to handle URLs that use FTP.  For more information on FTP
 (File Transfer Protocol), see Internet :rfc:`959`.
 
@@ -52,14 +51,13 @@ The module defines the following items:
    will be used). *source_address* is a 2-tuple ``(host, port)`` for the socket
    to bind to as its source address before connecting.
 
-   :class:`FTP` class supports the :keyword:`with` statement. Here is a sample
-   on how using it:
+   The :class:`FTP` class supports the :keyword:`with` statement, e.g.:
 
     >>> from ftplib import FTP
     >>> with FTP("ftp1.at.proftpd.org") as ftp:
     ...     ftp.login()
     ...     ftp.dir()
-    ...
+    ... # doctest: +SKIP
     '230 Anonymous login ok, restrictions apply.'
     dr-xr-xr-x   9 ftp      ftp           154 May  6 10:43 .
     dr-xr-xr-x   9 ftp      ftp           154 May  6 10:43 ..
@@ -98,6 +96,13 @@ The module defines the following items:
       The class now supports hostname check with
       :attr:`ssl.SSLContext.check_hostname` and *Server Name Indication* (see
       :data:`ssl.HAS_SNI`).
+
+   .. deprecated:: 3.6
+
+       *keyfile* and *certfile* are deprecated in favor of *context*.
+       Please use :meth:`ssl.SSLContext.load_cert_chain` instead, or let
+       :func:`ssl.create_default_context` select the system's trusted CA
+       certificates for you.
 
    Here's a sample session using the :class:`FTP_TLS` class::
 
@@ -148,12 +153,6 @@ The module defines the following items:
       Parser for the :file:`.netrc` file format.  The file :file:`.netrc` is
       typically used by FTP clients to load user authentication information
       before prompting the user.
-
-   .. index:: single: ftpmirror.py
-
-   The file :file:`Tools/scripts/ftpmirror.py` in the Python source distribution is
-   a script that can mirror FTP sites, or portions thereof, using the :mod:`ftplib`
-   module. It can be used as an extended example that applies this module.
 
 
 .. _ftp-objects:
@@ -236,7 +235,7 @@ followed by ``lines`` for the text version or ``binary`` for the binary version.
 
    Retrieve a file in binary transfer mode.  *cmd* should be an appropriate
    ``RETR`` command: ``'RETR filename'``. The *callback* function is called for
-   each block of data received, with a single string argument giving the data
+   each block of data received, with a single bytes argument giving the data
    block. The optional *blocksize* argument specifies the maximum chunk size to
    read on the low-level socket object created to do the actual transfer (which
    will also be the largest size of the data blocks passed to *callback*).  A
@@ -256,16 +255,16 @@ followed by ``lines`` for the text version or ``binary`` for the binary version.
    prints the line to ``sys.stdout``.
 
 
-.. method:: FTP.set_pasv(boolean)
+.. method:: FTP.set_pasv(val)
 
-   Enable "passive" mode if *boolean* is true, other disable passive mode.
+   Enable "passive" mode if *val* is true, otherwise disable passive mode.
    Passive mode is on by default.
 
 
-.. method:: FTP.storbinary(cmd, file, blocksize=8192, callback=None, rest=None)
+.. method:: FTP.storbinary(cmd, fp, blocksize=8192, callback=None, rest=None)
 
    Store a file in binary transfer mode.  *cmd* should be an appropriate
-   ``STOR`` command: ``"STOR filename"``. *file* is a :term:`file object`
+   ``STOR`` command: ``"STOR filename"``. *fp* is a :term:`file object`
    (opened in binary mode) which is read until EOF using its :meth:`~io.IOBase.read`
    method in blocks of size *blocksize* to provide the data to be stored.
    The *blocksize* argument defaults to 8192.  *callback* is an optional single
@@ -276,27 +275,27 @@ followed by ``lines`` for the text version or ``binary`` for the binary version.
       *rest* parameter added.
 
 
-.. method:: FTP.storlines(cmd, file, callback=None)
+.. method:: FTP.storlines(cmd, fp, callback=None)
 
    Store a file in ASCII transfer mode.  *cmd* should be an appropriate
    ``STOR`` command (see :meth:`storbinary`).  Lines are read until EOF from the
-   :term:`file object` *file* (opened in binary mode) using its :meth:`~io.IOBase.readline`
+   :term:`file object` *fp* (opened in binary mode) using its :meth:`~io.IOBase.readline`
    method to provide the data to be stored.  *callback* is an optional single
    parameter callable that is called on each line after it is sent.
 
 
 .. method:: FTP.transfercmd(cmd, rest=None)
 
-   Initiate a transfer over the data connection.  If the transfer is active, send a
+   Initiate a transfer over the data connection.  If the transfer is active, send an
    ``EPRT`` or  ``PORT`` command and the transfer command specified by *cmd*, and
-   accept the connection.  If the server is passive, send a ``EPSV`` or ``PASV``
+   accept the connection.  If the server is passive, send an ``EPSV`` or ``PASV``
    command, connect to it, and start the transfer command.  Either way, return the
    socket for the connection.
 
    If optional *rest* is given, a ``REST`` command is sent to the server, passing
    *rest* as an argument.  *rest* is usually a byte offset into the requested file,
    telling the server to restart sending the file's bytes at the requested offset,
-   skipping over the initial bytes.  Note however that RFC 959 requires only that
+   skipping over the initial bytes.  Note however that :rfc:`959` requires only that
    *rest* be a string containing characters in the printable range from ASCII code
    33 to ASCII code 126.  The :meth:`transfercmd` method, therefore, converts
    *rest* to a string, but no check is performed on the string's contents.  If the
@@ -315,7 +314,7 @@ followed by ``lines`` for the text version or ``binary`` for the binary version.
 
 .. method:: FTP.mlsd(path="", facts=[])
 
-   List a directory in a standardized format by using MLSD command
+   List a directory in a standardized format by using ``MLSD`` command
    (:rfc:`3659`).  If *path* is omitted the current directory is assumed.
    *facts* is a list of strings representing the type of information desired
    (e.g. ``["type", "size", "perm"]``).  Return a generator object yielding a
@@ -334,7 +333,7 @@ followed by ``lines`` for the text version or ``binary`` for the binary version.
    directory).  Multiple arguments can be used to pass non-standard options to
    the ``NLST`` command.
 
-   .. deprecated:: 3.3 use :meth:`mlsd` instead.
+   .. note:: If your server supports the command, :meth:`mlsd` offers a better API.
 
 
 .. method:: FTP.dir(argument[, ...])
@@ -346,7 +345,7 @@ followed by ``lines`` for the text version or ``binary`` for the binary version.
    as a *callback* function as for :meth:`retrlines`; the default prints to
    ``sys.stdout``.  This method returns ``None``.
 
-   .. deprecated:: 3.3 use :meth:`mlsd` instead.
+   .. note:: If your server supports the command, :meth:`mlsd` offers a better API.
 
 
 .. method:: FTP.rename(fromname, toname)
@@ -414,12 +413,12 @@ FTP_TLS Objects
 
 .. attribute:: FTP_TLS.ssl_version
 
-   The SSL version to use (defaults to *TLSv1*).
+   The SSL version to use (defaults to :attr:`ssl.PROTOCOL_SSLv23`).
 
 .. method:: FTP_TLS.auth()
 
-   Set up secure control connection by using TLS or SSL, depending on what
-   specified in :meth:`ssl_version` attribute.
+   Set up a secure control connection by using TLS or SSL, depending on what
+   is specified in the :attr:`ssl_version` attribute.
 
    .. versionchanged:: 3.4
       The method now supports hostname check with

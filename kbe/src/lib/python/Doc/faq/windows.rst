@@ -1,5 +1,7 @@
 :tocdepth: 2
 
+.. highlightlang:: none
+
 .. _windows-faq:
 
 =====================
@@ -31,7 +33,7 @@ obvious; otherwise, you might need a little more guidance.
 
 .. |Python Development on XP| image:: python-video-icon.png
 .. _`Python Development on XP`:
-   http://www.showmedo.com/videos/series?name=pythonOzsvaldPyNewbieSeries
+   http://showmedo.com/videotutorials/series?name=pythonOzsvaldPyNewbieSeries
 
 Unless you use some sort of integrated development environment, you will end up
 *typing* Windows commands into what is variously referred to as a "DOS window"
@@ -39,12 +41,16 @@ or "Command prompt window".  Usually you can create such a window from your
 Start menu; under Windows 7 the menu selection is :menuselection:`Start -->
 Programs --> Accessories --> Command Prompt`.  You should be able to recognize
 when you have started such a window because you will see a Windows "command
-prompt", which usually looks like this::
+prompt", which usually looks like this:
+
+.. code-block:: doscon
 
    C:\>
 
 The letter may be different, and there might be other things after it, so you
-might just as easily see something like::
+might just as easily see something like:
+
+.. code-block:: doscon
 
    D:\YourName\Projects\Python>
 
@@ -60,11 +66,15 @@ program. So, how do you arrange for the interpreter to handle your Python?
 First, you need to make sure that your command window recognises the word
 "python" as an instruction to start the interpreter.  If you have opened a
 command window, you should try entering the command ``python`` and hitting
-return.::
+return:
+
+.. code-block:: doscon
 
    C:\Users\YourName> python
 
-You should then see something like::
+You should then see something like:
+
+.. code-block:: pycon
 
    Python 3.3.0 (v3.3.0:bd8afb90ebf2, Sep 29 2012, 10:55:48) [MSC v.1600 32 bit (Intel)] on win32
    Type "help", "copyright", "credits" or "license" for more information.
@@ -73,22 +83,24 @@ You should then see something like::
 You have started the interpreter in "interactive mode". That means you can enter
 Python statements or expressions interactively and have them executed or
 evaluated while you wait.  This is one of Python's strongest features.  Check it
-by entering a few expressions of your choice and seeing the results::
+by entering a few expressions of your choice and seeing the results:
+
+.. code-block:: pycon
 
     >>> print("Hello")
     Hello
     >>> "Hello" * 3
-    HelloHelloHello
+    'HelloHelloHello'
 
 Many people use the interactive mode as a convenient yet highly programmable
-calculator.  When you want to end your interactive Python session, hold the Ctrl
-key down while you enter a Z, then hit the "Enter" key to get back to your
+calculator.  When you want to end your interactive Python session, hold the :kbd:`Ctrl`
+key down while you enter a :kbd:`Z`, then hit the ":kbd:`Enter`" key to get back to your
 Windows command prompt.
 
 You may also find that you have a Start-menu entry such as :menuselection:`Start
 --> Programs --> Python 3.3 --> Python (command line)` that results in you
 seeing the ``>>>`` prompt in a new window.  If so, the window will disappear
-after you enter the Ctrl-Z character; Windows is running a single "python"
+after you enter the :kbd:`Ctrl-Z` character; Windows is running a single "python"
 command in the window, and closes it when you terminate the interpreter.
 
 If the ``python`` command, instead of displaying the interpreter prompt ``>>>``,
@@ -105,7 +117,7 @@ gives you a message like::
 
 .. |Adding Python to DOS Path| image:: python-video-icon.png
 .. _`Adding Python to DOS Path`:
-   http://showmedo.com/videos/video?name=960000&fromSeriesID=96
+   http://showmedo.com/videotutorials/video?name=960000&fromSeriesID=96
 
 
 or::
@@ -131,8 +143,8 @@ you should make sure that entering the command ::
 
    c:\Python33\python
 
-starts up the interpreter as above (and don't forget you'll need a "CTRL-Z" and
-an "Enter" to get out of it). Once you have verified the directory, you can
+starts up the interpreter as above (and don't forget you'll need a ":kbd:`Ctrl-Z`" and
+an ":kbd:`Enter`" to get out of it). Once you have verified the directory, you can
 add it to the system path to make it easier to start Python by just running
 the ``python`` command. This is currently an option in the installer as of
 CPython 3.3.
@@ -170,8 +182,8 @@ offender.
 How do I make an executable from a Python script?
 -------------------------------------------------
 
-See http://cx-freeze.sourceforge.net/ for a distutils extension that allows you
-to create console and GUI executables from Python code.
+See `cx_Freeze <https://anthony-tuininga.github.io/cx_Freeze/>`_ for a distutils extension
+that allows you to create console and GUI executables from Python code.
 `py2exe <http://www.py2exe.org/>`_, the most popular extension for building
 Python 2.x-based executables, does not yet support Python 3 but a version that
 does is in development.
@@ -300,9 +312,10 @@ this respect, and is easily configured to use spaces: Take :menuselection:`Tools
 --> Options --> Tabs`, and for file type "Default" set "Tab size" and "Indent
 size" to 4, and select the "Insert spaces" radio button.
 
-If you suspect mixed tabs and spaces are causing problems in leading whitespace,
-run Python with the :option:`-t` switch or run ``Tools/Scripts/tabnanny.py`` to
-check a directory tree in batch mode.
+Python raises :exc:`IndentationError` or :exc:`TabError` if mixed tabs
+and spaces are causing problems in leading whitespace.
+You may also run the :mod:`tabnanny` module to check a directory tree
+in batch mode.
 
 
 How do I check for a keypress without blocking?
@@ -316,7 +329,9 @@ present, and ``getch()`` which gets one character without echoing it.
 How do I emulate os.kill() in Windows?
 --------------------------------------
 
-Prior to Python 2.7 and 3.2, to terminate a process, you can use :mod:`ctypes`::
+Prior to Python 2.7 and 3.2, to terminate a process, you can use :mod:`ctypes`:
+
+.. code-block:: python
 
    import ctypes
 
@@ -327,7 +342,7 @@ Prior to Python 2.7 and 3.2, to terminate a process, you can use :mod:`ctypes`::
        return (0 != kernel32.TerminateProcess(handle, 0))
 
 In 2.7 and 3.2, :func:`os.kill` is implemented similar to the above function,
-with the additional feature of being able to send CTRL+C and CTRL+BREAK
+with the additional feature of being able to send :kbd:`Ctrl+C` and :kbd:`Ctrl+Break`
 to console subprocesses which are designed to handle those signals. See
 :func:`os.kill` for further details.
 
@@ -340,5 +355,5 @@ This is a mistake; the extension should be .TGZ.
 
 Simply rename the downloaded file to have the .TGZ extension, and WinZip will be
 able to handle it.  (If your copy of WinZip doesn't, get a newer one from
-http://www.winzip.com.)
+https://www.winzip.com.)
 

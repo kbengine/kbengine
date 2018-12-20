@@ -3,8 +3,10 @@
 
 .. module:: curses.panel
    :synopsis: A panel stack extension that adds depth to  curses windows.
+
 .. sectionauthor:: A.M. Kuchling <amk@amk.ca>
 
+--------------
 
 Panels are windows with the added feature of depth, so they can be stacked on
 top of each other, and only the visible portions of each window will be
@@ -72,7 +74,7 @@ Panel objects have the following methods:
 
 .. method:: Panel.hidden()
 
-   Returns true if the panel is hidden (not visible), false otherwise.
+   Returns ``True`` if the panel is hidden (not visible), ``False`` otherwise.
 
 
 .. method:: Panel.hide()

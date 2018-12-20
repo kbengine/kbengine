@@ -134,6 +134,11 @@ class ASTTestCase(unittest.TestCase):
 class UnparseTestCase(ASTTestCase):
     # Tests for specific bugs found in earlier versions of unparse
 
+    def test_fstrings(self):
+        # See issue 25180
+        self.check_roundtrip(r"""f'{f"{0}"*3}'""")
+        self.check_roundtrip(r"""f'{f"{y}"*3}'""")
+
     def test_del_statement(self):
         self.check_roundtrip("del x, y, z")
 
@@ -250,18 +255,26 @@ class UnparseTestCase(ASTTestCase):
     def test_with_two_items(self):
         self.check_roundtrip(with_two_items)
 
+    def test_dict_unpacking_in_dict(self):
+        # See issue 26489
+        self.check_roundtrip(r"""{**{'y': 2}, 'x': 1}""")
+        self.check_roundtrip(r"""{**{'y': 2}, **{'x': 1}}""")
+
 
 class DirectoryTestCase(ASTTestCase):
     """Test roundtrip behaviour on all files in Lib and Lib/test."""
+    NAMES = None
 
     # test directories, relative to the root of the distribution
     test_directories = 'Lib', os.path.join('Lib', 'test')
 
-    def test_files(self):
-        # get names of files to test
+    @classmethod
+    def get_names(cls):
+        if cls.NAMES is not None:
+            return cls.NAMES
 
         names = []
-        for d in self.test_directories:
+        for d in cls.test_directories:
             test_dir = os.path.join(basepath, d)
             for n in os.listdir(test_dir):
                 if n.endswith('.py') and not n.startswith('bad'):
@@ -270,12 +283,30 @@ class DirectoryTestCase(ASTTestCase):
         # Test limited subset of files unless the 'cpu' resource is specified.
         if not test.support.is_resource_enabled("cpu"):
             names = random.sample(names, 10)
+        # bpo-31174: Store the names sample to always test the same files.
+        # It prevents false alarms when hunting reference leaks.
+        cls.NAMES = names
+        return names
+
+    def test_files(self):
+        # get names of files to test
+        names = self.get_names()
 
         for filename in names:
             if test.support.verbose:
                 print('Testing %s' % filename)
-            source = read_pyfile(filename)
-            self.check_roundtrip(source)
+
+            # Some f-strings are not correctly round-tripped by
+            #  Tools/parser/unparse.py.  See issue 28002 for details.
+            #  We need to skip files that contain such f-strings.
+            if os.path.basename(filename) in ('test_fstring.py', ):
+                if test.support.verbose:
+                    print(f'Skipping {filename}: see issue 28002')
+                continue
+
+            with self.subTest(filename=filename):
+                source = read_pyfile(filename)
+                self.check_roundtrip(source)
 
 
 if __name__ == '__main__':

@@ -12,10 +12,10 @@
 #include "multibytecodec.h"
 
 
-/* a unicode "undefined" codepoint */
+/* a unicode "undefined" code point */
 #define UNIINV  0xFFFE
 
-/* internal-use DBCS codepoints which aren't used by any charsets */
+/* internal-use DBCS code points which aren't used by any charsets */
 #define NOCHAR  0xFFFF
 #define MULTIC  0xFFFE
 #define DBCINV  0xFFFD
@@ -267,7 +267,7 @@ getcodec(PyObject *self, PyObject *encoding)
                         "encoding name must be a string.");
         return NULL;
     }
-    enc = _PyUnicode_AsString(encoding);
+    enc = PyUnicode_AsUTF8(encoding);
     if (enc == NULL)
         return NULL;
 
@@ -328,22 +328,26 @@ find_pairencmap(ucs2_t body, ucs2_t modifier,
     min = 0;
     max = haystacksize;
 
-    for (pos = haystacksize >> 1; min != max; pos = (min + max) >> 1)
+    for (pos = haystacksize >> 1; min != max; pos = (min + max) >> 1) {
         if (value < haystack[pos].uniseq) {
-            if (max == pos) break;
-            else max = pos;
+            if (max != pos) {
+                max = pos;
+                continue;
+            }
         }
         else if (value > haystack[pos].uniseq) {
-            if (min == pos) break;
-            else min = pos;
+            if (min != pos) {
+                min = pos;
+                continue;
+            }
         }
-        else
-            break;
+        break;
+    }
 
-        if (value == haystack[pos].uniseq)
-            return haystack[pos].code;
-        else
-            return DBCINV;
+    if (value == haystack[pos].uniseq) {
+        return haystack[pos].code;
+    }
+    return DBCINV;
 }
 #endif
 
@@ -362,7 +366,7 @@ importmap(const char *modname, const char *symbol,
     if (mod == NULL)
         return -1;
 
-    o = PyObject_GetAttrString(mod, (char*)symbol);
+    o = PyObject_GetAttrString(mod, symbol);
     if (o == NULL)
         goto errorexit;
     else if (!PyCapsule_IsValid(o, PyMultibyteCodec_CAPSULE_NAME)) {
@@ -401,7 +405,7 @@ errorexit:
         NULL,                                                           \
         NULL                                                            \
     };                                                                  \
-    PyObject*                                                           \
+    PyMODINIT_FUNC                                                      \
     PyInit__codecs_##loc(void)                                          \
     {                                                                   \
         PyObject *m = PyModule_Create(&__module);                       \

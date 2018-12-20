@@ -2,9 +2,10 @@ import os
 import sys
 import textwrap
 import unittest
-import subprocess
+from subprocess import Popen, PIPE
 from test import support
-from test.script_helper import assert_python_ok
+from test.support.script_helper import assert_python_ok
+
 
 class TestTool(unittest.TestCase):
     data = """
@@ -15,7 +16,7 @@ class TestTool(unittest.TestCase):
             :"yes"}  ]
            """
 
-    expect = textwrap.dedent("""\
+    expect_without_sort_keys = textwrap.dedent("""\
     [
         [
             "blorpie"
@@ -37,13 +38,34 @@ class TestTool(unittest.TestCase):
     ]
     """)
 
+    expect = textwrap.dedent("""\
+    [
+        [
+            "blorpie"
+        ],
+        [
+            "whoops"
+        ],
+        [],
+        "d-shtaeou",
+        "d-nthiouh",
+        "i-vhbjkhnth",
+        {
+            "nifty": 87
+        },
+        {
+            "morefield": false,
+            "field": "yes"
+        }
+    ]
+    """)
+
     def test_stdin_stdout(self):
-        with subprocess.Popen(
-                (sys.executable, '-m', 'json.tool'),
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
+        args = sys.executable, '-m', 'json.tool'
+        with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
             out, err = proc.communicate(self.data.encode())
         self.assertEqual(out.splitlines(), self.expect.encode().splitlines())
-        self.assertEqual(err, None)
+        self.assertEqual(err, b'')
 
     def _create_infile(self):
         infile = support.TESTFN
@@ -55,6 +77,7 @@ class TestTool(unittest.TestCase):
     def test_infile_stdout(self):
         infile = self._create_infile()
         rc, out, err = assert_python_ok('-m', 'json.tool', infile)
+        self.assertEqual(rc, 0)
         self.assertEqual(out.splitlines(), self.expect.encode().splitlines())
         self.assertEqual(err, b'')
 
@@ -65,5 +88,20 @@ class TestTool(unittest.TestCase):
         self.addCleanup(os.remove, outfile)
         with open(outfile, "r") as fp:
             self.assertEqual(fp.read(), self.expect)
+        self.assertEqual(rc, 0)
         self.assertEqual(out, b'')
+        self.assertEqual(err, b'')
+
+    def test_help_flag(self):
+        rc, out, err = assert_python_ok('-m', 'json.tool', '-h')
+        self.assertEqual(rc, 0)
+        self.assertTrue(out.startswith(b'usage: '))
+        self.assertEqual(err, b'')
+
+    def test_sort_keys_flag(self):
+        infile = self._create_infile()
+        rc, out, err = assert_python_ok('-m', 'json.tool', '--sort-keys', infile)
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.splitlines(),
+                         self.expect_without_sort_keys.encode().splitlines())
         self.assertEqual(err, b'')

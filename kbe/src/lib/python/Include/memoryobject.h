@@ -21,8 +21,10 @@ PyAPI_DATA(PyTypeObject) PyMemoryView_Type;
 #endif
 
 PyAPI_FUNC(PyObject *) PyMemoryView_FromObject(PyObject *base);
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03030000
 PyAPI_FUNC(PyObject *) PyMemoryView_FromMemory(char *mem, Py_ssize_t size,
                                                int flags);
+#endif
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(PyObject *) PyMemoryView_FromBuffer(Py_buffer *info);
 #endif
@@ -45,9 +47,6 @@ typedef struct {
 } _PyManagedBufferObject;
 
 
-/* static storage used for casting between formats */
-#define _Py_MEMORYVIEW_MAX_FORMAT 3 /* must be >= 3 */
-
 /* memoryview state flags */
 #define _Py_MEMORYVIEW_RELEASED    0x001  /* access to master buffer blocked */
 #define _Py_MEMORYVIEW_C           0x002  /* C-contiguous layout */
@@ -62,7 +61,6 @@ typedef struct {
     int flags;                    /* state flags */
     Py_ssize_t exports;           /* number of buffer re-exports */
     Py_buffer view;               /* private copy of the exporter's view */
-    char format[_Py_MEMORYVIEW_MAX_FORMAT]; /* used for casting */
     PyObject *weakreflist;
     Py_ssize_t ob_array[1];       /* shape, strides, suboffsets */
 } PyMemoryViewObject;

@@ -3,9 +3,14 @@
 
 .. module:: getpass
    :synopsis: Portable reading of passwords and retrieval of the userid.
+
 .. moduleauthor:: Piers Lauder <piers@cs.su.oz.au>
 .. sectionauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 .. Windows (& Mac?) support by Guido van Rossum.
+
+**Source code:** :source:`Lib/getpass.py`
+
+--------------
 
 The :mod:`getpass` module provides two functions:
 
@@ -23,8 +28,6 @@ The :mod:`getpass` module provides two functions:
    a warning message to *stream* and reading from ``sys.stdin`` and
    issuing a :exc:`GetPassWarning`.
 
-   Availability: Macintosh, Unix, Windows.
-
    .. note::
       If you call getpass from within IDLE, the input may be done in the
       terminal you launched IDLE from rather than the idle window itself.
@@ -36,11 +39,13 @@ The :mod:`getpass` module provides two functions:
 
 .. function:: getuser()
 
-   Return the "login name" of the user. Availability: Unix, Windows.
+   Return the "login name" of the user.
 
    This function checks the environment variables :envvar:`LOGNAME`,
-   :envvar:`USER`, :envvar:`LNAME` and :envvar:`USERNAME`, in order, and returns
-   the value of the first one which is set to a non-empty string.  If none are set,
-   the login name from the password database is returned on systems which support
-   the :mod:`pwd` module, otherwise, an exception is raised.
+   :envvar:`USER`, :envvar:`LNAME` and :envvar:`USERNAME`, in order, and
+   returns the value of the first one which is set to a non-empty string.  If
+   none are set, the login name from the password database is returned on
+   systems which support the :mod:`pwd` module, otherwise, an exception is
+   raised.
 
+   In general, this function should be preferred over :func:`os.getlogin()`.

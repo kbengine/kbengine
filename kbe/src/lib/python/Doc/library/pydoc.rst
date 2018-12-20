@@ -3,22 +3,29 @@
 
 .. module:: pydoc
    :synopsis: Documentation generator and online help system.
+
 .. moduleauthor:: Ka-Ping Yee <ping@lfw.org>
 .. sectionauthor:: Ka-Ping Yee <ping@lfw.org>
 
+**Source code:** :source:`Lib/pydoc.py`
 
 .. index::
    single: documentation; generation
    single: documentation; online
    single: help; online
 
-**Source code:** :source:`Lib/pydoc.py`
-
 --------------
 
 The :mod:`pydoc` module automatically generates documentation from Python
 modules.  The documentation can be presented as pages of text on the console,
 served to a Web browser, or saved to HTML files.
+
+For modules, classes, functions and methods, the displayed documentation is
+derived from the docstring (i.e. the :attr:`__doc__` attribute) of the object,
+and recursively of its documentable members.  If there is no docstring,
+:mod:`pydoc` tries to obtain a description from the block of comment lines just
+above the definition of the class, function or method in the source file, or at
+the top of the module (see :func:`inspect.getcomments`).
 
 The built-in function :func:`help` invokes the online help system in the
 interactive interpreter, which uses :mod:`pydoc` to generate its documentation
@@ -44,6 +51,10 @@ produced for that file.
    executed on that occasion.  Use an ``if __name__ == '__main__':`` guard to
    only execute code when a file is invoked as a script and not just imported.
 
+When printing output to the console, :program:`pydoc` attempts to paginate the
+output for easier reading.  If the :envvar:`PAGER` environment variable is set,
+:program:`pydoc` will use its value as a pagination program.
+
 Specifying a ``-w`` flag before the argument will cause HTML documentation
 to be written out to a file in the current directory, instead of displaying text
 on the console.
@@ -59,10 +70,11 @@ will start a HTTP server on port 1234, allowing you to browse the
 documentation at ``http://localhost:1234/`` in your preferred Web browser.
 Specifying ``0`` as the port number will select an arbitrary unused port.
 
-:program:`pydoc -g` will start the server and additionally bring up a
-small :mod:`tkinter`\ -based graphical interface to help you search for
-documentation pages.  The ``-g`` option is deprecated, since the server can
-now be controlled directly from HTTP clients.
+:program:`pydoc -n <hostname>` will start the server listening at the given
+hostname.  By default the hostname is 'localhost' but if you want the server to
+be reached from other machines, you may want to change the host name that the
+server responds to.  During development this is especially useful if you want
+to run pydoc from within a container.
 
 :program:`pydoc -b` will start the server and additionally open a web
 browser to a module index page.  Each served page has a navigation bar at the
@@ -76,16 +88,22 @@ documents precisely the version of the module you would get if you started the
 Python interpreter and typed ``import spam``.
 
 Module docs for core modules are assumed to reside in
-``http://docs.python.org/X.Y/library/`` where ``X`` and ``Y`` are the
+``https://docs.python.org/X.Y/library/`` where ``X`` and ``Y`` are the
 major and minor version numbers of the Python interpreter.  This can
 be overridden by setting the :envvar:`PYTHONDOCS` environment variable
 to a different URL or to a local directory containing the Library
 Reference Manual pages.
 
 .. versionchanged:: 3.2
-   Added the ``-b`` option, deprecated the ``-g`` option.
+   Added the ``-b`` option.
+
+.. versionchanged:: 3.3
+   The ``-g`` command line option was removed.
 
 .. versionchanged:: 3.4
    :mod:`pydoc` now uses :func:`inspect.signature` rather than
    :func:`inspect.getfullargspec` to extract signature information from
    callables.
+
+.. versionchanged:: 3.7
+   Added the ``-n`` option.

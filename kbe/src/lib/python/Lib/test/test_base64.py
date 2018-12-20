@@ -3,10 +3,8 @@ from test import support
 import base64
 import binascii
 import os
-import sys
-import subprocess
-import struct
 from array import array
+from test.support import script_helper
 
 
 class LegacyBase64TestCase(unittest.TestCase):
@@ -19,6 +17,14 @@ class LegacyBase64TestCase(unittest.TestCase):
         self.assertRaises(TypeError, f, multidimensional)
         int_data = memoryview(b"1234").cast('I')
         self.assertRaises(TypeError, f, int_data)
+
+    def test_encodestring_warns(self):
+        with self.assertWarns(DeprecationWarning):
+            base64.encodestring(b"www.python.org")
+
+    def test_decodestring_warns(self):
+        with self.assertWarns(DeprecationWarning):
+            base64.decodestring(b"d3d3LnB5dGhvbi5vcmc=\n")
 
     def test_encodebytes(self):
         eq = self.assertEqual
@@ -245,13 +251,25 @@ class BaseXYTestCase(unittest.TestCase):
                  (b'@@', b''),
                  (b'!', b''),
                  (b'YWJj\nYWI=', b'abcab'))
+        funcs = (
+            base64.b64decode,
+            base64.standard_b64decode,
+            base64.urlsafe_b64decode,
+        )
         for bstr, res in tests:
-            self.assertEqual(base64.b64decode(bstr), res)
-            self.assertEqual(base64.b64decode(bstr.decode('ascii')), res)
+            for func in funcs:
+                with self.subTest(bstr=bstr, func=func):
+                    self.assertEqual(func(bstr), res)
+                    self.assertEqual(func(bstr.decode('ascii')), res)
             with self.assertRaises(binascii.Error):
                 base64.b64decode(bstr, validate=True)
             with self.assertRaises(binascii.Error):
                 base64.b64decode(bstr.decode('ascii'), validate=True)
+
+        # Normal alphabet characters not discarded when alternative given
+        res = b'\xFB\xEF\xBE\xFF\xFF\xFF'
+        self.assertEqual(base64.b64decode(b'++[[//]]', b'[]'), res)
+        self.assertEqual(base64.urlsafe_b64decode(b'++--//__'), res)
 
     def test_b32encode(self):
         eq = self.assertEqual
@@ -325,11 +343,20 @@ class BaseXYTestCase(unittest.TestCase):
             self.assertRaises(binascii.Error, base64.b32decode, data_str)
 
     def test_b32decode_error(self):
-        for data in [b'abc', b'ABCDEF==', b'==ABCDEF']:
-            with self.assertRaises(binascii.Error):
-                base64.b32decode(data)
-            with self.assertRaises(binascii.Error):
-                base64.b32decode(data.decode('ascii'))
+        tests = [b'abc', b'ABCDEF==', b'==ABCDEF']
+        prefixes = [b'M', b'ME', b'MFRA', b'MFRGG', b'MFRGGZA', b'MFRGGZDF']
+        for i in range(0, 17):
+            if i:
+                tests.append(b'='*i)
+            for prefix in prefixes:
+                if len(prefix) + i != 8:
+                    tests.append(prefix + b'='*i)
+        for data in tests:
+            with self.subTest(data=data):
+                with self.assertRaises(binascii.Error):
+                    base64.b32decode(data)
+                with self.assertRaises(binascii.Error):
+                    base64.b32decode(data.decode('ascii'))
 
     def test_b16encode(self):
         eq = self.assertEqual
@@ -362,6 +389,10 @@ class BaseXYTestCase(unittest.TestCase):
            b'\x01\x02\xab\xcd\xef')
         eq(base64.b16decode(array('B', b"0102abcdef"), True),
            b'\x01\x02\xab\xcd\xef')
+        # Non-alphabet characters
+        self.assertRaises(binascii.Error, base64.b16decode, '0102AG')
+        # Incorrect "padding"
+        self.assertRaises(binascii.Error, base64.b16decode, '010')
 
     def test_a85encode(self):
         eq = self.assertEqual
@@ -480,6 +511,7 @@ class BaseXYTestCase(unittest.TestCase):
             eq(base64.a85decode(data, adobe=False), res, data)
             eq(base64.a85decode(data.decode("ascii"), adobe=False), res, data)
             eq(base64.a85decode(b'<~' + data + b'~>', adobe=True), res, data)
+            eq(base64.a85decode(data + b'~>', adobe=True), res, data)
             eq(base64.a85decode('<~%s~>' % data.decode("ascii"), adobe=True),
                res, data)
 
@@ -570,8 +602,6 @@ class BaseXYTestCase(unittest.TestCase):
                                       b"malformed", adobe=True)
         self.assertRaises(ValueError, base64.a85decode,
                                       b"<~still malformed", adobe=True)
-        self.assertRaises(ValueError, base64.a85decode,
-                                      b"also malformed~>", adobe=True)
 
         # With adobe=False (the default), Adobe framing markers are disallowed
         self.assertRaises(ValueError, base64.a85decode,
@@ -622,15 +652,13 @@ class BaseXYTestCase(unittest.TestCase):
         self.assertTrue(issubclass(binascii.Error, ValueError))
 
 
-
 class TestMain(unittest.TestCase):
     def tearDown(self):
         if os.path.exists(support.TESTFN):
             os.unlink(support.TESTFN)
 
-    def get_output(self, *args, **options):
-        args = (sys.executable, '-m', 'base64') + args
-        return subprocess.check_output(args, **options)
+    def get_output(self, *args):
+        return script_helper.assert_python_ok('-m', 'base64', *args).out
 
     def test_encode_decode(self):
         output = self.get_output('-t')
@@ -643,13 +671,14 @@ class TestMain(unittest.TestCase):
     def test_encode_file(self):
         with open(support.TESTFN, 'wb') as fp:
             fp.write(b'a\xffb\n')
-
         output = self.get_output('-e', support.TESTFN)
         self.assertEqual(output.rstrip(), b'Yf9iCg==')
 
-        with open(support.TESTFN, 'rb') as fp:
-            output = self.get_output('-e', stdin=fp)
-        self.assertEqual(output.rstrip(), b'Yf9iCg==')
+    def test_encode_from_stdin(self):
+        with script_helper.spawn_python('-m', 'base64', '-e') as proc:
+            out, err = proc.communicate(b'a\xffb\n')
+        self.assertEqual(out.rstrip(), b'Yf9iCg==')
+        self.assertIsNone(err)
 
     def test_decode(self):
         with open(support.TESTFN, 'wb') as fp:
@@ -657,10 +686,5 @@ class TestMain(unittest.TestCase):
         output = self.get_output('-d', support.TESTFN)
         self.assertEqual(output.rstrip(), b'a\xffb')
 
-
-
-def test_main():
-    support.run_unittest(__name__)
-
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

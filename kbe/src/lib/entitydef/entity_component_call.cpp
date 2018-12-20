@@ -64,7 +64,7 @@ RemoteEntityMethod* EntityComponentCall::createRemoteMethod(MethodDescription* p
 //-------------------------------------------------------------------------------------
 PyObject* EntityComponentCall::onScriptGetAttribute(PyObject* attr)
 {
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	MethodDescription* pMethodDescription = NULL;
 	ScriptDefModule* pScriptDefModule = pComponentScriptDefModule();

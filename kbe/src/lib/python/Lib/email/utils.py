@@ -87,7 +87,7 @@ def formataddr(pair, charset='utf-8'):
     'utf-8'.
     """
     name, address = pair
-    # The address MUST (per RFC) be ascii, so raise an UnicodeError if it isn't.
+    # The address MUST (per RFC) be ascii, so raise a UnicodeError if it isn't.
     address.encode('ascii')
     if name:
         try:
@@ -112,18 +112,6 @@ def getaddresses(fieldvalues):
     all = COMMASPACE.join(fieldvalues)
     a = _AddressList(all)
     return a.addresslist
-
-
-
-ecre = re.compile(r'''
-  =\?                   # literal =?
-  (?P<charset>[^?]*?)   # non-greedy up to the next ? is the charset
-  \?                    # literal ?
-  (?P<encoding>[qb])    # either a "q" or a "b", case insensitive
-  \?                    # literal ?
-  (?P<atom>.*?)         # non-greedy up to the next ?= is the atom
-  \?=                   # literal ?=
-  ''', re.VERBOSE | re.IGNORECASE)
 
 
 def _format_timetuple_and_zone(timetuple, zone):
@@ -155,30 +143,14 @@ def formatdate(timeval=None, localtime=False, usegmt=False):
     # 2822 requires that day and month names be the English abbreviations.
     if timeval is None:
         timeval = time.time()
-    if localtime:
-        now = time.localtime(timeval)
-        # Calculate timezone offset, based on whether the local zone has
-        # daylight savings time, and whether DST is in effect.
-        if time.daylight and now[-1]:
-            offset = time.altzone
-        else:
-            offset = time.timezone
-        hours, minutes = divmod(abs(offset), 3600)
-        # Remember offset is in seconds west of UTC, but the timezone is in
-        # minutes east of UTC, so the signs differ.
-        if offset > 0:
-            sign = '-'
-        else:
-            sign = '+'
-        zone = '%s%02d%02d' % (sign, hours, minutes // 60)
+    if localtime or usegmt:
+        dt = datetime.datetime.fromtimestamp(timeval, datetime.timezone.utc)
     else:
-        now = time.gmtime(timeval)
-        # Timezone offset is always -0000
-        if usegmt:
-            zone = 'GMT'
-        else:
-            zone = '-0000'
-    return _format_timetuple_and_zone(now, zone)
+        dt = datetime.datetime.utcfromtimestamp(timeval)
+    if localtime:
+        dt = dt.astimezone()
+        usegmt = False
+    return format_datetime(dt, usegmt)
 
 def format_datetime(dt, usegmt=False):
     """Turn a datetime into a date string as specified in RFC 2822.
@@ -202,24 +174,23 @@ def format_datetime(dt, usegmt=False):
 def make_msgid(idstring=None, domain=None):
     """Returns a string suitable for RFC 2822 compliant Message-ID, e.g:
 
-    <20020201195627.33539.96671@nightshade.la.mastaler.com>
+    <142480216486.20800.16526388040877946887@nightshade.la.mastaler.com>
 
     Optional idstring if given is a string used to strengthen the
     uniqueness of the message id.  Optional domain if given provides the
     portion of the message id after the '@'.  It defaults to the locally
     defined hostname.
     """
-    timeval = time.time()
-    utcdate = time.strftime('%Y%m%d%H%M%S', time.gmtime(timeval))
+    timeval = int(time.time()*100)
     pid = os.getpid()
-    randint = random.randrange(100000)
+    randint = random.getrandbits(64)
     if idstring is None:
         idstring = ''
     else:
         idstring = '.' + idstring
     if domain is None:
         domain = socket.getfqdn()
-    msgid = '<%s.%s.%s%s@%s>' % (utcdate, pid, randint, idstring, domain)
+    msgid = '<%d.%d.%d%s@%s>' % (timeval, pid, randint, idstring, domain)
     return msgid
 
 
@@ -232,6 +203,12 @@ def parsedate_to_datetime(data):
 
 
 def parseaddr(addr):
+    """
+    Parse addr into its constituent realname and email address parts.
+
+    Return a tuple of realname and email address, unless the parse fails, in
+    which case return a 2-tuple of ('', '').
+    """
     addrs = _AddressList(addr).addresslist
     if not addrs:
         return '', ''

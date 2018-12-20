@@ -24,6 +24,8 @@ init_weakref(PyWeakReference *self, PyObject *ob, PyObject *callback)
 {
     self->hash = -1;
     self->wr_object = ob;
+    self->wr_prev = NULL;
+    self->wr_next = NULL;
     Py_XINCREF(callback);
     self->wr_callback = callback;
 }
@@ -265,10 +267,9 @@ insert_head(PyWeakReference *newref, PyWeakReference **list)
 }
 
 static int
-parse_weakref_init_args(char *funcname, PyObject *args, PyObject *kwargs,
+parse_weakref_init_args(const char *funcname, PyObject *args, PyObject *kwargs,
                         PyObject **obp, PyObject **callbackp)
 {
-    /* XXX Should check that kwargs == NULL or is empty. */
     return PyArg_UnpackTuple(args, funcname, 1, 2, obp, callbackp);
 }
 
@@ -330,6 +331,9 @@ static int
 weakref___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *tmp;
+
+    if (!_PyArg_NoKeywords("ref", kwargs))
+        return -1;
 
     if (parse_weakref_init_args("__init__", args, kwargs, &tmp, &tmp))
         return 0;
@@ -451,7 +455,7 @@ proxy_checkref(PyWeakReference *proxy)
     method(PyObject *proxy) { \
             _Py_IDENTIFIER(special); \
             UNWRAP(proxy); \
-                return _PyObject_CallMethodId(proxy, &PyId_##special, ""); \
+                return _PyObject_CallMethodId(proxy, &PyId_##special, NULL); \
         }
 
 
@@ -459,7 +463,7 @@ proxy_checkref(PyWeakReference *proxy)
 
 WRAP_BINARY(proxy_getattr, PyObject_GetAttr)
 WRAP_UNARY(proxy_str, PyObject_Str)
-WRAP_TERNARY(proxy_call, PyEval_CallObjectWithKeywords)
+WRAP_TERNARY(proxy_call, PyObject_Call)
 
 static PyObject *
 proxy_repr(PyWeakReference *proxy)
@@ -900,11 +904,9 @@ PyObject_ClearWeakRefs(PyObject *object)
     if (*list != NULL) {
         PyWeakReference *current = *list;
         Py_ssize_t count = _PyWeakref_GetWeakrefCount(current);
-        int restore_error = PyErr_Occurred() ? 1 : 0;
         PyObject *err_type, *err_value, *err_tb;
 
-        if (restore_error)
-            PyErr_Fetch(&err_type, &err_value, &err_tb);
+        PyErr_Fetch(&err_type, &err_value, &err_tb);
         if (count == 1) {
             PyObject *callback = current->wr_callback;
 
@@ -922,8 +924,7 @@ PyObject_ClearWeakRefs(PyObject *object)
 
             tuple = PyTuple_New(count * 2);
             if (tuple == NULL) {
-                if (restore_error)
-                    PyErr_Fetch(&err_type, &err_value, &err_tb);
+                _PyErr_ChainExceptions(err_type, err_value, err_tb);
                 return;
             }
 
@@ -954,7 +955,7 @@ PyObject_ClearWeakRefs(PyObject *object)
             }
             Py_DECREF(tuple);
         }
-        if (restore_error)
-            PyErr_Restore(err_type, err_value, err_tb);
+        assert(!PyErr_Occurred());
+        PyErr_Restore(err_type, err_value, err_tb);
     }
 }

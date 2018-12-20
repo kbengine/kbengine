@@ -30,9 +30,26 @@ else:
         pass
     sys.modules['importlib._bootstrap'] = _bootstrap
 
+try:
+    import _frozen_importlib_external as _bootstrap_external
+except ImportError:
+    from . import _bootstrap_external
+    _bootstrap_external._setup(_bootstrap)
+    _bootstrap._bootstrap_external = _bootstrap_external
+else:
+    _bootstrap_external.__name__ = 'importlib._bootstrap_external'
+    _bootstrap_external.__package__ = 'importlib'
+    try:
+        _bootstrap_external.__file__ = __file__.replace('__init__.py', '_bootstrap_external.py')
+    except NameError:
+        # __file__ is not guaranteed to be defined, e.g. if this code gets
+        # frozen by a tool like cx_Freeze.
+        pass
+    sys.modules['importlib._bootstrap_external'] = _bootstrap_external
+
 # To simplify imports in test code
-_w_long = _bootstrap._w_long
-_r_long = _bootstrap._r_long
+_w_long = _bootstrap_external._w_long
+_r_long = _bootstrap_external._r_long
 
 # Fully bootstrapped at this point, import whatever you like, circular
 # dependencies and startup overhead minimisation permitting :)
@@ -62,7 +79,8 @@ def find_loader(name, path=None):
     This function is deprecated in favor of importlib.util.find_spec().
 
     """
-    warnings.warn('Use importlib.util.find_spec() instead.',
+    warnings.warn('Deprecated since Python 3.4. '
+                  'Use importlib.util.find_spec() instead.',
                   DeprecationWarning, stacklevel=2)
     try:
         loader = sys.modules[name].__loader__
@@ -73,7 +91,7 @@ def find_loader(name, path=None):
     except KeyError:
         pass
     except AttributeError:
-        raise ValueError('{}.__loader__ is not set'.format(name))
+        raise ValueError('{}.__loader__ is not set'.format(name)) from None
 
     spec = _bootstrap._find_spec(name, path)
     # We won't worry about malformed specs (missing attributes).
@@ -119,7 +137,7 @@ def reload(module):
 
     """
     if not module or not isinstance(module, types.ModuleType):
-        raise TypeError("reload() argument must be module")
+        raise TypeError("reload() argument must be a module")
     try:
         name = module.__spec__.name
     except AttributeError:
@@ -138,15 +156,17 @@ def reload(module):
                 parent = sys.modules[parent_name]
             except KeyError:
                 msg = "parent {!r} not in sys.modules"
-                raise ImportError(msg.format(parent_name), name=parent_name)
+                raise ImportError(msg.format(parent_name),
+                                  name=parent_name) from None
             else:
                 pkgpath = parent.__path__
         else:
             pkgpath = None
         target = module
         spec = module.__spec__ = _bootstrap._find_spec(name, pkgpath, target)
-        methods = _bootstrap._SpecMethods(spec)
-        methods.exec(module)
+        if spec is None:
+            raise ModuleNotFoundError(f"spec not found for the module {name!r}", name=name)
+        _bootstrap._exec(spec, module)
         # The module may have replaced itself in sys.modules!
         return sys.modules[name]
     finally:

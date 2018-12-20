@@ -4,10 +4,9 @@
 .. module:: shelve
    :synopsis: Python object persistence.
 
+**Source code:** :source:`Lib/shelve.py`
 
 .. index:: module: pickle
-
-**Source code:** :source:`Lib/shelve.py`
 
 --------------
 
@@ -32,7 +31,7 @@ lots of shared  sub-objects.  The keys are ordinary strings.
    Because of Python semantics, a shelf cannot know when a mutable
    persistent-dictionary entry is modified.  By default modified objects are
    written *only* when assigned to the shelf (see :ref:`shelve-example`).  If the
-   optional *writeback* parameter is set to *True*, all entries accessed are also
+   optional *writeback* parameter is set to ``True``, all entries accessed are also
    cached in memory, and written back on :meth:`~Shelf.sync` and
    :meth:`~Shelf.close`; this can make it handier to mutate mutable entries in
    the persistent dictionary, but, if many entries are accessed, it can consume
@@ -76,7 +75,7 @@ Two additional methods are supported:
 
 .. seealso::
 
-   `Persistent dictionary recipe <http://code.activestate.com/recipes/576642/>`_
+   `Persistent dictionary recipe <https://code.activestate.com/recipes/576642/>`_
    with widely supported storage formats and having the speed of native
    dictionaries.
 
@@ -109,7 +108,7 @@ Restrictions
    A subclass of :class:`collections.abc.MutableMapping` which stores pickled
    values in the *dict* object.
 
-   By default, version 0 pickles are used to serialize values.  The version of the
+   By default, version 3 pickles are used to serialize values.  The version of the
    pickle protocol can be specified with the *protocol* parameter. See the
    :mod:`pickle` documentation for a discussion of the pickle protocols.
 
@@ -137,7 +136,7 @@ Restrictions
    A subclass of :class:`Shelf` which exposes :meth:`first`, :meth:`!next`,
    :meth:`previous`, :meth:`last` and :meth:`set_location` which are available
    in the third-party :mod:`bsddb` module from `pybsddb
-   <http://www.jcea.es/programacion/pybsddb.htm>`_ but not in other database
+   <https://www.jcea.es/programacion/pybsddb.htm>`_ but not in other database
    modules.  The *dict* object passed to the constructor must support those
    methods.  This is generally accomplished by calling one of
    :func:`bsddb.hashopen`, :func:`bsddb.btopen` or :func:`bsddb.rnopen`.  The
@@ -165,32 +164,33 @@ object)::
 
    import shelve
 
-   d = shelve.open(filename) # open -- file may get suffix added by low-level
-                             # library
+   d = shelve.open(filename)  # open -- file may get suffix added by low-level
+                              # library
 
-   d[key] = data   # store data at key (overwrites old data if
-                   # using an existing key)
-   data = d[key]   # retrieve a COPY of data at key (raise KeyError if no
-                   # such key)
-   del d[key]      # delete data stored at key (raises KeyError
-                   # if no such key)
-   flag = key in d        # true if the key exists
-   klist = list(d.keys()) # a list of all existing keys (slow!)
+   d[key] = data              # store data at key (overwrites old data if
+                              # using an existing key)
+   data = d[key]              # retrieve a COPY of data at key (raise KeyError
+                              # if no such key)
+   del d[key]                 # delete data stored at key (raises KeyError
+                              # if no such key)
+
+   flag = key in d            # true if the key exists
+   klist = list(d.keys())     # a list of all existing keys (slow!)
 
    # as d was opened WITHOUT writeback=True, beware:
-   d['xx'] = [0, 1, 2]    # this works as expected, but...
-   d['xx'].append(3)      # *this doesn't!* -- d['xx'] is STILL [0, 1, 2]!
+   d['xx'] = [0, 1, 2]        # this works as expected, but...
+   d['xx'].append(3)          # *this doesn't!* -- d['xx'] is STILL [0, 1, 2]!
 
    # having opened d without writeback=True, you need to code carefully:
-   temp = d['xx']      # extracts the copy
-   temp.append(5)      # mutates the copy
-   d['xx'] = temp      # stores the copy right back, to persist it
+   temp = d['xx']             # extracts the copy
+   temp.append(5)             # mutates the copy
+   d['xx'] = temp             # stores the copy right back, to persist it
 
    # or, d=shelve.open(filename,writeback=True) would let you just code
    # d['xx'].append(5) and have it work as expected, BUT it would also
    # consume more memory and make the d.close() operation slower.
 
-   d.close()       # close it
+   d.close()                  # close it
 
 
 .. seealso::

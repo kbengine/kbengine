@@ -515,7 +515,7 @@ PyObject* ClientApp::__py_fireEvent(PyObject* self, PyObject* args)
 	{
 		PyObject* pyitem = PyTuple_GetItem(args, 1);
 
-		char* datas = PyUnicode_AsUTF8AndSize(pyitem, NULL);
+		const char* datas = PyUnicode_AsUTF8AndSize(pyitem, NULL);
 		if (datas == NULL)
 		{
 			PyErr_Format(PyExc_AssertionError, "ClientApp::fireEvent(%s): arg2 not is str!\n", eventdata.name.c_str());

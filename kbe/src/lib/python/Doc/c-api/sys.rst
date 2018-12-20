@@ -5,6 +5,17 @@
 Operating System Utilities
 ==========================
 
+.. c:function:: PyObject* PyOS_FSPath(PyObject *path)
+
+   Return the file system representation for *path*. If the object is a
+   :class:`str` or :class:`bytes` object, then its reference count is
+   incremented. If the object implements the :class:`os.PathLike` interface,
+   then :meth:`~os.PathLike.__fspath__` is returned as long as it is a
+   :class:`str` or :class:`bytes` object. Otherwise :exc:`TypeError` is raised
+   and ``NULL`` is returned.
+
+   .. versionadded:: 3.6
+
 
 .. c:function:: int Py_FdIsInteractive(FILE *fp, const char *filename)
 
@@ -15,12 +26,52 @@ Operating System Utilities
    one of the strings ``'<stdin>'`` or ``'???'``.
 
 
+.. c:function:: void PyOS_BeforeFork()
+
+   Function to prepare some internal state before a process fork.  This
+   should be called before calling :c:func:`fork` or any similar function
+   that clones the current process.
+   Only available on systems where :c:func:`fork` is defined.
+
+   .. versionadded:: 3.7
+
+
+.. c:function:: void PyOS_AfterFork_Parent()
+
+   Function to update some internal state after a process fork.  This
+   should be called from the parent process after calling :c:func:`fork`
+   or any similar function that clones the current process, regardless
+   of whether process cloning was successful.
+   Only available on systems where :c:func:`fork` is defined.
+
+   .. versionadded:: 3.7
+
+
+.. c:function:: void PyOS_AfterFork_Child()
+
+   Function to update internal interpreter state after a process fork.
+   This must be called from the child process after calling :c:func:`fork`,
+   or any similar function that clones the current process, if there is
+   any chance the process will call back into the Python interpreter.
+   Only available on systems where :c:func:`fork` is defined.
+
+   .. versionadded:: 3.7
+
+   .. seealso::
+      :func:`os.register_at_fork` allows registering custom Python functions
+      to be called by :c:func:`PyOS_BeforeFork()`,
+      :c:func:`PyOS_AfterFork_Parent` and  :c:func:`PyOS_AfterFork_Child`.
+
+
 .. c:function:: void PyOS_AfterFork()
 
    Function to update some internal state after a process fork; this should be
    called in the new process if the Python interpreter will continue to be used.
    If a new executable is loaded into the new process, this function does not need
    to be called.
+
+   .. deprecated:: 3.7
+      This function is superseded by :c:func:`PyOS_AfterFork_Child()`.
 
 
 .. c:function:: int PyOS_CheckStack()
@@ -47,6 +98,91 @@ Operating System Utilities
    not call those functions directly!  :c:type:`PyOS_sighandler_t` is a typedef
    alias for :c:type:`void (\*)(int)`.
 
+.. c:function:: wchar_t* Py_DecodeLocale(const char* arg, size_t *size)
+
+   Decode a byte string from the locale encoding with the :ref:`surrogateescape
+   error handler <surrogateescape>`: undecodable bytes are decoded as
+   characters in range U+DC80..U+DCFF. If a byte sequence can be decoded as a
+   surrogate character, escape the bytes using the surrogateescape error
+   handler instead of decoding them.
+
+   Encoding, highest priority to lowest priority:
+
+   * ``UTF-8`` on macOS and Android;
+   * ``UTF-8`` if the Python UTF-8 mode is enabled;
+   * ``ASCII`` if the ``LC_CTYPE`` locale is ``"C"``,
+     ``nl_langinfo(CODESET)`` returns the ``ASCII`` encoding (or an alias),
+     and :c:func:`mbstowcs` and :c:func:`wcstombs` functions uses the
+     ``ISO-8859-1`` encoding.
+   * the current locale encoding.
+
+   Return a pointer to a newly allocated wide character string, use
+   :c:func:`PyMem_RawFree` to free the memory. If size is not ``NULL``, write
+   the number of wide characters excluding the null character into ``*size``
+
+   Return ``NULL`` on decoding error or memory allocation error. If *size* is
+   not ``NULL``, ``*size`` is set to ``(size_t)-1`` on memory error or set to
+   ``(size_t)-2`` on decoding error.
+
+   Decoding errors should never happen, unless there is a bug in the C
+   library.
+
+   Use the :c:func:`Py_EncodeLocale` function to encode the character string
+   back to a byte string.
+
+   .. seealso::
+
+      The :c:func:`PyUnicode_DecodeFSDefaultAndSize` and
+      :c:func:`PyUnicode_DecodeLocaleAndSize` functions.
+
+   .. versionadded:: 3.5
+
+   .. versionchanged:: 3.7
+      The function now uses the UTF-8 encoding in the UTF-8 mode.
+
+
+.. c:function:: char* Py_EncodeLocale(const wchar_t *text, size_t *error_pos)
+
+   Encode a wide character string to the locale encoding with the
+   :ref:`surrogateescape error handler <surrogateescape>`: surrogate characters
+   in the range U+DC80..U+DCFF are converted to bytes 0x80..0xFF.
+
+   Encoding, highest priority to lowest priority:
+
+   * ``UTF-8`` on macOS and Android;
+   * ``UTF-8`` if the Python UTF-8 mode is enabled;
+   * ``ASCII`` if the ``LC_CTYPE`` locale is ``"C"``,
+     ``nl_langinfo(CODESET)`` returns the ``ASCII`` encoding (or an alias),
+     and :c:func:`mbstowcs` and :c:func:`wcstombs` functions uses the
+     ``ISO-8859-1`` encoding.
+   * the current locale encoding.
+
+   The function uses the UTF-8 encoding in the Python UTF-8 mode.
+
+   Return a pointer to a newly allocated byte string, use :c:func:`PyMem_Free`
+   to free the memory. Return ``NULL`` on encoding error or memory allocation
+   error
+
+   If error_pos is not ``NULL``, ``*error_pos`` is set to ``(size_t)-1`` on
+   success,  or set to the index of the invalid character on encoding error.
+
+   Use the :c:func:`Py_DecodeLocale` function to decode the bytes string back
+   to a wide character string.
+
+   .. versionchanged:: 3.7
+      The function now uses the UTF-8 encoding in the UTF-8 mode.
+
+   .. seealso::
+
+      The :c:func:`PyUnicode_EncodeFSDefault` and
+      :c:func:`PyUnicode_EncodeLocale` functions.
+
+   .. versionadded:: 3.5
+
+   .. versionchanged:: 3.7
+      The function now supports the UTF-8 mode.
+
+
 .. _systemfunctions:
 
 System Functions
@@ -56,12 +192,12 @@ These are utility functions that make functionality from the :mod:`sys` module
 accessible to C code.  They all work with the current interpreter thread's
 :mod:`sys` module's dict, which is contained in the internal thread state structure.
 
-.. c:function:: PyObject *PySys_GetObject(char *name)
+.. c:function:: PyObject *PySys_GetObject(const char *name)
 
    Return the object *name* from the :mod:`sys` module or *NULL* if it does
    not exist, without setting an exception.
 
-.. c:function:: int PySys_SetObject(char *name, PyObject *v)
+.. c:function:: int PySys_SetObject(const char *name, PyObject *v)
 
    Set *name* in the :mod:`sys` module to *v* unless *v* is *NULL*, in which
    case *name* is deleted from the sys module. Returns ``0`` on success, ``-1``
@@ -69,17 +205,25 @@ accessible to C code.  They all work with the current interpreter thread's
 
 .. c:function:: void PySys_ResetWarnOptions()
 
-   Reset :data:`sys.warnoptions` to an empty list.
+   Reset :data:`sys.warnoptions` to an empty list. This function may be
+   called prior to :c:func:`Py_Initialize`.
 
-.. c:function:: void PySys_AddWarnOption(wchar_t *s)
+.. c:function:: void PySys_AddWarnOption(const wchar_t *s)
 
-   Append *s* to :data:`sys.warnoptions`.
+   Append *s* to :data:`sys.warnoptions`. This function must be called prior
+   to :c:func:`Py_Initialize` in order to affect the warnings filter list.
 
 .. c:function:: void PySys_AddWarnOptionUnicode(PyObject *unicode)
 
    Append *unicode* to :data:`sys.warnoptions`.
 
-.. c:function:: void PySys_SetPath(wchar_t *path)
+   Note: this function is not currently usable from outside the CPython
+   implementation, as it must be called prior to the implicit import of
+   :mod:`warnings` in :c:func:`Py_Initialize` to be effective, but can't be
+   called until enough of the runtime has been initialized to permit the
+   creation of Unicode objects.
+
+.. c:function:: void PySys_SetPath(const wchar_t *path)
 
    Set :data:`sys.path` to a list object of paths found in *path* which should
    be a list of paths separated with the platform's search path delimiter
@@ -124,7 +268,8 @@ accessible to C code.  They all work with the current interpreter thread's
 .. c:function:: void PySys_AddXOption(const wchar_t *s)
 
    Parse *s* as a set of :option:`-X` options and add them to the current
-   options mapping as returned by :c:func:`PySys_GetXOptions`.
+   options mapping as returned by :c:func:`PySys_GetXOptions`. This function
+   may be called prior to :c:func:`Py_Initialize`.
 
    .. versionadded:: 3.2
 
@@ -158,20 +303,24 @@ Process Control
 .. c:function:: void Py_Exit(int status)
 
    .. index::
-      single: Py_Finalize()
+      single: Py_FinalizeEx()
       single: exit()
 
-   Exit the current process.  This calls :c:func:`Py_Finalize` and then calls the
-   standard C library function ``exit(status)``.
+   Exit the current process.  This calls :c:func:`Py_FinalizeEx` and then calls the
+   standard C library function ``exit(status)``.  If :c:func:`Py_FinalizeEx`
+   indicates an error, the exit status is set to 120.
+
+   .. versionchanged:: 3.6
+      Errors from finalization no longer ignored.
 
 
 .. c:function:: int Py_AtExit(void (*func) ())
 
    .. index::
-      single: Py_Finalize()
+      single: Py_FinalizeEx()
       single: cleanup functions
 
-   Register a cleanup function to be called by :c:func:`Py_Finalize`.  The cleanup
+   Register a cleanup function to be called by :c:func:`Py_FinalizeEx`.  The cleanup
    function will be called with no arguments and should return no value.  At most
    32 cleanup functions can be registered.  When the registration is successful,
    :c:func:`Py_AtExit` returns ``0``; on failure, it returns ``-1``.  The cleanup

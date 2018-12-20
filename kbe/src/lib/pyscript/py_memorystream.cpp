@@ -329,13 +329,13 @@ PyObject* PyMemoryStream::__py_append(PyObject* self, PyObject* args, PyObject* 
 	}
 	else if(strcmp(type, "STRING") == 0)
 	{
-		char* s = PyUnicode_AsUTF8AndSize(pyVal, NULL);
+		const char* s = PyUnicode_AsUTF8AndSize(pyVal, NULL);
 		pyobj->stream() << s;
 	}
 	else if(strcmp(type, "UNICODE") == 0)
 	{
 		Py_ssize_t size;
-		char* s = PyUnicode_AsUTF8AndSize(pyVal, &size);
+		const char* s = PyUnicode_AsUTF8AndSize(pyVal, &size);
 		if (s == NULL)
 		{
 			PyErr_Format(PyExc_TypeError, "PyMemoryStream::append: val is not UNICODE!");
