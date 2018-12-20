@@ -493,35 +493,6 @@ bytes1 = ArgumentDescriptor(
               doc="""A counted bytes string.
 
               The first argument is a 1-byte unsigned int giving the number
-              of bytes in the string, and the second argument is that many
-              bytes.
-              """)
-
-
-def read_bytes1(f):
-    r"""
-    >>> import io
-    >>> read_bytes1(io.BytesIO(b"\x00"))
-    b''
-    >>> read_bytes1(io.BytesIO(b"\x03abcdef"))
-    b'abc'
-    """
-
-    n = read_uint1(f)
-    assert n >= 0
-    data = f.read(n)
-    if len(data) == n:
-        return data
-    raise ValueError("expected %d bytes in a bytes1, but only %d remain" %
-                     (n, len(data)))
-
-bytes1 = ArgumentDescriptor(
-              name="bytes1",
-              n=TAKEN_FROM_ARGUMENT1,
-              reader=read_bytes1,
-              doc="""A counted bytes string.
-
-              The first argument is a 1-byte unsigned int giving the number
               of bytes, and the second argument is that many bytes.
               """)
 
@@ -590,7 +561,7 @@ bytes8 = ArgumentDescriptor(
               reader=read_bytes8,
               doc="""A counted bytes string.
 
-              The first argument is a 8-byte little-endian unsigned int giving
+              The first argument is an 8-byte little-endian unsigned int giving
               the number of bytes, and the second argument is that many bytes.
               """)
 
@@ -707,7 +678,7 @@ def read_unicodestring8(f):
     >>> enc = s.encode('utf-8')
     >>> enc
     b'abcd\xea\xaf\x8d'
-    >>> n = bytes([len(enc)]) + bytes(7)  # little-endian 8-byte length
+    >>> n = bytes([len(enc)]) + b'\0' * 7  # little-endian 8-byte length
     >>> t = read_unicodestring8(io.BytesIO(n + enc + b'junk'))
     >>> s == t
     True
@@ -734,7 +705,7 @@ unicodestring8 = ArgumentDescriptor(
                     reader=read_unicodestring8,
                     doc="""A counted Unicode string.
 
-                    The first argument is a 8-byte little-endian signed int
+                    The first argument is an 8-byte little-endian signed int
                     giving the number of bytes in the string, and the second
                     argument-- the UTF-8 encoding of the Unicode string --
                     contains that many bytes.
@@ -1330,7 +1301,7 @@ opcodes = [
       proto=4,
       doc="""Push a Python bytes object.
 
-      There are two arguments:  the first is a 8-byte unsigned int giving
+      There are two arguments:  the first is an 8-byte unsigned int giving
       the number of bytes in the string, and the second is that many bytes,
       which are taken literally as the string content.
       """),
@@ -1354,9 +1325,7 @@ opcodes = [
       stack_before=[],
       stack_after=[pybool],
       proto=2,
-      doc="""True.
-
-      Push True onto the stack."""),
+      doc="Push True onto the stack."),
 
     I(name='NEWFALSE',
       code='\x89',
@@ -1364,9 +1333,7 @@ opcodes = [
       stack_before=[],
       stack_after=[pybool],
       proto=2,
-      doc="""True.
-
-      Push False onto the stack."""),
+      doc="Push False onto the stack."),
 
     # Ways to spell Unicode strings.
 
@@ -1417,7 +1384,7 @@ opcodes = [
       proto=4,
       doc="""Push a Python Unicode string object.
 
-      There are two arguments:  the first is a 8-byte little-endian signed int
+      There are two arguments:  the first is an 8-byte little-endian signed int
       giving the number of bytes in the string.  The second is that many
       bytes, and is the UTF-8 encoding of the Unicode string.
       """),
@@ -1898,7 +1865,7 @@ opcodes = [
       arg=None,
       stack_before=[pyunicode, pyunicode],
       stack_after=[anyobject],
-      proto=0,
+      proto=4,
       doc="""Push a global object (module.attr) on the stack.
       """),
 
@@ -2282,40 +2249,66 @@ def genops(pickle):
 
 def optimize(p):
     'Optimize a pickle string by removing unused PUT opcodes'
-    not_a_put = object()
-    gets = { not_a_put }    # set of args used by a GET opcode
-    opcodes = []            # (startpos, stoppos, putid)
+    put = 'PUT'
+    get = 'GET'
+    oldids = set()          # set of all PUT ids
+    newids = {}             # set of ids used by a GET opcode
+    opcodes = []            # (op, idx) or (pos, end_pos)
     proto = 0
+    protoheader = b''
     for opcode, arg, pos, end_pos in _genops(p, yield_end_pos=True):
         if 'PUT' in opcode.name:
-            opcodes.append((pos, end_pos, arg))
+            oldids.add(arg)
+            opcodes.append((put, arg))
+        elif opcode.name == 'MEMOIZE':
+            idx = len(oldids)
+            oldids.add(idx)
+            opcodes.append((put, idx))
         elif 'FRAME' in opcode.name:
             pass
-        else:
-            if 'GET' in opcode.name:
-                gets.add(arg)
-            elif opcode.name == 'PROTO':
-                assert pos == 0, pos
+        elif 'GET' in opcode.name:
+            if opcode.proto > proto:
+                proto = opcode.proto
+            newids[arg] = None
+            opcodes.append((get, arg))
+        elif opcode.name == 'PROTO':
+            if arg > proto:
                 proto = arg
-            opcodes.append((pos, end_pos, not_a_put))
-            prevpos, prevarg = pos, None
+            if pos == 0:
+                protoheader = p[pos:end_pos]
+            else:
+                opcodes.append((pos, end_pos))
+        else:
+            opcodes.append((pos, end_pos))
+    del oldids
 
     # Copy the opcodes except for PUTS without a corresponding GET
     out = io.BytesIO()
-    opcodes = iter(opcodes)
-    if proto >= 2:
-        # Write the PROTO header before any framing
-        start, stop, _ = next(opcodes)
-        out.write(p[start:stop])
-    buf = pickle._Framer(out.write)
+    # Write the PROTO header before any framing
+    out.write(protoheader)
+    pickler = pickle._Pickler(out, proto)
     if proto >= 4:
-        buf.start_framing()
-    for start, stop, putid in opcodes:
-        if putid in gets:
-            buf.commit_frame()
-            buf.write(p[start:stop])
-    if proto >= 4:
-        buf.end_framing()
+        pickler.framer.start_framing()
+    idx = 0
+    for op, arg in opcodes:
+        frameless = False
+        if op is put:
+            if arg not in newids:
+                continue
+            data = pickler.put(idx)
+            newids[arg] = idx
+            idx += 1
+        elif op is get:
+            data = pickler.get(newids[arg])
+        else:
+            data = p[op:arg]
+            frameless = len(data) > pickler.framer._FRAME_SIZE_TARGET
+        pickler.framer.commit_frame(force=frameless)
+        if frameless:
+            pickler.framer.file_write(data)
+        else:
+            pickler.write(data)
+    pickler.framer.end_framing()
     return out.getvalue()
 
 ##############################################################################
@@ -2419,6 +2412,7 @@ def dis(pickle, out=None, memo=None, indentlevel=4, annotate=0):
         if opcode.name in ("PUT", "BINPUT", "LONG_BINPUT", "MEMOIZE"):
             if opcode.name == "MEMOIZE":
                 memo_idx = len(memo)
+                markmsg = "(as %d)" % memo_idx
             else:
                 assert arg is not None
                 memo_idx = arg
@@ -2487,35 +2481,35 @@ _dis_test = r"""
     0: (    MARK
     1: l        LIST       (MARK at 0)
     2: p    PUT        0
-    5: L    LONG       1
-    9: a    APPEND
-   10: L    LONG       2
-   14: a    APPEND
-   15: (    MARK
-   16: L        LONG       3
-   20: L        LONG       4
-   24: t        TUPLE      (MARK at 15)
-   25: p    PUT        1
-   28: a    APPEND
-   29: (    MARK
-   30: d        DICT       (MARK at 29)
-   31: p    PUT        2
-   34: c    GLOBAL     '_codecs encode'
-   50: p    PUT        3
-   53: (    MARK
-   54: V        UNICODE    'abc'
-   59: p        PUT        4
-   62: V        UNICODE    'latin1'
-   70: p        PUT        5
-   73: t        TUPLE      (MARK at 53)
-   74: p    PUT        6
-   77: R    REDUCE
-   78: p    PUT        7
-   81: V    UNICODE    'def'
-   86: p    PUT        8
-   89: s    SETITEM
-   90: a    APPEND
-   91: .    STOP
+    5: I    INT        1
+    8: a    APPEND
+    9: I    INT        2
+   12: a    APPEND
+   13: (    MARK
+   14: I        INT        3
+   17: I        INT        4
+   20: t        TUPLE      (MARK at 13)
+   21: p    PUT        1
+   24: a    APPEND
+   25: (    MARK
+   26: d        DICT       (MARK at 25)
+   27: p    PUT        2
+   30: c    GLOBAL     '_codecs encode'
+   46: p    PUT        3
+   49: (    MARK
+   50: V        UNICODE    'abc'
+   55: p        PUT        4
+   58: V        UNICODE    'latin1'
+   66: p        PUT        5
+   69: t        TUPLE      (MARK at 49)
+   70: p    PUT        6
+   73: R    REDUCE
+   74: p    PUT        7
+   77: V    UNICODE    'def'
+   82: p    PUT        8
+   85: s    SETITEM
+   86: a    APPEND
+   87: .    STOP
 highest protocol among opcodes = 0
 
 Try again with a "binary" pickle.
@@ -2584,13 +2578,13 @@ highest protocol among opcodes = 0
    93: p    PUT        6
    96: V    UNICODE    'value'
   103: p    PUT        7
-  106: L    LONG       42
-  111: s    SETITEM
-  112: b    BUILD
-  113: a    APPEND
-  114: g    GET        5
-  117: a    APPEND
-  118: .    STOP
+  106: I    INT        42
+  110: s    SETITEM
+  111: b    BUILD
+  112: a    APPEND
+  113: g    GET        5
+  116: a    APPEND
+  117: .    STOP
 highest protocol among opcodes = 0
 
 >>> dis(pickle.dumps(x, 1))
@@ -2772,7 +2766,7 @@ def _test():
     return doctest.testmod()
 
 if __name__ == "__main__":
-    import sys, argparse
+    import argparse
     parser = argparse.ArgumentParser(
         description='disassemble one or more pickle files')
     parser.add_argument(

@@ -3,6 +3,7 @@ import os
 import platform
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import unittest
 import warnings
@@ -15,22 +16,35 @@ class PlatformTest(unittest.TestCase):
 
     @support.skip_unless_symlink
     def test_architecture_via_symlink(self): # issue3762
-        # On Windows, the EXE needs to know where pythonXY.dll is at so we have
-        # to add the directory to the path.
+        # On Windows, the EXE needs to know where pythonXY.dll and *.pyd is at
+        # so we add the directory to the path, PYTHONHOME and PYTHONPATH.
+        env = None
         if sys.platform == "win32":
-            os.environ["Path"] = "{};{}".format(
-                os.path.dirname(sys.executable), os.environ["Path"])
+            env = {k.upper(): os.environ[k] for k in os.environ}
+            env["PATH"] = "{};{}".format(
+                os.path.dirname(sys.executable), env.get("PATH", ""))
+            env["PYTHONHOME"] = os.path.dirname(sys.executable)
+            if sysconfig.is_python_build(True):
+                env["PYTHONPATH"] = os.path.dirname(os.__file__)
 
-        def get(python):
+        def get(python, env=None):
             cmd = [python, '-c',
                 'import platform; print(platform.architecture())']
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            return p.communicate()
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, env=env)
+            r = p.communicate()
+            if p.returncode:
+                print(repr(r[0]))
+                print(repr(r[1]), file=sys.stderr)
+                self.fail('unexpected return code: {0} (0x{0:08X})'
+                          .format(p.returncode))
+            return r
+
         real = os.path.realpath(sys.executable)
         link = os.path.abspath(support.TESTFN)
         os.symlink(real, link)
         try:
-            self.assertEqual(get(real), get(link))
+            self.assertEqual(get(real), get(link, env=env))
         finally:
             os.remove(link)
 
@@ -59,12 +73,12 @@ class PlatformTest(unittest.TestCase):
 
     def setUp(self):
         self.save_version = sys.version
-        self.save_mercurial = sys._mercurial
+        self.save_git = sys._git
         self.save_platform = sys.platform
 
     def tearDown(self):
         sys.version = self.save_version
-        sys._mercurial = self.save_mercurial
+        sys._git = self.save_git
         sys.platform = self.save_platform
 
     def test_sys_version(self):
@@ -76,9 +90,25 @@ class PlatformTest(unittest.TestCase):
              ('IronPython', '1.0.60816', '', '', '', '', '.NET 2.0.50727.42')),
             ('IronPython 1.0 (1.0.61005.1977) on .NET 2.0.50727.42',
              ('IronPython', '1.0.0', '', '', '', '', '.NET 2.0.50727.42')),
+            ('2.4.3 (truncation, date, t) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', 'date t', 'GCC')),
+            ('2.4.3 (truncation, date, ) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', 'date', 'GCC')),
+            ('2.4.3 (truncation, date,) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', 'date', 'GCC')),
+            ('2.4.3 (truncation, date) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', 'date', 'GCC')),
+            ('2.4.3 (truncation, d) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', 'd', 'GCC')),
+            ('2.4.3 (truncation, ) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', '', 'GCC')),
+            ('2.4.3 (truncation,) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', '', 'GCC')),
+            ('2.4.3 (truncation) \n[GCC]',
+             ('CPython', '2.4.3', '', '', 'truncation', '', 'GCC')),
             ):
             # branch and revision are not "parsed", but fetched
-            # from sys._mercurial.  Ignore them
+            # from sys._git.  Ignore them
             (name, version, branch, revision, buildno, builddate, compiler) \
                    = platform._sys_version(input)
             self.assertEqual(
@@ -121,14 +151,14 @@ class PlatformTest(unittest.TestCase):
                 ("PyPy", "2.5.2", "trunk", "63378", ('63378', 'Mar 26 2009'),
                  "")
             }
-        for (version_tag, subversion, sys_platform), info in \
+        for (version_tag, scm, sys_platform), info in \
                 sys_versions.items():
             sys.version = version_tag
-            if subversion is None:
-                if hasattr(sys, "_mercurial"):
-                    del sys._mercurial
+            if scm is None:
+                if hasattr(sys, "_git"):
+                    del sys._git
             else:
-                sys._mercurial = subversion
+                sys._git = scm
             if sys_platform is not None:
                 sys.platform = sys_platform
             self.assertEqual(platform.python_implementation(), info[0])
@@ -236,10 +266,16 @@ class PlatformTest(unittest.TestCase):
             self.assertEqual(sts, 0)
 
     def test_dist(self):
-        res = platform.dist()
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                'ignore',
+                r'dist\(\) and linux_distribution\(\) '
+                'functions are deprecated .*',
+                DeprecationWarning,
+            )
+            res = platform.dist()
 
     def test_libc_ver(self):
-        import os
         if os.path.isdir(sys.executable) and \
            os.path.exists(sys.executable+'.exe'):
             # Cygwin horror
@@ -247,6 +283,49 @@ class PlatformTest(unittest.TestCase):
         else:
             executable = sys.executable
         res = platform.libc_ver(executable)
+
+        self.addCleanup(support.unlink, support.TESTFN)
+        with open(support.TESTFN, 'wb') as f:
+            f.write(b'x'*(16384-10))
+            f.write(b'GLIBC_1.23.4\0GLIBC_1.9\0GLIBC_1.21\0')
+        self.assertEqual(platform.libc_ver(support.TESTFN),
+                         ('glibc', '1.23.4'))
+
+    @support.cpython_only
+    def test__comparable_version(self):
+        from platform import _comparable_version as V
+        self.assertEqual(V('1.2.3'), V('1.2.3'))
+        self.assertLess(V('1.2.3'), V('1.2.10'))
+        self.assertEqual(V('1.2.3.4'), V('1_2-3+4'))
+        self.assertLess(V('1.2spam'), V('1.2dev'))
+        self.assertLess(V('1.2dev'), V('1.2alpha'))
+        self.assertLess(V('1.2dev'), V('1.2a'))
+        self.assertLess(V('1.2alpha'), V('1.2beta'))
+        self.assertLess(V('1.2a'), V('1.2b'))
+        self.assertLess(V('1.2beta'), V('1.2c'))
+        self.assertLess(V('1.2b'), V('1.2c'))
+        self.assertLess(V('1.2c'), V('1.2RC'))
+        self.assertLess(V('1.2c'), V('1.2rc'))
+        self.assertLess(V('1.2RC'), V('1.2.0'))
+        self.assertLess(V('1.2rc'), V('1.2.0'))
+        self.assertLess(V('1.2.0'), V('1.2pl'))
+        self.assertLess(V('1.2.0'), V('1.2p'))
+
+        self.assertLess(V('1.5.1'), V('1.5.2b2'))
+        self.assertLess(V('3.10a'), V('161'))
+        self.assertEqual(V('8.02'), V('8.02'))
+        self.assertLess(V('3.4j'), V('1996.07.12'))
+        self.assertLess(V('3.1.1.6'), V('3.2.pl0'))
+        self.assertLess(V('2g6'), V('11g'))
+        self.assertLess(V('0.9'), V('2.2'))
+        self.assertLess(V('1.2'), V('1.2.1'))
+        self.assertLess(V('1.1'), V('1.2.2'))
+        self.assertLess(V('1.1'), V('1.2'))
+        self.assertLess(V('1.2.1'), V('1.2.2'))
+        self.assertLess(V('1.2'), V('1.2.2'))
+        self.assertLess(V('0.4'), V('0.4.0'))
+        self.assertLess(V('1.13++'), V('5.5.kw'))
+        self.assertLess(V('0.960923'), V('2.2beta29'))
 
     def test_parse_release_file(self):
 
@@ -305,16 +384,35 @@ class PlatformTest(unittest.TestCase):
                 f.write('Fedora release 19 (Schr\xf6dinger\u2019s Cat)\n')
 
             with mock.patch('platform._UNIXCONFDIR', tempdir):
-                distname, version, distid = platform.linux_distribution()
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        'ignore',
+                        r'dist\(\) and linux_distribution\(\) '
+                        'functions are deprecated .*',
+                        DeprecationWarning,
+                    )
+                    distname, version, distid = platform.linux_distribution()
 
-            self.assertEqual(distname, 'Fedora')
+                self.assertEqual(distname, 'Fedora')
             self.assertEqual(version, '19')
             self.assertEqual(distid, 'Schr\xf6dinger\u2019s Cat')
 
-def test_main():
-    support.run_unittest(
-        PlatformTest
-    )
+
+class DeprecationTest(unittest.TestCase):
+
+    def test_dist_deprecation(self):
+        with self.assertWarns(DeprecationWarning) as cm:
+            platform.dist()
+        self.assertEqual(str(cm.warning),
+                         'dist() and linux_distribution() functions are '
+                         'deprecated in Python 3.5')
+
+    def test_linux_distribution_deprecation(self):
+        with self.assertWarns(DeprecationWarning) as cm:
+            platform.linux_distribution()
+        self.assertEqual(str(cm.warning),
+                         'dist() and linux_distribution() functions are '
+                         'deprecated in Python 3.5')
 
 if __name__ == '__main__':
-    test_main()
+    unittest.main()

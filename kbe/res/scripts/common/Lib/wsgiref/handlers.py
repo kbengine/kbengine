@@ -226,7 +226,7 @@ class BaseHandler:
         self.headers = self.headers_class(headers)
         status = self._convert_string_type(status, "Status")
         assert len(status)>=4,"Status must be at least 4 characters"
-        assert int(status[:3]),"Status message must begin w/3-digit code"
+        assert status[:3].isdigit(), "Status message must begin w/3-digit code"
         assert status[3]==" ", "Status message must have a space after code"
 
         if __debug__:
@@ -450,7 +450,17 @@ class SimpleHandler(BaseHandler):
         self.environ.update(self.base_env)
 
     def _write(self,data):
-        self.stdout.write(data)
+        result = self.stdout.write(data)
+        if result is None or result == len(data):
+            return
+        from warnings import warn
+        warn("SimpleHandler.stdout.write() should not do partial writes",
+            DeprecationWarning)
+        while True:
+            data = data[result:]
+            if not data:
+                break
+            result = self.stdout.write(data)
 
     def _flush(self):
         self.stdout.flush()

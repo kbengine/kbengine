@@ -59,15 +59,15 @@
 import re
 
 xpath_tokenizer_re = re.compile(
-    "("
-    "'[^']*'|\"[^\"]*\"|"
-    "::|"
-    "//?|"
-    "\.\.|"
-    "\(\)|"
-    "[/.*:\[\]\(\)@=])|"
-    "((?:\{[^}]+\})?[^/\[\]\(\)@=\s]+)|"
-    "\s+"
+    r"("
+    r"'[^']*'|\"[^\"]*\"|"
+    r"::|"
+    r"//?|"
+    r"\.\.|"
+    r"\(\)|"
+    r"[/.*:\[\]\(\)@=])|"
+    r"((?:\{[^}]+\})?[^/\[\]\(\)@=\s]+)|"
+    r"\s+"
     )
 
 def xpath_tokenizer(pattern, namespaces=None):
@@ -80,7 +80,7 @@ def xpath_tokenizer(pattern, namespaces=None):
                     raise KeyError
                 yield token[0], "{%s}%s" % (namespaces[prefix], uri)
             except KeyError:
-                raise SyntaxError("prefix %r not found in prefix map" % prefix)
+                raise SyntaxError("prefix %r not found in prefix map" % prefix) from None
         else:
             yield token
 
@@ -114,7 +114,10 @@ def prepare_self(next, token):
     return select
 
 def prepare_descendant(next, token):
-    token = next()
+    try:
+        token = next()
+    except StopIteration:
+        return
     if token[0] == "*":
         tag = "*"
     elif not token[0]:
@@ -148,9 +151,15 @@ def prepare_predicate(next, token):
     signature = []
     predicate = []
     while 1:
-        token = next()
+        try:
+            token = next()
+        except StopIteration:
+            return
         if token[0] == "]":
             break
+        if token == ('', ''):
+            # ignore whitespace
+            continue
         if token[0] and token[0][:1] in "'\"":
             token = "'", token[0][1:-1]
         signature.append(token[0] or "-")
@@ -174,7 +183,7 @@ def prepare_predicate(next, token):
                 if elem.get(key) == value:
                     yield elem
         return select
-    if signature == "-" and not re.match("\-?\d+$", predicate[0]):
+    if signature == "-" and not re.match(r"\-?\d+$", predicate[0]):
         # [tag]
         tag = predicate[0]
         def select(context, result):
@@ -182,16 +191,22 @@ def prepare_predicate(next, token):
                 if elem.find(tag) is not None:
                     yield elem
         return select
-    if signature == "-='" and not re.match("\-?\d+$", predicate[0]):
-        # [tag='value']
+    if signature == ".='" or (signature == "-='" and not re.match(r"\-?\d+$", predicate[0])):
+        # [.='value'] or [tag='value']
         tag = predicate[0]
         value = predicate[-1]
-        def select(context, result):
-            for elem in result:
-                for e in elem.findall(tag):
-                    if "".join(e.itertext()) == value:
+        if tag:
+            def select(context, result):
+                for elem in result:
+                    for e in elem.findall(tag):
+                        if "".join(e.itertext()) == value:
+                            yield elem
+                            break
+        else:
+            def select(context, result):
+                for elem in result:
+                    if "".join(elem.itertext()) == value:
                         yield elem
-                        break
         return select
     if signature == "-" or signature == "-()" or signature == "-()-":
         # [index] or [last()] or [last()-index]
@@ -261,13 +276,16 @@ def iterfind(elem, path, namespaces=None):
         if path[:1] == "/":
             raise SyntaxError("cannot use absolute path on element")
         next = iter(xpath_tokenizer(path, namespaces)).__next__
-        token = next()
+        try:
+            token = next()
+        except StopIteration:
+            return
         selector = []
         while 1:
             try:
                 selector.append(ops[token[0]](next, token))
             except StopIteration:
-                raise SyntaxError("invalid path")
+                raise SyntaxError("invalid path") from None
             try:
                 token = next()
                 if token[0] == "/":
@@ -286,10 +304,7 @@ def iterfind(elem, path, namespaces=None):
 # Find first matching object.
 
 def find(elem, path, namespaces=None):
-    try:
-        return next(iterfind(elem, path, namespaces))
-    except StopIteration:
-        return None
+    return next(iterfind(elem, path, namespaces), None)
 
 ##
 # Find all matching objects.

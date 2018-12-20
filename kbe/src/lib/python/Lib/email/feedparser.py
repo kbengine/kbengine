@@ -24,16 +24,17 @@ __all__ = ['FeedParser', 'BytesFeedParser']
 import re
 
 from email import errors
-from email import message
 from email._policybase import compat32
+from collections import deque
+from io import StringIO
 
-NLCRE = re.compile('\r\n|\r|\n')
-NLCRE_bol = re.compile('(\r\n|\r|\n)')
-NLCRE_eol = re.compile('(\r\n|\r|\n)\Z')
-NLCRE_crack = re.compile('(\r\n|\r|\n)')
+NLCRE = re.compile(r'\r\n|\r|\n')
+NLCRE_bol = re.compile(r'(\r\n|\r|\n)')
+NLCRE_eol = re.compile(r'(\r\n|\r|\n)\Z')
+NLCRE_crack = re.compile(r'(\r\n|\r|\n)')
 # RFC 2822 $3.6.8 Optional fields.  ftext is %d33-57 / %d59-126, Any character
 # except controls, SP, and ":".
-headerRE = re.compile(r'^(From |[\041-\071\073-\176]{1,}:|[\t ])')
+headerRE = re.compile(r'^(From |[\041-\071\073-\176]*:|[\t ])')
 EMPTYSTRING = ''
 NL = '\n'
 
@@ -50,10 +51,11 @@ class BufferedSubFile(object):
     simple abstraction -- it parses until EOF closes the current message.
     """
     def __init__(self):
-        # Chunks of the last partial line pushed into this object.
-        self._partial = []
-        # The list of full, pushed lines, in reverse order
-        self._lines = []
+        # Text stream of the last partial line pushed into this object.
+        # See issue 22233 for why this is a text stream and not a list.
+        self._partial = StringIO(newline='')
+        # A deque of full, pushed lines
+        self._lines = deque()
         # The stack of false-EOF checking predicates.
         self._eofstack = []
         # A flag indicating whether the file has been closed or not.
@@ -67,8 +69,10 @@ class BufferedSubFile(object):
 
     def close(self):
         # Don't forget any trailing partial line.
-        self.pushlines(''.join(self._partial).splitlines(True))
-        self._partial = []
+        self._partial.seek(0)
+        self.pushlines(self._partial.readlines())
+        self._partial.seek(0)
+        self._partial.truncate()
         self._closed = True
 
     def readline(self):
@@ -78,49 +82,45 @@ class BufferedSubFile(object):
             return NeedMoreData
         # Pop the line off the stack and see if it matches the current
         # false-EOF predicate.
-        line = self._lines.pop()
+        line = self._lines.popleft()
         # RFC 2046, section 5.1.2 requires us to recognize outer level
         # boundaries at any level of inner nesting.  Do this, but be sure it's
         # in the order of most to least nested.
-        for ateof in self._eofstack[::-1]:
+        for ateof in reversed(self._eofstack):
             if ateof(line):
                 # We're at the false EOF.  But push the last line back first.
-                self._lines.append(line)
+                self._lines.appendleft(line)
                 return ''
         return line
 
     def unreadline(self, line):
         # Let the consumer push a line back into the buffer.
         assert line is not NeedMoreData
-        self._lines.append(line)
+        self._lines.appendleft(line)
 
     def push(self, data):
         """Push some new data into this object."""
-        # Crack into lines, but preserve the linesep characters on the end of each
-        parts = data.splitlines(True)
-
-        if not parts or not parts[0].endswith(('\n', '\r')):
-            # No new complete lines, so just accumulate partials
-            self._partial += parts
+        self._partial.write(data)
+        if '\n' not in data and '\r' not in data:
+            # No new complete lines, wait for more.
             return
 
-        if self._partial:
-            # If there are previous leftovers, complete them now
-            self._partial.append(parts[0])
-            parts[0:1] = ''.join(self._partial).splitlines(True)
-            del self._partial[:]
+        # Crack into lines, preserving the linesep characters.
+        self._partial.seek(0)
+        parts = self._partial.readlines()
+        self._partial.seek(0)
+        self._partial.truncate()
 
         # If the last element of the list does not end in a newline, then treat
         # it as a partial line.  We only check for '\n' here because a line
         # ending with '\r' might be a line that was split in the middle of a
         # '\r\n' sequence (see bugs 1555570 and 1721862).
         if not parts[-1].endswith('\n'):
-            self._partial = [parts.pop()]
+            self._partial.write(parts.pop())
         self.pushlines(parts)
 
     def pushlines(self, lines):
-        # Reverse and insert at the front of the lines.
-        self._lines[:0] = lines[::-1]
+        self._lines.extend(lines)
 
     def __iter__(self):
         return self
@@ -145,22 +145,20 @@ class FeedParser:
 
         """
         self.policy = policy
-        self._factory_kwds = lambda: {'policy': self.policy}
+        self._old_style_factory = False
         if _factory is None:
-            # What this should be:
-            #self._factory = policy.default_message_factory
-            # but, because we are post 3.4 feature freeze, fix with temp hack:
-            if self.policy is compat32:
-                self._factory = message.Message
+            if policy.message_factory is None:
+                from email.message import Message
+                self._factory = Message
             else:
-                self._factory = message.EmailMessage
+                self._factory = policy.message_factory
         else:
             self._factory = _factory
             try:
                 _factory(policy=self.policy)
             except TypeError:
                 # Assume this is an old-style factory
-                self._factory_kwds = lambda: {}
+                self._old_style_factory = True
         self._input = BufferedSubFile()
         self._msgstack = []
         self._parse = self._parsegen().__next__
@@ -197,7 +195,10 @@ class FeedParser:
         return root
 
     def _new_message(self):
-        msg = self._factory(**self._factory_kwds())
+        if self._old_style_factory:
+            msg = self._factory()
+        else:
+            msg = self._factory(policy=self.policy)
         if self._cur and self._cur.get_content_type() == 'multipart/digest':
             msg.set_default_type('message/rfc822')
         if self._msgstack:
@@ -511,6 +512,15 @@ class FeedParser:
             # There will always be a colon, because if there wasn't the part of
             # the parser that calls us would have started parsing the body.
             i = line.find(':')
+
+            # If the colon is on the start of the line the header is clearly
+            # malformed, but we might be able to salvage the rest of the
+            # message. Track the error but keep going.
+            if i == 0:
+                defect = errors.InvalidHeaderDefect("Missing header name.")
+                self._cur.defects.append(defect)
+                continue
+
             assert i>0, "_parse_headers fed line with no : and no leading WS"
             lastheader = line[:i]
             lastvalue = [line]

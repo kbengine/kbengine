@@ -4,23 +4,25 @@
 #
 
 # You can set these variables from the command line.
-PYTHON       = python
-SPHINXBUILD  = sphinx-build
-SPHINXOPTS   =
+PYTHON       = python3
+VENVDIR      = ./venv
+SPHINXBUILD  = PATH=$(VENVDIR)/bin:$$PATH sphinx-build
+BLURB        = PATH=$(VENVDIR)/bin:$$PATH blurb
 PAPER        =
 SOURCES      =
-DISTVERSION  = $(shell $(PYTHON) tools/sphinxext/patchlevel.py)
+DISTVERSION  = $(shell $(PYTHON) tools/extensions/patchlevel.py)
 
-ALLSPHINXOPTS = -b $(BUILDER) -d build/doctrees -D latex_paper_size=$(PAPER) \
+ALLSPHINXOPTS = -b $(BUILDER) -d build/doctrees -D latex_elements.papersize=$(PAPER) \
                 $(SPHINXOPTS) . build/$(BUILDER) $(SOURCES)
 
 .PHONY: help build html htmlhelp latex text changes linkcheck \
 	suspicious coverage doctest pydoc-topics htmlview clean dist check serve \
-	autobuild-dev autobuild-stable
+	autobuild-dev autobuild-stable venv
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  clean      to remove build files"
+	@echo "  venv       to create a venv with necessary tools"
 	@echo "  html       to make standalone HTML files"
 	@echo "  htmlview   to open the index page built by the html target in your browser"
 	@echo "  htmlhelp   to make HTML files and a HTML help project"
@@ -38,6 +40,20 @@ help:
 	@echo "  serve      to serve the documentation on the localhost (8000)"
 
 build:
+	-mkdir -p build
+# Look first for a Misc/NEWS file (building from a source release tarball
+# or old repo) and use that, otherwise look for a Misc/NEWS.d directory
+# (building from a newer repo) and use blurb to generate the NEWS file.
+	@if [ -f  ../Misc/NEWS ] ; then \
+		echo "Using existing Misc/NEWS file"; \
+		cp ../Misc/NEWS build/NEWS; \
+	elif [ -d ../Misc/NEWS.d ]; then \
+		echo "Building NEWS from Misc/NEWS.d with blurb"; \
+		$(BLURB) merge -f build/NEWS; \
+	else \
+		echo "Neither Misc/NEWS.d nor Misc/NEWS found; cannot build docs"; \
+		exit 1; \
+	fi
 	$(SPHINXBUILD) $(ALLSPHINXOPTS)
 	@echo
 
@@ -80,7 +96,7 @@ suspicious:
 	@$(MAKE) build BUILDER=$(BUILDER) || { \
 	echo "Suspicious check complete; look for any errors in the above output" \
 	     "or in build/$(BUILDER)/suspicious.csv.  If all issues are false" \
-	     "positives, append that file to tools/sphinxext/susp-ignored.csv."; \
+	     "positives, append that file to tools/susp-ignored.csv."; \
 	false; }
 
 coverage: BUILDER = coverage
@@ -96,14 +112,19 @@ doctest:
 
 pydoc-topics: BUILDER = pydoc-topics
 pydoc-topics: build
-	@echo "Building finished; now copy build/pydoc-topics/topics.py" \
-	      "to ../Lib/pydoc_data/topics.py"
+	@echo "Building finished; now run this:" \
+	      "cp build/pydoc-topics/topics.py ../Lib/pydoc_data/topics.py"
 
 htmlview: html
 	 $(PYTHON) -c "import webbrowser; webbrowser.open('build/html/index.html')"
 
 clean:
-	-rm -rf build/*
+	-rm -rf build/* $(VENVDIR)/*
+
+venv:
+	$(PYTHON) -m venv $(VENVDIR)
+	$(VENVDIR)/bin/python3 -m pip install -U Sphinx blurb
+	@echo "The venv has been created in the $(VENVDIR) directory"
 
 dist:
 	rm -rf dist
@@ -149,27 +170,39 @@ dist:
 	cp -pPR build/epub/Python.epub dist/python-$(DISTVERSION)-docs.epub
 
 check:
-	$(PYTHON) tools/rstlint.py -i tools
+	$(PYTHON) tools/rstlint.py -i tools -i $(VENVDIR) -i README.rst
 
 serve:
 	../Tools/scripts/serve.py build/html
 
 # Targets for daily automated doc build
+# By default, Sphinx only rebuilds pages where the page content has changed.
+# This means it doesn't always pick up changes to preferred link targets, etc
+# To ensure such changes are picked up, we build the published docs with
+# `-E` (to ignore the cached environment) and `-a` (to ignore already existing
+# output files)
 
 # for development releases: always build
 autobuild-dev:
-	make dist SPHINXOPTS='-A daily=1 -A versionswitcher=1'
+	make dist SPHINXOPTS='$(SPHINXOPTS) -Ea -A daily=1 -A switchers=1'
 	-make suspicious
 
 # for quick rebuilds (HTML only)
-autobuild-html:
-	make html SPHINXOPTS='-A daily=1 -A versionswitcher=1'
+autobuild-dev-html:
+	make html SPHINXOPTS='$(SPHINXOPTS) -Ea -A daily=1 -A switchers=1'
 
-# for stable releases: only build if not in pre-release stage (alpha, beta, rc)
+# for stable releases: only build if not in pre-release stage (alpha, beta)
+# release candidate downloads are okay, since the stable tree can be in that stage
 autobuild-stable:
-	@case $(DISTVERSION) in *[abc]*) \
+	@case $(DISTVERSION) in *[ab]*) \
 		echo "Not building; $(DISTVERSION) is not a release version."; \
 		exit 1;; \
 	esac
 	@make autobuild-dev
 
+autobuild-stable-html:
+	@case $(DISTVERSION) in *[ab]*) \
+		echo "Not building; $(DISTVERSION) is not a release version."; \
+		exit 1;; \
+	esac
+	@make autobuild-dev-html

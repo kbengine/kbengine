@@ -3,9 +3,13 @@
 
 .. module:: urllib.error
    :synopsis: Exception classes raised by urllib.request.
+
 .. moduleauthor:: Jeremy Hylton <jeremy@alum.mit.edu>
 .. sectionauthor:: Senthil Kumaran <orsenthil@gmail.com>
 
+**Source code:** :source:`Lib/urllib/error.py`
+
+--------------
 
 The :mod:`urllib.error` module defines the exception classes for exceptions
 raised by :mod:`urllib.request`.  The base exception class is :exc:`URLError`.
@@ -37,8 +41,7 @@ The following exceptions are raised by :mod:`urllib.error` as appropriate:
 
    .. attribute:: code
 
-      An HTTP status code as defined in `RFC 2616
-      <http://www.faqs.org/rfcs/rfc2616.html>`_.  This numeric value corresponds
+      An HTTP status code as defined in :rfc:`2616`.  This numeric value corresponds
       to a value found in the dictionary of codes as found in
       :attr:`http.server.BaseHTTPRequestHandler.responses`.
 

@@ -282,6 +282,7 @@ class MmapTests(unittest.TestCase):
         self.assertEqual(m.find(b'one', 1), 8)
         self.assertEqual(m.find(b'one', 1, -1), 8)
         self.assertEqual(m.find(b'one', 1, -2), -1)
+        self.assertEqual(m.find(bytearray(b'one')), 0)
 
 
     def test_rfind(self):
@@ -300,6 +301,7 @@ class MmapTests(unittest.TestCase):
         self.assertEqual(m.rfind(b'one', 0, -2), 0)
         self.assertEqual(m.rfind(b'one', 1, -1), 8)
         self.assertEqual(m.rfind(b'one', 1, -2), -1)
+        self.assertEqual(m.rfind(bytearray(b'one')), 8)
 
 
     def test_double_close(self):
@@ -601,8 +603,10 @@ class MmapTests(unittest.TestCase):
         m.write(b"bar")
         self.assertEqual(m.tell(), 6)
         self.assertEqual(m[:], b"012bar6789")
-        m.seek(8)
-        self.assertRaises(ValueError, m.write, b"bar")
+        m.write(bytearray(b"baz"))
+        self.assertEqual(m.tell(), 9)
+        self.assertEqual(m[:], b"012barbaz9")
+        self.assertRaises(ValueError, m.write, b"ba")
 
     def test_non_ascii_byte(self):
         for b in (129, 200, 255): # > 128
@@ -709,6 +713,35 @@ class MmapTests(unittest.TestCase):
         gc_collect()
         self.assertIs(wr(), None)
 
+    def test_write_returning_the_number_of_bytes_written(self):
+        mm = mmap.mmap(-1, 16)
+        self.assertEqual(mm.write(b""), 0)
+        self.assertEqual(mm.write(b"x"), 1)
+        self.assertEqual(mm.write(b"yz"), 2)
+        self.assertEqual(mm.write(b"python"), 6)
+
+    @unittest.skipIf(os.name == 'nt', 'cannot resize anonymous mmaps on Windows')
+    def test_resize_past_pos(self):
+        m = mmap.mmap(-1, 8192)
+        self.addCleanup(m.close)
+        m.read(5000)
+        try:
+            m.resize(4096)
+        except SystemError:
+            self.skipTest("resizing not supported")
+        self.assertEqual(m.read(14), b'')
+        self.assertRaises(ValueError, m.read_byte)
+        self.assertRaises(ValueError, m.write_byte, 42)
+        self.assertRaises(ValueError, m.write, b'abc')
+
+    def test_concat_repeat_exception(self):
+        m = mmap.mmap(-1, 16)
+        with self.assertRaises(TypeError):
+            m + m
+        with self.assertRaises(TypeError):
+            m * 2
+
+
 class LargeMmapTests(unittest.TestCase):
 
     def setUp(self):
@@ -726,8 +759,11 @@ class LargeMmapTests(unittest.TestCase):
             f.seek(num_zeroes)
             f.write(tail)
             f.flush()
-        except (OSError, OverflowError):
-            f.close()
+        except (OSError, OverflowError, ValueError):
+            try:
+                f.close()
+            except (OSError, OverflowError):
+                pass
             raise unittest.SkipTest("filesystem does not have largefile support")
         return f
 
@@ -748,7 +784,7 @@ class LargeMmapTests(unittest.TestCase):
             with mmap.mmap(f.fileno(), 0x10000, access=mmap.ACCESS_READ) as m:
                 self.assertEqual(m.size(), 0x180000000)
 
-    # Issue 11277: mmap() with large (~4GB) sparse files crashes on OS X.
+    # Issue 11277: mmap() with large (~4 GiB) sparse files crashes on OS X.
 
     def _test_around_boundary(self, boundary):
         tail = b'  DEARdear  '

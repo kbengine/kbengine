@@ -1,4 +1,4 @@
-"""RPC Implemention, originally written for the Python Idle IDE
+"""RPC Implementation, originally written for the Python Idle IDE
 
 For security reasons, GvR requested that Idle's Python execution server process
 connect to the Idle process, which listens for the connection.  Since Idle has
@@ -26,43 +26,47 @@ See the Idle run.main() docstring for further information on how this was
 accomplished in Idle.
 
 """
-
-import sys
+import builtins
+import copyreg
+import io
+import marshal
 import os
-import socket
+import pickle
+import queue
 import select
+import socket
 import socketserver
 import struct
-import pickle
+import sys
 import threading
-import queue
 import traceback
-import copyreg
 import types
-import marshal
-import builtins
-
 
 def unpickle_code(ms):
+    "Return code object from marshal string ms."
     co = marshal.loads(ms)
     assert isinstance(co, types.CodeType)
     return co
 
 def pickle_code(co):
+    "Return unpickle function and tuple with marshalled co code object."
     assert isinstance(co, types.CodeType)
     ms = marshal.dumps(co)
     return unpickle_code, (ms,)
 
-# XXX KBK 24Aug02 function pickling capability not used in Idle
-#  def unpickle_function(ms):
-#      return ms
+def dumps(obj, protocol=None):
+    "Return pickled (or marshalled) string for obj."
+    # IDLE passes 'None' to select pickle.DEFAULT_PROTOCOL.
+    f = io.BytesIO()
+    p = CodePickler(f, protocol)
+    p.dump(obj)
+    return f.getvalue()
 
-#  def pickle_function(fn):
-#      assert isinstance(fn, type.FunctionType)
-#      return repr(fn)
 
-copyreg.pickle(types.CodeType, pickle_code, unpickle_code)
-# copyreg.pickle(types.FunctionType, pickle_function, unpickle_function)
+class CodePickler(pickle.Pickler):
+    dispatch_table = {types.CodeType: pickle_code}
+    dispatch_table.update(copyreg.dispatch_table)
+
 
 BUFSIZE = 8*1024
 LOCALHOST = '127.0.0.1'
@@ -329,7 +333,7 @@ class SocketIO(object):
     def putmessage(self, message):
         self.debug("putmessage:%d:" % message[0])
         try:
-            s = pickle.dumps(message)
+            s = dumps(message)
         except pickle.PicklingError:
             print("Cannot pickle:", repr(message), file=sys.__stderr__)
             raise
@@ -340,10 +344,7 @@ class SocketIO(object):
                 n = self.sock.send(s[:BUFSIZE])
             except (AttributeError, TypeError):
                 raise OSError("socket no longer exists")
-            except OSError:
-                raise
-            else:
-                s = s[n:]
+            s = s[n:]
 
     buff = b''
     bufneed = 4
@@ -490,15 +491,18 @@ class RemoteObject(object):
     # Token mix-in class
     pass
 
+
 def remoteref(obj):
     oid = id(obj)
     objecttable[oid] = obj
     return RemoteProxy(oid)
 
+
 class RemoteProxy(object):
 
     def __init__(self, oid):
         self.oid = oid
+
 
 class RPCHandler(socketserver.BaseRequestHandler, SocketIO):
 
@@ -516,6 +520,7 @@ class RPCHandler(socketserver.BaseRequestHandler, SocketIO):
 
     def get_remote_proxy(self, oid):
         return RPCProxy(self, oid)
+
 
 class RPCClient(SocketIO):
 
@@ -541,6 +546,7 @@ class RPCClient(SocketIO):
 
     def get_remote_proxy(self, oid):
         return RPCProxy(self, oid)
+
 
 class RPCProxy(object):
 
@@ -590,6 +596,7 @@ def _getattributes(obj, attributes):
         if not callable(attr):
             attributes[name] = 1
 
+
 class MethodProxy(object):
 
     def __init__(self, sockio, oid, name):
@@ -622,3 +629,8 @@ def displayhook(value):
         sys.stdout.write(text)
     sys.stdout.write("\n")
     builtins._ = value
+
+
+if __name__ == '__main__':
+    from unittest import main
+    main('idlelib.idle_test.test_rpc', verbosity=2,)

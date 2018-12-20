@@ -173,7 +173,7 @@ def body_encode(body, maxlinelen=76, eol=NL):
     if not body:
         return body
 
-    # quote speacial characters
+    # quote special characters
     body = body.translate(_QUOPRI_BODY_ENCODE_MAP)
 
     soft_break = '=' + eol
@@ -292,7 +292,7 @@ def header_decode(s):
     """Decode a string encoded with RFC 2045 MIME header `Q' encoding.
 
     This function does not parse a full MIME header value encoded with
-    quoted-printable (like =?iso-8895-1?q?Hello_World?=) -- please use
+    quoted-printable (like =?iso-8859-1?q?Hello_World?=) -- please use
     the high level email.header class for that functionality.
     """
     s = s.replace('_', ' ')

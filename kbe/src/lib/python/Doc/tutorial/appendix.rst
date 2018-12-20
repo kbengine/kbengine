@@ -25,7 +25,7 @@ some cases of running out of memory.  All error messages are written to the
 standard error stream; normal output from executed commands is written to
 standard output.
 
-Typing the interrupt character (usually Control-C or DEL) to the primary or
+Typing the interrupt character (usually :kbd:`Control-C` or :kbd:`Delete`) to the primary or
 secondary prompt cancels the input and returns to the primary prompt. [#]_
 Typing an interrupt while a command is executing raises the
 :exc:`KeyboardInterrupt` exception, which may be handled by a :keyword:`try`
@@ -40,7 +40,7 @@ Executable Python Scripts
 On BSD'ish Unix systems, Python scripts can be made directly executable, like
 shell scripts, by putting the line ::
 
-   #!/usr/bin/env python3.4
+   #!/usr/bin/env python3.5
 
 (assuming that the interpreter is on the user's :envvar:`PATH`) at the beginning
 of the script and giving the file an executable mode.  The ``#!`` must be the
@@ -52,7 +52,7 @@ comment in Python.
 The script can be given an executable mode, or permission, using the
 :program:`chmod` command.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
    $ chmod +x myscript.py
 
@@ -92,7 +92,7 @@ in the script::
    filename = os.environ.get('PYTHONSTARTUP')
    if filename and os.path.isfile(filename):
        with open(filename) as fobj:
-          startup_file = fobj.read()
+           startup_file = fobj.read()
        exec(startup_file)
 
 
@@ -107,7 +107,7 @@ of your user site-packages directory.  Start Python and run this code::
 
    >>> import site
    >>> site.getusersitepackages()
-   '/home/user/.local/lib/python3.4/site-packages'
+   '/home/user/.local/lib/python3.5/site-packages'
 
 Now you can create a file named :file:`usercustomize.py` in that directory and
 put anything you want in it.  It will affect every invocation of Python, unless

@@ -3,9 +3,13 @@
 
 .. module:: xml.dom
    :synopsis: Document Object Model API for Python.
+
 .. sectionauthor:: Paul Prescod <paul@prescod.net>
 .. sectionauthor:: Martin v. Löwis <martin@v.loewis.de>
 
+**Source code:** :source:`Lib/xml/dom/__init__.py`
+
+--------------
 
 The Document Object Model, or "DOM," is a cross-language API from the World Wide
 Web Consortium (W3C) for accessing and modifying XML documents.  A DOM
@@ -63,13 +67,13 @@ implementations are free to support the strict mapping from IDL).  See section
 
 .. seealso::
 
-   `Document Object Model (DOM) Level 2 Specification <http://www.w3.org/TR/DOM-Level-2-Core/>`_
+   `Document Object Model (DOM) Level 2 Specification <https://www.w3.org/TR/2000/REC-DOM-Level-2-Core-20001113/>`_
       The W3C recommendation upon which the Python DOM API is based.
 
-   `Document Object Model (DOM) Level 1 Specification <http://www.w3.org/TR/REC-DOM-Level-1/>`_
+   `Document Object Model (DOM) Level 1 Specification <https://www.w3.org/TR/REC-DOM-Level-1/>`_
       The W3C recommendation for the DOM supported by :mod:`xml.dom.minidom`.
 
-   `Python Language Mapping Specification <http://www.omg.org/spec/PYTH/1.2/PDF>`_
+   `Python Language Mapping Specification <http://www.omg.org/cgi-bin/doc?formal/02-11-05.pdf>`_
       This specifies the mapping from OMG IDL to Python.
 
 
@@ -115,20 +119,20 @@ Some convenience constants are also provided:
 .. data:: XML_NAMESPACE
 
    The namespace URI associated with the reserved prefix ``xml``, as defined by
-   `Namespaces in XML <http://www.w3.org/TR/REC-xml-names/>`_ (section 4).
+   `Namespaces in XML <https://www.w3.org/TR/REC-xml-names/>`_ (section 4).
 
 
 .. data:: XMLNS_NAMESPACE
 
    The namespace URI for namespace declarations, as defined by `Document Object
    Model (DOM) Level 2 Core Specification
-   <http://www.w3.org/TR/DOM-Level-2-Core/core.html>`_ (section 1.1.8).
+   <https://www.w3.org/TR/DOM-Level-2-Core/core.html>`_ (section 1.1.8).
 
 
 .. data:: XHTML_NAMESPACE
 
    The URI of the XHTML namespace as defined by `XHTML 1.0: The Extensible
-   HyperText Markup Language <http://www.w3.org/TR/xhtml1/>`_ (section 3.1.1).
+   HyperText Markup Language <https://www.w3.org/TR/xhtml1/>`_ (section 3.1.1).
 
 
 In addition, :mod:`xml.dom` contains a base :class:`Node` class and the DOM
@@ -304,7 +308,7 @@ All of the components of an XML document are subclasses of :class:`Node`.
 .. attribute:: Node.prefix
 
    The part of the :attr:`tagName` preceding the colon if there is one, else the
-   empty string.  The value is a string, or ``None``
+   empty string.  The value is a string, or ``None``.
 
 
 .. attribute:: Node.namespaceURI
@@ -400,7 +404,7 @@ NodeList Objects
 ^^^^^^^^^^^^^^^^
 
 A :class:`NodeList` represents a sequence of nodes.  These objects are used in
-two ways in the DOM Core recommendation:  the :class:`Element` objects provides
+two ways in the DOM Core recommendation:  an :class:`Element` object provides
 one as its list of child nodes, and the :meth:`getElementsByTagName` and
 :meth:`getElementsByTagNameNS` methods of :class:`Node` return objects with this
 interface to represent query results.
@@ -412,7 +416,7 @@ objects:
 .. method:: NodeList.item(i)
 
    Return the *i*'th item from the sequence, if there is one, or ``None``.  The
-   index *i* is not allowed to be less then zero or greater than or equal to the
+   index *i* is not allowed to be less than zero or greater than or equal to the
    length of the sequence.
 
 
@@ -874,7 +878,7 @@ attribute.
 .. exception:: NamespaceErr
 
    If an attempt is made to change any object in a way that is not permitted with
-   regard to the `Namespaces in XML <http://www.w3.org/TR/REC-xml-names/>`_
+   regard to the `Namespaces in XML <https://www.w3.org/TR/REC-xml-names/>`_
    recommendation, this exception is raised.
 
 

@@ -15,7 +15,7 @@ operating system::
 
    >>> import os
    >>> os.getcwd()      # Return the current working directory
-   'C:\\Python34'
+   'C:\\Python37'
    >>> os.chdir('/server/accesslogs')   # Change current working directory
    >>> os.system('mkdir today')   # Run the command mkdir in the system shell
    0
@@ -140,7 +140,19 @@ The :mod:`random` module provides tools for making random selections::
    >>> random.randrange(6)    # random integer chosen from range(6)
    4
 
-The SciPy project <http://scipy.org> has many other modules for numerical
+The :mod:`statistics` module calculates basic statistical properties
+(the mean, median, variance, etc.) of numeric data::
+
+    >>> import statistics
+    >>> data = [2.75, 1.75, 1.25, 0.25, 0.5, 1.25, 3.5]
+    >>> statistics.mean(data)
+    1.6071428571428572
+    >>> statistics.median(data)
+    1.25
+    >>> statistics.variance(data)
+    1.3720238095238095
+
+The SciPy project <https://scipy.org> has many other modules for numerical
 computations.
 
 .. _tut-internet-access:
@@ -153,10 +165,11 @@ protocols. Two of the simplest are :mod:`urllib.request` for retrieving data
 from URLs and :mod:`smtplib` for sending mail::
 
    >>> from urllib.request import urlopen
-   >>> for line in urlopen('http://tycho.usno.navy.mil/cgi-bin/timer.pl'):
-   ...     line = line.decode('utf-8')  # Decoding the binary data to text.
-   ...     if 'EST' in line or 'EDT' in line:  # look for Eastern Time
-   ...         print(line)
+   >>> with urlopen('http://tycho.usno.navy.mil/cgi-bin/timer.pl') as response:
+   ...     for line in response:
+   ...         line = line.decode('utf-8')  # Decoding the binary data to text.
+   ...         if 'EST' in line or 'EDT' in line:  # look for Eastern Time
+   ...             print(line)
 
    <BR>Nov. 25, 09:43:32 PM EST
 
@@ -288,7 +301,7 @@ file::
            with self.assertRaises(TypeError):
                average(20, 30, 70)
 
-   unittest.main() # Calling from the command line invokes all tests
+   unittest.main()  # Calling from the command line invokes all tests
 
 
 .. _tut-batteries-included:
@@ -304,19 +317,24 @@ sophisticated and robust capabilities of its larger packages. For example:
   names, no direct knowledge or handling of XML is needed.
 
 * The :mod:`email` package is a library for managing email messages, including
-  MIME and other RFC 2822-based message documents. Unlike :mod:`smtplib` and
+  MIME and other :rfc:`2822`-based message documents. Unlike :mod:`smtplib` and
   :mod:`poplib` which actually send and receive messages, the email package has
   a complete toolset for building or decoding complex message structures
   (including attachments) and for implementing internet encoding and header
   protocols.
 
-* The :mod:`xml.dom` and :mod:`xml.sax` packages provide robust support for
-  parsing this popular data interchange format. Likewise, the :mod:`csv` module
-  supports direct reads and writes in a common database format. Together, these
-  modules and packages greatly simplify data interchange between Python
-  applications and other tools.
+* The :mod:`json` package provides robust support for parsing this
+  popular data interchange format.  The :mod:`csv` module supports
+  direct reading and writing of files in Comma-Separated Value format,
+  commonly supported by databases and spreadsheets.  XML processing is
+  supported by the :mod:`xml.etree.ElementTree`, :mod:`xml.dom` and
+  :mod:`xml.sax` packages. Together, these modules and packages
+  greatly simplify data interchange between Python applications and
+  other tools.
+
+* The :mod:`sqlite3` module is a wrapper for the SQLite database
+  library, providing a persistent database that can be updated and
+  accessed using slightly nonstandard SQL syntax.
 
 * Internationalization is supported by a number of modules including
   :mod:`gettext`, :mod:`locale`, and the :mod:`codecs` package.
-
-

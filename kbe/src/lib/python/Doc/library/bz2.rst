@@ -3,11 +3,15 @@
 
 .. module:: bz2
    :synopsis: Interfaces for bzip2 compression and decompression.
+
 .. moduleauthor:: Gustavo Niemeyer <niemeyer@conectiva.com>
 .. moduleauthor:: Nadeem Vawda <nadeem.vawda@gmail.com>
 .. sectionauthor:: Gustavo Niemeyer <niemeyer@conectiva.com>
 .. sectionauthor:: Nadeem Vawda <nadeem.vawda@gmail.com>
 
+**Source code:** :source:`Lib/bz2.py`
+
+--------------
 
 This module provides a comprehensive interface for compressing and
 decompressing data using the bzip2 compression algorithm.
@@ -56,6 +60,9 @@ All of the classes in this module may safely be accessed from multiple threads.
 
    .. versionchanged:: 3.4
       The ``'x'`` (exclusive creation) mode was added.
+
+   .. versionchanged:: 3.6
+      Accepts a :term:`path-like object`.
 
 
 .. class:: BZ2File(filename, mode='r', buffering=None, compresslevel=9)
@@ -120,6 +127,13 @@ All of the classes in this module may safely be accessed from multiple threads.
    .. versionchanged:: 3.4
       The ``'x'`` (exclusive creation) mode was added.
 
+   .. versionchanged:: 3.5
+      The :meth:`~io.BufferedIOBase.read` method now accepts an argument of
+      ``None``.
+
+   .. versionchanged:: 3.6
+      Accepts a :term:`path-like object`.
+
 
 Incremental (de)compression
 ---------------------------
@@ -162,15 +176,32 @@ Incremental (de)compression
       you need to decompress a multi-stream input with :class:`BZ2Decompressor`,
       you must use a new decompressor for each stream.
 
-   .. method:: decompress(data)
+   .. method:: decompress(data, max_length=-1)
 
-      Provide data to the decompressor object. Returns a chunk of decompressed
-      data if possible, or an empty byte string otherwise.
+      Decompress *data* (a :term:`bytes-like object`), returning
+      uncompressed data as bytes. Some of *data* may be buffered
+      internally, for use in later calls to :meth:`decompress`. The
+      returned data should be concatenated with the output of any
+      previous calls to :meth:`decompress`.
 
-      Attempting to decompress data after the end of the current stream is
-      reached raises an :exc:`EOFError`. If any data is found after the end of
-      the stream, it is ignored and saved in the :attr:`unused_data` attribute.
+      If *max_length* is nonnegative, returns at most *max_length*
+      bytes of decompressed data. If this limit is reached and further
+      output can be produced, the :attr:`~.needs_input` attribute will
+      be set to ``False``. In this case, the next call to
+      :meth:`~.decompress` may provide *data* as ``b''`` to obtain
+      more of the output.
 
+      If all of the input data was decompressed and returned (either
+      because this was less than *max_length* bytes, or because
+      *max_length* was negative), the :attr:`~.needs_input` attribute
+      will be set to ``True``.
+
+      Attempting to decompress data after the end of stream is reached
+      raises an `EOFError`.  Any data found after the end of the
+      stream is ignored and saved in the :attr:`~.unused_data` attribute.
+
+      .. versionchanged:: 3.5
+         Added the *max_length* parameter.
 
    .. attribute:: eof
 
@@ -185,6 +216,13 @@ Incremental (de)compression
 
       If this attribute is accessed before the end of the stream has been
       reached, its value will be ``b''``.
+
+   .. attribute:: needs_input
+
+      ``False`` if the :meth:`.decompress` method can provide more
+      decompressed data before requiring new uncompressed input.
+
+      .. versionadded:: 3.5
 
 
 One-shot (de)compression

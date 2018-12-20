@@ -5,6 +5,7 @@
    :platform: Unix
    :synopsis: The group database (getgrnam() and friends).
 
+--------------
 
 This module provides access to the Unix group database. It is available on all
 Unix versions.
@@ -42,6 +43,9 @@ It defines the following items:
    Return the group database entry for the given numeric group ID. :exc:`KeyError`
    is raised if the entry asked for cannot be found.
 
+   .. deprecated:: 3.6
+      Since Python 3.6 the support of non-integer arguments like floats or
+      strings in :func:`getgrgid` is deprecated.
 
 .. function:: getgrnam(name)
 

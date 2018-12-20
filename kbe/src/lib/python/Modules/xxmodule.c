@@ -76,7 +76,7 @@ Xxo_getattro(XxoObject *self, PyObject *name)
 }
 
 static int
-Xxo_setattr(XxoObject *self, char *name, PyObject *v)
+Xxo_setattr(XxoObject *self, const char *name, PyObject *v)
 {
     if (self->x_attr == NULL) {
         self->x_attr = PyDict_New();
@@ -308,7 +308,7 @@ static PyTypeObject Null_Type = {
     0,                          /*tp_dictoffset*/
     0,                          /*tp_init*/
     0,                          /*tp_alloc*/
-    0, /* see PyInit_xx */      /*tp_new*/
+    PyType_GenericNew,          /*tp_new*/
     0,                          /*tp_free*/
     0,                          /*tp_is_gc*/
 };
@@ -334,41 +334,28 @@ static PyMethodDef xx_methods[] = {
 PyDoc_STRVAR(module_doc,
 "This is a template module just for instruction.");
 
-/* Initialization function for the module (*must* be called PyInit_xx) */
 
-
-static struct PyModuleDef xxmodule = {
-    PyModuleDef_HEAD_INIT,
-    "xx",
-    module_doc,
-    -1,
-    xx_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
-PyMODINIT_FUNC
-PyInit_xx(void)
+static int
+xx_exec(PyObject *m)
 {
-    PyObject *m = NULL;
+    /* Slot initialization is subject to the rules of initializing globals.
+       C99 requires the initializers to be "address constants".  Function
+       designators like 'PyType_GenericNew', with implicit conversion to
+       a pointer, are valid C99 address constants.
 
-    /* Due to cross platform compiler issues the slots must be filled
-     * here. It's required for portability to Windows without requiring
-     * C++. */
+       However, the unary '&' operator applied to a non-static variable
+       like 'PyBaseObject_Type' is not required to produce an address
+       constant.  Compilers may support this (gcc does), MSVC does not.
+
+       Both compilers are strictly standard conforming in this particular
+       behavior.
+    */
     Null_Type.tp_base = &PyBaseObject_Type;
-    Null_Type.tp_new = PyType_GenericNew;
     Str_Type.tp_base = &PyUnicode_Type;
 
     /* Finalize the type object including setting type of the new type
      * object; doing it here is required for portability, too. */
     if (PyType_Ready(&Xxo_Type) < 0)
-        goto fail;
-
-    /* Create the module and add the functions */
-    m = PyModule_Create(&xxmodule);
-    if (m == NULL)
         goto fail;
 
     /* Add some symbolic constants to the module */
@@ -389,8 +376,33 @@ PyInit_xx(void)
     if (PyType_Ready(&Null_Type) < 0)
         goto fail;
     PyModule_AddObject(m, "Null", (PyObject *)&Null_Type);
-    return m;
+    return 0;
  fail:
     Py_XDECREF(m);
-    return NULL;
+    return -1;
+}
+
+static struct PyModuleDef_Slot xx_slots[] = {
+    {Py_mod_exec, xx_exec},
+    {0, NULL},
+};
+
+static struct PyModuleDef xxmodule = {
+    PyModuleDef_HEAD_INIT,
+    "xx",
+    module_doc,
+    0,
+    xx_methods,
+    xx_slots,
+    NULL,
+    NULL,
+    NULL
+};
+
+/* Export function for the module (*must* be called PyInit_xx) */
+
+PyMODINIT_FUNC
+PyInit_xx(void)
+{
+    return PyModuleDef_Init(&xxmodule);
 }

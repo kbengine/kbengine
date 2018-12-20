@@ -15,7 +15,7 @@ import sys
 import threading
 
 from . import process
-from . import reduction
+from .context import reduction
 from . import util
 
 __all__ = ['stop']
@@ -125,7 +125,7 @@ class _ResourceSharer(object):
 
     def _start(self):
         from .connection import Listener
-        assert self._listener is None
+        assert self._listener is None, "Already have Listener"
         util.debug('starting listener and thread for sending handles')
         self._listener = Listener(authkey=process.current_process().authkey)
         self._address = self._listener.address

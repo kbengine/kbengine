@@ -26,6 +26,55 @@ _testfunc_cbk_reg_double(double a, double b, double c, double d, double e,
     return func(a*a, b*b, c*c, d*d, e*e);
 }
 
+/*
+ * This structure should be the same as in test_callbacks.py and the
+ * method test_callback_large_struct. See issues 17310 and 20160: the
+ * structure must be larger than 8 bytes long.
+ */
+
+typedef struct {
+    unsigned long first;
+    unsigned long second;
+    unsigned long third;
+} Test;
+
+EXPORT(void)
+_testfunc_cbk_large_struct(Test in, void (*func)(Test))
+{
+    func(in);
+}
+
+/*
+ * See issue 29565. Update a structure passed by value;
+ * the caller should not see any change.
+ */
+
+EXPORT(void)
+_testfunc_large_struct_update_value(Test in)
+{
+    ((volatile Test *)&in)->first = 0x0badf00d;
+    ((volatile Test *)&in)->second = 0x0badf00d;
+    ((volatile Test *)&in)->third = 0x0badf00d;
+}
+
+typedef struct {
+    unsigned int first;
+    unsigned int second;
+} TestReg;
+
+
+EXPORT(TestReg) last_tfrsuv_arg = {0};
+
+
+EXPORT(void)
+_testfunc_reg_struct_update_value(TestReg in)
+{
+    last_tfrsuv_arg = in;
+    ((volatile TestReg *)&in)->first = 0x0badf00d;
+    ((volatile TestReg *)&in)->second = 0x0badf00d;
+}
+
+
 EXPORT(void)testfunc_array(int values[4])
 {
     printf("testfunc_array %d %d %d %d\n",
@@ -215,16 +264,15 @@ EXPORT(int) _testfunc_callback_with_pointer(int (*func)(int *))
     return (*func)(table);
 }
 
-#ifdef HAVE_LONG_LONG
-EXPORT(PY_LONG_LONG) _testfunc_q_bhilfdq(signed char b, short h, int i, long l, float f,
-                                     double d, PY_LONG_LONG q)
+EXPORT(long long) _testfunc_q_bhilfdq(signed char b, short h, int i, long l, float f,
+                                      double d, long long q)
 {
-    return (PY_LONG_LONG)(b + h + i + l + f + d + q);
+    return (long long)(b + h + i + l + f + d + q);
 }
 
-EXPORT(PY_LONG_LONG) _testfunc_q_bhilfd(signed char b, short h, int i, long l, float f, double d)
+EXPORT(long long) _testfunc_q_bhilfd(signed char b, short h, int i, long l, float f, double d)
 {
-    return (PY_LONG_LONG)(b + h + i + l + f + d);
+    return (long long)(b + h + i + l + f + d);
 }
 
 EXPORT(int) _testfunc_callback_i_if(int value, int (*func)(int))
@@ -237,10 +285,10 @@ EXPORT(int) _testfunc_callback_i_if(int value, int (*func)(int))
     return sum;
 }
 
-EXPORT(PY_LONG_LONG) _testfunc_callback_q_qf(PY_LONG_LONG value,
-                                             PY_LONG_LONG (*func)(PY_LONG_LONG))
+EXPORT(long long) _testfunc_callback_q_qf(long long value,
+                                          long long (*func)(long long))
 {
-    PY_LONG_LONG sum = 0;
+    long long sum = 0;
 
     while (value != 0) {
         sum += func(value);
@@ -248,8 +296,6 @@ EXPORT(PY_LONG_LONG) _testfunc_callback_q_qf(PY_LONG_LONG value,
     }
     return sum;
 }
-
-#endif
 
 typedef struct {
     char *name;
@@ -348,8 +394,7 @@ PyObject *py_func_si(PyObject *self, PyObject *args)
     int i;
     if (!PyArg_ParseTuple(args, "si", &name, &i))
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 EXPORT(void) _py_func_si(char *s, int i)
@@ -358,16 +403,15 @@ EXPORT(void) _py_func_si(char *s, int i)
 
 PyObject *py_func(PyObject *self, PyObject *args)
 {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 EXPORT(void) _py_func(void)
 {
 }
 
-EXPORT(PY_LONG_LONG) last_tf_arg_s;
-EXPORT(unsigned PY_LONG_LONG) last_tf_arg_u;
+EXPORT(long long) last_tf_arg_s = 0;
+EXPORT(unsigned long long) last_tf_arg_u = 0;
 
 struct BITS {
     int A: 1, B:2, C:3, D:4, E: 5, F: 6, G: 7, H: 8, I: 9;
@@ -430,8 +474,8 @@ static PyMethodDef module_methods[] = {
     { NULL, NULL, 0, NULL},
 };
 
-#define S last_tf_arg_s = (PY_LONG_LONG)c
-#define U last_tf_arg_u = (unsigned PY_LONG_LONG)c
+#define S last_tf_arg_s = (long long)c
+#define U last_tf_arg_u = (unsigned long long)c
 
 EXPORT(signed char) tf_b(signed char c) { S; return c/3; }
 EXPORT(unsigned char) tf_B(unsigned char c) { U; return c/3; }
@@ -441,8 +485,8 @@ EXPORT(int) tf_i(int c) { S; return c/3; }
 EXPORT(unsigned int) tf_I(unsigned int c) { U; return c/3; }
 EXPORT(long) tf_l(long c) { S; return c/3; }
 EXPORT(unsigned long) tf_L(unsigned long c) { U; return c/3; }
-EXPORT(PY_LONG_LONG) tf_q(PY_LONG_LONG c) { S; return c/3; }
-EXPORT(unsigned PY_LONG_LONG) tf_Q(unsigned PY_LONG_LONG c) { U; return c/3; }
+EXPORT(long long) tf_q(long long c) { S; return c/3; }
+EXPORT(unsigned long long) tf_Q(unsigned long long c) { U; return c/3; }
 EXPORT(float) tf_f(float c) { S; return c/3; }
 EXPORT(double) tf_d(double c) { S; return c/3; }
 EXPORT(long double) tf_D(long double c) { S; return c/3; }
@@ -456,8 +500,8 @@ EXPORT(int) __stdcall s_tf_i(int c) { S; return c/3; }
 EXPORT(unsigned int) __stdcall s_tf_I(unsigned int c) { U; return c/3; }
 EXPORT(long) __stdcall s_tf_l(long c) { S; return c/3; }
 EXPORT(unsigned long) __stdcall s_tf_L(unsigned long c) { U; return c/3; }
-EXPORT(PY_LONG_LONG) __stdcall s_tf_q(PY_LONG_LONG c) { S; return c/3; }
-EXPORT(unsigned PY_LONG_LONG) __stdcall s_tf_Q(unsigned PY_LONG_LONG c) { U; return c/3; }
+EXPORT(long long) __stdcall s_tf_q(long long c) { S; return c/3; }
+EXPORT(unsigned long long) __stdcall s_tf_Q(unsigned long long c) { U; return c/3; }
 EXPORT(float) __stdcall s_tf_f(float c) { S; return c/3; }
 EXPORT(double) __stdcall s_tf_d(double c) { S; return c/3; }
 EXPORT(long double) __stdcall s_tf_D(long double c) { S; return c/3; }
@@ -472,8 +516,8 @@ EXPORT(int) tf_bi(signed char x, int c) { S; return c/3; }
 EXPORT(unsigned int) tf_bI(signed char x, unsigned int c) { U; return c/3; }
 EXPORT(long) tf_bl(signed char x, long c) { S; return c/3; }
 EXPORT(unsigned long) tf_bL(signed char x, unsigned long c) { U; return c/3; }
-EXPORT(PY_LONG_LONG) tf_bq(signed char x, PY_LONG_LONG c) { S; return c/3; }
-EXPORT(unsigned PY_LONG_LONG) tf_bQ(signed char x, unsigned PY_LONG_LONG c) { U; return c/3; }
+EXPORT(long long) tf_bq(signed char x, long long c) { S; return c/3; }
+EXPORT(unsigned long long) tf_bQ(signed char x, unsigned long long c) { U; return c/3; }
 EXPORT(float) tf_bf(signed char x, float c) { S; return c/3; }
 EXPORT(double) tf_bd(signed char x, double c) { S; return c/3; }
 EXPORT(long double) tf_bD(signed char x, long double c) { S; return c/3; }
@@ -488,8 +532,8 @@ EXPORT(int) __stdcall s_tf_bi(signed char x, int c) { S; return c/3; }
 EXPORT(unsigned int) __stdcall s_tf_bI(signed char x, unsigned int c) { U; return c/3; }
 EXPORT(long) __stdcall s_tf_bl(signed char x, long c) { S; return c/3; }
 EXPORT(unsigned long) __stdcall s_tf_bL(signed char x, unsigned long c) { U; return c/3; }
-EXPORT(PY_LONG_LONG) __stdcall s_tf_bq(signed char x, PY_LONG_LONG c) { S; return c/3; }
-EXPORT(unsigned PY_LONG_LONG) __stdcall s_tf_bQ(signed char x, unsigned PY_LONG_LONG c) { U; return c/3; }
+EXPORT(long long) __stdcall s_tf_bq(signed char x, long long c) { S; return c/3; }
+EXPORT(unsigned long long) __stdcall s_tf_bQ(signed char x, unsigned long long c) { U; return c/3; }
 EXPORT(float) __stdcall s_tf_bf(signed char x, float c) { S; return c/3; }
 EXPORT(double) __stdcall s_tf_bd(signed char x, double c) { S; return c/3; }
 EXPORT(long double) __stdcall s_tf_bD(signed char x, long double c) { S; return c/3; }
@@ -525,6 +569,49 @@ EXPORT(int) PointInRect(RECT *prc, POINT pt)
     if (pt.y > prc->bottom)
         return 0;
     return 1;
+}
+
+EXPORT(long left = 10);
+EXPORT(long top = 20);
+EXPORT(long right = 30);
+EXPORT(long bottom = 40);
+
+EXPORT(RECT) ReturnRect(int i, RECT ar, RECT* br, POINT cp, RECT dr,
+                        RECT *er, POINT fp, RECT gr)
+{
+    /*Check input */
+    if (ar.left + br->left + dr.left + er->left + gr.left != left * 5)
+    {
+        ar.left = 100;
+        return ar;
+    }
+    if (ar.right + br->right + dr.right + er->right + gr.right != right * 5)
+    {
+        ar.right = 100;
+        return ar;
+    }
+    if (cp.x != fp.x)
+    {
+        ar.left = -100;
+    }
+    if (cp.y != fp.y)
+    {
+        ar.left = -200;
+    }
+    switch(i)
+    {
+    case 0:
+        return ar;
+        break;
+    case 1:
+        return dr;
+        break;
+    case 2:
+        return gr;
+        break;
+
+    }
+    return ar;
 }
 
 typedef struct {
@@ -572,6 +659,200 @@ EXPORT(void) TwoOutArgs(int a, int *pi, int b, int *pj)
     *pi += a;
     *pj += b;
 }
+
+#ifdef MS_WIN32
+
+typedef struct {
+    char f1;
+} Size1;
+
+typedef struct {
+    char f1;
+    char f2;
+} Size2;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+} Size3;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+    char f4;
+} Size4;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+    char f4;
+    char f5;
+} Size5;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+    char f4;
+    char f5;
+    char f6;
+} Size6;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+    char f4;
+    char f5;
+    char f6;
+    char f7;
+} Size7;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+    char f4;
+    char f5;
+    char f6;
+    char f7;
+    char f8;
+} Size8;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+    char f4;
+    char f5;
+    char f6;
+    char f7;
+    char f8;
+    char f9;
+} Size9;
+
+typedef struct {
+    char f1;
+    char f2;
+    char f3;
+    char f4;
+    char f5;
+    char f6;
+    char f7;
+    char f8;
+    char f9;
+    char f10;
+} Size10;
+
+EXPORT(Size1) TestSize1() {
+    Size1 f;
+    f.f1 = 'a';
+    return f;
+}
+
+EXPORT(Size2) TestSize2() {
+    Size2 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    return f;
+}
+
+EXPORT(Size3) TestSize3() {
+    Size3 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    return f;
+}
+
+EXPORT(Size4) TestSize4() {
+    Size4 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    f.f4 = 'd';
+    return f;
+}
+
+EXPORT(Size5) TestSize5() {
+    Size5 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    f.f4 = 'd';
+    f.f5 = 'e';
+    return f;
+}
+
+EXPORT(Size6) TestSize6() {
+    Size6 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    f.f4 = 'd';
+    f.f5 = 'e';
+    f.f6 = 'f';
+    return f;
+}
+
+EXPORT(Size7) TestSize7() {
+    Size7 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    f.f4 = 'd';
+    f.f5 = 'e';
+    f.f6 = 'f';
+    f.f7 = 'g';
+    return f;
+}
+
+EXPORT(Size8) TestSize8() {
+    Size8 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    f.f4 = 'd';
+    f.f5 = 'e';
+    f.f6 = 'f';
+    f.f7 = 'g';
+    f.f8 = 'h';
+    return f;
+}
+
+EXPORT(Size9) TestSize9() {
+    Size9 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    f.f4 = 'd';
+    f.f5 = 'e';
+    f.f6 = 'f';
+    f.f7 = 'g';
+    f.f8 = 'h';
+    f.f9 = 'i';
+    return f;
+}
+
+EXPORT(Size10) TestSize10() {
+    Size10 f;
+    f.f1 = 'a';
+    f.f2 = 'b';
+    f.f3 = 'c';
+    f.f4 = 'd';
+    f.f5 = 'e';
+    f.f6 = 'f';
+    f.f7 = 'g';
+    f.f8 = 'h';
+    f.f9 = 'i';
+    f.f10 = 'j';
+    return f;
+}
+
+#endif
 
 #ifdef MS_WIN32
 EXPORT(S2H) __stdcall s_ret_2h_func(S2H inp) { return ret_2h_func(inp); }

@@ -47,9 +47,6 @@ struct tok_state {
        (Grammar/Grammar). */
     PyObject *filename;
 #endif
-    int altwarning;     /* Issue warning if alternate tabs don't match */
-    int alterror;       /* Issue error if alternate tabs don't match */
-    int alttabsize;     /* Alternate tab spacing */
     int altindstack[MAXINDENT];         /* Stack of alternate indents */
     /* Stuff for PEP 0263 */
     enum decoding_state decoding_state;
@@ -73,8 +70,6 @@ extern struct tok_state *PyTokenizer_FromFile(FILE *, const char*,
                                               const char *, const char *);
 extern void PyTokenizer_Free(struct tok_state *);
 extern int PyTokenizer_Get(struct tok_state *, char **, char **);
-extern char * PyTokenizer_RestoreEncoding(struct tok_state* tok,
-                                          int len, int *offset);
 
 #ifdef __cplusplus
 }

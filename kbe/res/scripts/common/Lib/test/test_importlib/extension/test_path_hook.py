@@ -1,10 +1,7 @@
-from .. import util as test_util
-from . import util
+from .. import util
 
-machinery = test_util.import_importlib('importlib.machinery')
+machinery = util.import_importlib('importlib.machinery')
 
-import collections
-import sys
 import unittest
 
 
@@ -22,10 +19,12 @@ class PathHookTests:
     def test_success(self):
         # Path hook should handle a directory where a known extension module
         # exists.
-        self.assertTrue(hasattr(self.hook(util.PATH), 'find_module'))
+        self.assertTrue(hasattr(self.hook(util.EXTENSIONS.path), 'find_module'))
 
-Frozen_PathHooksTests, Source_PathHooksTests = test_util.test_both(
-        PathHookTests, machinery=machinery)
+
+(Frozen_PathHooksTests,
+ Source_PathHooksTests
+ ) = util.test_both(PathHookTests, machinery=machinery)
 
 
 if __name__ == '__main__':

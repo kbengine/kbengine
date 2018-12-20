@@ -37,13 +37,18 @@
 #include <locale.h>
 #include "bits.h"
 #include "constants.h"
-#include "memory.h"
 #include "typearith.h"
 #include "io.h"
 
 
 /* This file contains functions for decimal <-> string conversions, including
    PEP-3101 formatting for numeric types. */
+
+
+/* Disable warning that is part of -Wextra since gcc 7.0. */
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && __GNUC__ >= 7
+  #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
 
 
 /*

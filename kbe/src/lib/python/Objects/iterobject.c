@@ -1,6 +1,8 @@
 /* Iterator objects */
 
 #include "Python.h"
+#include "internal/mem.h"
+#include "internal/pystate.h"
 
 typedef struct {
     PyObject_HEAD
@@ -54,6 +56,11 @@ iter_iternext(PyObject *iterator)
     seq = it->it_seq;
     if (seq == NULL)
         return NULL;
+    if (it->it_index == PY_SSIZE_T_MAX) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "iter index too large");
+        return NULL;
+    }
 
     result = PySequence_GetItem(seq, it->it_index);
     if (result != NULL) {
@@ -64,8 +71,8 @@ iter_iternext(PyObject *iterator)
         PyErr_ExceptionMatches(PyExc_StopIteration))
     {
         PyErr_Clear();
-        Py_DECREF(seq);
         it->it_seq = NULL;
+        Py_DECREF(seq);
     }
     return NULL;
 }
@@ -203,29 +210,31 @@ calliter_traverse(calliterobject *it, visitproc visit, void *arg)
 static PyObject *
 calliter_iternext(calliterobject *it)
 {
-    if (it->it_callable != NULL) {
-        PyObject *args = PyTuple_New(0);
-        PyObject *result;
-        if (args == NULL)
-            return NULL;
-        result = PyObject_Call(it->it_callable, args, NULL);
-        Py_DECREF(args);
-        if (result != NULL) {
-            int ok;
-            ok = PyObject_RichCompareBool(it->it_sentinel, result, Py_EQ);               
-            if (ok == 0)
-                return result; /* Common case, fast path */
-            Py_DECREF(result);
-            if (ok > 0) {
-                Py_CLEAR(it->it_callable);
-                Py_CLEAR(it->it_sentinel);
-            }
+    PyObject *result;
+
+    if (it->it_callable == NULL) {
+        return NULL;
+    }
+
+    result = _PyObject_CallNoArg(it->it_callable);
+    if (result != NULL) {
+        int ok;
+
+        ok = PyObject_RichCompareBool(it->it_sentinel, result, Py_EQ);
+        if (ok == 0) {
+            return result; /* Common case, fast path */
         }
-        else if (PyErr_ExceptionMatches(PyExc_StopIteration)) {
-            PyErr_Clear();
+
+        Py_DECREF(result);
+        if (ok > 0) {
             Py_CLEAR(it->it_callable);
             Py_CLEAR(it->it_sentinel);
         }
+    }
+    else if (PyErr_ExceptionMatches(PyExc_StopIteration)) {
+        PyErr_Clear();
+        Py_CLEAR(it->it_callable);
+        Py_CLEAR(it->it_sentinel);
     }
     return NULL;
 }

@@ -19,15 +19,9 @@ except ImportError:
     pass
 from abc import get_cache_token
 from collections import namedtuple
-from types import MappingProxyType
-from weakref import WeakKeyDictionary
-try:
-    from _thread import RLock
-except:
-    class RLock:
-        'Dummy reentrant lock for builds without threads'
-        def __enter__(self): pass
-        def __exit__(self, exctype, excinst, exctb): pass
+# import types, weakref  # Deferred to single_dispatch()
+from reprlib import recursive_repr
+from _thread import RLock
 
 
 ################################################################################
@@ -89,101 +83,116 @@ def wraps(wrapped,
 ### total_ordering class decorator
 ################################################################################
 
-# The correct way to indicate that a comparison operation doesn't
-# recognise the other type is to return NotImplemented and let the
-# interpreter handle raising TypeError if both operands return
-# NotImplemented from their respective comparison methods
-#
-# This makes the implementation of total_ordering more complicated, since
-# we need to be careful not to trigger infinite recursion when two
-# different types that both use this decorator encounter each other.
-#
-# For example, if a type implements __lt__, it's natural to define
-# __gt__ as something like:
-#
-#    lambda self, other: not self < other and not self == other
-#
-# However, using the operator syntax like that ends up invoking the full
-# type checking machinery again and means we can end up bouncing back and
-# forth between the two operands until we run out of stack space.
-#
-# The solution is to define helper functions that invoke the appropriate
-# magic methods directly, ensuring we only try each operand once, and
-# return NotImplemented immediately if it is returned from the
-# underlying user provided method. Using this scheme, the __gt__ derived
-# from a user provided __lt__ becomes:
-#
-#    lambda self, other: _not_op_and_not_eq(self.__lt__, self, other))
+# The total ordering functions all invoke the root magic method directly
+# rather than using the corresponding operator.  This avoids possible
+# infinite recursion that could occur when the operator dispatch logic
+# detects a NotImplemented result and then calls a reflected method.
 
-def _not_op(op, other):
-    # "not a < b" handles "a >= b"
-    # "not a <= b" handles "a > b"
-    # "not a >= b" handles "a < b"
-    # "not a > b" handles "a <= b"
-    op_result = op(other)
+def _gt_from_lt(self, other, NotImplemented=NotImplemented):
+    'Return a > b.  Computed by @total_ordering from (not a < b) and (a != b).'
+    op_result = self.__lt__(other)
     if op_result is NotImplemented:
-        return NotImplemented
-    return not op_result
-
-def _op_or_eq(op, self, other):
-    # "a < b or a == b" handles "a <= b"
-    # "a > b or a == b" handles "a >= b"
-    op_result = op(other)
-    if op_result is NotImplemented:
-        return NotImplemented
-    return op_result or self == other
-
-def _not_op_and_not_eq(op, self, other):
-    # "not (a < b or a == b)" handles "a > b"
-    # "not a < b and a != b" is equivalent
-    # "not (a > b or a == b)" handles "a < b"
-    # "not a > b and a != b" is equivalent
-    op_result = op(other)
-    if op_result is NotImplemented:
-        return NotImplemented
+        return op_result
     return not op_result and self != other
 
-def _not_op_or_eq(op, self, other):
-    # "not a <= b or a == b" handles "a >= b"
-    # "not a >= b or a == b" handles "a <= b"
-    op_result = op(other)
+def _le_from_lt(self, other, NotImplemented=NotImplemented):
+    'Return a <= b.  Computed by @total_ordering from (a < b) or (a == b).'
+    op_result = self.__lt__(other)
+    return op_result or self == other
+
+def _ge_from_lt(self, other, NotImplemented=NotImplemented):
+    'Return a >= b.  Computed by @total_ordering from (not a < b).'
+    op_result = self.__lt__(other)
     if op_result is NotImplemented:
-        return NotImplemented
+        return op_result
+    return not op_result
+
+def _ge_from_le(self, other, NotImplemented=NotImplemented):
+    'Return a >= b.  Computed by @total_ordering from (not a <= b) or (a == b).'
+    op_result = self.__le__(other)
+    if op_result is NotImplemented:
+        return op_result
     return not op_result or self == other
 
-def _op_and_not_eq(op, self, other):
-    # "a <= b and not a == b" handles "a < b"
-    # "a >= b and not a == b" handles "a > b"
-    op_result = op(other)
+def _lt_from_le(self, other, NotImplemented=NotImplemented):
+    'Return a < b.  Computed by @total_ordering from (a <= b) and (a != b).'
+    op_result = self.__le__(other)
     if op_result is NotImplemented:
-        return NotImplemented
+        return op_result
     return op_result and self != other
+
+def _gt_from_le(self, other, NotImplemented=NotImplemented):
+    'Return a > b.  Computed by @total_ordering from (not a <= b).'
+    op_result = self.__le__(other)
+    if op_result is NotImplemented:
+        return op_result
+    return not op_result
+
+def _lt_from_gt(self, other, NotImplemented=NotImplemented):
+    'Return a < b.  Computed by @total_ordering from (not a > b) and (a != b).'
+    op_result = self.__gt__(other)
+    if op_result is NotImplemented:
+        return op_result
+    return not op_result and self != other
+
+def _ge_from_gt(self, other, NotImplemented=NotImplemented):
+    'Return a >= b.  Computed by @total_ordering from (a > b) or (a == b).'
+    op_result = self.__gt__(other)
+    return op_result or self == other
+
+def _le_from_gt(self, other, NotImplemented=NotImplemented):
+    'Return a <= b.  Computed by @total_ordering from (not a > b).'
+    op_result = self.__gt__(other)
+    if op_result is NotImplemented:
+        return op_result
+    return not op_result
+
+def _le_from_ge(self, other, NotImplemented=NotImplemented):
+    'Return a <= b.  Computed by @total_ordering from (not a >= b) or (a == b).'
+    op_result = self.__ge__(other)
+    if op_result is NotImplemented:
+        return op_result
+    return not op_result or self == other
+
+def _gt_from_ge(self, other, NotImplemented=NotImplemented):
+    'Return a > b.  Computed by @total_ordering from (a >= b) and (a != b).'
+    op_result = self.__ge__(other)
+    if op_result is NotImplemented:
+        return op_result
+    return op_result and self != other
+
+def _lt_from_ge(self, other, NotImplemented=NotImplemented):
+    'Return a < b.  Computed by @total_ordering from (not a >= b).'
+    op_result = self.__ge__(other)
+    if op_result is NotImplemented:
+        return op_result
+    return not op_result
+
+_convert = {
+    '__lt__': [('__gt__', _gt_from_lt),
+               ('__le__', _le_from_lt),
+               ('__ge__', _ge_from_lt)],
+    '__le__': [('__ge__', _ge_from_le),
+               ('__lt__', _lt_from_le),
+               ('__gt__', _gt_from_le)],
+    '__gt__': [('__lt__', _lt_from_gt),
+               ('__ge__', _ge_from_gt),
+               ('__le__', _le_from_gt)],
+    '__ge__': [('__le__', _le_from_ge),
+               ('__gt__', _gt_from_ge),
+               ('__lt__', _lt_from_ge)]
+}
 
 def total_ordering(cls):
     """Class decorator that fills in missing ordering methods"""
-    convert = {
-        '__lt__': [('__gt__', lambda self, other: _not_op_and_not_eq(self.__lt__, self, other)),
-                   ('__le__', lambda self, other: _op_or_eq(self.__lt__, self, other)),
-                   ('__ge__', lambda self, other: _not_op(self.__lt__, other))],
-        '__le__': [('__ge__', lambda self, other: _not_op_or_eq(self.__le__, self, other)),
-                   ('__lt__', lambda self, other: _op_and_not_eq(self.__le__, self, other)),
-                   ('__gt__', lambda self, other: _not_op(self.__le__, other))],
-        '__gt__': [('__lt__', lambda self, other: _not_op_and_not_eq(self.__gt__, self, other)),
-                   ('__ge__', lambda self, other: _op_or_eq(self.__gt__, self, other)),
-                   ('__le__', lambda self, other: _not_op(self.__gt__, other))],
-        '__ge__': [('__le__', lambda self, other: _not_op_or_eq(self.__ge__, self, other)),
-                   ('__gt__', lambda self, other: _op_and_not_eq(self.__ge__, self, other)),
-                   ('__lt__', lambda self, other: _not_op(self.__ge__, other))]
-    }
     # Find user-defined comparisons (not those inherited from object).
-    roots = [op for op in convert if getattr(cls, op, None) is not getattr(object, op, None)]
+    roots = {op for op in _convert if getattr(cls, op, None) is not getattr(object, op, None)}
     if not roots:
         raise ValueError('must define at least one ordering operation: < > <= >=')
     root = max(roots)       # prefer __lt__ to __le__ to __gt__ to __ge__
-    for opname, opfunc in convert[root]:
+    for opname, opfunc in _convert[root]:
         if opname not in roots:
             opfunc.__name__ = opname
-            opfunc.__doc__ = getattr(int, opname).__doc__
             setattr(cls, opname, opfunc)
     return cls
 
@@ -208,8 +217,6 @@ def cmp_to_key(mycmp):
             return mycmp(self.obj, other.obj) <= 0
         def __ge__(self, other):
             return mycmp(self.obj, other.obj) >= 0
-        def __ne__(self, other):
-            return mycmp(self.obj, other.obj) != 0
         __hash__ = None
     return K
 
@@ -224,18 +231,83 @@ except ImportError:
 ################################################################################
 
 # Purely functional, no descriptor behaviour
-def partial(func, *args, **keywords):
+class partial:
     """New function with partial application of the given arguments
     and keywords.
     """
-    def newfunc(*fargs, **fkeywords):
-        newkeywords = keywords.copy()
-        newkeywords.update(fkeywords)
-        return func(*(args + fargs), **newkeywords)
-    newfunc.func = func
-    newfunc.args = args
-    newfunc.keywords = keywords
-    return newfunc
+
+    __slots__ = "func", "args", "keywords", "__dict__", "__weakref__"
+
+    def __new__(*args, **keywords):
+        if not args:
+            raise TypeError("descriptor '__new__' of partial needs an argument")
+        if len(args) < 2:
+            raise TypeError("type 'partial' takes at least one argument")
+        cls, func, *args = args
+        if not callable(func):
+            raise TypeError("the first argument must be callable")
+        args = tuple(args)
+
+        if hasattr(func, "func"):
+            args = func.args + args
+            tmpkw = func.keywords.copy()
+            tmpkw.update(keywords)
+            keywords = tmpkw
+            del tmpkw
+            func = func.func
+
+        self = super(partial, cls).__new__(cls)
+
+        self.func = func
+        self.args = args
+        self.keywords = keywords
+        return self
+
+    def __call__(*args, **keywords):
+        if not args:
+            raise TypeError("descriptor '__call__' of partial needs an argument")
+        self, *args = args
+        newkeywords = self.keywords.copy()
+        newkeywords.update(keywords)
+        return self.func(*self.args, *args, **newkeywords)
+
+    @recursive_repr()
+    def __repr__(self):
+        qualname = type(self).__qualname__
+        args = [repr(self.func)]
+        args.extend(repr(x) for x in self.args)
+        args.extend(f"{k}={v!r}" for (k, v) in self.keywords.items())
+        if type(self).__module__ == "functools":
+            return f"functools.{qualname}({', '.join(args)})"
+        return f"{qualname}({', '.join(args)})"
+
+    def __reduce__(self):
+        return type(self), (self.func,), (self.func, self.args,
+               self.keywords or None, self.__dict__ or None)
+
+    def __setstate__(self, state):
+        if not isinstance(state, tuple):
+            raise TypeError("argument to __setstate__ must be a tuple")
+        if len(state) != 4:
+            raise TypeError(f"expected 4 items in state, got {len(state)}")
+        func, args, kwds, namespace = state
+        if (not callable(func) or not isinstance(args, tuple) or
+           (kwds is not None and not isinstance(kwds, dict)) or
+           (namespace is not None and not isinstance(namespace, dict))):
+            raise TypeError("invalid partial state")
+
+        args = tuple(args) # just in case it's a subclass
+        if kwds is None:
+            kwds = {}
+        elif type(kwds) is not dict: # XXX does it need to be *exactly* dict?
+            kwds = dict(kwds)
+        if namespace is None:
+            namespace = {}
+
+        self.__dict__ = namespace
+        self.func = func
+        self.args = args
+        self.keywords = kwds
 
 try:
     from _functools import partial
@@ -277,7 +349,7 @@ class partialmethod(object):
                                  for k, v in self.keywords.items())
         format_string = "{module}.{cls}({func}, {args}, {keywords})"
         return format_string.format(module=self.__class__.__module__,
-                                    cls=self.__class__.__name__,
+                                    cls=self.__class__.__qualname__,
                                     func=self.func,
                                     args=args,
                                     keywords=keywords)
@@ -342,7 +414,7 @@ class _HashedSeq(list):
 def _make_key(args, kwds, typed,
              kwd_mark = (object(),),
              fasttypes = {int, str, frozenset, type(None)},
-             sorted=sorted, tuple=tuple, type=type, len=len):
+             tuple=tuple, type=type, len=len):
     """Make a cache key from optionally typed positional and keyword arguments
 
     The key is constructed in a way that is flat as possible rather than
@@ -353,16 +425,19 @@ def _make_key(args, kwds, typed,
     saves space and improves lookup speed.
 
     """
+    # All of code below relies on kwds preserving the order input by the user.
+    # Formerly, we sorted() the kwds before looping.  The new way is *much*
+    # faster; however, it means that f(x=1, y=2) will now be treated as a
+    # distinct call from f(y=2, x=1) which will be cached separately.
     key = args
     if kwds:
-        sorted_items = sorted(kwds.items())
         key += kwd_mark
-        for item in sorted_items:
+        for item in kwds.items():
             key += item
     if typed:
         key += tuple(type(v) for v in args)
         if kwds:
-            key += tuple(type(v) for k, v in sorted_items)
+            key += tuple(type(v) for v in kwds.values())
     elif len(key) == 1 and type(key[0]) in fasttypes:
         return key[0]
     return _HashedSeq(key)
@@ -398,120 +473,132 @@ def lru_cache(maxsize=128, typed=False):
     if maxsize is not None and not isinstance(maxsize, int):
         raise TypeError('Expected maxsize to be an integer or None')
 
+    def decorating_function(user_function):
+        wrapper = _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo)
+        return update_wrapper(wrapper, user_function)
+
+    return decorating_function
+
+def _lru_cache_wrapper(user_function, maxsize, typed, _CacheInfo):
     # Constants shared by all lru cache instances:
     sentinel = object()          # unique object used to signal cache misses
     make_key = _make_key         # build a key from the function arguments
     PREV, NEXT, KEY, RESULT = 0, 1, 2, 3   # names for the link fields
 
-    def decorating_function(user_function):
-        cache = {}
-        hits = misses = 0
-        full = False
-        cache_get = cache.get    # bound method to lookup a key or return None
-        lock = RLock()           # because linkedlist updates aren't threadsafe
-        root = []                # root of the circular doubly linked list
-        root[:] = [root, root, None, None]     # initialize by pointing to self
+    cache = {}
+    hits = misses = 0
+    full = False
+    cache_get = cache.get    # bound method to lookup a key or return None
+    cache_len = cache.__len__  # get cache size without calling len()
+    lock = RLock()           # because linkedlist updates aren't threadsafe
+    root = []                # root of the circular doubly linked list
+    root[:] = [root, root, None, None]     # initialize by pointing to self
 
-        if maxsize == 0:
+    if maxsize == 0:
 
-            def wrapper(*args, **kwds):
-                # No caching -- just a statistics update after a successful call
-                nonlocal misses
-                result = user_function(*args, **kwds)
-                misses += 1
+        def wrapper(*args, **kwds):
+            # No caching -- just a statistics update after a successful call
+            nonlocal misses
+            result = user_function(*args, **kwds)
+            misses += 1
+            return result
+
+    elif maxsize is None:
+
+        def wrapper(*args, **kwds):
+            # Simple caching without ordering or size limit
+            nonlocal hits, misses
+            key = make_key(args, kwds, typed)
+            result = cache_get(key, sentinel)
+            if result is not sentinel:
+                hits += 1
                 return result
+            result = user_function(*args, **kwds)
+            cache[key] = result
+            misses += 1
+            return result
 
-        elif maxsize is None:
+    else:
 
-            def wrapper(*args, **kwds):
-                # Simple caching without ordering or size limit
-                nonlocal hits, misses
-                key = make_key(args, kwds, typed)
-                result = cache_get(key, sentinel)
-                if result is not sentinel:
+        def wrapper(*args, **kwds):
+            # Size limited caching that tracks accesses by recency
+            nonlocal root, hits, misses, full
+            key = make_key(args, kwds, typed)
+            with lock:
+                link = cache_get(key)
+                if link is not None:
+                    # Move the link to the front of the circular queue
+                    link_prev, link_next, _key, result = link
+                    link_prev[NEXT] = link_next
+                    link_next[PREV] = link_prev
+                    last = root[PREV]
+                    last[NEXT] = root[PREV] = link
+                    link[PREV] = last
+                    link[NEXT] = root
                     hits += 1
                     return result
-                result = user_function(*args, **kwds)
-                cache[key] = result
+            result = user_function(*args, **kwds)
+            with lock:
+                if key in cache:
+                    # Getting here means that this same key was added to the
+                    # cache while the lock was released.  Since the link
+                    # update is already done, we need only return the
+                    # computed result and update the count of misses.
+                    pass
+                elif full:
+                    # Use the old root to store the new key and result.
+                    oldroot = root
+                    oldroot[KEY] = key
+                    oldroot[RESULT] = result
+                    # Empty the oldest link and make it the new root.
+                    # Keep a reference to the old key and old result to
+                    # prevent their ref counts from going to zero during the
+                    # update. That will prevent potentially arbitrary object
+                    # clean-up code (i.e. __del__) from running while we're
+                    # still adjusting the links.
+                    root = oldroot[NEXT]
+                    oldkey = root[KEY]
+                    oldresult = root[RESULT]
+                    root[KEY] = root[RESULT] = None
+                    # Now update the cache dictionary.
+                    del cache[oldkey]
+                    # Save the potentially reentrant cache[key] assignment
+                    # for last, after the root and links have been put in
+                    # a consistent state.
+                    cache[key] = oldroot
+                else:
+                    # Put result in a new link at the front of the queue.
+                    last = root[PREV]
+                    link = [last, root, key, result]
+                    last[NEXT] = root[PREV] = cache[key] = link
+                    # Use the cache_len bound method instead of the len() function
+                    # which could potentially be wrapped in an lru_cache itself.
+                    full = (cache_len() >= maxsize)
                 misses += 1
-                return result
+            return result
 
-        else:
+    def cache_info():
+        """Report cache statistics"""
+        with lock:
+            return _CacheInfo(hits, misses, maxsize, cache_len())
 
-            def wrapper(*args, **kwds):
-                # Size limited caching that tracks accesses by recency
-                nonlocal root, hits, misses, full
-                key = make_key(args, kwds, typed)
-                with lock:
-                    link = cache_get(key)
-                    if link is not None:
-                        # Move the link to the front of the circular queue
-                        link_prev, link_next, _key, result = link
-                        link_prev[NEXT] = link_next
-                        link_next[PREV] = link_prev
-                        last = root[PREV]
-                        last[NEXT] = root[PREV] = link
-                        link[PREV] = last
-                        link[NEXT] = root
-                        hits += 1
-                        return result
-                result = user_function(*args, **kwds)
-                with lock:
-                    if key in cache:
-                        # Getting here means that this same key was added to the
-                        # cache while the lock was released.  Since the link
-                        # update is already done, we need only return the
-                        # computed result and update the count of misses.
-                        pass
-                    elif full:
-                        # Use the old root to store the new key and result.
-                        oldroot = root
-                        oldroot[KEY] = key
-                        oldroot[RESULT] = result
-                        # Empty the oldest link and make it the new root.
-                        # Keep a reference to the old key and old result to
-                        # prevent their ref counts from going to zero during the
-                        # update. That will prevent potentially arbitrary object
-                        # clean-up code (i.e. __del__) from running while we're
-                        # still adjusting the links.
-                        root = oldroot[NEXT]
-                        oldkey = root[KEY]
-                        oldresult = root[RESULT]
-                        root[KEY] = root[RESULT] = None
-                        # Now update the cache dictionary.
-                        del cache[oldkey]
-                        # Save the potentially reentrant cache[key] assignment
-                        # for last, after the root and links have been put in
-                        # a consistent state.
-                        cache[key] = oldroot
-                    else:
-                        # Put result in a new link at the front of the queue.
-                        last = root[PREV]
-                        link = [last, root, key, result]
-                        last[NEXT] = root[PREV] = cache[key] = link
-                        full = (len(cache) >= maxsize)
-                    misses += 1
-                return result
+    def cache_clear():
+        """Clear the cache and cache statistics"""
+        nonlocal hits, misses, full
+        with lock:
+            cache.clear()
+            root[:] = [root, root, None, None]
+            hits = misses = 0
+            full = False
 
-        def cache_info():
-            """Report cache statistics"""
-            with lock:
-                return _CacheInfo(hits, misses, maxsize, len(cache))
+    wrapper.cache_info = cache_info
+    wrapper.cache_clear = cache_clear
+    return wrapper
 
-        def cache_clear():
-            """Clear the cache and cache statistics"""
-            nonlocal hits, misses, full
-            with lock:
-                cache.clear()
-                root[:] = [root, root, None, None]
-                hits = misses = 0
-                full = False
-
-        wrapper.cache_info = cache_info
-        wrapper.cache_clear = cache_clear
-        return update_wrapper(wrapper, user_function)
-
-    return decorating_function
+try:
+    from _functools import _lru_cache_wrapper
+except ImportError:
+    pass
 
 
 ################################################################################
@@ -537,7 +624,7 @@ def _c3_merge(sequences):
                     break      # reject the current head, it appears later
             else:
                 break
-        if not candidate:
+        if candidate is None:
             raise RuntimeError("Inconsistent hierarchy")
         result.append(candidate)
         # remove the chosen candidate
@@ -665,10 +752,14 @@ def singledispatch(func):
     function acts as the default implementation, and additional
     implementations can be registered using the register() attribute of the
     generic function.
-
     """
+    # There are many programs that use functools without singledispatch, so we
+    # trade-off making singledispatch marginally slower for the benefit of
+    # making start-up of such applications slightly faster.
+    import types, weakref
+
     registry = {}
-    dispatch_cache = WeakKeyDictionary()
+    dispatch_cache = weakref.WeakKeyDictionary()
     cache_token = None
 
     def dispatch(cls):
@@ -702,7 +793,23 @@ def singledispatch(func):
         """
         nonlocal cache_token
         if func is None:
-            return lambda f: register(cls, f)
+            if isinstance(cls, type):
+                return lambda f: register(cls, f)
+            ann = getattr(cls, '__annotations__', {})
+            if not ann:
+                raise TypeError(
+                    f"Invalid first argument to `register()`: {cls!r}. "
+                    f"Use either `@register(some_class)` or plain `@register` "
+                    f"on an annotated function."
+                )
+            func = cls
+
+            # only import typing if annotation parsing is necessary
+            from typing import get_type_hints
+            argname, cls = next(iter(get_type_hints(func).items()))
+            assert isinstance(cls, type), (
+                f"Invalid annotation for {argname!r}. {cls!r} is not a class."
+            )
         registry[cls] = func
         if cache_token is None and hasattr(cls, '__abstractmethods__'):
             cache_token = get_cache_token()
@@ -710,12 +817,17 @@ def singledispatch(func):
         return func
 
     def wrapper(*args, **kw):
+        if not args:
+            raise TypeError(f'{funcname} requires at least '
+                            '1 positional argument')
+
         return dispatch(args[0].__class__)(*args, **kw)
 
+    funcname = getattr(func, '__name__', 'singledispatch function')
     registry[object] = func
     wrapper.register = register
     wrapper.dispatch = dispatch
-    wrapper.registry = MappingProxyType(registry)
+    wrapper.registry = types.MappingProxyType(registry)
     wrapper._clear_cache = dispatch_cache.clear
     update_wrapper(wrapper, func)
     return wrapper

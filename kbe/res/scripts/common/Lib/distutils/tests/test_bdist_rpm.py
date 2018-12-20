@@ -3,16 +3,12 @@
 import unittest
 import sys
 import os
-import tempfile
-import shutil
-from test.support import run_unittest
+from test.support import run_unittest, requires_zlib
 
 from distutils.core import Distribution
 from distutils.command.bdist_rpm import bdist_rpm
 from distutils.tests import support
 from distutils.spawn import find_executable
-from distutils import spawn
-from distutils.errors import DistutilsExecError
 
 SETUP_PY = """\
 from distutils.core import setup
@@ -24,6 +20,7 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 """
 
 class BuildRpmTestCase(support.TempdirManager,
+                       support.EnvironGuard,
                        support.LoggingSilencer,
                        unittest.TestCase):
 
@@ -47,6 +44,7 @@ class BuildRpmTestCase(support.TempdirManager,
     # spurious sdtout/stderr output under Mac OS X
     @unittest.skipUnless(sys.platform.startswith('linux'),
                          'spurious sdtout/stderr output under Mac OS X')
+    @requires_zlib
     @unittest.skipIf(find_executable('rpm') is None,
                      'the rpm command is not found')
     @unittest.skipIf(find_executable('rpmbuild') is None,
@@ -54,6 +52,7 @@ class BuildRpmTestCase(support.TempdirManager,
     def test_quiet(self):
         # let's create a package
         tmp_dir = self.mkdtemp()
+        os.environ['HOME'] = tmp_dir   # to confine dir '.rpmdb' creation
         pkg_dir = os.path.join(tmp_dir, 'foo')
         os.mkdir(pkg_dir)
         self.write_file((pkg_dir, 'setup.py'), SETUP_PY)
@@ -88,14 +87,16 @@ class BuildRpmTestCase(support.TempdirManager,
     # spurious sdtout/stderr output under Mac OS X
     @unittest.skipUnless(sys.platform.startswith('linux'),
                          'spurious sdtout/stderr output under Mac OS X')
+    @requires_zlib
     # http://bugs.python.org/issue1533164
     @unittest.skipIf(find_executable('rpm') is None,
                      'the rpm command is not found')
     @unittest.skipIf(find_executable('rpmbuild') is None,
                      'the rpmbuild command is not found')
     def test_no_optimize_flag(self):
-        # let's create a package that brakes bdist_rpm
+        # let's create a package that breaks bdist_rpm
         tmp_dir = self.mkdtemp()
+        os.environ['HOME'] = tmp_dir   # to confine dir '.rpmdb' creation
         pkg_dir = os.path.join(tmp_dir, 'foo')
         os.mkdir(pkg_dir)
         self.write_file((pkg_dir, 'setup.py'), SETUP_PY)

@@ -50,7 +50,7 @@
 
 This article explains the new features in Python 3.2 as compared to 3.1.  It
 focuses on a few highlights and gives a few examples.  For full details, see the
-`Misc/NEWS <http://hg.python.org/cpython/file/3.2/Misc/NEWS>`_ file.
+`Misc/NEWS <https://hg.python.org/cpython/file/3.2/Misc/NEWS>`_ file.
 
 .. seealso::
 
@@ -116,7 +116,7 @@ or more positional arguments is present, and making a required option::
 
 Example of calling the parser on a command string::
 
-    >>> cmd  = 'deploy sneezy.example.com sleepy.example.com -u skycaptain'
+    >>> cmd = 'deploy sneezy.example.com sleepy.example.com -u skycaptain'
     >>> result = parser.parse_args(cmd.split())
     >>> result.action
     'deploy'
@@ -159,6 +159,8 @@ each with their own argument patterns and help displays::
                                      aliases=('steer', 'turn'))         # equivalent names
     parser_m.add_argument('-c', '--course', type=int, required=True)
     parser_m.add_argument('-s', '--speed', type=int, default=0)
+
+.. code-block:: shell-session
 
     $ ./helm.py --help                         # top level help (launch and move)
     $ ./helm.py launch --help                  # help for launch options
@@ -212,7 +214,8 @@ loaded and called with code like this::
 
    >>> import json, logging.config
    >>> with open('conf.json') as f:
-           conf = json.load(f)
+   ...     conf = json.load(f)
+   ...
    >>> logging.config.dictConfig(conf)
    >>> logging.info("Transaction completed normally")
    INFO    : root           : Transaction completed normally
@@ -310,14 +313,14 @@ aspects that are visible to the programmer:
   of the actual file that was imported:
 
    >>> import collections
-   >>> collections.__cached__
+   >>> collections.__cached__ # doctest: +SKIP
    'c:/py32/lib/__pycache__/collections.cpython-32.pyc'
 
 * The tag that is unique to each interpreter is accessible from the :mod:`imp`
   module:
 
    >>> import imp
-   >>> imp.get_tag()
+   >>> imp.get_tag() # doctest: +SKIP
    'cpython-32'
 
 * Scripts that try to deduce source filename from the imported file now need to
@@ -326,7 +329,7 @@ aspects that are visible to the programmer:
 
   >>> imp.source_from_cache('c:/py32/lib/__pycache__/collections.cpython-32.pyc')
   'c:/py32/lib/collections.py'
-  >>> imp.cache_from_source('c:/py32/lib/collections.py')
+  >>> imp.cache_from_source('c:/py32/lib/collections.py') # doctest: +SKIP
   'c:/py32/lib/__pycache__/collections.cpython-32.pyc'
 
 * The :mod:`py_compile` and :mod:`compileall` modules have been updated to
@@ -460,15 +463,15 @@ Some smaller changes made to the core Python language are:
     'The testing project status is green as of February 15, 2011'
 
     >>> class LowerCasedDict(dict):
-            def __getitem__(self, key):
-                return dict.__getitem__(self, key.lower())
+    ...     def __getitem__(self, key):
+    ...         return dict.__getitem__(self, key.lower())
     >>> lcd = LowerCasedDict(part='widgets', quantity=10)
     >>> 'There are {QUANTITY} {Part} in stock'.format_map(lcd)
     'There are 10 widgets in stock'
 
     >>> class PlaceholderDict(dict):
-            def __missing__(self, key):
-                return '<{}>'.format(key)
+    ...     def __missing__(self, key):
+    ...         return '<{}>'.format(key)
     >>> 'Hello {name}, welcome to {location}'.format_map(PlaceholderDict())
     'Hello <name>, welcome to <location>'
 
@@ -477,7 +480,9 @@ Some smaller changes made to the core Python language are:
 
 * The interpreter can now be started with a quiet option, ``-q``, to prevent
   the copyright and version information from being displayed in the interactive
-  mode.  The option can be introspected using the :attr:`sys.flags` attribute::
+  mode.  The option can be introspected using the :attr:`sys.flags` attribute:
+
+  .. code-block:: shell-session
 
     $ python -q
     >>> sys.flags
@@ -496,10 +501,10 @@ Some smaller changes made to the core Python language are:
   exceptions pass through::
 
     >>> class A:
-            @property
-            def f(self):
-                return 1 // 0
-
+    ...     @property
+    ...     def f(self):
+    ...         return 1 // 0
+    ...
     >>> a = A()
     >>> hasattr(a, 'f')
     Traceback (most recent call last):
@@ -527,7 +532,7 @@ Some smaller changes made to the core Python language are:
   original object.
 
   >>> with memoryview(b'abcdefgh') as v:
-          print(v.tolist())
+  ...     print(v.tolist())
   [97, 98, 99, 100, 101, 102, 103, 104]
 
   (Added by Antoine Pitrou; :issue:`9757`.)
@@ -537,7 +542,7 @@ Some smaller changes made to the core Python language are:
 
        def outer(x):
            def inner():
-              return x
+               return x
            inner()
            del x
 
@@ -547,12 +552,12 @@ Some smaller changes made to the core Python language are:
 
        def f():
            def print_error():
-              print(e)
+               print(e)
            try:
-              something
+               something
            except Exception as e:
-              print_error()
-              # implicit "del e" here
+               print_error()
+               # implicit "del e" here
 
   (See :issue:`4617`.)
 
@@ -563,16 +568,19 @@ Some smaller changes made to the core Python language are:
   expect a tuple as an argument.  This is a big step forward in making the C
   structures as flexible as their pure Python counterparts:
 
+  >>> import sys
   >>> isinstance(sys.version_info, tuple)
   True
-  >>> 'Version %d.%d.%d %s(%d)' % sys.version_info
+  >>> 'Version %d.%d.%d %s(%d)' % sys.version_info # doctest: +SKIP
   'Version 3.2.0 final(0)'
 
   (Suggested by Arfrever Frehtes Taifersar Arahesis and implemented
   by Benjamin Peterson in :issue:`8413`.)
 
 * Warnings are now easier to control using the :envvar:`PYTHONWARNINGS`
-  environment variable as an alternative to using ``-W`` at the command line::
+  environment variable as an alternative to using ``-W`` at the command line:
+
+  .. code-block:: shell-session
 
     $ export PYTHONWARNINGS='ignore::RuntimeWarning::,once::UnicodeWarning::'
 
@@ -594,7 +602,9 @@ Some smaller changes made to the core Python language are:
   object ensures it closes the underlying operating system resource
   (usually, a file descriptor), the delay in deallocating the object could
   produce various issues, especially under Windows.  Here is an example
-  of enabling the warning from the command line::
+  of enabling the warning from the command line:
+
+  .. code-block:: shell-session
 
       $ python -q -Wdefault
       >>> f = open("foo", "wb")
@@ -748,18 +758,18 @@ functools
 
   >>> import functools
   >>> @functools.lru_cache(maxsize=300)
-  >>> def get_phone_number(name):
-          c = conn.cursor()
-          c.execute('SELECT phonenumber FROM phonelist WHERE name=?', (name,))
-          return c.fetchone()[0]
+  ... def get_phone_number(name):
+  ...     c = conn.cursor()
+  ...     c.execute('SELECT phonenumber FROM phonelist WHERE name=?', (name,))
+  ...     return c.fetchone()[0]
 
-  >>> for name in user_requests:
-          get_phone_number(name)        # cached lookup
+  >>> for name in user_requests:        # doctest: +SKIP
+  ...     get_phone_number(name)        # cached lookup
 
   To help with choosing an effective cache size, the wrapped function is
   instrumented for tracking cache statistics:
 
-  >>> get_phone_number.cache_info()
+  >>> get_phone_number.cache_info()     # doctest: +SKIP
   CacheInfo(hits=4805, misses=980, maxsize=300, currsize=300)
 
   If the phonelist table gets updated, the outdated contents of the cache can be
@@ -769,8 +779,8 @@ functools
 
   (Contributed by Raymond Hettinger and incorporating design ideas from Jim
   Baker, Miki Tebeka, and Nick Coghlan; see `recipe 498245
-  <http://code.activestate.com/recipes/498245>`_\, `recipe 577479
-  <http://code.activestate.com/recipes/577479>`_\, :issue:`10586`, and
+  <https://code.activestate.com/recipes/498245>`_\, `recipe 577479
+  <https://code.activestate.com/recipes/577479>`_\, :issue:`10586`, and
   :issue:`10593`.)
 
 * The :func:`functools.wraps` decorator now adds a :attr:`__wrapped__` attribute
@@ -788,7 +798,7 @@ functools
   :issue:`8814`.)
 
 * To help write classes with rich comparison methods, a new decorator
-  :func:`functools.total_ordering` will use a existing equality and inequality
+  :func:`functools.total_ordering` will use existing equality and inequality
   methods to fill in the remaining methods.
 
   For example, supplying *__eq__* and *__lt__* will enable
@@ -799,6 +809,7 @@ functools
         def __eq__(self, other):
             return ((self.lastname.lower(), self.firstname.lower()) ==
                     (other.lastname.lower(), other.firstname.lower()))
+
         def __lt__(self, other):
             return ((self.lastname.lower(), self.firstname.lower()) <
                     (other.lastname.lower(), other.firstname.lower()))
@@ -813,10 +824,10 @@ functools
   modern :term:`key function`:
 
   >>> # locale-aware sort order
-  >>> sorted(iterable, key=cmp_to_key(locale.strcoll))
+  >>> sorted(iterable, key=cmp_to_key(locale.strcoll)) # doctest: +SKIP
 
   For sorting examples and a brief sorting tutorial, see the `Sorting HowTo
-  <http://wiki.python.org/moin/HowTo/Sorting/>`_ tutorial.
+  <https://wiki.python.org/moin/HowTo/Sorting/>`_ tutorial.
 
   (Contributed by Raymond Hettinger.)
 
@@ -845,13 +856,14 @@ collections
 
 * The :class:`collections.Counter` class now has two forms of in-place
   subtraction, the existing *-=* operator for `saturating subtraction
-  <http://en.wikipedia.org/wiki/Saturation_arithmetic>`_ and the new
+  <https://en.wikipedia.org/wiki/Saturation_arithmetic>`_ and the new
   :meth:`~collections.Counter.subtract` method for regular subtraction.  The
-  former is suitable for `multisets <http://en.wikipedia.org/wiki/Multiset>`_
+  former is suitable for `multisets <https://en.wikipedia.org/wiki/Multiset>`_
   which only have positive counts, and the latter is more suitable for use cases
   that allow negative counts:
 
-  >>> tally = Counter(dogs=5, cat=3)
+  >>> from collections import Counter
+  >>> tally = Counter(dogs=5, cats=3)
   >>> tally -= Counter(dogs=2, cats=8)    # saturating subtraction
   >>> tally
   Counter({'dogs': 3})
@@ -874,6 +886,7 @@ collections
   an ordered dictionary can be used to track order of access by aging entries
   from the oldest to the most recently accessed.
 
+  >>> from collections import OrderedDict
   >>> d = OrderedDict.fromkeys(['a', 'b', 'X', 'd', 'e'])
   >>> list(d)
   ['a', 'b', 'X', 'd', 'e']
@@ -887,6 +900,7 @@ collections
   :meth:`~collections.deque.count` and :meth:`~collections.deque.reverse` that
   make them more substitutable for :class:`list` objects:
 
+  >>> from collections import deque
   >>> d = deque('simsalabim')
   >>> d.count('s')
   2
@@ -906,7 +920,7 @@ with multiple preconditions does not run until all of the predecessor tasks are
 complete.
 
 Barriers can work with an arbitrary number of threads.  This is a generalization
-of a `Rendezvous <http://en.wikipedia.org/wiki/Synchronous_rendezvous>`_ which
+of a `Rendezvous <https://en.wikipedia.org/wiki/Synchronous_rendezvous>`_ which
 is defined for only two threads.
 
 Implemented as a two-phase cyclic barrier, :class:`~threading.Barrier` objects
@@ -942,7 +956,7 @@ released and a :exc:`~threading.BrokenBarrierError` exception is raised::
     def get_votes(site):
         ballots = conduct_election(site)
         try:
-            all_polls_closed.wait(timeout = midnight - time.now())
+            all_polls_closed.wait(timeout=midnight - time.now())
         except BrokenBarrierError:
             lockbox = seal_ballots(ballots)
             queue.put(lockbox)
@@ -955,7 +969,7 @@ sites do not finish before midnight, the barrier times-out and the ballots are
 sealed and deposited in a queue for later handling.
 
 See `Barrier Synchronization Patterns
-<http://parlab.eecs.berkeley.edu/wiki/_media/patterns/paraplop_g1_3.pdf>`_ for
+<https://parlab.eecs.berkeley.edu/wiki/_media/patterns/paraplop_g1_3.pdf>`_ for
 more examples of how barriers can be used in parallel computing.  Also, there is
 a simple but thorough explanation of barriers in `The Little Book of Semaphores
 <http://greenteapress.com/semaphores/downey08semaphores.pdf>`_, *section 3.6*.
@@ -987,13 +1001,13 @@ datetime and time
   after 1900.  The new supported year range is from 1000 to 9999 inclusive.
 
 * Whenever a two-digit year is used in a time tuple, the interpretation has been
-  governed by :attr:`time.accept2dyear`.  The default is *True* which means that
+  governed by :attr:`time.accept2dyear`.  The default is ``True`` which means that
   for a two-digit year, the century is guessed according to the POSIX rules
   governing the ``%y`` strptime format.
 
   Starting with Py3.2, use of the century guessing heuristic will emit a
   :exc:`DeprecationWarning`.  Instead, it is recommended that
-  :attr:`time.accept2dyear` be set to *False* so that large date ranges
+  :attr:`time.accept2dyear` be set to ``False`` so that large date ranges
   can be used without guesswork::
 
     >>> import time, warnings
@@ -1020,7 +1034,7 @@ datetime and time
 :issue:`5094`, :issue:`6641`, :issue:`2706`, :issue:`1777412`, :issue:`8013`,
 and :issue:`10827`.)
 
-.. XXX http://bugs.python.org/issue?%40search_text=datetime&%40sort=-activity
+.. XXX https://bugs.python.org/issue?%40search_text=datetime&%40sort=-activity
 
 math
 ----
@@ -1029,9 +1043,10 @@ The :mod:`math` module has been updated with six new functions inspired by the
 C99 standard.
 
 The :func:`~math.isfinite` function provides a reliable and fast way to detect
-special values.  It returns *True* for regular numbers and *False* for *Nan* or
+special values.  It returns ``True`` for regular numbers and ``False`` for *Nan* or
 *Infinity*:
 
+>>> from math import isfinite
 >>> [isfinite(x) for x in (123, 4.56, float('Nan'), float('Inf'))]
 [True, True, False, False]
 
@@ -1039,26 +1054,32 @@ The :func:`~math.expm1` function computes ``e**x-1`` for small values of *x*
 without incurring the loss of precision that usually accompanies the subtraction
 of nearly equal quantities:
 
+>>> from math import expm1
 >>> expm1(0.013671875)   # more accurate way to compute e**x-1 for a small x
 0.013765762467652909
 
 The :func:`~math.erf` function computes a probability integral or `Gaussian
-error function <http://en.wikipedia.org/wiki/Error_function>`_.  The
+error function <https://en.wikipedia.org/wiki/Error_function>`_.  The
 complementary error function, :func:`~math.erfc`, is ``1 - erf(x)``:
 
->>> erf(1.0/sqrt(2.0))   # portion of normal distribution within 1 standard deviation
-0.682689492137086
->>> erfc(1.0/sqrt(2.0))  # portion of normal distribution outside 1 standard deviation
-0.31731050786291404
->>> erf(1.0/sqrt(2.0)) + erfc(1.0/sqrt(2.0))
-1.0
+.. doctest::
+   :options: +SKIP
+
+   >>> from math import erf, erfc, sqrt
+   >>> erf(1.0/sqrt(2.0))   # portion of normal distribution within 1 standard deviation
+   0.682689492137086
+   >>> erfc(1.0/sqrt(2.0))  # portion of normal distribution outside 1 standard deviation
+   0.31731050786291404
+   >>> erf(1.0/sqrt(2.0)) + erfc(1.0/sqrt(2.0))
+   1.0
 
 The :func:`~math.gamma` function is a continuous extension of the factorial
-function.  See http://en.wikipedia.org/wiki/Gamma_function for details.  Because
+function.  See https://en.wikipedia.org/wiki/Gamma_function for details.  Because
 the function is related to factorials, it grows large even for small values of
 *x*, so there is also a :func:`~math.lgamma` function for computing the natural
 logarithm of the gamma function:
 
+>>> from math import gamma, lgamma
 >>> gamma(7.0)           # six factorial
 720.0
 >>> lgamma(801.0)        # log(800 factorial)
@@ -1097,16 +1118,16 @@ for slice notation are well-suited to in-place editing::
     >>> REC_LEN, LOC_START, LOC_LEN = 34, 7, 11
 
     >>> def change_location(buffer, record_number, location):
-            start = record_number * REC_LEN + LOC_START
-            buffer[start: start+LOC_LEN] = location
+    ...     start = record_number * REC_LEN + LOC_START
+    ...     buffer[start: start+LOC_LEN] = location
 
     >>> import io
 
     >>> byte_stream = io.BytesIO(
-        b'G3805  storeroom  Main chassis    '
-        b'X7899  shipping   Reserve cog     '
-        b'L6988  receiving  Primary sprocket'
-    )
+    ...     b'G3805  storeroom  Main chassis    '
+    ...     b'X7899  shipping   Reserve cog     '
+    ...     b'L6988  receiving  Primary sprocket'
+    ... )
     >>> buffer = byte_stream.getbuffer()
     >>> change_location(buffer, 1, b'warehouse  ')
     >>> change_location(buffer, 0, b'showroom   ')
@@ -1131,10 +1152,10 @@ decorator, :func:`~reprlib.recursive_repr`, for detecting recursive calls to
 :meth:`__repr__` and substituting a placeholder string instead::
 
         >>> class MyList(list):
-                @recursive_repr()
-                def __repr__(self):
-                    return '<' + '|'.join(map(repr, self)) + '>'
-
+        ...     @recursive_repr()
+        ...     def __repr__(self):
+        ...         return '<' + '|'.join(map(repr, self)) + '>'
+        ...
         >>> m = MyList('abc')
         >>> m.append(m)
         >>> m.append('x')
@@ -1175,7 +1196,7 @@ exception or silently drop the event depending on the value of
 
 The use of filters has been simplified.  Instead of creating a
 :class:`~logging.Filter` object, the predicate can be any Python callable that
-returns *True* or *False*.
+returns ``True`` or ``False``.
 
 There were a number of other improvements that add flexibility and simplify
 configuration.  See the module documentation for a full listing of changes in
@@ -1197,8 +1218,8 @@ the field names::
     >>> w.writeheader()
     "name","dept"
     >>> w.writerows([
-            {'name': 'tom', 'dept': 'accounting'},
-            {'name': 'susan', 'dept': 'Salesl'}])
+    ...     {'name': 'tom', 'dept': 'accounting'},
+    ...     {'name': 'susan', 'dept': 'Salesl'}])
     "tom","accounting"
     "susan","sales"
 
@@ -1235,9 +1256,9 @@ definition::
 
     @contextmanager
     def track_entry_and_exit(name):
-        logging.info('Entering: {}'.format(name))
+        logging.info('Entering: %s', name)
         yield
-        logging.info('Exiting: {}'.format(name))
+        logging.info('Exiting: %s', name)
 
 Formerly, this would have only been usable as a context manager::
 
@@ -1277,7 +1298,7 @@ Some of the hashing details are exposed through a new attribute,
 prime modulus, the hash values for *infinity* and *nan*, and the multiplier
 used for the imaginary part of a number:
 
->>> sys.hash_info
+>>> sys.hash_info # doctest: +SKIP
 sys.hash_info(width=64, modulus=2305843009213693951, inf=314159, nan=0, imag=1000003)
 
 An early decision to limit the inter-operability of various numeric types has
@@ -1300,6 +1321,8 @@ Similar changes were made to :class:`fractions.Fraction` so that the
 :meth:`~fractions.Fraction.from_float()` and :meth:`~fractions.Fraction.from_decimal`
 methods are no longer needed (:issue:`8294`):
 
+>>> from decimal import Decimal
+>>> from fractions import Fraction
 >>> Decimal(1.1)
 Decimal('1.100000000000000088817841970012523233890533447265625')
 >>> Fraction(1.1)
@@ -1364,7 +1387,7 @@ guaranteed not to block when :func:`select.select` says a pipe is ready
 for writing.
 
 >>> import select
->>> select.PIPE_BUF
+>>> select.PIPE_BUF  # doctest: +SKIP
 512
 
 (Available on Unix systems. Patch by Sébastien Sablé in :issue:`9862`)
@@ -1382,6 +1405,7 @@ The :mod:`gzip` module also gains the :func:`~gzip.compress` and
 decompression.  Keep in mind that text needs to be encoded as :class:`bytes`
 before compressing and decompressing:
 
+>>> import gzip
 >>> s = 'Three shall be the number thou shalt count, '
 >>> s += 'and the number of the counting shall be three'
 >>> b = s.encode()                        # convert to utf-8
@@ -1391,7 +1415,7 @@ before compressing and decompressing:
 >>> len(c)
 77
 >>> gzip.decompress(c).decode()[:42]      # decompress and convert to text
-'Three shall be the number thou shalt count,'
+'Three shall be the number thou shalt count'
 
 (Contributed by Anand B. Pillai in :issue:`3488`; and by Antoine Pitrou, Nir
 Aides and Brian Curtin in :issue:`9962`, :issue:`1675951`, :issue:`7471` and
@@ -1399,7 +1423,7 @@ Aides and Brian Curtin in :issue:`9962`, :issue:`1675951`, :issue:`7471` and
 
 Also, the :class:`zipfile.ZipExtFile` class was reworked internally to represent
 files stored inside an archive.  The new implementation is significantly faster
-and can be wrapped in a :class:`io.BufferedReader` object for more speedups.  It
+and can be wrapped in an :class:`io.BufferedReader` object for more speedups.  It
 also solves an issue where interleaved calls to *read* and *readline* gave the
 wrong results.
 
@@ -1418,19 +1442,19 @@ which is now deprecated.  If specified, the optional *filter* parameter needs to
 be a :term:`keyword argument`.  The user-supplied filter function accepts a
 :class:`~tarfile.TarInfo` object and returns an updated
 :class:`~tarfile.TarInfo` object, or if it wants the file to be excluded, the
-function can return *None*::
+function can return ``None``::
 
     >>> import tarfile, glob
 
     >>> def myfilter(tarinfo):
-           if tarinfo.isfile():             # only save real files
-                tarinfo.uname = 'monty'     # redact the user name
-                return tarinfo
+    ...     if tarinfo.isfile():             # only save real files
+    ...         tarinfo.uname = 'monty'      # redact the user name
+    ...         return tarinfo
 
     >>> with tarfile.open(name='myarchive.tar.gz', mode='w:gz') as tf:
-            for filename in glob.glob('*.txt'):
-                tf.add(filename, filter=myfilter)
-            tf.list()
+    ...     for filename in glob.glob('*.txt'):
+    ...         tf.add(filename, filter=myfilter)
+    ...     tf.list()
     -rw-r--r-- monty/501        902 2011-01-26 17:59:11 annotations.txt
     -rw-r--r-- monty/501        123 2011-01-26 17:59:11 general_questions.txt
     -rw-r--r-- monty/501       3514 2011-01-26 17:59:11 prion.txt
@@ -1467,7 +1491,7 @@ evaluating expression strings using the Python literal
 syntax.  The :func:`ast.literal_eval` function serves as a secure alternative to
 the builtin :func:`eval` function which is easily abused.  Python 3.2 adds
 :class:`bytes` and :class:`set` literals to the list of supported types:
-strings, bytes, numbers, tuples, lists, dicts, sets, booleans, and None.
+strings, bytes, numbers, tuples, lists, dicts, sets, booleans, and ``None``.
 
 ::
 
@@ -1493,6 +1517,7 @@ variables.  The :mod:`os` module provides two new functions,
 :func:`~os.fsencode` and :func:`~os.fsdecode`, for encoding and decoding
 filenames:
 
+>>> import os
 >>> filename = 'Sehenswürdigkeiten'
 >>> os.fsencode(filename)
 b'Sehensw\xc3\xbcrdigkeiten'
@@ -1536,26 +1561,26 @@ step is non-destructive (the original files are left unchanged).
 
     >>> import shutil, pprint
 
-    >>> os.chdir('mydata')                               # change to the source directory
+    >>> os.chdir('mydata')  # change to the source directory
     >>> f = shutil.make_archive('/var/backup/mydata',
-                                'zip')                   # archive the current directory
-    >>> f                                                # show the name of archive
+    ...                         'zip')      # archive the current directory
+    >>> f                                   # show the name of archive
     '/var/backup/mydata.zip'
-    >>> os.chdir('tmp')                                  # change to an unpacking
+    >>> os.chdir('tmp')                     # change to an unpacking
     >>> shutil.unpack_archive('/var/backup/mydata.zip')  # recover the data
 
-    >>> pprint.pprint(shutil.get_archive_formats())      # display known formats
+    >>> pprint.pprint(shutil.get_archive_formats())  # display known formats
     [('bztar', "bzip2'ed tar-file"),
      ('gztar', "gzip'ed tar-file"),
      ('tar', 'uncompressed tar file'),
      ('zip', 'ZIP file')]
 
-    >>> shutil.register_archive_format(                  # register a new archive format
-            name = 'xz',
-            function = xz.compress,                      # callable archiving function
-            extra_args = [('level', 8)],                 # arguments to the function
-            description = 'xz compression'
-    )
+    >>> shutil.register_archive_format(     # register a new archive format
+    ...     name='xz',
+    ...     function=xz.compress,           # callable archiving function
+    ...     extra_args=[('level', 8)],      # arguments to the function
+    ...     description='xz compression'
+    ... )
 
 (Contributed by Tarek Ziadé.)
 
@@ -1618,7 +1643,7 @@ for secure (encrypted, authenticated) internet connections:
 * The :func:`ssl.wrap_socket` constructor function now takes a *ciphers*
   argument.  The *ciphers* string lists the allowed encryption algorithms using
   the format described in the `OpenSSL documentation
-  <http://www.openssl.org/docs/apps/ciphers.html#CIPHER_LIST_FORMAT>`__.
+  <https://www.openssl.org/docs/manmaster/man1/ciphers.html#CIPHER-LIST-FORMAT>`__.
 
 * When linked against recent versions of OpenSSL, the :mod:`ssl` module now
   supports the Server Name Indication extension to the TLS protocol, allowing
@@ -1718,7 +1743,9 @@ names.
   test discovery can find tests within packages, locating any test importable
   from the top-level directory.  The top-level directory can be specified with
   the `-t` option, a pattern for matching files with ``-p``, and a directory to
-  start discovery with ``-s``::
+  start discovery with ``-s``:
+
+  .. code-block:: shell-session
 
     $ python -m unittest discover -s my_proj_dir -p _test.py
 
@@ -1728,6 +1755,7 @@ names.
   :class:`unittest.case.TestCase` class can now be instantiated without
   arguments:
 
+  >>> from unittest import TestCase
   >>> TestCase().assertEqual(pow(2, 3), 8)
 
   (Contributed by Michael Foord.)
@@ -1854,7 +1882,7 @@ inspect
 
     >>> from inspect import getgeneratorstate
     >>> def gen():
-            yield 'demo'
+    ...     yield 'demo'
     >>> g = gen()
     >>> getgeneratorstate(g)
     'GEN_CREATED'
@@ -1874,11 +1902,11 @@ inspect
   change state while it is searching::
 
     >>> class A:
-            @property
-            def f(self):
-                print('Running')
-                return 10
-
+    ...     @property
+    ...     def f(self):
+    ...         print('Running')
+    ...         return 10
+    ...
     >>> a = A()
     >>> getattr(a, 'f')
     Running
@@ -1893,7 +1921,9 @@ pydoc
 
 The :mod:`pydoc` module now provides a much-improved Web server interface, as
 well as a new command-line option ``-b`` to automatically open a browser window
-to display that server::
+to display that server:
+
+.. code-block:: shell-session
 
     $ pydoc3.2 -b
 
@@ -1996,7 +2026,9 @@ details of a given Python installation.
     '/Users/raymondhettinger/Library/Python/3.2/lib/python/site-packages'
 
 Conveniently, some of site's functionality is accessible directly from the
-command-line::
+command-line:
+
+.. code-block:: shell-session
 
     $ python -m site --user-base
     /Users/raymondhettinger/.local
@@ -2029,7 +2061,9 @@ seven named schemes used by :mod:`distutils`.  Those include *posix_prefix*,
 * :func:`~sysconfig.get_config_vars` returns a dictionary of platform specific
   variables.
 
-There is also a convenient command-line interface::
+There is also a convenient command-line interface:
+
+.. code-block:: doscon
 
   C:\Python32>python -m sysconfig
   Platform: "win32"
@@ -2102,19 +2136,19 @@ Config parsers gained a new API based on the mapping protocol::
 
     >>> parser = ConfigParser()
     >>> parser.read_string("""
-    [DEFAULT]
-    location = upper left
-    visible = yes
-    editable = no
-    color = blue
-
-    [main]
-    title = Main Menu
-    color = green
-
-    [options]
-    title = Options
-    """)
+    ... [DEFAULT]
+    ... location = upper left
+    ... visible = yes
+    ... editable = no
+    ... color = blue
+    ...
+    ... [main]
+    ... title = Main Menu
+    ... color = green
+    ...
+    ... [options]
+    ... title = Options
+    ... """)
     >>> parser['main']['color']
     'green'
     >>> parser['main']['editable']
@@ -2138,24 +2172,24 @@ handler :class:`~configparser.ExtendedInterpolation`::
 
   >>> parser = ConfigParser(interpolation=ExtendedInterpolation())
   >>> parser.read_dict({'buildout': {'directory': '/home/ambv/zope9'},
-                        'custom': {'prefix': '/usr/local'}})
+  ...                   'custom': {'prefix': '/usr/local'}})
   >>> parser.read_string("""
-      [buildout]
-      parts =
-        zope9
-        instance
-      find-links =
-        ${buildout:directory}/downloads/dist
-
-      [zope9]
-      recipe = plone.recipe.zope9install
-      location = /opt/zope
-
-      [instance]
-      recipe = plone.recipe.zope9instance
-      zope9-location = ${zope9:location}
-      zope-conf = ${custom:prefix}/etc/zope.conf
-      """)
+  ... [buildout]
+  ... parts =
+  ...   zope9
+  ...   instance
+  ... find-links =
+  ...   ${buildout:directory}/downloads/dist
+  ...
+  ... [zope9]
+  ... recipe = plone.recipe.zope9install
+  ... location = /opt/zope
+  ...
+  ... [instance]
+  ... recipe = plone.recipe.zope9instance
+  ... zope9-location = ${zope9:location}
+  ... zope-conf = ${custom:prefix}/etc/zope.conf
+  ... """)
   >>> parser['buildout']['find-links']
   '\n/home/ambv/zope9/downloads/dist'
   >>> parser['instance']['zope-conf']
@@ -2180,10 +2214,10 @@ urllib.parse
 A number of usability improvements were made for the :mod:`urllib.parse` module.
 
 The :func:`~urllib.parse.urlparse` function now supports `IPv6
-<http://en.wikipedia.org/wiki/IPv6>`_ addresses as described in :rfc:`2732`:
+<https://en.wikipedia.org/wiki/IPv6>`_ addresses as described in :rfc:`2732`:
 
     >>> import urllib.parse
-    >>> urllib.parse.urlparse('http://[dead:beef:cafe:5417:affe:8FA3:deaf:feed]/foo/')
+    >>> urllib.parse.urlparse('http://[dead:beef:cafe:5417:affe:8FA3:deaf:feed]/foo/') # doctest: +NORMALIZE_WHITESPACE
     ParseResult(scheme='http',
                 netloc='[dead:beef:cafe:5417:affe:8FA3:deaf:feed]',
                 path='/foo/',
@@ -2207,9 +2241,9 @@ string, then the *safe*, *encoding*, and *error* parameters are sent to
 :func:`~urllib.parse.quote_plus` for encoding::
 
     >>> urllib.parse.urlencode([
-             ('type', 'telenovela'),
-             ('name', '¿Dónde Está Elisa?')],
-             encoding='latin-1')
+    ...      ('type', 'telenovela'),
+    ...      ('name', '¿Dónde Está Elisa?')],
+    ...      encoding='latin-1')
     'type=telenovela&name=%BFD%F3nde+Est%E1+Elisa%3F'
 
 As detailed in :ref:`parsing-ascii-encoded-bytes`, all the :mod:`urllib.parse`
@@ -2217,7 +2251,7 @@ functions now accept ASCII-encoded byte strings as input, so long as they are
 not mixed with regular strings.  If ASCII-encoded byte strings are given as
 parameters, the return types will also be an ASCII-encoded byte strings:
 
-    >>> urllib.parse.urlparse(b'http://www.python.org:80/about/')
+    >>> urllib.parse.urlparse(b'http://www.python.org:80/about/') # doctest: +NORMALIZE_WHITESPACE
     ParseResultBytes(scheme=b'http', netloc=b'www.python.org:80',
                      path=b'/about/', params=b'', query=b'', fragment=b'')
 
@@ -2263,7 +2297,9 @@ turtledemo
 The demonstration code for the :mod:`turtle` module was moved from the *Demo*
 directory to main library.  It includes over a dozen sample scripts with
 lively displays.  Being on :attr:`sys.path`, it can now be run directly
-from the command-line::
+from the command-line:
+
+.. code-block:: shell-session
 
     $ python -m turtledemo
 
@@ -2283,7 +2319,7 @@ Multi-threading
 
   Additional details about the implementation can be read from a `python-dev
   mailing-list message
-  <http://mail.python.org/pipermail/python-dev/2009-October/093321.html>`_
+  <https://mail.python.org/pipermail/python-dev/2009-October/093321.html>`_
   (however, "priority requests" as exposed in this message have not been kept
   for inclusion).
 
@@ -2328,7 +2364,7 @@ A number of small performance enhancements have been added:
   (Contributed by Alexandre Vassalotti, Antoine Pitrou
   and the Unladen Swallow team in :issue:`9410` and :issue:`3873`.)
 
-* The `Timsort algorithm <http://en.wikipedia.org/wiki/Timsort>`_ used in
+* The `Timsort algorithm <https://en.wikipedia.org/wiki/Timsort>`_ used in
   :meth:`list.sort` and :func:`sorted` now runs faster and uses less memory
   when called with a :term:`key function`.  Previously, every element of
   a list was wrapped with a temporary object that remembered the key value
@@ -2380,7 +2416,7 @@ Unicode
 
 Python has been updated to `Unicode 6.0.0
 <http://unicode.org/versions/Unicode6.0.0/>`_.  The update to the standard adds
-over 2,000 new characters including `emoji <http://en.wikipedia.org/wiki/Emoji>`_
+over 2,000 new characters including `emoji <https://en.wikipedia.org/wiki/Emoji>`_
 symbols which are important for mobile phones.
 
 In addition, the updated standard has altered the character properties for two
@@ -2432,7 +2468,7 @@ The documentation continues to be improved.
     **Source code** :source:`Lib/functools.py`.
 
   (Contributed by Raymond Hettinger; see
-  `rationale <http://rhettinger.wordpress.com/2011/01/28/open-your-source-more/>`_.)
+  `rationale <https://rhettinger.wordpress.com/2011/01/28/open-your-source-more/>`_.)
 
 * The docs now contain more examples and recipes.  In particular, :mod:`re`
   module has an extensive section, :ref:`re-examples`.  Likewise, the
@@ -2468,8 +2504,8 @@ Code Repository
 ===============
 
 In addition to the existing Subversion code repository at http://svn.python.org
-there is now a `Mercurial <http://mercurial.selenic.com/>`_ repository at
-http://hg.python.org/\ .
+there is now a `Mercurial <https://www.mercurial-scm.org/>`_ repository at
+https://hg.python.org/\ .
 
 After the 3.2 release, there are plans to switch to Mercurial as the primary
 repository.  This distributed version control system should make it easier for
@@ -2478,7 +2514,7 @@ members of the community to create and share external changesets.  See
 
 To learn to use the new version control system, see the `tutorial by Joel
 Spolsky <http://hginit.com>`_ or the `Guide to Mercurial Workflows
-<http://mercurial.selenic.com/guide/>`_.
+<https://www.mercurial-scm.org/guide>`_.
 
 
 Build and C API Changes
@@ -2559,8 +2595,8 @@ Also, there were a number of updates to the Mac OS X build, see
 :source:`Mac/BuildScript/README.txt` for details.  For users running a 32/64-bit
 build, there is a known problem with the default Tcl/Tk on Mac OS X 10.6.
 Accordingly, we recommend installing an updated alternative such as
-`ActiveState Tcl/Tk 8.5.9 <http://www.activestate.com/activetcl/downloads>`_\.
-See http://www.python.org/download/mac/tcltk/ for additional details.
+`ActiveState Tcl/Tk 8.5.9 <https://www.activestate.com/activetcl/downloads>`_\.
+See https://www.python.org/download/mac/tcltk/ for additional details.
 
 Porting to Python 3.2
 =====================
@@ -2649,7 +2685,7 @@ require changes to your code:
                 outfile.write(line)
 
   (Contributed by Georg Brandl and Mattias Brändström;
-  `appspot issue 53094 <http://codereview.appspot.com/53094>`_.)
+  `appspot issue 53094 <https://codereview.appspot.com/53094>`_.)
 
 * :func:`struct.pack` now only allows bytes for the ``s`` string pack code.
   Formerly, it would accept text arguments and implicitly encode them to bytes
@@ -2664,7 +2700,7 @@ require changes to your code:
 
 * The :class:`xml.etree.ElementTree` class now raises an
   :exc:`xml.etree.ElementTree.ParseError` when a parse fails. Previously it
-  raised a :exc:`xml.parsers.expat.ExpatError`.
+  raised an :exc:`xml.parsers.expat.ExpatError`.
 
 * The new, longer :func:`str` value on floats may break doctests which rely on
   the old output format.
@@ -2699,4 +2735,3 @@ require changes to your code:
 
 * Due to the new :term:`GIL` implementation, :c:func:`PyEval_InitThreads()`
   cannot be called before :c:func:`Py_Initialize()` anymore.
-

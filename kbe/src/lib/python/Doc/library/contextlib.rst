@@ -18,28 +18,57 @@ Utilities
 
 Functions and classes provided:
 
+.. class:: AbstractContextManager
+
+   An :term:`abstract base class` for classes that implement
+   :meth:`object.__enter__` and :meth:`object.__exit__`. A default
+   implementation for :meth:`object.__enter__` is provided which returns
+   ``self`` while :meth:`object.__exit__` is an abstract method which by default
+   returns ``None``. See also the definition of :ref:`typecontextmanager`.
+
+   .. versionadded:: 3.6
+
+
+.. class:: AbstractAsyncContextManager
+
+   An :term:`abstract base class` for classes that implement
+   :meth:`object.__aenter__` and :meth:`object.__aexit__`. A default
+   implementation for :meth:`object.__aenter__` is provided which returns
+   ``self`` while :meth:`object.__aexit__` is an abstract method which by default
+   returns ``None``. See also the definition of
+   :ref:`async-context-managers`.
+
+   .. versionadded:: 3.7
+
+
 .. decorator:: contextmanager
 
    This function is a :term:`decorator` that can be used to define a factory
    function for :keyword:`with` statement context managers, without needing to
    create a class or separate :meth:`__enter__` and :meth:`__exit__` methods.
 
-   A simple example (this is not recommended as a real way of generating HTML!)::
+   While many objects natively support use in with statements, sometimes a
+   resource needs to be managed that isn't a context manager in its own right,
+   and doesn't implement a ``close()`` method for use with ``contextlib.closing``
+
+   An abstract example would be the following to ensure correct resource
+   management::
 
       from contextlib import contextmanager
 
       @contextmanager
-      def tag(name):
-          print("<%s>" % name)
-          yield
-          print("</%s>" % name)
+      def managed_resource(*args, **kwds):
+          # Code to acquire resource, e.g.:
+          resource = acquire_resource(*args, **kwds)
+          try:
+              yield resource
+          finally:
+              # Code to release resource, e.g.:
+              release_resource(resource)
 
-      >>> with tag("h1"):
-      ...    print("foo")
-      ...
-      <h1>
-      foo
-      </h1>
+      >>> with managed_resource(timeout=3600) as resource:
+      ...     # Resource is released at the end of this block,
+      ...     # even if code in the block raises an exception
 
    The function being decorated must return a :term:`generator`-iterator when
    called. This iterator must yield exactly one value, which will be bound to
@@ -68,6 +97,36 @@ Functions and classes provided:
       Use of :class:`ContextDecorator`.
 
 
+.. decorator:: asynccontextmanager
+
+   Similar to :func:`~contextlib.contextmanager`, but creates an
+   :ref:`asynchronous context manager <async-context-managers>`.
+
+   This function is a :term:`decorator` that can be used to define a factory
+   function for :keyword:`async with` statement asynchronous context managers,
+   without needing to create a class or separate :meth:`__aenter__` and
+   :meth:`__aexit__` methods. It must be applied to an :term:`asynchronous
+   generator` function.
+
+   A simple example::
+
+      from contextlib import asynccontextmanager
+
+      @asynccontextmanager
+      async def get_connection():
+          conn = await acquire_db_connection()
+          try:
+              yield conn
+          finally:
+              await release_db_connection(conn)
+
+      async def get_all_users():
+          async with get_connection() as conn:
+              return conn.query('SELECT ...')
+
+   .. versionadded:: 3.7
+
+
 .. function:: closing(thing)
 
    Return a context manager that closes *thing* upon completion of the block.  This
@@ -93,6 +152,40 @@ Functions and classes provided:
 
    without needing to explicitly close ``page``.  Even if an error occurs,
    ``page.close()`` will be called when the :keyword:`with` block is exited.
+
+
+.. _simplifying-support-for-single-optional-context-managers:
+
+.. function:: nullcontext(enter_result=None)
+
+   Return a context manager that returns *enter_result* from ``__enter__``, but
+   otherwise does nothing. It is intended to be used as a stand-in for an
+   optional context manager, for example::
+
+      def myfunction(arg, ignore_exceptions=False):
+          if ignore_exceptions:
+              # Use suppress to ignore all exceptions.
+              cm = contextlib.suppress(Exception)
+          else:
+              # Do not ignore any exceptions, cm has no effect.
+              cm = contextlib.nullcontext()
+          with cm:
+              # Do something
+
+   An example using *enter_result*::
+
+      def process_file(file_or_path):
+          if isinstance(file_or_path, str):
+              # If string, open file
+              cm = open(file_or_path)
+          else:
+              # Caller is responsible for closing file
+              cm = nullcontext(file_or_path)
+
+          with cm as file:
+              # Perform processing on the file
+
+   .. versionadded:: 3.7
 
 
 .. function:: suppress(*exceptions)
@@ -142,7 +235,7 @@ Functions and classes provided:
    is hardwired to stdout.
 
    For example, the output of :func:`help` normally is sent to *sys.stdout*.
-   You can capture that output in a string by redirecting the output to a
+   You can capture that output in a string by redirecting the output to an
    :class:`io.StringIO` object::
 
         f = io.StringIO()
@@ -167,9 +260,19 @@ Functions and classes provided:
    applications. It also has no effect on the output of subprocesses.
    However, it is still a useful approach for many utility scripts.
 
-   This context manager is :ref:`reusable but not reentrant <reusable-cms>`.
+   This context manager is :ref:`reentrant <reentrant-cms>`.
 
    .. versionadded:: 3.4
+
+
+.. function:: redirect_stderr(new_target)
+
+   Similar to :func:`~contextlib.redirect_stdout` but redirecting
+   :data:`sys.stderr` to another file or file-like object.
+
+   This context manager is :ref:`reentrant <reentrant-cms>`.
+
+   .. versionadded:: 3.5
 
 
 .. class:: ContextDecorator()
@@ -350,6 +453,44 @@ Functions and classes provided:
       callbacks registered, the arguments passed in will indicate that no
       exception occurred.
 
+.. class:: AsyncExitStack()
+
+   An :ref:`asynchronous context manager <async-context-managers>`, similar
+   to :class:`ExitStack`, that supports combining both synchronous and
+   asynchronous context managers, as well as having coroutines for
+   cleanup logic.
+
+   The :meth:`close` method is not implemented, :meth:`aclose` must be used
+   instead.
+
+   .. method:: enter_async_context(cm)
+
+      Similar to :meth:`enter_context` but expects an asynchronous context
+      manager.
+
+   .. method:: push_async_exit(exit)
+
+      Similar to :meth:`push` but expects either an asynchronous context manager
+      or a coroutine function.
+
+   .. method:: push_async_callback(callback, *args, **kwds)
+
+      Similar to :meth:`callback` but expects a coroutine function.
+
+   .. method:: aclose()
+
+      Similar to :meth:`close` but properly handles awaitables.
+
+   Continuing the example for :func:`asynccontextmanager`::
+
+      async with AsyncExitStack() as stack:
+          connections = [await stack.enter_async_context(get_connection())
+              for i in range(5)]
+          # All opened connections will automatically be released at the end of
+          # the async with statement, even if attempts to open a connection
+          # later in the list raise an exception.
+
+   .. versionadded:: 3.7
 
 Examples and Recipes
 --------------------
@@ -379,24 +520,6 @@ some of the context managers being optional::
 As shown, :class:`ExitStack` also makes it quite easy to use :keyword:`with`
 statements to manage arbitrary resources that don't natively support the
 context management protocol.
-
-
-Simplifying support for single optional context managers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In the specific case of a single optional context manager, :class:`ExitStack`
-instances can be used as a "do nothing" context manager, allowing a context
-manager to easily be omitted without affecting the overall structure of
-the source code::
-
-   def debug_trace(details):
-       if __debug__:
-           return TraceContext(details)
-       # Don't do anything special with the context in release mode
-       return ExitStack()
-
-   with debug_trace():
-       # Suite is traced in debug mode, but runs normally otherwise
 
 
 Catching exceptions from ``__enter__`` methods
@@ -437,9 +560,9 @@ Here's an example of doing this for a context manager that accepts resource
 acquisition and release functions, along with an optional validation function,
 and maps them to the context management protocol::
 
-   from contextlib import contextmanager, ExitStack
+   from contextlib import contextmanager, AbstractContextManager, ExitStack
 
-   class ResourceManager:
+   class ResourceManager(AbstractContextManager):
 
        def __init__(self, acquire_resource, release_resource, check_resource_ok=None):
            self.acquire_resource = acquire_resource
@@ -543,7 +666,7 @@ advance::
 
 Due to the way the decorator protocol works, a callback function
 declared this way cannot take any parameters. Instead, any resources to
-be released must be accessed as closure variables
+be released must be accessed as closure variables.
 
 
 Using a context manager as a function decorator
@@ -568,10 +691,10 @@ single definition::
             self.name = name
 
         def __enter__(self):
-            logging.info('Entering: {}'.format(name))
+            logging.info('Entering: %s', self.name)
 
         def __exit__(self, exc_type, exc, exc_tb):
-            logging.info('Exiting: {}'.format(name))
+            logging.info('Exiting: %s', self.name)
 
 Instances of this class can be used as both a context manager::
 
@@ -593,7 +716,7 @@ an explicit ``with`` statement.
 
 .. seealso::
 
-   :pep:`0343` - The "with" statement
+   :pep:`343` - The "with" statement
       The specification, background, and examples for the Python :keyword:`with`
       statement.
 
@@ -634,7 +757,7 @@ to yield if an attempt is made to use them a second time::
     Before
     After
     >>> with cm:
-    ...    pass
+    ...     pass
     ...
     Traceback (most recent call last):
         ...

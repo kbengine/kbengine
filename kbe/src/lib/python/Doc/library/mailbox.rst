@@ -3,9 +3,13 @@
 
 .. module:: mailbox
    :synopsis: Manipulate mailboxes in various formats
+
 .. moduleauthor:: Gregory K. Johnson <gkj@gregorykjohnson.com>
 .. sectionauthor:: Gregory K. Johnson <gkj@gregorykjohnson.com>
 
+**Source code:** :source:`Lib/mailbox.py`
+
+--------------
 
 This module defines two classes, :class:`Mailbox` and :class:`Message`, for
 accessing and manipulating on-disk mailboxes and the messages they contain.
@@ -422,7 +426,7 @@ Supported mailbox formats are Maildir, mbox, MH, Babyl, and MMDF.
    `maildir man page from qmail <http://www.qmail.org/man/man5/maildir.html>`_
       The original specification of the format.
 
-   `Using maildir format <http://cr.yp.to/proto/maildir.html>`_
+   `Using maildir format <https://cr.yp.to/proto/maildir.html>`_
       Notes on Maildir by its inventor. Includes an updated name-creation scheme and
       details on "info" semantics.
 
@@ -484,10 +488,10 @@ Supported mailbox formats are Maildir, mbox, MH, Babyl, and MMDF.
    `mbox man page from tin <http://www.tin.org/bin/man.cgi?section=5&topic=mbox>`_
       Another specification of the format, with details on locking.
 
-   `Configuring Netscape Mail on Unix: Why The Content-Length Format is Bad <http://www.jwz.org/doc/content-length.html>`_
+   `Configuring Netscape Mail on Unix: Why The Content-Length Format is Bad <https://www.jwz.org/doc/content-length.html>`_
       An argument for using the original mbox format rather than a variation.
 
-   `"mbox" is a family of several mutually incompatible mailbox formats <http://homepages.tesco.net./~J.deBoynePollard/FGA/mail-mbox-formats.html>`_
+   `"mbox" is a family of several mutually incompatible mailbox formats <https://www.loc.gov/preservation/digital/formats/fdd/fdd000383.shtml>`_
       A history of mbox variations.
 
 
@@ -616,7 +620,7 @@ Supported mailbox formats are Maildir, mbox, MH, Babyl, and MMDF.
    `nmh - Message Handling System <http://www.nongnu.org/nmh/>`_
       Home page of :program:`nmh`, an updated version of the original :program:`mh`.
 
-   `MH & nmh: Email for Users & Programmers <http://rand-mh.sourceforge.net/book/>`_
+   `MH & nmh: Email for Users & Programmers <https://rand-mh.sourceforge.io/book/>`_
       A GPL-licensed book on :program:`mh` and :program:`nmh`, with some information
       on the mailbox format.
 
@@ -674,7 +678,7 @@ Supported mailbox formats are Maildir, mbox, MH, Babyl, and MMDF.
 
       In Babyl mailboxes, the headers of a message are not stored contiguously
       with the body of the message. To generate a file-like representation, the
-      headers and body are copied together into a :class:`io.BytesIO` instance,
+      headers and body are copied together into an :class:`io.BytesIO` instance,
       which has an API identical to that of a
       file. As a result, the file-like object is truly independent of the
       underlying mailbox but does not save memory compared to a string
@@ -690,10 +694,10 @@ Supported mailbox formats are Maildir, mbox, MH, Babyl, and MMDF.
 
 .. seealso::
 
-   `Format of Version 5 Babyl Files <http://quimby.gnus.org/notes/BABYL>`_
+   `Format of Version 5 Babyl Files <https://quimby.gnus.org/notes/BABYL>`_
       A specification of the Babyl format.
 
-   `Reading Mail with Rmail <http://www.gnu.org/software/emacs/manual/html_node/emacs/Rmail.html>`_
+   `Reading Mail with Rmail <https://www.gnu.org/software/emacs/manual/html_node/emacs/Rmail.html>`_
       The Rmail manual, with some information on Babyl semantics.
 
 
@@ -744,7 +748,7 @@ Supported mailbox formats are Maildir, mbox, MH, Babyl, and MMDF.
    `mmdf man page from tin <http://www.tin.org/bin/man.cgi?section=5&topic=mmdf>`_
       A specification of MMDF format from the documentation of tin, a newsreader.
 
-   `MMDF <http://en.wikipedia.org/wiki/MMDF>`_
+   `MMDF <https://en.wikipedia.org/wiki/MMDF>`_
       A Wikipedia article describing the Multichannel Memorandum Distribution
       Facility.
 

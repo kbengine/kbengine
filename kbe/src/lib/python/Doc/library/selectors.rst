@@ -1,11 +1,14 @@
-:mod:`selectors` -- High-level I/O multiplexing
-===============================================
+:mod:`selectors` --- High-level I/O multiplexing
+================================================
 
 .. module:: selectors
    :synopsis: High-level I/O multiplexing.
 
 .. versionadded:: 3.4
 
+**Source code:** :source:`Lib/selectors.py`
+
+--------------
 
 Introduction
 ------------
@@ -45,12 +48,13 @@ Classes hierarchy::
    +-- SelectSelector
    +-- PollSelector
    +-- EpollSelector
+   +-- DevpollSelector
    +-- KqueueSelector
 
 
 In the following, *events* is a bitwise mask indicating which I/O events should
-be waited for on a given file object. It can be a combination of the constants
-below:
+be waited for on a given file object. It can be a combination of the modules
+constants below:
 
    +-----------------------+-----------------------------------------------+
    | Constant              | Meaning                                       |
@@ -64,7 +68,7 @@ below:
 .. class:: SelectorKey
 
    A :class:`SelectorKey` is a :class:`~collections.namedtuple` used to
-   associate a file object to its underlying file decriptor, selected event
+   associate a file object to its underlying file descriptor, selected event
    mask and attached data. It is returned by several :class:`BaseSelector`
    methods.
 
@@ -98,7 +102,7 @@ below:
    :class:`BaseSelector` and its concrete implementations support the
    :term:`context manager` protocol.
 
-   .. method:: register(fileobj, events, data=None)
+   .. abstractmethod:: register(fileobj, events, data=None)
 
       Register a file object for selection, monitoring it for I/O events.
 
@@ -111,7 +115,7 @@ below:
       :exc:`ValueError` in case of invalid event mask or file descriptor, or
       :exc:`KeyError` if the file object is already registered.
 
-   .. method:: unregister(fileobj)
+   .. abstractmethod:: unregister(fileobj)
 
       Unregister a file object from selection, removing it from monitoring. A
       file object shall be unregistered prior to being closed.
@@ -135,7 +139,7 @@ below:
       :exc:`ValueError` in case of invalid event mask or file descriptor, or
       :exc:`KeyError` if the file object is not registered.
 
-   .. method:: select(timeout=None)
+   .. abstractmethod:: select(timeout=None)
 
       Wait until some registered file objects become ready, or the timeout
       expires.
@@ -158,6 +162,12 @@ below:
           timeout has elapsed if the current process receives a signal: in this
           case, an empty list will be returned.
 
+      .. versionchanged:: 3.5
+         The selector is now retried with a recomputed timeout when interrupted
+         by a signal if the signal handler did not raise an exception (see
+         :pep:`475` for the rationale), instead of returning an empty list
+         of events before the timeout.
+
    .. method:: close()
 
       Close the selector.
@@ -172,7 +182,7 @@ below:
       This returns the :class:`SelectorKey` instance associated to this file
       object, or raises :exc:`KeyError` if the file object is not registered.
 
-   .. method:: get_map()
+   .. abstractmethod:: get_map()
 
       Return a mapping of file objects to selector keys.
 
@@ -207,6 +217,16 @@ below:
       This returns the file descriptor used by the underlying
       :func:`select.epoll` object.
 
+.. class:: DevpollSelector()
+
+   :func:`select.devpoll`-based selector.
+
+   .. method:: fileno()
+
+      This returns the file descriptor used by the underlying
+      :func:`select.devpoll` object.
+
+   .. versionadded:: 3.5
 
 .. class:: KqueueSelector()
 

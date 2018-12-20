@@ -39,7 +39,7 @@ Importing Modules
       behaviour isn't needed anymore.
 
 
-.. c:function:: PyObject* PyImport_ImportModuleEx(char *name, PyObject *globals, PyObject *locals, PyObject *fromlist)
+.. c:function:: PyObject* PyImport_ImportModuleEx(const char *name, PyObject *globals, PyObject *locals, PyObject *fromlist)
 
    .. index:: builtin: __import__
 
@@ -70,9 +70,9 @@ Importing Modules
    .. versionadded:: 3.3
 
 
-.. c:function:: PyObject* PyImport_ImportModuleLevel(char *name, PyObject *globals, PyObject *locals, PyObject *fromlist, int level)
+.. c:function:: PyObject* PyImport_ImportModuleLevel(const char *name, PyObject *globals, PyObject *locals, PyObject *fromlist, int level)
 
-   Similar to :c:func:`PyImport_ImportModuleLevelObject`, but the name is an
+   Similar to :c:func:`PyImport_ImportModuleLevelObject`, but the name is a
    UTF-8 encoded string instead of a Unicode object.
 
    .. versionchanged:: 3.3
@@ -183,12 +183,12 @@ Importing Modules
 
 .. c:function:: long PyImport_GetMagicNumber()
 
-   Return the magic number for Python bytecode files (a.k.a. :file:`.pyc` and
-   :file:`.pyo` files).  The magic number should be present in the first four bytes
-   of the bytecode file, in little-endian byte order. Returns -1 on error.
+   Return the magic number for Python bytecode files (a.k.a. :file:`.pyc` file).
+   The magic number should be present in the first four bytes of the bytecode
+   file, in little-endian byte order. Returns ``-1`` on error.
 
    .. versionchanged:: 3.3
-      Return value of -1 upon failure.
+      Return value of ``-1`` upon failure.
 
 
 .. c:function:: const char * PyImport_GetMagicTag()
@@ -204,16 +204,23 @@ Importing Modules
    Return the dictionary used for the module administration (a.k.a.
    ``sys.modules``).  Note that this is a per-interpreter variable.
 
+.. c:function:: PyObject* PyImport_GetModule(PyObject *name)
+
+   Return the already imported module with the given name.  If the
+   module has not been imported yet then returns NULL but does not set
+   an error.  Returns NULL and sets an error if the lookup failed.
+
+   .. versionadded:: 3.7
 
 .. c:function:: PyObject* PyImport_GetImporter(PyObject *path)
 
-   Return an importer object for a :data:`sys.path`/:attr:`pkg.__path__` item
+   Return a finder object for a :data:`sys.path`/:attr:`pkg.__path__` item
    *path*, possibly by fetching it from the :data:`sys.path_importer_cache`
    dict.  If it wasn't yet cached, traverse :data:`sys.path_hooks` until a hook
    is found that can handle the path item.  Return ``None`` if no hook could;
-   this tells our caller it should fall back to the built-in import mechanism.
-   Cache the result in :data:`sys.path_importer_cache`.  Return a new reference
-   to the importer object.
+   this tells our caller that the :term:`path based finder` could not find a
+   finder for this path item. Cache the result in :data:`sys.path_importer_cache`.
+   Return a new reference to the finder object.
 
 
 .. c:function:: void _PyImport_Init()
@@ -229,16 +236,6 @@ Importing Modules
 .. c:function:: void _PyImport_Fini()
 
    Finalize the import mechanism.  For internal use only.
-
-
-.. c:function:: PyObject* _PyImport_FindExtension(char *, char *)
-
-   For internal use only.
-
-
-.. c:function:: PyObject* _PyImport_FixupExtension(char *, char *)
-
-   For internal use only.
 
 
 .. c:function:: int PyImport_ImportFrozenModuleObject(PyObject *name)
@@ -271,13 +268,13 @@ Importing Modules
    is::
 
       struct _frozen {
-          char *name;
-          unsigned char *code;
+          const char *name;
+          const unsigned char *code;
           int size;
       };
 
 
-.. c:var:: struct _frozen* PyImport_FrozenModules
+.. c:var:: const struct _frozen* PyImport_FrozenModules
 
    This pointer is initialized to point to an array of :c:type:`struct _frozen`
    records, terminated by one whose members are all *NULL* or zero.  When a frozen
@@ -305,7 +302,7 @@ Importing Modules
    The structure is defined in :file:`Include/import.h` as::
 
       struct _inittab {
-          char *name;                 /* ASCII encoded string */
+          const char *name;           /* ASCII encoded string */
           PyObject* (*initfunc)(void);
       };
 

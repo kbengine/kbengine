@@ -3,6 +3,7 @@
 
 .. module:: runpy
    :synopsis: Locate and run Python modules without importing them first.
+
 .. moduleauthor:: Nick Coghlan <ncoghlan@gmail.com>
 
 **Source code:** :source:`Lib/runpy.py`
@@ -36,7 +37,8 @@ The :mod:`runpy` module provides two functions:
    import mechanism (refer to :pep:`302` for details) and then executed in a
    fresh module namespace.
 
-   If the supplied module name refers to a package rather than a normal
+   The *mod_name* argument should be an absolute module name.
+   If the module name refers to a package rather than a normal
    module, then that package is imported and the ``__main__`` submodule within
    that package is then executed and the resulting module globals dictionary
    returned.
@@ -75,6 +77,9 @@ The :mod:`runpy` module provides two functions:
    arguments. It is recommended that the :mod:`sys` module be left alone when
    invoking this function from threaded code.
 
+   .. seealso::
+      The :option:`-m` option offering equivalent functionality from the
+      command line.
 
    .. versionchanged:: 3.1
       Added ability to execute packages by looking for a ``__main__`` submodule.
@@ -127,9 +132,6 @@ The :mod:`runpy` module provides two functions:
    supplied path, and ``__spec__``, ``__cached__``, ``__loader__`` and
    ``__package__`` will all be set to :const:`None`.
 
-   ``__spec__`` will be set to :const:`None` if the supplied path is a
-   direct path to a script (as source or as precompiled bytecode).
-
    If the supplied path is a reference to a valid sys.path entry, then
    ``__spec__`` will be set appropriately for the imported ``__main__``
    module (that is, ``__spec__.name`` will always be ``__main__``).
@@ -149,6 +151,10 @@ The :mod:`runpy` module provides two functions:
    limitations still apply, use of this function in threaded code should be
    either serialised with the import lock or delegated to a separate process.
 
+   .. seealso::
+      :ref:`using-on-interface-options` for equivalent functionality on the
+      command line (``python path/to/script``).
+
    .. versionadded:: 3.2
 
    .. versionchanged:: 3.4
@@ -159,13 +165,13 @@ The :mod:`runpy` module provides two functions:
 
 .. seealso::
 
-   :pep:`338` - Executing modules as scripts
+   :pep:`338` -- Executing modules as scripts
       PEP written and implemented by Nick Coghlan.
 
-   :pep:`366` - Main module explicit relative imports
+   :pep:`366` -- Main module explicit relative imports
       PEP written and implemented by Nick Coghlan.
 
-   :pep:`451` - A ModuleSpec Type for the Import System
+   :pep:`451` -- A ModuleSpec Type for the Import System
       PEP written and implemented by Eric Snow
 
    :ref:`using-on-general` - CPython command line details

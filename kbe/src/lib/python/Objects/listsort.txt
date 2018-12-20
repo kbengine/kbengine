@@ -486,7 +486,7 @@ sub-run, yet finding such very efficiently when they exist.
 I first learned about the galloping strategy in a related context; see:
 
     "Adaptive Set Intersections, Unions, and Differences" (2000)
-    Erik D. Demaine, Alejandro López-Ortiz, J. Ian Munro
+    Erik D. Demaine, Alejandro LÃ³pez-Ortiz, J. Ian Munro
 
 and its followup(s).  An earlier paper called the same strategy
 "exponential search":
@@ -694,7 +694,7 @@ search doesn't reduce the quadratic data movement costs.
 
 But in CPython's case, comparisons are extraordinarily expensive compared to
 moving data, and the details matter.  Moving objects is just copying
-pointers.  Comparisons can be arbitrarily expensive (can invoke arbitary
+pointers.  Comparisons can be arbitrarily expensive (can invoke arbitrary
 user-supplied Python code), but even in simple cases (like 3 < 4) _all_
 decisions are made at runtime:  what's the type of the left comparand?  the
 type of the right?  do they need to be coerced to a common type?  where's the
@@ -753,3 +753,11 @@ example, with the region of uncertainty B[4], B[5], B[6], there are 4
 locations:  before B[4], between B[4] and B[5], between B[5] and B[6], and
 after B[6].  In general, across 2**(k-1)-1 elements, there are 2**(k-1)
 locations.  That's why k-1 binary searches are necessary and sufficient.
+
+OPTIMIZATION OF INDIVIDUAL COMPARISONS
+As noted above, even the simplest Python comparison triggers a large pile of
+C-level pointer dereferences, conditionals, and function calls.  This can be
+partially mitigated by pre-scanning the data to determine whether the data is
+homogenous with respect to type.  If so, it is sometimes possible to
+substitute faster type-specific comparisons for the slower, generic
+PyObject_RichCompareBool.

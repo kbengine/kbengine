@@ -1,4 +1,6 @@
 import unittest
+from test.support import bigmemtest, _2G
+import sys
 from ctypes import *
 
 from ctypes.test import need_symbol
@@ -24,20 +26,24 @@ class ArrayTestCase(unittest.TestCase):
             self.assertEqual(len(ia), alen)
 
             # slot values ok?
-            values = [ia[i] for i in range(len(init))]
+            values = [ia[i] for i in range(alen)]
             self.assertEqual(values, init)
+
+            # out-of-bounds accesses should be caught
+            with self.assertRaises(IndexError): ia[alen]
+            with self.assertRaises(IndexError): ia[-alen-1]
 
             # change the items
             from operator import setitem
             new_values = list(range(42, 42+alen))
             [setitem(ia, n, new_values[n]) for n in range(alen)]
-            values = [ia[i] for i in range(len(init))]
+            values = [ia[i] for i in range(alen)]
             self.assertEqual(values, new_values)
 
             # are the items initialized to 0?
             ia = int_array()
-            values = [ia[i] for i in range(len(init))]
-            self.assertEqual(values, [0] * len(init))
+            values = [ia[i] for i in range(alen)]
+            self.assertEqual(values, [0] * alen)
 
             # Too many initializers should be caught
             self.assertRaises(IndexError, int_array, *range(alen*2))
@@ -176,6 +182,11 @@ class ArrayTestCase(unittest.TestCase):
             class T(Array):
                 _type_ = c_int
                 _length_ = 1.87
+
+    @unittest.skipUnless(sys.maxsize > 2**32, 'requires 64bit platform')
+    @bigmemtest(size=_2G, memuse=1, dry_run=False)
+    def test_large_array(self, size):
+        c_char * size
 
 if __name__ == '__main__':
     unittest.main()

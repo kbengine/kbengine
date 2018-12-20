@@ -18,6 +18,7 @@ from email.utils import _has_surrogates
 UNDERSCORE = '_'
 NL = '\n'  # XXX: no longer used by the code below.
 
+NLCRE = re.compile(r'\r\n|\r|\n')
 fcre = re.compile(r'^From ', re.MULTILINE)
 
 
@@ -32,16 +33,16 @@ class Generator:
     # Public interface
     #
 
-    def __init__(self, outfp, mangle_from_=True, maxheaderlen=None, *,
+    def __init__(self, outfp, mangle_from_=None, maxheaderlen=None, *,
                  policy=None):
         """Create the generator for message flattening.
 
         outfp is the output file-like object for writing the message to.  It
         must have a write() method.
 
-        Optional mangle_from_ is a flag that, when True (the default), escapes
-        From_ lines in the body of the message by putting a `>' in front of
-        them.
+        Optional mangle_from_ is a flag that, when True (the default if policy
+        is not set), escapes From_ lines in the body of the message by putting
+        a `>' in front of them.
 
         Optional maxheaderlen specifies the longest length for a non-continued
         header.  When a header line is longer (in characters, with tabs
@@ -56,6 +57,9 @@ class Generator:
         flatten method is used.
 
         """
+
+        if mangle_from_ is None:
+            mangle_from_ = True if policy is None else policy.mangle_from_
         self._fp = outfp
         self._mangle_from_ = mangle_from_
         self.maxheaderlen = maxheaderlen
@@ -94,7 +98,7 @@ class Generator:
         self._NL = policy.linesep
         self._encoded_NL = self._encode(self._NL)
         self._EMPTY = ''
-        self._encoded_EMTPY = self._encode('')
+        self._encoded_EMPTY = self._encode(self._EMPTY)
         # Because we use clone (below) when we recursively process message
         # subparts, and because clone uses the computed policy (not None),
         # submessages will automatically get set to the computed policy when
@@ -134,10 +138,6 @@ class Generator:
     # it has already transformed the input; but, since this whole thing is a
     # hack anyway this seems good enough.
 
-    # Similarly, we have _XXX and _encoded_XXX attributes that are used on
-    # source and buffer data, respectively.
-    _encoded_EMPTY = ''
-
     def _new_buffer(self):
         # BytesGenerator overrides this to return BytesIO.
         return StringIO()
@@ -150,14 +150,17 @@ class Generator:
         # We have to transform the line endings.
         if not lines:
             return
-        lines = lines.splitlines(True)
+        lines = NLCRE.split(lines)
         for line in lines[:-1]:
-            self.write(line.rstrip('\r\n'))
+            self.write(line)
             self.write(self._NL)
-        laststripped = lines[-1].rstrip('\r\n')
-        self.write(laststripped)
-        if len(lines[-1]) != len(laststripped):
-            self.write(self._NL)
+        if lines[-1]:
+            self.write(lines[-1])
+        # XXX logic tells me this else should be needed, but the tests fail
+        # with it and pass without it.  (NLCRE.split ends with a blank element
+        # if and only if there was a trailing newline.)
+        #else:
+        #    self.write(self._NL)
 
     def _write(self, msg):
         # We can't write the headers yet because of the following scenario:
@@ -399,10 +402,6 @@ class BytesGenerator(Generator):
     The outfp object must accept bytes in its write method.
     """
 
-    # Bytes versions of this constant for use in manipulating data from
-    # the BytesIO buffer.
-    _encoded_EMPTY = b''
-
     def write(self, s):
         self._fp.write(s.encode('ascii', 'surrogateescape'))
 
@@ -449,7 +448,8 @@ class DecodedGenerator(Generator):
     Like the Generator base class, except that non-text parts are substituted
     with a format string representing the part.
     """
-    def __init__(self, outfp, mangle_from_=True, maxheaderlen=78, fmt=None):
+    def __init__(self, outfp, mangle_from_=None, maxheaderlen=None, fmt=None, *,
+                 policy=None):
         """Like Generator.__init__() except that an additional optional
         argument is allowed.
 
@@ -471,7 +471,8 @@ class DecodedGenerator(Generator):
 
         [Non-text (%(type)s) part of message omitted, filename %(filename)s]
         """
-        Generator.__init__(self, outfp, mangle_from_, maxheaderlen)
+        Generator.__init__(self, outfp, mangle_from_, maxheaderlen,
+                           policy=policy)
         if fmt is None:
             self._fmt = _FMT
         else:

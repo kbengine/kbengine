@@ -116,7 +116,7 @@ syslog_openlog(PyObject * self, PyObject * args, PyObject *kwds)
     long facility = LOG_USER;
     PyObject *new_S_ident_o = NULL;
     static char *keywords[] = {"ident", "logoption", "facility", 0};
-    char *ident = NULL;
+    const char *ident = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds,
                           "|Ull:openlog", keywords, &new_S_ident_o, &logopt, &facility))
@@ -139,7 +139,7 @@ syslog_openlog(PyObject * self, PyObject * args, PyObject *kwds)
      * If NULL, just let openlog figure it out (probably using C argv[0]).
      */
     if (S_ident_o) {
-        ident = _PyUnicode_AsString(S_ident_o);
+        ident = PyUnicode_AsUTF8(S_ident_o);
         if (ident == NULL)
             return NULL;
     }
@@ -147,8 +147,7 @@ syslog_openlog(PyObject * self, PyObject * args, PyObject *kwds)
     openlog(ident, logopt, facility);
     S_log_open = 1;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -167,7 +166,7 @@ syslog_syslog(PyObject * self, PyObject * args)
             return NULL;
     }
 
-    message = _PyUnicode_AsString(message_object);
+    message = PyUnicode_AsUTF8(message_object);
     if (message == NULL)
         return NULL;
 
@@ -200,8 +199,7 @@ syslog_closelog(PyObject *self, PyObject *unused)
         Py_CLEAR(S_ident_o);
         S_log_open = 0;
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *

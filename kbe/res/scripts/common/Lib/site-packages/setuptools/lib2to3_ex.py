@@ -10,7 +10,9 @@ This module raises an ImportError on Python 2.
 from distutils.util import Mixin2to3 as _Mixin2to3
 from distutils import log
 from lib2to3.refactor import RefactoringTool, get_fixers_from_package
+
 import setuptools
+
 
 class DistutilsRefactoringTool(RefactoringTool):
     def log_error(self, msg, *args, **kw):
@@ -22,15 +24,16 @@ class DistutilsRefactoringTool(RefactoringTool):
     def log_debug(self, msg, *args):
         log.debug(msg, *args)
 
+
 class Mixin2to3(_Mixin2to3):
-    def run_2to3(self, files, doctests = False):
+    def run_2to3(self, files, doctests=False):
         # See of the distribution option has been set, otherwise check the
         # setuptools default.
         if self.distribution.use_2to3 is not True:
             return
         if not files:
             return
-        log.info("Fixing "+" ".join(files))
+        log.info("Fixing " + " ".join(files))
         self.__build_fixer_names()
         self.__exclude_fixers()
         if doctests:
@@ -41,7 +44,8 @@ class Mixin2to3(_Mixin2to3):
             _Mixin2to3.run_2to3(self, files)
 
     def __build_fixer_names(self):
-        if self.fixer_names: return
+        if self.fixer_names:
+            return
         self.fixer_names = []
         for p in setuptools.lib2to3_fixer_packages:
             self.fixer_names.extend(get_fixers_from_package(p))

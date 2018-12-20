@@ -8,9 +8,12 @@
 """
 import locale
 import sys
+_locale = locale
 
-# Location of the alias file
+# Location of the X11 alias file.
 LOCALE_ALIAS = '/usr/share/X11/locale/locale.alias'
+# Location of the glibc SUPPORTED locales file.
+SUPPORTED = '/usr/share/i18n/SUPPORTED'
 
 def parse(filename):
 
@@ -44,10 +47,39 @@ def parse(filename):
             encoding = encoding.replace('-', '')
             encoding = encoding.replace('_', '')
             locale = lang + '.' + encoding
-            if encoding.lower() == 'utf8':
-                # Ignore UTF-8 mappings - this encoding should be
-                # available for all locales
-                continue
+        data[locale] = alias
+    return data
+
+def parse_glibc_supported(filename):
+
+    with open(filename, encoding='latin1') as f:
+        lines = list(f)
+    data = {}
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        if line[:1] == '#':
+            continue
+        line = line.replace('/', ' ').strip()
+        line = line.rstrip('\\').rstrip()
+        words = line.split()
+        if len(words) != 2:
+            continue
+        alias, alias_encoding = words
+        # Lower-case locale
+        locale = alias.lower()
+        # Normalize encoding, if given
+        if '.' in locale:
+            lang, encoding = locale.split('.')[:2]
+            encoding = encoding.replace('-', '')
+            encoding = encoding.replace('_', '')
+            locale = lang + '.' + encoding
+        # Add an encoding to alias
+        alias, _, modifier = alias.partition('@')
+        alias = _locale._replace_encoding(alias, alias_encoding)
+        if modifier and not (modifier == 'euro' and alias_encoding == 'ISO-8859-15'):
+            alias += '@' + modifier
         data[locale] = alias
     return data
 
@@ -92,9 +124,25 @@ def check(data):
     return errors
 
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--locale-alias', default=LOCALE_ALIAS,
+                        help='location of the X11 alias file '
+                             '(default: %a)' % LOCALE_ALIAS)
+    parser.add_argument('--glibc-supported', default=SUPPORTED,
+                        help='location of the glibc SUPPORTED locales file '
+                             '(default: %a)' % SUPPORTED)
+    args = parser.parse_args()
+
     data = locale.locale_alias.copy()
-    data.update(parse(LOCALE_ALIAS))
-    data = optimize(data)
+    data.update(parse_glibc_supported(args.glibc_supported))
+    data.update(parse(args.locale_alias))
+    while True:
+        # Repeat optimization while the size is decreased.
+        n = len(data)
+        data = optimize(data)
+        if len(data) == n:
+            break
     print_differences(data, locale.locale_alias)
     print()
     print('locale_alias = {')

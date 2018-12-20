@@ -1,9 +1,9 @@
 from test.support import findfile, TESTFN, unlink
-import unittest
 import array
 import io
+from unittest import mock
 import pickle
-import sys
+
 
 class UnseekableIO(io.FileIO):
     def tell(self):
@@ -45,8 +45,20 @@ class AudioTests:
         self.assertEqual(params.comptype, comptype)
         self.assertEqual(params.compname, compname)
 
-        dump = pickle.dumps(params)
-        self.assertEqual(pickle.loads(dump), params)
+        for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+            dump = pickle.dumps(params, proto)
+            self.assertEqual(pickle.loads(dump), params)
+
+
+class AudioMiscTests(AudioTests):
+
+    def test_openfp_deprecated(self):
+        arg = "arg"
+        mode = "mode"
+        with mock.patch(f"{self.module.__name__}.open") as mock_open, \
+             self.assertWarns(DeprecationWarning):
+            self.module.openfp(arg, mode=mode)
+            mock_open.assert_called_with(arg, mode=mode)
 
 
 class AudioWriteTests(AudioTests):
