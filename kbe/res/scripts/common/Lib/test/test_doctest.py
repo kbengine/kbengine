@@ -4,9 +4,12 @@ Test script for doctest.
 
 from test import support
 import doctest
+import functools
 import os
 import sys
-
+import importlib
+import unittest
+import tempfile
 
 # NOTE: There are some additional tests relating to interaction with
 #       zipimport in the test_zipimport_support test module.
@@ -290,7 +293,7 @@ constructor:
     ...
     ... Non-example text.
     ...
-    ...     >>> print('another\example')
+    ...     >>> print('another\\example')
     ...     another
     ...     example
     ... '''
@@ -323,7 +326,7 @@ containing test:
     >>> test.lineno + e2.lineno
     26
 
-If the docstring contains inconsistant leading whitespace in the
+If the docstring contains inconsistent leading whitespace in the
 expected output of an example, then `DocTest` will raise a ValueError:
 
     >>> docstring = r'''
@@ -434,7 +437,7 @@ We'll simulate a __file__ attr that ends in pyc:
     >>> tests = finder.find(sample_func)
 
     >>> print(tests)  # doctest: +ELLIPSIS
-    [<DocTest sample_func from ...:18 (1 example)>]
+    [<DocTest sample_func from ...:21 (1 example)>]
 
 The exact name depends on how test_doctest was invoked, so allow for
 leading path components.
@@ -658,7 +661,7 @@ plain ol' Python and is guaranteed to be available.
 
     >>> import builtins
     >>> tests = doctest.DocTestFinder().find(builtins)
-    >>> 790 < len(tests) < 800 # approximate number of objects with docstrings
+    >>> 800 < len(tests) < 820 # approximate number of objects with docstrings
     True
     >>> real_tests = [t for t in tests if len(t.examples) > 0]
     >>> len(real_tests) # objects that actually have doctests
@@ -679,6 +682,23 @@ Note here that 'bin', 'oct', and 'hex' are functions; 'float.as_integer_ratio',
 'float.hex', and 'int.bit_length' are methods; 'float.fromhex' is a classmethod,
 and 'int' is a type.
 """
+
+
+class TestDocTestFinder(unittest.TestCase):
+
+    def test_empty_namespace_package(self):
+        pkg_name = 'doctest_empty_pkg'
+        with tempfile.TemporaryDirectory() as parent_dir:
+            pkg_dir = os.path.join(parent_dir, pkg_name)
+            os.mkdir(pkg_dir)
+            sys.path.append(parent_dir)
+            try:
+                mod = importlib.import_module(pkg_name)
+            finally:
+                support.forget(pkg_name)
+                sys.path.pop()
+            assert doctest.DocTestFinder().find(mod) == []
+
 
 def test_DocTestParser(): r"""
 Unit tests for the `DocTestParser` class.
@@ -1875,7 +1895,6 @@ if not hasattr(sys, 'gettrace') or not sys.gettrace():
         To demonstrate this, we'll create a fake standard input that
         captures our debugger input:
 
-          >>> import tempfile
           >>> real_stdin = sys.stdin
           >>> sys.stdin = _FakeInput([
           ...    'print(x)',  # print data defined by the example
@@ -1916,7 +1935,7 @@ if not hasattr(sys, 'gettrace') or not sys.gettrace():
           ... finally:
           ...     sys.stdin = real_stdin
           --Return--
-          > <doctest test.test_doctest.test_pdb_set_trace[8]>(3)calls_set_trace()->None
+          > <doctest test.test_doctest.test_pdb_set_trace[7]>(3)calls_set_trace()->None
           -> import pdb; pdb.set_trace()
           (Pdb) print(y)
           2
@@ -2096,22 +2115,9 @@ def test_DocTestSuite():
          >>> suite.run(unittest.TestResult())
          <unittest.result.TestResult run=0 errors=0 failures=0>
 
-       However, if DocTestSuite finds no docstrings, it raises an error:
+       The module need not contain any docstrings either:
 
-         >>> try:
-         ...     doctest.DocTestSuite('test.sample_doctest_no_docstrings')
-         ... except ValueError as e:
-         ...     error = e
-
-         >>> print(error.args[1])
-         has no docstrings
-
-       You can prevent this error by passing a DocTestFinder instance with
-       the `exclude_empty` keyword argument set to False:
-
-         >>> finder = doctest.DocTestFinder(exclude_empty=False)
-         >>> suite = doctest.DocTestSuite('test.sample_doctest_no_docstrings',
-         ...                              test_finder=finder)
+         >>> suite = doctest.DocTestSuite('test.sample_doctest_no_docstrings')
          >>> suite.run(unittest.TestResult())
          <unittest.result.TestResult run=0 errors=0 failures=0>
 
@@ -2120,6 +2126,22 @@ def test_DocTestSuite():
          >>> suite = test.sample_doctest.test_suite()
          >>> suite.run(unittest.TestResult())
          <unittest.result.TestResult run=9 errors=0 failures=4>
+
+       We can also provide a DocTestFinder:
+
+         >>> finder = doctest.DocTestFinder()
+         >>> suite = doctest.DocTestSuite('test.sample_doctest',
+         ...                          test_finder=finder)
+         >>> suite.run(unittest.TestResult())
+         <unittest.result.TestResult run=9 errors=0 failures=4>
+
+       The DocTestFinder need not return any tests:
+
+         >>> finder = doctest.DocTestFinder()
+         >>> suite = doctest.DocTestSuite('test.sample_doctest_no_docstrings',
+         ...                          test_finder=finder)
+         >>> suite.run(unittest.TestResult())
+         <unittest.result.TestResult run=0 errors=0 failures=0>
 
        We can supply global variables.  If we pass globs, they will be
        used instead of the module globals.  Here we'll pass an empty
@@ -2168,9 +2190,9 @@ def test_DocTestSuite():
          >>> test.test_doctest.sillySetup
          Traceback (most recent call last):
          ...
-         AttributeError: 'module' object has no attribute 'sillySetup'
+         AttributeError: module 'test.test_doctest' has no attribute 'sillySetup'
 
-       The setUp and tearDown funtions are passed test objects. Here
+       The setUp and tearDown functions are passed test objects. Here
        we'll use the setUp function to supply the missing variable y:
 
          >>> def setUp(test):
@@ -2314,9 +2336,9 @@ def test_DocFileSuite():
          >>> test.test_doctest.sillySetup
          Traceback (most recent call last):
          ...
-         AttributeError: 'module' object has no attribute 'sillySetup'
+         AttributeError: module 'test.test_doctest' has no attribute 'sillySetup'
 
-       The setUp and tearDown funtions are passed test objects.
+       The setUp and tearDown functions are passed test objects.
        Here, we'll use a setUp function to set the favorite color in
        test_doctest.txt:
 
@@ -2361,6 +2383,22 @@ def test_trailing_space_in_test():
       foo \n
     """
 
+class Wrapper:
+    def __init__(self, func):
+        self.func = func
+        functools.update_wrapper(self, func)
+
+    def __call__(self, *args, **kwargs):
+        self.func(*args, **kwargs)
+
+@Wrapper
+def test_look_in_unwrapped():
+    """
+    Docstrings in wrapped functions must be detected as well.
+
+    >>> 'one other test'
+    'one other test'
+    """
 
 def test_unittest_reportflags():
     """Default unittest reporting flags can be set to control reporting
@@ -2613,6 +2651,36 @@ Test the verbose output:
     >>> sys.argv = save_argv
 """
 
+def test_lineendings(): r"""
+*nix systems use \n line endings, while Windows systems use \r\n.  Python
+handles this using universal newline mode for reading files.  Let's make
+sure doctest does so (issue 8473) by creating temporary test files using each
+of the two line disciplines.  One of the two will be the "wrong" one for the
+platform the test is run on.
+
+Windows line endings first:
+
+    >>> import tempfile, os
+    >>> fn = tempfile.mktemp()
+    >>> with open(fn, 'wb') as f:
+    ...    f.write(b'Test:\r\n\r\n  >>> x = 1 + 1\r\n\r\nDone.\r\n')
+    35
+    >>> doctest.testfile(fn, module_relative=False, verbose=False)
+    TestResults(failed=0, attempted=1)
+    >>> os.remove(fn)
+
+And now *nix line endings:
+
+    >>> fn = tempfile.mktemp()
+    >>> with open(fn, 'wb') as f:
+    ...     f.write(b'Test:\n\n  >>> x = 1 + 1\n\nDone.\n')
+    30
+    >>> doctest.testfile(fn, module_relative=False, verbose=False)
+    TestResults(failed=0, attempted=1)
+    >>> os.remove(fn)
+
+"""
+
 def test_testmod(): r"""
 Tests for the testmod function.  More might be useful, but for now we're just
 testing the case raised by Issue 6195, where trying to doctest a C module would
@@ -2669,18 +2737,12 @@ output into something we can doctest against:
     >>> def normalize(s):
     ...     return '\n'.join(s.decode().splitlines())
 
-Note: we also pass TERM='' to all the assert_python calls to avoid a bug
-in the readline library that is triggered in these tests because we are
-running them in a new python process.  See:
-
-  http://lists.gnu.org/archive/html/bug-readline/2013-06/msg00000.html
-
 With those preliminaries out of the way, we'll start with a file with two
 simple tests and no errors.  We'll run both the unadorned doctest command, and
 the verbose version, and then check the output:
 
-    >>> from test import script_helper
-    >>> with script_helper.temp_dir() as tmpdir:
+    >>> from test.support import script_helper, temp_dir
+    >>> with temp_dir() as tmpdir:
     ...     fn = os.path.join(tmpdir, 'myfile.doc')
     ...     with open(fn, 'w') as f:
     ...         _ = f.write('This is a very simple test file.\n')
@@ -2691,9 +2753,9 @@ the verbose version, and then check the output:
     ...         _ = f.write('\n')
     ...         _ = f.write('And that is it.\n')
     ...     rc1, out1, err1 = script_helper.assert_python_ok(
-    ...             '-m', 'doctest', fn, TERM='')
+    ...             '-m', 'doctest', fn)
     ...     rc2, out2, err2 = script_helper.assert_python_ok(
-    ...             '-m', 'doctest', '-v', fn, TERM='')
+    ...             '-m', 'doctest', '-v', fn)
 
 With no arguments and passing tests, we should get no output:
 
@@ -2725,13 +2787,13 @@ Now we'll write a couple files, one with three tests, the other a python module
 with two tests, both of the files having "errors" in the tests that can be made
 non-errors by applying the appropriate doctest options to the run (ELLIPSIS in
 the first file, NORMALIZE_WHITESPACE in the second).  This combination will
-allow to thoroughly test the -f and -o flags, as well as the doctest command's
+allow thoroughly testing the -f and -o flags, as well as the doctest command's
 ability to process more than one file on the command line and, since the second
 file ends in '.py', its handling of python module files (as opposed to straight
 text files).
 
-    >>> from test import script_helper
-    >>> with script_helper.temp_dir() as tmpdir:
+    >>> from test.support import script_helper, temp_dir
+    >>> with temp_dir() as tmpdir:
     ...     fn = os.path.join(tmpdir, 'myfile.doc')
     ...     with open(fn, 'w') as f:
     ...         _ = f.write('This is another simple test file.\n')
@@ -2754,19 +2816,18 @@ text files).
     ...         _ = f.write("       'abc def'\n")
     ...         _ = f.write("\n")
     ...         _ = f.write('   \"\"\"\n')
-    ...     import shutil
     ...     rc1, out1, err1 = script_helper.assert_python_failure(
-    ...             '-m', 'doctest', fn, fn2, TERM='')
+    ...             '-m', 'doctest', fn, fn2)
     ...     rc2, out2, err2 = script_helper.assert_python_ok(
-    ...             '-m', 'doctest', '-o', 'ELLIPSIS', fn, TERM='')
+    ...             '-m', 'doctest', '-o', 'ELLIPSIS', fn)
     ...     rc3, out3, err3 = script_helper.assert_python_ok(
     ...             '-m', 'doctest', '-o', 'ELLIPSIS',
-    ...             '-o', 'NORMALIZE_WHITESPACE', fn, fn2, TERM='')
+    ...             '-o', 'NORMALIZE_WHITESPACE', fn, fn2)
     ...     rc4, out4, err4 = script_helper.assert_python_failure(
-    ...             '-m', 'doctest', '-f', fn, fn2, TERM='')
+    ...             '-m', 'doctest', '-f', fn, fn2)
     ...     rc5, out5, err5 = script_helper.assert_python_ok(
     ...             '-m', 'doctest', '-v', '-o', 'ELLIPSIS',
-    ...             '-o', 'NORMALIZE_WHITESPACE', fn, fn2, TERM='')
+    ...             '-o', 'NORMALIZE_WHITESPACE', fn, fn2)
 
 Our first test run will show the errors from the first file (doctest stops if a
 file has errors).  Note that doctest test-run error output appears on stdout,
@@ -2872,7 +2933,7 @@ We should also check some typical error cases.
 Invalid file name:
 
     >>> rc, out, err = script_helper.assert_python_failure(
-    ...         '-m', 'doctest', 'nosuchfile', TERM='')
+    ...         '-m', 'doctest', 'nosuchfile')
     >>> rc, out
     (1, b'')
     >>> print(normalize(err))                    # doctest: +ELLIPSIS
@@ -2883,7 +2944,7 @@ Invalid file name:
 Invalid doctest option:
 
     >>> rc, out, err = script_helper.assert_python_failure(
-    ...         '-m', 'doctest', '-o', 'nosuchoption', TERM='')
+    ...         '-m', 'doctest', '-o', 'nosuchoption')
     >>> rc, out
     (2, b'')
     >>> print(normalize(err))                    # doctest: +ELLIPSIS
@@ -2897,12 +2958,15 @@ Invalid doctest option:
 
 def test_main():
     # Check the doctest cases in doctest itself:
-    support.run_doctest(doctest, verbosity=True)
+    ret = support.run_doctest(doctest, verbosity=True)
+
     # Check the doctest cases defined here:
     from test import test_doctest
     support.run_doctest(test_doctest, verbosity=True)
 
-import sys, re, io
+    # Run unittests
+    support.run_unittest(__name__)
+
 
 def test_coverage(coverdir):
     trace = support.import_module('trace')

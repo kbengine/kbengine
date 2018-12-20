@@ -13,7 +13,10 @@ __all__ = ["code_info", "dis", "disassemble", "distb", "disco",
            "get_instructions", "Instruction", "Bytecode"] + _opcodes_all
 del _opcodes_all
 
-_have_code = (types.MethodType, types.FunctionType, types.CodeType, type)
+_have_code = (types.MethodType, types.FunctionType, types.CodeType,
+              classmethod, staticmethod, type)
+
+FORMAT_VALUE = opmap['FORMAT_VALUE']
 
 def _try_compile(source, name):
     """Attempts to compile the given source, first as an expression and
@@ -28,35 +31,47 @@ def _try_compile(source, name):
         c = compile(source, name, 'exec')
     return c
 
-def dis(x=None, *, file=None):
-    """Disassemble classes, methods, functions, or code.
+def dis(x=None, *, file=None, depth=None):
+    """Disassemble classes, methods, functions, and other compiled objects.
 
     With no argument, disassemble the last traceback.
 
+    Compiled objects currently include generator objects, async generator
+    objects, and coroutine objects, all of which store their code object
+    in a special attribute.
     """
     if x is None:
         distb(file=file)
         return
-    if hasattr(x, '__func__'):  # Method
+    # Extract functions from methods.
+    if hasattr(x, '__func__'):
         x = x.__func__
-    if hasattr(x, '__code__'):  # Function
+    # Extract compiled code objects from...
+    if hasattr(x, '__code__'):  # ...a function, or
         x = x.__code__
+    elif hasattr(x, 'gi_code'):  #...a generator object, or
+        x = x.gi_code
+    elif hasattr(x, 'ag_code'):  #...an asynchronous generator object, or
+        x = x.ag_code
+    elif hasattr(x, 'cr_code'):  #...a coroutine.
+        x = x.cr_code
+    # Perform the disassembly.
     if hasattr(x, '__dict__'):  # Class or module
         items = sorted(x.__dict__.items())
         for name, x1 in items:
             if isinstance(x1, _have_code):
                 print("Disassembly of %s:" % name, file=file)
                 try:
-                    dis(x1, file=file)
+                    dis(x1, file=file, depth=depth)
                 except TypeError as msg:
                     print("Sorry:", msg, file=file)
                 print(file=file)
     elif hasattr(x, 'co_code'): # Code object
-        disassemble(x, file=file)
+        _disassemble_recursive(x, file=file, depth=depth)
     elif isinstance(x, (bytes, bytearray)): # Raw bytecode
         _disassemble_bytes(x, file=file)
     elif isinstance(x, str):    # Source code
-        _disassemble_str(x, file=file)
+        _disassemble_str(x, file=file, depth=depth)
     else:
         raise TypeError("don't know how to disassemble %s objects" %
                         type(x).__name__)
@@ -67,7 +82,7 @@ def distb(tb=None, *, file=None):
         try:
             tb = sys.last_traceback
         except AttributeError:
-            raise RuntimeError("no last traceback to disassemble")
+            raise RuntimeError("no last traceback to disassemble") from None
         while tb.tb_next: tb = tb.tb_next
     disassemble(tb.tb_frame.f_code, tb.tb_lasti, file=file)
 
@@ -82,6 +97,9 @@ COMPILER_FLAG_NAMES = {
     16: "NESTED",
     32: "GENERATOR",
     64: "NOFREE",
+   128: "COROUTINE",
+   256: "ITERABLE_COROUTINE",
+   512: "ASYNC_GENERATOR",
 }
 
 def pretty_flags(flags):
@@ -99,14 +117,24 @@ def pretty_flags(flags):
     return ", ".join(names)
 
 def _get_code_object(x):
-    """Helper to handle methods, functions, strings and raw code objects"""
-    if hasattr(x, '__func__'): # Method
+    """Helper to handle methods, compiled or raw code objects, and strings."""
+    # Extract functions from methods.
+    if hasattr(x, '__func__'):
         x = x.__func__
-    if hasattr(x, '__code__'): # Function
+    # Extract compiled code objects from...
+    if hasattr(x, '__code__'):  # ...a function, or
         x = x.__code__
-    if isinstance(x, str):     # Source code
+    elif hasattr(x, 'gi_code'):  #...a generator object, or
+        x = x.gi_code
+    elif hasattr(x, 'ag_code'):  #...an asynchronous generator object, or
+        x = x.ag_code
+    elif hasattr(x, 'cr_code'):  #...a coroutine.
+        x = x.cr_code
+    # Handle source code.
+    if isinstance(x, str):
         x = _try_compile(x, "<disassembly>")
-    if hasattr(x, 'co_code'):  # Code object
+    # By now, if we don't have a code object, we can't disassemble x.
+    if hasattr(x, 'co_code'):
         return x
     raise TypeError("don't know how to disassemble %s objects" %
                     type(x).__name__)
@@ -156,6 +184,18 @@ def show_code(co, *, file=None):
 _Instruction = collections.namedtuple("_Instruction",
      "opname opcode arg argval argrepr offset starts_line is_jump_target")
 
+_Instruction.opname.__doc__ = "Human readable name for operation"
+_Instruction.opcode.__doc__ = "Numeric code for operation"
+_Instruction.arg.__doc__ = "Numeric argument to operation (if any), otherwise None"
+_Instruction.argval.__doc__ = "Resolved arg value (if known), otherwise same as arg"
+_Instruction.argrepr.__doc__ = "Human readable description of operation argument"
+_Instruction.offset.__doc__ = "Start index of operation within bytecode sequence"
+_Instruction.starts_line.__doc__ = "Line started by this opcode (if any), otherwise None"
+_Instruction.is_jump_target.__doc__ = "True if other code jumps to here, otherwise False"
+
+_OPNAME_WIDTH = 20
+_OPARG_WIDTH = 5
+
 class Instruction(_Instruction):
     """Details for a bytecode operation
 
@@ -170,11 +210,12 @@ class Instruction(_Instruction):
          is_jump_target - True if other code jumps to here, otherwise False
     """
 
-    def _disassemble(self, lineno_width=3, mark_as_current=False):
+    def _disassemble(self, lineno_width=3, mark_as_current=False, offset_width=4):
         """Format instruction details for inclusion in disassembly output
 
         *lineno_width* sets the width of the line number field (0 omits it)
         *mark_as_current* inserts a '-->' marker arrow as part of the line
+        *offset_width* sets the width of the instruction offset field
         """
         fields = []
         # Column: Source code line number
@@ -195,12 +236,12 @@ class Instruction(_Instruction):
         else:
             fields.append('  ')
         # Column: Instruction offset from start of code sequence
-        fields.append(repr(self.offset).rjust(4))
+        fields.append(repr(self.offset).rjust(offset_width))
         # Column: Opcode name
-        fields.append(self.opname.ljust(20))
+        fields.append(self.opname.ljust(_OPNAME_WIDTH))
         # Column: Opcode argument
         if self.arg is not None:
-            fields.append(repr(self.arg).rjust(5))
+            fields.append(repr(self.arg).rjust(_OPARG_WIDTH))
             # Column: Opcode argument details
             if self.argrepr:
                 fields.append('(' + self.argrepr + ')')
@@ -268,33 +309,18 @@ def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
 
     """
     labels = findlabels(code)
-    extended_arg = 0
     starts_line = None
-    free = None
-    # enumerate() is not an option, since we sometimes process
-    # multiple elements on a single pass through the loop
-    n = len(code)
-    i = 0
-    while i < n:
-        op = code[i]
-        offset = i
+    for offset, op, arg in _unpack_opargs(code):
         if linestarts is not None:
-            starts_line = linestarts.get(i, None)
+            starts_line = linestarts.get(offset, None)
             if starts_line is not None:
                 starts_line += line_offset
-        is_jump_target = i in labels
-        i = i+1
-        arg = None
+        is_jump_target = offset in labels
         argval = None
         argrepr = ''
-        if op >= HAVE_ARGUMENT:
-            arg = code[i] + code[i+1]*256 + extended_arg
-            extended_arg = 0
-            i = i+2
-            if op == EXTENDED_ARG:
-                extended_arg = arg*65536
+        if arg is not None:
             #  Set argval to the dereferenced value of the argument when
-            #  availabe, and argrepr to the string representation of argval.
+            #  available, and argrepr to the string representation of argval.
             #    _disassemble_bytes needs the string repr of the
             #    raw name index for LOAD_GLOBAL, LOAD_CONST, etc.
             argval = arg
@@ -303,7 +329,7 @@ def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
             elif op in hasname:
                 argval, argrepr = _get_name_info(arg, names)
             elif op in hasjrel:
-                argval = i + arg
+                argval = offset + 2 + arg
                 argrepr = "to " + repr(argval)
             elif op in haslocal:
                 argval, argrepr = _get_name_info(arg, varnames)
@@ -312,8 +338,13 @@ def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
                 argrepr = argval
             elif op in hasfree:
                 argval, argrepr = _get_name_info(arg, cells)
-            elif op in hasnargs:
-                argrepr = "%d positional, %d keyword pair" % (code[i-2], code[i-1])
+            elif op == FORMAT_VALUE:
+                argval = ((None, str, repr, ascii)[arg & 0x3], bool(arg & 0x4))
+                argrepr = ('', 'str', 'repr', 'ascii')[arg & 0x3]
+                if argval[1]:
+                    if argrepr:
+                        argrepr += ', '
+                    argrepr += 'with format'
         yield Instruction(opname[op], op,
                           arg, argval, argrepr,
                           offset, starts_line, is_jump_target)
@@ -325,13 +356,35 @@ def disassemble(co, lasti=-1, *, file=None):
     _disassemble_bytes(co.co_code, lasti, co.co_varnames, co.co_names,
                        co.co_consts, cell_names, linestarts, file=file)
 
+def _disassemble_recursive(co, *, file=None, depth=None):
+    disassemble(co, file=file)
+    if depth is None or depth > 0:
+        if depth is not None:
+            depth = depth - 1
+        for x in co.co_consts:
+            if hasattr(x, 'co_code'):
+                print(file=file)
+                print("Disassembly of %r:" % (x,), file=file)
+                _disassemble_recursive(x, file=file, depth=depth)
+
 def _disassemble_bytes(code, lasti=-1, varnames=None, names=None,
                        constants=None, cells=None, linestarts=None,
                        *, file=None, line_offset=0):
     # Omit the line number column entirely if we have no line number info
     show_lineno = linestarts is not None
-    # TODO?: Adjust width upwards if max(linestarts.values()) >= 1000?
-    lineno_width = 3 if show_lineno else 0
+    if show_lineno:
+        maxlineno = max(linestarts.values()) + line_offset
+        if maxlineno >= 1000:
+            lineno_width = len(str(maxlineno))
+        else:
+            lineno_width = 3
+    else:
+        lineno_width = 0
+    maxoffset = len(code) - 2
+    if maxoffset >= 10000:
+        offset_width = len(str(maxoffset))
+    else:
+        offset_width = 4
     for instr in _get_instructions_bytes(code, varnames, names,
                                          constants, cells, linestarts,
                                          line_offset=line_offset):
@@ -341,13 +394,25 @@ def _disassemble_bytes(code, lasti=-1, varnames=None, names=None,
         if new_source_line:
             print(file=file)
         is_current_instr = instr.offset == lasti
-        print(instr._disassemble(lineno_width, is_current_instr), file=file)
+        print(instr._disassemble(lineno_width, is_current_instr, offset_width),
+              file=file)
 
-def _disassemble_str(source, *, file=None):
+def _disassemble_str(source, **kwargs):
     """Compile the source string, then disassemble the code object."""
-    disassemble(_try_compile(source, '<dis>'), file=file)
+    _disassemble_recursive(_try_compile(source, '<dis>'), **kwargs)
 
 disco = disassemble                     # XXX For backwards compatibility
+
+def _unpack_opargs(code):
+    extended_arg = 0
+    for i in range(0, len(code), 2):
+        op = code[i]
+        if op >= HAVE_ARGUMENT:
+            arg = code[i+1] | extended_arg
+            extended_arg = (arg << 8) if op == EXTENDED_ARG else 0
+        else:
+            arg = None
+        yield (i, op, arg)
 
 def findlabels(code):
     """Detect all offsets in a byte code which are jump targets.
@@ -356,24 +421,16 @@ def findlabels(code):
 
     """
     labels = []
-    # enumerate() is not an option, since we sometimes process
-    # multiple elements on a single pass through the loop
-    n = len(code)
-    i = 0
-    while i < n:
-        op = code[i]
-        i = i+1
-        if op >= HAVE_ARGUMENT:
-            arg = code[i] + code[i+1]*256
-            i = i+2
-            label = -1
+    for offset, op, arg in _unpack_opargs(code):
+        if arg is not None:
             if op in hasjrel:
-                label = i+arg
+                label = offset + 2 + arg
             elif op in hasjabs:
                 label = arg
-            if label >= 0:
-                if label not in labels:
-                    labels.append(label)
+            else:
+                continue
+            if label not in labels:
+                labels.append(label)
     return labels
 
 def findlinestarts(code):
@@ -382,8 +439,8 @@ def findlinestarts(code):
     Generate pairs (offset, lineno) as described in Python/compile.c.
 
     """
-    byte_increments = list(code.co_lnotab[0::2])
-    line_increments = list(code.co_lnotab[1::2])
+    byte_increments = code.co_lnotab[0::2]
+    line_increments = code.co_lnotab[1::2]
 
     lastlineno = None
     lineno = code.co_firstlineno
@@ -394,6 +451,9 @@ def findlinestarts(code):
                 yield (addr, lineno)
                 lastlineno = lineno
             addr += byte_incr
+        if line_incr >= 0x80:
+            # line_increments is an array of 8-bit signed integers
+            line_incr -= 0x100
         lineno += line_incr
     if lineno != lastlineno:
         yield (addr, lineno)
@@ -401,8 +461,8 @@ def findlinestarts(code):
 class Bytecode:
     """The bytecode operations of a piece of code
 
-    Instantiate this with a function, method, string of code, or a code object
-    (as returned by compile()).
+    Instantiate this with a function, method, other compiled object, string of
+    code, or a code object (as returned by compile()).
 
     Iterating over this yields the bytecode operations as Instruction instances.
     """

@@ -3,6 +3,7 @@ import sys
 import threading
 
 from . import process
+from . import reduction
 
 __all__ = []            # things are copied from here to __init__.py
 
@@ -188,15 +189,25 @@ class BaseContext(object):
         try:
             ctx = _concrete_contexts[method]
         except KeyError:
-            raise ValueError('cannot find context for %r' % method)
+            raise ValueError('cannot find context for %r' % method) from None
         ctx._check_available()
         return ctx
 
     def get_start_method(self, allow_none=False):
         return self._name
 
-    def set_start_method(self, method=None):
+    def set_start_method(self, method, force=False):
         raise ValueError('cannot set start method of concrete context')
+
+    @property
+    def reducer(self):
+        '''Controls how objects will be reduced to a form that can be
+        shared with other processes.'''
+        return globals().get('reduction')
+
+    @reducer.setter
+    def reducer(self, reduction):
+        globals()['reduction'] = reduction
 
     def _check_available(self):
         pass
@@ -245,13 +256,12 @@ class DefaultContext(BaseContext):
         if sys.platform == 'win32':
             return ['spawn']
         else:
-            from . import reduction
             if reduction.HAVE_SEND_HANDLE:
                 return ['fork', 'spawn', 'forkserver']
             else:
                 return ['fork', 'spawn']
 
-DefaultContext.__all__ = list(x for x in dir(DefaultContext) if x[0] != '_')
+DefaultContext.__all__ = [x for x in dir(DefaultContext) if x[0] != '_']
 
 #
 # Context types for fixed start method
@@ -292,7 +302,6 @@ if sys.platform != 'win32':
         _name = 'forkserver'
         Process = ForkServerProcess
         def _check_available(self):
-            from . import reduction
             if not reduction.HAVE_SEND_HANDLE:
                 raise ValueError('forkserver start method not available')
 

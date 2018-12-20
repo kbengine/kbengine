@@ -6,7 +6,9 @@ from distutils import debug
 from distutils.log import WARN
 from distutils.errors import DistutilsTemplateError
 from distutils.filelist import glob_to_re, translate_pattern, FileList
+from distutils import filelist
 
+import test.support
 from test.support import captured_stdout, run_unittest
 from distutils.tests import support
 
@@ -49,14 +51,14 @@ class FileListTestCase(support.LoggingSilencer,
 
         for glob, regex in (
             # simple cases
-            ('foo*', r'foo[^%(sep)s]*\Z(?ms)'),
-            ('foo?', r'foo[^%(sep)s]\Z(?ms)'),
-            ('foo??', r'foo[^%(sep)s][^%(sep)s]\Z(?ms)'),
+            ('foo*', r'(?s:foo[^%(sep)s]*)\Z'),
+            ('foo?', r'(?s:foo[^%(sep)s])\Z'),
+            ('foo??', r'(?s:foo[^%(sep)s][^%(sep)s])\Z'),
             # special cases
-            (r'foo\\*', r'foo\\\\[^%(sep)s]*\Z(?ms)'),
-            (r'foo\\\*', r'foo\\\\\\[^%(sep)s]*\Z(?ms)'),
-            ('foo????', r'foo[^%(sep)s][^%(sep)s][^%(sep)s][^%(sep)s]\Z(?ms)'),
-            (r'foo\\??', r'foo\\\\[^%(sep)s][^%(sep)s]\Z(?ms)')):
+            (r'foo\\*', r'(?s:foo\\\\[^%(sep)s]*)\Z'),
+            (r'foo\\\*', r'(?s:foo\\\\\\[^%(sep)s]*)\Z'),
+            ('foo????', r'(?s:foo[^%(sep)s][^%(sep)s][^%(sep)s][^%(sep)s])\Z'),
+            (r'foo\\??', r'(?s:foo\\\\[^%(sep)s][^%(sep)s])\Z')):
             regex = regex % {'sep': sep}
             self.assertEqual(glob_to_re(glob), regex)
 
@@ -292,8 +294,47 @@ class FileListTestCase(support.LoggingSilencer,
         self.assertWarnings()
 
 
+class FindAllTestCase(unittest.TestCase):
+    @test.support.skip_unless_symlink
+    def test_missing_symlink(self):
+        with test.support.temp_cwd():
+            os.symlink('foo', 'bar')
+            self.assertEqual(filelist.findall(), [])
+
+    def test_basic_discovery(self):
+        """
+        When findall is called with no parameters or with
+        '.' as the parameter, the dot should be omitted from
+        the results.
+        """
+        with test.support.temp_cwd():
+            os.mkdir('foo')
+            file1 = os.path.join('foo', 'file1.txt')
+            test.support.create_empty_file(file1)
+            os.mkdir('bar')
+            file2 = os.path.join('bar', 'file2.txt')
+            test.support.create_empty_file(file2)
+            expected = [file2, file1]
+            self.assertEqual(sorted(filelist.findall()), expected)
+
+    def test_non_local_discovery(self):
+        """
+        When findall is called with another path, the full
+        path name should be returned.
+        """
+        with test.support.temp_dir() as temp_dir:
+            file1 = os.path.join(temp_dir, 'file1.txt')
+            test.support.create_empty_file(file1)
+            expected = [file1]
+            self.assertEqual(filelist.findall(temp_dir), expected)
+
+
 def test_suite():
-    return unittest.makeSuite(FileListTestCase)
+    return unittest.TestSuite([
+        unittest.makeSuite(FileListTestCase),
+        unittest.makeSuite(FindAllTestCase),
+    ])
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

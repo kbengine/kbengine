@@ -4,6 +4,7 @@ from test import support
 
 pwd = support.import_module('pwd')
 
+@unittest.skipUnless(hasattr(pwd, 'getpwall'), 'Does not have getpwall()')
 class PwdTest(unittest.TestCase):
 
     def test_values(self):
@@ -107,8 +108,5 @@ class PwdTest(unittest.TestCase):
         self.assertRaises(KeyError, pwd.getpwuid, 2**128)
         self.assertRaises(KeyError, pwd.getpwuid, -2**128)
 
-def test_main():
-    support.run_unittest(PwdTest)
-
 if __name__ == "__main__":
-    test_main()
+    unittest.main()

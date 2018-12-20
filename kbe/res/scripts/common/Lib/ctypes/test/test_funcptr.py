@@ -1,4 +1,4 @@
-import os, unittest
+import unittest
 from ctypes import *
 
 try:
@@ -39,7 +39,7 @@ class CFuncPtrTestCase(unittest.TestCase):
         # possible, as in C, to call cdecl functions with more parameters.
         #self.assertRaises(TypeError, c, 1, 2, 3)
         self.assertEqual(c(1, 2, 3, 4, 5, 6), 3)
-        if not WINFUNCTYPE is CFUNCTYPE and os.name != "ce":
+        if not WINFUNCTYPE is CFUNCTYPE:
             self.assertRaises(TypeError, s, 1, 2, 3)
 
     def test_structures(self):
@@ -122,6 +122,11 @@ class CFuncPtrTestCase(unittest.TestCase):
         self.assertEqual(strtok(None, b"\n"), b"b")
         self.assertEqual(strtok(None, b"\n"), b"c")
         self.assertEqual(strtok(None, b"\n"), None)
+
+    def test_abstract(self):
+        from ctypes import _CFuncPtr
+
+        self.assertRaises(TypeError, _CFuncPtr, 13, "name", 42, "iid")
 
 if __name__ == '__main__':
     unittest.main()

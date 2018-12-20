@@ -36,11 +36,11 @@ ecre = re.compile(r'''
   =\?                   # literal =?
   (?P<charset>[^?]*?)   # non-greedy up to the next ? is the charset
   \?                    # literal ?
-  (?P<encoding>[qb])    # either a "q" or a "b", case insensitive
+  (?P<encoding>[qQbB])  # either a "q" or a "b", case insensitive
   \?                    # literal ?
   (?P<encoded>.*?)      # non-greedy up to the next ?= is the encoded string
   \?=                   # literal ?=
-  ''', re.VERBOSE | re.IGNORECASE | re.MULTILINE)
+  ''', re.VERBOSE | re.MULTILINE)
 
 # Field name regexp, including trailing colon, but not separating whitespace,
 # according to RFC 2822.  Character range is from tilde to exclamation mark.
@@ -49,7 +49,7 @@ fcre = re.compile(r'[\041-\176]+:$')
 
 # Find a header embedded in a putative header value.  Used to check for
 # header injection attack.
-_embeded_header = re.compile(r'\n[^ \t]+:')
+_embedded_header = re.compile(r'\n[^ \t]+:')
 
 
 
@@ -262,9 +262,6 @@ class Header:
         # args and do another comparison.
         return other == str(self)
 
-    def __ne__(self, other):
-        return not self == other
-
     def append(self, s, charset=None, errors='strict'):
         """Append a string to the MIME header.
 
@@ -388,7 +385,7 @@ class Header:
         if self._chunks:
             formatter.add_transition()
         value = formatter._str(linesep)
-        if _embeded_header.search(value):
+        if _embedded_header.search(value):
             raise HeaderParseError("header value appears to contain "
                 "an embedded header: {!r}".format(value))
         return value
