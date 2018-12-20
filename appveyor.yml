@@ -13,4 +13,4 @@ environment:
   - TOOLSET: vs2015
 
 build:
-  project: kbe/src/kbengine_vs140.sln
+  project: kbe/src/kbengine.sln
