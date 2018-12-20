@@ -29,7 +29,7 @@ BASE_SCRIPT_INIT(EntityComponent, 0, 0, 0, 0, 0)
 //-------------------------------------------------------------------------------------
 PyObject* EntityComponent::onScriptGetAttribute(PyObject* attr)
 {
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 
 	if (ownerID_ > 0)
 	{

@@ -611,7 +611,7 @@ PyObject* Proxy::__py_pyStreamFileToClient(PyObject* self, PyObject* args)
 		}
 	}
 
-	char* pDescr = NULL;
+	const char* pDescr = NULL;
 
 	if (pyDesc)
 	{
@@ -700,7 +700,7 @@ PyObject* Proxy::__py_pyStreamStringToClient(PyObject* self, PyObject* args)
 		}
 	}
 
-	char* pDescr = NULL;
+	const char* pDescr = NULL;
 
 	if (pyDesc)
 	{
