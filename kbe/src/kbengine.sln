@@ -82,6 +82,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client_lib", "lib\client_li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "guiconsole", "server\tools\guiconsole\guiconsole.vcxproj", "{78EE8B08-4E07-4C07-9592-BC4D09503155}"
 	ProjectSection(ProjectDependencies) = postProject
+		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
 		{561FA9F7-14D0-4D94-822C-AAE9B08AACEF} = {561FA9F7-14D0-4D94-822C-AAE9B08AACEF}
 	EndProjectSection
 EndProject
