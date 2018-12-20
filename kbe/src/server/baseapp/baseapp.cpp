@@ -1017,7 +1017,7 @@ PyObject* Baseapp::__py_createEntityFromDBID(PyObject* self, PyObject* args)
 {
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
-	char* entityType = NULL;
+	const char* entityType = NULL;
 	int ret = -1;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
@@ -1351,7 +1351,7 @@ PyObject* Baseapp::__py_createEntityAnywhereFromDBID(PyObject* self, PyObject* a
 {
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL;
-	char* entityType = NULL;
+	const char* entityType = NULL;
 	int ret = -1;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;
@@ -1860,7 +1860,7 @@ PyObject* Baseapp::__py_createEntityRemotelyFromDBID(PyObject* self, PyObject* a
 {
 	int argCount = (int)PyTuple_Size(args);
 	PyObject* pyCallback = NULL, *pyEntityCall = NULL;
-	char* entityType = NULL;
+	const char* entityType = NULL;
 	int ret = -1;
 	DBID dbid = 0;
 	PyObject* pyEntityType = NULL;

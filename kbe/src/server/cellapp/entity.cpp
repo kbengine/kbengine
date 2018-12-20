@@ -646,7 +646,7 @@ PyObject* Entity::onScriptGetAttribute(PyObject* attr)
 {
 	DEBUG_OP_ATTRIBUTE("get", attr)
 
-	char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
+	const char* ccattr = PyUnicode_AsUTF8AndSize(attr, NULL);
 		
 	// 如果是ghost调用def方法则需要rpc调用。
 	if(!isReal())
@@ -3063,7 +3063,7 @@ PyObject* Entity::__py_pyEntitiesInRange(PyObject* self, PyObject* args)
 		return 0;
 	}
 
-	char* pEntityType = NULL;
+	const char* pEntityType = NULL;
 	Position3D originpos;
 
 	// 将坐标信息提取出来

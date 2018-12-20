@@ -1055,7 +1055,7 @@ PyObject* StringType::parseDefaultStr(std::string defaultVal)
 //-------------------------------------------------------------------------------------
 void StringType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
-	char* s = PyUnicode_AsUTF8AndSize(pyValue, NULL);
+	const char* s = PyUnicode_AsUTF8AndSize(pyValue, NULL);
 
 	if (s == NULL)
 	{
@@ -1135,7 +1135,7 @@ PyObject* UnicodeType::parseDefaultStr(std::string defaultVal)
 void UnicodeType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 {
 	Py_ssize_t size;
-	char* s = PyUnicode_AsUTF8AndSize(pyValue, &size);
+	const char* s = PyUnicode_AsUTF8AndSize(pyValue, &size);
 
 	if (s == NULL)
 	{
@@ -1548,7 +1548,7 @@ void EntityCallType::addToStream(MemoryStream* mstream, PyObject* pyValue)
 					PyObject* pyClass = PyObject_GetAttrString(pyValue, "__class__");
 					PyObject* pyClassName = PyObject_GetAttrString(pyClass, "__name__");
 
-					char* ccattr = PyUnicode_AsUTF8AndSize(pyClassName, NULL);
+					const char* ccattr = PyUnicode_AsUTF8AndSize(pyClassName, NULL);
 
 					Py_DECREF(pyClass);
 					Py_DECREF(pyClassName);
