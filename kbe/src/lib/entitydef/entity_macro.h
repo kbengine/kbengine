@@ -1241,7 +1241,7 @@ public:																										\
 				Py_RETURN_FALSE;																			\
 			}																								\
 																											\
-			eventName = PyUnicode_AsUTF8AndSize(pyEvnName, NULL);											\
+			eventName = const_cast<char*>(PyUnicode_AsUTF8AndSize(pyEvnName, NULL));						\
 																											\
 			PyObject* pyargs = PyTuple_GetSlice(args, 1, currargsSize);										\
 			pobj->fireEvent(eventName, pyargs);																\
