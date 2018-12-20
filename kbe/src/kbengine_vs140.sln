@@ -43,11 +43,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "machine", "server\machine\m
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "baseappmgr", "server\baseappmgr\baseappmgr.vcxproj", "{1BAD0518-F2BB-42F5-83E7-9E1804FAD7C1}"
 	ProjectSection(ProjectDependencies) = postProject
+		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
 		{561FA9F7-14D0-4D94-822C-AAE9B08AACEF} = {561FA9F7-14D0-4D94-822C-AAE9B08AACEF}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cellappmgr", "server\cellappmgr\cellappmgr.vcxproj", "{FE88370E-80F7-49BD-A8D1-E7A2CA699E44}"
 	ProjectSection(ProjectDependencies) = postProject
+		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
 		{561FA9F7-14D0-4D94-822C-AAE9B08AACEF} = {561FA9F7-14D0-4D94-822C-AAE9B08AACEF}
 	EndProjectSection
 EndProject
