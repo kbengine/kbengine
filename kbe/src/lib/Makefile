@@ -15,17 +15,20 @@ else
 	OPENSSL_CONFIG+=
 endif
 
+pyd_files := $(wildcard $(KBE_ROOT)/kbe/src/lib/python/.build/lib.*)
+python_files := $(wildcard $(KBE_ROOT)/kbe/src/lib/python/libpython*.a)
+
 # This directory must match the directory in src/build/common.mak
 LIBDIR=$(KBE_ROOT)/kbe/src/lib/bin
 
 all install clean full:
 	test -d $(LIBDIR) || mkdir $(LIBDIR)
+	cd dependencies/zlib && $(MAKE) $@  if ! test -e ../../../libs/libz.a; then \cp -f "libz.a" "../../../libs"; fi && if ! test -e ../../../libs/libz.a; then \cp -f "libz.a" "../../../libs"; fi
 	cd dependencies/fmt/src && $(MAKE) $@
 	cd dependencies/jemalloc && $(MAKE) $@ && if ! test -e ../../../libs/libjemalloc.a; then \cp -f "./lib/libjemalloc.a" "../../../libs"; fi
 	cd dependencies/openssl && $(MAKE) $@ && if ! test -e ../../../libs/libssl.a; then \cp -f "libssl.a" "../../../libs"; fi && if ! test -e ../../../libs/libcrypto.a; then \cp -f "libcrypto.a" "../../../libs"; fi
 	cd dependencies/curl && $(MAKE) $@
 	cd dependencies/hiredis && $(MAKE) $@
-	cd dependencies/zip && $(MAKE) $@
 	cd dependencies/g3dlite && $(MAKE) $@
 	cd dependencies/tinyxml && $(MAKE) $@
 	cd dependencies/sigar/linux && $(MAKE) $@
@@ -35,7 +38,7 @@ all install clean full:
 	cd dependencies/expat && $(MAKE) $@ && if ! test -e ../../../libs/libexpat.a; then \cp -f "./.libs/libexpat.a" "../../../libs"; fi
 	cd dependencies/apr-util && $(MAKE) $@ && if ! test -e ../../../libs/libaprutil-1.a; then \cp -f ".libs/libaprutil-1.a" "../../../libs"; fi
 	cd dependencies/log4cxx && $(MAKE) $@ && if ! test -e ../../../libs/liblog4cxx.a; then \cp -f "src/main/cpp/.libs/liblog4cxx.a" "../../../libs"; fi
-	cd python && $(MAKE) $@ && cp -f "$(KBE_ROOT)/kbe/src/lib/python/libpython3.7m.a" "$(KBE_ROOT)/kbe/src/libs/libpython.a"
+	cd python && $(MAKE) $@ && cp -f ${python_files} "$(KBE_ROOT)/kbe/src/libs/libpython.a" && cp -f ${pyd_files} "$(KBE_ROOT)/kbe/res/scripts/common/lib-dynload/"
 	cd client_lib && $(MAKE) $@
 	cd common && $(MAKE) $@
 	cd db_redis && $(MAKE) $@
